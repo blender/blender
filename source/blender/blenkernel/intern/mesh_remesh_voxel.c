@@ -71,7 +71,7 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
   unsigned int totverts = mesh->totvert;
   float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
   unsigned int *faces = (unsigned int *)MEM_malloc_arrayN(
-      totfaces * 3, sizeof(unsigned int), "remesh_intput_faces");
+      totfaces * 3, sizeof(unsigned int), "remesh_input_faces");
 
   for (unsigned int i = 0; i < totverts; i++) {
     MVert *mvert = &mesh->mvert[i];
@@ -175,7 +175,7 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   unsigned int totverts = input_mesh->totvert;
   float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
   unsigned int *faces = (unsigned int *)MEM_malloc_arrayN(
-      totfaces * 3, sizeof(unsigned int), "remesh_intput_faces");
+      totfaces * 3, sizeof(unsigned int), "remesh_input_faces");
 
   for (unsigned int i = 0; i < totverts; i++) {
     MVert *mvert = &input_mesh->mvert[i];

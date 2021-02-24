@@ -333,6 +333,14 @@ if(WITH_LLVM)
   if(NOT LLVM_FOUND)
     message(FATAL_ERROR "LLVM not found.")
   endif()
+# Temporarily removing clang - new libs still need to be committed
+#  if(WITH_CLANG)
+#    find_package(Clang)
+#    if(NOT CLANG_FOUND)
+#       message(FATAL_ERROR "Clang not found.")
+#    endif()
+#  endif()
+
 endif()
 
 if(WITH_CYCLES_OSL)

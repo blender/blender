@@ -309,12 +309,6 @@ class GHOST_SystemWin32 : public GHOST_System {
                                                GHOST_TButtonMask mask);
 
   /**
-   * Creates tablet events from Wintab events.
-   * \param window: The window receiving the event (the active window).
-   */
-  static void processWintabEvent(GHOST_WindowWin32 *window);
-
-  /**
    * Creates tablet events from pointer events.
    * \param type: The type of pointer event.
    * \param window: The window receiving the event (the active window).
@@ -328,8 +322,9 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Creates cursor event.
    * \param window: The window receiving the event (the active window).
+   * \return The event created.
    */
-  static void processCursorEvent(GHOST_WindowWin32 *window);
+  static GHOST_EventCursor *processCursorEvent(GHOST_WindowWin32 *window);
 
   /**
    * Handles a mouse wheel event.
@@ -453,13 +448,6 @@ class GHOST_SystemWin32 : public GHOST_System {
 
   /** Wheel delta accumulator. */
   int m_wheelDeltaAccum;
-
-  /** Last mouse x position. */
-  int m_mousePosX;
-  /** Last mouse y position. */
-  int m_mousePosY;
-  /** Last mouse timestamp. */
-  DWORD m_mouseTimestamp;
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys &keys) const

@@ -82,6 +82,7 @@ using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::StringRef;
+using blender::StringRefNull;
 using blender::Vector;
 using blender::bke::PersistentCollectionHandle;
 using blender::bke::PersistentDataHandleMap;
@@ -388,6 +389,8 @@ class GeometryNodesEvaluator {
   {
     const bNode &bnode = params.node();
 
+    this->store_ui_hints(node, params);
+
     /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
       bnode.typeinfo->geometry_node_execute(params);
@@ -403,6 +406,33 @@ class GeometryNodesEvaluator {
 
     /* Just output default values if no implementation exists. */
     this->execute_unknown_node(node, params);
+  }
+
+  void store_ui_hints(const DNode &node, GeoNodeExecParams params) const
+  {
+    for (const DInputSocket *dsocket : node.inputs()) {
+      if (!dsocket->is_available()) {
+        continue;
+      }
+      if (dsocket->bsocket()->type != SOCK_GEOMETRY) {
+        continue;
+      }
+
+      bNodeTree *btree_cow = node.node_ref().tree().btree();
+      bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
+      const NodeTreeEvaluationContext context(*self_object_, *modifier_);
+
+      const GeometrySet &geometry_set = params.get_input<GeometrySet>(dsocket->identifier());
+      const Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
+
+      for (const GeometryComponent *component : components) {
+        component->attribute_foreach([&](StringRefNull attribute_name,
+                                         const AttributeMetaData &UNUSED(meta_data)) {
+          BKE_nodetree_attribute_hint_add(*btree_original, context, *node.bnode(), attribute_name);
+          return true;
+        });
+      }
+    }
   }
 
   void execute_multi_function_node(const DNode &node,

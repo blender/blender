@@ -30,5 +30,5 @@ ExternalProject_Add(external_openmp
 
 add_dependencies(
   external_openmp
-  external_clang
+  ll
 )

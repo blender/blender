@@ -30,9 +30,9 @@
  * A `FunctionRef` is small and cheap to copy. Therefore it should generally be passed by value.
  *
  * Example signatures:
- *   FunctionRef<void()>        - A function without parameters and void return type.
- *   FunctionRef<int(float)>    - A function with a float paramter and an int return value.
- *   FunctionRef<int(int, int)> - A function with two int parameters and an int return value.
+ *   `FunctionRef<void()>`        - A function without parameters and void return type.
+ *   `FunctionRef<int(float)>`    - A function with a float parameter and an int return value.
+ *   `FunctionRef<int(int, int)>` - A function with two int parameters and an int return value.
  *
  * There are multiple ways to achieve that, so here is a comparison of the different approaches:
  * 1. Pass function pointer and user data (as void *) separately:

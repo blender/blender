@@ -21,6 +21,7 @@
 #pragma once
 
 struct AnimationEvalContext;
+struct ARegionType;
 struct ChannelDriver; /* DNA_anim_types.h */
 struct ID;            /* DNA_ID.h */
 struct ListBase;      /* DNA_listBase.h */
@@ -33,6 +34,7 @@ struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct bContext;
 struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */
+struct wmWindowManager;
 
 #include "BLI_utildefines.h"
 
@@ -99,6 +101,10 @@ void BPY_context_dict_clear_members_array(void **dict_p,
 void BPY_id_release(struct ID *id);
 
 bool BPY_string_is_keyword(const char *str);
+
+/* bpy_rna_callback.c */
+void BPY_callback_screen_free(struct ARegionType *art);
+void BPY_callback_wm_free(struct wmWindowManager *wm);
 
 /* I18n for addons */
 #ifdef WITH_INTERNATIONAL

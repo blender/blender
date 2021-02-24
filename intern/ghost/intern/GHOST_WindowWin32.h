@@ -446,12 +446,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                 WPARAM wParam,
                                 LPARAM lParam);
 
-  /**
-   * Handle Wintab info changes such as change in number of connected tablets.
-   * \param lParam: LPARAM of the event.
-   */
-  void processWintabInfoChangeEvent(LPARAM lParam);
-
   void processWin32TabletActivateEvent(WORD state);
   void processWin32TabletInitEvent();
   void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
@@ -576,7 +570,6 @@ class GHOST_WindowWin32 : public GHOST_Window {
     HCTX tablet;
     LONG maxPressure;
     LONG maxAzimuth, maxAltitude;
-    UINT numDevices;
   } m_wintab;
 
   GHOST_TWindowState m_normal_state;

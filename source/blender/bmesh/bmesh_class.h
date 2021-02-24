@@ -18,9 +18,10 @@
 
 /** \file
  * \ingroup bmesh
+ *
+ * #BMesh data structures, used for mesh editing operations
+ * that benefit from accessing connectivity information.
  */
-
-/* bmesh data structures */
 
 /* disable holes for now,
  * these are ifdef'd because they use more memory and cant be saved in DNA currently */
@@ -46,15 +47,15 @@ struct BLI_mempool;
 // #pragma GCC diagnostic error "-Wpadded"
 
 /**
- * BMHeader
+ * #BMHeader
  *
- * All mesh elements begin with a BMHeader. This structure
+ * All mesh elements begin with a #BMHeader. This structure
  * hold several types of data
  *
  * 1: The type of the element (vert, edge, loop or face)
  * 2: Persistent "header" flags/markings (smooth, seam, select, hidden, etc)
- *     note that this is different from the "tool" flags.
- * 3: Unique ID in the bmesh.
+ *    note that this is different from the "tool" flags.
+ * 3: Unique ID in the #BMesh.
  * 4: some elements for internal record keeping.
  */
 typedef struct BMHeader {
@@ -102,7 +103,7 @@ typedef struct BMVert {
    * Pointer to (any) edge using this vertex (for disk cycles).
    *
    * \note Some higher level functions set this to different edges that use this vertex,
-   * which is a bit of an abuse of internal bmesh data but also works OK for now
+   * which is a bit of an abuse of internal #BMesh data but also works OK for now
    * (use with care!).
    */
   struct BMEdge *e;
@@ -121,10 +122,21 @@ typedef struct BMDiskLink {
 typedef struct BMEdge {
   BMHeader head;
 
-  struct BMVert *v1, *v2; /* vertices (unordered) */
+  /**
+   * Vertices (unordered),
+   *
+   * Although the order can be used at times,
+   * when extruding a face from a wire-edge for example.
+   *
+   * Operations that create/subdivide edges shouldn't flip the order
+   * unless there is a good reason to do so.
+   */
+  BMVert *v1, *v2;
 
-  /* the list of loops around the edge (use l->radial_prev/next)
-   * to access the other loops using the edge */
+  /**
+   * The list of loops around the edge, see doc-string for #BMLoop.radial_next
+   * for an example of using this to loop over all faces used by an edge.
+   */
   struct BMLoop *l;
 
   /**
@@ -145,17 +157,92 @@ typedef struct BMLoop {
   BMHeader head;
   /* notice no flags layer */
 
+  /**
+   * The vertex this loop points to.
+   *
+   * - This vertex must be unique within the cycle.
+   */
   struct BMVert *v;
-  struct BMEdge *e; /* edge, using verts (v, next->v) */
+
+  /**
+   * The edge this loop uses.
+   *
+   * Vertices (#BMLoop.v & #BMLoop.next.v) always contain vertices from (#BMEdge.v1 & #BMEdge.v2).
+   * Although no assumptions can be made about the order,
+   * as this isn't meaningful for mesh topology.
+   *
+   * - This edge must be unique within the cycle (defined by #BMLoop.next & #BMLoop.prev links).
+   */
+  struct BMEdge *e;
+  /**
+   * The face this loop is part of.
+   *
+   * - This face must be shared by all within the cycle.
+   *   Used as a back-pointer so loops can know the face they define.
+   */
   struct BMFace *f;
 
-  /* circular linked list of loops which all use the same edge as this one '->e',
-   * but not necessarily the same vertex (can be either v1 or v2 of our own '->e') */
+  /**
+   * Other loops connected to this edge,.
+   *
+   * This is typically use for accessing an edges faces,
+   * however this is done by stepping over it's loops.
+   *
+   * - This is a circular list, so there are no first/last storage of the "radial" data.
+   *   Instead #BMEdge.l points to any one of the loops that use it.
+   *
+   * - Since the list is circular, the particular loop referenced doesn't matter,
+   *   as all other loops can be accessed from it.
+   *
+   * - Every loop in this radial list has the same value for #BMLoop.e.
+   *
+   * - The value for #BMLoop.v might not match the radial next/previous
+   *   as this depends on the face-winding.
+   *   You can be sure #BMLoop.v will either #BMEdge.v1 or #BMEdge.v2 of #BMLoop.e,
+   *
+   * - Unlike face-winding (which defines if the direction the face points),
+   *   next and previous are insignificant. The list could be reversed for example,
+   *   without any impact on the topology.
+   *
+   * This is an example of looping over an edges faces using #BMLoop.radial_next.
+   *
+   * \code{.c}
+   * BMLoop *l_iter = edge->l;
+   * do {
+   *   operate_on_face(l_iter->f);
+   * } while ((l_iter = l_iter->radial_next) != edge->l);
+   * \endcode
+   */
   struct BMLoop *radial_next, *radial_prev;
 
-  /* these were originally commented as private but are used all over the code */
-  /* can't use ListBase API, due to head */
-  struct BMLoop *next, *prev; /* next/prev verts around the face */
+  /**
+   * Other loops that are part of this face.
+   *
+   * This is typically used for accessing all vertices/edges in a faces.
+   *
+   * - This is a circular list, so there are no first/last storage of the "cycle" data.
+   *   Instead #BMFace.l_first points to any one of the loops that are part of this face.
+   *
+   * - Since the list is circular, the particular loop referenced doesn't matter,
+   *   as all other loops can be accessed from it.
+   *
+   * - Every loop in this "cycle" list has the same value for #BMLoop.f.
+   *
+   * - The direction of this list defines the face winding.
+   *   Reversing the list flips the face.
+   *
+   * This is an example loop over all vertices and edges of a face.
+   *
+   * \code{.c}
+   * BMLoop *l_first, *l_iter;
+   * l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+   * do {
+   *   operate_on_vert(l_iter->v);
+   *   operate_on_edge(l_iter->e);
+   * } while ((l_iter = l_iter->next) != l_first);
+   * \endcode
+   */
+  struct BMLoop *next, *prev;
 } BMLoop;
 
 /* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
@@ -185,7 +272,11 @@ typedef struct BMFace {
 #else
   BMLoop *l_first;
 #endif
-  int len;      /* number of vertices in the face */
+  /**
+   * Number of vertices in the face
+   * (the length of #BMFace.l_first circular linked list).
+   */
+  int len;
   float no[3];  /* face normal */
   short mat_nr; /* material index */
   //  short _pad[3];
@@ -206,13 +297,17 @@ typedef struct BMesh {
   int totvert, totedge, totloop, totface;
   int totvertsel, totedgesel, totfacesel;
 
-  /* flag index arrays as being dirty so we can check if they are clean and
+  /**
+   * Flag index arrays as being dirty so we can check if they are clean and
    * avoid looping over the entire vert/edge/face/loop array in those cases.
-   * valid flags are - BM_VERT | BM_EDGE | BM_FACE | BM_LOOP. */
+   * valid flags are: `(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP)`
+   */
   char elem_index_dirty;
 
-  /* flag array table as being dirty so we know when its safe to use it,
-   * or when it needs to be re-created */
+  /**
+   * Flag array table as being dirty so we know when its safe to use it,
+   * or when it needs to be re-created.
+   */
   char elem_table_dirty;
 
   /* element pools */
@@ -248,8 +343,8 @@ typedef struct BMesh {
   struct MLoopNorSpaceArray *lnor_spacearr;
   char spacearr_dirty;
 
-  /* should be copy of scene select mode */
-  /* stored in BMEditMesh too, this is a bit confusing,
+  /* Should be copy of scene select mode. */
+  /* Stored in #BMEditMesh too, this is a bit confusing,
    * make sure they're in sync!
    * Only use when the edit mesh cant be accessed - campbell */
   short selectmode;
@@ -260,14 +355,30 @@ typedef struct BMesh {
   int totflags;
   ListBase selected;
 
+  /**
+   * The active face.
+   * This is kept even when unselected, mainly so UV editing can keep showing the
+   * active faces image while the selection is being modified in the 3D viewport.
+   *
+   * Without this the active image in the UV editor would flicker in a distracting way
+   * while changing selection in the 3D viewport.
+   */
   BMFace *act_face;
 
+  /** List of #BMOpError, used for operator error handling. */
   ListBase errorstack;
 
+  /**
+   * Keep a single reference to the Python instance of this #BMesh (if any exists).
+   *
+   * This allows save invalidation of a #BMesh when it's freed,
+   * so the Python object will report it as having been removed,
+   * instead of crashing on invalid memory access.
+   */
   void *py_handle;
 } BMesh;
 
-/* BMHeader->htype (char) */
+/** #BMHeader.htype (char) */
 enum {
   BM_VERT = 1,
   BM_EDGE = 2,
@@ -288,7 +399,7 @@ typedef struct BMLoopNorEditDataArray {
   BMLoopNorEditData *lnor_editdata;
   /**
    * This one has full amount of loops,
-   * used to map loop index to actual BMLoopNorEditData struct.
+   * used to map loop index to actual #BMLoopNorEditData struct.
    */
   BMLoopNorEditData **lidx_to_lnor_editdata;
 
@@ -299,6 +410,7 @@ typedef struct BMLoopNorEditDataArray {
 #define BM_ALL (BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 #define BM_ALL_NOLOOP (BM_VERT | BM_EDGE | BM_FACE)
 
+/** #BMesh.spacearr_dirty */
 enum {
   BM_SPACEARR_DIRTY = 1 << 0,
   BM_SPACEARR_DIRTY_ALL = 1 << 1,
@@ -354,7 +466,7 @@ enum {
 #  define BM_CHECK_TYPE_ELEM_ASSIGN(ele) (BM_CHECK_TYPE_ELEM(ele)), ele
 #endif
 
-/* BMHeader->hflag (char) */
+/** #BMHeader.hflag (char) */
 enum {
   BM_ELEM_SELECT = (1 << 0),
   BM_ELEM_HIDDEN = (1 << 1),
@@ -364,21 +476,23 @@ enum {
    * this is a sharp edge when disabled */
   BM_ELEM_SMOOTH = (1 << 3),
   /**
-   * internal flag, used for ensuring correct normals
-   * during multires interpolation, and any other time
+   * Internal flag, used for ensuring correct normals
+   * during multi-resolution interpolation, and any other time
    * when temp tagging is handy.
-   * always assume dirty & clear before use. */
+   * always assume dirty & clear before use.
+   */
   BM_ELEM_TAG = (1 << 4),
 
   BM_ELEM_DRAW = (1 << 5), /* edge display */
 
-  /* spare tag, assumed dirty, use define in each function to name based on use */
+  /** Spare tag, assumed dirty, use define in each function to name based on use. */
   BM_ELEM_TAG_ALT = (1 << 6),
 
   /**
    * For low level internal API tagging,
    * since tools may want to tag verts and not have functions clobber them.
-   * Leave cleared! */
+   * Leave cleared!
+   */
   BM_ELEM_INTERNAL_TAG = (1 << 7),
 };
 

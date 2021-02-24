@@ -30,32 +30,12 @@
 
 #include "../generic/python_utildefines.h"
 
-#include "GPU_init_exit.h"
-
 #include "gpu_py_matrix.h"
 #include "gpu_py_select.h"
 #include "gpu_py_state.h"
 #include "gpu_py_types.h"
 
 #include "gpu_py_api.h" /* own include */
-
-/* -------------------------------------------------------------------- */
-/** \name Utils to invalidate functions
- * \{ */
-
-bool bpygpu_is_init_or_error(void)
-{
-  if (!GPU_is_init()) {
-    PyErr_SetString(PyExc_SystemError,
-                    "GPU functions for drawing are not available in background mode");
-
-    return false;
-  }
-
-  return true;
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name GPU Module

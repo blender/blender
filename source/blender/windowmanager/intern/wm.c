@@ -595,6 +595,9 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
     WM_msgbus_destroy(wm->message_bus);
   }
 
+#ifdef WITH_PYTHON
+  BPY_callback_wm_free(wm);
+#endif
   BLI_freelistN(&wm->paintcursors);
 
   WM_drag_free_list(&wm->drags);

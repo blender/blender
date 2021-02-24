@@ -321,12 +321,6 @@ void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *s
   }
 }
 
-void EEVEE_cryptomatte_cache_finish(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
-{
-  EEVEE_PrivateData *g_data = vedata->stl->g_data;
-  BKE_cryptomatte_finish(g_data->cryptomatte_session);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

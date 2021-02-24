@@ -177,30 +177,71 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
   /* calculate parent matrix */
   BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
   bGPDspoint *pt, pt_dummy_ps;
-  float v1a[2], v1b[2], v2a[2], v2b[2];
+  float v_from_start[2], v_to_start[2], v_from_end[2], v_to_end[2];
 
   /* Line from start of strokes. */
   pt = &gps_from->points[0];
   gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
-  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v1a[0], &v1a[1]);
+  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_from_start[0], &v_from_start[1]);
 
   pt = &gps_to->points[0];
   gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
-  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v1b[0], &v1b[1]);
+  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_to_start[0], &v_to_start[1]);
 
   /* Line from end of strokes. */
   pt = &gps_from->points[gps_from->totpoints - 1];
   gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
-  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v2a[0], &v2a[1]);
+  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_from_end[0], &v_from_end[1]);
 
   pt = &gps_to->points[gps_to->totpoints - 1];
   gpencil_point_to_parent_space(pt, diff_mat, &pt_dummy_ps);
-  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v2b[0], &v2b[1]);
+  gpencil_point_to_xy_fl(gsc, gps_from, &pt_dummy_ps, &v_to_end[0], &v_to_end[1]);
 
-  if (isect_seg_seg_v2(v1a, v1b, v2a, v2b) == ISECT_LINE_LINE_CROSS) {
+  const bool isect_lines = (isect_seg_seg_v2(v_from_start, v_to_start, v_from_end, v_to_end) ==
+                            ISECT_LINE_LINE_CROSS);
+
+  /* If the vectors intersect. */
+  if (isect_lines) {
+    /* For sharp angles, check distance between extremes. */
+    float v1[2], v2[2];
+    sub_v2_v2v2(v1, v_to_start, v_from_start);
+    sub_v2_v2v2(v2, v_to_end, v_from_end);
+    float angle = angle_v2v2(v1, v2);
+    if (angle < DEG2RADF(15.0f)) {
+      /* Check the original stroke orientation using a point of destination stroke
+       * `(S)<--??-->(E)   <--->`. */
+      float dist_start = len_squared_v2v2(v_from_start, v_to_start);
+      float dist_end = len_squared_v2v2(v_from_end, v_to_start);
+      /* Oriented with end nearer of destination stroke.
+       * `(S)--->(E) <--->` */
+      if (dist_start >= dist_end) {
+        dist_start = len_squared_v2v2(v_from_end, v_to_start);
+        dist_end = len_squared_v2v2(v_from_end, v_to_end);
+        /* `(S)--->(E) (E)<---(S)` */
+        return (dist_start >= dist_end);
+      }
+      else {
+        /* Oriented inversed with original stroke start near of destination stroke.
+         * `(E)<----(S) <--->` */
+        dist_start = len_squared_v2v2(v_from_start, v_to_start);
+        dist_end = len_squared_v2v2(v_from_start, v_to_end);
+        /* `(E)<---(S) (S)--->(E)` */
+        return (dist_start < dist_end);
+      }
+    }
+
     return true;
   }
-
+  else {
+    /* Check that both vectors have the same direction. */
+    float v1[2], v2[2];
+    sub_v2_v2v2(v1, v_from_end, v_from_start);
+    sub_v2_v2v2(v2, v_to_end, v_to_start);
+    if (((v1[0] > 0.0f && v2[0] < 0.0f) || (v1[0] < 0.0f && v2[0] > 0.0f)) &&
+        ((v1[1] > 0.0f && v2[1] < 0.0f) || (v1[1] < 0.0f && v2[1] > 0.0f))) {
+      return true;
+    }
+  }
   return false;
 }
 

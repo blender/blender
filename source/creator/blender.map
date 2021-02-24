@@ -16,6 +16,7 @@ local:
   *boost*;
   *ceres*;
   *cineon*;
+  *clang*;
   *COLLADA*;
   cu*;
   *default_error_condition*;

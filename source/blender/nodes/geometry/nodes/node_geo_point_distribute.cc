@@ -379,7 +379,7 @@ BLI_NOINLINE static void compute_special_attributes(const Mesh &mesh,
     const float3 v1_pos = mesh.mvert[v1_index].co;
     const float3 v2_pos = mesh.mvert[v2_index].co;
 
-    ids[i] = (int)(bary_coord.hash()) + looptri_index;
+    ids[i] = (int)(bary_coord.hash() + (uint64_t)looptri_index);
     normal_tri_v3(normals[i], v0_pos, v1_pos, v2_pos);
     rotations[i] = normal_to_euler_rotation(normals[i]);
   }

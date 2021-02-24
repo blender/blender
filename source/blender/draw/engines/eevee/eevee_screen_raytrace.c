@@ -246,7 +246,7 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
     /* Resolve at fullres */
     int samp = (DRW_state_is_image_render()) ? effects->taa_render_sample :
-                                                 effects->taa_current_sample;
+                                               effects->taa_current_sample;
     /* Doing a neighbor shift only after a few iteration.
      * We wait for a prime number of cycles to avoid noise correlation.
      * This reduces variance faster. */

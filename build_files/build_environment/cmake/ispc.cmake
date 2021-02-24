@@ -39,8 +39,8 @@ elseif(APPLE)
   endif()
 elseif(UNIX)
   set(ISPC_EXTRA_ARGS_UNIX
-    -DCMAKE_C_COMPILER=${LIBDIR}/clang/bin/clang
-    -DCMAKE_CXX_COMPILER=${LIBDIR}/clang/bin/clang++
+    -DCMAKE_C_COMPILER=${LIBDIR}/llvm/bin/clang
+    -DCMAKE_CXX_COMPILER=${LIBDIR}/llvm/bin/clang++
     -DARM_ENABLED=Off
   )
 endif()
@@ -51,11 +51,11 @@ set(ISPC_EXTRA_ARGS
     -DISPC_INCLUDE_TESTS=Off
     -DLLVM_ROOT=${LIBDIR}/llvm/lib/cmake/llvm
     -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
-    -DCLANG_EXECUTABLE=${LIBDIR}/clang/bin/clang
-    -DCLANGPP_EXECUTABLE=${LIBDIR}/clang/bin/clang++
+    -DCLANG_EXECUTABLE=${LIBDIR}/llvm/bin/clang
+    -DCLANGPP_EXECUTABLE=${LIBDIR}/llvm/bin/clang++
     -DISPC_INCLUDE_TESTS=Off
-    -DCLANG_LIBRARY_DIR=${LIBDIR}/clang/lib
-    -DCLANG_INCLUDE_DIRS=${LIBDIR}/clang/include
+    -DCLANG_LIBRARY_DIR=${LIBDIR}/llvm/lib
+    -DCLANG_INCLUDE_DIRS=${LIBDIR}/llvm/include
     ${ISPC_EXTRA_ARGS_WIN}
     ${ISPC_EXTRA_ARGS_APPLE}
     ${ISPC_EXTRA_ARGS_UNIX}
@@ -74,7 +74,6 @@ ExternalProject_Add(external_ispc
 add_dependencies(
   external_ispc
   ll
-  external_clang
 )
 
 if(WIN32)
