@@ -356,6 +356,25 @@ static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *curre
 }
 
 
+static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current_mask) {
+    const int totvert = SCULPT_vertex_count_get(ss);
+    float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
+    for (int i = 0; i < totvert; i++) {
+        float max = 0.0f;
+        SculptVertexNeighborIter ni;
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+          float vmask_f = current_mask[ni.index];
+          if (vmask_f > max) {
+            max = vmask_f;
+          }
+        }
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+        next_mask[i] = max;
+    }
+    return next_mask;
+}
+
+
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -383,6 +402,46 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       return OPERATOR_RUNNING_MODAL;
   }
 
+
+  while(filter_cache->mask_filter_current_step != target_step) {
+      int next_step = filter_cache->mask_filter_current_step;
+      int delta_index = next_step;
+
+      if (target_step > filter_cache->mask_filter_current_step) {
+          next_step += 1;
+      }
+      else {
+          next_step -= 1;
+          delta_index = next_step + 1;
+      }
+
+
+
+      if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
+          /* apply */
+      }
+      else {
+          /* compute */
+
+
+          /* store */
+      }
+
+
+
+      /* copy */
+
+
+      /* update */
+
+
+
+
+
+
+
+
+  }
 
 
 
