@@ -136,3 +136,12 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
   NodeUIStorage &node_ui_storage = find_node_ui_storage(ntree, context, node);
   node_ui_storage.warnings.append({type, std::move(message)});
 }
+
+void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
+                                     const NodeTreeEvaluationContext &context,
+                                     const bNode &node,
+                                     const StringRef attribute_name)
+{
+  NodeUIStorage &node_ui_storage = find_node_ui_storage(ntree, context, node);
+  node_ui_storage.attribute_name_hints.add_as(attribute_name);
+}

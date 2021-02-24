@@ -19,6 +19,7 @@
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_session_uuid.h"
+#include "BLI_set.hh"
 
 #include "DNA_ID.h"
 #include "DNA_modifier_types.h"
@@ -76,6 +77,7 @@ struct NodeWarning {
 
 struct NodeUIStorage {
   blender::Vector<NodeWarning> warnings;
+  blender::Set<std::string> attribute_name_hints;
 };
 
 struct NodeTreeUIStorage {
@@ -94,3 +96,8 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
                                     const bNode &node,
                                     const NodeWarningType type,
                                     std::string message);
+
+void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
+                                     const NodeTreeEvaluationContext &context,
+                                     const bNode &node,
+                                     const blender::StringRef attribute_name);
