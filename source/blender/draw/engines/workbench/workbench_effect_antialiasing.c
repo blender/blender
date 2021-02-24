@@ -73,7 +73,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
       /* Avoid samples outside range (wrap arround). */
       table[index][i] = fmodf(table[index][i] + 0.5f, 1.0f);
       /* Recenter the distribution[-1..1]. */
-      table[index][i] += table[index][i] * 2.0f - 1.0f;
+      table[index][i] = table[index][i] * 2.0f - 1.0f;
     }
   }
 
