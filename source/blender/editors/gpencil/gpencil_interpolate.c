@@ -237,8 +237,8 @@ static bool gpencil_stroke_need_flip(Depsgraph *depsgraph,
     float v1[2], v2[2];
     sub_v2_v2v2(v1, v_from_end, v_from_start);
     sub_v2_v2v2(v2, v_to_end, v_to_start);
-    if (((v1[0] > 0.0f && v2[0] < 0.0f) || (v1[0] < 0.0f && v2[0] > 0.0f)) &&
-        ((v1[1] > 0.0f && v2[1] < 0.0f) || (v1[1] < 0.0f && v2[1] > 0.0f))) {
+    mul_v2_v2v2(v1, v1, v2);
+    if ((v1[0] < 0.0f) && (v1[1] < 0.0f)) {
       return true;
     }
   }
