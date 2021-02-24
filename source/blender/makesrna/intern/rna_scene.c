@@ -262,7 +262,7 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 #define R_IMF_ENUM_BMP \
   {R_IMF_IMTYPE_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
 #define R_IMF_ENUM_IRIS \
-  {R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in (old!) SGI IRIS format"},
+  {R_IMF_IMTYPE_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", "Output image in SGI IRIS format"},
 #define R_IMF_ENUM_PNG \
   {R_IMF_IMTYPE_PNG, "PNG", ICON_FILE_IMAGE, "PNG", "Output image in PNG format"},
 #define R_IMF_ENUM_JPEG \

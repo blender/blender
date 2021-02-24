@@ -2284,7 +2284,7 @@ static void ANIM_OT_channels_expand(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Expand Channels";
   ot->idname = "ANIM_OT_channels_expand";
-  ot->description = "Expand (i.e. open) all selected expandable animation channels";
+  ot->description = "Expand (open) all selected expandable animation channels";
 
   /* api callbacks */
   ot->exec = animchannels_expand_exec;
@@ -2329,7 +2329,7 @@ static void ANIM_OT_channels_collapse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Collapse Channels";
   ot->idname = "ANIM_OT_channels_collapse";
-  ot->description = "Collapse (i.e. close) all selected expandable animation channels";
+  ot->description = "Collapse (close) all selected expandable animation channels";
 
   /* api callbacks */
   ot->exec = animchannels_collapse_exec;

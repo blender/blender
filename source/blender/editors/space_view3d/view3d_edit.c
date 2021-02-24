@@ -5274,7 +5274,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 static const EnumPropertyItem prop_shading_type_items[] = {
     {OB_WIRE, "WIREFRAME", 0, "Wireframe", "Toggle wireframe shading"},
     {OB_SOLID, "SOLID", 0, "Solid", "Toggle solid shading"},
-    {OB_MATERIAL, "MATERIAL", 0, "LookDev", "Toggle lookdev shading"},
+    {OB_MATERIAL, "MATERIAL", 0, "Material Preview", "Toggle material preview shading"},
     {OB_RENDER, "RENDERED", 0, "Rendered", "Toggle rendered shading"},
     {0, NULL, 0, NULL, NULL},
 };

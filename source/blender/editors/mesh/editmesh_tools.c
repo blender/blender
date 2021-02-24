@@ -6889,7 +6889,7 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
        "MATERIAL",
        0,
        "Material",
-       "Sort selected elements from smallest to greatest material index (faces only!)"},
+       "Sort selected faces from smallest to greatest material index"},
       {SRT_SELECTED,
        "SELECTED",
        0,

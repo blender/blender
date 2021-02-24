@@ -2783,7 +2783,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "draw_size");
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
-  RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in BU");
+  RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "child_type", PROP_ENUM, PROP_NONE);
@@ -2860,7 +2860,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Integration",
                            "Algorithm used to calculate physics, from the fastest to the "
-                           "most stable/accurate: Midpoint, Euler, Verlet, RK4 (Old)");
+                           "most stable and accurate: Midpoint, Euler, Verlet, RK4");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);
@@ -3163,14 +3163,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "child_nbr"); /*optional if prop names are the same */
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 1000, 1, -1);
-  RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children/parent");
+  RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children per parent");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 10000, 1, -1);
-  RNA_def_property_ui_text(prop, "Rendered Children", "Number of children/parent for rendering");
+  RNA_def_property_ui_text(prop, "Rendered Children", "Number of children per parent for rendering");
 
   prop = RNA_def_property(srna, "virtual_parents", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "parents");

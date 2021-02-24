@@ -615,7 +615,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
   ot->name = "Transfer Mesh Data";
   ot->idname = "OBJECT_OT_data_transfer";
   ot->description =
-      "Transfer data layer(s) (weights, edge sharp, ...) from active to selected meshes";
+      "Transfer data layer(s) (weights, edge sharp, etc.) from active to selected meshes";
 
   /* API callbacks.*/
   ot->poll = data_transfer_poll;
