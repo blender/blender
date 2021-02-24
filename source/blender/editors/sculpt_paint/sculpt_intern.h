@@ -1419,6 +1419,8 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot);
 void SCULPT_OT_mask_filter(struct wmOperatorType *ot);
 void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 
+void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot);
+
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 

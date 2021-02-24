@@ -317,6 +317,83 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
       "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
 
+
+/******************************************************************************************/
+/* Interactive Preview Mask Filter */
+
+
+static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = ob->sculpt;
+  const int mode = RNA_enum_get(op->ptr, "type");
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  PBVH *pbvh = ob->sculpt->pbvh;
+
+  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
+
+  SCULPT_undo_push_begin(ob, "mask filter");
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+
+  ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
+
+  FilterCache *filter_cache = ss->filter_cache;
+  filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+  filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+
+
+
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
+{
+    return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Interactive Preview Mask Filter";
+  ot->idname = "SCULPT_OT_ipmask_filter";
+  ot->description = "Applies a filter to modify the current mask";
+
+  /* API callbacks. */
+  ot->exec = sculpt_ipmask_filter_exec;
+  ot->invoke = sculpt_ipmask_filter_invoke;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* RNA. */
+  RNA_def_enum(ot->srna,
+               "filter_type",
+               prop_mask_filter_types,
+               MASK_FILTER_SMOOTH,
+               "Type",
+               "Filter that is going to be applied to the mask");
+  RNA_def_int(ot->srna,
+              "iterations",
+              1,
+              1,
+              100,
+              "Iterations",
+              "Number of times that the filter is going to be applied",
+              1,
+              100);
+  RNA_def_boolean(
+      ot->srna,
+      "auto_iteration_count",
+      false,
+      "Auto Iteration Count",
+      "Use a automatic number of iterations based on the number of vertices of the sculpt");
+}
+
+/******************************************************************************************/
+
 static float neighbor_dirty_mask(SculptSession *ss, PBVHVertexIter *vd)
 {
   int total = 0;
