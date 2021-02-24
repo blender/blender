@@ -495,21 +495,28 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 static void cb_customdata_free(void *customdata)
 {
   PyObject *tuple = customdata;
+  bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+
+  PyGILState_STATE gilstate;
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
   Py_DECREF(tuple);
+
+  if (use_gil) {
+    PyGILState_Release(gilstate);
+  }
 }
 
 void BPY_callback_screen_free(struct ARegionType *art)
 {
-  PyGILState_STATE gilstate = PyGILState_Ensure();
   ED_region_draw_cb_remove_by_type(art, cb_region_draw, cb_customdata_free);
-  PyGILState_Release(gilstate);
 }
 
 void BPY_callback_wm_free(struct wmWindowManager *wm)
 {
-  PyGILState_STATE gilstate = PyGILState_Ensure();
   WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
-  PyGILState_Release(gilstate);
 }
 
 /** \} */
