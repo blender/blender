@@ -274,7 +274,9 @@ static void rna_userdef_gizmo_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_userdef_theme_update_icons(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  UI_icons_reload_internal_textures();
+  if (!G.background) {
+    UI_icons_reload_internal_textures();
+  }
   rna_userdef_theme_update(bmain, scene, ptr);
 }
 
