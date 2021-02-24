@@ -302,16 +302,6 @@ void ED_node_sort(bNodeTree *ntree)
   }
 }
 
-static void do_node_internal_buttons(bContext *C, void *UNUSED(node_v), int event)
-{
-  if (event == B_NODE_EXEC) {
-    SpaceNode *snode = CTX_wm_space_node(C);
-    if (snode && snode->id) {
-      ED_node_tag_update_id(snode->id);
-    }
-  }
-}
-
 static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 {
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
@@ -321,7 +311,6 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
     char uiblockstr[32];
     BLI_snprintf(uiblockstr, sizeof(uiblockstr), "node buttons %p", (void *)node);
     node->block = UI_block_begin(C, CTX_wm_region(C), uiblockstr, UI_EMBOSS);
-    UI_block_func_handle_set(node->block, do_node_internal_buttons, node);
 
     /* this cancels events for background nodes */
     UI_block_flag_enable(node->block, UI_BLOCK_CLIP_EVENTS);
@@ -1354,7 +1343,7 @@ static void node_draw_basis(const bContext *C,
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(node->block,
                               UI_BTYPE_BUT_TOGGLE,
-                              B_REDR,
+                              0,
                               ICON_MATERIAL,
                               iconofs,
                               rct->ymax - NODE_DY,
@@ -1380,7 +1369,7 @@ static void node_draw_basis(const bContext *C,
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(node->block,
                               UI_BTYPE_BUT_TOGGLE,
-                              B_REDR,
+                              0,
                               ICON_NODETREE,
                               iconofs,
                               rct->ymax - NODE_DY,
@@ -1432,7 +1421,7 @@ static void node_draw_basis(const bContext *C,
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
     uiBut *but = uiDefBut(node->block,
                           UI_BTYPE_BUT_TOGGLE,
-                          B_REDR,
+                          0,
                           "",
                           rct->xmin + 0.35f * U.widget_unit,
                           rct->ymax - NODE_DY / 2.2f - but_size / 2,
@@ -1607,7 +1596,7 @@ static void node_draw_hidden(const bContext *C,
     UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
     uiBut *but = uiDefBut(node->block,
                           UI_BTYPE_BUT_TOGGLE,
-                          B_REDR,
+                          0,
                           "",
                           rct->xmin + 0.35f * U.widget_unit,
                           centy - but_size / 2,

@@ -307,26 +307,6 @@ extern const char *node_context_dir[];
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
-/* Button events (butspace) */
-enum eNodeSpace_ButEvents {
-  B_NOP = 0,
-  B_REDR = 1,
-  B_NODE_USEMAT,
-  B_NODE_USESCENE,
-  B_NODE_USETEX,
-  B_TEXBROWSE,
-  B_TEXALONE,
-  B_TEXLOCAL,
-  B_TEXDELETE,
-  B_TEXPRV,
-  B_AUTOTEXNAME,
-  B_KEEPDATA,
-  B_NODE_EXEC,
-  B_MATPRV,
-  B_NODE_LOADIMAGE,
-  B_NODE_SETIMAGE,
-};
-
 #ifdef __cplusplus
 }
 #endif
