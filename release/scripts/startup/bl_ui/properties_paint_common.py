@@ -902,7 +902,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
     if popover:
         brush_settings(layout, context, brush, popover=True)
         layout.separator()
-        layout.label(text="Advanced:")
+        layout.label(text="Advanced")
 
     # These options are shared across many modes.
     use_accumulate = False

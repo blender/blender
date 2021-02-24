@@ -6210,7 +6210,7 @@ class VIEW3D_PT_overlay_motion_tracking(Panel):
 
             col = layout.column()
             col.active = display_all
-            col.label(text="Tracks:")
+            col.label(text="Tracks")
             row = col.row(align=True)
             row.prop(view, "tracks_display_type", text="")
             row.prop(view, "tracks_display_size", text="Size")
@@ -6923,7 +6923,7 @@ class VIEW3D_PT_view3d_stereo(Panel):
         col = layout.column()
         col.row().prop(view, "stereo_3d_camera", expand=True)
 
-        col.label(text="Display:")
+        col.label(text="Display")
         row = col.row()
         row.active = basic_stereo
         row.prop(view, "show_stereo_3d_cameras")
