@@ -322,6 +322,9 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /* Interactive Preview Mask Filter */
 
 
+#define SCULPT_IPMASK_FILTER_MIN_MULTITHREAD 1000
+#define SCULPT_IPMASK_FILTER_GRANULARITY 1000
+
 typedef enum eSculptIPMaskFilterType {
   MASK_FILTER_SMOOTH_SHARPEN,
   MASK_FILTER_GROW_SHRINK,
@@ -340,34 +343,6 @@ typedef struct MaskFilterDeltaStep {
     int *index;
     float *delta;
 } MaskFilterDeltaStep;
-
-
-static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *current_mask, const float *next_mask, const int totvert) {
-    int tot_modified_values = 0;
-    for (int i = 0; i < totvert; i++) {
-        if (current_mask[i] == next_mask[i]) {
-            continue;
-        }
-        tot_modified_values++;
-    }
-
-    MaskFilterDeltaStep *delta_step = MEM_callocN(sizeof (MaskFilterDeltaStep), "mask filter delta step");
-    delta_step->totelem = tot_modified_values;
-    delta_step->index = MEM_malloc_arrayN(sizeof (int), tot_modified_values, "delta indices");
-    delta_step->delta = MEM_malloc_arrayN(sizeof (float), tot_modified_values, "delta values");
-
-    int delta_step_index = 0;
-    for (int i = 0; i < totvert; i++) {
-        if (current_mask[i] == next_mask[i]) {
-            continue;
-        }
-        delta_step->index[delta_step_index] = i;
-        delta_step->delta[delta_step_index] = next_mask[i] - current_mask[i];
-        delta_step_index++;
-    }
-    return delta_step;
-}
-
 
 /* Grown/Shrink vertex callbacks. */
 static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss, const int vertex, const float *current_mask) {
@@ -435,18 +410,67 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss, const int vertex
 }
 
 
-static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current_mask, MaskFilterStepDirectionType direction) {
-    const int totvert = SCULPT_vertex_count_get(ss);
-    float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
+static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *current_mask, const float *next_mask, const int totvert) {
+    int tot_modified_values = 0;
     for (int i = 0; i < totvert; i++) {
-        //next_mask[i] = sculpt_ipmask_vertex_shrink_cb(ss, i, current_mask);
-        if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
-            next_mask[i] = sculpt_ipmask_vertex_smooth_cb(ss, i, current_mask);
+        if (current_mask[i] == next_mask[i]) {
+            continue;
+        }
+        tot_modified_values++;
+    }
+
+    MaskFilterDeltaStep *delta_step = MEM_callocN(sizeof (MaskFilterDeltaStep), "mask filter delta step");
+    delta_step->totelem = tot_modified_values;
+    delta_step->index = MEM_malloc_arrayN(sizeof (int), tot_modified_values, "delta indices");
+    delta_step->delta = MEM_malloc_arrayN(sizeof (float), tot_modified_values, "delta values");
+
+    int delta_step_index = 0;
+    for (int i = 0; i < totvert; i++) {
+        if (current_mask[i] == next_mask[i]) {
+            continue;
+        }
+        delta_step->index[delta_step_index] = i;
+        delta_step->delta[delta_step_index] = next_mask[i] - current_mask[i];
+        delta_step_index++;
+    }
+    return delta_step;
+}
+
+typedef struct SculptIPMaskFilterTaskData {
+    SculptSession *ss;
+    float *next_mask;
+    float *current_mask;
+    MaskFilterStepDirectionType direction;
+} SculptIPMaskFilterTaskData;
+
+static void ipmask_filter_compute_step_task_cb(void *__restrict userdata,
+                                const int i,
+                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptIPMaskFilterTaskData *data = userdata;
+        if (data->direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
+            data->next_mask[i] = sculpt_ipmask_vertex_grow_cb(data->ss, i, data->current_mask);
         }
         else {
-            next_mask[i] = sculpt_ipmask_vertex_sharpen_cb(ss, i, current_mask);
+            data->next_mask[i] = sculpt_ipmask_vertex_shrink_cb(data->ss, i, data->current_mask);
         }
-    }
+}
+
+static float *sculpt_ipmask_step_compute(SculptSession *ss, float *current_mask, MaskFilterStepDirectionType direction) {
+    const int totvert = SCULPT_vertex_count_get(ss);
+    float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
+
+    SculptIPMaskFilterTaskData data = {
+        .ss = ss,
+        .next_mask = next_mask,
+        .current_mask = current_mask,
+        .direction = direction,
+    };
+    TaskParallelSettings settings;
+    memset(&settings, 0, sizeof(TaskParallelSettings));
+    settings.use_threading = totvert > SCULPT_IPMASK_FILTER_MIN_MULTITHREAD;
+    BLI_task_parallel_range(0, totvert, &data, ipmask_filter_compute_step_task_cb, &settings);
+
     return next_mask;
 }
 
