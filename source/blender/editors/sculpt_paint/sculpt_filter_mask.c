@@ -514,22 +514,18 @@ static void sculpt_ipmask_apply_mask_data(SculptSession *ss, const float *mask) 
     }
 }
 
-static float *sculpt_ipmask_apply_delta_step_forward(MaskFilterDeltaStep *delta_step, const float *current_mask) {
+static float *sculpt_ipmask_apply_delta_step(MaskFilterDeltaStep *delta_step, const float *current_mask, const MaskFilterStepDirectionType direction) {
     float *next_mask = MEM_dupallocN(current_mask);
     for (int i = 0; i < delta_step->totelem; i++) {
-        next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] + delta_step->delta[i];
+        if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
+            next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] + delta_step->delta[i];
+        }
+        else {
+            next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] - delta_step->delta[i];
+        }
     }
     return next_mask;
 }
-
-static float *sculpt_ipmask_apply_delta_step_backward(MaskFilterDeltaStep *delta_step, const float *current_mask) {
-    float *next_mask = MEM_dupallocN(current_mask);
-    for (int i = 0; i < delta_step->totelem; i++) {
-        next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] - delta_step->delta[i];
-    }
-    return next_mask;
-}
-
 
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -582,7 +578,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
           MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
-          next_mask = sculpt_ipmask_apply_delta_step_forward(delta_step, current_mask);
+          next_mask = sculpt_ipmask_apply_delta_step_forward(delta_step, current_mask, direction);
       }
       else {
           next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
@@ -594,7 +590,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       else {
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
           MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
-          next_mask = sculpt_ipmask_apply_delta_step_backward(delta_step, current_mask);
+          next_mask = sculpt_ipmask_apply_delta_step_backward(delta_step, current_mask, direction);
       }
       else {
           next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
@@ -696,8 +692,8 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
               1,
               1,
               100,
-              "Iterations",
-              "Number of times that the filter is going to be applied",
+              "Iterations per Step",
+              "Number of times that the filter is going to be applied per step",
               1,
               100);
 }
