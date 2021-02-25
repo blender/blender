@@ -75,8 +75,9 @@ ReadAttributePtr GeoNodeExecParams::get_input_attribute(const StringRef name,
     }
 
     /* If the attribute doesn't exist, use the default value and output an error message
-     * (except when the field is empty, to avoid spamming error messages). */
-    if (!name.empty()) {
+     * (except when the field is empty, to avoid spamming error messages, and not when
+     * the domain is empty and we don't expect an attribute anyway). */
+    if (!name.empty() && component.attribute_domain_size(domain) != 0) {
       this->error_message_add(NodeWarningType::Error,
                               std::string("No attribute with name '") + name + "'.");
     }
