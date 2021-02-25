@@ -326,12 +326,19 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 #define SCULPT_IPMASK_FILTER_GRANULARITY 1000
 
 typedef enum eSculptIPMaskFilterType {
-  MASK_FILTER_SMOOTH_SHARPEN,
-  MASK_FILTER_GROW_SHRINK,
-  MASK_FILTER_CONTRAST_INCREASE_DECREASE,
-  MASK_FILTER_INTENSITY_INCREASE_DECREASE,
-  MASK_FILTER_LINEAR_INTENSITY_INCREASE_DECREASE,
+  IPMASK_FILTER_SMOOTH_SHARPEN,
+  IPMASK_FILTER_GROW_SHRINK,
+  IPMASK_FILTER_CONTRAST_INCREASE_DECREASE,
+  IPMASK_FILTER_INTENSITY_INCREASE_DECREASE,
+  IPMASK_FILTER_LINEAR_INTENSITY_INCREASE_DECREASE,
 } eSculptIPMaskFilterType;
+
+static EnumPropertyItem prop_ipmask_filter_types[] = {
+    {IPMASK_FILTER_SMOOTH_SHARPEN, "SMOOTH_SHARPEN", 0, "Smooth/Sharpen", "Smooth and sharpen the mask"},
+    {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 
 typedef enum MaskFilterStepDirectionType {
     MASK_FILTER_STEP_DIRECTION_FORWARD,
@@ -345,7 +352,7 @@ typedef struct MaskFilterDeltaStep {
 } MaskFilterDeltaStep;
 
 /* Grown/Shrink vertex callbacks. */
-static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss, const int vertex,  float *current_mask) {
         float max = 0.0f;
         SculptVertexNeighborIter ni;
         SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
@@ -358,7 +365,7 @@ static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss, const int vertex, c
         return max;
 }
 
-static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss, const int vertex,  float *current_mask) {
         float min = 1.0f;
         SculptVertexNeighborIter ni;
         SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
@@ -372,7 +379,7 @@ static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss, const int vertex,
 }
 
 /* Smooth/Sharpen vertex callbacks. */
-static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss, const int vertex,  float *current_mask) {
   float accum = 0.0f;
   int total = 0;
   SculptVertexNeighborIter ni;
@@ -384,7 +391,7 @@ static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss, const int vertex,
   return total > 0? accum/total : current_mask[vertex];
 }
 
-static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss, const int vertex, float *current_mask) {
   float accum = 0.0f;
   int total = 0;
   float vmask = current_mask[vertex];
@@ -449,10 +456,10 @@ static void ipmask_filter_compute_step_task_cb(void *__restrict userdata,
 {
   SculptIPMaskFilterTaskData *data = userdata;
         if (data->direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
-            data->next_mask[i] = sculpt_ipmask_vertex_grow_cb(data->ss, i, data->current_mask);
+            data->next_mask[i] = data->ss->filter_cache->mask_filter_step_forward(data->ss, i, data->current_mask);
         }
         else {
-            data->next_mask[i] = sculpt_ipmask_vertex_shrink_cb(data->ss, i, data->current_mask);
+            data->next_mask[i] = data->ss->filter_cache->mask_filter_step_backward(data->ss, i, data->current_mask);
         }
 }
 
@@ -623,7 +630,6 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
-  const int mode = RNA_enum_get(op->ptr, "type");
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh = ob->sculpt->pbvh;
 
@@ -648,7 +654,17 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
 
   filter_cache->mask_delta_step = BLI_ghash_int_new("mask filter delta steps");
 
-
+  const int filter_type= RNA_enum_get(op->ptr, "filter_type");
+  switch (filter_type) {
+    case IPMASK_FILTER_SMOOTH_SHARPEN:
+      filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_smooth_cb;
+      filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_sharpen_cb;
+      break;
+    case IPMASK_FILTER_GROW_SHRINK:
+      filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_grow_cb;
+      filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_shrink_cb;
+      break;
+  }
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -677,8 +693,8 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
   /* RNA. */
   RNA_def_enum(ot->srna,
                "filter_type",
-               prop_mask_filter_types,
-               MASK_FILTER_SMOOTH,
+               prop_ipmask_filter_types,
+               IPMASK_FILTER_GROW_SHRINK,
                "Type",
                "Filter that is going to be applied to the mask");
   RNA_def_int(ot->srna,

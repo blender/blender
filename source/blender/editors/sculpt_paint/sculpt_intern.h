@@ -1294,6 +1294,9 @@ typedef struct ExpandCache {
   float (*original_colors)[4];
 } ExpandCache;
 
+/* IPMask filter vertex callback function. */
+typedef float(SculptIPMaskFilterStepVertexCB)(struct SculptSession *, int, float *);
+
 typedef struct FilterCache {
   bool enabled_axis[3];
   bool enabled_force_axis[3];
@@ -1363,6 +1366,8 @@ typedef struct FilterCache {
 
   /* Mask Filter. */
   int mask_filter_current_step;
+  SculptIPMaskFilterStepVertexCB *mask_filter_step_forward;
+  SculptIPMaskFilterStepVertexCB *mask_filter_step_backward;
 
   GHash *mask_delta_step;
 
