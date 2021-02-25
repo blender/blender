@@ -499,6 +499,9 @@ static void sculpt_ipmask_apply_mask_data(SculptSession *ss, const float *mask) 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
+      if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
+          continue;
+      }
       *vd.mask = mask[vd.index];
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -631,9 +634,6 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PBVH *pbvh = ob->sculpt->pbvh;
-
-  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
 
   SCULPT_undo_push_begin(ob, "mask filter");
 
