@@ -175,6 +175,13 @@ void BKE_library_ID_test_usages(struct Main *bmain,
                                 bool *is_used_local,
                                 bool *is_used_linked);
 
+void BKE_lib_query_unused_ids_tag(struct Main *bmain,
+                                  const int tag,
+                                  const bool do_local_ids,
+                                  const bool do_linked_ids,
+                                  const bool do_tag_recursive,
+                                  int *r_num_tagged);
+
 void BKE_library_unused_linked_data_set_tag(struct Main *bmain, const bool do_init_tag);
 void BKE_library_indirectly_used_data_tag_clear(struct Main *bmain);
 

@@ -599,6 +599,139 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 }
 
 /* ***** IDs usages.checking/tagging. ***** */
+static void lib_query_unused_ids_tag_recurse(Main *bmain,
+                                             const int tag,
+                                             const bool do_local_ids,
+                                             const bool do_linked_ids,
+                                             ID *id,
+                                             int *r_num_tagged)
+{
+  /* We should never deal with embedded, not-in-main IDs here. */
+  BLI_assert((id->flag & LIB_EMBEDDED_DATA) == 0);
+
+  if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
+    return;
+  }
+
+  MainIDRelationsEntry *id_relations = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
+                                                        id);
+  if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0) {
+    return;
+  }
+  id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+
+  if ((id->tag & tag) != 0) {
+    return;
+  }
+
+  if ((id->flag & LIB_FAKEUSER) != 0) {
+    /* This ID is forcefully kept around, and therefore never unused, no need to check it further.
+     */
+    return;
+  }
+
+  if (ELEM(GS(id->name), ID_WM, ID_WS, ID_SCE, ID_SCR, ID_LI)) {
+    /* Some 'root' ID types are never unused (even though they may not have actual users), unless
+     * their actual usercount is set to 0. */
+    return;
+  }
+
+  /* An ID user is 'valid' (i.e. may affect the 'used'/'not used' status of the ID it uses) if it
+   * does not match `ignored_usages`, and does match `required_usages`. */
+  const int ignored_usages = (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED);
+  const int required_usages = (IDWALK_CB_USER | IDWALK_CB_USER_ONE);
+
+  /* This ID may be tagged as unused if none of its users are 'valid', as defined above.
+   *
+   * First recursively check all its valid users, if all of them can be tagged as
+   * unused, then we can tag this ID as such too. */
+  bool has_valid_from_users = false;
+  for (MainIDRelationsEntryItem *id_from_item = id_relations->from_ids; id_from_item != NULL;
+       id_from_item = id_from_item->next) {
+    if ((id_from_item->usage_flag & ignored_usages) != 0 ||
+        (id_from_item->usage_flag & required_usages) == 0) {
+      continue;
+    }
+
+    ID *id_from = id_from_item->id_pointer.from;
+    if ((id_from->flag & LIB_EMBEDDED_DATA) != 0) {
+      /* Directly 'by-pass' to actual real ID owner. */
+      const IDTypeInfo *type_info_from = BKE_idtype_get_info_from_id(id_from);
+      BLI_assert(type_info_from->owner_get != NULL);
+      id_from = type_info_from->owner_get(bmain, id_from);
+    }
+
+    lib_query_unused_ids_tag_recurse(
+        bmain, tag, do_local_ids, do_linked_ids, id_from, r_num_tagged);
+    if ((id_from->tag & tag) == 0) {
+      has_valid_from_users = true;
+      break;
+    }
+  }
+  if (!has_valid_from_users) {
+    /* This ID has no 'valid' users, tag it as unused. */
+    id->tag |= tag;
+    if (r_num_tagged != NULL) {
+      r_num_tagged[INDEX_ID_NULL]++;
+      r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
+    }
+  }
+}
+
+/**
+ * Tag all unused IDs (a.k.a 'orphaned').
+ *
+ * By default only tag IDs with `0` user count.
+ * If `do_tag_recursive` is set, it will check dependencies to detect all IDs that are not actually
+ * used in current file, including 'archipelagoes` (i.e. set of IDs referencing each other in
+ * loops, but without any 'external' valid usages.
+ *
+ * Valid usages here are defined as ref-counting usages, which are not towards embedded or
+ * loop-back data.
+ *
+ * \param r_num_tagged If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
+ *                     Number of tagged-as-unused IDs is then set for each type, and as total in
+ *                     #INDEX_ID_NULL item.
+ */
+void BKE_lib_query_unused_ids_tag(Main *bmain,
+                                  const int tag,
+                                  const bool do_local_ids,
+                                  const bool do_linked_ids,
+                                  const bool do_tag_recursive,
+                                  int *r_num_tagged)
+{
+  /* First loop, to only check for immediatly unused IDs (those with 0 user count).
+   * NOTE: It also takes care of clearing given tag for used IDs. */
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
+      id->tag &= ~tag;
+    }
+    else if (id->us == 0) {
+      id->tag |= tag;
+      if (r_num_tagged != NULL) {
+        r_num_tagged[INDEX_ID_NULL]++;
+        r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
+      }
+    }
+    else {
+      id->tag &= ~tag;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  if (!do_tag_recursive) {
+    return;
+  }
+
+  BKE_main_relations_create(bmain, 0);
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    lib_query_unused_ids_tag_recurse(bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged);
+  }
+  FOREACH_MAIN_ID_END;
+  BKE_main_relations_free(bmain);
+}
+
 static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)
 {
   ID *self_id = cb_data->id_self;
