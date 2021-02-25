@@ -538,7 +538,6 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
@@ -559,7 +558,6 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   }
 
 
-  printf("TARGET STEP %d\n", target_step);
   while(filter_cache->mask_filter_current_step != target_step) {
       int next_step = filter_cache->mask_filter_current_step;
       int delta_index = next_step;
@@ -583,12 +581,10 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       /* Forward direction */
       if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
-          printf("FORWARD, RESTORING STEP\n");
           MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
           next_mask = sculpt_ipmask_apply_delta_step_forward(delta_step, current_mask);
       }
       else {
-          printf("FORWARD, COMPUTING\n");
           next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
           MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(current_mask, next_mask, totvert);
           BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
@@ -597,12 +593,10 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       }
       else {
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
-          printf("BACKWARD, RESTORING STEP\n");
           MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
           next_mask = sculpt_ipmask_apply_delta_step_backward(delta_step, current_mask);
       }
       else {
-          printf("BACKWARD, COMPUTING\n");
           next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
           MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(next_mask, current_mask, totvert);
           BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
