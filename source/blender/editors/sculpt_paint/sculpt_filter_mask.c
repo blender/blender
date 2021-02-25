@@ -325,7 +325,7 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 typedef enum MaskFilterStepDirectionType {
     MASK_FILTER_STEP_DIRECTION_FORWARD,
     MASK_FILTER_STEP_DIRECTION_BACKWARD,
-} MaskFilterStepDirectionTyp;
+} MaskFilterStepDirectionType;
 
 typedef struct MaskFilterDeltaStep {
     int totelem;
@@ -445,23 +445,26 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const float len = event->x - event->prevclickx;
   const int target_step = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
 
-  printf("TARGET STEP %d\n", target_step);
 
   if (target_step == filter_cache->mask_filter_current_step) {
       return OPERATOR_RUNNING_MODAL;
   }
 
 
+  printf("TARGET STEP %d\n", target_step);
   while(filter_cache->mask_filter_current_step != target_step) {
       int next_step = filter_cache->mask_filter_current_step;
       int delta_index = next_step;
+      MaskFilterStepDirectionType direction;
 
       if (target_step > filter_cache->mask_filter_current_step) {
           next_step += 1;
+          direction = MASK_FILTER_STEP_DIRECTION_FORWARD;
       }
       else {
           next_step -= 1;
           delta_index = next_step + 1;
+          direction = MASK_FILTER_STEP_DIRECTION_BACKWARD;
       }
 
 
@@ -469,23 +472,48 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       float *next_mask = NULL;
 
       /* Forward direction */
+      if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
+          printf("FORWARD, RESTORING STEP\n");
           MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
           next_mask = sculpt_ipmask_apply_delta_step_forward(delta_step, current_mask);
       }
       else {
+          printf("FORWARD, COMPUTING\n");
           next_mask = sculpt_ipmask_step_compute(ss, current_mask);
           MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(current_mask, next_mask, totvert);
           BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
       }
 
+      }
+      else {
+      if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
+          printf("BACKWARD, RESTORING STEP\n");
+          MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
+          next_mask = sculpt_ipmask_apply_delta_step_backward(delta_step, current_mask);
+      }
+      else {
+          printf("BACKWARD, COMPUTING\n");
+          next_mask = sculpt_ipmask_step_compute(ss, current_mask);
+          MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(current_mask, next_mask, totvert);
+          BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
+      }
+
+      }
+
       /* copy */
 
-
       sculpt_ipmask_apply_mask_data(ss, next_mask);
+
+      MEM_freeN(current_mask);
+      MEM_freeN(next_mask);
+
+
+      filter_cache->mask_filter_current_step = next_step;
   }
 
 
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -514,7 +542,9 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
   filter_cache->mask_filter_current_step = 0;
 
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &filter_cache->nodes, &filter_cache->totnode);
 
+  filter_cache->mask_delta_step = BLI_ghash_int_new("mask filter delta steps");
 
 
 
