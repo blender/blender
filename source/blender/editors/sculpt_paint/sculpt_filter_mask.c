@@ -322,6 +322,11 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /* Interactive Preview Mask Filter */
 
 
+typedef enum MaskFilterStepDirectionType {
+    MASK_FILTER_STEP_DIRECTION_FORWARD,
+    MASK_FILTER_STEP_DIRECTION_BACKWARD,
+} MaskFilterStepDirectionTyp;
+
 typedef struct MaskFilterDeltaStep {
     int totelem;
     int *index;
@@ -374,6 +379,49 @@ static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current
     return next_mask;
 }
 
+static float *sculpt_ipmask_current_state_get(SculptSession *ss) {
+    const int totvert = SCULPT_vertex_count_get(ss);
+    float *current_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
+
+    for (int i = 0; i < totvert; i++) {
+        current_mask[i] = SCULPT_vertex_mask_get(ss, i);
+    }
+
+    return current_mask;
+}
+
+static void sculpt_ipmask_apply_mask_data(SculptSession *ss, const float *mask) {
+    FilterCache *filter_cache = ss->filter_cache;
+    for (int n = 0; n < filter_cache->totnode; n++) {
+        PBVHNode *node = filter_cache->nodes[n];
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+      *vd.mask = mask[vd.index];
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  /* TODO: Check if something changed before tagging. */
+  BKE_pbvh_node_mark_update_mask(node);
+    }
+}
+
+static float *sculpt_ipmask_apply_delta_step_forward(MaskFilterDeltaStep *delta_step, const float *current_mask) {
+    float *next_mask = MEM_dupallocN(current_mask);
+    for (int i = 0; i < delta_step->totelem; i++) {
+        next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] + delta_step->delta[i];
+    }
+    return next_mask;
+}
+
+static float *sculpt_ipmask_apply_delta_step_backward(MaskFilterDeltaStep *delta_step, const float *current_mask) {
+    float *next_mask = MEM_dupallocN(current_mask);
+    for (int i = 0; i < delta_step->totelem; i++) {
+        next_mask[delta_step->index[i]] = current_mask[delta_step->index[i]] - delta_step->delta[i];
+    }
+    return next_mask;
+}
+
 
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -383,6 +431,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_filter_cache_free(ss);
@@ -416,31 +465,24 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       }
 
 
+      float *current_mask = sculpt_ipmask_current_state_get(ss);
+      float *next_mask = NULL;
 
+      /* Forward direction */
       if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
-          /* apply */
+          MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index));
+          next_mask = sculpt_ipmask_apply_delta_step_forward(delta_step, current_mask);
       }
       else {
-          /* compute */
-
-
-          /* store */
+          next_mask = sculpt_ipmask_step_compute(ss, current_mask);
+          MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(current_mask, next_mask, totvert);
+          BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
       }
-
-
 
       /* copy */
 
 
-      /* update */
-
-
-
-
-
-
-
-
+      sculpt_ipmask_apply_mask_data(ss, next_mask);
   }
 
 
