@@ -1221,7 +1221,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   {
     BLI_assert(component.type() == GeometryComponentType::Mesh);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    for (const auto &item : mesh_component.vertex_group_names().items()) {
+    for (const auto item : mesh_component.vertex_group_names().items()) {
       const StringRefNull name = item.key;
       const int vertex_group_index = item.value;
       if (vertex_group_index >= 0) {
