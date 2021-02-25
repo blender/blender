@@ -40,6 +40,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
+static PyObject *BPyInit_imbuf_types(void);
+
 static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
 
 /* -------------------------------------------------------------------- */
@@ -522,7 +524,7 @@ static PyObject *M_imbuf_write(PyObject *UNUSED(self), PyObject *args, PyObject 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Module Definition
+/** \name Module Definition (`imbuf`)
  * \{ */
 
 static PyMethodDef IMB_methods[] = {
@@ -547,11 +549,51 @@ static struct PyModuleDef IMB_module_def = {
 
 PyObject *BPyInit_imbuf(void)
 {
+  PyObject *mod;
   PyObject *submodule;
+  PyObject *sys_modules = PyImport_GetModuleDict();
 
-  submodule = PyModule_Create(&IMB_module_def);
+  mod = PyModule_Create(&IMB_module_def);
 
-  PyType_Ready(&Py_ImBuf_Type);
+  /* `imbuf.types` */
+  PyModule_AddObject(mod, "types", (submodule = BPyInit_imbuf_types()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  return mod;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Module Definition (`imbuf.types`)
+ *
+ * `imbuf.types` module, only include this to expose access to `imbuf.types.ImBuf`
+ * for docs and the ability to use with built-ins such as `isinstance`, `issubclass`.
+ * \{ */
+
+PyDoc_STRVAR(IMB_types_doc, "This module provides access to image buffer types.");
+
+static struct PyModuleDef IMB_types_module_def = {
+    PyModuleDef_HEAD_INIT,
+    "imbuf.types", /* m_name */
+    IMB_types_doc, /* m_doc */
+    0,             /* m_size */
+    NULL,          /* m_methods */
+    NULL,          /* m_reload */
+    NULL,          /* m_traverse */
+    NULL,          /* m_clear */
+    NULL,          /* m_free */
+};
+
+PyObject *BPyInit_imbuf_types(void)
+{
+  PyObject *submodule = PyModule_Create(&IMB_types_module_def);
+
+  if (PyType_Ready(&Py_ImBuf_Type) < 0) {
+    return NULL;
+  }
+
+  PyModule_AddType(submodule, &Py_ImBuf_Type);
 
   return submodule;
 }
