@@ -186,7 +186,7 @@ void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const dou
       sub_v2_v2v2(jitter_scaled, jitter_scaled, center);
       add_v2_v2(viewmat[3], jitter_scaled);
 
-      window_translate_m4(winmat, persmat, dof_jitter[0], dof_jitter[1]);
+      window_translate_m4(winmat, persmat, -dof_jitter[0], -dof_jitter[1]);
     }
   }
 
