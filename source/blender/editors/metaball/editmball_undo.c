@@ -224,9 +224,6 @@ static void mball_undosys_step_decode(struct bContext *C,
       CTX_data_scene(C), CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
 
   /* Check after setting active. */
-
-  BLI_assert(BKE_object_is_in_editmode(us->elems[0].obedit_ref.ptr));
-
   BLI_assert(mball_undosys_poll(C));
 
   bmain->is_memfile_undo_flush_needed = true;
