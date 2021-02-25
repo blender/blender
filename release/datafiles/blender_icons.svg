@@ -17285,6 +17285,22 @@
            id="g25682" />
       </g>
     </g>
+    <g
+       transform="translate(-1602.05,188)"
+       style="display:inline;enable-background:new"
+       id="g26614">
+      <path
+         style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:0.7;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:new"
+         d="m 1796.5,348 a 0.50005,0.50005 0 0 0 -0.5,0.5 v 5.5 h 1 v -5 h 2 v -1 z m 7.5,0 v 1 h 7 v 5 h 1 v -5.5 a 0.50005,0.50005 0 0 0 -0.5,-0.5 z m -8,11 v 2.5 a 0.50005,0.50005 0 0 0 0.5,0.5 h 2.5 v -1 h -2 v -2 z m 15,0 v 2 h -7 v 1 h 7.5 a 0.50005,0.50005 0 0 0 0.5,-0.5 V 359 Z"
+         id="path33581"
+         inkscape:connector-curvature="0" />
+      <path
+         sodipodi:nodetypes="cccccccccc"
+         id="path33583"
+         style="display:inline;opacity:1;vector-effect:none;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;paint-order:fill markers stroke;enable-background:new"
+         d="m 1800,348 h 3 v 14 h -3 z m -4,7 h 16 v 3 h -16 z"
+         inkscape:connector-curvature="0" />
+    </g>
   </g>
   <g
      inkscape:groupmode="layer"

@@ -134,6 +134,7 @@ set(ICON_NAMES
   info
   sequence
   text
+  spreadsheet
   sound
   action
   nla
