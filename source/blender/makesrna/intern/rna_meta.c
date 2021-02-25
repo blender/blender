@@ -198,7 +198,7 @@ static void rna_def_metaelement(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "MetaElement", NULL);
   RNA_def_struct_sdna(srna, "MetaElem");
-  RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a Metaball data-block");
+  RNA_def_struct_ui_text(srna, "Metaball Element", "Blobby element in a metaball data-block");
   RNA_def_struct_path_func(srna, "rna_MetaElement_path");
   RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_META);
 
@@ -290,13 +290,13 @@ static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "MetaBallElements");
   srna = RNA_def_struct(brna, "MetaBallElements", NULL);
   RNA_def_struct_sdna(srna, "MetaBall");
-  RNA_def_struct_ui_text(srna, "Meta Elements", "Collection of metaball elements");
+  RNA_def_struct_ui_text(srna, "Metaball Elements", "Collection of metaball elements");
 
   func = RNA_def_function(srna, "new", "rna_MetaBall_elements_new");
   RNA_def_function_ui_description(func, "Add a new element to the metaball");
   RNA_def_enum(
-      func, "type", rna_enum_metaelem_type_items, MB_BALL, "", "type for the new meta-element");
-  parm = RNA_def_pointer(func, "element", "MetaElement", "", "The newly created meta-element");
+      func, "type", rna_enum_metaelem_type_items, MB_BALL, "", "Type for the new metaball element");
+  parm = RNA_def_pointer(func, "element", "MetaElement", "", "The newly created metaball element");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_MetaBall_elements_remove");
@@ -337,7 +337,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   prop = RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "elems", NULL);
   RNA_def_property_struct_type(prop, "MetaElement");
-  RNA_def_property_ui_text(prop, "Elements", "Meta elements");
+  RNA_def_property_ui_text(prop, "Elements", "Metaball elements");
   rna_def_metaball_elements(brna, prop);
 
   /* enums */
@@ -365,7 +365,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "thresh");
   RNA_def_property_range(prop, 0.0f, 5.0f);
-  RNA_def_property_ui_text(prop, "Threshold", "Influence of meta elements");
+  RNA_def_property_ui_text(prop, "Threshold", "Influence of metaball elements");
   RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
   /* texture space */

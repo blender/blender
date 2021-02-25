@@ -3261,11 +3261,11 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 }
 
 static const EnumPropertyItem merge_type_items[] = {
-    {MESH_MERGE_FIRST, "FIRST", 0, "At First", ""},
-    {MESH_MERGE_LAST, "LAST", 0, "At Last", ""},
     {MESH_MERGE_CENTER, "CENTER", 0, "At Center", ""},
     {MESH_MERGE_CURSOR, "CURSOR", 0, "At Cursor", ""},
     {MESH_MERGE_COLLAPSE, "COLLAPSE", 0, "Collapse", ""},
+    {MESH_MERGE_FIRST, "FIRST", 0, "At First", ""},
+    {MESH_MERGE_LAST, "LAST", 0, "At Last", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3283,6 +3283,11 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C,
     EnumPropertyItem *item = NULL;
     int totitem = 0;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    /* Keep these first so that their automatic shortcuts don't change. */
+    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_CENTER);
+    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_CURSOR);
+    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_COLLAPSE);
 
     /* Only active object supported:
      * In practice it doesn't make sense to run this operation on non-active meshes
@@ -3305,9 +3310,6 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C,
       }
     }
 
-    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_CENTER);
-    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_CURSOR);
-    RNA_enum_items_add_value(&item, &totitem, merge_type_items, MESH_MERGE_COLLAPSE);
     RNA_enum_item_end(&item, &totitem);
 
     *r_free = true;
@@ -6887,7 +6889,7 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
        "MATERIAL",
        0,
        "Material",
-       "Sort selected elements from smallest to greatest material index (faces only!)"},
+       "Sort selected faces from smallest to greatest material index"},
       {SRT_SELECTED,
        "SELECTED",
        0,

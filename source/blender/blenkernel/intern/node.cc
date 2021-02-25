@@ -367,6 +367,35 @@ static void node_foreach_cache(ID *id,
   }
 }
 
+static ID *node_owner_get(Main *bmain, ID *id)
+{
+  if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
+    return id;
+  }
+  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+
+  ListBase *lists[] = {&bmain->materials,
+                       &bmain->lights,
+                       &bmain->worlds,
+                       &bmain->textures,
+                       &bmain->scenes,
+                       &bmain->linestyles,
+                       &bmain->simulations,
+                       nullptr};
+
+  bNodeTree *ntree = (bNodeTree *)id;
+  for (int i = 0; lists[i] != nullptr; i++) {
+    LISTBASE_FOREACH (ID *, id_iter, lists[i]) {
+      if (ntreeFromID(id_iter) == ntree) {
+        return id_iter;
+      }
+    }
+  }
+
+  BLI_assert(!"Embedded node tree with no owner. Critical Main inconsistency.");
+  return nullptr;
+}
+
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
 {
   if (sock->default_value == nullptr) {
@@ -916,6 +945,7 @@ IDTypeInfo IDType_ID_NT = {
     /* make_local */ nullptr,
     /* foreach_id */ node_foreach_id,
     /* foreach_cache */ node_foreach_cache,
+    /* owner_get */ node_owner_get,
 
     /* blend_write */ ntree_blend_write,
     /* blend_read_data */ ntree_blend_read_data,
@@ -2978,29 +3008,6 @@ bNodeTree *ntreeFromID(ID *id)
 {
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
   return (nodetree != nullptr) ? *nodetree : nullptr;
-}
-
-/* Finds and returns the datablock that privately owns the given tree, or null. */
-ID *BKE_node_tree_find_owner_ID(Main *bmain, struct bNodeTree *ntree)
-{
-  ListBase *lists[] = {&bmain->materials,
-                       &bmain->lights,
-                       &bmain->worlds,
-                       &bmain->textures,
-                       &bmain->scenes,
-                       &bmain->linestyles,
-                       &bmain->simulations,
-                       nullptr};
-
-  for (int i = 0; lists[i] != nullptr; i++) {
-    LISTBASE_FOREACH (ID *, id, lists[i]) {
-      if (ntreeFromID(id) == ntree) {
-        return id;
-      }
-    }
-  }
-
-  return nullptr;
 }
 
 bool ntreeNodeExists(const bNodeTree *ntree, const bNode *testnode)

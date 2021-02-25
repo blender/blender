@@ -614,8 +614,8 @@ class LightMapPack(Operator):
     PREF_PACK_IN_ONE: BoolProperty(
         name="Share Texture Space",
         description=(
-            "Objects Share texture space, map all objects "
-            "into 1 uvmap"
+            "Objects share texture space, map all objects "
+            "into a single UV map"
         ),
         default=True,
     )

@@ -112,7 +112,7 @@ const EnumPropertyItem rna_enum_beztriple_keyframe_type_items[] = {
      "EXTREME",
      ICON_KEYTYPE_EXTREME_VEC,
      "Extreme",
-     "An 'extreme' pose, or some other purpose as needed"},
+     "An \"extreme\" pose, or some other purpose as needed"},
     {BEZT_KEYTYPE_JITTER,
      "JITTER",
      ICON_KEYTYPE_JITTER_VEC,
@@ -128,7 +128,7 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_easing_items[] = {
      ICON_IPO_EASE_IN_OUT,
      "Automatic Easing",
      "Easing type is chosen automatically based on what the type of interpolation used "
-     "(e.g. 'Ease In' for transitional types, and 'Ease Out' for dynamic effects)"},
+     "(e.g. Ease In for transitional types, and Ease Out for dynamic effects)"},
 
     {BEZT_IPO_EASE_IN,
      "EASE_IN",

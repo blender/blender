@@ -40,6 +40,50 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.92" date="2021-02-25">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Geometry nodes</li>
+                    <li>EEVEE AOV and Cryptomatte support</li>
+                    <li>Grease pencil Bézier curves edit</li>
+                    <li>APIC fluid simulation method</li>
+                    <li>Add primitive tool</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Silhouette, elastic snake and smearing for sculpting</li>
+                    <li>Grease pencil tracing image sequences support</li>
+                    <li>Sparse NanoVDB grid for volume</li>
+                    <li>OptiX hybrid rendering and new AO and bevel</li>
+                    <li>Viscosity settings for fluid simulation</li>
+                </ul>
+            </description>
+        </release>
+        <release version="2.91" date="2020-11-25">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Volume modifiers</li>
+                    <li>Precise boolean</li>
+                    <li>Cloth brush collision</li>
+                    <li>Custom curve bevels</li>
+                    <li>Grease Pencil image tracer</li>
+                    <li>Property search and fuzzy search</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Boundary and pose cloth brushes</li>
+                    <li>Material holdout for Grease Pencil</li>
+                    <li>Sculpting gestures</li>
+                    <li>Overrides resync and transform support</li>
+                    <li>Animation proxy conversion</li>
+                    <li>Compound shape collision</li>
+                    <li>Outliner collection colors</li>
+                    <li>Snappier F-Curves and seamless keyframe insertion</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.90" date="2020-08-31">
             <description>
                 <p>New features:</p>

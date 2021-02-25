@@ -416,9 +416,9 @@ static int dupliob_refresh_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_dupliob_refresh(wmOperatorType *ot)
 {
-  ot->name = "Refresh Dupli Objects";
+  ot->name = "Refresh Instance Objects";
   ot->idname = "PARTICLE_OT_dupliob_refresh";
-  ot->description = "Refresh list of dupli objects and their weights";
+  ot->description = "Refresh list of instance objects and their weights";
 
   ot->exec = dupliob_refresh_exec;
 
@@ -456,9 +456,9 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 {
-  ot->name = "Move Up Dupli Object";
+  ot->name = "Move Up Instance Object";
   ot->idname = "PARTICLE_OT_dupliob_move_up";
-  ot->description = "Move dupli object up in the list";
+  ot->description = "Move instance object up in the list";
 
   ot->exec = dupliob_move_up_exec;
 
@@ -498,9 +498,9 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Copy Particle Dupliob";
+  ot->name = "Copy Particle Instance Object";
   ot->idname = "PARTICLE_OT_dupliob_copy";
-  ot->description = "Duplicate the current dupliobject";
+  ot->description = "Duplicate the current instance object";
 
   /* api callbacks */
   ot->exec = copy_particle_dupliob_exec;
@@ -543,9 +543,9 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Particle Dupliobject";
+  ot->name = "Remove Particle Instance Object";
   ot->idname = "PARTICLE_OT_dupliob_remove";
-  ot->description = "Remove the selected dupliobject";
+  ot->description = "Remove the selected instance object";
 
   /* api callbacks */
   ot->exec = remove_particle_dupliob_exec;
@@ -584,9 +584,9 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 {
-  ot->name = "Move Down Dupli Object";
+  ot->name = "Move Down Instance Object";
   ot->idname = "PARTICLE_OT_dupliob_move_down";
-  ot->description = "Move dupli object down in the list";
+  ot->description = "Move instance object down in the list";
 
   ot->exec = dupliob_move_down_exec;
 

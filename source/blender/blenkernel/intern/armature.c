@@ -324,6 +324,7 @@ IDTypeInfo IDType_ID_AR = {
     .make_local = NULL,
     .foreach_id = armature_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = armature_blend_write,
     .blend_read_data = armature_blend_read_data,

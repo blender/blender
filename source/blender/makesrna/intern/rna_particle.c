@@ -1922,13 +1922,13 @@ static void rna_def_particle_dupliweight(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ParticleDupliWeight", NULL);
   RNA_def_struct_ui_text(
-      srna, "Particle Dupliobject Weight", "Weight of a particle dupliobject in a collection");
+      srna, "Particle Instance Object Weight", "Weight of a particle instance object in a collection");
   RNA_def_struct_sdna(srna, "ParticleDupliWeight");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
       prop, "rna_ParticleDupliWeight_name_get", "rna_ParticleDupliWeight_name_length", NULL);
-  RNA_def_property_ui_text(prop, "Name", "Particle dupliobject name");
+  RNA_def_property_ui_text(prop, "Name", "Particle instance object name");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_struct_name_property(srna, prop);
 
@@ -2783,7 +2783,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "draw_size");
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
-  RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in BU");
+  RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "child_type", PROP_ENUM, PROP_NONE);
@@ -2860,7 +2860,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Integration",
                            "Algorithm used to calculate physics, from the fastest to the "
-                           "most stable/accurate: Midpoint, Euler, Verlet, RK4 (Old)");
+                           "most stable and accurate: Midpoint, Euler, Verlet, RK4");
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);
@@ -3163,14 +3163,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "child_nbr"); /*optional if prop names are the same */
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 1000, 1, -1);
-  RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children/parent");
+  RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children per parent");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 10000, 1, -1);
-  RNA_def_property_ui_text(prop, "Rendered Children", "Number of children/parent for rendering");
+  RNA_def_property_ui_text(prop, "Rendered Children", "Number of children per parent for rendering");
 
   prop = RNA_def_property(srna, "virtual_parents", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "parents");
@@ -3457,32 +3457,32 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
-      prop, "Dupli Collection", "Show Objects in this collection in place of particles");
+      prop, "Instance Collection", "Show objects in this collection in place of particles");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_count");
 
   prop = RNA_def_property(srna, "instance_weights", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "instance_weights", NULL);
   RNA_def_property_struct_type(prop, "ParticleDupliWeight");
   RNA_def_property_ui_text(
-      prop, "Dupli Collection Weights", "Weights for all of the objects in the dupli collection");
+      prop, "Instance Collection Weights", "Weights for all of the objects in the instance collection");
 
   prop = RNA_def_property(srna, "active_instanceweight", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ParticleDupliWeight");
   RNA_def_property_pointer_funcs(prop, "rna_ParticleDupliWeight_active_get", NULL, NULL, NULL);
-  RNA_def_property_ui_text(prop, "Active Dupli Object", "");
+  RNA_def_property_ui_text(prop, "Active Instance Object", "");
 
   prop = RNA_def_property(srna, "active_instanceweight_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(prop,
                              "rna_ParticleDupliWeight_active_index_get",
                              "rna_ParticleDupliWeight_active_index_set",
                              "rna_ParticleDupliWeight_active_index_range");
-  RNA_def_property_ui_text(prop, "Active Dupli Object Index", "");
+  RNA_def_property_ui_text(prop, "Active Instance Object Index", "");
 
   prop = RNA_def_property(srna, "instance_object", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Instance Object", "Show this Object in place of particles");
+  RNA_def_property_ui_text(prop, "Instance Object", "Show this object in place of particles");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_dependency");
 
   /* boids */

@@ -2066,7 +2066,7 @@ class WM_OT_batch_rename(Operator):
             # Enum identifiers are compared with 'object.type'.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
-            ('META', "Meta Balls", ""),
+            ('META', "Metaballs", ""),
             ('ARMATURE', "Armatures", ""),
             ('LATTICE', "Lattices", ""),
             ('GPENCIL', "Grease Pencils", ""),

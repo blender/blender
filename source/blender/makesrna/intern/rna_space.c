@@ -4336,7 +4336,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Render Region",
-                           "Use a region within the frame size for rendered viewport"
+                           "Use a region within the frame size for rendered viewport "
                            "(when not viewing through the camera)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

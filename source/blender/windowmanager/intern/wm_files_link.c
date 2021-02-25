@@ -629,7 +629,7 @@ void WM_OT_append(wmOperatorType *ot)
                   "set_fake",
                   false,
                   "Fake User",
-                  "Set Fake User for appended items (except Objects and Groups)");
+                  "Set \"Fake User\" for appended items (except objects and collections)");
   RNA_def_boolean(
       ot->srna,
       "use_recursive",

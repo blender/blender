@@ -366,9 +366,9 @@ class AlignObjects(Operator):
     bb_quality: BoolProperty(
         name="High Quality",
         description=(
-            "Enables high quality calculation of the "
+            "Enables high quality but slow calculation of the "
             "bounding box for perfect results on complex "
-            "shape meshes with rotation/scale (Slow)"
+            "shape meshes with rotation/scale"
         ),
         default=True,
     )

@@ -3261,6 +3261,8 @@ void ED_init_custom_node_socket_type(bNodeSocketType *stype)
   stype->draw = node_socket_button_label;
 }
 
+static const float virtual_node_socket_color[4] = {0.2, 0.2, 0.2, 1.0};
+
 /* maps standard socket integer type to a color */
 static const float std_node_socket_colors[][4] = {
     {0.63, 0.63, 0.63, 1.0}, /* SOCK_FLOAT */
@@ -3461,8 +3463,7 @@ static void node_socket_virtual_draw_color(bContext *UNUSED(C),
                                            PointerRNA *UNUSED(node_ptr),
                                            float *r_color)
 {
-  /* alpha = 0, empty circle */
-  zero_v4(r_color);
+  copy_v4_v4(r_color, virtual_node_socket_color);
 }
 
 void ED_init_node_socket_type_virtual(bNodeSocketType *stype)

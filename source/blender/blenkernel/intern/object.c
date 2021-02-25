@@ -1148,6 +1148,7 @@ IDTypeInfo IDType_ID_OB = {
     .make_local = object_make_local,
     .foreach_id = object_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = object_blend_write,
     .blend_read_data = object_blend_read_data,

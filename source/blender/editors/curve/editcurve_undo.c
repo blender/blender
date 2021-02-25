@@ -36,6 +36,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -173,7 +174,8 @@ static void undocurve_free_data(UndoCurve *uc)
 
 static Object *editcurve_object_from_context(bContext *C)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   if (obedit && ELEM(obedit->type, OB_CURVE, OB_SURF)) {
     Curve *cu = obedit->data;
     if (BKE_curve_editNurbs_get(cu) != NULL) {
@@ -250,7 +252,7 @@ static void curve_undosys_step_decode(struct bContext *C,
   ED_undo_object_editmode_restore_helper(
       C, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
 
-  BLI_assert(curve_undosys_poll(C));
+  BLI_assert(BKE_object_is_in_editmode(us->elems[0].obedit_ref.ptr));
 
   for (uint i = 0; i < us->elems_len; i++) {
     CurveUndoStep_Elem *elem = &us->elems[i];
@@ -271,7 +273,10 @@ static void curve_undosys_step_decode(struct bContext *C,
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
-      CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+      CTX_data_scene(C), CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
+  /* Check after setting active. */
+  BLI_assert(curve_undosys_poll(C));
 
   bmain->is_memfile_undo_flush_needed = true;
 

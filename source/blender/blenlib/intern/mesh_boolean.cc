@@ -2605,8 +2605,10 @@ static int find_cdt_edge(const CDT_result<mpq_class> &cdt_out, int v1, int v2)
   return -1;
 }
 
-/* Return the original edge id for the cdt output edge e_out, given that
- * the only input to CDT was face f. Pick the first, if there are several. */
+/**
+ * Return the original edge id for the CDT output edge e_out, given that
+ * the only input to CDT was face f. Pick the first, if there are several.
+ */
 static int orig_edge_for_cdt_edge(const CDT_result<mpq_class> &cdt_out,
                                   int cdt_e_out,
                                   const Face *f)

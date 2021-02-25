@@ -1144,6 +1144,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
                "Type",
                "Sequencer effect type");
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
+  /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,
                              "color",
                              3,
@@ -1151,7 +1152,7 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
                              0.0f,
                              1.0f,
                              "Color",
-                             "Initialize the strip with this color (only used when type='COLOR')",
+                             "Initialize the strip with this color",
                              0.0f,
                              1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);

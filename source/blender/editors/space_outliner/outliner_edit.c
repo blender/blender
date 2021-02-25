@@ -2267,29 +2267,19 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
 
 /** \} */
 
-static void outliner_orphans_purge_tag(ID *id, int *num_tagged)
-{
-  if (id->us == 0) {
-    id->tag |= LIB_TAG_DOIT;
-    num_tagged[INDEX_ID_NULL]++;
-    num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
-  }
-  else {
-    id->tag &= ~LIB_TAG_DOIT;
-  }
-}
-
 static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
 {
   Main *bmain = CTX_data_main(C);
   int num_tagged[INDEX_ID_MAX] = {0};
 
-  /* Tag all IDs having zero users. */
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    outliner_orphans_purge_tag(id, num_tagged);
-  }
-  FOREACH_MAIN_ID_END;
+  const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+  const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+  const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
+
+  /* Tag all IDs to delete. */
+  BKE_lib_query_unused_ids_tag(
+      bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+
   RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
 
   if (num_tagged[INDEX_ID_NULL] == 0) {
@@ -2298,7 +2288,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   }
 
   DynStr *dyn_str = BLI_dynstr_new();
-  BLI_dynstr_append(dyn_str, "Purging unused data-blocks (");
+  BLI_dynstr_appendf(dyn_str, "Purging %d unused data-blocks (", num_tagged[INDEX_ID_NULL]);
   bool is_first = true;
   for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
     if (num_tagged[i] != 0) {
@@ -2332,12 +2322,13 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   int num_tagged[INDEX_ID_MAX] = {0};
 
   if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
-    /* Tag all IDs having zero users. */
-    ID *id;
-    FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      outliner_orphans_purge_tag(id, num_tagged);
-    }
-    FOREACH_MAIN_ID_END;
+    const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+    const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+    const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
+
+    /* Tag all IDs to delete. */
+    BKE_lib_query_unused_ids_tag(
+        bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
 
     if (num_tagged[INDEX_ID_NULL] == 0) {
       BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
@@ -2359,8 +2350,10 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   }
 
   DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_ID | NA_EDITED, NULL);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+  WM_event_add_notifier(C, NC_ID | NA_REMOVED, NULL);
+  /* Force full redraw of the UI. */
+  WM_main_add_notifier(NC_WINDOW, NULL);
+
   return OPERATOR_FINISHED;
 }
 
@@ -2382,6 +2375,24 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop = RNA_def_int(ot->srna, "num_deleted", 0, 0, INT_MAX, "", "", 0, INT_MAX);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+
+  RNA_def_boolean(ot->srna,
+                  "do_local_ids",
+                  true,
+                  "Local Data-blocks",
+                  "Include unused local data-blocks into deletion");
+  RNA_def_boolean(ot->srna,
+                  "do_linked_ids",
+                  true,
+                  "Linked Data-blocks",
+                  "Include unused linked data-blocks into deletion");
+
+  RNA_def_boolean(ot->srna,
+                  "do_recursive",
+                  false,
+                  "Recursive Delete",
+                  "Recursively check for indirectly unused data-blocks, ensuring that no orphaned "
+                  "data-blocks remain after execution");
 }
 
 /** \} */

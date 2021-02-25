@@ -77,6 +77,7 @@ IDTypeInfo IDType_ID_LI = {
     .make_local = NULL,
     .foreach_id = library_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = NULL,
     .blend_read_data = NULL,

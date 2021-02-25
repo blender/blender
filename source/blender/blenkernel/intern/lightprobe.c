@@ -100,6 +100,7 @@ IDTypeInfo IDType_ID_LP = {
     .make_local = NULL,
     .foreach_id = lightprobe_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = lightprobe_blend_write,
     .blend_read_data = lightprobe_blend_read_data,

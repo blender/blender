@@ -304,7 +304,7 @@ static PyObject *bpy_batch_remove(PyObject *UNUSED(self), PyObject *args, PyObje
   PyObject *ret = NULL;
 
   static const char *_keywords[] = {"ids", NULL};
-  static _PyArg_Parser _parser = {"O:user_map", _keywords, 0};
+  static _PyArg_Parser _parser = {"O:batch_remove", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &ids)) {
     return ret;
   }
@@ -353,12 +353,15 @@ PyDoc_STRVAR(bpy_orphans_purge_doc,
              "\n"
              "   Remove (delete) all IDs with no user.\n"
              "\n"
-             "   :return: The number of deleted IDs.\n"
-             "\n"
-             "   WARNING: Considered experimental feature currently.\n");
-static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
-                                   PyObject *UNUSED(args),
-                                   PyObject *UNUSED(kwds))
+             "   :arg do_local_ids: Include unused local IDs in the deletion, defaults to True\n"
+             "   :type do_local_ids: bool, optional\n"
+             "   :arg do_linked_ids: Include unused linked IDs in the deletion, defaults to True\n"
+             "   :type do_linked_ids: bool, optional\n"
+             "   :arg do_recursive: Recursively check for unused IDs, ensuring no orphaned one "
+             "remain after a single run of that function, defaults to False\n"
+             "   :type do_recursive: bool, optional\n"
+             "   :return: The number of deleted IDs.\n");
+static PyObject *bpy_orphans_purge(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
 #if 0 /* If someone knows how to get a proper 'self' in that case... */
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
@@ -367,16 +370,26 @@ static PyObject *bpy_orphans_purge(PyObject *UNUSED(self),
   Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
 #endif
 
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->us == 0) {
-      id->tag |= LIB_TAG_DOIT;
-    }
-    else {
-      id->tag &= ~LIB_TAG_DOIT;
-    }
+  int num_tagged[INDEX_ID_MAX] = {0};
+
+  bool do_local_ids = true;
+  bool do_linked_ids = true;
+  bool do_recursive_cleanup = false;
+
+  static const char *_keywords[] = {"do_local_ids", "do_linked_ids", "do_recursive", NULL};
+  static _PyArg_Parser _parser = {"|$ppp:orphans_purge", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &do_local_ids, &do_linked_ids, &do_recursive_cleanup)) {
+    return NULL;
   }
-  FOREACH_MAIN_ID_END;
+
+  /* Tag all IDs to delete. */
+  BKE_lib_query_unused_ids_tag(
+      bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+
+  if (num_tagged[INDEX_ID_NULL] == 0) {
+    return PyLong_FromSize_t(0);
+  }
 
   const size_t num_datablocks_deleted = BKE_id_multi_tagged_delete(bmain);
   /* Force full redraw, mandatory to avoid crashes when running this from UI... */

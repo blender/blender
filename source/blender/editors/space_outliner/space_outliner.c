@@ -395,7 +395,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)space_outliner_new;
 }
 
-static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
@@ -427,6 +427,13 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
       /* rebuild hash table, because it depends on ids too */
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
+
+      if (new_id == NULL) {
+        /* Redraw is needed when removing data for multiple outlines show the same data.
+         * without this, the stale data won't get fully flushed when this outliner
+         * is not the active outliner the user is interacting with. See T85976. */
+        ED_area_tag_redraw(area);
+      }
     }
   }
 }

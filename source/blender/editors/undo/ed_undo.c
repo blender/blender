@@ -846,16 +846,15 @@ void ED_OT_undo_history(wmOperatorType *ot)
 /** \name Undo Helper Functions
  * \{ */
 
-void ED_undo_object_set_active_or_warn(ViewLayer *view_layer,
-                                       Object *ob,
-                                       const char *info,
-                                       CLG_LogRef *log)
+void ED_undo_object_set_active_or_warn(
+    Scene *scene, ViewLayer *view_layer, Object *ob, const char *info, CLG_LogRef *log)
 {
   Object *ob_prev = OBACT(view_layer);
   if (ob_prev != ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != NULL) {
       view_layer->basact = base;
+      ED_object_base_active_refresh(G_MAIN, scene, view_layer);
     }
     else {
       /* Should never fail, may not crash but can give odd behavior. */

@@ -323,7 +323,7 @@ class OUTLINER_PT_filter(Panel):
         display_mode = space.display_mode
 
         if display_mode == 'VIEW_LAYER':
-            layout.label(text="Restriction Toggles:")
+            layout.label(text="Restriction Toggles")
             row = layout.row(align=True)
             row.prop(space, "show_restrict_column_enable", text="")
             row.prop(space, "show_restrict_column_select", text="")
@@ -334,7 +334,7 @@ class OUTLINER_PT_filter(Panel):
             row.prop(space, "show_restrict_column_indirect_only", text="")
             layout.separator()
         elif display_mode == 'SCENES':
-            layout.label(text="Restriction Toggles:")
+            layout.label(text="Restriction Toggles")
             row = layout.row(align=True)
             row.prop(space, "show_restrict_column_select", text="")
             row.prop(space, "show_restrict_column_hide", text="")
@@ -354,7 +354,7 @@ class OUTLINER_PT_filter(Panel):
         layout.separator()
 
         col = layout.column(align=True)
-        col.label(text="Search:")
+        col.label(text="Search")
         col.prop(space, "use_filter_complete", text="Exact Match")
         col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
@@ -363,7 +363,7 @@ class OUTLINER_PT_filter(Panel):
 
         layout.separator()
 
-        layout.label(text="Filter:")
+        layout.label(text="Filter")
 
         col = layout.column(align=True)
 
