@@ -216,6 +216,7 @@ IDTypeInfo IDType_ID_KE = {
     .make_local = NULL,
     .foreach_id = shapekey_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL, /* Could have one actually? */
 
     .blend_write = shapekey_blend_write,
     .blend_read_data = shapekey_blend_read_data,

@@ -169,6 +169,7 @@ IDTypeInfo IDType_ID_VF = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = vfont_blend_write,
     .blend_read_data = vfont_blend_read_data,

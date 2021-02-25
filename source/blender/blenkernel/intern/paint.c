@@ -151,6 +151,7 @@ IDTypeInfo IDType_ID_PAL = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = palette_blend_write,
     .blend_read_data = palette_blend_read_data,
@@ -216,6 +217,7 @@ IDTypeInfo IDType_ID_PC = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = paint_curve_blend_write,
     .blend_read_data = paint_curve_blend_read_data,

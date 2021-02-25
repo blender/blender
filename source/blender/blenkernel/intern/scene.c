@@ -1718,6 +1718,7 @@ IDTypeInfo IDType_ID_SCE = {
     .make_local = NULL,
     .foreach_id = scene_foreach_id,
     .foreach_cache = scene_foreach_cache,
+    .owner_get = NULL,
 
     .blend_write = scene_blend_write,
     .blend_read_data = scene_blend_read_data,

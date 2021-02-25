@@ -77,8 +77,6 @@ struct Collection *BKE_collection_duplicate(struct Main *bmain,
 /* Master Collection for Scene */
 
 struct Collection *BKE_collection_master_add(void);
-struct Scene *BKE_collection_master_scene_search(const struct Main *bmain,
-                                                 const struct Collection *master_collection);
 
 /* Collection Objects */
 

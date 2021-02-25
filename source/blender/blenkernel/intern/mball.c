@@ -197,6 +197,7 @@ IDTypeInfo IDType_ID_MB = {
     .make_local = NULL,
     .foreach_id = metaball_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = metaball_blend_write,
     .blend_read_data = metaball_blend_read_data,

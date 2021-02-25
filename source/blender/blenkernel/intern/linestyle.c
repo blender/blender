@@ -760,6 +760,7 @@ IDTypeInfo IDType_ID_LS = {
     .make_local = NULL,
     .foreach_id = linestyle_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = linestyle_blend_write,
     .blend_read_data = linestyle_blend_read_data,

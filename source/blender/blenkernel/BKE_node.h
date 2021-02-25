@@ -442,7 +442,6 @@ struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntre
 
 struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
 struct bNodeTree *ntreeFromID(struct ID *id);
-struct ID *BKE_node_tree_find_owner_ID(struct Main *bmain, struct bNodeTree *ntree);
 
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);

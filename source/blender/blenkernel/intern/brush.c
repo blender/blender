@@ -403,6 +403,7 @@ IDTypeInfo IDType_ID_BR = {
     .make_local = brush_make_local,
     .foreach_id = brush_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = brush_blend_write,
     .blend_read_data = brush_blend_read_data,

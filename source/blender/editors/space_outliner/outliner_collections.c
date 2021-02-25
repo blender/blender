@@ -28,6 +28,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
+#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -361,8 +362,14 @@ void outliner_collection_delete(
               break;
             }
             if (parent->flag & COLLECTION_IS_MASTER) {
-              Scene *parent_scene = BKE_collection_master_scene_search(bmain, parent);
-              if (ID_IS_LINKED(parent_scene)) {
+              BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
+
+              const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
+              BLI_assert(id_type->owner_get != NULL);
+
+              ID *scene_owner = id_type->owner_get(bmain, &parent->id);
+              BLI_assert(GS(scene_owner->name) == ID_SCE);
+              if (ID_IS_LINKED(scene_owner)) {
                 skip = true;
                 break;
               }
@@ -592,11 +599,18 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
                                                                       scene->master_collection;
   }
   else if (parent != NULL && (parent->flag & COLLECTION_IS_MASTER) != 0) {
-    Scene *scene = BKE_collection_master_scene_search(bmain, parent);
-    BLI_assert(scene != NULL);
-    if (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
-      scene = CTX_data_scene(C);
-      parent = ID_IS_LINKED(scene) ? NULL : scene->master_collection;
+    BLI_assert(parent->id.flag & LIB_EMBEDDED_DATA);
+
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(&parent->id);
+    BLI_assert(id_type->owner_get != NULL);
+
+    Scene *scene_owner = (Scene *)id_type->owner_get(bmain, &parent->id);
+    BLI_assert(scene_owner != NULL);
+    BLI_assert(GS(scene_owner->id.name) == ID_SCE);
+
+    if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
+      scene_owner = CTX_data_scene(C);
+      parent = ID_IS_LINKED(scene_owner) ? NULL : scene_owner->master_collection;
     }
   }
 

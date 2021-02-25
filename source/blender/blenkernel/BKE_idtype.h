@@ -95,6 +95,8 @@ typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
                                            void *user_data);
 
+typedef struct ID *(*IDTypeEmbeddedOwnerGetFunction)(struct Main *bmain, struct ID *id);
+
 typedef void (*IDTypeBlendWriteFunction)(struct BlendWriter *writer,
                                          struct ID *id,
                                          const void *id_address);
@@ -180,6 +182,11 @@ typedef struct IDTypeInfo {
    * Iterator over all cache pointers of given ID.
    */
   IDTypeForeachCacheFunction foreach_cache;
+
+  /**
+   * For embedded IDs, return their owner ID.
+   */
+  IDTypeEmbeddedOwnerGetFunction owner_get;
 
   /* ********** Callbacks for reading and writing .blend files. ********** */
 

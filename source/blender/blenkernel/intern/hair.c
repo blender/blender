@@ -190,6 +190,7 @@ IDTypeInfo IDType_ID_HA = {
     .make_local = NULL,
     .foreach_id = hair_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = hair_blend_write,
     .blend_read_data = hair_blend_read_data,
