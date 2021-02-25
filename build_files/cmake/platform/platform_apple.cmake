@@ -410,7 +410,7 @@ if(WITH_OPENMP)
     set(OPENMP_FOUND ON)
     set(OpenMP_C_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
     set(OpenMP_CXX_FLAGS "-Xclang -fopenmp -I'${LIBDIR}/openmp/include'")
-    string(APPEND CMAKE_EXE_LINKER_FLAGS " -L'${LIBDIR}/openmp/lib' -lomp")
+    set(OpenMP_LINKER_FLAGS "-L'${LIBDIR}/openmp/lib' -lomp")
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
     # `@executable_path/../Resources/lib/` is a default dylib search path.
