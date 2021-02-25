@@ -108,6 +108,15 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
+   * Construct an object with the same value in the ResourceCollector and return a reference to the
+   * new value.
+   */
+  template<typename T> T &add_value(T &&value, const char *name)
+  {
+    return this->construct<T>(name, std::forward<T>(value));
+  }
+
+  /**
    * Returns a reference to a linear allocator that is owned by the ResourcesCollector. Memory
    * allocated through this allocator will be freed when the collector is destructed.
    */
