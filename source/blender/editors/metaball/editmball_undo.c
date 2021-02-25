@@ -221,7 +221,7 @@ static void mball_undosys_step_decode(struct bContext *C,
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
-      CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+      CTX_data_scene(C), CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
 
   /* Check after setting active. */
 
