@@ -396,12 +396,50 @@ static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss, const int vertex,
         return min;
 }
 
+/* Smooth/Sharpen vertex callbacks. */
+static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+  float accum = 0.0f;
+  int total = 0;
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    accum += current_mask[ni.index];
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  return total > 0? accum/total : current_mask[vertex];
+}
+
+static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss, const int vertex, const float *current_mask) {
+  float accum = 0.0f;
+  int total = 0;
+  float vmask = current_mask[vertex];
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+    accum += current_mask[ni.index];
+    total++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  const float avg = total > 0? accum/total : current_mask[vertex];
+  const float val = avg - vmask;
+
+  float new_mask;
+          if (vmask > 0.5f) {
+            new_mask = vmask +  0.01f;
+          }
+          else {
+            new_mask = vmask - 0.01f;
+          }
+          new_mask += val / 2.0f;
+    return clamp_f(new_mask, 0.0f, 1.0f);
+
+}
 
 static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current_mask) {
     const int totvert = SCULPT_vertex_count_get(ss);
     float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
     for (int i = 0; i < totvert; i++) {
-        next_mask[i] = sculpt_ipmask_vertex_grow_cb(ss, i, current_mask);
+        //next_mask[i] = sculpt_ipmask_vertex_grow_cb(ss, i, current_mask);
+        next_mask[i] = sculpt_ipmask_vertex_smooth_cb(ss, i, current_mask);
     }
     return next_mask;
 }
@@ -410,7 +448,8 @@ static float *sculpt_ipmask_step_compute_backward(SculptSession *ss, const float
     const int totvert = SCULPT_vertex_count_get(ss);
     float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
     for (int i = 0; i < totvert; i++) {
-        next_mask[i] = sculpt_ipmask_vertex_shrink_cb(ss, i, current_mask);
+        //next_mask[i] = sculpt_ipmask_vertex_shrink_cb(ss, i, current_mask);
+        next_mask[i] = sculpt_ipmask_vertex_sharpen_cb(ss, i, current_mask);
     }
     return next_mask;
 }
