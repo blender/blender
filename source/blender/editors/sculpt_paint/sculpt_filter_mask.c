@@ -618,6 +618,9 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
   filter_cache->mask_filter_current_step = 0;
 
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &filter_cache->nodes, &filter_cache->totnode);
+  for (int i = 0; i < filter_cache->totnode; i++) {
+    SCULPT_undo_push_node(ob, filter_cache->nodes[i], SCULPT_UNDO_MASK);
+  }
 
   filter_cache->mask_delta_step = BLI_ghash_int_new("mask filter delta steps");
 
