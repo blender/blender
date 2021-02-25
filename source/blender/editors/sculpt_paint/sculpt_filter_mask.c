@@ -424,32 +424,28 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss, const int vertex
 
   float new_mask;
           if (vmask > 0.5f) {
-            new_mask = vmask +  0.01f;
+            new_mask = vmask +  0.03f;
           }
           else {
-            new_mask = vmask - 0.01f;
+            new_mask = vmask - 0.03f;
           }
           new_mask += val / 2.0f;
     return clamp_f(new_mask, 0.0f, 1.0f);
 
 }
 
-static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current_mask) {
-    const int totvert = SCULPT_vertex_count_get(ss);
-    float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
-    for (int i = 0; i < totvert; i++) {
-        //next_mask[i] = sculpt_ipmask_vertex_grow_cb(ss, i, current_mask);
-        next_mask[i] = sculpt_ipmask_vertex_smooth_cb(ss, i, current_mask);
-    }
-    return next_mask;
-}
 
-static float *sculpt_ipmask_step_compute_backward(SculptSession *ss, const float *current_mask) {
+static float *sculpt_ipmask_step_compute(SculptSession *ss, const float *current_mask, MaskFilterStepDirectionType direction) {
     const int totvert = SCULPT_vertex_count_get(ss);
     float *next_mask = MEM_malloc_arrayN(sizeof (float), totvert, "delta values");
     for (int i = 0; i < totvert; i++) {
         //next_mask[i] = sculpt_ipmask_vertex_shrink_cb(ss, i, current_mask);
-        next_mask[i] = sculpt_ipmask_vertex_sharpen_cb(ss, i, current_mask);
+        if (direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
+            next_mask[i] = sculpt_ipmask_vertex_smooth_cb(ss, i, current_mask);
+        }
+        else {
+            next_mask[i] = sculpt_ipmask_vertex_sharpen_cb(ss, i, current_mask);
+        }
     }
     return next_mask;
 }
@@ -559,7 +555,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       }
       else {
           printf("FORWARD, COMPUTING\n");
-          next_mask = sculpt_ipmask_step_compute(ss, current_mask);
+          next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
           MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(current_mask, next_mask, totvert);
           BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
       }
@@ -573,7 +569,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
       }
       else {
           printf("BACKWARD, COMPUTING\n");
-          next_mask = sculpt_ipmask_step_compute_backward(ss, current_mask);
+          next_mask = sculpt_ipmask_step_compute(ss, current_mask, direction);
           MaskFilterDeltaStep *delta_step = sculpt_ipmask_filter_delta_create(next_mask, current_mask, totvert);
           BLI_ghash_insert(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index), delta_step);
       }
