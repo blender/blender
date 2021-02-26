@@ -321,14 +321,15 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /* Interactive Preview Mask Filter */
 
 #define SCULPT_IPMASK_FILTER_MIN_MULTITHREAD 1000
-#define SCULPT_IPMASK_FILTER_GRANULARITY 1000
+#define SCULPT_IPMASK_FILTER_GRANULARITY 100
 
 typedef enum eSculptIPMaskFilterType {
   IPMASK_FILTER_SMOOTH_SHARPEN,
   IPMASK_FILTER_GROW_SHRINK,
-  IPMASK_FILTER_CONTRAST_INCREASE_DECREASE,
-  IPMASK_FILTER_INTENSITY_INCREASE_DECREASE,
-  IPMASK_FILTER_LINEAR_INTENSITY_INCREASE_DECREASE,
+  IPMASK_FILTER_HARDER_SOFTER,
+  IPMASK_FILTER_CONTRAST,
+  IPMASK_FILTER_ADD_SUBSTRACT,
+  IPMASK_FILTER_INVERT,
 } eSculptIPMaskFilterType;
 
 static EnumPropertyItem prop_ipmask_filter_types[] = {
@@ -338,6 +339,10 @@ static EnumPropertyItem prop_ipmask_filter_types[] = {
      "Smooth/Sharpen",
      "Smooth and sharpen the mask"},
     {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
+    {IPMASK_FILTER_HARDER_SOFTER, "HARDER_SOFTER", 0, "Harder/Softer", "Makes the entire mask harder or softer"},
+    {IPMASK_FILTER_ADD_SUBSTRACT, "ADD_SUBSTRACT", 0, "Add/Substract", "Adds or substract a value to the mask"},
+    {IPMASK_FILTER_CONTRAST, "CONTRAST", 0, "Contrast", "Increases or decreases the contrast of the mask"},
+    {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -420,6 +425,20 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss,
   return clamp_f(new_mask, 0.0f, 1.0f);
 }
 
+/* Harder/Softer callbacks. */
+#define SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP 0.01f
+static float sculpt_ipmask_vertex_harder_cb(SculptSession *UNUSED(ss), const int vertex, float *current_mask)
+{
+  return clamp_f(current_mask[vertex] += current_mask[vertex] * SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP, 0.0f, 1.0f);
+}
+
+static float sculpt_ipmask_vertex_softer_cb(SculptSession *UNUSED(ss),
+                                            const int vertex,
+                                            float *current_mask)
+{
+  return clamp_f(current_mask[vertex] -= current_mask[vertex] * SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP, 0.0f, 1.0f);
+}
+
 static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *current_mask,
                                                               const float *next_mask,
                                                               const int totvert)
@@ -489,6 +508,7 @@ static float *sculpt_ipmask_step_compute(SculptSession *ss,
   TaskParallelSettings settings;
   memset(&settings, 0, sizeof(TaskParallelSettings));
   settings.use_threading = totvert > SCULPT_IPMASK_FILTER_MIN_MULTITHREAD;
+  settings.min_iter_per_thread = SCULPT_IPMASK_FILTER_GRANULARITY;
   BLI_task_parallel_range(0, totvert, &data, ipmask_filter_compute_step_task_cb, &settings);
 
   return next_mask;
@@ -724,6 +744,10 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
     case IPMASK_FILTER_GROW_SHRINK:
       filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_grow_cb;
       filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_shrink_cb;
+      break;
+    case IPMASK_FILTER_HARDER_SOFTER:
+      filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_harder_cb;
+      filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_softer_cb;
       break;
   }
 
