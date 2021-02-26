@@ -757,7 +757,7 @@ static void engine_render_view_layer(Render *re,
 {
   /* Lock UI so scene can't be edited while we read from it in this render thread. */
   if (re->draw_lock) {
-    re->draw_lock(re->dlh, 1);
+    re->draw_lock(re->dlh, true);
   }
 
   /* Create depsgraph with scene evaluated at render resolution. */
@@ -773,7 +773,7 @@ static void engine_render_view_layer(Render *re,
   }
 
   if (re->draw_lock) {
-    re->draw_lock(re->dlh, 0);
+    re->draw_lock(re->dlh, false);
   }
 
   /* Perform render with engine. */
@@ -824,7 +824,7 @@ bool RE_engine_render(Render *re, bool do_all)
 
   /* Lock drawing in UI during data phase. */
   if (re->draw_lock) {
-    re->draw_lock(re->dlh, 1);
+    re->draw_lock(re->dlh, true);
   }
 
   /* update animation here so any render layer animation is applied before
@@ -852,7 +852,7 @@ bool RE_engine_render(Render *re, bool do_all)
   if (re->result == NULL) {
     /* Clear UI drawing locks. */
     if (re->draw_lock) {
-      re->draw_lock(re->dlh, 0);
+      re->draw_lock(re->dlh, false);
     }
     /* Too small image is handled earlier, here it could only happen if
      * there was no sufficient memory to allocate all passes.
@@ -902,7 +902,7 @@ bool RE_engine_render(Render *re, bool do_all)
 
   /* Clear UI drawing locks. */
   if (re->draw_lock) {
-    re->draw_lock(re->dlh, 0);
+    re->draw_lock(re->dlh, false);
   }
 
   /* Render view layers. */

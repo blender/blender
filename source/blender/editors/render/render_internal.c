@@ -800,7 +800,7 @@ static int render_break(void *UNUSED(rjv))
 
 /* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */
 /* maybe need a way to get job send notifier? */
-static void render_drawlock(void *rjv, int lock)
+static void render_drawlock(void *rjv, bool lock)
 {
   RenderJob *rj = rjv;
 

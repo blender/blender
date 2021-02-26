@@ -2501,7 +2501,7 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
                                              bNodeInstanceKey parent_key,
                                              int xsize,
                                              int ysize,
-                                             int create)
+                                             bool create_previews)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
@@ -2510,16 +2510,17 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
       node->preview_xsize = xsize;
       node->preview_ysize = ysize;
 
-      BKE_node_preview_verify(previews, key, xsize, ysize, create);
+      BKE_node_preview_verify(previews, key, xsize, ysize, create_previews);
     }
 
     if (node->type == NODE_GROUP && node->id) {
-      node_preview_init_tree_recursive(previews, (bNodeTree *)node->id, key, xsize, ysize, create);
+      node_preview_init_tree_recursive(
+          previews, (bNodeTree *)node->id, key, xsize, ysize, create_previews);
     }
   }
 }
 
-void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, int create_previews)
+void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, bool create_previews)
 {
   if (!ntree) {
     return;

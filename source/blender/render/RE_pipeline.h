@@ -331,7 +331,7 @@ void RE_display_update_cb(struct Render *re,
                           void (*f)(void *handle, RenderResult *rr, volatile struct rcti *rect));
 void RE_stats_draw_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb(struct Render *re, void *handle, void (*f)(void *handle, float));
-void RE_draw_lock_cb(struct Render *re, void *handle, void (*f)(void *handle, int));
+void RE_draw_lock_cb(struct Render *re, void *handle, void (*f)(void *handle, bool lock));
 void RE_test_break_cb(struct Render *re, void *handle, int (*f)(void *handle));
 void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,

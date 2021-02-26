@@ -302,7 +302,7 @@ static void pe_update_hair_particle_edit_pointers(PTCacheEdit *edit)
  *
  * note: this function runs on poll, therefore it can runs many times a second
  * keep it fast! */
-static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob, int create)
+static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob, bool create)
 {
   ParticleEditSettings *pset = PE_settings(scene);
   PTCacheEdit *edit = NULL;
@@ -406,12 +406,12 @@ static PTCacheEdit *pe_get_current(Depsgraph *depsgraph, Scene *scene, Object *o
 
 PTCacheEdit *PE_get_current(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  return pe_get_current(depsgraph, scene, ob, 0);
+  return pe_get_current(depsgraph, scene, ob, false);
 }
 
 PTCacheEdit *PE_create_current(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  return pe_get_current(depsgraph, scene, ob, 1);
+  return pe_get_current(depsgraph, scene, ob, true);
 }
 
 void PE_current_changed(Depsgraph *depsgraph, Scene *scene, Object *ob)
