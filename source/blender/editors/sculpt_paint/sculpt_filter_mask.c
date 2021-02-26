@@ -614,6 +614,43 @@ static void sculpt_ipmask_compute_and_store_step(SculptSession *ss,
   MEM_freeN(next_mask);
 }
 
+
+static void sculpt_ipmask_filter_update_to_target_step(SculptSession *ss, const int target_step, const int iteration_count) {
+  FilterCache *filter_cache = ss->filter_cache;
+  while (filter_cache->mask_filter_current_step != target_step) {
+    int next_step = filter_cache->mask_filter_current_step;
+    int delta_index = next_step;
+    MaskFilterStepDirectionType direction;
+
+    /* Get the next step and the delta step index associated with it. */
+    if (target_step > filter_cache->mask_filter_current_step) {
+      next_step = filter_cache->mask_filter_current_step + 1;
+      delta_index = filter_cache->mask_filter_current_step;
+      direction = MASK_FILTER_STEP_DIRECTION_FORWARD;
+    }
+    else {
+      next_step = filter_cache->mask_filter_current_step - 1;
+      delta_index = filter_cache->mask_filter_current_step - 1;
+      direction = MASK_FILTER_STEP_DIRECTION_BACKWARD;
+    }
+
+    /* Update the data one step forward/backward. */
+    if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
+      /* This step was already computed, restore it from the current step and a delta. */
+      MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step,
+                                                         POINTER_FROM_INT(delta_index));
+      sculpt_ipmask_restore_state_from_delta(ss, delta_step, direction);
+    }
+    else {
+      /* New step that was not yet computed. Compute and store the delta. */
+      sculpt_ipmask_compute_and_store_step(ss, iteration_count, delta_index, direction);
+    }
+
+    /* Update the current step. */
+    filter_cache->mask_filter_current_step = next_step;
+  }
+}
+
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -621,7 +658,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
-  const int iterations = RNA_int_get(op->ptr, "iterations");
+  const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 
@@ -646,32 +683,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  while (filter_cache->mask_filter_current_step != target_step) {
-    int next_step = filter_cache->mask_filter_current_step;
-    int delta_index = next_step;
-    MaskFilterStepDirectionType direction;
-
-    if (target_step > filter_cache->mask_filter_current_step) {
-      next_step = filter_cache->mask_filter_current_step + 1;
-      delta_index = filter_cache->mask_filter_current_step;
-      direction = MASK_FILTER_STEP_DIRECTION_FORWARD;
-    }
-    else {
-      next_step = filter_cache->mask_filter_current_step - 1;
-      delta_index = filter_cache->mask_filter_current_step - 1;
-      direction = MASK_FILTER_STEP_DIRECTION_BACKWARD;
-    }
-
-    if (BLI_ghash_haskey(filter_cache->mask_delta_step, POINTER_FROM_INT(delta_index))) {
-      MaskFilterDeltaStep *delta_step = BLI_ghash_lookup(filter_cache->mask_delta_step,
-                                                         POINTER_FROM_INT(delta_index));
-      sculpt_ipmask_restore_state_from_delta(ss, delta_step, direction);
-    }
-    else {
-      sculpt_ipmask_compute_and_store_step(ss, iterations, delta_index, direction);
-    }
-    filter_cache->mask_filter_current_step = next_step;
-  }
+  sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count);
 
   SCULPT_tag_update_overlays(C);
 
