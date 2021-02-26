@@ -1311,7 +1311,8 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Select Mirror";
-  ot->description = "Select the mirror objects of the selected object e.g. \"L.sword\" and \"R.sword\"";
+  ot->description =
+      "Select the mirror objects of the selected object e.g. \"L.sword\" and \"R.sword\"";
   ot->idname = "OBJECT_OT_select_mirror";
 
   /* api callbacks */
