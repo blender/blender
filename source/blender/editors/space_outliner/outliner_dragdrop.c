@@ -1213,11 +1213,23 @@ static bool collection_drop_poll(bContext *C,
             *r_tooltip = TIP_("Move after collection");
           }
           break;
-        case TE_INSERT_INTO:
+        case TE_INSERT_INTO: {
           tselem->flag |= TSE_DRAG_INTO;
           changed = true;
-          *r_tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
+
+          /* Check the type of the drag IDs to avoid the incorrect "Shift to parent"
+           * for collections. Checking the type of the first ID works fine here since
+           * all drag IDs are the same type. */
+          wmDragID *drag_id = (wmDragID *)drag->ids.first;
+          const bool is_object = (GS(drag_id->id->name) == ID_OB);
+          if (is_object) {
+            *r_tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
+          }
+          else {
+            *r_tooltip = TIP_("Move inside collection (Ctrl to link)");
+          }
           break;
+        }
       }
     }
     if (changed) {
