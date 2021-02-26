@@ -775,7 +775,6 @@ static void mesh_undosys_step_decode(struct bContext *C,
 {
   MeshUndoStep *us = (MeshUndoStep *)us_p;
 
-  /* Load all our objects  into edit-mode, clear everything else. */
   ED_undo_object_editmode_restore_helper(
       C, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
 
