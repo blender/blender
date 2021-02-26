@@ -439,6 +439,33 @@ static float sculpt_ipmask_vertex_softer_cb(SculptSession *UNUSED(ss),
   return clamp_f(current_mask[vertex] -= current_mask[vertex] * SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP, 0.0f, 1.0f);
 }
 
+/* Contrast Increase/Decrease callbacks. */
+
+#define SCULPT_IPMASK_FILTER_CONTRAST_STEP 0.01f
+static float sculpt_ipmask_filter_contrast(const float mask, const float contrast) {
+        float offset;
+        float delta = contrast / 2.0f;
+        float gain = 1.0f - delta * 2.0f;
+        if (contrast > 0.0f) {
+          gain = 1.0f / ((gain != 0.0f) ? gain : FLT_EPSILON);
+          offset = gain * (-delta);
+        }
+        else {
+          delta *= -1.0f;
+          offset = gain * (delta);
+        }
+        return clamp_f(gain * mask + offset, 0.0f, 1.0f);
+}
+
+static float sculpt_ipmask_vertex_contrast_increase_cb(SculptSession *UNUSED(ss), const int vertex, float *current_mask) {
+    return sculpt_ipmask_filter_contrast(current_mask[vertex], SCULPT_IPMASK_FILTER_CONTRAST_STEP);
+}
+
+static float sculpt_ipmask_vertex_contrast_decrease_cb(SculptSession *UNUSED(ss), const int vertex, float *current_mask) {
+    return sculpt_ipmask_filter_contrast(current_mask[vertex], -1.0f * SCULPT_IPMASK_FILTER_CONTRAST_STEP);
+}
+
+
 static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *current_mask,
                                                               const float *next_mask,
                                                               const int totvert)
@@ -747,6 +774,10 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
     case IPMASK_FILTER_HARDER_SOFTER:
       filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_harder_cb;
       filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_softer_cb;
+      break;
+    case IPMASK_FILTER_CONTRAST:
+      filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_contrast_increase_cb;
+      filter_cache->mask_filter_step_backward = sculpt_ipmask_vertex_contrast_decrease_cb;
       break;
   }
 
