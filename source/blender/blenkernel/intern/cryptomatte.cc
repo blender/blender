@@ -253,7 +253,7 @@ static constexpr int skip_whitespaces_len_(blender::StringRef ref)
   int skip_len = 0;
   while (skip_len < ref.size()) {
     char front = ref[skip_len];
-    if (!std::isspace<char>(front, std::locale::classic())) {
+    if (front != ' ') {
       break;
     }
     skip_len++;
