@@ -24,11 +24,12 @@ if(WIN32)
     -DARM_ENABLED=Off
   )
 elseif(APPLE)
-  # Use bison installed via Homebrew.
-  # The one which comes which Xcode toolset is too old.
+  # Use bison and flex installed via Homebrew.
+  # The ones that come with Xcode toolset are too old.
   if("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64")
     set(ISPC_EXTRA_ARGS_APPLE
       -DBISON_EXECUTABLE=/opt/homebrew/opt/bison/bin/bison
+      -DFLEX_EXECUTABLE=/opt/homebrew/opt/flex/bin/flex
       -DARM_ENABLED=On
     )
   else()

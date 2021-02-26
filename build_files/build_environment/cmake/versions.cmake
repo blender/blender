@@ -116,8 +116,8 @@ set(OPENCOLORIO_HASH 1a2e3478b6cd9a1549f24e1b2205e3f0)
 if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
   # Newer version required by ISPC with arm support.
   set(LLVM_VERSION 11.0.1)
-  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz)
-  set(LLVM_HASH 6ec7ae9fd43da9b87cda15b3ab9cc7af)
+  set(LLVM_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz)
+  set(LLVM_HASH e700af40ab83463e4e9ab0ba3708312e)
 
   set(OPENMP_VERSION 9.0.1)
   set(OPENMP_URI https://github.com/llvm/llvm-project/releases/download/llvmorg-${OPENMP_VERSION}/openmp-${OPENMP_VERSION}.src.tar.xz)
