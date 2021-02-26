@@ -608,15 +608,18 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_FINISHED;
   }
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  if (event->type != MOUSEMOVE) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
 
   const float len = event->x - event->prevclickx;
   const int target_step = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
-
-
   if (target_step == filter_cache->mask_filter_current_step) {
       return OPERATOR_RUNNING_MODAL;
   }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
 
   while(filter_cache->mask_filter_current_step != target_step) {
