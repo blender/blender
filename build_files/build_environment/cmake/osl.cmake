@@ -71,6 +71,11 @@ set(OSL_EXTRA_ARGS
   -DUSE_PYTHON=OFF
 )
 
+# Apple arm64 uses LLVM 11, LLVM 10+ requires C++14
+if (APPLE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+  list(APPEND OSL_EXTRA_ARGS -DCMAKE_CXX_STANDARD=14)
+endif()
+
 ExternalProject_Add(external_osl
   URL ${OSL_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

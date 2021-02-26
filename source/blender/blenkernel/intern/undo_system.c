@@ -768,10 +768,13 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
     while (us_target_active != NULL && us_target_active->skip) {
       us_target_active = (undo_dir == -1) ? us_target_active->prev : us_target_active->next;
     }
-  }
-  if (us_target_active == NULL) {
-    CLOG_ERROR(&LOG, "could not find a valid final active target step");
-    return false;
+    if (us_target_active == NULL) {
+      CLOG_INFO(&LOG,
+                2,
+                "undo/redo did not find a step after stepping over skip-steps "
+                "(undo limit exceeded)");
+      return false;
+    }
   }
 
   CLOG_INFO(&LOG,

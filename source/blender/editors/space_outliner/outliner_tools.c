@@ -892,6 +892,8 @@ static void id_override_library_resync_fn(bContext *C,
     }
 
     BKE_lib_override_library_resync(bmain, scene, CTX_data_view_layer(C), id_root);
+
+    WM_event_add_notifier(C, NC_WINDOW, NULL);
   }
   else {
     CLOG_WARN(&LOG, "Could not resync library override of data block '%s'", id_root->name);
@@ -926,6 +928,8 @@ static void id_override_library_delete_fn(bContext *C,
     }
 
     BKE_lib_override_library_delete(bmain, id_root);
+
+    WM_event_add_notifier(C, NC_WINDOW, NULL);
   }
   else {
     CLOG_WARN(&LOG, "Could not delete library override of data block '%s'", id_root->name);

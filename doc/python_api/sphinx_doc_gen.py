@@ -75,7 +75,6 @@ def rna_info_BuildRNAInfo_cache():
 rna_info_BuildRNAInfo_cache.ret = None
 # --- end rna_info cache
 
-# import rpdb2; rpdb2.start_embedded_debugger('test')
 import os
 import sys
 import inspect

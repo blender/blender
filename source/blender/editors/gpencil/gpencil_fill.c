@@ -124,7 +124,8 @@ typedef struct tGPDfill {
   struct bGPDframe *gpf;
   /** Temp mouse position stroke. */
   struct bGPDstroke *gps_mouse;
-
+  /** Pointer to report messages.  */
+  struct ReportList *reports;
   /** flags */
   short flag;
   /** avoid too fast events */
@@ -862,7 +863,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
  *
  * \param tgpf: Temporary fill data.
  */
-static void gpencil_boundaryfill_area(tGPDfill *tgpf)
+static bool gpencil_boundaryfill_area(tGPDfill *tgpf)
 {
   ImBuf *ibuf;
   float rgba[4];
@@ -870,6 +871,7 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
   const float fill_col[4] = {0.0f, 1.0f, 0.0f, 1.0f};
   ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
   const int maxpixel = (ibuf->x * ibuf->y) - 1;
+  bool border_contact = false;
 
   BLI_Stack *stack = BLI_stack_new(sizeof(int), __func__);
 
@@ -911,6 +913,11 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
     BLI_stack_pop(stack, &v);
 
     get_pixel(ibuf, v, rgba);
+
+    /* Determine if the flood contacts with external borders. */
+    if (rgba[3] == 0.5f) {
+      border_contact = true;
+    }
 
     /* check if no border(red) or already filled color(green) */
     if ((rgba[0] != 1.0f) && (rgba[1] != 1.0f)) {
@@ -955,6 +962,8 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
   /* free temp stack data */
   BLI_stack_free(stack);
+
+  return border_contact;
 }
 
 /* Set a border to create image limits. */
@@ -962,7 +971,7 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
 {
   ImBuf *ibuf;
   void *lock;
-  const float fill_col[2][4] = {{1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 0.0f}};
+  const float fill_col[2][4] = {{1.0f, 0.0f, 0.0f, 0.5f}, {0.0f, 0.0f, 0.0f, 0.0f}};
   ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
   int idx;
   int pixel = 0;
@@ -1628,7 +1637,7 @@ static bool gpencil_fill_poll(bContext *C)
 }
 
 /* Allocate memory and initialize values */
-static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *UNUSED(op))
+static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
 {
   tGPDfill *tgpf = MEM_callocN(sizeof(tGPDfill), "GPencil Fill Data");
 
@@ -1650,6 +1659,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *UNUSED(op))
   tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
   tgpf->active_cfra = CFRA;
+  tgpf->reports = op->reports;
 
   /* Setup space conversions. */
   gpencil_point_conversion_init(C, &tgpf->gsc);
@@ -1957,61 +1967,68 @@ static bool gpencil_do_frame_fill(tGPDfill *tgpf, const bool is_inverted)
     gpencil_set_borders(tgpf, true);
 
     /* apply boundary fill */
-    gpencil_boundaryfill_area(tgpf);
+    const bool border_contact = gpencil_boundaryfill_area(tgpf);
 
-    /* Invert direction if press Ctrl. */
-    if (is_inverted) {
-      gpencil_invert_image(tgpf);
-    }
-
-    /* Clean borders to avoid infinite loops. */
-    gpencil_set_borders(tgpf, false);
-    WM_cursor_time(win, 50);
-    int totpoints_prv = 0;
-    int loop_limit = 0;
-    while (totpoints > 0) {
-      /* analyze outline */
-      gpencil_get_outline_points(tgpf, (totpoints == 1) ? true : false);
-
-      /* create array of points from stack */
-      totpoints = gpencil_points_from_stack(tgpf);
-
-      /* create z-depth array for reproject */
-      gpencil_get_depth_array(tgpf);
-
-      /* create stroke and reproject */
-      gpencil_stroke_from_buffer(tgpf);
-
+    /* Fill only if it never comes in contact with an edge. It is better not to fill than
+     * to fill the entire area, as this is confusing for the artist. */
+    if ((!border_contact) || (is_inverted)) {
+      /* Invert direction if press Ctrl. */
       if (is_inverted) {
-        gpencil_erase_processed_area(tgpf);
-      }
-      else {
-        /* Exit of the loop. */
-        totpoints = 0;
+        gpencil_invert_image(tgpf);
       }
 
-      /* free temp stack data */
-      if (tgpf->stack) {
-        BLI_stack_free(tgpf->stack);
-      }
-      WM_cursor_time(win, 100);
+      /* Clean borders to avoid infinite loops. */
+      gpencil_set_borders(tgpf, false);
+      WM_cursor_time(win, 50);
+      int totpoints_prv = 0;
+      int loop_limit = 0;
+      while (totpoints > 0) {
+        /* analyze outline */
+        gpencil_get_outline_points(tgpf, (totpoints == 1) ? true : false);
 
-      /* Free memory. */
-      MEM_SAFE_FREE(tgpf->sbuffer);
-      MEM_SAFE_FREE(tgpf->depth_arr);
+        /* create array of points from stack */
+        totpoints = gpencil_points_from_stack(tgpf);
 
-      /* Limit very small areas. */
-      if (totpoints < 3) {
-        break;
-      }
-      /* Limit infinite loops is some corner cases. */
-      if (totpoints_prv == totpoints) {
-        loop_limit++;
-        if (loop_limit > 3) {
+        /* create z-depth array for reproject */
+        gpencil_get_depth_array(tgpf);
+
+        /* create stroke and reproject */
+        gpencil_stroke_from_buffer(tgpf);
+
+        if (is_inverted) {
+          gpencil_erase_processed_area(tgpf);
+        }
+        else {
+          /* Exit of the loop. */
+          totpoints = 0;
+        }
+
+        /* free temp stack data */
+        if (tgpf->stack) {
+          BLI_stack_free(tgpf->stack);
+        }
+        WM_cursor_time(win, 100);
+
+        /* Free memory. */
+        MEM_SAFE_FREE(tgpf->sbuffer);
+        MEM_SAFE_FREE(tgpf->depth_arr);
+
+        /* Limit very small areas. */
+        if (totpoints < 3) {
           break;
         }
+        /* Limit infinite loops is some corner cases. */
+        if (totpoints_prv == totpoints) {
+          loop_limit++;
+          if (loop_limit > 3) {
+            break;
+          }
+        }
+        totpoints_prv = totpoints;
       }
-      totpoints_prv = totpoints;
+    }
+    else {
+      BKE_report(tgpf->reports, RPT_INFO, "Unable to fill unclosed areas");
     }
 
     /* Delete temp image. */

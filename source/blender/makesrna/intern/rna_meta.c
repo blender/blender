@@ -294,8 +294,12 @@ static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "new", "rna_MetaBall_elements_new");
   RNA_def_function_ui_description(func, "Add a new element to the metaball");
-  RNA_def_enum(
-      func, "type", rna_enum_metaelem_type_items, MB_BALL, "", "Type for the new metaball element");
+  RNA_def_enum(func,
+               "type",
+               rna_enum_metaelem_type_items,
+               MB_BALL,
+               "",
+               "Type for the new metaball element");
   parm = RNA_def_pointer(func, "element", "MetaElement", "", "The newly created metaball element");
   RNA_def_function_return(func, parm);
 

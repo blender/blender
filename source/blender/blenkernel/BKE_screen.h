@@ -404,7 +404,7 @@ void BKE_spacetypes_free(void); /* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
-void BKE_spacedata_draw_locks(int set);
+void BKE_spacedata_draw_locks(bool set);
 
 struct ARegion *BKE_spacedata_find_region_type(const struct SpaceLink *slink,
                                                const struct ScrArea *area,

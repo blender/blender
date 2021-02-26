@@ -1921,8 +1921,9 @@ static void rna_def_particle_dupliweight(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "ParticleDupliWeight", NULL);
-  RNA_def_struct_ui_text(
-      srna, "Particle Instance Object Weight", "Weight of a particle instance object in a collection");
+  RNA_def_struct_ui_text(srna,
+                         "Particle Instance Object Weight",
+                         "Weight of a particle instance object in a collection");
   RNA_def_struct_sdna(srna, "ParticleDupliWeight");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -3170,7 +3171,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 10000, 1, -1);
-  RNA_def_property_ui_text(prop, "Rendered Children", "Number of children per parent for rendering");
+  RNA_def_property_ui_text(
+      prop, "Rendered Children", "Number of children per parent for rendering");
 
   prop = RNA_def_property(srna, "virtual_parents", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "parents");
@@ -3463,8 +3465,9 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "instance_weights", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "instance_weights", NULL);
   RNA_def_property_struct_type(prop, "ParticleDupliWeight");
-  RNA_def_property_ui_text(
-      prop, "Instance Collection Weights", "Weights for all of the objects in the instance collection");
+  RNA_def_property_ui_text(prop,
+                           "Instance Collection Weights",
+                           "Weights for all of the objects in the instance collection");
 
   prop = RNA_def_property(srna, "active_instanceweight", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ParticleDupliWeight");

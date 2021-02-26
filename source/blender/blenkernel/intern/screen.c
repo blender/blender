@@ -533,7 +533,7 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 /* facility to set locks for drawing to survive (render) threads accessing drawing data */
 /* lock can become bitflag too */
 /* should be replaced in future by better local data handling for threads */
-void BKE_spacedata_draw_locks(int set)
+void BKE_spacedata_draw_locks(bool set)
 {
   LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
     LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {

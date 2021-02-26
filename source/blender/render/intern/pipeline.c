@@ -1017,7 +1017,7 @@ void RE_progress_cb(Render *re, void *handle, void (*f)(void *handle, float))
   re->prh = handle;
 }
 
-void RE_draw_lock_cb(Render *re, void *handle, void (*f)(void *handle, int i))
+void RE_draw_lock_cb(Render *re, void *handle, void (*f)(void *handle, bool lock))
 {
   re->draw_lock = f;
   re->dlh = handle;

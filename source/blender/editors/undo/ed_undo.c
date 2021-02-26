@@ -863,6 +863,9 @@ void ED_undo_object_set_active_or_warn(
   }
 }
 
+/**
+ * Load all our objects from `object_array` into edit-mode, clear everything else.
+ */
 void ED_undo_object_editmode_restore_helper(struct bContext *C,
                                             Object **object_array,
                                             uint object_array_len,

@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -44,10 +46,14 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_physics.h"
+#include "ED_undo.h"
 
 #include "particle_edit_utildefines.h"
 
 #include "physics_intern.h"
+
+/** Only needed this locally. */
+static CLG_LogRef LOG = {"ed.undo.particle_edit"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
@@ -251,26 +257,33 @@ static void particle_undosys_step_decode(struct bContext *C,
                                          bool UNUSED(is_final))
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  /* TODO(campbell): undo_system: use low-level API to set mode. */
-  ED_object_mode_set_ex(C, OB_MODE_PARTICLE_EDIT, false, NULL);
-  BLI_assert(particle_undosys_poll(C));
 
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
   Scene *scene = us->scene_ref.ptr;
   Object *ob = us->object_ref.ptr;
+
+  ED_object_particle_edit_mode_enter_ex(depsgraph, scene, ob);
+
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
-  if (edit) {
-    undoptcache_to_editcache(&us->data, edit);
-    ParticleEditSettings *pset = &scene->toolsettings->particle;
-    if ((pset->flag & PE_DRAW_PART) != 0) {
-      psys_free_path_cache(NULL, edit);
-      BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
-    }
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  }
-  else {
+
+  /* While this shouldn't happen, entering particle edit-mode uses a more complex
+   * setup compared to most other modes which we can't ensure succeeds. */
+  if (UNLIKELY(edit == NULL)) {
     BLI_assert(0);
+    return;
   }
+
+  undoptcache_to_editcache(&us->data, edit);
+  ParticleEditSettings *pset = &scene->toolsettings->particle;
+  if ((pset->flag & PE_DRAW_PART) != 0) {
+    psys_free_path_cache(NULL, edit);
+    BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
+  }
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+
+  ED_undo_object_set_active_or_warn(scene, CTX_data_view_layer(C), ob, us_p->name, &LOG);
+
+  BLI_assert(particle_undosys_poll(C));
 }
 
 static void particle_undosys_step_free(UndoStep *us_p)

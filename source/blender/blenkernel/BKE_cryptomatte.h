@@ -50,8 +50,7 @@ uint32_t BKE_cryptomatte_asset_hash(struct CryptomatteSession *session,
 float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
 
 char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
-void BKE_cryptomatte_matte_id_to_entries(const struct Main *bmain,
-                                         struct NodeCryptomatte *node_storage,
+void BKE_cryptomatte_matte_id_to_entries(struct NodeCryptomatte *node_storage,
                                          const char *matte_id);
 
 void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
