@@ -248,22 +248,12 @@ void BKE_cryptomatte_store_metadata(struct CryptomatteSession *session,
 
 namespace blender::bke::cryptomatte {
 namespace manifest {
-static constexpr int skip_whitespaces_len_(blender::StringRef ref)
-{
-  int skip_len = 0;
-  while (skip_len < ref.size()) {
-    char front = ref[skip_len];
-    if (front != ' ') {
-      break;
-    }
-    skip_len++;
-  }
-  return skip_len;
-}
+constexpr StringRef WHITESPACES = " \t\n\v\f\r";
 
 static constexpr blender::StringRef skip_whitespaces_(blender::StringRef ref)
 {
-  return ref.drop_prefix(skip_whitespaces_len_(ref));
+  size_t skip = ref.find_first_not_of(WHITESPACES);
+  return ref.drop_prefix(skip);
 }
 
 static constexpr int quoted_string_len_(blender::StringRef ref)
