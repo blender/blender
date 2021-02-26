@@ -466,7 +466,6 @@ static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *curre
     delta_step->delta[delta_step_index] = next_mask[i] - current_mask[i];
     delta_step_index++;
   }
-  printf("DELTA STEP SIZE %d\n", delta_step->totelem);
   return delta_step;
 }
 
@@ -680,7 +679,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   FilterCache *filter_cache = ss->filter_cache;
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
-  if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+  if (event->type == LEFTMOUSE) {
 
     for (int i = 0; i < filter_cache->totnode; i++) {
       BKE_pbvh_node_mark_update_mask(filter_cache->nodes[i]);
