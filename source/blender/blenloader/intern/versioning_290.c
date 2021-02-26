@@ -1763,7 +1763,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         Sculpt *sd = scene->toolsettings->sculpt;
         if (sd) {
-            sd->smooth_strength_factor = 1.0f;
+          sd->smooth_strength_factor = 1.0f;
         }
       }
     }

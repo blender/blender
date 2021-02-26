@@ -174,11 +174,12 @@ void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int und
   copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
 }
 
-static void mask_filter_delta_step_free(void *delta_step_free) {
-    MaskFilterDeltaStep *delta_step = (MaskFilterDeltaStep *)delta_step_free;
-    MEM_SAFE_FREE(delta_step->delta);
-    MEM_SAFE_FREE(delta_step->index);
-    MEM_SAFE_FREE(delta_step);
+static void mask_filter_delta_step_free(void *delta_step_free)
+{
+  MaskFilterDeltaStep *delta_step = (MaskFilterDeltaStep *)delta_step_free;
+  MEM_SAFE_FREE(delta_step->delta);
+  MEM_SAFE_FREE(delta_step->index);
+  MEM_SAFE_FREE(delta_step);
 }
 void SCULPT_filter_cache_free(SculptSession *ss)
 {
@@ -189,7 +190,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
     SCULPT_automasking_cache_free(ss->filter_cache->automasking);
   }
   if (ss->filter_cache->mask_delta_step) {
-      BLI_ghash_free(ss->filter_cache->mask_delta_step, NULL, mask_filter_delta_step_free);
+    BLI_ghash_free(ss->filter_cache->mask_delta_step, NULL, mask_filter_delta_step_free);
   }
   MEM_SAFE_FREE(ss->filter_cache->nodes);
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);

@@ -1300,9 +1300,9 @@ typedef struct ExpandCache {
 typedef float(SculptIPMaskFilterStepVertexCB)(struct SculptSession *, int, float *);
 
 typedef struct MaskFilterDeltaStep {
-    int totelem;
-    int *index;
-    float *delta;
+  int totelem;
+  int *index;
+  float *delta;
 } MaskFilterDeltaStep;
 
 typedef struct FilterCache {
@@ -1370,7 +1370,6 @@ typedef struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
-
 
   /* Mask Filter. */
   int mask_filter_current_step;
