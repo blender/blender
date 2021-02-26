@@ -1431,7 +1431,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
               if (matte_id == NULL || strlen(storage->matte_id) == 0) {
                 continue;
               }
-              BKE_cryptomatte_matte_id_to_entries(NULL, storage, storage->matte_id);
+              BKE_cryptomatte_matte_id_to_entries(storage, storage->matte_id);
               MEM_SAFE_FREE(storage->matte_id);
             }
           }

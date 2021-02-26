@@ -19,7 +19,7 @@
 
 #include "BKE_cryptomatte.hh"
 
-namespace blender::bke::tests {
+namespace blender::bke::cryptomatte::tests {
 
 TEST(cryptomatte, meta_data_key)
 {
@@ -41,4 +41,45 @@ TEST(cryptomatte, extract_layer_name)
   ASSERT_EQ("", BKE_cryptomatte_extract_layer_name(""));
 }
 
-}  // namespace blender::bke::tests
+TEST(cryptomatte, cryptomatte_layer)
+{
+  blender::bke::cryptomatte::CryptomatteLayer layer;
+  ASSERT_EQ("{}", layer.manifest());
+
+  layer.add_hash("Object", 123);
+  ASSERT_EQ("{\"Object\":\"0000007b\"}", layer.manifest());
+
+  layer.add_hash("Object2", 123245678);
+  ASSERT_EQ("{\"Object\":\"0000007b\",\"Object2\":\"0758946e\"}", layer.manifest());
+}
+
+TEST(cryptomatte, cryptomatte_layer_quoted)
+{
+  blender::bke::cryptomatte::CryptomatteLayer layer;
+  layer.add_hash("\"Object\"", 123);
+  ASSERT_EQ("{\"\\\"Object\\\"\":\"0000007b\"}", layer.manifest());
+}
+
+static void test_cryptomatte_manifest(std::string expected, std::string manifest)
+{
+  EXPECT_EQ(expected,
+            blender::bke::cryptomatte::CryptomatteLayer::read_from_manifest(manifest)->manifest());
+}
+
+TEST(cryptomatte, cryptomatte_layer_from_manifest)
+{
+  test_cryptomatte_manifest("{}", "{}");
+  test_cryptomatte_manifest("{\"Object\":\"12345678\"}", "{\"Object\": \"12345678\"}");
+  test_cryptomatte_manifest("{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+                            "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}");
+  test_cryptomatte_manifest(
+      "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+      "  {  \"Object\"  :  \"12345678\"  ,  \"Object2\"  :  \"87654321\"  }  ");
+  test_cryptomatte_manifest("{\"Object\\\"01\\\"\":\"12345678\"}",
+                            "{\"Object\\\"01\\\"\": \"12345678\"}");
+  test_cryptomatte_manifest(
+      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\", \"Object2\":\"87654321\"}");
+}
+
+}  // namespace blender::bke::cryptomatte::tests

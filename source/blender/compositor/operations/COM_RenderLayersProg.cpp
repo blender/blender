@@ -233,9 +233,12 @@ struct CallbackData {
 
   void setCryptomatteKeys(blender::StringRef cryptomatte_layer_name)
   {
-    manifest_key = blender::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "manifest");
-    hash_key = blender::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "hash");
-    conversion_key = blender::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name, "conversion");
+    manifest_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
+                                                                            "manifest");
+    hash_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
+                                                                        "hash");
+    conversion_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(
+        cryptomatte_layer_name, "conversion");
   }
 };
 
@@ -276,7 +279,7 @@ std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
                                         view_layer->name,
                                         BLI_strnlen(view_layer->name, sizeof(view_layer->name))) +
                                     "." + m_passName;
-      blender::StringRef cryptomatte_layer_name = blender::BKE_cryptomatte_extract_layer_name(
+      blender::StringRef cryptomatte_layer_name = blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
           full_layer_name);
       callback_data.setCryptomatteKeys(cryptomatte_layer_name);
 
