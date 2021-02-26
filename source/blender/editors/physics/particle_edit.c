@@ -5395,6 +5395,9 @@ static void free_all_psys_edit(Object *object)
 
 void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  /* Needed so #ParticleSystemModifierData.mesh_final is set. */
+  BKE_scene_graph_evaluated_ensure(depsgraph, G_MAIN);
+
   PTCacheEdit *edit;
 
   ob->mode |= OB_MODE_PARTICLE_EDIT;
