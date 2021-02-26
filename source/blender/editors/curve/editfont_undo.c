@@ -23,6 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_array_utils.h"
 #include "BLI_utildefines.h"
 
@@ -39,6 +41,7 @@
 
 #include "ED_curve.h"
 #include "ED_object.h"
+#include "ED_undo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -52,6 +55,9 @@
 #  include "BLI_listbase.h"
 #  define ARRAY_CHUNK_SIZE 32
 #endif
+
+/** Only needed this locally. */
+static CLG_LogRef LOG = {"ed.undo.font"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
@@ -364,15 +370,22 @@ static void font_undosys_step_decode(struct bContext *C,
                                      const eUndoStepDir UNUSED(dir),
                                      bool UNUSED(is_final))
 {
-  /* TODO(campbell): undo_system: use low-level API to set mode. */
-  ED_object_mode_set_ex(C, OB_MODE_EDIT, false, NULL);
-  BLI_assert(font_undosys_poll(C));
 
   FontUndoStep *us = (FontUndoStep *)us_p;
   Object *obedit = us->obedit_ref.ptr;
+
+  /* Pass in an array of 1 (typically used for multi-object edit-mode). */
+  ED_undo_object_editmode_restore_helper(C, &obedit, 1, sizeof(Object *));
+
   Curve *cu = obedit->data;
   undofont_to_editfont(&us->data, cu);
   DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
+
+  ED_undo_object_set_active_or_warn(
+      CTX_data_scene(C), CTX_data_view_layer(C), obedit, us_p->name, &LOG);
+
+  BLI_assert(font_undosys_poll(C));
+
   cu->editfont->needs_flush_to_id = 1;
   bmain->is_memfile_undo_flush_needed = true;
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
