@@ -5320,24 +5320,24 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op = pie.operator("paint.mask_flood_fill", text='Clear Mask')
         op.mode = 'VALUE'
         op.value = 0.0
-        op = pie.operator("sculpt.mask_filter", text='Smooth Mask')
-        op.filter_type = 'SMOOTH'
-        op.auto_iteration_count = True
-        op = pie.operator("sculpt.mask_filter", text='Sharpen Mask')
-        op.filter_type = 'SHARPEN'
-        op.auto_iteration_count = True
-        op = pie.operator("sculpt.mask_filter", text='Grow Mask')
-        op.filter_type = 'GROW'
-        op.auto_iteration_count = True
-        op = pie.operator("sculpt.mask_filter", text='Shrink Mask')
-        op.filter_type = 'SHRINK'
-        op.auto_iteration_count = True
-        op = pie.operator("sculpt.mask_filter", text='Increase Contrast')
-        op.filter_type = 'CONTRAST_INCREASE'
-        op.auto_iteration_count = False
-        op = pie.operator("sculpt.mask_filter", text='Decrease Contrast')
-        op.filter_type = 'CONTRAST_DECREASE'
-        op.auto_iteration_count = False
+
+        op = pie.operator("sculpt.ipmask_filter", text='IPMask Smooth')
+        op.filter_type = "SMOOTH_SHARPEN"
+        op.iterations = 1
+        
+        op = pie.operator("sculpt.ipmask_filter", text='IPMask Grow')
+        op.filter_type = "GROW_SHRINK"
+        op.iterations = 1
+
+        op = pie.operator("sculpt.ipmask_filter", text='IPMask Harder')
+        op.filter_type = "HARDER_SOFTER"
+        op.iterations = 1
+
+        op = pie.operator("sculpt.ipmask_filter", text='IPMask Contrast')
+        op.filter_type = "CONTRAST"
+        op.iterations = 1
+
+
 
 
 class VIEW3D_MT_sculpt_automasking_pie(Menu):
