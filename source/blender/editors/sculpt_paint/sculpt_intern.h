@@ -691,6 +691,7 @@ typedef struct SculptThreadedTaskData {
   struct bContext *C;
   struct Sculpt *sd;
   struct Object *ob;
+  struct SculptSession *ss;
   const struct Brush *brush;
   struct PBVHNode **nodes;
   int totnode;
@@ -751,6 +752,7 @@ typedef struct SculptThreadedTaskData {
   float *wet_mix_sampled_color;
 
   float *prev_mask;
+  float *new_mask;
 
   float *pose_factor;
   float *pose_initial_co;

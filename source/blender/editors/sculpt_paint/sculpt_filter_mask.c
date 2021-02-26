@@ -440,6 +440,7 @@ static MaskFilterDeltaStep *sculpt_ipmask_filter_delta_create(const float *curre
         delta_step->delta[delta_step_index] = next_mask[i] - current_mask[i];
         delta_step_index++;
     }
+    printf("DELTA STEP SIZE %d\n", delta_step->totelem);
     return delta_step;
 }
 
@@ -492,26 +493,50 @@ static float *sculpt_ipmask_current_state_get(SculptSession *ss) {
     return current_mask;
 }
 
-static void sculpt_ipmask_apply_mask_data(SculptSession *ss, const float *mask) {
-    FilterCache *filter_cache = ss->filter_cache;
-    for (int n = 0; n < filter_cache->totnode; n++) {
-        PBVHNode *node = filter_cache->nodes[n];
+static void ipmask_filter_apply_task_cb(void *__restrict userdata,
+                                const int i,
+                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ss;
+  FilterCache *filter_cache = ss->filter_cache;
+  PBVHNode *node = filter_cache->nodes[i];
   PBVHVertexIter vd;
+  bool update = false;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
       if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
           continue;
       }
-      *vd.mask = mask[vd.index];
+
+      if (*vd.mask == data->new_mask[vd.index]) {
+          continue;
+      }
+      *vd.mask = data->new_mask[vd.index];
+      update = true;
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
        }
   }
   BKE_pbvh_vertex_iter_end;
 
-  /* TODO: Check if something changed before tagging. */
-  BKE_pbvh_node_mark_update_mask(node);
-    }
+  if (update) {
+    BKE_pbvh_node_mark_redraw(node);
+  }
+
+}
+
+static void sculpt_ipmask_apply_mask_data(SculptSession *ss, float *new_mask) {
+    FilterCache *filter_cache = ss->filter_cache;
+    SculptThreadedTaskData data = {
+        .ss = ss,
+        .nodes = filter_cache->nodes,
+        .new_mask = new_mask,
+    };
+
+    TaskParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
+    BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_apply_task_cb, &settings);
 }
 
 static float *sculpt_ipmask_apply_delta_step(MaskFilterDeltaStep *delta_step, const float *current_mask, const MaskFilterStepDirectionType direction) {
@@ -578,6 +603,10 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const int iterations = RNA_int_get(op->ptr, "iterations");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+
+  for (int i = 0; i < filter_cache->totnode; i++) {
+      BKE_pbvh_node_mark_update_mask(filter_cache->nodes[i]);
+  }
     SCULPT_filter_cache_free(ss);
     SCULPT_undo_push_end();
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
