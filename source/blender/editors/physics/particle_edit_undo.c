@@ -265,22 +265,25 @@ static void particle_undosys_step_decode(struct bContext *C,
   ED_object_particle_edit_mode_enter_ex(depsgraph, scene, ob);
 
   PTCacheEdit *edit = PE_get_current(depsgraph, scene, ob);
-  if (edit) {
-    undoptcache_to_editcache(&us->data, edit);
-    ParticleEditSettings *pset = &scene->toolsettings->particle;
-    if ((pset->flag & PE_DRAW_PART) != 0) {
-      psys_free_path_cache(NULL, edit);
-      BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
-    }
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
-    ED_undo_object_set_active_or_warn(scene, CTX_data_view_layer(C), ob, us_p->name, &LOG);
-
-    BLI_assert(particle_undosys_poll(C));
-  }
-  else {
+  /* While this shouldn't happen, entering particle edit-mode uses a more complex
+   * setup compared to most other modes which we can't ensure succeeds. */
+  if (UNLIKELY(edit == NULL)) {
     BLI_assert(0);
+    return;
   }
+
+  undoptcache_to_editcache(&us->data, edit);
+  ParticleEditSettings *pset = &scene->toolsettings->particle;
+  if ((pset->flag & PE_DRAW_PART) != 0) {
+    psys_free_path_cache(NULL, edit);
+    BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
+  }
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+
+  ED_undo_object_set_active_or_warn(scene, CTX_data_view_layer(C), ob, us_p->name, &LOG);
+
+  BLI_assert(particle_undosys_poll(C));
 }
 
 static void particle_undosys_step_free(UndoStep *us_p)
