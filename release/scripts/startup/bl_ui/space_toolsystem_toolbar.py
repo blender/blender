@@ -1485,6 +1485,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.ipmask_filter")
             layout.prop(props, "filter_type", expand=False)
+            layout.prop(props, "iterations", expand=False)
 
         return dict(
             idname="builtin.ipmask_filter",
