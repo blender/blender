@@ -345,11 +345,6 @@ typedef enum MaskFilterStepDirectionType {
     MASK_FILTER_STEP_DIRECTION_BACKWARD,
 } MaskFilterStepDirectionType;
 
-typedef struct MaskFilterDeltaStep {
-    int totelem;
-    int *index;
-    float *delta;
-} MaskFilterDeltaStep;
 
 /* Grown/Shrink vertex callbacks. */
 static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss, const int vertex,  float *current_mask) {
