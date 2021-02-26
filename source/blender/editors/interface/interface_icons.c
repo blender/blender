@@ -1426,8 +1426,13 @@ static void icon_set_image(const bContext *C,
       scene = CTX_data_scene(C);
     }
     /* Immediate version */
-    ED_preview_icon_render(
-        CTX_data_main(C), scene, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
+    ED_preview_icon_render(CTX_data_main(C),
+                           CTX_data_ensure_evaluated_depsgraph(C),
+                           scene,
+                           id,
+                           prv_img->rect[size],
+                           prv_img->w[size],
+                           prv_img->h[size]);
   }
 }
 
