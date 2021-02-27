@@ -1847,7 +1847,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
     bGPDspoint *pt;
     int i;
     bool hit = false;
-    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+    for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
       bGPDspoint *pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
 
       /* convert point coords to screenspace */
@@ -2252,12 +2252,12 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
       int i;
 
       /* firstly, check for hit-point */
-      for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+      for (i = 0, pt = gps_active->points; i < gps_active->totpoints; i++, pt++) {
         int xy[2];
 
         bGPDspoint pt2;
         gpencil_point_to_parent_space(pt, gpstroke_iter.diff_mat, &pt2);
-        gpencil_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
+        gpencil_point_to_xy(&gsc, gps_active, &pt2, &xy[0], &xy[1]);
 
         /* do boundbox check first */
         if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
