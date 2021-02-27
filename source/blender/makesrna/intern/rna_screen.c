@@ -56,6 +56,8 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include "RNA_access.h"
+
 #  include "BKE_global.h"
 #  include "BKE_screen.h"
 #  include "BKE_workspace.h"
@@ -272,6 +274,25 @@ static void rna_Area_ui_type_update(bContext *C, PointerRNA *ptr)
   area->butspacetype_subtype = 0;
 
   ED_area_tag_refresh(area);
+}
+
+static PointerRNA rna_Region_data_get(PointerRNA *ptr)
+{
+  bScreen *screen = (bScreen *)ptr->owner_id;
+  ARegion *region = ptr->data;
+
+  if (region->regiondata != NULL) {
+    if (region->regiontype == RGN_TYPE_WINDOW) {
+      /* We could make this static, it wont change at run-time. */
+      SpaceType *st = BKE_spacetype_from_id(SPACE_VIEW3D);
+      if (region->type == BKE_regiontype_from_id(st, region->regiontype)) {
+        PointerRNA newptr;
+        RNA_pointer_create(&screen->id, &RNA_RegionView3D, region->regiondata, &newptr);
+        return newptr;
+      }
+    }
+  }
+  return PointerRNA_NULL;
 }
 
 static void rna_View2D_region_to_view(struct View2D *v2d, float x, float y, float result[2])
@@ -538,6 +559,13 @@ static void rna_def_region(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, alignment_types);
   RNA_def_property_enum_funcs(prop, "rna_region_alignment_get", NULL, NULL);
   RNA_def_property_ui_text(prop, "Alignment", "Alignment of the region within the area");
+
+  prop = RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop, "Region Data", "Region specific data (the type depends on the region type)");
+  RNA_def_property_struct_type(prop, "AnyType");
+  RNA_def_property_pointer_funcs(prop, "rna_Region_data_get", NULL, NULL, NULL);
 
   RNA_def_function(srna, "tag_redraw", "ED_region_tag_redraw");
 }

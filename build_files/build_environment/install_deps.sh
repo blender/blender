@@ -1732,7 +1732,7 @@ compile_OCIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  ocio_magic=2
+  ocio_magic=3
   _init_ocio
 
   # Force having own builds for the dependencies.
@@ -1802,11 +1802,11 @@ compile_OCIO() {
     make -j$THREADS && make install
 
     # Force linking against static libs
-    rm -f $_inst/lib/*.so*
+    #rm -f $_inst/lib/*.so*
 
     # Additional depencencies
-    cp ext/dist/lib/libtinyxml.a $_inst/lib
-    cp ext/dist/lib/libyaml-cpp.a $_inst/lib
+    #cp ext/dist/lib/libtinyxml.a $_inst/lib
+    #cp ext/dist/lib/libyaml-cpp.a $_inst/lib
 
     make clean
 

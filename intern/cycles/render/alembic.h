@@ -276,7 +276,6 @@ class AlembicObject : public Node {
 
   MatrixSampleMap xform_samples;
   Alembic::AbcGeom::IObject iobject;
-  Transform xform;
 
   /* Set if the path points to a valid IObject whose type is supported. */
   AbcSchemaType schema_type;
