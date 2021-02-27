@@ -254,7 +254,6 @@ void initBend(TransInfo *t)
   t->transform = Bend;
   t->handleEvent = handleEventBend;
 
-  setInputPostFct(&t->mouse, postInputRotation);
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE_SPRING);
 
   t->idx_max = 1;

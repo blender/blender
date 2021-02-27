@@ -47,7 +47,6 @@ void protectedTransBits(short protectflag, float vec[3]);
 void protectedSizeBits(short protectflag, float size[3]);
 void constraintTransLim(TransInfo *t, TransData *td);
 void constraintSizeLim(TransInfo *t, TransData *td);
-void postInputRotation(TransInfo *t, float values[3]);
 void headerRotation(TransInfo *t, char *str, float final);
 void ElementRotation_ex(TransInfo *t,
                         TransDataContainer *tc,

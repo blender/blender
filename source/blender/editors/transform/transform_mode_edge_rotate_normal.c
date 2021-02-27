@@ -127,7 +127,6 @@ void initNormalRotation(TransInfo *t)
   t->mode = TFM_NORMAL_ROTATION;
   t->transform = applyNormalRotation;
 
-  setInputPostFct(&t->mouse, postInputRotation);
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
   t->idx_max = 0;
