@@ -148,8 +148,29 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     return NULL;
   }
   wmEvent *event = wm_event_add(win, event_to_add);
+
   win->eventstate->x = event->x;
   win->eventstate->y = event->y;
+
+  win->eventstate->prevval = event->prevval = win->eventstate->val;
+  win->eventstate->prevtype = event->prevtype = win->eventstate->type;
+  win->eventstate->prevx = event->prevx = win->eventstate->x;
+  win->eventstate->prevy = event->prevy = win->eventstate->y;
+
+  if (event->type == MOUSEMOVE) {
+    /* Pass. */
+  }
+  else {
+    win->eventstate->val = event->val;
+    win->eventstate->type = event->type;
+
+    if (ISMOUSE_BUTTON(event->type)) {
+      if (event->val == KM_PRESS) {
+        win->eventstate->prevclickx = event->x;
+        win->eventstate->prevclicky = event->y;
+      }
+    }
+  }
   return event;
 }
 

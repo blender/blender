@@ -647,11 +647,6 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   e.alt = alt;
   e.oskey = oskey;
 
-  e.prevx = win->eventstate->x;
-  e.prevy = win->eventstate->y;
-  e.prevval = win->eventstate->val;
-  e.prevtype = win->eventstate->type;
-
   e.ascii = '\0';
   e.utf8_buf[0] = '\0';
   if (unicode != NULL) {
