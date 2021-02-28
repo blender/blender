@@ -42,7 +42,7 @@
 #include "MOD_modifiertypes.h"
 
 Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(Object *ob,
-  MirrorModifierData *mmd,
+                                                          MirrorModifierData *mmd,
                                                           const Mesh *mesh,
                                                           int axis,
                                                           const float plane_co[3],
@@ -104,7 +104,8 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                           const int axis,
                                           const float dist)
 {
-  BMesh *bm = BKE_mesh_to_bmesh_ex(mesh,
+  BMesh *bm = BKE_mesh_to_bmesh_ex(NULL,
+                                   mesh,
                                    &(struct BMeshCreateParams){
                                        .use_toolflags = 1,
                                    },
@@ -123,6 +124,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                true);
 
   BM_mesh_bm_to_me(bmain,
+                   NULL,
                    bm,
                    mesh,
                    (&(struct BMeshToMeshParams){

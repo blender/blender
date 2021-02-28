@@ -154,7 +154,8 @@ static void sculpt_boundary_index_add(SculptSession *ss,
 {
 
   boundary->vertices[boundary->num_vertices] = new_index;
-  boundary->vertex_indices[boundary->num_vertices] = BKE_pbvh_vertex_index_to_table(ss->pbvh, new_index);
+  boundary->vertex_indices[boundary->num_vertices] = BKE_pbvh_vertex_index_to_table(ss->pbvh,
+                                                                                    new_index);
 
   if (boundary->distance) {
     boundary->distance[BKE_pbvh_vertex_index_to_table(ss->pbvh, new_index)] = distance;
@@ -717,7 +718,8 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+        const float automask = SCULPT_automasking_factor_get(
+            ss->cache->automasking, ss, vd.vertex);
         float t_orig_co[3];
         const int index = vd.index;
 
@@ -765,7 +767,8 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+        const float automask = SCULPT_automasking_factor_get(
+            ss->cache->automasking, ss, vd.vertex);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         madd_v3_v3v3fl(target_co,
                        orig_data.co,
@@ -809,7 +812,8 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+        const float automask = SCULPT_automasking_factor_get(
+            ss->cache->automasking, ss, vd.vertex);
         float normal[3];
         normal_short_to_float_v3(normal, orig_data.no);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
@@ -853,7 +857,8 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+        const float automask = SCULPT_automasking_factor_get(
+            ss->cache->automasking, ss, vd.vertex);
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         madd_v3_v3v3fl(target_co,
                        orig_data.co,
@@ -902,7 +907,8 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+        const float automask = SCULPT_automasking_factor_get(
+            ss->cache->automasking, ss, vd.vertex);
         float t_orig_co[3];
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         sub_v3_v3v3(t_orig_co, orig_data.co, boundary->twist.pivot_position);
