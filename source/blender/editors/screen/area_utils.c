@@ -34,7 +34,6 @@
 
 #include "ED_screen.h"
 
-#include "UI_interface.h"
 #include "UI_interface_icons.h"
 
 /* -------------------------------------------------------------------- */

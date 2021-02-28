@@ -270,12 +270,12 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
 
   const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
   const bool is_screenspace = (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0;
-  const bool overide_vertcol = (pd->v3d_color_type != -1);
+  const bool override_vertcol = (pd->v3d_color_type != -1);
   const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
                                 GPENCIL_VERTEX_MODE(gpd) || pd->is_render;
   bool is_masked = (gpl->flag & GP_LAYER_USE_MASK) && !BLI_listbase_is_empty(&gpl->mask_layers);
 
-  float vert_col_opacity = (overide_vertcol) ?
+  float vert_col_opacity = (override_vertcol) ?
                                (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
                                pd->is_render ? gpl->vertex_paint_opacity :
                                                pd->vertex_paint_opacity;

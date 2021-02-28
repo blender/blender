@@ -90,6 +90,16 @@ BLI_INLINE unsigned int BLI_hash_string(const char *str)
   return i;
 }
 
+BLI_INLINE float BLI_hash_int_2d_to_float(uint32_t kx, uint32_t ky)
+{
+  return (float)BLI_hash_int_2d(kx, ky) / (float)0xFFFFFFFFu;
+}
+
+BLI_INLINE float BLI_hash_int_3d_to_float(uint32_t kx, uint32_t ky, uint32_t kz)
+{
+  return (float)BLI_hash_int_3d(kx, ky, kz) / (float)0xFFFFFFFFu;
+}
+
 BLI_INLINE unsigned int BLI_hash_int(unsigned int k)
 {
   return BLI_hash_int_2d(k, 0);

@@ -332,7 +332,7 @@ void applyProject(TransInfo *t)
       if (tc->use_local_mat) {
         mul_m4_v3(tc->mat, iloc);
       }
-      else if (t->flag & T_OBJECT) {
+      else if (t->options & CTX_OBJECT) {
         BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
         copy_v3_v3(iloc, td->ob->obmat[3]);
       }
@@ -366,7 +366,7 @@ void applyProject(TransInfo *t)
 
           add_v3_v3(td->loc, tvec);
 
-          if (t->tsnap.align && (t->flag & T_OBJECT)) {
+          if (t->tsnap.align && (t->options & CTX_OBJECT)) {
             /* handle alignment as well */
             const float *original_normal;
             float mat[3][3];
@@ -422,7 +422,7 @@ void applyGridAbsolute(TransInfo *t)
       if (tc->use_local_mat) {
         mul_m4_v3(tc->mat, iloc);
       }
-      else if (t->flag & T_OBJECT) {
+      else if (t->options & CTX_OBJECT) {
         BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
         copy_v3_v3(iloc, td->ob->obmat[3]);
       }
@@ -461,7 +461,7 @@ void applySnapping(TransInfo *t, float *vec)
            activeSnap(t)) {
     double current = PIL_check_seconds_timer();
 
-    /* Time base quirky code to go around findnearest slowness */
+    /* Time base quirky code to go around find-nearest slowness. */
     /* TODO: add exception for object mode, no need to slow it down then. */
     if (current - t->tsnap.last >= 0.01) {
       t->tsnap.calcSnap(t, vec);
@@ -571,7 +571,8 @@ static void initSnappingMode(TransInfo *t)
     }
   }
 
-  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && (t->flag & T_CAMERA) == 0) {
+  if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) &&
+      (t->options & CTX_CAMERA) == 0) {
     /* Only 3D view or UV. */
     /* Not with camera selected in camera view. */
 
@@ -926,6 +927,64 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 /** \name Target
  * \{ */
 
+static void snap_target_median_impl(TransInfo *t, float r_median[3])
+{
+  int i_accum = 0;
+
+  zero_v3(r_median);
+
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    TransData *td = tc->data;
+    int i;
+    float v[3];
+    zero_v3(v);
+
+    for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+      add_v3_v3(v, td->center);
+    }
+
+    if (i == 0) {
+      /* Is this possible? */
+      continue;
+    }
+
+    mul_v3_fl(v, 1.0 / i);
+
+    if (tc->use_local_mat) {
+      mul_m4_v3(tc->mat, v);
+    }
+
+    add_v3_v3(r_median, v);
+    i_accum++;
+  }
+
+  mul_v3_fl(r_median, 1.0 / i_accum);
+
+  // TargetSnapOffset(t, NULL);
+}
+
+static void snap_target_grid_ensure(TransInfo *t)
+{
+  /* Only need to calculate once. */
+  if ((t->tsnap.status & TARGET_GRID_INIT) == 0) {
+    if (t->data_type == TC_CURSOR_VIEW3D) {
+      /* Use a fallback when transforming the cursor.
+       * In this case the center is _not_ derived from the cursor which is being transformed. */
+      copy_v3_v3(t->tsnap.snapTargetGrid, TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->data->iloc);
+    }
+    else if (t->around == V3D_AROUND_CURSOR) {
+      /* Use a fallback for cursor selection,
+       * this isn't useful as a global center for absolute grid snapping
+       * since its not based on the position of the selection. */
+      snap_target_median_impl(t, t->tsnap.snapTargetGrid);
+    }
+    else {
+      copy_v3_v3(t->tsnap.snapTargetGrid, t->center_global);
+    }
+    t->tsnap.status |= TARGET_GRID_INIT;
+  }
+}
+
 static void TargetSnapOffset(TransInfo *t, TransData *td)
 {
   if (t->spacetype == SPACE_NODE && td != NULL) {
@@ -997,41 +1056,7 @@ static void TargetSnapMedian(TransInfo *t)
 {
   /* Only need to calculate once. */
   if ((t->tsnap.status & TARGET_INIT) == 0) {
-    int i_accum = 0;
-
-    t->tsnap.snapTarget[0] = 0;
-    t->tsnap.snapTarget[1] = 0;
-    t->tsnap.snapTarget[2] = 0;
-
-    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      TransData *td = tc->data;
-      int i;
-      float v[3];
-      zero_v3(v);
-
-      for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-        add_v3_v3(v, td->center);
-      }
-
-      if (i == 0) {
-        /* Is this possible? */
-        continue;
-      }
-
-      mul_v3_fl(v, 1.0 / i);
-
-      if (tc->use_local_mat) {
-        mul_m4_v3(tc->mat, v);
-      }
-
-      add_v3_v3(t->tsnap.snapTarget, v);
-      i_accum++;
-    }
-
-    mul_v3_fl(t->tsnap.snapTarget, 1.0 / i_accum);
-
-    TargetSnapOffset(t, NULL);
-
+    snap_target_median_impl(t, t->tsnap.snapTarget);
     t->tsnap.status |= TARGET_INIT;
   }
 }
@@ -1044,7 +1069,7 @@ static void TargetSnapClosest(TransInfo *t)
     TransData *closest = NULL;
 
     /* Object mode */
-    if (t->flag & T_OBJECT) {
+    if (t->options & CTX_OBJECT) {
       int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         TransData *td = tc->data;
@@ -1431,27 +1456,9 @@ static void snap_grid_apply(
     TransInfo *t, const int max_index, const float grid_dist, const float loc[3], float r_out[3])
 {
   BLI_assert(max_index <= 2);
-  const float *center_global = t->center_global;
+  snap_target_grid_ensure(t);
+  const float *center_global = t->tsnap.snapTargetGrid;
   const float *asp = t->aspect;
-
-  if (t->options & CTX_CURSOR) {
-    /* Note that we must already have called #transformCenter_from_type, otherwise
-     * we would be lazy-initializing data which is being transformed,
-     * causing the transformed cursor location to be used instead of it's initial location. */
-    BLI_assert(t->center_cache[V3D_AROUND_CURSOR].is_set);
-
-    /* Use a fallback when transforming the cursor.
-     * In this case the center is _not_ derived from the cursor which is being transformed. */
-    const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CURSOR);
-    center_global = cd->global;
-  }
-  else if (t->around == V3D_AROUND_CURSOR) {
-    /* Use a fallback for cursor selection,
-     * this isn't useful as a global center for absolute grid snapping
-     * since its not based on the position of the selection. */
-    const TransCenterData *cd = transformCenter_from_type(t, V3D_AROUND_CENTER_MEDIAN);
-    center_global = cd->global;
-  }
 
   float in[3];
   if (t->con.mode & CON_APPLY) {

@@ -27,7 +27,7 @@
  * This module offers import/export of several graphical file formats.
  * \ingroup imbuf
  *
- * \page IMB Imbuf module external interface
+ * \page IMB ImBuf module external interface
  * \section imb_about About the IMB module
  *
  * External interface of the IMage Buffer module. This module offers
@@ -745,7 +745,8 @@ const char *IMB_ffmpeg_last_error(void);
 struct GPUTexture *IMB_create_gpu_texture(const char *name,
                                           struct ImBuf *ibuf,
                                           bool use_high_bitdepth,
-                                          bool use_premult);
+                                          bool use_premult,
+                                          bool limit_gl_texture_size);
 struct GPUTexture *IMB_touch_gpu_texture(
     const char *name, struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
 void IMB_update_gpu_texture_sub(struct GPUTexture *tex,

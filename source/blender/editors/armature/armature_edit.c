@@ -126,12 +126,12 @@ void ED_armature_origin_set(
   bArmature *arm = ob->data;
   float cent[3];
 
-  /* Put the armature into editmode */
+  /* Put the armature into edit-mode. */
   if (is_editmode == false) {
     ED_armature_to_edit(arm);
   }
 
-  /* Find the centerpoint */
+  /* Find the center-point. */
   if (centermode == 2) {
     copy_v3_v3(cent, cursor);
     invert_m4_m4(ob->imat, ob->obmat);
@@ -173,7 +173,7 @@ void ED_armature_origin_set(
     ED_armature_edit_free(arm);
   }
 
-  /* Adjust object location for new centerpoint */
+  /* Adjust object location for new center-point. */
   if (centermode && (is_editmode == false)) {
     mul_mat3_m4_v3(ob->obmat, cent); /* omit translation part */
     add_v3_v3(ob->loc, cent);

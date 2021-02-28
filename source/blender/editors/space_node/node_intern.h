@@ -32,15 +32,19 @@
 struct ARegion;
 struct ARegionType;
 struct Main;
+struct NodeInsertOfsData;
 struct View2D;
 struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
-struct NodeInsertOfsData;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* temp data to pass on to modal */
 typedef struct bNodeLinkDrag {
@@ -77,7 +81,10 @@ typedef struct SpaceNode_Runtime {
 /* transform between View2Ds in the tree path */
 void space_node_group_offset(struct SpaceNode *snode, float *x, float *y);
 
-/* node_draw.c */
+/* node_draw.cc */
+float node_socket_calculate_height(const bNodeSocket *socket);
+void node_link_calculate_multi_input_position(const bNodeLink *link, float r[2]);
+
 int node_get_colorid(struct bNode *node);
 int node_get_resize_cursor(int directions);
 void node_draw_shadow(const struct SpaceNode *snode,
@@ -178,6 +185,10 @@ bool node_link_bezier_points(const struct View2D *v2d,
                              const struct bNodeLink *link,
                              float coord_array[][2],
                              const int resol);
+bool node_link_bezier_handles(const struct View2D *v2d,
+                              const struct SpaceNode *snode,
+                              const struct bNodeLink *link,
+                              float vec[4][2]);
 void draw_nodespace_back_pix(const struct bContext *C,
                              struct ARegion *region,
                              struct SpaceNode *snode,
@@ -187,11 +198,13 @@ void draw_nodespace_back_pix(const struct bContext *C,
 bNode *node_add_node(
     const struct bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(struct wmOperatorType *ot);
+void NODE_OT_add_group(struct wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 void NODE_OT_add_mask(struct wmOperatorType *ot);
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);
 
 /* node_group.c */
+const char *node_group_idname(struct bContext *C);
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_insert(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
@@ -290,25 +303,10 @@ extern const char *node_context_dir[];
 #define NODE_HEIGHT(node) (node->height * UI_DPI_FAC)
 #define NODE_MARGIN_X (1.10f * U.widget_unit)
 #define NODE_SOCKSIZE (0.25f * U.widget_unit)
+#define NODE_MULTI_INPUT_LINK_GAP (0.25f * U.widget_unit)
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
-/* Button events (butspace) */
-enum eNodeSpace_ButEvents {
-  B_NOP = 0,
-  B_REDR = 1,
-  B_NODE_USEMAT,
-  B_NODE_USESCENE,
-  B_NODE_USETEX,
-  B_TEXBROWSE,
-  B_TEXALONE,
-  B_TEXLOCAL,
-  B_TEXDELETE,
-  B_TEXPRV,
-  B_AUTOTEXNAME,
-  B_KEEPDATA,
-  B_NODE_EXEC,
-  B_MATPRV,
-  B_NODE_LOADIMAGE,
-  B_NODE_SETIMAGE,
-};
+#ifdef __cplusplus
+}
+#endif

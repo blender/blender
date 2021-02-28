@@ -177,11 +177,11 @@ vec4 step_blit(void)
 vec4 step_downsample(void)
 {
 #ifdef HIGH_QUALITY /* Anti flicker */
-  vec3 sample = downsample_filter_high(sourceBuffer, uvcoordsvar.xy, sourceBufferTexelSize);
+  vec3 samp = downsample_filter_high(sourceBuffer, uvcoordsvar.xy, sourceBufferTexelSize);
 #else
-  vec3 sample = downsample_filter(sourceBuffer, uvcoordsvar.xy, sourceBufferTexelSize);
+  vec3 samp = downsample_filter(sourceBuffer, uvcoordsvar.xy, sourceBufferTexelSize);
 #endif
-  return vec4(sample, 1.0);
+  return vec4(samp, 1.0);
 }
 
 vec4 step_upsample(void)

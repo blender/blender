@@ -23,6 +23,7 @@
 #include "DRW_render.h"
 
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -140,7 +141,7 @@ void GPENCIL_engine_init(void *ved)
 
     /* For non active frame, use only lines in multiedit mode. */
     const bool overlays_on = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-    stl->pd->use_multiedit_lines_only = !overlays_on ||
+    stl->pd->use_multiedit_lines_only = overlays_on &&
                                         (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) != 0;
 
     const bool shmode_xray_support = v3d->shading.type <= OB_SOLID;
@@ -487,6 +488,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 {
   gpIterPopulateData *iter = (gpIterPopulateData *)thunk;
 
+  bGPdata *gpd = iter->ob->data;
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(iter->ob, gps->mat_nr + 1);
 
   const bool is_render = iter->pd->is_render;
@@ -495,12 +497,12 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
                      (!is_render && ((gps->flag & GP_STROKE_NOFILL) != 0));
   bool show_fill = (gps->tot_triangles > 0) && ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
                    (!iter->pd->simplify_fill) && ((gps->flag & GP_STROKE_NOFILL) == 0);
-
-  bool only_lines = gpl && gpf && gpl->actframe != gpf && iter->pd->use_multiedit_lines_only;
-  bool hide_onion = gpl && gpf && gpf->runtime.onion_id != 0 &&
-                    ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
-
-  if (hide_material || (!show_stroke && !show_fill) || (only_lines && hide_onion) || hide_onion) {
+  bool only_lines = !GPENCIL_PAINT_MODE(gpd) && gpl && gpf && gpl->actframe != gpf &&
+                    iter->pd->use_multiedit_lines_only;
+  bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0;
+  bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
+  if ((hide_material) || (!show_stroke && !show_fill) || (only_lines && !is_onion) ||
+      (hide_onion)) {
     return;
   }
 
@@ -621,19 +623,20 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     bool do_onion = (!pd->is_render) ? pd->do_onion : (gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
     gpd->runtime.playing = (short)pd->playing;
 
-    /* When render in background the active frame could not be properly set due thread priority
+    /* When render in background the active frame could not be properly set due thread priority,
      * better set again. This is not required in viewport. */
     if (txl->render_depth_tx) {
-      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
-      }
-    }
+      const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
+      const DRWContextState *draw_ctx = DRW_context_state_get();
 
-    /* When render in background the active frame could not be properly set due thread priority
-     * better set again. This is not required in viewport. */
-    if (txl->render_depth_tx) {
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
+        /* If there is a time modifier, need remap the time before. */
+        if (time_remap) {
+          gpl->actframe = BKE_gpencil_frame_retime_get(draw_ctx->depsgraph, pd->scene, ob, gpl);
+        }
+        else {
+          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, pd->cfra, GP_GETFRAME_USE_PREV);
+        }
       }
     }
 

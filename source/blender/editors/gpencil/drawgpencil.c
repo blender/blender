@@ -171,7 +171,8 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   int totpoints = tgpw->gps->totpoints;
 
   const float viewport[2] = {(float)tgpw->winx, (float)tgpw->winy};
-  float curpressure = points[0].pressure;
+  const float min_thickness = 0.05f;
+
   float fpt[3];
 
   /* if cyclic needs more vertex */
@@ -205,7 +206,6 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   immUniform1i("fill_stroke", (int)tgpw->is_fill_stroke);
 
   /* draw stroke curve */
-  GPU_line_width(max_ff(curpressure * thickness, 1.0f));
   immBeginAtMost(GPU_PRIM_LINE_STRIP_ADJ, totpoints + cyclic_add + 2);
   const bGPDspoint *pt = points;
 
@@ -215,18 +215,19 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
       gpencil_set_point_varying_color(points, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
 
       if ((cyclic) && (totpoints > 2)) {
-        immAttr1f(attr_id.thickness, max_ff((points + totpoints - 1)->pressure * thickness, 1.0f));
+        immAttr1f(attr_id.thickness,
+                  max_ff((points + totpoints - 1)->pressure * thickness, min_thickness));
         mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 1)->x);
       }
       else {
-        immAttr1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, 1.0f));
+        immAttr1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, min_thickness));
         mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + 1)->x);
       }
       immVertex3fv(attr_id.pos, fpt);
     }
     /* set point */
     gpencil_set_point_varying_color(pt, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
-    immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, 1.0f));
+    immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, min_thickness));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
     immVertex3fv(attr_id.pos, fpt);
   }

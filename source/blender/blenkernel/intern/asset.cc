@@ -18,7 +18,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"

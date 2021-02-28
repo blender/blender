@@ -630,7 +630,7 @@ static void boxsample(ImBuf *ibuf,
                       const short imapextend)
 {
   /* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
-   * Enlarge with antialiased edges of pixels.
+   * Enlarge with anti-aliased edges of pixels.
    * If variable 'imaprepeat' has been set, the
    * clipped-away parts are sampled as well.
    */

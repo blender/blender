@@ -166,7 +166,7 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
       return;
   }
 
-  imm->prev_shader = imm->shader;
+  imm->prev_builtin_shader = imm->builtin_shader_bound;
 
   immUnbindProgram();
 
@@ -194,15 +194,15 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 
 static void wide_line_workaround_end()
 {
-  if (imm->prev_shader) {
+  if (imm->prev_builtin_shader) {
     if (GPU_blend_get() == GPU_BLEND_NONE) {
       /* Restore default. */
       immUniform1i("lineSmooth", 1);
     }
     immUnbindProgram();
 
-    immBindShader(imm->prev_shader);
-    imm->prev_shader = nullptr;
+    immBindBuiltinProgram(imm->prev_builtin_shader);
+    imm->prev_builtin_shader = GPU_SHADER_TEXT;
   }
 }
 

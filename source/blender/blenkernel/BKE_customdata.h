@@ -255,6 +255,13 @@ void CustomData_copy_data(const struct CustomData *source,
                           int source_index,
                           int dest_index,
                           int count);
+void CustomData_copy_data_layer(const CustomData *source,
+                                CustomData *dest,
+                                int src_layer_index,
+                                int dst_layer_index,
+                                int src_index,
+                                int dst_index,
+                                int count);
 void CustomData_copy_data_named(const struct CustomData *source,
                                 struct CustomData *dest,
                                 int source_index,
@@ -427,6 +434,7 @@ int CustomData_sizeof(int type);
 /* get the name of a layer type */
 const char *CustomData_layertype_name(int type);
 bool CustomData_layertype_is_singleton(int type);
+bool CustomData_layertype_is_dynamic(int type);
 int CustomData_layertype_layers_max(const int type);
 
 /* make sure the name of layer at index is unique */

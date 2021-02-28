@@ -499,28 +499,4 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
   }
 }
 
-eRedrawFlag handleMouseInput(TransInfo *t, MouseInput *mi, const wmEvent *event)
-{
-  eRedrawFlag redraw = TREDRAW_NOTHING;
-
-  switch (event->type) {
-    case EVT_LEFTSHIFTKEY:
-    case EVT_RIGHTSHIFTKEY:
-      if (event->val == KM_PRESS) {
-        t->modifiers |= MOD_PRECISION;
-        /* Shift is modifier for higher precision transform. */
-        mi->precision = 1;
-        redraw = TREDRAW_HARD;
-      }
-      else if (event->val == KM_RELEASE) {
-        t->modifiers &= ~MOD_PRECISION;
-        mi->precision = 0;
-        redraw = TREDRAW_HARD;
-      }
-      break;
-  }
-
-  return redraw;
-}
-
 /** \} */

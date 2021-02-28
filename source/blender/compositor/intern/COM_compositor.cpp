@@ -29,42 +29,21 @@
 #include "COM_compositor.h"
 #include "clew.h"
 
-static ThreadMutex s_compositorMutex;
-static bool is_compositorMutex_init = false;
+static struct {
+  bool is_initialized = false;
+  ThreadMutex mutex;
+} g_compositor;
 
-void COM_execute(RenderData *rd,
-                 Scene *scene,
-                 bNodeTree *editingtree,
-                 int rendering,
-                 const ColorManagedViewSettings *viewSettings,
-                 const ColorManagedDisplaySettings *displaySettings,
-                 const char *viewName)
+/* Make sure node tree has previews.
+ * Don't create previews in advance, this is done when adding preview operations.
+ * Reserved preview size is determined by render output for now. */
+static void compositor_init_node_previews(const RenderData *render_data, bNodeTree *node_tree)
 {
-  /* initialize mutex, TODO this mutex init is actually not thread safe and
-   * should be done somewhere as part of blender startup, all the other
-   * initializations can be done lazily */
-  if (is_compositorMutex_init == false) {
-    BLI_mutex_init(&s_compositorMutex);
-    is_compositorMutex_init = true;
-  }
-
-  BLI_mutex_lock(&s_compositorMutex);
-
-  if (editingtree->test_break(editingtree->tbh)) {
-    // during editing multiple calls to this method can be triggered.
-    // make sure one the last one will be doing the work.
-    BLI_mutex_unlock(&s_compositorMutex);
-    return;
-  }
-
-  /* Make sure node tree has previews.
-   * Don't create previews in advance, this is done when adding preview operations.
-   * Reserved preview size is determined by render output for now.
-   *
-   * We fit the aspect into COM_PREVIEW_SIZE x COM_PREVIEW_SIZE image to avoid
-   * insane preview resolution, which might even overflow preview dimensions.
-   */
-  const float aspect = rd->xsch > 0 ? (float)rd->ysch / (float)rd->xsch : 1.0f;
+  /* We fit the aspect into COM_PREVIEW_SIZE x COM_PREVIEW_SIZE image to avoid
+   * insane preview resolution, which might even overflow preview dimensions. */
+  const float aspect = render_data->xsch > 0 ?
+                           (float)render_data->ysch / (float)render_data->xsch :
+                           1.0f;
   int preview_width, preview_height;
   if (aspect < 1.0f) {
     preview_width = COM_PREVIEW_SIZE;
@@ -74,47 +53,74 @@ void COM_execute(RenderData *rd,
     preview_width = (int)(COM_PREVIEW_SIZE / aspect);
     preview_height = COM_PREVIEW_SIZE;
   }
-  BKE_node_preview_init_tree(editingtree, preview_width, preview_height, false);
+  BKE_node_preview_init_tree(node_tree, preview_width, preview_height, false);
+}
 
-  /* initialize workscheduler, will check if already done. TODO deinitialize somewhere */
-  bool use_opencl = (editingtree->flag & NTREE_COM_OPENCL) != 0;
-  WorkScheduler::initialize(use_opencl, BKE_render_num_threads(rd));
+static void compositor_reset_node_tree_status(bNodeTree *node_tree)
+{
+  node_tree->progress(node_tree->prh, 0.0);
+  node_tree->stats_draw(node_tree->sdh, IFACE_("Compositing"));
+}
 
-  /* set progress bar to 0% and status to init compositing */
-  editingtree->progress(editingtree->prh, 0.0);
-  editingtree->stats_draw(editingtree->sdh, IFACE_("Compositing"));
+void COM_execute(RenderData *render_data,
+                 Scene *scene,
+                 bNodeTree *node_tree,
+                 int rendering,
+                 const ColorManagedViewSettings *viewSettings,
+                 const ColorManagedDisplaySettings *displaySettings,
+                 const char *viewName)
+{
+  /* Initialize mutex, TODO this mutex init is actually not thread safe and
+   * should be done somewhere as part of blender startup, all the other
+   * initializations can be done lazily. */
+  if (!g_compositor.is_initialized) {
+    BLI_mutex_init(&g_compositor.mutex);
+    g_compositor.is_initialized = true;
+  }
 
-  bool twopass = (editingtree->flag & NTREE_TWO_PASS) && !rendering;
-  /* initialize execution system */
+  BLI_mutex_lock(&g_compositor.mutex);
+
+  if (node_tree->test_break(node_tree->tbh)) {
+    /* During editing multiple compositor executions can be triggered.
+     * Make sure this is the most recent one. */
+    BLI_mutex_unlock(&g_compositor.mutex);
+    return;
+  }
+
+  compositor_init_node_previews(render_data, node_tree);
+  compositor_reset_node_tree_status(node_tree);
+
+  /* Initialize workscheduler. */
+  const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
+  WorkScheduler::initialize(use_opencl, BKE_render_num_threads(render_data));
+
+  /* Execute. */
+  const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
-    ExecutionSystem *system = new ExecutionSystem(
-        rd, scene, editingtree, rendering, twopass, viewSettings, displaySettings, viewName);
-    system->execute();
-    delete system;
+    ExecutionSystem fast_pass(
+        render_data, scene, node_tree, rendering, true, viewSettings, displaySettings, viewName);
+    fast_pass.execute();
 
-    if (editingtree->test_break(editingtree->tbh)) {
-      // during editing multiple calls to this method can be triggered.
-      // make sure one the last one will be doing the work.
-      BLI_mutex_unlock(&s_compositorMutex);
+    if (node_tree->test_break(node_tree->tbh)) {
+      BLI_mutex_unlock(&g_compositor.mutex);
       return;
     }
   }
 
-  ExecutionSystem *system = new ExecutionSystem(
-      rd, scene, editingtree, rendering, false, viewSettings, displaySettings, viewName);
-  system->execute();
-  delete system;
+  ExecutionSystem system(
+      render_data, scene, node_tree, rendering, false, viewSettings, displaySettings, viewName);
+  system.execute();
 
-  BLI_mutex_unlock(&s_compositorMutex);
+  BLI_mutex_unlock(&g_compositor.mutex);
 }
 
 void COM_deinitialize()
 {
-  if (is_compositorMutex_init) {
-    BLI_mutex_lock(&s_compositorMutex);
+  if (g_compositor.is_initialized) {
+    BLI_mutex_lock(&g_compositor.mutex);
     WorkScheduler::deinitialize();
-    is_compositorMutex_init = false;
-    BLI_mutex_unlock(&s_compositorMutex);
-    BLI_mutex_end(&s_compositorMutex);
+    g_compositor.is_initialized = false;
+    BLI_mutex_unlock(&g_compositor.mutex);
+    BLI_mutex_end(&g_compositor.mutex);
   }
 }

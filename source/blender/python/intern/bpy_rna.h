@@ -177,9 +177,6 @@ typedef struct {
   FunctionRNA *func;
 } BPy_FunctionRNA;
 
-/* cheap trick */
-#define BPy_BaseTypeRNA BPy_PropertyRNA
-
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
 StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix);
 

@@ -91,7 +91,7 @@ uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
                                  BLI_rcti_size_y(&rect_clamp),
                                  1,
                                  0,
-                                 GPU_DATA_UNSIGNED_INT,
+                                 GPU_DATA_UINT,
                                  r_buf);
 
       if (!BLI_rcti_compare(rect, &rect_clamp)) {

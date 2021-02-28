@@ -220,14 +220,12 @@ def cmake_advanced_info():
 
 
 def cmake_cache_var(var):
-    cache_file = open(join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8')
-    lines = [
-        l_strip for l in cache_file
-        for l_strip in (l.strip(),)
-        if l_strip
-        if not l_strip.startswith(("//", "#"))
-    ]
-    cache_file.close()
+    with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
+        lines = [
+            l_strip for l in cache_file
+            if (l_strip := l.strip())
+            if not l_strip.startswith(("//", "#"))
+        ]
 
     for l in lines:
         if l.split(":")[0] == var:

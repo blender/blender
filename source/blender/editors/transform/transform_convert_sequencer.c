@@ -71,7 +71,6 @@ typedef struct TransSeq {
 
 /* -------------------------------------------------------------------- */
 /** \name Sequencer Transform Creation
- *
  * \{ */
 
 /* This function applies the rules for transforming a strip so duplicate
@@ -641,7 +640,6 @@ void createTransSeqData(TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name UVs Transform Flush
- *
  * \{ */
 
 /* commented _only_ because the meta may have animation data which

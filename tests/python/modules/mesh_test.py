@@ -247,9 +247,11 @@ class MeshTest:
             # Replace expected object with object we ran operations on, i.e. evaluated_test_object.
             evaluated_test_object.location = self.expected_object.location
             expected_object_name = self.expected_object.name
+            evaluated_selection = {v.index for v in evaluated_test_object.data.vertices if v.select}
 
             bpy.data.objects.remove(self.expected_object, do_unlink=True)
             evaluated_test_object.name = expected_object_name
+            self._do_selection(evaluated_test_object.data, "VERT", evaluated_selection)
 
             # Save file.
             bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
@@ -428,30 +430,40 @@ class MeshTest:
         if self.apply_modifier:
             self._apply_modifier(test_object, particle_sys_spec.modifier_name)
 
+    def _do_selection(self, mesh: bpy.types.Mesh, select_mode: str, selection: set):
+        """
+        Do selection on a mesh
+        :param mesh: bpy.types.Mesh - input mesh
+        :param: select_mode: str - selection mode. Must be 'VERT', 'EDGE' or 'FACE'
+        :param: selection: set - indices of selection.
+
+        Example: select_mode='VERT' and selection={1,2,3} selects veritces 1, 2 and 3 of input mesh
+        """
+        # deselect all
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.context.tool_settings.mesh_select_mode = (select_mode == 'VERT',
+                                                      select_mode == 'EDGE',
+                                                      select_mode == 'FACE')
+
+        items = (mesh.vertices if select_mode == 'VERT'
+                 else mesh.edges if select_mode == 'EDGE'
+                 else mesh.polygons if select_mode == 'FACE'
+                 else None)
+        if items is None:
+            raise ValueError("Invalid selection mode")
+        for index in selection:
+            items[index].select = True
+
     def _apply_operator_edit_mode(self, test_object, operator: OperatorSpecEditMode):
         """
         Apply operator on test object.
         :param test_object: bpy.types.Object - Blender object to apply operator on.
         :param operator: OperatorSpecEditMode - OperatorSpecEditMode object with parameters.
         """
-        mesh = test_object.data
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Do selection.
-        bpy.context.tool_settings.mesh_select_mode = (operator.select_mode == 'VERT',
-                                                      operator.select_mode == 'EDGE',
-                                                      operator.select_mode == 'FACE')
-        for index in operator.selection:
-            if operator.select_mode == 'VERT':
-                mesh.vertices[index].select = True
-            elif operator.select_mode == 'EDGE':
-                mesh.edges[index].select = True
-            elif operator.select_mode == 'FACE':
-                mesh.polygons[index].select = True
-            else:
-                raise ValueError("Invalid selection mode")
+        self._do_selection(test_object.data, operator.select_mode, operator.selection)
 
         # Apply operator in edit mode.
         bpy.ops.object.mode_set(mode='EDIT')
@@ -579,8 +591,14 @@ class MeshTest:
             compare_result = evaluated_test_mesh.unit_test_compare(mesh=expected_mesh)
         compare_success = (compare_result == 'Same')
 
+        selected_evaluatated_verts = [v.index for v in evaluated_test_mesh.vertices if v.select]
+        selected_expected_verts = [v.index for v in expected_mesh.vertices if v.select]
+        if selected_evaluatated_verts != selected_expected_verts:
+            compare_result = "Selection doesn't match"
+            compare_success = False
+
         # Also check if invalid geometry (which is never expected) had to be corrected...
-        validation_success = evaluated_test_mesh.validate(verbose=True) == False
+        validation_success = not evaluated_test_mesh.validate(verbose=True)
 
         if compare_success and validation_success:
             if self.verbose:
@@ -662,8 +680,7 @@ class RunTest:
             test_name = each_test.test_name
             if self.verbose:
                 print()
-                print("Running test {}...".format(test_number))
-                print("Test name {}\n".format(test_name))
+                print("Running test {}/{}: {}...".format(test_number+1, len(self.tests), test_name))
             success = self.run_test(test_name)
 
             if not success:

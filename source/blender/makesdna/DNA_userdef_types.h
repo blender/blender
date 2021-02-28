@@ -673,6 +673,21 @@ typedef struct UserDef {
   /** 768 = FILE_MAXDIR. */
   char render_cachedir[768];
   char textudir[768];
+  /**
+   * Optional user location for scripts.
+   *
+   * This supports the same layout as Blender's scripts directory `release/scripts`.
+   *
+   * \note Unlike most paths, changing this is not fully supported at run-time,
+   * requiring a restart to properly take effect. Supporting this would cause complications as
+   * the script path can contain `startup`, `addons` & `modules` etc. properly unwinding the
+   * Python environment to the state it _would_ have been in gets complicated.
+   *
+   * Although this is partially supported as the `sys.path` is refreshed when loading preferences.
+   * This is done to support #PREFERENCES_OT_copy_prev which is available to the user when they
+   * launch with a new version of Blender. In this case setting the script path on top of
+   * factory settings will work without problems.
+   */
   char pythondir[768];
   char sounddir[768];
   char i18ndir[768];
@@ -1207,7 +1222,7 @@ typedef enum eDupli_ID_Flags {
 
   USER_DUP_OBDATA = (~0) & ((1 << 24) - 1),
 
-  /* Those are not exposed as user preferences, only used internaly. */
+  /* Those are not exposed as user preferences, only used internally. */
   USER_DUP_OBJECT = (1 << 24),
   /* USER_DUP_COLLECTION = (1 << 25), */ /* UNUSED, keep because we may implement. */
 

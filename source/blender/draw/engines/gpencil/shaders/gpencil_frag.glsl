@@ -89,6 +89,9 @@ void main()
   fragColor *= stroke_round_cap_mask(
       strokePt1, strokePt2, strokeAspect, strokeThickness, strokeHardeness);
 
+  /* To avoid aliasing artifacts, we reduce the opacity of small strokes. */
+  fragColor *= smoothstep(0.0, 1.0, unclampedThickness);
+
   /* Holdout materials. */
   if (GP_FLAG_TEST(matFlag, GP_STROKE_HOLDOUT | GP_FILL_HOLDOUT)) {
     revealColor = fragColor.aaaa;

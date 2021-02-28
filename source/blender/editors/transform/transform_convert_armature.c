@@ -672,7 +672,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
     }
   }
 
-  /* for axismat we use bone's own transform */
+  /* For `axismtx` we use bone's own transform. */
   copy_m3_m4(pmat, pchan->pose_mat);
   mul_m3_m3m3(td->axismtx, omat, pmat);
   normalize_m3(td->axismtx);
@@ -870,8 +870,6 @@ void createTransPose(TransInfo *t)
       t->mode = TFM_RESIZE;
     }
   }
-
-  t->flag |= T_POSE;
 }
 
 void createTransArmatureVerts(TransInfo *t)
@@ -1343,7 +1341,7 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
     }
     BKE_pchan_apply_mat4(pchan, pchan_mtx_final, false);
 
-    /* Set flag to let autokeyframe know to keyframe the mirrred bone. */
+    /* Set flag to let auto key-frame know to key-frame the mirrored bone. */
     pchan->bone->flag |= BONE_TRANSFORM_MIRROR;
 
     /* In this case we can do target-less IK grabbing. */

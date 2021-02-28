@@ -94,7 +94,11 @@ void DenoiseOperation::generateDenoise(float *data,
     return;
   }
 #ifdef WITH_OPENIMAGEDENOISE
-  if (BLI_cpu_support_sse41()) {
+  /* Always supported through Accelerate framework BNNS on macOS. */
+#  ifndef __APPLE__
+  if (BLI_cpu_support_sse41())
+#  endif
+  {
     oidn::DeviceRef device = oidn::newDevice();
     device.commit();
 

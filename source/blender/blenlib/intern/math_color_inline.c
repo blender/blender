@@ -34,7 +34,7 @@
 
 /******************************** Color Space ********************************/
 
-#  ifdef __SSE2__
+#  ifdef BLI_HAVE_SSE2
 
 MALWAYS_INLINE __m128 srgb_to_linearrgb_v4_simd(const __m128 c)
 {
@@ -75,7 +75,7 @@ MINLINE void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
   srgb[2] = r[2];
 }
 
-#  else  /* __SSE2__ */
+#  else  /* BLI_HAVE_SSE2 */
 
 MINLINE void srgb_to_linearrgb_v3_v3(float linear[3], const float srgb[3])
 {
@@ -90,7 +90,7 @@ MINLINE void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
   srgb[1] = linearrgb_to_srgb(linear[1]);
   srgb[2] = linearrgb_to_srgb(linear[2]);
 }
-#  endif /* __SSE2__ */
+#  endif /* BLI_HAVE_SSE2 */
 
 MINLINE void srgb_to_linearrgb_v4(float linear[4], const float srgb[4])
 {

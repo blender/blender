@@ -36,6 +36,11 @@
 
 #include "transform_data.h"
 
+/* use node center for transform instead of upper-left corner.
+ * disabled since it makes absolute snapping not work so nicely
+ */
+// #define USE_NODE_CENTER
+
 /* -------------------------------------------------------------------- */
 /** \name Types/
  * \{ */
@@ -60,12 +65,231 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmTimer;
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Enums and Flags
+ * \{ */
+
+/** #TransInfo.options */
+typedef enum {
+  CTX_NONE = 0,
+
+  /* These are similar to TransInfo::data_type. */
+  CTX_CAMERA = (1 << 0),
+  CTX_CURSOR = (1 << 1),
+  CTX_EDGE_DATA = (1 << 2),
+  CTX_GPENCIL_STROKES = (1 << 3),
+  CTX_MASK = (1 << 4),
+  CTX_MOVIECLIP = (1 << 5),
+  CTX_OBJECT = (1 << 6),
+  CTX_PAINT_CURVE = (1 << 7),
+  CTX_POSE_BONE = (1 << 8),
+  CTX_TEXTURE_SPACE = (1 << 9),
+
+  CTX_NO_PET = (1 << 10),
+  CTX_NO_MIRROR = (1 << 11),
+  CTX_AUTOCONFIRM = (1 << 12),
+  /** When transforming object's, adjust the object data so it stays in the same place. */
+  CTX_OBMODE_XFORM_OBDATA = (1 << 13),
+  /** Transform object parents without moving their children. */
+  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 14),
+} eTContext;
+
+/** #TransInfo.flag */
+typedef enum {
+  /** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
+  T_EDIT = 1 << 0,
+  /** Transform points, having no rotation/scale. */
+  T_POINTS = 1 << 1,
+  /** restrictions flags */
+  T_NO_CONSTRAINT = 1 << 2,
+  T_NULL_ONE = 1 << 3,
+  T_NO_ZERO = 1 << 4,
+  T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE | T_NO_ZERO,
+
+  T_PROP_EDIT = 1 << 5,
+  T_PROP_CONNECTED = 1 << 6,
+  T_PROP_PROJECTED = 1 << 7,
+  T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
+
+  T_V3D_ALIGN = 1 << 8,
+  /** For 2D views such as UV or f-curve. */
+  T_2D_EDIT = 1 << 9,
+  T_CLIP_UV = 1 << 10,
+
+  /** Auto-IK is on. */
+  T_AUTOIK = 1 << 11,
+
+  /** Don't use mirror even if the data-block option is set. */
+  T_NO_MIRROR = 1 << 12,
+
+  /** To indicate that the value set in the `value` parameter is the final
+   * value of the transformation, modified only by the constrain. */
+  T_INPUT_IS_VALUES_FINAL = 1 << 13,
+
+  /** To specify if we save back settings at the end. */
+  T_MODAL = 1 << 14,
+
+  /** No re-topology (projection). */
+  T_NO_PROJECT = 1 << 15,
+
+  T_RELEASE_CONFIRM = 1 << 16,
+
+  /** Alternative transformation. used to add offset to tracking markers. */
+  T_ALT_TRANSFORM = 1 << 17,
+
+  /** #TransInfo.center has been set, don't change it. */
+  T_OVERRIDE_CENTER = 1 << 18,
+
+  T_MODAL_CURSOR_SET = 1 << 19,
+
+  T_CLNOR_REBUILD = 1 << 20,
+
+  /** Merges unselected into selected after transforming (runs after transforming). */
+  T_AUTOMERGE = 1 << 21,
+  /** Runs auto-merge & splits. */
+  T_AUTOSPLIT = 1 << 22,
+} eTFlag;
+
+/** #TransInfo.modifiers */
+typedef enum {
+  MOD_CONSTRAINT_SELECT = 1 << 0,
+  MOD_PRECISION = 1 << 1,
+  MOD_SNAP = 1 << 2,
+  MOD_SNAP_INVERT = 1 << 3,
+  MOD_CONSTRAINT_PLANE = 1 << 4,
+} eTModifier;
+
+/** #TransSnap.status */
+typedef enum {
+  SNAP_FORCED = 1 << 0,
+  TARGET_INIT = 1 << 1,
+  /* Special flag for snap to grid. */
+  TARGET_GRID_INIT = 1 << 2,
+  POINT_INIT = 1 << 3,
+  MULTI_POINTS = 1 << 4,
+} eTSnap;
+
+/** #TransCon.mode, #TransInfo.con.mode */
+typedef enum {
+  /** When set constraints are in use. */
+  CON_APPLY = 1 << 0,
+  /** These are only used for modal execution. */
+  CON_AXIS0 = 1 << 1,
+  CON_AXIS1 = 1 << 2,
+  CON_AXIS2 = 1 << 3,
+  CON_SELECT = 1 << 4,
+  /** Does not reorient vector to face viewport when on. */
+  CON_NOFLIP = 1 << 5,
+  CON_USER = 1 << 6,
+} eTConstraint;
+
+/** #TransInfo.state */
+typedef enum {
+  TRANS_STARTING = 0,
+  TRANS_RUNNING = 1,
+  TRANS_CONFIRM = 2,
+  TRANS_CANCEL = 3,
+} eTState;
+
 /** #TransInfo.redraw */
 typedef enum {
   TREDRAW_NOTHING = 0,
   TREDRAW_HARD = 1,
   TREDRAW_SOFT = 2,
 } eRedrawFlag;
+
+/** #TransInfo.helpline */
+typedef enum {
+  HLP_NONE = 0,
+  HLP_SPRING = 1,
+  HLP_ANGLE = 2,
+  HLP_HARROW = 3,
+  HLP_VARROW = 4,
+  HLP_CARROW = 5,
+  HLP_TRACKBALL = 6,
+} eTHelpline;
+
+typedef enum {
+  TC_NONE = 0,
+  TC_ACTION_DATA,
+  TC_POSE,
+  TC_ARMATURE_VERTS,
+  TC_CURSOR_IMAGE,
+  TC_CURSOR_VIEW3D,
+  TC_CURVE_VERTS,
+  TC_GRAPH_EDIT_DATA,
+  TC_GPENCIL,
+  TC_LATTICE_VERTS,
+  TC_MASKING_DATA,
+  TC_MBALL_VERTS,
+  TC_MESH_VERTS,
+  TC_MESH_EDGES,
+  TC_MESH_SKIN,
+  TC_MESH_UV,
+  TC_NLA_DATA,
+  TC_NODE_DATA,
+  TC_OBJECT,
+  TC_OBJECT_TEXSPACE,
+  TC_PAINT_CURVE_VERTS,
+  TC_PARTICLE_VERTS,
+  TC_SCULPT,
+  TC_SEQ_DATA,
+  TC_TRACKING_DATA,
+} eTConvertType;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Modal Items
+ *
+ * \note these values are saved in key-map files, do not change then but just add new ones.
+ * \{ */
+
+enum {
+  TFM_MODAL_CANCEL = 1,
+  TFM_MODAL_CONFIRM = 2,
+  TFM_MODAL_TRANSLATE = 3,
+  TFM_MODAL_ROTATE = 4,
+  TFM_MODAL_RESIZE = 5,
+  TFM_MODAL_SNAP_INV_ON = 6,
+  TFM_MODAL_SNAP_INV_OFF = 7,
+  TFM_MODAL_SNAP_TOGGLE = 8,
+  TFM_MODAL_AXIS_X = 9,
+  TFM_MODAL_AXIS_Y = 10,
+  TFM_MODAL_AXIS_Z = 11,
+  TFM_MODAL_PLANE_X = 12,
+  TFM_MODAL_PLANE_Y = 13,
+  TFM_MODAL_PLANE_Z = 14,
+  TFM_MODAL_CONS_OFF = 15,
+  TFM_MODAL_ADD_SNAP = 16,
+  TFM_MODAL_REMOVE_SNAP = 17,
+
+  /* 18 and 19 used by number-input, defined in `ED_numinput.h`. */
+  // NUM_MODAL_INCREMENT_UP = 18,
+  // NUM_MODAL_INCREMENT_DOWN = 19,
+
+  TFM_MODAL_PROPSIZE_UP = 20,
+  TFM_MODAL_PROPSIZE_DOWN = 21,
+  TFM_MODAL_AUTOIK_LEN_INC = 22,
+  TFM_MODAL_AUTOIK_LEN_DEC = 23,
+
+  TFM_MODAL_EDGESLIDE_UP = 24,
+  TFM_MODAL_EDGESLIDE_DOWN = 25,
+
+  /** For analog input, like track-pad. */
+  TFM_MODAL_PROPSIZE = 26,
+  /** Node editor insert offset (also called auto-offset) direction toggle. */
+  TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
+
+  TFM_MODAL_AUTOCONSTRAINT = 28,
+  TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
+
+  TFM_MODAL_PRECISION = 30,
+};
+
+/** \} */
 
 typedef struct TransSnapPoint {
   struct TransSnapPoint *next, *prev;
@@ -82,13 +306,14 @@ typedef struct TransSnap {
   bool snap_self;
   bool peel;
   bool use_backface_culling;
-  char status;
+  eTSnap status;
   /* Snapped Element Type (currently for objects only). */
   char snapElem;
   /** snapping from this point (in global-space). */
   float snapPoint[3];
   /** to this point (in global-space). */
   float snapTarget[3];
+  float snapTargetGrid[3];
   float snapNormal[3];
   char snapNodeBorder;
   ListBase points;
@@ -120,7 +345,7 @@ typedef struct TransCon {
    * the one in #TransInfo is not guarantee to stay the same (Rotates change it). */
   int imval[2];
   /** Mode flags of the constraint. */
-  int mode;
+  eTConstraint mode;
   void (*drawExtra)(struct TransInfo *t);
 
   /* Note: if 'tc' is NULL, 'td' must also be NULL.
@@ -266,37 +491,45 @@ typedef struct TransInfo {
   TransDataContainer *data_container;
   int data_container_len;
 
-  /** #eTransConvertType
-   * TODO: It should be a member of #TransDataContainer. */
-  int data_type;
-
   /** Combine length of all #TransDataContainer.data_len
    * Use to check if nothing is selected or if we have a single selection. */
   int data_len_all;
 
-  /** Current mode. */
-  int mode;
-  /** Generic flags for special behaviors. */
-  int flag;
-  /** Special modifiers, by function, not key. */
-  int modifiers;
-  /** Current state (running, canceled. */
-  short state;
+  /** TODO: It should be a member of #TransDataContainer. */
+  eTConvertType data_type;
+
   /** Current context/options for transform. */
-  int options;
-  void (*transform)(struct TransInfo *, const int[2]);
-  /** Transform function pointer. */
-  eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
-  /* event handler function pointer  RETURN 1 if redraw is needed */
-  /** transformed constraint. */
-  TransCon con;
-  TransSnap tsnap;
-  /** numerical input. */
-  NumInput num;
-  /** mouse input. */
-  MouseInput mouse;
-  /** redraw flag. */
+  eTContext options;
+  /** Generic flags for special behaviors. */
+  eTFlag flag;
+  /** Special modifiers, by function, not key. */
+  eTModifier modifiers;
+  /** Current state (running, canceled. */
+  eTState state;
+  /** Redraw flag. */
   eRedrawFlag redraw;
+  /** Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
+  eTHelpline helpline;
+  /** Current mode. */
+  eTfmMode mode;
+
+  /** Main transform mode function. */
+  void (*transform)(struct TransInfo *, const int[2]);
+  /* Event handler function that determines whether the viewport needs to be redrawn. */
+  eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
+
+  /** Constraint Data. */
+  TransCon con;
+
+  /** Snap Data. */
+  TransSnap tsnap;
+
+  /** Numerical input. */
+  NumInput num;
+
+  /** Mouse input. */
+  MouseInput mouse;
+
   /** proportional circle radius. */
   float prop_size;
   /** proportional falloff text. */
@@ -310,9 +543,6 @@ typedef struct TransInfo {
   float center_global[3];
   /** center in screen coordinates. */
   float center2d[2];
-  /* Lazy initialize center data for when we need other center values.
-   * V3D_AROUND_ACTIVE + 1 (static assert checks this) */
-  TransCenterData center_cache[5];
   /** maximum index on the input vector. */
   short idx_max;
   /** Snapping Gears. */
@@ -333,8 +563,6 @@ typedef struct TransInfo {
   short around;
   /** space-type where transforming is. */
   char spacetype;
-  /** Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
-  char helpline;
   /** Avoid looking inside #TransDataContainer.obedit. */
   short obedit_type;
 
@@ -422,178 +650,6 @@ typedef struct TransInfo {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Flags
- * \{ */
-
-/** #TransInfo.state */
-enum {
-  TRANS_STARTING = 0,
-  TRANS_RUNNING = 1,
-  TRANS_CONFIRM = 2,
-  TRANS_CANCEL = 3,
-};
-
-/** #TransInfo.flag */
-enum {
-  T_OBJECT = 1 << 0,
-  /** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
-  T_EDIT = 1 << 1,
-  T_POSE = 1 << 2,
-  T_TEXTURE = 1 << 3,
-  /** Transforming the 3d view. */
-  T_CAMERA = 1 << 4,
-  /** Transforming the 3D cursor. */
-  T_CURSOR = 1 << 5,
-  /** Transform points, having no rotation/scale. */
-  T_POINTS = 1 << 6,
-  /** restrictions flags */
-  T_NO_CONSTRAINT = 1 << 7,
-  T_NULL_ONE = 1 << 8,
-  T_NO_ZERO = 1 << 9,
-  T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE | T_NO_ZERO,
-
-  T_PROP_EDIT = 1 << 10,
-  T_PROP_CONNECTED = 1 << 11,
-  T_PROP_PROJECTED = 1 << 12,
-  T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
-
-  T_V3D_ALIGN = 1 << 13,
-  /** For 2D views such as UV or f-curve. */
-  T_2D_EDIT = 1 << 14,
-  T_CLIP_UV = 1 << 15,
-
-  /** Auto-IK is on. */
-  T_AUTOIK = 1 << 16,
-
-  /** Don't use mirror even if the data-block option is set. */
-  T_NO_MIRROR = 1 << 17,
-
-  /** To indicate that the value set in the `value` parameter is the final
-   * value of the transformation, modified only by the constrain. */
-  T_INPUT_IS_VALUES_FINAL = 1 << 18,
-
-  /** To specify if we save back settings at the end. */
-  T_MODAL = 1 << 19,
-
-  /** No re-topology (projection). */
-  T_NO_PROJECT = 1 << 20,
-
-  T_RELEASE_CONFIRM = 1 << 21,
-
-  /** Alternative transformation. used to add offset to tracking markers. */
-  T_ALT_TRANSFORM = 1 << 22,
-
-  /** #TransInfo.center has been set, don't change it. */
-  T_OVERRIDE_CENTER = 1 << 23,
-
-  T_MODAL_CURSOR_SET = 1 << 24,
-
-  T_CLNOR_REBUILD = 1 << 25,
-
-  /** Merges unselected into selected after transforming (runs after transforming). */
-  T_AUTOMERGE = 1 << 26,
-  /** Runs auto-merge & splits. */
-  T_AUTOSPLIT = 1 << 27,
-};
-
-/** #TransInfo.modifiers */
-enum {
-  MOD_CONSTRAINT_SELECT = 1 << 0,
-  MOD_PRECISION = 1 << 1,
-  MOD_SNAP = 1 << 2,
-  MOD_SNAP_INVERT = 1 << 3,
-  MOD_CONSTRAINT_PLANE = 1 << 4,
-};
-
-/* use node center for transform instead of upper-left corner.
- * disabled since it makes absolute snapping not work so nicely
- */
-// #define USE_NODE_CENTER
-
-/** #TransInfo.helpline */
-enum {
-  HLP_NONE = 0,
-  HLP_SPRING = 1,
-  HLP_ANGLE = 2,
-  HLP_HARROW = 3,
-  HLP_VARROW = 4,
-  HLP_CARROW = 5,
-  HLP_TRACKBALL = 6,
-};
-
-/** #TransCon.mode, #TransInfo.con.mode */
-enum {
-  /** When set constraints are in use. */
-  CON_APPLY = 1 << 0,
-  /** These are only used for modal execution. */
-  CON_AXIS0 = 1 << 1,
-  CON_AXIS1 = 1 << 2,
-  CON_AXIS2 = 1 << 3,
-  CON_SELECT = 1 << 4,
-  /** Does not reorient vector to face viewport when on. */
-  CON_NOFLIP = 1 << 5,
-  CON_USER = 1 << 6,
-};
-
-/** #TransSnap.status */
-enum {
-  SNAP_FORCED = 1 << 0,
-  TARGET_INIT = 1 << 1,
-  POINT_INIT = 1 << 2,
-  MULTI_POINTS = 1 << 3,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Keymap Modal Items
- *
- * \note these values are saved in key-map files, do not change then but just add new ones.
- * \{ */
-
-enum {
-  TFM_MODAL_CANCEL = 1,
-  TFM_MODAL_CONFIRM = 2,
-  TFM_MODAL_TRANSLATE = 3,
-  TFM_MODAL_ROTATE = 4,
-  TFM_MODAL_RESIZE = 5,
-  TFM_MODAL_SNAP_INV_ON = 6,
-  TFM_MODAL_SNAP_INV_OFF = 7,
-  TFM_MODAL_SNAP_TOGGLE = 8,
-  TFM_MODAL_AXIS_X = 9,
-  TFM_MODAL_AXIS_Y = 10,
-  TFM_MODAL_AXIS_Z = 11,
-  TFM_MODAL_PLANE_X = 12,
-  TFM_MODAL_PLANE_Y = 13,
-  TFM_MODAL_PLANE_Z = 14,
-  TFM_MODAL_CONS_OFF = 15,
-  TFM_MODAL_ADD_SNAP = 16,
-  TFM_MODAL_REMOVE_SNAP = 17,
-
-  /* 18 and 19 used by number-input, defined in `ED_numinput.h`. */
-  // NUM_MODAL_INCREMENT_UP = 18,
-  // NUM_MODAL_INCREMENT_DOWN = 19,
-
-  TFM_MODAL_PROPSIZE_UP = 20,
-  TFM_MODAL_PROPSIZE_DOWN = 21,
-  TFM_MODAL_AUTOIK_LEN_INC = 22,
-  TFM_MODAL_AUTOIK_LEN_DEC = 23,
-
-  TFM_MODAL_EDGESLIDE_UP = 24,
-  TFM_MODAL_EDGESLIDE_DOWN = 25,
-
-  /** For analog input, like track-pad. */
-  TFM_MODAL_PROPSIZE = 26,
-  /** Node editor insert offset (also called auto-offset) direction toggle. */
-  TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
-
-  TFM_MODAL_AUTOCONSTRAINT = 28,
-  TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public Transform API
  * \{ */
 
@@ -666,9 +722,6 @@ typedef enum {
 void initMouseInput(
     TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-eRedrawFlag handleMouseInput(struct TransInfo *t,
-                             struct MouseInput *mi,
-                             const struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
                      const int mval[2],
@@ -684,10 +737,6 @@ void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float val
 /** \name Generics
  * \{ */
 
-void initTransDataContainers_FromObjectData(TransInfo *t,
-                                            struct Object *obact,
-                                            struct Object **objects,
-                                            uint objects_len);
 void initTransInfo(struct bContext *C,
                    TransInfo *t,
                    struct wmOperator *op,
@@ -709,7 +758,6 @@ void recalcData(TransInfo *t);
 void calculateCenter2D(TransInfo *t);
 void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
-const TransCenterData *transformCenter_from_type(TransInfo *t, int around);
 void calculateCenter(TransInfo *t);
 
 /* API functions for getting center points */
@@ -723,6 +771,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3]);
 void calculatePropRatio(TransInfo *t);
 
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
+
+struct Object *transform_object_deform_pose_armature_get(const TransInfo *t, struct Object *ob);
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 

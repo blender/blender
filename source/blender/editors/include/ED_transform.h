@@ -40,7 +40,7 @@ void transform_operatortypes(void);
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
-enum TfmMode {
+typedef enum {
   TFM_INIT = -1,
   TFM_DUMMY,
   TFM_TRANSLATION,
@@ -77,24 +77,7 @@ enum TfmMode {
   TFM_BONE_ENVELOPE_DIST,
   TFM_NORMAL_ROTATION,
   TFM_GPENCIL_OPACITY,
-};
-
-/* TRANSFORM CONTEXTS */
-#define CTX_NONE 0
-#define CTX_TEXTURE (1 << 0)
-#define CTX_EDGE (1 << 1)
-#define CTX_NO_PET (1 << 2)
-#define CTX_NO_MIRROR (1 << 3)
-#define CTX_AUTOCONFIRM (1 << 4)
-#define CTX_MOVIECLIP (1 << 6)
-#define CTX_MASK (1 << 7)
-#define CTX_PAINT_CURVE (1 << 8)
-#define CTX_GPENCIL_STROKES (1 << 9)
-#define CTX_CURSOR (1 << 10)
-/** When transforming object's, adjust the object data so it stays in the same place. */
-#define CTX_OBMODE_XFORM_OBDATA (1 << 11)
-/** Transform object parents without moving their children. */
-#define CTX_OBMODE_XFORM_SKIP_CHILDREN (1 << 12)
+} eTfmMode;
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)

@@ -81,7 +81,7 @@ float shadow_cube_radial_depth(vec3 cubevec, float tex_id, int shadow_id)
   return depth;
 }
 
-vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, float sss_scale)
+vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, float sss_scale)
 {
   int shadow_id = int(ld.l_shadowid);
 
@@ -98,7 +98,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
   float d, dist;
   int data_id = int(sd(shadow_id).sh_data_index);
   if (ld.l_type == SUN) {
-    vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
+    vec4 view_z = vec4(dot(P - cameraPos, cameraForward));
 
     vec4 weights = step(scascade(data_id).split_end_distances, view_z);
     float id = abs(4.0 - dot(weights, weights));
@@ -109,7 +109,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
     /* Same factor as in get_cascade_world_distance(). */
     float range = abs(sd(shadow_id).sh_far - sd(shadow_id).sh_near);
 
-    vec4 shpos = scascade(data_id).shadowmat[int(id)] * vec4(W, 1.0);
+    vec4 shpos = scascade(data_id).shadowmat[int(id)] * vec4(P, 1.0);
     dist = shpos.z * range;
 
     if (shpos.z > 1.0 || shpos.z < 0.0) {
@@ -149,7 +149,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
   else {
     float ofs = 1.0 / float(textureSize(sssShadowCubes, 0).x);
 
-    vec3 cubevec = transform_point(scube(data_id).shadowmat, W);
+    vec3 cubevec = transform_point(scube(data_id).shadowmat, P);
     dist = length(cubevec);
     cubevec /= dist;
     /* tex_id == data_id for cube shadowmap */
@@ -187,8 +187,8 @@ void main(void)
 {
   vec2 uvs = uvcoordsvar.xy;
   float sss_scale = texture(sssRadius, uvs).r;
-  vec3 W = get_world_space_from_depth(uvs, texture(depthBuffer, uvs).r);
-  vec3 N = normalize(cross(dFdx(W), dFdy(W)));
+  vec3 P = get_world_space_from_depth(uvs, texture(depthBuffer, uvs).r);
+  vec3 N = normalize(cross(dFdx(P), dFdy(P)));
 
   vec3 rand = texelfetch_noise_tex(gl_FragCoord.xy).zwy;
   rand.xy *= fast_sqrt(rand.z);
@@ -203,7 +203,7 @@ void main(void)
     }
 
     vec4 l_vector; /* Non-Normalized Light Vector with length in last component. */
-    l_vector.xyz = ld.l_position - W;
+    l_vector.xyz = ld.l_position - P;
     l_vector.w = length(l_vector.xyz);
 
     float att = light_attenuation(ld, l_vector);
@@ -211,7 +211,7 @@ void main(void)
       continue;
     }
 
-    accum += att * ld.l_color * light_translucent(ld, W, -N, l_vector, rand.xy, sss_scale);
+    accum += att * ld.l_color * light_translucent(ld, P, -N, l_vector, rand.xy, sss_scale);
   }
 
   FragColor = vec4(accum, 1.0);

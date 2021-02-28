@@ -47,15 +47,12 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
-#include "ED_transform.h"
 #include "ED_uvedit.h" /* just for ED_image_draw_cursor */
 
 #include "IMB_imbuf.h"
 
-#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 
 #include "WM_api.h"
@@ -642,7 +639,7 @@ static void clip_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
-  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy);
+  WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, NULL);
 }
 
 static void clip_refresh(const bContext *C, ScrArea *area)

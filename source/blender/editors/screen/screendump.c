@@ -229,7 +229,6 @@ static bool screenshot_poll(bContext *C)
 
 void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
-  /* weak: opname starting with 'save' makes filewindow give save-over */
   ot->name = "Save Screenshot";
   ot->idname = "SCREEN_OT_screenshot";
   ot->description = "Capture a picture of the active area or whole Blender window";

@@ -154,7 +154,7 @@ ccl_device float2 concentric_sample_disk(float u1, float u2)
   float b = 2.0f * u2 - 1.0f;
 
   if (a == 0.0f && b == 0.0f) {
-    return make_float2(0.0f, 0.0f);
+    return zero_float2();
   }
   else if (a * a > b * b) {
     r = a;

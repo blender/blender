@@ -172,6 +172,26 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static ID *collection_owner_get(Main *bmain, ID *id)
+{
+  if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
+    return id;
+  }
+  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+
+  Collection *master_collection = (Collection *)id;
+  BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
+
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    if (scene->master_collection == master_collection) {
+      return &scene->id;
+    }
+  }
+
+  BLI_assert(!"Embedded collection with no owner. Critical Main inconsistency.");
+  return NULL;
+}
+
 void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
 {
   BKE_id_blend_write(writer, &collection->id);
@@ -355,6 +375,7 @@ IDTypeInfo IDType_ID_GR = {
     .make_local = NULL,
     .foreach_id = collection_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = collection_owner_get,
 
     .blend_write = collection_blend_write,
     .blend_read_data = collection_blend_read_data,
@@ -837,19 +858,6 @@ Collection *BKE_collection_master_add()
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
   return master_collection;
-}
-
-Scene *BKE_collection_master_scene_search(const Main *bmain, const Collection *master_collection)
-{
-  BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
-
-  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-    if (scene->master_collection == master_collection) {
-      return scene;
-    }
-  }
-
-  return NULL;
 }
 
 /** \} */

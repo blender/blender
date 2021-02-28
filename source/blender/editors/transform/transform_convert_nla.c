@@ -70,7 +70,6 @@ typedef struct TransDataNla {
 
 /* -------------------------------------------------------------------- */
 /** \name NLA Transform Creation
- *
  * \{ */
 
 void createTransNlaData(bContext *C, TransInfo *t)

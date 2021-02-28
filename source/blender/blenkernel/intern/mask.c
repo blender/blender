@@ -263,6 +263,7 @@ IDTypeInfo IDType_ID_MSK = {
     .make_local = NULL,
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = mask_blend_write,
     .blend_read_data = mask_blend_read_data,

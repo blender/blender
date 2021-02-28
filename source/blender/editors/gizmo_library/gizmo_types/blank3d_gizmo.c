@@ -28,14 +28,11 @@
 #include "BKE_context.h"
 
 #include "ED_gizmo_library.h"
-#include "ED_view3d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 /* own includes */
-#include "../gizmo_geometry.h"
-#include "../gizmo_library_intern.h"
 
 static void gizmo_blank_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 {
@@ -58,7 +55,6 @@ static int gizmo_blank_test_select(bContext *UNUSED(C),
 
 /* -------------------------------------------------------------------- */
 /** \name Blank Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_blank_3d(wmGizmoType *gzt)

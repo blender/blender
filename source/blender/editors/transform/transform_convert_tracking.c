@@ -71,7 +71,6 @@ enum transDataTracking_Mode {
 
 /* -------------------------------------------------------------------- */
 /** \name Clip Editor Motion Tracking Transform Creation
- *
  * \{ */
 
 typedef struct TransformInitContext {
@@ -567,7 +566,6 @@ void createTransTrackingData(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name recalc Motion Tracking TransData
- *
  * \{ */
 
 static void cancelTransTracking(TransInfo *t)

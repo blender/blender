@@ -29,6 +29,7 @@
 #include "BLI_ghash.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
@@ -495,6 +496,8 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->st->id = 0;
 
   rv->c = rv->st->codec;
+  rv->c->thread_count = BLI_system_thread_count();
+  rv->c->thread_type = FF_THREAD_SLICE;
   rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
   rv->c->codec_id = AV_CODEC_ID_MJPEG;
   rv->c->width = width;

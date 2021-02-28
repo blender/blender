@@ -52,7 +52,7 @@ string string_remove_trademark(const string &s);
 string string_from_bool(const bool var);
 string to_string(const char *str);
 
-/* Wide char strings are only used on Windows to deal with non-ascii
+/* Wide char strings are only used on Windows to deal with non-ASCII
  * characters in file names and such. No reason to use such strings
  * for something else at this moment.
  *

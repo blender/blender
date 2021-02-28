@@ -26,6 +26,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "NOD_math_functions.hh"
 
 static bNodeSocketTemplate geo_node_attribute_compare_in[] = {
@@ -47,6 +50,17 @@ static bNodeSocketTemplate geo_node_attribute_compare_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_compare_layout(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
+  uiItemR(layout, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
+}
 
 static void geo_node_attribute_compare_init(bNodeTree *UNUSED(tree), bNode *node)
 {
@@ -218,7 +232,7 @@ static CustomDataType get_data_type(GeometryComponent &component,
   if (operation_tests_equality(node_storage)) {
     /* Convert the input attributes to the same data type for the equality tests. Use the higher
      * complexity attribute type, otherwise information necessary to the comparison may be lost. */
-    return attribute_data_type_highest_complexity({
+    return bke::attribute_data_type_highest_complexity({
         params.get_input_attribute_data_type("A", component, CD_PROP_FLOAT),
         params.get_input_attribute_data_type("B", component, CD_PROP_FLOAT),
     });
@@ -228,20 +242,31 @@ static CustomDataType get_data_type(GeometryComponent &component,
   return CD_PROP_FLOAT;
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  return params.get_highest_priority_input_domain({"A", "B"}, component, ATTR_DOMAIN_POINT);
+}
+
 static void attribute_compare_calc(GeometryComponent &component, const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   NodeAttributeCompare *node_storage = (NodeAttributeCompare *)node.storage;
   const FloatCompareOperation operation = static_cast<FloatCompareOperation>(
       node_storage->operation);
-
-  /* The result type of this node is always float. */
-  const CustomDataType result_type = CD_PROP_BOOL;
-  /* The result domain is always point for now. */
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
-
-  /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
   const std::string result_name = params.get_input<std::string>("Result");
+
+  const CustomDataType result_type = CD_PROP_BOOL;
+  const AttributeDomain result_domain = get_result_domain(component, params, result_name);
+
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
@@ -306,6 +331,8 @@ static void geo_node_attribute_compare_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (geometry_set.has<MeshComponent>()) {
     attribute_compare_calc(geometry_set.get_component_for_write<MeshComponent>(), params);
   }
@@ -327,6 +354,7 @@ void register_node_type_geo_attribute_compare()
   node_type_socket_templates(
       &ntype, geo_node_attribute_compare_in, geo_node_attribute_compare_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_compare_exec;
+  ntype.draw_buttons = geo_node_attribute_compare_layout;
   node_type_update(&ntype, blender::nodes::geo_node_attribute_compare_update);
   node_type_storage(
       &ntype, "NodeAttributeCompare", node_free_standard_storage, node_copy_standard_storage);

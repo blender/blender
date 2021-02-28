@@ -54,6 +54,10 @@
 
 #include "node_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
 /**
  * XXX Does some additional initialization on top of #nodeAddNode
  * Can be used with both custom and static nodes,
@@ -93,7 +97,12 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
   return node;
 }
 
-/* ********************** Add reroute operator ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Reroute Operator
+ * \{ */
+
 static bool add_reroute_intersect_check(bNodeLink *link,
                                         float mcoords[][2],
                                         int tot,
@@ -309,7 +318,108 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_CROSS, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
-/* ****************** Add File Node Operator  ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node Group Operator
+ * \{ */
+
+static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
+                                                              wmOperator *op,
+                                                              bNodeTree *ntree)
+{
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", name);
+
+  bNodeTree *node_group = (bNodeTree *)BKE_libblock_find_name(bmain, ID_NT, name);
+  if (!node_group) {
+    return NULL;
+  }
+  if ((node_group->type != ntree->type) || !nodeGroupPoll(ntree, node_group)) {
+    return NULL;
+  }
+
+  return node_group;
+}
+
+static int node_add_group_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+  bNodeTree *node_group;
+
+  if (!(node_group = node_add_group_get_and_poll_group_node_tree(bmain, op, ntree))) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  bNode *group_node = node_add_node(C,
+                                    node_group_idname(C),
+                                    (node_group->type == NTREE_CUSTOM) ? NODE_CUSTOM_GROUP :
+                                                                         NODE_GROUP,
+                                    snode->runtime->cursor[0],
+                                    snode->runtime->cursor[1]);
+  if (!group_node) {
+    BKE_report(op->reports, RPT_WARNING, "Could not add node group");
+    return OPERATOR_CANCELLED;
+  }
+
+  group_node->id = &node_group->id;
+  id_us_plus(group_node->id);
+
+  nodeSetActive(ntree, group_node);
+  ntreeUpdateTree(bmain, node_group);
+  ntreeUpdateTree(bmain, ntree);
+
+  snode_notify(C, snode);
+  snode_dag_update(C, snode);
+
+  return OPERATOR_FINISHED;
+}
+
+static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region->v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
+
+  return node_add_group_exec(C, op);
+}
+
+void NODE_OT_add_group(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Node Group";
+  ot->description = "Add an existing node group to the current node editor";
+  ot->idname = "NODE_OT_add_group";
+
+  /* callbacks */
+  ot->exec = node_add_group_exec;
+  ot->invoke = node_add_group_invoke;
+  ot->poll = ED_operator_node_editable;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add File Node Operator
+ * \{ */
 
 static bool node_add_file_poll(bContext *C)
 {
@@ -417,7 +527,11 @@ void NODE_OT_add_file(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
-/* ****************** Add Mask Node Operator  ******************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Mask Node Operator
+ * \{ */
 
 static bool node_add_mask_poll(bContext *C)
 {
@@ -478,7 +592,11 @@ void NODE_OT_add_mask(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
-/********************** New node tree operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Node Tree Operator
+ * \{ */
 
 static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
@@ -566,3 +684,5 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
   RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
 }
+
+/** \} */

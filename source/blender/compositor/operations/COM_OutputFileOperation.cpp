@@ -347,8 +347,9 @@ StampData *OutputOpenExrMultiLayerOperation::createStampData() const
     }
     std::unique_ptr<MetaData> meta_data = layer->imageInput->getMetaData();
     if (meta_data) {
-      blender::StringRef layer_name = blender::BKE_cryptomatte_extract_layer_name(
-          blender::StringRef(layer->name, BLI_strnlen(layer->name, sizeof(layer->name))));
+      blender::StringRef layer_name =
+          blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
+              blender::StringRef(layer->name, BLI_strnlen(layer->name, sizeof(layer->name))));
       meta_data->replaceHashNeutralCryptomatteKeys(layer_name);
       meta_data->addToRenderResult(&render_result);
     }

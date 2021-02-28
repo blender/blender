@@ -23,7 +23,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "BLT_translation.h"
@@ -31,34 +30,26 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.h"
-#include "BKE_duplilist.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "ED_gpencil.h"
@@ -66,7 +57,6 @@
 
 #include "gpencil_intern.h"
 #include "gpencil_trace.h"
-#include "potracelib.h"
 
 typedef struct TraceJob {
   /* from wmJob */

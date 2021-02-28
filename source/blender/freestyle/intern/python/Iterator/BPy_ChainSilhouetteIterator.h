@@ -38,7 +38,7 @@ extern PyTypeObject ChainSilhouetteIterator_Type;
 /*---------------------------Python BPy_ChainSilhouetteIterator structure definition----------*/
 typedef struct {
   BPy_ChainingIterator py_c_it;
-  ChainSilhouetteIterator *cs_it;
+  Freestyle::ChainSilhouetteIterator *cs_it;
 } BPy_ChainSilhouetteIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

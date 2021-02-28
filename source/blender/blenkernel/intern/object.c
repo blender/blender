@@ -1148,6 +1148,7 @@ IDTypeInfo IDType_ID_OB = {
     .make_local = object_make_local,
     .foreach_id = object_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = object_blend_write,
     .blend_read_data = object_blend_read_data,
@@ -1742,6 +1743,7 @@ void BKE_object_free_derived_caches(Object *ob)
   }
 
   BKE_object_to_mesh_clear(ob);
+  BKE_object_to_curve_clear(ob);
   BKE_object_free_curve_cache(ob);
 
   /* Clear grease pencil data. */
@@ -1973,7 +1975,8 @@ int BKE_object_visibility(const Object *ob, const int dag_eval_mode)
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
-  if (ob->runtime.geometry_set_eval != NULL) {
+  if (ob->runtime.geometry_set_eval != NULL &&
+      BKE_geometry_set_has_instances(ob->runtime.geometry_set_eval)) {
     visibility |= OB_VISIBLE_INSTANCES;
   }
 
@@ -5056,6 +5059,7 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
   runtime->mesh_deform_eval = NULL;
   runtime->curve_cache = NULL;
   runtime->object_as_temp_mesh = NULL;
+  runtime->object_as_temp_curve = NULL;
   runtime->geometry_set_eval = NULL;
 }
 
@@ -5612,6 +5616,24 @@ void BKE_object_to_mesh_clear(Object *object)
   }
   BKE_id_free(NULL, object->runtime.object_as_temp_mesh);
   object->runtime.object_as_temp_mesh = NULL;
+}
+
+Curve *BKE_object_to_curve(Object *object, Depsgraph *depsgraph, bool apply_modifiers)
+{
+  BKE_object_to_curve_clear(object);
+
+  Curve *curve = BKE_curve_new_from_object(object, depsgraph, apply_modifiers);
+  object->runtime.object_as_temp_curve = curve;
+  return curve;
+}
+
+void BKE_object_to_curve_clear(Object *object)
+{
+  if (object->runtime.object_as_temp_curve == NULL) {
+    return;
+  }
+  BKE_id_free(NULL, object->runtime.object_as_temp_curve);
+  object->runtime.object_as_temp_curve = NULL;
 }
 
 void BKE_object_check_uuids_unique_and_report(const Object *object)

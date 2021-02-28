@@ -36,7 +36,6 @@ namespace blender::fn::mf_network_optimization {
 
 /* -------------------------------------------------------------------- */
 /** \name Utility functions to find nodes in a network.
- *
  * \{ */
 
 static bool set_tag_and_check_if_modified(bool &tag, bool new_value)
@@ -122,7 +121,6 @@ static Vector<MFNode *> find_nodes_based_on_mask(MFNetwork &network,
 
 /* -------------------------------------------------------------------- */
 /** \name Dead Node Removal
- *
  * \{ */
 
 /**
@@ -140,7 +138,6 @@ void dead_node_removal(MFNetwork &network)
 
 /* -------------------------------------------------------------------- */
 /** \name Constant Folding
- *
  * \{ */
 
 static bool function_node_can_be_constant(MFFunctionNode *node)
@@ -330,7 +327,6 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
 
 /* -------------------------------------------------------------------- */
 /** \name Common Sub-network Elimination
- *
  * \{ */
 
 static uint64_t compute_node_hash(MFFunctionNode &node, RNG *rng, Span<uint64_t> node_hashes)

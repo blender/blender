@@ -23,11 +23,8 @@
 
 #include <string.h>
 
-#include "DNA_gpencil_modifier_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_alloca.h"

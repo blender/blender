@@ -240,6 +240,7 @@ typedef struct PanelType {
 
   char idname[BKE_ST_MAXNAME]; /* unique name */
   char label[BKE_ST_MAXNAME];  /* for panel header */
+  char *description;           /* for panel tooltip */
   char translation_context[BKE_ST_MAXNAME];
   char context[BKE_ST_MAXNAME];   /* for buttons window */
   char category[BKE_ST_MAXNAME];  /* for category tabs */
@@ -403,7 +404,7 @@ void BKE_spacetypes_free(void); /* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
-void BKE_spacedata_draw_locks(int set);
+void BKE_spacedata_draw_locks(bool set);
 
 struct ARegion *BKE_spacedata_find_region_type(const struct SpaceLink *slink,
                                                const struct ScrArea *area,

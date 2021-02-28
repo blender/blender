@@ -305,12 +305,15 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
         /* Since we removed ID from Main,
          * we also need to unlink its own other IDs usages ourself. */
         BKE_libblock_relink_ex(bmain, id, NULL, NULL, 0);
-        /* Now we can safely mark that ID as not being in Main database anymore. */
-        id->tag |= LIB_TAG_NO_MAIN;
-        /* This is needed because we may not have remapped usages
-         * of that ID by other deleted ones. */
-        // id->us = 0;  /* Is it actually? */
       }
+    }
+
+    /* Now we can safely mark that ID as not being in Main database anymore. */
+    /* NOTE: This needs to be done in a separate loop than above, otherwise some usercounts of
+     * deleted IDs may not be properly decreased by the remappings (since `NO_MAIN` ID usercounts
+     * is never affected). */
+    for (ID *id = tagged_deleted_ids.first; id; id = id->next) {
+      id->tag |= LIB_TAG_NO_MAIN;
     }
   }
   else {

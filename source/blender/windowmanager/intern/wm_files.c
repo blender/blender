@@ -140,6 +140,7 @@
 
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
+static void wm_history_files_free(void);
 static void wm_history_file_update(void);
 static void wm_history_file_write(void);
 
@@ -580,7 +581,10 @@ static void wm_file_read_post(bContext *C,
 
 #ifdef WITH_PYTHON
   if (is_startup_file) {
-    /* possible python hasn't been initialized */
+    /* On startup (by default), Python won't have been initialized.
+     *
+     * The following block handles data & preferences being reloaded
+     * which requires resetting some internal variables. */
     if (CTX_py_init_get(C)) {
       bool reset_all = use_userdef;
       if (use_userdef || reset_app_template) {
@@ -592,8 +596,16 @@ static void wm_file_read_post(bContext *C,
         }
       }
       if (reset_all) {
-        /* sync addons, these may have changed from the defaults */
-        BPY_run_string_eval(C, (const char *[]){"addon_utils", NULL}, "addon_utils.reset_all()");
+        BPY_run_string_exec(
+            C,
+            (const char *[]){"bpy", "addon_utils", NULL},
+            /* Refresh scripts as the preferences may have changed the user-scripts path.
+             *
+             * This is needed when loading settings from the previous version,
+             * otherwise the script path stored in the preferences would be ignored. */
+            "bpy.utils.refresh_script_paths()\n"
+            /* Sync add-ons, these may have changed from the defaults. */
+            "addon_utils.reset_all()");
       }
       if (use_data) {
         BPY_python_reset(C);
@@ -1177,7 +1189,7 @@ void wm_history_file_read(void)
 
   lines = BLI_file_read_as_lines(name);
 
-  BLI_listbase_clear(&G.recent_files);
+  wm_history_files_free();
 
   /* read list of recent opened files from recent-files.txt to memory */
   for (l = lines, num = 0; l && (num < U.recent_files); l = l->next) {
@@ -1206,6 +1218,13 @@ static void wm_history_file_free(RecentFile *recent)
   BLI_assert(BLI_findindex(&G.recent_files, recent) != -1);
   MEM_freeN(recent->filepath);
   BLI_freelinkN(&G.recent_files, recent);
+}
+
+static void wm_history_files_free(void)
+{
+  LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
+    wm_history_file_free(recent);
+  }
 }
 
 static RecentFile *wm_file_history_find(const char *filepath)
@@ -1363,6 +1382,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
                                           IB_rect,
                                           R_ALPHAPREMUL,
                                           NULL,
+                                          true,
                                           NULL,
                                           err_out);
   }
@@ -1378,14 +1398,8 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
 
   if (ibuf) {
-    float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
-
     /* dirty oversampling */
     IMB_scaleImBuf(ibuf, BLEN_THUMB_SIZE, BLEN_THUMB_SIZE);
-
-    /* add pretty overlay */
-    IMB_thumb_overlay_blend(ibuf->rect, ibuf->x, ibuf->y, aspect);
-
     thumb = BKE_main_thumbnail_from_imbuf(NULL, ibuf);
   }
   else {

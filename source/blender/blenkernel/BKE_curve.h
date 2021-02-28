@@ -338,6 +338,18 @@ void BKE_curve_deform_co(const struct Object *ob_curve,
 
 /** \} */
 
+/* curve_convert.c */
+
+/* Create a new curve from the given object at its current state. This only works for curve and
+ * text objects, otherwise NULL is returned.
+ *
+ * If apply_modifiers is true and the object is a curve one, then spline deform modifiers are
+ * applied on the control points of the splines.
+ */
+struct Curve *BKE_curve_new_from_object(struct Object *object,
+                                        struct Depsgraph *depsgraph,
+                                        bool apply_modifiers);
+
 #ifdef __cplusplus
 }
 #endif

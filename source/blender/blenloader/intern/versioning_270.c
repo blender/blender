@@ -1429,7 +1429,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
         if (clip->tracking.stabilization.scale == 0.0f) {
           /* ensure init.
-           * Was previously used for autoscale only,
+           * Was previously used for auto-scale only,
            * now used always (as "target scale") */
           clip->tracking.stabilization.scale = 1.0f;
         }
@@ -1657,7 +1657,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "falloff_angle")) {
       for (Brush *br = bmain->brushes.first; br; br = br->id.next) {
         br->falloff_angle = DEG2RADF(80);
-        /* These flags are used for new feautres. They are not related to falloff_angle */
+        /* These flags are used for new features. They are not related to `falloff_angle`. */
         br->flag &= ~(BRUSH_INVERT_TO_SCRAPE_FILL | BRUSH_ORIGINAL_PLANE |
                       BRUSH_GRAB_ACTIVE_VERTEX | BRUSH_SCENE_SPACING | BRUSH_FRONTFACE_FALLOFF);
       }

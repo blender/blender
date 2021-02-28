@@ -442,7 +442,6 @@ struct bNodeTree *ntreeCopyTree(struct Main *bmain, const struct bNodeTree *ntre
 
 struct bNodeTree **BKE_ntree_ptr_from_id(struct ID *id);
 struct bNodeTree *ntreeFromID(struct ID *id);
-struct ID *BKE_node_tree_find_owner_ID(struct Main *bmain, struct bNodeTree *ntree);
 
 void ntreeFreeLocalNode(struct bNodeTree *ntree, struct bNode *node);
 void ntreeFreeLocalTree(struct bNodeTree *ntree);
@@ -778,7 +777,7 @@ void BKE_node_preview_free(struct bNodePreview *preview);
 void BKE_node_preview_init_tree(struct bNodeTree *ntree,
                                 int xsize,
                                 int ysize,
-                                int create_previews);
+                                bool create_previews);
 void BKE_node_preview_free_tree(struct bNodeTree *ntree);
 void BKE_node_preview_remove_unused(struct bNodeTree *ntree);
 void BKE_node_preview_clear(struct bNodePreview *preview);
@@ -1370,6 +1369,9 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_IS_VIEWPORT 1024
 #define GEO_NODE_ATTRIBUTE_PROXIMITY 1025
 #define GEO_NODE_VOLUME_TO_MESH 1026
+#define GEO_NODE_ATTRIBUTE_COMBINE_XYZ 1027
+#define GEO_NODE_ATTRIBUTE_SEPARATE_XYZ 1028
+#define GEO_NODE_SUBDIVISION_SURFACE_SIMPLE 1029
 
 /** \} */
 
@@ -1385,6 +1387,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define FN_NODE_OBJECT_TRANSFORMS 1205
 #define FN_NODE_RANDOM_FLOAT 1206
 #define FN_NODE_INPUT_VECTOR 1207
+#define FN_NODE_INPUT_STRING 1208
 
 /** \} */
 

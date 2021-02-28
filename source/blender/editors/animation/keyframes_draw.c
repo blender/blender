@@ -258,6 +258,10 @@ static DLRBT_Node *nalloc_ak_gpframe(void *data)
 
   /* count keyframes in this column */
   ak->totkey = 1;
+  /* Set as visible block. */
+  ak->totblock = 1;
+  ak->block.sel = ak->sel;
+  ak->block.flag |= ACTKEYBLOCK_FLAG_GPENCIL;
 
   return (DLRBT_Node *)ak;
 }
@@ -689,6 +693,7 @@ static void draw_keylist(View2D *v2d,
 {
   const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
   const float half_icon_sz = 0.5f * icon_sz;
+  const float quarter_icon_sz = 0.25f * icon_sz;
   const float smaller_sz = 0.35f * icon_sz;
   const float ipo_sz = 0.1f * icon_sz;
 
@@ -724,6 +729,7 @@ static void draw_keylist(View2D *v2d,
     ipo_color_mix[3] *= 0.5f;
 
     uint block_len = 0;
+    uint gpencil_len = 0;
     LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
       if (actkeyblock_get_valid_hold(ab)) {
         block_len++;
@@ -731,50 +737,72 @@ static void draw_keylist(View2D *v2d,
       if (show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
         block_len++;
       }
+      if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
+        gpencil_len++;
+      }
     }
 
-    if (block_len > 0) {
+    if ((block_len > 0) || (gpencil_len > 0)) {
       GPUVertFormat *format = immVertexFormat();
       uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-      immBegin(GPU_PRIM_TRIS, 6 * block_len);
-      LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
-        int valid_hold = actkeyblock_get_valid_hold(ab);
-        if (valid_hold != 0) {
-          if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-            /* draw "moving hold" long-keyframe block - slightly smaller */
-            immRectf_fast_with_color(pos_id,
-                                     color_id,
-                                     ab->cfra,
-                                     ypos - smaller_sz,
-                                     ab->next->cfra,
-                                     ypos + smaller_sz,
-                                     (ab->block.sel) ? sel_mhcol : unsel_mhcol);
+      /* Normal Dopesheet. */
+      if (block_len > 0) {
+        immBegin(GPU_PRIM_TRIS, 6 * block_len);
+        LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
+          int valid_hold = actkeyblock_get_valid_hold(ab);
+          if (valid_hold != 0) {
+            if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
+              /* draw "moving hold" long-keyframe block - slightly smaller */
+              immRectf_fast_with_color(pos_id,
+                                       color_id,
+                                       ab->cfra,
+                                       ypos - smaller_sz,
+                                       ab->next->cfra,
+                                       ypos + smaller_sz,
+                                       (ab->block.sel) ? sel_mhcol : unsel_mhcol);
+            }
+            else {
+              /* draw standard long-keyframe block */
+              immRectf_fast_with_color(pos_id,
+                                       color_id,
+                                       ab->cfra,
+                                       ypos - half_icon_sz,
+                                       ab->next->cfra,
+                                       ypos + half_icon_sz,
+                                       (ab->block.sel) ? sel_color : unsel_color);
+            }
           }
-          else {
-            /* draw standard long-keyframe block */
-            immRectf_fast_with_color(pos_id,
-                                     color_id,
-                                     ab->cfra,
-                                     ypos - half_icon_sz,
-                                     ab->next->cfra,
-                                     ypos + half_icon_sz,
-                                     (ab->block.sel) ? sel_color : unsel_color);
+          if (show_ipo && actkeyblock_is_valid(ab) &&
+              (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
+            /* draw an interpolation line */
+            immRectf_fast_with_color(
+                pos_id,
+                color_id,
+                ab->cfra,
+                ypos - ipo_sz,
+                ab->next->cfra,
+                ypos + ipo_sz,
+                (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
           }
         }
-        if (show_ipo && actkeyblock_is_valid(ab) &&
-            (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
-          /* draw an interpolation line */
-          immRectf_fast_with_color(
-              pos_id,
-              color_id,
-              ab->cfra,
-              ypos - ipo_sz,
-              ab->next->cfra,
-              ypos + ipo_sz,
-              (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
+      }
+      /* Grease Pencil Dopesheet. */
+      else {
+        immBegin(GPU_PRIM_TRIS, 6 * gpencil_len);
+        LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
+          if (ab->next == NULL) {
+            continue;
+          }
+          immRectf_fast_with_color(pos_id,
+                                   color_id,
+                                   ab->cfra,
+                                   ypos - quarter_icon_sz,
+                                   ab->next->cfra,
+                                   ypos + quarter_icon_sz,
+                                   (ab->block.sel) ? sel_mhcol : unsel_mhcol);
         }
       }
       immEnd();

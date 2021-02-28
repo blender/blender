@@ -63,6 +63,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/build_files/cmake/platform")
 # avoid having empty buildtype
 if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
   set(CMAKE_BUILD_TYPE_INIT "Release")
+  # Internal logic caches this variable, avoid showing it by default
+  # since it's easy to accidentally set instead of the build type.
+  mark_as_advanced(CMAKE_BUILD_TYPE_INIT)
 endif()
 
 # Omit superfluous "Up-to-date" messages.
@@ -164,10 +167,6 @@ if(APPLE)
 endif()
 
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
-if(${CMAKE_VERSION} VERSION_LESS 2.8.8)
-  # add_library OBJECT arg unsupported
-  set(WITH_BUILDINFO OFF)
-endif()
 set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducible builds (empty string disables this option)")
 set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "Use instead of the current time for reproducible builds (empty string disables this option)")
 set(CPACK_OVERRIDE_PACKAGENAME "" CACHE STRING "Use instead of the standard packagename (empty string disables this option)")
@@ -371,8 +370,8 @@ if(WITH_PYTHON_INSTALL)
   endif()
 endif()
 
-option(WITH_CPU_SSE              "Enable SIMD instruction if they're detected on the host machine" ON)
-mark_as_advanced(WITH_CPU_SSE)
+option(WITH_CPU_SIMD              "Enable SIMD instruction if they're detected on the host machine" ON)
+mark_as_advanced(WITH_CPU_SIMD)
 
 # Cycles
 option(WITH_CYCLES                  "Enable Cycles Render Engine" ON)
@@ -417,6 +416,7 @@ else()
   option(LLVM_STATIC                  "Link with LLVM static libraries" OFF)
 endif()
 mark_as_advanced(LLVM_STATIC)
+option(WITH_CLANG                   "Use Clang" OFF)
 
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
@@ -614,6 +614,7 @@ endif()
 if(UNIX)
   # See WITH_WINDOWS_SCCACHE for Windows.
   option(WITH_COMPILER_CCACHE "Use ccache to improve rebuild times (Works with Ninja, Makefiles and Xcode)" OFF)
+  mark_as_advanced(WITH_COMPILER_CCACHE)
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.
@@ -728,8 +729,9 @@ set_and_warn_dependency(WITH_TBB WITH_MOD_FLUID         OFF)
 # NanoVDB requires OpenVDB to convert the data structure
 set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
 
-# OpenVDB uses 'half' type from OpenEXR & fails to link without OpenEXR enabled.
+# OpenVDB and OpenColorIO uses 'half' type from OpenEXR
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
+set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENCOLORIO  OFF)
 
 # Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
 set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
@@ -741,6 +743,7 @@ if(WITH_CYCLES)
   # auto enable llvm for cycles_osl
   if(WITH_CYCLES_OSL)
     set(WITH_LLVM ON CACHE BOOL "" FORCE)
+    set(WITH_CLANG ON CACHE BOOL "" FORCE)
   endif()
 else()
   set(WITH_CYCLES_OSL OFF)
@@ -772,14 +775,6 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
   set(WITH_GHOST_XDND    OFF)
   set(WITH_INPUT_IME     OFF)
   set(WITH_XR_OPENXR     OFF)
-endif()
-
-if(WITH_CPU_SSE)
-  TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
-else()
-  message(STATUS "SSE and SSE2 optimizations are DISABLED!")
-  set(COMPILER_SSE_FLAG)
-  set(COMPILER_SSE2_FLAG)
 endif()
 
 if(WITH_BUILDINFO)
@@ -830,8 +825,8 @@ if(WITH_PYTHON)
   # Do this before main 'platform_*' checks,
   # because UNIX will search for the old Python paths which may not exist.
   # giving errors about missing paths before this case is met.
-  if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.7")
-    message(FATAL_ERROR "At least Python 3.7 is required to build")
+  if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.9")
+    message(FATAL_ERROR "At least Python 3.9 is required to build")
   endif()
 
   file(GLOB RESULT "${CMAKE_SOURCE_DIR}/release/scripts/addons")
@@ -961,22 +956,55 @@ if(WITH_INTERNATIONAL)
   endif()
 endif()
 
-# See TEST_SSE_SUPPORT() for how this is defined.
+# See TEST_SSE_SUPPORT() and TEST_NEON_SUPPORT() for how these are defined.
+#
+# This is done globally, so that all modules can use it if available, and
+# because these are used in headers used by many modules.
+if(WITH_CPU_SIMD)
+  set(COMPILER_SSE_FLAG)
+  set(COMPILER_SSE2_FLAG)
 
-# Do it globally, SSE2 is required for quite some time now.
-# Doing it now allows to use SSE/SSE2 in inline headers.
-if(SUPPORT_SSE_BUILD)
-  string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
-  add_definitions(-D__SSE__ -D__MMX__)
-endif()
-if(SUPPORT_SSE2_BUILD)
-  string(APPEND PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG}")
-  add_definitions(-D__SSE2__)
-  if(NOT SUPPORT_SSE_BUILD) # don't double up
-    add_definitions(-D__MMX__)
+  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
+  TEST_NEON_SUPPORT()
+  if(SUPPORT_NEON_BUILD)
+    # Neon
+    if(SSE2NEON_FOUND)
+      blender_include_dirs_sys("${SSE2NEON_INCLUDE_DIRS}")
+      add_definitions(-DWITH_SSE2NEON)
+    endif()
+  else()
+    # SSE
+    TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+    if(SUPPORT_SSE_BUILD)
+      string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
+      add_definitions(-D__SSE__ -D__MMX__)
+    endif()
+    if(SUPPORT_SSE2_BUILD)
+      string(APPEND PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG}")
+      add_definitions(-D__SSE2__)
+      if(NOT SUPPORT_SSE_BUILD) # don't double up
+        add_definitions(-D__MMX__)
+      endif()
+    endif()
   endif()
-endif()
 
+  # Print instructions used
+  if(SUPPORT_NEON_BUILD)
+    if(SSE2NEON_FOUND)
+      message(STATUS "Neon SIMD instructions enabled")
+    else()
+      message(STATUS "Neon SIMD instructions detected but unused, requires sse2neon")
+    endif()
+  elseif(SUPPORT_SSE2_BUILD)
+    message(STATUS "SSE2 SIMD instructions enabled")
+  elseif(SUPPORT_SSE_BUILD)
+    message(STATUS "SSE SIMD instructions enabled")
+  else()
+    message(STATUS "No SIMD instructions detected")
+  endif()
+else()
+  message(STATUS "SIMD instructions disabled")
+endif()
 
 # set the endian define
 if(MSVC)
@@ -1021,6 +1049,9 @@ if(WITH_OPENVDB)
   if(WITH_OPENVDB_3_ABI_COMPATIBLE)
     list(APPEND OPENVDB_DEFINITIONS -DOPENVDB_3_ABI_COMPATIBLE)
   endif()
+
+  # OpenVDB headers use deprecated TBB headers, silence warning.
+  list(APPEND OPENVDB_DEFINITIONS -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1)
 
   list(APPEND OPENVDB_INCLUDE_DIRS
     ${BOOST_INCLUDE_DIR}
@@ -1184,6 +1215,7 @@ if(WITH_OPENMP)
     if(NOT WITH_OPENMP_STATIC)
       string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
       string(APPEND CMAKE_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS " ${OpenMP_LINKER_FLAGS}")
     else()
       # Typically avoid adding flags as defines but we can't
       # pass OpenMP flags to the linker for static builds, meaning
@@ -1437,6 +1469,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   # gcc 4.2 gives annoying warnings on every file with this
   if(NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "4.3")
     ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+    ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
   endif()
 
   # versions before gcc4.6 give many BLI_math warnings
@@ -1501,11 +1534,13 @@ if(CMAKE_COMPILER_IS_GNUCC)
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_FORMAT                  -Wno-format)
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_SWITCH                  -Wno-switch)
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-unused-variable)
+  ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_VARIABLE         -Wno-uninitialized)
 
   ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_CLASS_MEMACCESS     -Wno-class-memaccess)
   ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_COMMENT             -Wno-comment)
   ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_TYPEDEFS     -Wno-unused-local-typedefs)
   ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-unused-variable)
+  ADD_CHECK_CXX_COMPILER_FLAG(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNUSED_VARIABLE     -Wno-uninitialized)
 
   if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "7.0"))
     ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_IMPLICIT_FALLTHROUGH    -Wno-implicit-fallthrough)
@@ -1849,6 +1884,7 @@ if(FIRST_RUN)
   info_cfg_text("Build Options:")
   info_cfg_option(WITH_ALEMBIC)
   info_cfg_option(WITH_BULLET)
+  info_cfg_option(WITH_CLANG)
   info_cfg_option(WITH_CYCLES)
   info_cfg_option(WITH_FFTW3)
   info_cfg_option(WITH_FREESTYLE)

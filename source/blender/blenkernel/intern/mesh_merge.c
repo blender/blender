@@ -377,8 +377,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
       BLI_gset_insert(poly_gset, mpgh);
     }
 
-    /* Can we optimise by reusing an old pmap ?  How do we know an old pmap is stale ?  */
-    /* When called by MOD_array.c, the cddm has just been created, so it has no valid pmap.   */
+    /* Can we optimize by reusing an old `pmap`? How do we know an old `pmap` is stale? */
+    /* When called by `MOD_array.c` the `cddm` has just been created, so it has no valid `pmap`. */
     BKE_mesh_vert_poly_map_create(
         &poly_map, &poly_map_mem, mesh->mpoly, mesh->mloop, totvert, totpoly, totloop);
   } /* done preparing for fast poly compare */
@@ -411,9 +411,10 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         continue;
       }
       if (merge_mode == MESH_MERGE_VERTS_DUMP_IF_EQUAL) {
-        /* Additional condition for face dump:  target vertices must make up an identical face */
-        /* The test has 2 steps:  (1) first step is fast ghash lookup, but not failproof       */
-        /*                        (2) second step is thorough but more costly poly compare     */
+        /* Additional condition for face dump:  target vertices must make up an identical face.
+         * The test has 2 steps:
+         * 1) first step is fast `ghash` lookup, but not fail-proof.
+         * 2) second step is thorough but more costly poly compare. */
         int i_poly, v_target;
         bool found = false;
         PolyKey pkey;

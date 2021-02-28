@@ -114,15 +114,15 @@ typedef enum eGPUTextureFormat {
   GPU_R16F,
   GPU_R16, /* Max texture buffer format. */
 
-/* Special formats texture & renderbuffer */
-#if 0
+  /* Special formats texture & renderbuffer */
   GPU_RGB10_A2,
-  GPU_RGB10_A2UI,
-#endif
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,
   GPU_DEPTH24_STENCIL8,
   GPU_SRGB8_A8,
+#if 0
+  GPU_RGB10_A2UI,
+#endif
 
   /* Texture only format */
   GPU_RGB16F,
@@ -171,10 +171,11 @@ typedef enum eGPUTextureFormat {
 typedef enum eGPUDataFormat {
   GPU_DATA_FLOAT,
   GPU_DATA_INT,
-  GPU_DATA_UNSIGNED_INT,
-  GPU_DATA_UNSIGNED_BYTE,
-  GPU_DATA_UNSIGNED_INT_24_8,
+  GPU_DATA_UINT,
+  GPU_DATA_UBYTE,
+  GPU_DATA_UINT_24_8,
   GPU_DATA_10_11_11_REV,
+  GPU_DATA_2_10_10_10_REV,
 } eGPUDataFormat;
 
 unsigned int GPU_texture_memory_usage_get(void);
@@ -271,6 +272,10 @@ bool GPU_texture_integer(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
+
+/* utilities */
+size_t GPU_texture_component_len(eGPUTextureFormat format);
+size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
 
 #ifdef __cplusplus
 }

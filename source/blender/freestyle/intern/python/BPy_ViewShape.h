@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../view_map/ViewMap.h"
 
-using namespace Freestyle;
-
 #include "BPy_SShape.h"
 
 #ifdef __cplusplus
@@ -42,7 +40,7 @@ extern PyTypeObject ViewShape_Type;
 
 /*---------------------------Python BPy_ViewShape structure definition----------*/
 typedef struct {
-  PyObject_HEAD ViewShape *vs;
+  PyObject_HEAD Freestyle::ViewShape *vs;
   bool borrowed; /* true if *vs a borrowed object */
   BPy_SShape *py_ss;
 } BPy_ViewShape;

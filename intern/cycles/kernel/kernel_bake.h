@@ -23,7 +23,7 @@ ccl_device_noinline void compute_light_pass(
 {
   kernel_assert(kernel_data.film.use_light_pass);
 
-  float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
+  float3 throughput = one_float3();
 
   /* Emission and indirect shader data memory used by various functions. */
   ShaderDataTinyStorage emission_sd_storage;
@@ -176,7 +176,7 @@ ccl_device_inline float3 kernel_bake_shader_bsdf(KernelGlobals *kg,
       return shader_bsdf_transmission(kg, sd);
     default:
       kernel_assert(!"Unknown bake type passed to BSDF evaluate");
-      return make_float3(0.0f, 0.0f, 0.0f);
+      return zero_float3();
   }
 }
 
@@ -192,12 +192,12 @@ ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg,
   const bool is_color = (pass_filter & BAKE_FILTER_COLOR) != 0;
   const bool is_direct = (pass_filter & BAKE_FILTER_DIRECT) != 0;
   const bool is_indirect = (pass_filter & BAKE_FILTER_INDIRECT) != 0;
-  float3 out = make_float3(0.0f, 0.0f, 0.0f);
+  float3 out = zero_float3();
 
   if (is_color) {
     if (is_direct || is_indirect) {
       /* Leave direct and diffuse channel colored. */
-      color = make_float3(1.0f, 1.0f, 1.0f);
+      color = one_float3();
     }
     else {
       /* surface color of the pass only */
@@ -233,6 +233,7 @@ ccl_device void kernel_bake_evaluate(
   ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;
   ccl_global float *output = buffer + kernel_data.film.pass_combined;
 
+  int seed = __float_as_uint(primitive[0]);
   int prim = __float_as_uint(primitive[1]);
   if (prim == -1)
     return;
@@ -240,7 +241,7 @@ ccl_device void kernel_bake_evaluate(
   prim += kernel_data.bake.tri_offset;
 
   /* Random number generator. */
-  uint rng_hash = hash_uint2(x, y) ^ kernel_data.integrator.seed;
+  uint rng_hash = hash_uint(seed) ^ kernel_data.integrator.seed;
   int num_samples = kernel_data.integrator.aa_samples;
 
   float filter_x, filter_y;
@@ -314,7 +315,7 @@ ccl_device void kernel_bake_evaluate(
   if (kernel_data.bake.pass_filter & ~BAKE_FILTER_COLOR)
     compute_light_pass(kg, &sd, &L, rng_hash, pass_filter, sample);
 
-  float3 out = make_float3(0.0f, 0.0f, 0.0f);
+  float3 out = zero_float3();
 
   ShaderEvalType type = (ShaderEvalType)kernel_data.bake.type;
   switch (type) {
@@ -408,7 +409,7 @@ ccl_device void kernel_bake_evaluate(
       /* setup ray */
       Ray ray;
 
-      ray.P = make_float3(0.0f, 0.0f, 0.0f);
+      ray.P = zero_float3();
       ray.D = normalize(P);
       ray.t = 0.0f;
 #  ifdef __CAMERA_MOTION__
@@ -485,7 +486,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals *kg,
   float u = __uint_as_float(in.x);
   float v = __uint_as_float(in.y);
 
-  ray.P = make_float3(0.0f, 0.0f, 0.0f);
+  ray.P = zero_float3();
   ray.D = equirectangular_to_direction(u, v);
   ray.t = 0.0f;
 #ifdef __CAMERA_MOTION__

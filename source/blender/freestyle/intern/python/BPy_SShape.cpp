@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -199,7 +201,7 @@ static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closu
     PyErr_SetString(PyExc_TypeError, "value must be a string");
     return -1;
   }
-  const char *name = _PyUnicode_AsString(value);
+  const char *name = PyUnicode_AsUTF8(value);
   self->ss->setName(name);
   return 0;
 }
@@ -281,43 +283,39 @@ PyTypeObject SShape_Type = {
     sizeof(BPy_SShape),                         /* tp_basicsize */
     0,                                          /* tp_itemsize */
     (destructor)SShape_dealloc,                 /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
-    nullptr,                                  /* tp_getattr */
-    nullptr,                                  /* tp_setattr */
-    nullptr,                                  /* tp_reserved */
-    (reprfunc)SShape_repr,                    /* tp_repr */
-    nullptr,                                  /* tp_as_number */
-    nullptr,                                  /* tp_as_sequence */
-    nullptr,                                  /* tp_as_mapping */
-    nullptr,                                  /* tp_hash  */
-    nullptr,                                  /* tp_call */
-    nullptr,                                  /* tp_str */
-    nullptr,                                  /* tp_getattro */
-    nullptr,                                  /* tp_setattro */
-    nullptr,                                  /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    SShape_doc,                               /* tp_doc */
-    nullptr,                                  /* tp_traverse */
-    nullptr,                                  /* tp_clear */
-    nullptr,                                  /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    nullptr,                                  /* tp_iter */
-    nullptr,                                  /* tp_iternext */
-    BPy_SShape_methods,                       /* tp_methods */
-    nullptr,                                  /* tp_members */
-    BPy_SShape_getseters,                     /* tp_getset */
-    nullptr,                                  /* tp_base */
-    nullptr,                                  /* tp_dict */
-    nullptr,                                  /* tp_descr_get */
-    nullptr,                                  /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    (initproc)SShape_init,                    /* tp_init */
-    nullptr,                                  /* tp_alloc */
-    PyType_GenericNew,                        /* tp_new */
+    0,                                          /* tp_vectorcall_offset */
+    nullptr,                                    /* tp_getattr */
+    nullptr,                                    /* tp_setattr */
+    nullptr,                                    /* tp_reserved */
+    (reprfunc)SShape_repr,                      /* tp_repr */
+    nullptr,                                    /* tp_as_number */
+    nullptr,                                    /* tp_as_sequence */
+    nullptr,                                    /* tp_as_mapping */
+    nullptr,                                    /* tp_hash  */
+    nullptr,                                    /* tp_call */
+    nullptr,                                    /* tp_str */
+    nullptr,                                    /* tp_getattro */
+    nullptr,                                    /* tp_setattro */
+    nullptr,                                    /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,   /* tp_flags */
+    SShape_doc,                                 /* tp_doc */
+    nullptr,                                    /* tp_traverse */
+    nullptr,                                    /* tp_clear */
+    nullptr,                                    /* tp_richcompare */
+    0,                                          /* tp_weaklistoffset */
+    nullptr,                                    /* tp_iter */
+    nullptr,                                    /* tp_iternext */
+    BPy_SShape_methods,                         /* tp_methods */
+    nullptr,                                    /* tp_members */
+    BPy_SShape_getseters,                       /* tp_getset */
+    nullptr,                                    /* tp_base */
+    nullptr,                                    /* tp_dict */
+    nullptr,                                    /* tp_descr_get */
+    nullptr,                                    /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    (initproc)SShape_init,                      /* tp_init */
+    nullptr,                                    /* tp_alloc */
+    PyType_GenericNew,                          /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

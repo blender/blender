@@ -36,9 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
-#include "BLI_fileops_types.h"
 #include "BLI_ghash.h"
-#include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -48,7 +46,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -62,14 +59,10 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
-#include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
-#include "GPU_immediate.h"
 #include "GPU_state.h"
 
 #include "IMB_colormanagement.h"
@@ -898,7 +891,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
   else if (ED_space_image_check_show_maskedit(sima, obedit)) {
-    if (!ED_mask_selected_minmax(C, min, max, true)) {
+    if (!ED_mask_selected_minmax(C, min, max, false)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -2744,7 +2737,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* force GPU reupload, all image is invalid. */
+  /* force GPU re-upload, all image is invalid. */
   BKE_image_free_gputextures(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);

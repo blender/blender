@@ -84,7 +84,7 @@ static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(struct ViewL
   return *vldata;
 }
 
-/* \} */
+/** \} */
 
 static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_World *wd)
 {

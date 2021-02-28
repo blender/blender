@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -70,43 +72,39 @@ PyTypeObject ShapeUP1D_Type = {
     sizeof(BPy_ShapeUP1D),                         /* tp_basicsize */
     0,                                             /* tp_itemsize */
     nullptr,                                       /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
-    nullptr,                                  /* tp_getattr */
-    nullptr,                                  /* tp_setattr */
-    nullptr,                                  /* tp_reserved */
-    nullptr,                                  /* tp_repr */
-    nullptr,                                  /* tp_as_number */
-    nullptr,                                  /* tp_as_sequence */
-    nullptr,                                  /* tp_as_mapping */
-    nullptr,                                  /* tp_hash  */
-    nullptr,                                  /* tp_call */
-    nullptr,                                  /* tp_str */
-    nullptr,                                  /* tp_getattro */
-    nullptr,                                  /* tp_setattro */
-    nullptr,                                  /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    ShapeUP1D___doc__,                        /* tp_doc */
-    nullptr,                                  /* tp_traverse */
-    nullptr,                                  /* tp_clear */
-    nullptr,                                  /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    nullptr,                                  /* tp_iter */
-    nullptr,                                  /* tp_iternext */
-    nullptr,                                  /* tp_methods */
-    nullptr,                                  /* tp_members */
-    nullptr,                                  /* tp_getset */
-    &UnaryPredicate1D_Type,                   /* tp_base */
-    nullptr,                                  /* tp_dict */
-    nullptr,                                  /* tp_descr_get */
-    nullptr,                                  /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    (initproc)ShapeUP1D___init__,             /* tp_init */
-    nullptr,                                  /* tp_alloc */
-    nullptr,                                  /* tp_new */
+    0,                                             /* tp_vectorcall_offset */
+    nullptr,                                       /* tp_getattr */
+    nullptr,                                       /* tp_setattr */
+    nullptr,                                       /* tp_reserved */
+    nullptr,                                       /* tp_repr */
+    nullptr,                                       /* tp_as_number */
+    nullptr,                                       /* tp_as_sequence */
+    nullptr,                                       /* tp_as_mapping */
+    nullptr,                                       /* tp_hash  */
+    nullptr,                                       /* tp_call */
+    nullptr,                                       /* tp_str */
+    nullptr,                                       /* tp_getattro */
+    nullptr,                                       /* tp_setattro */
+    nullptr,                                       /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,      /* tp_flags */
+    ShapeUP1D___doc__,                             /* tp_doc */
+    nullptr,                                       /* tp_traverse */
+    nullptr,                                       /* tp_clear */
+    nullptr,                                       /* tp_richcompare */
+    0,                                             /* tp_weaklistoffset */
+    nullptr,                                       /* tp_iter */
+    nullptr,                                       /* tp_iternext */
+    nullptr,                                       /* tp_methods */
+    nullptr,                                       /* tp_members */
+    nullptr,                                       /* tp_getset */
+    &UnaryPredicate1D_Type,                        /* tp_base */
+    nullptr,                                       /* tp_dict */
+    nullptr,                                       /* tp_descr_get */
+    nullptr,                                       /* tp_descr_set */
+    0,                                             /* tp_dictoffset */
+    (initproc)ShapeUP1D___init__,                  /* tp_init */
+    nullptr,                                       /* tp_alloc */
+    nullptr,                                       /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

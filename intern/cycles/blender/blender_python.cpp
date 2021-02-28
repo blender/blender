@@ -147,7 +147,7 @@ void python_thread_state_restore(void **python_thread_state)
 
 static const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 {
-  const char *result = _PyUnicode_AsString(py_str);
+  const char *result = PyUnicode_AsUTF8(py_str);
   if (result) {
     /* 99% of the time this is enough but we better support non unicode
      * chars since blender doesn't limit this.

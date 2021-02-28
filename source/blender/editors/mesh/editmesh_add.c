@@ -24,7 +24,6 @@
 #include "BLI_math.h"
 #include "BLI_sys_types.h"
 
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -42,7 +41,6 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_uvedit.h"
 
 #include "mesh_intern.h" /* own include */
 

@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+from __future__ import annotations
 
 import bpy
 from bpy.types import (
@@ -859,9 +860,7 @@ class WM_OT_url_open_preset(Operator):
 
     type: EnumProperty(
         name="Site",
-        items=lambda self, _context: (
-            item for (item, _) in WM_OT_url_open_preset.preset_items
-        ),
+        items=WM_OT_url_open_preset._preset_items,
     )
 
     id: StringProperty(
@@ -915,6 +914,10 @@ class WM_OT_url_open_preset(Operator):
           "Lists committers to Blender's source code"),
          "https://www.blender.org/about/credits/"),
     ]
+
+    @staticmethod
+    def _preset_items(_self, _context):
+        return (item for (item, _) in WM_OT_url_open_preset.preset_items)
 
     def execute(self, context):
         url = None
@@ -1217,10 +1220,13 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=lambda self, _context: WM_OT_properties_edit.subtype_items,
+        items=WM_OT_properties_edit._subtype_items_fn,
     )
 
     subtype_items = rna_vector_subtype_items
+
+    def _subtype_items_fn(_self, _context):
+        return WM_OT_properties_edit.subtype_items
 
     def _init_subtype(self, prop_type, is_array, subtype):
         subtype = subtype or 'NONE'
@@ -2060,7 +2066,7 @@ class WM_OT_batch_rename(Operator):
             # Enum identifiers are compared with 'object.type'.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
-            ('META', "Meta Balls", ""),
+            ('META', "Metaballs", ""),
             ('ARMATURE', "Armatures", ""),
             ('LATTICE', "Lattices", ""),
             ('GPENCIL', "Grease Pencils", ""),
@@ -2191,8 +2197,7 @@ class WM_OT_batch_rename(Operator):
                         id
                         for ob in context.selected_objects
                         if ob.type == data_type
-                        for id in (ob.data,)
-                        if id is not None and id.library is None
+                        if (id := ob.data) is not None and id.library is None
                     ))
                     if only_selected else
                     [id for id in getattr(bpy.data, attr) if id.library is None],
@@ -2477,10 +2482,10 @@ class WM_OT_batch_rename(Operator):
         return wm.invoke_props_dialog(self, width=400)
 
 
-class WM_MT_splash(Menu):
-    bl_label = "Splash"
+class WM_MT_splash_quick_setup(Menu):
+    bl_label = "Quick Setup"
 
-    def draw_setup(self, context):
+    def draw(self, context):
         wm = context.window_manager
         # prefs = context.preferences
 
@@ -2568,18 +2573,11 @@ class WM_MT_splash(Menu):
         layout.separator()
         layout.separator()
 
+
+class WM_MT_splash(Menu):
+    bl_label = "Splash"
+
     def draw(self, context):
-        # Draw setup screen if no preferences have been saved yet.
-        import os
-
-        userconfig_path = bpy.utils.user_resource('CONFIG')
-        userdef_path = os.path.join(userconfig_path, "userpref.blend")
-
-        if not os.path.isfile(userdef_path):
-            self.draw_setup(context)
-            return
-
-        # Pass
         layout = self.layout
         layout.operator_context = 'EXEC_DEFAULT'
         layout.emboss = 'PULLDOWN_MENU'
@@ -2728,6 +2726,7 @@ classes = (
     WM_OT_toolbar_prompt,
     BatchRenameAction,
     WM_OT_batch_rename,
+    WM_MT_splash_quick_setup,
     WM_MT_splash,
     WM_MT_splash_about,
 )

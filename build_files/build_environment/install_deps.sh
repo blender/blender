@@ -376,10 +376,10 @@ USE_CXX11=true
 CLANG_FORMAT_VERSION_MIN="6.0"
 CLANG_FORMAT_VERSION_MAX="10.0"
 
-PYTHON_VERSION="3.9.1"
+PYTHON_VERSION="3.9.2"
 PYTHON_VERSION_SHORT="3.9"
 PYTHON_VERSION_MIN="3.7"
-PYTHON_VERSION_MAX="3.10"
+PYTHON_VERSION_MAX="3.11"
 PYTHON_VERSION_INSTALLED=$PYTHON_VERSION_SHORT
 PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
@@ -445,26 +445,26 @@ BOOST_FORCE_BUILD=false
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
-TBB_VERSION="2019"
-TBB_VERSION_SHORT="2019"
-TBB_VERSION_UPDATE="_U9"  # Used for source packages...
+TBB_VERSION="2020"
+TBB_VERSION_SHORT="2020"
+TBB_VERSION_UPDATE="_U2"  # Used for source packages...
 TBB_VERSION_MIN="2018"
-TBB_VERSION_MAX="2021"
+TBB_VERSION_MAX="2022"
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
 
-OCIO_VERSION="1.1.1"
-OCIO_VERSION_SHORT="1.1"
-OCIO_VERSION_MIN="1.0"
-OCIO_VERSION_MAX="1.2"
+OCIO_VERSION="2.0.0"
+OCIO_VERSION_SHORT="2.0"
+OCIO_VERSION_MIN="2.0"
+OCIO_VERSION_MAX="3.0"
 OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.4.0"
-OPENEXR_VERSION_SHORT="2.4"
-OPENEXR_VERSION_MIN="2.3"
+OPENEXR_VERSION="2.5.5"
+OPENEXR_VERSION_SHORT="2.5"
+OPENEXR_VERSION_MIN="2.4"
 OPENEXR_VERSION_MAX="3.0"
 OPENEXR_FORCE_BUILD=false
 OPENEXR_FORCE_REBUILD=false
@@ -509,10 +509,10 @@ OSD_SKIP=false
 # OpenVDB needs to be compiled for now
 OPENVDB_BLOSC_VERSION="1.5.0"
 
-OPENVDB_VERSION="7.0.0"
-OPENVDB_VERSION_SHORT="7.0"
-OPENVDB_VERSION_MIN="7.0"
-OPENVDB_VERSION_MAX="7.1"
+OPENVDB_VERSION="8.0.1"
+OPENVDB_VERSION_SHORT="8.0"
+OPENVDB_VERSION_MIN="8.0"
+OPENVDB_VERSION_MAX="8.1"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -526,10 +526,10 @@ ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
 
-USD_VERSION="20.08"
-USD_VERSION_SHORT="20.08"
+USD_VERSION="21.02"
+USD_VERSION_SHORT="21.02"
 USD_VERSION_MIN="20.05"
-USD_VERSION_MAX="21.00"
+USD_VERSION_MAX="22.00"
 USD_FORCE_BUILD=false
 USD_FORCE_REBUILD=false
 USD_SKIP=false
@@ -550,10 +550,10 @@ EMBREE_FORCE_BUILD=false
 EMBREE_FORCE_REBUILD=false
 EMBREE_SKIP=false
 
-OIDN_VERSION="1.2.3"
-OIDN_VERSION_SHORT="1.2"
-OIDN_VERSION_MIN="1.2.0"
-OIDN_VERSION_MAX="1.3"
+OIDN_VERSION="1.3.0"
+OIDN_VERSION_SHORT="1.3"
+OIDN_VERSION_MIN="1.3.0"
+OIDN_VERSION_MAX="1.4"
 OIDN_FORCE_BUILD=false
 OIDN_FORCE_REBUILD=false
 OIDN_SKIP=false
@@ -569,7 +569,7 @@ FFMPEG_FORCE_REBUILD=false
 FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
 
-XR_OPENXR_VERSION="1.0.8"
+XR_OPENXR_VERSION="1.0.14"
 XR_OPENXR_VERSION_SHORT="1.0"
 XR_OPENXR_VERSION_MIN="1.0.8"
 XR_OPENXR_VERSION_MAX="2.0"
@@ -1101,8 +1101,8 @@ FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 XR_OPENXR_USE_REPO=false
 XR_OPENXR_SOURCE=("https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_VERSION}.tar.gz")
-#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK-Source.git")
-#~ XR_OPENXR_REPO_UID="5292e57fda47561e672fba0a4b6e545c0f25dd8d"
+#~ XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK.git")
+#~ XR_OPENXR_REPO_UID="5900c51562769b03bea699dc0352cae56acb6419d"
 #~ XR_OPENXR_REPO_BRANCH="master"
 
 # C++11 is required now
@@ -1732,7 +1732,7 @@ compile_OCIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  ocio_magic=2
+  ocio_magic=3
   _init_ocio
 
   # Force having own builds for the dependencies.
@@ -1787,8 +1787,8 @@ compile_OCIO() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D OCIO_BUILD_APPS=OFF"
-    cmake_d="$cmake_d -D OCIO_BUILD_PYGLUE=OFF"
-    cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_PYTHON=OFF"
+    cmake_d="$cmake_d -D OCIO_BUILD_GPU_TESTS=OFF"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -1802,11 +1802,11 @@ compile_OCIO() {
     make -j$THREADS && make install
 
     # Force linking against static libs
-    rm -f $_inst/lib/*.so*
+    #rm -f $_inst/lib/*.so*
 
     # Additional depencencies
-    cp ext/dist/lib/libtinyxml.a $_inst/lib
-    cp ext/dist/lib/libyaml-cpp.a $_inst/lib
+    #cp ext/dist/lib/libtinyxml.a $_inst/lib
+    #cp ext/dist/lib/libyaml-cpp.a $_inst/lib
 
     make clean
 

@@ -303,6 +303,7 @@ IDTypeInfo IDType_ID_AC = {
     .make_local = NULL,
     .foreach_id = action_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = action_blend_write,
     .blend_read_data = action_blend_read_data,

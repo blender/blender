@@ -179,6 +179,7 @@ class AttributeSet {
   Geometry *geometry;
   AttributePrimitive prim;
   list<Attribute> attributes;
+  bool modified = true;
 
   AttributeSet(Geometry *geometry, AttributePrimitive prim);
   AttributeSet(AttributeSet &&) = default;

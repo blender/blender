@@ -4161,7 +4161,7 @@ static void ANIM_init_channel_typeinfo_data(void)
 /* Get type info from given channel type */
 const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
 {
-  /* santiy checks */
+  /* Sanity checks. */
   if (ale == NULL) {
     return NULL;
   }

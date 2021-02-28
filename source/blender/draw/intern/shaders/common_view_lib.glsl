@@ -27,10 +27,8 @@ layout(std140) uniform viewBlock
 
 #define cameraForward ViewMatrixInverse[2].xyz
 #define cameraPos ViewMatrixInverse[3].xyz
-#define cameraVec \
-  ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)
-#define viewCameraVec \
-  ((ProjectionMatrix[3][3] == 0.0) ? normalize(-viewPosition) : vec3(0.0, 0.0, 1.0))
+#define cameraVec(P) ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - P) : cameraForward)
+#define viewCameraVec(vP) ((ProjectionMatrix[3][3] == 0.0) ? normalize(-vP) : vec3(0.0, 0.0, 1.0))
 
 #ifdef world_clip_planes_calc_clip_distance
 #  undef world_clip_planes_calc_clip_distance

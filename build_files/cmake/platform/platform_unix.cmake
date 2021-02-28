@@ -70,6 +70,7 @@ if(EXISTS ${LIBDIR})
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
+  set(CLANG_ROOT_DIR ${LIBDIR}/llvm)
 endif()
 
 if(WITH_STATIC_LIBS)
@@ -284,6 +285,10 @@ if(WITH_NANOVDB)
   endif()
 endif()
 
+if(WITH_CPU_SIMD)
+  find_package_wrapper(sse2neon)
+endif()
+
 if(WITH_ALEMBIC)
   find_package_wrapper(Alembic)
 
@@ -385,7 +390,7 @@ if(WITH_OPENIMAGEIO)
 endif()
 
 if(WITH_OPENCOLORIO)
-  find_package_wrapper(OpenColorIO)
+  find_package_wrapper(OpenColorIO 2.0.0)
 
   set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
   set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
@@ -416,7 +421,9 @@ if(WITH_LLVM)
   endif()
 
   find_package_wrapper(LLVM)
-
+  if(WITH_CLANG)
+    find_package_wrapper(Clang)
+  endif()
   # Symbol conflicts with same UTF library used by OpenCollada
   if(EXISTS ${LIBDIR})
     if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
@@ -426,7 +433,13 @@ if(WITH_LLVM)
 
   if(NOT LLVM_FOUND)
     set(WITH_LLVM OFF)
+    set(WITH_CLANG OFF)
     message(STATUS "LLVM not found")
+  else()
+    if(NOT CLANG_FOUND)
+      set(WITH_CLANG OFF)
+      message(STATUS "Clang not found")
+    endif()
   endif()
 endif()
 
@@ -467,6 +480,14 @@ if(WITH_POTRACE)
   if(NOT POTRACE_FOUND)
     message(WARNING "potrace not found, disabling WITH_POTRACE")
     set(WITH_POTRACE OFF)
+  endif()
+endif()
+
+if(WITH_HARU)
+  find_package_wrapper(Haru)
+  if(NOT HARU_FOUND)
+    message(WARNING "Haru not found, disabling WITH_HARU")
+    set(WITH_HARU OFF)
   endif()
 endif()
 

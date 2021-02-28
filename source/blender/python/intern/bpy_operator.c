@@ -58,7 +58,7 @@
 
 static wmOperatorType *ot_lookup_from_py_string(PyObject *value, const char *py_fn_id)
 {
-  const char *opname = _PyUnicode_AsString(value);
+  const char *opname = PyUnicode_AsUTF8(value);
   if (opname == NULL) {
     PyErr_Format(PyExc_TypeError, "%s() expects a string argument", py_fn_id);
     return NULL;

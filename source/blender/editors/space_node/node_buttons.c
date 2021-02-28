@@ -40,7 +40,6 @@
 
 #include "RNA_access.h"
 
-#include "ED_gpencil.h"
 #include "ED_screen.h"
 
 #include "UI_resources.h"

@@ -320,6 +320,7 @@ IDTypeInfo IDType_ID_CU = {
     .make_local = NULL,
     .foreach_id = curve_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = curve_blend_write,
     .blend_read_data = curve_blend_read_data,
@@ -4337,14 +4338,17 @@ void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag)
   }
 }
 
+/**
+ * \param code:
+ * - 1 (#HD_AUTO): set auto-handle.
+ * - 2 (#HD_VECT): set vector-handle.
+ * - 3 (#HD_ALIGN) it toggle, vector-handles become #HD_FREE.
+ *
+ * - 5: Set align, like 3 but no toggle.
+ * - 6: Clear align (setting #HD_FREE), like 3 but no toggle.
+ */
 void BKE_nurbList_handles_set(ListBase *editnurb, const char code)
 {
-  /* code==1: set autohandle */
-  /* code==2: set vectorhandle */
-  /* code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
-  /* code==4: sets icu flag to become IPO_AUTO_HORIZ, horizontal extremes on auto-handles */
-  /* code==5: Set align, like 3 but no toggle */
-  /* code==6: Clear align, like 3 but no toggle */
   BezTriple *bezt;
   int a;
 

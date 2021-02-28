@@ -238,24 +238,27 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.vertex,
-                                                                  thread_id);
 
-      float disp[3];
-      madd_v3_v3v3fl(disp, vd.co, ss->cache->detail_directions[vd.index], fade);
-      SCULPT_clip(sd, ss, vd.co, disp);
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
 
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.vertex,
+                                                                thread_id);
+
+    float disp[3];
+    madd_v3_v3v3fl(disp, vd.co, ss->cache->detail_directions[vd.index], fade);
+    SCULPT_clip(sd, ss, vd.co, disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -403,33 +406,34 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(
-                                         ss,
-                                         brush,
-                                         vd.co,
-                                         sqrtf(test.dist),
-                                         vd.no,
-                                         vd.fno,
-                                         smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
-                                         vd.vertex,
-                                         thread_id);
-      if (smooth_mask) {
-        float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
-        val *= fade * bstrength;
-        *vd.mask += val;
-        CLAMP(*vd.mask, 0.0f, 1.0f);
-      }
-      else {
-        float avg[3], val[3];
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex);
-        sub_v3_v3v3(val, avg, vd.co);
-        madd_v3_v3v3fl(val, vd.co, val, fade);
-        SCULPT_clip(sd, ss, vd.co, val);
-      }
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    const float fade = bstrength * SCULPT_brush_strength_factor(
+                                       ss,
+                                       brush,
+                                       vd.co,
+                                       sqrtf(test.dist),
+                                       vd.no,
+                                       vd.fno,
+                                       smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                       vd.vertex,
+                                       thread_id);
+    if (smooth_mask) {
+      float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
+      val *= fade * bstrength;
+      *vd.mask += val;
+      CLAMP(*vd.mask, 0.0f, 1.0f);
+    }
+    else {
+      float avg[3], val[3];
+      SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex);
+      sub_v3_v3v3(val, avg, vd.co);
+      madd_v3_v3v3fl(val, vd.co, val, fade);
+      SCULPT_clip(sd, ss, vd.co, val);
+    }
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -583,32 +587,29 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.vertex,
-                                                                  thread_id);
 
-      float disp[3];
-      SCULPT_surface_smooth_laplacian_step(ss,
-                                           disp,
-                                           vd.co,
-                                           ss->cache->surface_smooth_laplacian_disp,
-                                           vd.vertex,
-                                           orig_data.co,
-                                           alpha);
-      madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
-      if (vd.mvert) {
-        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
-      }
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
     }
-    BKE_pbvh_vertex_iter_end;
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.vertex,
+                                                                thread_id);
+
+    float disp[3];
+    SCULPT_surface_smooth_laplacian_step(
+        ss, disp, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, orig_data.co, alpha);
+    madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
   }
+  BKE_pbvh_vertex_iter_end;
 }
 
 static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
@@ -629,19 +630,20 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  vd.co,
-                                                                  sqrtf(test.dist),
-                                                                  vd.no,
-                                                                  vd.fno,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.vertex,
-                                                                  thread_id);
-      SCULPT_surface_smooth_displace_step(
-          ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, beta, fade);
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
     }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.vertex,
+                                                                thread_id);
+    SCULPT_surface_smooth_displace_step(
+        ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, beta, fade);
   }
   BKE_pbvh_vertex_iter_end;
 }

@@ -71,7 +71,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
   }
 #endif
 
-  float3 P = make_float3(0.0f, 0.0f, 0.0f);
+  float3 P = zero_float3();
   float3 D = Pcamera;
 
   /* modify ray for depth of field */
@@ -130,7 +130,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg,
      * because we don't want to be affected by depth of field. We compute
      * ray origin and direction for the center and two neighboring pixels
      * and simply take their differences. */
-    float3 Pnostereo = transform_point(&cameratoworld, make_float3(0.0f, 0.0f, 0.0f));
+    float3 Pnostereo = transform_point(&cameratoworld, zero_float3());
 
     float3 Pcenter = Pnostereo;
     float3 Dcenter = Pcamera;
@@ -250,7 +250,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
   float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
   /* create ray form raster position */
-  float3 P = make_float3(0.0f, 0.0f, 0.0f);
+  float3 P = zero_float3();
   float3 D = panorama_to_direction(cam, Pcamera.x, Pcamera.y);
 
   /* indicates ray should not receive any light, outside of the lens */

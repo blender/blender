@@ -84,19 +84,15 @@ static void move_split_attributes(const GeometryComponent &in_component,
     const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute->cpp_type());
     const AttributeDomain domain = attribute->domain();
 
-    /* Don't try to create the attribute on the new component if it already exists. Built-in
-     * attributes will already exist on new components by definition. It should always be possible
-     * to recreate the attribute on the same component type. Also, if one of the new components
-     * has the attribute the other one should have it too, but check independently to be safe. */
+    /* Don't try to create the attribute on the new component if it already exists (i.e. has been
+     * initialized by someone else). */
     if (!out_component_a.attribute_exists(name)) {
       if (!out_component_a.attribute_try_create(name, domain, data_type)) {
-        BLI_assert(false);
         continue;
       }
     }
     if (!out_component_b.attribute_exists(name)) {
       if (!out_component_b.attribute_try_create(name, domain, data_type)) {
-        BLI_assert(false);
         continue;
       }
     }
@@ -181,6 +177,10 @@ static void geo_node_point_separate_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet out_set_a(geometry_set);
   GeometrySet out_set_b;
+
+  /* TODO: This is not necessary-- the input geometry set can be read only,
+   * but it must be rewritten to handle instance groups. */
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<PointCloudComponent>()) {
     separate_point_cloud(*geometry_set.get_component_for_read<PointCloudComponent>(),

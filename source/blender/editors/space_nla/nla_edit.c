@@ -62,14 +62,14 @@
 #include "DEG_depsgraph_build.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "nla_intern.h"  /* own include */
 #include "nla_private.h" /* FIXME... maybe this shouldn't be included? */
 
-/* *********************************************** */
-/* Utilities exported to other places... */
+/* -------------------------------------------------------------------- */
+/** \name Public Utilities
+ * \{ */
 
 /* Perform validation for blending/extend settings */
 void ED_nla_postop_refresh(bAnimContext *ac)
@@ -93,13 +93,17 @@ void ED_nla_postop_refresh(bAnimContext *ac)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* *********************************************** */
+/** \} */
+
 /* 'Special' Editing */
 
-/* ******************** Tweak-Mode Operators ***************************** */
 /* 'Tweak mode' allows the action referenced by the active NLA-strip to be edited
  * as if it were the normal Active-Action of its AnimData block.
  */
+
+/* -------------------------------------------------------------------- */
+/** \name Enable Tweak-Mode Operator
+ * \{ */
 
 static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 {
@@ -196,7 +200,11 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Disable Tweak-Mode Operator
+ * \{ */
 
 /* NLA Editor internal API function for exiting tweakmode */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
@@ -298,10 +306,13 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* *********************************************** */
+/** \} */
+
 /* NLA Strips Range Stuff */
 
-/* *************************** Calculate Range ************************** */
+/* -------------------------------------------------------------------- */
+/** \name Calculate NLA Strip Range
+ * \{ */
 
 /* Get the min/max strip extents */
 static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const bool only_sel)
@@ -355,7 +366,11 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
   }
 }
 
-/* ****************** Automatic Preview-Range Operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Automatic Preview-Range Operator
+ * \{ */
 
 static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -402,16 +417,20 @@ void NLA_OT_previewrange_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ****************** View-All Operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View-All Operator
+ * \{ */
 
 /**
  * Find the extents of the active channel
  *
- * \param[out] min: Bottom y-extent of channel.
- * \param[out] max: Top y-extent of channel.
- * \return Success of finding a selected channel
+ * \param r_min: Bottom y-extent of channel.
+ * \param r_max: Top y-extent of channel.
+ * \return Success of finding a selected channel.
  */
-static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, float *max)
+static bool nla_channels_get_selected_extents(bAnimContext *ac, float *r_min, float *r_max)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
@@ -435,8 +454,8 @@ static bool nla_channels_get_selected_extents(bAnimContext *ac, float *min, floa
     if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) &&
         ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT)) {
       /* update best estimate */
-      *min = ymax - NLACHANNEL_HEIGHT(snla);
-      *max = ymax;
+      *r_min = ymax - NLACHANNEL_HEIGHT(snla);
+      *r_max = ymax;
 
       /* is this high enough priority yet? */
       found = acf->channel_role;
@@ -550,7 +569,11 @@ void NLA_OT_view_selected(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* *********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View-Frame Operator
+ * \{ */
 
 static int nlaedit_viewframe_exec(bContext *C, wmOperator *op)
 {
@@ -574,12 +597,16 @@ void NLA_OT_view_frame(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-/* *********************************************** */
+/** \} */
+
 /* NLA Editing Operations (Constructive/Destructive) */
 
-/* ******************** Add Action-Clip Operator ***************************** */
-/* Add a new Action-Clip strip to the active track
- * (or the active block if no space in the track) */
+/* -------------------------------------------------------------------- */
+/** \name Add Action-Clip Operator
+ *
+ * Add a new Action-Clip strip to the active track
+ * (or the active block if no space in the track).
+ * \{ */
 
 /* add the specified action as new strip */
 static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
@@ -725,8 +752,13 @@ void NLA_OT_actionclip_add(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-/* ******************** Add Transition Operator ***************************** */
-/* Add a new transition strip between selected strips */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Transition Operator
+ *
+ * Add a new transition strip between selected strips.
+ * \{ */
 
 static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 {
@@ -850,8 +882,11 @@ void NLA_OT_transition_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Add Sound Clip Operator ***************************** */
-/* Add a new sound clip */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Sound Clip Operator
+ * \{ */
 
 static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -941,8 +976,13 @@ void NLA_OT_soundclip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Add Meta-Strip Operator ***************************** */
-/* Add new meta-strips incorporating the selected strips */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Meta-Strip Operator
+ *
+ * Add new meta-strips incorporating the selected strips.
+ * \{ */
 
 /* add the specified action as new strip */
 static int nlaedit_add_meta_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1013,8 +1053,13 @@ void NLA_OT_meta_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Remove Meta-Strip Operator ***************************** */
-/* Separate out the strips held by the selected meta-strips */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Meta-Strip Operator
+ *
+ * Separate out the strips held by the selected meta-strips.
+ * \{ */
 
 static int nlaedit_remove_meta_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1074,10 +1119,14 @@ void NLA_OT_meta_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Duplicate Strips Operator ************************** */
-/* Duplicates the selected NLA-Strips, putting them on new tracks above the one
- * the originals were housed in.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Strips Operator
+ *
+ * Duplicates the selected NLA-Strips,
+ * putting them on new tracks above the one the originals were housed in.
+ * \{ */
 
 static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
 {
@@ -1201,8 +1250,13 @@ void NLA_OT_duplicate(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
-/* ******************** Delete Strips Operator ***************************** */
-/* Deletes the selected NLA-Strips */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Strips Operator
+ *
+ * Deletes the selected NLA-Strips.
+ * \{ */
 
 static int nlaedit_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1281,11 +1335,17 @@ void NLA_OT_delete(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Split Strips Operator ***************************** */
-/* Splits the selected NLA-Strips into two strips at the midpoint of the strip */
-/* TODO's?
- *  - multiple splits
- *  - variable-length splits? */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Strips Operator
+ *
+ * Splits the selected NLA-Strips into two strips at the midpoint of the strip.
+ *
+ * TODO's?
+ * - multiple splits
+ * - variable-length splits?
+ * \{ */
 
 /* split a given Action-Clip strip */
 static void nlaedit_split_strip_actclip(
@@ -1436,11 +1496,15 @@ void NLA_OT_split(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* *********************************************** */
+/** \} */
+
 /* NLA Editing Operations (Modifying) */
 
-/* ******************** Toggle Muting Operator ************************** */
-/* Toggles whether strips are muted or not */
+/* -------------------------------------------------------------------- */
+/** \name Toggle Muting Operator
+ *
+ * Toggles whether strips are muted or not.
+ * \{ */
 
 static int nlaedit_toggle_mute_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1503,8 +1567,13 @@ void NLA_OT_mute_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Swap Strips Operator ************************** */
-/* Tries to exchange strips within their owner tracks */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Swap Strips Operator
+ *
+ * Tries to exchange strips within their owner tracks.
+ * \{ */
 
 static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 {
@@ -1680,8 +1749,13 @@ void NLA_OT_swap(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Move Strips Up Operator ************************** */
-/* Tries to move the selected strips into the track above if possible. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Strips Up Operator
+ *
+ * Tries to move the selected strips into the track above if possible.
+ * \{ */
 
 static int nlaedit_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1766,8 +1840,13 @@ void NLA_OT_move_up(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Move Strips Down Operator ************************** */
-/* Tries to move the selected strips into the track above if possible. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Move Strips Down Operator
+ *
+ * Tries to move the selected strips into the track above if possible.
+ * \{ */
 
 static int nlaedit_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1852,8 +1931,13 @@ void NLA_OT_move_down(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Sync Action Length Operator ***************************** */
-/* Recalculate the extents of the action ranges used for the selected strips  */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sync Action Length Operator
+ *
+ * Recalculate the extents of the action ranges used for the selected strips.
+ * \{ */
 
 static int nlaedit_sync_actlen_exec(bContext *C, wmOperator *op)
 {
@@ -1941,8 +2025,13 @@ void NLA_OT_action_sync_length(wmOperatorType *ot)
                              "Only sync the active length for the active strip");
 }
 
-/* ******************** Make Single User ********************************* */
-/* Ensure that each strip has its own action */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Single User
+ *
+ * Ensure that each strip has its own action.
+ * \{ */
 
 static int nlaedit_make_single_user_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2027,8 +2116,13 @@ void NLA_OT_make_single_user(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Apply Scale Operator ***************************** */
-/* Reset the scaling of the selected strips to 1.0f */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Apply Scale Operator
+ *
+ * Reset the scaling of the selected strips to 1.0f.
+ * \{ */
 
 /* apply scaling to keyframe */
 static short bezt_apply_nlamapping(KeyframeEditData *ked, BezTriple *bezt)
@@ -2140,8 +2234,13 @@ void NLA_OT_apply_scale(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Clear Scale Operator ***************************** */
-/* Reset the scaling of the selected strips to 1.0f */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Scale Operator
+ *
+ * Reset the scaling of the selected strips to 1.0f.
+ * \{ */
 
 static int nlaedit_clear_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2205,8 +2304,13 @@ void NLA_OT_clear_scale(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Snap Strips Operator ************************** */
-/* Moves the start-point of the selected strips to the specified places */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap Strips Operator
+ *
+ * Moves the start-point of the selected strips to the specified places.
+ * \{ */
 
 /* defines for snap keyframes tool */
 static const EnumPropertyItem prop_nlaedit_snap_types[] = {
@@ -2367,10 +2471,13 @@ void NLA_OT_snap(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
 }
 
-/* *********************************************** */
+/** \} */
+
 /* NLA Modifiers */
 
-/* ******************** Add F-Modifier Operator *********************** */
+/* -------------------------------------------------------------------- */
+/** \name Add F-Modifier Operator
+ * \{ */
 
 static const EnumPropertyItem *nla_fmodifier_itemf(bContext *C,
                                                    PointerRNA *UNUSED(ptr),
@@ -2516,7 +2623,11 @@ void NLA_OT_fmodifier_add(wmOperatorType *ot)
                   "Only add a F-Modifier of the specified type to the active strip");
 }
 
-/* ******************** Copy F-Modifiers Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy F-Modifiers Operator
+ * \{ */
 
 static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 {
@@ -2591,7 +2702,11 @@ void NLA_OT_fmodifier_copy(wmOperatorType *ot)
 #endif
 }
 
-/* ******************** Paste F-Modifiers Operator *********************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Paste F-Modifiers Operator
+ * \{ */
 
 static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 {
@@ -2683,4 +2798,4 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot)
       "Replace existing F-Modifiers, instead of just appending to the end of the existing list");
 }
 
-/* *********************************************** */
+/** \} */

@@ -35,7 +35,7 @@ typedef enum eBoidRuleType {
   eBoidRuleType_Goal = 1,
   /** get away from assigned object or loudest assigned signal source */
   eBoidRuleType_Avoid = 2,
-  /** manoeuver to avoid collisions with other boids and deflector object in near future */
+  /** Maneuver to avoid collisions with other boids and deflector object in near future. */
   eBoidRuleType_AvoidCollision = 3,
   /** keep from going through other boids */
   eBoidRuleType_Separate = 4,

@@ -357,6 +357,7 @@ IDTypeInfo IDType_ID_ME = {
     .make_local = NULL,
     .foreach_id = mesh_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = mesh_blend_write,
     .blend_read_data = mesh_blend_read_data,

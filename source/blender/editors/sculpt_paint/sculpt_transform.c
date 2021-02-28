@@ -60,10 +60,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-void ED_sculpt_init_transform(struct bContext *C)
+void ED_sculpt_init_transform(struct bContext *C, Object *ob)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
@@ -220,10 +219,9 @@ static void sculpt_transform_all_vertices(Sculpt *sd, Object *ob)
       0, ss->filter_cache->totnode, &data, sculpt_transform_task_cb, &settings);
 }
 
-void ED_sculpt_update_modal_transform(struct bContext *C)
+void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
@@ -243,9 +241,8 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
 }
 
-void ED_sculpt_end_transform(struct bContext *C)
+void ED_sculpt_end_transform(struct bContext *C, Object *ob)
 {
-  Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   if (ss->filter_cache) {
     SCULPT_filter_cache_free(ss);

@@ -21,11 +21,7 @@
  * \ingroup spclip
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_space_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_tracking.h"

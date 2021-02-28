@@ -151,7 +151,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   {
     const char *op_idname = NULL;
-    /* grease pencil does not use obedit */
+    /* Grease pencil does not use `obedit`. */
     /* GPXX: Remove if OB_MODE_EDIT_GPENCIL is merged with OB_MODE_EDIT */
     const Object *obact = CTX_data_active_object(C);
     if (obact->type == OB_GPENCIL) {

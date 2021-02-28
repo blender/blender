@@ -353,7 +353,7 @@ static void ui_popup_block_position(wmWindow *window,
     block->direction = dir1;
   }
 
-  /* keep a list of these, needed for pulldown menus */
+  /* Keep a list of these, needed for pull-down menus. */
   uiSafetyRct *saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
   saferct->parent = butrct;
   saferct->safety = block->safety;
@@ -632,7 +632,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   }
   else {
     uiSafetyRct *saferct;
-    /* keep a list of these, needed for pulldown menus */
+    /* Keep a list of these, needed for pull-down menus. */
     saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
     saferct->safety = block->safety;
     BLI_addhead(&block->saferct, saferct);

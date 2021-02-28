@@ -95,6 +95,8 @@ typedef enum eActKeyBlock_Hold {
   ACTKEYBLOCK_FLAG_ANY_HOLD = (1 << 2),
   /* The curve segment uses non-bezier interpolation */
   ACTKEYBLOCK_FLAG_NON_BEZIER = (1 << 3),
+  /* The block is grease pencil */
+  ACTKEYBLOCK_FLAG_GPENCIL = (1 << 4),
 } eActKeyBlock_Flag;
 
 /* *********************** Keyframe Drawing ****************************** */

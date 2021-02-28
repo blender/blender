@@ -67,7 +67,9 @@
 
 #include "clip_intern.h" /* own include */
 
-/* ******** operactor poll functions ******** */
+/* -------------------------------------------------------------------- */
+/** \name Operator Poll Functions
+ * \{ */
 
 bool ED_space_clip_poll(bContext *C)
 {
@@ -128,7 +130,11 @@ bool ED_space_clip_maskedit_mask_poll(bContext *C)
   return false;
 }
 
-/* ******** common editing functions ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Common Editing Functions
+ * \{ */
 
 void ED_space_clip_get_size(SpaceClip *sc, int *width, int *height)
 {
@@ -538,7 +544,11 @@ bool ED_space_clip_check_show_maskedit(SpaceClip *sc)
   return false;
 }
 
-/* ******** clip editing functions ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clip Editing Functions
+ * \{ */
 
 MovieClip *ED_space_clip_get_clip(SpaceClip *sc)
 {
@@ -595,7 +605,11 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
   }
 }
 
-/* ******** masking editing functions ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Masking Editing Functions
+ * \{ */
 
 Mask *ED_space_clip_get_mask(SpaceClip *sc)
 {
@@ -613,7 +627,11 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
   }
 }
 
-/* ******** pre-fetching functions ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pre-Fetching Functions
+ * \{ */
 
 typedef struct PrefetchJob {
   MovieClip *clip;
@@ -1121,3 +1139,5 @@ void ED_clip_view_lock_state_restore_no_jump(const bContext *C, const ClipViewLo
   space_clip->xlockof = state->offset_x + state->lock_offset_x - offset_x;
   space_clip->ylockof = state->offset_y + state->lock_offset_y - offset_y;
 }
+
+/** \} */

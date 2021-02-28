@@ -96,7 +96,7 @@ static void rna_def_speaker(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(
-      prop, "Reference Distance", "Reference distance at which volume is 100 %");
+      prop, "Reference Distance", "Reference distance at which volume is 100%");
   /* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_distance_reference_set", NULL); */
   /* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
@@ -125,7 +125,7 @@ static void rna_def_speaker(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Inner Cone Angle",
-      "Angle of the inner cone, in degrees, inside the cone the volume is 100 %");
+      "Angle of the inner cone, in degrees, inside the cone the volume is 100%");
   /* RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_inner_set", NULL); */
   /* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 

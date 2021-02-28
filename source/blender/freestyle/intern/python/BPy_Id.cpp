@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -167,15 +169,11 @@ static PyGetSetDef BPy_Id_getseters[] = {
 /*-----------------------BPy_Id type definition ------------------------------*/
 
 PyTypeObject Id_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0) "Id", /* tp_name */
-    sizeof(BPy_Id),                         /* tp_basicsize */
-    0,                                      /* tp_itemsize */
-    (destructor)Id_dealloc,                 /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
+    PyVarObject_HEAD_INIT(nullptr, 0) "Id",   /* tp_name */
+    sizeof(BPy_Id),                           /* tp_basicsize */
+    0,                                        /* tp_itemsize */
+    (destructor)Id_dealloc,                   /* tp_dealloc */
+    0,                                        /* tp_vectorcall_offset */
     nullptr,                                  /* tp_getattr */
     nullptr,                                  /* tp_setattr */
     nullptr,                                  /* tp_reserved */

@@ -20,7 +20,7 @@
  * Utility operators for UI data or for the UI to use.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"

@@ -60,7 +60,9 @@
 #  define CACHE_PRINTF(...)
 #endif
 
-/*********************** Tracks map *************************/
+/* -------------------------------------------------------------------- */
+/** \name Tracks Map
+ * \{ */
 
 TracksMap *tracks_map_new(const char *object_name,
                           bool is_camera,
@@ -242,7 +244,11 @@ void tracks_map_free(TracksMap *map, void (*customdata_free)(void *customdata))
   MEM_freeN(map);
 }
 
-/*********************** Space transformation functions *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space Transformation Functions
+ * \{ */
 
 /* Three coordinate frames: Frame, Search, and Marker
  * Two units: Pixels, Unified
@@ -399,7 +405,11 @@ void tracking_set_marker_coords_from_tracking(int frame_width,
   marker->pos[1] += marker_unified[1];
 }
 
-/*********************** General purpose utility functions *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name General Purpose Utility Functions
+ * \{ */
 
 /* Place a disabled marker before or after specified ref_marker.
  *
@@ -613,7 +623,11 @@ MovieTrackingMarker *tracking_get_keyframed_marker(MovieTrackingTrack *track,
   return marker_keyed;
 }
 
-/*********************** Frame accessr *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Frame Accessor
+ * \{ */
 
 static ImBuf *accessor_get_preprocessed_ibuf(TrackingImageAccessor *accessor,
                                              int clip_index,
@@ -936,3 +950,5 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
   MEM_freeN(accessor->tracks);
   MEM_freeN(accessor);
 }
+
+/** \} */

@@ -118,10 +118,10 @@ typedef struct ParticleData {
   /** Boids data. */
   BoidParticle *boid;
 
-  /** Amount of hair or keyed key.s*/
+  /** Amount of hair or keyed keys. */
   int totkey;
 
-  /** Dietime is not necessarily time+lifetime as. */
+  /** Die-time is not necessarily time+lifetime as. */
   float time, lifetime;
   /** Particles can die unnaturally (collision). */
   float dietime;

@@ -735,7 +735,9 @@ def dump_src_messages(msgs, reports, settings):
     _clean_str = re.compile(settings.str_clean_re).finditer
 
     def clean_str(s):
-        return "".join(m.group("clean") for m in _clean_str(s))
+        # The encode/decode to/from 'raw_unicode_escape' allows to transform the C-type unicode hexadecimal escapes
+        # (like '\u2715' for the '×' symbol) back into a proper unicode character.
+        return "".join(m.group("clean") for m in _clean_str(s)).encode('raw_unicode_escape').decode('raw_unicode_escape')
 
     def dump_src_file(path, rel_path, msgs, reports, settings):
         def process_entry(_msgctxt, _msgid):
@@ -862,7 +864,7 @@ def dump_messages(do_messages, do_checks, settings):
     dump_src_messages(msgs, reports, settings)
 
     # Get strings from addons' categories.
-    for uid, label, tip in bpy.types.WindowManager.addon_filter[1]['items'](bpy.context.window_manager, bpy.context):
+    for uid, label, tip in bpy.types.WindowManager.addon_filter.keywords['items'](bpy.context.window_manager, bpy.context):
         process_msg(msgs, settings.DEFAULT_CONTEXT, label, "Add-ons' categories", reports, None, settings)
         if tip:
             process_msg(msgs, settings.DEFAULT_CONTEXT, tip, "Add-ons' categories", reports, None, settings)

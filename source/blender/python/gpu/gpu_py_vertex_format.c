@@ -32,115 +32,31 @@
 
 #include "gpu_py_vertex_format.h" /* own include */
 
-#ifdef __BIG_ENDIAN__
-/* big endian */
-#  define MAKE_ID2(c, d) ((c) << 8 | (d))
-#  define MAKE_ID3(a, b, c) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8)
-#  define MAKE_ID4(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
-#else
-/* little endian  */
-#  define MAKE_ID2(c, d) ((d) << 8 | (c))
-#  define MAKE_ID3(a, b, c) ((int)(c) << 16 | (b) << 8 | (a))
-#  define MAKE_ID4(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion
  *
  * Use with PyArg_ParseTuple's "O&" formatting.
  * \{ */
 
-static int py_parse_component_type(const char *str, int length)
-{
-  if (length == 2) {
-    switch (*((ushort *)str)) {
-      case MAKE_ID2('I', '8'):
-        return GPU_COMP_I8;
-      case MAKE_ID2('U', '8'):
-        return GPU_COMP_U8;
-      default:
-        break;
-    }
-  }
-  else if (length == 3) {
-    switch (*((uint *)str)) {
-      case MAKE_ID3('I', '1', '6'):
-        return GPU_COMP_I16;
-      case MAKE_ID3('U', '1', '6'):
-        return GPU_COMP_U16;
-      case MAKE_ID3('I', '3', '2'):
-        return GPU_COMP_I32;
-      case MAKE_ID3('U', '3', '2'):
-        return GPU_COMP_U32;
-      case MAKE_ID3('F', '3', '2'):
-        return GPU_COMP_F32;
-      case MAKE_ID3('I', '1', '0'):
-        return GPU_COMP_I10;
-      default:
-        break;
-    }
-  }
-  return -1;
-}
+static struct PyC_StringEnumItems pygpu_vertcomptype_items[] = {
+    {GPU_COMP_I8, "I8"},
+    {GPU_COMP_U8, "U8"},
+    {GPU_COMP_I16, "I16"},
+    {GPU_COMP_U16, "U16"},
+    {GPU_COMP_I32, "I32"},
+    {GPU_COMP_U32, "U32"},
+    {GPU_COMP_F32, "F32"},
+    {GPU_COMP_I10, "I10"},
+    {0, NULL},
+};
 
-static int py_parse_fetch_mode(const char *str, int length)
-{
-#define MATCH_ID(id) \
-  if (length == strlen(STRINGIFY(id))) { \
-    if (STREQ(str, STRINGIFY(id))) { \
-      return GPU_FETCH_##id; \
-    } \
-  } \
-  ((void)0)
-
-  MATCH_ID(FLOAT);
-  MATCH_ID(INT);
-  MATCH_ID(INT_TO_FLOAT_UNIT);
-  MATCH_ID(INT_TO_FLOAT);
-#undef MATCH_ID
-
-  return -1;
-}
-
-static int py_ParseVertCompType(PyObject *o, void *p)
-{
-  Py_ssize_t length;
-  const char *str = _PyUnicode_AsStringAndSize(o, &length);
-
-  if (str == NULL) {
-    PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
-    return 0;
-  }
-
-  const int comp_type = py_parse_component_type(str, length);
-  if (comp_type == -1) {
-    PyErr_Format(PyExc_ValueError, "unknown component type: '%s", str);
-    return 0;
-  }
-
-  *((GPUVertCompType *)p) = comp_type;
-  return 1;
-}
-
-static int py_ParseVertFetchMode(PyObject *o, void *p)
-{
-  Py_ssize_t length;
-  const char *str = _PyUnicode_AsStringAndSize(o, &length);
-
-  if (str == NULL) {
-    PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
-    return 0;
-  }
-
-  const int fetch_mode = py_parse_fetch_mode(str, length);
-  if (fetch_mode == -1) {
-    PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", str);
-    return 0;
-  }
-
-  (*(GPUVertFetchMode *)p) = fetch_mode;
-  return 1;
-}
+static struct PyC_StringEnumItems pygpu_vertfetchmode_items[] = {
+    {GPU_FETCH_FLOAT, "FLOAT"},
+    {GPU_FETCH_INT, "INT"},
+    {GPU_FETCH_INT_TO_FLOAT_UNIT, "INT_TO_FLOAT_UNIT"},
+    {GPU_FETCH_INT_TO_FLOAT, "INT_TO_FLOAT"},
+    {0, NULL},
+};
 
 /** \} */
 
@@ -148,7 +64,9 @@ static int py_ParseVertFetchMode(PyObject *o, void *p)
 /** \name VertFormat Type
  * \{ */
 
-static PyObject *py_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *pygpu_vertformat__tp_new(PyTypeObject *UNUSED(type),
+                                          PyObject *args,
+                                          PyObject *kwds)
 {
   if (PyTuple_GET_SIZE(args) || (kwds && PyDict_Size(kwds))) {
     PyErr_SetString(PyExc_ValueError, "This function takes no arguments");
@@ -158,7 +76,7 @@ static PyObject *py_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, P
 }
 
 PyDoc_STRVAR(
-    py_VertFormat_attr_add_doc,
+    pygpu_vertformat_attr_add_doc,
     ".. method:: attr_add(id, comp_type, len, fetch_mode)\n"
     "\n"
     "   Add a new attribute to the format.\n"
@@ -177,14 +95,12 @@ PyDoc_STRVAR(
     "      converted to a normal 4 byte float when used.\n"
     "      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT` and `INT_TO_FLOAT`.\n"
     "   :type fetch_mode: `str`\n");
-static PyObject *py_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
+static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
-  struct {
-    const char *id;
-    GPUVertCompType comp_type;
-    uint len;
-    GPUVertFetchMode fetch_mode;
-  } params;
+  const char *id;
+  uint len;
+  struct PyC_StringEnum comp_type = {pygpu_vertcomptype_items, GPU_COMP_I8};
+  struct PyC_StringEnum fetch_mode = {pygpu_vertfetchmode_items, GPU_FETCH_FLOAT};
 
   if (self->fmt.attr_len == GPU_VERT_ATTR_MAX_LEN) {
     PyErr_SetString(PyExc_ValueError, "Maximum attr reached " STRINGIFY(GPU_VERT_ATTR_MAX_LEN));
@@ -196,45 +112,45 @@ static PyObject *py_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, 
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
-                                        &params.id,
-                                        py_ParseVertCompType,
-                                        &params.comp_type,
-                                        &params.len,
-                                        py_ParseVertFetchMode,
-                                        &params.fetch_mode)) {
+                                        &id,
+                                        PyC_ParseStringEnum,
+                                        &comp_type,
+                                        &len,
+                                        PyC_ParseStringEnum,
+                                        &fetch_mode)) {
     return NULL;
   }
 
   uint attr_id = GPU_vertformat_attr_add(
-      &self->fmt, params.id, params.comp_type, params.len, params.fetch_mode);
+      &self->fmt, id, comp_type.value_found, len, fetch_mode.value_found);
   return PyLong_FromLong(attr_id);
 }
 
-static struct PyMethodDef py_VertFormat_methods[] = {
+static struct PyMethodDef pygpu_vertformat__tp_methods[] = {
     {"attr_add",
-     (PyCFunction)py_VertFormat_attr_add,
+     (PyCFunction)pygpu_vertformat_attr_add,
      METH_VARARGS | METH_KEYWORDS,
-     py_VertFormat_attr_add_doc},
+     pygpu_vertformat_attr_add_doc},
     {NULL, NULL, 0, NULL},
 };
 
-static void py_VertFormat_dealloc(BPyGPUVertFormat *self)
+static void pygpu_vertformat__tp_dealloc(BPyGPUVertFormat *self)
 {
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(py_VertFormat_doc,
+PyDoc_STRVAR(pygpu_vertformat__tp_doc,
              ".. class:: GPUVertFormat()\n"
              "\n"
              "   This object contains information about the structure of a vertex buffer.\n");
 PyTypeObject BPyGPUVertFormat_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUVertFormat",
     .tp_basicsize = sizeof(BPyGPUVertFormat),
-    .tp_dealloc = (destructor)py_VertFormat_dealloc,
+    .tp_dealloc = (destructor)pygpu_vertformat__tp_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = py_VertFormat_doc,
-    .tp_methods = py_VertFormat_methods,
-    .tp_new = py_VertFormat_new,
+    .tp_doc = pygpu_vertformat__tp_doc,
+    .tp_methods = pygpu_vertformat__tp_methods,
+    .tp_new = pygpu_vertformat__tp_new,
 };
 
 /** \} */

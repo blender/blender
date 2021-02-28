@@ -31,8 +31,6 @@
 #ifdef WITH_EMBREE
 
 #  include <embree3/rtcore_geometry.h>
-#  include <pmmintrin.h>
-#  include <xmmintrin.h>
 
 #  include "bvh/bvh_embree.h"
 
@@ -306,8 +304,7 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
       rtc_device(NULL),
       build_quality(RTC_BUILD_QUALITY_REFIT)
 {
-  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  SIMD_SET_FLUSH_TO_ZERO;
 }
 
 BVHEmbree::~BVHEmbree()

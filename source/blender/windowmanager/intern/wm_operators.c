@@ -2056,6 +2056,22 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
   return false;
 }
 
+void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
+{
+  wmPaintCursor *pc = wm->paintcursors.first;
+  while (pc) {
+    wmPaintCursor *pc_next = pc->next;
+    if (pc->draw == draw_fn) {
+      if (free) {
+        free(pc->customdata);
+      }
+      BLI_remlink(&wm->paintcursors, pc);
+      MEM_freeN(pc);
+    }
+    pc = pc_next;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2087,6 +2103,7 @@ typedef struct {
   bool use_secondary_tex;
   void *cursor;
   NumInput num_input;
+  int init_event;
 } RadialControl;
 
 static void radial_control_update_header(wmOperator *op, bContext *C)
@@ -2705,6 +2722,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   radial_control_set_initial_mouse(rc, event);
   radial_control_set_tex(rc);
 
+  rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
+
   /* temporarily disable other paint cursors */
   wm = CTX_wm_manager(C);
   rc->orig_paintcursors = wm->paintcursors;
@@ -2962,6 +2981,11 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_RUNNING_MODAL;
   }
 
+  if (!handled && (event->val == KM_RELEASE) && (rc->init_event == event->type) &&
+      RNA_boolean_get(op->ptr, "release_confirm")) {
+    ret = OPERATOR_FINISHED;
+  }
+
   ED_region_tag_redraw(CTX_wm_region(C));
   radial_control_update_header(op, C);
 
@@ -2986,7 +3010,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 {
   ot->name = "Radial Control";
   ot->idname = "WM_OT_radial_control";
-  ot->description = "Set some size property (like e.g. brush size) with mouse wheel";
+  ot->description = "Set some size property (e.g. brush size) with mouse wheel";
 
   ot->invoke = radial_control_invoke;
   ot->modal = radial_control_modal;
@@ -3069,6 +3093,10 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 
   prop = RNA_def_boolean(
       ot->srna, "secondary_tex", false, "Secondary Texture", "Tweak brush secondary/mask texture");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna, "release_confirm", false, "Confirm On Release", "Finish operation on key release");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

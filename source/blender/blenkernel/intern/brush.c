@@ -375,7 +375,7 @@ static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 
 static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 {
-  /* Whole Brush is preserved across undos. */
+  /* Whole Brush is preserved across undo-steps. */
   BKE_lib_id_swap(NULL, id_new, id_old);
 
   /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
@@ -403,6 +403,7 @@ IDTypeInfo IDType_ID_BR = {
     .make_local = brush_make_local,
     .foreach_id = brush_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = brush_blend_write,
     .blend_read_data = brush_blend_read_data,
@@ -975,7 +976,7 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       break;
     }
     case GP_BRUSH_PRESET_FILL_AREA: {
-      brush->size = 20.0f;
+      brush->size = 5.0f;
 
       brush->gpencil_settings->fill_leak = 3;
       brush->gpencil_settings->fill_threshold = 0.1f;
@@ -988,6 +989,8 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->draw_smoothfac = 0.1f;
       brush->gpencil_settings->draw_smoothlvl = 1;
       brush->gpencil_settings->draw_subdivide = 1;
+
+      brush->gpencil_settings->flag |= GP_BRUSH_FILL_SHOW_EXTENDLINES;
 
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
       brush->gpencil_tool = GPAINT_TOOL_FILL;

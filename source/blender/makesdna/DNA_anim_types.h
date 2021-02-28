@@ -57,6 +57,13 @@ typedef struct FModifier {
   short type;
   /** Settings for the modifier. */
   short flag;
+  /**
+   * Expansion state for the modifier panel and its sub-panels, stored as a bit-field
+   * in depth-first order. (Maximum of `sizeof(short)` total panels).
+   */
+  short ui_expand_flag;
+
+  char _pad[6];
 
   /** The amount that the modifier should influence the value. */
   float influence;
@@ -82,7 +89,7 @@ typedef enum eFModifier_Types {
   FMODIFIER_TYPE_ENVELOPE = 3,
   FMODIFIER_TYPE_CYCLES = 4,
   FMODIFIER_TYPE_NOISE = 5,
-  /** Unimplemented - for applying: fft, high/low pass filters, etc. */
+  /** Unimplemented - for applying: FFT, high/low pass filters, etc. */
   FMODIFIER_TYPE_FILTER = 6,
   FMODIFIER_TYPE_PYTHON = 7,
   FMODIFIER_TYPE_LIMITS = 8,
@@ -96,8 +103,10 @@ typedef enum eFModifier_Types {
 typedef enum eFModifier_Flags {
   /** Modifier is not able to be evaluated for some reason, and should be skipped (internal). */
   FMODIFIER_FLAG_DISABLED = (1 << 0),
-  /** Modifier's data is expanded (in UI). */
+#ifdef DNA_DEPRECATED_ALLOW
+  /** Modifier's data is expanded (in UI). Deprecated, use `ui_expand_flag`. */
   FMODIFIER_FLAG_EXPANDED = (1 << 1),
+#endif
   /** Modifier is active one (in UI) for editing purposes. */
   FMODIFIER_FLAG_ACTIVE = (1 << 2),
   /** User wants modifier to be skipped. */
@@ -438,9 +447,10 @@ typedef enum eDriverVar_Types {
   /** 'final' transform for object/bones */
   DVAR_TYPE_TRANSFORM_CHAN,
 
-  /** Maximum number of variable types.
+  /**
+   * Maximum number of variable types.
    *
-   * \note This must always be th last item in this list,
+   * \note This must always be the last item in this list,
    * so add new types above this line.
    */
   MAX_DVAR_TYPES,

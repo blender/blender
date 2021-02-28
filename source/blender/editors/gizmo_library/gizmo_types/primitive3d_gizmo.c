@@ -149,7 +149,6 @@ static int gizmo_primitive_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEven
 
 /* -------------------------------------------------------------------- */
 /** \name Primitive Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)

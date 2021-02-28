@@ -29,16 +29,16 @@
 extern "C" {
 #endif
 
-struct bContext;
-struct bScreen;
 struct DEGEditorUpdateContext;
 struct Depsgraph;
 struct ID;
-struct Main;
 struct MTex;
+struct Main;
 struct Render;
 struct Scene;
 struct ScrArea;
+struct bContext;
+struct bScreen;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -92,6 +92,7 @@ void ED_preview_shader_job(const struct bContext *C,
                            int sizey,
                            int method);
 void ED_preview_icon_render(struct Main *bmain,
+                            struct Depsgraph *depsgraph,
                             struct Scene *scene,
                             struct ID *id,
                             unsigned int *rect,

@@ -38,7 +38,6 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
-#include "ED_undo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

@@ -40,7 +40,7 @@ extern PyTypeObject UnaryFunction1DVectorViewShape_Type;
  * definition----------*/
 typedef struct {
   BPy_UnaryFunction1D py_uf1D;
-  UnaryFunction1D<std::vector<ViewShape *>> *uf1D_vectorviewshape;
+  Freestyle::UnaryFunction1D<std::vector<Freestyle::ViewShape *>> *uf1D_vectorviewshape;
 } BPy_UnaryFunction1DVectorViewShape;
 
 /*---------------------------Python BPy_UnaryFunction1DVectorViewShape visible

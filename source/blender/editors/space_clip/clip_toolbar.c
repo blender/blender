@@ -23,29 +23,17 @@
 
 #include <string.h>
 
-#include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
-
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_undo.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "clip_intern.h" /* own include */
 

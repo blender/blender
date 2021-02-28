@@ -44,7 +44,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name UVs Transform Creation
- *
  * \{ */
 
 static void UVsToTransData(const float aspect[2],
@@ -414,7 +413,6 @@ void createTransUVs(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name UVs Transform Flush
- *
  * \{ */
 
 static void flushTransUVs(TransInfo *t)

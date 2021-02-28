@@ -889,15 +889,15 @@ void UI_icons_reload_internal_textures(void)
       icongltex.invh = 1.0f / b32buf->y;
 
       icongltex.tex[0] = GPU_texture_create_2d("icons", b32buf->x, b32buf->y, 2, GPU_RGBA8, NULL);
-      GPU_texture_update_mipmap(icongltex.tex[0], 0, GPU_DATA_UNSIGNED_BYTE, b32buf->rect);
-      GPU_texture_update_mipmap(icongltex.tex[0], 1, GPU_DATA_UNSIGNED_BYTE, b16buf->rect);
+      GPU_texture_update_mipmap(icongltex.tex[0], 0, GPU_DATA_UBYTE, b32buf->rect);
+      GPU_texture_update_mipmap(icongltex.tex[0], 1, GPU_DATA_UBYTE, b16buf->rect);
     }
 
     if (need_icons_with_border && icongltex.tex[1] == NULL) {
       icongltex.tex[1] = GPU_texture_create_2d(
           "icons_border", b32buf_border->x, b32buf_border->y, 2, GPU_RGBA8, NULL);
-      GPU_texture_update_mipmap(icongltex.tex[1], 0, GPU_DATA_UNSIGNED_BYTE, b32buf_border->rect);
-      GPU_texture_update_mipmap(icongltex.tex[1], 1, GPU_DATA_UNSIGNED_BYTE, b16buf_border->rect);
+      GPU_texture_update_mipmap(icongltex.tex[1], 0, GPU_DATA_UBYTE, b32buf_border->rect);
+      GPU_texture_update_mipmap(icongltex.tex[1], 1, GPU_DATA_UBYTE, b16buf_border->rect);
     }
   }
 
@@ -1426,8 +1426,13 @@ static void icon_set_image(const bContext *C,
       scene = CTX_data_scene(C);
     }
     /* Immediate version */
-    ED_preview_icon_render(
-        CTX_data_main(C), scene, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
+    ED_preview_icon_render(CTX_data_main(C),
+                           CTX_data_ensure_evaluated_depsgraph(C),
+                           scene,
+                           id,
+                           prv_img->rect[size],
+                           prv_img->w[size],
+                           prv_img->h[size]);
   }
 }
 

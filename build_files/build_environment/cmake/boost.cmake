@@ -23,7 +23,7 @@ if(WIN32)
   set(BOOST_COMPILER_STRING -vc141)
 
   set(BOOST_CONFIGURE_COMMAND bootstrap.bat)
-  set(BOOST_BUILD_COMMAND bjam)
+  set(BOOST_BUILD_COMMAND b2)
   set(BOOST_BUILD_OPTIONS runtime-link=shared )
   set(BOOST_HARVEST_CMD   ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/lib/ ${HARVEST_TARGET}/boost/lib/ )
   if(BUILD_MODE STREQUAL Release)

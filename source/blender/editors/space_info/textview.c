@@ -225,7 +225,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     rgba_uchar_to_float(col, icon_bg);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_aa(
+    UI_draw_roundbox_4fv(
         &(const rctf){
             .xmin = hpadding,
             .xmax = bg_size + hpadding,

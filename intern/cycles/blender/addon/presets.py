@@ -15,6 +15,7 @@
 #
 
 # <pep8 compliant>
+from __future__ import annotations
 
 from bl_operators.presets import AddPresetBase
 from bpy.types import Operator

@@ -600,10 +600,10 @@ enum {
   CU_CHINFO_BOLD = 1 << 0,
   CU_CHINFO_ITALIC = 1 << 1,
   CU_CHINFO_UNDERLINE = 1 << 2,
-  /** wordwrap occurred here */
+  /** Word-wrap occurred here. */
   CU_CHINFO_WRAP = 1 << 3,
   CU_CHINFO_SMALLCAPS = 1 << 4,
-  /** set at runtime, checks if case switching is needed */
+  /** Set at runtime, checks if case switching is needed. */
   CU_CHINFO_SMALLCAPS_CHECK = 1 << 5,
   /** Set at runtime, indicates char that doesn't fit in text boxes. */
   CU_CHINFO_OVERFLOW = 1 << 6,

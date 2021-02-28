@@ -61,6 +61,9 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+using namespace Freestyle::Geometry;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //==============================

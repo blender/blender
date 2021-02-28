@@ -35,7 +35,6 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "ED_node.h"
@@ -80,7 +79,12 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 
     BLI_addtail(&snode->treepath, path);
 
-    id_us_ensure_real(&ntree->id);
+    if (ntree->type != NTREE_GEOMETRY) {
+      /* This can probably be removed for all node tree types. It mainly exists because it was not
+       * possible to store id references in custom properties. Also see T36024. I don't want to
+       * remove it for all tree types in bcon3 though. */
+      id_us_ensure_real(&ntree->id);
+    }
   }
 
   /* update current tree */
@@ -655,6 +659,14 @@ static void node_main_region_draw(const bContext *C, ARegion *region)
 
 /* ************* dropboxes ************* */
 
+static bool node_group_drop_poll(bContext *UNUSED(C),
+                                 wmDrag *drag,
+                                 const wmEvent *UNUSED(event),
+                                 const char **UNUSED(r_tooltip))
+{
+  return WM_drag_is_ID_type(drag, ID_NT);
+}
+
 static bool node_ima_drop_poll(bContext *UNUSED(C),
                                wmDrag *drag,
                                const wmEvent *UNUSED(event),
@@ -673,6 +685,13 @@ static bool node_mask_drop_poll(bContext *UNUSED(C),
                                 const char **UNUSED(r_tooltip))
 {
   return WM_drag_is_ID_type(drag, ID_MSK);
+}
+
+static void node_group_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+
+  RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
 static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -701,8 +720,21 @@ static void node_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "NODE_OT_add_file", node_ima_drop_poll, node_id_path_drop_copy);
-  WM_dropbox_add(lb, "NODE_OT_add_mask", node_mask_drop_poll, node_id_drop_copy);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_group",
+                 node_group_drop_poll,
+                 node_group_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_file",
+                 node_ima_drop_poll,
+                 node_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_mask",
+                 node_mask_drop_poll,
+                 node_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
 }
 
 /* ************* end drop *********** */

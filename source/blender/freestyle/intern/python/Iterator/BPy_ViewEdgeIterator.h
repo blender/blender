@@ -38,7 +38,7 @@ extern PyTypeObject ViewEdgeIterator_Type;
 /*---------------------------Python BPy_ViewEdgeIterator structure definition----------*/
 typedef struct {
   BPy_Iterator py_it;
-  ViewEdgeInternal::ViewEdgeIterator *ve_it;
+  Freestyle::ViewEdgeInternal::ViewEdgeIterator *ve_it;
 } BPy_ViewEdgeIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

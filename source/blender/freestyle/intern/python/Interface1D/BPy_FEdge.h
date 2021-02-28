@@ -37,7 +37,7 @@ extern PyTypeObject FEdge_Type;
 /*---------------------------Python BPy_FEdge structure definition----------*/
 typedef struct {
   BPy_Interface1D py_if1D;
-  FEdge *fe;
+  Freestyle::FEdge *fe;
 } BPy_FEdge;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

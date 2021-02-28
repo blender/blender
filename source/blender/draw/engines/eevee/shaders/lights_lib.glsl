@@ -164,10 +164,10 @@ vec4 sample_cascade(sampler2DArray tex, vec2 co, float cascade_id)
 #define scube(x) shadows_cube_data[x]
 #define scascade(x) shadows_cascade_data[x]
 
-float sample_cube_shadow(int shadow_id, vec3 W)
+float sample_cube_shadow(int shadow_id, vec3 P)
 {
   int data_id = int(sd(shadow_id).sh_data_index);
-  vec3 cubevec = transform_point(scube(data_id).shadowmat, W);
+  vec3 cubevec = transform_point(scube(data_id).shadowmat, P);
   float dist = max(sd(shadow_id).sh_near, max_v3(abs(cubevec)) - sd(shadow_id).sh_bias);
   dist = buffer_depth(true, dist, sd(shadow_id).sh_far, sd(shadow_id).sh_near);
   /* Manual Shadow Cube Layer indexing. */
@@ -179,11 +179,11 @@ float sample_cube_shadow(int shadow_id, vec3 W)
   return texture(shadowCubeTexture, vec4(coord, tex_id * 6.0 + face, dist));
 }
 
-float sample_cascade_shadow(int shadow_id, vec3 W)
+float sample_cascade_shadow(int shadow_id, vec3 P)
 {
   int data_id = int(sd(shadow_id).sh_data_index);
   float tex_id = scascade(data_id).sh_tex_index;
-  vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
+  vec4 view_z = vec4(dot(P - cameraPos, cameraForward));
   vec4 weights = 1.0 - smoothstep(scascade(data_id).split_end_distances,
                                   scascade(data_id).split_start_distances.yzwx,
                                   view_z);
@@ -194,13 +194,13 @@ float sample_cascade_shadow(int shadow_id, vec3 W)
   float vis = weights.w;
   vec4 coord, shpos;
   /* Main cascade. */
-  shpos = scascade(data_id).shadowmat[cascade] * vec4(W, 1.0);
+  shpos = scascade(data_id).shadowmat[cascade] * vec4(P, 1.0);
   coord = vec4(shpos.xy, tex_id + float(cascade), shpos.z - sd(shadow_id).sh_bias);
   vis += texture(shadowCascadeTexture, coord) * (1.0 - blend);
 
   cascade = min(3, cascade + 1);
   /* Second cascade. */
-  shpos = scascade(data_id).shadowmat[cascade] * vec4(W, 1.0);
+  shpos = scascade(data_id).shadowmat[cascade] * vec4(P, 1.0);
   coord = vec4(shpos.xy, tex_id + float(cascade), shpos.z - sd(shadow_id).sh_bias);
   vis += texture(shadowCascadeTexture, coord) * blend;
 
@@ -252,32 +252,29 @@ float light_attenuation(LightData ld, vec4 l_vector)
   return vis;
 }
 
-float light_shadowing(LightData ld,
-                      vec3 W,
-#ifndef VOLUMETRICS
-                      vec3 viewPosition,
-                      float tracing_depth,
-                      vec3 true_normal,
-                      float rand_x,
-                      const bool use_contact_shadows,
-#endif
-                      float vis)
+float light_shadowing(LightData ld, vec3 P, float vis)
 {
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
-  /* shadowing */
   if (ld.l_shadowid >= 0.0 && vis > 0.001) {
-
     if (ld.l_type == SUN) {
-      vis *= sample_cascade_shadow(int(ld.l_shadowid), W);
+      vis *= sample_cascade_shadow(int(ld.l_shadowid), P);
     }
     else {
-      vis *= sample_cube_shadow(int(ld.l_shadowid), W);
+      vis *= sample_cube_shadow(int(ld.l_shadowid), P);
     }
+  }
+#endif
+  return vis;
+}
 
-#  ifndef VOLUMETRICS
+#ifndef VOLUMETRICS
+float light_contact_shadows(
+    LightData ld, vec3 P, vec3 vP, float tracing_depth, vec3 vNg, float rand_x, float vis)
+{
+  if (ld.l_shadowid >= 0.0 && vis > 0.001) {
     ShadowData sd = shadows_data[int(ld.l_shadowid)];
     /* Only compute if not already in shadow. */
-    if (use_contact_shadows && sd.sh_contact_dist > 0.0 && vis > 1e-8) {
+    if (sd.sh_contact_dist > 0.0) {
       /* Contact Shadows. */
       vec3 ray_ori, ray_dir;
       float trace_distance;
@@ -287,54 +284,34 @@ float light_shadowing(LightData ld,
         ray_dir = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec * trace_distance;
       }
       else {
-        ray_dir = shadows_cube_data[int(sd.sh_data_index)].position.xyz - W;
+        ray_dir = shadows_cube_data[int(sd.sh_data_index)].position.xyz - P;
         float len = length(ray_dir);
         trace_distance = min(sd.sh_contact_dist, len);
         ray_dir *= trace_distance / len;
       }
 
       ray_dir = transform_direction(ViewMatrix, ray_dir);
-      ray_ori = vec3(viewPosition.xy, tracing_depth) + true_normal * sd.sh_contact_offset;
+      ray_ori = vec3(vP.xy, tracing_depth) + vNg * sd.sh_contact_offset;
 
       vec3 hit_pos = raycast(
           -1, ray_ori, ray_dir, sd.sh_contact_thickness, rand_x, 0.1, 0.001, false);
 
       if (hit_pos.z > 0.0) {
         hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
-        float hit_dist = distance(viewPosition, hit_pos);
+        float hit_dist = distance(vP, hit_pos);
         float dist_ratio = hit_dist / trace_distance;
-        return vis * saturate(dist_ratio * 3.0 - 2.0);
+        return saturate(dist_ratio * 3.0 - 2.0);
       }
     }
-#  endif /* VOLUMETRICS */
   }
-#endif
-
-  return vis;
+  return 1.0;
 }
+#endif /* VOLUMETRICS */
 
-float light_visibility(LightData ld,
-                       vec3 W,
-#ifndef VOLUMETRICS
-                       vec3 viewPosition,
-                       float tracing_depth,
-                       vec3 true_normal,
-                       float rand_x,
-                       const bool use_contact_shadows,
-#endif
-                       vec4 l_vector)
+float light_visibility(LightData ld, vec3 P, vec4 l_vector)
 {
   float l_atten = light_attenuation(ld, l_vector);
-  return light_shadowing(ld,
-                         W,
-#ifndef VOLUMETRICS
-                         viewPosition,
-                         tracing_depth,
-                         true_normal,
-                         rand_x,
-                         use_contact_shadows,
-#endif
-                         l_atten);
+  return light_shadowing(ld, P, l_atten);
 }
 
 float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)

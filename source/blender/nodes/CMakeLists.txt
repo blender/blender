@@ -26,6 +26,7 @@ set(INC
   intern
   shader
   texture
+  ../editors/include
   ../blenkernel
   ../blenlib
   ../blentranslation
@@ -134,6 +135,7 @@ set(SRC
   function/nodes/node_fn_combine_strings.cc
   function/nodes/node_fn_float_compare.cc
   function/nodes/node_fn_group_instance_id.cc
+  function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
   function/nodes/node_fn_object_transforms.cc
   function/nodes/node_fn_random_float.cc
@@ -142,13 +144,15 @@ set(SRC
 
   geometry/nodes/node_geo_align_rotation_to_vector.cc
   geometry/nodes/node_geo_attribute_color_ramp.cc
+  geometry/nodes/node_geo_attribute_combine_xyz.cc
   geometry/nodes/node_geo_attribute_compare.cc
   geometry/nodes/node_geo_attribute_fill.cc
   geometry/nodes/node_geo_attribute_math.cc
   geometry/nodes/node_geo_attribute_mix.cc
-  geometry/nodes/node_geo_attribute_sample_texture.cc
   geometry/nodes/node_geo_attribute_proximity.cc
   geometry/nodes/node_geo_attribute_randomize.cc
+  geometry/nodes/node_geo_attribute_sample_texture.cc
+  geometry/nodes/node_geo_attribute_separate_xyz.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_collection_info.cc
@@ -165,6 +169,7 @@ set(SRC
   geometry/nodes/node_geo_point_translate.cc
   geometry/nodes/node_geo_points_to_volume.cc
   geometry/nodes/node_geo_subdivision_surface.cc
+  geometry/nodes/node_geo_subdivision_surface_simple.cc
   geometry/nodes/node_geo_transform.cc
   geometry/nodes/node_geo_triangulate.cc
   geometry/nodes/node_geo_volume_to_mesh.cc
@@ -354,6 +359,9 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_TBB)
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
   add_definitions(-DWITH_TBB)
 endif()
 

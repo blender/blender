@@ -24,6 +24,9 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+using namespace Freestyle::Geometry;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -80,11 +83,7 @@ PyTypeObject BBox_Type = {
     sizeof(BPy_BBox),                         /* tp_basicsize */
     0,                                        /* tp_itemsize */
     (destructor)BBox_dealloc,                 /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
+    0,                                        /* tp_vectorcall_offset */
     nullptr,                                  /* tp_getattr */
     nullptr,                                  /* tp_setattr */
     nullptr,                                  /* tp_reserved */

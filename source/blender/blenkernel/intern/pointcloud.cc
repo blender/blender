@@ -183,6 +183,7 @@ IDTypeInfo IDType_ID_PT = {
     /* make_local */ nullptr,
     /* foreach_id */ pointcloud_foreach_id,
     /* foreach_cache */ nullptr,
+    /* owner_get */ nullptr,
 
     /* blend_write */ pointcloud_blend_write,
     /* blend_read_data */ pointcloud_blend_read_data,

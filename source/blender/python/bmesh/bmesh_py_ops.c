@@ -167,11 +167,7 @@ static PyTypeObject bmesh_op_Type = {
     0,                                            /* tp_itemsize */
     /* methods */
     NULL, /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    0,    /* tp_vectorcall_offset */
     NULL, /* getattrfunc tp_getattr; */
     NULL, /* setattrfunc tp_setattr; */
     NULL,
@@ -249,7 +245,7 @@ static PyTypeObject bmesh_op_Type = {
 
 static PyObject *bpy_bmesh_ops_module_getattro(PyObject *UNUSED(self), PyObject *pyname)
 {
-  const char *opname = _PyUnicode_AsString(pyname);
+  const char *opname = PyUnicode_AsUTF8(pyname);
 
   if (BMO_opcode_from_opname(opname) != -1) {
     return bpy_bmesh_op_CreatePyObject(opname);

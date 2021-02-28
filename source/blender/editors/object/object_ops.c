@@ -25,23 +25,15 @@
 #include <stdlib.h>
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
 #include "RNA_access.h"
-#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-
-#include "DEG_depsgraph.h"
 
 #include "object_intern.h"
 
@@ -162,7 +154,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
 
-  /* shader fx */
+  /* Shader FX. */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);
   WM_operatortype_append(OBJECT_OT_shaderfx_remove);
   WM_operatortype_append(OBJECT_OT_shaderfx_move_up);

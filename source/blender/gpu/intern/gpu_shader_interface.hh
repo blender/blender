@@ -60,7 +60,7 @@ class ShaderInterface {
   uint attr_len_ = 0;
   uint ubo_len_ = 0;
   uint uniform_len_ = 0;
-  /** Enabled bindpoints that needs to be fed with data. */
+  /** Enabled bind-points that needs to be fed with data. */
   uint16_t enabled_attr_mask_ = 0;
   uint16_t enabled_ubo_mask_ = 0;
   uint8_t enabled_ima_mask_ = 0;

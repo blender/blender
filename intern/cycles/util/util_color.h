@@ -20,7 +20,7 @@
 #include "util/util_math.h"
 #include "util/util_types.h"
 
-#ifdef __KERNEL_SSE2__
+#if !defined(__KERNEL_GPU__) && defined(__KERNEL_SSE2__)
 #  include "util/util_simd.h"
 #endif
 
@@ -277,16 +277,16 @@ ccl_device float4 color_srgb_to_linear_v4(float4 c)
 
 ccl_device float3 color_highlight_compress(float3 color, float3 *variance)
 {
-  color += make_float3(1.0f, 1.0f, 1.0f);
+  color += one_float3();
   if (variance) {
-    *variance *= sqr3(make_float3(1.0f, 1.0f, 1.0f) / color);
+    *variance *= sqr3(one_float3() / color);
   }
   return log3(color);
 }
 
 ccl_device float3 color_highlight_uncompress(float3 color)
 {
-  return exp3(color) - make_float3(1.0f, 1.0f, 1.0f);
+  return exp3(color) - one_float3();
 }
 
 CCL_NAMESPACE_END

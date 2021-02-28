@@ -20,6 +20,9 @@
 
 #include "DNA_collection_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_collection_info_in[] = {
     {SOCK_COLLECTION, N_("Collection")},
     {-1, ""},
@@ -29,6 +32,11 @@ static bNodeSocketTemplate geo_node_collection_info_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_collection_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -64,9 +72,6 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
     copy_v3_v3(transform_mat[3], collection->instance_offset);
 
     mul_m4_m4_pre(transform_mat, self_object->imat);
-
-    float3 self_loc;
-    copy_v3_v3(self_loc, self_object->obmat[3]);
   }
   instances.add_instance(instance, transform_mat, -1);
 
@@ -95,5 +100,6 @@ void register_node_type_geo_collection_info()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_collection_info_exec;
+  ntype.draw_buttons = geo_node_collection_info_layout;
   nodeRegisterType(&ntype);
 }

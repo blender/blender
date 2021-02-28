@@ -32,24 +32,22 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "gpu_py_api.h"
+#include "gpu_py.h"
 #include "gpu_py_element.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name IndexBuf Type
  * \{ */
 
-static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
 
   const char *error_prefix = "IndexBuf.__new__";
   bool ok = true;
 
-  struct {
-    GPUPrimType type_id;
-    PyObject *seq;
-  } params;
+  struct PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
+  PyObject *seq;
 
   uint verts_per_prim;
   uint index_len;
@@ -58,11 +56,11 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
   static const char *_keywords[] = {"type", "seq", NULL};
   static _PyArg_Parser _parser = {"$O&O:IndexBuf.__new__", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, bpygpu_ParsePrimType, &params.type_id, &params.seq)) {
+          args, kwds, &_parser, PyC_ParseStringEnum, &prim_type, &seq)) {
     return NULL;
   }
 
-  verts_per_prim = GPU_indexbuf_primitive_len(params.type_id);
+  verts_per_prim = GPU_indexbuf_primitive_len(prim_type.value_found);
   if (verts_per_prim == -1) {
     PyErr_Format(PyExc_ValueError,
                  "The argument 'type' must be "
@@ -70,10 +68,10 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
     return NULL;
   }
 
-  if (PyObject_CheckBuffer(params.seq)) {
+  if (PyObject_CheckBuffer(seq)) {
     Py_buffer pybuffer;
 
-    if (PyObject_GetBuffer(params.seq, &pybuffer, PyBUF_FORMAT | PyBUF_ND) == -1) {
+    if (PyObject_GetBuffer(seq, &pybuffer, PyBUF_FORMAT | PyBUF_ND) == -1) {
       /* PyObject_GetBuffer already handles error messages. */
       return NULL;
     }
@@ -97,7 +95,7 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
     /* The `vertex_len` parameter is only used for asserts in the Debug build. */
     /* Not very useful in python since scripts are often tested in Release build. */
     /* Use `INT_MAX` instead of the actual number of vertices. */
-    GPU_indexbuf_init(&builder, params.type_id, index_len, INT_MAX);
+    GPU_indexbuf_init(&builder, prim_type.value_found, index_len, INT_MAX);
 
 #if 0
     uint *buf = pybuffer.buf;
@@ -111,7 +109,7 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
     PyBuffer_Release(&pybuffer);
   }
   else {
-    PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
+    PyObject *seq_fast = PySequence_Fast(seq, error_prefix);
 
     if (seq_fast == NULL) {
       return false;
@@ -126,7 +124,7 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
     /* The `vertex_len` parameter is only used for asserts in the Debug build. */
     /* Not very useful in python since scripts are often tested in Release build. */
     /* Use `INT_MAX` instead of the actual number of vertices. */
-    GPU_indexbuf_init(&builder, params.type_id, index_len, INT_MAX);
+    GPU_indexbuf_init(&builder, prim_type.value_found, index_len, INT_MAX);
 
     if (verts_per_prim == 1) {
       for (uint i = 0; i < seq_len; i++) {
@@ -175,13 +173,13 @@ static PyObject *py_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyO
   return BPyGPUIndexBuf_CreatePyObject(GPU_indexbuf_build(&builder));
 }
 
-static void py_IndexBuf_dealloc(BPyGPUIndexBuf *self)
+static void pygpu_IndexBuf__tp_dealloc(BPyGPUIndexBuf *self)
 {
   GPU_indexbuf_discard(self->elem);
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(py_gpu_element_doc,
+PyDoc_STRVAR(pygpu_IndexBuf__tp_doc,
              ".. class:: GPUIndexBuf(type, seq)\n"
              "\n"
              "   Contains an index buffer.\n"
@@ -199,10 +197,10 @@ PyDoc_STRVAR(py_gpu_element_doc,
 PyTypeObject BPyGPUIndexBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUIndexBuf",
     .tp_basicsize = sizeof(BPyGPUIndexBuf),
-    .tp_dealloc = (destructor)py_IndexBuf_dealloc,
+    .tp_dealloc = (destructor)pygpu_IndexBuf__tp_dealloc,
     .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_doc = py_gpu_element_doc,
-    .tp_new = py_IndexBuf_new,
+    .tp_doc = pygpu_IndexBuf__tp_doc,
+    .tp_new = pygpu_IndexBuf__tp_new,
 };
 
 /** \} */

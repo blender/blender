@@ -15,6 +15,7 @@
 #
 
 # <pep8 compliant>
+from __future__ import annotations
 
 import bpy
 from bpy.props import (
@@ -178,11 +179,6 @@ enum_view3d_shading_render_pass = (
     ('MIST', "Mist", "Show the Mist render pass", 32),
 )
 
-enum_aov_types = (
-    ('VALUE', "Value", "Write a Value pass", 0),
-    ('COLOR', "Color", "Write a Color pass", 1),
-)
-
 
 def enum_openimagedenoise_denoiser(self, context):
     import _cycles
@@ -229,7 +225,6 @@ def update_render_passes(self, context):
     scene = context.scene
     view_layer = context.view_layer
     view_layer.update_render_passes()
-    engine.detect_conflicting_passes(scene, view_layer)
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
@@ -651,6 +646,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         min=0, max=(1 << 24),
         default=1,
     )
+    preview_denoising_input_passes: EnumProperty(
+        name="Viewport Input Passes",
+        description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
+        items=enum_denoising_input_passes,
+        default='RGB_ALBEDO',
+    )
 
     debug_reset_timeout: FloatProperty(
         name="Reset timeout",
@@ -847,7 +848,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('MEGA', "Mega", ""),
             ('SPLIT', "Split", ""),
         ),
-        update=_devices_update_callback
+        update=CyclesRenderSettings._devices_update_callback
     )
 
     debug_opencl_device_type: EnumProperty(
@@ -861,10 +862,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             ('GPU', "GPU", ""),
             ('ACCELERATOR', "Accelerator", ""),
         ),
-        update=_devices_update_callback
+        update=CyclesRenderSettings._devices_update_callback
     )
-
-    del _devices_update_callback
 
     debug_use_opencl_debug: BoolProperty(name="Debug OpenCL", default=False)
 
@@ -1311,27 +1310,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
         del bpy.types.Scene.cycles_curves
 
 
-class CyclesAOVPass(bpy.types.PropertyGroup):
-    name: StringProperty(
-        name="Name",
-        description="Name of the pass, to use in the AOV Output shader node",
-        update=update_render_passes,
-        default="AOV"
-    )
-    type: EnumProperty(
-        name="Type",
-        description="Pass data type",
-        update=update_render_passes,
-        items=enum_aov_types,
-        default='COLOR'
-    )
-    conflict: StringProperty(
-        name="Conflict",
-        description="If there is a conflict with another render passes, message explaining why",
-        default=""
-    )
-
-
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
     pass_debug_bvh_traversed_nodes: BoolProperty(
@@ -1462,21 +1440,11 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         items=enum_denoising_input_passes,
         default='RGB_ALBEDO',
     )
-
     denoising_openimagedenoise_input_passes: EnumProperty(
         name="Input Passes",
         description="Passes used by the denoiser to distinguish noise from shader and geometry detail",
         items=enum_denoising_input_passes,
         default='RGB_ALBEDO_NORMAL',
-    )
-
-    aovs: CollectionProperty(
-        type=CyclesAOVPass,
-        description="Custom render passes that can be output by shader nodes",
-    )
-    active_aov: IntProperty(
-        default=0,
-        min=0
     )
 
     @classmethod
@@ -1517,7 +1485,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     compute_device_type: EnumProperty(
         name="Compute Device Type",
         description="Device to use for computation (rendering with Cycles)",
-        items=get_device_types,
+        items=CyclesPreferences.get_device_types,
     )
 
     devices: bpy.props.CollectionProperty(type=CyclesDeviceSettings)
@@ -1665,7 +1633,6 @@ def register():
     bpy.utils.register_class(CyclesCurveRenderSettings)
     bpy.utils.register_class(CyclesDeviceSettings)
     bpy.utils.register_class(CyclesPreferences)
-    bpy.utils.register_class(CyclesAOVPass)
     bpy.utils.register_class(CyclesRenderLayerSettings)
     bpy.utils.register_class(CyclesView3DShadingSettings)
 
@@ -1687,6 +1654,5 @@ def unregister():
     bpy.utils.unregister_class(CyclesCurveRenderSettings)
     bpy.utils.unregister_class(CyclesDeviceSettings)
     bpy.utils.unregister_class(CyclesPreferences)
-    bpy.utils.unregister_class(CyclesAOVPass)
     bpy.utils.unregister_class(CyclesRenderLayerSettings)
     bpy.utils.unregister_class(CyclesView3DShadingSettings)

@@ -484,7 +484,7 @@ static bool tracking_has_selection(SpaceClip *space_clip)
   return false;
 }
 
-static bool mask_has_selection(const bContext *C, bool include_handles)
+static bool mask_has_selection(const bContext *C)
 {
   Mask *mask = CTX_data_edit_mask(C);
   if (mask == NULL) {
@@ -506,19 +506,15 @@ static bool mask_has_selection(const bContext *C, bool include_handles)
           return true;
         }
 
-        if (!include_handles) {
-          /* Ignore handles. */
-        }
-        else if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
+        if (BKE_mask_point_handles_mode_get(point) == MASK_HANDLE_MODE_STICK) {
           return true;
         }
-        else {
-          if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
-            return true;
-          }
-          if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
-            return true;
-          }
+
+        if ((bezt->f1 & SELECT) && (bezt->h1 != HD_VECT)) {
+          return true;
+        }
+        if ((bezt->f3 & SELECT) && (bezt->h2 != HD_VECT)) {
+          return true;
         }
       }
     }
@@ -527,14 +523,17 @@ static bool mask_has_selection(const bContext *C, bool include_handles)
   return false;
 }
 
-static bool selected_boundbox(const bContext *C, float min[2], float max[2], bool include_handles)
+static bool selected_boundbox(const bContext *C,
+                              float min[2],
+                              float max[2],
+                              bool handles_as_control_point)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   if (sc->mode == SC_MODE_TRACKING) {
     return selected_tracking_boundbox(sc, min, max);
   }
 
-  if (ED_mask_selected_minmax(C, min, max, include_handles)) {
+  if (ED_mask_selected_minmax(C, min, max, handles_as_control_point)) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
     int width, height;
     ED_space_clip_get_size(sc, &width, &height);
@@ -563,12 +562,13 @@ bool clip_view_calculate_view_selection(
 
   /* NOTE: The `fit` argument is set to truth when doing "View to Selected" operator, and it set to
    * false when this function is used for Lock-to-Selection functionality. When locking to
-   * selection the handles are to be ignored. So we can derive the `include_handles` from `fit`.
+   * selection the handles are to use control point position. So we can derive the
+   * `handles_as_control_point` from `fit`.
    *
    * TODO(sergey): Make such decision more explicit. Maybe pass use-case for the calculation to
    * tell operator from lock-to-selection apart. */
   float min[2], max[2];
-  if (!selected_boundbox(C, min, max, fit)) {
+  if (!selected_boundbox(C, min, max, !fit)) {
     return false;
   }
 
@@ -622,7 +622,7 @@ bool clip_view_has_locked_selection(const bContext *C)
     return tracking_has_selection(space_clip);
   }
 
-  return mask_has_selection(C, false);
+  return mask_has_selection(C);
 }
 
 void clip_draw_sfra_efra(View2D *v2d, Scene *scene)

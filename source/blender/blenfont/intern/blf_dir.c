@@ -140,7 +140,7 @@ char *blf_dir_search(const char *file)
   }
 
   if (!s) {
-    /* Assume file is either an abslute path, or a relative path to current directory. */
+    /* Assume file is either an absolute path, or a relative path to current directory. */
     BLI_strncpy(full_path, file, sizeof(full_path));
     BLI_path_abs(full_path, BKE_main_blendfile_path(G_MAIN));
     if (BLI_exists(full_path)) {
@@ -151,8 +151,9 @@ char *blf_dir_search(const char *file)
   return s;
 }
 
-/* Some font have additional file with metrics information,
- * in general, the extension of the file is: .afm or .pfm
+/**
+ * Some font have additional file with metrics information,
+ * in general, the extension of the file is: `.afm` or `.pfm`
  */
 char *blf_dir_metrics_search(const char *filename)
 {

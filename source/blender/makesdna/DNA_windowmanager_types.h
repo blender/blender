@@ -472,7 +472,7 @@ typedef struct wmKeyConfig {
 
   /** Unique name. */
   char idname[64];
-  /** Idname of configuration this is derives from, "" if none. */
+  /** ID-name of configuration this is derives from, "" if none. */
   char basename[64];
 
   ListBase keymaps;

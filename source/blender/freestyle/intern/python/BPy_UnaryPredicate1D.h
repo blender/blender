@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../stroke/Predicates1D.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +39,7 @@ extern PyTypeObject UnaryPredicate1D_Type;
 
 /*---------------------------Python BPy_UnaryPredicate1D structure definition----------*/
 typedef struct {
-  PyObject_HEAD UnaryPredicate1D *up1D;
+  PyObject_HEAD Freestyle::UnaryPredicate1D *up1D;
 } BPy_UnaryPredicate1D;
 
 /*---------------------------Python BPy_UnaryPredicate1D visible prototypes-----------*/

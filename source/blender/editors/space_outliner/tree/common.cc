@@ -28,7 +28,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name ID Helpers.
- *
  * \{ */
 
 const char *outliner_idcode_to_plural(short idcode)

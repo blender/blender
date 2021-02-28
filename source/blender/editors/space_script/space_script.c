@@ -36,7 +36,6 @@
 #include "ED_space_api.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -44,7 +43,6 @@
 #ifdef WITH_PYTHON
 #endif
 
-#include "GPU_framebuffer.h"
 #include "script_intern.h" /* own include */
 
 // static script_run_python(char *funcname, )

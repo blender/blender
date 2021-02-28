@@ -17,7 +17,7 @@ out vec4 finalColor;
 out vec4 finalColorOuter;
 #endif
 #ifdef USE_GEOM_SHADER
-out int selectOveride;
+out int selectOverride;
 #endif
 
 bool test_occlusion()
@@ -59,10 +59,10 @@ void main()
 #elif defined(EDGE)
 #  ifdef FLAT
   finalColor = EDIT_MESH_edge_color_inner(m_data.y);
-  selectOveride = 1;
+  selectOverride = 1;
 #  else
   finalColor = EDIT_MESH_edge_vertex_color(m_data.y);
-  selectOveride = (m_data.y & EDGE_SELECTED);
+  selectOverride = (m_data.y & EDGE_SELECTED);
 #  endif
 
   float crease = float(m_data.z) / 255.0;

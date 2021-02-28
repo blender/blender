@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 static PyObject *BPy_Nature_and(PyObject *a, PyObject *b);
@@ -107,43 +109,39 @@ PyTypeObject Nature_Type = {
     sizeof(PyLongObject),                       /* tp_basicsize */
     0,                                          /* tp_itemsize */
     nullptr,                                    /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
-    nullptr,            /* tp_getattr */
-    nullptr,            /* tp_setattr */
-    nullptr,            /* tp_reserved */
-    nullptr,            /* tp_repr */
-    &nature_as_number,  /* tp_as_number */
-    nullptr,            /* tp_as_sequence */
-    nullptr,            /* tp_as_mapping */
-    nullptr,            /* tp_hash  */
-    nullptr,            /* tp_call */
-    nullptr,            /* tp_str */
-    nullptr,            /* tp_getattro */
-    nullptr,            /* tp_setattro */
-    nullptr,            /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT, /* tp_flags */
-    Nature_doc,         /* tp_doc */
-    nullptr,            /* tp_traverse */
-    nullptr,            /* tp_clear */
-    nullptr,            /* tp_richcompare */
-    0,                  /* tp_weaklistoffset */
-    nullptr,            /* tp_iter */
-    nullptr,            /* tp_iternext */
-    nullptr,            /* tp_methods */
-    nullptr,            /* tp_members */
-    nullptr,            /* tp_getset */
-    &PyLong_Type,       /* tp_base */
-    nullptr,            /* tp_dict */
-    nullptr,            /* tp_descr_get */
-    nullptr,            /* tp_descr_set */
-    0,                  /* tp_dictoffset */
-    nullptr,            /* tp_init */
-    nullptr,            /* tp_alloc */
-    nullptr,            /* tp_new */
+    0,                                          /* tp_vectorcall_offset */
+    nullptr,                                    /* tp_getattr */
+    nullptr,                                    /* tp_setattr */
+    nullptr,                                    /* tp_reserved */
+    nullptr,                                    /* tp_repr */
+    &nature_as_number,                          /* tp_as_number */
+    nullptr,                                    /* tp_as_sequence */
+    nullptr,                                    /* tp_as_mapping */
+    nullptr,                                    /* tp_hash  */
+    nullptr,                                    /* tp_call */
+    nullptr,                                    /* tp_str */
+    nullptr,                                    /* tp_getattro */
+    nullptr,                                    /* tp_setattro */
+    nullptr,                                    /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                         /* tp_flags */
+    Nature_doc,                                 /* tp_doc */
+    nullptr,                                    /* tp_traverse */
+    nullptr,                                    /* tp_clear */
+    nullptr,                                    /* tp_richcompare */
+    0,                                          /* tp_weaklistoffset */
+    nullptr,                                    /* tp_iter */
+    nullptr,                                    /* tp_iternext */
+    nullptr,                                    /* tp_methods */
+    nullptr,                                    /* tp_members */
+    nullptr,                                    /* tp_getset */
+    &PyLong_Type,                               /* tp_base */
+    nullptr,                                    /* tp_dict */
+    nullptr,                                    /* tp_descr_get */
+    nullptr,                                    /* tp_descr_set */
+    0,                                          /* tp_dictoffset */
+    nullptr,                                    /* tp_init */
+    nullptr,                                    /* tp_alloc */
+    nullptr,                                    /* tp_new */
 };
 
 /*-----------------------BPy_Nature instance definitions ----------------------------------*/

@@ -466,9 +466,15 @@ static int gpencil_layer_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* make copy of layer, and add it immediately after the existing layer */
+  /* Make copy of layer, and add it immediately after or before the existing layer. */
   new_layer = BKE_gpencil_layer_duplicate(gpl, true, dup_strokes);
-  BLI_insertlinkafter(&gpd->layers, gpl, new_layer);
+  if (dup_strokes) {
+    BLI_insertlinkafter(&gpd->layers, gpl, new_layer);
+  }
+  else {
+    /* For empty strokes is better add below. */
+    BLI_insertlinkbefore(&gpd->layers, gpl, new_layer);
+  }
 
   /* ensure new layer has a unique name, and is now the active layer */
   BLI_uniquename(&gpd->layers,
@@ -1583,7 +1589,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
                 continue;
               }
             }
-            /* some stroke is already at botom */
+            /* Some stroke is already at bottom. */
             if (ELEM(direction, GP_STROKE_MOVE_BOTTOM, GP_STROKE_MOVE_DOWN)) {
               if (gps == gpf->strokes.first) {
                 gpf_lock = true;
@@ -2016,7 +2022,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
       }
     }
 
-    /* Before delete, unpinn any material of the brush. */
+    /* Before delete, un-pin any material of the brush. */
     if ((brush->gpencil_settings) && (brush->gpencil_settings->material != NULL)) {
       brush->gpencil_settings->material = NULL;
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
@@ -3412,9 +3418,11 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
 
             if (!deselected) {
               gps->flag |= GP_STROKE_SELECT;
+              BKE_gpencil_stroke_select_index_set(gpd, gps);
             }
             else {
               gps->flag &= ~GP_STROKE_SELECT;
+              BKE_gpencil_stroke_select_index_reset(gps);
             }
             for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
               if (!deselected) {

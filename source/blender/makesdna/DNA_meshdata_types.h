@@ -271,6 +271,9 @@ typedef struct MIntProperty {
 typedef struct MStringProperty {
   char s[255], s_len;
 } MStringProperty;
+typedef struct MBoolProperty {
+  uint8_t b;
+} MBoolProperty;
 
 /** \} */
 
@@ -414,7 +417,6 @@ typedef struct OrigSpaceLoop {
 
 typedef struct FreestyleEdge {
   char flag;
-  char _pad[3];
 } FreestyleEdge;
 
 /** #FreestyleEdge.flag */
@@ -424,7 +426,6 @@ enum {
 
 typedef struct FreestyleFace {
   char flag;
-  char _pad[3];
 } FreestyleFace;
 
 /** #FreestyleFace.flag */

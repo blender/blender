@@ -38,7 +38,7 @@ extern PyTypeObject ChainPredicateIterator_Type;
 /*---------------------------Python BPy_ChainPredicateIterator structure definition----------*/
 typedef struct {
   BPy_ChainingIterator py_c_it;
-  ChainPredicateIterator *cp_it;
+  Freestyle::ChainPredicateIterator *cp_it;
   PyObject *upred;
   PyObject *bpred;
 } BPy_ChainPredicateIterator;

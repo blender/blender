@@ -38,7 +38,7 @@ extern PyTypeObject UnaryFunction1DEdgeNature_Type;
 /*---------------------------Python BPy_UnaryFunction1DEdgeNature structure definition----------*/
 typedef struct {
   BPy_UnaryFunction1D py_uf1D;
-  UnaryFunction1D<Nature::EdgeNature> *uf1D_edgenature;
+  Freestyle::UnaryFunction1D<Freestyle::Nature::EdgeNature> *uf1D_edgenature;
 } BPy_UnaryFunction1DEdgeNature;
 
 /*---------------------------Python BPy_UnaryFunction1DEdgeNature visible prototypes-----------*/

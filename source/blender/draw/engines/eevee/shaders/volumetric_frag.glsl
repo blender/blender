@@ -1,6 +1,6 @@
 
 #pragma BLENDER_REQUIRE(volumetric_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_type_lib.glsl)
 
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */

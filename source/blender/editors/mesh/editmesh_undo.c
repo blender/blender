@@ -39,6 +39,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -153,6 +154,23 @@ static void um_arraystore_cd_compact(struct CustomData *cdata,
   for (int layer_start = 0, layer_end; layer_start < cdata->totlayer; layer_start = layer_end) {
     const CustomDataType type = cdata->layers[layer_start].type;
 
+    /* Perform a full copy on dynamic layers.
+     *
+     * Unfortunately we can't compare dynamic layer types as they contain allocated pointers,
+     * which burns CPU cycles looking for duplicate data that doesn't exist.
+     * The array data isn't comparable once copied from the mesh,
+     * this bottlenecks on high poly meshes, see T84114.
+     *
+     * Notes:
+     *
+     * - Ideally the data would be expanded into a format that could be de-duplicated effectively,
+     *   this would require a flat representation of each dynamic custom-data layer.
+     *
+     * - The data in the layer could be kept as-is to save on the extra copy,
+     *   it would complicate logic in this function.
+     */
+    const bool layer_type_is_dynamic = CustomData_layertype_is_dynamic(type);
+
     layer_end = layer_start + 1;
     while ((layer_end < cdata->totlayer) && (type == cdata->layers[layer_end].type)) {
       layer_end++;
@@ -209,6 +227,11 @@ static void um_arraystore_cd_compact(struct CustomData *cdata,
                                           i < bcd_reference_current->states_len) ?
                                              bcd_reference_current->states[i] :
                                              NULL;
+          /* See comment on `layer_type_is_dynamic` above. */
+          if (layer_type_is_dynamic) {
+            state_reference = NULL;
+          }
+
           bcd->states[i] = BLI_array_store_state_add(
               bs, layer->data, (size_t)data_len * stride, state_reference);
         }
@@ -543,7 +566,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
                                  ((LinkData *)um_arraystore.local_links.last)->data :
                                  NULL;
 
-    /* add oursrlves */
+    /* Add ourselves. */
     BLI_addtail(&um_arraystore.local_links, BLI_genericNodeN(um));
 
 #  ifdef USE_ARRAY_STORE_THREAD
@@ -752,11 +775,10 @@ static void mesh_undosys_step_decode(struct bContext *C,
 {
   MeshUndoStep *us = (MeshUndoStep *)us_p;
 
-  /* Load all our objects  into edit-mode, clear everything else. */
   ED_undo_object_editmode_restore_helper(
       C, &us->elems[0].obedit_ref.ptr, us->elems_len, sizeof(*us->elems));
 
-  BLI_assert(mesh_undosys_poll(C));
+  BLI_assert(BKE_object_is_in_editmode(us->elems[0].obedit_ref.ptr));
 
   for (uint i = 0; i < us->elems_len; i++) {
     MeshUndoStep_Elem *elem = &us->elems[i];
@@ -778,7 +800,10 @@ static void mesh_undosys_step_decode(struct bContext *C,
 
   /* The first element is always active */
   ED_undo_object_set_active_or_warn(
-      CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+      CTX_data_scene(C), CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
+  /* Check after setting active. */
+  BLI_assert(mesh_undosys_poll(C));
 
   Scene *scene = CTX_data_scene(C);
   scene->toolsettings->selectmode = us->elems[0].data.selectmode;

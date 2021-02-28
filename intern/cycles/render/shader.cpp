@@ -35,6 +35,7 @@
 #include "util/util_foreach.h"
 #include "util/util_murmurhash.h"
 #include "util/util_task.h"
+#include "util/util_transform.h"
 
 #ifdef WITH_OCIO
 #  include <OpenColorIO/OpenColorIO.h>
@@ -399,39 +400,7 @@ ShaderManager::ShaderManager()
   update_flags = UPDATE_ALL;
   beckmann_table_offset = TABLE_OFFSET_INVALID;
 
-  xyz_to_r = make_float3(3.2404542f, -1.5371385f, -0.4985314f);
-  xyz_to_g = make_float3(-0.9692660f, 1.8760108f, 0.0415560f);
-  xyz_to_b = make_float3(0.0556434f, -0.2040259f, 1.0572252f);
-  rgb_to_y = make_float3(0.2126729f, 0.7151522f, 0.0721750f);
-
-#ifdef WITH_OCIO
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
-  if (config) {
-    if (config->hasRole("XYZ") && config->hasRole("scene_linear")) {
-      OCIO::ConstProcessorRcPtr to_rgb_processor = config->getProcessor("XYZ", "scene_linear");
-      OCIO::ConstProcessorRcPtr to_xyz_processor = config->getProcessor("scene_linear", "XYZ");
-      if (to_rgb_processor && to_xyz_processor) {
-        float r[] = {1.0f, 0.0f, 0.0f};
-        float g[] = {0.0f, 1.0f, 0.0f};
-        float b[] = {0.0f, 0.0f, 1.0f};
-        to_xyz_processor->applyRGB(r);
-        to_xyz_processor->applyRGB(g);
-        to_xyz_processor->applyRGB(b);
-        rgb_to_y = make_float3(r[1], g[1], b[1]);
-
-        float x[] = {1.0f, 0.0f, 0.0f};
-        float y[] = {0.0f, 1.0f, 0.0f};
-        float z[] = {0.0f, 0.0f, 1.0f};
-        to_rgb_processor->applyRGB(x);
-        to_rgb_processor->applyRGB(y);
-        to_rgb_processor->applyRGB(z);
-        xyz_to_r = make_float3(x[0], y[0], z[0]);
-        xyz_to_g = make_float3(x[1], y[1], z[1]);
-        xyz_to_b = make_float3(x[2], y[2], z[2]);
-      }
-    }
-  }
-#endif
+  init_xyz_transforms();
 }
 
 ShaderManager::~ShaderManager()
@@ -595,7 +564,7 @@ void ShaderManager::device_update_common(Device *device,
       flag |= SD_HAS_DISPLACEMENT;
 
     /* constant emission check */
-    float3 constant_emission = make_float3(0.0f, 0.0f, 0.0f);
+    float3 constant_emission = zero_float3();
     if (shader->is_constant_emission(&constant_emission))
       flag |= SD_HAS_CONSTANT_EMISSION;
 
@@ -827,6 +796,95 @@ void ShaderManager::tag_update(Scene * /*scene*/, uint32_t /*flag*/)
 bool ShaderManager::need_update() const
 {
   return update_flags != UPDATE_NONE;
+}
+
+#ifdef WITH_OCIO
+static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
+                                      const char *colorspace,
+                                      Transform &to_scene_linear)
+{
+  OCIO::ConstProcessorRcPtr processor;
+  try {
+    processor = config->getProcessor(OCIO::ROLE_SCENE_LINEAR, colorspace);
+  }
+  catch (OCIO::Exception &) {
+    return false;
+  }
+
+  if (!processor) {
+    return false;
+  }
+
+  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  if (!device_processor) {
+    return false;
+  }
+
+  to_scene_linear = transform_identity();
+  device_processor->applyRGB(&to_scene_linear.x.x);
+  device_processor->applyRGB(&to_scene_linear.y.x);
+  device_processor->applyRGB(&to_scene_linear.z.x);
+  to_scene_linear = transform_transposed_inverse(to_scene_linear);
+  return true;
+}
+#endif
+
+void ShaderManager::init_xyz_transforms()
+{
+  /* Default to ITU-BT.709 in case no appropriate transform found. */
+  xyz_to_r = make_float3(3.2404542f, -1.5371385f, -0.4985314f);
+  xyz_to_g = make_float3(-0.9692660f, 1.8760108f, 0.0415560f);
+  xyz_to_b = make_float3(0.0556434f, -0.2040259f, 1.0572252f);
+  rgb_to_y = make_float3(0.2126729f, 0.7151522f, 0.0721750f);
+
+#ifdef WITH_OCIO
+  /* Get from OpenColorO config if it has the required roles. */
+  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  if (!(config && config->hasRole(OCIO::ROLE_SCENE_LINEAR))) {
+    return;
+  }
+
+  Transform xyz_to_rgb;
+
+  if (config->hasRole("aces_interchange")) {
+    /* Standard OpenColorIO role, defined as ACES2065-1. */
+    const Transform xyz_to_aces = make_transform(1.0498110175f,
+                                                 0.0f,
+                                                 -0.0000974845f,
+                                                 0.0f,
+                                                 -0.4959030231f,
+                                                 1.3733130458f,
+                                                 0.0982400361f,
+                                                 0.0f,
+                                                 0.0f,
+                                                 0.0f,
+                                                 0.9912520182f,
+                                                 0.0f);
+    Transform aces_to_rgb;
+    if (!to_scene_linear_transform(config, "aces_interchange", aces_to_rgb)) {
+      return;
+    }
+
+    xyz_to_rgb = aces_to_rgb * xyz_to_aces;
+  }
+  else if (config->hasRole("XYZ")) {
+    /* Custom role used before the standard existed. */
+    if (!to_scene_linear_transform(config, "XYZ", xyz_to_rgb)) {
+      return;
+    }
+  }
+  else {
+    /* No reference role found to determine XYZ. */
+    return;
+  }
+
+  xyz_to_r = float4_to_float3(xyz_to_rgb.x);
+  xyz_to_g = float4_to_float3(xyz_to_rgb.y);
+  xyz_to_b = float4_to_float3(xyz_to_rgb.z);
+
+  const Transform rgb_to_xyz = transform_inverse(xyz_to_rgb);
+  rgb_to_y = float4_to_float3(rgb_to_xyz.y);
+#endif
 }
 
 CCL_NAMESPACE_END

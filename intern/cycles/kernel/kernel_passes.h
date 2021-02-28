@@ -59,9 +59,9 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
     return;
   }
 
-  float3 normal = make_float3(0.0f, 0.0f, 0.0f);
-  float3 diffuse_albedo = make_float3(0.0f, 0.0f, 0.0f);
-  float3 specular_albedo = make_float3(0.0f, 0.0f, 0.0f);
+  float3 normal = zero_float3();
+  float3 diffuse_albedo = zero_float3();
+  float3 specular_albedo = zero_float3();
   float sum_weight = 0.0f, sum_nonspecular_weight = 0.0f;
 
   for (int i = 0; i < sd->num_closure; i++) {

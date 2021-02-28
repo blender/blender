@@ -86,15 +86,15 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
 /* -------------------------------------------------------------------- */
 /** \name UDIM gpu texture
  * \{ */
-
-static bool is_over_resolution_limit(int w, int h)
+static bool is_over_resolution_limit(int w, int h, bool limit_gl_texture_size)
 {
-  return (w > GPU_texture_size_with_limit(w) || h > GPU_texture_size_with_limit(h));
+  return (w > GPU_texture_size_with_limit(w, limit_gl_texture_size) ||
+          h > GPU_texture_size_with_limit(h, limit_gl_texture_size));
 }
 
-static int smaller_power_of_2_limit(int num)
+static int smaller_power_of_2_limit(int num, bool limit_gl_texture_size)
 {
-  return power_of_2_min_i(GPU_texture_size_with_limit(num));
+  return power_of_2_min_i(GPU_texture_size_with_limit(num, limit_gl_texture_size));
 }
 
 static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multiview_eye)
@@ -153,6 +153,7 @@ static int compare_packtile(const void *a, const void *b)
 
 static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
 {
+  const bool limit_gl_texture_size = (ima->gpuflag & IMA_GPU_MAX_RESOLUTION) == 0;
   int arraywidth = 0, arrayheight = 0;
   ListBase boxes = {NULL};
 
@@ -168,9 +169,10 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
       packtile->boxpack.w = ibuf->x;
       packtile->boxpack.h = ibuf->y;
 
-      if (is_over_resolution_limit(packtile->boxpack.w, packtile->boxpack.h)) {
-        packtile->boxpack.w = smaller_power_of_2_limit(packtile->boxpack.w);
-        packtile->boxpack.h = smaller_power_of_2_limit(packtile->boxpack.h);
+      if (is_over_resolution_limit(
+              packtile->boxpack.w, packtile->boxpack.h, limit_gl_texture_size)) {
+        packtile->boxpack.w = smaller_power_of_2_limit(packtile->boxpack.w, limit_gl_texture_size);
+        packtile->boxpack.h = smaller_power_of_2_limit(packtile->boxpack.h, limit_gl_texture_size);
       }
       arraywidth = max_ii(arraywidth, packtile->boxpack.w);
       arrayheight = max_ii(arrayheight, packtile->boxpack.h);
@@ -312,18 +314,26 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   short requested_pass = iuser ? iuser->pass : 0;
   short requested_layer = iuser ? iuser->layer : 0;
   short requested_view = iuser ? iuser->multi_index : 0;
+  const bool limit_resolution = U.glreslimit != 0 &&
+                                ((iuser && (iuser->flag & IMA_SHOW_MAX_RESOLUTION) == 0) ||
+                                 (iuser == NULL));
+  short requested_gpu_flags = limit_resolution ? 0 : IMA_GPU_MAX_RESOLUTION;
+#define GPU_FLAGS_TO_CHECK (IMA_GPU_MAX_RESOLUTION)
   /* There is room for 2 multiview textures. When a higher number is requested we should always
    * target the first view slot. This is fine as multi view images aren't used together. */
   if (requested_view < 2) {
     requested_view = 0;
   }
   if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
-      ima->gpu_view != requested_view) {
+      ima->gpu_view != requested_view ||
+      ((ima->gpuflag & GPU_FLAGS_TO_CHECK) != requested_gpu_flags)) {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
-    ima->gpuflag |= IMA_GPU_REFRESH;
+    ima->gpuflag &= ~GPU_FLAGS_TO_CHECK;
+    ima->gpuflag |= requested_gpu_flags | IMA_GPU_REFRESH;
   }
+#undef GPU_FLAGS_TO_CHECK
 
   /* Check if image has been updated and tagged to be updated (full or partial). */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
@@ -390,9 +400,13 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
     const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima,
                                                                                    ibuf_intern);
+    const bool limit_gl_texture_size = (ima->gpuflag & IMA_GPU_MAX_RESOLUTION) == 0;
 
-    *tex = IMB_create_gpu_texture(
-        ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
+    *tex = IMB_create_gpu_texture(ima->id.name + 2,
+                                  ibuf_intern,
+                                  use_high_bitdepth,
+                                  store_premultiplied,
+                                  limit_gl_texture_size);
 
     GPU_texture_wrap_mode(*tex, true, false);
 
@@ -633,7 +647,7 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
   }
 
   void *data = (ibuf->rect_float) ? (void *)(ibuf->rect_float) : (void *)(ibuf->rect);
-  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
 
@@ -659,7 +673,7 @@ static void gpu_texture_update_unscaled(GPUTexture *tex,
   }
 
   void *data = (rect_float) ? (void *)(rect_float + tex_offset) : (void *)(rect + tex_offset);
-  eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
+  eGPUDataFormat data_format = (rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   /* Partial update without scaling. Stride and offset are used to copy only a
    * subset of a possible larger buffer than what we are updating. */

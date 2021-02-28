@@ -45,7 +45,7 @@ typedef struct RigidBodyWorld_Shared {
   struct ListBase ptcaches;
 
   /* References to Physics Sim objects. Exist at runtime only ---------------------- */
-  /** Physics sim world (i.e. btDiscreteDynamicsWorld). */
+  /** Physics sim world (i.e. #btDiscreteDynamicsWorld). */
   void *physics_world;
 } RigidBodyWorld_Shared;
 
@@ -63,7 +63,7 @@ typedef struct RigidBodyWorld {
   /** Array to access group objects by index, only used at runtime. */
   struct Object **objects;
 
-  /** Group containing objects to use for Rigid Body Constraint.s*/
+  /** Group containing objects to use for Rigid Body Constraints. */
   struct Collection *constraints;
 
   char _pad[4];
@@ -72,19 +72,19 @@ typedef struct RigidBodyWorld {
 
   /** This pointer is shared between all evaluated copies. */
   struct RigidBodyWorld_Shared *shared;
-  /** Moved to shared->pointcache. */
+  /** Moved to `shared->pointcache`. */
   struct PointCache *pointcache DNA_DEPRECATED;
-  /** Moved to shared->ptcaches. */
+  /** Moved to `shared->ptcaches`. */
   struct ListBase ptcaches DNA_DEPRECATED;
   /** Number of objects in rigid body group. */
   int numbodies;
 
-  /** Number of simulation substeps steps taken per frame. */
+  /** Number of simulation sub-steps steps taken per frame. */
   short substeps_per_frame;
   /** Number of constraint solver iterations made per simulation step. */
   short num_solver_iterations;
 
-  /** (eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
+  /** (#eRigidBodyWorld_Flag) settings for this RigidBodyWorld. */
   int flag;
   /** Used to speed up or slow down the simulation. */
   float time_scale;
@@ -96,7 +96,7 @@ typedef enum eRigidBodyWorld_Flag {
   RBW_FLAG_MUTED = (1 << 0),
   /* sim data needs to be rebuilt */
   /* RBW_FLAG_NEEDS_REBUILD = (1 << 1), */ /* UNUSED */
-  /* usse split impulse when stepping the simulation */
+  /** Use split impulse when stepping the simulation. */
   RBW_FLAG_USE_SPLIT_IMPULSE = (1 << 2),
 } eRigidBodyWorld_Flag;
 
@@ -312,7 +312,7 @@ typedef enum eRigidBodyCon_Type {
   RBC_TYPE_HINGE = 1,
   /** simulates wheel suspension */
   /* RBC_TYPE_HINGE2 = 2, */ /* UNUSED */
-  /** restricts movent to a specified axis */
+  /** Restricts moment to a specified axis. */
   RBC_TYPE_SLIDER = 3,
   /** lets object rotate within a specified cone */
   /* RBC_TYPE_CONE_TWIST = 4, */ /* UNUSED */
@@ -329,7 +329,7 @@ typedef enum eRigidBodyCon_Type {
   /** Simplified spring constraint with only once axis that's
    * automatically placed between the connected bodies */
   /* RBC_TYPE_SPRING = 10, */ /* UNUSED */
-  /** dirves bodies by applying linear and angular forces */
+  /** Drives bodies by applying linear and angular forces. */
   RBC_TYPE_MOTOR = 11,
 } eRigidBodyCon_Type;
 

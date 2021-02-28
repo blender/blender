@@ -467,7 +467,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   cd->voxel_size = mesh->remesh_voxel_size;
   op->customdata = cd;
 
-  /* Select the front facing face of the mesh boundig box. */
+  /* Select the front facing face of the mesh bounding box. */
   BoundBox *bb = BKE_mesh_boundbox_get(cd->active_object);
 
   /* Indices of the Bounding Box faces. */

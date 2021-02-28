@@ -72,9 +72,10 @@ class PROPERTIES_PT_navigation_bar(Panel):
 
 
 class PROPERTIES_PT_options(Panel):
+    """Show options for the properties editor"""
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'HEADER'
-    bl_label = 'Options'
+    bl_label = "Options"
 
     def draw(self, context):
         layout = self.layout

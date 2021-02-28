@@ -273,10 +273,15 @@ BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
   return temp * fac + weight * mfac;
 }
 
-/* vpaint has 'vpaint_blend_tool' */
-/* result is not clamped from [0-1] */
+/**
+ * \param weight: Typically the current weight: #MDeformWeight.weight
+ *
+ * \return The final weight, note that this is _not_ clamped from [0-1].
+ * Clamping must be done on the final #MDeformWeight.weight
+ *
+ * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
+ */
 float ED_wpaint_blend_tool(const int tool,
-                           /* dw->weight */
                            const float weight,
                            const float paintval,
                            const float alpha)

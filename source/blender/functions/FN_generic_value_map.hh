@@ -104,14 +104,12 @@ template<typename Key> class GValueMap {
     return return_value;
   }
 
-  template<typename T, typename ForwardKey> T lookup(const ForwardKey &key) const
+  template<typename T, typename ForwardKey> const T &lookup(const ForwardKey &key) const
   {
     GMutablePointer value = values_.lookup_as(key);
-    const CPPType &type = *value.type();
-    BLI_assert(type.is<T>());
-    T return_value;
-    type.copy_to_initialized(value.get(), &return_value);
-    return return_value;
+    BLI_assert(value.is_type<T>());
+    BLI_assert(value.get() != nullptr);
+    return *(const T *)value.get();
   }
 
   template<typename ForwardKey> bool contains(const ForwardKey &key) const

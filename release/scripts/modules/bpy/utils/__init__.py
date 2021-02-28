@@ -82,14 +82,39 @@ _is_factory_startup = _bpy.app.factory_startup
 
 
 def execfile(filepath, mod=None):
-    # module name isn't used or added to 'sys.modules'.
-    # passing in 'mod' allows re-execution without having to reload.
+    """
+    Execute a file path as a Python script.
+
+    :arg filepath: Path of the script to execute.
+    :type filepath: string
+    :arg mod: Optional cached module, the result of a previous execution.
+    :type mod: Module or None
+    :return: The module which can be passed back in as ``mod``.
+    :rtype: ModuleType
+    """
 
     import importlib.util
-    mod_spec = importlib.util.spec_from_file_location("__main__", filepath)
+    mod_name = "__main__"
+    mod_spec = importlib.util.spec_from_file_location(mod_name, filepath)
     if mod is None:
         mod = importlib.util.module_from_spec(mod_spec)
-    mod_spec.loader.exec_module(mod)
+
+    # While the module name is not added to `sys.modules`, it's important to temporarily
+    # include this so statements such as `sys.modules[cls.__module__].__dict__` behave as expected.
+    # See: https://bugs.python.org/issue9499 for details.
+    modules = _sys.modules
+    mod_orig = modules.get(mod_name, None)
+    modules[mod_name] = mod
+
+    # No error supression, just ensure `sys.modules[mod_name]` is properly restored in the case of an error.
+    try:
+        mod_spec.loader.exec_module(mod)
+    finally:
+        if mod_orig is None:
+            modules.pop(mod_name, None)
+        else:
+            modules[mod_name] = mod_orig
+
     return mod
 
 
@@ -121,15 +146,25 @@ def _test_import(module_name, loaded_modules):
     return mod
 
 
-# Reloading would add twice.
+# Check before adding paths as reloading would add twice.
+
+# Storing and restoring the full `sys.path` is risky as this may be intentionally modified
+# by technical users/developers.
+#
+# Instead, track which paths have been added, clearing them before refreshing.
+# This supports the case of loading a new preferences file which may reset scripts path.
+_sys_path_ensure_paths = set()
+
 def _sys_path_ensure_prepend(path):
     if path not in _sys.path:
         _sys.path.insert(0, path)
+        _sys_path_ensure_paths.add(path)
 
 
 def _sys_path_ensure_append(path):
     if path not in _sys.path:
         _sys.path.append(path)
+        _sys_path_ensure_paths.add(path)
 
 
 def modules_from_path(path, loaded_modules):
@@ -390,6 +425,13 @@ def refresh_script_paths():
     """
     Run this after creating new script paths to update sys.path
     """
+
+    for path in _sys_path_ensure_paths:
+        try:
+            _sys.path.remove(path)
+        except ValueError:
+            pass
+    _sys_path_ensure_paths.clear()
 
     for base_path in script_paths():
         for path_subdir in _script_module_dirs:

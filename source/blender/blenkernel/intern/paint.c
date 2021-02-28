@@ -127,7 +127,7 @@ static void palette_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void palette_undo_preserve(BlendLibReader *UNUSED(reader), ID *id_new, ID *id_old)
 {
-  /* Whole Palette is preserved across undos, and it has no extra pointer, simple. */
+  /* Whole Palette is preserved across undo-steps, and it has no extra pointer, simple. */
   /* Note: We do not care about potential internal references to self here, Palette has none. */
   /* Note: We do not swap IDProperties, as dealing with potential ID pointers in those would be
    *       fairly delicate. */
@@ -151,6 +151,7 @@ IDTypeInfo IDType_ID_PAL = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = palette_blend_write,
     .blend_read_data = palette_blend_read_data,
@@ -216,6 +217,7 @@ IDTypeInfo IDType_ID_PC = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = paint_curve_blend_write,
     .blend_read_data = paint_curve_blend_read_data,

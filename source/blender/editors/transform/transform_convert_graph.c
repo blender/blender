@@ -49,7 +49,6 @@ typedef struct TransDataGraph {
 
 /* -------------------------------------------------------------------- */
 /** \name Graph Editor Transform Creation
- *
  * \{ */
 
 /* Helper function for createTransGraphEditData, which is responsible for associating
@@ -632,7 +631,6 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Graph Editor Transform Flush
- *
  * \{ */
 
 static bool fcu_test_selected(FCurve *fcu)

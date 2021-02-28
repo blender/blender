@@ -51,6 +51,8 @@ static void geo_node_edge_split_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (!geometry_set.has_mesh()) {
     params.set_output("Geometry", std::move(geometry_set));
     return;

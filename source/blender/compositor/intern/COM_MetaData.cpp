@@ -34,7 +34,7 @@ void MetaData::addCryptomatteEntry(const blender::StringRef layer_name,
                                    const blender::StringRefNull key,
                                    const blender::StringRef value)
 {
-  add(blender::BKE_cryptomatte_meta_data_key(layer_name, key), value);
+  add(blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(layer_name, key), value);
 }
 
 /* Replace the hash neutral cryptomatte keys with hashed versions.

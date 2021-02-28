@@ -106,7 +106,7 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef enum eUIEmbossType {
   UI_EMBOSS = 0,          /* use widget style for drawing */
   UI_EMBOSS_NONE = 1,     /* Nothing, only icon and/or text */
-  UI_EMBOSS_PULLDOWN = 2, /* Pulldown menu style */
+  UI_EMBOSS_PULLDOWN = 2, /* Pull-down menu style */
   UI_EMBOSS_RADIAL = 3,   /* Pie Menu */
   /**
    * The same as #UI_EMBOSS_NONE, unless the button has
@@ -166,6 +166,8 @@ enum {
   /** The block is only used during the search process and will not be drawn.
    * Currently just for the case of a closed panel's sub-panel (and its sub-panels). */
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
+  /** Hack for quick setup (splash screen) to draw text centered. */
+  UI_BLOCK_QUICK_SETUP = 1 << 26,
 };
 
 /** #uiPopupBlockHandle.menuretval */
@@ -1411,8 +1413,10 @@ enum {
   UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
 };
 
-int UI_icon_from_id(struct ID *id);
+int UI_icon_from_id(const struct ID *id);
 int UI_icon_from_report_type(int type);
+int UI_icon_colorid_from_report_type(int type);
+int UI_text_colorid_from_report_type(int type);
 
 int UI_icon_from_event_type(short event_type, short event_value);
 int UI_icon_from_keymap_item(const struct wmKeyMapItem *kmi, int r_icon_mod[4]);
@@ -2543,6 +2547,7 @@ void UI_template_fix_linking(void);
 /* UI_OT_editsource helpers */
 bool UI_editsource_enable_check(void);
 void UI_editsource_active_but_test(uiBut *but);
+void UI_editsource_but_replace(const uiBut *old_but, uiBut *new_but);
 
 /* UI_butstore_ helpers */
 typedef struct uiButStore uiButStore;

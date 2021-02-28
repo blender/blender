@@ -28,13 +28,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_gpencil_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
@@ -91,7 +88,7 @@ static int gpencil_stroke_enter_editcurve_mode_exec(bContext *C, wmOperator *op)
               (gps->editcurve != NULL && gps->editcurve->flag & GP_CURVE_NEEDS_STROKE_UPDATE)) {
             BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
             /* Update the selection from the stroke to the curve. */
-            BKE_gpencil_editcurve_stroke_sync_selection(gps, gps->editcurve);
+            BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
             gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
             BKE_gpencil_stroke_geometry_update(gpd, gps);
           }

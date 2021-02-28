@@ -444,13 +444,13 @@ static void annotation_stroke_arrow_calc_points_segment(float stroke_points[8],
                                                         const float ref_point[2],
                                                         const float dir_cw[2],
                                                         const float dir_ccw[2],
-                                                        const float lenght,
+                                                        const float length,
                                                         const float sign)
 {
-  stroke_points[0] = ref_point[0] + dir_cw[0] * lenght * sign;
-  stroke_points[1] = ref_point[1] + dir_cw[1] * lenght * sign;
-  stroke_points[2] = ref_point[0] + dir_ccw[0] * lenght * sign;
-  stroke_points[3] = ref_point[1] + dir_ccw[1] * lenght * sign;
+  stroke_points[0] = ref_point[0] + dir_cw[0] * length * sign;
+  stroke_points[1] = ref_point[1] + dir_cw[1] * length * sign;
+  stroke_points[2] = ref_point[0] + dir_ccw[0] * length * sign;
+  stroke_points[3] = ref_point[1] + dir_ccw[1] * length * sign;
 }
 
 static void annotation_stroke_arrow_calc_points(tGPspoint *point,
@@ -459,7 +459,7 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
                                                 float stroke_points[8],
                                                 const int arrow_style)
 {
-  const int arrow_lenght = 8;
+  const int arrow_length = 8;
   float norm_dir[2];
   copy_v2_v2(norm_dir, stroke_dir);
   normalize_v2(norm_dir);
@@ -468,22 +468,22 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
 
   switch (arrow_style) {
     case GP_STROKE_ARROWSTYLE_OPEN:
-      mul_v2_fl(norm_dir, arrow_lenght);
-      stroke_points[0] = corner[0] + inv_norm_dir_clockwise[0] * arrow_lenght + norm_dir[0];
-      stroke_points[1] = corner[1] + inv_norm_dir_clockwise[1] * arrow_lenght + norm_dir[1];
-      stroke_points[2] = corner[0] + inv_norm_dir_counterclockwise[0] * arrow_lenght + norm_dir[0];
-      stroke_points[3] = corner[1] + inv_norm_dir_counterclockwise[1] * arrow_lenght + norm_dir[1];
+      mul_v2_fl(norm_dir, arrow_length);
+      stroke_points[0] = corner[0] + inv_norm_dir_clockwise[0] * arrow_length + norm_dir[0];
+      stroke_points[1] = corner[1] + inv_norm_dir_clockwise[1] * arrow_length + norm_dir[1];
+      stroke_points[2] = corner[0] + inv_norm_dir_counterclockwise[0] * arrow_length + norm_dir[0];
+      stroke_points[3] = corner[1] + inv_norm_dir_counterclockwise[1] * arrow_length + norm_dir[1];
       break;
     case GP_STROKE_ARROWSTYLE_SEGMENT:
       annotation_stroke_arrow_calc_points_segment(stroke_points,
                                                   corner,
                                                   inv_norm_dir_clockwise,
                                                   inv_norm_dir_counterclockwise,
-                                                  arrow_lenght,
+                                                  arrow_length,
                                                   1.0f);
       break;
     case GP_STROKE_ARROWSTYLE_CLOSED:
-      mul_v2_fl(norm_dir, arrow_lenght);
+      mul_v2_fl(norm_dir, arrow_length);
       if (point != NULL) {
         add_v2_v2(&point->x, norm_dir);
         copy_v2_v2(corner, &point->x);
@@ -492,13 +492,13 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
                                                   corner,
                                                   inv_norm_dir_clockwise,
                                                   inv_norm_dir_counterclockwise,
-                                                  arrow_lenght,
+                                                  arrow_length,
                                                   -1.0f);
       stroke_points[4] = corner[0] - norm_dir[0];
       stroke_points[5] = corner[1] - norm_dir[1];
       break;
     case GP_STROKE_ARROWSTYLE_SQUARE:
-      mul_v2_fl(norm_dir, arrow_lenght * 1.5f);
+      mul_v2_fl(norm_dir, arrow_length * 1.5f);
       if (point != NULL) {
         add_v2_v2(&point->x, norm_dir);
         copy_v2_v2(corner, &point->x);
@@ -507,7 +507,7 @@ static void annotation_stroke_arrow_calc_points(tGPspoint *point,
                                                   corner,
                                                   inv_norm_dir_clockwise,
                                                   inv_norm_dir_counterclockwise,
-                                                  arrow_lenght * 0.75f,
+                                                  arrow_length * 0.75f,
                                                   -1.0f);
       stroke_points[4] = stroke_points[0] - norm_dir[0];
       stroke_points[5] = stroke_points[1] - norm_dir[1];

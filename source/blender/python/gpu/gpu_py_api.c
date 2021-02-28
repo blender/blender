@@ -30,88 +30,24 @@
 
 #include "../generic/python_utildefines.h"
 
-#include "GPU_init_exit.h"
-#include "GPU_primitive.h"
-
 #include "gpu_py_matrix.h"
 #include "gpu_py_select.h"
+#include "gpu_py_state.h"
 #include "gpu_py_types.h"
 
 #include "gpu_py_api.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name Utils to invalidate functions
- * \{ */
-
-bool bpygpu_is_init_or_error(void)
-{
-  if (!GPU_is_init()) {
-    PyErr_SetString(PyExc_SystemError,
-                    "GPU functions for drawing are not available in background mode");
-
-    return false;
-  }
-
-  return true;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Primitive Type Utils
- * \{ */
-
-int bpygpu_ParsePrimType(PyObject *o, void *p)
-{
-  Py_ssize_t mode_id_len;
-  const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
-  if (mode_id == NULL) {
-    PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
-    return 0;
-  }
-#define MATCH_ID(id) \
-  if (mode_id_len == strlen(STRINGIFY(id))) { \
-    if (STREQ(mode_id, STRINGIFY(id))) { \
-      mode = GPU_PRIM_##id; \
-      goto success; \
-    } \
-  } \
-  ((void)0)
-
-  GPUPrimType mode;
-  MATCH_ID(POINTS);
-  MATCH_ID(LINES);
-  MATCH_ID(TRIS);
-  MATCH_ID(LINE_STRIP);
-  MATCH_ID(LINE_LOOP);
-  MATCH_ID(TRI_STRIP);
-  MATCH_ID(TRI_FAN);
-  MATCH_ID(LINES_ADJ);
-  MATCH_ID(TRIS_ADJ);
-  MATCH_ID(LINE_STRIP_ADJ);
-
-#undef MATCH_ID
-  PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", mode_id);
-  return 0;
-
-success:
-  (*(GPUPrimType *)p) = mode;
-  return 1;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name GPU Module
  * \{ */
 
-PyDoc_STRVAR(GPU_doc,
+PyDoc_STRVAR(pygpu_doc,
              "This module provides Python wrappers for the GPU implementation in Blender.\n"
              "Some higher level functions can be found in the `gpu_extras` module.");
-static struct PyModuleDef GPU_module_def = {
+static struct PyModuleDef pygpu_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu",
-    .m_doc = GPU_doc,
+    .m_doc = pygpu_doc,
 };
 
 PyObject *BPyInit_gpu(void)
@@ -120,18 +56,21 @@ PyObject *BPyInit_gpu(void)
   PyObject *submodule;
   PyObject *mod;
 
-  mod = PyModule_Create(&GPU_module_def);
+  mod = PyModule_Create(&pygpu_module_def);
 
-  PyModule_AddObject(mod, "types", (submodule = BPyInit_gpu_types()));
+  PyModule_AddObject(mod, "types", (submodule = bpygpu_types_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
-  PyModule_AddObject(mod, "matrix", (submodule = BPyInit_gpu_matrix()));
+  PyModule_AddObject(mod, "matrix", (submodule = bpygpu_matrix_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
-  PyModule_AddObject(mod, "select", (submodule = BPyInit_gpu_select()));
+  PyModule_AddObject(mod, "select", (submodule = bpygpu_select_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
-  PyModule_AddObject(mod, "shader", (submodule = BPyInit_gpu_shader()));
+  PyModule_AddObject(mod, "shader", (submodule = bpygpu_shader_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "state", (submodule = bpygpu_state_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   return mod;

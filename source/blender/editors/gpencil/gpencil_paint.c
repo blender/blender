@@ -149,9 +149,9 @@ typedef struct tGPsdata {
   Scene *scene;
   struct Depsgraph *depsgraph;
 
-  /** current object. */
+  /** Current object. */
   Object *ob;
-  /** Obeject eval. */
+  /** Evaluated object. */
   Object *ob_eval;
   /** window where painting originated. */
   wmWindow *win;
@@ -1087,7 +1087,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     }
 
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
+    if ((!is_depth) &&
+        (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || (is_camera))) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
   }
@@ -1236,7 +1237,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* change position relative to parent object */
     gpencil_apply_parent(depsgraph, obact, gpl, gps);
     /* If camera view or view projection, reproject flat to view to avoid perspective effect. */
-    if (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera) {
+    if ((!is_depth) && (((align_flag & GP_PROJECT_VIEWSPACE) && is_lock_axis_view) || is_camera)) {
       ED_gpencil_project_stroke_to_view(p->C, p->gpl, gps);
     }
 
@@ -1306,6 +1307,12 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 
+  /* In Multiframe mode, duplicate the stroke in other frames. */
+  if (GPENCIL_MULTIEDIT_SESSIONS_ON(p->gpd)) {
+    const bool tail = (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK);
+    BKE_gpencil_stroke_copy_to_keyframes(gpd, gpl, p->gpf, gps, tail);
+  }
+
   gpencil_stroke_added_enable(p);
 }
 
@@ -1323,10 +1330,8 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 }
 
 /* only erase stroke points that are visible */
-static bool gpencil_stroke_eraser_is_occluded(tGPsdata *p,
-                                              const bGPDspoint *pt,
-                                              const int x,
-                                              const int y)
+static bool gpencil_stroke_eraser_is_occluded(
+    tGPsdata *p, bGPDlayer *gpl, const bGPDspoint *pt, const int x, const int y)
 {
   Object *obact = (Object *)p->ownerPtr.data;
   Brush *brush = p->brush;
@@ -1343,7 +1348,6 @@ static bool gpencil_stroke_eraser_is_occluded(tGPsdata *p,
   if ((gp_settings != NULL) && (p->area->spacetype == SPACE_VIEW3D) &&
       (gp_settings->flag & GP_BRUSH_OCCLUDE_ERASER)) {
     RegionView3D *rv3d = p->region->regiondata;
-    bGPDlayer *gpl = p->gpl;
 
     const int mval_i[2] = {x, y};
     float mval_3d[3];
@@ -1454,6 +1458,7 @@ static void gpencil_stroke_soft_refine(bGPDstroke *gps)
 
 /* eraser tool - evaluation per stroke */
 static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
+                                           bGPDlayer *gpl,
                                            bGPDframe *gpf,
                                            bGPDstroke *gps,
                                            const float mval[2],
@@ -1579,9 +1584,9 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
          * - this assumes that linewidth is irrelevant
          */
         if (gpencil_stroke_inside_circle(mval, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
-          if ((gpencil_stroke_eraser_is_occluded(p, pt0, pc0[0], pc0[1]) == false) ||
-              (gpencil_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
-              (gpencil_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false)) {
+          if ((gpencil_stroke_eraser_is_occluded(p, gpl, pt0, pc0[0], pc0[1]) == false) ||
+              (gpencil_stroke_eraser_is_occluded(p, gpl, pt1, pc1[0], pc1[1]) == false) ||
+              (gpencil_stroke_eraser_is_occluded(p, gpl, pt2, pc2[0], pc2[1]) == false)) {
             /* Point is affected: */
             /* Adjust thickness
              *  - Influence of eraser falls off with distance from the middle of the eraser
@@ -1683,6 +1688,8 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
 /* erase strokes which fall under the eraser strokes */
 static void gpencil_stroke_doeraser(tGPsdata *p)
 {
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(p->gpd);
+
   rcti rect;
   Brush *brush = p->brush;
   Brush *eraser = p->eraser;
@@ -1723,40 +1730,53 @@ static void gpencil_stroke_doeraser(tGPsdata *p)
    * on multiple layers...
    */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &p->gpd->layers) {
-    bGPDframe *gpf = gpl->actframe;
-
     /* only affect layer if it's editable (and visible) */
     if (BKE_gpencil_layer_is_editable(gpl) == false) {
       continue;
     }
-    if (gpf == NULL) {
+
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    if (init_gpf == NULL) {
       continue;
     }
-    /* calculate difference matrix */
-    BKE_gpencil_layer_transform_matrix_get(p->depsgraph, p->ob, gpl, p->diff_mat);
 
-    /* loop over strokes, checking segments for intersections */
-    LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
-      /* check if the color is editable */
-      if (ED_gpencil_stroke_material_editable(p->ob, gpl, gps) == false) {
-        continue;
-      }
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
+          continue;
+        }
+        /* calculate difference matrix */
+        BKE_gpencil_layer_transform_matrix_get(p->depsgraph, p->ob, gpl, p->diff_mat);
 
-      /* Check if the stroke collide with mouse. */
-      if (!ED_gpencil_stroke_check_collision(&p->gsc, gps, p->mval, calc_radius, p->diff_mat)) {
-        continue;
-      }
+        /* loop over strokes, checking segments for intersections */
+        LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
+          /* check if the color is editable */
+          if (ED_gpencil_stroke_material_editable(p->ob, gpl, gps) == false) {
+            continue;
+          }
 
-      /* Not all strokes in the datablock may be valid in the current editor/context
-       * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
-       */
-      if (ED_gpencil_stroke_can_use_direct(p->area, gps)) {
-        gpencil_stroke_eraser_dostroke(p, gpf, gps, p->mval, calc_radius, &rect);
+          /* Check if the stroke collide with mouse. */
+          if (!ED_gpencil_stroke_check_collision(
+                  &p->gsc, gps, p->mval, calc_radius, p->diff_mat)) {
+            continue;
+          }
+
+          /* Not all strokes in the datablock may be valid in the current editor/context
+           * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
+           */
+          if (ED_gpencil_stroke_can_use_direct(p->area, gps)) {
+            gpencil_stroke_eraser_dostroke(p, gpl, gpf, gps, p->mval, calc_radius, &rect);
+          }
+        }
+
+        /* if not multiedit, exit loop*/
+        if (!is_multiedit) {
+          break;
+        }
       }
     }
   }
 }
-
 /* ******************************************* */
 /* Sketching Operator */
 
@@ -1857,7 +1877,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
     changed = true;
   }
-  /* Be sure curves are initializated. */
+  /* Be sure curves are initialized. */
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_sensitivity);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_strength);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_jitter);
@@ -1868,7 +1888,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_saturation);
   BKE_curvemapping_init(paint->brush->gpencil_settings->curve_rand_value);
 
-  /* assign to temp tGPsdata */
+  /* Assign to temp #tGPsdata */
   p->brush = paint->brush;
   if (paint->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
     p->eraser = gpencil_get_default_eraser(p->bmain, ts);

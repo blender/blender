@@ -1471,8 +1471,8 @@ static int rna_property_override_diff_propptr(Main *bmain,
     }
   }
   else {
-    /* We could also use is_diff_pointer, but then we potentially lose the gt/lt info -
-     * and don't think performances are critical here for now anyway... */
+    /* We could also use is_diff_pointer, but then we potentially lose the greater-than/less-than
+     * info - and don't think performances are critical here for now anyway. */
     return !RNA_struct_equals(bmain, propptr_a, propptr_b, mode);
   }
 }

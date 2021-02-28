@@ -20,6 +20,9 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
@@ -36,10 +39,23 @@ static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
     {-1, ""},
 };
 
+static void geo_node_subdivision_surface_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *UNUSED(ptr))
+{
+#ifndef WITH_OPENSUBDIV
+  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
+#else
+  UNUSED_VARS(layout);
+#endif
+}
+
 namespace blender::nodes {
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (!geometry_set.has_mesh()) {
     params.set_output("Geometry", geometry_set);
@@ -93,7 +109,8 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
   BKE_mesh_calc_normals(mesh_out);
 
-  geometry_set.replace_mesh(mesh_out);
+  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+  mesh_component.replace_mesh_but_keep_vertex_group_names(mesh_out);
 
   // BKE_subdiv_stats_print(&subdiv->stats);
   BKE_subdiv_free(subdiv);
@@ -112,5 +129,6 @@ void register_node_type_geo_subdivision_surface()
   node_type_socket_templates(
       &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
+  ntype.draw_buttons = geo_node_subdivision_surface_layout;
   nodeRegisterType(&ntype);
 }

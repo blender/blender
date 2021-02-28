@@ -26,11 +26,7 @@ extern "C" {
 
 #include "../system/FreestyleConfig.h"
 
-using namespace std;
-
 #include "../stroke/StrokeShader.h"
-
-using namespace Freestyle;
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +41,7 @@ extern PyTypeObject StrokeShader_Type;
 
 /*---------------------------Python BPy_StrokeShader structure definition----------*/
 typedef struct {
-  PyObject_HEAD StrokeShader *ss;
+  PyObject_HEAD Freestyle::StrokeShader *ss;
 } BPy_StrokeShader;
 
 /*---------------------------Python BPy_StrokeShader visible prototypes-----------*/

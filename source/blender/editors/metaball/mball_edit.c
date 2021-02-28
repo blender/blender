@@ -205,7 +205,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "(De)select All";
-  ot->description = "Change selection of all meta elements";
+  ot->description = "Change selection of all metaball elements";
   ot->idname = "MBALL_OT_select_all";
 
   /* callback functions */
@@ -529,7 +529,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";
-  ot->description = "Randomly select metaelements";
+  ot->description = "Randomly select metaball elements";
   ot->idname = "MBALL_OT_select_random_metaelems";
 
   /* callback functions */
@@ -587,8 +587,8 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Duplicate Metaelements";
-  ot->description = "Duplicate selected metaelement(s)";
+  ot->name = "Duplicate Metaball Elements";
+  ot->description = "Duplicate selected metaball element(s)";
   ot->idname = "MBALL_OT_duplicate_metaelems";
 
   /* callback functions */
@@ -647,7 +647,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Delete";
-  ot->description = "Delete selected metaelement(s)";
+  ot->description = "Delete selected metaball element(s)";
   ot->idname = "MBALL_OT_delete_metaelems";
 
   /* callback functions */
@@ -692,7 +692,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Hide Selected";
-  ot->description = "Hide (un)selected metaelement(s)";
+  ot->description = "Hide (un)selected metaball element(s)";
   ot->idname = "MBALL_OT_hide_metaelems";
 
   /* callback functions */
@@ -739,7 +739,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Reveal Hidden";
-  ot->description = "Reveal all hidden metaelements";
+  ot->description = "Reveal all hidden metaball elements";
   ot->idname = "MBALL_OT_reveal_metaelems";
 
   /* callback functions */

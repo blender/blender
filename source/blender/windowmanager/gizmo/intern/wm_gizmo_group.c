@@ -61,7 +61,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup
- *
  * \{ */
 
 /**
@@ -697,7 +696,6 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroup (Key-map callbacks)
- *
  * \{ */
 
 wmKeyMap *WM_gizmogroup_setup_keymap_generic(const wmGizmoGroupType *UNUSED(gzgt), wmKeyConfig *kc)
@@ -837,7 +835,6 @@ struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 
 /* -------------------------------------------------------------------- */
 /** \name wmGizmoGroupType
- *
  * \{ */
 
 struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(struct wmGizmoMapType *gzmap_type,
@@ -1142,7 +1139,6 @@ void WM_gizmo_group_unlink_delayed_ptr_from_space(wmGizmoGroupType *gzgt,
 
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Group Type Callback Wrappers
- *
  * \{ */
 
 bool WM_gizmo_group_type_poll(const bContext *C, const wmGizmoGroupType *gzgt)

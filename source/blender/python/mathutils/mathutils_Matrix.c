@@ -499,7 +499,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
   }
 
   if (vec && PyUnicode_Check(vec)) {
-    axis = _PyUnicode_AsString((PyObject *)vec);
+    axis = PyUnicode_AsUTF8((PyObject *)vec);
     if (axis == NULL || axis[0] == '\0' || axis[1] != '\0' || axis[0] < 'X' || axis[0] > 'Z') {
       PyErr_SetString(PyExc_ValueError,
                       "Matrix.Rotation(): "
@@ -768,7 +768,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 
   if (PyUnicode_Check(axis)) { /* ortho projection onto cardinal plane */
     Py_ssize_t plane_len;
-    const char *plane = _PyUnicode_AsStringAndSize(axis, &plane_len);
+    const char *plane = PyUnicode_AsUTF8AndSize(axis, &plane_len);
     if (matSize == 2) {
       if (plane_len == 1 && plane[0] == 'X') {
         mat[0] = 1.0f;

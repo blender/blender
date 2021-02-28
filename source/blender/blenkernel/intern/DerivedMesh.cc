@@ -51,6 +51,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -883,6 +884,33 @@ void BKE_mesh_wrapper_deferred_finalize(Mesh *me_eval,
 }
 
 /**
+ * Some modifiers don't work on geometry sets directly, but expect a single mesh as input.
+ * Therefore, we convert data from the geometry set into a single mesh, so that those
+ * modifiers can work on it as well.
+ */
+static Mesh *prepare_geometry_set_for_mesh_modifier(Mesh *mesh, GeometrySet &r_geometry_set)
+{
+  if (!r_geometry_set.has_instances() && !r_geometry_set.has_pointcloud()) {
+    return mesh;
+  }
+
+  {
+    /* Add the mesh to the geometry set. */
+    MeshComponent &mesh_component = r_geometry_set.get_component_for_write<MeshComponent>();
+    mesh_component.replace_mesh_but_keep_vertex_group_names(mesh, GeometryOwnershipType::Editable);
+  }
+  {
+    /* Combine mesh and all instances into a single mesh that can be passed to the modifier. */
+    GeometrySet new_geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(
+        r_geometry_set);
+    MeshComponent &mesh_component = new_geometry_set.get_component_for_write<MeshComponent>();
+    Mesh *new_mesh = mesh_component.release();
+    r_geometry_set = new_geometry_set;
+    return new_mesh;
+  }
+}
+
+/**
  * Modifies the given mesh and geometry set. The mesh is not passed as part of the mesh component
  * in the \a geometry_set input, it is only passed in \a input_mesh and returned in the return
  * value.
@@ -898,7 +926,14 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
   Mesh *mesh_output = nullptr;
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
   if (mti->modifyGeometrySet == nullptr) {
-    mesh_output = BKE_modifier_modify_mesh(md, &mectx, input_mesh);
+    Mesh *new_input_mesh = prepare_geometry_set_for_mesh_modifier(input_mesh, geometry_set);
+    mesh_output = BKE_modifier_modify_mesh(md, &mectx, new_input_mesh);
+
+    /* The caller is responsible for freeing `input_mesh` and `mesh_output`. The intermediate
+     * `new_input_mesh` has to be freed here. */
+    if (!ELEM(new_input_mesh, input_mesh, mesh_output)) {
+      BKE_id_free(nullptr, new_input_mesh);
+    }
   }
   else {
     /* For performance reasons, this should be called by the modifier and/or nodes themselves at
@@ -1155,6 +1190,14 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       /* No existing verts to deform, need to build them. */
       if (!deformed_verts) {
         if (mesh_final) {
+          Mesh *mesh_final_new = prepare_geometry_set_for_mesh_modifier(mesh_final,
+                                                                        geometry_set_final);
+          if (mesh_final_new != mesh_final) {
+            BLI_assert(mesh_final != mesh_input);
+            BKE_id_free(nullptr, mesh_final);
+            mesh_final = mesh_final_new;
+          }
+
           /* Deforming a mesh, read the vertex locations
            * out of the mesh and deform them. Once done with this
            * run of deformers verts will be written back. */

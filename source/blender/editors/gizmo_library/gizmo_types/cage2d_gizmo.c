@@ -1145,7 +1145,6 @@ static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
 /* -------------------------------------------------------------------- */
 /** \name Cage Gizmo API
- *
  * \{ */
 
 static void GIZMO_GT_cage_2d(wmGizmoType *gzt)

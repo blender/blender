@@ -5,8 +5,12 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_lit_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_type_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_diffuse_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_glossy_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_translucent_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_refraction_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
 #ifdef USE_ALPHA_HASH

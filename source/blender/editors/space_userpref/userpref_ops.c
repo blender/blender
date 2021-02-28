@@ -28,18 +28,14 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
-#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
 #include "UI_interface.h"
-
-#include "../interface/interface_intern.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

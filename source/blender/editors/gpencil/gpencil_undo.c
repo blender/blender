@@ -62,19 +62,23 @@ int ED_gpencil_session_active(void)
   return (BLI_listbase_is_empty(&undo_nodes) == false);
 }
 
-int ED_undo_gpencil_step(bContext *C, const eUndoStepDir step)
+/**
+ * \param step: eUndoStepDir.
+ */
+int ED_undo_gpencil_step(bContext *C, const int step)
 {
   bGPdata **gpd_ptr = NULL, *new_gpd = NULL;
 
   gpd_ptr = ED_gpencil_data_get_pointers(C, NULL);
 
-  if (step == STEP_UNDO) {
+  const eUndoStepDir undo_step = (eUndoStepDir)step;
+  if (undo_step == STEP_UNDO) {
     if (cur_node->prev) {
       cur_node = cur_node->prev;
       new_gpd = cur_node->gpd;
     }
   }
-  else if (step == STEP_REDO) {
+  else if (undo_step == STEP_REDO) {
     if (cur_node->next) {
       cur_node = cur_node->next;
       new_gpd = cur_node->gpd;
@@ -132,7 +136,7 @@ void gpencil_undo_push(bGPdata *gpd)
   // printf("\t\tGP - undo push\n");
 
   if (cur_node) {
-    /* remove all un-done nodes from stack */
+    /* Remove all undone nodes from stack. */
     undo_node = cur_node->next;
 
     while (undo_node) {

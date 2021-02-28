@@ -33,8 +33,6 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_light_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -53,7 +51,6 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 
 #include "RNA_access.h"
 
@@ -759,7 +756,7 @@ bool ED_buttons_should_sync_with_outliner(const bContext *C,
   ScrArea *active_area = CTX_wm_area(C);
   const bool auto_sync = ED_area_has_shared_border(active_area, area) &&
                          sbuts->outliner_sync == PROPERTIES_SYNC_AUTO;
-  return auto_sync || sbuts->outliner_sync == PROPERTIES_SYNC_ON;
+  return auto_sync || sbuts->outliner_sync == PROPERTIES_SYNC_ALWAYS;
 }
 
 void ED_buttons_set_context(const bContext *C,

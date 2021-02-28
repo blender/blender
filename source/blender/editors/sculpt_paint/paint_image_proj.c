@@ -6250,6 +6250,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
                                         IB_rect,
                                         R_ALPHAPREMUL,
                                         NULL,
+                                        false,
                                         NULL,
                                         err_out);
 

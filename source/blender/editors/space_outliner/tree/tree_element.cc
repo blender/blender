@@ -20,8 +20,6 @@
 
 #include "DNA_listBase.h"
 
-#include "../outliner_intern.h"
-
 #include "tree_element_anim_data.hh"
 #include "tree_element_driver_base.hh"
 #include "tree_element_nla.hh"

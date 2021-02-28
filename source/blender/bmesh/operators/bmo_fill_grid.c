@@ -326,8 +326,8 @@ static void bm_grid_fill_array(BMesh *bm,
       v = BM_vert_create(bm, co, NULL, BM_CREATE_NOP);
       v_grid[(y * xtot) + x] = v;
 
-      /* interpolate only along one axis, this could be changed
-       * but from user pov gives predictable results since these are selected loop */
+      /* Interpolate only along one axis, this could be changed
+       * but from user POV gives predictable results since these are selected loop. */
       if (use_vert_interp) {
         const float *w = weight_table[XY(x, y)];
 

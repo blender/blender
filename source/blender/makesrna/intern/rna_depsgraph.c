@@ -570,7 +570,7 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
   prop = RNA_def_property(srna, "random_id", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop, "Dupli random id", "Random id for this instance, typically for randomized shading");
+      prop, "Instance Random ID", "Random id for this instance, typically for randomized shading");
   RNA_def_property_int_funcs(prop, "rna_DepsgraphObjectInstance_random_id_get", NULL, NULL);
 
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);

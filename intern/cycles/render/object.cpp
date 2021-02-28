@@ -85,13 +85,13 @@ NODE_DEFINE(Object)
   SOCKET_NODE(geometry, "Geometry", &Geometry::node_base_type);
   SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
   SOCKET_UINT(visibility, "Visibility", ~0);
-  SOCKET_COLOR(color, "Color", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_COLOR(color, "Color", zero_float3());
   SOCKET_UINT(random_id, "Random ID", 0);
   SOCKET_INT(pass_id, "Pass ID", 0);
   SOCKET_BOOLEAN(use_holdout, "Use Holdout", false);
   SOCKET_BOOLEAN(hide_on_missing_motion, "Hide on Missing Motion", false);
-  SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));
-  SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
+  SOCKET_POINT(dupli_generated, "Dupli Generated", zero_float3());
+  SOCKET_POINT2(dupli_uv, "Dupli UV", zero_float2());
   SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
   SOCKET_FLOAT(shadow_terminator_offset, "Terminator Offset", 0.0f);
   SOCKET_STRING(asset_name, "Asset Name", ustring());
@@ -270,7 +270,7 @@ int Object::motion_step(float time) const
 bool Object::is_traceable() const
 {
   /* Mesh itself can be empty,can skip all such objects. */
-  if (!bounds.valid() || bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
+  if (!bounds.valid() || bounds.size() == zero_float3()) {
     return false;
   }
   /* TODO(sergey): Check for mesh vertices/curves. visibility flags. */
@@ -337,7 +337,7 @@ float Object::compute_volume_step_size() const
 
         if (voxel_step_size == 0.0f) {
           /* Auto detect step size. */
-          float3 size = make_float3(1.0f, 1.0f, 1.0f);
+          float3 size = one_float3();
 #ifdef WITH_NANOVDB
           /* Dimensions were not applied to image transform with NanOVDB (see image_vdb.cpp) */
           if (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
@@ -397,7 +397,7 @@ static float object_volume_density(const Transform &tfm, Geometry *geom)
   if (geom->geometry_type == Geometry::VOLUME) {
     /* Volume density automatically adjust to object scale. */
     if (static_cast<Volume *>(geom)->get_object_space()) {
-      const float3 unit = normalize(make_float3(1.0f, 1.0f, 1.0f));
+      const float3 unit = normalize(one_float3());
       return 1.0f / len(transform_direction(&tfm, unit));
     }
   }
@@ -915,7 +915,15 @@ void ObjectManager::tag_update(Scene *scene, uint32_t flag)
 
   /* avoid infinite loops if the geometry manager tagged us for an update */
   if ((flag & GEOMETRY_MANAGER) == 0) {
-    scene->geometry_manager->tag_update(scene, GeometryManager::OBJECT_MANAGER);
+    uint32_t geometry_flag = GeometryManager::OBJECT_MANAGER;
+
+    /* Also notify in case added or removed objects were instances, as no Geometry might have been
+     * added or removed, but the BVH still needs to updated. */
+    if ((flag & (OBJECT_ADDED | OBJECT_REMOVED)) != 0) {
+      geometry_flag |= (GeometryManager::GEOMETRY_ADDED | GeometryManager::GEOMETRY_REMOVED);
+    }
+
+    scene->geometry_manager->tag_update(scene, geometry_flag);
   }
 
   scene->light_manager->tag_update(scene, LightManager::OBJECT_MANAGER);

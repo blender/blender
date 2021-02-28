@@ -317,7 +317,9 @@ void BKE_main_relations_tag_set(struct Main *bmain,
   if (bmain->relations == NULL) {
     return;
   }
-  for (GHashIterator *gh_iter = BLI_ghashIterator_new(bmain->relations->relations_from_pointers);
+
+  GHashIterator *gh_iter;
+  for (gh_iter = BLI_ghashIterator_new(bmain->relations->relations_from_pointers);
        !BLI_ghashIterator_done(gh_iter);
        BLI_ghashIterator_step(gh_iter)) {
     MainIDRelationsEntry *entry = BLI_ghashIterator_getValue(gh_iter);
@@ -328,6 +330,7 @@ void BKE_main_relations_tag_set(struct Main *bmain,
       entry->tags &= ~tag;
     }
   }
+  BLI_ghashIterator_free(gh_iter);
 }
 
 /**

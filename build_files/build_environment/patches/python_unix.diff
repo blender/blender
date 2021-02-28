@@ -1,0 +1,38 @@
+diff --git a/setup.py.orig b/setup.py
+index a97a755..07ce853 100644
+--- a/setup.py.orig
++++ b/setup.py
+@@ -1603,13 +1603,13 @@
+                         version = line.split()[2]
+                         break
+             if version >= version_req:
+-                if (self.compiler.find_library_file(self.lib_dirs, 'z')):
++                if (self.compiler.find_library_file(self.lib_dirs, 'z_pic')):
+                     if MACOS:
+                         zlib_extra_link_args = ('-Wl,-search_paths_first',)
+                     else:
+                         zlib_extra_link_args = ()
+                     self.add(Extension('zlib', ['zlibmodule.c'],
+-                                       libraries=['z'],
++                                       libraries=['z_pic'],
+                                        extra_link_args=zlib_extra_link_args))
+                     have_zlib = True
+                 else:
+@@ -1623,7 +1623,7 @@
+         # crc32 if we have it.  Otherwise binascii uses its own.
+         if have_zlib:
+             extra_compile_args = ['-DUSE_ZLIB_CRC32']
+-            libraries = ['z']
++            libraries = ['z_pic']
+             extra_link_args = zlib_extra_link_args
+         else:
+             extra_compile_args = []
+@@ -2168,7 +2168,7 @@
+                 ffi_inc = None
+                 print('Header file {} does not exist'.format(ffi_h))
+         if ffi_lib is None and ffi_inc:
+-            for lib_name in ('ffi', 'ffi_pic'):
++            for lib_name in ('ffi_pic', ):
+                 if (self.compiler.find_library_file(self.lib_dirs, lib_name)):
+                     ffi_lib = lib_name
+                     break

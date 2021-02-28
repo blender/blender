@@ -333,8 +333,8 @@ PyDoc_STRVAR(py_bvhtree_ray_cast_doc,
              "\n"
              "   Cast a ray onto the mesh.\n"
              "\n"
-             "   :arg co: Start location of the ray in object space.\n"
-             "   :type co: :class:`Vector`\n"
+             "   :arg origin: Start location of the ray in object space.\n"
+             "   :type origin: :class:`Vector`\n"
              "   :arg direction: Direction of the ray in object space.\n"
              "   :type direction: :class:`Vector`\n" PYBVH_FIND_GENERIC_DISTANCE_DOC
                  PYBVH_FIND_GENERIC_RETURN_DOC);
@@ -1331,7 +1331,7 @@ PyMODINIT_FUNC PyInit_mathutils_bvhtree(void)
     return NULL;
   }
 
-  PyModule_AddObject(m, "BVHTree", (PyObject *)&PyBVHTree_Type);
+  PyModule_AddType(m, &PyBVHTree_Type);
 
   return m;
 }

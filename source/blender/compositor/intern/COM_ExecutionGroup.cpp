@@ -251,15 +251,15 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
           sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
       for (index = 0; index < this->m_numberOfChunks; index++) {
         determineChunkRect(&rect, index);
-        chunkOrders[index].setChunkNumber(index);
-        chunkOrders[index].setX(rect.xmin - this->m_viewerBorder.xmin);
-        chunkOrders[index].setY(rect.ymin - this->m_viewerBorder.ymin);
-        chunkOrders[index].determineDistance(hotspots, 1);
+        chunkOrders[index].number = index;
+        chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
+        chunkOrders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunkOrders[index].update_distance(hotspots, 1);
       }
 
       std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks - 1]);
       for (index = 0; index < this->m_numberOfChunks; index++) {
-        chunkOrder[index] = chunkOrders[index].getChunkNumber();
+        chunkOrder[index] = chunkOrders[index].number;
       }
 
       delete hotspots[0];
@@ -290,16 +290,16 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
           sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
       for (index = 0; index < this->m_numberOfChunks; index++) {
         determineChunkRect(&rect, index);
-        chunkOrders[index].setChunkNumber(index);
-        chunkOrders[index].setX(rect.xmin - this->m_viewerBorder.xmin);
-        chunkOrders[index].setY(rect.ymin - this->m_viewerBorder.ymin);
-        chunkOrders[index].determineDistance(hotspots, 9);
+        chunkOrders[index].number = index;
+        chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
+        chunkOrders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunkOrders[index].update_distance(hotspots, 9);
       }
 
       std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks]);
 
       for (index = 0; index < this->m_numberOfChunks; index++) {
-        chunkOrder[index] = chunkOrders[index].getChunkNumber();
+        chunkOrder[index] = chunkOrders[index].number;
       }
 
       delete hotspots[0];

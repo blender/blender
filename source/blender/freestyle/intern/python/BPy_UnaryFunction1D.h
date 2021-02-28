@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../view_map/Functions1D.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

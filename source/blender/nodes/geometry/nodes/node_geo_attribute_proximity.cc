@@ -14,21 +14,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
+
+#include "DNA_mesh_types.h"
 
 #include "BKE_bvhutils.h"
-#include "BLI_kdopbvh.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "node_geometry_util.hh"
-
-#include "BLI_timeit.hh"
-#include "DNA_mesh_types.h"
 
 static bNodeSocketTemplate geo_node_attribute_proximity_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_GEOMETRY, N_("Target")},
-    {SOCK_STRING, N_("Result")},
+    {SOCK_STRING, N_("Distance")},
+    {SOCK_STRING, N_("Location")},
     {-1, ""},
 };
 
@@ -36,6 +40,13 @@ static bNodeSocketTemplate geo_node_attribute_proximity_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_attribute_proximity_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "target_geometry_element", 0, "", ICON_NONE);
+}
 
 static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -50,50 +61,66 @@ static void geo_attribute_proximity_init(bNodeTree *UNUSED(ntree), bNode *node)
 namespace blender::nodes {
 
 static void proximity_calc(MutableSpan<float> distance_span,
+                           MutableSpan<float3> location_span,
                            Span<float3> positions,
                            BVHTreeFromMesh &tree_data_mesh,
                            BVHTreeFromPointCloud &tree_data_pointcloud,
                            const bool bvh_mesh_success,
-                           const bool bvh_pointcloud_success)
+                           const bool bvh_pointcloud_success,
+                           const bool store_distances,
+                           const bool store_locations)
 {
-
   IndexRange range = positions.index_range();
   parallel_for(range, 512, [&](IndexRange range) {
-    BVHTreeNearest nearest;
+    BVHTreeNearest nearest_from_mesh;
+    BVHTreeNearest nearest_from_pointcloud;
 
-    if (bvh_mesh_success) {
-      copy_v3_fl(nearest.co, FLT_MAX);
-      nearest.index = -1;
+    copy_v3_fl(nearest_from_mesh.co, FLT_MAX);
+    copy_v3_fl(nearest_from_pointcloud.co, FLT_MAX);
 
-      for (int i : range) {
-        nearest.dist_sq = len_squared_v3v3(nearest.co, positions[i]);
+    nearest_from_mesh.index = -1;
+    nearest_from_pointcloud.index = -1;
+
+    for (int i : range) {
+      /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
+      nearest_from_mesh.dist_sq = len_squared_v3v3(nearest_from_mesh.co, positions[i]);
+
+      if (bvh_mesh_success) {
         BLI_bvhtree_find_nearest(tree_data_mesh.tree,
                                  positions[i],
-                                 &nearest,
+                                 &nearest_from_mesh,
                                  tree_data_mesh.nearest_callback,
                                  &tree_data_mesh);
-        distance_span[i] = sqrtf(nearest.dist_sq);
       }
-    }
 
-    /* The next loop(s) use the values already in the span. */
-    if (!bvh_mesh_success) {
-      distance_span.fill(FLT_MAX);
-    }
+      /* Use the distance to the closest point in the mesh to speedup the pointcloud bvh lookup.
+       * This is ok because we only need to find the closest point in the pointcloud if it's closer
+       * than the mesh. */
+      nearest_from_pointcloud.dist_sq = nearest_from_mesh.dist_sq;
 
-    if (bvh_pointcloud_success) {
-      copy_v3_fl(nearest.co, FLT_MAX);
-      nearest.index = -1;
-
-      for (int i : range) {
-        /* Use the distance to the last found point as upper bound to speedup the bvh lookup. */
-        nearest.dist_sq = len_squared_v3v3(nearest.co, positions[i]);
+      if (bvh_pointcloud_success) {
         BLI_bvhtree_find_nearest(tree_data_pointcloud.tree,
                                  positions[i],
-                                 &nearest,
+                                 &nearest_from_pointcloud,
                                  tree_data_pointcloud.nearest_callback,
                                  &tree_data_pointcloud);
-        distance_span[i] = std::min(distance_span[i], sqrtf(nearest.dist_sq));
+      }
+
+      if (nearest_from_pointcloud.dist_sq < nearest_from_mesh.dist_sq) {
+        if (store_distances) {
+          distance_span[i] = sqrtf(nearest_from_pointcloud.dist_sq);
+        }
+        if (store_locations) {
+          location_span[i] = nearest_from_pointcloud.co;
+        }
+      }
+      else {
+        if (store_distances) {
+          distance_span[i] = sqrtf(nearest_from_mesh.dist_sq);
+        }
+        if (store_locations) {
+          location_span[i] = nearest_from_mesh.co;
+        }
       }
     }
   });
@@ -138,14 +165,21 @@ static void attribute_calc_proximity(GeometryComponent &component,
                                      GeometrySet &geometry_set_target,
                                      GeoNodeExecParams &params)
 {
-  const std::string result_attribute_name = params.get_input<std::string>("Result");
+  /* This node works on the "point" domain, since that is where positions are stored. */
+  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+
+  const std::string distance_attribute_name = params.get_input<std::string>("Distance");
   OutputAttributePtr distance_attribute = component.attribute_try_get_for_output(
-      result_attribute_name, ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
+      distance_attribute_name, result_domain, CD_PROP_FLOAT);
+
+  const std::string location_attribute_name = params.get_input<std::string>("Location");
+  OutputAttributePtr location_attribute = component.attribute_try_get_for_output(
+      location_attribute_name, result_domain, CD_PROP_FLOAT3);
 
   ReadAttributePtr position_attribute = component.attribute_try_get_for_read("position");
   BLI_assert(position_attribute->custom_data_type() == CD_PROP_FLOAT3);
 
-  if (!distance_attribute || !position_attribute) {
+  if (!position_attribute || (!distance_attribute && !location_attribute)) {
     return;
   }
 
@@ -170,12 +204,24 @@ static void attribute_calc_proximity(GeometryComponent &component,
                                                  tree_data_pointcloud);
   }
 
-  proximity_calc(distance_attribute->get_span_for_write_only<float>(),
-                 position_attribute->get_span<float3>(),
+  Span<float3> position_span = position_attribute->get_span<float3>();
+
+  MutableSpan<float> distance_span = distance_attribute ?
+                                         distance_attribute->get_span_for_write_only<float>() :
+                                         MutableSpan<float>();
+  MutableSpan<float3> location_span = location_attribute ?
+                                          location_attribute->get_span_for_write_only<float3>() :
+                                          MutableSpan<float3>();
+
+  proximity_calc(distance_span,
+                 location_span,
+                 position_span,
                  tree_data_mesh,
                  tree_data_pointcloud,
                  bvh_mesh_success,
-                 bvh_pointcloud_success);
+                 bvh_pointcloud_success,
+                 distance_attribute,  /* Boolean. */
+                 location_attribute); /* Boolean. */
 
   if (bvh_mesh_success) {
     free_bvhtree_from_mesh(&tree_data_mesh);
@@ -184,13 +230,24 @@ static void attribute_calc_proximity(GeometryComponent &component,
     free_bvhtree_from_pointcloud(&tree_data_pointcloud);
   }
 
-  distance_attribute.apply_span_and_save();
+  if (distance_attribute) {
+    distance_attribute.apply_span_and_save();
+  }
+  if (location_attribute) {
+    location_attribute.apply_span_and_save();
+  }
 }
 
 static void geo_node_attribute_proximity_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_target = params.extract_input<GeometrySet>("Target");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
+  /* This isn't required. This node should be rewritten to handle instances
+   * for the target geometry set. However, the generic BVH API complicates this. */
+  geometry_set_target = geometry_set_realize_instances(geometry_set_target);
 
   if (geometry_set.has<MeshComponent>()) {
     attribute_calc_proximity(
@@ -220,5 +277,6 @@ void register_node_type_geo_attribute_proximity()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_proximity_exec;
+  ntype.draw_buttons = geo_node_attribute_proximity_layout;
   nodeRegisterType(&ntype);
 }

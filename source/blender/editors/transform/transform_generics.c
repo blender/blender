@@ -26,7 +26,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -44,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
+#include "BKE_modifier.h"
 #include "BKE_paint.h"
 
 #include "ED_clip.h"
@@ -119,79 +119,6 @@ void resetTransRestrictions(TransInfo *t)
   t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
-void initTransDataContainers_FromObjectData(TransInfo *t,
-                                            Object *obact,
-                                            Object **objects,
-                                            uint objects_len)
-{
-  const eObjectMode object_mode = obact ? obact->mode : OB_MODE_OBJECT;
-  const short object_type = obact ? obact->type : -1;
-
-  if ((object_mode & OB_MODE_EDIT) || (t->options & CTX_GPENCIL_STROKES) ||
-      ((object_mode & OB_MODE_POSE) && (object_type == OB_ARMATURE))) {
-    if (t->data_container) {
-      MEM_freeN(t->data_container);
-    }
-
-    bool free_objects = false;
-    if (objects == NULL) {
-      objects = BKE_view_layer_array_from_objects_in_mode(
-          t->view_layer,
-          (t->spacetype == SPACE_VIEW3D) ? t->view : NULL,
-          &objects_len,
-          {
-              .object_mode = object_mode,
-              .no_dup_data = true,
-          });
-      free_objects = true;
-    }
-
-    t->data_container = MEM_callocN(sizeof(*t->data_container) * objects_len, __func__);
-    t->data_container_len = objects_len;
-
-    for (int i = 0; i < objects_len; i++) {
-      TransDataContainer *tc = &t->data_container[i];
-      if (((t->flag & T_NO_MIRROR) == 0) && ((t->options & CTX_NO_MIRROR) == 0) &&
-          (objects[i]->type == OB_MESH)) {
-        tc->use_mirror_axis_x = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_X) != 0;
-        tc->use_mirror_axis_y = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Y) != 0;
-        tc->use_mirror_axis_z = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_Z) != 0;
-      }
-
-      if (object_mode & OB_MODE_EDIT) {
-        tc->obedit = objects[i];
-        /* Check needed for UV's */
-        if ((t->flag & T_2D_EDIT) == 0) {
-          tc->use_local_mat = true;
-        }
-      }
-      else if (object_mode & OB_MODE_POSE) {
-        tc->poseobj = objects[i];
-        tc->use_local_mat = true;
-      }
-      else if (t->options & CTX_GPENCIL_STROKES) {
-        tc->use_local_mat = true;
-      }
-
-      if (tc->use_local_mat) {
-        BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->obmat);
-        copy_m3_m4(tc->mat3, tc->mat);
-        /* for non-invertible scale matrices, invert_m4_m4_fallback()
-         * can still provide a valid pivot */
-        invert_m4_m4_fallback(tc->imat, tc->mat);
-        invert_m3_m3(tc->imat3, tc->mat3);
-        normalize_m3_m3(tc->mat3_unit, tc->mat3);
-      }
-      /* Otherwise leave as zero. */
-    }
-
-    if (free_objects) {
-      MEM_freeN(objects);
-    }
-  }
-}
-
 /**
  * Setup internal data, mouse, vectors
  *
@@ -225,7 +152,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->flag = 0;
 
-  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE)) &&
+  if (obact && !(t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) &&
       ELEM(object_mode, OB_MODE_EDIT, OB_MODE_EDIT_GPENCIL)) {
     t->obedit_type = obact->type;
   }
@@ -272,7 +199,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Crease needs edge flag */
   if (ELEM(t->mode, TFM_CREASE, TFM_BWEIGHT)) {
-    t->options |= CTX_EDGE;
+    t->options |= CTX_EDGE_DATA;
   }
 
   t->remove_on_cancel = false;
@@ -454,12 +381,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
     bool constraint_axis[3] = {false, false, false};
-    if (t->flag & T_INPUT_IS_VALUES_FINAL) {
-      if (t_values_set_is_array) {
-        /* For operators whose `t->values` is array, set constraint so that the
-         * orientation is more intuitive in the Redo Panel. */
-        constraint_axis[0] = constraint_axis[1] = constraint_axis[2] = true;
-      }
+    if (t_values_set_is_array && t->flag & T_INPUT_IS_VALUES_FINAL) {
+      /* For operators whose `t->values` is array (as Move and Scale), set constraint so that the
+       * orientation is more intuitive in the Redo Panel. */
+      constraint_axis[0] = constraint_axis[1] = constraint_axis[2] = true;
     }
     else if (RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
@@ -1110,7 +1035,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
       return true;
     }
   }
-  else if (t->flag & T_POSE) {
+  else if (t->options & CTX_POSE_BONE) {
     ViewLayer *view_layer = t->view_layer;
     Object *ob = OBACT(view_layer);
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
@@ -1184,20 +1109,13 @@ void calculateCenter(TransInfo *t)
   }
   calculateCenterLocal(t, t->center_global);
 
-  /* avoid calculating again */
-  {
-    TransCenterData *cd = &t->center_cache[t->around];
-    copy_v3_v3(cd->global, t->center_global);
-    cd->is_set = true;
-  }
-
   calculateCenter2D(t);
 
   /* For panning from the camera-view. */
-  if ((t->flag & T_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
+  if ((t->options & CTX_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
     if (t->spacetype == SPACE_VIEW3D && t->region && t->region->regiontype == RGN_TYPE_WINDOW) {
 
-      if (t->flag & T_CAMERA) {
+      if (t->options & CTX_CAMERA) {
         float axis[3];
         /* persinv is nasty, use viewinv instead, always right */
         copy_v3_v3(axis, t->viewinv[2]);
@@ -1235,23 +1153,6 @@ void calculateCenter(TransInfo *t)
       t->zfac = 0.0f;
     }
   }
-}
-
-BLI_STATIC_ASSERT(ARRAY_SIZE(((TransInfo *)NULL)->center_cache) == (V3D_AROUND_ACTIVE + 1),
-                  "test size");
-
-/**
- * Lazy initialize transform center data, when we need to access center values from other types.
- */
-const TransCenterData *transformCenter_from_type(TransInfo *t, int around)
-{
-  BLI_assert(around <= V3D_AROUND_ACTIVE);
-  TransCenterData *cd = &t->center_cache[around];
-  if (cd->is_set == false) {
-    calculateCenter_FromAround(t, around, cd->global);
-    cd->is_set = true;
-  }
-  return cd;
 }
 
 void calculatePropRatio(TransInfo *t)
@@ -1477,4 +1378,24 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
     /* apply */
     copy_v3_v3(td->ext->rot, eul);
   }
+}
+
+Object *transform_object_deform_pose_armature_get(const TransInfo *t, Object *ob)
+{
+  if (!(ob->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
+    return NULL;
+  }
+  /* Important that ob_armature can be set even when its not selected T23412.
+   * Lines below just check is also visible. */
+  Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
+  if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
+    Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
+    if (base_arm) {
+      View3D *v3d = t->view;
+      if (BASE_VISIBLE(v3d, base_arm)) {
+        return ob_armature;
+      }
+    }
+  }
+  return NULL;
 }

@@ -24,8 +24,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mask_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -37,14 +35,9 @@
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_editmesh.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_material.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -56,7 +49,6 @@
 
 #include "ED_image.h"
 #include "ED_mask.h"
-#include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -65,19 +57,13 @@
 #include "ED_uvedit.h"
 
 #include "WM_api.h"
-#include "WM_message.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_viewport.h"
-
 #include "DRW_engine.h"
-#include "DRW_engine_types.h"
 
 #include "image_intern.h"
 
@@ -131,7 +117,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS;
 
   BKE_imageuser_default(&simage->iuser);
-  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
+  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS | IMA_SHOW_MAX_RESOLUTION;
 
   BKE_scopes_new(&simage->scopes);
   simage->sample_line_hist.height = 100;
@@ -294,7 +280,7 @@ static void image_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
-  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy);
+  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, NULL);
 }
 
 /**

@@ -440,12 +440,14 @@ int main(int argc, char **argv)
   if (shSystem) {
     /* Create the main window */
     sMainWindow = GHOST_CreateWindow(shSystem,
+                                     NULL,
                                      title1,
                                      10,
                                      64,
                                      320,
                                      200,
                                      GHOST_kWindowStateNormal,
+                                     false,
                                      GHOST_kDrawingContextTypeOpenGL,
                                      glSettings);
     if (!sMainWindow) {
@@ -455,12 +457,14 @@ int main(int argc, char **argv)
 
     /* Create a secondary window */
     sSecondaryWindow = GHOST_CreateWindow(shSystem,
+                                          NULL,
                                           title2,
                                           340,
                                           64,
                                           320,
                                           200,
                                           GHOST_kWindowStateNormal,
+                                          false,
                                           GHOST_kDrawingContextTypeOpenGL,
                                           glSettings);
     if (!sSecondaryWindow) {

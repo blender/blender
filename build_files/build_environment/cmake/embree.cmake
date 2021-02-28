@@ -29,6 +29,7 @@ set(EMBREE_EXTRA_ARGS
   -DEMBREE_MAX_ISA=AVX2
   -DEMBREE_TASKING_SYSTEM=TBB
   -DEMBREE_TBB_ROOT=${LIBDIR}/tbb
+  -DTBB_ROOT=${LIBDIR}/tbb
   -DTBB_STATIC_LIB=${TBB_STATIC_LIBRARY}
 )
 
@@ -46,15 +47,26 @@ else()
   set(EMBREE_BUILD_DIR)
 endif()
 
-ExternalProject_Add(external_embree
-  URL ${EMBREE_URI}
-  DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${EMBREE_HASH}
-  PREFIX ${BUILD_DIR}/embree
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
-  INSTALL_DIR ${LIBDIR}/embree
-)
+if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
+  ExternalProject_Add(external_embree
+    GIT_REPOSITORY ${EMBREE_ARM_GIT}
+    GIT_TAG "blender-arm"
+    DOWNLOAD_DIR ${DOWNLOAD_DIR}
+    PREFIX ${BUILD_DIR}/embree
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
+    INSTALL_DIR ${LIBDIR}/embree
+  )
+else()
+  ExternalProject_Add(external_embree
+    URL ${EMBREE_URI}
+    DOWNLOAD_DIR ${DOWNLOAD_DIR}
+    URL_HASH MD5=${EMBREE_HASH}
+    PREFIX ${BUILD_DIR}/embree
+    PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
+    INSTALL_DIR ${LIBDIR}/embree
+  )
+endif()
 
 add_dependencies(
   external_embree

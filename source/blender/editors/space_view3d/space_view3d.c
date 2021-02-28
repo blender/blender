@@ -689,21 +689,41 @@ static void view3d_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "OBJECT_OT_add_named", view3d_ob_drop_poll, view3d_ob_drop_copy);
-  WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-  WM_dropbox_add(
-      lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
-  WM_dropbox_add(
-      lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
-  WM_dropbox_add(lb, "OBJECT_OT_volume_import", view3d_volume_drop_poll, view3d_id_path_drop_copy);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_add_named",
+                 view3d_ob_drop_poll,
+                 view3d_ob_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_drop_named_material",
+                 view3d_mat_drop_poll,
+                 view3d_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "VIEW3D_OT_background_image_add",
+                 view3d_ima_bg_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_drop_named_image",
+                 view3d_ima_empty_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_volume_import",
+                 view3d_volume_drop_poll,
+                 view3d_id_path_drop_copy,
+                 WM_drag_free_imported_drag_ID);
   WM_dropbox_add(lb,
                  "OBJECT_OT_collection_instance_add",
                  view3d_collection_drop_poll,
-                 view3d_collection_drop_copy);
+                 view3d_collection_drop_copy,
+                 WM_drag_free_imported_drag_ID);
   WM_dropbox_add(lb,
                  "OBJECT_OT_data_instance_add",
                  view3d_object_data_drop_poll,
-                 view3d_id_drop_copy_with_type);
+                 view3d_id_drop_copy_with_type,
+                 WM_drag_free_imported_drag_ID);
 }
 
 static void view3d_widgets(void)
@@ -1591,7 +1611,8 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     if (view_layer->basact) {
       Object *ob = view_layer->basact->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 || (ob->mode & OB_MODE_EDIT)) {
+      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 ||
+          (ob->mode != OB_MODE_OBJECT)) {
         CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, view_layer->basact);
       }
     }
@@ -1599,12 +1620,25 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
     return 1;
   }
   else if (CTX_data_equals(member, "active_object")) {
+    /* In most cases the active object is the `view_layer->basact->object`.
+     * For the 3D view however it can be NULL when hidden.
+     *
+     * This is ignored in the case the object is in any mode (besides object-mode),
+     * since the object's mode impacts the current tool, cursor, gizmos etc.
+     * If we didn't have this exception, changing visibility would need to perform
+     * many of the the same updates as changing the objects mode.
+     *
+     * Further, there are multiple ways to hide objects - by collection, by object type, etc.
+     * it's simplest if all these methods behave consistently - respecting the object-mode
+     * without showing the object.
+     *
+     * See T85532 for alternatives that were considered. */
     ViewLayer *view_layer = CTX_data_view_layer(C);
     if (view_layer->basact) {
       Object *ob = view_layer->basact->object;
       /* if hidden but in edit mode, we still display, can happen with animation */
       if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 ||
-          (ob->mode & OB_MODE_EDIT) != 0) {
+          (ob->mode != OB_MODE_OBJECT)) {
         CTX_data_id_pointer_set(result, &ob->id);
       }
     }

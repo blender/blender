@@ -141,7 +141,7 @@ struct Render {
   void (*progress)(void *handle, float i);
   void *prh;
 
-  void (*draw_lock)(void *handle, int i);
+  void (*draw_lock)(void *handle, bool lock);
   void *dlh;
   int (*test_break)(void *handle);
   void *tbh;

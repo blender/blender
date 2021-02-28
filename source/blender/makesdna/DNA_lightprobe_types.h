@@ -141,7 +141,7 @@ typedef struct LightGridCache {
   float visibility_bias, visibility_bleed, visibility_range, _pad5;
 } LightGridCache;
 
-/* These are used as ubo data. They need to be aligned to size of vec4. */
+/* These are used as UBO data. They need to be aligned to size of vec4. */
 BLI_STATIC_ASSERT_ALIGN(LightProbeCache, 16)
 BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 
@@ -185,7 +185,7 @@ typedef struct LightCache {
 } LightCache;
 
 /* Bump the version number for lightcache data structure changes. */
-#define LIGHTCACHE_STATIC_VERSION 1
+#define LIGHTCACHE_STATIC_VERSION 2
 
 /* LightCache->type */
 enum {

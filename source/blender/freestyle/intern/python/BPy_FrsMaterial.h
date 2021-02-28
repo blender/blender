@@ -26,8 +26,6 @@ extern "C" {
 
 #include "../scene_graph/FrsMaterial.h"
 
-using namespace Freestyle;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +39,7 @@ extern PyTypeObject FrsMaterial_Type;
 
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {
-  PyObject_HEAD FrsMaterial *m;
+  PyObject_HEAD Freestyle::FrsMaterial *m;
 } BPy_FrsMaterial;
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/

@@ -55,7 +55,6 @@ typedef struct tGPFtransdata {
 
 /* -------------------------------------------------------------------- */
 /** \name Action Transform Creation
- *
  * \{ */
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
@@ -553,7 +552,6 @@ void createTransActionData(bContext *C, TransInfo *t)
 
 /* -------------------------------------------------------------------- */
 /** \name Action Transform Flush
- *
  * \{ */
 
 /* This function helps flush transdata written to tempdata into the gp-frames  */

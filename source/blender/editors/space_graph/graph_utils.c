@@ -38,8 +38,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-
 #include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "UI_interface.h"

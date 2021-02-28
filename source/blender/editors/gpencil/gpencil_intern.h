@@ -103,55 +103,6 @@ typedef struct tGPDdraw {
   float diff_mat[4][4];        /* matrix */
 } tGPDdraw;
 
-/* Temporary interpolate operation data */
-typedef struct tGPDinterpolate_layer {
-  struct tGPDinterpolate_layer *next, *prev;
-
-  /** layer */
-  struct bGPDlayer *gpl;
-  /** frame before current frame (interpolate-from) */
-  struct bGPDframe *prevFrame;
-  /** frame after current frame (interpolate-to) */
-  struct bGPDframe *nextFrame;
-  /** interpolated frame */
-  struct bGPDframe *interFrame;
-  /** interpolate factor */
-  float factor;
-
-} tGPDinterpolate_layer;
-
-typedef struct tGPDinterpolate {
-  /** Current depsgraph from context */
-  struct Depsgraph *depsgraph;
-  /** current scene from context */
-  struct Scene *scene;
-  /** area where painting originated */
-  struct ScrArea *area;
-  /** region where painting originated */
-  struct ARegion *region;
-  /** current GP datablock */
-  struct bGPdata *gpd;
-  /** current material */
-  struct Material *mat;
-
-  /** current frame number */
-  int cframe;
-  /** (tGPDinterpolate_layer) layers to be interpolated */
-  ListBase ilayers;
-  /** value for determining the displacement influence */
-  float shift;
-  /** initial interpolation factor for active layer */
-  float init_factor;
-  /** shift low limit (-100%) */
-  float low_limit;
-  /** shift upper limit (200%) */
-  float high_limit;
-  /** flag from toolsettings */
-  int flag;
-
-  NumInput num; /* numeric input */
-} tGPDinterpolate;
-
 /* Modal Operator Drawing Callbacks ------------------------ */
 void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
 
@@ -341,7 +292,7 @@ bool gpencil_brush_create_presets_poll(bContext *C);
 
 extern ListBase gpencil_strokes_copypastebuf;
 
-/* Build a map for converting between old colornames and destination-color-refs */
+/* Build a map for converting between old color-names and destination-color-refs. */
 struct GHash *gpencil_copybuf_validate_colormap(struct bContext *C);
 
 /* Stroke Editing ------------------------------------ */
@@ -611,7 +562,7 @@ typedef struct bActListElem {
 
   struct bActionGroup *grp; /* action group that owns the channel */
 
-  void *owner;     /* will either be an action channel or fake ipo-channel (for keys) */
+  void *owner;     /* will either be an action channel or fake IPO-channel (for keys) */
   short ownertype; /* type of owner */
 } bActListElem;
 
@@ -624,7 +575,7 @@ typedef enum ACTFILTER_FLAGS {
   ACTFILTER_SEL = (1 << 1),        /* should channels be selected */
   ACTFILTER_FOREDIT = (1 << 2),    /* does editable status matter */
   ACTFILTER_CHANNELS = (1 << 3),   /* do we only care that it is a channel */
-  ACTFILTER_IPOKEYS = (1 << 4),    /* only channels referencing ipo's */
+  ACTFILTER_IPOKEYS = (1 << 4),    /* only channels referencing IPO's */
   ACTFILTER_ONLYICU = (1 << 5),    /* only reference ipo-curves */
   ACTFILTER_FORDRAWING = (1 << 6), /* make list for interface drawing */
   ACTFILTER_ACTGROUPED = (1 << 7), /* belongs to the active group */

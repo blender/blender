@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -341,43 +343,39 @@ PyTypeObject Interface1D_Type = {
     sizeof(BPy_Interface1D),                         /* tp_basicsize */
     0,                                               /* tp_itemsize */
     (destructor)Interface1D_dealloc,                 /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
-    nullptr,                                  /* tp_getattr */
-    nullptr,                                  /* tp_setattr */
-    nullptr,                                  /* tp_reserved */
-    (reprfunc)Interface1D_repr,               /* tp_repr */
-    nullptr,                                  /* tp_as_number */
-    nullptr,                                  /* tp_as_sequence */
-    nullptr,                                  /* tp_as_mapping */
-    nullptr,                                  /* tp_hash  */
-    nullptr,                                  /* tp_call */
-    nullptr,                                  /* tp_str */
-    nullptr,                                  /* tp_getattro */
-    nullptr,                                  /* tp_setattro */
-    nullptr,                                  /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    Interface1D_doc,                          /* tp_doc */
-    nullptr,                                  /* tp_traverse */
-    nullptr,                                  /* tp_clear */
-    nullptr,                                  /* tp_richcompare */
-    0,                                        /* tp_weaklistoffset */
-    nullptr,                                  /* tp_iter */
-    nullptr,                                  /* tp_iternext */
-    BPy_Interface1D_methods,                  /* tp_methods */
-    nullptr,                                  /* tp_members */
-    BPy_Interface1D_getseters,                /* tp_getset */
-    nullptr,                                  /* tp_base */
-    nullptr,                                  /* tp_dict */
-    nullptr,                                  /* tp_descr_get */
-    nullptr,                                  /* tp_descr_set */
-    0,                                        /* tp_dictoffset */
-    (initproc)Interface1D_init,               /* tp_init */
-    nullptr,                                  /* tp_alloc */
-    PyType_GenericNew,                        /* tp_new */
+    0,                                               /* tp_vectorcall_offset */
+    nullptr,                                         /* tp_getattr */
+    nullptr,                                         /* tp_setattr */
+    nullptr,                                         /* tp_reserved */
+    (reprfunc)Interface1D_repr,                      /* tp_repr */
+    nullptr,                                         /* tp_as_number */
+    nullptr,                                         /* tp_as_sequence */
+    nullptr,                                         /* tp_as_mapping */
+    nullptr,                                         /* tp_hash  */
+    nullptr,                                         /* tp_call */
+    nullptr,                                         /* tp_str */
+    nullptr,                                         /* tp_getattro */
+    nullptr,                                         /* tp_setattro */
+    nullptr,                                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,        /* tp_flags */
+    Interface1D_doc,                                 /* tp_doc */
+    nullptr,                                         /* tp_traverse */
+    nullptr,                                         /* tp_clear */
+    nullptr,                                         /* tp_richcompare */
+    0,                                               /* tp_weaklistoffset */
+    nullptr,                                         /* tp_iter */
+    nullptr,                                         /* tp_iternext */
+    BPy_Interface1D_methods,                         /* tp_methods */
+    nullptr,                                         /* tp_members */
+    BPy_Interface1D_getseters,                       /* tp_getset */
+    nullptr,                                         /* tp_base */
+    nullptr,                                         /* tp_dict */
+    nullptr,                                         /* tp_descr_get */
+    nullptr,                                         /* tp_descr_set */
+    0,                                               /* tp_dictoffset */
+    (initproc)Interface1D_init,                      /* tp_init */
+    nullptr,                                         /* tp_alloc */
+    PyType_GenericNew,                               /* tp_new */
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

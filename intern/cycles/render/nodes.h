@@ -501,6 +501,7 @@ class RGBToBWNode : public ShaderNode {
 class ConvertNode : public ShaderNode {
  public:
   ConvertNode(SocketType::Type from, SocketType::Type to, bool autoconvert = false);
+  ConvertNode(const ConvertNode &other);
   SHADER_NODE_BASE_CLASS(ConvertNode)
 
   void constant_fold(const ConstantFolder &folder);

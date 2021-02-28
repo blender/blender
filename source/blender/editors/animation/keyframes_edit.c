@@ -86,7 +86,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
     return 0;
   }
 
-  /* set the F-Curve into the editdata so that it can be accessed */
+  /* Set the F-Curve into the edit-data so that it can be accessed. */
   if (ked) {
     ked->fcu = fcu;
     ked->curIndex = 0;

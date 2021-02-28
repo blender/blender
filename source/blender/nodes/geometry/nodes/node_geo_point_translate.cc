@@ -18,6 +18,9 @@
 
 #include "BKE_colorband.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_point_translate_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Translation")},
@@ -29,6 +32,13 @@ static bNodeSocketTemplate geo_node_point_translate_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_translate_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "input_type", 0, IFACE_("Type"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -54,6 +64,8 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
 static void geo_node_point_translate_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
     execute_on_component(params, geometry_set.get_component_for_write<MeshComponent>());
@@ -97,5 +109,6 @@ void register_node_type_geo_point_translate()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_translate_exec;
+  ntype.draw_buttons = geo_node_point_translate_layout;
   nodeRegisterType(&ntype);
 }

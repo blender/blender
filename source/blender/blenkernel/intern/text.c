@@ -251,6 +251,7 @@ IDTypeInfo IDType_ID_TXT = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = text_blend_write,
     .blend_read_data = text_blend_read_data,

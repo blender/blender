@@ -79,6 +79,9 @@ typedef struct NlaValidMask {
 typedef struct NlaEvalChannelSnapshot {
   struct NlaEvalChannel *channel;
 
+  /** For an upper snapshot channel, marks values that should be blended. */
+  NlaValidMask blend_domain;
+
   int length;   /* Number of values in the property. */
   bool is_base; /* Base snapshot of the channel. */
 
@@ -181,6 +184,8 @@ void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,
                             NlaEvalSnapshot *snapshot,
                             const bool flush_to_original);
+
+void nlasnapshot_enable_all_blend_domain(NlaEvalSnapshot *snapshot);
 
 void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot);
 

@@ -51,7 +51,7 @@ ccl_device_inline float3 transform_perspective(const ProjectionTransform *t, con
   float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
   float w = dot(t->w, b);
 
-  return (w != 0.0f) ? c / w : make_float3(0.0f, 0.0f, 0.0f);
+  return (w != 0.0f) ? c / w : zero_float3();
 }
 
 ccl_device_inline float3 transform_perspective_direction(const ProjectionTransform *t,

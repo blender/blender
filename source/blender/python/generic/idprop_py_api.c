@@ -189,13 +189,13 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         st = (char *)PyC_UnicodeAsByte(value, &value_coerce);
         alloc_len = strlen(st) + 1;
 
-        st = _PyUnicode_AsString(value);
+        st = PyUnicode_AsUTF8(value);
         IDP_ResizeArray(prop, alloc_len);
         memcpy(IDP_Array(prop), st, alloc_len);
         Py_XDECREF(value_coerce);
       }
 #  else
-      st = _PyUnicode_AsString(value);
+      st = PyUnicode_AsUTF8(value);
       IDP_ResizeArray(prop, strlen(st) + 1);
       strcpy(IDP_Array(prop), st);
 #  endif
@@ -253,7 +253,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
     return -1;
   }
 
-  name = _PyUnicode_AsStringAndSize(value, &name_size);
+  name = PyUnicode_AsUTF8AndSize(value, &name_size);
 
   if (name_size >= MAX_IDPROP_NAME) {
     PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
@@ -300,7 +300,7 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
     return NULL;
   }
 
-  name = _PyUnicode_AsString(item);
+  name = PyUnicode_AsUTF8(item);
 
   if (name == NULL) {
     PyErr_SetString(PyExc_TypeError, "only strings are allowed as keys of ID properties");
@@ -358,7 +358,7 @@ static const char *idp_try_read_name(PyObject *name_obj)
   const char *name = NULL;
   if (name_obj) {
     Py_ssize_t name_size;
-    name = _PyUnicode_AsStringAndSize(name_obj, &name_size);
+    name = PyUnicode_AsUTF8AndSize(name_obj, &name_size);
 
     if (name == NULL) {
       PyErr_Format(PyExc_KeyError,
@@ -420,7 +420,7 @@ static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
   prop = IDP_New(IDP_STRING, &val, name);
   Py_XDECREF(value_coerce);
 #else
-  val.str = _PyUnicode_AsString(ob);
+  val.str = PyUnicode_AsUTF8(ob);
   prop = IDP_New(IDP_STRING, val, name);
 #endif
   return prop;
@@ -722,7 +722,7 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
 
   if (val == NULL) { /* del idprop[key] */
     IDProperty *pkey;
-    const char *name = _PyUnicode_AsString(key);
+    const char *name = PyUnicode_AsUTF8(key);
 
     if (name == NULL) {
       PyErr_Format(PyExc_KeyError, "expected a string, not %.200s", Py_TYPE(key)->tp_name);
@@ -1050,7 +1050,7 @@ static PyObject *BPy_IDGroup_items(BPy_IDProperty *self)
 
 static int BPy_IDGroup_Contains(BPy_IDProperty *self, PyObject *value)
 {
-  const char *name = _PyUnicode_AsString(value);
+  const char *name = PyUnicode_AsUTF8(value);
 
   if (!name) {
     PyErr_Format(PyExc_TypeError, "expected a string, not a %.200s", Py_TYPE(value)->tp_name);
@@ -1192,12 +1192,8 @@ PyTypeObject BPy_IDGroup_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                       /* destructor tp_dealloc; */
+    0,                          /* tp_vectorcall_offset */
     NULL,                       /* getattrfunc tp_getattr; */
     NULL,                       /* setattrfunc tp_setattr; */
     NULL,                       /* cmpfunc tp_compare; */
@@ -1605,12 +1601,8 @@ PyTypeObject BPy_IDArray_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                       /* destructor tp_dealloc; */
+    0,                          /* tp_vectorcall_offset */
     NULL,                       /* getattrfunc tp_getattr; */
     NULL,                       /* setattrfunc tp_setattr; */
     NULL,                       /* cmpfunc tp_compare; */
@@ -1726,12 +1718,8 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL, /* destructor tp_dealloc; */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    (printfunc)NULL, /* printfunc tp_print */
-#endif
+    NULL,                        /* destructor tp_dealloc; */
+    0,                           /* tp_vectorcall_offset */
     NULL,                        /* getattrfunc tp_getattr; */
     NULL,                        /* setattrfunc tp_setattr; */
     NULL,                        /* cmpfunc tp_compare; */
@@ -1811,16 +1799,10 @@ static PyObject *BPyInit_idprop_types(void)
 
   IDProp_Init_Types();
 
-#define MODULE_TYPE_ADD(s, t) \
-  PyModule_AddObject(s, t.tp_name, (PyObject *)&t); \
-  Py_INCREF((PyObject *)&t)
-
   /* bmesh_py_types.c */
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDGroup_Iter_Type);
-  MODULE_TYPE_ADD(submodule, BPy_IDArray_Type);
-
-#undef MODULE_TYPE_ADD
+  PyModule_AddType(submodule, &BPy_IDGroup_Type);
+  PyModule_AddType(submodule, &BPy_IDGroup_Iter_Type);
+  PyModule_AddType(submodule, &BPy_IDArray_Type);
 
   return submodule;
 }

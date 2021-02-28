@@ -23,6 +23,9 @@
 
 #include "BLI_math_matrix.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_object_info_in[] = {
     {SOCK_OBJECT, N_("Object")},
     {-1, ""},
@@ -35,6 +38,11 @@ static bNodeSocketTemplate geo_node_object_info_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_object_info_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
 
 namespace blender::nodes {
 static void geo_node_object_info_exec(GeoNodeExecParams params)
@@ -69,35 +77,15 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
     quat_to_eul(rotation, quaternion);
 
     if (object != self_object) {
-      if (object->type == OB_MESH) {
-        Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object, false);
-        if (mesh != nullptr) {
-          BKE_mesh_wrapper_ensure_mdata(mesh);
+      InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
-          /* Make a copy because the life time of the other mesh might be shorter. */
-          Mesh *copied_mesh = BKE_mesh_copy_for_eval(mesh, false);
-
-          if (transform_space_relative) {
-            /* Transform into the local space of the object that is being modified. */
-            BKE_mesh_transform(copied_mesh, transform, true);
-          }
-
-          MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-          mesh_component.replace(copied_mesh);
-          mesh_component.copy_vertex_group_names_from_object(*object);
-        }
+      if (transform_space_relative) {
+        instances.add_instance(object, transform);
       }
-      if (object->type == OB_VOLUME) {
-        InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
-
-        if (transform_space_relative) {
-          instances.add_instance(object, transform);
-        }
-        else {
-          float unit_transform[4][4];
-          unit_m4(unit_transform);
-          instances.add_instance(object, unit_transform);
-        }
+      else {
+        float unit_transform[4][4];
+        unit_m4(unit_transform);
+        instances.add_instance(object, unit_transform);
       }
     }
   }
@@ -128,5 +116,6 @@ void register_node_type_geo_object_info()
   node_type_storage(
       &ntype, "NodeGeometryObjectInfo", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_object_info_exec;
+  ntype.draw_buttons = geo_node_object_info_layout;
   nodeRegisterType(&ntype);
 }

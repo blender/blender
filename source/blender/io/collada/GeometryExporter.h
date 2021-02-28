@@ -90,7 +90,6 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
 
   /* creates <source> for texcoords */
   void createTexcoordsSource(std::string geom_id, Mesh *me);
-  void createTesselatedTexcoordsSource(std::string geom_id, Mesh *me);
 
   /* creates <source> for normals */
   void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor);

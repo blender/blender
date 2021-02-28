@@ -26,6 +26,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "NOD_math_functions.hh"
 
 static bNodeSocketTemplate geo_node_attribute_vector_math_in[] = {
@@ -46,25 +49,6 @@ static bNodeSocketTemplate geo_node_attribute_vector_math_out[] = {
     {-1, ""},
 };
 
-static void geo_node_attribute_vector_math_init(bNodeTree *UNUSED(tree), bNode *node)
-{
-  NodeAttributeVectorMath *data = (NodeAttributeVectorMath *)MEM_callocN(
-      sizeof(NodeAttributeVectorMath), __func__);
-
-  data->operation = NODE_VECTOR_MATH_ADD;
-  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  node->storage = data;
-}
-
-static CustomDataType operation_get_read_type_b(const NodeVectorMathOperation operation)
-{
-  if (operation == NODE_VECTOR_MATH_SCALE) {
-    return CD_PROP_FLOAT;
-  }
-  return CD_PROP_FLOAT3;
-}
-
 static bool operation_use_input_b(const NodeVectorMathOperation operation)
 {
   return !ELEM(operation,
@@ -82,6 +66,46 @@ static bool operation_use_input_b(const NodeVectorMathOperation operation)
 static bool operation_use_input_c(const NodeVectorMathOperation operation)
 {
   return operation == NODE_VECTOR_MATH_WRAP;
+}
+
+static void geo_node_attribute_vector_math_layout(uiLayout *layout,
+                                                  bContext *UNUSED(C),
+                                                  PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  const NodeAttributeVectorMath &node_storage = *(NodeAttributeVectorMath *)node->storage;
+  const NodeVectorMathOperation operation = (const NodeVectorMathOperation)node_storage.operation;
+
+  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "input_type_a", 0, IFACE_("A"), ICON_NONE);
+  if (operation_use_input_b(operation)) {
+    uiItemR(layout, ptr, "input_type_b", 0, IFACE_("B"), ICON_NONE);
+  }
+  if (operation_use_input_c(operation)) {
+    uiItemR(layout, ptr, "input_type_c", 0, IFACE_("C"), ICON_NONE);
+  }
+}
+
+static CustomDataType operation_get_read_type_b(const NodeVectorMathOperation operation)
+{
+  if (operation == NODE_VECTOR_MATH_SCALE) {
+    return CD_PROP_FLOAT;
+  }
+  return CD_PROP_FLOAT3;
+}
+
+static void geo_node_attribute_vector_math_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeAttributeVectorMath *data = (NodeAttributeVectorMath *)MEM_callocN(
+      sizeof(NodeAttributeVectorMath), __func__);
+
+  data->operation = NODE_VECTOR_MATH_ADD;
+  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  node->storage = data;
 }
 
 static CustomDataType operation_get_result_type(const NodeVectorMathOperation operation)
@@ -305,12 +329,35 @@ static void do_math_operation_fl3_to_fl(const Float3ReadAttribute &input_a,
   UNUSED_VARS_NDEBUG(success);
 }
 
+static AttributeDomain get_result_domain(const GeometryComponent &component,
+                                         const GeoNodeExecParams &params,
+                                         const NodeVectorMathOperation operation,
+                                         StringRef result_name)
+{
+  /* Use the domain of the result attribute if it already exists. */
+  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  if (result_attribute) {
+    return result_attribute->domain();
+  }
+
+  /* Otherwise use the highest priority domain from existing input attributes, or the default. */
+  const AttributeDomain default_domain = ATTR_DOMAIN_POINT;
+  if (operation_use_input_b(operation)) {
+    if (operation_use_input_c(operation)) {
+      return params.get_highest_priority_input_domain({"A", "B", "C"}, component, default_domain);
+    }
+    return params.get_highest_priority_input_domain({"A", "B"}, component, default_domain);
+  }
+  return params.get_highest_priority_input_domain({"A"}, component, default_domain);
+}
+
 static void attribute_vector_math_calc(GeometryComponent &component,
                                        const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
   const NodeAttributeVectorMath *node_storage = (const NodeAttributeVectorMath *)node.storage;
   const NodeVectorMathOperation operation = (NodeVectorMathOperation)node_storage->operation;
+  const std::string result_name = params.get_input<std::string>("Result");
 
   /* The number and type of the input attribute depend on the operation. */
   const CustomDataType read_type_a = CD_PROP_FLOAT3;
@@ -321,7 +368,8 @@ static void attribute_vector_math_calc(GeometryComponent &component,
 
   /* The result domain is always point for now. */
   const CustomDataType result_type = operation_get_result_type(operation);
-  const AttributeDomain result_domain = ATTR_DOMAIN_POINT;
+  const AttributeDomain result_domain = get_result_domain(
+      component, params, operation, result_name);
 
   ReadAttributePtr attribute_a = params.get_input_attribute(
       "A", component, result_domain, read_type_a, nullptr);
@@ -344,7 +392,6 @@ static void attribute_vector_math_calc(GeometryComponent &component,
   }
 
   /* Get result attribute first, in case it has to overwrite one of the existing attributes. */
-  const std::string result_name = params.get_input<std::string>("Result");
   OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
       result_name, result_domain, result_type);
   if (!attribute_result) {
@@ -397,6 +444,8 @@ static void geo_node_attribute_vector_math_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (geometry_set.has<MeshComponent>()) {
     attribute_vector_math_calc(geometry_set.get_component_for_write<MeshComponent>(), params);
   }
@@ -419,6 +468,7 @@ void register_node_type_geo_attribute_vector_math()
   node_type_socket_templates(
       &ntype, geo_node_attribute_vector_math_in, geo_node_attribute_vector_math_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_vector_math_exec;
+  ntype.draw_buttons = geo_node_attribute_vector_math_layout;
   node_type_update(&ntype, blender::nodes::geo_node_attribute_vector_math_update);
   node_type_init(&ntype, geo_node_attribute_vector_math_init);
   node_type_storage(

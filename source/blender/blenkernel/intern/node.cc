@@ -49,6 +49,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -68,6 +69,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_ui_storage.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
@@ -215,6 +217,10 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   /* node tree will generate its own interface type */
   ntree_dst->interface_type = nullptr;
+
+  /* Don't copy error messages in the runtime struct.
+   * They should be filled during execution anyway. */
+  ntree_dst->ui_storage = nullptr;
 }
 
 static void ntree_free_data(ID *id)
@@ -268,6 +274,8 @@ static void ntree_free_data(ID *id)
   if (ntree->id.tag & LIB_TAG_LOCALIZED) {
     BKE_libblock_free_data(&ntree->id, true);
   }
+
+  delete ntree->ui_storage;
 }
 
 static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
@@ -357,6 +365,35 @@ static void node_foreach_cache(ID *id,
       }
     }
   }
+}
+
+static ID *node_owner_get(Main *bmain, ID *id)
+{
+  if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
+    return id;
+  }
+  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+
+  ListBase *lists[] = {&bmain->materials,
+                       &bmain->lights,
+                       &bmain->worlds,
+                       &bmain->textures,
+                       &bmain->scenes,
+                       &bmain->linestyles,
+                       &bmain->simulations,
+                       nullptr};
+
+  bNodeTree *ntree = (bNodeTree *)id;
+  for (int i = 0; lists[i] != nullptr; i++) {
+    LISTBASE_FOREACH (ID *, id_iter, lists[i]) {
+      if (ntreeFromID(id_iter) == ntree) {
+        return id_iter;
+      }
+    }
+  }
+
+  BLI_assert(!"Embedded node tree with no owner. Critical Main inconsistency.");
+  return nullptr;
 }
 
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
@@ -515,6 +552,13 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
         MEM_SAFE_FREE(nc->matte_id);
       }
+      else if (node->type == FN_NODE_INPUT_STRING) {
+        NodeInputString *storage = (NodeInputString *)node->storage;
+        if (storage->string) {
+          BLO_write_string(writer, storage->string);
+        }
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, storage);
+      }
       else if (node->typeinfo != &NodeTypeUndefined) {
         BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
       }
@@ -557,6 +601,7 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     ntree->interface_type = nullptr;
     ntree->progress = nullptr;
     ntree->execdata = nullptr;
+    ntree->ui_storage = nullptr;
 
     BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
 
@@ -573,6 +618,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   sock->typeinfo = nullptr;
   BLO_read_data_address(reader, &sock->storage);
   BLO_read_data_address(reader, &sock->default_value);
+  sock->total_inputs = 0; /* Clear runtime data set before drawing. */
   sock->cache = nullptr;
 }
 
@@ -587,6 +633,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
+  ntree->ui_storage = nullptr;
 
   BLO_read_data_address(reader, &ntree->adt);
   BKE_animdata_blend_read_data(reader, ntree->adt);
@@ -672,6 +719,11 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
           ImageUser *iuser = (ImageUser *)node->storage;
           iuser->ok = 1;
           iuser->scene = nullptr;
+          break;
+        }
+        case FN_NODE_INPUT_STRING: {
+          NodeInputString *storage = (NodeInputString *)node->storage;
+          BLO_read_data_address(reader, &storage->string);
           break;
         }
         default:
@@ -893,6 +945,7 @@ IDTypeInfo IDType_ID_NT = {
     /* make_local */ nullptr,
     /* foreach_id */ node_foreach_id,
     /* foreach_cache */ node_foreach_cache,
+    /* owner_get */ node_owner_get,
 
     /* blend_write */ ntree_blend_write,
     /* blend_read_data */ ntree_blend_read_data,
@@ -1410,18 +1463,24 @@ static void socket_id_user_decrement(bNodeSocket *sock)
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_IMAGE: {
       bNodeSocketValueImage *default_value = (bNodeSocketValueImage *)sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                       sock->default_value;
-      id_us_min(&default_value->value->id);
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
       break;
     }
     case SOCK_FLOAT:
@@ -2442,7 +2501,7 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
                                              bNodeInstanceKey parent_key,
                                              int xsize,
                                              int ysize,
-                                             int create)
+                                             bool create_previews)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     bNodeInstanceKey key = BKE_node_instance_key(parent_key, ntree, node);
@@ -2451,16 +2510,17 @@ static void node_preview_init_tree_recursive(bNodeInstanceHash *previews,
       node->preview_xsize = xsize;
       node->preview_ysize = ysize;
 
-      BKE_node_preview_verify(previews, key, xsize, ysize, create);
+      BKE_node_preview_verify(previews, key, xsize, ysize, create_previews);
     }
 
     if (node->type == NODE_GROUP && node->id) {
-      node_preview_init_tree_recursive(previews, (bNodeTree *)node->id, key, xsize, ysize, create);
+      node_preview_init_tree_recursive(
+          previews, (bNodeTree *)node->id, key, xsize, ysize, create_previews);
     }
   }
 }
 
-void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, int create_previews)
+void BKE_node_preview_init_tree(bNodeTree *ntree, int xsize, int ysize, bool create_previews)
 {
   if (!ntree) {
     return;
@@ -2949,29 +3009,6 @@ bNodeTree *ntreeFromID(ID *id)
 {
   bNodeTree **nodetree = BKE_ntree_ptr_from_id(id);
   return (nodetree != nullptr) ? *nodetree : nullptr;
-}
-
-/* Finds and returns the datablock that privately owns the given tree, or null. */
-ID *BKE_node_tree_find_owner_ID(Main *bmain, struct bNodeTree *ntree)
-{
-  ListBase *lists[] = {&bmain->materials,
-                       &bmain->lights,
-                       &bmain->worlds,
-                       &bmain->textures,
-                       &bmain->scenes,
-                       &bmain->linestyles,
-                       &bmain->simulations,
-                       nullptr};
-
-  for (int i = 0; lists[i] != nullptr; i++) {
-    LISTBASE_FOREACH (ID *, id, lists[i]) {
-      if (ntreeFromID(id) == ntree) {
-        return id;
-      }
-    }
-  }
-
-  return nullptr;
 }
 
 bool ntreeNodeExists(const bNodeTree *ntree, const bNode *testnode)
@@ -4753,12 +4790,14 @@ static void registerGeometryNodes()
 
   register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_color_ramp();
+  register_node_type_geo_attribute_combine_xyz();
   register_node_type_geo_attribute_compare();
   register_node_type_geo_attribute_fill();
   register_node_type_geo_attribute_math();
   register_node_type_geo_attribute_mix();
   register_node_type_geo_attribute_proximity();
   register_node_type_geo_attribute_randomize();
+  register_node_type_geo_attribute_separate_xyz();
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_boolean();
   register_node_type_geo_collection_info();
@@ -4775,6 +4814,7 @@ static void registerGeometryNodes()
   register_node_type_geo_points_to_volume();
   register_node_type_geo_sample_texture();
   register_node_type_geo_subdivision_surface();
+  register_node_type_geo_subdivision_surface_simple();
   register_node_type_geo_transform();
   register_node_type_geo_triangulate();
   register_node_type_geo_volume_to_mesh();
@@ -4786,6 +4826,7 @@ static void registerFunctionNodes()
   register_node_type_fn_combine_strings();
   register_node_type_fn_float_compare();
   register_node_type_fn_group_instance_id();
+  register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
   register_node_type_fn_object_transforms();
   register_node_type_fn_random_float();

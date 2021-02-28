@@ -142,15 +142,15 @@ template<typename T> class Span {
   }
 
   /**
-   * Returns a contiguous part of the array. This invokes undefined behavior when the slice does
-   * not stay within the bounds of the array.
+   * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
+   * is negative.
    */
   constexpr Span slice(int64_t start, int64_t size) const
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
-    BLI_assert(start + size <= this->size() || size == 0);
-    return Span(data_ + start, size);
+    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
+    return Span(data_ + start, new_size);
   }
 
   constexpr Span slice(IndexRange range) const
@@ -160,46 +160,46 @@ template<typename T> class Span {
 
   /**
    * Returns a new Span with n elements removed from the beginning. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr Span drop_front(int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= this->size());
-    return this->slice(n, this->size() - n);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return Span(data_ + n, new_size);
   }
 
   /**
    * Returns a new Span with n elements removed from the beginning. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr Span drop_back(int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= this->size());
-    return this->slice(0, this->size() - n);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return Span(data_, new_size);
   }
 
   /**
    * Returns a new Span that only contains the first n elements. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr Span take_front(int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= this->size());
-    return this->slice(0, n);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return Span(data_, new_size);
   }
 
   /**
    * Returns a new Span that only contains the last n elements. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr Span take_back(int64_t n) const
   {
     BLI_assert(n >= 0);
-    BLI_assert(n <= this->size());
-    return this->slice(this->size() - n, n);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return Span(data_ + size_ - new_size, new_size);
   }
 
   /**
@@ -481,6 +481,14 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Returns true if the size is zero.
+   */
+  constexpr bool is_empty() const
+  {
+    return size_ == 0;
+  }
+
+  /**
    * Replace all elements in the referenced array with the given value.
    */
   constexpr void fill(const T &value)
@@ -534,53 +542,59 @@ template<typename T> class MutableSpan {
   }
 
   /**
-   * Returns a contiguous part of the array. This invokes undefined behavior when the slice would
-   * go out of bounds.
+   * Returns a contiguous part of the array. This invokes undefined behavior when the start or size
+   * is negative.
    */
-  constexpr MutableSpan slice(const int64_t start, const int64_t length) const
+  constexpr MutableSpan slice(const int64_t start, const int64_t size) const
   {
-    BLI_assert(start + length <= this->size());
-    return MutableSpan(data_ + start, length);
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
+    return MutableSpan(data_ + start, new_size);
   }
 
   /**
    * Returns a new MutableSpan with n elements removed from the beginning. This invokes
-   * undefined behavior when the array is too small.
+   * undefined behavior when n is negative.
    */
   constexpr MutableSpan drop_front(const int64_t n) const
   {
-    BLI_assert(n <= this->size());
-    return this->slice(n, this->size() - n);
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return MutableSpan(data_ + n, new_size);
   }
 
   /**
    * Returns a new MutableSpan with n elements removed from the end. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr MutableSpan drop_back(const int64_t n) const
   {
-    BLI_assert(n <= this->size());
-    return this->slice(0, this->size() - n);
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::max<int64_t>(0, size_ - n);
+    return MutableSpan(data_, new_size);
   }
 
   /**
    * Returns a new MutableSpan that only contains the first n elements. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr MutableSpan take_front(const int64_t n) const
   {
-    BLI_assert(n <= this->size());
-    return this->slice(0, n);
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return MutableSpan(data_, new_size);
   }
 
   /**
    * Return a new MutableSpan that only contains the last n elements. This invokes undefined
-   * behavior when the array is too small.
+   * behavior when n is negative.
    */
   constexpr MutableSpan take_back(const int64_t n) const
   {
-    BLI_assert(n <= this->size());
-    return this->slice(this->size() - n, n);
+    BLI_assert(n >= 0);
+    const int64_t new_size = std::min<int64_t>(size_, n);
+    return MutableSpan(data_ + size_ - new_size, new_size);
   }
 
   /**

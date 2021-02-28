@@ -568,8 +568,7 @@ def unwrap(operator, context, **kwargs):
     meshes = list({
         me for obj in context.selected_objects
         if obj.type == 'MESH'
-        for me in (obj.data,)
-        if me.polygons and me.library is None
+        if (me := obj.data).polygons and me.library is None
     })
 
     if not meshes:
@@ -615,8 +614,8 @@ class LightMapPack(Operator):
     PREF_PACK_IN_ONE: BoolProperty(
         name="Share Texture Space",
         description=(
-            "Objects Share texture space, map all objects "
-            "into 1 uvmap"
+            "Objects share texture space, map all objects "
+            "into a single UV map"
         ),
         default=True,
     )

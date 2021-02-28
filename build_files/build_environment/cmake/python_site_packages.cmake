@@ -16,13 +16,26 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+if(WIN32 AND BUILD_MODE STREQUAL Debug)
+  set(SITE_PACKAGES_EXTRA --global-option build --global-option --debug)
+endif()
+
 ExternalProject_Add(external_python_site_packages
   DOWNLOAD_COMMAND ""
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   PREFIX ${BUILD_DIR}/site_packages
-  INSTALL_COMMAND ${PYTHON_BINARY} -m pip install idna==${IDNA_VERSION} chardet==${CHARDET_VERSION} urllib3==${URLLIB3_VERSION} certifi==${CERTIFI_VERSION} requests==${REQUESTS_VERSION} --no-binary :all:
+  INSTALL_COMMAND ${PYTHON_BINARY} -m pip install ${SITE_PACKAGES_EXTRA} cython==${CYTHON_VERSION} idna==${IDNA_VERSION} chardet==${CHARDET_VERSION} urllib3==${URLLIB3_VERSION} certifi==${CERTIFI_VERSION} requests==${REQUESTS_VERSION} --no-binary :all:
 )
+
+if(USE_PIP_NUMPY)
+  # Use only wheel (and not build from source) to stop NumPy from linking against buggy
+  # Accelerate framework backend on macOS. Official wheels are built with OpenBLAS.
+  ExternalProject_Add_Step(external_python_site_packages after_install
+    COMMAND ${PYTHON_BINARY} -m pip install --no-cache-dir numpy==${NUMPY_VERSION} --only-binary :all:
+    DEPENDEES install
+  )
+endif()
 
 add_dependencies(
   external_python_site_packages

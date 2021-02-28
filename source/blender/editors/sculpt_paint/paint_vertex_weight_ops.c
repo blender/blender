@@ -573,6 +573,7 @@ typedef struct WPGradient_vertStore {
   enum {
     VGRAD_STORE_NOP = 0,
     VGRAD_STORE_DW_EXIST = (1 << 0),
+    VGRAD_STORE_IS_MODIFIED = (1 << 1)
   } flag;
 } WPGradient_vertStore;
 
@@ -609,6 +610,8 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 
   /* Optionally restrict to assigned vertices only. */
   if (grad_data->use_vgroup_restrict && ((vs->flag & VGRAD_STORE_DW_EXIST) == 0)) {
+    /* In this case the vertex will never have been touched. */
+    BLI_assert((vs->flag & VGRAD_STORE_IS_MODIFIED) == 0);
     return;
   }
 
@@ -637,6 +640,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
         tool, vs->weight_orig, grad_data->weightpaint, alpha * grad_data->brush->alpha);
     CLAMP(testw, 0.0f, 1.0f);
     dw->weight = testw;
+    vs->flag |= VGRAD_STORE_IS_MODIFIED;
   }
   else {
     MDeformVert *dv = &me->dvert[index];
@@ -652,6 +656,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
         BKE_defvert_remove_group(dv, dw);
       }
     }
+    vs->flag &= ~VGRAD_STORE_IS_MODIFIED;
   }
 }
 
@@ -854,6 +859,20 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
   if (is_interactive == false) {
     MEM_freeN(vert_cache);
+  }
+
+  if (scene->toolsettings->auto_normalize) {
+    const int vgroup_num = BLI_listbase_count(&ob->defbase);
+    bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
+    if (vgroup_validmap != NULL) {
+      MDeformVert *dvert = me->dvert;
+      for (int i = 0; i < me->totvert; i++) {
+        if ((data.vert_cache->elem[i].flag & VGRAD_STORE_IS_MODIFIED) != 0) {
+          BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
+        }
+      }
+      MEM_freeN(vgroup_validmap);
+    }
   }
 
   return OPERATOR_FINISHED;

@@ -41,11 +41,11 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
   if (kernel_data.film.pass_denoising_data) {
     state->flag |= PATH_RAY_STORE_SHADOW_INFO;
     state->denoising_feature_weight = 1.0f;
-    state->denoising_feature_throughput = make_float3(1.0f, 1.0f, 1.0f);
+    state->denoising_feature_throughput = one_float3();
   }
   else {
     state->denoising_feature_weight = 0.0f;
-    state->denoising_feature_throughput = make_float3(0.0f, 0.0f, 0.0f);
+    state->denoising_feature_throughput = zero_float3();
   }
 #endif /* __DENOISING_FEATURES__ */
 

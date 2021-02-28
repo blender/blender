@@ -26,7 +26,6 @@
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_alloca.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -730,7 +729,7 @@ void NODE_OT_select_box(wmOperatorType *ot)
                   "tweak",
                   0,
                   "Tweak",
-                  "Only activate when mouse is not over a node - useful for tweak gesture");
+                  "Only activate when mouse is not over a node (useful for tweak gesture)");
 
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
@@ -906,7 +905,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
                   "tweak",
                   0,
                   "Tweak",
-                  "Only activate when mouse is not over a node - useful for tweak gesture");
+                  "Only activate when mouse is not over a node (useful for tweak gesture)");
 
   WM_operator_properties_gesture_lasso(ot);
   WM_operator_properties_select_operation_simple(ot);

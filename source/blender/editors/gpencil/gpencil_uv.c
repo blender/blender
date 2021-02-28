@@ -31,7 +31,6 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
-#include "BKE_unit.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -47,8 +47,6 @@ typedef struct BrushClone {
   char _pad[4];
 } BrushClone;
 
-#define GPENCIL_MIN_FILL_FAC 0.05f
-
 typedef struct BrushGpencilSettings {
   /** Amount of smoothing to apply to newly created strokes. */
   float draw_smoothfac;
@@ -132,6 +130,10 @@ typedef struct BrushGpencilSettings {
   float random_saturation;
   /** Randomness for Value. */
   float random_value;
+
+  /** Factor to extend stroke extremes using fill tool. */
+  float fill_extend_fac;
+  char _pad3[4];
 
   struct CurveMapping *curve_sensitivity;
   struct CurveMapping *curve_strength;

@@ -75,12 +75,12 @@ def rna_info_BuildRNAInfo_cache():
 rna_info_BuildRNAInfo_cache.ret = None
 # --- end rna_info cache
 
-# import rpdb2; rpdb2.start_embedded_debugger('test')
 import os
 import sys
 import inspect
 import shutil
 import logging
+import warnings
 
 from textwrap import indent
 
@@ -227,6 +227,7 @@ else:
         "blf",
         "bl_math",
         "imbuf",
+        "imbuf.types",
         "bmesh",
         "bmesh.ops",
         "bmesh.types",
@@ -250,6 +251,8 @@ else:
         "gpu.types",
         "gpu.matrix",
         "gpu.select",
+        "gpu.shader",
+        "gpu.state",
         "gpu_extras",
         "idprop.types",
         "mathutils",
@@ -1204,7 +1207,7 @@ def pycontext2sphinx(basepath):
     # for member in sorted(unique):
     #     print('        "%s": ("", False),' % member)
     if len(context_type_map) > len(unique):
-        raise Exception(
+        warnings.warn(
             "Some types are not used: %s" %
             str([member for member in context_type_map if member not in unique]))
     else:
@@ -1714,7 +1717,6 @@ except ModuleNotFoundError:
 
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
-    fw("        'canonical_url': 'https://docs.blender.org/api/current/',\n")
     # fw("        'analytics_id': '',\n")
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
@@ -1726,6 +1728,7 @@ except ModuleNotFoundError:
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
+    fw("html_baseurl = 'https://docs.blender.org/api/current/'\n")
     fw("html_use_opensearch = 'https://docs.blender.org/api/current'\n")
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")
@@ -1975,11 +1978,13 @@ def write_rst_importable_modules(basepath):
         "aud": "Audio System",
         "blf": "Font Drawing",
         "imbuf": "Image Buffer",
+        "imbuf.types": "Image Buffer Types",
         "gpu": "GPU Shader Module",
         "gpu.types": "GPU Types",
         "gpu.matrix": "GPU Matrix",
         "gpu.select": "GPU Select",
         "gpu.shader": "GPU Shader",
+        "gpu.state": "GPU State",
         "bmesh": "BMesh Module",
         "bmesh.ops": "BMesh Operators",
         "bmesh.types": "BMesh Types",

@@ -18,6 +18,9 @@
 
 #include "BLI_math_rotation.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 static bNodeSocketTemplate geo_node_align_rotation_to_vector_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Factor")},
@@ -31,6 +34,19 @@ static bNodeSocketTemplate geo_node_align_rotation_to_vector_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
+                                                     bContext *UNUSED(C),
+                                                     PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "pivot_axis", 0, IFACE_("Pivot"), ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "input_type_factor", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "input_type_vector", 0, IFACE_("Vector"), ICON_NONE);
+}
 
 namespace blender::nodes {
 
@@ -51,7 +67,16 @@ static void align_rotations_auto_pivot(const Float3ReadAttribute &vectors,
     mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
 
     const float3 new_axis = vector.normalized();
-    const float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+    float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+    if (is_zero_v3(rotation_axis)) {
+      /* The vectors are linearly dependent, so we fall back to another axis. */
+      rotation_axis = float3::cross_high_precision(old_axis, float3(1, 0, 0));
+      if (is_zero_v3(rotation_axis)) {
+        /* This is now guaranteed to not be zero. */
+        rotation_axis = float3::cross_high_precision(old_axis, float3(0, 1, 0));
+      }
+    }
+
     const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
     const float angle = factors[i] * full_angle;
 
@@ -149,6 +174,8 @@ static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   if (geometry_set.has<MeshComponent>()) {
     align_rotations_on_component(geometry_set.get_component_for_write<MeshComponent>(), params);
   }
@@ -202,5 +229,6 @@ void register_node_type_geo_align_rotation_to_vector()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_align_rotation_to_vector_exec;
+  ntype.draw_buttons = geo_node_align_rotation_to_vector_layout;
   nodeRegisterType(&ntype);
 }

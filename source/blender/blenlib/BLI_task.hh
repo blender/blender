@@ -22,15 +22,15 @@
 
 #ifdef WITH_TBB
 /* Quiet top level deprecation message, unrelated to API usage here. */
-#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-
 #  if defined(WIN32) && !defined(NOMINMAX)
 /* TBB includes Windows.h which will define min/max macros causing issues
  * when we try to use std::min and std::max later on. */
 #    define NOMINMAX
 #    define TBB_MIN_MAX_CLEANUP
 #  endif
-#  include <tbb/tbb.h>
+#  include <tbb/blocked_range.h>
+#  include <tbb/parallel_for.h>
+#  include <tbb/parallel_for_each.h>
 #  ifdef WIN32
 /* We cannot keep this defined, since other parts of the code deal with this on their own, leading
  * to multiple define warnings unless we un-define this, however we can only undefine this if we

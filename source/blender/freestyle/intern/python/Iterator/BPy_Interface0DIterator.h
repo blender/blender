@@ -38,7 +38,7 @@ extern PyTypeObject Interface0DIterator_Type;
 /*---------------------------Python BPy_Interface0DIterator structure definition----------*/
 typedef struct {
   BPy_Iterator py_it;
-  Interface0DIterator *if0D_it;
+  Freestyle::Interface0DIterator *if0D_it;
   bool reversed;
   bool at_start;
 } BPy_Interface0DIterator;

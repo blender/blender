@@ -20,19 +20,36 @@ set(MESA_CFLAGS "-static-libgcc")
 set(MESA_CXXFLAGS "-static-libgcc -static-libstdc++ -Bstatic -lstdc++ -Bdynamic -l:libstdc++.a")
 set(MESA_LDFLAGS "-L${LIBDIR}/zlib/lib -pthread -static-libgcc -static-libstdc++ -Bstatic -lstdc++ -Bdynamic -l:libstdc++.a -l:libz_pic.a")
 
+# The 'native-file', used for overrides with the meson build system.
+# meson does not provide a way to do this using command line arguments.
+#
+# Note that we can't output to "${BUILD_DIR}/mesa/src/external_mesa" as
+# it doesn't exist when CMake first executes.
+file(WRITE ${BUILD_DIR}/mesa/tmp/native-file.ini "\
+[binaries]
+llvm-config = '${LIBDIR}/llvm/bin/llvm-config'"
+)
+
 set(MESA_EXTRA_FLAGS
-  CFLAGS=${MESA_CFLAGS}
-  CXXFLAGS=${MESA_CXXFLAGS}
-  LDFLAGS=${MESA_LDFLAGS}
-  --enable-glx=gallium-xlib
-  --with-gallium-drivers=swrast
-  --disable-dri
-  --disable-gbm
-  --disable-egl
-  --disable-gles1
-  --disable-gles2
-  --disable-llvm-shared-libs
-  --with-llvm-prefix=${LIBDIR}/llvm
+  -Dbuildtype=release
+  -Dc_args=${MESA_CFLAGS}
+  -Dcpp_args=${MESA_CXXFLAGS}
+  -Dc_link_args=${MESA_LDFLAGS}
+  -Dcpp_link_args=${MESA_LDFLAGS}
+  -Dglx=gallium-xlib
+  -Dgallium-drivers=swrast
+  -Ddri-drivers=
+  -Dvulkan-drivers=
+  -Dgbm=disabled
+  -Degl=disabled
+  -Dgles1=disabled
+  -Dgles2=disabled
+  -Dshared-llvm=disabled
+  # Without this, the build fails when: `wayland-scanner` is not found.
+  # At some point we will likely want to support Wayland.
+  # Disable for now since it's not officially supported.
+  -Dplatforms=x11
+  --native-file ${BUILD_DIR}/mesa/tmp/native-file.ini
 )
 
 ExternalProject_Add(external_mesa
@@ -42,9 +59,9 @@ ExternalProject_Add(external_mesa
   PREFIX ${BUILD_DIR}/mesa
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/mesa/src/external_mesa/ &&
-    ${CONFIGURE_COMMAND_NO_TARGET} --prefix=${LIBDIR}/mesa ${MESA_EXTRA_FLAGS}
-  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa/ && make -j${MAKE_THREADS}
-  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa/ && make install
+    meson ${BUILD_DIR}/mesa/src/external_mesa-build --prefix=${LIBDIR}/mesa ${MESA_EXTRA_FLAGS}
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa-build && ninja -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/mesa/src/external_mesa-build && ninja install
   INSTALL_DIR ${LIBDIR}/mesa
 )
 

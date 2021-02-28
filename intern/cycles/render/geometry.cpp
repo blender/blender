@@ -61,6 +61,7 @@ Geometry::Geometry(const NodeType *node_type, const Type type)
     : Node(node_type), geometry_type(type), attributes(this, ATTR_PRIM_GEOMETRY)
 {
   need_update_rebuild = false;
+  need_update_bvh_for_offset = false;
 
   transform_applied = false;
   transform_negative_scaled = false;
@@ -241,6 +242,7 @@ void Geometry::compute_bvh(
   }
 
   need_update_rebuild = false;
+  need_update_bvh_for_offset = false;
 }
 
 bool Geometry::has_motion_blur() const
@@ -964,7 +966,8 @@ void GeometryManager::mesh_calc_offset(Scene *scene, BVHLayout bvh_layout)
       const bool has_optix_bvh = bvh_layout == BVH_LAYOUT_OPTIX ||
                                  bvh_layout == BVH_LAYOUT_MULTI_OPTIX ||
                                  bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE;
-      geom->tag_bvh_update(has_optix_bvh);
+      geom->need_update_rebuild |= has_optix_bvh;
+      geom->need_update_bvh_for_offset = true;
     }
 
     if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
@@ -1388,8 +1391,8 @@ enum {
 
   ATTRS_NEED_REALLOC = (ATTR_FLOAT_NEEDS_REALLOC | ATTR_FLOAT2_NEEDS_REALLOC |
                         ATTR_FLOAT3_NEEDS_REALLOC | ATTR_UCHAR4_NEEDS_REALLOC),
-  DEVICE_MESH_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
-  DEVICE_CURVE_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_MESH_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_CURVE_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
 };
 
 static void update_device_flags_attribute(uint32_t &device_update_flags,
@@ -1439,6 +1442,18 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
   foreach (Geometry *geom, scene->geometry) {
     geom->has_volume = false;
+
+    if (geom->attributes.modified) {
+      device_update_flags |= ATTRS_NEED_REALLOC;
+    }
+
+    if (geom->is_mesh()) {
+      Mesh *mesh = static_cast<Mesh *>(geom);
+
+      if (mesh->subd_attributes.modified) {
+        device_update_flags |= ATTRS_NEED_REALLOC;
+      }
+    }
 
     foreach (Node *node, geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
@@ -1570,6 +1585,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->tri_patch.tag_realloc();
       dscene->tri_vnormal.tag_realloc();
       dscene->tri_patch_uv.tag_realloc();
+      dscene->tri_shader.tag_realloc();
       dscene->patches.tag_realloc();
     }
 
@@ -1591,16 +1607,16 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     dscene->attributes_map.tag_realloc();
     dscene->attributes_float2.tag_realloc();
   }
-  else if (device_update_flags & ATTR_FLOAT_MODIFIED) {
-    dscene->attributes_float.tag_modified();
+  else if (device_update_flags & ATTR_FLOAT2_MODIFIED) {
+    dscene->attributes_float2.tag_modified();
   }
 
   if (device_update_flags & ATTR_FLOAT3_NEEDS_REALLOC) {
     dscene->attributes_map.tag_realloc();
     dscene->attributes_float3.tag_realloc();
   }
-  else if (device_update_flags & ATTR_FLOAT_MODIFIED) {
-    dscene->attributes_float.tag_modified();
+  else if (device_update_flags & ATTR_FLOAT3_MODIFIED) {
+    dscene->attributes_float3.tag_modified();
   }
 
   if (device_update_flags & ATTR_UCHAR4_NEEDS_REALLOC) {
@@ -1866,7 +1882,9 @@ void GeometryManager::device_update(Device *device,
             displacement_done = true;
           }
         }
+      }
 
+      if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         if (geom->need_build_bvh(bvh_layout)) {
           num_bvh++;
         }
@@ -1911,7 +1929,7 @@ void GeometryManager::device_update(Device *device,
 
     size_t i = 0;
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->is_modified()) {
+      if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         need_update_scene_bvh = true;
         pool.push(function_bind(
             &Geometry::compute_bvh, geom, device, dscene, &scene->params, &progress, i, num_bvh));

@@ -499,6 +499,21 @@ static void layerCopy_propFloat(const void *source, void *dest, int count)
   memcpy(dest, source, sizeof(MFloatProperty) * count);
 }
 
+static void layerInterp_propFloat(const void **sources,
+                                  const float *weights,
+                                  const float *UNUSED(sub_weights),
+                                  int count,
+                                  void *dest)
+{
+  float result = 0.0f;
+  for (int i = 0; i < count; i++) {
+    const float interp_weight = weights[i];
+    const float src = *(const float *)sources[i];
+    result += src * interp_weight;
+  }
+  *(float *)dest = result;
+}
+
 static bool layerValidate_propFloat(void *data, const uint totitems, const bool do_fixes)
 {
   MFloatProperty *fp = data;
@@ -1579,7 +1594,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      N_("Float"),
      layerCopy_propFloat,
      NULL,
-     NULL,
+     layerInterp_propFloat,
      NULL,
      NULL,
      layerValidate_propFloat},
@@ -2912,20 +2927,20 @@ void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, 
   }
 }
 
-static void CustomData_copy_data_layer(const CustomData *source,
-                                       CustomData *dest,
-                                       int src_i,
-                                       int dst_i,
-                                       int src_index,
-                                       int dst_index,
-                                       int count)
+void CustomData_copy_data_layer(const CustomData *source,
+                                CustomData *dest,
+                                int src_layer_index,
+                                int dst_layer_index,
+                                int src_index,
+                                int dst_index,
+                                int count)
 {
   const LayerTypeInfo *typeInfo;
 
-  const void *src_data = source->layers[src_i].data;
-  void *dst_data = dest->layers[dst_i].data;
+  const void *src_data = source->layers[src_layer_index].data;
+  void *dst_data = dest->layers[dst_layer_index].data;
 
-  typeInfo = layerType_getInfo(source->layers[src_i].type);
+  typeInfo = layerType_getInfo(source->layers[src_layer_index].type);
 
   const size_t src_offset = (size_t)src_index * typeInfo->size;
   const size_t dst_offset = (size_t)dst_index * typeInfo->size;
@@ -2934,7 +2949,7 @@ static void CustomData_copy_data_layer(const CustomData *source,
     if (count && !(src_data == NULL && dst_data == NULL)) {
       CLOG_WARN(&LOG,
                 "null data for %s type (%p --> %p), skipping",
-                layerType_getName(source->layers[src_i].type),
+                layerType_getName(source->layers[src_layer_index].type),
                 (void *)src_data,
                 (void *)dst_data);
     }
@@ -4316,6 +4331,18 @@ bool CustomData_layertype_is_singleton(int type)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   return typeInfo->defaultname == NULL;
+}
+
+/**
+ * Has dynamically allocated members.
+ * This is useful to know if operations such as #memcmp are
+ * valid when comparing data from two layers.
+ */
+bool CustomData_layertype_is_dynamic(int type)
+{
+  const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+  return (typeInfo->free != NULL);
 }
 
 /**

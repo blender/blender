@@ -637,6 +637,7 @@ IDTypeInfo IDType_ID_VO = {
     /* make_local */ nullptr,
     /* foreach_id */ volume_foreach_id,
     /* foreach_cache */ volume_foreach_cache,
+    /* owner_get */ nullptr,
 
     /* blend_write */ volume_blend_write,
     /* blend_read_data */ volume_blend_read_data,

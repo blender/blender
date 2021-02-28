@@ -33,7 +33,7 @@ TEST(transform_motion_decompose, Degenerated)
 
   // Copy from previous to current.
   {
-    vector<Transform> motion = {transform_rotate(M_PI_4_F, make_float3(1.0f, 1.0f, 1.0f)),
+    vector<Transform> motion = {transform_rotate(M_PI_4_F, one_float3()),
                                 transform_scale(0.0f, 0.0f, 0.0f)};
     vector<DecomposedTransform> decomp(motion.size());
     transform_motion_decompose(decomp.data(), motion.data(), motion.size());
@@ -43,7 +43,7 @@ TEST(transform_motion_decompose, Degenerated)
   // Copy from next to current.
   {
     vector<Transform> motion = {transform_scale(0.0f, 0.0f, 0.0f),
-                                transform_rotate(M_PI_4_F, make_float3(1.0f, 1.0f, 1.0f))};
+                                transform_rotate(M_PI_4_F, one_float3())};
     vector<DecomposedTransform> decomp(motion.size());
     transform_motion_decompose(decomp.data(), motion.data(), motion.size());
     EXPECT_NEAR(len(decomp[0].x - decomp[1].x), 0.0f, 1e-6f);

@@ -333,7 +333,7 @@ static struct bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLEC
 /* Temperature */
 static struct bUnitDef buMetricTempDef[] = {
   {"kelvin",  "kelvin",  "K",  NULL, "Kelvin",  "KELVIN",  1.0f, 0.0,    B_UNIT_DEF_NONE}, /* Base unit. */
-  {"celsius", "celsius", "°C", "C",  "Celsius", "CELCIUS", 1.0f, 273.15, B_UNIT_DEF_NONE},
+  {"celsius", "celsius", "°C", "C",  "Celsius", "CELSIUS", 1.0f, 273.15, B_UNIT_DEF_NONE},
   NULL_UNIT,
 };
 static struct bUnitCollection buMetricTempCollection = {buMetricTempDef, 0, 0, UNIT_COLLECTION_LENGTH(buMetricTempDef)};

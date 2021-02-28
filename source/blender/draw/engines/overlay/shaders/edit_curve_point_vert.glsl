@@ -1,6 +1,6 @@
 
 /* Keep the same value of `BEZIER_HANDLE` in `draw_cache_imp_curve.c` */
-#define BEZIER_HANDLE 1 << 3
+#define BEZIER_HANDLE (1 << 3)
 
 /* Keep the same value in `handle_display` in `DNA_view3d_types.h` */
 #define CURVE_HANDLE_SELECTED 0

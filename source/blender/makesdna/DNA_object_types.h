@@ -38,6 +38,7 @@ extern "C" {
 
 struct AnimData;
 struct BoundBox;
+struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
 struct Ipo;
@@ -185,6 +186,12 @@ typedef struct Object_Runtime {
    * It created when Python calls `object.to_mesh()`.
    */
   struct Mesh *object_as_temp_mesh;
+
+  /**
+   * This is a curve representation of corresponding object.
+   * It created when Python calls `object.to_curve()`.
+   */
+  struct Curve *object_as_temp_curve;
 
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;

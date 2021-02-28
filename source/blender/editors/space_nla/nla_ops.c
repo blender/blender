@@ -30,15 +30,10 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
-#include "ED_markers.h"
 #include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "RNA_access.h"
 
 #include "nla_intern.h" /* own include */
 

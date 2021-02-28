@@ -240,9 +240,9 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
 
   if (keying_data->blur_pre) {
     /* Chroma pre-blur operation for input of keying operation. */
-    NodeOperationOutput *preBluredImage = setupPreBlur(
+    NodeOperationOutput *preBlurredImage = setupPreBlur(
         converter, inputImage, keying_data->blur_pre);
-    converter.addLink(preBluredImage, keyingOperation->getInputSocket(0));
+    converter.addLink(preBlurredImage, keyingOperation->getInputSocket(0));
   }
   else {
     converter.mapInputSocket(inputImage, keyingOperation->getInputSocket(0));

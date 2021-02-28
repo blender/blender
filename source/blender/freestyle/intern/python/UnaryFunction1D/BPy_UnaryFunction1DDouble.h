@@ -36,7 +36,7 @@ extern PyTypeObject UnaryFunction1DDouble_Type;
 /*---------------------------Python BPy_UnaryFunction1DDouble structure definition----------*/
 typedef struct {
   BPy_UnaryFunction1D py_uf1D;
-  UnaryFunction1D<double> *uf1D_double;
+  Freestyle::UnaryFunction1D<double> *uf1D_double;
 } BPy_UnaryFunction1DDouble;
 
 /*---------------------------Python BPy_UnaryFunction1DDouble visible prototypes-----------*/

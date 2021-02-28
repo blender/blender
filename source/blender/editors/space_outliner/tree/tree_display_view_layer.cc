@@ -60,7 +60,6 @@ class ObjectsChildrenBuilder {
 
 /* -------------------------------------------------------------------- */
 /** \name Tree-Display for a View Layer.
- *
  * \{ */
 
 TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)
@@ -143,10 +142,6 @@ void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
       if (!(tselem->used || ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id))) {
         tselem->flag &= ~TSE_CLOSED;
       }
-
-      if (exclude || (lc->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER) == 0) {
-        ten->flag |= TE_DISABLED;
-      }
     }
 
     add_layer_collections_recursive(ten->subtree, lc->layer_collections, *ten);
@@ -165,10 +160,6 @@ void TreeDisplayViewLayer::add_layer_collection_objects(ListBase &tree,
     TreeElement *te_object = outliner_add_element(
         &space_outliner_, &tree, base->object, &ten, 0, 0);
     te_object->directdata = base;
-
-    if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
-      te_object->flag |= TE_DISABLED;
-    }
   }
 }
 

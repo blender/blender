@@ -33,6 +33,9 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_pointcloud.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_point_distribute_in[] = {
@@ -48,6 +51,13 @@ static bNodeSocketTemplate geo_node_point_distribute_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_distribute_layout(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "distribute_method", 0, "", ICON_NONE);
+}
 
 static void node_point_distribute_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
@@ -90,18 +100,21 @@ static void sample_mesh_surface(const Mesh &mesh,
 
   for (const int looptri_index : looptris.index_range()) {
     const MLoopTri &looptri = looptris[looptri_index];
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
+    const int v0_loop = looptri.tri[0];
+    const int v1_loop = looptri.tri[1];
+    const int v2_loop = looptri.tri[2];
+    const int v0_index = mesh.mloop[v0_loop].v;
+    const int v1_index = mesh.mloop[v1_loop].v;
+    const int v2_index = mesh.mloop[v2_loop].v;
     const float3 v0_pos = mesh.mvert[v0_index].co;
     const float3 v1_pos = mesh.mvert[v1_index].co;
     const float3 v2_pos = mesh.mvert[v2_index].co;
 
     float looptri_density_factor = 1.0f;
     if (density_factors != nullptr) {
-      const float v0_density_factor = std::max(0.0f, (*density_factors)[v0_index]);
-      const float v1_density_factor = std::max(0.0f, (*density_factors)[v1_index]);
-      const float v2_density_factor = std::max(0.0f, (*density_factors)[v2_index]);
+      const float v0_density_factor = std::max(0.0f, (*density_factors)[v0_loop]);
+      const float v1_density_factor = std::max(0.0f, (*density_factors)[v1_loop]);
+      const float v2_density_factor = std::max(0.0f, (*density_factors)[v2_loop]);
       looptri_density_factor = (v0_density_factor + v1_density_factor + v2_density_factor) / 3.0f;
     }
     const float area = area_tri_v3(v0_pos, v1_pos, v2_pos);
@@ -186,13 +199,13 @@ BLI_NOINLINE static void update_elimination_mask_based_on_density_factors(
     const MLoopTri &looptri = looptris[looptri_indices[i]];
     const float3 bary_coord = bary_coords[i];
 
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
+    const int v0_loop = looptri.tri[0];
+    const int v1_loop = looptri.tri[1];
+    const int v2_loop = looptri.tri[2];
 
-    const float v0_density_factor = std::max(0.0f, density_factors[v0_index]);
-    const float v1_density_factor = std::max(0.0f, density_factors[v1_index]);
-    const float v2_density_factor = std::max(0.0f, density_factors[v2_index]);
+    const float v0_density_factor = std::max(0.0f, density_factors[v0_loop]);
+    const float v1_density_factor = std::max(0.0f, density_factors[v1_loop]);
+    const float v2_density_factor = std::max(0.0f, density_factors[v2_loop]);
 
     const float probablity = v0_density_factor * bary_coord.x + v1_density_factor * bary_coord.y +
                              v2_density_factor * bary_coord.z;
@@ -366,7 +379,7 @@ BLI_NOINLINE static void compute_special_attributes(const Mesh &mesh,
     const float3 v1_pos = mesh.mvert[v1_index].co;
     const float3 v2_pos = mesh.mvert[v2_index].co;
 
-    ids[i] = (int)(bary_coord.hash()) + looptri_index;
+    ids[i] = (int)(bary_coord.hash() + (uint64_t)looptri_index);
     normal_tri_v3(normals[i], v0_pos, v1_pos, v2_pos);
     rotations[i] = normal_to_euler_rotation(normals[i]);
   }
@@ -409,10 +422,14 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
 
-  GeometryNodePointDistributeMethod distribute_method =
-      static_cast<GeometryNodePointDistributeMethod>(params.node().custom1);
+  /* TODO: This node only needs read-only access to input instances. */
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
+  GeometryNodePointDistributeMode distribute_method = static_cast<GeometryNodePointDistributeMode>(
+      params.node().custom1);
 
   if (!geometry_set.has_mesh()) {
+    params.error_message_add(NodeWarningType::Error, "Geometry must contain a mesh.");
     params.set_output("Geometry", std::move(geometry_set_out));
     return;
   }
@@ -428,13 +445,14 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
   const Mesh *mesh_in = mesh_component.get_for_read();
 
-  if (mesh_in == nullptr || mesh_in->mpoly == nullptr) {
+  if (mesh_in->mpoly == nullptr) {
+    params.error_message_add(NodeWarningType::Error, "Mesh has no faces.");
     params.set_output("Geometry", std::move(geometry_set_out));
     return;
   }
 
   const FloatReadAttribute density_factors = mesh_component.attribute_get_for_read<float>(
-      density_attribute, ATTR_DOMAIN_POINT, 1.0f);
+      density_attribute, ATTR_DOMAIN_CORNER, 1.0f);
   const int seed = params.get_input<int>("Seed");
 
   Vector<float3> positions;
@@ -485,5 +503,6 @@ void register_node_type_geo_point_distribute()
   node_type_socket_templates(&ntype, geo_node_point_distribute_in, geo_node_point_distribute_out);
   node_type_update(&ntype, node_point_distribute_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_distribute_exec;
+  ntype.draw_buttons = geo_node_point_distribute_layout;
   nodeRegisterType(&ntype);
 }

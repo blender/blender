@@ -1058,7 +1058,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
   RNA_define_verify_sdna(0);
 
-  rna_def_view_layer_common(srna, false);
+  rna_def_view_layer_common(brna, srna, false);
 
   prop = RNA_def_property(srna, "passes", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "RenderPass");

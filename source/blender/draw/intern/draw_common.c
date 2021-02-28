@@ -168,7 +168,7 @@ void DRW_globals_update(void)
        gb->colorBackground[0] + gb->colorBackground[1] + gb->colorBackground[2]) ?
           20 :
           -10,
-      gb->colorGridEmphasise);
+      gb->colorGridEmphasis);
   /* Grid Axis */
   UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, gb->colorGridAxisX);
   UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, gb->colorGridAxisY);

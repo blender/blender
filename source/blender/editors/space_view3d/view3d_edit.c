@@ -4105,8 +4105,6 @@ static int view_camera_exec(bContext *C, wmOperator *op)
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
-    /* lastview -  */
-
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Scene *scene = CTX_data_scene(C);
 
@@ -4119,15 +4117,6 @@ static int view_camera_exec(bContext *C, wmOperator *op)
 
         ED_view3d_lastview_store(rv3d);
       }
-
-#if 0
-      if (G.qual == LR_ALTKEY) {
-        if (oldcamera && is_an_active_object(oldcamera)) {
-          v3d->camera = oldcamera;
-        }
-        handle_view3d_lock();
-      }
-#endif
 
       /* first get the default camera for the view lock type */
       if (v3d->scenelock) {
@@ -5285,7 +5274,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 static const EnumPropertyItem prop_shading_type_items[] = {
     {OB_WIRE, "WIREFRAME", 0, "Wireframe", "Toggle wireframe shading"},
     {OB_SOLID, "SOLID", 0, "Solid", "Toggle solid shading"},
-    {OB_MATERIAL, "MATERIAL", 0, "LookDev", "Toggle lookdev shading"},
+    {OB_MATERIAL, "MATERIAL", 0, "Material Preview", "Toggle material preview shading"},
     {OB_RENDER, "RENDERED", 0, "Rendered", "Toggle rendered shading"},
     {0, NULL, 0, NULL, NULL},
 };

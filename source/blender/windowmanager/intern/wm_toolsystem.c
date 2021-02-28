@@ -620,7 +620,7 @@ bToolRef *WM_toolsystem_ref_set_by_id_ex(
     bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *name, bool cycle)
 {
   wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_id", false);
-  /* On startup, Python operatores are not yet loaded. */
+  /* On startup, Python operators are not yet loaded. */
   if (ot == NULL) {
     return NULL;
   }

@@ -2410,7 +2410,9 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       rect->xmin += 0.2f * U.widget_unit;
     }
 
-    widget_draw_icon(but, icon, alpha, rect, wcol->text);
+    /* By default icon is the color of text, but can optionally override with but->col. */
+    widget_draw_icon(but, icon, alpha, rect, (but->col[3] != 0) ? but->col : wcol->text);
+
     if (show_menu_icon) {
       BLI_assert(but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT);
       widget_draw_submenu_tria(but, rect, wcol);
@@ -5235,8 +5237,9 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
   const rcti _rect = *rect;
+  const int row_height = BLI_rcti_size_y(rect);
   int max_hint_width = INT_MAX;
-  int padding = 0.25f * UI_UNIT_X;
+  int padding = 0.25f * row_height;
   char *cpoin = NULL;
 
   wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
@@ -5247,7 +5250,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   /* text location offset */
   rect->xmin += padding;
   if (iconid) {
-    rect->xmin += UI_DPI_ICON_SIZE;
+    rect->xmin += row_height; /* Use square area for icon. */
   }
 
   /* cut string in 2 parts? */

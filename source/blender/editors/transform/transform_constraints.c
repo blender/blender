@@ -572,7 +572,7 @@ static void constraints_rotation_impl(TransInfo *t,
       break;
   }
   /* don't flip axis if asked to or if num input */
-  if (r_angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
+  if (r_angle && !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
     float view_vector[3];
     view_vector_calc(t, t->center_global, view_vector);
     if (dot_v3v3(r_vec, view_vector) > 0.0f) {
@@ -914,7 +914,7 @@ static void drawObjectConstraint(TransInfo *t)
         mul_m3_m3m3(tmp_axismtx, tc->mat3_unit, td->axismtx);
         axismtx = tmp_axismtx;
       }
-      else if (t->flag & T_POSE) {
+      else if (t->options & CTX_POSE_BONE) {
         mul_v3_m4v3(co, tc->mat, td->center);
         axismtx = td->axismtx;
       }

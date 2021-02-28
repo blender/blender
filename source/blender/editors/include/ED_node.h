@@ -80,7 +80,7 @@ void ED_node_sample_set(const float col[4]);
 void ED_node_draw_snap(
     struct View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned int pos);
 
-/* node_draw.c */
+/* node_draw.cc */
 void ED_node_socket_draw(struct bNodeSocket *sock,
                          const struct rcti *rect,
                          const float color[4],

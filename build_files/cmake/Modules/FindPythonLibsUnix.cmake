@@ -34,7 +34,7 @@ IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
   SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
 ENDIF()
 
-SET(PYTHON_VERSION 3.7 CACHE STRING "Python Version (major and minor only)")
+SET(PYTHON_VERSION 3.9 CACHE STRING "Python Version (major and minor only)")
 MARK_AS_ADVANCED(PYTHON_VERSION)
 
 
@@ -73,8 +73,8 @@ SET(_python_SEARCH_DIRS
 # only search for the dirs if we haven't already
 IF((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_LIB_PATH_DEF))
   SET(_PYTHON_ABI_FLAGS_TEST
-    "m;mu;u; "    # release
-    "dm;dmu;du;d" # debug
+    "u; "  # release
+    "du;d" # debug
   )
 
   FOREACH(_CURRENT_ABI_FLAGS ${_PYTHON_ABI_FLAGS_TEST})

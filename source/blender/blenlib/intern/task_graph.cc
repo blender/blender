@@ -28,10 +28,7 @@
 #include <vector>
 
 #ifdef WITH_TBB
-/* Quiet top level deprecation message, unrelated to API usage here. */
-#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
 #  include <tbb/flow_graph.h>
-#  include <tbb/tbb.h>
 #endif
 
 /* Task Graph */

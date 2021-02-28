@@ -1230,12 +1230,14 @@ typedef struct SolidifyModifierData {
   char defgrp_name[64];
   char shell_defgrp_name[64];
   char rim_defgrp_name[64];
-  /** New surface offset leve.l*/
+  /** New surface offset level. */
   float offset;
-  /** Midpoint of the offset . */
+  /** Midpoint of the offset. */
   float offset_fac;
-  /** factor for the minimum weight to use when vgroups are used,
-   * avoids 0.0 weights giving duplicate geometry */
+  /**
+   * Factor for the minimum weight to use when vertex-groups are used,
+   * avoids 0.0 weights giving duplicate geometry.
+   */
   float offset_fac_vg;
   /** Clamp offset based on surrounding geometry. */
   float offset_clamp;
@@ -1719,7 +1721,7 @@ typedef enum eRemeshModifierMode {
 typedef struct RemeshModifierData {
   ModifierData modifier;
 
-  /* floodfill option, controls how small components can be before they are removed */
+  /** Flood-fill option, controls how small components can be before they are removed. */
   float threshold;
 
   /* ratio between size of model and grid */

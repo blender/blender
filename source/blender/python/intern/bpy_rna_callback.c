@@ -23,28 +23,24 @@
 
 #include <Python.h>
 
-#include "RNA_types.h"
+#include "../generic/python_utildefines.h"
 
-#include "BLI_utildefines.h"
-
-#include "bpy_capi_utils.h"
-#include "bpy_rna.h"
-#include "bpy_rna_callback.h"
-
-#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "WM_api.h"
 
 #include "ED_space_api.h"
 
-#include "../generic/python_utildefines.h"
+#include "BPY_extern.h" /* For public API. */
+
+#include "bpy_capi_utils.h"
+#include "bpy_rna.h"
+#include "bpy_rna_callback.h" /* Own include. */
 
 /* Use this to stop other capsules from being mis-used. */
 static const char *rna_capsual_id = "RNA_HANDLE";
@@ -261,6 +257,12 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
   return SPACE_EMPTY;
 }
 
+static void cb_rna_capsule_destructor(PyObject *capsule)
+{
+  PyObject *args = PyCapsule_GetContext(capsule);
+  Py_DECREF(args);
+}
+
 PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 {
   void *handle;
@@ -378,10 +380,14 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
+  /* Keep the 'args' reference as long as the callback exists.
+   * This reference is decremented in #BPY_callback_screen_free and #BPY_callback_wm_free. */
+  Py_INCREF(args);
+
   PyObject *ret = PyCapsule_New((void *)handle, rna_capsual_id, NULL);
 
-  /* Store 'args' in context as well as the handler custom-data,
-   * because the handle may be freed by Blender (new file, new window... etc) */
+  /* Store 'args' in context as well for simple access. */
+  PyCapsule_SetDestructor(ret, cb_rna_capsule_destructor);
   PyCapsule_SetContext(ret, args);
   Py_INCREF(args);
 
@@ -412,7 +418,6 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
                     "callback_remove(handler): NULL handler given, invalid or already removed");
     return NULL;
   }
-  PyObject *handle_args = PyCapsule_GetContext(py_handle);
 
   if (srna == &RNA_WindowManager) {
     if (!PyArg_ParseTuple(
@@ -466,11 +471,52 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
     return NULL;
   }
 
+  /* The handle has been removed, so decrement its customdata. */
+  PyObject *handle_args = PyCapsule_GetContext(py_handle);
+  Py_DECREF(handle_args);
+
   /* don't allow reuse */
   if (capsule_clear) {
-    Py_DECREF(handle_args);
+    PyCapsule_Destructor destructor_fn = PyCapsule_GetDestructor(py_handle);
+    if (destructor_fn) {
+      destructor_fn(py_handle);
+      PyCapsule_SetDestructor(py_handle, NULL);
+    }
     PyCapsule_SetName(py_handle, rna_capsual_id_invalid);
   }
 
   Py_RETURN_NONE;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
+static void cb_customdata_free(void *customdata)
+{
+  PyObject *tuple = customdata;
+  bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+
+  PyGILState_STATE gilstate;
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  Py_DECREF(tuple);
+
+  if (use_gil) {
+    PyGILState_Release(gilstate);
+  }
+}
+
+void BPY_callback_screen_free(struct ARegionType *art)
+{
+  ED_region_draw_cb_remove_by_type(art, cb_region_draw, cb_customdata_free);
+}
+
+void BPY_callback_wm_free(struct wmWindowManager *wm)
+{
+  WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
+}
+
+/** \} */

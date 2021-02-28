@@ -187,8 +187,8 @@ void main()
 
     FragColor = colorGrid;
     FragColor.a *= gridA * blend;
-    FragColor = mix(FragColor, mix(colorGrid, colorGridEmphasise, blend), gridB);
-    FragColor = mix(FragColor, colorGridEmphasise, gridC);
+    FragColor = mix(FragColor, mix(colorGrid, colorGridEmphasis, blend), gridB);
+    FragColor = mix(FragColor, colorGridEmphasis, gridC);
   }
   else {
     FragColor = vec4(colorGrid.rgb, 0.0);

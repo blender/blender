@@ -13,6 +13,9 @@ uniform float farClip;
 uniform float visibilityRange;
 uniform float visibilityBlur;
 
+uniform float sampleCount;
+uniform float invSampleCount;
+
 out vec4 FragColor;
 
 vec3 octahedral_to_cubemap_proj(vec2 co)
@@ -77,9 +80,9 @@ void main()
   vec2 accum = vec2(0.0);
 
   for (float i = 0; i < sampleCount; i++) {
-    vec3 sample = sample_cone(i, M_PI_2 * visibilityBlur, cos, T, B);
-    float depth = texture(probeDepth, sample).r;
-    depth = get_world_distance(depth, sample);
+    vec3 samp = sample_cone(i, invSampleCount, M_PI_2 * visibilityBlur, cos, T, B);
+    float depth = texture(probeDepth, samp).r;
+    depth = get_world_distance(depth, samp);
     accum += vec2(depth, depth * depth);
   }
 

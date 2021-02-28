@@ -41,6 +41,8 @@ def main():
                  [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
         MeshTest('2D Square', 'test2DSquare', 'expected2DSquare',
                  [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
+        MeshTest('2D Extrude', 'test2DExtrude', 'expected2DExtrude',
+                 [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
         MeshTest('Bevel Back', 'testBevelBack', 'expectedBevelBack',
                  [OperatorSpecObjectMode('convert', {'target': 'MESH'})]),
         MeshTest('Bevel Back Low Res', 'testBevelBackLowRes', 'expectedBevelBackLowRes',

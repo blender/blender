@@ -198,6 +198,7 @@ IDTypeInfo IDType_ID_LT = {
     .make_local = NULL,
     .foreach_id = lattice_foreach_id,
     .foreach_cache = NULL,
+    .owner_get = NULL,
 
     .blend_write = lattice_blend_write,
     .blend_read_data = lattice_blend_read_data,
@@ -321,19 +322,21 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
    * size first.
    */
   if (ltOb) {
-    if (uNew != 1 && lt->pntsu != 1) {
-      fu = lt->fu;
-      du = (lt->pntsu - 1) * lt->du / (uNew - 1);
+    const float default_size = 1.0;
+
+    if (uNew != 1) {
+      fu = -default_size / 2.0;
+      du = default_size / (uNew - 1);
     }
 
-    if (vNew != 1 && lt->pntsv != 1) {
-      fv = lt->fv;
-      dv = (lt->pntsv - 1) * lt->dv / (vNew - 1);
+    if (vNew != 1) {
+      fv = -default_size / 2.0;
+      dv = default_size / (vNew - 1);
     }
 
-    if (wNew != 1 && lt->pntsw != 1) {
-      fw = lt->fw;
-      dw = (lt->pntsw - 1) * lt->dw / (wNew - 1);
+    if (wNew != 1) {
+      fw = -default_size / 2.0;
+      dw = default_size / (wNew - 1);
     }
   }
 

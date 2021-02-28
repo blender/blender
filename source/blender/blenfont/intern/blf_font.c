@@ -192,7 +192,7 @@ static GPUTexture *blf_batch_cache_texture_load(void)
       int remain_row = tex_width - offset_x;
       int width = remain > remain_row ? remain_row : remain;
       GPU_texture_update_sub(gc->texture,
-                             GPU_DATA_UNSIGNED_BYTE,
+                             GPU_DATA_UBYTE,
                              &gc->bitmap_result[bitmap_len_landed],
                              offset_x,
                              offset_y,

@@ -43,9 +43,9 @@ bool ED_sculpt_mask_box_select(struct bContext *C,
                                bool select);
 
 /* transform */
-void ED_sculpt_update_modal_transform(struct bContext *C);
-void ED_sculpt_init_transform(struct bContext *C);
-void ED_sculpt_end_transform(struct bContext *C);
+void ED_sculpt_update_modal_transform(struct bContext *C, struct Object *ob);
+void ED_sculpt_init_transform(struct bContext *C, struct Object *ob);
+void ED_sculpt_end_transform(struct bContext *C, struct Object *ob);
 
 /* sculpt_undo.c */
 void ED_sculpt_undosys_type(struct UndoType *ut);

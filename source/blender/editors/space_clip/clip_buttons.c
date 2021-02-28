@@ -46,7 +46,6 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_clip.h"
-#include "ED_gpencil.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -805,7 +804,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   ImBuf *ibuf = BKE_movieclip_get_ibuf_flag(clip, user, clip->flag, MOVIECLIP_CACHE_SKIP);
 
   int width, height;
-  /* Display frame dimensions, channels number and byffer type. */
+  /* Display frame dimensions, channels number and buffer type. */
   BKE_movieclip_get_size(clip, user, &width, &height);
 
   char str[1024];

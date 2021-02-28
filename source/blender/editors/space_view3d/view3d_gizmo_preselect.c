@@ -30,14 +30,12 @@
 #include "UI_resources.h"
 
 #include "WM_api.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "view3d_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Pre-Select Element Gizmo
- *
  * \{ */
 
 struct GizmoGroupPreSelElem {
@@ -73,7 +71,6 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Pre-Select Edge Ring Gizmo
- *
  * \{ */
 
 struct GizmoGroupPreSelEdgeRing {

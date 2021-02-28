@@ -440,6 +440,7 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 
   Attribute new_attr(name, type, element, geometry, prim);
   attributes.emplace_back(std::move(new_attr));
+  modified = true;
   return &attributes.back();
 }
 
@@ -461,6 +462,7 @@ void AttributeSet::remove(ustring name)
 
     for (it = attributes.begin(); it != attributes.end(); it++) {
       if (&*it == attr) {
+        modified = true;
         attributes.erase(it);
         return;
       }
@@ -606,6 +608,7 @@ void AttributeSet::remove(AttributeStandard std)
 
     for (it = attributes.begin(); it != attributes.end(); it++) {
       if (&*it == attr) {
+        modified = true;
         attributes.erase(it);
         return;
       }
@@ -671,12 +674,14 @@ void AttributeSet::update(AttributeSet &&new_attributes)
   for (it = attributes.begin(); it != attributes.end();) {
     if (it->std != ATTR_STD_NONE) {
       if (new_attributes.find(it->std) == nullptr) {
+        modified = true;
         attributes.erase(it++);
         continue;
       }
     }
     else if (it->name != "") {
       if (new_attributes.find(it->name) == nullptr) {
+        modified = true;
         attributes.erase(it++);
         continue;
       }
@@ -691,6 +696,7 @@ void AttributeSet::clear_modified()
   foreach (Attribute &attr, attributes) {
     attr.modified = false;
   }
+  modified = false;
 }
 
 /* AttributeRequest */

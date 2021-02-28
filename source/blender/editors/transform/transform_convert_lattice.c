@@ -39,7 +39,6 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation
- *
  * \{ */
 
 void createTransLatticeVerts(TransInfo *t)

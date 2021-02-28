@@ -72,53 +72,55 @@ enum {
 };
 
 /** #TreeStoreElem.types */
-#define TSE_NLA 1 /* NO ID */
-#define TSE_NLA_ACTION 2
-#define TSE_DEFGROUP_BASE 3
-#define TSE_DEFGROUP 4
-#define TSE_BONE 5
-#define TSE_EBONE 6
-#define TSE_CONSTRAINT_BASE 7
-#define TSE_CONSTRAINT 8
-#define TSE_MODIFIER_BASE 9
-#define TSE_MODIFIER 10
-#define TSE_LINKED_OB 11
-/* #define TSE_SCRIPT_BASE     12 */ /* UNUSED */
-#define TSE_POSE_BASE 13
-#define TSE_POSE_CHANNEL 14
-#define TSE_ANIM_DATA 15
-#define TSE_DRIVER_BASE 16           /* NO ID */
-/* #define TSE_DRIVER          17 */ /* UNUSED */
+typedef enum eTreeStoreElemType {
+  TSE_NLA = 1, /* NO ID */
+  TSE_NLA_ACTION = 2,
+  TSE_DEFGROUP_BASE = 3,
+  TSE_DEFGROUP = 4,
+  TSE_BONE = 5,
+  TSE_EBONE = 6,
+  TSE_CONSTRAINT_BASE = 7,
+  TSE_CONSTRAINT = 8,
+  TSE_MODIFIER_BASE = 9,
+  TSE_MODIFIER = 10,
+  TSE_LINKED_OB = 11,
+  /* TSE_SCRIPT_BASE     = 12, */ /* UNUSED */
+  TSE_POSE_BASE = 13,
+  TSE_POSE_CHANNEL = 14,
+  TSE_ANIM_DATA = 15,
+  TSE_DRIVER_BASE = 16,           /* NO ID */
+  /* TSE_DRIVER          = 17, */ /* UNUSED */
 
-#define TSE_PROXY 18
-#define TSE_R_LAYER_BASE 19
-#define TSE_R_LAYER 20
-/* #define TSE_R_PASS          21 */ /* UNUSED */
-#define TSE_LINKED_MAT 22
-/* NOTE, is used for light group */
-#define TSE_LINKED_LAMP 23
-#define TSE_POSEGRP_BASE 24
-#define TSE_POSEGRP 25
-#define TSE_SEQUENCE 26     /* NO ID */
-#define TSE_SEQ_STRIP 27    /* NO ID */
-#define TSE_SEQUENCE_DUP 28 /* NO ID */
-#define TSE_LINKED_PSYS 29
-#define TSE_RNA_STRUCT 30     /* NO ID */
-#define TSE_RNA_PROPERTY 31   /* NO ID */
-#define TSE_RNA_ARRAY_ELEM 32 /* NO ID */
-#define TSE_NLA_TRACK 33      /* NO ID */
-#define TSE_KEYMAP 34         /* NO ID */
-#define TSE_KEYMAP_ITEM 35    /* NO ID */
-#define TSE_ID_BASE 36        /* NO ID */
-#define TSE_GP_LAYER 37       /* NO ID */
-#define TSE_LAYER_COLLECTION 38
-#define TSE_SCENE_COLLECTION_BASE 39
-#define TSE_VIEW_COLLECTION_BASE 40
-#define TSE_SCENE_OBJECTS_BASE 41
-#define TSE_GPENCIL_EFFECT_BASE 42
-#define TSE_GPENCIL_EFFECT 43
-#define TSE_LIBRARY_OVERRIDE_BASE 44
-#define TSE_LIBRARY_OVERRIDE 45
+  TSE_PROXY = 18,
+  TSE_R_LAYER_BASE = 19,
+  TSE_R_LAYER = 20,
+  /* TSE_R_PASS          = 21, */ /* UNUSED */
+  /* TSE_LINKED_MAT = 22, */
+  /* NOTE, is used for light group */
+  /* TSE_LINKED_LAMP = 23, */
+  TSE_POSEGRP_BASE = 24,
+  TSE_POSEGRP = 25,
+  TSE_SEQUENCE = 26,     /* NO ID */
+  TSE_SEQ_STRIP = 27,    /* NO ID */
+  TSE_SEQUENCE_DUP = 28, /* NO ID */
+  TSE_LINKED_PSYS = 29,
+  TSE_RNA_STRUCT = 30,        /* NO ID */
+  TSE_RNA_PROPERTY = 31,      /* NO ID */
+  TSE_RNA_ARRAY_ELEM = 32,    /* NO ID */
+  TSE_NLA_TRACK = 33,         /* NO ID */
+  /* TSE_KEYMAP = 34, */      /* UNUSED */
+  /* TSE_KEYMAP_ITEM = 35, */ /* UNUSED */
+  TSE_ID_BASE = 36,           /* NO ID */
+  TSE_GP_LAYER = 37,          /* NO ID */
+  TSE_LAYER_COLLECTION = 38,
+  TSE_SCENE_COLLECTION_BASE = 39,
+  TSE_VIEW_COLLECTION_BASE = 40,
+  TSE_SCENE_OBJECTS_BASE = 41,
+  TSE_GPENCIL_EFFECT_BASE = 42,
+  TSE_GPENCIL_EFFECT = 43,
+  TSE_LIBRARY_OVERRIDE_BASE = 44,
+  TSE_LIBRARY_OVERRIDE = 45,
+} eTreeStoreElemType;
 
 /** Check whether given #TreeStoreElem should have a real ID in #TreeStoreElem.id member. */
 #define TSE_IS_REAL_ID(_tse) \
@@ -132,8 +134,6 @@ enum {
          TSE_RNA_STRUCT, \
          TSE_RNA_PROPERTY, \
          TSE_RNA_ARRAY_ELEM, \
-         TSE_KEYMAP, \
-         TSE_KEYMAP_ITEM, \
          TSE_ID_BASE, \
          TSE_GP_LAYER))
 

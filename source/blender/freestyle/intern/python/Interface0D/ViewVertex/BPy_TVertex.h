@@ -37,7 +37,7 @@ extern PyTypeObject TVertex_Type;
 /*---------------------------Python BPy_TVertex structure definition----------*/
 typedef struct {
   BPy_ViewVertex py_vv;
-  TVertex *tv;
+  Freestyle::TVertex *tv;
 } BPy_TVertex;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -102,11 +102,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   effects->enabled_effects |= EEVEE_occlusion_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
 
-  if ((effects->enabled_effects & EFFECT_TAA) && effects->taa_current_sample > 1) {
-    /* Update matrices here because EEVEE_screen_raytrace_init can have reset the
-     * taa_current_sample. (See T66811) */
-    EEVEE_temporal_sampling_update_matrices(vedata);
-  }
+  /* Update matrices here because EEVEE_screen_raytrace_init can have reset the
+   * taa_current_sample. (See T66811) */
+  EEVEE_temporal_sampling_update_matrices(vedata);
 
   EEVEE_volumes_init(sldata, vedata);
   EEVEE_subsurface_init(sldata, vedata);
@@ -519,7 +517,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_viewport_request_redraw();
   }
 
-  /* Record pers matrix for the next frame. */
+  /* Record perspective matrix for the next frame. */
   DRW_view_persmat_get(effects->taa_view, effects->prev_persmat, false);
 
   /* Update double buffer status if render mode. */

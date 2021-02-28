@@ -83,7 +83,9 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   tgmd->curve_intensity = BKE_curvemapping_copy(gmd->curve_intensity);
 }
 
-/* aply smooth effect based on stroke direction */
+/**
+ * Apply smooth effect based on stroke direction.
+ */
 static void deformStroke(GpencilModifierData *md,
                          Depsgraph *UNUSED(depsgraph),
                          Object *ob,

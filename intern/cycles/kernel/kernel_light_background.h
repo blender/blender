@@ -277,7 +277,7 @@ ccl_device float3 background_portal_sample(KernelGlobals *kg,
     portal--;
   }
 
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_float3();
 }
 
 ccl_device_inline float3 background_sun_sample(KernelGlobals *kg,

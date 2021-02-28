@@ -31,9 +31,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
-#include "BKE_layer.h"
 #include "BKE_outliner_treehash.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -51,7 +49,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "GPU_framebuffer.h"
 #include "outliner_intern.h"
 #include "tree/tree_display.h"
 
@@ -328,7 +325,7 @@ static SpaceLink *outliner_create(const ScrArea *UNUSED(area), const Scene *UNUS
   space_outliner = MEM_callocN(sizeof(SpaceOutliner), "initoutliner");
   space_outliner->spacetype = SPACE_OUTLINER;
   space_outliner->filter_id_type = ID_GR;
-  space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE;
+  space_outliner->show_restrict_flags = SO_RESTRICT_ENABLE | SO_RESTRICT_HIDE | SO_RESTRICT_RENDER;
   space_outliner->outlinevis = SO_VIEW_LAYER;
   space_outliner->sync_select_dirty |= WM_OUTLINER_SYNC_SELECT_FROM_ALL;
   space_outliner->flag = SO_SYNC_SELECT | SO_MODE_COLUMN;
@@ -398,13 +395,13 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)space_outliner_new;
 }
 
-static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void outliner_id_remap(ScrArea *area, SpaceLink *slink, ID *old_id, ID *new_id)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
   /* Some early out checks. */
   if (!TREESTORE_ID_TYPE(old_id)) {
-    return; /* ID type is not used by outilner... */
+    return; /* ID type is not used by outliner. */
   }
 
   if (space_outliner->search_tse.id == old_id) {
@@ -430,6 +427,13 @@ static void outliner_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_i
       /* rebuild hash table, because it depends on ids too */
       /* postpone a full rebuild because this can be called many times on-free */
       space_outliner->storeflag |= SO_TREESTORE_REBUILD;
+
+      if (new_id == NULL) {
+        /* Redraw is needed when removing data for multiple outlines show the same data.
+         * without this, the stale data won't get fully flushed when this outliner
+         * is not the active outliner the user is interacting with. See T85976. */
+        ED_area_tag_redraw(area);
+      }
     }
   }
 }

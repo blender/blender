@@ -32,6 +32,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -178,6 +179,137 @@ typedef struct NodeInsertOfsData {
 
   float offset_x; /* offset to apply to node chain */
 } NodeInsertOfsData;
+
+static void clear_picking_highlight(ListBase *links)
+{
+  LISTBASE_FOREACH (bNodeLink *, link, links) {
+    link->flag &= ~NODE_LINK_TEMP_HIGHLIGHT;
+  }
+}
+
+static LinkData *create_drag_link(Main *bmain, SpaceNode *snode, bNode *node, bNodeSocket *sock)
+{
+  LinkData *linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
+  bNodeLink *oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
+  linkdata->data = oplink;
+  if (sock->in_out == SOCK_OUT) {
+    oplink->fromnode = node;
+    oplink->fromsock = sock;
+  }
+  else {
+    oplink->tonode = node;
+    oplink->tosock = sock;
+  }
+  oplink->flag |= NODE_LINK_VALID;
+  oplink->flag &= ~NODE_LINK_TEST;
+  if (node_connected_to_output(bmain, snode->edittree, node)) {
+    oplink->flag |= NODE_LINK_TEST;
+  }
+  return linkdata;
+}
+
+static void pick_link(const bContext *C,
+                      wmOperator *op,
+                      bNodeLinkDrag *nldrag,
+                      SpaceNode *snode,
+                      bNode *node,
+                      bNodeLink *link_to_pick)
+{
+  clear_picking_highlight(&snode->edittree->links);
+  RNA_boolean_set(op->ptr, "has_link_picked", true);
+
+  Main *bmain = CTX_data_main(C);
+  LinkData *linkdata = create_drag_link(
+      bmain, snode, link_to_pick->fromnode, link_to_pick->fromsock);
+
+  BLI_addtail(&nldrag->links, linkdata);
+  nodeRemLink(snode->edittree, link_to_pick);
+  /* Send changed event to original link->tonode. */
+  if (node) {
+    snode_update(snode, node);
+  }
+}
+
+static void pick_input_link_by_link_intersect(const bContext *C,
+                                              wmOperator *op,
+                                              bNodeLinkDrag *nldrag,
+                                              const float *cursor)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  const ARegion *region = CTX_wm_region(C);
+  const View2D *v2d = &region->v2d;
+
+  float drag_start[2];
+  RNA_float_get_array(op->ptr, "drag_start", drag_start);
+  bNode *node;
+  bNodeSocket *socket;
+  node_find_indicated_socket(snode, &node, &socket, drag_start, SOCK_IN);
+
+  const float trigger_drag_distance = 25.0f;
+  const float cursor_link_touch_distance = 25.0f;
+
+  const float socket_height = node_socket_calculate_height(socket);
+
+  float cursor_to_socket_relative[2];
+  float socket_position[2] = {socket->locx, socket->locy};
+  sub_v2_v2v2(cursor_to_socket_relative, cursor, socket_position);
+  float distance_from_socket_v2[2] = {
+      max_ff(0, fabs(cursor_to_socket_relative[0]) - NODE_SOCKSIZE * 0.5),
+      max_ff(0, fabs(cursor_to_socket_relative[1]) - socket_height)};
+  const float distance_from_socket = len_v2(distance_from_socket_v2);
+
+  const int resolution = NODE_LINK_RESOL;
+
+  bNodeLink *link_to_pick = NULL;
+  clear_picking_highlight(&snode->edittree->links);
+  LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
+    if (link->tosock == socket) {
+      /* Test if the cursor is near a link. */
+      float vec[4][2];
+      node_link_bezier_handles(v2d, snode, link, vec);
+
+      float data[NODE_LINK_RESOL * 2 + 2];
+      BKE_curve_forward_diff_bezier(
+          vec[0][0], vec[1][0], vec[2][0], vec[3][0], data, resolution, sizeof(float[2]));
+      BKE_curve_forward_diff_bezier(
+          vec[0][1], vec[1][1], vec[2][1], vec[3][1], data + 1, resolution, sizeof(float[2]));
+
+      for (int i = 0; i < resolution * 2; i += 2) {
+        float *l1 = &data[i];
+        float *l2 = &data[i + 2];
+        float distance = dist_squared_to_line_segment_v2(cursor, l1, l2);
+        if (distance < cursor_link_touch_distance) {
+          link_to_pick = link;
+          RNA_int_set(op->ptr, "last_picked_link_index", link->multi_input_socket_index);
+        }
+      }
+    }
+  }
+
+  /* If no linked was picked in this call, try using the one picked in the previous call.
+   * Not essential for the basic behavior, but can make interaction feel a bit better if
+   * the  mouse moves to the right and loses the "selection." */
+  if (!link_to_pick) {
+    int last_picked_link_index = RNA_int_get(op->ptr, "last_picked_link_index");
+    if (last_picked_link_index > -1) {
+      LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
+        if (link->multi_input_socket_index == last_picked_link_index) {
+          link_to_pick = link;
+        }
+      }
+    }
+  }
+
+  if (link_to_pick) {
+    /* Highlight is set here and cleared in the next iteration or if the operation finishes. */
+    link_to_pick->flag |= NODE_LINK_TEMP_HIGHLIGHT;
+    ED_area_tag_redraw(CTX_wm_area(C));
+
+    if (distance_from_socket > trigger_drag_distance) {
+      pick_link(C, op, nldrag, snode, node, link_to_pick);
+    }
+  }
+}
 
 static int sort_nodes_locx(const void *a, const void *b)
 {
@@ -600,6 +732,13 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeLink *link)
         tlink = NULL;
         to_count--;
       }
+      else if (tlink->fromsock == from) {
+        /* Also remove link if it comes from the same output. */
+        nodeRemLink(ntree, tlink);
+        tlink = NULL;
+        to_count--;
+        from_count--;
+      }
     }
   }
 }
@@ -748,10 +887,15 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   switch (event->type) {
     case MOUSEMOVE:
-      node_link_find_socket(C, op, cursor);
+      if (nldrag->from_multi_input_socket && !RNA_boolean_get(op->ptr, "has_link_picked")) {
+        pick_input_link_by_link_intersect(C, op, nldrag, cursor);
+      }
+      else {
+        node_link_find_socket(C, op, cursor);
 
-      node_link_update_header(C, nldrag);
-      ED_region_tag_redraw(region);
+        node_link_update_header(C, nldrag);
+        ED_region_tag_redraw(region);
+      }
       break;
 
     case LEFTMOUSE:
@@ -762,6 +906,8 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         ED_workspace_status_text(C, NULL);
         ED_region_tag_redraw(region);
+        SpaceNode *snode = CTX_wm_space_node(C);
+        clear_picking_highlight(&snode->edittree->links);
         return OPERATOR_FINISHED;
       }
       break;
@@ -817,16 +963,7 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
       /* dragged links are fixed on output side */
       nldrag->in_out = SOCK_OUT;
       /* create a new link */
-      LinkData *linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
-      bNodeLink *oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
-      linkdata->data = oplink;
-      oplink->fromnode = node;
-      oplink->fromsock = sock;
-      oplink->flag |= NODE_LINK_VALID;
-      oplink->flag &= ~NODE_LINK_TEST;
-      if (node_connected_to_output(bmain, snode->edittree, node)) {
-        oplink->flag |= NODE_LINK_TEST;
-      }
+      LinkData *linkdata = create_drag_link(bmain, snode, node, sock);
 
       BLI_addtail(&nldrag->links, linkdata);
     }
@@ -875,16 +1012,7 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
       /* dragged links are fixed on input side */
       nldrag->in_out = SOCK_IN;
       /* create a new link */
-      LinkData *linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
-      bNodeLink *oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
-      linkdata->data = oplink;
-      oplink->tonode = node;
-      oplink->tosock = sock;
-      oplink->flag |= NODE_LINK_VALID;
-      oplink->flag &= ~NODE_LINK_TEST;
-      if (node_connected_to_output(bmain, snode->edittree, node)) {
-        oplink->flag |= NODE_LINK_TEST;
-      }
+      LinkData *linkdata = create_drag_link(bmain, snode, node, sock);
 
       BLI_addtail(&nldrag->links, linkdata);
     }
@@ -904,6 +1032,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   float cursor[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
   RNA_float_set_array(op->ptr, "drag_start", cursor);
+  RNA_int_set(op->ptr, "last_picked_link_index", -1);
   RNA_boolean_set(op->ptr, "has_link_picked", false);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
@@ -931,6 +1060,7 @@ static void node_link_cancel(bContext *C, wmOperator *op)
 
   BLI_freelistN(&nldrag->links);
   MEM_freeN(nldrag);
+  clear_picking_highlight(&snode->edittree->links);
 }
 
 void NODE_OT_link(wmOperatorType *ot)
@@ -971,6 +1101,16 @@ void NODE_OT_link(wmOperatorType *ot)
                       "The position of the mouse cursor at the start of the operation",
                       -UI_PRECISION_FLOAT_MAX,
                       UI_PRECISION_FLOAT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  RNA_def_int(ot->srna,
+              "last_picked_link_index",
+              -1,
+              -1,
+              4095,
+              "Last Picked Link Index",
+              "The index of the last picked link on a multi-input socket",
+              -1,
+              4095);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

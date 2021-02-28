@@ -312,11 +312,11 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
 /**
  * Find the extents of the active channel
  *
- * \param[out] min: Bottom y-extent of channel
- * \param[out] max: Top y-extent of channel
- * \return Success of finding a selected channel
+ * \param r_min: Bottom y-extent of channel.
+ * \param r_max: Top y-extent of channel.
+ * \return Success of finding a selected channel.
  */
-static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, float *max)
+static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *r_min, float *r_max)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
@@ -339,8 +339,8 @@ static bool actkeys_channels_get_selected_extents(bAnimContext *ac, float *min, 
     if (acf && acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT) &&
         ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT)) {
       /* update best estimate */
-      *min = ymax - ACHANNEL_HEIGHT(ac);
-      *max = ymax;
+      *r_min = ymax - ACHANNEL_HEIGHT(ac);
+      *r_max = ymax;
 
       /* is this high enough priority yet? */
       found = acf->channel_role;

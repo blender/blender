@@ -1500,7 +1500,7 @@ template<typename T> static void re_delaunay_triangulate(CDTArrangement<T> *cdt,
       cse = ss;
     }
   }
-  /* Add diagonals necessary to make abc a triangle. */
+  /* Add diagonals necessary to make `abc` a triangle. */
   CDTEdge<T> *ebc = nullptr;
   CDTEdge<T> *eca = nullptr;
   if (!exists_edge(b, c)) {

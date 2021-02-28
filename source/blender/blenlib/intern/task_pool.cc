@@ -34,9 +34,9 @@
 #include "BLI_threads.h"
 
 #ifdef WITH_TBB
-/* Quiet top level deprecation message, unrelated to API usage here. */
-#  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
-#  include <tbb/tbb.h>
+#  include <tbb/blocked_range.h>
+#  include <tbb/task_arena.h>
+#  include <tbb/task_group.h>
 #endif
 
 /* Task

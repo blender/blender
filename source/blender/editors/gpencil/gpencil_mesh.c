@@ -36,8 +36,6 @@
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_duplilist.h"
-#include "BKE_global.h"
-#include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -320,7 +318,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
                                use_seams,
                                use_faces);
 
-      /* Reproject all untaged created strokes. */
+      /* Reproject all un-tagged created strokes. */
       if (project_type != GP_REPROJECT_KEEP) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           bGPDframe *gpf = gpl->actframe;

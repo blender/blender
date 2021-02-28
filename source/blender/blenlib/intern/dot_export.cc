@@ -221,7 +221,7 @@ void Attributes::export__as_bracket_list(std::stringstream &ss) const
   ss << "[";
   attributes_.foreach_item([&](StringRef key, StringRef value) {
     if (StringRef(value).startswith("<")) {
-      /* Don't draw the quotes, this is an html-like value. */
+      /* Don't draw the quotes, this is an HTML-like value. */
       ss << key << "=" << value << ", ";
     }
     else {

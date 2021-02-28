@@ -129,8 +129,10 @@ typedef struct UvEdge {
   /** general use flag
    * (Used to check if edge is boundary here, and propagates to adjacency elements) */
   uchar flag;
-  /** element that guarantees element->face
-   * has the edge on element->tfindex and element->tfindex+1 is the second uv */
+  /**
+   * Element that guarantees `element.l` has the edge on
+   * `element.loop_of_poly_index` and `element->loop_of_poly_index + 1` is the second UV.
+   */
   UvElement *element;
   /** next uv edge with the same exact vertices as this one.
    * Calculated at startup to save time */

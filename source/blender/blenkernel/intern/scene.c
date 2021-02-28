@@ -167,8 +167,6 @@ static void scene_init_data(ID *id)
                      &gp_primitive_curve->clipr,
                      CURVE_PRESET_BELL,
                      CURVEMAP_SLOPE_POSITIVE);
-  /* Grease pencil interpolate. */
-  scene->toolsettings->gp_interpolate.step = 1;
 
   scene->unit.system = USER_UNIT_METRIC;
   scene->unit.scale_length = 1.0f;
@@ -475,7 +473,7 @@ static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSE
 
 /**
  * This code is shared by both the regular `foreach_id` looper, and the code trying to restore or
- * preserve ID pointers like brushes across undoes.
+ * preserve ID pointers like brushes across undo-steps.
  */
 typedef enum eSceneForeachUndoPreserveProcess {
   /* Undo when preserving tool-settings from old scene, we also want to try to preserve that ID
@@ -1720,6 +1718,7 @@ IDTypeInfo IDType_ID_SCE = {
     .make_local = NULL,
     .foreach_id = scene_foreach_id,
     .foreach_cache = scene_foreach_cache,
+    .owner_get = NULL,
 
     .blend_write = scene_blend_write,
     .blend_read_data = scene_blend_read_data,

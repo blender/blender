@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_simd.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -48,10 +49,6 @@
 #include "BKE_modifier.h"
 
 #include "BKE_deform.h"
-
-#ifdef __SSE2__
-#  include <emmintrin.h>
-#endif
 
 /* -------------------------------------------------------------------- */
 /** \name Lattice Deform API
@@ -171,7 +168,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
   /* vgroup influence */
   float co_prev[4] = {0}, weight_blend = 0.0f;
   copy_v3_v3(co_prev, co);
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   __m128 co_vec = _mm_loadu_ps(co_prev);
 #endif
 
@@ -232,7 +229,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
         u = v * tu[uu - ui + 1];
         idx_u = CLAMPIS(uu, 0, idx_u_max);
         const int idx = idx_w + idx_v + idx_u;
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
         {
           __m128 weight_vec = _mm_set1_ps(u);
           /* We need to address special case for last item to avoid accessing invalid memory. */
@@ -256,7 +253,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
       }
     }
   }
-#ifdef __SSE2__
+#ifdef BLI_HAVE_SSE2
   {
     copy_v3_v3(co, (float *)&co_vec);
   }

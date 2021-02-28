@@ -2422,7 +2422,7 @@ void ED_vgroup_mirror(Object *ob,
 
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
-      /* Go through the list of editverts and assign them */
+      /* Go through the list of edit-vertices and assign them. */
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (!BM_elem_flag_test(eve, BM_ELEM_TAG)) {
           if ((eve_mirr = EDBM_verts_mirror_get(em, eve))) {
@@ -2602,7 +2602,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 
       cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
-      /* Go through the list of editverts and assign them */
+      /* Go through the list of edit-vertices and assign them. */
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
         if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
           MDeformVert *dv;

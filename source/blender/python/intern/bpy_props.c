@@ -193,6 +193,126 @@ static const EnumPropertyItem property_subtype_array_items[] = {
   "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
   "   :type subtype: string\n"
 
+/* -------------------------------------------------------------------- */
+/** \name Deferred Property Type
+ *
+ * Operators and classes use this so it can store the arguments given but defer
+ * running it until the operator runs where these values are used to setup
+ * the default arguments for that operator instance.
+ * \{ */
+
+static void bpy_prop_deferred_dealloc(BPy_PropDeferred *self)
+{
+  if (self->kw) {
+    PyObject_GC_UnTrack(self);
+    Py_CLEAR(self->kw);
+  }
+  PyObject_GC_Del(self);
+}
+
+static int bpy_prop_deferred_traverse(BPy_PropDeferred *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->kw);
+  return 0;
+}
+
+static int bpy_prop_deferred_clear(BPy_PropDeferred *self)
+{
+  Py_CLEAR(self->kw);
+  return 0;
+}
+
+static PyObject *bpy_prop_deferred_repr(BPy_PropDeferred *self)
+{
+  return PyUnicode_FromFormat("<%.200s, %R, %R>", Py_TYPE(self)->tp_name, self->fn, self->kw);
+}
+
+/**
+ * HACK: needed by `typing.get_type_hints`
+ * with `from __future__ import annotations` enabled or when using Python 3.10 or newer.
+ *
+ * When callable this object type passes the test for being an acceptable annotation.
+ */
+static PyObject *bpy_prop_deferred_call(BPy_PropDeferred *UNUSED(self),
+                                        PyObject *UNUSED(args),
+                                        PyObject *UNUSED(kw))
+{
+  /* Dummy value. */
+  Py_RETURN_NONE;
+}
+
+/* Get/Set Items. */
+
+/**
+ * Expose the function in case scripts need to introspect this information
+ * (not currently used by Blender it's self).
+ */
+static PyObject *bpy_prop_deferred_function_get(BPy_PropDeferred *self, void *UNUSED(closure))
+{
+  PyObject *ret = self->fn;
+  Py_IncRef(ret);
+  return ret;
+}
+
+/**
+ * Expose keywords in case scripts need to introspect this information
+ * (not currently used by Blender it's self).
+ */
+static PyObject *bpy_prop_deferred_keywords_get(BPy_PropDeferred *self, void *UNUSED(closure))
+{
+  PyObject *ret = self->kw;
+  Py_IncRef(ret);
+  return ret;
+}
+
+static PyGetSetDef bpy_prop_deferred_getset[] = {
+    {"function", (getter)bpy_prop_deferred_function_get, (setter)NULL, NULL, NULL},
+    {"keywords", (getter)bpy_prop_deferred_keywords_get, (setter)NULL, NULL, NULL},
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+PyDoc_STRVAR(bpy_prop_deferred_doc,
+             "Intermediate storage for properties before registration.\n"
+             "\n"
+             ".. note::\n"
+             "\n"
+             "   This is not part of the stable API and may change between releases.");
+
+PyTypeObject bpy_prop_deferred_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+
+        .tp_name = "_PropertyDeferred",
+    .tp_basicsize = sizeof(BPy_PropDeferred),
+    .tp_dealloc = (destructor)bpy_prop_deferred_dealloc,
+    .tp_repr = (reprfunc)bpy_prop_deferred_repr,
+    .tp_call = (ternaryfunc)bpy_prop_deferred_call,
+
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+
+    .tp_doc = bpy_prop_deferred_doc,
+    .tp_traverse = (traverseproc)bpy_prop_deferred_traverse,
+    .tp_clear = (inquiry)bpy_prop_deferred_clear,
+
+    .tp_getset = bpy_prop_deferred_getset,
+};
+
+static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *kw)
+{
+  BPy_PropDeferred *self = PyObject_GC_New(BPy_PropDeferred, &bpy_prop_deferred_Type);
+  self->fn = fn;
+  if (kw == NULL) {
+    kw = PyDict_New();
+  }
+  else {
+    Py_INCREF(kw);
+  }
+  self->kw = kw;
+  PyObject_GC_Track(self);
+  return (PyObject *)self;
+}
+
+/** \} */
+
 /* PyObject's */
 static PyObject *pymeth_BoolProperty = NULL;
 static PyObject *pymeth_BoolVectorProperty = NULL;
@@ -246,27 +366,6 @@ static void bpy_prop_assign_flag(PropertyRNA *prop, const int flag)
 static void bpy_prop_assign_flag_override(PropertyRNA *prop, const int flag_override)
 {
   RNA_def_property_override_flag(prop, flag_override);
-}
-
-/* operators and classes use this so it can store the args given but defer
- * running it until the operator runs where these values are used to setup
- * the default args for that operator instance */
-static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
-{
-  PyObject *ret = PyTuple_New(2);
-  PyTuple_SET_ITEM(ret, 0, func);
-  Py_INCREF(func);
-
-  if (kw == NULL) {
-    kw = PyDict_New();
-  }
-  else {
-    Py_INCREF(kw);
-  }
-
-  PyTuple_SET_ITEM(ret, 1, kw);
-
-  return ret;
 }
 
 /* callbacks */
@@ -1152,7 +1251,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   }
   else {
     Py_ssize_t length;
-    const char *buffer = _PyUnicode_AsStringAndSize(ret, &length);
+    const char *buffer = PyUnicode_AsUTF8AndSize(ret, &length);
     memcpy(value, buffer, length + 1);
     Py_DECREF(ret);
   }
@@ -1213,7 +1312,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
   }
   else {
     Py_ssize_t length_ssize_t = 0;
-    _PyUnicode_AsStringAndSize(ret, &length_ssize_t);
+    PyUnicode_AsUTF8AndSize(ret, &length_ssize_t);
     length = length_ssize_t;
     Py_DECREF(ret);
   }
@@ -1488,7 +1587,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   else {
     if (def) {
       if (!py_long_as_int(def, &def_int_cmp)) {
-        def_string_cmp = _PyUnicode_AsString(def);
+        def_string_cmp = PyUnicode_AsUTF8(def);
         if (def_string_cmp == NULL) {
           PyErr_Format(PyExc_TypeError,
                        "EnumProperty(...): default option must be a 'str' or 'int' "
@@ -1517,14 +1616,13 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
 
     if ((PyTuple_CheckExact(item)) && (item_size = PyTuple_GET_SIZE(item)) &&
         (item_size >= 3 && item_size <= 5) &&
-        (tmp.identifier = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
-        (tmp.name = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-        (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2),
-                                                      &desc_str_size)) &&
+        (tmp.identifier = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
+        (tmp.name = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
+        (tmp.description = PyUnicode_AsUTF8AndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
         /* TODO, number isn't ensured to be unique from the script author */
         (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value)) &&
         (item_size != 5 || ((py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.icon) ||
-                             (tmp_icon = _PyUnicode_AsString(PyTuple_GET_ITEM(item, 3)))) &&
+                             (tmp_icon = PyUnicode_AsUTF8(PyTuple_GET_ITEM(item, 3)))) &&
                             py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value)))) {
       if (is_enum_flag) {
         if (item_size < 4) {
@@ -1998,7 +2096,7 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
     if (PyErr_Occurred()) { \
       return NULL; \
     } \
-    return bpy_prop_deferred_return(pymeth_##_func, kw); \
+    return bpy_prop_deferred_data_CreatePyObject(pymeth_##_func, kw); \
   } \
   (void)0
 
@@ -3301,7 +3399,7 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
   if (!srna) {
     if (PyErr_Occurred()) {
       PyObject *msg = PyC_ExceptionBuffer();
-      const char *msg_char = _PyUnicode_AsString(msg);
+      const char *msg_char = PyUnicode_AsUTF8(msg);
       PyErr_Format(
           PyExc_TypeError, "%.200s expected an RNA type, failed with: %s", error_prefix, msg_char);
       Py_DECREF(msg);
@@ -3668,6 +3766,11 @@ PyObject *BPY_rna_props(void)
   ASSIGN_STATIC(PointerProperty);
   ASSIGN_STATIC(CollectionProperty);
   ASSIGN_STATIC(RemoveProperty);
+
+  if (PyType_Ready(&bpy_prop_deferred_Type) < 0) {
+    return NULL;
+  }
+  PyModule_AddType(submodule, &bpy_prop_deferred_Type);
 
   return submodule;
 }

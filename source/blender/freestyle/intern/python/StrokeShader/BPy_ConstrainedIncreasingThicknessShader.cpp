@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+using namespace Freestyle;
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -76,11 +78,7 @@ PyTypeObject ConstrainedIncreasingThicknessShader_Type = {
     sizeof(BPy_ConstrainedIncreasingThicknessShader),                         /* tp_basicsize */
     0,                                                                        /* tp_itemsize */
     nullptr,                                                                  /* tp_dealloc */
-#if PY_VERSION_HEX >= 0x03080000
-    0, /* tp_vectorcall_offset */
-#else
-    nullptr, /* tp_print */
-#endif
+    0,                                                       /* tp_vectorcall_offset */
     nullptr,                                                 /* tp_getattr */
     nullptr,                                                 /* tp_setattr */
     nullptr,                                                 /* tp_reserved */

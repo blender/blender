@@ -43,14 +43,10 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_blender_undo.h"
-#include "BKE_blender_version.h"
-#include "BKE_camera.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -58,19 +54,15 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-#include "ED_undo.h"
 #include "ED_util.h"
-#include "ED_view3d.h"
 
 #include "BIF_glutil.h"
 
@@ -84,8 +76,6 @@
 #include "RNA_define.h"
 
 #include "SEQ_relations.h"
-
-#include "BLO_undofile.h"
 
 #include "render_intern.h"
 
@@ -810,7 +800,7 @@ static int render_break(void *UNUSED(rjv))
 
 /* runs in thread, no cursor setting here works. careful with notifiers too (malloc conflicts) */
 /* maybe need a way to get job send notifier? */
-static void render_drawlock(void *rjv, int lock)
+static void render_drawlock(void *rjv, bool lock)
 {
   RenderJob *rj = rjv;
 

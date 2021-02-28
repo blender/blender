@@ -9,8 +9,7 @@
 
 #define BTDF_BIAS 0.85
 
-vec4 screen_space_refraction(
-    vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
+vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
 {
   float a2 = max(5e-6, roughnessSquared * roughnessSquared);
 
@@ -29,7 +28,7 @@ vec4 screen_space_refraction(
     pdf = pdf_ggx_reflect(NH, a2);
   }
 
-  vec3 vV = viewCameraVec;
+  vec3 vV = viewCameraVec(vP);
   float eta = 1.0 / ior;
   if (dot(H, V) < 0.0) {
     H = -H;
@@ -41,11 +40,11 @@ vec4 screen_space_refraction(
   R = transform_direction(ViewMatrix, R);
 
   vec3 hit_pos = raycast(
-      -1, viewPosition, R * 1e16, ssrThickness, rand.y, ssrQuality, roughnessSquared, false);
+      -1, vP, R * 1e16, ssrThickness, rand.y, ssrQuality, roughnessSquared, false);
 
   if ((hit_pos.z > 0.0) && (F_eta(ior, dot(H, V)) < 1.0)) {
     hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
-    float hit_dist = distance(hit_pos, viewPosition);
+    float hit_dist = distance(hit_pos, vP);
 
     float cone_cos = cone_cosine(roughnessSquared);
     float cone_tan = sqrt(1 - cone_cos * cone_cos) / cone_cos;

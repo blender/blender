@@ -21,27 +21,26 @@
 
 ChunkOrder::ChunkOrder()
 {
-  this->m_distance = 0.0;
-  this->m_number = 0;
-  this->m_x = 0;
-  this->m_y = 0;
+  distance = 0.0;
+  number = 0;
+  x = 0;
+  y = 0;
 }
 
-void ChunkOrder::determineDistance(ChunkOrderHotspot **hotspots, unsigned int numberOfHotspots)
+void ChunkOrder::update_distance(ChunkOrderHotspot **hotspots, unsigned int len_hotspots)
 {
-  unsigned int index;
-  double distance = FLT_MAX;
-  for (index = 0; index < numberOfHotspots; index++) {
+  double new_distance = FLT_MAX;
+  for (int index = 0; index < len_hotspots; index++) {
     ChunkOrderHotspot *hotspot = hotspots[index];
-    double ndistance = hotspot->determineDistance(this->m_x, this->m_y);
-    if (ndistance < distance) {
-      distance = ndistance;
+    double distance_to_hotspot = hotspot->calc_distance(x, y);
+    if (distance_to_hotspot < new_distance) {
+      new_distance = distance_to_hotspot;
     }
   }
-  this->m_distance = distance;
+  this->distance = new_distance;
 }
 
 bool operator<(const ChunkOrder &a, const ChunkOrder &b)
 {
-  return a.m_distance < b.m_distance;
+  return a.distance < b.distance;
 }

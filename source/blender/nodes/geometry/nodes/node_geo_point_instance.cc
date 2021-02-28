@@ -24,6 +24,9 @@
 
 #include "BLI_hash.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_point_instance_in[] = {
@@ -38,6 +41,14 @@ static bNodeSocketTemplate geo_node_point_instance_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
+
+static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "instance_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  if (RNA_enum_get(ptr, "instance_type") == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION) {
+    uiItemR(layout, ptr, "use_whole_collection", 0, nullptr, ICON_NONE);
+  }
+}
 
 namespace blender::nodes {
 
@@ -87,6 +98,12 @@ static void get_instanced_data__collection(
       params.get_input<bke::PersistentCollectionHandle>("Collection");
   Collection *collection = params.handle_map().lookup(collection_handle);
   if (collection == nullptr) {
+    return;
+  }
+
+  if (BLI_listbase_is_empty(&collection->children) &&
+      BLI_listbase_is_empty(&collection->gobject)) {
+    params.error_message_add(NodeWarningType::Info, "Collection is empty.");
     return;
   }
 
@@ -183,6 +200,10 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   GeometrySet geometry_set_out;
 
+  /* TODO: This node should be able to instance on the input instances component
+   * rather than making the entire input geometry set real. */
+  geometry_set = geometry_set_realize_instances(geometry_set);
+
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
   if (geometry_set.has<MeshComponent>()) {
     add_instances_from_geometry_component(
@@ -216,6 +237,7 @@ void register_node_type_geo_point_instance()
   node_type_init(&ntype, blender::nodes::geo_node_point_instance_init);
   node_type_storage(
       &ntype, "NodeGeometryPointInstance", node_free_standard_storage, node_copy_standard_storage);
+  ntype.draw_buttons = geo_node_point_instance_layout;
   node_type_update(&ntype, blender::nodes::geo_node_point_instance_update);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_instance_exec;
   nodeRegisterType(&ntype);

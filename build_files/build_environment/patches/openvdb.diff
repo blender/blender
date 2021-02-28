@@ -1,10 +1,10 @@
-diff -Naur orig/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
---- orig/cmake/FindIlmBase.cmake	2019-12-06 12:11:33 -0700
-+++ openvdb/cmake/FindIlmBase.cmake	2020-08-12 12:48:44 -0600
-@@ -225,6 +225,12 @@
-   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-     "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.lib"
-   )
+diff -Naur openvdb-8.0.0/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
+--- openvdb-8.0.0/cmake/FindIlmBase.cmake	2020-12-24 10:13:14 -0700
++++ openvdb/cmake/FindIlmBase.cmake	2021-02-05 12:07:49 -0700
+@@ -217,6 +217,12 @@
+     set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+   endif()
+   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES "${_IlmBase_Version_Suffix}.lib")
 +  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
 +    "_s.lib"
 +  )
@@ -13,14 +13,14 @@ diff -Naur orig/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
 +  )
  else()
    if(ILMBASE_USE_STATIC_LIBS)
-     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-diff -Naur orig/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
---- orig/cmake/FindOpenEXR.cmake	2019-12-06 12:11:33 -0700
-+++ openvdb/cmake/FindOpenEXR.cmake	2020-08-12 12:48:44 -0600
-@@ -218,6 +218,12 @@
-   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-     "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.lib"
-   )
+     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+diff -Naur openvdb-8.0.0/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
+--- openvdb-8.0.0/cmake/FindOpenEXR.cmake	2020-12-24 10:13:14 -0700
++++ openvdb/cmake/FindOpenEXR.cmake	2021-02-05 12:23:39 -0700
+@@ -210,6 +210,12 @@
+     set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+   endif()
+   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES "${_OpenEXR_Version_Suffix}.lib")
 +  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
 +    "_s.lib"
 +  )
@@ -29,11 +29,11 @@ diff -Naur orig/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
 +  )
  else()
    if(OPENEXR_USE_STATIC_LIBS)
-     list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
---- orig/openvdb/CMakeLists.txt	2019-12-06 12:11:33 -0700
-+++ openvdb/openvdb/CMakeLists.txt	2020-08-12 14:12:26 -0600
-@@ -105,7 +105,9 @@
+     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+diff -Naur openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt openvdb/openvdb/openvdb/CMakeLists.txt
+--- openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt	2020-12-24 10:13:14 -0700
++++ openvdb/openvdb/openvdb/CMakeLists.txt	2021-02-05 11:18:33 -0700
+@@ -107,7 +107,9 @@
    #        http://boost.2283326.n4.nabble.com/CMake-config-scripts-broken-in-1-70-td4708957.html
    #        https://github.com/boostorg/boost_install/commit/160c7cb2b2c720e74463865ef0454d4c4cd9ae7c
    set(BUILD_SHARED_LIBS ON)
@@ -44,15 +44,15 @@ diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
  endif()
  
  find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS iostreams system)
-@@ -193,6 +195,7 @@
-   if(OPENVDB_DISABLE_BOOST_IMPLICIT_LINKING)
-     add_definitions(-DBOOST_ALL_NO_LIB)
+@@ -146,6 +148,7 @@
+         Boost::disable_autolinking  # add -DBOOST_ALL_NO_LIB
+       )
    endif()
 +  add_definitions(-D__TBB_NO_IMPLICIT_LINKAGE -DOPENVDB_OPENEXR_STATICLIB)
  endif()
  
- # @todo Should be target definitions
-@@ -383,7 +386,12 @@
+ if(USE_EXR)
+@@ -379,7 +382,12 @@
  # imported targets.
  
  if(OPENVDB_CORE_SHARED)
@@ -66,9 +66,9 @@ diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
  endif()
  
  if(OPENVDB_CORE_STATIC)
-diff -Naur orig/openvdb/version.rc.in openvdb/openvdb/version.rc.in
---- orig/openvdb/version.rc.in	1969-12-31 17:00:00 -0700
-+++ openvdb/openvdb/version.rc.in	2020-08-12 14:15:01 -0600
+diff -Naur openvdb-8.0.0/openvdb/openvdb/version.rc.in openvdb/openvdb/openvdb/version.rc.in
+--- openvdb-8.0.0/openvdb/openvdb/version.rc.in	1969-12-31 17:00:00 -0700
++++ openvdb/openvdb/openvdb/version.rc.in	2021-02-05 11:18:33 -0700
 @@ -0,0 +1,48 @@
 +#include <winver.h>
 +

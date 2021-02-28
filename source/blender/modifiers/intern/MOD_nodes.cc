@@ -50,6 +50,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_node_ui_storage.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
 #include "BKE_simulation.h"
@@ -81,6 +82,7 @@ using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::StringRef;
+using blender::StringRefNull;
 using blender::Vector;
 using blender::bke::PersistentCollectionHandle;
 using blender::bke::PersistentDataHandleMap;
@@ -150,6 +152,40 @@ static void find_used_ids_from_settings(const NodesModifierSettings &settings, S
       &ids);
 }
 
+static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
+                                                      Collection &collection);
+
+static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Object &object)
+{
+  DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
+  if (&(ID &)object != &ctx->object->id) {
+    if (object.type == OB_EMPTY) {
+      Collection *collection_instance = object.instance_collection;
+      if (collection_instance != nullptr) {
+        add_collection_object_relations_recursive(ctx, *collection_instance);
+      }
+    }
+    else {
+      DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
+    }
+  }
+}
+
+static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
+                                                      Collection &collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection.gobject) {
+    BLI_assert(collection_object->ob != nullptr);
+    Object &object = *collection_object->ob;
+    add_object_relation(ctx, object);
+  }
+  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection.children) {
+    BLI_assert(collection_child->collection != nullptr);
+    Collection &collection = *collection_child->collection;
+    add_collection_object_relations_recursive(ctx, collection);
+  }
+}
+
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -163,18 +199,16 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     for (ID *id : used_ids) {
       if (GS(id->name) == ID_OB) {
         Object *object = reinterpret_cast<Object *>(id);
-        DEG_add_object_relation(ctx->node, object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
-        if (id != &ctx->object->id) {
-          if (object->type != OB_EMPTY) {
-            DEG_add_object_relation(
-                ctx->node, (Object *)id, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
-          }
-        }
+        add_object_relation(ctx, *object);
+      }
+      if (GS(id->name) == ID_GR) {
+        Collection *collection = reinterpret_cast<Collection *>(id);
+        add_collection_object_relations_recursive(ctx, *collection);
       }
     }
   }
 
-  /* TODO: Add dependency for collection changes. */
+  /* TODO: Add dependency for adding and removing objects in collections. */
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -221,6 +255,7 @@ class GeometryNodesEvaluator {
   const blender::nodes::DataTypeConversions &conversions_;
   const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
+  const ModifierData *modifier_;
   Depsgraph *depsgraph_;
 
  public:
@@ -229,12 +264,14 @@ class GeometryNodesEvaluator {
                          blender::nodes::MultiFunctionByNode &mf_by_node,
                          const PersistentDataHandleMap &handle_map,
                          const Object *self_object,
+                         const ModifierData *modifier,
                          Depsgraph *depsgraph)
       : group_outputs_(std::move(group_outputs)),
         mf_by_node_(mf_by_node),
         conversions_(blender::nodes::get_implicit_type_conversions()),
         handle_map_(handle_map),
         self_object_(self_object),
+        modifier_(modifier),
         depsgraph_(depsgraph)
   {
     for (auto item : group_input_data.items()) {
@@ -308,7 +345,6 @@ class GeometryNodesEvaluator {
   void compute_output_and_forward(const DOutputSocket &socket_to_compute)
   {
     const DNode &node = socket_to_compute.node();
-    const bNode &bnode = *node.bnode();
 
     if (!socket_to_compute.is_available()) {
       /* If the output is not available, use a default value. */
@@ -337,7 +373,7 @@ class GeometryNodesEvaluator {
     /* Execute the node. */
     GValueMap<StringRef> node_outputs_map{allocator_};
     GeoNodeExecParams params{
-        bnode, node_inputs_map, node_outputs_map, handle_map_, self_object_, depsgraph_};
+        node, node_inputs_map, node_outputs_map, handle_map_, self_object_, modifier_, depsgraph_};
     this->execute_node(node, params);
 
     /* Forward computed outputs to linked input sockets. */
@@ -352,6 +388,8 @@ class GeometryNodesEvaluator {
   void execute_node(const DNode &node, GeoNodeExecParams params)
   {
     const bNode &bnode = params.node();
+
+    this->store_ui_hints(node, params);
 
     /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
@@ -368,6 +406,33 @@ class GeometryNodesEvaluator {
 
     /* Just output default values if no implementation exists. */
     this->execute_unknown_node(node, params);
+  }
+
+  void store_ui_hints(const DNode &node, GeoNodeExecParams params) const
+  {
+    for (const DInputSocket *dsocket : node.inputs()) {
+      if (!dsocket->is_available()) {
+        continue;
+      }
+      if (dsocket->bsocket()->type != SOCK_GEOMETRY) {
+        continue;
+      }
+
+      bNodeTree *btree_cow = node.node_ref().tree().btree();
+      bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
+      const NodeTreeEvaluationContext context(*self_object_, *modifier_);
+
+      const GeometrySet &geometry_set = params.get_input<GeometrySet>(dsocket->identifier());
+      const Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
+
+      for (const GeometryComponent *component : components) {
+        component->attribute_foreach([&](StringRefNull attribute_name,
+                                         const AttributeMetaData &UNUSED(meta_data)) {
+          BKE_nodetree_attribute_hint_add(*btree_original, context, *node.bnode(), attribute_name);
+          return true;
+        });
+      }
+    }
   }
 
   void execute_multi_function_node(const DNode &node,
@@ -924,6 +989,19 @@ static void fill_data_handle_map(const NodesModifierSettings &settings,
   }
 }
 
+static void reset_tree_ui_storage(Span<const blender::nodes::NodeTreeRef *> trees,
+                                  const Object &object,
+                                  const ModifierData &modifier)
+{
+  const NodeTreeEvaluationContext context = {object, modifier};
+
+  for (const blender::nodes::NodeTreeRef *tree : trees) {
+    bNodeTree *btree_cow = tree->btree();
+    bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
+    BKE_nodetree_ui_storage_free_for_context(*btree_original, context);
+  }
+}
+
 /**
  * Evaluate a node group to compute the output geometry.
  * Currently, this uses a fairly basic and inefficient algorithm that might compute things more
@@ -970,8 +1048,14 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   Vector<const DInputSocket *> group_outputs;
   group_outputs.append(&socket_to_compute);
 
-  GeometryNodesEvaluator evaluator{
-      group_inputs, group_outputs, mf_by_node, handle_map, ctx->object, ctx->depsgraph};
+  GeometryNodesEvaluator evaluator{group_inputs,
+                                   group_outputs,
+                                   mf_by_node,
+                                   handle_map,
+                                   ctx->object,
+                                   (ModifierData *)nmd,
+                                   ctx->depsgraph};
+
   Vector<GMutablePointer> results = evaluator.execute();
   BLI_assert(results.size() == 1);
   GMutablePointer result = results[0];
@@ -1068,6 +1152,8 @@ static void modifyGeometry(ModifierData *md,
   if (group_output->idname() != "NodeSocketGeometry") {
     return;
   }
+
+  reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
 
   geometry_set = compute_geometry(
       tree, group_inputs, *group_outputs[0], std::move(geometry_set), nmd, ctx);
