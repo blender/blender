@@ -224,18 +224,10 @@ class Mesh : public Geometry {
 
   void pack_shaders(Scene *scene, uint *shader);
   void pack_normals(float4 *vnormal);
-  void pack_verts(const vector<uint> &tri_prim_index,
-                  uint4 *tri_vindex,
-                  uint *tri_patch,
-                  float2 *tri_patch_uv,
-                  size_t vert_offset,
-                  size_t tri_offset);
-  void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
+  void pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, float2 *tri_patch_uv);
+  void pack_patches(uint *patch_data);
 
-  void pack_primitives(PackedBVH *pack,
-                       int object,
-                       uint visibility,
-                       PackFlags pack_flags) override;
+  PrimitiveType primitive_type() const override;
 
   void tessellate(DiagSplit *split);
 

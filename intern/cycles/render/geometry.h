@@ -43,24 +43,6 @@ class Shader;
 class Volume;
 struct PackedBVH;
 
-/* Flags used to determine which geometry data need to be packed. */
-enum PackFlags : uint32_t {
-  PACK_NONE = 0u,
-
-  /* Pack the geometry information (e.g. triangle or curve keys indices). */
-  PACK_GEOMETRY = (1u << 0),
-
-  /* Pack the vertices, for Meshes and Volumes' bounding meshes. */
-  PACK_VERTICES = (1u << 1),
-
-  /* Pack the visibility flags for each triangle or curve. */
-  PACK_VISIBILITY = (1u << 2),
-
-  PACK_ALL = (PACK_GEOMETRY | PACK_VERTICES | PACK_VISIBILITY),
-};
-
-PackFlags operator|=(PackFlags &pack_flags, uint32_t value);
-
 /* Geometry
  *
  * Base class for geometric types like Mesh and Hair. */
@@ -100,7 +82,6 @@ class Geometry : public Node {
   BVH *bvh;
   size_t attr_map_offset;
   size_t prim_offset;
-  size_t optix_prim_offset;
 
   /* Shader Properties */
   bool has_volume;         /* Set in the device_update_flags(). */
@@ -144,10 +125,7 @@ class Geometry : public Node {
                    int n,
                    int total);
 
-  virtual void pack_primitives(PackedBVH *pack,
-                               int object,
-                               uint visibility,
-                               PackFlags pack_flags) = 0;
+  virtual PrimitiveType primitive_type() const = 0;
 
   /* Check whether the geometry should have own BVH built separately. Briefly,
    * own BVH is needed for geometry, if:
@@ -260,11 +238,7 @@ class GeometryManager {
 
   void device_update_object(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
 
-  void device_update_mesh(Device *device,
-                          DeviceScene *dscene,
-                          Scene *scene,
-                          bool for_displacement,
-                          Progress &progress);
+  void device_update_mesh(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
 
   void device_update_attributes(Device *device,
                                 DeviceScene *dscene,

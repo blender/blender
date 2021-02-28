@@ -136,10 +136,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
       else {
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        int object = (current_isect.object == OBJECT_NONE) ?
-                         kernel_tex_fetch(__prim_object, current_isect.prim) :
-                         current_isect.object;
-        if (ctx->local_object_id != object) {
+        if (ctx->local_object_id != current_isect.object) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
           break;
@@ -206,9 +203,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         ++ctx->num_hits;
         *isect = current_isect;
         /* Only primitives from volume object. */
-        uint tri_object = (isect->object == OBJECT_NONE) ?
-                              kernel_tex_fetch(__prim_object, isect->prim) :
-                              isect->object;
+        uint tri_object = isect->object;
         int object_flag = kernel_tex_fetch(__object_flag, tri_object);
         if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
           --ctx->num_hits;
@@ -437,7 +432,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
 
 void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
-  size_t prim_offset = mesh->optix_prim_offset;
+  size_t prim_offset = mesh->prim_offset;
 
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -606,7 +601,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
-  size_t prim_offset = hair->optix_prim_offset;
+  size_t prim_offset = hair->curve_segment_offset;
 
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -683,7 +678,7 @@ void BVHEmbree::refit(Progress &progress)
         if (mesh->num_triangles() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id);
           set_tri_vertex_buffer(geom, mesh, true);
-          rtcSetGeometryUserData(geom, (void *)mesh->optix_prim_offset);
+          rtcSetGeometryUserData(geom, (void *)mesh->prim_offset);
           rtcCommitGeometry(geom);
         }
       }
@@ -692,7 +687,7 @@ void BVHEmbree::refit(Progress &progress)
         if (hair->num_curves() > 0) {
           RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
           set_curve_vertex_buffer(geom, hair, true);
-          rtcSetGeometryUserData(geom, (void *)hair->optix_prim_offset);
+          rtcSetGeometryUserData(geom, (void *)hair->curve_segment_offset);
           rtcCommitGeometry(geom);
         }
       }

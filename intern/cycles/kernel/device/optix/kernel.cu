@@ -41,22 +41,15 @@ template<typename T> ccl_device_forceinline T *get_payload_ptr_2()
   return (T *)(((uint64_t)optixGetPayload_3() << 32) | optixGetPayload_2());
 }
 
-template<bool always = false> ccl_device_forceinline uint get_object_id()
+ccl_device_forceinline int get_object_id()
 {
 #ifdef __OBJECT_MOTION__
-  /* Always get the the instance ID from the TLAS.
+  /* Always get the the instance ID from the TLAS
    * There might be a motion transform node between TLAS and BLAS which does not have one. */
-  uint object = optixGetInstanceIdFromHandle(optixGetTransformListHandle(0));
+  return optixGetInstanceIdFromHandle(optixGetTransformListHandle(0));
 #else
-  uint object = optixGetInstanceId();
+  return optixGetInstanceId();
 #endif
-  /* Choose between always returning object ID or only for instances. */
-  if (always || (object & 1) == 0)
-    /* Can just remove the low bit since instance always contains object ID. */
-    return object >> 1;
-  else
-    /* Set to OBJECT_NONE if this is not an instanced object. */
-    return OBJECT_NONE;
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_closest()
@@ -108,7 +101,7 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
 #endif
 
 #ifdef __BVH_LOCAL__
-  const uint object = get_object_id<true>();
+  const int object = get_object_id();
   if (object != optixGetPayload_4() /* local_object */) {
     /* Only intersect with matching object. */
     return optixIgnoreIntersection();
@@ -152,21 +145,23 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
     local_isect->num_hits = 1;
   }
 
+  const int prim = optixGetPrimitiveIndex();
+
   Intersection *isect = &local_isect->hits[hit];
   isect->t = optixGetRayTmax();
-  isect->prim = optixGetPrimitiveIndex();
+  isect->prim = prim;
   isect->object = get_object_id();
-  isect->type = kernel_tex_fetch(__prim_type, isect->prim);
+  isect->type = kernel_tex_fetch(__objects, isect->object).primitive_type;
 
   const float2 barycentrics = optixGetTriangleBarycentrics();
   isect->u = 1.0f - barycentrics.y - barycentrics.x;
   isect->v = barycentrics.x;
 
   /* Record geometric normal. */
-  const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, isect->prim);
-  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 0));
-  const float3 tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 1));
-  const float3 tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex + 2));
+  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
+  const float3 tri_a = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0));
+  const float3 tri_b = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1));
+  const float3 tri_c = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */
@@ -179,24 +174,31 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 #ifdef __SHADOW_RECORD_ALL__
   bool ignore_intersection = false;
 
-  const uint prim = optixGetPrimitiveIndex();
+  int prim = optixGetPrimitiveIndex();
+  const uint object = get_object_id();
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__prim_visibility, prim) & visibility) == 0) {
+  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
     ignore_intersection = true;
   }
 #  endif
 
   float u = 0.0f, v = 0.0f;
+  int type = 0;
   if (optixIsTriangleHit()) {
     const float2 barycentrics = optixGetTriangleBarycentrics();
     u = 1.0f - barycentrics.y - barycentrics.x;
     v = barycentrics.x;
+    type = kernel_tex_fetch(__objects, object).primitive_type;
   }
 #  ifdef __HAIR__
   else {
     u = __uint_as_float(optixGetAttribute_0());
     v = __uint_as_float(optixGetAttribute_1());
+
+    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+    type = segment.type;
+    prim = segment.prim;
 
     /* Filter out curve endcaps. */
     if (u == 0.0f || u == 1.0f) {
@@ -245,8 +247,8 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     isect->v = v;
     isect->t = optixGetRayTmax();
     isect->prim = prim;
-    isect->object = get_object_id();
-    isect->type = kernel_tex_fetch(__prim_type, prim);
+    isect->object = object;
+    isect->type = type;
 
 #  ifdef __TRANSPARENT_SHADOWS__
     /* Detect if this surface has a shader with transparent shadows. */
@@ -274,15 +276,14 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
   }
 #endif
 
+  const uint object = get_object_id();
 #ifdef __VISIBILITY_FLAG__
-  const uint prim = optixGetPrimitiveIndex();
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__prim_visibility, prim) & visibility) == 0) {
+  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
 #endif
 
-  const uint object = get_object_id<true>();
   if ((kernel_tex_fetch(__object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
     return optixIgnoreIntersection();
   }
@@ -301,9 +302,9 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 #endif
 
 #ifdef __VISIBILITY_FLAG__
-  const uint prim = optixGetPrimitiveIndex();
+  const uint object = get_object_id();
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__prim_visibility, prim) & visibility) == 0) {
+  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
 
@@ -316,28 +317,39 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 
 extern "C" __global__ void __closesthit__kernel_optix_hit()
 {
+  const int object = get_object_id();
+  const int prim = optixGetPrimitiveIndex();
+
   optixSetPayload_0(__float_as_uint(optixGetRayTmax())); /* Intersection distance */
-  optixSetPayload_3(optixGetPrimitiveIndex());
-  optixSetPayload_4(get_object_id());
-  /* Can be PRIMITIVE_TRIANGLE and PRIMITIVE_MOTION_TRIANGLE or curve type and segment index. */
-  optixSetPayload_5(kernel_tex_fetch(__prim_type, optixGetPrimitiveIndex()));
+  optixSetPayload_4(object);
 
   if (optixIsTriangleHit()) {
     const float2 barycentrics = optixGetTriangleBarycentrics();
     optixSetPayload_1(__float_as_uint(1.0f - barycentrics.y - barycentrics.x));
     optixSetPayload_2(__float_as_uint(barycentrics.x));
+    optixSetPayload_3(prim);
+    optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
   }
   else {
+    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
     optixSetPayload_1(optixGetAttribute_0()); /* Same as 'optixGetCurveParameter()' */
     optixSetPayload_2(optixGetAttribute_1());
+    optixSetPayload_3(segment.prim);
+    optixSetPayload_5(segment.type);
   }
 }
 
 #ifdef __HAIR__
-ccl_device_inline void optix_intersection_curve(const uint prim, const uint type)
+ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 {
-  const uint object = get_object_id<true>();
+  const int object = get_object_id();
+
+#  ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
+  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+    return;
+  }
+#  endif
 
   float3 P = optixGetObjectRayOrigin();
   float3 dir = optixGetObjectRayDirection();
@@ -358,7 +370,7 @@ ccl_device_inline void optix_intersection_curve(const uint prim, const uint type
   if (isect.t != FLT_MAX)
     isect.t *= len;
 
-  if (curve_intersect(NULL, &isect, P, dir, isect.t, visibility, object, prim, time, type)) {
+  if (curve_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
     optixReportIntersection(isect.t / len,
                             type & PRIMITIVE_ALL,
                             __float_as_int(isect.u),  /* Attribute_0 */
@@ -368,9 +380,9 @@ ccl_device_inline void optix_intersection_curve(const uint prim, const uint type
 
 extern "C" __global__ void __intersection__curve_ribbon()
 {
-  const uint prim = optixGetPrimitiveIndex();
-  const uint type = kernel_tex_fetch(__prim_type, prim);
-
+  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, optixGetPrimitiveIndex());
+  const int prim = segment.prim;
+  const int type = segment.type;
   if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     optix_intersection_curve(prim, type);
   }

@@ -577,7 +577,7 @@ ccl_device_inline bool subsurface_scatter(INTEGRATOR_STATE_ARGS)
 #  ifdef __VOLUME__
   /* Update volume stack if needed. */
   if (kernel_data.integrator.use_volumes) {
-    const int object = intersection_get_object(kg, &ss_isect.hits[0]);
+    const int object = ss_isect.hits[0].object;
     const int object_flag = kernel_tex_fetch(__object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {

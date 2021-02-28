@@ -118,19 +118,18 @@ ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
 ccl_device_forceinline int intersection_get_shader_flags(const KernelGlobals *ccl_restrict kg,
                                                          const Intersection *ccl_restrict isect)
 {
-  const int prim = kernel_tex_fetch(__prim_index, isect->prim);
+  const int prim = isect->prim;
   int shader = 0;
 
 #ifdef __HAIR__
-  if (kernel_tex_fetch(__prim_type, isect->prim) & PRIMITIVE_ALL_TRIANGLE)
+  if (isect->type & PRIMITIVE_ALL_TRIANGLE)
 #endif
   {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __HAIR__
   else {
-    float4 str = kernel_tex_fetch(__curves, prim);
-    shader = __float_as_int(str.z);
+    shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
 
@@ -138,21 +137,19 @@ ccl_device_forceinline int intersection_get_shader_flags(const KernelGlobals *cc
 }
 
 ccl_device_forceinline int intersection_get_shader_from_isect_prim(
-    const KernelGlobals *ccl_restrict kg, const int isect_prim)
+    const KernelGlobals *ccl_restrict kg, const int prim, const int isect_type)
 {
-  const int prim = kernel_tex_fetch(__prim_index, isect_prim);
   int shader = 0;
 
 #ifdef __HAIR__
-  if (kernel_tex_fetch(__prim_type, isect_prim) & PRIMITIVE_ALL_TRIANGLE)
+  if (isect_type & PRIMITIVE_ALL_TRIANGLE)
 #endif
   {
     shader = kernel_tex_fetch(__tri_shader, prim);
   }
 #ifdef __HAIR__
   else {
-    float4 str = kernel_tex_fetch(__curves, prim);
-    shader = __float_as_int(str.z);
+    shader = kernel_tex_fetch(__curves, prim).shader_id;
   }
 #endif
 
@@ -162,25 +159,13 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(
 ccl_device_forceinline int intersection_get_shader(const KernelGlobals *ccl_restrict kg,
                                                    const Intersection *ccl_restrict isect)
 {
-  return intersection_get_shader_from_isect_prim(kg, isect->prim);
-}
-
-ccl_device_forceinline int intersection_get_object(const KernelGlobals *ccl_restrict kg,
-                                                   const Intersection *ccl_restrict isect)
-{
-  if (isect->object != OBJECT_NONE) {
-    return isect->object;
-  }
-
-  return kernel_tex_fetch(__prim_object, isect->prim);
+  return intersection_get_shader_from_isect_prim(kg, isect->prim, isect->type);
 }
 
 ccl_device_forceinline int intersection_get_object_flags(const KernelGlobals *ccl_restrict kg,
                                                          const Intersection *ccl_restrict isect)
 {
-  const int object = intersection_get_object(kg, isect);
-
-  return kernel_tex_fetch(__object_flag, object);
+  return kernel_tex_fetch(__object_flag, isect->object);
 }
 
 CCL_NAMESPACE_END

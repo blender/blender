@@ -160,10 +160,7 @@ ccl_device void integrator_intersect_closest(INTEGRATOR_STATE_ARGS)
   if (path_state_ao_bounce(INTEGRATOR_STATE_PASS)) {
     ray.t = kernel_data.integrator.ao_bounces_distance;
 
-    const int last_object = last_isect_object != OBJECT_NONE ?
-                                last_isect_object :
-                                kernel_tex_fetch(__prim_object, last_isect_prim);
-    const float object_ao_distance = kernel_tex_fetch(__objects, last_object).ao_distance;
+    const float object_ao_distance = kernel_tex_fetch(__objects, last_isect_object).ao_distance;
     if (object_ao_distance != 0.0f) {
       ray.t = object_ao_distance;
     }

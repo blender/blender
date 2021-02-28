@@ -192,7 +192,8 @@ ccl_device void integrator_shade_background(INTEGRATOR_STATE_ARGS,
     INTEGRATOR_STATE_WRITE(path, flag) &= ~PATH_RAY_SHADOW_CATCHER_BACKGROUND;
 
     const int isect_prim = INTEGRATOR_STATE(isect, prim);
-    const int shader = intersection_get_shader_from_isect_prim(kg, isect_prim);
+    const int isect_type = INTEGRATOR_STATE(isect, type);
+    const int shader = intersection_get_shader_from_isect_prim(kg, isect_prim, isect_type);
     const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
 
     if ((shader_flags & SD_HAS_RAYTRACE) || (kernel_data.film.pass_ao != PASS_UNUSED)) {

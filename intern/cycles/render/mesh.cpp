@@ -729,12 +729,7 @@ void Mesh::pack_normals(float4 *vnormal)
   }
 }
 
-void Mesh::pack_verts(const vector<uint> &tri_prim_index,
-                      uint4 *tri_vindex,
-                      uint *tri_patch,
-                      float2 *tri_patch_uv,
-                      size_t vert_offset,
-                      size_t tri_offset)
+void Mesh::pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, float2 *tri_patch_uv)
 {
   size_t verts_size = verts.size();
 
@@ -749,17 +744,19 @@ void Mesh::pack_verts(const vector<uint> &tri_prim_index,
   size_t triangles_size = num_triangles();
 
   for (size_t i = 0; i < triangles_size; i++) {
-    Triangle t = get_triangle(i);
-    tri_vindex[i] = make_uint4(t.v[0] + vert_offset,
-                               t.v[1] + vert_offset,
-                               t.v[2] + vert_offset,
-                               tri_prim_index[i + tri_offset]);
+    const Triangle t = get_triangle(i);
+    tri_vindex[i] = make_uint4(
+        t.v[0] + vert_offset, t.v[1] + vert_offset, t.v[2] + vert_offset, 3 * (prim_offset + i));
 
     tri_patch[i] = (!get_num_subd_faces()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
+
+    tri_verts[i * 3] = float3_to_float4(verts[t.v[0]]);
+    tri_verts[i * 3 + 1] = float3_to_float4(verts[t.v[1]]);
+    tri_verts[i * 3 + 2] = float3_to_float4(verts[t.v[2]]);
   }
 }
 
-void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset)
+void Mesh::pack_patches(uint *patch_data)
 {
   size_t num_faces = get_num_subd_faces();
   int ngons = 0;
@@ -805,53 +802,9 @@ void Mesh::pack_patches(uint *patch_data, uint vert_offset, uint face_offset, ui
   }
 }
 
-void Mesh::pack_primitives(ccl::PackedBVH *pack, int object, uint visibility, PackFlags pack_flags)
+PrimitiveType Mesh::primitive_type() const
 {
-  if (triangles.empty())
-    return;
-
-  const size_t num_prims = num_triangles();
-
-  /* Use prim_offset for indexing as it is computed per geometry type, and prim_tri_verts does not
-   * contain data for Hair geometries. */
-  float4 *prim_tri_verts = &pack->prim_tri_verts[prim_offset * 3];
-  // 'pack->prim_time' is unused by Embree and OptiX
-
-  uint type = has_motion_blur() ? PRIMITIVE_MOTION_TRIANGLE : PRIMITIVE_TRIANGLE;
-
-  /* Separate loop as other arrays are not initialized if their packing is not required. */
-  if ((pack_flags & PackFlags::PACK_VISIBILITY) != 0) {
-    unsigned int *prim_visibility = &pack->prim_visibility[optix_prim_offset];
-    for (size_t k = 0; k < num_prims; ++k) {
-      prim_visibility[k] = visibility;
-    }
-  }
-
-  if ((pack_flags & PackFlags::PACK_GEOMETRY) != 0) {
-    /* Use optix_prim_offset for indexing as those arrays also contain data for Hair geometries. */
-    unsigned int *prim_tri_index = &pack->prim_tri_index[optix_prim_offset];
-    int *prim_type = &pack->prim_type[optix_prim_offset];
-    int *prim_index = &pack->prim_index[optix_prim_offset];
-    int *prim_object = &pack->prim_object[optix_prim_offset];
-
-    for (size_t k = 0; k < num_prims; ++k) {
-      if ((pack_flags & PackFlags::PACK_GEOMETRY) != 0) {
-        prim_tri_index[k] = (prim_offset + k) * 3;
-        prim_type[k] = type;
-        prim_index[k] = prim_offset + k;
-        prim_object[k] = object;
-      }
-    }
-  }
-
-  if ((pack_flags & PackFlags::PACK_VERTICES) != 0) {
-    for (size_t k = 0; k < num_prims; ++k) {
-      const Mesh::Triangle t = get_triangle(k);
-      prim_tri_verts[k * 3] = float3_to_float4(verts[t.v[0]]);
-      prim_tri_verts[k * 3 + 1] = float3_to_float4(verts[t.v[1]]);
-      prim_tri_verts[k * 3 + 2] = float3_to_float4(verts[t.v[2]]);
-    }
-  }
+  return has_motion_blur() ? PRIMITIVE_MOTION_TRIANGLE : PRIMITIVE_TRIANGLE;
 }
 
 CCL_NAMESPACE_END

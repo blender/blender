@@ -1270,9 +1270,24 @@ typedef struct KernelObject {
 
   float ao_distance;
 
-  float pad1, pad2;
+  uint visibility;
+  int primitive_type;
 } KernelObject;
 static_assert_align(KernelObject, 16);
+
+typedef struct KernelCurve {
+  int shader_id;
+  int first_key;
+  int num_keys;
+  int type;
+} KernelCurve;
+static_assert_align(KernelCurve, 16);
+
+typedef struct KernelCurveSegment {
+  int prim;
+  int type;
+} KernelCurveSegment;
+static_assert_align(KernelCurveSegment, 8);
 
 typedef struct KernelSpotLight {
   float radius;

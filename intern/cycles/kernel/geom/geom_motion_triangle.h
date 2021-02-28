@@ -72,9 +72,9 @@ ccl_device_inline void motion_triangle_verts_for_step(const KernelGlobals *kg,
 {
   if (step == numsteps) {
     /* center step: regular vertex location */
-    verts[0] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 0));
-    verts[1] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 1));
-    verts[2] = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex.w + 2));
+    verts[0] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 0));
+    verts[1] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 1));
+    verts[2] = float4_to_float3(kernel_tex_fetch(__tri_verts, tri_vindex.w + 2));
   }
   else {
     /* center step not store in this array */

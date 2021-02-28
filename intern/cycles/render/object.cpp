@@ -60,6 +60,7 @@ struct UpdateObjectTransformState {
 
   /* Packed object arrays. Those will be filled in. */
   uint *object_flag;
+  uint *object_visibility;
   KernelObject *objects;
   Transform *object_motion_pass;
   DecomposedTransform *object_motion;
@@ -527,6 +528,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.shadow_terminator_shading_offset = 1.0f /
                                              (1.0f - 0.5f * ob->shadow_terminator_shading_offset);
   kobject.shadow_terminator_geometry_offset = ob->shadow_terminator_geometry_offset;
+
+  kobject.visibility = ob->visibility_for_tracing();
+  kobject.primitive_type = geom->primitive_type();
 
   /* Object flag. */
   if (ob->use_holdout) {

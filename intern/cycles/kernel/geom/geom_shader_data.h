@@ -52,10 +52,9 @@ ccl_device_inline void shader_setup_from_ray(const KernelGlobals *ccl_restrict k
   sd->v = isect->v;
   sd->ray_length = isect->t;
   sd->type = isect->type;
-  sd->object = (isect->object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, isect->prim) :
-                                                isect->object;
+  sd->object = isect->object;
   sd->object_flag = kernel_tex_fetch(__object_flag, sd->object);
-  sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
+  sd->prim = isect->prim;
   sd->lamp = LAMP_NONE;
   sd->flag = 0;
 

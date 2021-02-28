@@ -1252,7 +1252,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         build_input.curveArray.indexBuffer = (CUdeviceptr)index_data.device_pointer;
         build_input.curveArray.indexStrideInBytes = sizeof(int);
         build_input.curveArray.flag = build_flags;
-        build_input.curveArray.primitiveIndexOffset = hair->optix_prim_offset;
+        build_input.curveArray.primitiveIndexOffset = hair->curve_segment_offset;
       }
       else {
         /* Disable visibility test any-hit program, since it is already checked during
@@ -1265,7 +1265,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         build_input.customPrimitiveArray.strideInBytes = sizeof(OptixAabb);
         build_input.customPrimitiveArray.flags = &build_flags;
         build_input.customPrimitiveArray.numSbtRecords = 1;
-        build_input.customPrimitiveArray.primitiveIndexOffset = hair->optix_prim_offset;
+        build_input.customPrimitiveArray.primitiveIndexOffset = hair->curve_segment_offset;
       }
 
       if (!build_optix_bvh(bvh_optix, operation, build_input, num_motion_steps)) {
@@ -1334,7 +1334,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
        * buffers for that purpose. OptiX does not allow this to be zero though, so just pass in
        * one and rely on that having the same meaning in this case. */
       build_input.triangleArray.numSbtRecords = 1;
-      build_input.triangleArray.primitiveIndexOffset = mesh->optix_prim_offset;
+      build_input.triangleArray.primitiveIndexOffset = mesh->prim_offset;
 
       if (!build_optix_bvh(bvh_optix, operation, build_input, num_motion_steps)) {
         progress.set_error("Failed to build OptiX acceleration structure");
@@ -1401,8 +1401,8 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       instance.transform[5] = 1.0f;
       instance.transform[10] = 1.0f;
 
-      /* Set user instance ID to object index (but leave low bit blank). */
-      instance.instanceId = ob->get_device_index() << 1;
+      /* Set user instance ID to object index. */
+      instance.instanceId = ob->get_device_index();
 
       /* Add some of the object visibility bits to the mask.
        * __prim_visibility contains the combined visibility bits of all instances, so is not
@@ -1514,9 +1514,6 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         else {
           /* Disable instance transform if geometry already has it applied to vertex data. */
           instance.flags |= OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
-          /* Non-instanced objects read ID from 'prim_object', so distinguish
-           * them from instanced objects with the low bit set. */
-          instance.instanceId |= 1;
         }
       }
     }

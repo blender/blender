@@ -295,7 +295,8 @@ NODE_DEFINE(Hair)
 
 Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
 {
-  curvekey_offset = 0;
+  curve_key_offset = 0;
+  curve_segment_offset = 0;
   curve_shape = CURVE_RIBBON;
 }
 
@@ -462,8 +463,8 @@ void Hair::apply_transform(const Transform &tfm, const bool apply_to_motion)
 
 void Hair::pack_curves(Scene *scene,
                        float4 *curve_key_co,
-                       float4 *curve_data,
-                       size_t curvekey_offset)
+                       KernelCurve *curves,
+                       KernelCurveSegment *curve_segments)
 {
   size_t curve_keys_size = curve_keys.size();
 
@@ -477,7 +478,10 @@ void Hair::pack_curves(Scene *scene,
   }
 
   /* pack curve segments */
+  const PrimitiveType type = primitive_type();
+
   size_t curve_num = num_curves();
+  size_t index = 0;
 
   for (size_t i = 0; i < curve_num; i++) {
     Curve curve = get_curve(i);
@@ -487,56 +491,24 @@ void Hair::pack_curves(Scene *scene,
                          scene->default_surface;
     shader_id = scene->shader_manager->get_shader_id(shader, false);
 
-    curve_data[i] = make_float4(__int_as_float(curve.first_key + curvekey_offset),
-                                __int_as_float(curve.num_keys),
-                                __int_as_float(shader_id),
-                                0.0f);
+    curves[i].shader_id = shader_id;
+    curves[i].first_key = curve_key_offset + curve.first_key;
+    curves[i].num_keys = curve.num_keys;
+    curves[i].type = type;
+
+    for (int k = 0; k < curve.num_segments(); ++k, ++index) {
+      curve_segments[index].prim = prim_offset + i;
+      curve_segments[index].type = PRIMITIVE_PACK_SEGMENT(type, k);
+    }
   }
 }
 
-void Hair::pack_primitives(PackedBVH *pack, int object, uint visibility, PackFlags pack_flags)
+PrimitiveType Hair::primitive_type() const
 {
-  if (curve_first_key.empty())
-    return;
-
-  /* Separate loop as other arrays are not initialized if their packing is not required. */
-  if ((pack_flags & PACK_VISIBILITY) != 0) {
-    unsigned int *prim_visibility = &pack->prim_visibility[optix_prim_offset];
-
-    size_t index = 0;
-    for (size_t j = 0; j < num_curves(); ++j) {
-      Curve curve = get_curve(j);
-      for (size_t k = 0; k < curve.num_segments(); ++k, ++index) {
-        prim_visibility[index] = visibility;
-      }
-    }
-  }
-
-  if ((pack_flags & PACK_GEOMETRY) != 0) {
-    unsigned int *prim_tri_index = &pack->prim_tri_index[optix_prim_offset];
-    int *prim_type = &pack->prim_type[optix_prim_offset];
-    int *prim_index = &pack->prim_index[optix_prim_offset];
-    int *prim_object = &pack->prim_object[optix_prim_offset];
-    // 'pack->prim_time' is unused by Embree and OptiX
-
-    uint type = has_motion_blur() ?
-                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
-                                                     PRIMITIVE_MOTION_CURVE_THICK) :
-                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON :
-                                                     PRIMITIVE_CURVE_THICK);
-
-    size_t index = 0;
-    for (size_t j = 0; j < num_curves(); ++j) {
-      Curve curve = get_curve(j);
-      for (size_t k = 0; k < curve.num_segments(); ++k, ++index) {
-        prim_tri_index[index] = -1;
-        prim_type[index] = PRIMITIVE_PACK_SEGMENT(type, k);
-        // Each curve segment points back to its curve index
-        prim_index[index] = j + prim_offset;
-        prim_object[index] = object;
-      }
-    }
-  }
+  return has_motion_blur() ?
+             ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
+                                              PRIMITIVE_MOTION_CURVE_THICK) :
+             ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
 }
 
 CCL_NAMESPACE_END

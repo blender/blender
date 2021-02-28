@@ -630,33 +630,19 @@ ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
                                             const float3 P,
                                             const float3 dir,
                                             const float tmax,
-                                            uint visibility,
                                             int object,
-                                            int curveAddr,
+                                            int prim,
                                             float time,
                                             int type)
 {
   const bool is_motion = (type & PRIMITIVE_ALL_MOTION);
 
-#  ifndef __KERNEL_OPTIX__ /* See OptiX motion flag OPTIX_MOTION_FLAG_[START|END]_VANISH */
-  if (is_motion && kernel_data.bvh.use_bvh_steps) {
-    const float2 prim_time = kernel_tex_fetch(__prim_time, curveAddr);
-    if (time < prim_time.x || time > prim_time.y) {
-      return false;
-    }
-  }
-#  endif
+  KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
 
-  int segment = PRIMITIVE_UNPACK_SEGMENT(type);
-  int prim = kernel_tex_fetch(__prim_index, curveAddr);
-
-  float4 v00 = kernel_tex_fetch(__curves, prim);
-
-  int k0 = __float_as_int(v00.x) + segment;
+  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(type);
   int k1 = k0 + 1;
-
-  int ka = max(k0 - 1, __float_as_int(v00.x));
-  int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
+  int ka = max(k0 - 1, kcurve.first_key);
+  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 curve[4];
   if (!is_motion) {
@@ -666,21 +652,14 @@ ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
     curve[3] = kernel_tex_fetch(__curve_keys, kb);
   }
   else {
-    int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, curveAddr) : object;
-    motion_curve_keys(kg, fobject, prim, time, ka, k0, k1, kb, curve);
+    motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
   }
-
-#  ifdef __VISIBILITY_FLAG__
-  if (!(kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)) {
-    return false;
-  }
-#  endif
 
   if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_MOTION_CURVE_RIBBON)) {
     /* todo: adaptive number of subdivisions could help performance here. */
     const int subdivisions = kernel_data.bvh.curve_subdivisions;
     if (ribbon_intersect(P, dir, tmax, subdivisions, curve, isect)) {
-      isect->prim = curveAddr;
+      isect->prim = prim;
       isect->object = object;
       isect->type = type;
       return true;
@@ -690,7 +669,7 @@ ccl_device_forceinline bool curve_intersect(const KernelGlobals *kg,
   }
   else {
     if (curve_intersect_recursive(P, dir, tmax, curve, isect)) {
-      isect->prim = curveAddr;
+      isect->prim = prim;
       isect->object = object;
       isect->type = type;
       return true;
@@ -708,7 +687,7 @@ ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
                                           const int isect_object,
                                           const int isect_prim)
 {
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_inverse_transform(kg, sd);
 
     P = transform_point(&tfm, P);
@@ -716,14 +695,12 @@ ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
     D = safe_normalize_len(D, &t);
   }
 
-  int prim = kernel_tex_fetch(__prim_index, isect_prim);
-  float4 v00 = kernel_tex_fetch(__curves, prim);
+  KernelCurve kcurve = kernel_tex_fetch(__curves, isect_prim);
 
-  int k0 = __float_as_int(v00.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
   int k1 = k0 + 1;
-
-  int ka = max(k0 - 1, __float_as_int(v00.x));
-  int kb = min(k1 + 1, __float_as_int(v00.x) + __float_as_int(v00.y) - 1);
+  int ka = max(k0 - 1, kcurve.first_key);
+  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 P_curve[4];
 
@@ -780,15 +757,13 @@ ccl_device_inline void curve_shader_setup(const KernelGlobals *kg,
   sd->dPdv = cross(dPdu, sd->Ng);
 #  endif
 
-  if (isect_object != OBJECT_NONE) {
+  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
     P = transform_point(&tfm, P);
   }
 
   sd->P = P;
-
-  float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
-  sd->shader = __float_as_int(curvedata.z);
+  sd->shader = kernel_tex_fetch(__curves, sd->prim).shader_id;
 }
 
 #endif

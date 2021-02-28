@@ -67,8 +67,12 @@ BVHBuild::~BVHBuild()
 
 /* Adding References */
 
-void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int i)
+void BVHBuild::add_reference_triangles(BoundBox &root,
+                                       BoundBox &center,
+                                       Mesh *mesh,
+                                       int object_index)
 {
+  const PrimitiveType primitive_type = mesh->primitive_type();
   const Attribute *attr_mP = NULL;
   if (mesh->has_motion_blur()) {
     attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -81,7 +85,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *m
       BoundBox bounds = BoundBox::empty;
       t.bounds_grow(verts, bounds);
       if (bounds.valid() && t.valid(verts)) {
-        references.push_back(BVHReference(bounds, j, i, PRIMITIVE_TRIANGLE));
+        references.push_back(BVHReference(bounds, j, object_index, primitive_type));
         root.grow(bounds);
         center.grow(bounds.center2());
       }
@@ -101,7 +105,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *m
         t.bounds_grow(vert_steps + step * num_verts, bounds);
       }
       if (bounds.valid()) {
-        references.push_back(BVHReference(bounds, j, i, PRIMITIVE_MOTION_TRIANGLE));
+        references.push_back(BVHReference(bounds, j, object_index, primitive_type));
         root.grow(bounds);
         center.grow(bounds.center2());
       }
@@ -140,7 +144,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *m
         if (bounds.valid()) {
           const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
           references.push_back(
-              BVHReference(bounds, j, i, PRIMITIVE_MOTION_TRIANGLE, prev_time, curr_time));
+              BVHReference(bounds, j, object_index, primitive_type, prev_time, curr_time));
           root.grow(bounds);
           center.grow(bounds.center2());
         }
@@ -153,18 +157,14 @@ void BVHBuild::add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *m
   }
 }
 
-void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int i)
+void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int object_index)
 {
   const Attribute *curve_attr_mP = NULL;
   if (hair->has_motion_blur()) {
     curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
 
-  const PrimitiveType primitive_type =
-      (curve_attr_mP != NULL) ?
-          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
-                                                 PRIMITIVE_MOTION_CURVE_THICK) :
-          ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+  const PrimitiveType primitive_type = hair->primitive_type();
 
   const size_t num_curves = hair->num_curves();
   for (uint j = 0; j < num_curves; j++) {
@@ -177,7 +177,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
         if (bounds.valid()) {
           int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-          references.push_back(BVHReference(bounds, j, i, packed_type));
+          references.push_back(BVHReference(bounds, j, object_index, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
         }
@@ -198,7 +198,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         }
         if (bounds.valid()) {
           int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-          references.push_back(BVHReference(bounds, j, i, packed_type));
+          references.push_back(BVHReference(bounds, j, object_index, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
         }
@@ -254,7 +254,8 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
           if (bounds.valid()) {
             const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
             int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
-            references.push_back(BVHReference(bounds, j, i, packed_type, prev_time, curr_time));
+            references.push_back(
+                BVHReference(bounds, j, object_index, packed_type, prev_time, curr_time));
             root.grow(bounds);
             center.grow(bounds.center2());
           }
@@ -268,15 +269,18 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
   }
 }
 
-void BVHBuild::add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i)
+void BVHBuild::add_reference_geometry(BoundBox &root,
+                                      BoundBox &center,
+                                      Geometry *geom,
+                                      int object_index)
 {
   if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
     Mesh *mesh = static_cast<Mesh *>(geom);
-    add_reference_triangles(root, center, mesh, i);
+    add_reference_triangles(root, center, mesh, object_index);
   }
   else if (geom->geometry_type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
-    add_reference_curves(root, center, hair, i);
+    add_reference_curves(root, center, hair, object_index);
   }
 }
 
