@@ -59,14 +59,14 @@ void animated_property_store_cb(ID *id, FCurve *fcurve, void *data_v)
 
   /* Resolve path to the property. */
   PathResolvedRNA resolved_rna;
-  if (!BKE_animsys_store_rna_setting(
+  if (!BKE_animsys_rna_path_resolve(
           &data->id_pointer_rna, fcurve->rna_path, fcurve->array_index, &resolved_rna)) {
     return;
   }
 
   /* Read property value. */
   float value;
-  if (!BKE_animsys_read_rna_setting(&resolved_rna, &value)) {
+  if (!BKE_animsys_read_from_rna_path(&resolved_rna, &value)) {
     return;
   }
 
@@ -127,15 +127,15 @@ void AnimationBackup::restore_to_id(ID *id)
      * NOTE: Do it again (after storing), since the sub-data pointers might be
      * changed after copy-on-write. */
     PathResolvedRNA resolved_rna;
-    if (!BKE_animsys_store_rna_setting(&id_pointer_rna,
-                                       value_backup.rna_path.c_str(),
-                                       value_backup.array_index,
-                                       &resolved_rna)) {
+    if (!BKE_animsys_rna_path_resolve(&id_pointer_rna,
+                                      value_backup.rna_path.c_str(),
+                                      value_backup.array_index,
+                                      &resolved_rna)) {
       return;
     }
 
     /* Write property value. */
-    if (!BKE_animsys_write_rna_setting(&resolved_rna, value_backup.value)) {
+    if (!BKE_animsys_write_to_rna_path(&resolved_rna, value_backup.value)) {
       return;
     }
   }

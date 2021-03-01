@@ -901,6 +901,18 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
+# Test SIMD support, before platform includes to determine if sse2neon is needed.
+if(WITH_CPU_SIMD)
+  set(COMPILER_SSE_FLAG)
+  set(COMPILER_SSE2_FLAG)
+
+  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
+  TEST_NEON_SUPPORT()
+  if(NOT SUPPORT_NEON_BUILD)
+    TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
+  endif()
+endif()
+
 # ----------------------------------------------------------------------------
 # Main Platform Checks
 #
@@ -956,16 +968,11 @@ if(WITH_INTERNATIONAL)
   endif()
 endif()
 
-# See TEST_SSE_SUPPORT() and TEST_NEON_SUPPORT() for how these are defined.
+# Enable SIMD support if detected by TEST_SSE_SUPPORT() or TEST_NEON_SUPPORT().
 #
 # This is done globally, so that all modules can use it if available, and
 # because these are used in headers used by many modules.
 if(WITH_CPU_SIMD)
-  set(COMPILER_SSE_FLAG)
-  set(COMPILER_SSE2_FLAG)
-
-  # Test Neon first since macOS Arm can compile and run x86-64 SSE binaries.
-  TEST_NEON_SUPPORT()
   if(SUPPORT_NEON_BUILD)
     # Neon
     if(SSE2NEON_FOUND)
@@ -974,7 +981,6 @@ if(WITH_CPU_SIMD)
     endif()
   else()
     # SSE
-    TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
     if(SUPPORT_SSE_BUILD)
       string(PREPEND PLATFORM_CFLAGS "${COMPILER_SSE_FLAG} ")
       add_definitions(-D__SSE__ -D__MMX__)
