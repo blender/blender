@@ -682,11 +682,13 @@ macro(TEST_SSE_SUPPORT
 endmacro()
 
 macro(TEST_NEON_SUPPORT)
-  include(CheckCXXSourceCompiles)
-  check_cxx_source_compiles(
-    "#include <arm_neon.h>
-     int main() {return vaddvq_s32(vdupq_n_s32(1));}"
-    SUPPORT_NEON_BUILD)
+  if(NOT DEFINED SUPPORT_NEON_BUILD)
+    include(CheckCXXSourceCompiles)
+    check_cxx_source_compiles(
+      "#include <arm_neon.h>
+       int main() {return vaddvq_s32(vdupq_n_s32(1));}"
+      SUPPORT_NEON_BUILD)
+  endif()
 endmacro()
 
 # Only print message if running CMake first time

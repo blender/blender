@@ -324,7 +324,7 @@ if(WITH_NANOVDB)
   find_package(NanoVDB)
 endif()
 
-if(WITH_CPU_SIMD)
+if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
   find_package(sse2neon)
 endif()
 

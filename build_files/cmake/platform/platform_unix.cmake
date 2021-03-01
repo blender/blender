@@ -285,7 +285,7 @@ if(WITH_NANOVDB)
   endif()
 endif()
 
-if(WITH_CPU_SIMD)
+if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
   find_package_wrapper(sse2neon)
 endif()
 
