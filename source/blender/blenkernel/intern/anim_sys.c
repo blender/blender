@@ -756,10 +756,10 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
 }
 
 /* Evaluate Action (F-Curve Bag) */
-static void animsys_evaluate_action_ex(PointerRNA *ptr,
-                                       bAction *act,
-                                       const AnimationEvalContext *anim_eval_context,
-                                       const bool flush_to_original)
+void animsys_evaluate_action(PointerRNA *ptr,
+                             bAction *act,
+                             const AnimationEvalContext *anim_eval_context,
+                             const bool flush_to_original)
 {
   /* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
   if (act == NULL) {
@@ -770,14 +770,6 @@ static void animsys_evaluate_action_ex(PointerRNA *ptr,
 
   /* calculate then execute each curve */
   animsys_evaluate_fcurves(ptr, &act->curves, anim_eval_context, flush_to_original);
-}
-
-void animsys_evaluate_action(PointerRNA *ptr,
-                             bAction *act,
-                             const AnimationEvalContext *anim_eval_context,
-                             const bool flush_to_original)
-{
-  animsys_evaluate_action_ex(ptr, act, anim_eval_context, flush_to_original);
 }
 
 /* ***************************************** */
@@ -2850,7 +2842,7 @@ void BKE_animsys_evaluate_animdata(ID *id,
     }
     /* evaluate Active Action only */
     else if (adt->action) {
-      animsys_evaluate_action_ex(&id_ptr, adt->action, anim_eval_context, flush_to_original);
+      animsys_evaluate_action(&id_ptr, adt->action, anim_eval_context, flush_to_original);
     }
   }
 
