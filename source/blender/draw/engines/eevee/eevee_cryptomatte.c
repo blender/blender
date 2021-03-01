@@ -124,8 +124,20 @@ void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
   if (!DRW_state_is_image_render()) {
     return;
   }
-  if (eevee_cryptomatte_active_layers(view_layer) != 0) {
-    g_data->cryptomatte_session = BKE_cryptomatte_init();
+  const eViewLayerCryptomatteFlags active_layers = eevee_cryptomatte_active_layers(view_layer);
+  if (active_layers) {
+    struct CryptomatteSession *session = BKE_cryptomatte_init();
+    if ((active_layers & VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
+      BKE_cryptomatte_add_layer(session, "CryptoObject");
+    }
+    if ((active_layers & VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
+      BKE_cryptomatte_add_layer(session, "CryptoMaterial");
+    }
+    if ((active_layers & VIEW_LAYER_CRYPTOMATTE_ASSET) != 0) {
+      BKE_cryptomatte_add_layer(session, "CryptoAsset");
+    }
+    g_data->cryptomatte_session = session;
+
     g_data->render_passes |= EEVEE_RENDER_PASS_CRYPTOMATTE | EEVEE_RENDER_PASS_VOLUME_LIGHT;
     g_data->cryptomatte_accurate_mode = (view_layer->cryptomatte_flag &
                                          VIEW_LAYER_CRYPTOMATTE_ACCURATE) != 0;
@@ -208,20 +220,22 @@ static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedat
   EEVEE_PassList *psl = vedata->psl;
   int layer_offset = 0;
   if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
-    uint32_t cryptomatte_hash = BKE_cryptomatte_object_hash(g_data->cryptomatte_session, ob);
+    uint32_t cryptomatte_hash = BKE_cryptomatte_object_hash(
+        g_data->cryptomatte_session, "CryptoObject", ob);
     float cryptomatte_color_value = BKE_cryptomatte_hash_to_float(cryptomatte_hash);
     cryptohash[layer_offset] = cryptomatte_color_value;
     layer_offset++;
   }
   if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
-    uint32_t cryptomatte_hash = BKE_cryptomatte_material_hash(g_data->cryptomatte_session,
-                                                              material);
+    uint32_t cryptomatte_hash = BKE_cryptomatte_material_hash(
+        g_data->cryptomatte_session, "CryptoMaterial", material);
     float cryptomatte_color_value = BKE_cryptomatte_hash_to_float(cryptomatte_hash);
     cryptohash[layer_offset] = cryptomatte_color_value;
     layer_offset++;
   }
   if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_ASSET) != 0) {
-    uint32_t cryptomatte_hash = BKE_cryptomatte_asset_hash(g_data->cryptomatte_session, ob);
+    uint32_t cryptomatte_hash = BKE_cryptomatte_asset_hash(
+        g_data->cryptomatte_session, "CryptoAsset", ob);
     float cryptomatte_color_value = BKE_cryptomatte_hash_to_float(cryptomatte_hash);
     cryptohash[layer_offset] = cryptomatte_color_value;
     layer_offset++;
@@ -693,30 +707,9 @@ void EEVEE_cryptomatte_store_metadata(EEVEE_Data *vedata, RenderResult *render_r
   EEVEE_PrivateData *g_data = vedata->stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const ViewLayer *view_layer = draw_ctx->view_layer;
-  const eViewLayerCryptomatteFlags cryptomatte_layers = view_layer->cryptomatte_flag &
-                                                        VIEW_LAYER_CRYPTOMATTE_ALL;
   BLI_assert(g_data->cryptomatte_session);
-  if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
-    BKE_cryptomatte_store_metadata(g_data->cryptomatte_session,
-                                   render_result,
-                                   view_layer,
-                                   VIEW_LAYER_CRYPTOMATTE_OBJECT,
-                                   "CryptoObject");
-  }
-  if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_MATERIAL) != 0) {
-    BKE_cryptomatte_store_metadata(g_data->cryptomatte_session,
-                                   render_result,
-                                   view_layer,
-                                   VIEW_LAYER_CRYPTOMATTE_MATERIAL,
-                                   "CryptoMaterial");
-  }
-  if ((cryptomatte_layers & VIEW_LAYER_CRYPTOMATTE_ASSET) != 0) {
-    BKE_cryptomatte_store_metadata(g_data->cryptomatte_session,
-                                   render_result,
-                                   view_layer,
-                                   VIEW_LAYER_CRYPTOMATTE_ASSET,
-                                   "CryptoAsset");
-  }
+
+  BKE_cryptomatte_store_metadata(g_data->cryptomatte_session, render_result, view_layer);
 }
 
 /** \} */
