@@ -53,6 +53,14 @@ void ED_spacedata_id_remap(struct ScrArea *area,
 
 void ED_operatortypes_edutils(void);
 
+/* Drawing */
+void ED_region_draw_mouse_line_cb(const struct bContext *C,
+                                  struct ARegion *region,
+                                  void *arg_info);
+
+void ED_region_image_metadata_draw(
+    int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
+
 /* ************** XXX OLD CRUFT WARNING ************* */
 
 void apply_keyb_grid(

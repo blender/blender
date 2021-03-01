@@ -46,6 +46,7 @@
 #include "ED_gpencil.h"
 #include "ED_mask.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "BIF_glutil.h"
 

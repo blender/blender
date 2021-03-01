@@ -50,6 +50,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_transform.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h" /* own include */
