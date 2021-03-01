@@ -2960,16 +2960,16 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     if (wm_action_not_handled(action)) {
       if (event->check_drag) {
         wmWindow *win = CTX_wm_window(C);
-        if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
+        if (WM_event_drag_test(event, &event->prevclickx)) {
           int x = event->x;
           int y = event->y;
           short val = event->val;
           short type = event->type;
 
-          event->x = win->eventstate->prevclickx;
-          event->y = win->eventstate->prevclicky;
+          event->x = event->prevclickx;
+          event->y = event->prevclicky;
           event->val = KM_CLICK_DRAG;
-          event->type = win->eventstate->type;
+          event->type = event->prevtype;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
@@ -3012,12 +3012,12 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
 
-      if (win && win->eventstate->prevtype == event->type) {
+      if (win && event->prevtype == event->type) {
 
         if (event->val == KM_RELEASE) {
-          if (win->eventstate->prevval == KM_PRESS) {
+          if (event->prevval == KM_PRESS) {
             if (win->eventstate->check_click == true) {
-              if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
+              if (WM_event_drag_test(event, &event->prevclickx)) {
                 win->eventstate->check_click = 0;
                 win->eventstate->check_drag = 0;
               }
@@ -3071,7 +3071,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     else {
       wmWindow *win = CTX_wm_window(C);
       if (win) {
-        if (ISKEYMODIFIER(win->eventstate->type)) {
+        if (ISKEYMODIFIER(event->prevtype)) {
           win->eventstate->check_click = 0;
         }
       }
@@ -4358,15 +4358,15 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   return NULL;
 }
 
-static bool wm_event_is_double_click(const wmEvent *event, const wmEvent *event_state)
+static bool wm_event_is_double_click(const wmEvent *event)
 {
-  if ((event->type == event_state->prevtype) && (event_state->prevval == KM_RELEASE) &&
+  if ((event->type == event->prevtype) && (event->prevval == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event_state->prevclickx)) {
+    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event->prevclickx)) {
       /* Pass. */
     }
     else {
-      if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
+      if ((PIL_check_seconds_timer() - event->prevclicktime) * 1000 < U.dbl_click_time) {
         return true;
       }
     }
@@ -4561,7 +4561,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       evt->type = event.type;
 
       /* Double click test. */
-      if (wm_event_is_double_click(&event, evt)) {
+      if (wm_event_is_double_click(&event)) {
         CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
         event.val = KM_DBL_CLICK;
       }
@@ -4699,7 +4699,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       /* Double click test. */
       /* If previous event was same type, and previous was release, and now it presses... */
-      if (wm_event_is_double_click(&event, evt)) {
+      if (wm_event_is_double_click(&event)) {
         CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
         event.val = KM_DBL_CLICK;
       }
