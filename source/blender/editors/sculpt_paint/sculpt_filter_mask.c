@@ -808,18 +808,93 @@ static void sculpt_ipmask_filter_update_to_target_step(SculptSession *ss,
   }
 }
 
-bool sculpt_ipmask_filter_apply_from_original(const eSculptIPMaskFilterType filter_type)
+static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
+                                        const int i,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  return true;
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ss;
+  FilterCache *filter_cache = ss->filter_cache;
+  PBVHNode *node = filter_cache->nodes[i];
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  const eSculptIPMaskFilterType filter_type = data->filter_type;
+  bool update = false;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
+      continue;
+    }
+
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
+
+    float new_mask = orig_data.mask;
+
+    switch (filter_type) {
+        case IPMASK_FILTER_ADD_SUBSTRACT:
+            new_mask = orig_data.mask + data->filter_strength;
+            break;
+    case IPMASK_FILTER_INVERT: {
+        const float strength = clamp_f(data->filter_strength, 0.0f, 1.0f);
+        const float mask_invert = 1.0f - orig_data.mask;
+        new_mask = interpf(orig_data.mask, mask_invert, strength);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    new_mask = clamp_f(new_mask, 0.0f, 1.0f);
+
+    if (*vd.mask == new_mask) {
+      continue;
+    }
+
+    *vd.mask = new_mask;
+    update = true;
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (update) {
+    BKE_pbvh_node_mark_redraw(node);
+  }
+}
+
+static void sculpt_ipmask_apply_from_original_mask_data(SculptSession *ss,
+                                          eSculptIPMaskFilterType filter_type,
+                                          const float strength)
+{
+  FilterCache *filter_cache = ss->filter_cache;
+  SculptThreadedTaskData data = {
+      .ss = ss,
+      .nodes = filter_cache->nodes,
+      .filter_strength = strength,
+      .filter_type = filter_type,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
+  BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_apply_from_original_task_cb, &settings);
+}
+
+static bool sculpt_ipmask_filter_uses_apply_from_original(const eSculptIPMaskFilterType filter_type)
+{
+  return ELEM(filter_type, IPMASK_FILTER_INVERT, IPMASK_FILTER_ADD_SUBSTRACT);
 }
 
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.025f
+#define IPMASK_FILTER_STEPS_PER_FULL_STRENGTH 20
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
+  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
   if (event->type == LEFTMOUSE) {
@@ -841,11 +916,16 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const float target_step_fl = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
   const int target_step = floorf(target_step_fl);
   const float step_interpolation = target_step_fl - target_step;
-  printf("STEP INTERPOLATION %f\n", step_interpolation);
+  const float full_step_strength = target_step_fl / IPMASK_FILTER_STEPS_PER_FULL_STRENGTH;
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count, step_interpolation);
+  if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
+     sculpt_ipmask_apply_from_original_mask_data(ss, filter_type, full_step_strength);
+  }
+  else {
+    sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count, step_interpolation);
+  }
 
   SCULPT_tag_update_overlays(C);
 
