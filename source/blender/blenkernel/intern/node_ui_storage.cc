@@ -33,7 +33,7 @@ using blender::Map;
 using blender::StringRef;
 using blender::Vector;
 
-static void ui_storage_ensure(bNodeTree &ntree)
+NodeTreeUIStorage &ui_storage_ensure(bNodeTree &ntree)
 {
   if (ntree.ui_storage == nullptr) {
     ntree.ui_storage = new NodeTreeUIStorage();
@@ -109,12 +109,11 @@ static void node_error_message_log(bNodeTree &ntree,
   }
 }
 
-static NodeUIStorage &find_node_ui_storage(bNodeTree &ntree,
-                                           const NodeTreeEvaluationContext &context,
-                                           const bNode &node)
+static NodeUIStorage &node_ui_storage_ensure(bNodeTree &ntree,
+                                             const NodeTreeEvaluationContext &context,
+                                             const bNode &node)
 {
-  ui_storage_ensure(ntree);
-  NodeTreeUIStorage &ui_storage = *ntree.ui_storage;
+  NodeTreeUIStorage &ui_storage = ui_storage_ensure(ntree);
 
   Map<std::string, NodeUIStorage> &node_tree_ui_storage =
       ui_storage.context_map.lookup_or_add_default(context);
@@ -133,7 +132,7 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
 {
   node_error_message_log(ntree, node, message, type);
 
-  NodeUIStorage &node_ui_storage = find_node_ui_storage(ntree, context, node);
+  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
   node_ui_storage.warnings.append({type, std::move(message)});
 }
 
@@ -142,6 +141,6 @@ void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
                                      const bNode &node,
                                      const StringRef attribute_name)
 {
-  NodeUIStorage &node_ui_storage = find_node_ui_storage(ntree, context, node);
+  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
   node_ui_storage.attribute_name_hints.add_as(attribute_name);
 }
