@@ -107,9 +107,9 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange &job,
 
   /* map geometry to bins, unrolled once */
   {
-    ssize_t i;
+    int64_t i;
 
-    for (i = 0; i < ssize_t(size()) - 1; i += 2) {
+    for (i = 0; i < int64_t(size()) - 1; i += 2) {
       prefetch_L2(&prims[start() + i + 8]);
 
       /* map even and odd primitive to bin */
@@ -146,7 +146,7 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange &job,
     }
 
     /* for uneven number of primitives */
-    if (i < ssize_t(size())) {
+    if (i < int64_t(size())) {
       /* map primitive to bin */
       const BVHReference &prim0 = prims[start() + i];
       BoundBox bounds0 = get_prim_bounds(prim0);
@@ -237,7 +237,7 @@ void BVHObjectBinning::split(BVHReference *prims,
   BoundBox lcent_bounds = BoundBox::empty;
   BoundBox rcent_bounds = BoundBox::empty;
 
-  ssize_t l = 0, r = N - 1;
+  int64_t l = 0, r = N - 1;
 
   while (l <= r) {
     prefetch_L2(&prims[start() + l + 8]);
