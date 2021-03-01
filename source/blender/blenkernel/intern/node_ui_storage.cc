@@ -33,7 +33,7 @@ using blender::Map;
 using blender::StringRef;
 using blender::Vector;
 
-NodeTreeUIStorage &ui_storage_ensure(bNodeTree &ntree)
+static void ui_storage_ensure(bNodeTree &ntree)
 {
   if (ntree.ui_storage == nullptr) {
     ntree.ui_storage = new NodeTreeUIStorage();
@@ -113,7 +113,8 @@ static NodeUIStorage &node_ui_storage_ensure(bNodeTree &ntree,
                                              const NodeTreeEvaluationContext &context,
                                              const bNode &node)
 {
-  NodeTreeUIStorage &ui_storage = ui_storage_ensure(ntree);
+  ui_storage_ensure(ntree);
+  NodeTreeUIStorage &ui_storage = *ntree.ui_storage;
 
   Map<std::string, NodeUIStorage> &node_tree_ui_storage =
       ui_storage.context_map.lookup_or_add_default(context);
