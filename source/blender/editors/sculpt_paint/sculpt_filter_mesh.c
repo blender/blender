@@ -192,6 +192,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   if (ss->filter_cache->mask_delta_step) {
     BLI_ghash_free(ss->filter_cache->mask_delta_step, NULL, mask_filter_delta_step_free);
   }
+  MEM_SAFE_FREE(ss->filter_cache->mask_filter_ref);
   MEM_SAFE_FREE(ss->filter_cache->nodes);
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss->filter_cache->prev_mask);

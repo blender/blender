@@ -753,6 +753,8 @@ typedef struct SculptThreadedTaskData {
 
   float *prev_mask;
   float *new_mask;
+  float *next_mask;
+  float mask_interpolation;
 
   float *pose_factor;
   float *pose_initial_co;
@@ -1373,6 +1375,7 @@ typedef struct FilterCache {
 
   /* Mask Filter. */
   int mask_filter_current_step;
+  float *mask_filter_ref;
   SculptIPMaskFilterStepVertexCB *mask_filter_step_forward;
   SculptIPMaskFilterStepVertexCB *mask_filter_step_backward;
 
