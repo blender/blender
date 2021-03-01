@@ -84,6 +84,8 @@
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_debug.h"
 
+#  include "WM_types.h"
+
 #  include "creator_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -1994,6 +1996,21 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   return 0;
 }
 
+static const char arg_handle_load_last_file_doc[] =
+    "\n\t"
+    "Open the most recently opened blend file, instead of the default startup file.";
+static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv), void *data)
+{
+  if (BLI_listbase_is_empty(&G.recent_files)) {
+    printf("Warning: no recent files known, opening default startup file instead.\n");
+    return -1;
+  }
+
+  const RecentFile *recent_file = G.recent_files.first;
+  const char *fake_argv[] = {recent_file->filepath};
+  return arg_handle_load_file(1, fake_argv, data);
+}
+
 void main_args_setup(bContext *C, bArgs *ba)
 {
 
@@ -2216,6 +2233,8 @@ void main_args_setup(bContext *C, bArgs *ba)
 
   BLI_args_add(ba, "-F", "--render-format", CB(arg_handle_image_type_set), C);
   BLI_args_add(ba, "-x", "--use-extension", CB(arg_handle_extension_set), C);
+
+  BLI_args_add(ba, NULL, "--open-last", CB(arg_handle_load_last_file), C);
 
 #  undef CB
 #  undef CB_EX
