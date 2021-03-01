@@ -1957,6 +1957,13 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
   return NULL;
 }
 
+struct wmEvent_ModalMapStore {
+  short prevtype;
+  short prevval;
+
+  bool dbl_click_disabled;
+};
+
 /**
  * This function prepares events for use with #wmOperatorType.modal by:
  *
@@ -1970,7 +1977,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
 static void wm_event_modalkeymap_begin(const bContext *C,
                                        wmOperator *op,
                                        wmEvent *event,
-                                       bool *dbl_click_disabled)
+                                       struct wmEvent_ModalMapStore *event_backup)
 {
   BLI_assert(event->type != EVT_MODAL_MAP);
 
@@ -1978,6 +1985,8 @@ static void wm_event_modalkeymap_begin(const bContext *C,
   if (op->opm) {
     op = op->opm;
   }
+
+  event_backup->dbl_click_disabled = false;
 
   if (op->type->modalkeymap) {
     wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
@@ -1998,6 +2007,9 @@ static void wm_event_modalkeymap_begin(const bContext *C,
     }
 
     if (event_match != NULL) {
+      event_backup->prevtype = event->prevtype;
+      event_backup->prevval = event->prevval;
+
       event->prevtype = event_match->type;
       event->prevval = event_match->val;
       event->type = EVT_MODAL_MAP;
@@ -2008,7 +2020,7 @@ static void wm_event_modalkeymap_begin(const bContext *C,
        * which would break when modal functions expect press/release. */
       if (event->prevtype == KM_DBL_CLICK) {
         event->prevtype = KM_PRESS;
-        *dbl_click_disabled = true;
+        event_backup->dbl_click_disabled = true;
       }
     }
   }
@@ -2017,7 +2029,7 @@ static void wm_event_modalkeymap_begin(const bContext *C,
     /* This bypass just disables support for double-click in modal handlers. */
     if (event->val == KM_DBL_CLICK) {
       event->val = KM_PRESS;
-      *dbl_click_disabled = true;
+      event_backup->dbl_click_disabled = true;
     }
   }
 }
@@ -2029,16 +2041,18 @@ static void wm_event_modalkeymap_begin(const bContext *C,
  * better restore event type for checking of #KM_CLICK for example.
  * Modal maps could use different method (ton).
  */
-static void wm_event_modalkeymap_end(wmEvent *event, bool dbl_click_disabled)
+static void wm_event_modalkeymap_end(wmEvent *event,
+                                     const struct wmEvent_ModalMapStore *event_backup)
 {
   if (event->type == EVT_MODAL_MAP) {
     event->type = event->prevtype;
-    event->prevtype = 0;
     event->val = event->prevval;
-    event->prevval = 0;
+
+    event->prevtype = event_backup->prevtype;
+    event->prevval = event_backup->prevval;
   }
 
-  if (dbl_click_disabled) {
+  if (event_backup->dbl_click_disabled) {
     event->val = KM_DBL_CLICK;
   }
 }
@@ -2070,11 +2084,12 @@ static int wm_handler_operator_call(bContext *C,
       wmWindowManager *wm = CTX_wm_manager(C);
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
-      bool dbl_click_disabled = false;
 
       wm_handler_op_context(C, handler, event);
       wm_region_mouse_co(C, event);
-      wm_event_modalkeymap_begin(C, op, event, &dbl_click_disabled);
+
+      struct wmEvent_ModalMapStore event_backup;
+      wm_event_modalkeymap_begin(C, op, event, &event_backup);
 
       if (ot->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
@@ -2089,7 +2104,7 @@ static int wm_handler_operator_call(bContext *C,
        * the event, operator etc have all been freed. - campbell */
       if (CTX_wm_manager(C) == wm) {
 
-        wm_event_modalkeymap_end(event, dbl_click_disabled);
+        wm_event_modalkeymap_end(event, &event_backup);
 
         if (ot->flag & OPTYPE_UNDO) {
           wm->op_undo_depth--;
