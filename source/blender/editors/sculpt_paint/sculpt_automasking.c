@@ -338,7 +338,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
     for (int i = 0; i < totvert; i++) {
-      ScultVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;

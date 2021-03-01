@@ -1944,6 +1944,19 @@ void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int 
       }
       break;
     case PBVH_BMESH:
+      // not a leaf? return zero
+      if (!(node->flag & PBVH_Leaf)) {
+        if (r_totvert) {
+          *r_totvert = 0;
+        }
+
+        if (r_uniquevert) {
+          *r_uniquevert = 0;
+        }
+
+        return;
+      }
+
       tot = BLI_table_gset_len(node->bm_unique_verts);
       if (r_totvert) {
         *r_totvert = tot + BLI_table_gset_len(node->bm_other_verts);

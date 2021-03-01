@@ -992,8 +992,7 @@ off fort;
 fdis := (sqrt(dis)/nz)**2 + planedis**2;
 */
 
-static float dist_to_tri_sphere(
-    float p[3], float v1[3], float v2[3], float v3[3], float n[3])
+static float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3], float n[3])
 {
 
   // find projection axis;
@@ -1027,7 +1026,7 @@ static float dist_to_tri_sphere(
   double bx = v2[axis1] - ax, by = v2[axis2] - ay;
   double cx = v3[axis1] - ax, cy = v3[axis2] - ay;
   double bx2 = bx * bx, by2 = by * by, cx2 = cx * cx, cy2 = cy * cy;
-  
+
   double x1 = p[axis1] - ax;
   double y1 = p[axis2] - ay;
 
@@ -1043,7 +1042,6 @@ static float dist_to_tri_sphere(
   }
 
   double d1, d2, d3, div;
-  
 
   /*
 //\  3|
@@ -1096,7 +1094,7 @@ static float dist_to_tri_sphere(
         d3 = (d3 * d3) / div;
       }
       else {
-        d3 = (x1-cx)*(x1-cx) + (y1-cy)*(y1-cy);
+        d3 = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy);
       }
 
       dis = d3;
@@ -1122,10 +1120,10 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
   /* Check if triangle intersects the sphere */
   float dis = dist_to_tri_sphere(q->center, l->v->co, l->next->v->co, l->prev->v->co, f->no);
 
-  //closest_on_tri_to_point_v3(c, co, v1, v2, v3);
+  // closest_on_tri_to_point_v3(c, co, v1, v2, v3);
 
-  //float dis2 = len_squared_v3v3(q->center, c);
-  //float dis3 = sqrtf(dis2);
+  // float dis2 = len_squared_v3v3(q->center, c);
+  // float dis3 = sqrtf(dis2);
 
   return dis <= q->radius_squared;
 
@@ -2990,6 +2988,48 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 static double last_update_time[128] = {
     0,
 };
+
+bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+                                          bool (*searchcb)(PBVHNode *node, void *data),
+                                          void (*undopush)(PBVHNode *node, void *data),
+                                          void *searchdata,
+                                          PBVHTopologyUpdateMode mode,
+                                          const float center[3],
+                                          const float view_normal[3],
+                                          float radius,
+                                          const bool use_frontface,
+                                          const bool use_projected,
+                                          int sym_axis,
+                                          bool updatePBVH)
+{
+  bool modified = false;
+
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf) || !searchcb(node, searchdata)) {
+      continue;
+    }
+
+    undopush(node, searchdata);
+
+    modified =
+        modified ||
+        BKE_pbvh_bmesh_update_topology(
+            pbvh, mode, center, view_normal, radius, use_frontface, use_projected, sym_axis, updatePBVH);
+
+    if (i < pbvh->totnode) { //nodes could have been reallocated on us
+      node = pbvh->nodes + i;
+
+      if (node->flag & PBVH_Leaf) {
+        BKE_pbvh_node_mark_topology_update(pbvh->nodes + i);
+        BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, pbvh->nodes + i);
+      }
+    }
+  }
+
+  return modified;
+}
 
 /* Collapse short edges, subdivide long edges */
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,

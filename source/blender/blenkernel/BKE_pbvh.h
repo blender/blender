@@ -368,6 +368,18 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     int symaxis,
                                     bool updatePBVH);
 
+bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
+                                          bool (*searchcb)(PBVHNode *node, void *data),
+                                          void (*undopush)(PBVHNode *node, void *data),
+                                          void *searchdata,
+                                          PBVHTopologyUpdateMode mode,
+                                          const float center[3],
+                                          const float view_normal[3],
+                                          float radius,
+                                          const bool use_frontface,
+                                          const bool use_projected,
+                                          int sym_axis,
+                                          bool updatePBVH);
 /* Node Access */
 
 void BKE_pbvh_node_mark_update(PBVHNode *node);

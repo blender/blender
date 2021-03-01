@@ -831,6 +831,8 @@ typedef struct {
   bool original;
   /* This ignores fully masked and fully hidden nodes. */
   bool ignore_fully_ineffective;
+  struct Object *ob;
+  struct Brush *brush;
 } SculptSearchSphereData;
 
 typedef struct {

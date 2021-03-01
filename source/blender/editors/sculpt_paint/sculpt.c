@@ -818,6 +818,8 @@ void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
       }
       break;
     }
+    case PBVH_GRIDS:
+      break;
     case PBVH_BMESH: {
       BMIter iter;
       BMFace *f;
@@ -2396,8 +2398,9 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
 
       if (use_original) {
         if (unode->bm_entry) {
-          const float *temp_co;
-          const float *temp_no;
+          float *temp_co;
+          float *temp_no;
+
           BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &temp_co, &temp_no, NULL);
           if (temp_no) {
             normal_float_to_short_v3(no_s, temp_no);
@@ -6179,6 +6182,17 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
   BKE_keyblock_update_from_vertcos(ob, kb, vertCos);
 }
 
+static void topology_undopush_cb(PBVHNode *node, void *data)
+{
+  SculptSearchSphereData *sdata = (SculptSearchSphereData *)data;
+
+  SCULPT_undo_push_node(sdata->ob,
+                        node,
+                        sdata->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
+                                                                        SCULPT_UNDO_COORDS);
+  BKE_pbvh_node_mark_update(node);
+}
+
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
@@ -6194,13 +6208,6 @@ static void sculpt_topology_update(Sculpt *sd,
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                              ss->cache->original;
   const float radius_scale = 1.25f;
-  PBVHNode **nodes = sculpt_pbvh_gather_generic(
-      ob, sd, brush, use_original, radius_scale, &totnode);
-
-  /* Only act if some verts are inside the brush area. */
-  if (totnode == 0) {
-    return;
-  }
 
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
@@ -6220,35 +6227,35 @@ static void sculpt_topology_update(Sculpt *sd,
     }
   }
 
-  for (n = 0; n < totnode; n++) {
-    SCULPT_undo_push_node(ob,
-                          nodes[n],
-                          brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                   SCULPT_UNDO_COORDS);
-    BKE_pbvh_node_mark_update(nodes[n]);
+  PBVHNode **nodes = NULL;
+  SculptSearchSphereData sdata = {.ss = ss,
+                                  .sd = sd,
+                                  .ob = ob,
+                                  .radius_squared = square_f(ss->cache->radius * radius_scale),
+                                  .original = use_original,
+                                  .ignore_fully_ineffective = brush->sculpt_tool !=
+                                                              SCULPT_TOOL_MASK,
+                                  .center = NULL,
+                                  .brush = brush};
 
-    if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-      int symidx = ss->cache->mirror_symmetry_pass + (ss->cache->radial_symmetry_pass * 8);
-      if (symidx > 127) {
-        symidx = 127;
-      }
-
-      BKE_pbvh_bmesh_update_topology(ss->pbvh,
-                                     mode,
-                                     ss->cache->location,
-                                     ss->cache->view_normal,
-                                     ss->cache->radius,
-                                     (brush->flag & BRUSH_FRONTFACE) != 0,
-                                     (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
-                                     symidx,
-                                     brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
-
-      BKE_pbvh_node_mark_topology_update(nodes[n]);
-      BKE_pbvh_bmesh_node_save_orig(ss->bm, nodes[n]);
-    }
+  int symidx = ss->cache->mirror_symmetry_pass + (ss->cache->radial_symmetry_pass * 8);
+  if (symidx > 127) {
+    symidx = 127;
   }
 
-  MEM_SAFE_FREE(nodes);
+  /* do nodes under the brush cursor */
+  BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
+                                       SCULPT_search_sphere_cb,
+                                       topology_undopush_cb,
+                                       &sdata,
+                                       mode,
+                                       ss->cache->location,
+                                       ss->cache->view_normal,
+                                       ss->cache->radius,
+                                       (brush->flag & BRUSH_FRONTFACE) != 0,
+                                       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
+                                       symidx,
+                                       brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -7794,7 +7801,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node);
+      SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
       origco = (unode) ? unode->co : NULL;
       use_origco = origco ? true : false;
     }
@@ -7831,7 +7838,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node);
+      SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
       origco = (unode) ? unode->co : NULL;
       use_origco = origco ? true : false;
     }
