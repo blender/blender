@@ -481,7 +481,7 @@ std::optional<std::string> CryptomatteLayer::operator[](float encoded_hash) cons
   return std::nullopt;
 }
 
-std::string CryptomatteLayer::manifest()
+std::string CryptomatteLayer::manifest() const
 {
   return blender::bke::cryptomatte::manifest::to_manifest(this);
 }
