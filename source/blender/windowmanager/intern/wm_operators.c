@@ -2046,7 +2046,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 bool WM_paint_cursor_end(wmPaintCursor *handle)
 {
   wmWindowManager *wm = G_MAIN->wm.first;
-  for (wmPaintCursor *pc = wm->paintcursors.first; pc; pc = pc->next) {
+  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->paintcursors) {
     if (pc == (wmPaintCursor *)handle) {
       BLI_remlink(&wm->paintcursors, pc);
       MEM_freeN(pc);
@@ -2058,9 +2058,7 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
 
 void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
 {
-  wmPaintCursor *pc = wm->paintcursors.first;
-  while (pc) {
-    wmPaintCursor *pc_next = pc->next;
+  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
     if (pc->draw == draw_fn) {
       if (free) {
         free(pc->customdata);
@@ -2068,7 +2066,6 @@ void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*f
       BLI_remlink(&wm->paintcursors, pc);
       MEM_freeN(pc);
     }
-    pc = pc_next;
   }
 }
 
