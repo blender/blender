@@ -253,6 +253,9 @@ constexpr StringRef WHITESPACES = " \t\n\v\f\r";
 static constexpr blender::StringRef skip_whitespaces_(blender::StringRef ref)
 {
   size_t skip = ref.find_first_not_of(WHITESPACES);
+  if (skip == blender::StringRef::not_found) {
+    return ref;
+  }
   return ref.drop_prefix(skip);
 }
 
