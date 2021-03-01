@@ -381,12 +381,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
     bool constraint_axis[3] = {false, false, false};
-    if (t->flag & T_INPUT_IS_VALUES_FINAL) {
-      if (t_values_set_is_array) {
-        /* For operators whose `t->values` is array, set constraint so that the
-         * orientation is more intuitive in the Redo Panel. */
-        constraint_axis[0] = constraint_axis[1] = constraint_axis[2] = true;
-      }
+    if (t_values_set_is_array && t->flag & T_INPUT_IS_VALUES_FINAL) {
+      /* For operators whose `t->values` is array (as Move and Scale), set constraint so that the
+       * orientation is more intuitive in the Redo Panel. */
+      constraint_axis[0] = constraint_axis[1] = constraint_axis[2] = true;
     }
     else if (RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);

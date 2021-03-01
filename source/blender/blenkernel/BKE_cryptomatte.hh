@@ -81,7 +81,7 @@ struct CryptomatteLayer {
   static std::unique_ptr<CryptomatteLayer> read_from_manifest(blender::StringRefNull manifest);
   uint32_t add_ID(const struct ID &id);
   void add_hash(blender::StringRef name, CryptomatteHash cryptomatte_hash);
-  std::string manifest();
+  std::string manifest() const;
 
   std::optional<std::string> operator[](float encoded_hash) const;
 };

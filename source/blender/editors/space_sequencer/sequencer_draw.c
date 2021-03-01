@@ -66,6 +66,7 @@
 #include "ED_sequencer.h"
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
+#include "ED_util.h"
 
 #include "BIF_glutil.h"
 

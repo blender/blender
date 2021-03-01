@@ -38,6 +38,7 @@
 #  include "BLI_math_mpq.hh"
 #  include "BLI_mesh_intersect.hh"
 #  include "BLI_mpq3.hh"
+#  include "BLI_polyfill_2d.h"
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"
 #  include "BLI_stack.hh"
@@ -2590,47 +2591,8 @@ static IMesh raycast_boolean(const IMesh &tm,
 }
 
 /**
- * Which CDT output edge index is for an edge between output verts
- * v1 and v2 (in either order)?
- * \return -1 if none.
- */
-static int find_cdt_edge(const CDT_result<mpq_class> &cdt_out, int v1, int v2)
-{
-  for (int e : cdt_out.edge.index_range()) {
-    const std::pair<int, int> &edge = cdt_out.edge[e];
-    if ((edge.first == v1 && edge.second == v2) || (edge.first == v2 && edge.second == v1)) {
-      return e;
-    }
-  }
-  return -1;
-}
-
-/**
- * Return the original edge id for the CDT output edge e_out, given that
- * the only input to CDT was face f. Pick the first, if there are several.
- */
-static int orig_edge_for_cdt_edge(const CDT_result<mpq_class> &cdt_out,
-                                  int cdt_e_out,
-                                  const Face *f)
-{
-  for (int cdt_e_orig : cdt_out.edge_orig[cdt_e_out]) {
-    if (cdt_e_orig != NO_INDEX) {
-      BLI_assert(cdt_e_orig >= cdt_out.face_edge_offset);
-      int a = cdt_e_orig / cdt_out.face_edge_offset;
-      int b = cdt_e_orig % cdt_out.face_edge_offset;
-      /* It is the bth position within cdt input face a - 1. There is only one face, f. */
-      BLI_assert(a == 1);
-      UNUSED_VARS_NDEBUG(a);
-      BLI_assert(b < f->size());
-      return f->edge_orig[b];
-    }
-  }
-  return NO_INDEX;
-}
-
-/**
  * Tessellate face f into triangles and return an array of `const Face *`
- * giving that triangulation.
+ * giving that triangulation. Intended to be used when f has > 4 vertices.
  * Care is taken so that the original edge index associated with
  * each edge in the output triangles either matches the original edge
  * for the (identical) edge of f, or else is -1. So diagonals added
@@ -2638,62 +2600,55 @@ static int orig_edge_for_cdt_edge(const CDT_result<mpq_class> &cdt_out,
  */
 static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
 {
+  /* Similar to loop body in BM_mesh_calc_tesselation. */
   int flen = f->size();
-  CDT_input<mpq_class> cdt_in;
-  cdt_in.vert = Array<mpq2>(flen);
-  cdt_in.face = Array<Vector<int>>(1);
-  cdt_in.face[0].reserve(flen);
-  for (int i : f->index_range()) {
-    cdt_in.face[0].append(i);
-  }
-  /* Project poly along dominant axis of normal to get 2d coords. */
+  BLI_assert(flen > 4);
   if (!f->plane_populated()) {
     f->populate_plane(false);
   }
+  /* Project along negative face normal so (x,y) can be used in 2d. */
   const double3 &poly_normal = f->plane->norm;
-  int axis = double3::dominant_axis(poly_normal);
-  /* If project down y axis as opposed to x or z, the orientation
-   * of the polygon will be reversed.
-   * Yet another reversal happens if the poly normal in the dominant
-   * direction is opposite that of the positive dominant axis. */
-  bool rev1 = (axis == 1);
-  bool rev2 = poly_normal[axis] < 0;
-  bool rev = rev1 ^ rev2;
-  for (int i = 0; i < flen; ++i) {
-    int ii = rev ? flen - i - 1 : i;
-    mpq2 &p2d = cdt_in.vert[ii];
-    int k = 0;
-    for (int j = 0; j < 3; ++j) {
-      if (j != axis) {
-        p2d[k++] = (*f)[ii]->co_exact[j];
-      }
-    }
+  float no[3] = {float(poly_normal[0]), float(poly_normal[1]), float(poly_normal[2])};
+  normalize_v3(no);
+  float axis_mat[3][3];
+  float(*projverts)[2];
+  unsigned int(*tris)[3];
+  const int totfilltri = flen - 2;
+  /* Prepare projected vertices and array to receive triangles in tesselation. */
+  tris = static_cast<unsigned int(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
+  projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
+  axis_dominant_v3_to_m3_negate(axis_mat, no);
+  for (int j = 0; j < flen; ++j) {
+    const double3 &dco = (*f)[j]->co;
+    float co[3] = {float(dco[0]), float(dco[1]), float(dco[2])};
+    mul_v2_m3v3(projverts[j], axis_mat, co);
   }
-  CDT_result<mpq_class> cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
-  int n_tris = cdt_out.face.size();
-  Array<Face *> ans(n_tris);
-  for (int t = 0; t < n_tris; ++t) {
-    int i_v_out[3];
-    const Vert *v[3];
+  BLI_polyfill_calc(projverts, flen, 1, tris);
+  /* Put tesselation triangles into Face form. Record original edges where they exist. */
+  Array<Face *> ans(totfilltri);
+  for (int t = 0; t < totfilltri; ++t) {
+    unsigned int *tri = tris[t];
     int eo[3];
-    for (int i = 0; i < 3; ++i) {
-      i_v_out[i] = cdt_out.face[t][i];
-      v[i] = (*f)[cdt_out.vert_orig[i_v_out[i]][0]];
-    }
-    for (int i = 0; i < 3; ++i) {
-      int e_out = find_cdt_edge(cdt_out, i_v_out[i], i_v_out[(i + 1) % 3]);
-      BLI_assert(e_out != -1);
-      eo[i] = orig_edge_for_cdt_edge(cdt_out, e_out, f);
-    }
-    if (rev) {
-      ans[t] = arena->add_face(
-          {v[0], v[2], v[1]}, f->orig, {eo[2], eo[1], eo[0]}, {false, false, false});
-    }
-    else {
+    const Vert *v[3];
+    for (int k = 0; k < 3; k++) {
+      BLI_assert(tri[k] < flen);
+      v[k] = (*f)[tri[k]];
+      /* If tri edge goes between two successive indices in
+       * the original face, then it is an original edge. */
+      if ((tri[k] + 1) % flen == tri[(k + 1) % 3]) {
+        eo[k] = f->edge_orig[tri[k]];
+      }
+      else {
+        eo[k] = NO_INDEX;
+      }
       ans[t] = arena->add_face(
           {v[0], v[1], v[2]}, f->orig, {eo[0], eo[1], eo[2]}, {false, false, false});
     }
   }
+
+  MEM_freeN(tris);
+  MEM_freeN(projverts);
+
   return ans;
 }
 

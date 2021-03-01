@@ -31,6 +31,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct AnimationEvalContext;
 struct CurveMapping;
@@ -1200,3 +1204,7 @@ bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
+
+#ifdef __cplusplus
+}
+#endif

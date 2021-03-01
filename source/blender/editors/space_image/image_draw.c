@@ -68,6 +68,7 @@
 #include "ED_mask.h"
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

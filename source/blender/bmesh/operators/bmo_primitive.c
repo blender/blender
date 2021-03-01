@@ -924,7 +924,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
     len = 2 * dia * sinf(phid / 2.0f);
 
-    /* length of one segment in shortest parallen */
+    /* Length of one segment in shortest parallel. */
     vec[0] = dia * sinf(phid);
     vec[1] = 0.0f;
     vec[2] = dia * cosf(phid);

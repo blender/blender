@@ -372,7 +372,8 @@ static ID *node_owner_get(Main *bmain, ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;
   }
-  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+  /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
+  // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   ListBase *lists[] = {&bmain->materials,
                        &bmain->lights,
