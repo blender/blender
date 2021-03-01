@@ -273,9 +273,12 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
         float minimal_overblur = 1.0f / sqrtf(sample_count);
         float user_overblur = scene_eval->eevee.bokeh_overblur / 100.0f;
 
-        effects->dof_coc_params[1] *= minimal_overblur + user_overblur;
+        minimal_overblur *= effects->dof_coc_params[1];
+        user_overblur *= effects->dof_coc_params[1];
+
+        effects->dof_coc_params[1] = minimal_overblur + user_overblur;
         /* Avoid dilating the shape. Over-blur only soften. */
-        effects->dof_jitter_radius -= effects->dof_coc_params[1];
+        effects->dof_jitter_radius -= minimal_overblur + user_overblur * 0.5f;
       }
     }
     else {
