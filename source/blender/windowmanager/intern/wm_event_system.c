@@ -4378,17 +4378,17 @@ static bool wm_event_is_double_click(const wmEvent *event, const wmEvent *event_
 /**
  * Copy the current state to the previous event state.
  */
-static void wm_event_prev_values_set(wmEvent *event_state)
+static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
 {
-  event_state->prevval = event_state->val;
-  event_state->prevtype = event_state->type;
+  event->prevval = event_state->prevval = event_state->val;
+  event->prevtype = event_state->prevtype = event_state->type;
 }
 
-static void wm_event_prev_click_set(wmEvent *event_state)
+static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 {
-  event_state->prevclicktime = PIL_check_seconds_timer();
-  event_state->prevclickx = event_state->x;
-  event_state->prevclicky = event_state->y;
+  event->prevclicktime = event_state->prevclicktime = PIL_check_seconds_timer();
+  event->prevclickx = event_state->prevclickx = event_state->x;
+  event->prevclicky = event_state->prevclicky = event_state->y;
 }
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -4554,7 +4554,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-      wm_event_prev_values_set(evt);
+      wm_event_prev_values_set(&event, evt);
 
       /* Copy to event state. */
       evt->val = event.val;
@@ -4566,7 +4566,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.val = KM_DBL_CLICK;
       }
       if (event.val == KM_PRESS) {
-        wm_event_prev_click_set(evt);
+        wm_event_prev_click_set(&event, evt);
       }
 
       /* Add to other window if event is there (not to both!). */
@@ -4601,7 +4601,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
-      wm_event_prev_values_set(evt);
+      wm_event_prev_values_set(&event, evt);
 
       /* Copy to event state. */
       evt->val = event.val;
@@ -4730,7 +4730,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
         if ((evt->prevtype != event.type) || (evt->prevval != KM_PRESS)) {
-          wm_event_prev_click_set(evt);
+          wm_event_prev_click_set(&event, evt);
         }
       }
 
