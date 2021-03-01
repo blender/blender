@@ -382,47 +382,44 @@ bool BKE_animsys_store_rna_setting(PointerRNA *ptr,
                                    const int array_index,
                                    PathResolvedRNA *r_result)
 {
-  bool success = false;
-  const char *path = rna_path;
-
-  /* write value to setting */
-  if (path) {
-    /* get property to write to */
-    if (RNA_path_resolve_property(ptr, path, &r_result->ptr, &r_result->prop)) {
-      if ((ptr->owner_id == NULL) || RNA_property_animateable(&r_result->ptr, r_result->prop)) {
-        int array_len = RNA_property_array_length(&r_result->ptr, r_result->prop);
-
-        if (array_len && array_index >= array_len) {
-          if (G.debug & G_DEBUG) {
-            CLOG_WARN(&LOG,
-                      "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
-                      (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
-                      path,
-                      array_index,
-                      array_len - 1);
-          }
-        }
-        else {
-          r_result->prop_index = array_len ? array_index : -1;
-          success = true;
-        }
-      }
-    }
-    else {
-      /* failed to get path */
-      /* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
-       * where some channels will not exist, but shouldn't lock up Action */
-      if (G.debug & G_DEBUG) {
-        CLOG_WARN(&LOG,
-                  "Animato: Invalid path. ID = '%s',  '%s[%d]'",
-                  (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
-                  path,
-                  array_index);
-      }
-    }
+  if (rna_path == NULL) {
+    return false;
   }
 
-  return success;
+  const char *path = rna_path;
+  if (!RNA_path_resolve_property(ptr, path, &r_result->ptr, &r_result->prop)) {
+    /* failed to get path */
+    /* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
+     * where some channels will not exist, but shouldn't lock up Action */
+    if (G.debug & G_DEBUG) {
+      CLOG_WARN(&LOG,
+                "Animato: Invalid path. ID = '%s',  '%s[%d]'",
+                (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
+                path,
+                array_index);
+    }
+    return false;
+  }
+
+  if (ptr->owner_id != NULL && !RNA_property_animateable(&r_result->ptr, r_result->prop)) {
+    return false;
+  }
+
+  int array_len = RNA_property_array_length(&r_result->ptr, r_result->prop);
+  if (array_len && array_index >= array_len) {
+    if (G.debug & G_DEBUG) {
+      CLOG_WARN(&LOG,
+                "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+                (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
+                path,
+                array_index,
+                array_len - 1);
+    }
+    return false;
+  }
+
+  r_result->prop_index = array_len ? array_index : -1;
+  return true;
 }
 
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
