@@ -820,6 +820,7 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
   SculptOrigVertData orig_data;
   const eSculptIPMaskFilterType filter_type = data->filter_type;
   bool update = false;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, node);
   BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
     if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
@@ -837,7 +838,7 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
     case IPMASK_FILTER_INVERT: {
         const float strength = clamp_f(data->filter_strength, 0.0f, 1.0f);
         const float mask_invert = 1.0f - orig_data.mask;
-        new_mask = interpf(orig_data.mask, mask_invert, strength);
+        new_mask = interpf(mask_invert, orig_data.mask, strength);
         break;
     }
 
@@ -864,12 +865,14 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
   }
 }
 
-static void sculpt_ipmask_apply_from_original_mask_data(SculptSession *ss,
+static void sculpt_ipmask_apply_from_original_mask_data(Object *ob,
                                           eSculptIPMaskFilterType filter_type,
                                           const float strength)
 {
+  SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
   SculptThreadedTaskData data = {
+      .ob = ob,
       .ss = ss,
       .nodes = filter_cache->nodes,
       .filter_strength = strength,
@@ -921,7 +924,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
-     sculpt_ipmask_apply_from_original_mask_data(ss, filter_type, full_step_strength);
+     sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, full_step_strength);
   }
   else {
     sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count, step_interpolation);
