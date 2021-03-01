@@ -751,7 +751,7 @@ bool sculpt_ipmask_filter_apply_from_original(const eSculptIPMaskFilterType filt
     return true;
 }
 
-#define IPMASK_FILTER_STEP_SENSITIVITY 0.008f
+#define IPMASK_FILTER_STEP_SENSITIVITY 0.025f
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
