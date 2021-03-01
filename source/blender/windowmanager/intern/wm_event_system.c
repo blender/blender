@@ -2999,29 +2999,32 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
       if (win && win->eventstate->prevtype == event->type) {
 
-        if ((event->val == KM_RELEASE) && (win->eventstate->prevval == KM_PRESS) &&
-            (win->eventstate->check_click == true)) {
-          if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
-            win->eventstate->check_click = 0;
-            win->eventstate->check_drag = 0;
-          }
-          else {
-            /* Position is where the actual click happens, for more
-             * accurate selecting in case the mouse drifts a little. */
-            int x = event->x;
-            int y = event->y;
+        if (event->val == KM_RELEASE) {
+          if (win->eventstate->prevval == KM_PRESS) {
+            if (win->eventstate->check_click == true) {
+              if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
+                win->eventstate->check_click = 0;
+                win->eventstate->check_drag = 0;
+              }
+              else {
+                /* Position is where the actual click happens, for more
+                 * accurate selecting in case the mouse drifts a little. */
+                int x = event->x;
+                int y = event->y;
 
-            event->x = win->eventstate->prevclickx;
-            event->y = win->eventstate->prevclicky;
-            event->val = KM_CLICK;
+                event->x = event->prevclickx;
+                event->y = event->prevclicky;
+                event->val = KM_CLICK;
 
-            CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
+                CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
 
-            action |= wm_handlers_do_intern(C, event, handlers);
+                action |= wm_handlers_do_intern(C, event, handlers);
 
-            event->val = KM_RELEASE;
-            event->x = x;
-            event->y = y;
+                event->val = KM_RELEASE;
+                event->x = x;
+                event->y = y;
+              }
+            }
           }
         }
         else if (event->val == KM_DBL_CLICK) {
