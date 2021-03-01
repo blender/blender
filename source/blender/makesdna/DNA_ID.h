@@ -168,7 +168,7 @@ typedef struct IDOverrideLibraryPropertyOperation {
   int subitem_local_index;
 } IDOverrideLibraryPropertyOperation;
 
-/* IDOverridePropertyOperation->operation. */
+/* IDOverrideLibraryPropertyOperation->operation. */
 enum {
   /* Basic operations. */
   IDOVERRIDE_LIBRARY_OP_NOOP = 0, /* Special value, forbids any overriding. */
@@ -188,7 +188,7 @@ enum {
   /* We can add more if needed (move, delete, ...). */
 };
 
-/* IDOverridePropertyOperation->flag. */
+/* IDOverrideLibraryPropertyOperation->flag. */
 enum {
   /** User cannot remove that override operation. */
   IDOVERRIDE_LIBRARY_FLAG_MANDATORY = 1 << 0,
@@ -210,10 +210,14 @@ typedef struct IDOverrideLibraryProperty {
    */
   char *rna_path;
 
-  /** List of overriding operations (IDOverridePropertyOperation) applied to this property. */
+  /**
+   * List of overriding operations (IDOverrideLibraryPropertyOperation) applied to this property.
+   */
   ListBase operations;
 
-  /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
+  /**
+   * Runtime, tags are common to both IDOverrideLibraryProperty and
+   * IDOverrideLibraryPropertyOperation. */
   short tag;
   char _pad[2];
 
@@ -221,7 +225,7 @@ typedef struct IDOverrideLibraryProperty {
   unsigned int rna_prop_type;
 } IDOverrideLibraryProperty;
 
-/* IDOverrideProperty->tag and IDOverridePropertyOperation->tag. */
+/* IDOverrideLibraryProperty->tag and IDOverrideLibraryPropertyOperation->tag. */
 enum {
   /** This override property (operation) is unused and should be removed by cleanup process. */
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
@@ -244,7 +248,7 @@ enum {
 typedef struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
   struct ID *reference;
-  /** List of IDOverrideProperty structs. */
+  /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
   /* Read/write data. */
