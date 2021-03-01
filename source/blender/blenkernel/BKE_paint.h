@@ -469,9 +469,18 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   float *vmask;
 
-  /* Mesh connectivity */
+  /* Mesh connectivity maps. */
+  /* Vertices to adjacent polys. */
   struct MeshElemMap *pmap;
   int *pmap_mem;
+
+  /* Edges to adjacent polys. */
+  struct MeshElemMap *epmap;
+  int *epmap_mem;
+
+  /* Vertices to adjacent edges. */
+  struct MeshElemMap *vemap;
+  int *vemap_mem;
 
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
@@ -508,6 +517,7 @@ typedef struct SculptSession {
 
   struct StrokeCache *cache;
   struct FilterCache *filter_cache;
+  struct ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
   int active_vertex_index;

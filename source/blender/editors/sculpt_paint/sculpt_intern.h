@@ -187,6 +187,8 @@ void SCULPT_boundary_info_ensure(Object *object);
 /* Boundary Info needs to be initialized in order to use this function. */
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const int index);
 
+void SCULPT_connected_components_ensure(Object *ob);
+
 /* Sculpt Visibility API */
 
 void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);
@@ -300,6 +302,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
                                                 int index,
                                                 float radius);
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, int index);
+void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index);
 void SCULPT_floodfill_execute(
     struct SculptSession *ss,
     SculptFloodFill *flood,
@@ -360,6 +363,21 @@ float *SCULPT_boundary_automasking_init(Object *ob,
                                         eBoundaryAutomaskMode mode,
                                         int propagation_steps,
                                         float *automask_factor);
+
+/* Geodesic distances. */
+
+/* Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
+in the initial vertex set. The caller is responsible for freeing the array.
+Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
+fallback to euclidean distances to one of the initial vertices in the set. */
+float *SCULPT_geodesic_distances_create(struct Object *ob,
+                                        struct GSet *initial_vertices,
+                                        const float limit_radius);
+float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
+                                            struct Object *ob,
+                                            const int vertex,
+                                            const float limit_radius);
+float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float limit_radius);
 
 /* Filters. */
 void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, const int undo_type);
@@ -1066,6 +1084,155 @@ void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter
 void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache);
 void SCULPT_filter_zero_disabled_axis_components(float r_v[3], struct FilterCache *filter_cache);
 
+/* Sculpt Expand. */
+typedef enum eSculptExpandFalloffType {
+  SCULPT_EXPAND_FALLOFF_GEODESIC,
+  SCULPT_EXPAND_FALLOFF_TOPOLOGY,
+  SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS,
+  SCULPT_EXPAND_FALLOFF_NORMALS,
+  SCULPT_EXPAND_FALLOFF_SPHERICAL,
+  SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY,
+  SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET,
+  SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET,
+} eSculptExpandFalloffType;
+
+typedef enum eSculptExpandTargetType {
+  SCULPT_EXPAND_TARGET_MASK,
+  SCULPT_EXPAND_TARGET_FACE_SETS,
+  SCULPT_EXPAND_TARGET_COLORS,
+} eSculptExpandTargetType;
+
+typedef enum eSculptExpandRecursionType {
+  SCULPT_EXPAND_RECURSION_TOPOLOGY,
+  SCULPT_EXPAND_RECURSION_GEODESICS,
+} eSculptExpandRecursionType;
+
+#define EXPAND_SYMM_AREAS 8
+
+typedef struct ExpandCache {
+  /* Target data elements that the expand operation will affect. */
+  eSculptExpandTargetType target;
+
+  /* Falloff data. */
+  eSculptExpandFalloffType falloff_type;
+
+  /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
+   * editing modification applied). */
+  float *vert_falloff;
+  /* Max falloff value in *vert_falloff. */
+  float max_vert_falloff;
+
+  /* Indexed by base mesh poly index, precalculated falloff value of that face. These values are
+   * calculated from the per vertex falloff (*vert_falloff) when needed. */
+  float *face_falloff;
+  float max_face_falloff;
+
+  /* Falloff value of the active element (vertex or base mesh face) that Expand will expand to. */
+  float active_falloff;
+
+  /* When set to true, expand skips all falloff computations and considers all elements as enabled.
+   */
+  bool all_enabled;
+
+  /* Initial mouse and cursor data from where the current falloff started. This data can be changed
+   * during the execution of Expand by moving the origin. */
+  float initial_mouse_move[2];
+  float initial_mouse[2];
+  int initial_active_vertex;
+  int initial_active_face_set;
+
+  /* Maximum number of vertices allowed in the SculptSession for previewing the falloff using
+   * geodesic distances. */
+  int max_geodesic_move_preview;
+
+  /* Original falloff type before starting the move operation. */
+  eSculptExpandFalloffType move_original_falloff_type;
+  /* Falloff type using when moving the origin for preview. */
+  eSculptExpandFalloffType move_preview_falloff_type;
+
+  /* Face set ID that is going to be used when creating a new Face Set. */
+  int next_face_set;
+
+  /* Face Set ID of the Face set selected for editing. */
+  int update_face_set;
+
+  /* Mouse position since the last time the origin was moved. Used for reference when moving the
+   * initial position of Expand. */
+  float original_mouse_move[2];
+
+  /* Active components checks. */
+  /* Indexed by symmetry pass index, contains the connected component ID found in
+   * SculptSession->vertex_info.connected_component. Other connected components not found in this
+   * array will be ignored by Expand. */
+  int active_connected_components[EXPAND_SYMM_AREAS];
+
+  /* Snapping. */
+  /* GSet containing all Face Sets IDs that Expand will use to snap the new data. */
+  GSet *snap_enabled_face_sets;
+
+  /* Texture distortion data. */
+  Brush *brush;
+  struct Scene *scene;
+  struct MTex *mtex;
+
+  /* Controls how much texture distortion will be applied to the current falloff */
+  float texture_distortion_strength;
+
+  /* Cached PBVH nodes. This allows to skip gathering all nodes from the PBVH each time expand
+   * needs to update the state of the elements. */
+  PBVHNode **nodes;
+  int totnode;
+
+  /* Expand state options. */
+
+  /* Number of loops (times that the falloff is going to be repeated). */
+  int loop_count;
+
+  /* Invert the falloff result. */
+  bool invert;
+
+  /* When set to true, preserves the previous state of the data and adds the new one on top. */
+  bool preserve;
+
+  /* When set to true, the mask or colors will be applied as a gradient. */
+  bool falloff_gradient;
+
+  /* When set to true, Expand will use the Brush falloff curve data to shape the gradient. */
+  bool brush_gradient;
+
+  /* When set to true, Expand will move the origin (initial active vertex and cursor position)
+   * instead of updating the active vertex and active falloff. */
+  bool move;
+
+  /* When set to true, Expand will snap the new data to the Face Sets IDs found in
+   * *original_face_sets. */
+  bool snap;
+
+  /* When set to true, Expand will use the current Face Set ID to modify an existing Face Set
+   * instead of creating a new one. */
+  bool modify_active_face_set;
+
+  /* When set to true, Expand will reposition the sculpt pivot to the boundary of the expand result
+   * after finishing the operation. */
+  bool reposition_pivot;
+
+  /* Color target data type related data. */
+  float fill_color[4];
+  short blend_mode;
+
+  /* Face Sets at the first step of the expand operation, before starting modifying the active
+   * vertex and active falloff. These are not the original Face Sets of the sculpt before starting
+   * the operator as they could have been modified by Expand when initializing the operator and
+   * before starting changing the active vertex. These Face Sets are used for restoring and
+   * checking the Face Sets state while the Expand operation modal runs. */
+  int *initial_face_sets;
+
+  /* Original data of the sculpt as it was before running the Expand operator. */
+  float *original_mask;
+  int *original_face_sets;
+  float (*original_colors)[4];
+} ExpandCache;
+
 typedef struct FilterCache {
   bool enabled_axis[3];
   bool enabled_force_axis[3];
@@ -1149,6 +1316,10 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
                             rcti *rect);
 
 /* Operators. */
+
+/* Expand. */
+void SCULPT_OT_expand(struct wmOperatorType *ot);
+void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* Gestures. */
 void SCULPT_OT_face_set_lasso_gesture(struct wmOperatorType *ot);

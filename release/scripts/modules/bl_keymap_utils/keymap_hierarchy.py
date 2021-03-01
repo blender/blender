@@ -114,6 +114,7 @@ _km_hierarchy = [
         ('Custom Normals Modal Map', 'EMPTY', 'WINDOW', []),
         ('Bevel Modal Map', 'EMPTY', 'WINDOW', []),
         ('Paint Stroke Modal', 'EMPTY', 'WINDOW', []),
+        ('Sculpt Expand Modal', 'EMPTY', 'WINDOW', []),
         ('Paint Curve', 'EMPTY', 'WINDOW', []),
 
         ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change

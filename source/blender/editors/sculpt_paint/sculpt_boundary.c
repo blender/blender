@@ -518,11 +518,13 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 
   SculptBoundary *boundary = MEM_callocN(sizeof(SculptBoundary), "Boundary edit data");
 
-  const bool init_boundary_distances = brush->boundary_falloff_type !=
-                                       BRUSH_BOUNDARY_FALLOFF_CONSTANT;
+  const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
+                                                   BRUSH_BOUNDARY_FALLOFF_CONSTANT :
+                                               false;
+
   sculpt_boundary_indices_init(ss, boundary, init_boundary_distances, boundary_initial_vertex);
 
-  const float boundary_radius = radius * (1.0f + brush->boundary_offset);
+  const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;
   sculpt_boundary_edit_data_init(ss, boundary, boundary_initial_vertex, boundary_radius);
 
   return boundary;

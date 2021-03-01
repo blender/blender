@@ -1422,6 +1422,12 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->pmap);
   MEM_SAFE_FREE(ss->pmap_mem);
 
+  MEM_SAFE_FREE(ss->epmap);
+  MEM_SAFE_FREE(ss->epmap_mem);
+
+  MEM_SAFE_FREE(ss->vemap);
+  MEM_SAFE_FREE(ss->vemap_mem);
+
   MEM_SAFE_FREE(ss->persistent_base);
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
@@ -1471,6 +1477,13 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->pmap);
     MEM_SAFE_FREE(ss->pmap_mem);
+
+    MEM_SAFE_FREE(ss->epmap);
+    MEM_SAFE_FREE(ss->epmap_mem);
+
+    MEM_SAFE_FREE(ss->vemap);
+    MEM_SAFE_FREE(ss->vemap_mem);
+
     if (ss->bm_log) {
       BM_log_free(ss->bm_log);
     }
