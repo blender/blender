@@ -4430,8 +4430,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_stereo3d_mouse_offset_apply(win, &event.x);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
-      event.prevtype = event.type;
-      event.prevval = event.val;
       event.type = MOUSEMOVE;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
@@ -4448,8 +4446,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         oevent = *oevt;
 
         copy_v2_v2_int(&oevent.x, &event.x);
-        oevent.prevtype = oevent.type;
-        oevent.prevval = oevent.val;
         oevent.type = MOUSEMOVE;
         {
           wmEvent *event_new = wm_event_add_mousemove(owin, &oevent);

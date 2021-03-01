@@ -280,7 +280,8 @@ int WM_event_drag_threshold(const struct wmEvent *event)
   if (WM_event_is_tablet(event)) {
     drag_threshold = U.drag_threshold_tablet;
   }
-  else if (ISMOUSE(event->prevtype)) {
+  else if (ISMOUSE(event->type)) {
+    /* Mouse button or mouse motion. */
     drag_threshold = U.drag_threshold_mouse;
   }
   else {
