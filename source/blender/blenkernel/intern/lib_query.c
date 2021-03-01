@@ -46,7 +46,7 @@ enum {
 typedef struct LibraryForeachIDData {
   Main *bmain;
   /**
-   * 'Real' ID, the one that might be in bmain, only differs from self_id when the later is a
+   * 'Real' ID, the one that might be in `bmain`, only differs from self_id when the later is a
    * private one.
    */
   ID *owner_id;
@@ -137,7 +137,7 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 
 bool BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
-  /* Needed e.g. for callbacks handling relationships... This call shall be absolutely readonly. */
+  /* Needed e.g. for callbacks handling relationships. This call shall be absolutely read-only. */
   ID *id = *id_pp;
   const int flag = data->flag;
 
@@ -215,7 +215,7 @@ static void library_foreach_ID_link(Main *bmain,
                                                                                 data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
-     * (like root nodetree of a material).
+     * (like root node-tree of a material).
      * In that case, we do not want to generate those 'generic flags' from our current sub-data ID
      * (the node tree), but re-use those generated for the 'owner' ID (the material). */
     if (inherit_data == NULL) {
@@ -632,7 +632,7 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
 
   if (ELEM(GS(id->name), ID_WM, ID_WS, ID_SCE, ID_SCR, ID_LI)) {
     /* Some 'root' ID types are never unused (even though they may not have actual users), unless
-     * their actual usercount is set to 0. */
+     * their actual user-count is set to 0. */
     return;
   }
 
@@ -683,7 +683,7 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
  *
  * By default only tag IDs with `0` user count.
  * If `do_tag_recursive` is set, it will check dependencies to detect all IDs that are not actually
- * used in current file, including 'archipelagoes` (i.e. set of IDs referencing each other in
+ * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
  * loops, but without any 'external' valid usages.
  *
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or
@@ -700,7 +700,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
                                   const bool do_tag_recursive,
                                   int *r_num_tagged)
 {
-  /* First loop, to only check for immediatly unused IDs (those with 0 user count).
+  /* First loop, to only check for immediately unused IDs (those with 0 user count).
    * NOTE: It also takes care of clearing given tag for used IDs. */
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
