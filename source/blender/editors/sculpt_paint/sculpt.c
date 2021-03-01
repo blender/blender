@@ -3237,7 +3237,8 @@ typedef struct {
   bool original;
 } SculptFindNearestToRayData;
 
-static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+__attribute__((optnone))  static void do_topology_rake_bmesh_task_cb_ex(
+    void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
 {
@@ -3273,6 +3274,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+
+    float direction2[3];
     const float fade =
         bstrength *
         SCULPT_brush_strength_factor(
@@ -3281,7 +3284,12 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     float avg[3], val[3];
 
-    SCULPT_bmesh_four_neighbor_average(avg, direction, vd.bm_vert);
+    //SculptCurvatureData cdata;
+    //SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
+    //copy_v3_v3(direction2, cdata.principle[0]);
+    copy_v3_v3(direction2, direction);
+
+    SCULPT_bmesh_four_neighbor_average(avg, direction2, vd.bm_vert);
 
     sub_v3_v3v3(val, avg, vd.co);
 

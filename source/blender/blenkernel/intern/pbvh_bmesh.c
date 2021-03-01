@@ -893,9 +893,9 @@ BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v
   return l * (n*n*4.0f);
 #elif 1  // penalize 4-valence verts
   float l = len_squared_v3v3(v1->co, v2->co);
-  if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
-    l *= 0.25f;
-  }
+  //if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
+  //  l *= 0.25f;
+  //}
 
   return l;
 #else
@@ -3042,6 +3042,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     int sym_axis,
                                     bool updatePBVH)
 {
+  /*
   if (sym_axis >= 0 &&
       PIL_check_seconds_timer() - last_update_time[sym_axis] < DYNTOPO_RUN_INTERVAL) {
     return false;
@@ -3049,7 +3050,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
   if (sym_axis >= 0) {
     last_update_time[sym_axis] = PIL_check_seconds_timer();
-  }
+  }*/
 
   /* 2 is enough for edge faces - manifold edge */
   BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);

@@ -1233,3 +1233,14 @@ bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
 
 void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
 float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref);
+
+
+typedef struct SculptCurvatureData {
+  float ks[3];
+  float principle[3][3];  // normalized
+} SculptCurvatureData;
+
+bool SCULPT_calc_principle_curvatures(SculptSession *ss,
+                                      SculptVertRef vertex,
+                                      SculptCurvatureData *out);
+
