@@ -4431,8 +4431,9 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
   return event_new;
 }
 
-/* Windows store own event queues, no bContext here. */
-/* Time is in 1000s of seconds, from Ghost. */
+/**
+ * Windows store own event queues #wmWindow.queue (no #bContext here).
+ */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
@@ -4729,7 +4730,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Double click test - only for press. */
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
-        if ((evt->prevtype != event.type) || (evt->prevval != KM_PRESS)) {
+        if (event.is_repeat == false) {
           wm_event_prev_click_set(&event, evt);
         }
       }
