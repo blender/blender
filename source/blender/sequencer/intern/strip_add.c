@@ -406,7 +406,10 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
                               Scene *UNUSED(scene),
                               ListBase *UNUSED(seqbase),
-                              const SeqLoadData *UNUSED(load_data))
+                              SeqLoadData *UNUSED(load_data))
+{
+  return NULL;
+}
 #endif  // WITH_AUDASPACE
 
 /**
