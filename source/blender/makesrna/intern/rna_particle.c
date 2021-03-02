@@ -2694,7 +2694,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_health", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HEALTH);
-  RNA_def_property_ui_text(prop, "Health", "Draw boid health");
+  RNA_def_property_ui_text(prop, "Health", "Display boid health");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "use_absolute_path_time", PROP_BOOLEAN, PROP_NONE);
@@ -2742,7 +2742,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_render_adaptive", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_REN_ADAPT);
-  RNA_def_property_ui_text(prop, "Adaptive Render", "Draw steps of the particle path");
+  RNA_def_property_ui_text(prop, "Adaptive Render", "Display steps of the particle path");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "use_velocity_length", PROP_BOOLEAN, PROP_NONE);
@@ -2764,7 +2764,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "draw_as");
   RNA_def_property_enum_items(prop, part_draw_as_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_draw_as_itemf");
-  RNA_def_property_ui_text(prop, "Particle Drawing", "How particles are drawn in viewport");
+  RNA_def_property_ui_text(prop, "Particle Display", "How particles are displayed in viewport");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "render_type", PROP_ENUM, PROP_NONE);
@@ -2777,14 +2777,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "display_color", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "draw_col");
   RNA_def_property_enum_items(prop, draw_col_items);
-  RNA_def_property_ui_text(prop, "Draw Color", "Draw additional particle data as a color");
+  RNA_def_property_ui_text(prop, "Display Color", "Display additional particle data as a color");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "display_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "draw_size");
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0, 100, 1, -1);
-  RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport");
+  RNA_def_property_ui_text(prop, "Display Size", "Size of particles on viewport");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "child_type", PROP_ENUM, PROP_NONE);
@@ -2797,7 +2797,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "draw_step");
   RNA_def_property_range(prop, 0, 10);
   RNA_def_property_ui_range(prop, 0, 7, 1, -1);
-  RNA_def_property_ui_text(prop, "Steps", "How many steps paths are drawn with (power of 2)");
+  RNA_def_property_ui_text(prop, "Steps", "How many steps paths are displayed with (power of 2)");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "render_step", PROP_INT, PROP_NONE);
@@ -3418,13 +3418,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "path_start", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "path_start");
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
-  RNA_def_property_ui_text(prop, "Path Start", "Starting time of drawn path");
+  RNA_def_property_ui_text(prop, "Path Start", "Starting time of path");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "path_end", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "path_end");
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
-  RNA_def_property_ui_text(prop, "Path End", "End time of drawn path");
+  RNA_def_property_ui_text(prop, "Path End", "End time of path");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "trail_count", PROP_INT, PROP_NONE);

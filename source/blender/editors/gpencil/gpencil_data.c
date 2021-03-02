@@ -1676,7 +1676,7 @@ void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Arrange Stroke";
   ot->idname = "GPENCIL_OT_stroke_arrange";
-  ot->description = "Arrange selected strokes up/down in the drawing order of the active layer";
+  ot->description = "Arrange selected strokes up/down in the display order of the active layer";
 
   /* callbacks */
   ot->exec = gpencil_stroke_arrange_exec;

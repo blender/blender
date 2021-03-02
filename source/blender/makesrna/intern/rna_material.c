@@ -616,7 +616,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, gpcolordata_mode_types_items);
-  RNA_def_property_ui_text(prop, "Mode Type", "Select draw mode for stroke");
+  RNA_def_property_ui_text(prop, "Line Type", "Select line type for strokes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* stroke style */

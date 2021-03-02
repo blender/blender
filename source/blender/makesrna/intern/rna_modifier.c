@@ -1744,7 +1744,7 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_only_control_edges", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
   RNA_def_property_ui_text(
-      prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
+      prop, "Optimal Display", "Skip displaying interior subdivided edges");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "use_creases", PROP_BOOLEAN, PROP_NONE);

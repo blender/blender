@@ -1107,7 +1107,7 @@ static void rna_def_histogram(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "mode");
   RNA_def_property_enum_items(prop, prop_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "Channels to display when drawing the histogram");
+  RNA_def_property_ui_text(prop, "Mode", "Channels to display in the histogram");
 
   prop = RNA_def_property(srna, "show_line", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", HISTO_FLAG_LINE);

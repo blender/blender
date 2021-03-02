@@ -3880,7 +3880,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "bTheme");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(
-      srna, "Theme", "Theme settings defining draw style and colors in the user interface");
+      srna, "Theme", "User interface styling and color settings");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Name of the theme");
@@ -4270,12 +4270,12 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "UserSolidLight", NULL);
   RNA_def_struct_sdna(srna, "SolidLight");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
-  RNA_def_struct_ui_text(srna, "Solid Light", "Light used for Studio lighting in solid draw mode");
+  RNA_def_struct_ui_text(srna, "Solid Light", "Light used for Studio lighting in solid shading mode");
 
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
   RNA_def_property_boolean_default(prop, true);
-  RNA_def_property_ui_text(prop, "Enabled", "Enable this light in solid draw mode");
+  RNA_def_property_ui_text(prop, "Enabled", "Enable this light in solid shading mode");
   RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
   prop = RNA_def_property(srna, "smooth", PROP_FLOAT, PROP_FACTOR);
@@ -4815,7 +4815,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_text_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
-  RNA_def_property_ui_text(prop, "Text Anti-Aliasing", "Draw user interface text anti-aliased");
+  RNA_def_property_ui_text(prop, "Text Anti-Aliasing", "Smooth jagged edges of user interface text");
   RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
   prop = RNA_def_property(srna, "text_hinting", PROP_ENUM, PROP_NONE);
@@ -5321,12 +5321,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
        "2DTEXTURE",
        0,
        "2D Texture",
-       "Use CPU for display transform and draw image with 2D texture"},
+       "Use CPU for display transform and display image with 2D texture"},
       {IMAGE_DRAW_METHOD_GLSL,
        "GLSL",
        0,
        "GLSL",
-       "Use GLSL shaders for display transform and draw image with 2D texture"},
+       "Use GLSL shaders for display transform and display image with 2D texture"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5363,7 +5363,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "UI Scale",
-      "Size multiplier to use when drawing custom user interface elements, so that "
+      "Size multiplier to use when displaying custom user interface elements, so that "
       "they are scaled correctly on screens with different DPI. This value is based "
       "on operating system DPI settings and Blender display scale");
 
@@ -5373,7 +5373,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "UI Line Width",
-      "Suggested line thickness and point size in pixels, for add-ons drawing custom "
+      "Suggested line thickness and point size in pixels, for add-ons displaying custom "
       "user interface elements, based on operating system settings and Blender UI scale");
 
   prop = RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
@@ -5442,7 +5442,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_region_overlap", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_REGION_OVERLAP);
   RNA_def_property_ui_text(
-      prop, "Region Overlap", "Draw tool/property regions over the main region");
+      prop, "Region Overlap", "Display tool/property regions over the main region");
   RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   prop = RNA_def_property(srna, "viewport_aa", PROP_ENUM, PROP_NONE);
@@ -5456,7 +5456,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "light_param", "");
   RNA_def_property_struct_type(prop, "UserSolidLight");
   RNA_def_property_ui_text(
-      prop, "Solid Lights", "Lights user to display objects in solid draw mode");
+      prop, "Solid Lights", "Lights user to display objects in solid shading mode");
 
   prop = RNA_def_property(srna, "light_ambient", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, NULL, "light_ambient");

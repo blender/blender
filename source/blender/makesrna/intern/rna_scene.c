@@ -6445,7 +6445,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "seq_prev_type");
   RNA_def_property_enum_items(prop, rna_enum_shading_type_items);
   RNA_def_property_ui_text(
-      prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+      prop, "Sequencer Preview Shading", "Display method used in the sequencer view");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 #  if 0 /* UNUSED, see R_SEQ_GL_REND comment */
@@ -6454,7 +6454,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_shading_type_items);
   /* XXX Label and tooltips are obviously wrong! */
   RNA_def_property_ui_text(
-      prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+      prop, "Sequencer Preview Shading", "Display method used in the sequencer view");
 #  endif
 
   prop = RNA_def_property(srna, "use_sequencer_override_scene_strip", PROP_BOOLEAN, PROP_NONE);

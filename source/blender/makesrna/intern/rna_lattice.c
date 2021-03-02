@@ -371,7 +371,7 @@ static void rna_def_lattice(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LT_OUTSIDE);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Lattice_use_outside_set");
   RNA_def_property_ui_text(
-      prop, "Outside", "Only draw, and take into account, the outer vertices");
+      prop, "Outside", "Only display and take into account the outer vertices");
   RNA_def_property_update(prop, 0, "rna_Lattice_update_data_editlatt");
 
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);

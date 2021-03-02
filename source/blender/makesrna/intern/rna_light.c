@@ -504,7 +504,7 @@ static void rna_def_spot_light(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Show Cone",
-      "Draw transparent cone in 3D view to visualize which objects are contained in it");
+      "Display transparent cone in 3D view to visualize which objects are contained in it");
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 }
 

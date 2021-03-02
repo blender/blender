@@ -968,7 +968,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_DRAWWIRE);
   RNA_def_property_ui_text(prop,
                            "Display Wire",
-                           "Bone is always drawn as Wireframe regardless of viewport draw mode "
+                           "Bone is always displayed in wireframe regardless of viewport shading mode "
                            "(useful for non-obstructive custom bone shapes)");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
