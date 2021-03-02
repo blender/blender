@@ -1886,7 +1886,7 @@ OutputAttributePtr GeometryComponent::attribute_try_get_for_output(const StringR
   if (!attribute) {
     this->attribute_try_create(attribute_name, domain, data_type);
     attribute = this->attribute_try_get_for_write(attribute_name);
-    if (default_value != nullptr) {
+    if (attribute && default_value != nullptr) {
       void *data = attribute->get_span_for_write_only().data();
       cpp_type->fill_initialized(default_value, data, attribute->size());
       attribute->apply_span();

@@ -47,6 +47,9 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   static const float3 scale_default = float3(1.0f);
   OutputAttributePtr scale_attribute = component.attribute_try_get_for_output(
       "scale", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, &scale_default);
+  if (!scale_attribute) {
+    return;
+  }
   ReadAttributePtr attribute = params.get_input_attribute(
       "Factor", component, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, nullptr);
   if (!attribute) {
