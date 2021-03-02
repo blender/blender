@@ -896,6 +896,9 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   func = RNA_def_function(srna, "update", "BKE_curvemapping_changed_all");
   RNA_def_function_ui_description(func, "Update curve mapping after making changes");
 
+  func = RNA_def_function(srna, "reset_view", "BKE_curvemapping_reset_view");
+  RNA_def_function_ui_description(func, "Reset the curve mapping grid to its clipping size");
+
   func = RNA_def_function(srna, "initialize", "rna_CurveMap_initialize");
   RNA_def_function_ui_description(func, "Initialize curve");
 

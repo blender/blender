@@ -59,6 +59,7 @@ enum {
   CURVEMAP_SLOPE_POS_NEG = 2,
 };
 
+void BKE_curvemapping_reset_view(struct CurveMapping *cumap);
 void BKE_curvemap_reset(struct CurveMap *cuma, const struct rctf *clipr, int preset, int slope);
 void BKE_curvemap_remove(struct CurveMap *cuma, const short flag);
 bool BKE_curvemap_remove_point(struct CurveMap *cuma, struct CurveMapPoint *cmp);

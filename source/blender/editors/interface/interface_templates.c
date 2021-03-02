@@ -3987,7 +3987,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
       BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_RESET_VIEW:
-      cumap->curr = cumap->clipr;
+      BKE_curvemapping_reset_view(cumap);
       break;
     case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
       BKE_curvemap_handle_set(cuma, HD_VECT);
