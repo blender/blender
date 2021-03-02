@@ -1606,7 +1606,7 @@ void UI_but_func_search_set(uiBut *but,
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
-void UI_but_func_search_set_all_strings_valid(uiBut *but, const bool value);
+void UI_but_func_search_set_results_are_suggestions(uiBut *but, const bool value);
 
 /* height in pixels, it's using hardcoded values still */
 int UI_searchbox_size_y(void);

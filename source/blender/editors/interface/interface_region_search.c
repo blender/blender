@@ -1053,7 +1053,7 @@ void ui_but_search_refresh(uiButSearch *search_but)
 
   ui_searchbox_update_fn(but->block->evil_C, search_but, but->drawstr, items);
 
-  if (!search_but->all_strings_valid) {
+  if (!search_but->results_are_suggestions) {
     /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */
     if (items->totitem == 0) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);

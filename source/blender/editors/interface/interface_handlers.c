@@ -3413,7 +3413,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
         if ((ui_searchbox_apply(but, data->searchbox) == false) &&
             (ui_searchbox_find_index(data->searchbox, but->editstr) == -1) &&
-            !but_search->all_strings_valid) {
+            !but_search->results_are_suggestions) {
           data->cancel = true;
 
           /* ensure menu (popup) too is closed! */

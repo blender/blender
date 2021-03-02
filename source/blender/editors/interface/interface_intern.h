@@ -325,7 +325,7 @@ typedef struct uiButSearch {
    * The search box only provides suggestions, it does not force
    * the string to match one of the search items when applying.
    */
-  bool all_strings_valid;
+  bool results_are_suggestions;
 } uiButSearch;
 
 /** Derived struct for #UI_BTYPE_DECORATOR */
