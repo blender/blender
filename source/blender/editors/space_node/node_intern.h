@@ -59,6 +59,9 @@ typedef struct bNodeLinkDrag {
   ListBase links;
   bool from_multi_input_socket;
   int in_out;
+
+  /** Temporarily stores the last picked link from multi input socket operator. */
+  struct bNodeLink *last_picked_multi_input_socket_link;
 } bNodeLinkDrag;
 
 typedef struct SpaceNode_Runtime {
