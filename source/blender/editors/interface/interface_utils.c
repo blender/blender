@@ -405,7 +405,8 @@ static bool add_collection_search_item(CollItemSearch *cis,
 void ui_rna_collection_search_update_fn(const struct bContext *C,
                                         void *arg,
                                         const char *str,
-                                        uiSearchItems *items)
+                                        uiSearchItems *items,
+                                        const bool is_first)
 {
   uiRNACollectionSearch *data = arg;
   const int flag = RNA_property_flag(data->target_prop);
@@ -415,7 +416,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
    * match the RNA name exactly. So only for pointer properties, the name can be modified to add
    * further UI hints. */
   const bool requires_exact_data_name = !is_ptr_target;
-  const bool skip_filter = data->search_but && !data->search_but->changed;
+  const bool skip_filter = is_first;
   char name_buf[UI_MAX_DRAW_STR];
   char *name;
   bool has_id_icon = false;

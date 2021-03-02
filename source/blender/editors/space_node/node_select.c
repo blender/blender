@@ -1178,7 +1178,8 @@ static void node_find_create_label(const bNode *node, char *str, int maxlen)
 static void node_find_update_fn(const struct bContext *C,
                                 void *UNUSED(arg),
                                 const char *str,
-                                uiSearchItems *items)
+                                uiSearchItems *items,
+                                const bool UNUSED(is_first))
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
