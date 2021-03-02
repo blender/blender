@@ -1189,9 +1189,10 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
         tool_settings = context.tool_settings.image_paint
         brush = tool_settings.brush
+        tex_slot = brush.texture_slot
 
         col = layout.column()
-        col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
+        col.template_ID_preview(tex_slot, "texture", new="texture.new", rows=3, cols=8)
 
         brush_texture_settings(col, brush, 0)
 
