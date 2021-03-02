@@ -34,12 +34,12 @@ ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
   /* pass */
 }
 NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter,
-                                            RenderLayer *rl,
+                                            RenderLayer *render_layer,
+                                            RenderPass *render_pass,
                                             Image *image,
                                             ImageUser *user,
                                             int framenumber,
                                             int outputsocketIndex,
-                                            int passindex,
                                             int view,
                                             DataType datatype) const
 {
@@ -47,19 +47,18 @@ NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter,
   MultilayerBaseOperation *operation = nullptr;
   switch (datatype) {
     case COM_DT_VALUE:
-      operation = new MultilayerValueOperation(passindex, view);
+      operation = new MultilayerValueOperation(render_layer, render_pass, view);
       break;
     case COM_DT_VECTOR:
-      operation = new MultilayerVectorOperation(passindex, view);
+      operation = new MultilayerVectorOperation(render_layer, render_pass, view);
       break;
     case COM_DT_COLOR:
-      operation = new MultilayerColorOperation(passindex, view);
+      operation = new MultilayerColorOperation(render_layer, render_pass, view);
       break;
     default:
       break;
   }
   operation->setImage(image);
-  operation->setRenderLayer(rl);
   operation->setImageUser(user);
   operation->setFramenumber(framenumber);
 
@@ -128,16 +127,15 @@ void ImageNode::convertToOperations(NodeConverter &converter,
           }
 
           if (rpass) {
-            int passindex = BLI_findindex(&rl->passes, rpass);
             switch (rpass->channels) {
               case 1:
                 operation = doMultilayerCheck(converter,
                                               rl,
+                                              rpass,
                                               image,
                                               imageuser,
                                               framenumber,
                                               index,
-                                              passindex,
                                               view,
                                               COM_DT_VALUE);
                 break;
@@ -146,22 +144,22 @@ void ImageNode::convertToOperations(NodeConverter &converter,
               case 3:
                 operation = doMultilayerCheck(converter,
                                               rl,
+                                              rpass,
                                               image,
                                               imageuser,
                                               framenumber,
                                               index,
-                                              passindex,
                                               view,
                                               COM_DT_VECTOR);
                 break;
               case 4:
                 operation = doMultilayerCheck(converter,
                                               rl,
+                                              rpass,
                                               image,
                                               imageuser,
                                               framenumber,
                                               index,
-                                              passindex,
                                               view,
                                               COM_DT_COLOR);
                 break;

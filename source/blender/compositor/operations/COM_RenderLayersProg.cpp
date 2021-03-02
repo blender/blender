@@ -20,7 +20,6 @@
 
 #include "COM_MetaData.h"
 
-#include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
 #include "BKE_scene.h"
 
@@ -217,62 +216,18 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2],
   }
 }
 
-struct CallbackData {
-  std::unique_ptr<MetaData> meta_data;
-  std::string hash_key;
-  std::string conversion_key;
-  std::string manifest_key;
-
-  void addMetaData(blender::StringRef key, blender::StringRefNull value)
-  {
-    if (!meta_data) {
-      meta_data = std::make_unique<MetaData>();
-    }
-    meta_data->add(key, value);
-  }
-
-  void setCryptomatteKeys(blender::StringRef cryptomatte_layer_name)
-  {
-    manifest_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
-                                                                            "manifest");
-    hash_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
-                                                                        "hash");
-    conversion_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(
-        cryptomatte_layer_name, "conversion");
-  }
-};
-
-/* C type callback function (StampCallback). */
-static void extract_cryptomatte_meta_data(void *_data,
-                                          const char *propname,
-                                          char *propvalue,
-                                          int UNUSED(len))
-{
-  CallbackData *data = static_cast<CallbackData *>(_data);
-  blender::StringRefNull key(propname);
-  if (key == data->hash_key) {
-    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_HASH, propvalue);
-  }
-  else if (key == data->conversion_key) {
-    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_CONVERSION, propvalue);
-  }
-  else if (key == data->manifest_key) {
-    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_MANIFEST, propvalue);
-  }
-}
-
 std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
 {
   Scene *scene = this->getScene();
   Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
-  RenderResult *rr = nullptr;
-  CallbackData callback_data = {nullptr};
+  RenderResult *render_result = nullptr;
+  MetaDataExtractCallbackData callback_data = {nullptr};
 
   if (re) {
-    rr = RE_AcquireResultRead(re);
+    render_result = RE_AcquireResultRead(re);
   }
 
-  if (rr && rr->stamp_data) {
+  if (render_result && render_result->stamp_data) {
     ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, getLayerId());
     if (view_layer) {
       std::string full_layer_name = std::string(
@@ -283,8 +238,10 @@ std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
           full_layer_name);
       callback_data.setCryptomatteKeys(cryptomatte_layer_name);
 
-      BKE_stamp_info_callback(
-          &callback_data, rr->stamp_data, extract_cryptomatte_meta_data, false);
+      BKE_stamp_info_callback(&callback_data,
+                              render_result->stamp_data,
+                              MetaDataExtractCallbackData::extract_cryptomatte_meta_data,
+                              false);
     }
   }
 
