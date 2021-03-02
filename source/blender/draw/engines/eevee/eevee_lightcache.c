@@ -313,6 +313,10 @@ static bool EEVEE_lightcache_validate(const LightCache *light_cache,
                                       const int grid_len,
                                       const int irr_size[3])
 {
+  if (!eevee_lightcache_version_check(lbake->lcache)) {
+    return false;
+  }
+
   if (light_cache && !(light_cache->flag & LIGHTCACHE_INVALID)) {
     /* See if we need the same amount of texture space. */
     if ((irr_size[0] == light_cache->grid_tx.tex_size[0]) &&
