@@ -98,7 +98,7 @@ vec3 light_volume(LightData ld, vec4 l_vector)
   return tint * lum;
 }
 
-#define VOLUMETRIC_SHADOW_MAX_STEP 32.0
+#define VOLUMETRIC_SHADOW_MAX_STEP 128.0
 
 vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 {
@@ -115,10 +115,10 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D v
 #if defined(VOLUME_SHADOW)
   /* Heterogeneous volume shadows */
   float dd = l_vector.w / volShadowSteps;
-  vec3 L = l_vector.xyz * l_vector.w;
+  vec3 L = l_vector.xyz / volShadowSteps;
   vec3 shadow = vec3(1.0);
-  for (float s = 0.5; s < VOLUMETRIC_SHADOW_MAX_STEP && s < (volShadowSteps - 0.1); s += 1.0) {
-    vec3 pos = ray_wpos + L * (s / volShadowSteps);
+  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volShadowSteps; s += 1.0) {
+    vec3 pos = ray_wpos + L * s;
     vec3 s_extinction = participating_media_extinction(pos, volume_extinction);
     shadow *= exp(-s_extinction * dd);
   }
