@@ -21,6 +21,8 @@
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
 
+#include "DNA_node_types.h"
+
 #include "RE_pipeline.h"
 
 #include "MEM_guardedalloc.h"
@@ -174,6 +176,17 @@ TEST(cryptomatte, session_from_stamp_data)
 
   RE_FreeRenderResult(render_result2);
   BKE_cryptomatte_free(session);
+}
+
+TEST(cryptomatte, T86026)
+{
+  NodeCryptomatte storage = {{0.0f}};
+  CryptomatteEntry entry = {nullptr};
+  BLI_addtail(&storage.entries, &entry);
+  entry.encoded_hash = 4.76190593e-07;
+  char *matte_id = BKE_cryptomatte_entries_to_matte_id(&storage);
+  EXPECT_STREQ("<4.761905927e-07>", matte_id);
+  MEM_freeN(matte_id);
 }
 
 }  // namespace blender::bke::cryptomatte::tests

@@ -184,22 +184,30 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
 
 char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 {
-  DynStr *matte_id = BLI_dynstr_new();
+  std::stringstream ss;
+  ss.precision(9);
+
   bool first = true;
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &node_storage->entries) {
     if (!first) {
-      BLI_dynstr_append(matte_id, ",");
+      ss << ',';
     }
-    if (BLI_strnlen(entry->name, sizeof(entry->name)) != 0) {
-      BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
+    blender::StringRef entry_name(entry->name, BLI_strnlen(entry->name, sizeof(entry->name)));
+    if (!entry_name.is_empty()) {
+      ss << entry_name;
     }
     else {
-      BLI_dynstr_appendf(matte_id, "<%.9g>", entry->encoded_hash);
+      ss << '<' << std::scientific << entry->encoded_hash << '>';
     }
     first = false;
   }
-  char *result = BLI_dynstr_get_cstring(matte_id);
-  BLI_dynstr_free(matte_id);
+
+  /* Convert result to C string. */
+  const std::string result_string = ss.str();
+  const char *c_str = result_string.c_str();
+  size_t result_len = result_string.size() + 1;
+  char *result = static_cast<char *>(MEM_mallocN(sizeof(char) * result_len, __func__));
+  memcpy(result, c_str, result_len);
   return result;
 }
 
