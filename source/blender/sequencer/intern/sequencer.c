@@ -357,7 +357,7 @@ void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase)
 }
 
 /**
- * Create and initialize MetaStack, append it to ed->metastack ListBase
+ * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
  *
  * \param ed: sequence editor data
  * \param seq_meta: meta strip
@@ -374,7 +374,7 @@ MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
 }
 
 /**
- * Free MetaStack and remoove it from ed->metastack ListBase
+ * Free #MetaStack and remove it from `ed->metastack` ListBase.
  *
  * \param ed: sequence editor data
  * \param ms: meta stack
@@ -386,7 +386,7 @@ void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
 }
 
 /**
- * Get MetaStack that coresponds to current level that is being viewed
+ * Get #MetaStack that corresponds to current level that is being viewed
  *
  * \param ed: sequence editor data
  * \return pointer to meta stack
