@@ -149,23 +149,25 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
   }
   wmEvent *event = wm_event_add(win, event_to_add);
 
+  /* Logic for setting previous value is documented on the #wmEvent struct,
+   * see #wm_event_add_ghostevent for the implementation of logic this follows. */
+
   win->eventstate->x = event->x;
   win->eventstate->y = event->y;
 
-  win->eventstate->prevval = event->prevval = win->eventstate->val;
-  win->eventstate->prevtype = event->prevtype = win->eventstate->type;
-  win->eventstate->prevx = event->prevx = win->eventstate->x;
-  win->eventstate->prevy = event->prevy = win->eventstate->y;
-
   if (event->type == MOUSEMOVE) {
-    /* Pass. */
+    win->eventstate->prevx = event->prevx = win->eventstate->x;
+    win->eventstate->prevy = event->prevy = win->eventstate->y;
   }
-  else {
+  else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
+    win->eventstate->prevval = event->prevval = win->eventstate->val;
+    win->eventstate->prevtype = event->prevtype = win->eventstate->type;
+
     win->eventstate->val = event->val;
     win->eventstate->type = event->type;
 
-    if (ISMOUSE_BUTTON(event->type)) {
-      if (event->val == KM_PRESS) {
+    if (event->val == KM_PRESS) {
+      if (event->is_repeat == false) {
         win->eventstate->prevclickx = event->x;
         win->eventstate->prevclicky = event->y;
       }
@@ -4431,8 +4433,9 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
   return event_new;
 }
 
-/* Windows store own event queues, no bContext here. */
-/* Time is in 1000s of seconds, from Ghost. */
+/**
+ * Windows store own event queues #wmWindow.queue (no #bContext here).
+ */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
@@ -4454,6 +4457,35 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   /* Initialize and copy state (only mouse x y and modifiers). */
   event = *evt;
   event.is_repeat = false;
+
+  /**
+   * Always support accessing the last key press/release. This is set from `win->eventstate`,
+   * so it will always be a valid event type to store in the previous state.
+   *
+   * Note that these values are intentionally _not_ set in the `win->eventstate`,
+   * as copying these values only makes sense when `win->eventstate->{val/type}` would be
+   * written to (which only happens for some kinds of events).
+   * If this was done it could leave `win->eventstate` previous and current value
+   * set to the same key press/release state which doesn't make sense.
+   */
+  event.prevtype = event.type;
+  event.prevval = event.val;
+
+  /* Ensure the event state is correct, any deviation from this may cause bugs. */
+#ifndef NDEBUG
+  if ((evt->type || evt->val) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(evt->type) || ISKEYBOARD(evt->type))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
+              evt->type);
+  }
+  if ((evt->prevtype || evt->prevval) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(evt->prevtype) || ISKEYBOARD(evt->prevtype))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
+              evt->prevtype);
+  }
+#endif
 
   switch (type) {
     /* Mouse move, also to inactive window (X11 does this). */
@@ -4478,6 +4510,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         wmEvent oevent, *oevt = owin->eventstate;
 
         oevent = *oevt;
+
+        /* See comment for this operation on `event` for details. */
+        oevent.prevtype = oevent.type;
+        oevent.prevval = oevent.val;
 
         copy_v2_v2_int(&oevent.x, &event.x);
         oevent.type = MOUSEMOVE;
@@ -4574,8 +4610,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       if (owin) {
         wmEvent oevent = *(owin->eventstate);
 
-        oevent.x = event.x;
-        oevent.y = event.y;
+        /* See comment for this operation on `event` for details. */
+        oevent.prevtype = oevent.type;
+        oevent.prevval = oevent.val;
+
+        copy_v2_v2_int(&oevent.x, &event.x);
+
         oevent.type = event.type;
         oevent.val = event.val;
         oevent.tablet = event.tablet;
@@ -4729,7 +4769,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Double click test - only for press. */
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
-        if ((evt->prevtype != event.type) || (evt->prevval != KM_PRESS)) {
+        if (event.is_repeat == false) {
           wm_event_prev_click_set(&event, evt);
         }
       }

@@ -192,6 +192,8 @@ void SCULPT_connected_components_ensure(Object *ob);
 /* Boundary Info needs to be initialized in order to use this function. */
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const int index);
 
+void SCULPT_connected_components_ensure(Object *ob);
+
 /* Sculpt Visibility API */
 
 void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);
@@ -369,6 +371,11 @@ float *SCULPT_boundary_automasking_init(Object *ob,
                                         float *automask_factor);
 
 /* Geodesic distances. */
+
+/* Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
+in the initial vertex set. The caller is responsible for freeing the array.
+Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
+fallback to euclidean distances to one of the initial vertices in the set. */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         struct GSet *initial_vertices,
                                         const float limit_radius);
@@ -1117,47 +1124,6 @@ void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter
 void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache);
 void SCULPT_filter_zero_disabled_axis_components(float r_v[3], struct FilterCache *filter_cache);
 
-typedef enum eSculptGradientType {
-  SCULPT_GRADIENT_LINEAR,
-  SCULPT_GRADIENT_SPHERICAL,
-  SCULPT_GRADIENT_RADIAL,
-  SCULPT_GRADIENT_ANGLE,
-  SCULPT_GRADIENT_REFLECTED,
-} eSculptGradientType;
-
-typedef struct SculptGradientContext {
-  eSculptGradientType gradient_type;
-
-  ViewContext vc;
-
-  int symm;
-
-  int update_type;
-
-  float line_points[2][2];
-  float line_length;
-
-  float depth_point[3];
-
-  float gradient_plane[4];
-  float initial_location[3];
-
-  float gradient_line[3];
-  float initial_projected_location[2];
-
-  float strength;
-
-  void (*sculpt_gradient_begin)(struct bContext *);
-  void (*sculpt_gradient_apply_for_element)(struct Sculpt *,
-                                            struct SculptSession *,
-                                            SculptOrigVertData *orig_data,
-                                            PBVHVertexIter *vd,
-                                            float gradient_value,
-                                            float fade_value);
-  void (*sculpt_gradient_node_update)(struct PBVHNode *);
-  void (*sculpt_gradient_end)(struct bContext *);
-} SculptGradientContext;
-
 /* Sculpt Expand. */
 typedef enum eSculptExpandFalloffType {
   SCULPT_EXPAND_FALLOFF_GEODESIC,
@@ -1187,17 +1153,17 @@ typedef struct ExpandCache {
   /* Target data elements that the expand operation will affect. */
   eSculptExpandTargetType target;
 
-  /* Falloff  data. */
+  /* Falloff data. */
   eSculptExpandFalloffType falloff_type;
 
   /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
    * editing modification applied). */
-  float *falloff;
-  /* Max falloff value in *falloff. */
-  float max_falloff;
+  float *vert_falloff;
+  /* Max falloff value in *vert_falloff. */
+  float max_vert_falloff;
 
-  /* Indexed by base mesh poly index, precalculatd falloff value of that face. This values are
-   * calculated from the per vertex falloff (*falloff) when needed. */
+  /* Indexed by base mesh poly index, precalculated falloff value of that face. These values are
+   * calculated from the per vertex falloff (*vert_falloff) when needed. */
   float *face_falloff;
   float max_face_falloff;
 
@@ -1215,6 +1181,15 @@ typedef struct ExpandCache {
   int initial_active_vertex;
   int initial_active_face_set;
 
+  /* Maximum number of vertices allowed in the SculptSession for previewing the falloff using
+   * geodesic distances. */
+  int max_geodesic_move_preview;
+
+  /* Original falloff type before starting the move operation. */
+  eSculptExpandFalloffType move_original_falloff_type;
+  /* Falloff type using when moving the origin for preview. */
+  eSculptExpandFalloffType move_preview_falloff_type;
+
   /* Face set ID that is going to be used when creating a new Face Set. */
   int next_face_set;
 
@@ -1222,7 +1197,7 @@ typedef struct ExpandCache {
   int update_face_set;
 
   /* Mouse position since the last time the origin was moved. Used for reference when moving the
-   * intial position of Expand. */
+   * initial position of Expand. */
   float original_mouse_move[2];
 
   /* Active components checks. */
@@ -1250,7 +1225,7 @@ typedef struct ExpandCache {
 
   /* Expand state options. */
 
-  /* Number of loops (times that the falloff is going to be repeated. */
+  /* Number of loops (times that the falloff is going to be repeated). */
   int loop_count;
 
   /* Invert the falloff result. */
@@ -1262,7 +1237,7 @@ typedef struct ExpandCache {
   /* When set to true, the mask or colors will be applied as a gradient. */
   bool falloff_gradient;
 
-  /* When set to true, Expand will use the Brush fallof curve data to shape the gradient. */
+  /* When set to true, Expand will use the Brush falloff curve data to shape the gradient. */
   bool brush_gradient;
 
   /* When set to true, Expand will move the origin (initial active vertex and cursor position)
@@ -1297,6 +1272,46 @@ typedef struct ExpandCache {
   int *original_face_sets;
   float (*original_colors)[4];
 } ExpandCache;
+
+typedef enum eSculptGradientType {
+  SCULPT_GRADIENT_LINEAR,
+  SCULPT_GRADIENT_SPHERICAL,
+  SCULPT_GRADIENT_RADIAL,
+  SCULPT_GRADIENT_ANGLE,
+  SCULPT_GRADIENT_REFLECTED,
+} eSculptGradientType;
+typedef struct SculptGradientContext {
+
+  eSculptGradientType gradient_type;
+  ViewContext vc;
+
+  int symm;
+
+  int update_type;
+  float line_points[2][2];
+
+  float line_length;
+
+  float depth_point[3];
+
+  float gradient_plane[4];
+  float initial_location[3];
+
+  float gradient_line[3];
+  float initial_projected_location[2];
+
+  float strength;
+  void (*sculpt_gradient_begin)(struct bContext *);
+
+  void (*sculpt_gradient_apply_for_element)(struct Sculpt *,
+                                            struct SculptSession *,
+                                            SculptOrigVertData *orig_data,
+                                            PBVHVertexIter *vd,
+                                            float gradient_value,
+                                            float fade_value);
+  void (*sculpt_gradient_node_update)(struct PBVHNode *);
+  void (*sculpt_gradient_end)(struct bContext *);
+} SculptGradientContext;
 
 /* IPMask filter vertex callback function. */
 typedef float(SculptIPMaskFilterStepVertexCB)(struct SculptSession *, int, float *);
@@ -1406,6 +1421,10 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
                             rcti *rect);
 
 /* Operators. */
+
+/* Expand. */
+void SCULPT_OT_expand(struct wmOperatorType *ot);
+void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* Gestures. */
 void SCULPT_OT_face_set_lasso_gesture(struct wmOperatorType *ot);

@@ -47,6 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
 
@@ -76,9 +77,9 @@
 #include <stdlib.h>
 
 /* Sculpt Expand. */
-/* Operator for creating selections and patterns in Scupt Mode. Expand can create masks, face sets
+/* Operator for creating selections and patterns in Sculpt Mode. Expand can create masks, face sets
  * and fill vertex colors. */
-/* The main functinality of the operator
+/* The main functionality of the operator
  * - The operator initializes a value per vertex, called "falloff". There are multiple algorithms
  * to generate these falloff values which will create different patterns in the result when using
  * the operator. These falloff values require algorithms that rely on mesh connectivity, so they
@@ -98,9 +99,9 @@
  */
 #define SCULPT_EXPAND_VERTEX_NONE -1
 
-/* Used for defining an unitialized active component index for an unused symmetry pass. */
+/* Used for defining an uninitialized active component index for an unused symmetry pass. */
 
-#define EXPAND_ACTIVE_COMPOMENT_NONE -1
+#define EXPAND_ACTIVE_COMPONENT_NONE -1
 /* Defines how much each time the texture distortion is increased/decreased when using the modal
  * keymap. */
 #define SCULPT_EXPAND_TEXTURE_DISTORTION_STEP 0.01f
@@ -138,30 +139,13 @@ enum {
   SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_DECREASE,
 };
 
-static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
-    {SCULPT_EXPAND_FALLOFF_GEODESIC, "GEODESIC", 0, "Geodesic", ""},
-    {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
-    {SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS, "TOPOLOGY_DIAGONALS", 0, "Topology Diagonals", ""},
-    {SCULPT_EXPAND_FALLOFF_NORMALS, "NORMALS", 0, "Normals", ""},
-    {SCULPT_EXPAND_FALLOFF_SPHERICAL, "SPHERICAL", 0, "Spherical", ""},
-    {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY", 0, "Boundary Topology", ""},
-    {SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET, "BOUNDARY_FACE_SET", 0, "Boundary Face Set", ""},
-    {SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET, "ACTIVE_FACE_SET", 0, "Active Face Set", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
-    {SCULPT_EXPAND_TARGET_MASK, "MASK", 0, "Mask", ""},
-    {SCULPT_EXPAND_TARGET_FACE_SETS, "FACE_SETS", 0, "Face Sets", ""},
-    {SCULPT_EXPAND_TARGET_COLORS, "COLOR", 0, "Color", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-/* Functions for getting the state of mesh elements (vertices and base mesh faces). */
+/* Functions for getting the state of mesh elements (vertices and base mesh faces). When the main
+ * functions for getting the state of an element return true it means that data associated to that
+ * element will be modified by expand. */
 
 /* Returns true if the vertex is in a connected component with correctly initialized falloff
  * values. */
-static bool sculpt_expand_is_vert_in_active_compoment(SculptSession *ss,
+static bool sculpt_expand_is_vert_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const int v)
 {
@@ -180,7 +164,7 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       const int f)
 {
   const MLoop *loop = &ss->mloop[ss->mpoly[f].loopstart];
-  return sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, loop->v);
+  return sculpt_expand_is_vert_in_active_component(ss, expand_cache, loop->v);
 }
 
 /* Returns the falloff value of a vertex. This function includes texture distortion, which is not
@@ -190,11 +174,11 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
                                                     const int v)
 {
   if (expand_cache->texture_distortion_strength == 0.0f) {
-    return expand_cache->falloff[v];
+    return expand_cache->vert_falloff[v];
   }
 
   if (!expand_cache->brush->mtex.tex) {
-    return expand_cache->falloff[v];
+    return expand_cache->vert_falloff[v];
   }
 
   float rgba[4];
@@ -203,8 +187,8 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
       expand_cache->scene, expand_cache->brush, vertex_co, rgba, 0, ss->tex_pool);
 
   const float distortion = (avg - 0.5f) * expand_cache->texture_distortion_strength *
-                           expand_cache->max_falloff;
-  return expand_cache->falloff[v] + distortion;
+                           expand_cache->max_vert_falloff;
+  return expand_cache->vert_falloff[v] + distortion;
 }
 
 /* Returns the maximum valid falloff value stored in the falloff array, taking the maximum possible
@@ -212,18 +196,19 @@ static float sculpt_expand_falloff_value_vertex_get(SculptSession *ss,
 static float sculpt_expand_max_vertex_falloff_get(ExpandCache *expand_cache)
 {
   if (expand_cache->texture_distortion_strength == 0.0f) {
-    return expand_cache->max_falloff;
+    return expand_cache->max_vert_falloff;
   }
 
   if (!expand_cache->brush->mtex.tex) {
-    return expand_cache->max_falloff;
+    return expand_cache->max_vert_falloff;
   }
 
-  return expand_cache->max_falloff +
-         (0.5f * expand_cache->texture_distortion_strength * expand_cache->max_falloff);
+  return expand_cache->max_vert_falloff +
+         (0.5f * expand_cache->texture_distortion_strength * expand_cache->max_vert_falloff);
 }
 
 /* Main function to get the state of a vertex for the current state and settings of a ExpandCache.
+ * Retruns true when the target data should be modified by expand.
  */
 static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const int v)
 {
@@ -231,7 +216,7 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
     return false;
   }
 
-  if (!sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, v)) {
+  if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, v)) {
     return false;
   }
 
@@ -267,7 +252,8 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
   return enabled;
 }
 
-/* Main function to get the state of a face for the current state and settings of a ExpandCache. */
+/* Main function to get the state of a face for the current state and settings of a ExpandCache.
+ * Returs true when the traget data should be modified by expand. */
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
   if (ss->face_sets[f] <= 0) {
@@ -310,8 +296,8 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   return enabled;
 }
 
-/* For target modes that support gradients, this function returns the corresponding gradient value
- * for a enabled vertex. */
+/* For target modes that support gradients (such as sculpt masks or colors), this function returns
+ * the corresponding gradient value for an enabled vertex. */
 static float sculpt_expand_gradient_value_get(SculptSession *ss,
                                               ExpandCache *expand_cache,
                                               const int v)
@@ -331,6 +317,9 @@ static float sculpt_expand_gradient_value_get(SculptSession *ss,
   float linear_falloff;
 
   if (expand_cache->invert) {
+    /* Active factor is the result of a modulus operation using loop_len, so they will never be
+     * equal and loop_len - active_factor should never be 0. */
+    BLI_assert((loop_len - active_factor) != 0.0f);
     linear_falloff = (falloff_factor - active_factor) / (loop_len - active_factor);
   }
   else {
@@ -393,6 +382,25 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
 }
 
 /* Functions implementing different algorithms for initializing falloff values. */
+
+/* Utility function to get the closet vertex after flipping an original vertex possition based on
+ * an symmetry pass iteration index. */
+static int sculpt_expand_get_vertex_index_for_symmetry_pass(Object *ob,
+                                                            const char symm_it,
+                                                            const int original_vertex)
+{
+  SculptSession *ss = ob->sculpt;
+  int symm_vertex = SCULPT_EXPAND_VERTEX_NONE;
+  if (symm_it == 0) {
+    symm_vertex = original_vertex;
+  }
+  else {
+    float location[3];
+    flip_v3_v3(location, SCULPT_vertex_co_get(ss, original_vertex), symm_it);
+    symm_vertex = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
+  }
+  return symm_vertex;
+}
 
 /* Geodesic: Initializes the falloff with geodesic distances from the given active vertex, taking
  * symmetry into account. */
@@ -513,10 +521,10 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
   return dists;
 }
 
-/* Spherical: Initialices the falloff based on the distance from a vertex, taking symmetry into
+/* Spherical: Initializes the falloff based on the distance from a vertex, taking symmetry into
  * account. */
 
-static float *sculpt_expand_spherical_falloff_create(Sculpt *sd, Object *ob, const int v)
+static float *sculpt_expand_spherical_falloff_create(Object *ob, const int v)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -531,15 +539,7 @@ static float *sculpt_expand_spherical_falloff_create(Sculpt *sd, Object *ob, con
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-    int symm_vertex = SCULPT_EXPAND_VERTEX_NONE;
-    if (symm_it == 0) {
-      symm_vertex = v;
-    }
-    else {
-      float location[3];
-      flip_v3_v3(location, SCULPT_vertex_co_get(ss, v), symm_it);
-      symm_vertex = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
-    }
+    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
     if (symm_vertex != -1) {
       const float *co = SCULPT_vertex_co_get(ss, symm_vertex);
       for (int i = 0; i < totvert; i++) {
@@ -553,8 +553,8 @@ static float *sculpt_expand_spherical_falloff_create(Sculpt *sd, Object *ob, con
 
 /* Boundary: This falloff mode uses the code from sculpt_boundary to initialize the closest mesh
  * boundary to a falloff value of 0. Then, it propagates that falloff to the rest of the mesh so it
- * stays parallalel to the boundary, increasing the falloff value by 1 on each step. */
-static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object *ob, const int v)
+ * stays parallel to the boundary, increasing the falloff value by 1 on each step. */
+static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const int v)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -562,23 +562,20 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object 
   BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
   GSQueue *queue = BLI_gsqueue_new(sizeof(int));
 
-  /* Search and initialize a boundary per symmetry pass, them mark those vertices as visited. */
+  /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-    int symm_vertex = SCULPT_EXPAND_VERTEX_NONE;
-    if (symm_it == 0) {
-      symm_vertex = v;
-    }
-    else {
-      float location[3];
-      flip_v3_v3(location, SCULPT_vertex_co_get(ss, v), symm_it);
-      symm_vertex = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
-    }
+
+    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
 
     SculptBoundary *boundary = SCULPT_boundary_data_init(ob, NULL, symm_vertex, FLT_MAX);
+    if (!boundary) {
+      continue;
+    }
+
     for (int i = 0; i < boundary->num_vertices; i++) {
       BLI_gsqueue_push(queue, &boundary->vertices[i]);
       BLI_BITMAP_ENABLE(visited_vertices, boundary->vertices[i]);
@@ -593,15 +590,15 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object 
 
   /* Propagate the values from the boundaries to the rest of the mesh. */
   while (!BLI_gsqueue_is_empty(queue)) {
-    int v;
-    BLI_gsqueue_pop(queue, &v);
+    int v_next;
+    BLI_gsqueue_pop(queue, &v_next);
 
     SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v, ni) {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_next, ni) {
       if (BLI_BITMAP_TEST(visited_vertices, ni.index)) {
         continue;
       }
-      dists[ni.index] = dists[v] + 1.0f;
+      dists[ni.index] = dists[v_next] + 1.0f;
       BLI_BITMAP_ENABLE(visited_vertices, ni.index);
       BLI_gsqueue_push(queue, &ni.index);
     }
@@ -615,14 +612,14 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd, Object 
 
 /* Topology diagonals. This falloff is similar to topology, but it also considers the diagonals of
  * the base mesh faces when checking a vertex neighbor. For this reason, this is not implement
- * using the general flodfill and sculpt neighbors accessors. */
-static float *sculpt_expand_diagonals_falloff_create(Sculpt *sd, Object *ob, const int v)
+ * using the general floodfill and sculpt neighbors accessors. */
+static float *sculpt_expand_diagonals_falloff_create(Object *ob, const int v)
 {
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
 
-  /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialize for
+  /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
    * Multires. It also does not make sense to implement it for dyntopo as the result will be the
    * same as Topology falloff. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
@@ -637,15 +634,8 @@ static float *sculpt_expand_diagonals_falloff_create(Sculpt *sd, Object *ob, con
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-    int symm_vertex = SCULPT_EXPAND_VERTEX_NONE;
-    if (symm_it == 0) {
-      symm_vertex = v;
-    }
-    else {
-      float location[3];
-      flip_v3_v3(location, SCULPT_vertex_co_get(ss, v), symm_it);
-      symm_vertex = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
-    }
+
+    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
 
     BLI_gsqueue_push(queue, &symm_vertex);
     BLI_BITMAP_ENABLE(visited_vertices, symm_vertex);
@@ -658,16 +648,16 @@ static float *sculpt_expand_diagonals_falloff_create(Sculpt *sd, Object *ob, con
   /* Propagate the falloff increasing the value by 1 each time a new vertex is visited. */
   Mesh *mesh = ob->data;
   while (!BLI_gsqueue_is_empty(queue)) {
-    int v;
-    BLI_gsqueue_pop(queue, &v);
-    for (int j = 0; j < ss->pmap[v].count; j++) {
-      MPoly *p = &ss->mpoly[ss->pmap[v].indices[j]];
+    int v_next;
+    BLI_gsqueue_pop(queue, &v_next);
+    for (int j = 0; j < ss->pmap[v_next].count; j++) {
+      MPoly *p = &ss->mpoly[ss->pmap[v_next].indices[j]];
       for (int l = 0; l < p->totloop; l++) {
         const int neighbor_v = mesh->mloop[p->loopstart + l].v;
         if (BLI_BITMAP_TEST(visited_vertices, neighbor_v)) {
           continue;
         }
-        dists[neighbor_v] = dists[v] + 1.0f;
+        dists[neighbor_v] = dists[v_next] + 1.0f;
         BLI_BITMAP_ENABLE(visited_vertices, neighbor_v);
         BLI_gsqueue_push(queue, &neighbor_v);
       }
@@ -679,25 +669,27 @@ static float *sculpt_expand_diagonals_falloff_create(Sculpt *sd, Object *ob, con
   return dists;
 }
 
-/* Functions to update the max_falloff value in the ExpandCache. This funcions are called after
+/* Functions to update the max_falloff value in the ExpandCache. These funcions are called after
  * initializing a new falloff to make sure that this value is always updated. */
 
 /* Updates the max_falloff value for vertices in a ExpandCache based on the current values of the
  * falloff, skipping any invalid values initialized to FLT_MAX and not initialized components. */
-static void sculpt_expand_update_max_falloff_value(SculptSession *ss, ExpandCache *expand_cache)
+static void sculpt_expand_update_max_vert_falloff_value(SculptSession *ss,
+                                                        ExpandCache *expand_cache)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  expand_cache->max_falloff = -FLT_MAX;
+  expand_cache->max_vert_falloff = -FLT_MAX;
   for (int i = 0; i < totvert; i++) {
-    if (expand_cache->falloff[i] == FLT_MAX) {
+    if (expand_cache->vert_falloff[i] == FLT_MAX) {
       continue;
     }
 
-    if (!sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, i)) {
+    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, i)) {
       continue;
     }
 
-    expand_cache->max_falloff = max_ff(expand_cache->max_falloff, expand_cache->falloff[i]);
+    expand_cache->max_vert_falloff = max_ff(expand_cache->max_vert_falloff,
+                                            expand_cache->vert_falloff[i]);
   }
 }
 
@@ -723,7 +715,7 @@ static void sculpt_expand_update_max_face_falloff_factor(SculptSession *ss,
 }
 
 /* Functions to get falloff values for faces from the values from the vertices. This is used for
- * expanding Face Sets. Depending on the data type of the ScultpSession, this needs to get the per
+ * expanding Face Sets. Depending on the data type of the SculptSession, this needs to get the per
  * face falloff value from the connected vertices of each face or from the grids stored per loops
  * for each face. */
 static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
@@ -739,7 +731,7 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
     for (int l = 0; l < poly->totloop; l++) {
       const int grid_loop_index = (poly->loopstart + l) * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
-        accum += expand_cache->falloff[grid_loop_index + g];
+        accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
     expand_cache->face_falloff[p] = accum / (poly->totloop * key->grid_area);
@@ -753,7 +745,7 @@ static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expan
     float accum = 0.0f;
     for (int l = 0; l < poly->totloop; l++) {
       MLoop *loop = &mesh->mloop[l + poly->loopstart];
-      accum += expand_cache->falloff[loop->v];
+      accum += expand_cache->vert_falloff[loop->v];
     }
     expand_cache->face_falloff[p] = accum / poly->totloop;
   }
@@ -764,7 +756,7 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
                                                                 Mesh *mesh,
                                                                 ExpandCache *expand_cache)
 {
-  BLI_assert(expand_cache->falloff != NULL);
+  BLI_assert(expand_cache->vert_falloff != NULL);
 
   if (!expand_cache->face_falloff) {
     expand_cache->face_falloff = MEM_malloc_arrayN(
@@ -805,20 +797,20 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
   }
   MEM_freeN(boundary_vertices);
 
-  MEM_SAFE_FREE(expand_cache->falloff);
+  MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
 
-  expand_cache->falloff = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
+  expand_cache->vert_falloff = SCULPT_geodesic_distances_create(ob, initial_vertices, FLT_MAX);
   BLI_gset_free(initial_vertices, NULL);
 }
 
-/* Geodesic recursion: Initializes falloff values using topology steps from the boundary of the
+/* Topology recursion: Initializes falloff values using topology steps from the boundary of the
  * current vertices state, increasing the value by 1 each time a new vertex is visited. */
 static void sculpt_expand_topology_from_state_boundary(Object *ob,
                                                        ExpandCache *expand_cache,
                                                        BLI_bitmap *enabled_vertices)
 {
-  MEM_SAFE_FREE(expand_cache->falloff);
+  MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
 
   SculptSession *ss = ob->sculpt;
@@ -842,7 +834,7 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   SCULPT_floodfill_execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
 
-  expand_cache->falloff = dists;
+  expand_cache->vert_falloff = dists;
 }
 
 /* Main function to create a recursion step from the current ExpandCache state. */
@@ -857,9 +849,9 @@ static void sculpt_expand_resursion_step_add(Object *ob,
 
   BLI_bitmap *enabled_vertices = sculpt_expand_bitmap_from_enabled(ss, expand_cache);
 
-  /* Each time a new recursion step is created, reset the distortion strength. This is the expedted
+  /* Each time a new recursion step is created, reset the distortion strength. This is the expected
    * result from the recursion, as otherwise the new falloff will render with undesired distortion
-   * from the beginning */
+   * from the beginning. */
   expand_cache->texture_distortion_strength = 0.0f;
 
   switch (recursion_type) {
@@ -871,7 +863,7 @@ static void sculpt_expand_resursion_step_add(Object *ob,
       break;
   }
 
-  sculpt_expand_update_max_falloff_value(ss, expand_cache);
+  sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
@@ -880,7 +872,9 @@ static void sculpt_expand_resursion_step_add(Object *ob,
   MEM_freeN(enabled_vertices);
 }
 
-/* Face Set Boundary falloff: */
+/* Face Set Boundary falloff. */
+/* When internal falloff is set to true, the falloff will fill the active Face Set with a gradient,
+ * otherwise the active Face Set will be filled with a constant falloff of 0.0f. */
 static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
                                                             ExpandCache *expand_cache,
                                                             const int active_face_set,
@@ -915,17 +909,17 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
             SCULPT_vertex_has_unique_face_set(ss, i))) {
         continue;
       }
-      expand_cache->falloff[i] *= -1.0f;
+      expand_cache->vert_falloff[i] *= -1.0f;
     }
 
     float min_factor = FLT_MAX;
     for (int i = 0; i < totvert; i++) {
-      min_factor = min_ff(expand_cache->falloff[i], min_factor);
+      min_factor = min_ff(expand_cache->vert_falloff[i], min_factor);
     }
 
-    const float increase_factor = fabsf(min_factor);
+    const float additional_falloff = fabsf(min_factor);
     for (int i = 0; i < totvert; i++) {
-      expand_cache->falloff[i] += increase_factor;
+      expand_cache->vert_falloff[i] += additional_falloff;
     }
   }
   else {
@@ -933,7 +927,7 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
       if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
         continue;
       }
-      expand_cache->falloff[i] = 0.0f;
+      expand_cache->vert_falloff[i] = 0.0f;
     }
   }
 }
@@ -947,7 +941,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     const int v,
     eSculptExpandFalloffType falloff_type)
 {
-  MEM_SAFE_FREE(expand_cache->falloff);
+  MEM_SAFE_FREE(expand_cache->vert_falloff);
   expand_cache->falloff_type = falloff_type;
 
   SculptSession *ss = ob->sculpt;
@@ -955,27 +949,27 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESIC:
-      expand_cache->falloff = has_topology_info ?
-                                  sculpt_expand_geodesic_falloff_create(sd, ob, v) :
-                                  sculpt_expand_spherical_falloff_create(sd, ob, v);
+      expand_cache->vert_falloff = has_topology_info ?
+                                       sculpt_expand_geodesic_falloff_create(sd, ob, v) :
+                                       sculpt_expand_spherical_falloff_create(ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY:
-      expand_cache->falloff = sculpt_expand_topology_falloff_create(sd, ob, v);
+      expand_cache->vert_falloff = sculpt_expand_topology_falloff_create(sd, ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS:
-      expand_cache->falloff = has_topology_info ?
-                                  sculpt_expand_diagonals_falloff_create(sd, ob, v) :
-                                  sculpt_expand_topology_falloff_create(sd, ob, v);
+      expand_cache->vert_falloff = has_topology_info ?
+                                       sculpt_expand_diagonals_falloff_create(ob, v) :
+                                       sculpt_expand_topology_falloff_create(sd, ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_NORMALS:
-      expand_cache->falloff = sculpt_expand_normal_falloff_create(
+      expand_cache->vert_falloff = sculpt_expand_normal_falloff_create(
           sd, ob, v, SCULPT_EXPAND_NORMALS_FALLOFF_EDGE_SENSITIVITY);
       break;
     case SCULPT_EXPAND_FALLOFF_SPHERICAL:
-      expand_cache->falloff = sculpt_expand_spherical_falloff_create(sd, ob, v);
+      expand_cache->vert_falloff = sculpt_expand_spherical_falloff_create(ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY:
-      expand_cache->falloff = sculpt_expand_boundary_topology_falloff_create(sd, ob, v);
+      expand_cache->vert_falloff = sculpt_expand_boundary_topology_falloff_create(ob, v);
       break;
     case SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET:
       sculpt_expand_initialize_from_face_set_boundary(
@@ -988,7 +982,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   }
 
   /* Update max falloff values and propagate to base mesh faces if needed. */
-  sculpt_expand_update_max_falloff_value(ss, expand_cache);
+  sculpt_expand_update_max_vert_falloff_value(ss, expand_cache);
   if (expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
     sculpt_expand_mesh_face_falloff_from_vertex_falloff(ss, ob->data, expand_cache);
     sculpt_expand_update_max_face_falloff_factor(ss, expand_cache);
@@ -1027,13 +1021,12 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
       MLoop *loop = &ss->mloop[l + poly->loopstart];
       if (!BLI_BITMAP_TEST(enabled_vertices, loop->v)) {
         any_disabled = true;
+        break;
       }
     }
     if (any_disabled) {
       const int face_set = expand_cache->original_face_sets[p];
-      if (BLI_gset_haskey(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set))) {
-        BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), NULL);
-      }
+      BLI_gset_remove(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set), NULL);
     }
   }
 
@@ -1042,14 +1035,14 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
   expand_cache->invert = prev_invert_state;
 }
 
-/* Functions to free a ExpandCache */
+/* Functions to free a ExpandCache. */
 static void sculpt_expand_cache_data_free(ExpandCache *expand_cache)
 {
   if (expand_cache->snap_enabled_face_sets) {
     BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
   }
   MEM_SAFE_FREE(expand_cache->nodes);
-  MEM_SAFE_FREE(expand_cache->falloff);
+  MEM_SAFE_FREE(expand_cache->vert_falloff);
   MEM_SAFE_FREE(expand_cache->face_falloff);
   MEM_SAFE_FREE(expand_cache->original_mask);
   MEM_SAFE_FREE(expand_cache->original_face_sets);
@@ -1312,8 +1305,8 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   const int totface = ss->totfaces;
 
   /* Face Sets are always stored as they are needed for snapping. */
-  expand_cache->initial_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "initial face set");
-  expand_cache->original_face_sets = MEM_malloc_arrayN(totvert, sizeof(int), "original face set");
+  expand_cache->initial_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "initial face set");
+  expand_cache->original_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "original face set");
   for (int i = 0; i < totface; i++) {
     expand_cache->initial_face_sets[i] = ss->face_sets[i];
     expand_cache->original_face_sets[i] = ss->face_sets[i];
@@ -1351,14 +1344,14 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
 
   /* Update the active factor in the cache. */
   if (vertex == SCULPT_EXPAND_VERTEX_NONE) {
-    /* This means that the cursor is not over the mesh, so a valid active fallof can't be
-     * determined. In this situations, don't evalue enabled states and default all vertices in
+    /* This means that the cursor is not over the mesh, so a valid active falloff can't be
+     * determined. In this situations, don't evaluate enabled states and default all vertices in
      * connected components to enabled. */
-    expand_cache->active_falloff = expand_cache->max_falloff;
+    expand_cache->active_falloff = expand_cache->max_vert_falloff;
     expand_cache->all_enabled = true;
   }
   else {
-    expand_cache->active_falloff = expand_cache->falloff[vertex];
+    expand_cache->active_falloff = expand_cache->vert_falloff[vertex];
     expand_cache->all_enabled = false;
   }
 
@@ -1403,7 +1396,7 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
 {
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
-  if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false)) {
+  if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
     return SCULPT_active_vertex_get(ss);
   }
   else {
@@ -1432,7 +1425,7 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(
       ss, enabled_vertices, use_mesh_boundary);
 
-  /* Ignore invert state, as this is the expected behaivour in most cases and mask are created in
+  /* Ignore invert state, as this is the expected behaviour in most cases and mask are created in
    * inverted state by default. */
   expand_cache->invert = initial_invert_state;
 
@@ -1446,7 +1439,7 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
       continue;
     }
 
-    if (!sculpt_expand_is_vert_in_active_compoment(ss, expand_cache, i)) {
+    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, i)) {
       continue;
     }
 
@@ -1476,6 +1469,15 @@ static void sculpt_expand_finish(bContext *C)
   SculptSession *ss = ob->sculpt;
   SCULPT_undo_push_end();
 
+  /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int n = 0; n < totnode; n++) {
+    BKE_pbvh_node_mark_update_mask(nodes[n]);
+  }
+  MEM_freeN(nodes);
+
   switch (ss->expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -1492,7 +1494,7 @@ static void sculpt_expand_finish(bContext *C)
   ED_workspace_status_text(C, NULL);
 }
 
-/* Finds and stores in the ExpandCache the sculpt connected component index for each symmetry passn
+/* Finds and stores in the ExpandCache the sculpt connected component index for each symmetry pass
  * needed for expand. */
 static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
                                                                      ExpandCache *expand_cache,
@@ -1500,7 +1502,7 @@ static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
-    expand_cache->active_connected_components[i] = EXPAND_ACTIVE_COMPOMENT_NONE;
+    expand_cache->active_connected_components[i] = EXPAND_ACTIVE_COMPONENT_NONE;
   }
 
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1509,17 +1511,11 @@ static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
       continue;
     }
 
-    int vertex_symm = SCULPT_EXPAND_VERTEX_NONE;
-    if (symm_it == 0) {
-      vertex_symm = initial_vertex;
-    }
-    else {
-      float location[3];
-      flip_v3_v3(location, SCULPT_vertex_co_get(ss, initial_vertex), symm_it);
-      vertex_symm = SCULPT_nearest_vertex_get(NULL, ob, location, FLT_MAX, false);
-    }
-    expand_cache->active_connected_components[symm_it] =
-        ss->vertex_info.connected_component[vertex_symm];
+    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
+        ob, symm_it, initial_vertex);
+
+    expand_cache->active_connected_components[(int)symm_it] =
+        ss->vertex_info.connected_component[symm_vertex];
   }
 }
 
@@ -1542,7 +1538,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
 
   if (expand_cache->next_face_set == SCULPT_FACE_SET_NONE) {
-    /* Only set the next face set once, otherwise this ID will constaintly update to a new one each
+    /* Only set the next face set once, otherwise this ID will constantly update to a new one each
      * time this function is called for using a new initial vertex from a different cursor
      * position. */
     if (expand_cache->modify_active_face_set) {
@@ -1554,7 +1550,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
   }
 
   /* The new mouse position can be over a different connected component, so this needs to be
-   * udpated. */
+   * updated. */
   sculpt_expand_find_active_connected_components_from_vert(ob, expand_cache, initial_vertex);
 }
 
@@ -1576,7 +1572,11 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
 
   sculpt_expand_set_initial_components_for_mouse(C, ob, expand_cache, new_mouse);
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
-      expand_cache, sd, ob, expand_cache->initial_active_vertex, expand_cache->falloff_type);
+      expand_cache,
+      sd,
+      ob,
+      expand_cache->initial_active_vertex,
+      expand_cache->move_preview_falloff_type);
 }
 
 /* Ensures that the SculptSession contains the required data needed for Expand. */
@@ -1591,7 +1591,7 @@ static void sculpt_expand_ensure_sculptsession_data(Object *ob)
   }
 }
 
-/* Returns the active Face Sets ID from the enabled face or grid in the ScultpSession. */
+/* Returns the active Face Sets ID from the enabled face or grid in the SculptSession. */
 static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *expand_cache)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1676,11 +1676,28 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
+          sculpt_expand_falloff_factors_from_vertex_and_symm_create(
+              expand_cache,
+              sd,
+              ob,
+              expand_cache->initial_active_vertex,
+              expand_cache->move_original_falloff_type);
+          break;
         }
         else {
           expand_cache->move = true;
+          expand_cache->move_original_falloff_type = expand_cache->falloff_type;
           copy_v2_v2(expand_cache->initial_mouse_move, mouse);
           copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
+          if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
+              SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {
+            /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
+             * In most cases it should match closely the preview from geodesic. */
+            expand_cache->move_preview_falloff_type = SCULPT_EXPAND_FALLOFF_SPHERICAL;
+          }
+          else {
+            expand_cache->move_preview_falloff_type = expand_cache->falloff_type;
+          }
         }
         break;
       }
@@ -1748,6 +1765,19 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_TEXTURE_DISTORTION_INCREASE: {
+        if (expand_cache->texture_distortion_strength == 0.0f) {
+          if (expand_cache->brush->mtex.tex == NULL) {
+            BKE_report(op->reports,
+                       RPT_WARNING,
+                       "Active brush does not contain any texture to distort the expand boundary");
+            break;
+          }
+          if (expand_cache->brush->mtex.brush_map_mode != MTEX_MAP_MODE_3D) {
+            BKE_report(op->reports,
+                       RPT_WARNING,
+                       "Texture mapping not set to 3D, results may be unpredictable");
+          }
+        }
         expand_cache->texture_distortion_strength += SCULPT_EXPAND_TEXTURE_DISTORTION_STEP;
         break;
       }
@@ -1760,7 +1790,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     }
   }
 
-  /* Handle epxnad origin movement if enabled */
+  /* Handle expand origin movement if enabled. */
   if (expand_cache->move) {
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
@@ -1786,23 +1816,34 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 static void sculpt_expand_delete_face_set_id(
     int *r_face_sets, Mesh *mesh, MeshElemMap *pmap, const int totface, const int delete_id)
 {
+  /* Check that all the face sets IDs in the mesh are not equal to delete_id befor attempting to
+   * delete it. */
+  bool all_same_id = true;
+  for (int i = 0; i < totface; i++) {
+    if (r_face_sets[i] != delete_id) {
+      all_same_id = false;
+      break;
+    }
+  }
+  if (all_same_id) {
+    return;
+  }
 
-  BLI_LINKSTACK_DECLARE(queue, int);
-  BLI_LINKSTACK_DECLARE(queue_next, int);
+  BLI_LINKSTACK_DECLARE(queue, void *);
+  BLI_LINKSTACK_DECLARE(queue_next, void *);
 
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
 
   for (int i = 0; i < totface; i++) {
     if (r_face_sets[i] == delete_id) {
-      BLI_LINKSTACK_PUSH(queue, i);
+      BLI_LINKSTACK_PUSH(queue, POINTER_FROM_INT(i));
     }
   }
 
   while (BLI_LINKSTACK_SIZE(queue)) {
-    int f_index;
-    while (f_index = BLI_LINKSTACK_POP(queue)) {
-
+    while (BLI_LINKSTACK_SIZE(queue)) {
+      const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
       const MPoly *c_poly = &mesh->mpoly[f_index];
       for (int l = 0; l < c_poly->totloop; l++) {
@@ -1821,7 +1862,7 @@ static void sculpt_expand_delete_face_set_id(
         r_face_sets[f_index] = other_id;
       }
       else {
-        BLI_LINKSTACK_PUSH(queue_next, f_index);
+        BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(f_index));
       }
     }
 
@@ -1843,6 +1884,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->target = RNA_enum_get(op->ptr, "target");
   expand_cache->modify_active_face_set = RNA_boolean_get(op->ptr, "use_modify_active");
   expand_cache->reposition_pivot = RNA_boolean_get(op->ptr, "use_reposition_pivot");
+  expand_cache->max_geodesic_move_preview = RNA_int_get(op->ptr, "max_geodesic_move_preview");
 
   /* These can be exposed in RNA if needed. */
   expand_cache->loop_count = 1;
@@ -1864,7 +1906,7 @@ static void sculpt_expand_cache_initial_config_set(bContext *C,
   expand_cache->blend_mode = expand_cache->brush->blend;
 }
 
-/* Does the undo sculpt push for the affected target data of the ExpandCache */
+/* Does the undo sculpt push for the affected target data of the ExpandCache. */
 static void sculpt_expand_undo_push(Object *ob, ExpandCache *expand_cache)
 {
   SculptSession *ss = ob->sculpt;
@@ -1913,6 +1955,21 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, needs_colors);
+
+  /* Do nothing when the mesh has 0 vertices. */
+  const int totvert = SCULPT_vertex_count_get(ss);
+  if (totvert == 0) {
+    sculpt_expand_cache_free(ss);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Face Set operations are not supported in dyntopo. */
+  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS &&
+      BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    sculpt_expand_cache_free(ss);
+    return OPERATOR_CANCELLED;
+  }
+
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Initialize undo. */
@@ -2039,6 +2096,29 @@ void SCULPT_OT_expand(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  static EnumPropertyItem prop_sculpt_expand_falloff_type_items[] = {
+      {SCULPT_EXPAND_FALLOFF_GEODESIC, "GEODESIC", 0, "Geodesic", ""},
+      {SCULPT_EXPAND_FALLOFF_TOPOLOGY, "TOPOLOGY", 0, "Topology", ""},
+      {SCULPT_EXPAND_FALLOFF_TOPOLOGY_DIAGONALS,
+       "TOPOLOGY_DIAGONALS",
+       0,
+       "Topology Diagonals",
+       ""},
+      {SCULPT_EXPAND_FALLOFF_NORMALS, "NORMALS", 0, "Normals", ""},
+      {SCULPT_EXPAND_FALLOFF_SPHERICAL, "SPHERICAL", 0, "Spherical", ""},
+      {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY", 0, "Boundary Topology", ""},
+      {SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET, "BOUNDARY_FACE_SET", 0, "Boundary Face Set", ""},
+      {SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET, "ACTIVE_FACE_SET", 0, "Active Face Set", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static EnumPropertyItem prop_sculpt_expand_target_type_items[] = {
+      {SCULPT_EXPAND_TARGET_MASK, "MASK", 0, "Mask", ""},
+      {SCULPT_EXPAND_TARGET_FACE_SETS, "FACE_SETS", 0, "Face Sets", ""},
+      {SCULPT_EXPAND_TARGET_COLORS, "COLOR", 0, "Color", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   RNA_def_enum(ot->srna,
                "target",
                prop_sculpt_expand_target_type_items,
@@ -2050,7 +2130,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                "falloff_type",
                prop_sculpt_expand_falloff_type_items,
                SCULPT_EXPAND_FALLOFF_GEODESIC,
-               "Fallof Type",
+               "Falloff Type",
                "Initial falloff of the expand operation");
 
   ot->prop = RNA_def_boolean(
@@ -2060,12 +2140,34 @@ void SCULPT_OT_expand(wmOperatorType *ot)
                              false,
                              "Preserve Previous",
                              "Preserve the previous state of the target data");
-  ot->prop = RNA_def_boolean(
-      ot->srna, "use_falloff_gradient", false, "Falloff Gradient", "Expand Using a Falloff");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_falloff_gradient",
+                             false,
+                             "Falloff Gradient",
+                             "Expand Using a linear falloff");
+
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "use_modify_active",
+                             false,
+                             "Modify Active",
+                             "Modify the active Face Set instead of creating a new one");
 
   ot->prop = RNA_def_boolean(
-      ot->srna, "use_modify_active", false, "Modify Active", "Modify Active");
+      ot->srna,
+      "use_reposition_pivot",
+      true,
+      "Reposition Pivot",
+      "Reposition the sculpt transform pivot to the boundary of the expand active area");
 
-  ot->prop = RNA_def_boolean(
-      ot->srna, "use_reposition_pivot", true, "Reposition Pivot", "Reposition pivot");
+  ot->prop = RNA_def_int(ot->srna,
+                         "max_geodesic_move_preview",
+                         10000,
+                         0,
+                         INT_MAX,
+                         "Max Vertex Count for Geodesic Move Preview",
+                         "Maximum number of vertices in the mesh for using geodesic falloff when "
+                         "moving the origin of expand. If the total number of vertices is greater "
+                         "than this value, the falloff will be set to spherical when moving",
+                         0,
+                         1000000);
 }

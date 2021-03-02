@@ -76,6 +76,7 @@
 #include <stdlib.h>
 #define SCULPT_GEODESIC_VERTEX_NONE -1
 
+/* Propagate distance from v1 and v2 to v0. */
 static bool sculpt_geodesic_mesh_test_dist_add(
     MVert *mvert, const int v0, const int v1, const int v2, float *dists, GSet *initial_vertices)
 {
@@ -144,8 +145,9 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
         &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
   }
 
-  BLI_LINKSTACK_DECLARE(queue, int);
-  BLI_LINKSTACK_DECLARE(queue_next, int);
+  /* Both contain edge indices encoded as *void. */
+  BLI_LINKSTACK_DECLARE(queue, void *);
+  BLI_LINKSTACK_DECLARE(queue_next, void *);
 
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
@@ -159,18 +161,32 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
     }
   }
 
+  /* Masks vertices that are further than limit radius from an initial vertex. As there is no need
+   * to define a distance to them the algorithm can stop earlier by skipping them. */
   BLI_bitmap *affected_vertex = BLI_BITMAP_NEW(totvert, "affected vertex");
   GSetIterator gs_iter;
-  GSET_ITER (gs_iter, initial_vertices) {
-    const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-    float *v_co = verts[v].co;
-    for (int i = 0; i < totvert; i++) {
-      if (len_squared_v3v3(v_co, verts[i].co) <= limit_radius_sq) {
-        BLI_BITMAP_ENABLE(affected_vertex, i);
+
+  if (limit_radius == FLT_MAX) {
+    /* In this case, no need to loop through all initial vertices to check distances as they are
+     * all going to be affected. */
+    BLI_bitmap_set_all(affected_vertex, true, totvert);
+  }
+  else {
+    /* This is an O(n^2) loop used to limit the geodesic distance calculation to a radius. When
+     * this optimization is needed, it is expected for the tool to request the distance to a low
+     * number of vertices (usually just 1 or 2). */
+    GSET_ITER (gs_iter, initial_vertices) {
+      const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+      float *v_co = verts[v].co;
+      for (int i = 0; i < totvert; i++) {
+        if (len_squared_v3v3(v_co, verts[i].co) <= limit_radius_sq) {
+          BLI_BITMAP_ENABLE(affected_vertex, i);
+        }
       }
     }
   }
 
+  /* Add edges adjacent to an initial vertex to the queue. */
   for (int i = 0; i < totedge; i++) {
     const int v1 = edges[i].v1;
     const int v2 = edges[i].v2;
@@ -178,13 +194,13 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
       continue;
     }
     if (dists[v1] != FLT_MAX || dists[v2] != FLT_MAX) {
-      BLI_LINKSTACK_PUSH(queue, i);
+      BLI_LINKSTACK_PUSH(queue, POINTER_FROM_INT(i));
     }
   }
 
   do {
     while (BLI_LINKSTACK_SIZE(queue)) {
-      const int e = BLI_LINKSTACK_POP(queue);
+      const int e = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int v1 = edges[e].v1;
       int v2 = edges[e].v2;
 
@@ -197,23 +213,24 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
       }
 
       if (ss->epmap[e].count != 0) {
-        for (int pi = 0; pi < ss->epmap[e].count; pi++) {
-          const int poly = ss->epmap[e].indices[pi];
+        for (int poly_map_index = 0; poly_map_index < ss->epmap[e].count; poly_map_index++) {
+          const int poly = ss->epmap[e].indices[poly_map_index];
           if (ss->face_sets[poly] <= 0) {
             continue;
           }
           const MPoly *mpoly = &mesh->mpoly[poly];
 
-          for (int li = 0; li < mpoly->totloop; li++) {
-            const MLoop *mloop = &mesh->mloop[li + mpoly->loopstart];
+          for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
+            const MLoop *mloop = &mesh->mloop[loop_index + mpoly->loopstart];
             const int v_other = mloop->v;
             if (ELEM(v_other, v1, v2)) {
               continue;
             }
             if (sculpt_geodesic_mesh_test_dist_add(
                     verts, v_other, v1, v2, dists, initial_vertices)) {
-              for (int ei = 0; ei < ss->vemap[v_other].count; ei++) {
-                const int e_other = ss->vemap[v_other].indices[ei];
+              for (int edge_map_index = 0; edge_map_index < ss->vemap[v_other].count;
+                   edge_map_index++) {
+                const int e_other = ss->vemap[v_other].indices[edge_map_index];
                 int ev_other;
                 if (edges[e_other].v1 == (uint)v_other) {
                   ev_other = edges[e_other].v2;
@@ -227,7 +244,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
                   if (BLI_BITMAP_TEST(affected_vertex, v_other) ||
                       BLI_BITMAP_TEST(affected_vertex, ev_other)) {
                     BLI_BITMAP_ENABLE(edge_tag, e_other);
-                    BLI_LINKSTACK_PUSH(queue_next, e_other);
+                    BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(e_other));
                   }
                 }
               }
@@ -255,7 +272,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 }
 
 /* For sculpt mesh data that does not support a geodesic distances algorithm, fallback to the
- * distance to each vertex. */
+ * distance to each vertex. In this case, only one of the initial vertices will be used to
+ * calculate the distance. */
 static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices)
 {
 
@@ -269,7 +287,11 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
     first_affected = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
     break;
   }
+
   if (first_affected == SCULPT_GEODESIC_VERTEX_NONE) {
+    for (int i = 0; i < totvert; i++) {
+      dists[i] = FLT_MAX;
+    }
     return dists;
   }
 

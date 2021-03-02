@@ -86,4 +86,21 @@ struct CryptomatteLayer {
   std::optional<std::string> operator[](float encoded_hash) const;
 };
 
+struct CryptomatteStampDataCallbackData {
+  struct CryptomatteSession *session;
+  blender::Map<std::string, std::string> hash_to_layer_name;
+
+  /**
+   * Extract the hash from a stamp data key.
+   *
+   * Cryptomatte keys are formatted as "cryptomatte/{layer_hash}/{attribute}".
+   */
+  static blender::StringRef extract_layer_hash(blender::StringRefNull key);
+
+  /* C type callback function (StampCallback). */
+  static void extract_layer_names(void *_data, const char *propname, char *propvalue, int len);
+  /* C type callback function (StampCallback). */
+  static void extract_layer_manifest(void *_data, const char *propname, char *propvalue, int len);
+};
+
 }  // namespace blender::bke::cryptomatte

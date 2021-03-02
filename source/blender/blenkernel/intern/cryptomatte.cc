@@ -37,6 +37,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "RE_pipeline.h"
+
 #include "MEM_guardedalloc.h"
 
 #include <cctype>
@@ -51,6 +53,7 @@ struct CryptomatteSession {
 
   CryptomatteSession();
   CryptomatteSession(const Main *bmain);
+  CryptomatteSession(StampData *metadata);
 
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -80,6 +83,22 @@ CryptomatteSession::CryptomatteSession(const Main *bmain)
   }
 }
 
+CryptomatteSession::CryptomatteSession(StampData *stamp_data)
+{
+  blender::bke::cryptomatte::CryptomatteStampDataCallbackData callback_data;
+  callback_data.session = this;
+  BKE_stamp_info_callback(
+      &callback_data,
+      stamp_data,
+      blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_names,
+      false);
+  BKE_stamp_info_callback(
+      &callback_data,
+      stamp_data,
+      blender::bke::cryptomatte::CryptomatteStampDataCallbackData::extract_layer_manifest,
+      false);
+}
+
 blender::bke::cryptomatte::CryptomatteLayer &CryptomatteSession::add_layer(std::string layer_name)
 {
   return layers.lookup_or_add_default(layer_name);
@@ -99,6 +118,13 @@ std::optional<std::string> CryptomatteSession::operator[](float encoded_hash) co
 CryptomatteSession *BKE_cryptomatte_init(void)
 {
   CryptomatteSession *session = new CryptomatteSession();
+  return session;
+}
+
+struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
+    const struct RenderResult *render_result)
+{
+  CryptomatteSession *session = new CryptomatteSession(render_result->stamp_data);
   return session;
 }
 
@@ -158,22 +184,30 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
 
 char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 {
-  DynStr *matte_id = BLI_dynstr_new();
+  std::stringstream ss;
+  ss.precision(9);
+
   bool first = true;
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &node_storage->entries) {
     if (!first) {
-      BLI_dynstr_append(matte_id, ",");
+      ss << ',';
     }
-    if (BLI_strnlen(entry->name, sizeof(entry->name)) != 0) {
-      BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
+    blender::StringRef entry_name(entry->name, BLI_strnlen(entry->name, sizeof(entry->name)));
+    if (!entry_name.is_empty()) {
+      ss << entry_name;
     }
     else {
-      BLI_dynstr_appendf(matte_id, "<%.9g>", entry->encoded_hash);
+      ss << '<' << std::scientific << entry->encoded_hash << '>';
     }
     first = false;
   }
-  char *result = BLI_dynstr_get_cstring(matte_id);
-  BLI_dynstr_free(matte_id);
+
+  /* Convert result to C string. */
+  const std::string result_string = ss.str();
+  const char *c_str = result_string.c_str();
+  size_t result_len = result_string.size() + 1;
+  char *result = static_cast<char *>(MEM_mallocN(sizeof(char) * result_len, __func__));
+  memcpy(result, c_str, result_len);
   return result;
 }
 
@@ -500,6 +534,67 @@ std::optional<std::string> CryptomatteLayer::operator[](float encoded_hash) cons
 std::string CryptomatteLayer::manifest() const
 {
   return blender::bke::cryptomatte::manifest::to_manifest(this);
+}
+
+blender::StringRef CryptomatteStampDataCallbackData::extract_layer_hash(blender::StringRefNull key)
+{
+  BLI_assert(key.startswith("cryptomatte/"));
+
+  size_t start_index = key.find_first_of('/');
+  size_t end_index = key.find_last_of('/');
+  if (start_index == blender::StringRef::not_found) {
+    return "";
+  }
+  if (end_index == blender::StringRef::not_found) {
+    return "";
+  }
+  if (end_index <= start_index) {
+    return "";
+  }
+  return key.substr(start_index + 1, end_index - start_index - 1);
+}
+
+void CryptomatteStampDataCallbackData::extract_layer_names(void *_data,
+                                                           const char *propname,
+                                                           char *propvalue,
+                                                           int UNUSED(len))
+{
+  CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
+
+  blender::StringRefNull key(propname);
+  if (!key.startswith("cryptomatte/")) {
+    return;
+  }
+  if (!key.endswith("/name")) {
+    return;
+  }
+  blender::StringRef layer_hash = extract_layer_hash(key);
+  data->hash_to_layer_name.add(layer_hash, propvalue);
+}
+
+/* C type callback function (StampCallback). */
+void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
+                                                              const char *propname,
+                                                              char *propvalue,
+                                                              int UNUSED(len))
+{
+  CryptomatteStampDataCallbackData *data = static_cast<CryptomatteStampDataCallbackData *>(_data);
+
+  blender::StringRefNull key(propname);
+  if (!key.startswith("cryptomatte/")) {
+    return;
+  }
+  if (!key.endswith("/manifest")) {
+    return;
+  }
+  blender::StringRef layer_hash = extract_layer_hash(key);
+  if (!data->hash_to_layer_name.contains(layer_hash)) {
+    return;
+  }
+
+  blender::StringRef layer_name = data->hash_to_layer_name.lookup(layer_hash);
+  blender::bke::cryptomatte::CryptomatteLayer &layer = data->session->add_layer(layer_name);
+  blender::bke::cryptomatte::manifest::from_manifest(layer, propvalue);
 }
 
 }  // namespace blender::bke::cryptomatte

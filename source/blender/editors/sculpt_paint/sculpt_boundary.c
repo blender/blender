@@ -521,6 +521,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
   const bool init_boundary_distances = brush ? brush->boundary_falloff_type !=
                                                    BRUSH_BOUNDARY_FALLOFF_CONSTANT :
                                                false;
+
   sculpt_boundary_indices_init(ss, boundary, init_boundary_distances, boundary_initial_vertex);
 
   const float boundary_radius = brush ? radius * (1.0f + brush->boundary_offset) : radius;

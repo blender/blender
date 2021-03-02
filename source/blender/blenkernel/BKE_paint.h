@@ -481,13 +481,16 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   float *vmask;
 
-  /* Mesh connectivity */
+  /* Mesh connectivity maps. */
+  /* Vertices to adjacent polys. */
   struct MeshElemMap *pmap;
   int *pmap_mem;
 
+  /* Edges to adjacent polys. */
   struct MeshElemMap *epmap;
   int *epmap_mem;
 
+  /* Vertices to adjacent edges. */
   struct MeshElemMap *vemap;
   int *vemap_mem;
 

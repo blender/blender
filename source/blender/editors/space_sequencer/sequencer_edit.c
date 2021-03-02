@@ -1870,93 +1870,28 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 /** \name Toggle Meta Strip Operator
  * \{ */
 
-void recurs_sel_seq(Sequence *seqm)
-{
-  Sequence *seq;
-
-  seq = seqm->seqbase.first;
-  while (seq) {
-
-    if (seqm->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) {
-      seq->flag &= ~SEQ_ALLSEL;
-    }
-    else if (seqm->flag & SELECT) {
-      seq->flag |= SELECT;
-    }
-    else {
-      seq->flag &= ~SEQ_ALLSEL;
-    }
-
-    if (seq->seqbase.first) {
-      recurs_sel_seq(seq);
-    }
-
-    seq = seq->next;
-  }
-}
-
 static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *last_seq = SEQ_select_active_get(scene);
-  MetaStack *ms;
+  Sequence *active_seq = SEQ_select_active_get(scene);
 
-  if (last_seq && last_seq->type == SEQ_TYPE_META && last_seq->flag & SELECT) {
+  if (active_seq && active_seq->type == SEQ_TYPE_META && active_seq->flag & SELECT) {
     /* Enter metastrip. */
-    ms = MEM_mallocN(sizeof(MetaStack), "metastack");
-    BLI_addtail(&ed->metastack, ms);
-    ms->parseq = last_seq;
-    ms->oldbasep = ed->seqbasep;
-    copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
-
-    ed->seqbasep = &last_seq->seqbase;
-
+    SEQ_meta_stack_alloc(ed, active_seq);
+    SEQ_seqbase_active_set(ed, &active_seq->seqbase);
     SEQ_select_active_set(scene, NULL);
   }
   else {
     /* Exit metastrip if possible. */
-
-    Sequence *seq;
-
     if (BLI_listbase_is_empty(&ed->metastack)) {
       return OPERATOR_CANCELLED;
     }
 
-    ms = ed->metastack.last;
-    BLI_remlink(&ed->metastack, ms);
-
-    ed->seqbasep = ms->oldbasep;
-
-    /* For old files, update from meta. */
-    if (ms->disp_range[0] == ms->disp_range[1]) {
-      copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
-    }
-
-    /* Recalc all: the meta can have effects connected to it. */
-    for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-      SEQ_time_update_sequence(scene, seq);
-    }
-
-    /* 2.73+, keeping endpoints is important!
-     * Moving them around means you can't usefully use metas in a complex edit. */
-#if 1
-    SEQ_transform_set_left_handle_frame(ms->parseq, ms->disp_range[0]);
-    SEQ_transform_set_right_handle_frame(ms->parseq, ms->disp_range[1]);
-    SEQ_transform_fix_single_image_seq_offsets(ms->parseq);
-    SEQ_time_update_sequence(scene, ms->parseq);
-#else
-    if (SEQ_transform_test_overlap(ed->seqbasep, ms->parseq)) {
-      SEQ_transform_seqbase_shuffle(ed->seqbasep, ms->parseq, scene);
-    }
-#endif
-
+    MetaStack *ms = SEQ_meta_stack_active_get(ed);
+    SEQ_seqbase_active_set(ed, ms->oldbasep);
     SEQ_select_active_set(scene, ms->parseq);
-
-    ms->parseq->flag |= SELECT;
-    recurs_sel_seq(ms->parseq);
-
-    MEM_freeN(ms);
+    SEQ_meta_stack_free(ed, ms);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -1990,48 +1925,44 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
+  Sequence *active_seq = SEQ_select_active_get(scene);
+  ListBase *active_seqbase = SEQ_active_seqbase_get(ed);
 
-  Sequence *seq, *seqm, *next, *last_seq = SEQ_select_active_get(scene);
-  int channel_max = 1;
-
-  if (SEQ_transform_seqbase_isolated_sel_check(ed->seqbasep) == false) {
+  if (SEQ_transform_seqbase_isolated_sel_check(active_seqbase) == false) {
     BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
     return OPERATOR_CANCELLED;
   }
 
   SEQ_prefetch_stop(scene);
 
-  /* Remove all selected from main list, and put in meta. */
+  int channel_max = 1, meta_start_frame = MAXFRAME, meta_end_frame = MINFRAME;
+  Sequence *seqm = SEQ_sequence_alloc(active_seqbase, 1, 1, SEQ_TYPE_META);
 
-  seqm = SEQ_sequence_alloc(ed->seqbasep, 1, 1, SEQ_TYPE_META); /* Channel number set later. */
-  strcpy(seqm->name + 2, "MetaStrip");
-  seqm->flag = SELECT;
-
-  seq = ed->seqbasep->first;
-  while (seq) {
-    next = seq->next;
-    if (seq != seqm && (seq->flag & SELECT)) {
-      SEQ_relations_invalidate_cache_composite(scene, seq);
-      channel_max = max_ii(seq->machine, channel_max);
-      /* Sequence is moved within the same edit, no need to re-generate the UUID. */
-      BLI_remlink(ed->seqbasep, seq);
+  /* Remove all selected from main list, and put in meta.
+   * Sequence is moved within the same edit, no need to re-generate the UUID. */
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, active_seqbase) {
+    if (seq != seqm && seq->flag & SELECT) {
+      BLI_remlink(active_seqbase, seq);
       BLI_addtail(&seqm->seqbase, seq);
+      SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+      channel_max = max_ii(seq->machine, channel_max);
+      meta_start_frame = min_ii(seq->startdisp, meta_start_frame);
+      meta_end_frame = max_ii(seq->enddisp, meta_end_frame);
     }
-    seq = next;
   }
-  seqm->machine = last_seq ? last_seq->machine : channel_max;
+
+  seqm->machine = active_seq ? active_seq->machine : channel_max;
+  strcpy(seqm->name + 2, "MetaStrip");
+  SEQ_sequence_base_unique_name_recursive(&ed->seqbase, seqm);
+  seqm->start = meta_start_frame;
+  seqm->len = meta_end_frame - meta_start_frame;
   SEQ_time_update_sequence(scene, seqm);
-
   SEQ_select_active_set(scene, seqm);
-
-  if (SEQ_transform_test_overlap(ed->seqbasep, seqm)) {
-    SEQ_transform_seqbase_shuffle(ed->seqbasep, seqm, scene);
+  if (SEQ_transform_test_overlap(active_seqbase, seqm)) {
+    SEQ_transform_seqbase_shuffle(active_seqbase, seqm, scene);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-
-  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqm);
-  SEQ_relations_invalidate_cache_composite(scene, seqm);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -2058,95 +1989,43 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 /** \name UnMeta Strip Operator
  * \{ */
 
-static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
-{
-  if (seq == seqm) {
-    return 1;
-  }
-  if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) {
-    return 1;
-  }
-  if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) {
-    return 1;
-  }
-  if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) {
-    return 1;
-  }
-  return 0;
-}
-
-static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short deleteall)
-{
-  Sequence *seq, *seqn;
-  Sequence *last_seq = SEQ_select_active_get(scene);
-
-  seq = lb->first;
-  while (seq) {
-    seqn = seq->next;
-    if ((seq->flag & flag) || deleteall) {
-      BLI_remlink(lb, seq);
-      if (seq == last_seq) {
-        SEQ_select_active_set(scene, NULL);
-      }
-      if (seq->type == SEQ_TYPE_META) {
-        recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
-      }
-      SEQ_sequence_free(scene, seq, true);
-    }
-    seq = seqn;
-  }
-}
-
 static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
+  Sequence *active_seq = SEQ_select_active_get(scene);
 
-  Sequence *seq, *last_seq = SEQ_select_active_get(scene); /* last_seq checks (ed == NULL) */
-
-  if (last_seq == NULL || last_seq->type != SEQ_TYPE_META) {
+  if (active_seq == NULL || active_seq->type != SEQ_TYPE_META) {
     return OPERATOR_CANCELLED;
   }
 
   SEQ_prefetch_stop(scene);
 
-  for (seq = last_seq->seqbase.first; seq != NULL; seq = seq->next) {
-    SEQ_relations_invalidate_cache_composite(scene, seq);
+  LISTBASE_FOREACH (Sequence *, seq, &active_seq->seqbase) {
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
   }
 
-  /* This moves strips from meta to parent, sating within same edit and no new strips are
-   * allocated. If the UUID was unique already (as it should) it will stay unique.
-   * No need to re-generate the UUIDs. */
-  BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
+  /* Remove all selected from meta, and put in main list.
+   * Sequence is moved within the same edit, no need to re-generate the UUID. */
+  BLI_movelisttolist(ed->seqbasep, &active_seq->seqbase);
+  BLI_listbase_clear(&active_seq->seqbase);
 
-  BLI_listbase_clear(&last_seq->seqbase);
+  ListBase *active_seqbase = SEQ_active_seqbase_get(ed);
+  SEQ_edit_flag_for_removal(scene, active_seqbase, active_seq);
+  SEQ_edit_remove_flagged_sequences(scene, active_seqbase);
 
-  BLI_remlink(ed->seqbasep, last_seq);
-  SEQ_sequence_free(scene, last_seq, true);
-
-  /* Empty meta strip, delete all effects depending on it. */
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->type & SEQ_TYPE_EFFECT) && seq_depends_on_meta(seq, last_seq)) {
-      seq->flag |= SEQ_FLAG_DELETE;
-    }
-  }
-
-  recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
-
-  /* Test for effects and overlap
-   * don't use SEQ_CURRENT_BEGIN since that would be recursive. */
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+  /* Test for effects and overlap. */
+  LISTBASE_FOREACH (Sequence *, seq, active_seqbase) {
     if (seq->flag & SELECT) {
       seq->flag &= ~SEQ_OVERLAP;
-      if (SEQ_transform_test_overlap(ed->seqbasep, seq)) {
-        SEQ_transform_seqbase_shuffle(ed->seqbasep, seq, scene);
+      if (SEQ_transform_test_overlap(active_seqbase, seq)) {
+        SEQ_transform_seqbase_shuffle(active_seqbase, seq, scene);
       }
     }
   }
 
   SEQ_sort(scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
-
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;

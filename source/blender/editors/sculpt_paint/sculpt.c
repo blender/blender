@@ -10539,7 +10539,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_project_lasso_gesture);
   WM_operatortype_append(SCULPT_OT_project_box_gesture);
 
-  WM_operatortype_append(SCULPT_OT_expand);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);
@@ -10551,4 +10550,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_reset_brushes);
   WM_operatortype_append(SCULPT_OT_ipmask_filter);
+
+  WM_operatortype_append(SCULPT_OT_expand);
 }

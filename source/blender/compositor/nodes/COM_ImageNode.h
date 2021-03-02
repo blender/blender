@@ -24,6 +24,7 @@
 #include "DNA_node_types.h"
 
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 /**
  * \brief ImageNode
@@ -33,11 +34,11 @@ class ImageNode : public Node {
  private:
   NodeOperation *doMultilayerCheck(NodeConverter &converter,
                                    RenderLayer *rl,
+                                   RenderPass *render_pass,
                                    Image *image,
                                    ImageUser *user,
                                    int framenumber,
                                    int outputsocketIndex,
-                                   int passindex,
                                    int view,
                                    DataType datatype) const;
 
