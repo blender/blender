@@ -51,7 +51,7 @@ ARGS=$( \
 getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,\
-with-all,with-opencollada,with-jack,with-embree,with-oidn,with-nanovdb,\
+with-all,with-opencollada,with-jack,with-pulseaudio,with-embree,with-oidn,with-nanovdb,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,\
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
@@ -156,6 +156,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --with-jack
         Install the jack libraries.
+
+    --with-pulseaudio
+        Install the pulseaudio libraries.
 
     --ver-ocio=<ver>
         Force version of OCIO library.
@@ -721,6 +724,9 @@ while true; do
     --with-jack)
       WITH_JACK=true; shift; continue;
     ;;
+    --with-pulseaudio)
+      WITH_PULSEAUDIO=true; shift; continue;
+    ;;
     --ver-ocio)
       OCIO_VERSION="$2"
       OCIO_VERSION_MIN=$OCIO_VERSION
@@ -985,6 +991,7 @@ fi
 if [ "$WITH_ALL" = true ]; then
   WITH_JACK=true
   WITH_NANOVDB=true
+  WITH_PULSEAUDIO=true
 fi
 
 if [ "$WITH_NANOVDB" = true ]; then
@@ -3877,6 +3884,10 @@ install_DEB() {
     fi
   fi
 
+  if [ "$WITH_PULSEAUDIO" = true ]; then
+    _packages="$_packages libpulse-dev"
+  fi
+
   PRINT ""
   install_packages_DEB $_packages
 
@@ -4499,6 +4510,10 @@ install_RPM() {
       _packages="$_packages jack-audio-connection-kit-devel"
     fi
 
+    if [ "$WITH_PULSEAUDIO" = true ]; then
+      _packages="$_packages pulseaudio-libs-devel"
+    fi
+
     PRINT ""
     install_packages_RPM $_packages
 
@@ -4540,6 +4555,10 @@ install_RPM() {
     if [ $? -eq 0 ]; then
       install_packages_RPM $X264_DEV
       X264_USE=true
+    fi
+
+    if [ "$WITH_PULSEAUDIO" = true ]; then
+      _packages="$_packages libpulse-devel"
     fi
 
     if [ "$WITH_ALL" = true ]; then
@@ -5071,6 +5090,10 @@ install_ARCH() {
 
   if [ "$WITH_JACK" = true ]; then
     _packages="$_packages jack2"
+  fi
+
+  if [ "$WITH_PULSEAUDIO" = true ]; then
+    _packages="$_packages libpulse"
   fi
 
   PRINT ""
@@ -5883,6 +5906,14 @@ print_info() {
   if [ "$WITH_JACK" = true ]; then
     _1="-D WITH_JACK=ON"
     _2="-D WITH_JACK_DYNLOAD=ON"
+    PRINT "  $_1"
+    PRINT "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
+  fi
+
+  if [ "$WITH_PULSEAUDIO" = true ]; then
+    _1="-D WITH_PULSEAUDIO=ON"
+    _2="-D WITH_PULSEAUDIO_DYNLOAD=ON"
     PRINT "  $_1"
     PRINT "  $_2"
     _buildargs="$_buildargs $_1 $_2"

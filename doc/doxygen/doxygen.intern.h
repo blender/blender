@@ -60,6 +60,9 @@
 /** \defgroup audopenal Audaspace OpenAL
  *  \ingroup audaspace
  */
+/** \defgroup audpulseaudio Audaspace PulseAudio
+ *  \ingroup audaspace
+ */
 /** \defgroup audpython Audaspace Python
  *  \ingroup audaspace
  */

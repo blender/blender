@@ -11,6 +11,7 @@ set(WITH_HEADLESS            ON  CACHE BOOL "" FORCE)
 # so the python module doesn't hold the audio device and loads quickly.
 set(WITH_AUDASPACE           OFF CACHE BOOL "" FORCE)
 set(WITH_JACK                OFF CACHE BOOL "" FORCE)
+set(WITH_PULSEAUDIO          OFF CACHE BOOL "" FORCE)
 set(WITH_SDL                 OFF CACHE BOOL "" FORCE)
 set(WITH_OPENAL              OFF CACHE BOOL "" FORCE)
 set(WITH_CODEC_FFMPEG        OFF CACHE BOOL "" FORCE)

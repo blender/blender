@@ -284,6 +284,10 @@ if(WITH_LIBMV)
   add_definitions(-DWITH_LIBMV)
 endif()
 
+if(WITH_PULSEAUDIO)
+  add_definitions(-DWITH_PULSEAUDIO)
+endif()
+
 if(WITH_MOD_OCEANSIM)
   add_definitions(-DWITH_OCEANSIM)
 endif()

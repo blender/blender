@@ -285,6 +285,10 @@ if(AUDASPACE_STANDALONE)
 	option(WITH_SDL "Build With SDL" TRUE)
 	option(WITH_STRICT_DEPENDENCIES "Error and abort instead of warning if a library is not found." FALSE)
 
+	if(NOT WIN32 AND NOT APPLE)
+		option(WITH_PULSEAUDIO "Build With PulseAudio" TRUE)
+	endif()
+
 	if(WITH_STRICT_DEPENDENCIES)
 		set(PACKAGE_OPTION REQUIRED)
 	endif()
@@ -306,10 +310,12 @@ if(AUDASPACE_STANDALONE)
 	cmake_dependent_option(PLUGIN_JACK "Build JACK Plugin" TRUE "WITH_JACK;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_LIBSNDFILE "Build LibSndFile Plugin" TRUE "WITH_LIBSNDFILE;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_OPENAL "Build OpenAL Plugin" TRUE "WITH_OPENAL;SHARED_LIBRARY" FALSE)
+	cmake_dependent_option(PLUGIN_PULSEAUDIO "Build PulseAudio Plugin" TRUE "WITH_PULSEAUDIO;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_SDL "Build SDL Plugin" TRUE "WITH_SDL;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(WITH_PYTHON_MODULE "Build Python Module" TRUE "WITH_PYTHON" FALSE)
 	cmake_dependent_option(USE_SDL2 "Use SDL2 instead of 1 if available" TRUE "WITH_SDL" FALSE)
 	cmake_dependent_option(DYNLOAD_JACK "Dynamically load JACK" FALSE "WITH_JACK" FALSE)
+	cmake_dependent_option(DYNLOAD_PULSEAUDIO "Dynamically load PulseAudio" FALSE "WITH_PULSEAUDIO" FALSE)
 	cmake_dependent_option(WITH_BINDING_DOCS "Build C/Python HTML Documentation with Sphinx" TRUE "WITH_PYTHON_MODULE" FALSE)
 endif()
 
@@ -598,6 +604,42 @@ if(WITH_OPENAL)
 	endif()
 endif()
 
+# PulseAudio
+if(WITH_PULSEAUDIO)
+	if(AUDASPACE_STANDALONE)
+		find_package(LibPulse ${PACKAGE_OPTION})
+	endif()
+
+	if(LIBPULSE_FOUND)
+		set(PULSEAUDIO_SRC
+			plugins/pulseaudio/PulseAudioDevice.cpp
+			plugins/pulseaudio/PulseAudioLibrary.cpp
+		)
+		set(PULSEAUDIO_HDR
+			plugins/pulseaudio/PulseAudioDevice.h
+			plugins/pulseaudio/PulseAudioLibrary.h
+			plugins/pulseaudio/PulseAudioSymbols.h
+		)
+
+		if(DYNLOAD_PULSEAUDIO)
+			add_definitions(-DDYNLOAD_PULSEAUDIO)
+		endif()
+
+		if(NOT PLUGIN_PULSEAUDIO)
+			list(APPEND INCLUDE ${LIBPULSE_INCLUDE_DIR})
+			if(NOT DYNLOAD_PULSEAUDIO)
+				list(APPEND LIBRARIES ${LIBPULSE_LIBRARY})
+			endif()
+			list(APPEND SRC ${PULSEAUDIO_SRC})
+			list(APPEND HDR ${PULSEAUDIO_HDR})
+			list(APPEND STATIC_PLUGINS PulseAudioDevice)
+		endif()
+	else()
+		set(WITH_PULSEAUDIO FALSE CACHE BOOL "Build With PulseAudio" FORCE)
+		message(WARNING "PulseAudio not found, plugin will not be built.")
+	endif()
+endif()
+
 # Python
 if(WITH_PYTHON)
 	if(AUDASPACE_STANDALONE)
@@ -795,6 +837,19 @@ if(WITH_OPENAL AND PLUGIN_OPENAL)
 	set_target_properties(audopenal PROPERTIES SOVERSION ${AUDASPACE_VERSION})
 	target_link_libraries(audopenal audaspace ${OPENAL_LIBRARY})
 	install(TARGETS audopenal DESTINATION ${DEFAULT_PLUGIN_PATH})
+endif()
+
+if(WITH_PULSEAUDIO AND PLUGIN_PULSEAUDIO)
+	add_definitions(-DPULSEAUDIO_PLUGIN)
+	include_directories(${INCLUDE} ${LIBPULSE_INCLUDE_DIR})
+	add_library(audpulseaudio SHARED ${PULSEAUDIO_SRC} ${PULSEAUDIO_HDR} ${HDR})
+	set_target_properties(audpulseaudio PROPERTIES SOVERSION ${AUDASPACE_VERSION})
+	if(DYNLOAD_PULSEAUDIO)
+		target_link_libraries(audpulseaudio audaspace)
+	else()
+		target_link_libraries(audpulseaudio audaspace ${LIBPULSE_LIBRARY})
+	endif()
+	install(TARGETS audpulseaudio DESTINATION ${DEFAULT_PLUGIN_PATH})
 endif()
 
 if(WITH_SDL AND PLUGIN_SDL)
