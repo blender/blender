@@ -336,6 +336,10 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
 
 static void seq_update_meta_disp_range(Editing *ed)
 {
+  if (ed == NULL) {
+    return;
+  }
+
   LISTBASE_FOREACH_BACKWARD (MetaStack *, ms, &ed->metastack) {
     /* Update ms->disp_range from meta. */
     if (ms->disp_range[0] == ms->disp_range[1]) {
