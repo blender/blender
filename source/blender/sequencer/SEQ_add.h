@@ -32,48 +32,73 @@ struct Scene;
 struct Sequence;
 struct bContext;
 
-/* api for adding new sequence strips */
-typedef struct SeqLoadInfo {
-  int start_frame;
-  int end_frame;
-  int channel;
-  int flag; /* use sound, replace sel */
-  int type;
-  int len;         /* only for image strips */
-  char path[1024]; /* 1024 = FILE_MAX */
-  eSeqImageFitMethod fit_method;
+/* SeqLoadData.flags */
+typedef enum eSeqLoadFlags {
+  SEQ_LOAD_SOUND_CACHE = (1 << 1),
+  SEQ_LOAD_SOUND_MONO = (1 << 2),
+  SEQ_LOAD_MOVIE_SYNC_FPS = (1 << 3),
+} eSeqLoadFlags;
 
-  /* multiview */
+/* Api for adding new sequence strips. */
+typedef struct SeqLoadData {
+  int start_frame;
+  int channel;
+  char name[64];   /* Strip name. */
+  char path[1024]; /* 1024 = FILE_MAX */
+  struct {
+    int len;
+    int end_frame;
+  } image;                /* Only for image strips. */
+  struct Scene *scene;    /* Only for scene strips. */
+  struct MovieClip *clip; /* Only for clip strips. */
+  struct Mask *mask;      /* Only for mask strips. */
+  struct {
+    int type;
+    int end_frame;
+    struct Sequence *seq1;
+    struct Sequence *seq2;
+    struct Sequence *seq3;
+  } effect; /* Only for effect strips. */
+  eSeqLoadFlags flags;
+  eSeqImageFitMethod fit_method;
+  bool use_multiview;
   char views_format;
   struct Stereo3dFormat *stereo3d_format;
+  bool allow_invalid_file; /* Used by RNA API to create placeholder strips. */
+} SeqLoadData;
 
-  /* return values */
-  char name[64];
-  struct Sequence *seq_sound; /* for movie's */
-  int tot_success;
-  int tot_error;
-} SeqLoadInfo;
-
-/* SeqLoadInfo.flag */
-#define SEQ_LOAD_REPLACE_SEL (1 << 0)
-#define SEQ_LOAD_FRAME_ADVANCE (1 << 1)
-#define SEQ_LOAD_MOVIE_SOUND (1 << 2)
-#define SEQ_LOAD_SOUND_CACHE (1 << 3)
-#define SEQ_LOAD_SYNC_FPS (1 << 4)
-#define SEQ_LOAD_SOUND_MONO (1 << 5)
-
-/* use as an api function */
-typedef struct Sequence *(*SeqLoadFn)(struct bContext *, ListBase *, struct SeqLoadInfo *);
-
-struct Sequence *SEQ_add_image_strip(struct bContext *C,
-                                     ListBase *seqbasep,
-                                     struct SeqLoadInfo *seq_load);
-struct Sequence *SEQ_add_sound_strip(struct bContext *C,
-                                     ListBase *seqbasep,
-                                     struct SeqLoadInfo *seq_load);
-struct Sequence *SEQ_add_movie_strip(struct bContext *C,
-                                     ListBase *seqbasep,
-                                     struct SeqLoadInfo *seq_load);
+void SEQ_add_load_data_init(struct SeqLoadData *load_data,
+                            const char *name,
+                            const char *path,
+                            const int start_frame,
+                            const int channel);
+struct Sequence *SEQ_add_image_strip(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ListBase *seqbase,
+                                     struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ListBase *seqbase,
+                                     struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ListBase *seqbase,
+                                     struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_scene_strip(struct Scene *scene,
+                                     struct ListBase *seqbase,
+                                     struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_movieclip_strip(struct Scene *scene,
+                                         struct ListBase *seqbase,
+                                         struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_mask_strip(struct Scene *scene,
+                                    struct ListBase *seqbase,
+                                    struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_effect_strip(struct Scene *scene,
+                                      struct ListBase *seqbase,
+                                      struct SeqLoadData *load_data);
+void SEQ_add_image_set_directory(struct Sequence *seq, char *path);
+void SEQ_add_image_load_file(struct Sequence *seq, size_t strip_frame, char *filename);
+void SEQ_add_image_init_alpha_mode(struct Sequence *seq);
 void SEQ_add_reload_new_file(struct Main *bmain,
                              struct Scene *scene,
                              struct Sequence *seq,
