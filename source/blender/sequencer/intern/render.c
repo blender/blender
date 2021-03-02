@@ -583,6 +583,7 @@ static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_ima
     return true;
   }
   if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->type == SEQ_TYPE_MASK ||
+      seq->type == SEQ_TYPE_META ||
       (seq->type == SEQ_TYPE_SCENE && ((seq->flag & SEQ_SCENE_STRIPS) != 0))) {
     return true;
   }
