@@ -69,6 +69,8 @@
 #include "SEQ_proxy.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
@@ -329,6 +331,33 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
     if (seq->type == SEQ_TYPE_META) {
       seq_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
     }
+  }
+}
+
+static void seq_update_meta_disp_range(Scene *scene, Editing *ed)
+{
+  LISTBASE_FOREACH_BACKWARD (MetaStack *, ms, &ed->metastack) {
+    /* Update ms->disp_range from meta. */
+    if (ms->disp_range[0] == ms->disp_range[1]) {
+      copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
+    }
+
+    /* Update meta strip endpoints. */
+    SEQ_transform_set_left_handle_frame(ms->parseq, ms->disp_range[0]);
+    SEQ_transform_set_right_handle_frame(ms->parseq, ms->disp_range[1]);
+    SEQ_transform_fix_single_image_seq_offsets(ms->parseq);
+
+    /* Recalculate effects using meta strip. */
+    LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
+      if (seq->seq2) {
+        seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
+        seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
+      }
+    }
+
+    /* Ensure that active seqbase points to active meta strip seqbase. */
+    MetaStack *active_ms = SEQ_meta_stack_active_get(ed);
+    SEQ_seqbase_active_set(ed, &active_ms->parseq->seqbase);
   }
 }
 
@@ -606,6 +635,10 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      seq_update_meta_disp_range(scene, SEQ_editing_get(scene, false));
+    }
   }
 }
 

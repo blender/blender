@@ -62,8 +62,12 @@ struct Editing *SEQ_editing_get(struct Scene *scene, bool alloc);
 struct Editing *SEQ_editing_ensure(struct Scene *scene);
 void SEQ_editing_free(struct Scene *scene, const bool do_id_user);
 struct ListBase *SEQ_active_seqbase_get(const struct Editing *ed);
+void SEQ_seqbase_active_set(struct Editing *ed, struct ListBase *seqbase);
 struct Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
 void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq, const bool do_clean_animdata);
+struct MetaStack *SEQ_meta_stack_alloc(struct Editing *ed, struct Sequence *seq_meta);
+struct MetaStack *SEQ_meta_stack_active_get(const struct Editing *ed);
+void SEQ_meta_stack_free(struct Editing *ed, struct MetaStack *ms);
 void SEQ_offset_animdata(struct Scene *scene, struct Sequence *seq, int ofs);
 void SEQ_dupe_animdata(struct Scene *scene, const char *name_src, const char *name_dst);
 struct Sequence *SEQ_sequence_dupli_recursive(const struct Scene *scene_src,

@@ -90,35 +90,17 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_recursive, int *r_c
 
     Scene *scene = t->scene;
     int cfra = CFRA;
-    int left = SEQ_transform_get_left_handle_frame(seq, true);
-    int right = SEQ_transform_get_right_handle_frame(seq, true);
+    int left = SEQ_transform_get_left_handle_frame(seq, false);
+    int right = SEQ_transform_get_right_handle_frame(seq, false);
 
     if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
       *r_recursive = false;
       *r_count = 0;
       *r_flag = 0;
     }
-    else if (seq->type == SEQ_TYPE_META) {
-
-      /* for meta's we only ever need to extend their children, no matter what depth
-       * just check the meta's are in the bounds */
-      if (t->frame_side == 'R' && right <= cfra) {
-        *r_recursive = false;
-      }
-      else if (t->frame_side == 'L' && left >= cfra) {
-        *r_recursive = false;
-      }
-      else {
-        *r_recursive = true;
-      }
-
-      *r_count = 1;
-      *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-    }
     else {
-
-      *r_recursive = false; /* not a meta, so no thinking here */
-      *r_count = 1;         /* unless its set to 0, extend will never set 2 handles at once */
+      *r_recursive = false;
+      *r_count = 1; /* unless its set to 0, extend will never set 2 handles at once */
       *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
       if (t->frame_side == 'R') {
@@ -183,26 +165,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_recursive, int *r_c
     else {
       /* Nested, different rules apply */
 
-#ifdef SEQ_TX_NESTED_METAS
       *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
       *r_count = 1; /* ignore the selection for nested */
       *r_recursive = (seq->type == SEQ_TYPE_META);
-#else
-      if (seq->type == SEQ_TYPE_META) {
-        /* Meta's can only directly be moved between channels since they
-         * don't have their start and length set directly (children affect that)
-         * since this Meta is nested we don't need any of its data in fact.
-         * SEQ_time_update_sequence() will update its settings when run on the top-level meta. */
-        *r_flag = 0;
-        *r_count = 0;
-        *r_recursive = true;
-      }
-      else {
-        *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
-        *r_count = 1; /* ignore the selection for nested */
-        *r_recursive = false;
-      }
-#endif
     }
   }
 }
@@ -645,8 +610,6 @@ void createTransSeqData(TransInfo *t)
 /* commented _only_ because the meta may have animation data which
  * needs moving too T28158. */
 
-#define SEQ_TX_NESTED_METAS
-
 BLI_INLINE void trans_update_seq(Scene *sce, Sequence *seq, int old_start, int sel_flag)
 {
   if (seq->depth == 0) {
@@ -693,17 +656,10 @@ static void flushTransSeq(TransInfo *t)
 
     switch (tdsq->sel_flag) {
       case SELECT:
-#ifdef SEQ_TX_NESTED_METAS
         if ((seq->depth != 0 || SEQ_transform_sequence_can_be_translated(seq))) {
           /* for meta's, their children move */
           seq->start = new_frame - tdsq->start_offset;
         }
-#else
-        if (seq->type != SEQ_TYPE_META && (seq->depth != 0 || seq_tx_test(seq))) {
-          /* for meta's, their children move */
-          seq->start = new_frame - tdsq->start_offset;
-        }
-#endif
         if (seq->depth == 0) {
           seq->machine = round_fl_to_int(td2d->loc[1]);
           CLAMP(seq->machine, 1, MAXSEQ);
