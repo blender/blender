@@ -4458,6 +4458,22 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event = *evt;
   event.is_repeat = false;
 
+  /* Ensure the event state is correct, any deviation from this may cause bugs. */
+#ifndef NDEBUG
+  if ((evt->type || evt->val) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(evt->type) || ISKEYBOARD(evt->type))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
+              evt->type);
+  }
+  if ((evt->prevtype || evt->prevval) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(evt->prevtype) || ISKEYBOARD(evt->prevtype))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
+              evt->prevtype);
+  }
+#endif
+
   switch (type) {
     /* Mouse move, also to inactive window (X11 does this). */
     case GHOST_kEventCursorMove: {
