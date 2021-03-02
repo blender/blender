@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_session_uuid.h"
@@ -82,6 +84,7 @@ struct NodeUIStorage {
 
 struct NodeTreeUIStorage {
   blender::Map<NodeTreeEvaluationContext, blender::Map<std::string, NodeUIStorage>> context_map;
+  std::mutex context_map_mutex;
 };
 
 const NodeUIStorage *BKE_node_tree_ui_storage_get_from_context(const bContext *C,
