@@ -929,12 +929,8 @@ static int sequencer_add_image_strip_calculate_length(wmOperator *op,
   }
 }
 
-static void sequencer_add_image_strip_load_files(bContext *C,
-                                                 wmOperator *op,
-                                                 Sequence *seq,
-                                                 SeqLoadData *load_data,
-                                                 const int minframe,
-                                                 const int numdigits)
+static void sequencer_add_image_strip_load_files(
+    wmOperator *op, Sequence *seq, SeqLoadData *load_data, const int minframe, const int numdigits)
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
 
@@ -976,7 +972,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   }
 
   Sequence *seq = SEQ_add_image_strip(CTX_data_main(C), scene, ed->seqbasep, &load_data);
-  sequencer_add_image_strip_load_files(C, op, seq, &load_data, minframe, numdigits);
+  sequencer_add_image_strip_load_files(op, seq, &load_data, minframe, numdigits);
   SEQ_add_image_init_alpha_mode(seq);
 
   /* Adjust length. */

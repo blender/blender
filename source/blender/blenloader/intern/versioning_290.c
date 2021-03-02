@@ -334,7 +334,7 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
   }
 }
 
-static void seq_update_meta_disp_range(Scene *scene, Editing *ed)
+static void seq_update_meta_disp_range(Editing *ed)
 {
   LISTBASE_FOREACH_BACKWARD (MetaStack *, ms, &ed->metastack) {
     /* Update ms->disp_range from meta. */
@@ -637,7 +637,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     /* Keep this block, even when empty. */
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      seq_update_meta_disp_range(scene, SEQ_editing_get(scene, false));
+      seq_update_meta_disp_range(SEQ_editing_get(scene, false));
     }
   }
 }
