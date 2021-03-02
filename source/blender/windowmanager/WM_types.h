@@ -543,17 +543,36 @@ typedef struct wmTabletData {
 /**
  * Each event should have full modifier state.
  * event comes from event manager and from keymap.
+ *
+ *
+ * Previous State
+ * ==============
+ *
+ * Events hold information about the previous event,
+ * this is used for detecting click and double-click events (the timer is needed for double-click).
+ * See #wm_event_add_ghostevent for implementation details.
+ *
+ * Notes:
+ *
+ * - The previous values are only set for mouse button and keyboard events.
+ *   See: #ISMOUSE_BUTTON & #ISKEYBOARD macros.
+ *
+ * - Previous x/y are exceptions: #wmEvent.prevx & #wmEvent.prevy
+ *   these are set on mouse motion, see #MOUSEMOVE & track-pad events.
+ *
+ * - Modal key-map handling sets `prevval` & `prevtype` to `val` & `type`,
+ *   this allows modal keys-maps to check the original values (needed in some cases).
  */
 typedef struct wmEvent {
   struct wmEvent *next, *prev;
 
-  /** Event code itself (short, is also in keymap). */
+  /** Event code itself (short, is also in key-map). */
   short type;
   /** Press, release, scroll-value. */
   short val;
   /** Mouse pointer position, screen coord. */
   int x, y;
-  /** Region mouse position, name convention pre 2.5 :). */
+  /** Region relative mouse position (name convention before Blender 2.5). */
   int mval[2];
   /**
    * From, ghost if utf8 is enabled for the platform,
@@ -572,17 +591,25 @@ typedef struct wmEvent {
    */
   char is_repeat;
 
-  /** Previous state, used for double click and the 'click'. */
+  /** The previous value of `type`. */
   short prevtype;
+  /** The previous value of `val`. */
   short prevval;
-  int prevx, prevy;
+  /** The time when the key is pressed, see #PIL_check_seconds_timer. */
   double prevclicktime;
+  /** The location when the key is pressed (used to enforce drag thresholds). */
   int prevclickx, prevclicky;
+  /**
+   * The previous value of #wmEvent.x #wmEvent.y,
+   * Unlike other previous state variables, this is set on any mouse motion.
+   * Use `prevclickx` & `prevclicky` for the value at time of pressing.
+   */
+  int prevx, prevy;
 
   /** Modifier states. */
   /** 'oskey' is apple or windows-key, value denotes order of pressed. */
   short shift, ctrl, alt, oskey;
-  /** rawkey modifier. */
+  /** Raw-key modifier (allow using any key as a modifier). */
   short keymodifier;
 
   /** Set in case a #KM_PRESS went by unhandled. */
@@ -592,17 +619,19 @@ typedef struct wmEvent {
   /** Tablet info, available for mouse move and button events. */
   wmTabletData tablet;
 
-  /* custom data */
+  /* Custom data. */
   /** Custom data type, stylus, 6dof, see wm_event_types.h */
   short custom;
   short customdatafree;
   int pad2;
-  /** Ascii, unicode, mouse coords, angles, vectors, dragdrop info. */
+  /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
   void *customdata;
 
-  /* True if the operating system inverted the delta x/y values and resulting
-   * prev x/y values, for natural scroll direction. For absolute scroll direction,
-   * the delta must be negated again. */
+  /**
+   * True if the operating system inverted the delta x/y values and resulting
+   * `prevx`, `prevy` values, for natural scroll direction.
+   * For absolute scroll direction, the delta must be negated again.
+   */
   char is_direction_inverted;
 } wmEvent;
 
