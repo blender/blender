@@ -4458,6 +4458,19 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event = *evt;
   event.is_repeat = false;
 
+  /**
+   * Always support accessing the last key press/release. This is set from `win->eventstate`,
+   * so it will always be a valid event type to store in the previous state.
+   *
+   * Note that these values are intentionally _not_ set in the `win->eventstate`,
+   * as copying these values only makes sense when `win->eventstate->{val/type}` would be
+   * written to (which only happens for some kinds of events).
+   * If this was done it could leave `win->eventstate` previous and current value
+   * set to the same key press/release state which doesn't make sense.
+   */
+  event.prevtype = event.type;
+  event.prevval = event.val;
+
   /* Ensure the event state is correct, any deviation from this may cause bugs. */
 #ifndef NDEBUG
   if ((evt->type || evt->val) && /* Ignore cleared event state. */
@@ -4497,6 +4510,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         wmEvent oevent, *oevt = owin->eventstate;
 
         oevent = *oevt;
+
+        /* See comment for this operation on `event` for details. */
+        oevent.prevtype = oevent.type;
+        oevent.prevval = oevent.val;
 
         copy_v2_v2_int(&oevent.x, &event.x);
         oevent.type = MOUSEMOVE;
@@ -4593,8 +4610,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       if (owin) {
         wmEvent oevent = *(owin->eventstate);
 
-        oevent.x = event.x;
-        oevent.y = event.y;
+        /* See comment for this operation on `event` for details. */
+        oevent.prevtype = oevent.type;
+        oevent.prevval = oevent.val;
+
+        copy_v2_v2_int(&oevent.x, &event.x);
+
         oevent.type = event.type;
         oevent.val = event.val;
         oevent.tablet = event.tablet;
