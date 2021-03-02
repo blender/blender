@@ -2002,7 +2002,7 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
 
     IDP_BlendReadLib(reader, pchan->prop);
 
-    BLO_read_id_address(reader, arm->id.lib, &pchan->custom);
+    BLO_read_id_address(reader, ob->id.lib, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
       rebuild = true;
     }
