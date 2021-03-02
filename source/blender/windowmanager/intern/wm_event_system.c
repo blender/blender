@@ -149,23 +149,25 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
   }
   wmEvent *event = wm_event_add(win, event_to_add);
 
+  /* Logic for setting previous value is documented on the #wmEvent struct,
+   * see #wm_event_add_ghostevent for the implementation of logic this follows. */
+
   win->eventstate->x = event->x;
   win->eventstate->y = event->y;
 
-  win->eventstate->prevval = event->prevval = win->eventstate->val;
-  win->eventstate->prevtype = event->prevtype = win->eventstate->type;
-  win->eventstate->prevx = event->prevx = win->eventstate->x;
-  win->eventstate->prevy = event->prevy = win->eventstate->y;
-
   if (event->type == MOUSEMOVE) {
-    /* Pass. */
+    win->eventstate->prevx = event->prevx = win->eventstate->x;
+    win->eventstate->prevy = event->prevy = win->eventstate->y;
   }
-  else {
+  else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
+    win->eventstate->prevval = event->prevval = win->eventstate->val;
+    win->eventstate->prevtype = event->prevtype = win->eventstate->type;
+
     win->eventstate->val = event->val;
     win->eventstate->type = event->type;
 
-    if (ISMOUSE_BUTTON(event->type)) {
-      if (event->val == KM_PRESS) {
+    if (event->val == KM_PRESS) {
+      if (event->is_repeat == false) {
         win->eventstate->prevclickx = event->x;
         win->eventstate->prevclicky = event->y;
       }
