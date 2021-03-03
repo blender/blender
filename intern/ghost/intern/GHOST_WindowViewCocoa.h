@@ -253,7 +253,7 @@
 
 - (NSAttributedString *)attributedSubstringFromRange:(NSRange)range
 {
-  return [NSAttributedString new];  // XXX does this leak?
+  return [[[NSAttributedString alloc] init] autorelease];
 }
 
 - (NSRange)markedRange
@@ -284,7 +284,7 @@
 
 - (NSArray *)validAttributesForMarkedText
 {
-  return [NSArray array];  // XXX does this leak?
+  return [NSArray array];
 }
 
 @end
