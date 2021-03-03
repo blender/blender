@@ -2022,45 +2022,54 @@ static int pyrna_py_to_prop(
           }
         }
 
-        if (!BPy_StructRNA_Check(value) && value != Py_None) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s expected a %.200s type, not %.200s",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop),
-                       RNA_struct_identifier(ptr_type),
-                       Py_TYPE(value)->tp_name);
-          Py_XDECREF(value_new);
-          return -1;
+        BPy_StructRNA *param;
+        if (value == Py_None) {
+          if (flag & PROP_NEVER_NULL) {
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop),
+                         RNA_struct_identifier(ptr_type));
+            Py_XDECREF(value_new);
+            return -1;
+          }
+          param = NULL;
         }
-        if ((flag & PROP_NEVER_NULL) && value == Py_None) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop),
-                       RNA_struct_identifier(ptr_type));
-          Py_XDECREF(value_new);
-          return -1;
-        }
-        if ((value != Py_None) && ((flag & PROP_ID_SELF_CHECK) &&
-                                   ptr->owner_id == ((BPy_StructRNA *)value)->ptr.owner_id)) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s ID type does not support assignment to itself",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop));
-          Py_XDECREF(value_new);
-          return -1;
+        else {
+          if (!BPy_StructRNA_Check(value)) {
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s expected a %.200s type, not %.200s",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop),
+                         RNA_struct_identifier(ptr_type),
+                         Py_TYPE(value)->tp_name);
+            Py_XDECREF(value_new);
+            return -1;
+          }
+          param = (BPy_StructRNA *)value;
+
+          const ID *value_owner_id = ((BPy_StructRNA *)value)->ptr.owner_id;
+          if (value_owner_id != NULL) {
+            if ((flag & PROP_ID_SELF_CHECK) && (ptr->owner_id == value_owner_id)) {
+              PyErr_Format(PyExc_TypeError,
+                           "%.200s %.200s.%.200s ID type does not support assignment to itself",
+                           error_prefix,
+                           RNA_struct_identifier(ptr->type),
+                           RNA_property_identifier(prop));
+              Py_XDECREF(value_new);
+              return -1;
+            }
+          }
         }
 
-        BPy_StructRNA *param = (BPy_StructRNA *)value;
         bool raise_error = false;
         if (data) {
 
           if (flag_parameter & PARM_RNAPTR) {
             if (flag & PROP_THICK_WRAP) {
-              if (value == Py_None) {
+              if (param == NULL) {
                 memset(data, 0, sizeof(PointerRNA));
               }
               else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2075,7 +2084,7 @@ static int pyrna_py_to_prop(
                * but watch out that it remains valid!
                * We could possibly support this later if needed. */
               BLI_assert(value_new == NULL);
-              if (value == Py_None) {
+              if (param == NULL) {
                 *((void **)data) = NULL;
               }
               else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2086,7 +2095,7 @@ static int pyrna_py_to_prop(
               }
             }
           }
-          else if (value == Py_None) {
+          else if (param == NULL) {
             *((void **)data) = NULL;
           }
           else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2098,11 +2107,11 @@ static int pyrna_py_to_prop(
         }
         else {
           /* Data == NULL, assign to RNA. */
-          if (value == Py_None || RNA_struct_is_a(param->ptr.type, ptr_type)) {
+          if ((param == NULL) || RNA_struct_is_a(param->ptr.type, ptr_type)) {
             ReportList reports;
             BKE_reports_init(&reports, RPT_STORE);
             RNA_property_pointer_set(
-                ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr, &reports);
+                ptr, prop, (param == NULL) ? PointerRNA_NULL : param->ptr, &reports);
             const int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
             if (err == -1) {
               Py_XDECREF(value_new);
