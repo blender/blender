@@ -375,7 +375,7 @@ static BLI_bitmap *sculpt_expand_bitmap_from_enabled(SculptSession *ss, ExpandCa
  * vertex that is not enabled.
  */
 static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
-                                                       BLI_bitmap *enabled_vertices,
+                                                       const BLI_bitmap *enabled_vertices,
                                                        const bool use_mesh_boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
