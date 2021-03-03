@@ -32,6 +32,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_float2.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_math.h"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
@@ -50,12 +51,12 @@ constexpr int estimated_max_facelen = 100; /* Used for initial size of some Vect
  * so this is a hack to clean up such matrices.
  * Would be better to change the transformation code itself.
  */
-static void clean_obmat(float cleaned[4][4], const float mat[4][4])
+static void clean_obmat(float4x4 &cleaned, const float4x4 &mat)
 {
   const float fuzz = 1e-6f;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      float f = mat[i][j];
+      float f = mat.values[i][j];
       if (fabsf(f) <= fuzz) {
         f = 0.0f;
       }
@@ -65,16 +66,10 @@ static void clean_obmat(float cleaned[4][4], const float mat[4][4])
       else if (fabsf(f + 1.0f) <= fuzz) {
         f = -1.0f;
       }
-      cleaned[i][j] = f;
+      cleaned.values[i][j] = f;
     }
   }
 }
-
-/* Need to wrap this in a class to use it in an Array. */
-class TransMat {
- public:
-  float mat[4][4];
-};
 
 /* `MeshesToIMeshInfo` keeps track of information used when combining a number
  * of `Mesh`es into a single `IMesh` for doing boolean on.
@@ -97,7 +92,7 @@ class MeshesToIMeshInfo {
   Array<Face *> mesh_to_imesh_face;
   /* Transformation matrix to transform a coordinate in the corresponding
    * Mesh to the local space of the first Mesh. */
-  Array<TransMat> to_obj0;
+  Array<float4x4> to_obj0;
   /* Total number of input mesh vertices. */
   int tot_meshes_verts;
   /* Total number of input mesh edges. */
@@ -242,7 +237,7 @@ const MEdge *MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * All allocation of memory for the IMesh comes from `arena`.
  */
 static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
-                             const float (*obmats[])[4][4],
+                             Span<const float4x4 *> obmats,
                              IMeshArena &arena,
                              MeshesToIMeshInfo *r_info)
 {
@@ -271,7 +266,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   r_info->mesh_vert_offset = Array<int>(nmeshes);
   r_info->mesh_edge_offset = Array<int>(nmeshes);
   r_info->mesh_poly_offset = Array<int>(nmeshes);
-  r_info->to_obj0 = Array<TransMat>(nmeshes);
+  r_info->to_obj0 = Array<float4x4>(nmeshes);
   int v = 0;
   int e = 0;
   int f = 0;
@@ -286,15 +281,15 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
    * of object 0, we multiply each object's `obmat` by the inverse of
    * object 0's `obmat`. Exact Boolean works better if these matrices
    * are 'cleaned' -- see the comment for the `clean_obmat` function, above. */
-  float obj0_mat[4][4];
-  float inv_obj0_mat[4][4];
+  float4x4 obj0_mat;
+  float4x4 inv_obj0_mat;
   if (obmats[0] == nullptr) {
-    unit_m4(obj0_mat);
-    unit_m4(inv_obj0_mat);
+    unit_m4(obj0_mat.values);
+    unit_m4(inv_obj0_mat.values);
   }
   else {
     clean_obmat(obj0_mat, *obmats[0]);
-    invert_m4_m4(inv_obj0_mat, obj0_mat);
+    invert_m4_m4(inv_obj0_mat.values, obj0_mat.values);
   }
 
   /* For each input `Mesh`, make `Vert`s and `Face`s for the corresponding
@@ -303,13 +298,13 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
    * When making `Face`s, we also put in the original indices for `MEdge`s that
    * make up the `MPoly`s using the same scheme. */
   for (int mi : meshes.index_range()) {
-    float objn_to_obj0_mat[4][4];
+    float4x4 objn_to_obj0_mat;
     const Mesh *me = meshes[mi];
     if (mi == 0) {
       r_info->mesh_vert_offset[mi] = 0;
       r_info->mesh_edge_offset[mi] = 0;
       r_info->mesh_poly_offset[mi] = 0;
-      unit_m4(r_info->to_obj0[0].mat);
+      unit_m4(r_info->to_obj0[0].values);
     }
     else {
       r_info->mesh_vert_offset[mi] = v;
@@ -317,23 +312,22 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       r_info->mesh_poly_offset[mi] = f;
       /* Get matrix that transforms a coordinate in objects[mi]'s local space
        * to object[0]'s local space.*/
-      float objn_mat[4][4];
+      float4x4 objn_mat;
       if (obmats[mi] == nullptr) {
-        unit_m4(objn_mat);
+        unit_m4(objn_mat.values);
       }
       else {
         clean_obmat(objn_mat, *obmats[mi]);
       }
-      mul_m4_m4m4(objn_to_obj0_mat, inv_obj0_mat, objn_mat);
-      copy_m4_m4(r_info->to_obj0[mi].mat, objn_to_obj0_mat);
+      objn_to_obj0_mat = inv_obj0_mat * objn_mat;
+      r_info->to_obj0[mi] = objn_to_obj0_mat;
     }
     for (int vi = 0; vi < me->totvert; ++vi) {
-      float co[3];
-      copy_v3_v3(co, me->mvert[vi].co);
+      float3 co = me->mvert[vi].co;
       if (mi > 0) {
-        mul_m4_v3(objn_to_obj0_mat, co);
+        co = objn_to_obj0_mat * co;
       }
-      r_info->mesh_to_imesh_vert[v] = arena.add_or_find_vert(mpq3(co[0], co[1], co[2]), v);
+      r_info->mesh_to_imesh_vert[v] = arena.add_or_find_vert(mpq3(co.x, co.y, co.z), v);
       ++v;
     }
     for (const MPoly &poly : Span(me->mpoly, me->totpoly)) {
@@ -534,7 +528,7 @@ static int fill_orig_loops(const Face *f,
 static void get_poly2d_cos(const Mesh *me,
                            const MPoly *mp,
                            float (*cos_2d)[2],
-                           const TransMat &trans_mat,
+                           const float4x4 &trans_mat,
                            float r_axis_mat[3][3])
 {
   int n = mp->totloop;
@@ -546,9 +540,8 @@ static void get_poly2d_cos(const Mesh *me,
   MLoop *ml = &me->mloop[mp->loopstart];
   const MVert *mverts = me->mvert;
   for (int i = 0; i < n; ++i) {
-    float co[3];
-    copy_v3_v3(co, mverts[ml->v].co);
-    mul_m4_v3(trans_mat.mat, co);
+    float3 co = mverts[ml->v].co;
+    co = trans_mat * co;
     mul_v2_m3v3(cos_2d[i], r_axis_mat, co);
     ++ml;
   }
@@ -763,23 +756,23 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
  * Do Exact Boolean directly, without a round trip through #BMesh.
  * The Mesh operands are in `meshes`, with corresponding transforms in in `obmats`.
  */
-static Mesh *direct_mesh_boolean(const Mesh **meshes,
-                                 const float (*obmats[])[4][4],
-                                 const int meshes_len,
+static Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
+                                 Span<const float4x4 *> obmats,
                                  const bool use_self,
                                  const BoolOpType boolean_mode)
 {
   const int dbg_level = 0;
+  BLI_assert(meshes.size() == obmats.size());
+  const int meshes_len = meshes.size();
   if (meshes_len <= 0) {
     return nullptr;
   }
   if (dbg_level > 0) {
     std::cout << "\nDIRECT_MESH_INTERSECT, nmeshes = " << meshes_len << "\n";
   }
-  Span<const Mesh *> mesh_span(meshes, meshes_len);
   MeshesToIMeshInfo mim;
   IMeshArena arena;
-  IMesh m_in = meshes_to_imesh(mesh_span, obmats, arena, &mim);
+  IMesh m_in = meshes_to_imesh(meshes, obmats, arena, &mim);
   std::function<int(int)> shape_fn = [&mim](int f) {
     for (int mi = 0; mi < mim.mesh_poly_offset.size() - 1; ++mi) {
       if (f < mim.mesh_poly_offset[mi + 1]) {
@@ -814,10 +807,10 @@ Mesh *BKE_mesh_boolean(const Mesh **meshes,
                        const bool use_self,
                        const int boolean_mode)
 {
+  const blender::float4x4 **transforms = (const blender::float4x4 **)obmats;
   return blender::meshintersect::direct_mesh_boolean(
-      meshes,
-      obmats,
-      meshes_len,
+      blender::Span(meshes, meshes_len),
+      blender::Span(transforms, meshes_len),
       use_self,
       static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
 }
