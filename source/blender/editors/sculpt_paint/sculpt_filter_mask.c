@@ -889,6 +889,59 @@ static bool sculpt_ipmask_filter_uses_apply_from_original(const eSculptIPMaskFil
   return ELEM(filter_type, IPMASK_FILTER_INVERT, IPMASK_FILTER_ADD_SUBSTRACT);
 }
 
+static void ipmask_filter_restore_original_mask_task_cb(void *__restrict userdata,
+                                        const int i,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ss;
+  PBVHNode *node = data->nodes[i];
+  SculptOrigVertData orig_data;
+  bool update = false;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, node);
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    *vd.mask = orig_data.mask;
+    update = true;
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (update) {
+    BKE_pbvh_node_mark_redraw(node);
+  }
+}
+
+static void sculpt_ipmask_restore_original_mask(Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  FilterCache *filter_cache = ss->filter_cache;
+  SculptThreadedTaskData data = {
+      .ob = ob,
+      .ss = ss,
+      .nodes = filter_cache->nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
+  BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_restore_original_mask_task_cb, &settings);
+}
+
+static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator *UNUSED(op))
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+   sculpt_ipmask_restore_original_mask(ob);
+  SCULPT_undo_push_end();
+  SCULPT_filter_cache_free(ss);
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+}
+
 #define IPMASK_FILTER_STEP_SENSITIVITY 0.025f
 #define IPMASK_FILTER_STEPS_PER_FULL_STRENGTH 20
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -900,8 +953,13 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const int filter_type = RNA_enum_get(op->ptr, "filter_type");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
-  if (event->type == LEFTMOUSE) {
+  if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+    sculpt_ipmask_filter_cancel(C, op);
+    return OPERATOR_FINISHED;
+  }
 
+  if (ELEM(event->type, LEFTMOUSE, EVT_RETKEY, EVT_PADENTER)) {
     for (int i = 0; i < filter_cache->totnode; i++) {
       BKE_pbvh_node_mark_update_mask(filter_cache->nodes[i]);
     }
@@ -1001,6 +1059,7 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
   ot->exec = sculpt_ipmask_filter_exec;
   ot->invoke = sculpt_ipmask_filter_invoke;
   ot->modal = sculpt_ipmask_filter_modal;
+  ot->cancel = sculpt_ipmask_filter_cancel;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
