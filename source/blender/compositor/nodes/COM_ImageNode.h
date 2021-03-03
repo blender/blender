@@ -33,7 +33,7 @@
 class ImageNode : public Node {
  private:
   NodeOperation *doMultilayerCheck(NodeConverter &converter,
-                                   RenderLayer *rl,
+                                   RenderLayer *render_layer,
                                    RenderPass *render_pass,
                                    Image *image,
                                    ImageUser *user,

@@ -53,7 +53,7 @@ struct CryptomatteSession {
 
   CryptomatteSession();
   CryptomatteSession(const Main *bmain);
-  CryptomatteSession(StampData *metadata);
+  CryptomatteSession(StampData *stamp_data);
 
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -500,7 +500,7 @@ std::unique_ptr<CryptomatteLayer> CryptomatteLayer::read_from_manifest(
     blender::StringRefNull manifest)
 {
   std::unique_ptr<CryptomatteLayer> layer = std::make_unique<CryptomatteLayer>();
-  blender::bke::cryptomatte::manifest::from_manifest(*layer.get(), manifest);
+  blender::bke::cryptomatte::manifest::from_manifest(*layer, manifest);
   return layer;
 }
 
