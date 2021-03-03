@@ -270,8 +270,8 @@ class device_memory {
 
 template<typename T> class device_only_memory : public device_memory {
  public:
-  device_only_memory(Device *device, const char *name)
-      : device_memory(device, name, MEM_DEVICE_ONLY)
+  device_only_memory(Device *device, const char *name, bool allow_host_memory_fallback = false)
+      : device_memory(device, name, allow_host_memory_fallback ? MEM_READ_WRITE : MEM_DEVICE_ONLY)
   {
     data_type = device_type_traits<T>::data_type;
     data_elements = max(device_type_traits<T>::num_elements, 1);
