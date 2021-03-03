@@ -49,7 +49,7 @@ static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
 
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
-                           "Disabled, Blender was built without OpenSubdiv");
+                           TIP_("Disabled, Blender was built without OpenSubdiv"));
   params.set_output("Geometry", std::move(geometry_set));
   return;
 #endif
