@@ -2473,11 +2473,11 @@ static float brush_strength(const Sculpt *sd,
       }
 
     case SCULPT_TOOL_SMOOTH: {
-      const float smooth_strength_base = flip * alpha * pressure * feather;
+      const float smooth_strength_base = flip * pressure * feather;
       if (cache->alt_smooth) {
         return smooth_strength_base * sd->smooth_strength_factor;
       }
-      return smooth_strength_base;
+      return smooth_strength_base * alpha;
     }
 
     case SCULPT_TOOL_PINCH:
