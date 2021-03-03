@@ -79,7 +79,7 @@ ReadAttributePtr GeoNodeExecParams::get_input_attribute(const StringRef name,
      * the domain is empty and we don't expect an attribute anyway). */
     if (!name.empty() && component.attribute_domain_size(domain) != 0) {
       this->error_message_add(NodeWarningType::Error,
-                              std::string("No attribute with name '") + name + "'.");
+                              TIP_("No attribute with name \"") + name + "\"");
     }
     return component.attribute_get_constant_for_read(domain, type, default_value);
   }
