@@ -1034,8 +1034,6 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   bNodeLinkDrag *nldrag = node_link_init(bmain, snode, cursor, detach);
 
-  nldrag->last_picked_multi_input_socket_link = NULL;
-
   if (nldrag) {
     op->customdata = nldrag;
     BLI_addtail(&snode->runtime->linkdrag, nldrag);
