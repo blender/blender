@@ -3316,7 +3316,8 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWWIRE);
-  RNA_def_property_ui_text(prop, "Display Wire", "Display the object's wireframe over solid shading");
+  RNA_def_property_ui_text(
+      prop, "Display Wire", "Display the object's wireframe over solid shading");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "show_all_edges", PROP_BOOLEAN, PROP_NONE);

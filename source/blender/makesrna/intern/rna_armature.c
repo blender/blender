@@ -966,10 +966,11 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 
   prop = RNA_def_property(srna, "show_wire", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_DRAWWIRE);
-  RNA_def_property_ui_text(prop,
-                           "Display Wire",
-                           "Bone is always displayed in wireframe regardless of viewport shading mode "
-                           "(useful for non-obstructive custom bone shapes)");
+  RNA_def_property_ui_text(
+      prop,
+      "Display Wire",
+      "Bone is always displayed in wireframe regardless of viewport shading mode "
+      "(useful for non-obstructive custom bone shapes)");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
   /* XXX: use_cyclic_offset is deprecated in 2.5. May/may not return */
