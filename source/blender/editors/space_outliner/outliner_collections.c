@@ -1367,7 +1367,7 @@ void OUTLINER_OT_collection_enable(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Enable Collection";
   ot->idname = "OUTLINER_OT_collection_enable";
-  ot->description = "Enable viewport drawing in the view layers";
+  ot->description = "Enable viewport display in the view layers";
 
   /* api callbacks */
   ot->exec = collection_flag_exec;
@@ -1382,7 +1382,7 @@ void OUTLINER_OT_collection_disable(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Disable Collection";
   ot->idname = "OUTLINER_OT_collection_disable";
-  ot->description = "Disable viewport drawing in the view layers";
+  ot->description = "Disable viewport display in the view layers";
 
   /* api callbacks */
   ot->exec = collection_flag_exec;

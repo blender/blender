@@ -552,9 +552,12 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
   }
 }
 
-/* Helper function for armature separating - remove certain bones from the given armature
- * sel: remove selected bones from the armature, otherwise the unselected bones are removed
- * (ob is not in edit-mode)
+/**
+ * Helper function for armature separating - remove certain bones from the given armature.
+ *
+ * \param ob: Armature object (must not be is not in edit-mode).
+ * \param is_select: remove selected bones from the armature,
+ * otherwise the unselected bones are removed.
  */
 static void separate_armature_bones(Main *bmain, Object *ob, const bool is_select)
 {

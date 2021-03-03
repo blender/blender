@@ -38,9 +38,11 @@ struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
+struct uiBut;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
+struct uiBlock;
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +59,9 @@ typedef struct bNodeLinkDrag {
   ListBase links;
   bool from_multi_input_socket;
   int in_out;
+
+  /** Temporarily stores the last picked link from multi input socket operator. */
+  struct bNodeLink *last_picked_multi_input_socket_link;
 } bNodeLinkDrag;
 
 typedef struct SpaceNode_Runtime {
@@ -288,6 +293,12 @@ void NODE_GGT_backdrop_corner_pin(struct wmGizmoGroupType *gzgt);
 
 void NODE_OT_cryptomatte_layer_add(struct wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_remove(struct wmOperatorType *ot);
+
+/* node_geometry_attribute_search.cc */
+void node_geometry_add_attribute_search_button(const struct bNodeTree *node_tree,
+                                               const struct bNode *node,
+                                               struct PointerRNA *socket_ptr,
+                                               struct uiLayout *layout);
 
 extern const char *node_context_dir[];
 

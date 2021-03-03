@@ -528,6 +528,9 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
   if (newid != NULL) {
     id_us_min(newid);
   }
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return newid;
 }
 

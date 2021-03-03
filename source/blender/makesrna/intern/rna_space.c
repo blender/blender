@@ -3178,7 +3178,7 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "display_stretch_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "dt_uvstretch");
   RNA_def_property_enum_items(prop, dt_uvstretch_items);
-  RNA_def_property_ui_text(prop, "Display Stretch Type", "Type of stretch to draw");
+  RNA_def_property_ui_text(prop, "Display Stretch Type", "Type of stretch to display");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "show_modified_edges", PROP_BOOLEAN, PROP_NONE);
@@ -3562,7 +3562,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "cavity_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, cavity_type_items);
-  RNA_def_property_ui_text(prop, "Cavity Type", "Way to draw the cavity shading");
+  RNA_def_property_ui_text(prop, "Cavity Type", "Way to display the cavity shading");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "curvature_ridge_factor", PROP_FLOAT, PROP_FACTOR);
@@ -3671,7 +3671,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "background_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, background_type_items);
-  RNA_def_property_ui_text(prop, "Background", "Way to draw the background");
+  RNA_def_property_ui_text(prop, "Background", "Way to display the background");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "background_color", PROP_FLOAT, PROP_COLOR);
@@ -4028,56 +4028,56 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_edges", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_EDGES);
-  RNA_def_property_ui_text(prop, "Draw Edges", "Highlight selected edges");
+  RNA_def_property_ui_text(prop, "Display Edges", "Highlight selected edges");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FACES);
-  RNA_def_property_ui_text(prop, "Draw Faces", "Highlight selected faces");
+  RNA_def_property_ui_text(prop, "Display Faces", "Highlight selected faces");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_face_center", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FACE_DOT);
   RNA_def_property_ui_text(
       prop,
-      "Draw Face Center",
+      "Display Face Center",
       "Display face center when face selection is enabled in solid shading modes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_edge_crease", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_CREASES);
   RNA_def_property_ui_text(
-      prop, "Draw Creases", "Display creases created for Subdivision Surface modifier");
+      prop, "Display Creases", "Display creases created for Subdivision Surface modifier");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_edge_bevel_weight", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_BWEIGHTS);
   RNA_def_property_ui_text(
-      prop, "Draw Bevel Weights", "Display weights created for the Bevel modifier");
+      prop, "Display Bevel Weights", "Display weights created for the Bevel modifier");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_edge_seams", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_SEAMS);
-  RNA_def_property_ui_text(prop, "Draw Seams", "Display UV unwrapping seams");
+  RNA_def_property_ui_text(prop, "Display Seams", "Display UV unwrapping seams");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_edge_sharp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_SHARP);
   RNA_def_property_ui_text(
-      prop, "Draw Sharp", "Display sharp edges, used with the Edge Split modifier");
+      prop, "Display Sharp", "Display sharp edges, used with the Edge Split modifier");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_freestyle_edge_marks", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FREESTYLE_EDGE);
   RNA_def_property_ui_text(prop,
-                           "Draw Freestyle Edge Marks",
+                           "Display Freestyle Edge Marks",
                            "Display Freestyle edge marks, used with the Freestyle renderer");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   prop = RNA_def_property(srna, "show_freestyle_face_marks", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_FREESTYLE_FACE);
   RNA_def_property_ui_text(prop,
-                           "Draw Freestyle Face Marks",
+                           "Display Freestyle Face Marks",
                            "Display Freestyle face marks, used with the Freestyle renderer");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -4563,7 +4563,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "multiview_eye");
   RNA_def_property_enum_items(prop, stereo3d_eye_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_stereo3d_camera_itemf");
-  RNA_def_property_ui_text(prop, "Stereo Eye", "Current stereo eye being drawn");
+  RNA_def_property_ui_text(prop, "Stereo Eye", "Current stereo eye being displayed");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "stereo_3d_camera", PROP_ENUM, PROP_NONE);
@@ -4977,7 +4977,7 @@ static void rna_def_space_image(BlenderRNA *brna)
                               "rna_SpaceImageEditor_display_channels_get",
                               NULL,
                               "rna_SpaceImageEditor_display_channels_itemf");
-  RNA_def_property_ui_text(prop, "Display Channels", "Channels of the image to draw");
+  RNA_def_property_ui_text(prop, "Display Channels", "Channels of the image to display");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "show_stereo_3d", PROP_BOOLEAN, PROP_NONE);
@@ -5125,17 +5125,17 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
        "NO_WAVEFORMS",
        0,
        "Waveforms Off",
-       "No waveforms drawn for any sound strips"},
+       "Don't display waveforms for any sound strips"},
       {SEQ_ALL_WAVEFORMS,
        "ALL_WAVEFORMS",
        0,
        "Waveforms On",
-       "Waveforms drawn for all sound strips"},
+       "Display waveforms for all sound strips"},
       {0,
        "DEFAULT_WAVEFORMS",
        0,
        "Use Strip Option",
-       "Waveforms drawn according to strip setting"},
+       "Display waveforms depending on strip setting"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5226,13 +5226,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, preview_channels_items);
-  RNA_def_property_ui_text(prop, "Display Channels", "Channels of the preview to draw");
+  RNA_def_property_ui_text(prop, "Display Channels", "Channels of the preview to display");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
   prop = RNA_def_property(srna, "waveform_display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
   RNA_def_property_enum_items(prop, waveform_type_display_items);
-  RNA_def_property_ui_text(prop, "Waveform Display", "How Waveforms are drawn");
+  RNA_def_property_ui_text(prop, "Waveform Display", "How Waveforms are displayed");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "use_zoom_to_fit", PROP_BOOLEAN, PROP_NONE);
@@ -5268,7 +5268,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "overlay_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "overlay_type");
   RNA_def_property_enum_items(prop, overlay_type_items);
-  RNA_def_property_ui_text(prop, "Overlay Type", "Overlay draw type");
+  RNA_def_property_ui_text(prop, "Overlay Type", "Overlay display method");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
@@ -6154,7 +6154,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_details_size", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "details_flags", FILE_DETAILS_SIZE);
-  RNA_def_property_ui_text(prop, "File Size", "Draw a column listing the size of each file");
+  RNA_def_property_ui_text(prop, "File Size", "Show a column listing the size of each file");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "show_details_datetime", PROP_BOOLEAN, PROP_NONE);
@@ -6162,7 +6162,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "File Modification Date",
-      "Draw a column listing the date and time of modification for each file");
+      "Show a column listing the date and time of modification for each file");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
   prop = RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);

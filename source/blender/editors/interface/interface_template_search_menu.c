@@ -990,7 +990,8 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 static void menu_search_update_fn(const bContext *UNUSED(C),
                                   void *arg,
                                   const char *str,
-                                  uiSearchItems *items)
+                                  uiSearchItems *items,
+                                  const bool UNUSED(is_first))
 {
   struct MenuSearch_Data *data = arg;
 

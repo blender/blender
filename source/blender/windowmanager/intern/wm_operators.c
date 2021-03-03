@@ -1809,7 +1809,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 {
   ot->name = "Call Menu";
   ot->idname = "WM_OT_call_menu";
-  ot->description = "Call (draw) a predefined menu";
+  ot->description = "Open a predefined menu";
 
   ot->exec = wm_call_menu_exec;
   ot->poll = WM_operator_winactive;
@@ -1840,7 +1840,7 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 {
   ot->name = "Call Pie Menu";
   ot->idname = "WM_OT_call_menu_pie";
-  ot->description = "Call (draw) a predefined pie menu";
+  ot->description = "Open a predefined pie menu";
 
   ot->invoke = wm_call_pie_menu_invoke;
   ot->exec = wm_call_pie_menu_exec;
@@ -1874,7 +1874,7 @@ static void WM_OT_call_panel(wmOperatorType *ot)
 {
   ot->name = "Call Panel";
   ot->idname = "WM_OT_call_panel";
-  ot->description = "Call (draw) a predefined panel";
+  ot->description = "Open a predefined panel";
 
   ot->exec = wm_call_panel_exec;
   ot->poll = WM_operator_winactive;

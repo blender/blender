@@ -393,7 +393,8 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchIt
 static void id_search_cb(const bContext *C,
                          void *arg_template,
                          const char *str,
-                         uiSearchItems *items)
+                         uiSearchItems *items,
+                         const bool UNUSED(is_first))
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
   ListBase *lb = template_ui->idlb;
@@ -464,7 +465,8 @@ static void id_search_cb_tagged(const bContext *C,
 static void id_search_cb_objects_from_scene(const bContext *C,
                                             void *arg_template,
                                             const char *str,
-                                            uiSearchItems *items)
+                                            uiSearchItems *items,
+                                            const bool UNUSED(is_first))
 {
   TemplateID *template_ui = (TemplateID *)arg_template;
   ListBase *lb = template_ui->idlb;
@@ -518,7 +520,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *region, void *arg_litem)
   static TemplateID template_ui;
   PointerRNA active_item_ptr;
   void (*id_search_update_fn)(
-      const bContext *, void *, const char *, uiSearchItems *) = id_search_cb;
+      const bContext *, void *, const char *, uiSearchItems *, const bool) = id_search_cb;
 
   /* arg_litem is malloced, can be freed by parent button */
   template_ui = *((TemplateID *)arg_litem);
@@ -3985,7 +3987,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
       BKE_curvemapping_changed(cumap, false);
       break;
     case UICURVE_FUNC_RESET_VIEW:
-      cumap->curr = cumap->clipr;
+      BKE_curvemapping_reset_view(cumap);
       break;
     case UICURVE_FUNC_HANDLE_VECTOR: /* set vector */
       BKE_curvemap_handle_set(cuma, HD_VECT);

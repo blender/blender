@@ -572,7 +572,8 @@ static void constraints_rotation_impl(TransInfo *t,
       break;
   }
   /* don't flip axis if asked to or if num input */
-  if (r_angle && !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
+  if (r_angle &&
+      !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
     float view_vector[3];
     view_vector_calc(t, t->center_global, view_vector);
     if (dot_v3v3(r_vec, view_vector) > 0.0f) {

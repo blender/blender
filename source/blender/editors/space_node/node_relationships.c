@@ -280,7 +280,7 @@ static void pick_input_link_by_link_intersect(const bContext *C,
         float distance = dist_squared_to_line_segment_v2(cursor, l1, l2);
         if (distance < cursor_link_touch_distance) {
           link_to_pick = link;
-          RNA_int_set(op->ptr, "last_picked_link_index", link->multi_input_socket_index);
+          nldrag->last_picked_multi_input_socket_link = link_to_pick;
         }
       }
     }
@@ -290,13 +290,9 @@ static void pick_input_link_by_link_intersect(const bContext *C,
    * Not essential for the basic behavior, but can make interaction feel a bit better if
    * the  mouse moves to the right and loses the "selection." */
   if (!link_to_pick) {
-    int last_picked_link_index = RNA_int_get(op->ptr, "last_picked_link_index");
-    if (last_picked_link_index > -1) {
-      LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
-        if (link->multi_input_socket_index == last_picked_link_index) {
-          link_to_pick = link;
-        }
-      }
+    bNodeLink *last_picked_link = nldrag->last_picked_multi_input_socket_link;
+    if (last_picked_link) {
+      link_to_pick = last_picked_link;
     }
   }
 
@@ -1032,7 +1028,6 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   float cursor[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
   RNA_float_set_array(op->ptr, "drag_start", cursor);
-  RNA_int_set(op->ptr, "last_picked_link_index", -1);
   RNA_boolean_set(op->ptr, "has_link_picked", false);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
@@ -1102,15 +1097,6 @@ void NODE_OT_link(wmOperatorType *ot)
                       -UI_PRECISION_FLOAT_MAX,
                       UI_PRECISION_FLOAT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
-  RNA_def_int(ot->srna,
-              "last_picked_link_index",
-              -1,
-              -1,
-              4095,
-              "Last Picked Link Index",
-              "The index of the last picked link on a multi-input socket",
-              -1,
-              4095);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

@@ -355,7 +355,7 @@ typedef struct wmKeyMapItem {
   short val;
   /** Oskey is apple or windowskey, value denotes order of pressed. */
   short shift, ctrl, alt, oskey;
-  /** Rawkey modifier. */
+  /** Raw-key modifier. */
   short keymodifier;
 
   /* flag: inactive, expanded */

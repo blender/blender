@@ -234,8 +234,8 @@ std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
                                         view_layer->name,
                                         BLI_strnlen(view_layer->name, sizeof(view_layer->name))) +
                                     "." + m_passName;
-      blender::StringRef cryptomatte_layer_name = blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
-          full_layer_name);
+      blender::StringRef cryptomatte_layer_name =
+          blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
       callback_data.setCryptomatteKeys(cryptomatte_layer_name);
 
       BKE_stamp_info_callback(&callback_data,

@@ -554,7 +554,8 @@ static void merged_element_search_fn_recursive(
 static void merged_element_search_update_fn(const bContext *UNUSED(C),
                                             void *data,
                                             const char *str,
-                                            uiSearchItems *items)
+                                            uiSearchItems *items,
+                                            const bool UNUSED(is_first))
 {
   MergedSearchData *search_data = (MergedSearchData *)data;
   TreeElement *parent = search_data->parent_element;
