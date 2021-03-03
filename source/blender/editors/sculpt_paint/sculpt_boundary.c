@@ -589,6 +589,7 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != boundary->max_propagation_steps) {
+      continue;
     }
     sub_v3_v3v3(boundary->slide.directions[boundary->edit_info[i].original_vertex],
                 SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
