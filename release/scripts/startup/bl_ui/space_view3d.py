@@ -3197,6 +3197,9 @@ class VIEW3D_MT_face_sets_init(Menu):
         op = layout.operator("sculpt.face_sets_init", text='By Loose Parts')
         op.mode = 'LOOSE_PARTS'
 
+        op = layout.operator("sculpt.face_sets_init", text='By Face Set Boundaries')
+        op.mode = 'FACE_SET_BOUNDARIES'
+
         op = layout.operator("sculpt.face_sets_init", text='By Materials')
         op.mode = 'MATERIALS'
 
