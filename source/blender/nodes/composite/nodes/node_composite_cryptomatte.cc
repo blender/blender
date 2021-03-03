@@ -27,18 +27,15 @@
 #include "BLI_utildefines.h"
 #include "node_composite_util.h"
 
-#include <optional>
-
 extern "C" {
-static std::optional<CryptomatteEntry *> cryptomatte_find(const NodeCryptomatte &n,
-                                                          float encoded_hash)
+static CryptomatteEntry *cryptomatte_find(const NodeCryptomatte &n, float encoded_hash)
 {
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &n.entries) {
     if (entry->encoded_hash == encoded_hash) {
-      return std::make_optional(entry);
+      return entry;
     }
   }
-  return std::nullopt;
+  return nullptr;
 }
 
 static void cryptomatte_add(NodeCryptomatte &n, float f)
@@ -55,12 +52,12 @@ static void cryptomatte_add(NodeCryptomatte &n, float f)
 
 static void cryptomatte_remove(NodeCryptomatte &n, float f)
 {
-  std::optional<CryptomatteEntry *> entry = cryptomatte_find(n, f);
+  CryptomatteEntry *entry = cryptomatte_find(n, f);
   if (!entry) {
     return;
   }
-  BLI_remlink(&n.entries, entry.value());
-  MEM_freeN(entry.value());
+  BLI_remlink(&n.entries, entry);
+  MEM_freeN(entry);
 }
 
 static bNodeSocketTemplate outputs[] = {
