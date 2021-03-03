@@ -1396,7 +1396,7 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
 {
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
-  if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+  if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false)) {
     return SCULPT_active_vertex_get(ss);
   }
   else {
