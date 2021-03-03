@@ -946,6 +946,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
   const int filter_type = RNA_enum_get(op->ptr, "filter_type");
+  const bool use_step_interpolation = RNA_boolean_get(op->ptr, "use_step_interpolation");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
 
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
@@ -971,7 +972,7 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   const float len = event->x - event->prevclickx;
   const float target_step_fl = len * IPMASK_FILTER_STEP_SENSITIVITY * UI_DPI_FAC;
   const int target_step = floorf(target_step_fl);
-  const float step_interpolation = target_step_fl - target_step;
+  const float step_interpolation = use_step_interpolation? target_step_fl - target_step: 0.0f;
   const float full_step_strength = target_step_fl / IPMASK_FILTER_STEPS_PER_FULL_STRENGTH;
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
@@ -1076,6 +1077,8 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
               "Number of times that the filter is going to be applied per step",
               1,
               100);
+  RNA_def_boolean(
+      ot->srna, "use_step_interpolation", true, "Step Interpolation", "Calculate and render intermediate values between multiple full steps of the filter");
 }
 
 /******************************************************************************************/
