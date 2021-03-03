@@ -937,7 +937,7 @@ static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator *UNUSED(op))
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
 }
 
-#define IPMASK_FILTER_STEP_SENSITIVITY 0.025f
+#define IPMASK_FILTER_STEP_SENSITIVITY 0.05f
 #define IPMASK_FILTER_STEPS_PER_FULL_STRENGTH 20
 static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
