@@ -10539,7 +10539,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_project_lasso_gesture);
   WM_operatortype_append(SCULPT_OT_project_box_gesture);
 
-
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);
   WM_operatortype_append(SCULPT_OT_vertex_to_loop_colors);

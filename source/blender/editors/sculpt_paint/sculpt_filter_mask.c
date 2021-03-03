@@ -436,7 +436,7 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss,
   new_mask += val / 2.0f;
   return clamp_f(new_mask, 0.0f, 1.0f);
 
-  #ifdef SHARP_KERNEL
+#ifdef SHARP_KERNEL
   float accum = 0.0f;
   float weight_accum = 0.0f;
   const float neighbor_weight = -1.0f;
@@ -454,9 +454,8 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss,
   accum += main_weight * current_mask[vertex];
   weight_accum += main_weight;
 
-  return clamp_f(accum/weight_accum, 0.0f, 1.0f);
+  return clamp_f(accum / weight_accum, 0.0f, 1.0f);
 #endif
-
 }
 
 /* Harder/Softer callbacks. */
@@ -808,9 +807,8 @@ static void sculpt_ipmask_filter_update_to_target_step(SculptSession *ss,
   }
 }
 
-static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
-                                        const int i,
-                                        const TaskParallelTLS *__restrict UNUSED(tls))
+static void ipmask_filter_apply_from_original_task_cb(
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ss;
@@ -826,28 +824,23 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
     if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
       continue;
     }
-
     SCULPT_orig_vert_data_update(&orig_data, &vd);
-
     float new_mask = orig_data.mask;
-
     switch (filter_type) {
-        case IPMASK_FILTER_ADD_SUBSTRACT:
-            new_mask = orig_data.mask + data->filter_strength;
-            break;
-    case IPMASK_FILTER_INVERT: {
+      case IPMASK_FILTER_ADD_SUBSTRACT:
+        new_mask = orig_data.mask + data->filter_strength;
+        break;
+      case IPMASK_FILTER_INVERT: {
         const float strength = clamp_f(data->filter_strength, 0.0f, 1.0f);
         const float mask_invert = 1.0f - orig_data.mask;
         new_mask = interpf(mask_invert, orig_data.mask, strength);
         break;
-    }
-
-    default:
+      }
+      default:
+        BLI_assert(false);
         break;
     }
-
     new_mask = clamp_f(new_mask, 0.0f, 1.0f);
-
     if (*vd.mask == new_mask) {
       continue;
     }
@@ -866,8 +859,8 @@ static void ipmask_filter_apply_from_original_task_cb(void *__restrict userdata,
 }
 
 static void sculpt_ipmask_apply_from_original_mask_data(Object *ob,
-                                          eSculptIPMaskFilterType filter_type,
-                                          const float strength)
+                                                        eSculptIPMaskFilterType filter_type,
+                                                        const float strength)
 {
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = ss->filter_cache;
@@ -881,17 +874,18 @@ static void sculpt_ipmask_apply_from_original_mask_data(Object *ob,
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
-  BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_apply_from_original_task_cb, &settings);
+  BLI_task_parallel_range(
+      0, filter_cache->totnode, &data, ipmask_filter_apply_from_original_task_cb, &settings);
 }
 
-static bool sculpt_ipmask_filter_uses_apply_from_original(const eSculptIPMaskFilterType filter_type)
+static bool sculpt_ipmask_filter_uses_apply_from_original(
+    const eSculptIPMaskFilterType filter_type)
 {
   return ELEM(filter_type, IPMASK_FILTER_INVERT, IPMASK_FILTER_ADD_SUBSTRACT);
 }
 
-static void ipmask_filter_restore_original_mask_task_cb(void *__restrict userdata,
-                                        const int i,
-                                        const TaskParallelTLS *__restrict UNUSED(tls))
+static void ipmask_filter_restore_original_mask_task_cb(
+    void *__restrict userdata, const int i, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ss;
@@ -928,7 +922,8 @@ static void sculpt_ipmask_restore_original_mask(Object *ob)
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, filter_cache->totnode);
-  BLI_task_parallel_range(0, filter_cache->totnode, &data, ipmask_filter_restore_original_mask_task_cb, &settings);
+  BLI_task_parallel_range(
+      0, filter_cache->totnode, &data, ipmask_filter_restore_original_mask_task_cb, &settings);
 }
 
 static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator *UNUSED(op))
@@ -936,7 +931,7 @@ static void sculpt_ipmask_filter_cancel(bContext *C, wmOperator *UNUSED(op))
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-   sculpt_ipmask_restore_original_mask(ob);
+  sculpt_ipmask_restore_original_mask(ob);
   SCULPT_undo_push_end();
   SCULPT_filter_cache_free(ss);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -982,10 +977,11 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
-     sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, full_step_strength);
+    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, full_step_strength);
   }
   else {
-    sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count, step_interpolation);
+    sculpt_ipmask_filter_update_to_target_step(
+        ss, target_step, iteration_count, step_interpolation);
   }
 
   SCULPT_tag_update_overlays(C);
