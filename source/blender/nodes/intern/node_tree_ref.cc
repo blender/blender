@@ -64,8 +64,16 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     InputSocketRef &to_socket = this->find_input_socket(
         node_mapping, blink->tonode, blink->tosock);
 
+    LinkRef &link = *allocator_.construct<LinkRef>();
+    link.from_ = &from_socket;
+    link.to_ = &to_socket;
+    link.blink_ = blink;
+
+    links_.append(&link);
     from_socket.directly_linked_sockets_.append(&to_socket);
     to_socket.directly_linked_sockets_.append(&from_socket);
+    from_socket.directly_linked_links_.append(&link);
+    to_socket.directly_linked_links_.append(&link);
   }
 
   for (OutputSocketRef *socket : output_sockets_) {
@@ -85,6 +93,8 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
 
 NodeTreeRef::~NodeTreeRef()
 {
+  /* The destructor has to be called manually, because these types are allocated in a linear
+   * allocator. */
   for (NodeRef *node : nodes_by_id_) {
     node->~NodeRef();
   }
@@ -93,6 +103,9 @@ NodeTreeRef::~NodeTreeRef()
   }
   for (OutputSocketRef *socket : output_sockets_) {
     socket->~OutputSocketRef();
+  }
+  for (LinkRef *link : links_) {
+    link->~LinkRef();
   }
 }
 

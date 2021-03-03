@@ -25,6 +25,7 @@
  * The following queries are supported efficiently:
  *  - socket -> index of socket
  *  - socket -> directly linked sockets
+ *  - socket -> directly linked links
  *  - socket -> linked sockets when skipping reroutes
  *  - socket -> node
  *  - socket/node -> rna pointer
@@ -65,6 +66,7 @@ class InputSocketRef;
 class OutputSocketRef;
 class NodeRef;
 class NodeTreeRef;
+class LinkRef;
 
 class SocketRef : NonCopyable, NonMovable {
  protected:
@@ -76,12 +78,14 @@ class SocketRef : NonCopyable, NonMovable {
   PointerRNA rna_;
   Vector<SocketRef *> linked_sockets_;
   Vector<SocketRef *> directly_linked_sockets_;
+  Vector<LinkRef *> directly_linked_links_;
 
   friend NodeTreeRef;
 
  public:
   Span<const SocketRef *> linked_sockets() const;
   Span<const SocketRef *> directly_linked_sockets() const;
+  Span<const LinkRef *> directly_linked_links() const;
   bool is_linked() const;
 
   const NodeRef &node() const;
@@ -156,6 +160,21 @@ class NodeRef : NonCopyable, NonMovable {
   bool is_muted() const;
 };
 
+class LinkRef : NonCopyable, NonMovable {
+ private:
+  OutputSocketRef *from_;
+  InputSocketRef *to_;
+  bNodeLink *blink_;
+
+  friend NodeTreeRef;
+
+ public:
+  const OutputSocketRef &from() const;
+  const InputSocketRef &to() const;
+
+  bNodeLink *blink() const;
+};
+
 class NodeTreeRef : NonCopyable, NonMovable {
  private:
   LinearAllocator<> allocator_;
@@ -164,6 +183,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<SocketRef *> sockets_by_id_;
   Vector<InputSocketRef *> input_sockets_;
   Vector<OutputSocketRef *> output_sockets_;
+  Vector<LinkRef *> links_;
   MultiValueMap<const bNodeType *, NodeRef *> nodes_by_type_;
 
  public:
@@ -177,6 +197,8 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Span<const SocketRef *> sockets() const;
   Span<const InputSocketRef *> input_sockets() const;
   Span<const OutputSocketRef *> output_sockets() const;
+
+  Span<const LinkRef *> links() const;
 
   bool has_link_cycles() const;
 
@@ -207,6 +229,11 @@ inline Span<const SocketRef *> SocketRef::linked_sockets() const
 inline Span<const SocketRef *> SocketRef::directly_linked_sockets() const
 {
   return directly_linked_sockets_;
+}
+
+inline Span<const LinkRef *> SocketRef::directly_linked_links() const
+{
+  return directly_linked_links_;
 }
 
 inline bool SocketRef::is_linked() const
@@ -409,7 +436,26 @@ inline bool NodeRef::is_muted() const
 }
 
 /* --------------------------------------------------------------------
- * NodeRef inline methods.
+ * LinkRef inline methods.
+ */
+
+inline const OutputSocketRef &LinkRef::from() const
+{
+  return *from_;
+}
+
+inline const InputSocketRef &LinkRef::to() const
+{
+  return *to_;
+}
+
+inline bNodeLink *LinkRef::blink() const
+{
+  return blink_;
+}
+
+/* --------------------------------------------------------------------
+ * NodeTreeRef inline methods.
  */
 
 inline Span<const NodeRef *> NodeTreeRef::nodes() const
@@ -441,6 +487,11 @@ inline Span<const InputSocketRef *> NodeTreeRef::input_sockets() const
 inline Span<const OutputSocketRef *> NodeTreeRef::output_sockets() const
 {
   return output_sockets_;
+}
+
+inline Span<const LinkRef *> NodeTreeRef::links() const
+{
+  return links_;
 }
 
 inline bNodeTree *NodeTreeRef::btree() const
