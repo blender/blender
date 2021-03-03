@@ -1471,9 +1471,7 @@ static int sculpt_expand_target_vertex_update_and_get(bContext *C,
   if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
     return SCULPT_active_vertex_get(ss);
   }
-  else {
-    return SCULPT_EXPAND_VERTEX_NONE;
-  }
+  return SCULPT_EXPAND_VERTEX_NONE;
 }
 
 /**
@@ -1768,20 +1766,18 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
               expand_cache->move_original_falloff_type);
           break;
         }
+        expand_cache->move = true;
+        expand_cache->move_original_falloff_type = expand_cache->falloff_type;
+        copy_v2_v2(expand_cache->initial_mouse_move, mouse);
+        copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
+        if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
+            SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {
+          /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
+           * In most cases it should match closely the preview from geodesic. */
+          expand_cache->move_preview_falloff_type = SCULPT_EXPAND_FALLOFF_SPHERICAL;
+        }
         else {
-          expand_cache->move = true;
-          expand_cache->move_original_falloff_type = expand_cache->falloff_type;
-          copy_v2_v2(expand_cache->initial_mouse_move, mouse);
-          copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
-          if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
-              SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {
-            /* Set to spherical falloff for preview in high poly meshes as it is the fastest one.
-             * In most cases it should match closely the preview from geodesic. */
-            expand_cache->move_preview_falloff_type = SCULPT_EXPAND_FALLOFF_SPHERICAL;
-          }
-          else {
-            expand_cache->move_preview_falloff_type = expand_cache->falloff_type;
-          }
+          expand_cache->move_preview_falloff_type = expand_cache->falloff_type;
         }
         break;
       }

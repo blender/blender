@@ -924,9 +924,7 @@ static int sequencer_add_image_strip_calculate_length(wmOperator *op,
   if (use_placeholders) {
     return sequencer_image_seq_get_minmax_frame(op, start_frame, minframe, numdigits);
   }
-  else {
-    return RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
-  }
+  return RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 }
 
 static void sequencer_add_image_strip_load_files(
