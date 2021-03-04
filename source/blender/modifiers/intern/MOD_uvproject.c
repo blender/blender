@@ -135,10 +135,11 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     return mesh;
   }
 
-  /* make sure there are UV Maps available */
-
+  /* Create a new layer if no UV Maps are available (e.g. if a preceeding modifier could not
+   * preserve it). */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
-    return mesh;
+    CustomData_add_layer_named(
+        &mesh->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);
   }
 
   /* make sure we're using an existing layer */
