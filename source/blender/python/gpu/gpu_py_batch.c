@@ -279,8 +279,8 @@ static void pygpu_batch__tp_dealloc(BPyGPUBatch *self)
   GPU_batch_discard(self->batch);
 
 #ifdef USE_GPU_PY_REFERENCES
+  PyObject_GC_UnTrack(self);
   if (self->references) {
-    PyObject_GC_UnTrack(self);
     pygpu_batch__tp_clear(self);
     Py_XDECREF(self->references);
   }
