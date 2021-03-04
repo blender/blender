@@ -71,7 +71,7 @@ PyDoc_STRVAR(
     "   :type fake_user: bool\n"
     "   :arg compress: When True, write a compressed blend file.\n"
     "   :type compress: bool\n");
-static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
   /* args */
   const char *filepath;
@@ -114,7 +114,7 @@ static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject 
     return NULL;
   }
 
-  Main *bmain_src = G_MAIN;
+  Main *bmain_src = self->ptr.data; /* Typically #G_MAIN */
   int write_flags = 0;
 
   if (use_compress) {
@@ -220,6 +220,6 @@ finally:
 PyMethodDef BPY_library_write_method_def = {
     "write",
     (PyCFunction)bpy_lib_write,
-    METH_STATIC | METH_VARARGS | METH_KEYWORDS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_lib_write_doc,
 };
