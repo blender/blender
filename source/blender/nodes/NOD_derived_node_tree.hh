@@ -174,8 +174,6 @@ class DParentNode : NonCopyable, NonMovable {
   int id() const;
 };
 
-using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
-
 class DerivedNodeTree : NonCopyable, NonMovable {
  private:
   LinearAllocator<> allocator_;

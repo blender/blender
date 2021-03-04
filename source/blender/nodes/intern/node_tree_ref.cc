@@ -52,6 +52,24 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
       RNA_pointer_create(&btree->id, &RNA_NodeSocket, bsocket, &socket.rna_);
     }
 
+    LISTBASE_FOREACH (bNodeLink *, blink, &bnode->internal_links) {
+      InternalLinkRef &internal_link = *allocator_.construct<InternalLinkRef>();
+      internal_link.blink_ = blink;
+      for (InputSocketRef *socket_ref : node.inputs_) {
+        if (socket_ref->bsocket_ == blink->fromsock) {
+          internal_link.from_ = socket_ref;
+          break;
+        }
+      }
+      for (OutputSocketRef *socket_ref : node.outputs_) {
+        if (socket_ref->bsocket_ == blink->tosock) {
+          internal_link.to_ = socket_ref;
+          break;
+        }
+      }
+      node.internal_links_.append(&internal_link);
+    }
+
     input_sockets_.extend(node.inputs_.as_span());
     output_sockets_.extend(node.outputs_.as_span());
 
@@ -227,6 +245,12 @@ std::string NodeTreeRef::to_dot() const
   }
 
   return digraph.to_dot_string();
+}
+
+const NodeTreeRef &get_tree_ref_from_map(NodeTreeRefMap &node_tree_refs, bNodeTree &btree)
+{
+  return *node_tree_refs.lookup_or_add_cb(&btree,
+                                          [&]() { return std::make_unique<NodeTreeRef>(&btree); });
 }
 
 }  // namespace blender::nodes
