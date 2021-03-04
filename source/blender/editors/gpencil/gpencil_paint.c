@@ -2835,7 +2835,7 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* verify direction for straight lines and guides */
   if ((is_speed_guide) ||
-      ((event->alt > 0) && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
+      (event->alt && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
     if (p->straight == 0) {
       int dx = (int)fabsf(p->mval[0] - p->mvali[0]);
       int dy = (int)fabsf(p->mval[1] - p->mvali[1]);
@@ -2876,13 +2876,13 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* special eraser modes */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    if (event->shift > 0) {
+    if (event->shift) {
       p->flags |= GP_PAINTFLAG_HARD_ERASER;
     }
     else {
       p->flags &= ~GP_PAINTFLAG_HARD_ERASER;
     }
-    if (event->alt > 0) {
+    if (event->alt) {
       p->flags |= GP_PAINTFLAG_STROKE_ERASER;
     }
     else {
