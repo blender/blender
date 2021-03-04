@@ -105,7 +105,9 @@ typedef enum {
 
 typedef enum {
   GHOST_kTabletAutomatic = 0,
-  GHOST_kTabletNative,
+  /* Show as Windows Ink to users to match "Use Windows Ink" in tablet utilities, but we use the
+     dependent Windows Pointer API. */
+  GHOST_kTabletWinPointer,
   GHOST_kTabletWintab,
 } GHOST_TTabletAPI;
 
