@@ -74,8 +74,8 @@ static PyObject *make_opensubdiv_info(void)
   SetStrItem("Unknown");
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(opensubdiv_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(opensubdiv_info);
     return NULL;
   }
 
