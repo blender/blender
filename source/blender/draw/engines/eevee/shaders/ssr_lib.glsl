@@ -68,10 +68,7 @@ vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughness
     vec2 texture_size = vec2(textureSize(colorBuffer, 0).xy);
     float mip = clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, 9.0);
 
-    /* Correct UVs for mipmaping mis-alignment */
-    hit_uvs *= mip_ratio_interp(mip);
-
-    vec3 spec = textureLod(colorBuffer, hit_uvs, mip).xyz;
+    vec3 spec = textureLod(colorBuffer, hit_uvs * hizUvScale.xy, mip).xyz;
     float mask = screen_border_mask(hit_uvs);
 
     return vec4(spec, mask);

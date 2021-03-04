@@ -16,10 +16,7 @@ float sample_depth(vec2 uv, int index, float lod)
   }
   else {
 #endif
-    lod = clamp(floor(lod), 0.0, 8.0);
-    /* Correct UVs for mipmaping mis-alignment */
-    uv *= mipRatio[int(lod) + hizMipOffset];
-    return textureLod(maxzBuffer, uv, lod).r;
+    return textureLod(maxzBuffer, uv * hizUvScale.xy, floor(lod)).r;
 #ifdef PLANAR_PROBE_RAYTRACE
   }
 #endif
@@ -37,10 +34,10 @@ vec4 sample_depth_grouped(vec4 uv1, vec4 uv2, int index, float lod)
   }
   else {
 #endif
-    depths.x = textureLod(maxzBuffer, uv1.xy, lod).r;
-    depths.y = textureLod(maxzBuffer, uv1.zw, lod).r;
-    depths.z = textureLod(maxzBuffer, uv2.xy, lod).r;
-    depths.w = textureLod(maxzBuffer, uv2.zw, lod).r;
+    depths.x = textureLod(maxzBuffer, uv1.xy * hizUvScale.xy, lod).r;
+    depths.y = textureLod(maxzBuffer, uv1.zw * hizUvScale.xy, lod).r;
+    depths.z = textureLod(maxzBuffer, uv2.xy * hizUvScale.xy, lod).r;
+    depths.w = textureLod(maxzBuffer, uv2.zw * hizUvScale.xy, lod).r;
 #ifdef PLANAR_PROBE_RAYTRACE
   }
 #endif
@@ -131,9 +128,6 @@ void prepare_raycast(vec3 ray_origin,
 #endif
   ss_ray = ss_start * m.xyyy + 0.5;
   ss_step *= m.xyyy;
-
-  /* take the center of the texel. */
-  // ss_ray.xy += sign(ss_ray.xy) * m * ssrPixelSize * (1.0 + hizMipOffset);
 }
 
 /* See times_and_deltas. */
@@ -175,9 +169,7 @@ vec3 raycast(int index,
   bool hit = false;
   float iter;
   for (iter = 1.0; !hit && (ray_time < max_time) && (iter < MAX_STEP); iter++) {
-    /* Minimum stride of 2 because we are using half res minmax zbuffer. */
-    /* WORKAROUND: Factor is a bit higher than 2 to avoid some banding. To investigate. */
-    float stride = max(1.0, iter * trace_quality) * (2.0 + 0.05);
+    float stride = max(1.01, iter * trace_quality);
     float lod = log2(stride * 0.5 * trace_quality) * lod_fac;
     ray_time += stride;
 

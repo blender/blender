@@ -94,8 +94,7 @@ float search_horizon(vec3 vI,
     vec2 uv = uv_start + uv_dir * t;
     float lod = min(MAX_LOD, max(i - noise, 0.0) * aoQuality);
 
-    int mip = int(lod) + hizMipOffset;
-    float depth = textureLod(depth_tx, uv * mipRatio[mip].xy, floor(lod)).r;
+    float depth = textureLod(depth_tx, uv * hizUvScale.xy, floor(lod)).r;
 
     /* Bias depth a bit to avoid self shadowing issues. */
     const float bias = 2.0 * 2.4e-7;

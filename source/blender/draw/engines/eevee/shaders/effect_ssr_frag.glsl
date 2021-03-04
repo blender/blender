@@ -104,6 +104,11 @@ void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
 
   pdfData = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 
+  /* TODO(fclem) This bias should use depth precision and the dot product between
+   * ray direction and geom normal. */
+  float rays_bias = 0.005;
+  vP = vP + vNg * rays_bias;
+
   vec3 hit_pos = raycast(-1, vP, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
 
   hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), false);
@@ -325,10 +330,10 @@ vec3 get_hit_vector(vec3 hit_pos,
 vec3 get_scene_color(vec2 ref_uvs, float mip, float planar_index, bool is_planar)
 {
   if (is_planar) {
-    return textureLod(probePlanars, vec3(ref_uvs, planar_index), min(mip, prbLodPlanarMax)).rgb;
+    return textureLod(probePlanars, vec3(ref_uvs, planar_index), mip).rgb;
   }
   else {
-    return textureLod(prevColorBuffer, ref_uvs, mip).rgb;
+    return textureLod(prevColorBuffer, ref_uvs * hizUvScaleBias.xy + hizUvScaleBias.zw, mip).rgb;
   }
 }
 
@@ -402,12 +407,6 @@ vec4 get_ssr_samples(vec4 hit_pdf,
   /* Estimate a cone footprint to sample a corresponding mipmap level. */
   vec4 mip = log2(cone_footprint * max_v2(vec2(textureSize(depthBuffer, 0))));
   mip = clamp(mip, 0.0, MAX_MIP);
-
-  /* Correct UVs for mipmaping mis-alignment */
-  hit_co[0].xy *= mip_ratio_interp(mip.x);
-  hit_co[0].zw *= mip_ratio_interp(mip.y);
-  hit_co[1].xy *= mip_ratio_interp(mip.z);
-  hit_co[1].zw *= mip_ratio_interp(mip.w);
 
   /* Slide 54 */
   vec4 bsdf;
