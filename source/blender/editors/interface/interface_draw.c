@@ -120,7 +120,7 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
   };
   GPUBatch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float(*)[4]) & widget_params);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float(*)[4]) & widget_params);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_batch_draw(batch);
   GPU_blend(GPU_BLEND_NONE);
@@ -2376,7 +2376,7 @@ void ui_draw_dropshadow(
 
   GPUBatch *batch = ui_batch_roundbox_shadow_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_SHADOW);
-  GPU_batch_uniform_4fv_array(batch, "parameters", 4, (float(*)[4]) & widget_params);
+  GPU_batch_uniform_4fv_array(batch, "parameters", 4, (const float(*)[4]) & widget_params);
   GPU_batch_uniform_1f(batch, "alpha", 1.0f - visibility);
   GPU_batch_draw(batch);
 

@@ -1776,7 +1776,12 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
                      filepath,
                      fileflags,
                      &(const struct BlendFileWriteParams){
-                         .remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE,
+                         /* Make all paths absolute when saving the startup file.
+                          * On load the `G.relbase_valid` will be false so the paths
+                          * wont have a base for resolving the relative paths. */
+                         .remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE,
+                         /* Don't apply any path changes to the current blend file. */
+                         .use_save_as_copy = true,
                      },
                      op->reports) == 0) {
     printf("fail\n");

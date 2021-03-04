@@ -27,7 +27,6 @@
 
 /* Forward declarations. */
 struct RenderResult;
-struct StampData;
 
 /* Cryptomatte includes hash in its meta data keys. The hash is generated from the render
  * layer/pass name. Compositing happens without the knowledge of the original layer and pass. The

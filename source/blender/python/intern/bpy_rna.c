@@ -1204,15 +1204,15 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
 static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
 {
   if (self->reference) {
-    //      PyObject_GC_UnTrack(self); /* INITIALIZED TRACKED ? */
-    pyrna_struct_clear(self);
+    PyObject_GC_UnTrack(self);
+    Py_CLEAR(self->reference);
   }
   /* Reference is now NULL. */
 
   if (reference) {
     self->reference = reference;
     Py_INCREF(reference);
-    //      PyObject_GC_Track(self);  /* INITIALIZED TRACKED ? */
+    PyObject_GC_Track(self);
   }
 }
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
@@ -4622,6 +4622,19 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
         if (ret == NULL) {
           PyErr_Restore(error_type, error_value, error_traceback);
         }
+        else {
+          if (Py_TYPE(ret) == &PyMethodDescr_Type) {
+            PyMethodDef *m = ((PyMethodDescrObject *)ret)->d_method;
+            /* TODO: #METH_CLASS */
+            if (m->ml_flags & METH_STATIC) {
+              /* Keep 'ret' as-is. */
+            }
+            else {
+              Py_DECREF(ret);
+              ret = PyCMethod_New(m, (PyObject *)self, NULL, NULL);
+            }
+          }
+        }
       }
     }
 
@@ -5822,6 +5835,11 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
       BPy_StructRNA *ret;
       if ((ret = (BPy_StructRNA *)type->tp_alloc(type, 0))) {
         ret->ptr = base->ptr;
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+        /* #PyType_GenericAlloc will have set tracking.
+         * We only want tracking when `StructRNA.reference` has been set. */
+        PyObject_GC_UnTrack(ret);
+#endif
       }
       /* Pass on exception & NULL if tp_alloc fails. */
       return (PyObject *)ret;
@@ -6525,7 +6543,11 @@ PyTypeObject pyrna_struct_Type = {
     NULL, /* PyBufferProcs *tp_as_buffer; */
 
     /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* long tp_flags; */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+        | Py_TPFLAGS_HAVE_GC
+#endif
+    , /* long tp_flags; */
 
     NULL, /*  char *tp_doc;  Documentation string */
 /*** Assigned meaning in release 2.0 ***/
@@ -7462,13 +7484,28 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 
     if (tp) {
       pyrna = (BPy_StructRNA *)tp->tp_alloc(tp, 0);
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+      /* #PyType_GenericAlloc will have set tracking.
+       * We only want tracking when `StructRNA.reference` has been set. */
+      if (pyrna != NULL) {
+        PyObject_GC_UnTrack(pyrna);
+      }
+#endif
       Py_DECREF(tp); /* srna owns, can't hold a reference. */
     }
     else {
       CLOG_WARN(BPY_LOG_RNA, "could not make type '%s'", RNA_struct_identifier(ptr->type));
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
       pyrna = (BPy_StructRNA *)PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
+#else
+      pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
+#endif
+
 #ifdef USE_WEAKREFS
-      pyrna->in_weakreflist = NULL;
+      if (pyrna != NULL) {
+        pyrna->in_weakreflist = NULL;
+      }
 #endif
     }
   }

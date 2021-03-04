@@ -80,8 +80,8 @@ static PyObject *make_usd_info(void)
   SetStrItem("Unknown");
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(usd_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(usd_info);
     return NULL;
   }
 

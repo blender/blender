@@ -52,7 +52,6 @@ struct rcti;
 struct uiBlock;
 struct uiLayout;
 struct wmKeyConfig;
-struct wmMsgBus;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmNotifier;

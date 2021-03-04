@@ -114,8 +114,8 @@ static PyObject *make_sdl_info(void)
   SetObjItem(PyBool_FromLong(0));
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(sdl_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(sdl_info);
     return NULL;
   }
 

@@ -202,8 +202,7 @@ static void pygpu_buffer__tp_dealloc(BPyGPUBuffer *self)
 {
   if (self->parent) {
     PyObject_GC_UnTrack(self);
-    pygpu_buffer__tp_clear(self);
-    Py_XDECREF(self->parent);
+    Py_CLEAR(self->parent);
   }
   else {
     MEM_freeN(self->buf.as_void);

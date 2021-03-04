@@ -82,6 +82,7 @@ elseif(APPLE)
   # are used as dependencies of other test libraries.
   foreach(_lib ${_test_libs})
     list(REMOVE_ITEM _test_libs_dependencies ${_lib})
+    add_dependencies(blender_test ${_lib})
     target_link_options(blender_test PRIVATE "LINKER:-force_load,$<TARGET_FILE:${_lib}>")
   endforeach()
 

@@ -38,11 +38,9 @@ struct bContext;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
-struct uiBut;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmWindow;
-struct uiBlock;
 
 #ifdef __cplusplus
 extern "C" {

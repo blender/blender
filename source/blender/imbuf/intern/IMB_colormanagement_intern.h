@@ -32,7 +32,6 @@ extern "C" {
 
 struct ImBuf;
 struct OCIO_ConstCPUProcessorRcPtr;
-struct OCIO_ConstProcessorRcPtr;
 
 extern float imbuf_luma_coefficients[3];
 extern float imbuf_xyz_to_rgb[3][3];

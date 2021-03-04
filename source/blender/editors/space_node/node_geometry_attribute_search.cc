@@ -69,6 +69,12 @@ static void attribute_search_update_fn(
     UI_search_item_add(items, str, (void *)str, ICON_ADD, 0, 0);
   }
 
+  if (str[0] == '\0' && !is_first) {
+    /* Allow clearing the text field when the string is empty, but not on the first pass,
+     * or opening an attribute field for the first time would show this search item. */
+    UI_search_item_add(items, str, (void *)str, ICON_X, 0, 0);
+  }
+
   /* Skip the filter when the menu is first opened, so all of the items are visible. */
   if (is_first) {
     for (const std::string &attribute_name : attribute_name_hints) {

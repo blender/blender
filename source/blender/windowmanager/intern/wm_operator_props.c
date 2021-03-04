@@ -291,7 +291,7 @@ void WM_operator_properties_select_random(wmOperatorType *ot)
                        1.0f,
                        "Ratio",
                        "Portion of items to select randomly",
-                       0.f,
+                       0.0f,
                        1.0f);
   RNA_def_int(ot->srna,
               "seed",

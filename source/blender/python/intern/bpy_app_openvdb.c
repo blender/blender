@@ -81,8 +81,8 @@ static PyObject *make_openvdb_info(void)
   SetStrItem("Unknown");
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(openvdb_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(openvdb_info);
     return NULL;
   }
 

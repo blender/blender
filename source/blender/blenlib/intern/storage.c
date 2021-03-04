@@ -377,7 +377,7 @@ int BLI_exists(const char *path)
   struct stat st;
   BLI_assert(!BLI_path_is_rel(path));
   if (stat(path, &st)) {
-    return (0);
+    return 0;
   }
 #endif
   return (st.st_mode);

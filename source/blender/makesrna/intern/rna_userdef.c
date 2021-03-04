@@ -6062,7 +6062,9 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_relative_paths", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELPATHS);
   RNA_def_property_ui_text(
-      prop, "Relative Paths", "Default relative path option for the file selector");
+      prop,
+      "Relative Paths",
+      "Default relative path option for the file selector, when no path is defined yet");
 
   prop = RNA_def_property(srna, "use_file_compression", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FILECOMPRESS);

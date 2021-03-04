@@ -81,8 +81,8 @@ static PyObject *make_ocio_info(void)
   SetStrItem("Unknown");
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(ocio_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(ocio_info);
     return NULL;
   }
 

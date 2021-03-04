@@ -30,7 +30,6 @@ extern "C" {
 struct ListBase;
 struct Scene;
 struct Sequence;
-struct bContext;
 
 /* SeqLoadData.flags */
 typedef enum eSeqLoadFlags {

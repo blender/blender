@@ -646,6 +646,11 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
       [NSApp setDelegate:appDelegate];
     }
 
+    // AppKit provides automatic window tabbing. Blender is a single-tabbed application without a
+    // macOS tab bar, and should explicitly opt-out of this. This is also controlled by the macOS
+    // user default #NSWindowTabbingEnabled.
+    NSWindow.allowsAutomaticWindowTabbing = NO;
+
     [NSApp finishLaunching];
 
     [pool drain];
