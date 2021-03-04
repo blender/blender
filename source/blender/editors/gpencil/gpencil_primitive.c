@@ -71,6 +71,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_gpencil.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -1253,8 +1254,17 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 static int gpencil_primitive_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
+  Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = CTX_data_gpencil_data(C);
   tGPDprimitive *tgpi = NULL;
+
+  if (!IS_AUTOKEY_ON(scene)) {
+    bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+    if ((gpl == NULL) || (gpl->actframe == NULL)) {
+      BKE_report(op->reports, RPT_INFO, "No available frame for creating stroke");
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   /* initialize operator runtime data */
   gpencil_primitive_init(C, op);
@@ -1310,11 +1320,16 @@ static void gpencil_primitive_interaction_end(bContext *C,
 
   /* insert keyframes as required... */
   short add_frame_mode;
-  if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
-    add_frame_mode = GP_GETFRAME_ADD_COPY;
+  if (IS_AUTOKEY_ON(tgpi->scene)) {
+    if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+      add_frame_mode = GP_GETFRAME_ADD_COPY;
+    }
+    else {
+      add_frame_mode = GP_GETFRAME_ADD_NEW;
+    }
   }
   else {
-    add_frame_mode = GP_GETFRAME_ADD_NEW;
+    add_frame_mode = GP_GETFRAME_USE_PREV;
   }
 
   bool need_tag = tgpi->gpl->actframe == NULL;
