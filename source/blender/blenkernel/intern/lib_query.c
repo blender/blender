@@ -440,7 +440,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 typedef struct IDUsersIter {
   ID *id;
 
-  ListBase *lb_array[MAX_LIBARRAY];
+  ListBase *lb_array[INDEX_ID_MAX];
   int lb_idx;
 
   ID *curr_id;
@@ -514,7 +514,7 @@ int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
 {
   IDUsersIter iter;
-  ListBase *lb_array[MAX_LIBARRAY];
+  ListBase *lb_array[INDEX_ID_MAX];
   ID *id = idv;
   int i = set_listbasepointers(bmain, lb_array);
   bool is_defined = false;
@@ -567,7 +567,7 @@ bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
 void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
 {
   IDUsersIter iter;
-  ListBase *lb_array[MAX_LIBARRAY];
+  ListBase *lb_array[INDEX_ID_MAX];
   ID *id = idv;
   int i = set_listbasepointers(bmain, lb_array);
   bool is_defined = false;
@@ -805,7 +805,7 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
  */
 void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 {
-  ListBase *lb_array[MAX_LIBARRAY];
+  ListBase *lb_array[INDEX_ID_MAX];
 
   bool do_loop = true;
   while (do_loop) {

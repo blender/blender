@@ -22,17 +22,11 @@
 
 namespace blender::nodes {
 
-static const NodeTreeRef &get_tree_ref(NodeTreeRefMap &node_tree_refs, bNodeTree *btree)
-{
-  return *node_tree_refs.lookup_or_add_cb(btree,
-                                          [&]() { return std::make_unique<NodeTreeRef>(btree); });
-}
-
 DerivedNodeTree::DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs) : btree_(btree)
 {
   BLI_assert(btree != nullptr);
 
-  const NodeTreeRef &main_tree_ref = get_tree_ref(node_tree_refs, btree);
+  const NodeTreeRef &main_tree_ref = get_tree_ref_from_map(node_tree_refs, *btree);
   used_node_tree_refs_.add_new(&main_tree_ref);
 
   Vector<DNode *> all_nodes;
@@ -144,7 +138,7 @@ BLI_NOINLINE void DerivedNodeTree::expand_group_node(DNode &group_node,
     return;
   }
 
-  const NodeTreeRef &group_ref = get_tree_ref(node_tree_refs, btree);
+  const NodeTreeRef &group_ref = get_tree_ref_from_map(node_tree_refs, *btree);
   used_node_tree_refs_.add(&group_ref);
 
   DParentNode &parent = *allocator_.construct<DParentNode>();

@@ -67,6 +67,7 @@ class OutputSocketRef;
 class NodeRef;
 class NodeTreeRef;
 class LinkRef;
+class InternalLinkRef;
 
 class SocketRef : NonCopyable, NonMovable {
  protected:
@@ -106,16 +107,21 @@ class SocketRef : NonCopyable, NonMovable {
   StringRefNull idname() const;
   StringRefNull name() const;
   StringRefNull identifier() const;
+  bNodeSocketType *typeinfo() const;
 
   bNodeSocket *bsocket() const;
   bNode *bnode() const;
   bNodeTree *btree() const;
+
+  bool is_available() const;
 };
 
 class InputSocketRef final : public SocketRef {
  public:
   Span<const OutputSocketRef *> linked_sockets() const;
   Span<const OutputSocketRef *> directly_linked_sockets() const;
+
+  bool is_multi_input_socket() const;
 };
 
 class OutputSocketRef final : public SocketRef {
@@ -132,6 +138,7 @@ class NodeRef : NonCopyable, NonMovable {
   int id_;
   Vector<InputSocketRef *> inputs_;
   Vector<OutputSocketRef *> outputs_;
+  Vector<InternalLinkRef *> internal_links_;
 
   friend NodeTreeRef;
 
@@ -140,6 +147,7 @@ class NodeRef : NonCopyable, NonMovable {
 
   Span<const InputSocketRef *> inputs() const;
   Span<const OutputSocketRef *> outputs() const;
+  Span<const InternalLinkRef *> internal_links() const;
 
   const InputSocketRef &input(int index) const;
   const OutputSocketRef &output(int index) const;
@@ -150,6 +158,7 @@ class NodeRef : NonCopyable, NonMovable {
   PointerRNA *rna() const;
   StringRefNull idname() const;
   StringRefNull name() const;
+  bNodeType *typeinfo() const;
 
   int id() const;
 
@@ -171,6 +180,21 @@ class LinkRef : NonCopyable, NonMovable {
  public:
   const OutputSocketRef &from() const;
   const InputSocketRef &to() const;
+
+  bNodeLink *blink() const;
+};
+
+class InternalLinkRef : NonCopyable, NonMovable {
+ private:
+  InputSocketRef *from_;
+  OutputSocketRef *to_;
+  bNodeLink *blink_;
+
+  friend NodeTreeRef;
+
+ public:
+  const InputSocketRef &from() const;
+  const OutputSocketRef &to() const;
 
   bNodeLink *blink() const;
 };
@@ -216,6 +240,19 @@ class NodeTreeRef : NonCopyable, NonMovable {
                                       bNodeSocket *bsocket);
   void find_targets_skipping_reroutes(OutputSocketRef &socket_ref, Vector<SocketRef *> &r_targets);
 };
+
+using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
+
+const NodeTreeRef &get_tree_ref_from_map(NodeTreeRefMap &node_tree_refs, bNodeTree &btree);
+
+namespace node_tree_ref_types {
+using nodes::InputSocketRef;
+using nodes::NodeRef;
+using nodes::NodeTreeRef;
+using nodes::NodeTreeRefMap;
+using nodes::OutputSocketRef;
+using nodes::SocketRef;
+}  // namespace node_tree_ref_types
 
 /* --------------------------------------------------------------------
  * SocketRef inline methods.
@@ -308,6 +345,11 @@ inline StringRefNull SocketRef::identifier() const
   return bsocket_->identifier;
 }
 
+inline bNodeSocketType *SocketRef::typeinfo() const
+{
+  return bsocket_->typeinfo;
+}
+
 inline bNodeSocket *SocketRef::bsocket() const
 {
   return bsocket_;
@@ -323,6 +365,11 @@ inline bNodeTree *SocketRef::btree() const
   return node_->btree();
 }
 
+inline bool SocketRef::is_available() const
+{
+  return (bsocket_->flag & SOCK_UNAVAIL) == 0;
+}
+
 /* --------------------------------------------------------------------
  * InputSocketRef inline methods.
  */
@@ -335,6 +382,11 @@ inline Span<const OutputSocketRef *> InputSocketRef::linked_sockets() const
 inline Span<const OutputSocketRef *> InputSocketRef::directly_linked_sockets() const
 {
   return directly_linked_sockets_.as_span().cast<const OutputSocketRef *>();
+}
+
+inline bool InputSocketRef::is_multi_input_socket() const
+{
+  return bsocket_->flag & SOCK_MULTI_INPUT;
 }
 
 /* --------------------------------------------------------------------
@@ -370,6 +422,11 @@ inline Span<const OutputSocketRef *> NodeRef::outputs() const
   return outputs_;
 }
 
+inline Span<const InternalLinkRef *> NodeRef::internal_links() const
+{
+  return internal_links_;
+}
+
 inline const InputSocketRef &NodeRef::input(int index) const
 {
   return *inputs_[index];
@@ -403,6 +460,11 @@ inline StringRefNull NodeRef::idname() const
 inline StringRefNull NodeRef::name() const
 {
   return bnode_->name;
+}
+
+inline bNodeType *NodeRef::typeinfo() const
+{
+  return bnode_->typeinfo;
 }
 
 inline int NodeRef::id() const
@@ -450,6 +512,25 @@ inline const InputSocketRef &LinkRef::to() const
 }
 
 inline bNodeLink *LinkRef::blink() const
+{
+  return blink_;
+}
+
+/* --------------------------------------------------------------------
+ * InternalLinkRef inline methods.
+ */
+
+inline const InputSocketRef &InternalLinkRef::from() const
+{
+  return *from_;
+}
+
+inline const OutputSocketRef &InternalLinkRef::to() const
+{
+  return *to_;
+}
+
+inline bNodeLink *InternalLinkRef::blink() const
 {
   return blink_;
 }

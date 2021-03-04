@@ -223,7 +223,7 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
 
 #define FOREACH_MAIN_LISTBASE_BEGIN(_bmain, _lb) \
   { \
-    ListBase *_lbarray[MAX_LIBARRAY]; \
+    ListBase *_lbarray[INDEX_ID_MAX]; \
     int _i = set_listbasepointers((_bmain), _lbarray); \
     while (_i--) { \
       (_lb) = _lbarray[_i];
@@ -234,9 +234,13 @@ struct GSet *BKE_main_gset_create(struct Main *bmain, struct GSet *gset);
   ((void)0)
 
 /**
- * DO NOT use break statement with that macro,
- * use #FOREACH_MAIN_LISTBASE and #FOREACH_MAIN_LISTBASE_ID instead
- * if you need that kind of control flow. */
+ * Top level `foreach`-like macro allowing to loop over all IDs in a given #Main data-base.
+ *
+ * NOTE: Order tries to go from 'user IDs' to 'used IDs' (e.g. collections will be processed
+ * before objects, which will be processed before obdata types, etc.).
+ *
+ * WARNING: DO NOT use break statement with that macro, use #FOREACH_MAIN_LISTBASE and
+ * #FOREACH_MAIN_LISTBASE_ID instead if you need that kind of control flow. */
 #define FOREACH_MAIN_ID_BEGIN(_bmain, _id) \
   { \
     ListBase *_lb; \
@@ -259,8 +263,8 @@ const char *BKE_main_blendfile_path_from_global(void);
 
 struct ListBase *which_libbase(struct Main *bmain, short type);
 
-#define MAX_LIBARRAY 41
-int set_listbasepointers(struct Main *main, struct ListBase *lb[MAX_LIBARRAY]);
+//#define INDEX_ID_MAX 41
+int set_listbasepointers(struct Main *main, struct ListBase *lb[]);
 
 #define MAIN_VERSION_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \

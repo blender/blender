@@ -395,6 +395,7 @@ void extract_normalized_words(StringRef str,
 
 struct SearchItem {
   blender::Span<blender::StringRef> normalized_words;
+  int length;
   void *user_data;
 };
 
@@ -416,8 +417,10 @@ void BLI_string_search_add(StringSearch *search, const char *str, void *user_dat
 {
   using namespace blender;
   Vector<StringRef, 64> words;
-  string_search::extract_normalized_words(str, search->allocator, words);
-  search->items.append({search->allocator.construct_array_copy(words.as_span()), user_data});
+  StringRef str_ref{str};
+  string_search::extract_normalized_words(str_ref, search->allocator, words);
+  search->items.append(
+      {search->allocator.construct_array_copy(words.as_span()), (int)str_ref.size(), user_data});
 }
 
 /**
@@ -453,7 +456,15 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
    * score. Results with the same score are in the order they have been added to the search. */
   Vector<int> sorted_result_indices;
   for (const int score : found_scores) {
-    Span<int> indices = result_indices_by_score.lookup(score);
+    MutableSpan<int> indices = result_indices_by_score.lookup(score);
+    if (score == found_scores[0]) {
+      /* Sort items with best score by length. Shorter items are more likely the ones you are
+       * looking for. This also ensures that exact matches will be at the top, even if the query is
+       * a substring of another item. */
+      std::sort(indices.begin(), indices.end(), [&](int a, int b) {
+        return search->items[a].length < search->items[b].length;
+      });
+    }
     sorted_result_indices.extend(indices);
   }
 

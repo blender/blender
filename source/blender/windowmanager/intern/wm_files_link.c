@@ -804,7 +804,7 @@ static void lib_relocate_do(Main *bmain,
                             ReportList *reports,
                             const bool do_reload)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int lba_idx;
 
   LinkNode *itemlink;

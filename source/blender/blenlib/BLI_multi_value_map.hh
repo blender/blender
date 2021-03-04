@@ -104,6 +104,22 @@ template<typename Key, typename Value> class MultiValueMap {
   }
 
   /**
+   * Get a mutable span to all the values that are stored for the given key.
+   */
+  MutableSpan<Value> lookup(const Key &key)
+  {
+    return this->lookup_as(key);
+  }
+  template<typename ForwardKey> MutableSpan<Value> lookup_as(const ForwardKey &key)
+  {
+    Vector<Value> *vector = map_.lookup_ptr_as(key);
+    if (vector != nullptr) {
+      return vector->as_mutable_span();
+    }
+    return {};
+  }
+
+  /**
    * Note: This signature will change when the implementation changes.
    */
   typename MapType::ItemIterator items() const

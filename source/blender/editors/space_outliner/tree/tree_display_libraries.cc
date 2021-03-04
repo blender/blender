@@ -111,7 +111,7 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
 {
   const short filter_id_type = id_filter_get();
 
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int tot;
   if (filter_id_type) {
     lbarray[0] = which_libbase(&mainvar, space_outliner_.filter_id_type);
