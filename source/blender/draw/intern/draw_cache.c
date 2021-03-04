@@ -935,8 +935,15 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 
 int DRW_cache_object_material_count_get(struct Object *ob)
 {
+  short type = ob->type;
+
   Mesh *me = BKE_object_get_evaluated_mesh(ob);
-  short type = (me != NULL) ? OB_MESH : ob->type;
+  if (me != NULL && type != OB_POINTCLOUD) {
+    /* Some object types (e.g. curves) can have a Curve in ob->data, but will be rendered as mesh.
+     * For point clouds this never happens. Ideally this check would happen at another level and we
+     * would just have to care about ob->data here. */
+    type = OB_MESH;
+  }
 
   switch (type) {
     case OB_MESH:
