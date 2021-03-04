@@ -550,7 +550,7 @@ static void applyObjectConstraintSize(TransInfo *t,
 }
 
 static void constraints_rotation_impl(TransInfo *t,
-                                      float axismtx[3][3],
+                                      const float axismtx[3][3],
                                       float r_vec[3],
                                       float *r_angle)
 {
@@ -621,7 +621,7 @@ static void applyObjectConstraintRot(
 {
   if (t->con.mode & CON_APPLY) {
     float tmp_axismtx[3][3];
-    float(*axismtx)[3];
+    const float(*axismtx)[3];
 
     /* on setup call, use first object */
     if (td == NULL) {
