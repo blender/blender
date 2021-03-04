@@ -31,8 +31,6 @@ extern "C" {
 #endif
 
 struct CryptomatteSession;
-struct ID;
-struct Main;
 struct Material;
 struct Object;
 struct RenderResult;

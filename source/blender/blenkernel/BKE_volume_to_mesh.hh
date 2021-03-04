@@ -21,7 +21,6 @@
 #endif
 
 struct Mesh;
-struct VolumeGrid;
 
 namespace blender::bke {
 

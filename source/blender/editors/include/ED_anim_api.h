@@ -55,7 +55,6 @@ struct FModifier;
 struct bAction;
 
 struct uiBlock;
-struct uiLayout;
 
 struct PointerRNA;
 struct PropertyRNA;
