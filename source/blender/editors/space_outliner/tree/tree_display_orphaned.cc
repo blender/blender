@@ -42,7 +42,7 @@ TreeDisplayIDOrphans::TreeDisplayIDOrphans(SpaceOutliner &space_outliner)
 ListBase TreeDisplayIDOrphans::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   short filter_id_type = (space_outliner_.filter & SO_FILTER_ID_TYPE) ?
                              space_outliner_.filter_id_type :
                              0;

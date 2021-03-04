@@ -217,7 +217,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   ret->flag = ((is_link ? FILE_LINK : 0) | (is_rel ? FILE_RELPATH : 0) |
                (use_assets_only ? FILE_ASSETS_ONLY : 0));
 
-  ret->dict = _PyDict_NewPresized(MAX_LIBARRAY);
+  ret->dict = _PyDict_NewPresized(INDEX_ID_MAX);
 
   return (PyObject *)ret;
 }
@@ -248,7 +248,7 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
 {
   PyObject *ret;
   BPy_Library *self_from;
-  PyObject *from_dict = _PyDict_NewPresized(MAX_LIBARRAY);
+  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX);
   ReportList reports;
 
   BKE_reports_init(&reports, RPT_STORE);

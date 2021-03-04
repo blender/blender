@@ -916,7 +916,7 @@ void BKE_main_id_tag_idcode(struct Main *mainvar,
  */
 void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int a;
 
   a = set_listbasepointers(mainvar, lbarray);
@@ -949,7 +949,7 @@ void BKE_main_id_flag_listbase(ListBase *lb, const int flag, const bool value)
  */
 void BKE_main_id_flag_all(Main *bmain, const int flag, const bool value)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int a;
   a = set_listbasepointers(bmain, lbarray);
   while (a--) {
@@ -1870,7 +1870,7 @@ void BKE_library_make_local(Main *bmain,
                             const bool untagged_only,
                             const bool set_fake)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
 
   LinkNode *todo_ids = NULL;
   LinkNode *copied_ids = NULL;

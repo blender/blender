@@ -240,7 +240,7 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
 static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
 {
   const int tag = LIB_TAG_DOIT;
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   Link dummy_link = {0};
   int base_count, i;
 

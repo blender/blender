@@ -33,9 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h" /* for ID_Type */
-
-#include "BKE_main.h" /* for MAX_LIBARRAY */
+#include "DNA_ID.h" /* for ID_Type and INDEX_ID_MAX */
 
 #include "BLI_threads.h" /* for SpinLock */
 
@@ -111,10 +109,10 @@ struct Depsgraph {
   bool need_update;
 
   /* Indicates which ID types were updated. */
-  char id_type_updated[MAX_LIBARRAY];
+  char id_type_updated[INDEX_ID_MAX];
 
   /* Indicates type of IDs present in the depsgraph. */
-  char id_type_exist[MAX_LIBARRAY];
+  char id_type_exist[INDEX_ID_MAX];
 
   /* Quick-Access Temp Data ............. */
 

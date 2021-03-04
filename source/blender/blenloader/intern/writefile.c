@@ -768,7 +768,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 /* Keep it last of write_foodata functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   ID *id;
   int a, tot;
   bool found_one;
@@ -954,7 +954,7 @@ static bool write_file_handle(Main *mainvar,
    * if needed, without duplicating whole code. */
   Main *bmain = mainvar;
   do {
-    ListBase *lbarray[MAX_LIBARRAY];
+    ListBase *lbarray[INDEX_ID_MAX];
     int a = set_listbasepointers(bmain, lbarray);
     while (a--) {
       ID *id = lbarray[a]->first;

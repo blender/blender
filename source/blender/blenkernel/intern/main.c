@@ -53,7 +53,7 @@ Main *BKE_main_new(void)
 void BKE_main_free(Main *mainvar)
 {
   /* also call when reading a file, erase all, etc */
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int a;
 
   /* Since we are removing whole main, no need to bother 'properly'
@@ -532,18 +532,17 @@ ListBase *which_libbase(Main *bmain, short type)
 }
 
 /**
- * puts into array *lb pointers to all the #ListBase structs in main,
- * and returns the number of them as the function result. This is useful for
- * generic traversal of all the blocks in a Main (by traversing all the
- * lists in turn), without worrying about block types.
+ * Put the pointers to all the #ListBase structs in given `bmain` into the `*lb[INDEX_ID_MAX]`
+ * array, and return the number of those for convinience.
  *
- * \note #MAX_LIBARRAY define should match this code */
-int set_listbasepointers(Main *bmain, ListBase **lb)
+ * This is useful for generic traversal of all the blocks in a #Main (by traversing all the lists
+ * in turn), without worrying about block types.
+ *
+ * \note The order of each ID type #ListBase in the array is determined by the `INDEX_ID_<IDTYPE>`
+ * enum definitions in `DNA_ID.h`. See also the #FOREACH_MAIN_ID_BEGIN macro in `BKE_main.h`
+ */
+int set_listbasepointers(Main *bmain, ListBase *lb[INDEX_ID_MAX])
 {
-  /* BACKWARDS! also watch order of free-ing! (mesh<->mat), first items freed last.
-   * This is important because freeing data decreases user-counts of other data-blocks,
-   * if this data is its self freed it can crash. */
-
   /* Libraries may be accessed from pretty much any other ID. */
   lb[INDEX_ID_LI] = &(bmain->libraries);
 
@@ -606,5 +605,5 @@ int set_listbasepointers(Main *bmain, ListBase **lb)
 
   lb[INDEX_ID_NULL] = NULL;
 
-  return (MAX_LIBARRAY - 1);
+  return (INDEX_ID_MAX - 1);
 }
