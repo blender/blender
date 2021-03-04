@@ -610,6 +610,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
   printf("\n");
   printf("Misc Options:\n");
+  BLI_args_print_arg_doc(ba, "--open-last");
   BLI_args_print_arg_doc(ba, "--app-template");
   BLI_args_print_arg_doc(ba, "--factory-startup");
   BLI_args_print_arg_doc(ba, "--enable-event-simulate");
@@ -2008,7 +2009,7 @@ static int arg_handle_load_last_file(int UNUSED(argc), const char **UNUSED(argv)
 
   const RecentFile *recent_file = G.recent_files.first;
   const char *fake_argv[] = {recent_file->filepath};
-  return arg_handle_load_file(1, fake_argv, data);
+  return arg_handle_load_file(ARRAY_SIZE(fake_argv), fake_argv, data);
 }
 
 void main_args_setup(bContext *C, bArgs *ba)
