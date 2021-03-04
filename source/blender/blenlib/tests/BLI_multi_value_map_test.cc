@@ -29,6 +29,27 @@ TEST(multi_value_map, LookupExistant)
   EXPECT_EQ(map.lookup(3)[0], 6);
 }
 
+TEST(multi_value_map, LookupMutable)
+{
+  MultiValueMap<int, int> map;
+  map.add(1, 2);
+  map.add(4, 5);
+  map.add(4, 6);
+  map.add(6, 7);
+
+  MutableSpan<int> span = map.lookup(4);
+  EXPECT_EQ(span.size(), 2);
+  span[0] = 10;
+  span[1] = 20;
+
+  map.add(4, 5);
+  MutableSpan<int> new_span = map.lookup(4);
+  EXPECT_EQ(new_span.size(), 3);
+  EXPECT_EQ(new_span[0], 10);
+  EXPECT_EQ(new_span[1], 20);
+  EXPECT_EQ(new_span[2], 5);
+}
+
 TEST(multi_value_map, AddMultiple)
 {
   MultiValueMap<int, int> map;
