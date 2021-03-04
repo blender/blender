@@ -4622,6 +4622,19 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
         if (ret == NULL) {
           PyErr_Restore(error_type, error_value, error_traceback);
         }
+        else {
+          if (Py_TYPE(ret) == &PyMethodDescr_Type) {
+            PyMethodDef *m = ((PyMethodDescrObject *)ret)->d_method;
+            /* TODO: #METH_CLASS */
+            if (m->ml_flags & METH_STATIC) {
+              /* Keep 'ret' as-is. */
+            }
+            else {
+              Py_DECREF(ret);
+              ret = PyCMethod_New(m, (PyObject *)self, NULL, NULL);
+            }
+          }
+        }
       }
     }
 
