@@ -168,12 +168,14 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 #define PIE_MENU_INTERVAL 0.01
 #define BUTTON_AUTO_OPEN_THRESH 0.2
 #define BUTTON_MOUSE_TOWARDS_THRESH 1.0
-/* pixels to move the cursor to get out of keyboard navigation */
+/** Pixels to move the cursor to get out of keyboard navigation. */
 #define BUTTON_KEYNAV_PX_LIMIT 8
 
-#define MENU_TOWARDS_MARGIN 20      /* margin in pixels */
-#define MENU_TOWARDS_WIGGLE_ROOM 64 /* tolerance in pixels */
-/* drag-lock distance threshold in pixels */
+/** Margin around the menu, use to check if we're moving towards this rectangle (in pixels). */
+#define MENU_TOWARDS_MARGIN 20
+/** Tolerance for closing menus (in pixels). */
+#define MENU_TOWARDS_WIGGLE_ROOM 64
+/** Drag-lock distance threshold (in pixels). */
 #define BUTTON_DRAGLOCK_THRESH 3
 
 typedef enum uiButtonActivateType {
