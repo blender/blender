@@ -1967,9 +1967,9 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 
 static int edbm_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
   edbm_duplicate_exec(C, op);
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   return OPERATOR_FINISHED;
 }

@@ -9007,7 +9007,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 
 #if 0
   if (PyDict_GetItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna) == NULL) {
-    PWM_cursor_wait(0);
+    PWM_cursor_wait(false);
     PyErr_SetString(PyExc_ValueError, "unregister_class(): not a registered as a subclass");
     return NULL;
   }

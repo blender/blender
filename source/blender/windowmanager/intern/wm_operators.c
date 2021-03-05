@@ -3234,7 +3234,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
    */
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   double time_start = PIL_check_seconds_timer();
 
@@ -3257,7 +3257,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   RNA_enum_description(redraw_timer_type_items, type, &infostr);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   BKE_reportf(op->reports,
               RPT_WARNING,

@@ -1897,7 +1897,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   /* add modal handler for ESC */
   WM_event_add_modal_handler(C, op);
