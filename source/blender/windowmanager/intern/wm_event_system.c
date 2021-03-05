@@ -4350,11 +4350,11 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *owin;
-    if (WM_window_find_under_cursor(wm, win, win, mval, &owin, mval)) {
+    wmWindow *win_other;
+    if (WM_window_find_under_cursor(wm, win, win, mval, &win_other, mval)) {
       event->x = mval[0];
       event->y = mval[1];
-      return owin;
+      return win_other;
     }
   }
   return NULL;
@@ -4443,19 +4443,19 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   }
 
   /**
-   * Having both, \a event and \a evt, can be highly confusing to work with,
+   * Having both, \a event and \a event_state, can be highly confusing to work with,
    * but is necessary for our current event system, so let's clear things up a bit:
    *
    * - Data added to event only will be handled immediately,
    *   but will not be copied to the next event.
-   * - Data added to \a evt only stays,
+   * - Data added to \a event_state only stays,
    *   but is handled with the next event -> execution delay.
-   * - Data added to event and \a evt stays and is handled immediately.
+   * - Data added to event and \a event_state stays and is handled immediately.
    */
-  wmEvent event, *evt = win->eventstate;
+  wmEvent event, *event_state = win->eventstate;
 
   /* Initialize and copy state (only mouse x y and modifiers). */
-  event = *evt;
+  event = *event_state;
   event.is_repeat = false;
 
   /**
@@ -4473,17 +4473,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
   /* Ensure the event state is correct, any deviation from this may cause bugs. */
 #ifndef NDEBUG
-  if ((evt->type || evt->val) && /* Ignore cleared event state. */
-      !(ISMOUSE_BUTTON(evt->type) || ISKEYBOARD(evt->type))) {
+  if ((event_state->type || event_state->val) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(event_state->type) || ISKEYBOARD(event_state->type))) {
     CLOG_WARN(WM_LOG_HANDLERS,
               "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
-              evt->type);
+              event_state->type);
   }
-  if ((evt->prevtype || evt->prevval) && /* Ignore cleared event state. */
-      !(ISMOUSE_BUTTON(evt->prevtype) || ISKEYBOARD(evt->prevtype))) {
+  if ((event_state->prevtype || event_state->prevval) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(event_state->prevtype) || ISKEYBOARD(event_state->prevtype))) {
     CLOG_WARN(WM_LOG_HANDLERS,
               "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
-              evt->prevtype);
+              event_state->prevtype);
   }
 #endif
 
@@ -4499,28 +4499,26 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.type = MOUSEMOVE;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
-        copy_v2_v2_int(&evt->x, &event_new->x);
-        evt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+        copy_v2_v2_int(&event_state->x, &event_new->x);
+        event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
       }
 
       /* Also add to other window if event is there, this makes overdraws disappear nicely. */
       /* It remaps mousecoord to other window in event. */
-      wmWindow *owin = wm_event_cursor_other_windows(wm, win, &event);
-      if (owin) {
-        wmEvent oevent, *oevt = owin->eventstate;
-
-        oevent = *oevt;
+      wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
+      if (win_other) {
+        wmEvent event_other = *win_other->eventstate;
 
         /* See comment for this operation on `event` for details. */
-        oevent.prevtype = oevent.type;
-        oevent.prevval = oevent.val;
+        event_other.prevtype = event_other.type;
+        event_other.prevval = event_other.val;
 
-        copy_v2_v2_int(&oevent.x, &event.x);
-        oevent.type = MOUSEMOVE;
+        copy_v2_v2_int(&event_other.x, &event.x);
+        event_other.type = MOUSEMOVE;
         {
-          wmEvent *event_new = wm_event_add_mousemove(owin, &oevent);
-          copy_v2_v2_int(&oevt->x, &event_new->x);
-          oevt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+          wmEvent *event_new = wm_event_add_mousemove(win_other, &event_other);
+          copy_v2_v2_int(&win_other->eventstate->x, &event_new->x);
+          win_other->eventstate->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
         }
       }
 
@@ -4546,8 +4544,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           break;
       }
 
-      event.x = evt->x = pd->x;
-      event.y = evt->y = pd->y;
+      event.x = event_state->x = pd->x;
+      event.y = event_state->y = pd->y;
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
@@ -4590,11 +4588,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-      wm_event_prev_values_set(&event, evt);
+      wm_event_prev_values_set(&event, event_state);
 
       /* Copy to event state. */
-      evt->val = event.val;
-      evt->type = event.type;
+      event_state->val = event.val;
+      event_state->type = event.type;
 
       /* Double click test. */
       if (wm_event_is_double_click(&event)) {
@@ -4602,25 +4600,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.val = KM_DBL_CLICK;
       }
       if (event.val == KM_PRESS) {
-        wm_event_prev_click_set(&event, evt);
+        wm_event_prev_click_set(&event, event_state);
       }
 
       /* Add to other window if event is there (not to both!). */
-      wmWindow *owin = wm_event_cursor_other_windows(wm, win, &event);
-      if (owin) {
-        wmEvent oevent = *(owin->eventstate);
+      wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
+      if (win_other) {
+        wmEvent event_other = *win_other->eventstate;
 
         /* See comment for this operation on `event` for details. */
-        oevent.prevtype = oevent.type;
-        oevent.prevval = oevent.val;
+        event_other.prevtype = event_other.type;
+        event_other.prevval = event_other.val;
 
-        copy_v2_v2_int(&oevent.x, &event.x);
+        copy_v2_v2_int(&event_other.x, &event.x);
 
-        oevent.type = event.type;
-        oevent.val = event.val;
-        oevent.tablet = event.tablet;
+        event_other.type = event.type;
+        event_other.val = event.val;
+        event_other.tablet = event.tablet;
 
-        wm_event_add(owin, &oevent);
+        wm_event_add(win_other, &event_other);
       }
       else {
         wm_event_add(win, &event);
@@ -4641,12 +4639,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
-      wm_event_prev_values_set(&event, evt);
+      wm_event_prev_values_set(&event, event_state);
 
       /* Copy to event state. */
-      evt->val = event.val;
-      evt->type = event.type;
-      evt->is_repeat = event.is_repeat;
+      event_state->val = event.val;
+      event_state->type = event.type;
+      event_state->is_repeat = event.is_repeat;
 
       /* Exclude arrow keys, esc, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
@@ -4682,57 +4680,57 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case EVT_LEFTSHIFTKEY:
         case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->alt || evt->oskey) {
+            if (event_state->ctrl || event_state->alt || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.shift = evt->shift = keymodifier;
+          event.shift = event_state->shift = keymodifier;
           break;
         case EVT_LEFTCTRLKEY:
         case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
-            if (evt->shift || evt->alt || evt->oskey) {
+            if (event_state->shift || event_state->alt || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.ctrl = evt->ctrl = keymodifier;
+          event.ctrl = event_state->ctrl = keymodifier;
           break;
         case EVT_LEFTALTKEY:
         case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->shift || evt->oskey) {
+            if (event_state->ctrl || event_state->shift || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.alt = evt->alt = keymodifier;
+          event.alt = event_state->alt = keymodifier;
           break;
         case EVT_OSKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->alt || evt->shift) {
+            if (event_state->ctrl || event_state->alt || event_state->shift) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.oskey = evt->oskey = keymodifier;
+          event.oskey = event_state->oskey = keymodifier;
           break;
         default:
           if (event.val == KM_PRESS && event.keymodifier == 0) {
             /* Only set in eventstate, for next event. */
-            evt->keymodifier = event.type;
+            event_state->keymodifier = event.type;
           }
           else if (event.val == KM_RELEASE && event.keymodifier == event.type) {
-            event.keymodifier = evt->keymodifier = 0;
+            event.keymodifier = event_state->keymodifier = 0;
           }
           break;
       }
@@ -4755,7 +4753,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
        * Since it's impossible to map a key modifier to an unknown key,
        * it shouldn't harm to clear it. */
       if (event.keymodifier == EVT_UNKNOWNKEY) {
-        evt->keymodifier = event.keymodifier = 0;
+        event_state->keymodifier = event.keymodifier = 0;
       }
 
       /* If test_break set, it catches this. Do not set with modifier presses.
@@ -4770,7 +4768,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
         if (event.is_repeat == false) {
-          wm_event_prev_click_set(&event, evt);
+          wm_event_prev_click_set(&event, event_state);
         }
       }
 
