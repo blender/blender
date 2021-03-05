@@ -5977,7 +5977,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "frs_sec");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1, SHRT_MAX);
-  RNA_def_property_ui_range(prop, 1, 120, 1, -1);
+  RNA_def_property_ui_range(prop, 1, 240, 1, -1);
   RNA_def_property_ui_text(prop, "FPS", "Framerate, expressed in frames per second");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 
