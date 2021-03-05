@@ -71,7 +71,7 @@ bool outliner_is_collection_tree_element(const TreeElement *te)
            TSE_VIEW_COLLECTION_BASE)) {
     return true;
   }
-  if (tselem->type == 0 && te->idcode == ID_GR) {
+  if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_GR) {
     return true;
   }
 
@@ -94,7 +94,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
     Scene *scene = (Scene *)tselem->id;
     return scene->master_collection;
   }
-  if (tselem->type == 0 && te->idcode == ID_GR) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_GR)) {
     return (Collection *)tselem->id;
   }
 
@@ -111,7 +111,7 @@ TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *cu
     return TRAVERSE_CONTINUE;
   }
 
-  if (tselem->type || (tselem->id && GS(tselem->id->name) != ID_GR)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id && GS(tselem->id->name) != ID_GR)) {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -127,7 +127,7 @@ TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *custom
     return TRAVERSE_CONTINUE;
   }
 
-  if (tselem->type || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -1458,7 +1458,7 @@ static TreeTraversalAction outliner_hide_find_data_to_edit(TreeElement *te, void
       BLI_gset_add(data->collections_to_edit, lc);
     }
   }
-  else if (tselem->type == 0 && te->idcode == ID_OB) {
+  else if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     Object *ob = (Object *)tselem->id;
     Base *base = BKE_view_layer_base_find(data->view_layer, ob);
     BLI_gset_add(data->bases_to_edit, base);

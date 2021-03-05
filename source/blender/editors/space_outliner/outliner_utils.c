@@ -226,7 +226,7 @@ TreeElement *outliner_find_id(SpaceOutliner *space_outliner, ListBase *lb, const
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
-    if (tselem->type == 0) {
+    if (tselem->type == TSE_SOME_ID) {
       if (tselem->id == id) {
         return te;
       }
@@ -266,7 +266,7 @@ TreeElement *outliner_find_editbone(ListBase *lb, const EditBone *ebone)
     }
 
     TreeStoreElem *tselem = TREESTORE(te);
-    if (ELEM(tselem->type, 0, TSE_EBONE)) {
+    if (ELEM(tselem->type, TSE_SOME_ID, TSE_EBONE)) {
       TreeElement *tes = outliner_find_editbone(&te->subtree, ebone);
       if (tes) {
         return tes;
@@ -283,7 +283,7 @@ TreeElement *outliner_search_back_te(TreeElement *te, short idcode)
 
   while (te) {
     tselem = TREESTORE(te);
-    if (tselem->type == 0 && te->idcode == idcode) {
+    if ((tselem->type == TSE_SOME_ID) && (te->idcode == idcode)) {
       return te;
     }
     te = te->parent;
@@ -510,7 +510,7 @@ Base *ED_outliner_give_base_under_cursor(bContext *C, const int mval[2])
   te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]);
   if (te) {
     TreeStoreElem *tselem = TREESTORE(te);
-    if ((tselem->type == 0) && (te->idcode == ID_OB)) {
+    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
       Object *ob = (Object *)tselem->id;
       base = (te->directdata) ? (Base *)te->directdata : BKE_view_layer_base_find(view_layer, ob);
     }

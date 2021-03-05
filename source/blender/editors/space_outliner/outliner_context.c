@@ -34,7 +34,7 @@ static void outliner_context_selected_ids_recursive(const ListBase *subtree,
 {
   LISTBASE_FOREACH (const TreeElement *, te, subtree) {
     const TreeStoreElem *tse = TREESTORE(te);
-    if ((tse->flag & TSE_SELECTED) && (ELEM(tse->type, 0, TSE_LAYER_COLLECTION))) {
+    if ((tse->flag & TSE_SELECTED) && (ELEM(tse->type, TSE_SOME_ID, TSE_LAYER_COLLECTION))) {
       CTX_data_id_list_add(result, tse->id);
     }
     outliner_context_selected_ids_recursive(&te->subtree, result);

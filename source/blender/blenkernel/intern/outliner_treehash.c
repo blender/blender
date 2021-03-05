@@ -101,7 +101,7 @@ static unsigned int tse_hash(const void *ptr)
     unsigned int u_int;
   } hash;
 
-  BLI_assert(tse->type || !tse->nr);
+  BLI_assert((tse->type != TSE_SOME_ID) || !tse->nr);
 
   hash.h_pair[0] = tse->type;
   hash.h_pair[1] = tse->nr;
@@ -193,7 +193,7 @@ static TseGroup *BKE_outliner_treehash_lookup_group(GHash *th, short type, short
 {
   TreeStoreElem tse_template;
   tse_template.type = type;
-  tse_template.nr = type ? nr : 0; /* we're picky! :) */
+  tse_template.nr = (type == TSE_SOME_ID) ? 0 : nr; /* we're picky! :) */
   tse_template.id = id;
 
   BLI_assert(th);

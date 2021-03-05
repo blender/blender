@@ -73,6 +73,16 @@ enum {
 
 /** #TreeStoreElem.types */
 typedef enum eTreeStoreElemType {
+  /**
+   * If an element is of this type, `TreeStoreElem.id` points to a valid ID and the ID-type can be
+   * received through `TreeElement.idcode` (or `GS(TreeStoreElem.id->name)`). Note however that the
+   * types below may also have a valid ID pointer (see #TSE_IS_REAL_ID()).
+   *
+   * In cases where the type is still checked against "0" (even implicitly), please replace it with
+   * an explicit check against `TSE_SOME_ID`.
+   */
+  TSE_SOME_ID = 0,
+
   TSE_NLA = 1, /* NO ID */
   TSE_NLA_ACTION = 2,
   TSE_DEFGROUP_BASE = 3,

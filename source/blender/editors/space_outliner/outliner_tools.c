@@ -106,7 +106,7 @@ static void get_element_operation_type(
   TreeStoreElem *tselem = TREESTORE(te);
   if (tselem->flag & TSE_SELECTED) {
     /* Layer collection points to collection ID. */
-    if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+    if (!ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
       if (*datalevel == 0) {
         *datalevel = tselem->type;
       }
@@ -402,7 +402,8 @@ static void outliner_do_libdata_operation(bContext *C,
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (tselem->flag & TSE_SELECTED) {
-      if ((tselem->type == 0 && te->idcode != 0) || tselem->type == TSE_LAYER_COLLECTION) {
+      if (((tselem->type == TSE_SOME_ID) && (te->idcode != 0)) ||
+          tselem->type == TSE_LAYER_COLLECTION) {
         TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
         operation_fn(C, reports, scene, te, tsep, tselem, user_data);
       }
@@ -1044,7 +1045,7 @@ void outliner_do_object_operation_ex(bContext *C,
     TreeStoreElem *tselem = TREESTORE(te);
     bool select_handled = false;
     if (tselem->flag & TSE_SELECTED) {
-      if (tselem->type == 0 && te->idcode == ID_OB) {
+      if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
         /* When objects selected in other scenes... dunno if that should be allowed. */
         Scene *scene_owner = (Scene *)outliner_search_back(te, ID_SCE);
         if (scene_owner && scene_act != scene_owner) {
@@ -1601,7 +1602,7 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
     return TRAVERSE_CONTINUE;
   }
 
-  if (tselem->type || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
     return TRAVERSE_SKIP_CHILDS;
   }
 

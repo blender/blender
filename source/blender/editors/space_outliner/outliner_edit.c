@@ -638,7 +638,7 @@ static bool outliner_id_remap_find_tree_element(bContext *C,
     if (y > te->ys && y < te->ys + UI_UNIT_Y) {
       TreeStoreElem *tselem = TREESTORE(te);
 
-      if (tselem->type == 0 && tselem->id) {
+      if ((tselem->type == TSE_SOME_ID) && tselem->id) {
         printf("found id %s (%p)!\n", tselem->id->name, tselem->id);
 
         RNA_enum_set(op->ptr, "id_type", GS(tselem->id->name));
@@ -763,7 +763,7 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner, ListBase *tree)
     TreeStoreElem *tselem = TREESTORE(te);
 
     /* if item is selected and is an ID, tag it as needing to be copied. */
-    if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+    if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
       ID *id = tselem->id;
       if (!(id->tag & LIB_TAG_DOIT)) {
         BKE_copybuffer_tag_ID(tselem->id);
@@ -1640,7 +1640,7 @@ static int subtree_has_objects(ListBase *lb)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
-    if (tselem->type == 0 && te->idcode == ID_OB) {
+    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
       return 1;
     }
     if (subtree_has_objects(&te->subtree)) {
@@ -1658,7 +1658,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOutliner *space_outli
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (ELEM(tselem->type,
-             0,
+             TSE_SOME_ID,
              TSE_SCENE_OBJECTS_BASE,
              TSE_VIEW_COLLECTION_BASE,
              TSE_LAYER_COLLECTION)) {

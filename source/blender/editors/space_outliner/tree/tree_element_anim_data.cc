@@ -44,7 +44,8 @@ TreeElementAnimData::TreeElementAnimData(TreeElement &legacy_te, ID &id)
 void TreeElementAnimData::expand(SpaceOutliner &space_outliner) const
 {
   /* Animation data-block itself. */
-  outliner_add_element(&space_outliner, &legacy_te_.subtree, anim_data_.action, &legacy_te_, 0, 0);
+  outliner_add_element(
+      &space_outliner, &legacy_te_.subtree, anim_data_.action, &legacy_te_, TSE_SOME_ID, 0);
 
   expand_drivers(space_outliner);
   expand_NLA_tracks(space_outliner);
