@@ -51,6 +51,7 @@
 #include "BKE_keyconfig.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 #include "BKE_report.h"
@@ -400,6 +401,13 @@ static void setup_app_data(bContext *C,
      * Now that we re-use (and do not liblink in readfile.c) most local datablocks as well, we have
      * to recompute refcount for all local IDs too. */
     BKE_main_id_refcount_recompute(bmain, false);
+  }
+
+  if (mode != LOAD_UNDO) {
+    BKE_lib_override_library_main_resync(
+        bmain,
+        curscene,
+        bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene));
   }
 }
 
