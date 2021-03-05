@@ -6189,7 +6189,8 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SAVE_PREVIEWS);
   RNA_def_property_ui_text(prop,
                            "Save Preview Images",
-                           "Enables automatic saving of preview images in the .blend file");
+                           "Enables automatic saving of preview images in the .blend file "
+                           "as well as a thumbnail of the .blend");
 
   rna_def_userdef_filepaths_asset_library(brna);
 
