@@ -154,8 +154,8 @@ typedef struct wmWindowManager {
   /** Operator registry. */
   ListBase operators;
 
-  /** Refresh/redraw wmNotifier structs. */
-  ListBase queue;
+  /** Refresh/redraw #wmNotifier structs. */
+  ListBase notifier_queue;
 
   /** Information and error reports. */
   struct ReportList reports;
@@ -292,8 +292,8 @@ typedef struct wmWindow {
    * Currently WIN32, runtime-only data. */
   struct wmIMEData *ime_data;
 
-  /** All events (ghost level events were handled). */
-  ListBase queue;
+  /** All events #wmEvent (ghost level events were handled). */
+  ListBase event_queue;
   /** Window+screen handlers, handled last. */
   ListBase handlers;
   /** Priority handlers, handled first. */

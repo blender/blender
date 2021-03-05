@@ -126,12 +126,12 @@ wmEvent *wm_event_add_ex(wmWindow *win,
   *event = *event_to_add;
 
   if (event_to_add_after == NULL) {
-    BLI_addtail(&win->queue, event);
+    BLI_addtail(&win->event_queue, event);
   }
   else {
     /* Note: strictly speaking this breaks const-correctness,
      * however we're only changing 'next' member. */
-    BLI_insertlinkafter(&win->queue, (void *)event_to_add_after, event);
+    BLI_insertlinkafter(&win->event_queue, (void *)event_to_add_after, event);
   }
   return event;
 }
@@ -205,7 +205,7 @@ void wm_event_free(wmEvent *event)
 
 static void wm_event_free_last(wmWindow *win)
 {
-  wmEvent *event = BLI_poptail(&win->queue);
+  wmEvent *event = BLI_poptail(&win->event_queue);
   if (event != NULL) {
     wm_event_free(event);
   }
@@ -214,7 +214,7 @@ static void wm_event_free_last(wmWindow *win)
 void wm_event_free_all(wmWindow *win)
 {
   wmEvent *event;
-  while ((event = BLI_pophead(&win->queue))) {
+  while ((event = BLI_pophead(&win->event_queue))) {
     wm_event_free(event);
   }
 }
@@ -232,7 +232,7 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 
 static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, void *reference)
 {
-  LISTBASE_FOREACH (wmNotifier *, note, &wm->queue) {
+  LISTBASE_FOREACH (wmNotifier *, note, &wm->notifier_queue) {
     if ((note->category | note->data | note->subtype | note->action) == type &&
         note->reference == reference) {
       return true;
@@ -250,7 +250,7 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
 
   wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  BLI_addtail(&wm->queue, note);
+  BLI_addtail(&wm->notifier_queue, note);
 
   note->window = win;
 
@@ -279,7 +279,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 
   wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  BLI_addtail(&wm->queue, note);
+  BLI_addtail(&wm->notifier_queue, note);
 
   note->category = type & NOTE_CATEGORY;
   note->data = type & NOTE_DATA;
@@ -298,7 +298,7 @@ void WM_main_remove_notifier_reference(const void *reference)
   wmWindowManager *wm = bmain->wm.first;
 
   if (wm) {
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->queue) {
+    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
       if (note->reference == reference) {
         /* Don't remove because this causes problems for #wm_event_do_notifiers
          * which may be looping on the data (deleting screens). */
@@ -450,7 +450,7 @@ void wm_event_do_notifiers(bContext *C)
 
     CTX_wm_window_set(C, win);
 
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->queue) {
+    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
       if (note->category == NC_WM) {
         if (ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
           wm->file_saved = 1;
@@ -539,7 +539,7 @@ void wm_event_do_notifiers(bContext *C)
 
   /* The notifiers are sent without context, to keep it clean. */
   wmNotifier *note;
-  while ((note = BLI_pophead(&wm->queue))) {
+  while ((note = BLI_pophead(&wm->notifier_queue))) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       Scene *scene = WM_window_get_active_scene(win);
       bScreen *screen = WM_window_get_active_screen(win);
@@ -3234,7 +3234,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 /**
  * Account for the special case when events are being handled and a file is loaded.
  * In this case event handling exits early, however when "Load UI" is disabled
- * the even will still be in #wmWindow.queue.
+ * the even will still be in #wmWindow.event_queue.
  *
  * Without this it's possible to continuously handle the same event, see: T76484.
  */
@@ -3242,7 +3242,7 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 {
   LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      if (BLI_remlink_safe(&win->queue, event)) {
+      if (BLI_remlink_safe(&win->event_queue, event)) {
         wm_event_free(event);
         return;
       }
@@ -3331,7 +3331,7 @@ void wm_event_do_handlers(bContext *C)
     }
 
     wmEvent *event;
-    while ((event = win->queue.first)) {
+    while ((event = win->event_queue.first)) {
       int action = WM_HANDLER_CONTINUE;
 
       /* Active screen might change during handlers, update pointer. */
@@ -3348,7 +3348,7 @@ void wm_event_do_handlers(bContext *C)
         if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
           CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
         }
-        BLI_remlink(&win->queue, event);
+        BLI_remlink(&win->event_queue, event);
         wm_event_free(event);
         continue;
       }
@@ -3505,11 +3505,11 @@ void wm_event_do_handlers(bContext *C)
       win->eventstate->prevy = event->y;
 
       /* Unlink and free here, blender-quit then frees all. */
-      BLI_remlink(&win->queue, event);
+      BLI_remlink(&win->event_queue, event);
       wm_event_free(event);
     }
 
-    /* Only add mousemove when queue was read entirely. */
+    /* Only add mouse-move when the event queue was read entirely. */
     if (win->addmousemove && win->eventstate) {
       wmEvent tevent = *(win->eventstate);
       // printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
@@ -4395,7 +4395,7 @@ static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
 
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
-  wmEvent *event_last = win->queue.last;
+  wmEvent *event_last = win->event_queue.last;
 
   /* Some painting operators want accurate mouse events, they can
    * handle in between mouse move moves, others can happily ignore
@@ -4417,7 +4417,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 {
   /* Ignore in between trackpad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
-  wmEvent *event_last = win->queue.last;
+  wmEvent *event_last = win->event_queue.last;
   if (event_last && event_last->type == event->type) {
     deltax += event_last->x - event_last->prevx;
     deltay += event_last->y - event_last->prevy;
@@ -4434,7 +4434,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 }
 
 /**
- * Windows store own event queues #wmWindow.queue (no #bContext here).
+ * Windows store own event queues #wmWindow.event_queue (no #bContext here).
  */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {

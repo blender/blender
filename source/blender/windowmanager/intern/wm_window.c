@@ -1691,7 +1691,7 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 
   /* there might be events in queue with this timer as customdata */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEvent *, event, &win->queue) {
+    LISTBASE_FOREACH (wmEvent *, event, &win->event_queue) {
       if (event->customdata == wt) {
         event->customdata = NULL;
         event->type = EVENT_NONE; /* timer users customdata, dont want NULL == NULL */
