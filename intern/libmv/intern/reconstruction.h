@@ -31,17 +31,16 @@ struct libmv_CameraIntrinsicsOptions;
 typedef struct libmv_Reconstruction libmv_Reconstruction;
 
 enum {
-  LIBMV_REFINE_FOCAL_LENGTH             = (1 << 0),
-  LIBMV_REFINE_PRINCIPAL_POINT          = (1 << 1),
+  LIBMV_REFINE_FOCAL_LENGTH = (1 << 0),
+  LIBMV_REFINE_PRINCIPAL_POINT = (1 << 1),
 
-  LIBMV_REFINE_RADIAL_DISTORTION_K1     = (1 << 2),
-  LIBMV_REFINE_RADIAL_DISTORTION_K2     = (1 << 3),
-  LIBMV_REFINE_RADIAL_DISTORTION_K3     = (1 << 4),
-  LIBMV_REFINE_RADIAL_DISTORTION_K4     = (1 << 5),
-  LIBMV_REFINE_RADIAL_DISTORTION        = (LIBMV_REFINE_RADIAL_DISTORTION_K1 |
-                                           LIBMV_REFINE_RADIAL_DISTORTION_K2 |
-                                           LIBMV_REFINE_RADIAL_DISTORTION_K3 |
-                                           LIBMV_REFINE_RADIAL_DISTORTION_K4),
+  LIBMV_REFINE_RADIAL_DISTORTION_K1 = (1 << 2),
+  LIBMV_REFINE_RADIAL_DISTORTION_K2 = (1 << 3),
+  LIBMV_REFINE_RADIAL_DISTORTION_K3 = (1 << 4),
+  LIBMV_REFINE_RADIAL_DISTORTION_K4 = (1 << 5),
+  LIBMV_REFINE_RADIAL_DISTORTION =
+      (LIBMV_REFINE_RADIAL_DISTORTION_K1 | LIBMV_REFINE_RADIAL_DISTORTION_K2 |
+       LIBMV_REFINE_RADIAL_DISTORTION_K3 | LIBMV_REFINE_RADIAL_DISTORTION_K4),
 
   LIBMV_REFINE_TANGENTIAL_DISTORTION_P1 = (1 << 6),
   LIBMV_REFINE_TANGENTIAL_DISTORTION_P2 = (1 << 7),
@@ -55,9 +54,9 @@ typedef struct libmv_ReconstructionOptions {
   int refine_intrinsics;
 } libmv_ReconstructionOptions;
 
-typedef void (*reconstruct_progress_update_cb) (void* customdata,
-                                                double progress,
-                                                const char* message);
+typedef void (*reconstruct_progress_update_cb)(void* customdata,
+                                               double progress,
+                                               const char* message);
 
 libmv_Reconstruction* libmv_solveReconstruction(
     const struct libmv_Tracks* libmv_tracks,
@@ -73,35 +72,32 @@ libmv_Reconstruction* libmv_solveModal(
     reconstruct_progress_update_cb progress_update_callback,
     void* callback_customdata);
 
-int libmv_reconstructionIsValid(libmv_Reconstruction *libmv_reconstruction);
+int libmv_reconstructionIsValid(libmv_Reconstruction* libmv_reconstruction);
 
 void libmv_reconstructionDestroy(libmv_Reconstruction* libmv_reconstruction);
 
 int libmv_reprojectionPointForTrack(
-    const libmv_Reconstruction* libmv_reconstruction,
-    int track,
-    double pos[3]);
+    const libmv_Reconstruction* libmv_reconstruction, int track, double pos[3]);
 
 double libmv_reprojectionErrorForTrack(
-    const libmv_Reconstruction* libmv_reconstruction,
-    int track);
+    const libmv_Reconstruction* libmv_reconstruction, int track);
 
 double libmv_reprojectionErrorForImage(
-    const libmv_Reconstruction* libmv_reconstruction,
-    int image);
+    const libmv_Reconstruction* libmv_reconstruction, int image);
 
 int libmv_reprojectionCameraForImage(
     const libmv_Reconstruction* libmv_reconstruction,
     int image,
     double mat[4][4]);
 
-double libmv_reprojectionError(const libmv_Reconstruction* libmv_reconstruction);
+double libmv_reprojectionError(
+    const libmv_Reconstruction* libmv_reconstruction);
 
 struct libmv_CameraIntrinsics* libmv_reconstructionExtractIntrinsics(
-    libmv_Reconstruction *libmv_Reconstruction);
+    libmv_Reconstruction* libmv_Reconstruction);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif   // LIBMV_C_API_RECONSTRUCTION_H_
+#endif  // LIBMV_C_API_RECONSTRUCTION_H_

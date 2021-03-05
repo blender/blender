@@ -20,12 +20,12 @@
 
 #include <iostream>
 
+#include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/resection.h"
 #include "libmv/multiview/test_data_sets.h"
 #include "libmv/numeric/numeric.h"
 #include "testing/testing.h"
-#include "libmv/logging/logging.h"
 
 namespace {
 
@@ -40,15 +40,15 @@ TEST(Resection, ThreeViews) {
     Mat4X X(4, npoints);
     X.block(0, 0, 3, npoints) = d.X;
     X.row(3).setOnes();
-    const Mat2X &x = d.x[i];
+    const Mat2X& x = d.x[i];
     Mat34 P;
     Resection(x, X, &P);
     Mat34 P_expected = d.P(i);
 
     // Because the P matrices are homogeneous, it is necessary to be tricky
     // about the scale factor to make them match.
-    P_expected *= 1/P_expected.array().abs().sum();
-    P *= 1/P.array().abs().sum();
+    P_expected *= 1 / P_expected.array().abs().sum();
+    P *= 1 / P.array().abs().sum();
     if (!((P(0, 0) > 0 && P_expected(0, 0) > 0) ||
           (P(0, 0) < 0 && P_expected(0, 0) < 0))) {
       P *= -1;

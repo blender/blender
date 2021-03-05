@@ -21,9 +21,9 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_MODAL_SOLVER_H_
 #define LIBMV_SIMPLE_PIPELINE_MODAL_SOLVER_H_
 
-#include "libmv/simple_pipeline/tracks.h"
-#include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/callbacks.h"
+#include "libmv/simple_pipeline/reconstruction.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -39,9 +39,9 @@ namespace libmv {
     Reconstructed cameras and projected bundles would be added to reconstruction
     object.
 */
-void ModalSolver(const Tracks &tracks,
-                 EuclideanReconstruction *reconstruction,
-                 ProgressUpdateCallback *update_callback = NULL);
+void ModalSolver(const Tracks& tracks,
+                 EuclideanReconstruction* reconstruction,
+                 ProgressUpdateCallback* update_callback = NULL);
 
 }  // namespace libmv
 

@@ -19,9 +19,9 @@
 // IN THE SOFTWARE.
 
 #include "libmv/base/vector.h"
+#include <algorithm>
 #include "libmv/numeric/numeric.h"
 #include "testing/testing.h"
-#include <algorithm>
 
 namespace {
 using namespace libmv;
@@ -62,7 +62,7 @@ int foo_destruct_calls = 0;
 struct Foo {
  public:
   Foo() : value(5) { foo_construct_calls++; }
-  ~Foo()           { foo_destruct_calls++;  }
+  ~Foo() { foo_destruct_calls++; }
   int value;
 };
 
@@ -150,7 +150,7 @@ TEST_F(VectorTest, CopyConstructor) {
   a.push_back(3);
 
   vector<int> b(a);
-  EXPECT_EQ(a.size(),     b.size());
+  EXPECT_EQ(a.size(), b.size());
   for (int i = 0; i < a.size(); ++i) {
     EXPECT_EQ(a[i], b[i]);
   }
@@ -164,7 +164,7 @@ TEST_F(VectorTest, OperatorEquals) {
 
   b = a;
 
-  EXPECT_EQ(a.size(),     b.size());
+  EXPECT_EQ(a.size(), b.size());
   for (int i = 0; i < a.size(); ++i) {
     EXPECT_EQ(a[i], b[i]);
   }

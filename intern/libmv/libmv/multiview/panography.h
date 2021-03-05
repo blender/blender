@@ -22,9 +22,9 @@
 #ifndef LIBMV_MULTIVIEW_PANOGRAPHY_H
 #define LIBMV_MULTIVIEW_PANOGRAPHY_H
 
+#include "libmv/base/vector.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/poly.h"
-#include "libmv/base/vector.h"
 
 namespace libmv {
 
@@ -53,8 +53,9 @@ namespace libmv {
 //   K = [0 f 0]
 //       [0 0 1]
 //
-void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
-                                  vector<double> *fs);
+void F_FromCorrespondance_2points(const Mat& x1,
+                                  const Mat& x2,
+                                  vector<double>* fs);
 
 // Compute the 3x3 rotation matrix that fits two 3D point clouds in the least
 // square sense. The method is from:
@@ -90,9 +91,10 @@ void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
 //
 //   R = arg min || X2 - R * x1 ||
 //
-void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
+void GetR_FixedCameraCenter(const Mat& x1,
+                            const Mat& x2,
                             const double focal,
-                            Mat3 *R);
+                            Mat3* R);
 
 }  // namespace libmv
 

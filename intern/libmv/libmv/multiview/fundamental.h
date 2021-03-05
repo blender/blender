@@ -27,36 +27,34 @@
 
 namespace libmv {
 
-void ProjectionsFromFundamental(const Mat3 &F, Mat34 *P1, Mat34 *P2);
-void FundamentalFromProjections(const Mat34 &P1, const Mat34 &P2, Mat3 *F);
+void ProjectionsFromFundamental(const Mat3& F, Mat34* P1, Mat34* P2);
+void FundamentalFromProjections(const Mat34& P1, const Mat34& P2, Mat3* F);
 
 /**
  * 7 points (minimal case, points coordinates must be normalized before):
  */
-double FundamentalFrom7CorrespondencesLinear(const Mat &x1,
-                                             const Mat &x2,
-                                             std::vector<Mat3> *F);
+double FundamentalFrom7CorrespondencesLinear(const Mat& x1,
+                                             const Mat& x2,
+                                             std::vector<Mat3>* F);
 
 /**
  * 7 points (points coordinates must be in image space):
  */
-double FundamentalFromCorrespondences7Point(const Mat &x1,
-                                            const Mat &x2,
-                                            std::vector<Mat3> *F);
+double FundamentalFromCorrespondences7Point(const Mat& x1,
+                                            const Mat& x2,
+                                            std::vector<Mat3>* F);
 
 /**
  * 8 points (points coordinates must be in image space):
  */
-double NormalizedEightPointSolver(const Mat &x1,
-                                  const Mat &x2,
-                                  Mat3 *F);
+double NormalizedEightPointSolver(const Mat& x1, const Mat& x2, Mat3* F);
 
 /**
  * Fundamental matrix utility function:
  */
-void EnforceFundamentalRank2Constraint(Mat3 *F);
+void EnforceFundamentalRank2Constraint(Mat3* F);
 
-void NormalizeFundamental(const Mat3 &F, Mat3 *F_normalized);
+void NormalizeFundamental(const Mat3& F, Mat3* F_normalized);
 
 /**
  * Approximate squared reprojection errror.
@@ -64,14 +62,14 @@ void NormalizeFundamental(const Mat3 &F, Mat3 *F_normalized);
  * See page 287 of HZ equation 11.9. This avoids triangulating the point,
  * relying only on the entries in F.
  */
-double SampsonDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2);
+double SampsonDistance(const Mat& F, const Vec2& x1, const Vec2& x2);
 
 /**
  * Calculates the sum of the distances from the points to the epipolar lines.
  *
  * See page 288 of HZ equation 11.10.
  */
-double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2);
+double SymmetricEpipolarDistance(const Mat& F, const Vec2& x1, const Vec2& x2);
 
 /**
  * Compute the relative camera motion between two cameras.
@@ -81,32 +79,29 @@ double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2);
  * If T1 and T2 are the camera motions, the computed relative motion is
  *   T = T2 T1^{-1}
  */
-void RelativeCameraMotion(const Mat3 &R1,
-                          const Vec3 &t1,
-                          const Mat3 &R2,
-                          const Vec3 &t2,
-                          Mat3 *R,
-                          Vec3 *t);
+void RelativeCameraMotion(const Mat3& R1,
+                          const Vec3& t1,
+                          const Mat3& R2,
+                          const Vec3& t2,
+                          Mat3* R,
+                          Vec3* t);
 
-void EssentialFromFundamental(const Mat3 &F,
-                              const Mat3 &K1,
-                              const Mat3 &K2,
-                              Mat3 *E);
+void EssentialFromFundamental(const Mat3& F,
+                              const Mat3& K1,
+                              const Mat3& K2,
+                              Mat3* E);
 
-void FundamentalFromEssential(const Mat3 &E,
-                              const Mat3 &K1,
-                              const Mat3 &K2,
-                              Mat3 *F);
+void FundamentalFromEssential(const Mat3& E,
+                              const Mat3& K1,
+                              const Mat3& K2,
+                              Mat3* F);
 
-void EssentialFromRt(const Mat3 &R1,
-                     const Vec3 &t1,
-                     const Mat3 &R2,
-                     const Vec3 &t2,
-                     Mat3 *E);
+void EssentialFromRt(
+    const Mat3& R1, const Vec3& t1, const Mat3& R2, const Vec3& t2, Mat3* E);
 
-void MotionFromEssential(const Mat3 &E,
-                         std::vector<Mat3> *Rs,
-                         std::vector<Vec3> *ts);
+void MotionFromEssential(const Mat3& E,
+                         std::vector<Mat3>* Rs,
+                         std::vector<Vec3>* ts);
 
 /**
  * Choose one of the four possible motion solutions from an essential matrix.
@@ -117,25 +112,25 @@ void MotionFromEssential(const Mat3 &E,
  *
  * \return index of the right solution or -1 if no solution.
  */
-int MotionFromEssentialChooseSolution(const std::vector<Mat3> &Rs,
-                                      const std::vector<Vec3> &ts,
-                                      const Mat3 &K1,
-                                      const Vec2 &x1,
-                                      const Mat3 &K2,
-                                      const Vec2 &x2);
+int MotionFromEssentialChooseSolution(const std::vector<Mat3>& Rs,
+                                      const std::vector<Vec3>& ts,
+                                      const Mat3& K1,
+                                      const Vec2& x1,
+                                      const Mat3& K2,
+                                      const Vec2& x2);
 
-bool MotionFromEssentialAndCorrespondence(const Mat3 &E,
-                                          const Mat3 &K1,
-                                          const Vec2 &x1,
-                                          const Mat3 &K2,
-                                          const Vec2 &x2,
-                                          Mat3 *R,
-                                          Vec3 *t);
+bool MotionFromEssentialAndCorrespondence(const Mat3& E,
+                                          const Mat3& K1,
+                                          const Vec2& x1,
+                                          const Mat3& K2,
+                                          const Vec2& x2,
+                                          Mat3* R,
+                                          Vec3* t);
 
 /**
  * Find closest essential matrix E to fundamental F
  */
-void FundamentalToEssential(const Mat3 &F, Mat3 *E);
+void FundamentalToEssential(const Mat3& F, Mat3* E);
 
 /**
  * This structure contains options that controls how the fundamental
@@ -170,10 +165,10 @@ struct EstimateFundamentalOptions {
  * refinement.
  */
 bool EstimateFundamentalFromCorrespondences(
-    const Mat &x1,
-    const Mat &x2,
-    const EstimateFundamentalOptions &options,
-    Mat3 *F);
+    const Mat& x1,
+    const Mat& x2,
+    const EstimateFundamentalOptions& options,
+    Mat3* F);
 
 }  // namespace libmv
 

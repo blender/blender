@@ -22,24 +22,28 @@
 
 #include <cmath>
 
-#include "libmv/numeric/numeric.h"
-#include "libmv/multiview/projection.h"
 #include "libmv/multiview/fundamental.h"
+#include "libmv/multiview/projection.h"
+#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
 TwoViewDataSet TwoRealisticCameras(bool same_K) {
   TwoViewDataSet d;
 
+  // clang-format off
   d.K1 << 320,   0, 160,
             0, 320, 120,
             0,   0,   1;
+  // clang-format on
   if (same_K) {
     d.K2 = d.K1;
   } else {
+    // clang-format off
     d.K2 << 360,   0, 170,
               0, 360, 110,
               0,   0,   1;
+    // clang-format on
   }
   d.R1 = RotationAroundZ(-0.1);
   d.R2 = RotationAroundX(-0.1);
@@ -59,10 +63,8 @@ TwoViewDataSet TwoRealisticCameras(bool same_K) {
   return d;
 }
 
-nViewDatasetConfigator::nViewDatasetConfigator(int fx ,  int fy,
-                                               int cx,   int cy,
-                                               double distance,
-                                               double jitter_amount) {
+nViewDatasetConfigator::nViewDatasetConfigator(
+    int fx, int fy, int cx, int cy, double distance, double jitter_amount) {
   _fx = fx;
   _fy = fy;
   _cx = cx;
@@ -71,7 +73,8 @@ nViewDatasetConfigator::nViewDatasetConfigator(int fx ,  int fy,
   _jitter_amount = jitter_amount;
 }
 
-NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
+NViewDataSet NRealisticCamerasFull(int nviews,
+                                   int npoints,
                                    const nViewDatasetConfigator config) {
   NViewDataSet d;
   d.n = nviews;
@@ -102,9 +105,11 @@ NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
     jitter *= config._jitter_amount / camera_center.norm();
     lookdir = -camera_center + jitter;
 
+    // clang-format off
     d.K[i] << config._fx, 0,          config._cx,
                0,         config._fy, config._cy,
                0,         0,          1;
+    // clang-format on
     d.R[i] = LookAt(lookdir);
     d.t[i] = -d.R[i] * camera_center;
     d.x[i] = Project(d.P(i), d.X);
@@ -113,9 +118,10 @@ NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
   return d;
 }
 
-
-NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
-                                     float view_ratio, unsigned min_projections,
+NViewDataSet NRealisticCamerasSparse(int nviews,
+                                     int npoints,
+                                     float view_ratio,
+                                     unsigned min_projections,
                                      const nViewDatasetConfigator config) {
   assert(view_ratio <= 1.0);
   assert(view_ratio > 0.0);
@@ -137,7 +143,7 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
   visibility.setZero();
   Mat randoms(nviews, npoints);
   randoms.setRandom();
-  randoms = (randoms.array() + 1)/2.0;
+  randoms = (randoms.array() + 1) / 2.0;
   unsigned num_visibles = 0;
   for (size_t i = 0; i < nviews; ++i) {
     num_visibles = 0;
@@ -174,15 +180,17 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
     jitter *= config._jitter_amount / camera_center.norm();
     lookdir = -camera_center + jitter;
 
+    // clang-format off
     d.K[i] << config._fx, 0,          config._cx,
                0,         config._fy, config._cy,
                0,         0,          1;
+    // clang-format on
     d.R[i] = LookAt(lookdir);
     d.t[i] = -d.R[i] * camera_center;
     j_visible = 0;
     for (size_t j = 0; j < npoints; j++) {
       if (visibility(i, j)) {
-        X =  d.X.col(j);
+        X = d.X.col(j);
         d.x[i].col(j_visible) = Project(d.P(i), X);
         d.x_ids[i][j_visible] = j;
         j_visible++;
@@ -191,6 +199,5 @@ NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
   }
   return d;
 }
-
 
 }  // namespace libmv

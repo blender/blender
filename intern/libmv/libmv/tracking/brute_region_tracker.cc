@@ -25,31 +25,30 @@
 #endif
 
 #include "libmv/base/aligned_malloc.h"
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
 #include "libmv/image/correlation.h"
+#include "libmv/image/image.h"
 #include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
 
 namespace libmv {
 namespace {
 
-bool RegionIsInBounds(const FloatImage &image1,
-                      double x, double y,
+bool RegionIsInBounds(const FloatImage& image1,
+                      double x,
+                      double y,
                       int half_window_size) {
   // Check the minimum coordinates.
   int min_x = floor(x) - half_window_size - 1;
   int min_y = floor(y) - half_window_size - 1;
-  if (min_x < 0.0 ||
-      min_y < 0.0) {
+  if (min_x < 0.0 || min_y < 0.0) {
     return false;
   }
 
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols() || max_y > image1.rows()) {
     return false;
   }
 
@@ -69,14 +68,15 @@ bool RegionIsInBounds(const FloatImage &image1,
 // and "b", since the SSE load instructionst will pull in memory past the end
 // of the arrays if their size is not a multiple of 16.
 inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
-    const unsigned char *a,  // aligned
-    const unsigned char *b,  // not aligned
+    const unsigned char* a,  // aligned
+    const unsigned char* b,  // not aligned
     unsigned int size,
     __m128i sad) {
   // Do the bulk of the work as 16-way integer operations.
   for (unsigned int j = 0; j < size / 16; j++) {
-    sad = _mm_add_epi32(sad, _mm_sad_epu8( _mm_load_si128 ((__m128i*)(a + 16 * j)),
-                                           _mm_loadu_si128((__m128i*)(b + 16 * j))));
+    sad = _mm_add_epi32(sad,
+                        _mm_sad_epu8(_mm_load_si128((__m128i*)(a + 16 * j)),
+                                     _mm_loadu_si128((__m128i*)(b + 16 * j))));
   }
   // Handle the trailing end.
   // TODO(keir): Benchmark to verify that the below SSE is a win compared to a
@@ -90,32 +90,63 @@ inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
   unsigned int remainder = size % 16u;
   if (remainder) {
     unsigned int j = size / 16;
-    __m128i a_trail = _mm_load_si128 ((__m128i*)(a + 16 * j));
+    __m128i a_trail = _mm_load_si128((__m128i*)(a + 16 * j));
     __m128i b_trail = _mm_loadu_si128((__m128i*)(b + 16 * j));
     __m128i mask;
     switch (remainder) {
-#define X 0xff
-      case  1: mask = _mm_setr_epi8(X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  2: mask = _mm_setr_epi8(X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  3: mask = _mm_setr_epi8(X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  4: mask = _mm_setr_epi8(X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  5: mask = _mm_setr_epi8(X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  6: mask = _mm_setr_epi8(X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  7: mask = _mm_setr_epi8(X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  8: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0); break;
-      case  9: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0); break;
-      case 10: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0); break;
-      case 11: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0); break;
-      case 12: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0); break;
-      case 13: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0); break;
-      case 14: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0); break;
-      case 15: mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0); break;
+#  define X 0xff
+      case 1:
+        mask = _mm_setr_epi8(X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 2:
+        mask = _mm_setr_epi8(X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 3:
+        mask = _mm_setr_epi8(X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 4:
+        mask = _mm_setr_epi8(X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 5:
+        mask = _mm_setr_epi8(X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 6:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 7:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 8:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 9:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0, 0);
+        break;
+      case 10:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0, 0);
+        break;
+      case 11:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0, 0);
+        break;
+      case 12:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0, 0);
+        break;
+      case 13:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0, 0);
+        break;
+      case 14:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0, 0);
+        break;
+      case 15:
+        mask = _mm_setr_epi8(X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, 0);
+        break;
       // To silence compiler warning.
       default: mask = _mm_setzero_si128(); break;
-#undef X
+#  undef X
     }
-    sad = _mm_add_epi32(sad, _mm_sad_epu8(_mm_and_si128(mask, a_trail),
-                                          _mm_and_si128(mask, b_trail)));
+    sad = _mm_add_epi32(sad,
+                        _mm_sad_epu8(_mm_and_si128(mask, a_trail),
+                                     _mm_and_si128(mask, b_trail)));
   }
   return sad;
 }
@@ -124,13 +155,12 @@ inline static __m128i SumOfAbsoluteDifferencesContiguousSSE(
 // Computes the sum of absolute differences between pattern and image. Pattern
 // must be 16-byte aligned, and the stride must be a multiple of 16. The image
 // does pointer does not have to be aligned.
-int SumOfAbsoluteDifferencesContiguousImage(
-    const unsigned char *pattern,
-    unsigned int pattern_width,
-    unsigned int pattern_height,
-    unsigned int pattern_stride,
-    const unsigned char *image,
-    unsigned int image_stride) {
+int SumOfAbsoluteDifferencesContiguousImage(const unsigned char* pattern,
+                                            unsigned int pattern_width,
+                                            unsigned int pattern_height,
+                                            unsigned int pattern_stride,
+                                            const unsigned char* image,
+                                            unsigned int image_stride) {
 #ifdef __SSE2__
   // TODO(keir): Add interleaved accumulation, where accumulation is done into
   // two or more SSE registers that then get combined at the end. This reduces
@@ -145,8 +175,7 @@ int SumOfAbsoluteDifferencesContiguousImage(
                                                 sad);
   }
   return _mm_cvtsi128_si32(
-             _mm_add_epi32(sad,
-                 _mm_shuffle_epi32(sad, _MM_SHUFFLE(3, 0, 1, 2))));
+      _mm_add_epi32(sad, _mm_shuffle_epi32(sad, _MM_SHUFFLE(3, 0, 1, 2))));
 #else
   int sad = 0;
   for (int r = 0; r < pattern_height; ++r) {
@@ -161,12 +190,13 @@ int SumOfAbsoluteDifferencesContiguousImage(
 // Sample a region of size width, height centered at x,y in image, converting
 // from float to byte in the process. Samples from the first channel. Puts
 // result into *pattern.
-void SampleRectangularPattern(const FloatImage &image,
-                              double x, double y,
+void SampleRectangularPattern(const FloatImage& image,
+                              double x,
+                              double y,
                               int width,
                               int height,
                               int pattern_stride,
-                              unsigned char *pattern) {
+                              unsigned char* pattern) {
   // There are two cases for width and height: even or odd. If it's odd, then
   // the bounds [-width / 2, width / 2] works as expected. However, for even,
   // this results in one extra access past the end. So use < instead of <= in
@@ -175,7 +205,7 @@ void SampleRectangularPattern(const FloatImage &image,
   int end_height = (height / 2) + (height % 2);
   for (int r = -height / 2; r < end_height; ++r) {
     for (int c = -width / 2; c < end_width; ++c) {
-      pattern[pattern_stride * (r + height / 2) +  c + width / 2] =
+      pattern[pattern_stride * (r + height / 2) + c + width / 2] =
           SampleLinear(image, y + r, x + c, 0) * 255.0;
     }
   }
@@ -195,30 +225,30 @@ inline int PadToAlignment(int x, int alignment) {
 // is returned in *pattern_stride.
 //
 // NOTE: Caller must free *pattern with aligned_malloc() from above.
-void SampleSquarePattern(const FloatImage &image,
-                         double x, double y,
+void SampleSquarePattern(const FloatImage& image,
+                         double x,
+                         double y,
                          int half_width,
-                         unsigned char **pattern,
-                         int *pattern_stride) {
+                         unsigned char** pattern,
+                         int* pattern_stride) {
   int width = 2 * half_width + 1;
   // Allocate an aligned block with padding on the end so each row of the
   // pattern starts on a 16-byte boundary.
   *pattern_stride = PadToAlignment(width, 16);
   int pattern_size_bytes = *pattern_stride * width;
-  *pattern = static_cast<unsigned char *>(
-      aligned_malloc(pattern_size_bytes, 16));
-  SampleRectangularPattern(image, x, y, width, width,
-                           *pattern_stride,
-                           *pattern);
+  *pattern =
+      static_cast<unsigned char*>(aligned_malloc(pattern_size_bytes, 16));
+  SampleRectangularPattern(
+      image, x, y, width, width, *pattern_stride, *pattern);
 }
 
 // NOTE: Caller must free *image with aligned_malloc() from above.
-void FloatArrayToByteArrayWithPadding(const FloatImage &float_image,
-                                      unsigned char **image,
-                                      int *image_stride) {
+void FloatArrayToByteArrayWithPadding(const FloatImage& float_image,
+                                      unsigned char** image,
+                                      int* image_stride) {
   // Allocate enough so that accessing 16 elements past the end is fine.
   *image_stride = float_image.Width() + 16;
-  *image = static_cast<unsigned char *>(
+  *image = static_cast<unsigned char*>(
       aligned_malloc(*image_stride * float_image.Height(), 16));
   for (int i = 0; i < float_image.Height(); ++i) {
     for (int j = 0; j < float_image.Width(); ++j) {
@@ -235,10 +265,12 @@ void FloatArrayToByteArrayWithPadding(const FloatImage &float_image,
 // values for every hypothesis looks like.
 //
 // TODO(keir): Priority queue for multiple hypothesis.
-bool BruteRegionTracker::Track(const FloatImage &image1,
-                               const FloatImage &image2,
-                               double  x1, double  y1,
-                               double *x2, double *y2) const {
+bool BruteRegionTracker::Track(const FloatImage& image1,
+                               const FloatImage& image2,
+                               double x1,
+                               double y1,
+                               double* x2,
+                               double* y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
     LG << "Fell out of image1's window with x1=" << x1 << ", y1=" << y1
        << ", hw=" << half_window_size << ".";
@@ -252,28 +284,28 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   BlurredImageAndDerivativesChannels(image2, 0.9, &image_and_gradient2);
 
   // Sample the pattern to get it aligned to an image grid.
-  unsigned char *pattern;
+  unsigned char* pattern;
   int pattern_stride;
-  SampleSquarePattern(image_and_gradient1, x1, y1, half_window_size,
-                      &pattern,
-                      &pattern_stride);
+  SampleSquarePattern(
+      image_and_gradient1, x1, y1, half_window_size, &pattern, &pattern_stride);
 
   // Convert the search area directly to bytes without sampling.
-  unsigned char *search_area;
+  unsigned char* search_area;
   int search_area_stride;
-  FloatArrayToByteArrayWithPadding(image_and_gradient2, &search_area,
-                                   &search_area_stride);
+  FloatArrayToByteArrayWithPadding(
+      image_and_gradient2, &search_area, &search_area_stride);
 
   // Try all possible locations inside the search area. Yes, everywhere.
   int best_i = -1, best_j = -1, best_sad = INT_MAX;
   for (int i = 0; i < image2.Height() - pattern_width; ++i) {
     for (int j = 0; j < image2.Width() - pattern_width; ++j) {
-      int sad = SumOfAbsoluteDifferencesContiguousImage(pattern,
-                                                        pattern_width,
-                                                        pattern_width,
-                                                        pattern_stride,
-                                                        search_area + search_area_stride * i + j,
-                                                        search_area_stride);
+      int sad = SumOfAbsoluteDifferencesContiguousImage(
+          pattern,
+          pattern_width,
+          pattern_width,
+          pattern_stride,
+          search_area + search_area_stride * i + j,
+          search_area_stride);
       if (sad < best_sad) {
         best_i = i;
         best_j = j;
@@ -309,16 +341,23 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   }
 
   Array3Df image_and_gradient1_sampled, image_and_gradient2_sampled;
-  SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
+  SamplePattern(image_and_gradient1,
+                x1,
+                y1,
+                half_window_size,
+                3,
                 &image_and_gradient1_sampled);
-  SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,
+  SamplePattern(image_and_gradient2,
+                *x2,
+                *y2,
+                half_window_size,
+                3,
                 &image_and_gradient2_sampled);
 
   // Compute the Pearson product-moment correlation coefficient to check
   // for sanity.
   double correlation = PearsonProductMomentCorrelation(
-          image_and_gradient1_sampled,
-          image_and_gradient2_sampled);
+      image_and_gradient1_sampled, image_and_gradient2_sampled);
 
   LG << "Final correlation: " << correlation;
 

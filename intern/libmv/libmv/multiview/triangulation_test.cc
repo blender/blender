@@ -20,10 +20,10 @@
 
 #include <iostream>
 
-#include "libmv/multiview/triangulation.h"
 #include "libmv/multiview/fundamental.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/test_data_sets.h"
+#include "libmv/multiview/triangulation.h"
 #include "libmv/numeric/numeric.h"
 #include "testing/testing.h"
 

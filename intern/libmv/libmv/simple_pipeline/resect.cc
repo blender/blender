@@ -25,17 +25,17 @@
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/euclidean_resection.h"
-#include "libmv/multiview/resection.h"
 #include "libmv/multiview/projection.h"
-#include "libmv/numeric/numeric.h"
+#include "libmv/multiview/resection.h"
 #include "libmv/numeric/levenberg_marquardt.h"
+#include "libmv/numeric/numeric.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 namespace {
 
-Mat2X PointMatrixFromMarkers(const vector<Marker> &markers) {
+Mat2X PointMatrixFromMarkers(const vector<Marker>& markers) {
   Mat2X points(2, markers.size());
   for (int i = 0; i < markers.size(); ++i) {
     points(0, i) = markers[i].x;
@@ -53,19 +53,19 @@ Mat2X PointMatrixFromMarkers(const vector<Marker> &markers) {
 // axis to rotate around and the magnitude is the amount of the rotation.
 struct EuclideanResectCostFunction {
  public:
-  typedef Vec  FMatrixType;
+  typedef Vec FMatrixType;
   typedef Vec6 XMatrixType;
 
-  EuclideanResectCostFunction(const vector<Marker> &markers,
-                              const EuclideanReconstruction &reconstruction,
-                              const Mat3 &initial_R)
-    : markers(markers),
-      reconstruction(reconstruction),
-      initial_R(initial_R) {}
+  EuclideanResectCostFunction(const vector<Marker>& markers,
+                              const EuclideanReconstruction& reconstruction,
+                              const Mat3& initial_R)
+      : markers(markers),
+        reconstruction(reconstruction),
+        initial_R(initial_R) {}
 
   // dRt has dR (delta R) encoded as a euler vector in the first 3 parameters,
   // followed by t in the next 3 parameters.
-  Vec operator()(const Vec6 &dRt) const {
+  Vec operator()(const Vec6& dRt) const {
     // Unpack R, t from dRt.
     Mat3 R = RotationFromEulerVector(dRt.head<3>()) * initial_R;
     Vec3 t = dRt.tail<3>();
@@ -74,25 +74,26 @@ struct EuclideanResectCostFunction {
     Vec residuals(2 * markers.size());
     residuals.setZero();
     for (int i = 0; i < markers.size(); ++i) {
-      const EuclideanPoint &point =
+      const EuclideanPoint& point =
           *reconstruction.PointForTrack(markers[i].track);
       Vec3 projected = R * point.X + t;
       projected /= projected(2);
-      residuals[2*i + 0] = projected(0) - markers[i].x;
-      residuals[2*i + 1] = projected(1) - markers[i].y;
+      residuals[2 * i + 0] = projected(0) - markers[i].x;
+      residuals[2 * i + 1] = projected(1) - markers[i].y;
     }
     return residuals;
   }
 
-  const vector<Marker> &markers;
-  const EuclideanReconstruction &reconstruction;
-  const Mat3 &initial_R;
+  const vector<Marker>& markers;
+  const EuclideanReconstruction& reconstruction;
+  const Mat3& initial_R;
 };
 
 }  // namespace
 
-bool EuclideanResect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction, bool final_pass) {
+bool EuclideanResect(const vector<Marker>& markers,
+                     EuclideanReconstruction* reconstruction,
+                     bool final_pass) {
   if (markers.size() < 5) {
     return false;
   }
@@ -106,9 +107,9 @@ bool EuclideanResect(const vector<Marker> &markers,
   Mat3 R;
   Vec3 t;
 
-  if (0 || !euclidean_resection::EuclideanResection(
-                points_2d, points_3d, &R, &t,
-                euclidean_resection::RESECTION_EPNP)) {
+  if (0 ||
+      !euclidean_resection::EuclideanResection(
+          points_2d, points_3d, &R, &t, euclidean_resection::RESECTION_EPNP)) {
     // printf("Resection for image %d failed\n", markers[0].image);
     LG << "Resection for image " << markers[0].image << " failed;"
        << " trying fallback projective resection.";
@@ -116,7 +117,8 @@ bool EuclideanResect(const vector<Marker> &markers,
     LG << "No fallback; failing resection for " << markers[0].image;
     return false;
 
-    if (!final_pass) return false;
+    if (!final_pass)
+      return false;
     // Euclidean resection failed. Fall back to projective resection, which is
     // less reliable but better conditioned when there are many points.
     Mat34 P;
@@ -173,7 +175,9 @@ bool EuclideanResect(const vector<Marker> &markers,
   t = dRt.tail<3>();
 
   LG << "Resection for image " << markers[0].image << " got:\n"
-     << "R:\n" << R << "\nt:\n" << t;
+     << "R:\n"
+     << R << "\nt:\n"
+     << t;
   reconstruction->InsertCamera(markers[0].image, R, t);
   return true;
 }
@@ -186,15 +190,14 @@ namespace {
 // freedom drift.
 struct ProjectiveResectCostFunction {
  public:
-  typedef Vec  FMatrixType;
+  typedef Vec FMatrixType;
   typedef Vec12 XMatrixType;
 
-  ProjectiveResectCostFunction(const vector<Marker> &markers,
-                               const ProjectiveReconstruction &reconstruction)
-    : markers(markers),
-      reconstruction(reconstruction) {}
+  ProjectiveResectCostFunction(const vector<Marker>& markers,
+                               const ProjectiveReconstruction& reconstruction)
+      : markers(markers), reconstruction(reconstruction) {}
 
-  Vec operator()(const Vec12 &vector_P) const {
+  Vec operator()(const Vec12& vector_P) const {
     // Unpack P from vector_P.
     Map<const Mat34> P(vector_P.data(), 3, 4);
 
@@ -202,24 +205,24 @@ struct ProjectiveResectCostFunction {
     Vec residuals(2 * markers.size());
     residuals.setZero();
     for (int i = 0; i < markers.size(); ++i) {
-      const ProjectivePoint &point =
+      const ProjectivePoint& point =
           *reconstruction.PointForTrack(markers[i].track);
       Vec3 projected = P * point.X;
       projected /= projected(2);
-      residuals[2*i + 0] = projected(0) - markers[i].x;
-      residuals[2*i + 1] = projected(1) - markers[i].y;
+      residuals[2 * i + 0] = projected(0) - markers[i].x;
+      residuals[2 * i + 1] = projected(1) - markers[i].y;
     }
     return residuals;
   }
 
-  const vector<Marker> &markers;
-  const ProjectiveReconstruction &reconstruction;
+  const vector<Marker>& markers;
+  const ProjectiveReconstruction& reconstruction;
 };
 
 }  // namespace
 
-bool ProjectiveResect(const vector<Marker> &markers,
-                      ProjectiveReconstruction *reconstruction) {
+bool ProjectiveResect(const vector<Marker>& markers,
+                      ProjectiveReconstruction* reconstruction) {
   if (markers.size() < 5) {
     return false;
   }
@@ -263,7 +266,8 @@ bool ProjectiveResect(const vector<Marker> &markers,
   P = Map<Mat34>(vector_P.data(), 3, 4);
 
   LG << "Resection for image " << markers[0].image << " got:\n"
-     << "P:\n" << P;
+     << "P:\n"
+     << P;
   reconstruction->InsertCamera(markers[0].image, P);
   return true;
 }

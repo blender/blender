@@ -18,7 +18,6 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
@@ -27,9 +26,11 @@ Mat3 RotationAroundX(double angle) {
   double c, s;
   sincos(angle, &s, &c);
   Mat3 R;
+  // clang-format off
   R << 1,  0,  0,
        0,  c, -s,
        0,  s,  c;
+  // clang-format on
   return R;
 }
 
@@ -37,9 +38,11 @@ Mat3 RotationAroundY(double angle) {
   double c, s;
   sincos(angle, &s, &c);
   Mat3 R;
+  // clang-format off
   R <<  c, 0, s,
         0, 1, 0,
        -s, 0, c;
+  // clang-format on
   return R;
 }
 
@@ -47,21 +50,21 @@ Mat3 RotationAroundZ(double angle) {
   double c, s;
   sincos(angle, &s, &c);
   Mat3 R;
+  // clang-format off
   R << c, -s,  0,
        s,  c,  0,
        0,  0,  1;
+  // clang-format on
   return R;
 }
 
-
-Mat3 RotationRodrigues(const Vec3 &axis) {
+Mat3 RotationRodrigues(const Vec3& axis) {
   double theta = axis.norm();
   Vec3 w = axis / theta;
   Mat3 W = CrossProductMatrix(w);
 
   return Mat3::Identity() + sin(theta) * W + (1 - cos(theta)) * W * W;
 }
-
 
 Mat3 LookAt(Vec3 center) {
   Vec3 zc = center.normalized();
@@ -74,19 +77,21 @@ Mat3 LookAt(Vec3 center) {
   return R;
 }
 
-Mat3 CrossProductMatrix(const Vec3 &x) {
+Mat3 CrossProductMatrix(const Vec3& x) {
   Mat3 X;
+  // clang-format off
   X <<     0, -x(2),  x(1),
         x(2),     0, -x(0),
        -x(1),  x(0),     0;
+  // clang-format on
   return X;
 }
 
-void MeanAndVarianceAlongRows(const Mat &A,
-                              Vec *mean_pointer,
-                              Vec *variance_pointer) {
-  Vec &mean = *mean_pointer;
-  Vec &variance = *variance_pointer;
+void MeanAndVarianceAlongRows(const Mat& A,
+                              Vec* mean_pointer,
+                              Vec* variance_pointer) {
+  Vec& mean = *mean_pointer;
+  Vec& variance = *variance_pointer;
   int n = A.rows();
   int m = A.cols();
   mean.resize(n);
@@ -108,29 +113,28 @@ void MeanAndVarianceAlongRows(const Mat &A,
   }
 }
 
-void HorizontalStack(const Mat &left, const Mat &right, Mat *stacked) {
+void HorizontalStack(const Mat& left, const Mat& right, Mat* stacked) {
   assert(left.rows() == right.rows());
   int n = left.rows();
   int m1 = left.cols();
   int m2 = right.cols();
 
   stacked->resize(n, m1 + m2);
-  stacked->block(0, 0,  n, m1) = left;
+  stacked->block(0, 0, n, m1) = left;
   stacked->block(0, m1, n, m2) = right;
 }
 
-void MatrixColumn(const Mat &A, int i, Vec2 *v) {
+void MatrixColumn(const Mat& A, int i, Vec2* v) {
   assert(A.rows() == 2);
   *v << A(0, i), A(1, i);
 }
-void MatrixColumn(const Mat &A, int i, Vec3 *v) {
+void MatrixColumn(const Mat& A, int i, Vec3* v) {
   assert(A.rows() == 3);
   *v << A(0, i), A(1, i), A(2, i);
 }
-void MatrixColumn(const Mat &A, int i, Vec4 *v) {
+void MatrixColumn(const Mat& A, int i, Vec4* v) {
   assert(A.rows() == 4);
   *v << A(0, i), A(1, i), A(2, i), A(3, i);
 }
 
 }  // namespace libmv
-

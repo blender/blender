@@ -23,8 +23,8 @@
 #ifndef LIBMV_AUTOTRACK_AUTOTRACK_H_
 #define LIBMV_AUTOTRACK_AUTOTRACK_H_
 
-#include "libmv/autotrack/tracks.h"
 #include "libmv/autotrack/region.h"
+#include "libmv/autotrack/tracks.h"
 #include "libmv/tracking/track_region.h"
 
 namespace libmv {
@@ -74,15 +74,14 @@ class AutoTrack {
     Region search_region;
   };
 
-  AutoTrack(FrameAccessor* frame_accessor)
-    : frame_accessor_(frame_accessor) {}
+  AutoTrack(FrameAccessor* frame_accessor) : frame_accessor_(frame_accessor) {}
 
   // Marker manipulation.
   // Clip manipulation.
 
   // Set the number of clips. These clips will get accessed from the frame
   // accessor, matches between frames found, and a reconstruction created.
-  //void SetNumFrames(int clip, int num_frames);
+  // void SetNumFrames(int clip, int num_frames);
 
   // Tracking & Matching
 
@@ -90,7 +89,7 @@ class AutoTrack {
   // Caller maintains ownership of *result and *tracked_marker.
   bool TrackMarker(Marker* tracked_marker,
                    TrackRegionResult* result,
-                   const TrackRegionOptions* track_options=NULL);
+                   const TrackRegionOptions* track_options = NULL);
 
   // Wrapper around Tracks API; however these may add additional processing.
   void AddMarker(const Marker& tracked_marker);
@@ -99,36 +98,36 @@ class AutoTrack {
 
   // TODO(keir): Implement frame matching! This could be very cool for loop
   // closing and connecting across clips.
-  //void MatchFrames(int clip1, int frame1, int clip2, int frame2) {}
+  // void MatchFrames(int clip1, int frame1, int clip2, int frame2) {}
 
   // Wrapper around the Reconstruction API.
   // Returns the new ID.
   int AddCameraIntrinsics(CameraIntrinsics* intrinsics) {
-    (void) intrinsics;
+    (void)intrinsics;
     return 0;
   }  // XXX
   int SetClipIntrinsics(int clip, int intrinsics) {
-    (void) clip;
-    (void) intrinsics;
+    (void)clip;
+    (void)intrinsics;
     return 0;
-  }        // XXX
+  }  // XXX
 
   enum Motion {
     GENERAL_CAMERA_MOTION,
     TRIPOD_CAMERA_MOTION,
   };
   int SetClipMotion(int clip, Motion motion) {
-    (void) clip;
-    (void) motion;
+    (void)clip;
+    (void)motion;
     return 0;
-  } // XXX
+  }  // XXX
 
   // Decide what to refine for the given intrinsics. bundle_options is from
   // bundle.h (e.g. BUNDLE_FOCAL_LENGTH | BUNDLE_RADIAL_K1).
   void SetIntrinsicsRefine(int intrinsics, int bundle_options) {
-    (void) intrinsics;
-    (void) bundle_options;
-  } // XXX
+    (void)intrinsics;
+    (void)bundle_options;
+  }  // XXX
 
   // Keyframe read/write.
   struct ClipFrame {
@@ -150,20 +149,19 @@ class AutoTrack {
   };
   void DetectAndTrack(const DetectAndTrackOptions& options);
 
-  struct DetectFeaturesInFrameOptions {
-  };
-  void DetectFeaturesInFrame(int clip, int frame,
-                             const DetectFeaturesInFrameOptions* options=NULL) {
-    (void) clip;
-    (void) frame;
-    (void) options;
-  } // XXX
+  struct DetectFeaturesInFrameOptions {};
+  void DetectFeaturesInFrame(
+      int clip, int frame, const DetectFeaturesInFrameOptions* options = NULL) {
+    (void)clip;
+    (void)frame;
+    (void)options;
+  }  // XXX
 
   // Does not take ownership of the given listener, but keeps a reference to it.
-  void AddListener(OperationListener* listener) {(void) listener;}  // XXX
+  void AddListener(OperationListener* listener) { (void)listener; }  // XXX
 
   // Create the initial reconstruction,
-  //void FindInitialReconstruction();
+  // void FindInitialReconstruction();
 
   // State machine
   //
@@ -202,17 +200,17 @@ class AutoTrack {
   bool Cancelled() { return false; }
 
   Tracks tracks_;  // May be normalized camera coordinates or raw pixels.
-  //Reconstruction reconstruction_;
+  // Reconstruction reconstruction_;
 
   // TODO(keir): Add the motion models here.
-  //vector<MotionModel> motion_models_;
+  // vector<MotionModel> motion_models_;
 
   // TODO(keir): Should num_clips and num_frames get moved to FrameAccessor?
   // TODO(keir): What about masking for clips and frames to prevent various
   // things like reconstruction or tracking from happening on certain frames?
   FrameAccessor* frame_accessor_;
-  //int num_clips_;
-  //vector<int> num_frames_;  // Indexed by clip.
+  // int num_clips_;
+  // vector<int> num_frames_;  // Indexed by clip.
 
   // The intrinsics for each clip, assuming each clip has fixed intrinsics.
   // TODO(keir): Decide what the semantics should be for varying focal length.

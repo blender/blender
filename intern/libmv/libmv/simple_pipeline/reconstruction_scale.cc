@@ -23,7 +23,7 @@
 
 namespace libmv {
 
-void EuclideanScaleToUnity(EuclideanReconstruction *reconstruction) {
+void EuclideanScaleToUnity(EuclideanReconstruction* reconstruction) {
   vector<EuclideanCamera> all_cameras = reconstruction->AllCameras();
   vector<EuclideanPoint> all_points = reconstruction->AllPoints();
 
@@ -53,14 +53,14 @@ void EuclideanScaleToUnity(EuclideanReconstruction *reconstruction) {
   // Rescale cameras positions.
   for (int i = 0; i < all_cameras.size(); ++i) {
     int image = all_cameras[i].image;
-    EuclideanCamera *camera = reconstruction->CameraForImage(image);
+    EuclideanCamera* camera = reconstruction->CameraForImage(image);
     camera->t = camera->t * scale_factor;
   }
 
   // Rescale points positions.
   for (int i = 0; i < all_points.size(); ++i) {
     int track = all_points[i].track;
-    EuclideanPoint *point = reconstruction->PointForTrack(track);
+    EuclideanPoint* point = reconstruction->PointForTrack(track);
     point->X = point->X * scale_factor;
   }
 }

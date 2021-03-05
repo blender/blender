@@ -21,9 +21,9 @@
 // Author: mierle@gmail.com (Keir Mierle)
 
 #include "libmv/autotrack/autotrack.h"
-#include "libmv/autotrack/quad.h"
 #include "libmv/autotrack/frame_accessor.h"
 #include "libmv/autotrack/predict_tracks.h"
+#include "libmv/autotrack/quad.h"
 #include "libmv/base/scoped_ptr.h"
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
@@ -35,34 +35,30 @@ namespace {
 class DisableChannelsTransform : public FrameAccessor::Transform {
  public:
   DisableChannelsTransform(int disabled_channels)
-      : disabled_channels_(disabled_channels) {  }
+      : disabled_channels_(disabled_channels) {}
 
-  int64_t key() const {
-    return disabled_channels_;
-  }
+  int64_t key() const { return disabled_channels_; }
 
   void run(const FloatImage& input, FloatImage* output) const {
-    bool disable_red   = (disabled_channels_ & Marker::CHANNEL_R) != 0,
+    bool disable_red = (disabled_channels_ & Marker::CHANNEL_R) != 0,
          disable_green = (disabled_channels_ & Marker::CHANNEL_G) != 0,
-         disable_blue  = (disabled_channels_ & Marker::CHANNEL_B) != 0;
+         disable_blue = (disabled_channels_ & Marker::CHANNEL_B) != 0;
 
-    LG << "Disabling channels: "
-       << (disable_red   ? "R " : "")
-       << (disable_green ? "G " : "")
-       << (disable_blue  ? "B" : "");
+    LG << "Disabling channels: " << (disable_red ? "R " : "")
+       << (disable_green ? "G " : "") << (disable_blue ? "B" : "");
 
     // It's important to rescale the resultappropriately so that e.g. if only
     // blue is selected, it's not zeroed out.
-    float scale = (disable_red   ? 0.0f : 0.2126f) +
+    float scale = (disable_red ? 0.0f : 0.2126f) +
                   (disable_green ? 0.0f : 0.7152f) +
-                  (disable_blue  ? 0.0f : 0.0722f);
+                  (disable_blue ? 0.0f : 0.0722f);
 
     output->Resize(input.Height(), input.Width(), 1);
     for (int y = 0; y < input.Height(); y++) {
       for (int x = 0; x < input.Width(); x++) {
-        float r = disable_red   ? 0.0f : input(y, x, 0);
+        float r = disable_red ? 0.0f : input(y, x, 0);
         float g = disable_green ? 0.0f : input(y, x, 1);
-        float b = disable_blue  ? 0.0f : input(y, x, 2);
+        float b = disable_blue ? 0.0f : input(y, x, 2);
         (*output)(y, x, 0) = (0.2126f * r + 0.7152f * g + 0.0722f * b) / scale;
       }
     }
@@ -73,7 +69,7 @@ class DisableChannelsTransform : public FrameAccessor::Transform {
   int disabled_channels_;
 };
 
-template<typename QuadT, typename ArrayT>
+template <typename QuadT, typename ArrayT>
 void QuadToArrays(const QuadT& quad, ArrayT* x, ArrayT* y) {
   for (int i = 0; i < 4; ++i) {
     x[i] = quad.coordinates(i, 0);
@@ -115,11 +111,8 @@ FrameAccessor::Key GetMaskForMarker(const Marker& marker,
                                     FrameAccessor* frame_accessor,
                                     FloatImage* mask) {
   Region region = marker.search_region.Rounded();
-  return frame_accessor->GetMaskForTrack(marker.clip,
-                                         marker.frame,
-                                         marker.track,
-                                         &region,
-                                         mask);
+  return frame_accessor->GetMaskForTrack(
+      marker.clip, marker.frame, marker.track, &region, mask);
 }
 
 }  // namespace
@@ -152,23 +145,20 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
   // TODO(keir): Technically this could take a smaller slice from the source
   // image instead of taking one the size of the search window.
   FloatImage reference_image;
-  FrameAccessor::Key reference_key = GetImageForMarker(reference_marker,
-                                                       frame_accessor_,
-                                                       &reference_image);
+  FrameAccessor::Key reference_key =
+      GetImageForMarker(reference_marker, frame_accessor_, &reference_image);
   if (!reference_key) {
     LG << "Couldn't get frame for reference marker: " << reference_marker;
     return false;
   }
 
   FloatImage reference_mask;
-  FrameAccessor::Key reference_mask_key = GetMaskForMarker(reference_marker,
-                                                           frame_accessor_,
-                                                           &reference_mask);
+  FrameAccessor::Key reference_mask_key =
+      GetMaskForMarker(reference_marker, frame_accessor_, &reference_mask);
 
   FloatImage tracked_image;
-  FrameAccessor::Key tracked_key = GetImageForMarker(*tracked_marker,
-                                                     frame_accessor_,
-                                                     &tracked_image);
+  FrameAccessor::Key tracked_key =
+      GetImageForMarker(*tracked_marker, frame_accessor_, &tracked_image);
   if (!tracked_key) {
     frame_accessor_->ReleaseImage(reference_key);
     LG << "Couldn't get frame for tracked marker: " << tracked_marker;
@@ -191,9 +181,11 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
   local_track_region_options.attempt_refine_before_brute = predicted_position;
   TrackRegion(reference_image,
               tracked_image,
-              x1, y1,
+              x1,
+              y1,
               local_track_region_options,
-              x2, y2,
+              x2,
+              y2,
               result);
 
   // Copy results over the tracked marker.
@@ -208,7 +200,7 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
   tracked_marker->search_region.Offset(delta);
   tracked_marker->source = Marker::TRACKED;
   tracked_marker->status = Marker::UNKNOWN;
-  tracked_marker->reference_clip  = reference_marker.clip;
+  tracked_marker->reference_clip = reference_marker.clip;
   tracked_marker->reference_frame = reference_marker.frame;
 
   // Release the images and masks from the accessor cache.
@@ -230,7 +222,9 @@ void AutoTrack::SetMarkers(vector<Marker>* markers) {
   tracks_.SetMarkers(markers);
 }
 
-bool AutoTrack::GetMarker(int clip, int frame, int track,
+bool AutoTrack::GetMarker(int clip,
+                          int frame,
+                          int track,
                           Marker* markers) const {
   return tracks_.GetMarker(clip, frame, track, markers);
 }
@@ -242,7 +236,8 @@ void AutoTrack::DetectAndTrack(const DetectAndTrackOptions& options) {
     vector<Marker> previous_frame_markers;
     // Q: How to decide track #s when detecting?
     // Q: How to match markers from previous frame? set of prev frame tracks?
-    // Q: How to decide what markers should get tracked and which ones should not?
+    // Q: How to decide what markers should get tracked and which ones should
+    // not?
     for (int frame = 0; frame < num_frames; ++frame) {
       if (Cancelled()) {
         LG << "Got cancel message while detecting and tracking...";
@@ -271,8 +266,7 @@ void AutoTrack::DetectAndTrack(const DetectAndTrackOptions& options) {
       for (int i = 0; i < this_frame_markers.size(); ++i) {
         tracks_in_this_frame.push_back(this_frame_markers[i].track);
       }
-      std::sort(tracks_in_this_frame.begin(),
-                tracks_in_this_frame.end());
+      std::sort(tracks_in_this_frame.begin(), tracks_in_this_frame.end());
 
       // Find tracks in the previous frame that are not in this one.
       vector<Marker*> previous_frame_markers_to_track;

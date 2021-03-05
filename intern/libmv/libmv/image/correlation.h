@@ -21,14 +21,14 @@
 #ifndef LIBMV_IMAGE_CORRELATION_H
 #define LIBMV_IMAGE_CORRELATION_H
 
-#include "libmv/logging/logging.h"
 #include "libmv/image/image.h"
+#include "libmv/logging/logging.h"
 
 namespace libmv {
 
 inline double PearsonProductMomentCorrelation(
-        const FloatImage &image_and_gradient1_sampled,
-        const FloatImage &image_and_gradient2_sampled) {
+    const FloatImage& image_and_gradient1_sampled,
+    const FloatImage& image_and_gradient2_sampled) {
   assert(image_and_gradient1_sampled.Width() ==
          image_and_gradient2_sampled.Width());
   assert(image_and_gradient1_sampled.Height() ==
@@ -63,9 +63,8 @@ inline double PearsonProductMomentCorrelation(
   double covariance_xy = sXY - sX * sY;
 
   double correlation = covariance_xy / sqrt(var_x * var_y);
-  LG << "Covariance xy: " << covariance_xy
-     << ", var 1: " << var_x << ", var 2: " << var_y
-     << ", correlation: " << correlation;
+  LG << "Covariance xy: " << covariance_xy << ", var 1: " << var_x
+     << ", var 2: " << var_y << ", correlation: " << correlation;
   return correlation;
 }
 

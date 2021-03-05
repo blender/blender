@@ -22,8 +22,8 @@
 #define LIBMV_SIMPLE_PIPELINE_KEYFRAME_SELECTION_H_
 
 #include "libmv/base/vector.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -43,10 +43,9 @@ namespace libmv {
 // \param intrinsics: is camera intrinsics.
 // \param keyframes: will contain all images number which are considered
 //        good to be used for reconstruction.
-void SelectKeyframesBasedOnGRICAndVariance(
-    const Tracks &tracks,
-    const CameraIntrinsics &intrinsics,
-    vector<int> &keyframes);
+void SelectKeyframesBasedOnGRICAndVariance(const Tracks& tracks,
+                                           const CameraIntrinsics& intrinsics,
+                                           vector<int>& keyframes);
 
 }  // namespace libmv
 

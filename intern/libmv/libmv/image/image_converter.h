@@ -28,7 +28,7 @@ namespace libmv {
 // The factor comes from http://www.easyrgb.com/
 // RGB to XYZ : Y is the luminance channel
 // var_R * 0.2126 + var_G * 0.7152 + var_B * 0.0722
-template<typename T>
+template <typename T>
 inline T RGB2GRAY(const T r, const T g, const T b) {
   return static_cast<T>(r * 0.2126 + g * 0.7152 + b * 0.0722);
 }
@@ -42,8 +42,8 @@ inline unsigned char RGB2GRAY<unsigned char>(const unsigned char r,
   return (unsigned char)(r * 0.2126 + g * 0.7152 + b * 0.0722 +0.5);
 }*/
 
-template<class ImageIn, class ImageOut>
-void Rgb2Gray(const ImageIn &imaIn, ImageOut *imaOut) {
+template <class ImageIn, class ImageOut>
+void Rgb2Gray(const ImageIn& imaIn, ImageOut* imaOut) {
   // It is all fine to cnvert RGBA image here as well,
   // all the additional channels will be nicely ignored.
   assert(imaIn.Depth() >= 3);
@@ -52,21 +52,22 @@ void Rgb2Gray(const ImageIn &imaIn, ImageOut *imaOut) {
   // Convert each RGB pixel into Gray value (luminance)
 
   for (int j = 0; j < imaIn.Height(); ++j) {
-    for (int i = 0; i < imaIn.Width(); ++i)  {
-      (*imaOut)(j, i) = RGB2GRAY(imaIn(j, i, 0) , imaIn(j, i, 1), imaIn(j, i, 2));
+    for (int i = 0; i < imaIn.Width(); ++i) {
+      (*imaOut)(j, i) =
+          RGB2GRAY(imaIn(j, i, 0), imaIn(j, i, 1), imaIn(j, i, 2));
     }
   }
 }
 
 // Convert given float image to an unsigned char array of pixels.
-template<class Image>
-unsigned char *FloatImageToUCharArray(const Image &image) {
-  unsigned char *buffer =
+template <class Image>
+unsigned char* FloatImageToUCharArray(const Image& image) {
+  unsigned char* buffer =
       new unsigned char[image.Width() * image.Height() * image.Depth()];
 
   for (int y = 0; y < image.Height(); y++) {
-    for (int x = 0; x < image.Width(); x++)  {
-      for (int d = 0; d < image.Depth(); d++)  {
+    for (int x = 0; x < image.Width(); x++) {
+      for (int d = 0; d < image.Depth(); d++) {
         int index = (y * image.Width() + x) * image.Depth() + d;
         buffer[index] = 255.0 * image(y, x, d);
       }

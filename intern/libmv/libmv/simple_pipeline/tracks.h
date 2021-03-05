@@ -36,7 +36,8 @@ namespace libmv {
     \a weight is used by bundle adjustment and weight means how much the
     track affects on a final solution.
 
-    \note Markers are typically aggregated with the help of the \link Tracks class.
+    \note Markers are typically aggregated with the help of the \link Tracks
+   class.
 
     \sa Tracks
 */
@@ -56,19 +57,20 @@ struct Marker {
     images, which must get created before any 3D reconstruction can take place.
 
     The container has several fast lookups for queries typically needed for
-    structure from motion algorithms, such as \link MarkersForTracksInBothImages().
+    structure from motion algorithms, such as \link
+   MarkersForTracksInBothImages().
 
     \sa Marker
 */
 class Tracks {
  public:
-  Tracks() { }
+  Tracks() {}
 
   // Copy constructor for a tracks object.
-  Tracks(const Tracks &other);
+  Tracks(const Tracks& other);
 
   /// Construct a new tracks object using the given markers to start.
-  explicit Tracks(const vector<Marker> &markers);
+  explicit Tracks(const vector<Marker>& markers);
 
   /*!
       Inserts a marker into the set. If there is already a marker for the given
@@ -129,9 +131,9 @@ class Tracks {
   vector<Marker> markers_;
 };
 
-void CoordinatesForMarkersInImage(const vector<Marker> &markers,
+void CoordinatesForMarkersInImage(const vector<Marker>& markers,
                                   int image,
-                                  Mat *coordinates);
+                                  Mat* coordinates);
 
 }  // namespace libmv
 

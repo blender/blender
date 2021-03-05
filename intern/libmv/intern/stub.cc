@@ -24,7 +24,7 @@
 
 /* ************ Logging ************ */
 
-void libmv_initLogging(const char * /*argv0*/) {
+void libmv_initLogging(const char* /*argv0*/) {
 }
 
 void libmv_startDebugLogging(void) {
@@ -36,18 +36,18 @@ void libmv_setLoggingVerbosity(int /*verbosity*/) {
 /* ************ Planar tracker ************ */
 
 /* TrackRegion (new planar tracker) */
-int libmv_trackRegion(const libmv_TrackRegionOptions * /*options*/,
-                      const float * /*image1*/,
+int libmv_trackRegion(const libmv_TrackRegionOptions* /*options*/,
+                      const float* /*image1*/,
                       int /*image1_width*/,
                       int /*image1_height*/,
-                      const float * /*image2*/,
+                      const float* /*image2*/,
                       int /*image2_width*/,
                       int /*image2_height*/,
-                      const double *x1,
-                      const double *y1,
-                      libmv_TrackRegionResult *result,
-                      double *x2,
-                      double *y2) {
+                      const double* x1,
+                      const double* y1,
+                      libmv_TrackRegionResult* result,
+                      double* x2,
+                      double* y2) {
   /* Convert to doubles for the libmv api. The four corners and the center. */
   for (int i = 0; i < 5; ++i) {
     x2[i] = x1[i];
@@ -61,46 +61,46 @@ int libmv_trackRegion(const libmv_TrackRegionOptions * /*options*/,
   return false;
 }
 
-void libmv_samplePlanarPatchFloat(const float * /*image*/,
+void libmv_samplePlanarPatchFloat(const float* /*image*/,
                                   int /*width*/,
                                   int /*height*/,
                                   int /*channels*/,
-                                  const double * /*xs*/,
-                                  const double * /*ys*/,
+                                  const double* /*xs*/,
+                                  const double* /*ys*/,
                                   int /*num_samples_x*/,
                                   int /*num_samples_y*/,
-                                  const float * /*mask*/,
-                                  float * /*patch*/,
-                                  double * /*warped_position_x*/,
-                                  double * /*warped_position_y*/) {
+                                  const float* /*mask*/,
+                                  float* /*patch*/,
+                                  double* /*warped_position_x*/,
+                                  double* /*warped_position_y*/) {
   /* TODO(sergey): implement */
 }
 
-void libmv_samplePlanarPatchByte(const unsigned char * /*image*/,
+void libmv_samplePlanarPatchByte(const unsigned char* /*image*/,
                                  int /*width*/,
                                  int /*height*/,
                                  int /*channels*/,
-                                 const double * /*xs*/,
-                                 const double * /*ys*/,
-                                 int /*num_samples_x*/, int /*num_samples_y*/,
-                                 const float * /*mask*/,
-                                 unsigned char * /*patch*/,
-                                 double * /*warped_position_x*/,
-                                 double * /*warped_position_y*/) {
+                                 const double* /*xs*/,
+                                 const double* /*ys*/,
+                                 int /*num_samples_x*/,
+                                 int /*num_samples_y*/,
+                                 const float* /*mask*/,
+                                 unsigned char* /*patch*/,
+                                 double* /*warped_position_x*/,
+                                 double* /*warped_position_y*/) {
   /* TODO(sergey): implement */
 }
 
-void libmv_floatImageDestroy(libmv_FloatImage* /*image*/)
-{
+void libmv_floatImageDestroy(libmv_FloatImage* /*image*/) {
 }
 
 /* ************ Tracks ************ */
 
-libmv_Tracks *libmv_tracksNew(void) {
+libmv_Tracks* libmv_tracksNew(void) {
   return NULL;
 }
 
-void libmv_tracksInsert(libmv_Tracks * /*libmv_tracks*/,
+void libmv_tracksInsert(libmv_Tracks* /*libmv_tracks*/,
                         int /*image*/,
                         int /*track*/,
                         double /*x*/,
@@ -108,152 +108,152 @@ void libmv_tracksInsert(libmv_Tracks * /*libmv_tracks*/,
                         double /*weight*/) {
 }
 
-void libmv_tracksDestroy(libmv_Tracks * /*libmv_tracks*/) {
+void libmv_tracksDestroy(libmv_Tracks* /*libmv_tracks*/) {
 }
 
 /* ************ Reconstruction solver ************ */
 
-libmv_Reconstruction *libmv_solveReconstruction(
-    const libmv_Tracks * /*libmv_tracks*/,
-    const libmv_CameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/,
-    libmv_ReconstructionOptions * /*libmv_reconstruction_options*/,
+libmv_Reconstruction* libmv_solveReconstruction(
+    const libmv_Tracks* /*libmv_tracks*/,
+    const libmv_CameraIntrinsicsOptions* /*libmv_camera_intrinsics_options*/,
+    libmv_ReconstructionOptions* /*libmv_reconstruction_options*/,
     reconstruct_progress_update_cb /*progress_update_callback*/,
-    void * /*callback_customdata*/) {
+    void* /*callback_customdata*/) {
   return NULL;
 }
 
-libmv_Reconstruction *libmv_solveModal(
-    const libmv_Tracks * /*libmv_tracks*/,
-    const libmv_CameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/,
-    const libmv_ReconstructionOptions * /*libmv_reconstruction_options*/,
+libmv_Reconstruction* libmv_solveModal(
+    const libmv_Tracks* /*libmv_tracks*/,
+    const libmv_CameraIntrinsicsOptions* /*libmv_camera_intrinsics_options*/,
+    const libmv_ReconstructionOptions* /*libmv_reconstruction_options*/,
     reconstruct_progress_update_cb /*progress_update_callback*/,
-    void * /*callback_customdata*/) {
+    void* /*callback_customdata*/) {
   return NULL;
 }
 
-int libmv_reconstructionIsValid(libmv_Reconstruction * /*libmv_reconstruction*/) {
+int libmv_reconstructionIsValid(
+    libmv_Reconstruction* /*libmv_reconstruction*/) {
   return 0;
 }
 
 int libmv_reprojectionPointForTrack(
-    const libmv_Reconstruction * /*libmv_reconstruction*/,
+    const libmv_Reconstruction* /*libmv_reconstruction*/,
     int /*track*/,
     double /*pos*/[3]) {
   return 0;
 }
 
 double libmv_reprojectionErrorForTrack(
-    const libmv_Reconstruction * /*libmv_reconstruction*/,
-    int /*track*/) {
+    const libmv_Reconstruction* /*libmv_reconstruction*/, int /*track*/) {
   return 0.0;
 }
 
 double libmv_reprojectionErrorForImage(
-    const libmv_Reconstruction * /*libmv_reconstruction*/,
-    int /*image*/) {
+    const libmv_Reconstruction* /*libmv_reconstruction*/, int /*image*/) {
   return 0.0;
 }
 
 int libmv_reprojectionCameraForImage(
-    const libmv_Reconstruction * /*libmv_reconstruction*/,
+    const libmv_Reconstruction* /*libmv_reconstruction*/,
     int /*image*/,
     double /*mat*/[4][4]) {
   return 0;
 }
 
 double libmv_reprojectionError(
-    const libmv_Reconstruction * /*libmv_reconstruction*/) {
+    const libmv_Reconstruction* /*libmv_reconstruction*/) {
   return 0.0;
 }
 
 void libmv_reconstructionDestroy(
-    struct libmv_Reconstruction * /*libmv_reconstruction*/) {
+    struct libmv_Reconstruction* /*libmv_reconstruction*/) {
 }
 
 /* ************ Feature detector ************ */
 
-libmv_Features *libmv_detectFeaturesByte(const unsigned char * /*image_buffer*/,
+libmv_Features* libmv_detectFeaturesByte(const unsigned char* /*image_buffer*/,
                                          int /*width*/,
                                          int /*height*/,
                                          int /*channels*/,
-                                         libmv_DetectOptions * /*options*/) {
+                                         libmv_DetectOptions* /*options*/) {
   return NULL;
 }
 
-struct libmv_Features *libmv_detectFeaturesFloat(
-    const float * /*image_buffer*/,
+struct libmv_Features* libmv_detectFeaturesFloat(
+    const float* /*image_buffer*/,
     int /*width*/,
     int /*height*/,
     int /*channels*/,
-    libmv_DetectOptions * /*options*/) {
+    libmv_DetectOptions* /*options*/) {
   return NULL;
 }
 
-int libmv_countFeatures(const libmv_Features * /*libmv_features*/) {
+int libmv_countFeatures(const libmv_Features* /*libmv_features*/) {
   return 0;
 }
 
-void libmv_getFeature(const libmv_Features * /*libmv_features*/,
+void libmv_getFeature(const libmv_Features* /*libmv_features*/,
                       int /*number*/,
-                      double *x,
-                      double *y,
-                      double *score,
-                      double *size) {
+                      double* x,
+                      double* y,
+                      double* score,
+                      double* size) {
   *x = 0.0;
   *y = 0.0;
   *score = 0.0;
   *size = 0.0;
 }
 
-void libmv_featuresDestroy(struct libmv_Features * /*libmv_features*/) {
+void libmv_featuresDestroy(struct libmv_Features* /*libmv_features*/) {
 }
 
 /* ************ Camera intrinsics ************ */
 
-libmv_CameraIntrinsics *libmv_reconstructionExtractIntrinsics(
-    libmv_Reconstruction * /*libmv_reconstruction*/) {
+libmv_CameraIntrinsics* libmv_reconstructionExtractIntrinsics(
+    libmv_Reconstruction* /*libmv_reconstruction*/) {
   return NULL;
 }
 
-libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(
-    const libmv_CameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/) {
+libmv_CameraIntrinsics* libmv_cameraIntrinsicsNew(
+    const libmv_CameraIntrinsicsOptions* /*libmv_camera_intrinsics_options*/) {
   return NULL;
 }
 
-libmv_CameraIntrinsics *libmv_cameraIntrinsicsCopy(
-    const libmv_CameraIntrinsics * /*libmvIntrinsics*/) {
+libmv_CameraIntrinsics* libmv_cameraIntrinsicsCopy(
+    const libmv_CameraIntrinsics* /*libmvIntrinsics*/) {
   return NULL;
 }
 
 void libmv_cameraIntrinsicsDestroy(
-    libmv_CameraIntrinsics * /*libmvIntrinsics*/) {
+    libmv_CameraIntrinsics* /*libmvIntrinsics*/) {
 }
 
 void libmv_cameraIntrinsicsUpdate(
-    const libmv_CameraIntrinsicsOptions * /*libmv_camera_intrinsics_options*/,
-    libmv_CameraIntrinsics * /*libmv_intrinsics*/) {
+    const libmv_CameraIntrinsicsOptions* /*libmv_camera_intrinsics_options*/,
+    libmv_CameraIntrinsics* /*libmv_intrinsics*/) {
 }
 
 void libmv_cameraIntrinsicsSetThreads(
-    libmv_CameraIntrinsics * /*libmv_intrinsics*/,
-    int /*threads*/) {
+    libmv_CameraIntrinsics* /*libmv_intrinsics*/, int /*threads*/) {
 }
 
 void libmv_cameraIntrinsicsExtractOptions(
-    const libmv_CameraIntrinsics * /*libmv_intrinsics*/,
-    libmv_CameraIntrinsicsOptions *camera_intrinsics_options) {
+    const libmv_CameraIntrinsics* /*libmv_intrinsics*/,
+    libmv_CameraIntrinsicsOptions* camera_intrinsics_options) {
   memset(camera_intrinsics_options, 0, sizeof(libmv_CameraIntrinsicsOptions));
   camera_intrinsics_options->focal_length = 1.0;
 }
 
 void libmv_cameraIntrinsicsUndistortByte(
-    const libmv_CameraIntrinsics * /*libmv_intrinsics*/,
-    const unsigned char *source_image,
-    int width, int height,
+    const libmv_CameraIntrinsics* /*libmv_intrinsics*/,
+    const unsigned char* source_image,
+    int width,
+    int height,
     float /*overscan*/,
     int channels,
-    unsigned char *destination_image) {
-  memcpy(destination_image, source_image,
+    unsigned char* destination_image) {
+  memcpy(destination_image,
+         source_image,
          channels * width * height * sizeof(unsigned char));
 }
 
@@ -265,19 +265,21 @@ void libmv_cameraIntrinsicsUndistortFloat(
     float /*overscan*/,
     int channels,
     float* destination_image) {
-  memcpy(destination_image, source_image,
+  memcpy(destination_image,
+         source_image,
          channels * width * height * sizeof(float));
 }
 
 void libmv_cameraIntrinsicsDistortByte(
     const struct libmv_CameraIntrinsics* /*libmv_intrinsics*/,
-    const unsigned char *source_image,
+    const unsigned char* source_image,
     int width,
     int height,
     float /*overscan*/,
     int channels,
-    unsigned char *destination_image) {
-  memcpy(destination_image, source_image,
+    unsigned char* destination_image) {
+  memcpy(destination_image,
+         source_image,
          channels * width * height * sizeof(unsigned char));
 }
 
@@ -289,7 +291,8 @@ void libmv_cameraIntrinsicsDistortFloat(
     float /*overscan*/,
     int channels,
     float* destination_image) {
-  memcpy(destination_image, source_image,
+  memcpy(destination_image,
+         source_image,
          channels * width * height * sizeof(float));
 }
 
@@ -315,8 +318,8 @@ void libmv_cameraIntrinsicsInvert(
   *y1 = 0.0;
 }
 
-void libmv_homography2DFromCorrespondencesEuc(/* const */ double (* /*x1*/)[2],
-                                              /* const */ double (* /*x2*/)[2],
+void libmv_homography2DFromCorrespondencesEuc(/* const */ double (*/*x1*/)[2],
+                                              /* const */ double (*/*x2*/)[2],
                                               int /*num_points*/,
                                               double H[3][3]) {
   memset(H, 0, sizeof(double[3][3]));
@@ -327,45 +330,38 @@ void libmv_homography2DFromCorrespondencesEuc(/* const */ double (* /*x1*/)[2],
 
 /* ************ autotrack ************ */
 
-libmv_AutoTrack* libmv_autoTrackNew(libmv_FrameAccessor* /*frame_accessor*/)
-{
+libmv_AutoTrack* libmv_autoTrackNew(libmv_FrameAccessor* /*frame_accessor*/) {
   return NULL;
 }
 
-void libmv_autoTrackDestroy(libmv_AutoTrack* /*libmv_autotrack*/)
-{
+void libmv_autoTrackDestroy(libmv_AutoTrack* /*libmv_autotrack*/) {
 }
 
 void libmv_autoTrackSetOptions(libmv_AutoTrack* /*libmv_autotrack*/,
-                               const libmv_AutoTrackOptions* /*options*/)
-{
+                               const libmv_AutoTrackOptions* /*options*/) {
 }
 
 int libmv_autoTrackMarker(libmv_AutoTrack* /*libmv_autotrack*/,
                           const libmv_TrackRegionOptions* /*libmv_options*/,
-                          libmv_Marker * /*libmv_tracker_marker*/,
-                          libmv_TrackRegionResult* /*libmv_result*/)
-{
+                          libmv_Marker* /*libmv_tracker_marker*/,
+                          libmv_TrackRegionResult* /*libmv_result*/) {
   return 0;
 }
 
 void libmv_autoTrackAddMarker(libmv_AutoTrack* /*libmv_autotrack*/,
-                              const libmv_Marker* /*libmv_marker*/)
-{
+                              const libmv_Marker* /*libmv_marker*/) {
 }
 
 void libmv_autoTrackSetMarkers(libmv_AutoTrack* /*libmv_autotrack*/,
                                const libmv_Marker* /*libmv_marker-*/,
-                               size_t /*num_markers*/)
-{
+                               size_t /*num_markers*/) {
 }
 
 int libmv_autoTrackGetMarker(libmv_AutoTrack* /*libmv_autotrack*/,
                              int /*clip*/,
                              int /*frame*/,
                              int /*track*/,
-                             libmv_Marker* /*libmv_marker*/)
-{
+                             libmv_Marker* /*libmv_marker*/) {
   return 0;
 }
 
@@ -376,24 +372,20 @@ libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_GetImageCallback /*get_image_callback*/,
     libmv_ReleaseImageCallback /*release_image_callback*/,
     libmv_GetMaskForTrackCallback /*get_mask_for_track_callback*/,
-    libmv_ReleaseMaskCallback /*release_mask_callback*/)
-{
+    libmv_ReleaseMaskCallback /*release_mask_callback*/) {
   return NULL;
 }
 
-void libmv_FrameAccessorDestroy(libmv_FrameAccessor* /*frame_accessor*/)
-{
+void libmv_FrameAccessorDestroy(libmv_FrameAccessor* /*frame_accessor*/) {
 }
 
 int64_t libmv_frameAccessorgetTransformKey(
-    const libmv_FrameTransform * /*transform*/)
-{
+    const libmv_FrameTransform* /*transform*/) {
   return 0;
 }
 
-void libmv_frameAccessorgetTransformRun(const libmv_FrameTransform* /*transform*/,
-                                        const libmv_FloatImage* /*input_image*/,
-                                        libmv_FloatImage* /*output_image*/)
-{
+void libmv_frameAccessorgetTransformRun(
+    const libmv_FrameTransform* /*transform*/,
+    const libmv_FloatImage* /*input_image*/,
+    libmv_FloatImage* /*output_image*/) {
 }
-

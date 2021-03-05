@@ -34,12 +34,14 @@ using namespace libmv;
 
 TEST(Fundamental, FundamentalFromProjections) {
   Mat34 P1_gt, P2_gt;
+  // clang-format off
   P1_gt << 1, 0, 0, 0,
            0, 1, 0, 0,
            0, 0, 1, 0;
   P2_gt << 1, 1, 1, 3,
            0, 2, 0, 3,
            0, 1, 1, 0;
+  // clang-format on
   Mat3 F_gt;
   FundamentalFromProjections(P1_gt, P2_gt, &F_gt);
 
@@ -55,8 +57,10 @@ TEST(Fundamental, FundamentalFromProjections) {
 TEST(Fundamental, PreconditionerFromPoints) {
   int n = 4;
   Mat points(2, n);
+  // clang-format off
   points << 0, 0, 1, 1,
             0, 2, 1, 3;
+  // clang-format on
 
   Mat3 T;
   PreconditionerFromPoints(points, &T);
@@ -152,8 +156,8 @@ TEST(Fundamental, MotionFromEssentialAndCorrespondence) {
 
   Mat3 R_estimated;
   Vec3 t_estimated;
-  MotionFromEssentialAndCorrespondence(E, d.K1, x1, d.K2, x2,
-                                       &R_estimated, &t_estimated);
+  MotionFromEssentialAndCorrespondence(
+      E, d.K1, x1, d.K2, x2, &R_estimated, &t_estimated);
 
   EXPECT_LE(FrobeniusDistance(R_estimated, R), 1e-8);
   EXPECT_LE(DistanceL2(t_estimated, t), 1e-8);

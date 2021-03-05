@@ -27,7 +27,7 @@
 
 namespace mv {
 
-template<typename T, int D>
+template <typename T, int D>
 struct Quad {
   // A quad is 4 points; generally in 2D or 3D.
   //
@@ -35,7 +35,7 @@ struct Quad {
   //    |\.
   //    | \.
   //    |  z (z goes into screen)
-  //    |   
+  //    |
   //    |     r0----->r1
   //    |      ^       |
   //    |      |   .   |
@@ -44,7 +44,7 @@ struct Quad {
   //    |              \.
   //    |               \.
   //    v                normal goes away (right handed).
-  //    y   
+  //    y
   //
   // Each row is one of the corners coordinates; either (x, y) or (x, y, z).
   Eigen::Matrix<T, 4, D> coordinates;

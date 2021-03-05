@@ -21,21 +21,24 @@
 #ifndef LIBMV_CORRESPONDENCE_PYRAMID_TRACKER_H_
 #define LIBMV_CORRESPONDENCE_PYRAMID_TRACKER_H_
 
-#include "libmv/image/image.h"
 #include "libmv/base/scoped_ptr.h"
+#include "libmv/image/image.h"
 #include "libmv/tracking/region_tracker.h"
 
 namespace libmv {
 
 class PyramidRegionTracker : public RegionTracker {
  public:
-  PyramidRegionTracker(RegionTracker *tracker, int num_levels)
+  PyramidRegionTracker(RegionTracker* tracker, int num_levels)
       : tracker_(tracker), num_levels_(num_levels) {}
 
-  virtual bool Track(const FloatImage &image1,
-                     const FloatImage &image2,
-                     double  x1, double  y1,
-                     double *x2, double *y2) const;
+  virtual bool Track(const FloatImage& image1,
+                     const FloatImage& image2,
+                     double x1,
+                     double y1,
+                     double* x2,
+                     double* y2) const;
+
  private:
   scoped_ptr<RegionTracker> tracker_;
   int num_levels_;

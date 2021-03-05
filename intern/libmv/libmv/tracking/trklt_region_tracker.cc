@@ -20,27 +20,29 @@
 
 #include "libmv/tracking/trklt_region_tracker.h"
 
+#include "libmv/image/convolve.h"
+#include "libmv/image/image.h"
+#include "libmv/image/sample.h"
 #include "libmv/logging/logging.h"
 #include "libmv/numeric/numeric.h"
-#include "libmv/image/image.h"
-#include "libmv/image/convolve.h"
-#include "libmv/image/sample.h"
 
 namespace libmv {
 
 // TODO(keir): Switch this to use the smarter LM loop like in ESM.
 
 // Computes U and e from the Ud = e equation (number 14) from the paper.
-static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
-                                    const Array3Df &image_and_gradient2,
-                                    double x1, double y1,
-                                    double x2, double y2,
+static void ComputeTrackingEquation(const Array3Df& image_and_gradient1,
+                                    const Array3Df& image_and_gradient2,
+                                    double x1,
+                                    double y1,
+                                    double x2,
+                                    double y2,
                                     int half_width,
                                     double lambda,
-                                    Mat2f *U,
-                                    Vec2f *e) {
+                                    Mat2f* U,
+                                    Vec2f* e) {
   Mat2f A, B, C, D;
-  A = B = C = D  = Mat2f::Zero();
+  A = B = C = D = Mat2f::Zero();
 
   Vec2f R, S, V, W;
   R = S = V = W = Vec2f::Zero();
@@ -57,9 +59,9 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
 
       Vec2f gI, gJ;
       gI << SampleLinear(image_and_gradient1, yy1, xx1, 1),
-            SampleLinear(image_and_gradient1, yy1, xx1, 2);
+          SampleLinear(image_and_gradient1, yy1, xx1, 2);
       gJ << SampleLinear(image_and_gradient2, yy2, xx2, 1),
-            SampleLinear(image_and_gradient2, yy2, xx2, 2);
+          SampleLinear(image_and_gradient2, yy2, xx2, 2);
 
       // Equation 15 from the paper.
       A += gI * gI.transpose();
@@ -77,26 +79,25 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   Mat2f Di = B.transpose().inverse();
 
   // Equation 14 from the paper.
-  *U = A*Di*C + lambda*Di*C - 0.5*B;
-  *e = (A + lambda*Mat2f::Identity())*Di*(V - W) + 0.5*(S - R);
+  *U = A * Di * C + lambda * Di * C - 0.5 * B;
+  *e = (A + lambda * Mat2f::Identity()) * Di * (V - W) + 0.5 * (S - R);
 }
 
-static bool RegionIsInBounds(const FloatImage &image1,
-                      double x, double y,
-                      int half_window_size) {
+static bool RegionIsInBounds(const FloatImage& image1,
+                             double x,
+                             double y,
+                             int half_window_size) {
   // Check the minimum coordinates.
   int min_x = floor(x) - half_window_size - 1;
   int min_y = floor(y) - half_window_size - 1;
-  if (min_x < 0.0 ||
-      min_y < 0.0) {
+  if (min_x < 0.0 || min_y < 0.0) {
     return false;
   }
 
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols() || max_y > image1.rows()) {
     return false;
   }
 
@@ -104,10 +105,12 @@ static bool RegionIsInBounds(const FloatImage &image1,
   return true;
 }
 
-bool TrkltRegionTracker::Track(const FloatImage &image1,
-                               const FloatImage &image2,
-                               double  x1, double  y1,
-                               double *x2, double *y2) const {
+bool TrkltRegionTracker::Track(const FloatImage& image1,
+                               const FloatImage& image2,
+                               double x1,
+                               double y1,
+                               double* x2,
+                               double* y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
     LG << "Fell out of image1's window with x1=" << x1 << ", y1=" << y1
        << ", hw=" << half_window_size << ".";
@@ -134,11 +137,14 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
     Vec2f e;
     ComputeTrackingEquation(image_and_gradient1,
                             image_and_gradient2,
-                            x1, y1,
-                            *x2, *y2,
+                            x1,
+                            y1,
+                            *x2,
+                            *y2,
                             half_window_size,
                             lambda,
-                            &U, &e);
+                            &U,
+                            &e);
 
     // Solve the linear system for the best update to x2 and y2.
     d = U.lu().solve(e);
@@ -160,7 +166,6 @@ bool TrkltRegionTracker::Track(const FloatImage &image1,
     }
     LG << "x=" << *x2 << ", y=" << *y2 << ", dx=" << d[0] << ", dy=" << d[1]
        << ", det=" << determinant;
-
 
     // If the update is small, then we probably found the target.
     if (d.squaredNorm() < min_update_squared_distance) {

@@ -34,7 +34,7 @@
 namespace libmv {
 
 namespace {
-void ProjectMarkerOnSphere(const Marker &marker, Vec3 &X) {
+void ProjectMarkerOnSphere(const Marker& marker, Vec3& X) {
   X(0) = marker.x;
   X(1) = marker.y;
   X(2) = 1.0;
@@ -42,12 +42,14 @@ void ProjectMarkerOnSphere(const Marker &marker, Vec3 &X) {
   X *= 5.0 / X.norm();
 }
 
-void ModalSolverLogProgress(ProgressUpdateCallback *update_callback,
-                           double progress) {
+void ModalSolverLogProgress(ProgressUpdateCallback* update_callback,
+                            double progress) {
   if (update_callback) {
     char message[256];
 
-    snprintf(message, sizeof(message), "Solving progress %d%%",
+    snprintf(message,
+             sizeof(message),
+             "Solving progress %d%%",
              (int)(progress * 100));
 
     update_callback->invoke(progress, message);
@@ -58,25 +60,27 @@ struct ModalReprojectionError {
   ModalReprojectionError(double observed_x,
                          double observed_y,
                          const double weight,
-                         const Vec3 &bundle)
-    : observed_x_(observed_x), observed_y_(observed_y),
-      weight_(weight), bundle_(bundle) { }
+                         const Vec3& bundle)
+      : observed_x_(observed_x),
+        observed_y_(observed_y),
+        weight_(weight),
+        bundle_(bundle) {}
 
   // TODO(keir): This should support bundling focal length as well.
   template <typename T>
   bool operator()(const T* quaternion, T* residuals) const {
     // Convert bundle position from double to T.
-    T X[3] = { T(bundle_(0)), T(bundle_(1)), T(bundle_(2)) };
+    T X[3] = {T(bundle_(0)), T(bundle_(1)), T(bundle_(2))};
 
     // Compute the point position in camera coordinates: x = RX.
     T x[3];
 
     // This flips the sense of the quaternion, to adhere to Blender conventions.
     T quaternion_inverse[4] = {
-      quaternion[0],
-      -quaternion[1],
-      -quaternion[2],
-      -quaternion[3],
+        quaternion[0],
+        -quaternion[1],
+        -quaternion[2],
+        -quaternion[3],
     };
     ceres::QuaternionRotatePoint(quaternion_inverse, X, x);
 
@@ -99,9 +103,9 @@ struct ModalReprojectionError {
 };
 }  // namespace
 
-void ModalSolver(const Tracks &tracks,
-                 EuclideanReconstruction *reconstruction,
-                 ProgressUpdateCallback *update_callback) {
+void ModalSolver(const Tracks& tracks,
+                 EuclideanReconstruction* reconstruction,
+                 ProgressUpdateCallback* update_callback) {
   int max_image = tracks.MaxImage();
   int max_track = tracks.MaxTrack();
 
@@ -116,7 +120,7 @@ void ModalSolver(const Tracks &tracks,
   for (int image = 0; image <= max_image; ++image) {
     vector<Marker> all_markers = tracks.MarkersInImage(image);
 
-    ModalSolverLogProgress(update_callback, (float) image / max_image);
+    ModalSolverLogProgress(update_callback, (float)image / max_image);
 
     // Skip empty images without doing anything.
     if (all_markers.size() == 0) {
@@ -133,8 +137,8 @@ void ModalSolver(const Tracks &tracks,
     // 3D positions.
     Mat x1, x2;
     for (int i = 0; i < all_markers.size(); ++i) {
-      Marker &marker = all_markers[i];
-      EuclideanPoint *point = reconstruction->PointForTrack(marker.track);
+      Marker& marker = all_markers[i];
+      EuclideanPoint* point = reconstruction->PointForTrack(marker.track);
       if (point) {
         Vec3 X;
         ProjectMarkerOnSphere(marker, X);
@@ -168,8 +172,7 @@ void ModalSolver(const Tracks &tracks,
 
       ceres::AngleAxisToQuaternion(&angle_axis(0), &quaternion(0));
 
-      LG << "Analytically computed quaternion "
-         << quaternion.transpose();
+      LG << "Analytically computed quaternion " << quaternion.transpose();
     }
 
     // STEP 2: Refine rotation with Ceres.
@@ -181,17 +184,15 @@ void ModalSolver(const Tracks &tracks,
 
     int num_residuals = 0;
     for (int i = 0; i < all_markers.size(); ++i) {
-      Marker &marker = all_markers[i];
-      EuclideanPoint *point = reconstruction->PointForTrack(marker.track);
+      Marker& marker = all_markers[i];
+      EuclideanPoint* point = reconstruction->PointForTrack(marker.track);
 
       if (point && marker.weight != 0.0) {
-        problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-            ModalReprojectionError,
-            2, /* num_residuals */
-            4>(new ModalReprojectionError(marker.x,
-                                          marker.y,
-                                          marker.weight,
-                                          point->X)),
+        problem.AddResidualBlock(
+            new ceres::AutoDiffCostFunction<ModalReprojectionError,
+                                            2, /* num_residuals */
+                                            4>(new ModalReprojectionError(
+                marker.x, marker.y, marker.weight, point->X)),
             NULL,
             &quaternion(0));
         num_residuals++;

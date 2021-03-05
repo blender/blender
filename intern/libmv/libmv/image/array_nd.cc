@@ -18,18 +18,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/image/image.h"
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include "libmv/image/image.h"
 
 namespace libmv {
 
-void FloatArrayToScaledByteArray(const Array3Df &float_array,
-                                 Array3Du *byte_array,
-                                 bool automatic_range_detection
-                                ) {
+void FloatArrayToScaledByteArray(const Array3Df& float_array,
+                                 Array3Du* byte_array,
+                                 bool automatic_range_detection) {
   byte_array->ResizeLike(float_array);
-  float minval =  HUGE_VAL;
+  float minval = HUGE_VAL;
   float maxval = -HUGE_VAL;
   if (automatic_range_detection) {
     for (int i = 0; i < float_array.Height(); ++i) {
@@ -54,8 +53,8 @@ void FloatArrayToScaledByteArray(const Array3Df &float_array,
   }
 }
 
-void ByteArrayToScaledFloatArray(const Array3Du &byte_array,
-                                 Array3Df *float_array) {
+void ByteArrayToScaledFloatArray(const Array3Du& byte_array,
+                                 Array3Df* float_array) {
   float_array->ResizeLike(byte_array);
   for (int i = 0; i < byte_array.Height(); ++i) {
     for (int j = 0; j < byte_array.Width(); ++j) {
@@ -66,10 +65,10 @@ void ByteArrayToScaledFloatArray(const Array3Du &byte_array,
   }
 }
 
-void SplitChannels(const Array3Df &input,
-                          Array3Df *channel0,
-                          Array3Df *channel1,
-                          Array3Df *channel2) {
+void SplitChannels(const Array3Df& input,
+                   Array3Df* channel0,
+                   Array3Df* channel1,
+                   Array3Df* channel2) {
   assert(input.Depth() >= 3);
   channel0->Resize(input.Height(), input.Width());
   channel1->Resize(input.Height(), input.Width());
@@ -83,7 +82,7 @@ void SplitChannels(const Array3Df &input,
   }
 }
 
-void PrintArray(const Array3Df &array) {
+void PrintArray(const Array3Df& array) {
   using namespace std;
 
   printf("[\n");

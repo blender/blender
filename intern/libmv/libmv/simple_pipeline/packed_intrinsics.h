@@ -40,7 +40,7 @@ class PackedIntrinsics {
     OFFSET_FOCAL_LENGTH,
     OFFSET_PRINCIPAL_POINT_X,
     OFFSET_PRINCIPAL_POINT_Y,
-  
+
     // Distortion model coefficients.
     OFFSET_K1,
     OFFSET_K2,
@@ -48,7 +48,7 @@ class PackedIntrinsics {
     OFFSET_K4,
     OFFSET_P1,
     OFFSET_P2,
-  
+
     // Number of parameters which are to be stored in the block.
     NUM_PARAMETERS,
   };
@@ -66,12 +66,12 @@ class PackedIntrinsics {
   // point.
 
 #define DEFINE_PARAMETER(parameter_name)                                       \
-  void Set ## parameter_name(double value) {                                   \
-    SetParameter(OFFSET_ ## parameter_name, value);                            \
+  void Set##parameter_name(double value) {                                     \
+    SetParameter(OFFSET_##parameter_name, value);                              \
   }                                                                            \
-  double Get ## parameter_name() const {                                       \
-    return GetParameter(OFFSET_ ## parameter_name);                            \
-  }                                                                            \
+  double Get##parameter_name() const {                                         \
+    return GetParameter(OFFSET_##parameter_name);                              \
+  }
 
   DEFINE_PARAMETER(K1)
   DEFINE_PARAMETER(K2)
@@ -94,11 +94,11 @@ class PackedIntrinsics {
 
   // All intrinsics parameters packed into a single block.
   // Use OFFSET_FOO indexes to access corresponding values.
-  array<double,  NUM_PARAMETERS> parameters_;
+  array<double, NUM_PARAMETERS> parameters_;
 
   // Indexed by parameter offset, set to truth if the value of the parameter is
   // explicitly specified.
-  array<bool,  NUM_PARAMETERS> known_parameters_;
+  array<bool, NUM_PARAMETERS> known_parameters_;
 };
 
 }  // namespace libmv

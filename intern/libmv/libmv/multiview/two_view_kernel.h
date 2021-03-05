@@ -30,10 +30,10 @@ namespace libmv {
 namespace two_view {
 namespace kernel {
 
-template<typename Solver, typename Unnormalizer>
+template <typename Solver, typename Unnormalizer>
 struct NormalizedSolver {
   enum { MINIMUM_SAMPLES = Solver::MINIMUM_SAMPLES };
-  static void Solve(const Mat &x1, const Mat &x2, vector<Mat3> *models) {
+  static void Solve(const Mat& x1, const Mat& x2, vector<Mat3>* models) {
     assert(2 == x1.rows());
     assert(MINIMUM_SAMPLES <= x1.cols());
     assert(x1.rows() == x2.rows());
@@ -53,10 +53,10 @@ struct NormalizedSolver {
   }
 };
 
-template<typename Solver, typename Unnormalizer>
+template <typename Solver, typename Unnormalizer>
 struct IsotropicNormalizedSolver {
   enum { MINIMUM_SAMPLES = Solver::MINIMUM_SAMPLES };
-  static void Solve(const Mat &x1, const Mat &x2, vector<Mat3> *models) {
+  static void Solve(const Mat& x1, const Mat& x2, vector<Mat3>* models) {
     assert(2 == x1.rows());
     assert(MINIMUM_SAMPLES <= x1.cols());
     assert(x1.rows() == x2.rows());
@@ -99,35 +99,32 @@ struct IsotropicNormalizedSolver {
 //
 // The fit routine must not clear existing entries in the vector of models; it
 // should append new solutions to the end.
-template<typename SolverArg,
-         typename ErrorArg,
-         typename ModelArg = Mat3>
+template <typename SolverArg, typename ErrorArg, typename ModelArg = Mat3>
 class Kernel {
  public:
-  Kernel(const Mat &x1, const Mat &x2) : x1_(x1), x2_(x2) {}
+  Kernel(const Mat& x1, const Mat& x2) : x1_(x1), x2_(x2) {}
   typedef SolverArg Solver;
-  typedef ModelArg  Model;
+  typedef ModelArg Model;
   enum { MINIMUM_SAMPLES = Solver::MINIMUM_SAMPLES };
-  void Fit(const vector<int> &samples, vector<Model> *models) const {
+  void Fit(const vector<int>& samples, vector<Model>* models) const {
     Mat x1 = ExtractColumns(x1_, samples);
     Mat x2 = ExtractColumns(x2_, samples);
     Solver::Solve(x1, x2, models);
   }
-  double Error(int sample, const Model &model) const {
+  double Error(int sample, const Model& model) const {
     return ErrorArg::Error(model,
                            static_cast<Vec>(x1_.col(sample)),
                            static_cast<Vec>(x2_.col(sample)));
   }
-  int NumSamples() const {
-    return x1_.cols();
-  }
-  static void Solve(const Mat &x1, const Mat &x2, vector<Model> *models) {
+  int NumSamples() const { return x1_.cols(); }
+  static void Solve(const Mat& x1, const Mat& x2, vector<Model>* models) {
     // By offering this, Kernel types can be passed to templates.
     Solver::Solve(x1, x2, models);
   }
+
  protected:
-  const Mat &x1_;
-  const Mat &x2_;
+  const Mat& x1_;
+  const Mat& x2_;
 };
 
 }  // namespace kernel
