@@ -900,6 +900,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         layout = self.layout
 
         import os
+        import re
         import bpy.utils
 
         layout = self.layout
@@ -920,7 +921,10 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                     (filter_path(f)))
             ])
 
-        files.sort()
+        # Python does not have a natural sort function
+        natural_sort = lambda s: [int(t) if t.isdigit() else t.lower()
+                       for t in re.split('(\d+)', (str)(s))]
+        files.sort(key=natural_sort)
 
         col = layout.column(align=True)
 
