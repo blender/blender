@@ -288,7 +288,7 @@ void NodeOperationBuilder::add_datatype_conversions()
   }
   for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
     const Link &link = *it;
-    NodeOperation *converter = COM_convert_data_type(link.from(), link.to());
+    NodeOperation *converter = COM_convert_data_type(*link.from(), *link.to());
     if (converter) {
       addOperation(converter);
 

@@ -53,7 +53,8 @@ bool COM_bnode_is_fast_node(const bNode &b_node);
  * \brief This function will add a datetype conversion rule when the to-socket does not support the
  * from-socket actual data type.
  */
-NodeOperation *COM_convert_data_type(NodeOperationOutput *from, NodeOperationInput *to);
+NodeOperation *COM_convert_data_type(const NodeOperationOutput &from,
+                                     const NodeOperationInput &to);
 
 /**
  * \brief This function will add a resolution rule based on the settings of the NodeInput.

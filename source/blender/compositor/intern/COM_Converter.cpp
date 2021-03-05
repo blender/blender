@@ -419,27 +419,28 @@ Node *COM_convert_bnode(bNode *b_node)
   return node;
 }
 
-NodeOperation *COM_convert_data_type(NodeOperationOutput *from, NodeOperationInput *to)
+/* TODO(jbakker): make this an std::optional<NodeOperation>. */
+NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const NodeOperationInput &to)
 {
-  DataType fromDatatype = from->getDataType();
-  DataType toDatatype = to->getDataType();
+  const DataType src_data_type = from.getDataType();
+  const DataType dst_data_type = to.getDataType();
 
-  if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
+  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_COLOR) {
     return new ConvertValueToColorOperation();
   }
-  if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
+  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_VECTOR) {
     return new ConvertValueToVectorOperation();
   }
-  if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
+  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VALUE) {
     return new ConvertColorToValueOperation();
   }
-  if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
+  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VECTOR) {
     return new ConvertColorToVectorOperation();
   }
-  if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
+  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_VALUE) {
     return new ConvertVectorToValueOperation();
   }
-  if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
+  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_COLOR) {
     return new ConvertVectorToColorOperation();
   }
 
