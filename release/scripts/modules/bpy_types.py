@@ -921,10 +921,11 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                     (filter_path(f)))
             ])
 
-        # Python does not have a natural sort function
-        natural_sort = lambda s: [int(t) if t.isdigit() else t.lower()
-                       for t in re.split('(\d+)', (str)(s))]
-        files.sort(key=natural_sort)
+        # Perform a "natural sort", so 20 comes after 3 (for example).
+        files.sort(
+            key=lambda file_path:
+            tuple(int(t) if t.isdigit() else t for t in re.split("(\d+)", file_path[0].lower())),
+        )
 
         col = layout.column(align=True)
 
