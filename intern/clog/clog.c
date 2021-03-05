@@ -38,11 +38,10 @@
 #endif
 
 #if defined(_MSC_VER)
-// clang-format off
 #  include <Windows.h>
+
 #  include <VersionHelpers.h> /* This needs to be included after Windows.h. */
 #  include <io.h>
-// clang-format on
 #  if !defined(ENABLE_VIRTUAL_TERMINAL_PROCESSING)
 #    define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #  endif
