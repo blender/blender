@@ -128,7 +128,7 @@ class ExecutionGroup {
    * \brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
    * \note this is used to construct the MemoryBuffers that will be passed during execution.
    */
-  unsigned int m_cachedMaxReadBufferOffset;
+  unsigned int m_max_read_buffer_offset;
 
   /**
    * \brief All read operations of this execution group.

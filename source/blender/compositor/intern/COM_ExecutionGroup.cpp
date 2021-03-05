@@ -48,7 +48,7 @@ ExecutionGroup::ExecutionGroup()
   this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
-  this->m_cachedMaxReadBufferOffset = 0;
+  this->m_max_read_buffer_offset = 0;
   this->m_numberOfXChunks = 0;
   this->m_numberOfYChunks = 0;
   this->m_numberOfChunks = 0;
@@ -121,28 +121,26 @@ NodeOperation *ExecutionGroup::getOutputOperation() const
 void ExecutionGroup::initExecution()
 {
   m_chunk_execution_states.clear();
-  unsigned int index;
   determineNumberOfChunks();
 
   if (this->m_numberOfChunks != 0) {
     m_chunk_execution_states.resize(this->m_numberOfChunks);
-    for (index = 0; index < this->m_numberOfChunks; index++) {
+    for (int index = 0; index < this->m_numberOfChunks; index++) {
       m_chunk_execution_states[index] = eChunkExecutionState::NOT_SCHEDULED;
     }
   }
 
-  unsigned int maxNumber = 0;
+  unsigned int max_offset = 0;
 
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+  for (NodeOperation *operation : m_operations) {
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
       this->m_read_operations.append(readOperation);
-      maxNumber = MAX2(maxNumber, readOperation->getOffset());
+      max_offset = MAX2(max_offset, readOperation->getOffset());
     }
   }
-  maxNumber++;
-  this->m_cachedMaxReadBufferOffset = maxNumber;
+  max_offset++;
+  this->m_max_read_buffer_offset = max_offset;
 }
 
 void ExecutionGroup::deinitExecution()
@@ -376,7 +374,7 @@ MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 
   this->determineDependingMemoryProxies(&memoryproxies);
   MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
-      sizeof(MemoryBuffer *) * this->m_cachedMaxReadBufferOffset, __func__);
+      sizeof(MemoryBuffer *) * this->m_max_read_buffer_offset, __func__);
   rcti output;
   for (ReadBufferOperation *readOperation : m_read_operations) {
     MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
@@ -405,7 +403,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 
   atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
   if (memoryBuffers) {
-    for (unsigned int index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
+    for (unsigned int index = 0; index < this->m_max_read_buffer_offset; index++) {
       MemoryBuffer *buffer = memoryBuffers[index];
       if (buffer) {
         if (buffer->isTemporarily()) {
