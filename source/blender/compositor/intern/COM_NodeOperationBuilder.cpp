@@ -72,11 +72,9 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
     inverse_input_map[it->second].push_back(it->first);
   }
 
-  for (NodeGraph::Links::const_iterator it = m_graph.links().begin(); it != m_graph.links().end();
-       ++it) {
-    const NodeGraph::Link &link = *it;
-    NodeOutput *from = link.getFromSocket();
-    NodeInput *to = link.getToSocket();
+  for (const NodeGraph::Link &link : m_graph.links()) {
+    NodeOutput *from = link.from;
+    NodeInput *to = link.to;
 
     NodeOperationOutput *op_from = find_operation_output(m_output_map, from);
     const OpInputs &op_to_list = find_operation_inputs(inverse_input_map, to);

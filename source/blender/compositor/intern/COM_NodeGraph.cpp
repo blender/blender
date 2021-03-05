@@ -90,7 +90,7 @@ void NodeGraph::add_node(Node *node,
 
 void NodeGraph::add_link(NodeOutput *fromSocket, NodeInput *toSocket)
 {
-  m_links.push_back(Link(fromSocket, toSocket));
+  m_links.append(Link(fromSocket, toSocket));
 
   /* register with the input */
   toSocket->setLink(fromSocket);

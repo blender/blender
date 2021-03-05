@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include <map>
 #include <set>
 #include <vector>
@@ -39,33 +41,21 @@ class NodeOutput;
  */
 class NodeGraph {
  public:
-  class Link {
-   private:
-    NodeOutput *m_from;
-    NodeInput *m_to;
+  struct Link {
+    NodeOutput *from;
+    NodeInput *to;
 
-   public:
-    Link(NodeOutput *from, NodeInput *to) : m_from(from), m_to(to)
+    Link(NodeOutput *from, NodeInput *to) : from(from), to(to)
     {
-    }
-
-    NodeOutput *getFromSocket() const
-    {
-      return m_from;
-    }
-    NodeInput *getToSocket() const
-    {
-      return m_to;
     }
   };
 
   typedef std::vector<Node *> Nodes;
   typedef Nodes::iterator NodeIterator;
-  typedef std::vector<Link> Links;
 
  private:
   Nodes m_nodes;
-  Links m_links;
+  blender::Vector<Link> m_links;
 
  public:
   NodeGraph();
@@ -75,7 +65,7 @@ class NodeGraph {
   {
     return m_nodes;
   }
-  const Links &links() const
+  const blender::Vector<Link> &links() const
   {
     return m_links;
   }
