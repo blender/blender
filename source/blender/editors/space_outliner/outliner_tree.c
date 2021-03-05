@@ -1001,13 +1001,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
 
-    /* do here too, for blend file viewer, own ID_LI then shows file name */
-    if (GS(id->name) == ID_LI) {
-      te->name = ((Library *)id)->filepath;
-    }
-    else {
-      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
-    }
+    te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
     te->idcode = GS(id->name);
   }
 
