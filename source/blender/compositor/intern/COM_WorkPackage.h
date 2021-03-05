@@ -16,8 +16,6 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class WorkPackage;
-
 #pragma once
 
 class ExecutionGroup;
