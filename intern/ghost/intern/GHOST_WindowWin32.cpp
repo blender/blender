@@ -1193,7 +1193,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
   GHOST_TUns32 fullBitRow, fullMaskRow;
   int x, y, cols;
 
-  cols = sizeX / 8; /* Number of whole bytes per row (width of bm/mask). */
+  cols = sizeX / 8; /* Number of whole bytes per row (width of bitmap/mask). */
   if (sizeX % 8)
     cols++;
 

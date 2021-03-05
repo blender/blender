@@ -135,8 +135,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     return mesh;
   }
 
-  /* Create a new layer if no UV Maps are available (e.g. if a preceeding modifier could not
-   * preserve it). */
+  /* Create a new layer if no UV Maps are available
+   * (e.g. if a preceding modifier could not preserve it). */
   if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
     CustomData_add_layer_named(
         &mesh->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, mesh->totloop, umd->uvlayer_name);

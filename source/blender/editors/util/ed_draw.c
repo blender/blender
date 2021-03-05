@@ -116,7 +116,7 @@ BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int off
 
 BLI_INLINE bool metadata_is_custom_drawable(const char *field)
 {
-  /* Metadata field stored by Blender for multilayer EXR images. Is rather
+  /* Metadata field stored by Blender for multi-layer EXR images. Is rather
    * useless to be viewed all the time. Can still be seen in the Metadata
    * panel. */
   if (STREQ(field, "BlenderMultiChannel")) {

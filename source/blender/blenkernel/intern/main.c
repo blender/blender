@@ -533,7 +533,7 @@ ListBase *which_libbase(Main *bmain, short type)
 
 /**
  * Put the pointers to all the #ListBase structs in given `bmain` into the `*lb[INDEX_ID_MAX]`
- * array, and return the number of those for convinience.
+ * array, and return the number of those for convenience.
  *
  * This is useful for generic traversal of all the blocks in a #Main (by traversing all the lists
  * in turn), without worrying about block types.
