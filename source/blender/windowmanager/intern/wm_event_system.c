@@ -3221,9 +3221,9 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
 /* Filter out all events of the pie that spawned the last pie unless it's a release event. */
 static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 {
-  if (win->lock_pie_event && win->lock_pie_event == event->type) {
+  if (win->pie_event_type_lock && win->pie_event_type_lock == event->type) {
     if (event->val == KM_RELEASE) {
-      win->lock_pie_event = EVENT_NONE;
+      win->pie_event_type_lock = EVENT_NONE;
       return false;
     }
     return true;

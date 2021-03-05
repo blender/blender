@@ -275,12 +275,12 @@ typedef struct wmWindow {
   int winid;
 
   /** Internal, lock pie creation from this event until released. */
-  short lock_pie_event;
+  short pie_event_type_lock;
   /**
    * Exception to the above rule for nested pies, store last pie event for operators
    * that spawn a new pie right after destruction of last pie.
    */
-  short last_pie_event;
+  short pie_event_type_last;
 
   /** Storage for event system. */
   struct wmEvent *eventstate;

@@ -122,26 +122,26 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
    * it is always assumed to be click style */
   if (event->type == LEFTMOUSE || ELEM(event->val, KM_RELEASE, KM_CLICK)) {
     pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
-    pie->block_radial->pie_data.event = EVENT_NONE;
-    win->lock_pie_event = EVENT_NONE;
+    pie->block_radial->pie_data.event_type = EVENT_NONE;
+    win->pie_event_type_lock = EVENT_NONE;
   }
   else {
-    if (win->last_pie_event != EVENT_NONE) {
+    if (win->pie_event_type_last != EVENT_NONE) {
       /* original pie key has been released, so don't propagate the event */
-      if (win->lock_pie_event == EVENT_NONE) {
+      if (win->pie_event_type_lock == EVENT_NONE) {
         event_type = EVENT_NONE;
         pie->block_radial->pie_data.flags |= UI_PIE_CLICK_STYLE;
       }
       else {
-        event_type = win->last_pie_event;
+        event_type = win->pie_event_type_last;
       }
     }
     else {
       event_type = event->type;
     }
 
-    pie->block_radial->pie_data.event = event_type;
-    win->lock_pie_event = event_type;
+    pie->block_radial->pie_data.event_type = event_type;
+    win->pie_event_type_lock = event_type;
   }
 
   pie->layout = UI_block_layout(

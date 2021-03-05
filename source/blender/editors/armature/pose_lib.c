@@ -1321,10 +1321,10 @@ static void poselib_preview_get_next(tPoseLib_PreviewData *pld, int step)
 }
 
 /* specially handle events for searching */
-static void poselib_preview_handle_search(tPoseLib_PreviewData *pld, ushort event, char ascii)
+static void poselib_preview_handle_search(tPoseLib_PreviewData *pld, ushort event_type, char ascii)
 {
   /* try doing some form of string manipulation first */
-  switch (event) {
+  switch (event_type) {
     case EVT_BACKSPACEKEY:
       if (pld->searchstr[0] && pld->search_cursor) {
         short len = strlen(pld->searchstr);
