@@ -1001,11 +1001,23 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
       }
       id->tag &= ~LIB_TAG_DOIT;
     }
-    /* Also cleanup old overrides that went missing in new linked data. */
+    /* Also deal with old overrides that went missing in new linked data. */
     else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id)) {
       BLI_assert(ID_IS_OVERRIDE_LIBRARY(id));
-      id->tag |= LIB_TAG_DOIT;
-      id->tag &= ~LIB_TAG_MISSING;
+      if (!BKE_lib_override_library_is_user_edited(id)) {
+        /* If user never edited them, we can delete them. */
+        id->tag |= LIB_TAG_DOIT;
+        id->tag &= ~LIB_TAG_MISSING;
+        printf("%s: Old override %s is being deleted.\n", __func__, id->name);
+      }
+      else {
+        /* Otherwise, keep them, user needs to decide whether what to do with them. */
+        BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
+        id_fake_user_set(id);
+        printf("%s: Old override %s is being kept around as it was user-edited.\n",
+               __func__,
+               id->name);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
