@@ -66,7 +66,7 @@ void ColorCorrectionOperation::executePixelSampled(float output[4],
   float r, g, b;
 
   float value = inputMask[0];
-  value = min(1.0f, value);
+  value = MIN2(1.0f, value);
   const float mvalue = 1.0f - value;
 
   float levelShadows = 0.0;

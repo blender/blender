@@ -67,8 +67,8 @@ class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
                      MemoryBuffer *outputMemoryBuffer,
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
-                     list<cl_mem> *clMemToCleanUp,
-                     list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_mem> *clMemToCleanUp,
+                     std::list<cl_kernel> *clKernelsToCleanUp);
 
   void setExtendBounds(bool extend_bounds)
   {

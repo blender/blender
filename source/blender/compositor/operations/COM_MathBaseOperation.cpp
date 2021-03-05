@@ -351,7 +351,7 @@ void MathMinimumOperation::executePixelSampled(float output[4],
   this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
   this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 
-  output[0] = min(inputValue1[0], inputValue2[0]);
+  output[0] = MIN2(inputValue1[0], inputValue2[0]);
 
   clampIfNeeded(output);
 }
@@ -367,7 +367,7 @@ void MathMaximumOperation::executePixelSampled(float output[4],
   this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
   this->m_inputValue2Operation->readSampled(inputValue2, x, y, sampler);
 
-  output[0] = max(inputValue1[0], inputValue2[0]);
+  output[0] = MAX2(inputValue1[0], inputValue2[0]);
 
   clampIfNeeded(output);
 }

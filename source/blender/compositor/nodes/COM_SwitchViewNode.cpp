@@ -33,7 +33,7 @@ void SwitchViewNode::convertToOperations(NodeConverter &converter,
 
   /* get the internal index of the socket with a matching name */
   int nr = BLI_findstringindex(&bnode->inputs, viewName, offsetof(bNodeSocket, name));
-  nr = max(nr, 0);
+  nr = MAX2(nr, 0);
 
   result = converter.addInputProxy(getInputSocket(nr), false);
   converter.mapOutputSocket(getOutputSocket(0), result);

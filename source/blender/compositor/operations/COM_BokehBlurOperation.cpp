@@ -62,7 +62,7 @@ void BokehBlurOperation::initExecution()
   int width = this->m_inputBokehProgram->getWidth();
   int height = this->m_inputBokehProgram->getHeight();
 
-  float dimension = min(width, height);
+  float dimension = MIN2(width, height);
 
   this->m_bokehMidX = width / 2.0f;
   this->m_bokehMidY = height / 2.0f;
@@ -84,7 +84,7 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
     int bufferwidth = inputBuffer->getWidth();
     int bufferstartx = inputBuffer->getRect()->xmin;
     int bufferstarty = inputBuffer->getRect()->ymin;
-    const float max_dim = max(this->getWidth(), this->getHeight());
+    const float max_dim = MAX2(this->getWidth(), this->getHeight());
     int pixelSize = this->m_size * max_dim / 100.0f;
     zero_v4(color_accum);
 
@@ -99,10 +99,10 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
     int maxy = y + pixelSize;
     int minx = x - pixelSize;
     int maxx = x + pixelSize;
-    miny = max(miny, inputBuffer->getRect()->ymin);
-    minx = max(minx, inputBuffer->getRect()->xmin);
-    maxy = min(maxy, inputBuffer->getRect()->ymax);
-    maxx = min(maxx, inputBuffer->getRect()->xmax);
+    miny = MAX2(miny, inputBuffer->getRect()->ymin);
+    minx = MAX2(minx, inputBuffer->getRect()->xmin);
+    maxy = MIN2(maxy, inputBuffer->getRect()->ymax);
+    maxx = MIN2(maxx, inputBuffer->getRect()->xmax);
 
     int step = getStep();
     int offsetadd = getOffsetAdd() * COM_NUM_CHANNELS_COLOR;
@@ -144,7 +144,7 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input,
 {
   rcti newInput;
   rcti bokehInput;
-  const float max_dim = max(this->getWidth(), this->getHeight());
+  const float max_dim = MAX2(this->getWidth(), this->getHeight());
 
   if (this->m_sizeavailable) {
     newInput.xmax = input->xmax + (this->m_size * max_dim / 100.0f);
@@ -193,14 +193,14 @@ void BokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                        MemoryBuffer *outputMemoryBuffer,
                                        cl_mem clOutputBuffer,
                                        MemoryBuffer **inputMemoryBuffers,
-                                       list<cl_mem> *clMemToCleanUp,
-                                       list<cl_kernel> * /*clKernelsToCleanUp*/)
+                                       std::list<cl_mem> *clMemToCleanUp,
+                                       std::list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
   cl_kernel kernel = device->COM_clCreateKernel("bokehBlurKernel", nullptr);
   if (!this->m_sizeavailable) {
     updateSize();
   }
-  const float max_dim = max(this->getWidth(), this->getHeight());
+  const float max_dim = MAX2(this->getWidth(), this->getHeight());
   cl_int radius = this->m_size * max_dim / 100.0f;
   cl_int step = this->getStep();
 
@@ -235,7 +235,7 @@ void BokehBlurOperation::determineResolution(unsigned int resolution[2],
 {
   NodeOperation::determineResolution(resolution, preferredResolution);
   if (this->m_extend_bounds) {
-    const float max_dim = max(resolution[0], resolution[1]);
+    const float max_dim = MAX2(resolution[0], resolution[1]);
     resolution[0] += 2 * this->m_size * max_dim / 100.0f;
     resolution[1] += 2 * this->m_size * max_dim / 100.0f;
   }

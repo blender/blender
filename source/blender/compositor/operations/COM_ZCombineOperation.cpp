@@ -83,7 +83,7 @@ void ZCombineAlphaOperation::executePixelSampled(float output[4],
   output[0] = fac * color1[0] + ifac * color2[0];
   output[1] = fac * color1[1] + ifac * color2[1];
   output[2] = fac * color1[2] + ifac * color2[2];
-  output[3] = max(color1[3], color2[3]);
+  output[3] = MAX2(color1[3], color2[3]);
 }
 
 void ZCombineOperation::deinitExecution()
@@ -149,7 +149,7 @@ void ZCombineMaskAlphaOperation::executePixelSampled(float output[4],
   output[0] = color1[0] * mfac + color2[0] * fac;
   output[1] = color1[1] * mfac + color2[1] * fac;
   output[2] = color1[2] * mfac + color2[2] * fac;
-  output[3] = max(color1[3], color2[3]);
+  output[3] = MAX2(color1[3], color2[3]);
 }
 
 void ZCombineMaskOperation::deinitExecution()

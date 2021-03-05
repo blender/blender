@@ -48,8 +48,8 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 	if (tempBoundingBox > 0.0f && radius > 0 ) {
 		const int2 bokehImageDim = get_image_dim(bokehImage);
 		const int2 bokehImageCenter = bokehImageDim/2;
-		const int2 minXY = max(realCoordinate - radius, zero);
-		const int2 maxXY = min(realCoordinate + radius, dimension);
+		const int2 minXY = MAX2(realCoordinate - radius, zero);
+		const int2 maxXY = MIN2(realCoordinate + radius, dimension);
 		int nx, ny;
 		
 		float2 uv;
@@ -97,10 +97,10 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 	float4 multiplier_accum = {1.0f, 1.0f, 1.0f, 1.0f};
 	float4 color_accum;
 	
-	int minx = max(realCoordinate.s0 - maxBlurScalar, 0);
-	int miny = max(realCoordinate.s1 - maxBlurScalar, 0);
-	int maxx = min(realCoordinate.s0 + maxBlurScalar, dimension.s0);
-	int maxy = min(realCoordinate.s1 + maxBlurScalar, dimension.s1);
+	int minx = MAX2(realCoordinate.s0 - maxBlurScalar, 0);
+	int miny = MAX2(realCoordinate.s1 - maxBlurScalar, 0);
+	int maxx = MIN2(realCoordinate.s0 + maxBlurScalar, dimension.s0);
+	int maxy = MIN2(realCoordinate.s1 + maxBlurScalar, dimension.s1);
 	
 	{
 		int2 inputCoordinate = realCoordinate - offsetInput;
@@ -116,7 +116,7 @@ __kernel void defocusKernel(__read_only image2d_t inputImage, __read_only image2
 					float dx = nx - realCoordinate.s0;
 					if (dx != 0 || dy != 0) {
 						inputCoordinate.s0 = nx - offsetInput.s0;
-						size = min(read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0 * scalar, size_center);
+						size = MIN2(read_imagef(inputSize, SAMPLER_NEAREST, inputCoordinate).s0 * scalar, size_center);
 						if (size > threshold) {
 							if (size >= fabs(dx) && size >= fabs(dy)) {
 								float2 uv = {256.0f + dx * 255.0f / size,
@@ -157,8 +157,8 @@ __kernel void dilateKernel(__read_only image2d_t inputImage,  __write_only image
 	coords += offset;
 	const int2 realCoordinate = coords + offsetOutput;
 
-	const int2 minXY = max(realCoordinate - scope, zero);
-	const int2 maxXY = min(realCoordinate + scope, dimension);
+	const int2 minXY = MAX2(realCoordinate - scope, zero);
+	const int2 maxXY = MIN2(realCoordinate + scope, dimension);
 	
 	float value = 0.0f;
 	int nx, ny;
@@ -170,7 +170,7 @@ __kernel void dilateKernel(__read_only image2d_t inputImage,  __write_only image
 			const float deltaX = (realCoordinate.x - nx);
 			const float measuredDistance = deltaX * deltaX + deltaY * deltaY;
 			if (measuredDistance <= distanceSquared) {
-				value = max(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
+				value = MAX2(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
 			}
 		}
 	}
@@ -188,8 +188,8 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 	coords += offset;
 	const int2 realCoordinate = coords + offsetOutput;
 
-	const int2 minXY = max(realCoordinate - scope, zero);
-	const int2 maxXY = min(realCoordinate + scope, dimension);
+	const int2 minXY = MAX2(realCoordinate - scope, zero);
+	const int2 maxXY = MIN2(realCoordinate + scope, dimension);
 	
 	float value = 1.0f;
 	int nx, ny;
@@ -201,7 +201,7 @@ __kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2
 			const float deltaY = (realCoordinate.y - ny);
 			const float measuredDistance = deltaX * deltaX+deltaY * deltaY;
 			if (measuredDistance <= distanceSquared) {
-				value = min(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
+				value = MIN2(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
 			}
 		}
 	}
@@ -268,10 +268,10 @@ __kernel void gaussianXBlurOperationKernel(__read_only image2d_t inputImage,
 	int2 inputCoordinate = realCoordinate - offsetInput;
 	float weight = 0.0f;
 
-	int xmin = max(realCoordinate.x - filter_size,     0) - offsetInput.x;
-	int xmax = min(realCoordinate.x + filter_size + 1, dimension.x) - offsetInput.x;
+	int xmin = MAX2(realCoordinate.x - filter_size,     0) - offsetInput.x;
+	int xmax = MIN2(realCoordinate.x + filter_size + 1, dimension.x) - offsetInput.x;
 
-	for (int nx = xmin, i = max(filter_size - realCoordinate.x, 0); nx < xmax; ++nx, ++i) {
+	for (int nx = xmin, i = MAX2(filter_size - realCoordinate.x, 0); nx < xmax; ++nx, ++i) {
 		float w = gausstab[i];
 		inputCoordinate.x = nx;
 		color += read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate) * w;
@@ -299,10 +299,10 @@ __kernel void gaussianYBlurOperationKernel(__read_only image2d_t inputImage,
 	int2 inputCoordinate = realCoordinate - offsetInput;
 	float weight = 0.0f;
 
-	int ymin = max(realCoordinate.y - filter_size,     0) - offsetInput.y;
-	int ymax = min(realCoordinate.y + filter_size + 1, dimension.y) - offsetInput.y;
+	int ymin = MAX2(realCoordinate.y - filter_size,     0) - offsetInput.y;
+	int ymax = MIN2(realCoordinate.y + filter_size + 1, dimension.y) - offsetInput.y;
 
-	for (int ny = ymin, i = max(filter_size - realCoordinate.y, 0); ny < ymax; ++ny, ++i) {
+	for (int ny = ymin, i = MAX2(filter_size - realCoordinate.y, 0); ny < ymax; ++ny, ++i) {
 		float w = gausstab[i];
 		inputCoordinate.y = ny;
 		color += read_imagef(inputImage, SAMPLER_NEAREST, inputCoordinate) * w;

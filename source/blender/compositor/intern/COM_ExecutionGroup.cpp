@@ -143,7 +143,7 @@ void ExecutionGroup::initExecution()
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
       this->m_cachedReadOperations.push_back(readOperation);
-      maxNumber = max(maxNumber, readOperation->getOffset());
+      maxNumber = MAX2(maxNumber, readOperation->getOffset());
     }
   }
   maxNumber++;
@@ -452,13 +452,13 @@ inline void ExecutionGroup::determineChunkRect(rcti *rect,
   else {
     const unsigned int minx = xChunk * this->m_chunkSize + this->m_viewerBorder.xmin;
     const unsigned int miny = yChunk * this->m_chunkSize + this->m_viewerBorder.ymin;
-    const unsigned int width = min((unsigned int)this->m_viewerBorder.xmax, this->m_width);
-    const unsigned int height = min((unsigned int)this->m_viewerBorder.ymax, this->m_height);
+    const unsigned int width = MIN2((unsigned int)this->m_viewerBorder.xmax, this->m_width);
+    const unsigned int height = MIN2((unsigned int)this->m_viewerBorder.ymax, this->m_height);
     BLI_rcti_init(rect,
-                  min(minx, this->m_width),
-                  min(minx + this->m_chunkSize, width),
-                  min(miny, this->m_height),
-                  min(miny + this->m_chunkSize, height));
+                  MIN2(minx, this->m_width),
+                  MIN2(minx + this->m_chunkSize, width),
+                  MIN2(miny, this->m_height),
+                  MIN2(miny + this->m_chunkSize, height));
   }
 }
 

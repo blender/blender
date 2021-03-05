@@ -33,10 +33,6 @@
 
 #include "clew.h"
 
-using std::list;
-using std::max;
-using std::min;
-
 class OpenCLDevice;
 class ReadBufferOperation;
 class WriteBufferOperation;
@@ -239,8 +235,8 @@ class NodeOperation : public SocketReader {
                              MemoryBuffer * /*outputMemoryBuffer*/,
                              cl_mem /*clOutputBuffer*/,
                              MemoryBuffer ** /*inputMemoryBuffers*/,
-                             list<cl_mem> * /*clMemToCleanUp*/,
-                             list<cl_kernel> * /*clKernelsToCleanUp*/)
+                             std::list<cl_mem> * /*clMemToCleanUp*/,
+                             std::list<cl_kernel> * /*clKernelsToCleanUp*/)
   {
   }
   virtual void deinitExecution();

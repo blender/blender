@@ -51,9 +51,9 @@ void TonemapOperation::executePixel(float output[4], int x, int y, void *data)
   output[2] /= ((db == 0.0f) ? 1.0f : db);
   const float igm = avg->igm;
   if (igm != 0.0f) {
-    output[0] = powf(max(output[0], 0.0f), igm);
-    output[1] = powf(max(output[1], 0.0f), igm);
-    output[2] = powf(max(output[2], 0.0f), igm);
+    output[0] = powf(MAX2(output[0], 0.0f), igm);
+    output[1] = powf(MAX2(output[1], 0.0f), igm);
+    output[2] = powf(MAX2(output[2], 0.0f), igm);
   }
 }
 void PhotoreceptorTonemapOperation::executePixel(float output[4], int x, int y, void *data)

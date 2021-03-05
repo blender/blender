@@ -25,8 +25,6 @@ class OpenCLDevice;
 #include "COM_WorkScheduler.h"
 #include "clew.h"
 
-using std::list;
-
 /**
  * \brief device representing an GPU OpenCL device.
  * an instance of this class represents a single cl_device
@@ -107,13 +105,13 @@ class OpenCLDevice : public Device {
   cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
                                                    int parameterIndex,
                                                    int offsetIndex,
-                                                   list<cl_mem> *cleanup,
+                                                   std::list<cl_mem> *cleanup,
                                                    MemoryBuffer **inputMemoryBuffers,
                                                    SocketReader *reader);
   cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
                                                    int parameterIndex,
                                                    int offsetIndex,
-                                                   list<cl_mem> *cleanup,
+                                                   std::list<cl_mem> *cleanup,
                                                    MemoryBuffer **inputMemoryBuffers,
                                                    ReadBufferOperation *reader);
   void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel,
@@ -130,5 +128,5 @@ class OpenCLDevice : public Device {
                           MemoryBuffer *outputMemoryBuffer,
                           int offsetIndex,
                           NodeOperation *operation);
-  cl_kernel COM_clCreateKernel(const char *kernelname, list<cl_kernel> *clKernelsToCleanUp);
+  cl_kernel COM_clCreateKernel(const char *kernelname, std::list<cl_kernel> *clKernelsToCleanUp);
 };

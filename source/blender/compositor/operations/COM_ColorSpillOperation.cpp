@@ -90,7 +90,7 @@ void ColorSpillOperation::executePixelSampled(float output[4],
   float input[4];
   this->m_inputFacReader->readSampled(fac, x, y, sampler);
   this->m_inputImageReader->readSampled(input, x, y, sampler);
-  float rfac = min(1.0f, fac[0]);
+  float rfac = MIN2(1.0f, fac[0]);
   float map;
 
   switch (this->m_spillMethod) {
