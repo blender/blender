@@ -18,8 +18,8 @@
 
 #include "COM_WorkPackage.h"
 
-WorkPackage::WorkPackage(ExecutionGroup *group, unsigned int chunkNumber)
+WorkPackage::WorkPackage(ExecutionGroup *execution_group, unsigned int chunk_number)
 {
-  this->m_executionGroup = group;
-  this->m_chunkNumber = chunkNumber;
+  this->execution_group = execution_group;
+  this->chunk_number = chunk_number;
 }

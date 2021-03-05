@@ -61,8 +61,8 @@ void OpenCLDevice::deinitialize()
 
 void OpenCLDevice::execute(WorkPackage *work)
 {
-  const unsigned int chunkNumber = work->getChunkNumber();
-  ExecutionGroup *executionGroup = work->getExecutionGroup();
+  const unsigned int chunkNumber = work->chunk_number;
+  ExecutionGroup *executionGroup = work->execution_group;
   rcti rect;
 
   executionGroup->determineChunkRect(&rect, chunkNumber);
