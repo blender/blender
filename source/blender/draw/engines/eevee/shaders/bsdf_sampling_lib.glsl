@@ -36,7 +36,7 @@ vec3 sample_ggx(vec3 rand, float a2)
 {
   /* Theta is the cone angle. */
   float z = sqrt((1.0 - rand.x) / (1.0 + a2 * rand.x - rand.x)); /* cos theta */
-  float r = sqrt(max(0.0, 1.0f - z * z));                        /* sin theta */
+  float r = sqrt(max(0.0, 1.0 - z * z));                         /* sin theta */
   float x = r * rand.y;
   float y = r * rand.z;
 
@@ -51,6 +51,23 @@ vec3 sample_ggx(vec3 rand, float a2, vec3 N, vec3 T, vec3 B, out float NH)
   return tangent_to_world(Ht, N, T, B);
 }
 
+vec3 sample_hemisphere(vec3 rand)
+{
+  /* Theta is the cone angle. */
+  float z = rand.x;                      /* cos theta */
+  float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
+  float x = r * rand.y;
+  float y = r * rand.z;
+
+  return vec3(x, y, z);
+}
+
+vec3 sample_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B)
+{
+  vec3 Ht = sample_hemisphere(rand);
+  return tangent_to_world(Ht, N, T, B);
+}
+
 #ifdef HAMMERSLEY_SIZE
 vec3 sample_ggx(float nsample, float inv_sample_count, float a2, vec3 N, vec3 T, vec3 B)
 {
@@ -62,14 +79,7 @@ vec3 sample_ggx(float nsample, float inv_sample_count, float a2, vec3 N, vec3 T,
 vec3 sample_hemisphere(float nsample, float inv_sample_count, vec3 N, vec3 T, vec3 B)
 {
   vec3 Xi = hammersley_3d(nsample, inv_sample_count);
-
-  float z = Xi.x;                         /* cos theta */
-  float r = sqrt(max(0.0, 1.0f - z * z)); /* sin theta */
-  float x = r * Xi.y;
-  float y = r * Xi.z;
-
-  vec3 Ht = vec3(x, y, z);
-
+  vec3 Ht = sample_hemisphere(Xi);
   return tangent_to_world(Ht, N, T, B);
 }
 
@@ -77,8 +87,8 @@ vec3 sample_cone(float nsample, float inv_sample_count, float angle, vec3 N, vec
 {
   vec3 Xi = hammersley_3d(nsample, inv_sample_count);
 
-  float z = cos(angle * Xi.x);            /* cos theta */
-  float r = sqrt(max(0.0, 1.0f - z * z)); /* sin theta */
+  float z = cos(angle * Xi.x);           /* cos theta */
+  float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
   float x = r * Xi.y;
   float y = r * Xi.z;
 
