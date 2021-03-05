@@ -129,10 +129,10 @@ void ExecutionGroup::initExecution()
 
   this->m_chunkExecutionStates = nullptr;
   if (this->m_numberOfChunks != 0) {
-    this->m_chunkExecutionStates = (ChunkExecutionState *)MEM_mallocN(
-        sizeof(ChunkExecutionState) * this->m_numberOfChunks, __func__);
+    this->m_chunkExecutionStates = (eChunkExecutionState *)MEM_mallocN(
+        sizeof(eChunkExecutionState) * this->m_numberOfChunks, __func__);
     for (index = 0; index < this->m_numberOfChunks; index++) {
-      this->m_chunkExecutionStates[index] = COM_ES_NOT_SCHEDULED;
+      this->m_chunkExecutionStates[index] = eChunkExecutionState::NOT_SCHEDULED;
     }
   }
 
@@ -338,8 +338,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
       chunkNumber = chunkOrder[index];
       int yChunk = chunkNumber / this->m_numberOfXChunks;
       int xChunk = chunkNumber - (yChunk * this->m_numberOfXChunks);
-      const ChunkExecutionState state = this->m_chunkExecutionStates[chunkNumber];
-      if (state == COM_ES_NOT_SCHEDULED) {
+      const eChunkExecutionState state = this->m_chunkExecutionStates[chunkNumber];
+      if (state == eChunkExecutionState::NOT_SCHEDULED) {
         scheduleChunkWhenPossible(graph, xChunk, yChunk);
         finished = false;
         startEvaluated = true;
@@ -349,12 +349,12 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
           bTree->update_draw(bTree->udh);
         }
       }
-      else if (state == COM_ES_SCHEDULED) {
+      else if (state == eChunkExecutionState::SCHEDULED) {
         finished = false;
         startEvaluated = true;
         numberEvaluated++;
       }
-      else if (state == COM_ES_EXECUTED && !startEvaluated) {
+      else if (state == eChunkExecutionState::EXECUTED && !startEvaluated) {
         startIndex = index + 1;
       }
     }
@@ -405,8 +405,8 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 
 void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
 {
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED) {
-    this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
+  if (this->m_chunkExecutionStates[chunkNumber] == eChunkExecutionState::SCHEDULED) {
+    this->m_chunkExecutionStates[chunkNumber] = eChunkExecutionState::EXECUTED;
   }
 
   atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
@@ -517,8 +517,8 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 
 bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
 {
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_NOT_SCHEDULED) {
-    this->m_chunkExecutionStates[chunkNumber] = COM_ES_SCHEDULED;
+  if (this->m_chunkExecutionStates[chunkNumber] == eChunkExecutionState::NOT_SCHEDULED) {
+    this->m_chunkExecutionStates[chunkNumber] = eChunkExecutionState::SCHEDULED;
     WorkScheduler::schedule(this, chunkNumber);
     return true;
   }
@@ -535,12 +535,12 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
   }
   int chunkNumber = yChunk * this->m_numberOfXChunks + xChunk;
   // chunk is already executed
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_EXECUTED) {
+  if (this->m_chunkExecutionStates[chunkNumber] == eChunkExecutionState::EXECUTED) {
     return true;
   }
 
   // chunk is scheduled, but not executed
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED) {
+  if (this->m_chunkExecutionStates[chunkNumber] == eChunkExecutionState::SCHEDULED) {
     return false;
   }
 

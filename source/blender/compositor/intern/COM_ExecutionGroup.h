@@ -39,20 +39,20 @@ class Device;
  * \brief the execution state of a chunk in an ExecutionGroup
  * \ingroup Execution
  */
-typedef enum ChunkExecutionState {
+enum class eChunkExecutionState {
   /**
    * \brief chunk is not yet scheduled
    */
-  COM_ES_NOT_SCHEDULED = 0,
+  NOT_SCHEDULED = 0,
   /**
    * \brief chunk is scheduled, but not yet executed
    */
-  COM_ES_SCHEDULED = 1,
+  SCHEDULED = 1,
   /**
    * \brief chunk is executed.
    */
-  COM_ES_EXECUTED = 2,
-} ChunkExecutionState;
+  EXECUTED = 2,
+};
 
 /**
  * \brief Class ExecutionGroup is a group of Operations that are executed as one.
@@ -150,11 +150,11 @@ class ExecutionGroup {
 
   /**
    * \brief the chunkExecutionStates holds per chunk the execution state. this state can be
-   *   - COM_ES_NOT_SCHEDULED: not scheduled
-   *   - COM_ES_SCHEDULED: scheduled
-   *   - COM_ES_EXECUTED: executed
+   *   - eChunkExecutionState::NOT_SCHEDULED: not scheduled
+   *   - eChunkExecutionState::SCHEDULED: scheduled
+   *   - eChunkExecutionState::EXECUTED: executed
    */
-  ChunkExecutionState *m_chunkExecutionStates;
+  eChunkExecutionState *m_chunkExecutionStates;
 
   /**
    * \brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
