@@ -61,6 +61,8 @@ void BKE_lib_override_library_copy(struct ID *dst_id,
 void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, const bool do_id_user);
 void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bool do_id_user);
 
+bool BKE_lib_override_library_is_user_edited(struct ID *id);
+
 struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
                                                    struct ID *reference_id,
                                                    const bool do_tagged_remap);

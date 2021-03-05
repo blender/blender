@@ -217,6 +217,32 @@ static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
   return local_id;
 }
 
+/** Check if given ID has some override rules that actually indicate the user edited it.
+ *
+ * TODO: This could be simplified by storing a flag in IDOverrideLibrary during the diffing
+ * process? */
+bool BKE_lib_override_library_is_user_edited(struct ID *id)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if ((opop->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
+        continue;
+      }
+      if (opop->operation == IDOVERRIDE_LIBRARY_OP_NOOP) {
+        continue;
+      }
+      /* If an operation does not match the filters above, it is considered as a user-editing one,
+       * therefore this override is user-edited. */
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Create an overridden local copy of linked reference. */
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
@@ -383,7 +409,7 @@ typedef struct LibOverrideGroupTagData {
  *
  * Requires existing `Main.relations`.
  *
- * Note: this is typically called to complete `lib_override_linked_group_tag()`.
+ * NOTE: This is typically called to complete `lib_override_linked_group_tag()`.
  */
 static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTagData *data)
 {
