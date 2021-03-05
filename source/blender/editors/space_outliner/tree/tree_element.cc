@@ -22,6 +22,7 @@
 
 #include "tree_element_anim_data.hh"
 #include "tree_element_driver_base.hh"
+#include "tree_element_gpencil_layer.hh"
 #include "tree_element_nla.hh"
 
 #include "tree_element.h"
@@ -46,6 +47,8 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
       return new TreeElementNLATrack(legacy_te, *static_cast<NlaTrack *>(idv));
     case TSE_NLA_ACTION:
       return new TreeElementNLAAction(legacy_te);
+    case TSE_GP_LAYER:
+      return new TreeElementGPencilLayer(legacy_te, *static_cast<bGPDlayer *>(idv));
     default:
       break;
   }

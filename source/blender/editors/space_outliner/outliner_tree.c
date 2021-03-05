@@ -1016,15 +1016,15 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
       outliner_add_id_contents(space_outliner, te, tselem, id);
     }
   }
-  else if (ELEM(type, TSE_ANIM_DATA, TSE_DRIVER_BASE, TSE_NLA, TSE_NLA_ACTION, TSE_NLA_TRACK)) {
+  else if (ELEM(type,
+                TSE_ANIM_DATA,
+                TSE_DRIVER_BASE,
+                TSE_NLA,
+                TSE_NLA_ACTION,
+                TSE_NLA_TRACK,
+                TSE_GP_LAYER)) {
     /* Should already use new AbstractTreeElement design. */
     BLI_assert(0);
-  }
-  else if (type == TSE_GP_LAYER) {
-    bGPDlayer *gpl = (bGPDlayer *)idv;
-
-    te->name = gpl->info;
-    te->directdata = gpl;
   }
   else if (type == TSE_SEQUENCE) {
     Sequence *seq = (Sequence *)idv;
