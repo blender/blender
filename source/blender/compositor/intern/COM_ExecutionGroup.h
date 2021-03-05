@@ -23,6 +23,8 @@
 #endif
 
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
+
 #include "COM_CompositorContext.h"
 #include "COM_Device.h"
 #include "COM_MemoryProxy.h"
@@ -149,12 +151,12 @@ class ExecutionGroup {
   unsigned int m_chunksFinished;
 
   /**
-   * \brief the chunkExecutionStates holds per chunk the execution state. this state can be
+   * \brief m_chunk_execution_states holds per chunk the execution state. this state can be
    *   - eChunkExecutionState::NOT_SCHEDULED: not scheduled
    *   - eChunkExecutionState::SCHEDULED: scheduled
    *   - eChunkExecutionState::EXECUTED: executed
    */
-  eChunkExecutionState *m_chunkExecutionStates;
+  blender::Vector<eChunkExecutionState> m_chunk_execution_states;
 
   /**
    * \brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
