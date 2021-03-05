@@ -121,7 +121,7 @@ ExecutionSystem::~ExecutionSystem()
   this->m_groups.clear();
 }
 
-void ExecutionSystem::set_operations(const Operations &operations,
+void ExecutionSystem::set_operations(const blender::Vector<NodeOperation *> &operations,
                                      const blender::Vector<ExecutionGroup *> &groups)
 {
   m_operations = operations;
@@ -136,10 +136,7 @@ void ExecutionSystem::execute()
   DebugInfo::execute_started(this);
 
   unsigned int order = 0;
-  for (std::vector<NodeOperation *>::iterator iter = this->m_operations.begin();
-       iter != this->m_operations.end();
-       ++iter) {
-    NodeOperation *operation = *iter;
+  for (NodeOperation *operation : m_operations) {
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
       readOperation->setOffset(order);

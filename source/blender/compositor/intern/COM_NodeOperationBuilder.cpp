@@ -123,7 +123,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 
 void NodeOperationBuilder::addOperation(NodeOperation *operation)
 {
-  m_operations.push_back(operation);
+  m_operations.append(operation);
 }
 
 void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
@@ -304,8 +304,7 @@ void NodeOperationBuilder::add_operation_input_constants()
    */
   using Inputs = std::vector<NodeOperationInput *>;
   Inputs pending_inputs;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
+  for (NodeOperation *op : m_operations) {
     for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
       if (!input->isConnected()) {
@@ -406,9 +405,7 @@ void NodeOperationBuilder::resolve_proxies()
 void NodeOperationBuilder::determineResolutions()
 {
   /* determine all resolutions of the operations (Width/Height) */
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
-
+  for (NodeOperation *op : m_operations) {
     if (op->isOutputOperation(m_context->isRendering()) && !op->isPreviewOperation()) {
       unsigned int resolution[2] = {0, 0};
       unsigned int preferredResolution[2] = {0, 0};
@@ -417,9 +414,7 @@ void NodeOperationBuilder::determineResolutions()
     }
   }
 
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
-
+  for (NodeOperation *op : m_operations) {
     if (op->isOutputOperation(m_context->isRendering()) && op->isPreviewOperation()) {
       unsigned int resolution[2] = {0, 0};
       unsigned int preferredResolution[2] = {0, 0};
@@ -573,16 +568,14 @@ void NodeOperationBuilder::add_complex_operation_buffers()
   /* note: complex ops and get cached here first, since adding operations
    * will invalidate iterators over the main m_operations
    */
-  Operations complex_ops;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    if ((*it)->isComplex()) {
-      complex_ops.push_back(*it);
+  blender::Vector<NodeOperation *> complex_ops;
+  for (NodeOperation *operation : m_operations) {
+    if (operation->isComplex()) {
+      complex_ops.append(operation);
     }
   }
 
-  for (Operations::const_iterator it = complex_ops.begin(); it != complex_ops.end(); ++it) {
-    NodeOperation *op = *it;
-
+  for (NodeOperation *op : complex_ops) {
     DebugInfo::operation_read_write_buffer(op);
 
     for (int index = 0; index < op->getNumberOfInputSockets(); index++) {
@@ -622,9 +615,7 @@ static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *
 void NodeOperationBuilder::prune_operations()
 {
   Tags reachable;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
-
+  for (NodeOperation *op : m_operations) {
     /* output operations are primary executed operations */
     if (op->isOutputOperation(m_context->isRendering())) {
       find_reachable_operations_recursive(reachable, op);
@@ -632,12 +623,10 @@ void NodeOperationBuilder::prune_operations()
   }
 
   /* delete unreachable operations */
-  Operations reachable_ops;
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
-
+  blender::Vector<NodeOperation *> reachable_ops;
+  for (NodeOperation *op : m_operations) {
     if (reachable.find(op) != reachable.end()) {
-      reachable_ops.push_back(op);
+      reachable_ops.append(op);
     }
     else {
       delete op;
@@ -648,7 +637,7 @@ void NodeOperationBuilder::prune_operations()
 }
 
 /* topological (depth-first) sorting of operations */
-static void sort_operations_recursive(NodeOperationBuilder::Operations &sorted,
+static void sort_operations_recursive(blender::Vector<NodeOperation *> &sorted,
                                       Tags &visited,
                                       NodeOperation *op)
 {
@@ -664,17 +653,17 @@ static void sort_operations_recursive(NodeOperationBuilder::Operations &sorted,
     }
   }
 
-  sorted.push_back(op);
+  sorted.append(op);
 }
 
 void NodeOperationBuilder::sort_operations()
 {
-  Operations sorted;
+  blender::Vector<NodeOperation *> sorted;
   sorted.reserve(m_operations.size());
   Tags visited;
 
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    sort_operations_recursive(sorted, visited, *it);
+  for (NodeOperation *operation : m_operations) {
+    sort_operations_recursive(sorted, visited, operation);
   }
 
   m_operations = sorted;
@@ -713,9 +702,7 @@ ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 
 void NodeOperationBuilder::group_operations()
 {
-  for (Operations::const_iterator it = m_operations.begin(); it != m_operations.end(); ++it) {
-    NodeOperation *op = *it;
-
+  for (NodeOperation *op : m_operations) {
     if (op->isOutputOperation(m_context->isRendering())) {
       ExecutionGroup *group = make_group(op);
       group->setOutputExecutionGroup(true);

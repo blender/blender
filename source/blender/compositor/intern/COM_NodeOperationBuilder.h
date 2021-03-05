@@ -62,7 +62,6 @@ class NodeOperationBuilder {
     }
   };
 
-  typedef std::vector<NodeOperation *> Operations;
   typedef std::vector<Link> Links;
 
   typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
@@ -75,7 +74,7 @@ class NodeOperationBuilder {
   const CompositorContext *m_context;
   NodeGraph m_graph;
 
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
   Links m_links;
   blender::Vector<ExecutionGroup *> m_groups;
 

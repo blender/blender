@@ -21,11 +21,15 @@ class ExecutionGroup;
 #pragma once
 
 #include "BKE_text.h"
+
 #include "COM_ExecutionGroup.h"
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
+
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
+
+#include "BLI_vector.hh"
 
 /**
  * \page execution Execution model
@@ -113,8 +117,6 @@ class ExecutionGroup;
  * \brief the ExecutionSystem contains the whole compositor tree.
  */
 class ExecutionSystem {
- public:
-  typedef std::vector<NodeOperation *> Operations;
 
  private:
   /**
@@ -125,7 +127,7 @@ class ExecutionSystem {
   /**
    * \brief vector of operations
    */
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
 
   /**
    * \brief vector of groups
@@ -161,7 +163,7 @@ class ExecutionSystem {
    */
   ~ExecutionSystem();
 
-  void set_operations(const Operations &operations,
+  void set_operations(const blender::Vector<NodeOperation *> &operations,
                       const blender::Vector<ExecutionGroup *> &groups);
 
   /**
