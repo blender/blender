@@ -63,16 +63,13 @@ enum class eChunkExecutionState {
  * \ingroup Execution
  */
 class ExecutionGroup {
- public:
-  typedef std::vector<NodeOperation *> Operations;
-
  private:
   // fields
 
   /**
    * \brief list of operations in this ExecutionGroup
    */
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
 
   /**
    * \brief is this ExecutionGroup an input ExecutionGroup
@@ -134,9 +131,9 @@ class ExecutionGroup {
   unsigned int m_cachedMaxReadBufferOffset;
 
   /**
-   * \brief a cached vector of all read operations in the execution group.
+   * \brief All read operations of this execution group.
    */
-  Operations m_cachedReadOperations;
+  blender::Vector<ReadBufferOperation *> m_read_operations;
 
   /**
    * \brief reference to the original bNodeTree,

@@ -107,7 +107,7 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
     m_initialized = true;
   }
 
-  m_operations.push_back(operation);
+  m_operations.append(operation);
 
   return true;
 }
@@ -136,8 +136,8 @@ void ExecutionGroup::initExecution()
   for (index = 0; index < this->m_operations.size(); index++) {
     NodeOperation *operation = this->m_operations[index];
     if (operation->isReadBufferOperation()) {
-      ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
-      this->m_cachedReadOperations.push_back(readOperation);
+      ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
+      this->m_read_operations.append(readOperation);
       maxNumber = MAX2(maxNumber, readOperation->getOffset());
     }
   }
@@ -151,7 +151,7 @@ void ExecutionGroup::deinitExecution()
   this->m_numberOfChunks = 0;
   this->m_numberOfXChunks = 0;
   this->m_numberOfYChunks = 0;
-  this->m_cachedReadOperations.clear();
+  this->m_read_operations.clear();
   this->m_bTree = nullptr;
 }
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
@@ -372,16 +372,13 @@ MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
   rcti rect;
   std::vector<MemoryProxy *> memoryproxies;
-  unsigned int index;
   determineChunkRect(&rect, chunkNumber);
 
   this->determineDependingMemoryProxies(&memoryproxies);
   MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
       sizeof(MemoryBuffer *) * this->m_cachedMaxReadBufferOffset, __func__);
   rcti output;
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (ReadBufferOperation *readOperation : m_read_operations) {
     MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
     this->determineDependingAreaOfInterest(&rect, readOperation, &output);
     MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(
@@ -551,9 +548,8 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
   bool canBeExecuted = true;
   rcti area;
 
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (index = 0; index < m_read_operations.size(); index++) {
+    ReadBufferOperation *readOperation = m_read_operations[index];
     BLI_rcti_init(&area, 0, 0, 0, 0);
     MemoryProxy *memoryProxy = memoryProxies[index];
     determineDependingAreaOfInterest(&rect, readOperation, &area);
@@ -585,10 +581,7 @@ void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
 
 void ExecutionGroup::determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies)
 {
-  unsigned int index;
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (ReadBufferOperation *readOperation : m_read_operations) {
     memoryProxies->push_back(readOperation->getMemoryProxy());
   }
 }
