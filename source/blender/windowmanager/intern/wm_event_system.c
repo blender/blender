@@ -2951,16 +2951,15 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
   int action = wm_handlers_do_intern(C, event, handlers);
 
-  /* Fileread case. */
-  if (CTX_wm_window(C) == NULL) {
+  /* Will be NULL in the file read case. */
+  wmWindow *win = CTX_wm_window(C);
+  if (win == NULL) {
     return action;
   }
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-
     /* Test for CLICK_DRAG events. */
     if (wm_action_not_handled(action)) {
-      wmWindow *win = CTX_wm_window(C);
       if (win->event_queue_check_drag) {
         if (WM_event_drag_test(event, &event->prevclickx)) {
           int x = event->x;
@@ -2991,10 +2990,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        win->event_queue_check_drag = false;
-      }
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
@@ -3002,24 +2998,20 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
     /* Test for CLICK events. */
     if (wm_action_not_handled(action)) {
-      wmWindow *win = CTX_wm_window(C);
-
       /* eventstate stores if previous event was a KM_PRESS, in case that
        * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
-      if (win != NULL) {
-        if (event->val == KM_PRESS) {
-          if (event->prevval != KM_PRESS) {
-            win->event_queue_check_click = true;
-            win->event_queue_check_drag = true;
-          }
-        }
-        else if (event->val == KM_RELEASE) {
-          win->event_queue_check_drag = false;
+      if (event->val == KM_PRESS) {
+        if (event->prevval != KM_PRESS) {
+          win->event_queue_check_click = true;
+          win->event_queue_check_drag = true;
         }
       }
+      else if (event->val == KM_RELEASE) {
+        win->event_queue_check_drag = false;
+      }
 
-      if (win && event->prevtype == event->type) {
+      if (event->prevtype == event->type) {
 
         if (event->val == KM_RELEASE) {
           if (event->prevval == KM_PRESS) {
@@ -3062,11 +3054,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        win->event_queue_check_click = false;
-        win->event_queue_check_drag = false;
-      }
+      win->event_queue_check_click = false;
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
@@ -3076,11 +3065,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       /* pass */
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        if (ISKEYMODIFIER(event->prevtype)) {
-          win->event_queue_check_click = false;
-        }
+      if (ISKEYMODIFIER(event->prevtype)) {
+        win->event_queue_check_click = false;
       }
     }
   }
