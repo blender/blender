@@ -135,7 +135,7 @@ void ExecutionSystem::execute()
   DebugInfo::execute_started(this);
 
   unsigned int order = 0;
-  for (vector<NodeOperation *>::iterator iter = this->m_operations.begin();
+  for (std::vector<NodeOperation *>::iterator iter = this->m_operations.begin();
        iter != this->m_operations.end();
        ++iter) {
     NodeOperation *operation = *iter;
@@ -202,7 +202,7 @@ void ExecutionSystem::execute()
 void ExecutionSystem::executeGroups(CompositorPriority priority)
 {
   unsigned int index;
-  vector<ExecutionGroup *> executionGroups;
+  std::vector<ExecutionGroup *> executionGroups;
   this->findOutputExecutionGroup(&executionGroups, priority);
 
   for (index = 0; index < executionGroups.size(); index++) {
@@ -211,7 +211,7 @@ void ExecutionSystem::executeGroups(CompositorPriority priority)
   }
 }
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result,
+void ExecutionSystem::findOutputExecutionGroup(std::vector<ExecutionGroup *> *result,
                                                CompositorPriority priority) const
 {
   unsigned int index;
@@ -223,7 +223,7 @@ void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result,
   }
 }
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result) const
+void ExecutionSystem::findOutputExecutionGroup(std::vector<ExecutionGroup *> *result) const
 {
   unsigned int index;
   for (index = 0; index < this->m_groups.size(); index++) {

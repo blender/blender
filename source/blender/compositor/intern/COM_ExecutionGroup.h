@@ -30,8 +30,6 @@
 #include "COM_NodeOperation.h"
 #include <vector>
 
-using std::vector;
-
 class ExecutionSystem;
 class MemoryProxy;
 class ReadBufferOperation;
@@ -405,7 +403,7 @@ class ExecutionGroup {
    * \note the area of the MemoryProxy.creator that has to be executed.
    * \param memoryProxies: result
    */
-  void determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies);
+  void determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies);
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.

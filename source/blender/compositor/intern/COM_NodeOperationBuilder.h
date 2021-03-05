@@ -24,8 +24,6 @@
 
 #include "COM_NodeGraph.h"
 
-using std::vector;
-
 class CompositorContext;
 
 class Node;

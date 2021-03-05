@@ -374,7 +374,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
   rcti rect;
-  vector<MemoryProxy *> memoryproxies;
+  std::vector<MemoryProxy *> memoryproxies;
   unsigned int index;
   determineChunkRect(&rect, chunkNumber);
 
@@ -545,7 +545,7 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
   }
 
   // chunk is nor executed nor scheduled.
-  vector<MemoryProxy *> memoryProxies;
+  std::vector<MemoryProxy *> memoryProxies;
   this->determineDependingMemoryProxies(&memoryProxies);
 
   rcti rect;
@@ -586,7 +586,7 @@ void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
   this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
 }
 
-void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies)
+void ExecutionGroup::determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies)
 {
   unsigned int index;
   for (index = 0; index < this->m_cachedReadOperations.size(); index++) {

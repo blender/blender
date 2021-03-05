@@ -137,13 +137,13 @@ class ExecutionSystem {
   /**
    * find all execution group with output nodes
    */
-  void findOutputExecutionGroup(vector<ExecutionGroup *> *result,
+  void findOutputExecutionGroup(std::vector<ExecutionGroup *> *result,
                                 CompositorPriority priority) const;
 
   /**
    * find all execution group with output nodes
    */
-  void findOutputExecutionGroup(vector<ExecutionGroup *> *result) const;
+  void findOutputExecutionGroup(std::vector<ExecutionGroup *> *result) const;
 
  public:
   /**
