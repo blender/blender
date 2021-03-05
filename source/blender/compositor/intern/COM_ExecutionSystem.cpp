@@ -222,14 +222,3 @@ void ExecutionSystem::findOutputExecutionGroup(std::vector<ExecutionGroup *> *re
     }
   }
 }
-
-void ExecutionSystem::findOutputExecutionGroup(std::vector<ExecutionGroup *> *result) const
-{
-  unsigned int index;
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *group = this->m_groups[index];
-    if (group->isOutputExecutionGroup()) {
-      result->push_back(group);
-    }
-  }
-}

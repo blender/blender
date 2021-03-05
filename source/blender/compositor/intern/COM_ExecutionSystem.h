@@ -140,11 +140,6 @@ class ExecutionSystem {
   void findOutputExecutionGroup(std::vector<ExecutionGroup *> *result,
                                 CompositorPriority priority) const;
 
-  /**
-   * find all execution group with output nodes
-   */
-  void findOutputExecutionGroup(std::vector<ExecutionGroup *> *result) const;
-
  public:
   /**
    * \brief Create a new ExecutionSystem and initialize it with the
