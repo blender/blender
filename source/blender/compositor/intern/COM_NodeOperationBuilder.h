@@ -64,7 +64,6 @@ class NodeOperationBuilder {
 
   typedef std::vector<NodeOperation *> Operations;
   typedef std::vector<Link> Links;
-  typedef std::vector<ExecutionGroup *> Groups;
 
   typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
   typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
@@ -78,7 +77,7 @@ class NodeOperationBuilder {
 
   Operations m_operations;
   Links m_links;
-  Groups m_groups;
+  blender::Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
   InputSocketMap m_input_map;

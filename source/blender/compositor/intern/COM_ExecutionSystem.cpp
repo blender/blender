@@ -121,7 +121,8 @@ ExecutionSystem::~ExecutionSystem()
   this->m_groups.clear();
 }
 
-void ExecutionSystem::set_operations(const Operations &operations, const Groups &groups)
+void ExecutionSystem::set_operations(const Operations &operations,
+                                     const blender::Vector<ExecutionGroup *> &groups)
 {
   m_operations = operations;
   m_groups = groups;

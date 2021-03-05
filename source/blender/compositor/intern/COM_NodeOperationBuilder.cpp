@@ -705,7 +705,7 @@ static void add_group_operations_recursive(Tags &visited, NodeOperation *op, Exe
 ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 {
   ExecutionGroup *group = new ExecutionGroup();
-  m_groups.push_back(group);
+  m_groups.append(group);
 
   Tags visited;
   add_group_operations_recursive(visited, op, group);
