@@ -992,6 +992,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_ID_BASE) {
     /* pass */
   }
+  else if (type == TSE_SOME_ID) {
+    if (!te->type) {
+      BLI_assert(!"Expected this ID type to be ported to new Outliner tree-element design");
+    }
+  }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
@@ -1006,7 +1011,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     te->idcode = GS(id->name);
   }
 
-  if (te->type) {
+  if (te->type && outliner_tree_element_type_is_expand_valid(te->type)) {
     outliner_tree_element_type_expand(te->type, space_outliner);
   }
   else if (type == TSE_SOME_ID) {

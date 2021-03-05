@@ -58,6 +58,7 @@ set(SRC
   tree/tree_element_anim_data.cc
   tree/tree_element_driver_base.cc
   tree/tree_element_gpencil_layer.cc
+  tree/tree_element_id.cc
   tree/tree_element_nla.cc
 
   outliner_intern.h
@@ -68,6 +69,7 @@ set(SRC
   tree/tree_element_anim_data.hh
   tree/tree_element_driver_base.hh
   tree/tree_element_gpencil_layer.hh
+  tree/tree_element_id.hh
   tree/tree_element_nla.hh
 )
 

@@ -39,6 +39,7 @@ TreeElementType *outliner_tree_element_type_create(int type, TreeElement *legacy
 void outliner_tree_element_type_free(TreeElementType **type);
 
 void outliner_tree_element_type_expand(TreeElementType *type, SpaceOutliner *space_outliner);
+bool outliner_tree_element_type_is_expand_valid(TreeElementType *type);
 
 #ifdef __cplusplus
 }

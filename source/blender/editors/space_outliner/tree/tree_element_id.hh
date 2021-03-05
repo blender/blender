@@ -20,43 +20,29 @@
 
 #pragma once
 
-#include "tree_element.h"
+#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 
-/* -------------------------------------------------------------------- */
-/* Tree-Display Interface */
-
-class AbstractTreeElement {
- protected:
-  /**
-   * Reference back to the owning legacy TreeElement.
-   * Most concrete types need access to this, so storing here. Eventually the type should be
-   * replaced by AbstractTreeElement and derived types.
-   */
-  TreeElement &legacy_te_;
-
+class TreeElementID : public AbstractTreeElement {
  public:
-  AbstractTreeElement(TreeElement &legacy_te) : legacy_te_(legacy_te)
-  {
-  }
-  virtual ~AbstractTreeElement() = default;
+  TreeElementID(TreeElement &legacy_te, const ID &id);
+
+  static TreeElementID *createFromID(TreeElement &legacy_te, const ID &id);
 
   /**
-   * Let the type add its own children.
+   * Expanding not implemented for all types yet. Once it is, this can be set to true or
+   * `AbstractTreeElement::expandValid()` can be removed alltogether.
    */
-  virtual void expand(SpaceOutliner &) const
+  bool isExpandValid() const override
   {
+    return false;
   }
+};
 
-  /**
-   * Just while transitioning to the new tree-element design: Some types are only partially ported,
-   * and the expanding isn't done yet.
-   */
-  virtual bool isExpandValid() const
-  {
-    return true;
-  }
+class TreeElementIDLibrary final : public TreeElementID {
+ public:
+  TreeElementIDLibrary(TreeElement &legacy_te, const ID &id);
 };
 
 }  // namespace blender::ed::outliner

@@ -26,7 +26,7 @@ struct bGPDlayer;
 
 namespace blender::ed::outliner {
 
-class TreeElementGPencilLayer : public AbstractTreeElement {
+class TreeElementGPencilLayer final : public AbstractTreeElement {
  public:
   TreeElementGPencilLayer(TreeElement &legacy_te, bGPDlayer &gplayer);
 };
