@@ -38,9 +38,14 @@
 
 #ifdef RNA_RUNTIME
 
-/* #include "DNA_anim_types.h" */
+#  include "BKE_animsys.h"
 #  include "BKE_armature.h"
-#  include "DNA_action_types.h" /* bPose */
+#  include "BKE_context.h"
+
+#  include "DNA_action_types.h"
+#  include "DNA_anim_types.h"
+
+#  include "BLI_ghash.h"
 
 static float rna_PoseBone_do_envelope(bPoseChannel *chan, float *vec)
 {
@@ -102,12 +107,49 @@ static void rna_PoseBone_compute_bbone_handles(bPoseChannel *pchan,
   BKE_pchan_bbone_handles_compute(
       &params, ret_h1, ret_roll1, ret_h2, ret_roll2, ease || offsets, offsets);
 }
+
+static void rna_Pose_apply_pose_from_action(ID *pose_owner,
+                                            bContext *C,
+                                            bAction *action,
+                                            const float evaluation_time)
+{
+  BLI_assert(GS(pose_owner->name) == ID_OB);
+  Object *pose_owner_ob = (Object *)pose_owner;
+
+  AnimationEvalContext anim_eval_context = {CTX_data_depsgraph_pointer(C), evaluation_time};
+  BKE_pose_apply_action(pose_owner_ob, action, &anim_eval_context);
+
+  /* Do NOT tag with ID_RECALC_ANIMATION, as that would overwrite the just-applied pose. */
+  DEG_id_tag_update(pose_owner, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, pose_owner);
+}
+
 #else
 
-void RNA_api_pose(StructRNA *UNUSED(srna))
+void RNA_api_pose(StructRNA *srna)
 {
-  /* FunctionRNA *func; */
-  /* PropertyRNA *parm; */
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "apply_pose_from_action", "rna_Pose_apply_pose_from_action");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(
+      func,
+      "Apply the given action to this pose by evaluating it at a specific time. Only updates the "
+      "pose of selected bones, or all bones if none are selected");
+
+  parm = RNA_def_pointer(func, "action", "Action", "Action", "The Action containing the pose");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  parm = RNA_def_float(func,
+                       "evaluation_time",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Evaluation Time",
+                       "Time at which the given action is evaluated to obtain the pose",
+                       -FLT_MAX,
+                       FLT_MAX);
 }
 
 void RNA_api_pose_channel(StructRNA *srna)

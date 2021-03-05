@@ -77,6 +77,7 @@ set(SRC
   intern/appdir.c
   intern/armature.c
   intern/armature_deform.c
+  intern/armature_pose.cc
   intern/armature_update.c
   intern/asset.cc
   intern/attribute.c
