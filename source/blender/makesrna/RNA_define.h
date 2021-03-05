@@ -421,7 +421,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop,
                                    const char *length,
                                    const char *set);
 void RNA_def_property_pointer_funcs(
-    PropertyRNA *prop, const char *get, const char *set, const char *typef, const char *poll);
+    PropertyRNA *prop, const char *get, const char *set, const char *type_fn, const char *poll);
 void RNA_def_property_collection_funcs(PropertyRNA *prop,
                                        const char *begin,
                                        const char *next,

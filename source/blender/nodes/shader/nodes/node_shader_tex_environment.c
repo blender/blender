@@ -90,7 +90,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
     sampler &= ~GPU_SAMPLER_REPEAT;
   }
 
-  const char *gpufunc;
+  const char *gpu_fn;
   static const char *names[] = {
       "node_tex_image_linear",
       "node_tex_image_cubic",
@@ -98,19 +98,19 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
 
   switch (tex->interpolation) {
     case SHD_INTERP_LINEAR:
-      gpufunc = names[0];
+      gpu_fn = names[0];
       break;
     case SHD_INTERP_CLOSEST:
       sampler &= ~(GPU_SAMPLER_FILTER | GPU_SAMPLER_MIPMAP);
-      gpufunc = names[0];
+      gpu_fn = names[0];
       break;
     default:
-      gpufunc = names[1];
+      gpu_fn = names[1];
       break;
   }
 
   /* Sample texture with correct interpolation. */
-  GPU_link(mat, gpufunc, in[0].link, GPU_image(mat, ima, iuser, sampler), &out[0].link, &outalpha);
+  GPU_link(mat, gpu_fn, in[0].link, GPU_image(mat, ima, iuser, sampler), &out[0].link, &outalpha);
 
   if (out[0].hasoutput) {
     if (ELEM(ima->alpha_mode, IMA_ALPHA_IGNORE, IMA_ALPHA_CHANNEL_PACKED) ||

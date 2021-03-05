@@ -1571,8 +1571,8 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
   if (prop->type == PROP_POINTER) {
     PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
-    if (pprop->typef) {
-      return pprop->typef(ptr);
+    if (pprop->type_fn) {
+      return pprop->type_fn(ptr);
     }
     if (pprop->type) {
       return pprop->type;
@@ -1623,14 +1623,14 @@ void RNA_property_enum_items_ex(bContext *C,
 
   *r_free = false;
 
-  if (!use_static && eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
+  if (!use_static && eprop->item_fn && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
     const EnumPropertyItem *item;
 
     if (prop->flag & PROP_ENUM_NO_CONTEXT) {
-      item = eprop->itemf(NULL, ptr, prop, r_free);
+      item = eprop->item_fn(NULL, ptr, prop, r_free);
     }
     else {
-      item = eprop->itemf(C, ptr, prop, r_free);
+      item = eprop->item_fn(C, ptr, prop, r_free);
     }
 
     /* any callbacks returning NULL should be fixed */
@@ -1753,16 +1753,16 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
     *r_totitem = eprop->totitem;
   }
 
-  if (eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
+  if (eprop->item_fn && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
     const EnumPropertyItem *item;
     int i;
     bool free = false;
 
     if (prop->flag & PROP_ENUM_NO_CONTEXT) {
-      item = eprop->itemf(NULL, ptr, prop, &free);
+      item = eprop->item_fn(NULL, ptr, prop, &free);
     }
     else {
-      item = eprop->itemf(C, ptr, prop, &free);
+      item = eprop->item_fn(C, ptr, prop, &free);
     }
 
     /* any callbacks returning NULL should be fixed */
@@ -3662,8 +3662,8 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     }
 
     /* for groups, data is idprop itself */
-    if (pprop->typef) {
-      return rna_pointer_inherit_refine(ptr, pprop->typef(ptr), idprop);
+    if (pprop->type_fn) {
+      return rna_pointer_inherit_refine(ptr, pprop->type_fn(ptr), idprop);
     }
     return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
   }
