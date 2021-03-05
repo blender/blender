@@ -378,7 +378,8 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(attributes, component_types, set_groups, {"position", "material_index"});
+  gather_attribute_info(
+      attributes, component_types, set_groups, {"position", "material_index", "vertex_normal"});
   join_attributes(
       set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
 }
