@@ -259,7 +259,7 @@ set(SRC
   shader/nodes/node_shader_vectTransform.c
   shader/nodes/node_shader_vector_displacement.c
   shader/nodes/node_shader_vector_math.cc
-  shader/nodes/node_shader_vector_rotate.c
+  shader/nodes/node_shader_vector_rotate.cc
   shader/nodes/node_shader_vertex_color.c
   shader/nodes/node_shader_volume_absorption.c
   shader/nodes/node_shader_volume_info.c
