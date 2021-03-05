@@ -76,7 +76,7 @@ class ExecutionGroup {
    * an input execution group is a group that is at the end of the calculation
    * (the output is important for the user).
    */
-  int m_isOutput;
+  bool m_is_output;
 
   /**
    * \brief Width of the output
@@ -97,17 +97,17 @@ class ExecutionGroup {
   /**
    * \brief number of chunks in the x-axis
    */
-  unsigned int m_numberOfXChunks;
+  unsigned int m_x_chunks_len;
 
   /**
    * \brief number of chunks in the y-axis
    */
-  unsigned int m_numberOfYChunks;
+  unsigned int m_y_chunks_len;
 
   /**
    * \brief total number of chunks
    */
-  unsigned int m_numberOfChunks;
+  unsigned int m_chunks_len;
 
   /**
    * \brief contains this ExecutionGroup a complex NodeOperation.
@@ -145,7 +145,7 @@ class ExecutionGroup {
   /**
    * \brief total number of chunks that have been calculated for this ExecutionGroup
    */
-  unsigned int m_chunksFinished;
+  unsigned int m_chunks_finished;
 
   /**
    * \brief m_chunk_execution_states holds per chunk the execution state. this state can be
@@ -269,18 +269,18 @@ class ExecutionGroup {
    * \note ViewerOperation, CompositeOperation, PreviewOperation.
    * \see NodeOperation.isOutputOperation
    */
-  int isOutputExecutionGroup() const
+  bool isOutputExecutionGroup() const
   {
-    return this->m_isOutput;
+    return this->m_is_output;
   }
 
   /**
    * \brief set whether this ExecutionGroup is an output
    * \param isOutput:
    */
-  void setOutputExecutionGroup(int isOutput)
+  void setOutputExecutionGroup(bool is_output)
   {
-    this->m_isOutput = isOutput;
+    this->m_is_output = is_output;
   }
 
   /**
