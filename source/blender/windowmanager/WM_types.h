@@ -612,10 +612,6 @@ typedef struct wmEvent {
   /** Raw-key modifier (allow using any key as a modifier). */
   short keymodifier;
 
-  /** Set in case a #KM_PRESS went by unhandled. */
-  char check_click;
-  char check_drag;
-
   /** Tablet info, available for mouse move and button events. */
   wmTabletData tablet;
 

@@ -251,13 +251,14 @@ typedef struct wmWindow {
 
   struct bScreen *screen DNA_DEPRECATED;
 
+  /** Winid also in screens, is for retrieving this window after read. */
+  int winid;
   /** Window coords. */
   short posx, posy, sizex, sizey;
   /** Borderless, full. */
   char windowstate;
   /** Set to 1 if an active window, for quick rejects. */
   char active;
-  char _pad0[4];
   /** Current mouse cursor type. */
   short cursor;
   /** Previous cursor when setting modal one. */
@@ -271,8 +272,14 @@ typedef struct wmWindow {
   char addmousemove;
   char tag_cursor_refresh;
 
-  /** Winid also in screens, is for retrieving this window after read. */
-  int winid;
+  /* Track the state of the event queue,
+   * these store the state that needs to be kept between handling events in the queue. */
+  /** Enable when #KM_PRESS events are not handled (keyboard/mouse-buttons only). */
+  char event_queue_check_click;
+  /** Enable when #KM_PRESS events are not handled (keyboard/mouse-buttons only). */
+  char event_queue_check_drag;
+
+  char _pad0[2];
 
   /** Internal, lock pie creation from this event until released. */
   short pie_event_type_lock;

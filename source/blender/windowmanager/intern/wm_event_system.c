@@ -2960,8 +2960,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
     /* Test for CLICK_DRAG events. */
     if (wm_action_not_handled(action)) {
-      if (event->check_drag) {
-        wmWindow *win = CTX_wm_window(C);
+      wmWindow *win = CTX_wm_window(C);
+      if (win->event_queue_check_drag) {
         if (WM_event_drag_test(event, &event->prevclickx)) {
           int x = event->x;
           int y = event->y;
@@ -2982,15 +2982,18 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           event->x = x;
           event->y = y;
 
-          win->eventstate->check_click = false;
-          win->eventstate->check_drag = false;
+          win->event_queue_check_click = false;
+          if (!wm_action_not_handled(action)) {
+            /* Only disable when handled as other handlers may use this drag event. */
+            win->event_queue_check_drag = false;
+          }
         }
       }
     }
     else {
       wmWindow *win = CTX_wm_window(C);
       if (win) {
-        win->eventstate->check_drag = false;
+        win->event_queue_check_drag = false;
       }
     }
   }
@@ -3006,11 +3009,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
       if (win != NULL) {
         if (event->val == KM_PRESS) {
-          win->eventstate->check_click = true;
-          win->eventstate->check_drag = true;
+          if (event->prevval != KM_PRESS) {
+            win->event_queue_check_click = true;
+            win->event_queue_check_drag = true;
+          }
         }
         else if (event->val == KM_RELEASE) {
-          win->eventstate->check_drag = false;
+          win->event_queue_check_drag = false;
         }
       }
 
@@ -3018,10 +3023,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
         if (event->val == KM_RELEASE) {
           if (event->prevval == KM_PRESS) {
-            if (win->eventstate->check_click == true) {
+            if (win->event_queue_check_click == true) {
               if (WM_event_drag_test(event, &event->prevclickx)) {
-                win->eventstate->check_click = 0;
-                win->eventstate->check_drag = 0;
+                win->event_queue_check_click = false;
+                win->event_queue_check_drag = false;
               }
               else {
                 /* Position is where the actual click happens, for more
@@ -3059,8 +3064,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     else {
       wmWindow *win = CTX_wm_window(C);
       if (win) {
-        win->eventstate->check_click = 0;
-        win->eventstate->check_drag = 0;
+        win->event_queue_check_click = false;
+        win->event_queue_check_drag = false;
       }
     }
   }
@@ -3074,7 +3079,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       wmWindow *win = CTX_wm_window(C);
       if (win) {
         if (ISKEYMODIFIER(event->prevtype)) {
-          win->eventstate->check_click = 0;
+          win->event_queue_check_click = false;
         }
       }
     }
@@ -3497,7 +3502,7 @@ void wm_event_do_handlers(bContext *C)
        * press in tool keymap can override click in editor keymap.*/
       if (ISMOUSE_BUTTON(event->type) && event->val == KM_PRESS &&
           !wm_action_not_handled(action)) {
-        win->eventstate->check_click = false;
+        win->event_queue_check_click = false;
       }
 
       /* Update previous mouse position for following events to use. */
