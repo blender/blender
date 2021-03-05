@@ -173,6 +173,7 @@ static void file_free(SpaceLink *sl)
 
   MEM_SAFE_FREE(sfile->params);
   MEM_SAFE_FREE(sfile->asset_params);
+  MEM_SAFE_FREE(sfile->runtime);
 
   if (sfile->layout) {
     MEM_freeN(sfile->layout);
@@ -187,6 +188,10 @@ static void file_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 
   if (sfile->layout) {
     sfile->layout->dirty = true;
+  }
+
+  if (sfile->runtime == NULL) {
+    sfile->runtime = MEM_callocN(sizeof(*sfile->runtime), __func__);
   }
 }
 
@@ -209,6 +214,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
   sfilen->op = NULL; /* file window doesn't own operators */
+  sfilen->runtime = NULL;
 
   sfilen->previews_timer = NULL;
   sfilen->smoothscroll_timer = NULL;
@@ -392,6 +398,26 @@ static void file_refresh(const bContext *C, ScrArea *area)
   ED_area_tag_redraw(area);
 }
 
+void file_on_reload_callback_register(SpaceFile *sfile,
+                                      onReloadFn callback,
+                                      onReloadFnData custom_data)
+{
+  sfile->runtime->on_reload = callback;
+  sfile->runtime->on_reload_custom_data = custom_data;
+}
+
+static void file_on_reload_callback_call(SpaceFile *sfile)
+{
+  if (sfile->runtime->on_reload == NULL) {
+    return;
+  }
+
+  sfile->runtime->on_reload(sfile, sfile->runtime->on_reload_custom_data);
+
+  sfile->runtime->on_reload = NULL;
+  sfile->runtime->on_reload_custom_data = NULL;
+}
+
 static void file_listener(const wmSpaceTypeListenerParams *params)
 {
   ScrArea *area = params->area;
@@ -419,12 +445,26 @@ static void file_listener(const wmSpaceTypeListenerParams *params)
           }
           break;
       }
+      switch (wmn->action) {
+        case NA_JOB_FINISHED:
+          file_on_reload_callback_call(sfile);
+          break;
+      }
       break;
     case NC_ASSET: {
-      if (sfile->files && filelist_needs_reset_on_main_changes(sfile->files)) {
-        /* Full refresh of the file list if local asset data was changed. Refreshing this view is
-         * cheap and users expect this to be updated immediately. */
-        file_tag_reset_list(area, sfile);
+      switch (wmn->action) {
+        case NA_SELECTED:
+        case NA_ACTIVATED:
+          ED_area_tag_refresh(area);
+          break;
+        case NA_ADDED:
+        case NA_REMOVED:
+          if (sfile->files && filelist_needs_reset_on_main_changes(sfile->files)) {
+            /* Full refresh of the file list if local asset data was changed. Refreshing this view
+             * is cheap and users expect this to be updated immediately. */
+            file_tag_reset_list(area, sfile);
+          }
+          break;
       }
       break;
     }
@@ -464,8 +504,7 @@ static void file_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_ID:
-      if (ELEM(wmn->action, NA_RENAME)) {
-        /* In case the filelist shows ID names. */
+      if (ELEM(wmn->action, NA_SELECTED, NA_ACTIVATED, NA_RENAME)) {
         ED_region_tag_redraw(region);
       }
       break;

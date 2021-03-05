@@ -1990,9 +1990,7 @@ static void filelist_file_release_entry(FileList *filelist, FileDirEntry *entry)
   filelist_entry_free(entry);
 }
 
-static FileDirEntry *filelist_file_ex(struct FileList *filelist,
-                                      const int index,
-                                      const bool use_request)
+FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index, const bool use_request)
 {
   FileDirEntry *ret = NULL, *old;
   FileListEntryCache *cache = &filelist->filelist_cache;
@@ -3464,7 +3462,7 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
     filelist_readjob_endjob(flrj);
     filelist_readjob_free(flrj);
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED, NULL);
     return;
   }
 
@@ -3476,7 +3474,10 @@ void filelist_readjob_start(FileList *filelist, const bContext *C)
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_FILESEL_READDIR);
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);
-  WM_jobs_timer(wm_job, 0.01, NC_SPACE | ND_SPACE_FILE_LIST, NC_SPACE | ND_SPACE_FILE_LIST);
+  WM_jobs_timer(wm_job,
+                0.01,
+                NC_SPACE | ND_SPACE_FILE_LIST,
+                NC_SPACE | ND_SPACE_FILE_LIST | NA_JOB_FINISHED);
   WM_jobs_callbacks(
       wm_job, filelist_readjob_startjob, NULL, filelist_readjob_update, filelist_readjob_endjob);
 
