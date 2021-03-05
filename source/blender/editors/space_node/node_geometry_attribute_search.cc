@@ -75,15 +75,9 @@ static void attribute_search_update_fn(
     UI_search_item_add(items, str, (void *)str, ICON_X, 0, 0);
   }
 
-  /* Skip the filter when the menu is first opened, so all of the items are visible. */
-  if (is_first) {
-    for (const std::string &attribute_name : attribute_name_hints) {
-      /* Just use the pointer to the name string as the search data,
-       * since it's not used anyway but we need a pointer. */
-      UI_search_item_add(items, attribute_name.c_str(), (void *)&attribute_name, ICON_NONE, 0, 0);
-    }
-    return;
-  }
+  /* Don't filter when the menu is first opened, but still run the search
+   * so the items are in the same order they will appear in while searching. */
+  const char *string = is_first ? "" : str;
 
   StringSearch *search = BLI_string_search_new();
   for (const std::string &attribute_name : attribute_name_hints) {
@@ -91,7 +85,7 @@ static void attribute_search_update_fn(
   }
 
   std::string **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
+  const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
 
   for (const int i : IndexRange(filtered_amount)) {
     std::string *item = filtered_items[i];
