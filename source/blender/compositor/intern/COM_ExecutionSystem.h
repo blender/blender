@@ -137,8 +137,8 @@ class ExecutionSystem {
   /**
    * find all execution group with output nodes
    */
-  void findOutputExecutionGroup(std::vector<ExecutionGroup *> *result,
-                                CompositorPriority priority) const;
+  blender::Vector<ExecutionGroup *> find_output_execution_groups(
+      CompositorPriority priority) const;
 
  public:
   /**
@@ -181,7 +181,7 @@ class ExecutionSystem {
   }
 
  private:
-  void executeGroups(CompositorPriority priority);
+  void execute_groups(CompositorPriority priority);
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;
