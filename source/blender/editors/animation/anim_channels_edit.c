@@ -2544,7 +2544,7 @@ static bool animchannels_find_poll(bContext *C)
 }
 
 /* find_invoke() - Get initial channels */
-static int animchannels_find_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+static int animchannels_find_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bAnimContext ac;
 
@@ -2557,7 +2557,7 @@ static int animchannels_find_invoke(bContext *C, wmOperator *op, const wmEvent *
   RNA_string_set(op->ptr, "query", ac.ads->searchstr);
 
   /* defer to popup */
-  return WM_operator_props_popup(C, op, evt);
+  return WM_operator_props_popup(C, op, event);
 }
 
 /* find_exec() -  Called to set the value */

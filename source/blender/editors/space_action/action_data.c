@@ -663,11 +663,11 @@ static int action_unlink_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *evt)
+static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
    * (in interface_templates.c). */
-  RNA_boolean_set(op->ptr, "force_delete", evt->shift != 0);
+  RNA_boolean_set(op->ptr, "force_delete", event->shift != 0);
   return action_unlink_exec(C, op);
 }
 
