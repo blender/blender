@@ -79,7 +79,7 @@ class ExecutionGroup;
  *     - [@ref InputSocketResizeMode.COM_SC_NO_RESIZE]:
  *       Bottom left of the images are aligned.
  *
- * \see Converter.convertDataType Datatype conversions
+ * \see COM_convert_data_type Datatype conversions
  * \see Converter.convertResolution Image size conversions
  *
  * \section EM_Step4 Step4: group operations in executions groups

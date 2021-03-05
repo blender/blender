@@ -115,9 +115,9 @@
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
 
-bool Converter::is_fast_node(bNode *b_node)
+bool COM_bnode_is_fast_node(const bNode &b_node)
 {
-  return !ELEM(b_node->type,
+  return !ELEM(b_node.type,
                CMP_NODE_BLUR,
                CMP_NODE_VECBLUR,
                CMP_NODE_BILATERALBLUR,
@@ -132,7 +132,7 @@ bool Converter::is_fast_node(bNode *b_node)
                CMP_NODE_DENOISE);
 }
 
-Node *Converter::convert(bNode *b_node)
+Node *COM_convert_bnode(bNode *b_node)
 {
   Node *node = nullptr;
 
@@ -419,7 +419,7 @@ Node *Converter::convert(bNode *b_node)
   return node;
 }
 
-NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperationInput *to)
+NodeOperation *COM_convert_data_type(NodeOperationOutput *from, NodeOperationInput *to)
 {
   DataType fromDatatype = from->getDataType();
   DataType toDatatype = to->getDataType();
@@ -446,9 +446,9 @@ NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperati
   return nullptr;
 }
 
-void Converter::convertResolution(NodeOperationBuilder &builder,
-                                  NodeOperationOutput *fromSocket,
-                                  NodeOperationInput *toSocket)
+void COM_convert_resolution(NodeOperationBuilder &builder,
+                            NodeOperationOutput *fromSocket,
+                            NodeOperationInput *toSocket)
 {
   InputResizeMode mode = toSocket->getResizeMode();
 

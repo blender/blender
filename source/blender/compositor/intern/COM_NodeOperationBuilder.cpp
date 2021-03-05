@@ -288,7 +288,7 @@ void NodeOperationBuilder::add_datatype_conversions()
   }
   for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
     const Link &link = *it;
-    NodeOperation *converter = Converter::convertDataType(link.from(), link.to());
+    NodeOperation *converter = COM_convert_data_type(link.from(), link.to());
     if (converter) {
       addOperation(converter);
 
@@ -446,7 +446,7 @@ void NodeOperationBuilder::determineResolutions()
     }
     for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
       const Link &link = *it;
-      Converter::convertResolution(*this, link.from(), link.to());
+      COM_convert_resolution(*this, link.from(), link.to());
     }
   }
 }
