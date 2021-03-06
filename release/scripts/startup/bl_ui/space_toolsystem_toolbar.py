@@ -2411,8 +2411,6 @@ class _defs_sequencer_generic:
 
     @ToolDef.from_fn
     def sample():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.sample")
         return dict(
             idname="builtin.sample",
             label="Sample",
@@ -2421,7 +2419,6 @@ class _defs_sequencer_generic:
             ),
             icon="ops.paint.weight_sample",  # XXX, needs own icon.
             keymap="Sequencer Tool: Sample",
-            draw_settings=draw_settings,
         )
 
 
