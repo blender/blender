@@ -42,7 +42,7 @@ class OBJECT_PT_constraints(ObjectConstraintPanel, Panel):
     bl_label = "Object Constraints"
     bl_options = {'HIDE_HEADER'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_menu_enum("object.constraint_add", "type", text="Add Object Constraint")
@@ -56,7 +56,7 @@ class BONE_PT_constraints(BoneConstraintPanel, Panel):
     bl_label = "Bone Constraints"
     bl_options = {'HIDE_HEADER'}
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_menu_enum("pose.constraint_add", "type", text="Add Bone Constraint")
@@ -122,7 +122,7 @@ class ConstraintButtonsPanel:
             elif con.target.type in {'MESH', 'LATTICE'}:
                 col.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
-    def get_constraint(self, context):
+    def get_constraint(self, _context):
         con = self.custom_data
         self.layout.context_pointer_set("constraint", con)
         return con
@@ -844,7 +844,7 @@ class ConstraintButtonsPanel:
 
         self.draw_influence(layout, con)
 
-    def draw_python_constraint(self, context):
+    def draw_python_constraint(self, _context):
         layout = self.layout
         layout.label(text="Blender 2.6 doesn't support python constraints yet")
 
@@ -976,7 +976,7 @@ class ConstraintButtonsSubPanel:
     bl_label = ""
     bl_options = {'DRAW_BOX'}
 
-    def get_constraint(self, context):
+    def get_constraint(self, _context):
         con = self.custom_data
         self.layout.context_pointer_set("constraint", con)
         return con

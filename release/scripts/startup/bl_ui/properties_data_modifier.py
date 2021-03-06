@@ -37,7 +37,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         ob = context.object
         return ob and ob.type != 'GPENCIL'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_menu_enum("object.modifier_add", "type")
         layout.template_modifiers()
@@ -51,7 +51,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         ob = context.object
         return ob and ob.type == 'GPENCIL'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_menu_enum("object.gpencil_modifier_add", "type")
         layout.template_grease_pencil_modifiers()

@@ -1282,7 +1282,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
 
 
-def brush_basic_gpencil_sculpt_settings(layout, context, brush, *, compact=False):
+def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=False):
     gp_settings = brush.gpencil_settings
     tool = brush.gpencil_sculpt_tool
 

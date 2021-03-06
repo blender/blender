@@ -1022,7 +1022,7 @@ def activate_by_id(context, space_type, idname, *, as_fallback=False):
     return True
 
 
-def activate_by_id_or_cycle(context, space_type, idname, *, offset=1, as_fallback=False):
+def activate_by_id_or_cycle(context, space_type, idname, *, offset=1, _as_fallback=False):
 
     # Only cycle when the active tool is activated again.
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)

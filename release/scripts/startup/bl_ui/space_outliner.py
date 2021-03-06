@@ -257,7 +257,7 @@ class OUTLINER_MT_collection_new(Menu):
     bl_label = "Collection"
 
     @staticmethod
-    def draw_without_context_menu(context, layout):
+    def draw_without_context_menu(_context, layout):
         layout.operator("outliner.collection_new", text="New Collection").nested = True
         layout.operator("outliner.id_paste", text="Paste Data-Blocks", icon='PASTEDOWN')
 

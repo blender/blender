@@ -21,7 +21,7 @@ from bpy.types import Panel, UIList
 
 
 class VIEWLAYER_UL_aov(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname):
         row = layout.row()
         split = row.split(factor=0.65)
         icon = 'NONE' if item.is_valid else 'ERROR'
