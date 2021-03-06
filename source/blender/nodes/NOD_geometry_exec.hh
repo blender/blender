@@ -59,7 +59,7 @@ using fn::GValueMap;
 
 class GeoNodeExecParams {
  private:
-  const DNode &node_;
+  const DNode node_;
   GValueMap<StringRef> &input_values_;
   GValueMap<StringRef> &output_values_;
   const PersistentDataHandleMap &handle_map_;
@@ -68,7 +68,7 @@ class GeoNodeExecParams {
   Depsgraph *depsgraph_;
 
  public:
-  GeoNodeExecParams(const DNode &node,
+  GeoNodeExecParams(const DNode node,
                     GValueMap<StringRef> &input_values,
                     GValueMap<StringRef> &output_values,
                     const PersistentDataHandleMap &handle_map,
@@ -182,7 +182,7 @@ class GeoNodeExecParams {
    */
   const bNode &node() const
   {
-    return *node_.bnode();
+    return *node_->bnode();
   }
 
   const PersistentDataHandleMap &handle_map() const
