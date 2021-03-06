@@ -1380,9 +1380,9 @@ static void update_vertex_normals_when_dirty(const GeometryComponent &component)
     return;
   }
 
-  /* Since normals are derived data, const write access to them is okay. However, ensure that
+  /* Since normals are derived data, `const` write access to them is okay. However, ensure that
    * two threads don't use write normals to a mesh at the same time. Note that this relies on
-   * the idempotence of the operation; calculating the normals just fills the MVert struct
+   * the idempotence of the operation; calculating the normals just fills the #MVert struct
    * rather than allocating new memory. */
   if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
     ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
