@@ -50,7 +50,7 @@ void BKE_pose_apply_action(struct Object *ob,
                            struct AnimationEvalContext *anim_eval_context)
 {
   bPose *pose = ob->pose;
-  if (pose == NULL) {
+  if (pose == nullptr) {
     return;
   }
 
