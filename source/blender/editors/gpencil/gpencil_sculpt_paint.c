@@ -73,6 +73,7 @@
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -1019,7 +1020,11 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
       if (gpl == NULL) {
         gpl = CTX_data_active_gpencil_layer(C);
       }
-      bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+      bGPDframe *gpf = BKE_gpencil_layer_frame_get(
+          gpl, CFRA, IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_NEW : GP_GETFRAME_USE_PREV);
+      if (gpf == NULL) {
+        continue;
+      }
 
       /* Make a new stroke */
       new_stroke = BKE_gpencil_stroke_duplicate(gps, true, true);
@@ -1334,6 +1339,10 @@ static void gpencil_sculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso
 
   /* go through each layer, and ensure that we've got a valid frame to use */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if (!IS_AUTOKEY_ON(scene) && (gpl->actframe == NULL)) {
+      continue;
+    }
+
     /* only editable and visible layers are considered */
     if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
       bGPDframe *gpf = gpl->actframe;
@@ -1343,7 +1352,7 @@ static void gpencil_sculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso
        * - This is useful when animating as it saves that "uh-oh" moment when you realize you've
        *   spent too much time editing the wrong frame.
        */
-      if (gpf->framenum != cfra) {
+      if ((IS_AUTOKEY_ON(scene)) && (gpf->framenum != cfra)) {
         BKE_gpencil_frame_addcopy(gpl, cfra);
         /* Need tag to recalculate evaluated data to avoid crashes. */
         DEG_id_tag_update(&gso->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);

@@ -43,11 +43,11 @@ namespace internal {
 class LookupWarpGrid {
  public:
   LookupWarpGrid();
-  LookupWarpGrid(const LookupWarpGrid &from);
+  LookupWarpGrid(const LookupWarpGrid& from);
   ~LookupWarpGrid();
 
   // Width and height og the image, measured in pixels.
-  int width()  const { return width_; }
+  int width() const { return width_; }
   int height() const { return height_; }
 
   // Overscan factor of the image, so that
@@ -61,8 +61,8 @@ class LookupWarpGrid {
   //
   // See comment for CameraIntrinsics::DistortBuffer to get more
   // details about what overscan is.
-  template<typename WarpFunction>
-  void Update(const CameraIntrinsics &intrinsics,
+  template <typename WarpFunction>
+  void Update(const CameraIntrinsics& intrinsics,
               int width,
               int height,
               double overscan);
@@ -71,12 +71,12 @@ class LookupWarpGrid {
   //
   // See comment for CameraIntrinsics::DistortBuffer to get more
   // details about template type.
-  template<typename PixelType>
-  void Apply(const PixelType *input_buffer,
+  template <typename PixelType>
+  void Apply(const PixelType* input_buffer,
              int width,
              int height,
              int channels,
-             PixelType *output_buffer);
+             PixelType* output_buffer);
 
   // Reset lookup grids.
   // This will tag the grid for update without re-computing it.
@@ -105,15 +105,15 @@ class LookupWarpGrid {
   //
   // width and height corresponds to a size of buffer which will
   // be warped later.
-  template<typename WarpFunction>
-  void Compute(const CameraIntrinsics &intrinsics,
+  template <typename WarpFunction>
+  void Compute(const CameraIntrinsics& intrinsics,
                int width,
                int height,
                double overscan);
 
   // This is a buffer which contains per-pixel offset of the
   // pixels from input buffer to correspond the warping function.
-  Offset *offset_;
+  Offset* offset_;
 
   // Dimensions of the image this lookup grid processes.
   int width_, height_;
@@ -130,19 +130,19 @@ class LookupWarpGrid {
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
-  CameraIntrinsics(const CameraIntrinsics &from);
+  CameraIntrinsics(const CameraIntrinsics& from);
   virtual ~CameraIntrinsics() {}
 
   virtual DistortionModelType GetDistortionModelType() const = 0;
 
-  int image_width()  const { return image_width_;  }
+  int image_width() const { return image_width_; }
   int image_height() const { return image_height_; }
 
-  const Mat3 &K() const { return K_; }
+  const Mat3& K() const { return K_; }
 
-  double focal_length()      const { return K_(0, 0); }
-  double focal_length_x()    const { return K_(0, 0); }
-  double focal_length_y()    const { return K_(1, 1); }
+  double focal_length() const { return K_(0, 0); }
+  double focal_length_x() const { return K_(0, 0); }
+  double focal_length_y() const { return K_(1, 1); }
 
   double principal_point_x() const { return K_(0, 2); }
   double principal_point_y() const { return K_(1, 2); }
@@ -166,14 +166,14 @@ class CameraIntrinsics {
   // Convert image space coordinates to normalized.
   void ImageSpaceToNormalized(double image_x,
                               double image_y,
-                              double *normalized_x,
-                              double *normalized_y) const;
+                              double* normalized_x,
+                              double* normalized_y) const;
 
   // Convert normalized coordinates to image space.
   void NormalizedToImageSpace(double normalized_x,
                               double normalized_y,
-                              double *image_x,
-                              double *image_y) const;
+                              double* image_x,
+                              double* image_y) const;
 
   // Apply camera intrinsics to the normalized point to get image coordinates.
   //
@@ -182,8 +182,8 @@ class CameraIntrinsics {
   // coordinates in pixels.
   virtual void ApplyIntrinsics(double normalized_x,
                                double normalized_y,
-                               double *image_x,
-                               double *image_y) const = 0;
+                               double* image_x,
+                               double* image_y) const = 0;
 
   // Invert camera intrinsics on the image point to get normalized coordinates.
   //
@@ -191,8 +191,8 @@ class CameraIntrinsics {
   // coordinates to get normalized camera coordinates.
   virtual void InvertIntrinsics(double image_x,
                                 double image_y,
-                                double *normalized_x,
-                                double *normalized_y) const = 0;
+                                double* normalized_x,
+                                double* normalized_y) const = 0;
 
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics);
@@ -218,13 +218,13 @@ class CameraIntrinsics {
   // But in fact PixelType might be any type for which multiplication by
   // a scalar and addition are implemented. For example PixelType might be
   // Vec3 as well.
-  template<typename PixelType>
-  void DistortBuffer(const PixelType *input_buffer,
+  template <typename PixelType>
+  void DistortBuffer(const PixelType* input_buffer,
                      int width,
                      int height,
                      double overscan,
                      int channels,
-                     PixelType *output_buffer);
+                     PixelType* output_buffer);
 
   // Undistort an image using the current camera instrinsics
   //
@@ -247,13 +247,13 @@ class CameraIntrinsics {
   // But in fact PixelType might be any type for which multiplication by
   // a scalar and addition are implemented. For example PixelType might be
   // Vec3 as well.
-  template<typename PixelType>
-  void UndistortBuffer(const PixelType *input_buffer,
+  template <typename PixelType>
+  void UndistortBuffer(const PixelType* input_buffer,
                        int width,
                        int height,
                        double overscan,
                        int channels,
-                       PixelType *output_buffer);
+                       PixelType* output_buffer);
 
  private:
   // This is the size of the image. This is necessary to, for example, handle
@@ -290,7 +290,7 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
   };
 
   PolynomialCameraIntrinsics();
-  PolynomialCameraIntrinsics(const PolynomialCameraIntrinsics &from);
+  PolynomialCameraIntrinsics(const PolynomialCameraIntrinsics& from);
 
   DistortionModelType GetDistortionModelType() const override {
     return DISTORTION_MODEL_POLYNOMIAL;
@@ -315,8 +315,8 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
   // coordinates in pixels.
   void ApplyIntrinsics(double normalized_x,
                        double normalized_y,
-                       double *image_x,
-                       double *image_y) const override;
+                       double* image_x,
+                       double* image_y) const override;
 
   // Invert camera intrinsics on the image point to get normalized coordinates.
   //
@@ -324,8 +324,8 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
   // coordinates to get normalized camera coordinates.
   void InvertIntrinsics(double image_x,
                         double image_y,
-                        double *normalized_x,
-                        double *normalized_y) const override;
+                        double* normalized_x,
+                        double* normalized_y) const override;
 
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
@@ -352,7 +352,7 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
   };
 
   DivisionCameraIntrinsics();
-  DivisionCameraIntrinsics(const DivisionCameraIntrinsics &from);
+  DivisionCameraIntrinsics(const DivisionCameraIntrinsics& from);
 
   DistortionModelType GetDistortionModelType() const override {
     return DISTORTION_MODEL_DIVISION;
@@ -371,8 +371,8 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
   // coordinates in pixels.
   void ApplyIntrinsics(double normalized_x,
                        double normalized_y,
-                       double *image_x,
-                       double *image_y) const override;
+                       double* image_x,
+                       double* image_y) const override;
 
   // Invert camera intrinsics on the image point to get normalized coordinates.
   //
@@ -380,8 +380,8 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
   // coordinates to get normalized camera coordinates.
   void InvertIntrinsics(double image_x,
                         double image_y,
-                        double *normalized_x,
-                        double *normalized_y) const override;
+                        double* normalized_x,
+                        double* normalized_y) const override;
 
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
@@ -405,7 +405,7 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   };
 
   NukeCameraIntrinsics();
-  NukeCameraIntrinsics(const NukeCameraIntrinsics &from);
+  NukeCameraIntrinsics(const NukeCameraIntrinsics& from);
 
   DistortionModelType GetDistortionModelType() const override {
     return DISTORTION_MODEL_NUKE;
@@ -424,8 +424,8 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   // coordinates in pixels.
   void ApplyIntrinsics(double normalized_x,
                        double normalized_y,
-                       double *image_x,
-                       double *image_y) const override;
+                       double* image_x,
+                       double* image_y) const override;
 
   // Invert camera intrinsics on the image point to get normalized coordinates.
   //
@@ -433,8 +433,8 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   // coordinates to get normalized camera coordinates.
   void InvertIntrinsics(double image_x,
                         double image_y,
-                        double *normalized_x,
-                        double *normalized_y) const override;
+                        double* normalized_x,
+                        double* normalized_y) const override;
 
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
@@ -462,7 +462,7 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   };
 
   BrownCameraIntrinsics();
-  BrownCameraIntrinsics(const BrownCameraIntrinsics &from);
+  BrownCameraIntrinsics(const BrownCameraIntrinsics& from);
 
   DistortionModelType GetDistortionModelType() const override {
     return DISTORTION_MODEL_BROWN;
@@ -488,8 +488,8 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   // coordinates in pixels.
   void ApplyIntrinsics(double normalized_x,
                        double normalized_y,
-                       double *image_x,
-                       double *image_y) const override;
+                       double* image_x,
+                       double* image_y) const override;
 
   // Invert camera intrinsics on the image point to get normalized coordinates.
   //
@@ -497,8 +497,8 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   // coordinates to get normalized camera coordinates.
   void InvertIntrinsics(double image_x,
                         double image_y,
-                        double *normalized_x,
-                        double *normalized_y) const override;
+                        double* normalized_x,
+                        double* normalized_y) const override;
 
   virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
   virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
@@ -507,10 +507,8 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   double parameters_[NUM_PARAMETERS];
 };
 
-
 /// A human-readable representation of the camera intrinsic parameters.
-std::ostream& operator <<(std::ostream &os,
-                          const CameraIntrinsics &intrinsics);
+std::ostream& operator<<(std::ostream& os, const CameraIntrinsics& intrinsics);
 
 }  // namespace libmv
 

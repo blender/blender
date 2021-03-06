@@ -62,8 +62,12 @@ const NodeUIStorage *BKE_node_tree_ui_storage_get_from_context(const bContext *C
   }
 
   const Object *active_object = CTX_data_active_object(C);
+  if (active_object == nullptr) {
+    return nullptr;
+  }
+
   const ModifierData *active_modifier = BKE_object_active_modifier(active_object);
-  if (active_object == nullptr || active_modifier == nullptr) {
+  if (active_modifier == nullptr) {
     return nullptr;
   }
 

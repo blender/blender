@@ -43,20 +43,19 @@
 
 ExecutionGroup::ExecutionGroup()
 {
-  this->m_isOutput = false;
+  this->m_is_output = false;
   this->m_complex = false;
-  this->m_chunkExecutionStates = nullptr;
   this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
-  this->m_cachedMaxReadBufferOffset = 0;
-  this->m_numberOfXChunks = 0;
-  this->m_numberOfYChunks = 0;
-  this->m_numberOfChunks = 0;
+  this->m_max_read_buffer_offset = 0;
+  this->m_x_chunks_len = 0;
+  this->m_y_chunks_len = 0;
+  this->m_chunks_len = 0;
   this->m_initialized = false;
   this->m_openCL = false;
   this->m_singleThreaded = false;
-  this->m_chunksFinished = 0;
+  this->m_chunks_finished = 0;
   BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
   this->m_executionStartTime = 0;
 }
@@ -108,7 +107,7 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
     m_initialized = true;
   }
 
-  m_operations.push_back(operation);
+  m_operations.append(operation);
 
   return true;
 }
@@ -121,45 +120,36 @@ NodeOperation *ExecutionGroup::getOutputOperation() const
 
 void ExecutionGroup::initExecution()
 {
-  if (this->m_chunkExecutionStates != nullptr) {
-    MEM_freeN(this->m_chunkExecutionStates);
-  }
-  unsigned int index;
+  m_chunk_execution_states.clear();
   determineNumberOfChunks();
 
-  this->m_chunkExecutionStates = nullptr;
-  if (this->m_numberOfChunks != 0) {
-    this->m_chunkExecutionStates = (ChunkExecutionState *)MEM_mallocN(
-        sizeof(ChunkExecutionState) * this->m_numberOfChunks, __func__);
-    for (index = 0; index < this->m_numberOfChunks; index++) {
-      this->m_chunkExecutionStates[index] = COM_ES_NOT_SCHEDULED;
+  if (this->m_chunks_len != 0) {
+    m_chunk_execution_states.resize(this->m_chunks_len);
+    for (int index = 0; index < this->m_chunks_len; index++) {
+      m_chunk_execution_states[index] = eChunkExecutionState::NOT_SCHEDULED;
     }
   }
 
-  unsigned int maxNumber = 0;
+  unsigned int max_offset = 0;
 
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+  for (NodeOperation *operation : m_operations) {
     if (operation->isReadBufferOperation()) {
-      ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
-      this->m_cachedReadOperations.push_back(readOperation);
-      maxNumber = max(maxNumber, readOperation->getOffset());
+      ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
+      this->m_read_operations.append(readOperation);
+      max_offset = MAX2(max_offset, readOperation->getOffset());
     }
   }
-  maxNumber++;
-  this->m_cachedMaxReadBufferOffset = maxNumber;
+  max_offset++;
+  this->m_max_read_buffer_offset = max_offset;
 }
 
 void ExecutionGroup::deinitExecution()
 {
-  if (this->m_chunkExecutionStates != nullptr) {
-    MEM_freeN(this->m_chunkExecutionStates);
-    this->m_chunkExecutionStates = nullptr;
-  }
-  this->m_numberOfChunks = 0;
-  this->m_numberOfXChunks = 0;
-  this->m_numberOfYChunks = 0;
-  this->m_cachedReadOperations.clear();
+  m_chunk_execution_states.clear();
+  this->m_chunks_len = 0;
+  this->m_x_chunks_len = 0;
+  this->m_y_chunks_len = 0;
+  this->m_read_operations.clear();
   this->m_bTree = nullptr;
 }
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
@@ -174,17 +164,17 @@ void ExecutionGroup::determineResolution(unsigned int resolution[2])
 void ExecutionGroup::determineNumberOfChunks()
 {
   if (this->m_singleThreaded) {
-    this->m_numberOfXChunks = 1;
-    this->m_numberOfYChunks = 1;
-    this->m_numberOfChunks = 1;
+    this->m_x_chunks_len = 1;
+    this->m_y_chunks_len = 1;
+    this->m_chunks_len = 1;
   }
   else {
     const float chunkSizef = this->m_chunkSize;
     const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
     const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
-    this->m_numberOfXChunks = ceil(border_width / chunkSizef);
-    this->m_numberOfYChunks = ceil(border_height / chunkSizef);
-    this->m_numberOfChunks = this->m_numberOfXChunks * this->m_numberOfYChunks;
+    this->m_x_chunks_len = ceil(border_width / chunkSizef);
+    this->m_y_chunks_len = ceil(border_height / chunkSizef);
+    this->m_chunks_len = this->m_x_chunks_len * this->m_y_chunks_len;
   }
 }
 
@@ -202,20 +192,20 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   if (bTree->test_break && bTree->test_break(bTree->tbh)) {
     return;
   } /** \note Early break out for blur and preview nodes. */
-  if (this->m_numberOfChunks == 0) {
+  if (this->m_chunks_len == 0) {
     return;
   } /** \note Early break out. */
   unsigned int chunkNumber;
 
   this->m_executionStartTime = PIL_check_seconds_timer();
 
-  this->m_chunksFinished = 0;
+  this->m_chunks_finished = 0;
   this->m_bTree = bTree;
   unsigned int index;
-  unsigned int *chunkOrder = (unsigned int *)MEM_mallocN(
-      sizeof(unsigned int) * this->m_numberOfChunks, __func__);
+  unsigned int *chunkOrder = (unsigned int *)MEM_mallocN(sizeof(unsigned int) * this->m_chunks_len,
+                                                         __func__);
 
-  for (chunkNumber = 0; chunkNumber < this->m_numberOfChunks; chunkNumber++) {
+  for (chunkNumber = 0; chunkNumber < this->m_chunks_len; chunkNumber++) {
     chunkOrder[chunkNumber] = chunkNumber;
   }
   NodeOperation *operation = this->getOutputOperation();
@@ -235,9 +225,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
   switch (chunkorder) {
     case COM_TO_RANDOM:
-      for (index = 0; index < 2 * this->m_numberOfChunks; index++) {
-        int index1 = rand() % this->m_numberOfChunks;
-        int index2 = rand() % this->m_numberOfChunks;
+      for (index = 0; index < 2 * this->m_chunks_len; index++) {
+        int index1 = rand() % this->m_chunks_len;
+        int index2 = rand() % this->m_chunks_len;
         int s = chunkOrder[index1];
         chunkOrder[index1] = chunkOrder[index2];
         chunkOrder[index2] = s;
@@ -247,9 +237,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
       ChunkOrderHotspot *hotspots[1];
       hotspots[0] = new ChunkOrderHotspot(border_width * centerX, border_height * centerY, 0.0f);
       rcti rect;
-      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(
-          sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
-      for (index = 0; index < this->m_numberOfChunks; index++) {
+      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_chunks_len,
+                                                          __func__);
+      for (index = 0; index < this->m_chunks_len; index++) {
         determineChunkRect(&rect, index);
         chunkOrders[index].number = index;
         chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
@@ -257,8 +247,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
         chunkOrders[index].update_distance(hotspots, 1);
       }
 
-      std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks - 1]);
-      for (index = 0; index < this->m_numberOfChunks; index++) {
+      std::sort(&chunkOrders[0], &chunkOrders[this->m_chunks_len - 1]);
+      for (index = 0; index < this->m_chunks_len; index++) {
         chunkOrder[index] = chunkOrders[index].number;
       }
 
@@ -275,7 +265,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
       unsigned int bx = mx + 2 * tx;
       unsigned int by = my + 2 * ty;
 
-      float addition = this->m_numberOfChunks / COM_RULE_OF_THIRDS_DIVIDER;
+      float addition = this->m_chunks_len / COM_RULE_OF_THIRDS_DIVIDER;
       hotspots[0] = new ChunkOrderHotspot(mx, my, addition * 0);
       hotspots[1] = new ChunkOrderHotspot(tx, my, addition * 1);
       hotspots[2] = new ChunkOrderHotspot(bx, my, addition * 2);
@@ -286,9 +276,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
       hotspots[7] = new ChunkOrderHotspot(mx, ty, addition * 7);
       hotspots[8] = new ChunkOrderHotspot(mx, by, addition * 8);
       rcti rect;
-      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(
-          sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
-      for (index = 0; index < this->m_numberOfChunks; index++) {
+      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_chunks_len,
+                                                          __func__);
+      for (index = 0; index < this->m_chunks_len; index++) {
         determineChunkRect(&rect, index);
         chunkOrders[index].number = index;
         chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
@@ -296,9 +286,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
         chunkOrders[index].update_distance(hotspots, 9);
       }
 
-      std::sort(&chunkOrders[0], &chunkOrders[this->m_numberOfChunks]);
+      std::sort(&chunkOrders[0], &chunkOrders[this->m_chunks_len]);
 
-      for (index = 0; index < this->m_numberOfChunks; index++) {
+      for (index = 0; index < this->m_chunks_len; index++) {
         chunkOrder[index] = chunkOrders[index].number;
       }
 
@@ -332,31 +322,35 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
     finished = true;
     int numberEvaluated = 0;
 
-    for (index = startIndex;
-         index < this->m_numberOfChunks && numberEvaluated < maxNumberEvaluated;
+    for (index = startIndex; index < this->m_chunks_len && numberEvaluated < maxNumberEvaluated;
          index++) {
       chunkNumber = chunkOrder[index];
-      int yChunk = chunkNumber / this->m_numberOfXChunks;
-      int xChunk = chunkNumber - (yChunk * this->m_numberOfXChunks);
-      const ChunkExecutionState state = this->m_chunkExecutionStates[chunkNumber];
-      if (state == COM_ES_NOT_SCHEDULED) {
-        scheduleChunkWhenPossible(graph, xChunk, yChunk);
-        finished = false;
-        startEvaluated = true;
-        numberEvaluated++;
+      int yChunk = chunkNumber / this->m_x_chunks_len;
+      int xChunk = chunkNumber - (yChunk * this->m_x_chunks_len);
+      switch (m_chunk_execution_states[chunkNumber]) {
+        case eChunkExecutionState::NOT_SCHEDULED: {
+          scheduleChunkWhenPossible(graph, xChunk, yChunk);
+          finished = false;
+          startEvaluated = true;
+          numberEvaluated++;
 
-        if (bTree->update_draw) {
-          bTree->update_draw(bTree->udh);
+          if (bTree->update_draw) {
+            bTree->update_draw(bTree->udh);
+          }
+          break;
         }
-      }
-      else if (state == COM_ES_SCHEDULED) {
-        finished = false;
-        startEvaluated = true;
-        numberEvaluated++;
-      }
-      else if (state == COM_ES_EXECUTED && !startEvaluated) {
-        startIndex = index + 1;
-      }
+        case eChunkExecutionState::SCHEDULED: {
+          finished = false;
+          startEvaluated = true;
+          numberEvaluated++;
+          break;
+        }
+        case eChunkExecutionState::EXECUTED: {
+          if (!startEvaluated) {
+            startIndex = index + 1;
+          }
+        }
+      };
     }
 
     WorkScheduler::finish();
@@ -374,17 +368,14 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
   rcti rect;
-  vector<MemoryProxy *> memoryproxies;
-  unsigned int index;
+  std::vector<MemoryProxy *> memoryproxies;
   determineChunkRect(&rect, chunkNumber);
 
   this->determineDependingMemoryProxies(&memoryproxies);
   MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
-      sizeof(MemoryBuffer *) * this->m_cachedMaxReadBufferOffset, __func__);
+      sizeof(MemoryBuffer *) * this->m_max_read_buffer_offset, __func__);
   rcti output;
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (ReadBufferOperation *readOperation : m_read_operations) {
     MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
     this->determineDependingAreaOfInterest(&rect, readOperation, &output);
     MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(
@@ -405,13 +396,13 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 
 void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
 {
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED) {
-    this->m_chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
+  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::SCHEDULED) {
+    this->m_chunk_execution_states[chunkNumber] = eChunkExecutionState::EXECUTED;
   }
 
-  atomic_add_and_fetch_u(&this->m_chunksFinished, 1);
+  atomic_add_and_fetch_u(&this->m_chunks_finished, 1);
   if (memoryBuffers) {
-    for (unsigned int index = 0; index < this->m_cachedMaxReadBufferOffset; index++) {
+    for (unsigned int index = 0; index < this->m_max_read_buffer_offset; index++) {
       MemoryBuffer *buffer = memoryBuffers[index];
       if (buffer) {
         if (buffer->isTemporarily()) {
@@ -424,16 +415,16 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
   }
   if (this->m_bTree) {
     // status report is only performed for top level Execution Groups.
-    float progress = this->m_chunksFinished;
-    progress /= this->m_numberOfChunks;
+    float progress = this->m_chunks_finished;
+    progress /= this->m_chunks_len;
     this->m_bTree->progress(this->m_bTree->prh, progress);
 
     char buf[128];
     BLI_snprintf(buf,
                  sizeof(buf),
                  TIP_("Compositing | Tile %u-%u"),
-                 this->m_chunksFinished,
-                 this->m_numberOfChunks);
+                 this->m_chunks_finished,
+                 this->m_chunks_len);
     this->m_bTree->stats_draw(this->m_bTree->sdh, buf);
   }
 }
@@ -452,20 +443,20 @@ inline void ExecutionGroup::determineChunkRect(rcti *rect,
   else {
     const unsigned int minx = xChunk * this->m_chunkSize + this->m_viewerBorder.xmin;
     const unsigned int miny = yChunk * this->m_chunkSize + this->m_viewerBorder.ymin;
-    const unsigned int width = min((unsigned int)this->m_viewerBorder.xmax, this->m_width);
-    const unsigned int height = min((unsigned int)this->m_viewerBorder.ymax, this->m_height);
+    const unsigned int width = MIN2((unsigned int)this->m_viewerBorder.xmax, this->m_width);
+    const unsigned int height = MIN2((unsigned int)this->m_viewerBorder.ymax, this->m_height);
     BLI_rcti_init(rect,
-                  min(minx, this->m_width),
-                  min(minx + this->m_chunkSize, width),
-                  min(miny, this->m_height),
-                  min(miny + this->m_chunkSize, height));
+                  MIN2(minx, this->m_width),
+                  MIN2(minx + this->m_chunkSize, width),
+                  MIN2(miny, this->m_height),
+                  MIN2(miny + this->m_chunkSize, height));
   }
 }
 
 void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumber) const
 {
-  const unsigned int yChunk = chunkNumber / this->m_numberOfXChunks;
-  const unsigned int xChunk = chunkNumber - (yChunk * this->m_numberOfXChunks);
+  const unsigned int yChunk = chunkNumber / this->m_x_chunks_len;
+  const unsigned int xChunk = chunkNumber - (yChunk * this->m_x_chunks_len);
   determineChunkRect(rect, xChunk, yChunk);
 }
 
@@ -500,8 +491,8 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
   int maxychunk = (maxy + (int)m_chunkSize - 1) / (int)m_chunkSize;
   minxchunk = max_ii(minxchunk, 0);
   minychunk = max_ii(minychunk, 0);
-  maxxchunk = min_ii(maxxchunk, (int)m_numberOfXChunks);
-  maxychunk = min_ii(maxychunk, (int)m_numberOfYChunks);
+  maxxchunk = min_ii(maxxchunk, (int)m_x_chunks_len);
+  maxychunk = min_ii(maxychunk, (int)m_y_chunks_len);
 
   bool result = true;
   for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
@@ -517,8 +508,8 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 
 bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
 {
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_NOT_SCHEDULED) {
-    this->m_chunkExecutionStates[chunkNumber] = COM_ES_SCHEDULED;
+  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::NOT_SCHEDULED) {
+    this->m_chunk_execution_states[chunkNumber] = eChunkExecutionState::SCHEDULED;
     WorkScheduler::schedule(this, chunkNumber);
     return true;
   }
@@ -527,25 +518,25 @@ bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
 
 bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChunk, int yChunk)
 {
-  if (xChunk < 0 || xChunk >= (int)this->m_numberOfXChunks) {
+  if (xChunk < 0 || xChunk >= (int)this->m_x_chunks_len) {
     return true;
   }
-  if (yChunk < 0 || yChunk >= (int)this->m_numberOfYChunks) {
+  if (yChunk < 0 || yChunk >= (int)this->m_y_chunks_len) {
     return true;
   }
-  int chunkNumber = yChunk * this->m_numberOfXChunks + xChunk;
+  int chunkNumber = yChunk * this->m_x_chunks_len + xChunk;
   // chunk is already executed
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_EXECUTED) {
+  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::EXECUTED) {
     return true;
   }
 
   // chunk is scheduled, but not executed
-  if (this->m_chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED) {
+  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::SCHEDULED) {
     return false;
   }
 
   // chunk is nor executed nor scheduled.
-  vector<MemoryProxy *> memoryProxies;
+  std::vector<MemoryProxy *> memoryProxies;
   this->determineDependingMemoryProxies(&memoryProxies);
 
   rcti rect;
@@ -554,9 +545,8 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChun
   bool canBeExecuted = true;
   rcti area;
 
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (index = 0; index < m_read_operations.size(); index++) {
+    ReadBufferOperation *readOperation = m_read_operations[index];
     BLI_rcti_init(&area, 0, 0, 0, 0);
     MemoryProxy *memoryProxy = memoryProxies[index];
     determineDependingAreaOfInterest(&rect, readOperation, &area);
@@ -586,12 +576,9 @@ void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
   this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
 }
 
-void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies)
+void ExecutionGroup::determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies)
 {
-  unsigned int index;
-  for (index = 0; index < this->m_cachedReadOperations.size(); index++) {
-    ReadBufferOperation *readOperation =
-        (ReadBufferOperation *)this->m_cachedReadOperations[index];
+  for (ReadBufferOperation *readOperation : m_read_operations) {
     memoryProxies->push_back(readOperation->getMemoryProxy());
   }
 }

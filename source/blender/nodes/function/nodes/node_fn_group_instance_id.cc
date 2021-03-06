@@ -26,9 +26,10 @@ static void fn_node_group_instance_id_expand_in_mf_network(
 {
   const blender::nodes::DNode &node = builder.dnode();
   std::string id = "/";
-  for (const blender::nodes::DParentNode *parent = node.parent(); parent;
-       parent = parent->parent()) {
-    id = "/" + parent->node_ref().name() + id;
+  for (const blender::nodes::DTreeContext *context = node.context();
+       context->parent_node() != nullptr;
+       context = context->parent_context()) {
+    id = "/" + context->parent_node()->name() + id;
   }
   builder.construct_and_set_matching_fn<blender::fn::CustomMF_Constant<std::string>>(
       std::move(id));

@@ -199,8 +199,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         ob = context.active_object
         mesh = ob.data
 
-        split = layout.split()
-
         row = layout.row(align=True, heading="Transform")
         row.prop(tool_settings, "use_transform_correct_face_attributes")
 
@@ -1354,8 +1352,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_select(Panel, View3DPanel, GreasePenci
         if context.mode == 'PAINT_GPENCIL':
             brush = tool_settings.gpencil_paint.brush
             if brush is not None:
-                gp_settings = brush.gpencil_settings
-
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
 
                 if brush.use_custom_icon:
@@ -1494,8 +1490,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_stroke(Panel, View3DPanel):
         brush = context.tool_settings.gpencil_paint.brush
         return brush is not None and brush.gpencil_tool == 'DRAW'
 
-    def draw(self, context):
-        layout = self.layout
+    def draw(self, _context):
+        # layout = self.layout
+        pass
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):

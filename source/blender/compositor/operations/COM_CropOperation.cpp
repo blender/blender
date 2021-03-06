@@ -54,10 +54,10 @@ void CropBaseOperation::updateArea()
       local_settings.y2 = height - 1;
     }
 
-    this->m_xmax = max(local_settings.x1, local_settings.x2) + 1;
-    this->m_xmin = min(local_settings.x1, local_settings.x2);
-    this->m_ymax = max(local_settings.y1, local_settings.y2) + 1;
-    this->m_ymin = min(local_settings.y1, local_settings.y2);
+    this->m_xmax = MAX2(local_settings.x1, local_settings.x2) + 1;
+    this->m_xmin = MIN2(local_settings.x1, local_settings.x2);
+    this->m_ymax = MAX2(local_settings.y1, local_settings.y2) + 1;
+    this->m_ymin = MIN2(local_settings.y1, local_settings.y2);
   }
   else {
     this->m_xmax = 0;

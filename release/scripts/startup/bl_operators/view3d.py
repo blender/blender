@@ -169,7 +169,7 @@ class VIEW3D_OT_edit_mesh_extrude_manifold_normal(Operator):
         obj = context.active_object
         return (obj is not None and obj.mode == 'EDIT')
 
-    def execute(self, context):
+    def execute(self, _context):
         bpy.ops.mesh.extrude_manifold(
             'INVOKE_REGION_WIN',
             MESH_OT_extrude_region={

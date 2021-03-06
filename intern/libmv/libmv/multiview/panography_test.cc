@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "libmv/logging/logging.h"
 #include "libmv/multiview/panography.h"
+#include "libmv/logging/logging.h"
 #include "libmv/multiview/panography_kernel.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
@@ -30,18 +30,16 @@ namespace {
 
 TEST(Panography, PrintSomeSharedFocalEstimationValues) {
   Mat x1(2, 2), x2(2, 2);
-  x1<< 158, 78,
-       124, 113;
-  x2<< 300, 214,
-       125, 114;
+  x1 << 158, 78, 124, 113;
+  x2 << 300, 214, 125, 114;
 
   // Normalize data (set principal point 0,0 and image border to 1.0).
   x1.block<1, 2>(0, 0) /= 320;
   x1.block<1, 2>(1, 0) /= 240;
   x2.block<1, 2>(0, 0) /= 320;
   x2.block<1, 2>(1, 0) /= 240;
-  x1+=Mat2::Constant(0.5);
-  x2+=Mat2::Constant(0.5);
+  x1 += Mat2::Constant(0.5);
+  x2 += Mat2::Constant(0.5);
 
   vector<double> fs;
   F_FromCorrespondance_2points(x1, x2, &fs);
@@ -53,9 +51,11 @@ TEST(Panography, PrintSomeSharedFocalEstimationValues) {
 
 TEST(Panography, GetR_FixedCameraCenterWithIdentity) {
   Mat x1(3, 3);
+  // clang-format off
   x1  <<  0.5,  0.6,  0.7,
           0.5,  0.5,  0.4,
          10.0, 10.0, 10.0;
+  // clang-format on
 
   Mat3 R;
   GetR_FixedCameraCenter(x1, x1, 1.0, &R);
@@ -68,16 +68,20 @@ TEST(Panography, Homography_GetR_Test_PitchY30) {
   int n = 3;
 
   Mat x1(3, n);
+  // clang-format off
   x1 << 0.5, 0.6, 0.7,
         0.5, 0.5, 0.4,
         10,   10,  10;
+  // clang-format on
 
   Mat x2 = x1;
   const double alpha = 30.0 * M_PI / 180.0;
   Mat3 rotY;
+  // clang-format off
   rotY << cos(alpha), 0, -sin(alpha),
                0,     1,      0,
           sin(alpha), 0,  cos(alpha);
+  // clang-format on
 
   for (int i = 0; i < n; ++i) {
     x2.block<3, 1>(0, i) = rotY * x1.col(i);
@@ -101,17 +105,23 @@ TEST(Panography, Homography_GetR_Test_PitchY30) {
 TEST(MinimalPanoramic, Real_Case_Kernel) {
   const int n = 2;
   Mat x1(2, n);  // From image 0.jpg
+  // clang-format off
   x1<< 158, 78,
        124, 113;
+  // clang-format on
 
   Mat x2(2, n);  // From image 3.jpg
+  // clang-format off
   x2<<  300, 214,
         125, 114;
+  // clang-format on
 
   Mat3 Ground_TruthHomography;
+  // clang-format off
   Ground_TruthHomography<< 1,     0.02,   129.83,
                           -0.02,  1.012,  0.07823,
                           0,      0,      1;
+  // clang-format on
 
   vector<Mat3> Hs;
 
@@ -130,7 +140,7 @@ TEST(MinimalPanoramic, Real_Case_Kernel) {
     // Assert that residuals are small enough
     for (int i = 0; i < n; ++i) {
       Vec x1p = H * x1h.col(i);
-      Vec residuals = x1p/x1p(2) - x2h.col(i);
+      Vec residuals = x1p / x1p(2) - x2h.col(i);
       EXPECT_MATRIX_NEAR_ZERO(residuals, 1e-5);
     }
   }

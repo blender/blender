@@ -34,22 +34,22 @@ namespace libmv {
 
 // x's are 2D coordinates (x,y,1) in each image; Ps are projective cameras. The
 // output, X, is a homogeneous four vectors.
-template<typename T>
-void NViewTriangulate(const Matrix<T, 2, Dynamic> &x,
-                      const vector<Matrix<T, 3, 4> > &Ps,
-                      Matrix<T, 4, 1> *X) {
+template <typename T>
+void NViewTriangulate(const Matrix<T, 2, Dynamic>& x,
+                      const vector<Matrix<T, 3, 4>>& Ps,
+                      Matrix<T, 4, 1>* X) {
   int nviews = x.cols();
   assert(nviews == Ps.size());
 
-  Matrix<T, Dynamic, Dynamic> design(3*nviews, 4 + nviews);
+  Matrix<T, Dynamic, Dynamic> design(3 * nviews, 4 + nviews);
   design.setConstant(0.0);
   for (int i = 0; i < nviews; i++) {
-    design.template block<3, 4>(3*i, 0) = -Ps[i];
-    design(3*i + 0, 4 + i) = x(0, i);
-    design(3*i + 1, 4 + i) = x(1, i);
-    design(3*i + 2, 4 + i) = 1.0;
+    design.template block<3, 4>(3 * i, 0) = -Ps[i];
+    design(3 * i + 0, 4 + i) = x(0, i);
+    design(3 * i + 1, 4 + i) = x(1, i);
+    design(3 * i + 2, 4 + i) = 1.0;
   }
-  Matrix<T, Dynamic, 1>  X_and_alphas;
+  Matrix<T, Dynamic, 1> X_and_alphas;
   Nullspace(&design, &X_and_alphas);
   X->resize(4);
   *X = X_and_alphas.head(4);
@@ -60,16 +60,16 @@ void NViewTriangulate(const Matrix<T, 2, Dynamic> &x,
 // This method uses the algebraic distance approximation.
 // Note that this method works better when the 2D points are normalized
 // with an isotopic normalization.
-template<typename T>
-void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic> &x,
-                               const vector<Matrix<T, 3, 4> > &Ps,
-                               Matrix<T, 4, 1> *X) {
+template <typename T>
+void NViewTriangulateAlgebraic(const Matrix<T, 2, Dynamic>& x,
+                               const vector<Matrix<T, 3, 4>>& Ps,
+                               Matrix<T, 4, 1>* X) {
   int nviews = x.cols();
   assert(nviews == Ps.size());
 
-  Matrix<T, Dynamic, 4> design(2*nviews, 4);
+  Matrix<T, Dynamic, 4> design(2 * nviews, 4);
   for (int i = 0; i < nviews; i++) {
-    design.template block<2, 4>(2*i, 0) = SkewMatMinimal(x.col(i)) * Ps[i];
+    design.template block<2, 4>(2 * i, 0) = SkewMatMinimal(x.col(i)) * Ps[i];
   }
   X->resize(4);
   Nullspace(&design, X);

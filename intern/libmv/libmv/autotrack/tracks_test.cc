@@ -22,8 +22,8 @@
 
 #include "libmv/autotrack/tracks.h"
 
-#include "testing/testing.h"
 #include "libmv/logging/logging.h"
+#include "testing/testing.h"
 
 namespace mv {
 

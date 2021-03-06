@@ -35,7 +35,7 @@ void libmv_floatBufferToFloatImage(const float* buffer,
                                    libmv::FloatImage* image);
 
 void libmv_floatImageToFloatBuffer(const libmv::FloatImage& image,
-                                   float *buffer);
+                                   float* buffer);
 
 void libmv_floatImageToByteBuffer(const libmv::FloatImage& image,
                                   unsigned char* buffer);
@@ -51,13 +51,13 @@ extern "C" {
 #endif
 
 typedef struct libmv_FloatImage {
-  float *buffer;
+  float* buffer;
   int width;
   int height;
   int channels;
 } libmv_FloatImage;
 
-void libmv_floatImageDestroy(libmv_FloatImage *image);
+void libmv_floatImageDestroy(libmv_FloatImage* image);
 
 void libmv_samplePlanarPatchFloat(const float* image,
                                   int width,
@@ -72,18 +72,18 @@ void libmv_samplePlanarPatchFloat(const float* image,
                                   double* warped_position_x,
                                   double* warped_position_y);
 
- void libmv_samplePlanarPatchByte(const unsigned char* image,
-                                  int width,
-                                  int height,
-                                  int channels,
-                                  const double* xs,
-                                  const double* ys,
-                                  int num_samples_x,
-                                  int num_samples_y,
-                                  const float* mask,
-                                  unsigned char* patch,
-                                  double* warped_position_x,
-                                  double* warped_position_y);
+void libmv_samplePlanarPatchByte(const unsigned char* image,
+                                 int width,
+                                 int height,
+                                 int channels,
+                                 const double* xs,
+                                 const double* ys,
+                                 int num_samples_x,
+                                 int num_samples_y,
+                                 const float* mask,
+                                 unsigned char* patch,
+                                 double* warped_position_x,
+                                 double* warped_position_y);
 
 #ifdef __cplusplus
 }

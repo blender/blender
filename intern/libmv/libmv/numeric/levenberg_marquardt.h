@@ -31,18 +31,18 @@
 
 #include <cmath>
 
-#include "libmv/numeric/numeric.h"
-#include "libmv/numeric/function_derivative.h"
 #include "libmv/logging/logging.h"
+#include "libmv/numeric/function_derivative.h"
+#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
-template<typename Function,
-         typename Jacobian = NumericJacobian<Function>,
-         typename Solver = Eigen::PartialPivLU<
-           Matrix<typename Function::FMatrixType::RealScalar,
-                  Function::XMatrixType::RowsAtCompileTime,
-                  Function::XMatrixType::RowsAtCompileTime> > >
+template <typename Function,
+          typename Jacobian = NumericJacobian<Function>,
+          typename Solver = Eigen::PartialPivLU<
+              Matrix<typename Function::FMatrixType::RealScalar,
+                     Function::XMatrixType::RowsAtCompileTime,
+                     Function::XMatrixType::RowsAtCompileTime>>>
 class LevenbergMarquardt {
  public:
   typedef typename Function::XMatrixType::RealScalar Scalar;
@@ -50,10 +50,12 @@ class LevenbergMarquardt {
   typedef typename Function::XMatrixType Parameters;
   typedef Matrix<typename Function::FMatrixType::RealScalar,
                  Function::FMatrixType::RowsAtCompileTime,
-                 Function::XMatrixType::RowsAtCompileTime> JMatrixType;
+                 Function::XMatrixType::RowsAtCompileTime>
+      JMatrixType;
   typedef Matrix<typename JMatrixType::RealScalar,
                  JMatrixType::ColsAtCompileTime,
-                 JMatrixType::ColsAtCompileTime> AMatrixType;
+                 JMatrixType::ColsAtCompileTime>
+      AMatrixType;
 
   // TODO(keir): Some of these knobs can be derived from each other and
   // removed, instead of requiring the user to set them.
@@ -65,32 +67,35 @@ class LevenbergMarquardt {
     HIT_MAX_ITERATIONS,
   };
 
-  LevenbergMarquardt(const Function &f)
-      : f_(f), df_(f) {}
+  LevenbergMarquardt(const Function& f) : f_(f), df_(f) {}
 
   struct SolverParameters {
     SolverParameters()
-       : gradient_threshold(1e-16),
-         relative_step_threshold(1e-16),
-         error_threshold(1e-16),
-         initial_scale_factor(1e-3),
-         max_iterations(100) {}
+        : gradient_threshold(1e-16),
+          relative_step_threshold(1e-16),
+          error_threshold(1e-16),
+          initial_scale_factor(1e-3),
+          max_iterations(100) {}
     Scalar gradient_threshold;       // eps > max(J'*f(x))
     Scalar relative_step_threshold;  // eps > ||dx|| / ||x||
     Scalar error_threshold;          // eps > ||f(x)||
     Scalar initial_scale_factor;     // Initial u for solving normal equations.
-    int    max_iterations;           // Maximum number of solver iterations.
+    int max_iterations;              // Maximum number of solver iterations.
   };
 
   struct Results {
     Scalar error_magnitude;     // ||f(x)||
     Scalar gradient_magnitude;  // ||J'f(x)||
-    int    iterations;
+    int iterations;
     Status status;
   };
 
-  Status Update(const Parameters &x, const SolverParameters &params,
-                JMatrixType *J, AMatrixType *A, FVec *error, Parameters *g) {
+  Status Update(const Parameters& x,
+                const SolverParameters& params,
+                JMatrixType* J,
+                AMatrixType* A,
+                FVec* error,
+                Parameters* g) {
     *J = df_(x);
     *A = (*J).transpose() * (*J);
     *error = -f_(x);
@@ -103,13 +108,13 @@ class LevenbergMarquardt {
     return RUNNING;
   }
 
-  Results minimize(Parameters *x_and_min) {
+  Results minimize(Parameters* x_and_min) {
     SolverParameters params;
     minimize(params, x_and_min);
   }
 
-  Results minimize(const SolverParameters &params, Parameters *x_and_min) {
-    Parameters &x = *x_and_min;
+  Results minimize(const SolverParameters& params, Parameters* x_and_min) {
+    Parameters& x = *x_and_min;
     JMatrixType J;
     AMatrixType A;
     FVec error;
@@ -118,7 +123,7 @@ class LevenbergMarquardt {
     Results results;
     results.status = Update(x, params, &J, &A, &error, &g);
 
-    Scalar u = Scalar(params.initial_scale_factor*A.diagonal().maxCoeff());
+    Scalar u = Scalar(params.initial_scale_factor * A.diagonal().maxCoeff());
     Scalar v = 2;
 
     Parameters dx, x_new;
@@ -130,7 +135,8 @@ class LevenbergMarquardt {
       VLOG(3) << "u: " << u;
       VLOG(3) << "v: " << v;
 
-      AMatrixType A_augmented = A + u*AMatrixType::Identity(J.cols(), J.cols());
+      AMatrixType A_augmented =
+          A + u * AMatrixType::Identity(J.cols(), J.cols());
       Solver solver(A_augmented);
       dx = solver.solve(g);
       bool solved = (A_augmented * dx).isApprox(g);
@@ -146,14 +152,14 @@ class LevenbergMarquardt {
         // Rho is the ratio of the actual reduction in error to the reduction
         // in error that would be obtained if the problem was linear.
         // See [1] for details.
-        Scalar rho((error.squaredNorm() - f_(x_new).squaredNorm())
-                   / dx.dot(u*dx + g));
+        Scalar rho((error.squaredNorm() - f_(x_new).squaredNorm()) /
+                   dx.dot(u * dx + g));
         if (rho > 0) {
           // Accept the Gauss-Newton step because the linear model fits well.
           x = x_new;
           results.status = Update(x, params, &J, &A, &error, &g);
-          Scalar tmp = Scalar(2*rho-1);
-          u = u*std::max(1/3., 1 - (tmp*tmp*tmp));
+          Scalar tmp = Scalar(2 * rho - 1);
+          u = u * std::max(1 / 3., 1 - (tmp * tmp * tmp));
           v = 2;
           continue;
         }
@@ -174,10 +180,10 @@ class LevenbergMarquardt {
   }
 
  private:
-  const Function &f_;
+  const Function& f_;
   Jacobian df_;
 };
 
-}  // namespace mv
+}  // namespace libmv
 
 #endif  // LIBMV_NUMERIC_LEVENBERG_MARQUARDT_H

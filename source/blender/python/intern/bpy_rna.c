@@ -4598,13 +4598,12 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 #else
   {
     /* Could just do this except for 1 awkward case.
-     * PyObject_GenericGetAttr((PyObject *)self, pyname);
-     * so as to support 'bpy.data.library.load()'
-     * note, this _only_ supports static methods */
+     * `PyObject_GenericGetAttr((PyObject *)self, pyname);`
+     * so as to support `bpy.data.library.load()` */
 
     PyObject *ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
 
-    if (ret == NULL && name[0] != '_') { /* Avoid inheriting __call__ and similar. */
+    if (ret == NULL && name[0] != '_') { /* Avoid inheriting `__call__` and similar. */
       /* Since this is least common case, handle it last. */
       PointerRNA r_ptr;
       if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
@@ -9007,7 +9006,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 
 #if 0
   if (PyDict_GetItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna) == NULL) {
-    PWM_cursor_wait(0);
+    PWM_cursor_wait(false);
     PyErr_SetString(PyExc_ValueError, "unregister_class(): not a registered as a subclass");
     return NULL;
   }

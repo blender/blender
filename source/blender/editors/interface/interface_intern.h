@@ -424,8 +424,8 @@ struct PieMenuData {
   float last_pos[2];
   double duration_gesture;
   int flags;
-  /** initial event used to fire the pie menu, store here so we can query for release */
-  int event;
+  /** Initial event used to fire the pie menu, store here so we can query for release */
+  short event_type;
   float alphafac;
 };
 

@@ -33,7 +33,7 @@ void SunBeamsOperation::initExecution()
   /* convert to pixels */
   this->m_source_px[0] = this->m_data.source[0] * this->getWidth();
   this->m_source_px[1] = this->m_data.source[1] * this->getHeight();
-  this->m_ray_length_px = this->m_data.ray_length * max(this->getWidth(), this->getHeight());
+  this->m_ray_length_px = this->m_data.ray_length * MAX2(this->getWidth(), this->getHeight());
 }
 
 /**

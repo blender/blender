@@ -523,9 +523,9 @@ void MixGlareOperation::executePixelSampled(float output[4],
     inputColor1[2] = 0.0f;
   }
 
-  output[0] = mf * max(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
-  output[1] = mf * max(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
-  output[2] = mf * max(inputColor1[2] + value * (inputColor2[2] - inputColor1[2]), 0.0f);
+  output[0] = mf * MAX2(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
+  output[1] = mf * MAX2(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
+  output[2] = mf * MAX2(inputColor1[2] + value * (inputColor2[2] - inputColor1[2]), 0.0f);
   output[3] = inputColor1[3];
 
   clampIfNeeded(output);

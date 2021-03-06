@@ -10446,7 +10446,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
       }
     }
 
-    if (event->type == block->pie_data.event && !is_click_style) {
+    if (event->type == block->pie_data.event_type && !is_click_style) {
       if (event->val != KM_RELEASE) {
         ui_handle_menu_button(C, event, menu);
 
@@ -10620,7 +10620,7 @@ static int ui_handle_menus_recursive(bContext *C,
     /* root pie menus accept the key that spawned
      * them as double click to improve responsiveness */
     const bool do_recursion = (!(block->flag & UI_BLOCK_RADIAL) ||
-                               event->type != block->pie_data.event);
+                               event->type != block->pie_data.event_type);
 
     if (do_recursion) {
       if (is_parent_inside == false) {
@@ -10913,7 +10913,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
 
     /* set last pie event to allow chained pie spawning */
     if (block->flag & UI_BLOCK_RADIAL) {
-      win->last_pie_event = block->pie_data.event;
+      win->pie_event_type_last = block->pie_data.event_type;
       reset_pie = true;
     }
 
@@ -10956,7 +10956,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
     wmWindow *win = CTX_wm_window(C);
 
     if (win) {
-      win->last_pie_event = EVENT_NONE;
+      win->pie_event_type_last = EVENT_NONE;
     }
   }
 

@@ -27,9 +27,11 @@ namespace {
 
 TEST(Numeric, DynamicSizedNullspace) {
   Mat A(3, 4);
+  // clang-format off
   A << 0.76026643, 0.01799744, 0.55192142, 0.8699745,
        0.42016166, 0.97863392, 0.33711682, 0.14479271,
        0.51016811, 0.66528302, 0.54395496, 0.57794893;
+  // clang-format on
   Vec x;
   double s = Nullspace(&A, &x);
   EXPECT_NEAR(0.0, s, 1e-15);
@@ -39,9 +41,11 @@ TEST(Numeric, DynamicSizedNullspace) {
 
 TEST(Numeric, FixedSizeMatrixNullspace) {
   Mat34 A;
+  // clang-format off
   A << 0.76026643, 0.01799744, 0.55192142, 0.8699745,
        0.42016166, 0.97863392, 0.33711682, 0.14479271,
        0.51016811, 0.66528302, 0.54395496, 0.57794893;
+  // clang-format on
   Vec x;
   double s = Nullspace(&A, &x);
   EXPECT_NEAR(0.0, s, 1e-15);
@@ -51,10 +55,12 @@ TEST(Numeric, FixedSizeMatrixNullspace) {
 
 TEST(Numeric, NullspaceMatchesLapackSVD) {
   Mat43 A;
+  // clang-format off
   A << 0.76026643, 0.01799744, 0.55192142,
        0.8699745,  0.42016166, 0.97863392,
        0.33711682, 0.14479271, 0.51016811,
        0.66528302, 0.54395496, 0.57794893;
+  // clang-format on
   Vec x;
   double s = Nullspace(&A, &x);
   EXPECT_NEAR(1.0, x.norm(), 1e-15);
@@ -68,10 +74,12 @@ TEST(Numeric, NullspaceMatchesLapackSVD) {
 
 TEST(Numeric, Nullspace2) {
   Mat43 A;
+  // clang-format off
   A << 0.76026643, 0.01799744, 0.55192142,
        0.8699745,  0.42016166, 0.97863392,
        0.33711682, 0.14479271, 0.51016811,
        0.66528302, 0.54395496, 0.57794893;
+  // clang-format on
   Vec3 x1, x2;
   double s = Nullspace2(&A, &x1, &x2);
   EXPECT_NEAR(1.0, x1.norm(), 1e-15);
@@ -80,14 +88,14 @@ TEST(Numeric, Nullspace2) {
 
   EXPECT_NEAR(-0.64999717, x1(0), 1e-8);
   EXPECT_NEAR(-0.18452646, x1(1), 1e-8);
-  EXPECT_NEAR( 0.7371931,  x1(2), 1e-8);
+  EXPECT_NEAR(0.7371931, x1(2), 1e-8);
 
   if (x2(0) < 0) {
     x2 *= -1;
   }
-  EXPECT_NEAR( 0.34679618, x2(0), 1e-8);
+  EXPECT_NEAR(0.34679618, x2(0), 1e-8);
   EXPECT_NEAR(-0.93519689, x2(1), 1e-8);
-  EXPECT_NEAR( 0.07168809, x2(2), 1e-8);
+  EXPECT_NEAR(0.07168809, x2(2), 1e-8);
 }
 
 TEST(Numeric, TinyMatrixSquareTranspose) {
@@ -105,8 +113,8 @@ TEST(Numeric, NormalizeL1) {
   x << 1, 2;
   double l1 = NormalizeL1(&x);
   EXPECT_DOUBLE_EQ(3., l1);
-  EXPECT_DOUBLE_EQ(1./3., x(0));
-  EXPECT_DOUBLE_EQ(2./3., x(1));
+  EXPECT_DOUBLE_EQ(1. / 3., x(0));
+  EXPECT_DOUBLE_EQ(2. / 3., x(1));
 }
 
 TEST(Numeric, NormalizeL2) {
@@ -114,8 +122,8 @@ TEST(Numeric, NormalizeL2) {
   x << 1, 2;
   double l2 = NormalizeL2(&x);
   EXPECT_DOUBLE_EQ(sqrt(5.0), l2);
-  EXPECT_DOUBLE_EQ(1./sqrt(5.), x(0));
-  EXPECT_DOUBLE_EQ(2./sqrt(5.), x(1));
+  EXPECT_DOUBLE_EQ(1. / sqrt(5.), x(0));
+  EXPECT_DOUBLE_EQ(2. / sqrt(5.), x(1));
 }
 
 TEST(Numeric, Diag) {
@@ -130,31 +138,32 @@ TEST(Numeric, Diag) {
 
 TEST(Numeric, Determinant) {
   Mat A(2, 2);
-  A <<  1, 2,
-       -1, 3;
+  A << 1, 2, -1, 3;
   double detA = A.determinant();
   EXPECT_NEAR(5, detA, 1e-8);
 
   Mat B(4, 4);
+  // clang-format off
   B <<  0,  1,  2,  3,
         4,  5,  6,  7,
         8,  9, 10, 11,
        12, 13, 14, 15;
+  // clang-format on
   double detB = B.determinant();
   EXPECT_NEAR(0, detB, 1e-8);
 
   Mat3 C;
-  C <<  0, 1, 2,
-        3, 4, 5,
-        6, 7, 1;
+  C << 0, 1, 2, 3, 4, 5, 6, 7, 1;
   double detC = C.determinant();
   EXPECT_NEAR(21, detC, 1e-8);
 }
 
 TEST(Numeric, Inverse) {
   Mat A(2, 2), A1;
+  // clang-format off
   A <<  1, 2,
        -1, 3;
+  // clang-format on
   Mat I = A * A.inverse();
 
   EXPECT_NEAR(1, I(0, 0), 1e-8);
@@ -163,10 +172,12 @@ TEST(Numeric, Inverse) {
   EXPECT_NEAR(1, I(1, 1), 1e-8);
 
   Mat B(4, 4), B1;
+  // clang-format off
   B <<  0,  1,  2,  3,
         4,  5,  6,  7,
         8,  9,  2, 11,
        12, 13, 14,  4;
+  // clang-format on
   Mat I2 = B * B.inverse();
   EXPECT_NEAR(1, I2(0, 0), 1e-8);
   EXPECT_NEAR(0, I2(0, 1), 1e-8);
@@ -182,8 +193,10 @@ TEST(Numeric, Inverse) {
 TEST(Numeric, MeanAndVarianceAlongRows) {
   int n = 4;
   Mat points(2, n);
+  // clang-format off
   points << 0, 0, 1, 1,
             0, 2, 1, 3;
+  // clang-format on
 
   Vec mean, variance;
   MeanAndVarianceAlongRows(points, &mean, &variance);
@@ -213,15 +226,17 @@ TEST(Numeric, HStack) {
   Mat x(2, 1), y(2, 1), z(2, 2);
   x << 1, 2;
   y << 3, 4;
+  // clang-format off
   z << 1, 3,
        2, 4;
+  // clang-format on
   Vec2 xC = x, yC = y;
 
-  Mat2 xy = HStack(x,  y);
+  Mat2 xy = HStack(x, y);
   EXPECT_MATRIX_EQ(z, xy);
 
-  EXPECT_MATRIX_EQ(z, HStack(x,  y));
-  EXPECT_MATRIX_EQ(z, HStack(x,  yC));
+  EXPECT_MATRIX_EQ(z, HStack(x, y));
+  EXPECT_MATRIX_EQ(z, HStack(x, yC));
   EXPECT_MATRIX_EQ(z, HStack(xC, y));
   EXPECT_MATRIX_EQ(z, HStack(xC, yC));
 }
@@ -230,6 +245,7 @@ TEST(Numeric, HStack) {
 // resulting stacked matrices properly propagate the fixed dimensions.
 TEST(Numeric, VStack) {
   Mat x(2, 2), y(2, 2), z(4, 2);
+  // clang-format off
   x << 1, 2,
        3, 4;
   y << 10, 20,
@@ -238,13 +254,14 @@ TEST(Numeric, VStack) {
         3,  4,
        10, 20,
        30, 40;
+  // clang-format on
   Mat2 xC = x, yC = y;
 
-  Mat xy = VStack(x,  y);
+  Mat xy = VStack(x, y);
   EXPECT_MATRIX_EQ(z, xy);
 
-  EXPECT_MATRIX_EQ(z, VStack(x,  y));
-  EXPECT_MATRIX_EQ(z, VStack(x,  yC));
+  EXPECT_MATRIX_EQ(z, VStack(x, y));
+  EXPECT_MATRIX_EQ(z, VStack(x, yC));
   EXPECT_MATRIX_EQ(z, VStack(xC, y));
   EXPECT_MATRIX_EQ(z, VStack(xC, yC));
 }
@@ -293,17 +310,21 @@ TEST(Numeric, CrossProductMatrix) {
 TEST(Numeric, MatrixColumn) {
   Mat A2(2, 3);
   Vec2 v2;
+  // clang-format off
   A2 << 1, 2, 3,
         4, 5, 6;
+  // clang-format on
   MatrixColumn(A2, 1, &v2);
   EXPECT_EQ(2, v2(0));
   EXPECT_EQ(5, v2(1));
 
   Mat A3(3, 3);
   Vec3 v3;
+  // clang-format off
   A3 << 1, 2, 3,
         4, 5, 6,
         7, 8, 9;
+  // clang-format on
   MatrixColumn(A3, 1, &v3);
   EXPECT_EQ(2, v3(0));
   EXPECT_EQ(5, v3(1));
@@ -311,14 +332,16 @@ TEST(Numeric, MatrixColumn) {
 
   Mat A4(4, 3);
   Vec4 v4;
+  // clang-format off
   A4 <<  1,  2,  3,
          4,  5,  6,
          7,  8,  9,
         10, 11, 12;
+  // clang-format on
   MatrixColumn(A4, 1, &v4);
-  EXPECT_EQ( 2, v4(0));
-  EXPECT_EQ( 5, v4(1));
-  EXPECT_EQ( 8, v4(2));
+  EXPECT_EQ(2, v4(0));
+  EXPECT_EQ(5, v4(1));
+  EXPECT_EQ(8, v4(2));
   EXPECT_EQ(11, v4(3));
 }
 
@@ -337,7 +360,8 @@ TEST(Numeric, Mat3MatProduct) {
 
 // This gives a compile error.
 TEST(Numeric, Vec3Negative) {
-  Vec3 y; y << 1, 2, 3;
+  Vec3 y;
+  y << 1, 2, 3;
   Vec3 x = -y;
   EXPECT_EQ(-1, x(0));
   EXPECT_EQ(-2, x(1));
@@ -357,19 +381,23 @@ TEST(Numeric, Vec3VecInteroperability) {
 // This segfaults inside lapack.
 TEST(Numeric, DeterminantLU7) {
   Mat A(5, 5);
+  // clang-format off
   A <<  1, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 1;
+  // clang-format on
   EXPECT_NEAR(1, A.determinant(), 1e-8);
 }
 
 // This segfaults inside lapack.
 TEST(Numeric, DeterminantLU) {
   Mat A(2, 2);
+  // clang-format off
   A <<  1, 2,
        -1, 3;
+  // clang-format on
   EXPECT_NEAR(5, A.determinant(), 1e-8);
 }
 
@@ -377,19 +405,24 @@ TEST(Numeric, DeterminantLU) {
 // Keir: Not with eigen2!
 TEST(Numeric, InplaceProduct) {
   Mat2 K, S;
+  // clang-format off
   K << 1, 0,
        0, 1;
   S << 1, 0,
        0, 1;
   K = K * S;
+  // clang-format on
   EXPECT_MATRIX_NEAR(Mat2::Identity(), K, 1e-8);
 }
 
 TEST(Numeric, ExtractColumns) {
   Mat2X A(2, 5);
+  // clang-format off
   A << 1, 2, 3, 4, 5,
        6, 7, 8, 9, 10;
-  Vec2i columns; columns << 0, 2;
+  // clang-format on
+  Vec2i columns;
+  columns << 0, 2;
   Mat2X extracted = ExtractColumns(A, columns);
   EXPECT_NEAR(1, extracted(0, 0), 1e-15);
   EXPECT_NEAR(3, extracted(0, 1), 1e-15);
@@ -418,21 +451,22 @@ TEST(Numeric, RotationRodrigues) {
 
 TEST(Numeric, LookAt) {
   // Simple orthogonality check.
-  Vec3 e; e << 1, 2, 3;
+  Vec3 e;
+  e << 1, 2, 3;
   Mat3 R = LookAt(e), I = Mat3::Identity();
-  Mat3 RRT = R*R.transpose();
-  Mat3 RTR = R.transpose()*R;
+  Mat3 RRT = R * R.transpose();
+  Mat3 RTR = R.transpose() * R;
 
   EXPECT_MATRIX_NEAR(I, RRT, 1e-15);
   EXPECT_MATRIX_NEAR(I, RTR, 1e-15);
 }
 
 TEST(Numeric, Reshape) {
-  Vec4 x; x << 1, 2, 3, 4;
+  Vec4 x;
+  x << 1, 2, 3, 4;
   Mat2 M, M_expected;
   reshape(x, 2, 2, &M);
-  M_expected << 1, 2,
-                3, 4;
+  M_expected << 1, 2, 3, 4;
   EXPECT_MATRIX_NEAR(M_expected, M, 1e-15);
 }
 

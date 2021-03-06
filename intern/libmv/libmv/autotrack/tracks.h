@@ -23,8 +23,8 @@
 #ifndef LIBMV_AUTOTRACK_TRACKS_H_
 #define LIBMV_AUTOTRACK_TRACKS_H_
 
-#include "libmv/base/vector.h"
 #include "libmv/autotrack/marker.h"
+#include "libmv/base/vector.h"
 
 namespace mv {
 
@@ -33,8 +33,8 @@ using libmv::vector;
 // The Tracks container stores correspondences between frames.
 class Tracks {
  public:
-  Tracks() { }
-  Tracks(const Tracks &other);
+  Tracks() {}
+  Tracks(const Tracks& other);
 
   // Create a tracks object with markers already initialized. Copies markers.
   explicit Tracks(const vector<Marker>& markers);
@@ -51,8 +51,10 @@ class Tracks {
   //
   // This is not the same as the union of the markers in frame1 and
   // frame2; each marker is for a track that appears in both images.
-  void GetMarkersForTracksInBothImages(int clip1, int frame1,
-                                       int clip2, int frame2,
+  void GetMarkersForTracksInBothImages(int clip1,
+                                       int frame1,
+                                       int clip2,
+                                       int frame2,
                                        vector<Marker>* markers) const;
 
   void AddMarker(const Marker& marker);

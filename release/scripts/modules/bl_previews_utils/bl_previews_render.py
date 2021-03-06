@@ -283,7 +283,8 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
         return cos
 
     def preview_render_do(render_context, item_container, item_name, objects, offset_matrix=None):
-        scene = bpy.data.scenes[render_context.scene, None]
+        # Unused.
+        # scene = bpy.data.scenes[render_context.scene, None]
         if objects is not None:
             camera = bpy.data.objects[render_context.camera, None]
             light = bpy.data.objects[render_context.light, None] if render_context.light is not None else None

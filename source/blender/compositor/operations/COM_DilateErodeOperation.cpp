@@ -41,7 +41,7 @@ void DilateErodeThresholdOperation::initExecution()
   }
   else {
     if (this->m_inset * 2 > this->m_distance) {
-      this->m_scope = max(this->m_inset * 2 - this->m_distance, this->m_distance);
+      this->m_scope = MAX2(this->m_inset * 2 - this->m_distance, this->m_distance);
     }
     else {
       this->m_scope = this->m_distance;
@@ -71,10 +71,10 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   rcti *rect = inputBuffer->getRect();
-  const int minx = max(x - this->m_scope, rect->xmin);
-  const int miny = max(y - this->m_scope, rect->ymin);
-  const int maxx = min(x + this->m_scope, rect->xmax);
-  const int maxy = min(y + this->m_scope, rect->ymax);
+  const int minx = MAX2(x - this->m_scope, rect->xmin);
+  const int miny = MAX2(y - this->m_scope, rect->ymin);
+  const int maxx = MIN2(x + this->m_scope, rect->xmax);
+  const int maxy = MIN2(y + this->m_scope, rect->ymax);
   const int bufferWidth = BLI_rcti_size_x(rect);
   int offset;
 
@@ -87,7 +87,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
         if (buffer[offset] < sw) {
           const float dx = xi - x;
           const float dis = dx * dx + dy * dy;
-          mindist = min(mindist, dis);
+          mindist = MIN2(mindist, dis);
         }
         offset++;
       }
@@ -102,7 +102,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
         if (buffer[offset] > sw) {
           const float dx = xi - x;
           const float dis = dx * dx + dy * dy;
-          mindist = min(mindist, dis);
+          mindist = MIN2(mindist, dis);
         }
         offset++;
       }
@@ -191,10 +191,10 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   rcti *rect = inputBuffer->getRect();
-  const int minx = max(x - this->m_scope, rect->xmin);
-  const int miny = max(y - this->m_scope, rect->ymin);
-  const int maxx = min(x + this->m_scope, rect->xmax);
-  const int maxy = min(y + this->m_scope, rect->ymax);
+  const int minx = MAX2(x - this->m_scope, rect->xmin);
+  const int miny = MAX2(y - this->m_scope, rect->ymin);
+  const int maxx = MIN2(x + this->m_scope, rect->xmax);
+  const int maxy = MIN2(y + this->m_scope, rect->ymax);
   const int bufferWidth = BLI_rcti_size_x(rect);
   int offset;
 
@@ -207,7 +207,7 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
       const float dx = xi - x;
       const float dis = dx * dx + dy * dy;
       if (dis <= mindist) {
-        value = max(buffer[offset], value);
+        value = MAX2(buffer[offset], value);
       }
       offset++;
     }
@@ -238,8 +238,8 @@ void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                             MemoryBuffer *outputMemoryBuffer,
                                             cl_mem clOutputBuffer,
                                             MemoryBuffer **inputMemoryBuffers,
-                                            list<cl_mem> *clMemToCleanUp,
-                                            list<cl_kernel> * /*clKernelsToCleanUp*/)
+                                            std::list<cl_mem> *clMemToCleanUp,
+                                            std::list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
   cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", nullptr);
 
@@ -270,10 +270,10 @@ void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *d
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   rcti *rect = inputBuffer->getRect();
-  const int minx = max(x - this->m_scope, rect->xmin);
-  const int miny = max(y - this->m_scope, rect->ymin);
-  const int maxx = min(x + this->m_scope, rect->xmax);
-  const int maxy = min(y + this->m_scope, rect->ymax);
+  const int minx = MAX2(x - this->m_scope, rect->xmin);
+  const int miny = MAX2(y - this->m_scope, rect->ymin);
+  const int maxx = MIN2(x + this->m_scope, rect->xmax);
+  const int maxy = MIN2(y + this->m_scope, rect->ymax);
   const int bufferWidth = BLI_rcti_size_x(rect);
   int offset;
 
@@ -286,7 +286,7 @@ void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *d
       const float dx = xi - x;
       const float dis = dx * dx + dy * dy;
       if (dis <= mindist) {
-        value = min(buffer[offset], value);
+        value = MIN2(buffer[offset], value);
       }
       offset++;
     }
@@ -298,8 +298,8 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                            MemoryBuffer *outputMemoryBuffer,
                                            cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers,
-                                           list<cl_mem> *clMemToCleanUp,
-                                           list<cl_kernel> * /*clKernelsToCleanUp*/)
+                                           std::list<cl_mem> *clMemToCleanUp,
+                                           std::list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
   cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", nullptr);
 
@@ -360,10 +360,10 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
   int half_window = this->m_iterations;
   int window = half_window * 2 + 1;
 
-  int xmin = max(0, rect->xmin - half_window);
-  int ymin = max(0, rect->ymin - half_window);
-  int xmax = min(width, rect->xmax + half_window);
-  int ymax = min(height, rect->ymax + half_window);
+  int xmin = MAX2(0, rect->xmin - half_window);
+  int ymin = MAX2(0, rect->ymin - half_window);
+  int xmax = MIN2(width, rect->xmax + half_window);
+  int ymax = MIN2(height, rect->ymax + half_window);
 
   int bwidth = rect->xmax - rect->xmin;
   int bheight = rect->ymax - rect->ymin;
@@ -378,7 +378,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
   // single row or column of input values, padded with FLT_MAX's to
   // simplify the logic.
   float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
-  float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window),
+  float *buf = (float *)MEM_mallocN(sizeof(float) * (MAX2(bwidth, bheight) + 5 * half_window),
                                     "dilate erode buf");
 
   // The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
@@ -396,13 +396,13 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 
       temp[window - 1] = buf[start];
       for (x = 1; x < window; x++) {
-        temp[window - 1 - x] = max(temp[window - x], buf[start - x]);
-        temp[window - 1 + x] = max(temp[window + x - 2], buf[start + x]);
+        temp[window - 1 - x] = MAX2(temp[window - x], buf[start - x]);
+        temp[window - 1 + x] = MAX2(temp[window + x - 2], buf[start + x]);
       }
 
       start = half_window + (i - 1) * window + 1;
-      for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-        rectf[bwidth * (y - ymin) + (start + x)] = max(temp[x], temp[x + window - 1]);
+      for (x = -MIN2(0, start); x < window - MAX2(0, start + window - bwidth); x++) {
+        rectf[bwidth * (y - ymin) + (start + x)] = MAX2(temp[x], temp[x + window - 1]);
       }
     }
   }
@@ -421,13 +421,14 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 
       temp[window - 1] = buf[start];
       for (y = 1; y < window; y++) {
-        temp[window - 1 - y] = max(temp[window - y], buf[start - y]);
-        temp[window - 1 + y] = max(temp[window + y - 2], buf[start + y]);
+        temp[window - 1 - y] = MAX2(temp[window - y], buf[start - y]);
+        temp[window - 1 + y] = MAX2(temp[window + y - 2], buf[start + y]);
       }
 
       start = half_window + (i - 1) * window + 1;
-      for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-        rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = max(temp[y], temp[y + window - 1]);
+      for (y = -MIN2(0, start); y < window - MAX2(0, start + window - bheight); y++) {
+        rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = MAX2(temp[y],
+                                                                     temp[y + window - 1]);
       }
     }
   }
@@ -489,10 +490,10 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
   int half_window = this->m_iterations;
   int window = half_window * 2 + 1;
 
-  int xmin = max(0, rect->xmin - half_window);
-  int ymin = max(0, rect->ymin - half_window);
-  int xmax = min(width, rect->xmax + half_window);
-  int ymax = min(height, rect->ymax + half_window);
+  int xmin = MAX2(0, rect->xmin - half_window);
+  int ymin = MAX2(0, rect->ymin - half_window);
+  int xmax = MIN2(width, rect->xmax + half_window);
+  int ymax = MIN2(height, rect->ymax + half_window);
 
   int bwidth = rect->xmax - rect->xmin;
   int bheight = rect->ymax - rect->ymin;
@@ -507,7 +508,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
   // single row or column of input values, padded with FLT_MAX's to
   // simplify the logic.
   float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
-  float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window),
+  float *buf = (float *)MEM_mallocN(sizeof(float) * (MAX2(bwidth, bheight) + 5 * half_window),
                                     "dilate erode buf");
 
   // The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
@@ -525,13 +526,13 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
       temp[window - 1] = buf[start];
       for (x = 1; x < window; x++) {
-        temp[window - 1 - x] = min(temp[window - x], buf[start - x]);
-        temp[window - 1 + x] = min(temp[window + x - 2], buf[start + x]);
+        temp[window - 1 - x] = MIN2(temp[window - x], buf[start - x]);
+        temp[window - 1 + x] = MIN2(temp[window + x - 2], buf[start + x]);
       }
 
       start = half_window + (i - 1) * window + 1;
-      for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-        rectf[bwidth * (y - ymin) + (start + x)] = min(temp[x], temp[x + window - 1]);
+      for (x = -MIN2(0, start); x < window - MAX2(0, start + window - bwidth); x++) {
+        rectf[bwidth * (y - ymin) + (start + x)] = MIN2(temp[x], temp[x + window - 1]);
       }
     }
   }
@@ -550,13 +551,14 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
       temp[window - 1] = buf[start];
       for (y = 1; y < window; y++) {
-        temp[window - 1 - y] = min(temp[window - y], buf[start - y]);
-        temp[window - 1 + y] = min(temp[window + y - 2], buf[start + y]);
+        temp[window - 1 - y] = MIN2(temp[window - y], buf[start - y]);
+        temp[window - 1 + y] = MIN2(temp[window + y - 2], buf[start + y]);
       }
 
       start = half_window + (i - 1) * window + 1;
-      for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-        rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = min(temp[y], temp[y + window - 1]);
+      for (y = -MIN2(0, start); y < window - MAX2(0, start + window - bheight); y++) {
+        rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = MIN2(temp[y],
+                                                                     temp[y + window - 1]);
       }
     }
   }

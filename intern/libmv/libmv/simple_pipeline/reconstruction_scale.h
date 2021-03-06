@@ -29,7 +29,7 @@ namespace libmv {
     Scale euclidean reconstruction in a way variance of
     camera centers equals to one.
  */
-void EuclideanScaleToUnity(EuclideanReconstruction *reconstruction);
+void EuclideanScaleToUnity(EuclideanReconstruction* reconstruction);
 
 }  // namespace libmv
 

@@ -24,8 +24,8 @@ CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
 
 void CPUDevice::execute(WorkPackage *work)
 {
-  const unsigned int chunkNumber = work->getChunkNumber();
-  ExecutionGroup *executionGroup = work->getExecutionGroup();
+  const unsigned int chunkNumber = work->chunk_number;
+  ExecutionGroup *executionGroup = work->execution_group;
   rcti rect;
 
   executionGroup->determineChunkRect(&rect, chunkNumber);

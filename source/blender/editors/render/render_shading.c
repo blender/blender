@@ -1224,7 +1224,7 @@ static int light_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
   WM_jobs_start(wm, wm_job);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   return OPERATOR_RUNNING_MODAL;
 }

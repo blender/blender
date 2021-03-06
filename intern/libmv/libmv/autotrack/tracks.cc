@@ -23,8 +23,8 @@
 #include "libmv/autotrack/tracks.h"
 
 #include <algorithm>
-#include <vector>
 #include <iterator>
+#include <vector>
 
 #include "libmv/numeric/numeric.h"
 
@@ -34,12 +34,12 @@ Tracks::Tracks(const Tracks& other) {
   markers_ = other.markers_;
 }
 
-Tracks::Tracks(const vector<Marker>& markers) : markers_(markers) {}
+Tracks::Tracks(const vector<Marker>& markers) : markers_(markers) {
+}
 
 bool Tracks::GetMarker(int clip, int frame, int track, Marker* marker) const {
   for (int i = 0; i < markers_.size(); ++i) {
-    if (markers_[i].clip  == clip &&
-        markers_[i].frame == frame &&
+    if (markers_[i].clip == clip && markers_[i].frame == frame &&
         markers_[i].track == track) {
       *marker = markers_[i];
       return true;
@@ -60,8 +60,7 @@ void Tracks::GetMarkersForTrackInClip(int clip,
                                       int track,
                                       vector<Marker>* markers) const {
   for (int i = 0; i < markers_.size(); ++i) {
-    if (clip  == markers_[i].clip &&
-        track == markers_[i].track) {
+    if (clip == markers_[i].clip && track == markers_[i].track) {
       markers->push_back(markers_[i]);
     }
   }
@@ -71,15 +70,16 @@ void Tracks::GetMarkersInFrame(int clip,
                                int frame,
                                vector<Marker>* markers) const {
   for (int i = 0; i < markers_.size(); ++i) {
-    if (markers_[i].clip  == clip &&
-        markers_[i].frame == frame) {
+    if (markers_[i].clip == clip && markers_[i].frame == frame) {
       markers->push_back(markers_[i]);
     }
   }
 }
 
-void Tracks::GetMarkersForTracksInBothImages(int clip1, int frame1,
-                                             int clip2, int frame2,
+void Tracks::GetMarkersForTracksInBothImages(int clip1,
+                                             int frame1,
+                                             int clip2,
+                                             int frame2,
                                              vector<Marker>* markers) const {
   std::vector<int> image1_tracks;
   std::vector<int> image2_tracks;
@@ -99,20 +99,19 @@ void Tracks::GetMarkersForTracksInBothImages(int clip1, int frame1,
   std::sort(image1_tracks.begin(), image1_tracks.end());
   std::sort(image2_tracks.begin(), image2_tracks.end());
   std::vector<int> intersection;
-  std::set_intersection(image1_tracks.begin(), image1_tracks.end(),
-                        image2_tracks.begin(), image2_tracks.end(),
+  std::set_intersection(image1_tracks.begin(),
+                        image1_tracks.end(),
+                        image2_tracks.begin(),
+                        image2_tracks.end(),
                         std::back_inserter(intersection));
 
   // Scan through and get the relevant tracks from the two images.
   for (int i = 0; i < markers_.size(); ++i) {
     // Save markers that are in either frame and are in our candidate set.
-    if (((markers_[i].clip  == clip1 &&
-          markers_[i].frame == frame1) ||
-         (markers_[i].clip  == clip2 &&
-          markers_[i].frame == frame2)) &&
-         std::binary_search(intersection.begin(),
-                            intersection.end(),
-                            markers_[i].track)) {
+    if (((markers_[i].clip == clip1 && markers_[i].frame == frame1) ||
+         (markers_[i].clip == clip2 && markers_[i].frame == frame2)) &&
+        std::binary_search(
+            intersection.begin(), intersection.end(), markers_[i].track)) {
       markers->push_back(markers_[i]);
     }
   }
@@ -122,8 +121,7 @@ void Tracks::AddMarker(const Marker& marker) {
   // TODO(keir): This is quadratic for repeated insertions. Fix this by adding
   // a smarter data structure like a set<>.
   for (int i = 0; i < markers_.size(); ++i) {
-    if (markers_[i].clip  == marker.clip &&
-        markers_[i].frame == marker.frame &&
+    if (markers_[i].clip == marker.clip && markers_[i].frame == marker.frame &&
         markers_[i].track == marker.track) {
       markers_[i] = marker;
       return;
@@ -139,8 +137,7 @@ void Tracks::SetMarkers(vector<Marker>* markers) {
 bool Tracks::RemoveMarker(int clip, int frame, int track) {
   int size = markers_.size();
   for (int i = 0; i < markers_.size(); ++i) {
-    if (markers_[i].clip  == clip &&
-        markers_[i].frame == frame &&
+    if (markers_[i].clip == clip && markers_[i].frame == frame &&
         markers_[i].track == track) {
       markers_[i] = markers_[size - 1];
       markers_.resize(size - 1);

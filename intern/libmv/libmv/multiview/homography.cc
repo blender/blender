@@ -26,7 +26,7 @@
 #include "libmv/multiview/homography_parameterization.h"
 
 namespace libmv {
-/** 2D Homography transformation estimation in the case that points are in 
+/** 2D Homography transformation estimation in the case that points are in
  * euclidean coordinates.
  *
  * x = H y
@@ -44,10 +44,7 @@ namespace libmv {
  * (-x2*a+x1*d)*y1 + (-x2*b+x1*e)*y2 + -x2*c+x1*f  |0|
  */
 static bool Homography2DFromCorrespondencesLinearEuc(
-    const Mat &x1,
-    const Mat &x2,
-    Mat3 *H,
-    double expected_precision) {
+    const Mat& x1, const Mat& x2, Mat3* H, double expected_precision) {
   assert(2 == x1.rows());
   assert(4 <= x1.cols());
   assert(x1.rows() == x2.rows());
@@ -58,27 +55,27 @@ static bool Homography2DFromCorrespondencesLinearEuc(
   Mat b = Mat::Zero(n * 3, 1);
   for (int i = 0; i < n; ++i) {
     int j = 3 * i;
-    L(j, 0) =  x1(0, i);             // a
-    L(j, 1) =  x1(1, i);             // b
-    L(j, 2) =  1.0;                  // c
+    L(j, 0) = x1(0, i);              // a
+    L(j, 1) = x1(1, i);              // b
+    L(j, 2) = 1.0;                   // c
     L(j, 6) = -x2(0, i) * x1(0, i);  // g
     L(j, 7) = -x2(0, i) * x1(1, i);  // h
-    b(j, 0) =  x2(0, i);             // i
+    b(j, 0) = x2(0, i);              // i
 
     ++j;
-    L(j, 3) =  x1(0, i);             // d
-    L(j, 4) =  x1(1, i);             // e
-    L(j, 5) =  1.0;                  // f
+    L(j, 3) = x1(0, i);              // d
+    L(j, 4) = x1(1, i);              // e
+    L(j, 5) = 1.0;                   // f
     L(j, 6) = -x2(1, i) * x1(0, i);  // g
     L(j, 7) = -x2(1, i) * x1(1, i);  // h
-    b(j, 0) =  x2(1, i);             // i
+    b(j, 0) = x2(1, i);              // i
 
     // This ensures better stability
     // TODO(julien) make a lite version without this 3rd set
     ++j;
-    L(j, 0) =  x2(1, i) * x1(0, i);  // a
-    L(j, 1) =  x2(1, i) * x1(1, i);  // b
-    L(j, 2) =  x2(1, i);             // c
+    L(j, 0) = x2(1, i) * x1(0, i);   // a
+    L(j, 1) = x2(1, i) * x1(1, i);   // b
+    L(j, 2) = x2(1, i);              // c
     L(j, 3) = -x2(0, i) * x1(0, i);  // d
     L(j, 4) = -x2(0, i) * x1(1, i);  // e
     L(j, 5) = -x2(0, i);             // f
@@ -86,14 +83,15 @@ static bool Homography2DFromCorrespondencesLinearEuc(
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
   Homography2DNormalizedParameterization<double>::To(h, H);
-  if ((L * h).isApprox(b, expected_precision))  {
+  if ((L * h).isApprox(b, expected_precision)) {
     return true;
   } else {
     return false;
   }
 }
 
-/** 2D Homography transformation estimation in the case that points are in 
+// clang-format off
+/** 2D Homography transformation estimation in the case that points are in
  * homogeneous coordinates.
  *
  * | 0 -x3  x2|   |a b c|   |y1|   -x3*d+x2*g -x3*e+x2*h -x3*f+x2*1    |y1|   (-x3*d+x2*g)*y1 (-x3*e+x2*h)*y2 (-x3*f+x2*1)*y3   |0|
@@ -101,13 +99,14 @@ static bool Homography2DFromCorrespondencesLinearEuc(
  * |-x2  x1  0|   |g h 1|   |y3|   -x2*a+x1*d -x2*b+x1*e -x2*c+x1*f    |y3|   (-x2*a+x1*d)*y1 (-x2*b+x1*e)*y2 (-x2*c+x1*f)*y3   |0|
  * X = |a b c d e f g h|^t
  */
-bool Homography2DFromCorrespondencesLinear(const Mat &x1,
-                                           const Mat &x2,
-                                           Mat3 *H,
+// clang-format on
+bool Homography2DFromCorrespondencesLinear(const Mat& x1,
+                                           const Mat& x2,
+                                           Mat3* H,
                                            double expected_precision) {
   if (x1.rows() == 2) {
-    return Homography2DFromCorrespondencesLinearEuc(x1, x2, H,
-                                                    expected_precision);
+    return Homography2DFromCorrespondencesLinearEuc(
+        x1, x2, H, expected_precision);
   }
   assert(3 == x1.rows());
   assert(4 <= x1.cols());
@@ -122,33 +121,33 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
   Mat b = Mat::Zero(n * 3, 1);
   for (int i = 0; i < n; ++i) {
     int j = 3 * i;
-    L(j, 0) =  x2(w, i) * x1(x, i);  // a
-    L(j, 1) =  x2(w, i) * x1(y, i);  // b
-    L(j, 2) =  x2(w, i) * x1(w, i);  // c
+    L(j, 0) = x2(w, i) * x1(x, i);   // a
+    L(j, 1) = x2(w, i) * x1(y, i);   // b
+    L(j, 2) = x2(w, i) * x1(w, i);   // c
     L(j, 6) = -x2(x, i) * x1(x, i);  // g
     L(j, 7) = -x2(x, i) * x1(y, i);  // h
-    b(j, 0) =  x2(x, i) * x1(w, i);
+    b(j, 0) = x2(x, i) * x1(w, i);
 
     ++j;
-    L(j, 3) =  x2(w, i) * x1(x, i);  // d
-    L(j, 4) =  x2(w, i) * x1(y, i);  // e
-    L(j, 5) =  x2(w, i) * x1(w, i);  // f
+    L(j, 3) = x2(w, i) * x1(x, i);   // d
+    L(j, 4) = x2(w, i) * x1(y, i);   // e
+    L(j, 5) = x2(w, i) * x1(w, i);   // f
     L(j, 6) = -x2(y, i) * x1(x, i);  // g
     L(j, 7) = -x2(y, i) * x1(y, i);  // h
-    b(j, 0) =  x2(y, i) * x1(w, i);
+    b(j, 0) = x2(y, i) * x1(w, i);
 
     // This ensures better stability
     ++j;
-    L(j, 0) =  x2(y, i) * x1(x, i);  // a
-    L(j, 1) =  x2(y, i) * x1(y, i);  // b
-    L(j, 2) =  x2(y, i) * x1(w, i);  // c
+    L(j, 0) = x2(y, i) * x1(x, i);   // a
+    L(j, 1) = x2(y, i) * x1(y, i);   // b
+    L(j, 2) = x2(y, i) * x1(w, i);   // c
     L(j, 3) = -x2(x, i) * x1(x, i);  // d
     L(j, 4) = -x2(x, i) * x1(y, i);  // e
     L(j, 5) = -x2(x, i) * x1(w, i);  // f
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
-  if ((L * h).isApprox(b, expected_precision))  {
+  if ((L * h).isApprox(b, expected_precision)) {
     Homography2DNormalizedParameterization<double>::To(h, H);
     return true;
   } else {
@@ -158,32 +157,30 @@ bool Homography2DFromCorrespondencesLinear(const Mat &x1,
 
 // Default settings for homography estimation which should be suitable
 // for a wide range of use cases.
-EstimateHomographyOptions::EstimateHomographyOptions(void) :
-    use_normalization(true),
-    max_num_iterations(50),
-    expected_average_symmetric_distance(1e-16) {
+EstimateHomographyOptions::EstimateHomographyOptions(void)
+    : use_normalization(true),
+      max_num_iterations(50),
+      expected_average_symmetric_distance(1e-16) {
 }
 
 namespace {
-void GetNormalizedPoints(const Mat &original_points,
-                         Mat *normalized_points,
-                         Mat3 *normalization_matrix) {
+void GetNormalizedPoints(const Mat& original_points,
+                         Mat* normalized_points,
+                         Mat3* normalization_matrix) {
   IsotropicPreconditionerFromPoints(original_points, normalization_matrix);
-  ApplyTransformationToPoints(original_points,
-                              *normalization_matrix,
-                              normalized_points);
+  ApplyTransformationToPoints(
+      original_points, *normalization_matrix, normalized_points);
 }
 
 // Cost functor which computes symmetric geometric distance
 // used for homography matrix refinement.
 class HomographySymmetricGeometricCostFunctor {
  public:
-  HomographySymmetricGeometricCostFunctor(const Vec2 &x,
-                                          const Vec2 &y)
-      : x_(x), y_(y) { }
+  HomographySymmetricGeometricCostFunctor(const Vec2& x, const Vec2& y)
+      : x_(x), y_(y) {}
 
-  template<typename T>
-  bool operator()(const T *homography_parameters, T *residuals) const {
+  template <typename T>
+  bool operator()(const T* homography_parameters, T* residuals) const {
     typedef Eigen::Matrix<T, 3, 3> Mat3;
     typedef Eigen::Matrix<T, 3, 1> Vec3;
 
@@ -221,9 +218,10 @@ class HomographySymmetricGeometricCostFunctor {
 // average value.
 class TerminationCheckingCallback : public ceres::IterationCallback {
  public:
-  TerminationCheckingCallback(const Mat &x1, const Mat &x2,
-                              const EstimateHomographyOptions &options,
-                              Mat3 *H)
+  TerminationCheckingCallback(const Mat& x1,
+                              const Mat& x2,
+                              const EstimateHomographyOptions& options,
+                              Mat3* H)
       : options_(options), x1_(x1), x2_(x2), H_(H) {}
 
   virtual ceres::CallbackReturnType operator()(
@@ -236,9 +234,8 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
     // Calculate average of symmetric geometric distance.
     double average_distance = 0.0;
     for (int i = 0; i < x1_.cols(); i++) {
-      average_distance = SymmetricGeometricDistance(*H_,
-                                                    x1_.col(i),
-                                                    x2_.col(i));
+      average_distance =
+          SymmetricGeometricDistance(*H_, x1_.col(i), x2_.col(i));
     }
     average_distance /= x1_.cols();
 
@@ -250,10 +247,10 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
   }
 
  private:
-  const EstimateHomographyOptions &options_;
-  const Mat &x1_;
-  const Mat &x2_;
-  Mat3 *H_;
+  const EstimateHomographyOptions& options_;
+  const Mat& x1_;
+  const Mat& x2_;
+  Mat3* H_;
 };
 }  // namespace
 
@@ -261,10 +258,10 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
  * euclidean coordinates.
  */
 bool EstimateHomography2DFromCorrespondences(
-    const Mat &x1,
-    const Mat &x2,
-    const EstimateHomographyOptions &options,
-    Mat3 *H) {
+    const Mat& x1,
+    const Mat& x2,
+    const EstimateHomographyOptions& options,
+    Mat3* H) {
   // TODO(sergey): Support homogenous coordinates, not just euclidean.
 
   assert(2 == x1.rows());
@@ -272,8 +269,7 @@ bool EstimateHomography2DFromCorrespondences(
   assert(x1.rows() == x2.rows());
   assert(x1.cols() == x2.cols());
 
-  Mat3 T1 = Mat3::Identity(),
-       T2 = Mat3::Identity();
+  Mat3 T1 = Mat3::Identity(), T2 = Mat3::Identity();
 
   // Step 1: Algebraic homography estimation.
   Mat x1_normalized, x2_normalized;
@@ -300,16 +296,15 @@ bool EstimateHomography2DFromCorrespondences(
   // Step 2: Refine matrix using Ceres minimizer.
   ceres::Problem problem;
   for (int i = 0; i < x1.cols(); i++) {
-    HomographySymmetricGeometricCostFunctor
-        *homography_symmetric_geometric_cost_function =
-            new HomographySymmetricGeometricCostFunctor(x1.col(i),
-                                                        x2.col(i));
+    HomographySymmetricGeometricCostFunctor*
+        homography_symmetric_geometric_cost_function =
+            new HomographySymmetricGeometricCostFunctor(x1.col(i), x2.col(i));
 
     problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<
-            HomographySymmetricGeometricCostFunctor,
-            4,  // num_residuals
-            9>(homography_symmetric_geometric_cost_function),
+        new ceres::AutoDiffCostFunction<HomographySymmetricGeometricCostFunctor,
+                                        4,  // num_residuals
+                                        9>(
+            homography_symmetric_geometric_cost_function),
         NULL,
         H->data());
   }
@@ -335,15 +330,16 @@ bool EstimateHomography2DFromCorrespondences(
   return summary.IsSolutionUsable();
 }
 
+// clang-format off
 /**
  * x2 ~ A * x1
  * x2^t * Hi * A *x1 = 0
- * H1 =              H2 =               H3 = 
+ * H1 =              H2 =               H3 =
  * | 0 0 0 1|     |-x2w|  |0 0 0 0|      |  0 |  | 0 0 1 0|     |-x2z|
  * | 0 0 0 0|  -> |  0 |  |0 0 1 0|   -> |-x2z|  | 0 0 0 0|  -> |  0 |
  * | 0 0 0 0|     |  0 |  |0-1 0 0|      | x2y|  |-1 0 0 0|     | x2x|
  * |-1 0 0 0|     | x2x|  |0 0 0 0|      |  0 |  | 0 0 0 0|     |  0 |
- * H4 =              H5 =               H6 = 
+ * H4 =              H5 =               H6 =
  *  |0 0 0 0|     |  0 |  | 0 1 0 0|     |-x2y|   |0 0 0 0|     |  0 |
  *  |0 0 0 1|  -> |-x2w|  |-1 0 0 0|  -> | x2x|   |0 0 0 0|  -> |  0 |
  *  |0 0 0 0|     |  0 |  | 0 0 0 0|     |  0 |   |0 0 0 1|     |-x2w|
@@ -361,10 +357,11 @@ bool EstimateHomography2DFromCorrespondences(
  * x2^t * H6 * A *x1 = (-x2w*i +x2z*m )*x1x + (-x2w*j +x2z*n )*x1y + (-x2w*k +x2z*o )*x1z + (-x2w*l +x2z*1 )*x1w = 0
  *
  * X = |a b c d e f g h i j k l m n o|^t
-*/
-bool Homography3DFromCorrespondencesLinear(const Mat &x1,
-                                           const Mat &x2,
-                                           Mat4 *H,
+ */
+// clang-format on
+bool Homography3DFromCorrespondencesLinear(const Mat& x1,
+                                           const Mat& x2,
+                                           Mat4* H,
                                            double expected_precision) {
   assert(4 == x1.rows());
   assert(5 <= x1.cols());
@@ -379,68 +376,68 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
   Mat b = Mat::Zero(n * 6, 1);
   for (int i = 0; i < n; ++i) {
     int j = 6 * i;
-    L(j,  0) = -x2(w, i) * x1(x, i);  // a
-    L(j,  1) = -x2(w, i) * x1(y, i);  // b
-    L(j,  2) = -x2(w, i) * x1(z, i);  // c
-    L(j,  3) = -x2(w, i) * x1(w, i);  // d
-    L(j, 12) =  x2(x, i) * x1(x, i);  // m
-    L(j, 13) =  x2(x, i) * x1(y, i);  // n
-    L(j, 14) =  x2(x, i) * x1(z, i);  // o
-    b(j,  0) = -x2(x, i) * x1(w, i);
+    L(j, 0) = -x2(w, i) * x1(x, i);  // a
+    L(j, 1) = -x2(w, i) * x1(y, i);  // b
+    L(j, 2) = -x2(w, i) * x1(z, i);  // c
+    L(j, 3) = -x2(w, i) * x1(w, i);  // d
+    L(j, 12) = x2(x, i) * x1(x, i);  // m
+    L(j, 13) = x2(x, i) * x1(y, i);  // n
+    L(j, 14) = x2(x, i) * x1(z, i);  // o
+    b(j, 0) = -x2(x, i) * x1(w, i);
 
     ++j;
-    L(j,  4) = -x2(z, i) * x1(x, i);  // e
-    L(j,  5) = -x2(z, i) * x1(y, i);  // f
-    L(j,  6) = -x2(z, i) * x1(z, i);  // g
-    L(j,  7) = -x2(z, i) * x1(w, i);  // h
-    L(j,  8) =  x2(y, i) * x1(x, i);  // i
-    L(j,  9) =  x2(y, i) * x1(y, i);  // j
-    L(j, 10) =  x2(y, i) * x1(z, i);  // k
-    L(j, 11) =  x2(y, i) * x1(w, i);  // l
+    L(j, 4) = -x2(z, i) * x1(x, i);  // e
+    L(j, 5) = -x2(z, i) * x1(y, i);  // f
+    L(j, 6) = -x2(z, i) * x1(z, i);  // g
+    L(j, 7) = -x2(z, i) * x1(w, i);  // h
+    L(j, 8) = x2(y, i) * x1(x, i);   // i
+    L(j, 9) = x2(y, i) * x1(y, i);   // j
+    L(j, 10) = x2(y, i) * x1(z, i);  // k
+    L(j, 11) = x2(y, i) * x1(w, i);  // l
 
     ++j;
-    L(j,  0) = -x2(z, i) * x1(x, i);  // a
-    L(j,  1) = -x2(z, i) * x1(y, i);  // b
-    L(j,  2) = -x2(z, i) * x1(z, i);  // c
-    L(j,  3) = -x2(z, i) * x1(w, i);  // d
-    L(j,  8) =  x2(x, i) * x1(x, i);  // i
-    L(j,  9) =  x2(x, i) * x1(y, i);  // j
-    L(j, 10) =  x2(x, i) * x1(z, i);  // k
-    L(j, 11) =  x2(x, i) * x1(w, i);  // l
+    L(j, 0) = -x2(z, i) * x1(x, i);  // a
+    L(j, 1) = -x2(z, i) * x1(y, i);  // b
+    L(j, 2) = -x2(z, i) * x1(z, i);  // c
+    L(j, 3) = -x2(z, i) * x1(w, i);  // d
+    L(j, 8) = x2(x, i) * x1(x, i);   // i
+    L(j, 9) = x2(x, i) * x1(y, i);   // j
+    L(j, 10) = x2(x, i) * x1(z, i);  // k
+    L(j, 11) = x2(x, i) * x1(w, i);  // l
 
     ++j;
-    L(j,  4) = -x2(w, i) * x1(x, i);  // e
-    L(j,  5) = -x2(w, i) * x1(y, i);  // f
-    L(j,  6) = -x2(w, i) * x1(z, i);  // g
-    L(j,  7) = -x2(w, i) * x1(w, i);  // h
-    L(j, 12) =  x2(y, i) * x1(x, i);  // m
-    L(j, 13) =  x2(y, i) * x1(y, i);  // n
-    L(j, 14) =  x2(y, i) * x1(z, i);  // o
-    b(j,  0) = -x2(y, i) * x1(w, i);
+    L(j, 4) = -x2(w, i) * x1(x, i);  // e
+    L(j, 5) = -x2(w, i) * x1(y, i);  // f
+    L(j, 6) = -x2(w, i) * x1(z, i);  // g
+    L(j, 7) = -x2(w, i) * x1(w, i);  // h
+    L(j, 12) = x2(y, i) * x1(x, i);  // m
+    L(j, 13) = x2(y, i) * x1(y, i);  // n
+    L(j, 14) = x2(y, i) * x1(z, i);  // o
+    b(j, 0) = -x2(y, i) * x1(w, i);
 
     ++j;
     L(j, 0) = -x2(y, i) * x1(x, i);  // a
     L(j, 1) = -x2(y, i) * x1(y, i);  // b
     L(j, 2) = -x2(y, i) * x1(z, i);  // c
     L(j, 3) = -x2(y, i) * x1(w, i);  // d
-    L(j, 4) =  x2(x, i) * x1(x, i);  // e
-    L(j, 5) =  x2(x, i) * x1(y, i);  // f
-    L(j, 6) =  x2(x, i) * x1(z, i);  // g
-    L(j, 7) =  x2(x, i) * x1(w, i);  // h
+    L(j, 4) = x2(x, i) * x1(x, i);   // e
+    L(j, 5) = x2(x, i) * x1(y, i);   // f
+    L(j, 6) = x2(x, i) * x1(z, i);   // g
+    L(j, 7) = x2(x, i) * x1(w, i);   // h
 
     ++j;
-    L(j,  8) = -x2(w, i) * x1(x, i);  // i
-    L(j,  9) = -x2(w, i) * x1(y, i);  // j
+    L(j, 8) = -x2(w, i) * x1(x, i);   // i
+    L(j, 9) = -x2(w, i) * x1(y, i);   // j
     L(j, 10) = -x2(w, i) * x1(z, i);  // k
     L(j, 11) = -x2(w, i) * x1(w, i);  // l
-    L(j, 12) =  x2(z, i) * x1(x, i);  // m
-    L(j, 13) =  x2(z, i) * x1(y, i);  // n
-    L(j, 14) =  x2(z, i) * x1(z, i);  // o
-    b(j,  0) = -x2(z, i) * x1(w, i);
+    L(j, 12) = x2(z, i) * x1(x, i);   // m
+    L(j, 13) = x2(z, i) * x1(y, i);   // n
+    L(j, 14) = x2(z, i) * x1(z, i);   // o
+    b(j, 0) = -x2(z, i) * x1(w, i);
   }
   // Solve Lx=B
   Vec h = L.fullPivLu().solve(b);
-  if ((L * h).isApprox(b, expected_precision))  {
+  if ((L * h).isApprox(b, expected_precision)) {
     Homography3DNormalizedParameterization<double>::To(h, H);
     return true;
   } else {
@@ -448,9 +445,9 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
   }
 }
 
-double SymmetricGeometricDistance(const Mat3 &H,
-                                  const Vec2 &x1,
-                                  const Vec2 &x2) {
+double SymmetricGeometricDistance(const Mat3& H,
+                                  const Vec2& x1,
+                                  const Vec2& x2) {
   Vec3 x(x1(0), x1(1), 1.0);
   Vec3 y(x2(0), x2(1), 1.0);
 

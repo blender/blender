@@ -29,7 +29,7 @@ namespace libmv {
 // Compute a Gaussian kernel and derivative, such that you can take the
 // derivative of an image by convolving with the kernel horizontally then the
 // derivative vertically to get (eg) the y derivative.
-void ComputeGaussianKernel(double sigma, Vec *kernel, Vec *derivative) {
+void ComputeGaussianKernel(double sigma, Vec* kernel, Vec* derivative) {
   assert(sigma >= 0.0);
 
   // 0.004 implies a 3 pixel kernel with 1 pixel sigma.
@@ -37,7 +37,7 @@ void ComputeGaussianKernel(double sigma, Vec *kernel, Vec *derivative) {
 
   // Calculate the kernel size based on sigma such that it is odd.
   float precisehalfwidth = GaussianInversePositive(truncation_factor, sigma);
-  int width = lround(2*precisehalfwidth);
+  int width = lround(2 * precisehalfwidth);
   if (width % 2 == 0) {
     width++;
   }
@@ -47,7 +47,7 @@ void ComputeGaussianKernel(double sigma, Vec *kernel, Vec *derivative) {
   kernel->setZero();
   derivative->setZero();
   int halfwidth = width / 2;
-  for (int i = -halfwidth; i <= halfwidth; ++i)  {
+  for (int i = -halfwidth; i <= halfwidth; ++i) {
     (*kernel)(i + halfwidth) = Gaussian(i, sigma);
     (*derivative)(i + halfwidth) = GaussianDerivative(i, sigma);
   }
@@ -57,16 +57,21 @@ void ComputeGaussianKernel(double sigma, Vec *kernel, Vec *derivative) {
   // Normalize the derivative differently. See
   // www.cs.duke.edu/courses/spring03/cps296.1/handouts/Image%20Processing.pdf
   double factor = 0.;
-  for (int i = -halfwidth; i <= halfwidth; ++i)  {
-    factor -= i*(*derivative)(i+halfwidth);
+  for (int i = -halfwidth; i <= halfwidth; ++i) {
+    factor -= i * (*derivative)(i + halfwidth);
   }
   *derivative /= factor;
 }
 
 template <int size, bool vertical>
-void FastConvolve(const Vec &kernel, int width, int height,
-                  const float* src, int src_stride, int src_line_stride,
-                  float* dst, int dst_stride) {
+void FastConvolve(const Vec& kernel,
+                  int width,
+                  int height,
+                  const float* src,
+                  int src_stride,
+                  int src_line_stride,
+                  float* dst,
+                  int dst_stride) {
   double coefficients[2 * size + 1];
   for (int k = 0; k < 2 * size + 1; ++k) {
     coefficients[k] = kernel(2 * size - k);
@@ -93,14 +98,14 @@ void FastConvolve(const Vec &kernel, int width, int height,
   }
 }
 
-template<bool vertical>
-void Convolve(const Array3Df &in,
-              const Vec &kernel,
-              Array3Df *out_pointer,
+template <bool vertical>
+void Convolve(const Array3Df& in,
+              const Vec& kernel,
+              Array3Df* out_pointer,
               int plane) {
   int width = in.Width();
   int height = in.Height();
-  Array3Df &out = *out_pointer;
+  Array3Df& out = *out_pointer;
   if (plane == -1) {
     out.ResizeLike(in);
     plane = 0;
@@ -119,61 +124,62 @@ void Convolve(const Array3Df &in,
   // fast path.
   int half_width = kernel.size() / 2;
   switch (half_width) {
-#define static_convolution(size) case size: \
-  FastConvolve<size, vertical>(kernel, width, height, src, src_stride, \
-                               src_line_stride, dst, dst_stride); break;
-    static_convolution(1)
-    static_convolution(2)
-    static_convolution(3)
-    static_convolution(4)
-    static_convolution(5)
-    static_convolution(6)
-    static_convolution(7)
+#define static_convolution(size)                                               \
+  case size:                                                                   \
+    FastConvolve<size, vertical>(kernel,                                       \
+                                 width,                                        \
+                                 height,                                       \
+                                 src,                                          \
+                                 src_stride,                                   \
+                                 src_line_stride,                              \
+                                 dst,                                          \
+                                 dst_stride);                                  \
+    break;
+    static_convolution(1) static_convolution(2) static_convolution(3)
+        static_convolution(4) static_convolution(5) static_convolution(6)
+            static_convolution(7)
 #undef static_convolution
-    default:
-      int dynamic_size = kernel.size() / 2;
-      for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-          double sum = 0;
-          // Slow path: this loop cannot be unrolled.
-          for (int k = -dynamic_size; k <= dynamic_size; ++k) {
-            if (vertical) {
-              if (y + k >= 0 && y + k < height) {
-                sum += src[k * src_line_stride] *
-                    kernel(2 * dynamic_size - (k + dynamic_size));
-              }
-            } else {
-              if (x + k >= 0 && x + k < width) {
-                sum += src[k * src_stride] *
-                    kernel(2 * dynamic_size - (k + dynamic_size));
-              }
+                default : int dynamic_size = kernel.size() / 2;
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        double sum = 0;
+        // Slow path: this loop cannot be unrolled.
+        for (int k = -dynamic_size; k <= dynamic_size; ++k) {
+          if (vertical) {
+            if (y + k >= 0 && y + k < height) {
+              sum += src[k * src_line_stride] *
+                     kernel(2 * dynamic_size - (k + dynamic_size));
+            }
+          } else {
+            if (x + k >= 0 && x + k < width) {
+              sum += src[k * src_stride] *
+                     kernel(2 * dynamic_size - (k + dynamic_size));
             }
           }
-          dst[0] = static_cast<float>(sum);
-          src += src_stride;
-          dst += dst_stride;
         }
+        dst[0] = static_cast<float>(sum);
+        src += src_stride;
+        dst += dst_stride;
       }
+    }
   }
 }
 
-void ConvolveHorizontal(const Array3Df &in,
-                        const Vec &kernel,
-                        Array3Df *out_pointer,
+void ConvolveHorizontal(const Array3Df& in,
+                        const Vec& kernel,
+                        Array3Df* out_pointer,
                         int plane) {
   Convolve<false>(in, kernel, out_pointer, plane);
 }
 
-void ConvolveVertical(const Array3Df &in,
-                      const Vec &kernel,
-                      Array3Df *out_pointer,
+void ConvolveVertical(const Array3Df& in,
+                      const Vec& kernel,
+                      Array3Df* out_pointer,
                       int plane) {
   Convolve<true>(in, kernel, out_pointer, plane);
 }
 
-void ConvolveGaussian(const Array3Df &in,
-                      double sigma,
-                      Array3Df *out_pointer) {
+void ConvolveGaussian(const Array3Df& in, double sigma, Array3Df* out_pointer) {
   Vec kernel, derivative;
   ComputeGaussianKernel(sigma, &kernel, &derivative);
 
@@ -182,10 +188,10 @@ void ConvolveGaussian(const Array3Df &in,
   ConvolveHorizontal(tmp, kernel, out_pointer);
 }
 
-void ImageDerivatives(const Array3Df &in,
+void ImageDerivatives(const Array3Df& in,
                       double sigma,
-                      Array3Df *gradient_x,
-                      Array3Df *gradient_y) {
+                      Array3Df* gradient_x,
+                      Array3Df* gradient_y) {
   Vec kernel, derivative;
   ComputeGaussianKernel(sigma, &kernel, &derivative);
   Array3Df tmp;
@@ -199,11 +205,11 @@ void ImageDerivatives(const Array3Df &in,
   ConvolveVertical(tmp, derivative, gradient_y);
 }
 
-void BlurredImageAndDerivatives(const Array3Df &in,
+void BlurredImageAndDerivatives(const Array3Df& in,
                                 double sigma,
-                                Array3Df *blurred_image,
-                                Array3Df *gradient_x,
-                                Array3Df *gradient_y) {
+                                Array3Df* blurred_image,
+                                Array3Df* gradient_x,
+                                Array3Df* gradient_y) {
   Vec kernel, derivative;
   ComputeGaussianKernel(sigma, &kernel, &derivative);
   Array3Df tmp;
@@ -224,9 +230,9 @@ void BlurredImageAndDerivatives(const Array3Df &in,
 // image, and store the results in three channels. Since the blurred value and
 // gradients are closer in memory, this leads to better performance if all
 // three values are needed at the same time.
-void BlurredImageAndDerivativesChannels(const Array3Df &in,
+void BlurredImageAndDerivativesChannels(const Array3Df& in,
                                         double sigma,
-                                        Array3Df *blurred_and_gradxy) {
+                                        Array3Df* blurred_and_gradxy) {
   assert(in.Depth() == 1);
 
   Vec kernel, derivative;
@@ -246,10 +252,10 @@ void BlurredImageAndDerivativesChannels(const Array3Df &in,
   ConvolveVertical(tmp, derivative, blurred_and_gradxy, 2);
 }
 
-void BoxFilterHorizontal(const Array3Df &in,
+void BoxFilterHorizontal(const Array3Df& in,
                          int window_size,
-                         Array3Df *out_pointer) {
-  Array3Df &out = *out_pointer;
+                         Array3Df* out_pointer) {
+  Array3Df& out = *out_pointer;
   out.ResizeLike(in);
   int half_width = (window_size - 1) / 2;
 
@@ -266,7 +272,7 @@ void BoxFilterHorizontal(const Array3Df &in,
         out(i, j, k) = sum;
       }
       // Fill interior.
-      for (int j = half_width + 1; j < in.Width()-half_width; ++j) {
+      for (int j = half_width + 1; j < in.Width() - half_width; ++j) {
         sum -= in(i, j - half_width - 1, k);
         sum += in(i, j + half_width, k);
         out(i, j, k) = sum;
@@ -280,10 +286,10 @@ void BoxFilterHorizontal(const Array3Df &in,
   }
 }
 
-void BoxFilterVertical(const Array3Df &in,
+void BoxFilterVertical(const Array3Df& in,
                        int window_size,
-                       Array3Df *out_pointer) {
-  Array3Df &out = *out_pointer;
+                       Array3Df* out_pointer) {
+  Array3Df& out = *out_pointer;
   out.ResizeLike(in);
   int half_width = (window_size - 1) / 2;
 
@@ -300,7 +306,7 @@ void BoxFilterVertical(const Array3Df &in,
         out(i, j, k) = sum;
       }
       // Fill interior.
-      for (int i = half_width + 1; i < in.Height()-half_width; ++i) {
+      for (int i = half_width + 1; i < in.Height() - half_width; ++i) {
         sum -= in(i - half_width - 1, j, k);
         sum += in(i + half_width, j, k);
         out(i, j, k) = sum;
@@ -314,9 +320,7 @@ void BoxFilterVertical(const Array3Df &in,
   }
 }
 
-void BoxFilter(const Array3Df &in,
-               int box_width,
-               Array3Df *out) {
+void BoxFilter(const Array3Df& in, int box_width, Array3Df* out) {
   Array3Df tmp;
   BoxFilterHorizontal(in, box_width, &tmp);
   BoxFilterVertical(tmp, box_width, out);
@@ -327,17 +331,17 @@ void LaplaceFilter(unsigned char* src,
                    int width,
                    int height,
                    int strength) {
-  for (int y = 1; y < height-1; y++)
-    for (int x = 1; x < width-1; x++) {
-      const unsigned char* s = &src[y*width+x];
-      int l = 128 +
-          s[-width-1] + s[-width] + s[-width+1] +
-          s[1]        - 8*s[0]    + s[1]        +
-          s[ width-1] + s[ width] + s[ width+1];
-      int d = ((256-strength)*s[0] + strength*l) / 256;
-      if (d < 0) d=0;
-      if (d > 255) d=255;
-      dst[y*width+x] = d;
+  for (int y = 1; y < height - 1; y++)
+    for (int x = 1; x < width - 1; x++) {
+      const unsigned char* s = &src[y * width + x];
+      int l = 128 + s[-width - 1] + s[-width] + s[-width + 1] + s[1] -
+              8 * s[0] + s[1] + s[width - 1] + s[width] + s[width + 1];
+      int d = ((256 - strength) * s[0] + strength * l) / 256;
+      if (d < 0)
+        d = 0;
+      if (d > 255)
+        d = 255;
+      dst[y * width + x] = d;
     }
 }
 

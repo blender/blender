@@ -461,6 +461,7 @@ typedef struct wmNotifier {
 #define NA_SELECTED 6
 #define NA_ACTIVATED 7
 #define NA_PAINTING 8
+#define NA_JOB_FINISHED 9
 
 /* ************** Gesture Manager data ************** */
 
@@ -611,10 +612,6 @@ typedef struct wmEvent {
   short shift, ctrl, alt, oskey;
   /** Raw-key modifier (allow using any key as a modifier). */
   short keymodifier;
-
-  /** Set in case a #KM_PRESS went by unhandled. */
-  char check_click;
-  char check_drag;
 
   /** Tablet info, available for mouse move and button events. */
   wmTabletData tablet;

@@ -90,7 +90,7 @@ void NodeGraph::add_node(Node *node,
 
 void NodeGraph::add_link(NodeOutput *fromSocket, NodeInput *toSocket)
 {
-  m_links.push_back(Link(fromSocket, toSocket));
+  m_links.append(Link(fromSocket, toSocket));
 
   /* register with the input */
   toSocket->setLink(fromSocket);
@@ -132,7 +132,7 @@ void NodeGraph::add_bNode(const CompositorContext &context,
   }
 
   /* replace slow nodes with proxies for fast execution */
-  if (context.isFastCalculation() && !Converter::is_fast_node(b_node)) {
+  if (context.isFastCalculation() && !COM_bnode_is_fast_node(*b_node)) {
     add_proxies_skip(b_ntree, b_node, key, is_active_group);
     return;
   }
@@ -146,7 +146,7 @@ void NodeGraph::add_bNode(const CompositorContext &context,
   }
   else {
     /* regular nodes, handled in Converter */
-    Node *node = Converter::convert(b_node);
+    Node *node = COM_convert_bnode(b_node);
     if (node) {
       add_node(node, b_ntree, key, is_active_group);
     }

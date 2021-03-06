@@ -64,7 +64,7 @@ void ColorBalanceLGGOperation::executePixelSampled(float output[4],
   this->m_inputColorOperation->readSampled(inputColor, x, y, sampler);
 
   float fac = value[0];
-  fac = min(1.0f, fac);
+  fac = MIN2(1.0f, fac);
   const float mfac = 1.0f - fac;
 
   output[0] = mfac * inputColor[0] +

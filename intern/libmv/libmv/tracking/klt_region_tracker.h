@@ -37,10 +37,12 @@ struct KltRegionTracker : public RegionTracker {
   virtual ~KltRegionTracker() {}
 
   // Tracker interface.
-  virtual bool Track(const FloatImage &image1,
-                     const FloatImage &image2,
-                     double  x1, double  y1,
-                     double *x2, double *y2) const;
+  virtual bool Track(const FloatImage& image1,
+                     const FloatImage& image2,
+                     double x1,
+                     double y1,
+                     double* x2,
+                     double* y2) const;
 
   // No point in creating getters or setters.
   int half_window_size;

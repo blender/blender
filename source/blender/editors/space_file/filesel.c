@@ -454,6 +454,66 @@ bool ED_fileselect_is_asset_browser(const SpaceFile *sfile)
   return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS);
 }
 
+struct ID *ED_fileselect_active_asset_get(const SpaceFile *sfile)
+{
+  if (!ED_fileselect_is_asset_browser(sfile)) {
+    return NULL;
+  }
+
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  const FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+  if (file == NULL) {
+    return NULL;
+  }
+
+  return filelist_file_get_id(file);
+}
+
+static void on_reload_activate_by_id(SpaceFile *sfile, onReloadFnData custom_data)
+{
+  ID *asset_id = (ID *)custom_data;
+  ED_fileselect_activate_by_id(sfile, asset_id, false);
+}
+
+void ED_fileselect_activate_by_id(SpaceFile *sfile, ID *asset_id, const bool deferred)
+{
+  if (!ED_fileselect_is_asset_browser(sfile)) {
+    return;
+  }
+
+  /* If there are filelist operations running now ("pending" true) or soon ("force reset" true),
+   * there is a fair chance that the to-be-activated ID will only be present after these operations
+   * have completed. Defer activation until then. */
+  if (deferred || filelist_pending(sfile->files) || filelist_needs_force_reset(sfile->files)) {
+    /* This should be thread-safe, as this function is likely called from the main thread, and
+     * notifiers (which cause a call to the on-reload callback function) are handled on the main
+     * thread as well. */
+    file_on_reload_callback_register(sfile, on_reload_activate_by_id, asset_id);
+    return;
+  }
+
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  struct FileList *files = sfile->files;
+
+  const int num_files_filtered = filelist_files_ensure(files);
+  for (int file_index = 0; file_index < num_files_filtered; ++file_index) {
+    const FileDirEntry *file = filelist_file_ex(files, file_index, false);
+
+    if (filelist_file_get_id(file) != asset_id) {
+      filelist_entry_select_set(files, file, FILE_SEL_REMOVE, FILE_SEL_SELECTED, CHECK_ALL);
+      continue;
+    }
+
+    params->active_file = file_index;
+    filelist_entry_select_set(files, file, FILE_SEL_ADD, FILE_SEL_SELECTED, CHECK_ALL);
+
+    /* Keep looping to deselect the other files. */
+  }
+
+  WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, NULL);
+  WM_main_add_notifier(NC_ASSET | NA_SELECTED, NULL);
+}
+
 /* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
  * may also be remembered, but only conditionally. */
 #define PARAMS_FLAGS_REMEMBERED (FILE_HIDE_DOT)

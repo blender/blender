@@ -3267,7 +3267,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop,
         eprop->set = (PropEnumSetFunc)set;
       }
       if (item) {
-        eprop->itemf = (PropEnumItemFunc)item;
+        eprop->item_fn = (PropEnumItemFunc)item;
       }
       break;
     }
@@ -3292,7 +3292,7 @@ void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop,
     eprop->set_ex = setfunc;
   }
   if (itemfunc) {
-    eprop->itemf = itemfunc;
+    eprop->item_fn = itemfunc;
   }
 
   if (getfunc || setfunc) {
@@ -3373,7 +3373,7 @@ void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
 }
 
 void RNA_def_property_pointer_funcs(
-    PropertyRNA *prop, const char *get, const char *set, const char *typef, const char *poll)
+    PropertyRNA *prop, const char *get, const char *set, const char *type_fn, const char *poll)
 {
   StructRNA *srna = DefRNA.laststruct;
 
@@ -3392,8 +3392,8 @@ void RNA_def_property_pointer_funcs(
       if (set) {
         pprop->set = (PropPointerSetFunc)set;
       }
-      if (typef) {
-        pprop->typef = (PropPointerTypeFunc)typef;
+      if (type_fn) {
+        pprop->type_fn = (PropPointerTypeFunc)type_fn;
       }
       if (poll) {
         pprop->poll = (PropPointerPollFunc)poll;
@@ -3821,7 +3821,7 @@ PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_,
 void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
-  eprop->itemf = itemfunc;
+  eprop->item_fn = itemfunc;
 }
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_,

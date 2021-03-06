@@ -21,7 +21,7 @@ from bpy.types import Panel, UIList
 
 
 class VIEWLAYER_UL_aov(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname):
         row = layout.row()
         split = row.split(factor=0.65)
         icon = 'NONE' if item.is_valid else 'ERROR'
@@ -77,8 +77,6 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
-        rd = scene.render
         view_layer = context.view_layer
 
         col = layout.column()
@@ -101,8 +99,6 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
 
         view_layer = context.view_layer
         view_layer_eevee = view_layer.eevee
-        scene = context.scene
-        scene_eevee = scene.eevee
 
         col = layout.column(heading="Diffuse", align=True)
         col.prop(view_layer, "use_pass_diffuse_direct", text="Light")

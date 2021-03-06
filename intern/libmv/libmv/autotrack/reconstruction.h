@@ -57,17 +57,17 @@ class Reconstruction {
  public:
   // All methods copy their input reference or take ownership of the pointer.
   void AddCameraPose(const CameraPose& pose);
-  int  AddCameraIntrinsics(CameraIntrinsics* intrinsics);
-  int  AddPoint(const Point& point);
-  int  AddModel(Model* model);
+  int AddCameraIntrinsics(CameraIntrinsics* intrinsics);
+  int AddPoint(const Point& point);
+  int AddModel(Model* model);
 
   // Returns the corresponding pose or point or NULL if missing.
-        CameraPose* CameraPoseForFrame(int clip, int frame);
+  CameraPose* CameraPoseForFrame(int clip, int frame);
   const CameraPose* CameraPoseForFrame(int clip, int frame) const;
-        Point* PointForTrack(int track);
+  Point* PointForTrack(int track);
   const Point* PointForTrack(int track) const;
 
-  const vector<vector<CameraPose> >& camera_poses() const {
+  const vector<vector<CameraPose>>& camera_poses() const {
     return camera_poses_;
   }
 

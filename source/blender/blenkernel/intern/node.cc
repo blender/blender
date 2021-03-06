@@ -4482,18 +4482,18 @@ void node_type_group_update(struct bNodeType *ntype,
 }
 
 void node_type_exec(struct bNodeType *ntype,
-                    NodeInitExecFunction initexecfunc,
-                    NodeFreeExecFunction freeexecfunc,
-                    NodeExecFunction execfunc)
+                    NodeInitExecFunction init_exec_fn,
+                    NodeFreeExecFunction free_exec_fn,
+                    NodeExecFunction exec_fn)
 {
-  ntype->initexecfunc = initexecfunc;
-  ntype->freeexecfunc = freeexecfunc;
-  ntype->execfunc = execfunc;
+  ntype->init_exec_fn = init_exec_fn;
+  ntype->free_exec_fn = free_exec_fn;
+  ntype->exec_fn = exec_fn;
 }
 
-void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufunc)
+void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn)
 {
-  ntype->gpufunc = gpufunc;
+  ntype->gpu_fn = gpu_fn;
 }
 
 void node_type_internal_links(bNodeType *ntype,

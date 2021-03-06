@@ -63,13 +63,13 @@ void ConvertDepthToRadiusOperation::initExecution()
                        (this->getHeight() / (float)this->getWidth()) :
                        (this->getWidth() / (float)this->getHeight());
   this->m_aperture = 0.5f * (this->m_cam_lens / (this->m_aspect * cam_sensor)) / this->m_fStop;
-  const float minsz = min(getWidth(), getHeight());
+  const float minsz = MIN2(getWidth(), getHeight());
   this->m_dof_sp = minsz /
                    ((cam_sensor / 2.0f) /
-                    this->m_cam_lens);  // <- == aspect * min(img->x, img->y) / tan(0.5f * fov);
+                    this->m_cam_lens);  // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 
   if (this->m_blurPostOperation) {
-    m_blurPostOperation->setSigma(min(m_aperture * 128.0f, this->m_maxRadius));
+    m_blurPostOperation->setSigma(MIN2(m_aperture * 128.0f, this->m_maxRadius));
   }
 }
 

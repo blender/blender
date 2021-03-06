@@ -25,7 +25,7 @@ namespace libmv {
 namespace panography {
 namespace kernel {
 
-void TwoPointSolver::Solve(const Mat &x1, const Mat &x2, vector<Mat3> *Hs) {
+void TwoPointSolver::Solve(const Mat& x1, const Mat& x2, vector<Mat3>* Hs) {
   // Solve for the focal lengths.
   vector<double> fs;
   F_FromCorrespondance_2points(x1, x2, &fs);
@@ -34,7 +34,7 @@ void TwoPointSolver::Solve(const Mat &x1, const Mat &x2, vector<Mat3> *Hs) {
   Mat x1h, x2h;
   EuclideanToHomogeneous(x1, &x1h);
   EuclideanToHomogeneous(x2, &x2h);
-  for (int i = 0; i < fs.size(); ++i)  {
+  for (int i = 0; i < fs.size(); ++i) {
     Mat3 K1 = Mat3::Identity() * fs[i];
     K1(2, 2) = 1.0;
 

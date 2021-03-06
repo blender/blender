@@ -22,15 +22,15 @@
 
 #include "ceres/ceres.h"
 #include "libmv/logging/logging.h"
-#include "libmv/numeric/numeric.h"
-#include "libmv/numeric/poly.h"
 #include "libmv/multiview/conditioning.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/triangulation.h"
+#include "libmv/numeric/numeric.h"
+#include "libmv/numeric/poly.h"
 
 namespace libmv {
 
-static void EliminateRow(const Mat34 &P, int row, Mat *X) {
+static void EliminateRow(const Mat34& P, int row, Mat* X) {
   X->resize(2, 4);
 
   int first_row = (row + 1) % 3;
@@ -42,7 +42,7 @@ static void EliminateRow(const Mat34 &P, int row, Mat *X) {
   }
 }
 
-void ProjectionsFromFundamental(const Mat3 &F, Mat34 *P1, Mat34 *P2) {
+void ProjectionsFromFundamental(const Mat3& F, Mat34* P1, Mat34* P2) {
   *P1 << Mat3::Identity(), Vec3::Zero();
   Vec3 e2;
   Mat3 Ft = F.transpose();
@@ -51,7 +51,7 @@ void ProjectionsFromFundamental(const Mat3 &F, Mat34 *P1, Mat34 *P2) {
 }
 
 // Addapted from vgg_F_from_P.
-void FundamentalFromProjections(const Mat34 &P1, const Mat34 &P2, Mat3 *F) {
+void FundamentalFromProjections(const Mat34& P1, const Mat34& P2, Mat3* F) {
   Mat X[3];
   Mat Y[3];
   Mat XY;
@@ -71,7 +71,7 @@ void FundamentalFromProjections(const Mat34 &P1, const Mat34 &P2, Mat3 *F) {
 
 // HZ 11.1 pag.279 (x1 = x, x2 = x')
 // http://www.cs.unc.edu/~marc/tutorial/node54.html
-static double EightPointSolver(const Mat &x1, const Mat &x2, Mat3 *F) {
+static double EightPointSolver(const Mat& x1, const Mat& x2, Mat3* F) {
   DCHECK_EQ(x1.rows(), 2);
   DCHECK_GE(x1.cols(), 8);
   DCHECK_EQ(x1.rows(), x2.rows());
@@ -98,7 +98,7 @@ static double EightPointSolver(const Mat &x1, const Mat &x2, Mat3 *F) {
 }
 
 // HZ 11.1.1 pag.280
-void EnforceFundamentalRank2Constraint(Mat3 *F) {
+void EnforceFundamentalRank2Constraint(Mat3* F) {
   Eigen::JacobiSVD<Mat3> USV(*F, Eigen::ComputeFullU | Eigen::ComputeFullV);
   Vec3 d = USV.singularValues();
   d(2) = 0.0;
@@ -106,9 +106,7 @@ void EnforceFundamentalRank2Constraint(Mat3 *F) {
 }
 
 // HZ 11.2 pag.281 (x1 = x, x2 = x')
-double NormalizedEightPointSolver(const Mat &x1,
-                                  const Mat &x2,
-                                  Mat3 *F) {
+double NormalizedEightPointSolver(const Mat& x1, const Mat& x2, Mat3* F) {
   DCHECK_EQ(x1.rows(), 2);
   DCHECK_GE(x1.cols(), 8);
   DCHECK_EQ(x1.rows(), x2.rows());
@@ -135,9 +133,9 @@ double NormalizedEightPointSolver(const Mat &x1,
 
 // Seven-point algorithm.
 // http://www.cs.unc.edu/~marc/tutorial/node55.html
-double FundamentalFrom7CorrespondencesLinear(const Mat &x1,
-                                             const Mat &x2,
-                                             std::vector<Mat3> *F) {
+double FundamentalFrom7CorrespondencesLinear(const Mat& x1,
+                                             const Mat& x2,
+                                             std::vector<Mat3>* F) {
   DCHECK_EQ(x1.rows(), 2);
   DCHECK_EQ(x1.cols(), 7);
   DCHECK_EQ(x1.rows(), x2.rows());
@@ -169,25 +167,29 @@ double FundamentalFrom7CorrespondencesLinear(const Mat &x1,
 
   // Then, use the condition det(F) = 0 to determine F. In other words, solve
   // det(F1 + a*F2) = 0 for a.
-  double a = F1(0, 0), j = F2(0, 0),
-         b = F1(0, 1), k = F2(0, 1),
-         c = F1(0, 2), l = F2(0, 2),
-         d = F1(1, 0), m = F2(1, 0),
-         e = F1(1, 1), n = F2(1, 1),
-         f = F1(1, 2), o = F2(1, 2),
-         g = F1(2, 0), p = F2(2, 0),
-         h = F1(2, 1), q = F2(2, 1),
-         i = F1(2, 2), r = F2(2, 2);
+  double a = F1(0, 0), j = F2(0, 0);
+  double b = F1(0, 1), k = F2(0, 1);
+  double c = F1(0, 2), l = F2(0, 2);
+  double d = F1(1, 0), m = F2(1, 0);
+  double e = F1(1, 1), n = F2(1, 1);
+  double f = F1(1, 2), o = F2(1, 2);
+  double g = F1(2, 0), p = F2(2, 0);
+  double h = F1(2, 1), q = F2(2, 1);
+  double i = F1(2, 2), r = F2(2, 2);
 
   // Run fundamental_7point_coeffs.py to get the below coefficients.
   // The coefficients are in ascending powers of alpha, i.e. P[N]*x^N.
   double P[4] = {
-    a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g,
-    a*e*r + a*i*n + b*f*p + b*g*o + c*d*q + c*h*m + d*h*l + e*i*j + f*g*k -
-    a*f*q - a*h*o - b*d*r - b*i*m - c*e*p - c*g*n - d*i*k - e*g*l - f*h*j,
-    a*n*r + b*o*p + c*m*q + d*l*q + e*j*r + f*k*p + g*k*o + h*l*m + i*j*n -
-    a*o*q - b*m*r - c*n*p - d*k*r - e*l*p - f*j*q - g*l*n - h*j*o - i*k*m,
-    j*n*r + k*o*p + l*m*q - j*o*q - k*m*r - l*n*p,
+      a * e * i + b * f * g + c * d * h - a * f * h - b * d * i - c * e * g,
+      a * e * r + a * i * n + b * f * p + b * g * o + c * d * q + c * h * m +
+          d * h * l + e * i * j + f * g * k - a * f * q - a * h * o -
+          b * d * r - b * i * m - c * e * p - c * g * n - d * i * k -
+          e * g * l - f * h * j,
+      a * n * r + b * o * p + c * m * q + d * l * q + e * j * r + f * k * p +
+          g * k * o + h * l * m + i * j * n - a * o * q - b * m * r -
+          c * n * p - d * k * r - e * l * p - f * j * q - g * l * n -
+          h * j * o - i * k * m,
+      j * n * r + k * o * p + l * m * q - j * o * q - k * m * r - l * n * p,
   };
 
   // Solve for the roots of P[3]*x^3 + P[2]*x^2 + P[1]*x + P[0] = 0.
@@ -195,15 +197,15 @@ double FundamentalFrom7CorrespondencesLinear(const Mat &x1,
   int num_roots = SolveCubicPolynomial(P, roots);
 
   // Build the fundamental matrix for each solution.
-  for (int kk = 0; kk < num_roots; ++kk)  {
+  for (int kk = 0; kk < num_roots; ++kk) {
     F->push_back(F1 + roots[kk] * F2);
   }
   return s;
 }
 
-double FundamentalFromCorrespondences7Point(const Mat &x1,
-                                            const Mat &x2,
-                                            std::vector<Mat3> *F) {
+double FundamentalFromCorrespondences7Point(const Mat& x1,
+                                            const Mat& x2,
+                                            std::vector<Mat3>* F) {
   DCHECK_EQ(x1.rows(), 2);
   DCHECK_GE(x1.cols(), 7);
   DCHECK_EQ(x1.rows(), x2.rows());
@@ -218,25 +220,25 @@ double FundamentalFromCorrespondences7Point(const Mat &x1,
   ApplyTransformationToPoints(x2, T2, &x2_normalized);
 
   // Estimate the fundamental matrix.
-  double smaller_singular_value =
-    FundamentalFrom7CorrespondencesLinear(x1_normalized, x2_normalized, &(*F));
+  double smaller_singular_value = FundamentalFrom7CorrespondencesLinear(
+      x1_normalized, x2_normalized, &(*F));
 
   for (int k = 0; k < F->size(); ++k) {
-    Mat3 & Fmat = (*F)[k];
+    Mat3& Fmat = (*F)[k];
     // Denormalize the fundamental matrix.
     Fmat = T2.transpose() * Fmat * T1;
   }
   return smaller_singular_value;
 }
 
-void NormalizeFundamental(const Mat3 &F, Mat3 *F_normalized) {
+void NormalizeFundamental(const Mat3& F, Mat3* F_normalized) {
   *F_normalized = F / FrobeniusNorm(F);
   if ((*F_normalized)(2, 2) < 0) {
     *F_normalized *= -1;
   }
 }
 
-double SampsonDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2) {
+double SampsonDistance(const Mat& F, const Vec2& x1, const Vec2& x2) {
   Vec3 x(x1(0), x1(1), 1.0);
   Vec3 y(x2(0), x2(1), 1.0);
 
@@ -244,11 +246,11 @@ double SampsonDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2) {
   Vec3 Ft_y = F.transpose() * y;
   double y_F_x = y.dot(F_x);
 
-  return Square(y_F_x) / (  F_x.head<2>().squaredNorm()
-                          + Ft_y.head<2>().squaredNorm());
+  return Square(y_F_x) /
+         (F_x.head<2>().squaredNorm() + Ft_y.head<2>().squaredNorm());
 }
 
-double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2) {
+double SymmetricEpipolarDistance(const Mat& F, const Vec2& x1, const Vec2& x2) {
   Vec3 x(x1(0), x1(1), 1.0);
   Vec3 y(x2(0), x2(1), 1.0);
 
@@ -256,43 +258,40 @@ double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2) {
   Vec3 Ft_y = F.transpose() * y;
   double y_F_x = y.dot(F_x);
 
-  return Square(y_F_x) * (  1 / F_x.head<2>().squaredNorm()
-                          + 1 / Ft_y.head<2>().squaredNorm());
+  return Square(y_F_x) *
+         (1 / F_x.head<2>().squaredNorm() + 1 / Ft_y.head<2>().squaredNorm());
 }
 
 // HZ 9.6 pag 257 (formula 9.12)
-void EssentialFromFundamental(const Mat3 &F,
-                              const Mat3 &K1,
-                              const Mat3 &K2,
-                              Mat3 *E) {
+void EssentialFromFundamental(const Mat3& F,
+                              const Mat3& K1,
+                              const Mat3& K2,
+                              Mat3* E) {
   *E = K2.transpose() * F * K1;
 }
 
 // HZ 9.6 pag 257 (formula 9.12)
 // Or http://ai.stanford.edu/~birch/projective/node20.html
-void FundamentalFromEssential(const Mat3 &E,
-                              const Mat3 &K1,
-                              const Mat3 &K2,
-                              Mat3 *F)  {
+void FundamentalFromEssential(const Mat3& E,
+                              const Mat3& K1,
+                              const Mat3& K2,
+                              Mat3* F) {
   *F = K2.inverse().transpose() * E * K1.inverse();
 }
 
-void RelativeCameraMotion(const Mat3 &R1,
-                          const Vec3 &t1,
-                          const Mat3 &R2,
-                          const Vec3 &t2,
-                          Mat3 *R,
-                          Vec3 *t) {
+void RelativeCameraMotion(const Mat3& R1,
+                          const Vec3& t1,
+                          const Mat3& R2,
+                          const Vec3& t2,
+                          Mat3* R,
+                          Vec3* t) {
   *R = R2 * R1.transpose();
   *t = t2 - (*R) * t1;
 }
 
 // HZ 9.6 pag 257
-void EssentialFromRt(const Mat3 &R1,
-                     const Vec3 &t1,
-                     const Mat3 &R2,
-                     const Vec3 &t2,
-                     Mat3 *E) {
+void EssentialFromRt(
+    const Mat3& R1, const Vec3& t1, const Mat3& R2, const Vec3& t2, Mat3* E) {
   Mat3 R;
   Vec3 t;
   RelativeCameraMotion(R1, t1, R2, t2, &R, &t);
@@ -301,11 +300,11 @@ void EssentialFromRt(const Mat3 &R1,
 }
 
 // HZ 9.6 pag 259 (Result 9.19)
-void MotionFromEssential(const Mat3 &E,
-                         std::vector<Mat3> *Rs,
-                         std::vector<Vec3> *ts) {
+void MotionFromEssential(const Mat3& E,
+                         std::vector<Mat3>* Rs,
+                         std::vector<Vec3>* ts) {
   Eigen::JacobiSVD<Mat3> USV(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
-  Mat3 U =  USV.matrixU();
+  Mat3 U = USV.matrixU();
   Mat3 Vt = USV.matrixV().transpose();
 
   // Last column of U is undetermined since d = (a a 0).
@@ -318,9 +317,11 @@ void MotionFromEssential(const Mat3 &E,
   }
 
   Mat3 W;
+  // clang-format off
   W << 0, -1,  0,
        1,  0,  0,
        0,  0,  1;
+  // clang-format on
 
   Mat3 U_W_Vt = U * W * Vt;
   Mat3 U_Wt_Vt = U * W.transpose() * Vt;
@@ -332,18 +333,18 @@ void MotionFromEssential(const Mat3 &E,
   (*Rs)[3] = U_Wt_Vt;
 
   ts->resize(4);
-  (*ts)[0] =  U.col(2);
+  (*ts)[0] = U.col(2);
   (*ts)[1] = -U.col(2);
-  (*ts)[2] =  U.col(2);
+  (*ts)[2] = U.col(2);
   (*ts)[3] = -U.col(2);
 }
 
-int MotionFromEssentialChooseSolution(const std::vector<Mat3> &Rs,
-                                      const std::vector<Vec3> &ts,
-                                      const Mat3 &K1,
-                                      const Vec2 &x1,
-                                      const Mat3 &K2,
-                                      const Vec2 &x2) {
+int MotionFromEssentialChooseSolution(const std::vector<Mat3>& Rs,
+                                      const std::vector<Vec3>& ts,
+                                      const Mat3& K1,
+                                      const Vec2& x1,
+                                      const Mat3& K2,
+                                      const Vec2& x2) {
   DCHECK_EQ(4, Rs.size());
   DCHECK_EQ(4, ts.size());
 
@@ -354,8 +355,8 @@ int MotionFromEssentialChooseSolution(const std::vector<Mat3> &Rs,
   t1.setZero();
   P_From_KRt(K1, R1, t1, &P1);
   for (int i = 0; i < 4; ++i) {
-    const Mat3 &R2 = Rs[i];
-    const Vec3 &t2 = ts[i];
+    const Mat3& R2 = Rs[i];
+    const Vec3& t2 = ts[i];
     P_From_KRt(K2, R2, t2, &P2);
     Vec3 X;
     TriangulateDLT(P1, x1, P2, x2, &X);
@@ -369,13 +370,13 @@ int MotionFromEssentialChooseSolution(const std::vector<Mat3> &Rs,
   return -1;
 }
 
-bool MotionFromEssentialAndCorrespondence(const Mat3 &E,
-                                          const Mat3 &K1,
-                                          const Vec2 &x1,
-                                          const Mat3 &K2,
-                                          const Vec2 &x2,
-                                          Mat3 *R,
-                                          Vec3 *t) {
+bool MotionFromEssentialAndCorrespondence(const Mat3& E,
+                                          const Mat3& K1,
+                                          const Vec2& x1,
+                                          const Mat3& K2,
+                                          const Vec2& x2,
+                                          Mat3* R,
+                                          Vec3* t) {
   std::vector<Mat3> Rs;
   std::vector<Vec3> ts;
   MotionFromEssential(E, &Rs, &ts);
@@ -389,7 +390,7 @@ bool MotionFromEssentialAndCorrespondence(const Mat3 &E,
   }
 }
 
-void FundamentalToEssential(const Mat3 &F, Mat3 *E) {
+void FundamentalToEssential(const Mat3& F, Mat3* E) {
   Eigen::JacobiSVD<Mat3> svd(F, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
   // See Hartley & Zisserman page 294, result 11.1, which shows how to get the
@@ -399,8 +400,8 @@ void FundamentalToEssential(const Mat3 &F, Mat3 *E) {
   double s = (a + b) / 2.0;
 
   LG << "Initial reconstruction's rotation is non-euclidean by "
-     << (((a - b) / std::max(a, b)) * 100) << "%; singular values:"
-     << svd.singularValues().transpose();
+     << (((a - b) / std::max(a, b)) * 100)
+     << "%; singular values:" << svd.singularValues().transpose();
 
   Vec3 diag;
   diag << s, s, 0;
@@ -410,9 +411,8 @@ void FundamentalToEssential(const Mat3 &F, Mat3 *E) {
 
 // Default settings for fundamental estimation which should be suitable
 // for a wide range of use cases.
-EstimateFundamentalOptions::EstimateFundamentalOptions(void) :
-    max_num_iterations(50),
-    expected_average_symmetric_distance(1e-16) {
+EstimateFundamentalOptions::EstimateFundamentalOptions(void)
+    : max_num_iterations(50), expected_average_symmetric_distance(1e-16) {
 }
 
 namespace {
@@ -420,12 +420,11 @@ namespace {
 // used for fundamental matrix refinement.
 class FundamentalSymmetricEpipolarCostFunctor {
  public:
-  FundamentalSymmetricEpipolarCostFunctor(const Vec2 &x,
-                                          const Vec2 &y)
-    : x_(x), y_(y) {}
+  FundamentalSymmetricEpipolarCostFunctor(const Vec2& x, const Vec2& y)
+      : x_(x), y_(y) {}
 
-  template<typename T>
-  bool operator()(const T *fundamental_parameters, T *residuals) const {
+  template <typename T>
+  bool operator()(const T* fundamental_parameters, T* residuals) const {
     typedef Eigen::Matrix<T, 3, 3> Mat3;
     typedef Eigen::Matrix<T, 3, 1> Vec3;
 
@@ -454,9 +453,10 @@ class FundamentalSymmetricEpipolarCostFunctor {
 // average value.
 class TerminationCheckingCallback : public ceres::IterationCallback {
  public:
-  TerminationCheckingCallback(const Mat &x1, const Mat &x2,
-                              const EstimateFundamentalOptions &options,
-                              Mat3 *F)
+  TerminationCheckingCallback(const Mat& x1,
+                              const Mat& x2,
+                              const EstimateFundamentalOptions& options,
+                              Mat3* F)
       : options_(options), x1_(x1), x2_(x2), F_(F) {}
 
   virtual ceres::CallbackReturnType operator()(
@@ -469,9 +469,7 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
     // Calculate average of symmetric epipolar distance.
     double average_distance = 0.0;
     for (int i = 0; i < x1_.cols(); i++) {
-      average_distance = SymmetricEpipolarDistance(*F_,
-                                                   x1_.col(i),
-                                                   x2_.col(i));
+      average_distance = SymmetricEpipolarDistance(*F_, x1_.col(i), x2_.col(i));
     }
     average_distance /= x1_.cols();
 
@@ -483,19 +481,19 @@ class TerminationCheckingCallback : public ceres::IterationCallback {
   }
 
  private:
-  const EstimateFundamentalOptions &options_;
-  const Mat &x1_;
-  const Mat &x2_;
-  Mat3 *F_;
+  const EstimateFundamentalOptions& options_;
+  const Mat& x1_;
+  const Mat& x2_;
+  Mat3* F_;
 };
 }  // namespace
 
 /* Fundamental transformation estimation. */
 bool EstimateFundamentalFromCorrespondences(
-    const Mat &x1,
-    const Mat &x2,
-    const EstimateFundamentalOptions &options,
-    Mat3 *F) {
+    const Mat& x1,
+    const Mat& x2,
+    const EstimateFundamentalOptions& options,
+    Mat3* F) {
   // Step 1: Algebraic fundamental estimation.
 
   // Assume algebraic estiation always succeeds,
@@ -506,16 +504,15 @@ bool EstimateFundamentalFromCorrespondences(
   // Step 2: Refine matrix using Ceres minimizer.
   ceres::Problem problem;
   for (int i = 0; i < x1.cols(); i++) {
-    FundamentalSymmetricEpipolarCostFunctor
-        *fundamental_symmetric_epipolar_cost_function =
-            new FundamentalSymmetricEpipolarCostFunctor(x1.col(i),
-                                                        x2.col(i));
+    FundamentalSymmetricEpipolarCostFunctor*
+        fundamental_symmetric_epipolar_cost_function =
+            new FundamentalSymmetricEpipolarCostFunctor(x1.col(i), x2.col(i));
 
     problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<
-            FundamentalSymmetricEpipolarCostFunctor,
-            2,  // num_residuals
-            9>(fundamental_symmetric_epipolar_cost_function),
+        new ceres::AutoDiffCostFunction<FundamentalSymmetricEpipolarCostFunctor,
+                                        2,  // num_residuals
+                                        9>(
+            fundamental_symmetric_epipolar_cost_function),
         NULL,
         F->data());
   }

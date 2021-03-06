@@ -23,14 +23,14 @@
 #endif
 
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
+
 #include "COM_CompositorContext.h"
 #include "COM_Device.h"
 #include "COM_MemoryProxy.h"
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
 #include <vector>
-
-using std::vector;
 
 class ExecutionSystem;
 class MemoryProxy;
@@ -41,20 +41,20 @@ class Device;
  * \brief the execution state of a chunk in an ExecutionGroup
  * \ingroup Execution
  */
-typedef enum ChunkExecutionState {
+enum class eChunkExecutionState {
   /**
    * \brief chunk is not yet scheduled
    */
-  COM_ES_NOT_SCHEDULED = 0,
+  NOT_SCHEDULED = 0,
   /**
    * \brief chunk is scheduled, but not yet executed
    */
-  COM_ES_SCHEDULED = 1,
+  SCHEDULED = 1,
   /**
    * \brief chunk is executed.
    */
-  COM_ES_EXECUTED = 2,
-} ChunkExecutionState;
+  EXECUTED = 2,
+};
 
 /**
  * \brief Class ExecutionGroup is a group of Operations that are executed as one.
@@ -63,23 +63,20 @@ typedef enum ChunkExecutionState {
  * \ingroup Execution
  */
 class ExecutionGroup {
- public:
-  typedef std::vector<NodeOperation *> Operations;
-
  private:
   // fields
 
   /**
    * \brief list of operations in this ExecutionGroup
    */
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
 
   /**
    * \brief is this ExecutionGroup an input ExecutionGroup
    * an input execution group is a group that is at the end of the calculation
    * (the output is important for the user).
    */
-  int m_isOutput;
+  bool m_is_output;
 
   /**
    * \brief Width of the output
@@ -100,17 +97,17 @@ class ExecutionGroup {
   /**
    * \brief number of chunks in the x-axis
    */
-  unsigned int m_numberOfXChunks;
+  unsigned int m_x_chunks_len;
 
   /**
    * \brief number of chunks in the y-axis
    */
-  unsigned int m_numberOfYChunks;
+  unsigned int m_y_chunks_len;
 
   /**
    * \brief total number of chunks
    */
-  unsigned int m_numberOfChunks;
+  unsigned int m_chunks_len;
 
   /**
    * \brief contains this ExecutionGroup a complex NodeOperation.
@@ -131,12 +128,12 @@ class ExecutionGroup {
    * \brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
    * \note this is used to construct the MemoryBuffers that will be passed during execution.
    */
-  unsigned int m_cachedMaxReadBufferOffset;
+  unsigned int m_max_read_buffer_offset;
 
   /**
-   * \brief a cached vector of all read operations in the execution group.
+   * \brief All read operations of this execution group.
    */
-  Operations m_cachedReadOperations;
+  blender::Vector<ReadBufferOperation *> m_read_operations;
 
   /**
    * \brief reference to the original bNodeTree,
@@ -148,15 +145,15 @@ class ExecutionGroup {
   /**
    * \brief total number of chunks that have been calculated for this ExecutionGroup
    */
-  unsigned int m_chunksFinished;
+  unsigned int m_chunks_finished;
 
   /**
-   * \brief the chunkExecutionStates holds per chunk the execution state. this state can be
-   *   - COM_ES_NOT_SCHEDULED: not scheduled
-   *   - COM_ES_SCHEDULED: scheduled
-   *   - COM_ES_EXECUTED: executed
+   * \brief m_chunk_execution_states holds per chunk the execution state. this state can be
+   *   - eChunkExecutionState::NOT_SCHEDULED: not scheduled
+   *   - eChunkExecutionState::SCHEDULED: scheduled
+   *   - eChunkExecutionState::EXECUTED: executed
    */
-  ChunkExecutionState *m_chunkExecutionStates;
+  blender::Vector<eChunkExecutionState> m_chunk_execution_states;
 
   /**
    * \brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
@@ -272,18 +269,18 @@ class ExecutionGroup {
    * \note ViewerOperation, CompositeOperation, PreviewOperation.
    * \see NodeOperation.isOutputOperation
    */
-  int isOutputExecutionGroup() const
+  bool isOutputExecutionGroup() const
   {
-    return this->m_isOutput;
+    return this->m_is_output;
   }
 
   /**
    * \brief set whether this ExecutionGroup is an output
    * \param isOutput:
    */
-  void setOutputExecutionGroup(int isOutput)
+  void setOutputExecutionGroup(bool is_output)
   {
-    this->m_isOutput = isOutput;
+    this->m_is_output = is_output;
   }
 
   /**
@@ -405,7 +402,7 @@ class ExecutionGroup {
    * \note the area of the MemoryProxy.creator that has to be executed.
    * \param memoryProxies: result
    */
-  void determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies);
+  void determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies);
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.

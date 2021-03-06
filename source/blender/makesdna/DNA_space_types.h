@@ -66,6 +66,9 @@ typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 /* Defined in `node_intern.h`. */
 typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 
+/* Defined in `file_intern.h`. */
+typedef struct SpaceFile_Runtime SpaceFile_Runtime;
+
 /* -------------------------------------------------------------------- */
 /** \name SpaceLink (Base)
  * \{ */
@@ -846,6 +849,8 @@ typedef struct SpaceFile {
 
   short recentnr, bookmarknr;
   short systemnr, system_bookmarknr;
+
+  SpaceFile_Runtime *runtime;
 } SpaceFile;
 
 /* SpaceFile.browse_mode (File Space Browsing Mode) */

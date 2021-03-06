@@ -124,7 +124,7 @@ static ID *outliner_ID_drop_find(bContext *C, const wmEvent *event, short idcode
   TreeElement *te = outliner_drop_find(C, event);
   TreeStoreElem *tselem = (te) ? TREESTORE(te) : NULL;
 
-  if (te && te->idcode == idcode && tselem->type == 0) {
+  if (te && (te->idcode == idcode) && (tselem->type == TSE_SOME_ID)) {
     return tselem->id;
   }
   return NULL;
@@ -215,7 +215,7 @@ static bool is_collection_element(TreeElement *te)
 static bool is_object_element(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  return tselem->type == 0 && te->idcode == ID_OB;
+  return (tselem->type == TSE_SOME_ID) && te->idcode == ID_OB;
 }
 
 static bool is_pchan_element(TreeElement *te)
@@ -281,7 +281,7 @@ static int outliner_get_insert_index(TreeElement *drag_te,
 static bool parent_drop_allowed(TreeElement *te, Object *potential_child)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  if (te->idcode != ID_OB || tselem->type != 0) {
+  if ((te->idcode != ID_OB) || (tselem->type != TSE_SOME_ID)) {
     return false;
   }
 
@@ -421,7 +421,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   TreeElement *te = outliner_drop_find(C, event);
   TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
 
-  if (!(te && te->idcode == ID_OB && tselem->type == 0)) {
+  if (!(te && (te->idcode == ID_OB) && (tselem->type == TSE_SOME_ID))) {
     return OPERATOR_CANCELLED;
   }
 

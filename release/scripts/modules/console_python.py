@@ -229,8 +229,6 @@ execute.hooks = []
 
 
 def autocomplete(context):
-    _readline_bypass()
-
     from console import intellisense
 
     sc = context.space_data
@@ -358,14 +356,3 @@ def banner(context):
     sc.prompt = PROMPT
 
     return {'FINISHED'}
-
-
-# workaround for readline crashing, see: T43491
-def _readline_bypass():
-    if "rlcompleter" in sys.modules or "readline" in sys.modules:
-        return
-
-    # prevent 'rlcompleter' from loading the real 'readline' module.
-    sys.modules["readline"] = None
-    import rlcompleter
-    del sys.modules["readline"]

@@ -19,7 +19,6 @@
 # <pep8-80 compliant>
 
 from _bpy import types as bpy_types
-import _bpy
 
 StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
@@ -900,6 +899,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         layout = self.layout
 
         import os
+        import re
         import bpy.utils
 
         layout = self.layout
@@ -920,7 +920,11 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                     (filter_path(f)))
             ])
 
-        files.sort()
+        # Perform a "natural sort", so 20 comes after 3 (for example).
+        files.sort(
+            key=lambda file_path:
+            tuple(int(t) if t.isdigit() else t for t in re.split("(\d+)", file_path[0].lower())),
+        )
 
         col = layout.column(align=True)
 

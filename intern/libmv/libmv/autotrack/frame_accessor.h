@@ -41,7 +41,7 @@ using libmv::FloatImage;
 // implementations to cache filtered image pieces).
 struct FrameAccessor {
   struct Transform {
-    virtual ~Transform() {  }
+    virtual ~Transform() {}
     // The key should depend on the transform arguments. Must be non-zero.
     virtual int64_t key() const = 0;
 
@@ -50,10 +50,7 @@ struct FrameAccessor {
     virtual void run(const FloatImage& input, FloatImage* output) const = 0;
   };
 
-  enum InputMode {
-    MONO,
-    RGBA
-  };
+  enum InputMode { MONO, RGBA };
 
   typedef void* Key;
 
@@ -100,6 +97,6 @@ struct FrameAccessor {
   virtual int NumFrames(int clip) = 0;
 };
 
-}  // namespace libmv
+}  // namespace mv
 
 #endif  // LIBMV_AUTOTRACK_FRAME_ACCESSOR_H_

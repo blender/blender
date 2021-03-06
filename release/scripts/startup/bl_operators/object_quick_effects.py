@@ -25,7 +25,6 @@ from bpy.props import (
     BoolProperty,
     EnumProperty,
     FloatProperty,
-    FloatVectorProperty,
     IntProperty,
 )
 

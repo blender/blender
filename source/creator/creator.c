@@ -47,7 +47,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-/* Mostly init functions. */
+/* Mostly initialization functions. */
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_brush.h"
@@ -108,8 +108,6 @@
 #endif
 
 #include "creator_intern.h" /* Own include. */
-
-/* Local Function prototypes. */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Application State
@@ -264,7 +262,7 @@ int main(int argc,
 #  endif
 
   /* Win32 Unicode Arguments. */
-  /* NOTE: cannot use guardedalloc malloc here, as it's not yet initialized
+  /* NOTE: cannot use `guardedalloc` allocation here, as it's not yet initialized
    *       (it depends on the arguments passed in, which is what we're getting here!)
    */
   {
@@ -453,8 +451,8 @@ int main(int argc,
   /* Background render uses this font too. */
   BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
 
-  /* Initialize ffmpeg if built in, also needed for background-mode if videos are
-   * rendered via ffmpeg. */
+  /* Initialize FFMPEG if built in, also needed for background-mode if videos are
+   * rendered via FFMPEG. */
   BKE_sound_init_once();
 
   BKE_materials_init();
@@ -524,7 +522,7 @@ int main(int argc,
 #endif /* WITH_PYTHON_MODULE */
 
   return 0;
-} /* End of int main(...) function. */
+} /* End of `int main(...)` function. */
 
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)

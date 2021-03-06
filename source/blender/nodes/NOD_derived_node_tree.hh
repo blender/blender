@@ -19,544 +19,360 @@
 /** \file
  * \ingroup nodes
  *
- * DerivedNodeTree provides a flattened view on a bNodeTree, i.e. node groups are inlined. It
- * builds on top of NodeTreeRef and supports similar queries efficiently.
- *
- * Every inlined node remembers its path to the parent ("call stack").
- *
- * Unlinked group node inputs are handled separately from other sockets.
- *
- * There is a dot graph exporter for debugging purposes.
+ * DerivedNodeTree builds on top of NodeTreeRef and makes working with (nested) node groups more
+ * convenient and safe. It does so by pairing nodes and sockets with a context. The context
+ * contains information about the current "instance" of the node or socket. A node might be
+ * "instanced" multiple times when it is in a node group that is used multiple times.
  */
+
+#include "BLI_function_ref.hh"
+#include "BLI_vector_set.hh"
 
 #include "NOD_node_tree_ref.hh"
 
-#include "BLI_vector_set.hh"
-
 namespace blender::nodes {
 
+class DTreeContext;
+class DerivedNodeTree;
+
+class DNode;
 class DSocket;
 class DInputSocket;
 class DOutputSocket;
-class DNode;
-class DParentNode;
-class DGroupInput;
-class DerivedNodeTree;
 
-class DSocket : NonCopyable, NonMovable {
+/**
+ * The context attached to every node or socket in a derived node tree. It can be used to determine
+ * the place of a node in a hierarchy of node groups.
+ *
+ * Contexts are organized in a tree data structure to avoid having to store the entire path to the
+ * root node group for every node/socket.
+ */
+class DTreeContext {
+ private:
+  /* Null when this context is for the root node group. Otherwise it points to the context one
+   * level up. */
+  DTreeContext *parent_context_;
+  /* Null when this context is for the root node group. Otherwise it points to the group node in
+   * the parent node group that contains this context. */
+  const NodeRef *parent_node_;
+  /* The current node tree. */
+  const NodeTreeRef *tree_;
+  /* All the children contexts of this context. */
+  Map<const NodeRef *, DTreeContext *> children_;
+
+  friend DerivedNodeTree;
+
+ public:
+  const NodeTreeRef &tree() const;
+  const DTreeContext *parent_context() const;
+  const NodeRef *parent_node() const;
+  const DTreeContext *child_context(const NodeRef &node) const;
+  bool is_root() const;
+};
+
+/* A (nullable) reference to a node and the context it is in. It is unique within an entire nested
+ * node group hierarchy. This type is small and can be passed around by value. */
+class DNode {
+ private:
+  const DTreeContext *context_ = nullptr;
+  const NodeRef *node_ref_ = nullptr;
+
+ public:
+  DNode() = default;
+  DNode(const DTreeContext *context, const NodeRef *node);
+
+  const DTreeContext *context() const;
+  const NodeRef *node_ref() const;
+  const NodeRef *operator->() const;
+
+  friend bool operator==(const DNode &a, const DNode &b);
+  friend bool operator!=(const DNode &a, const DNode &b);
+  operator bool() const;
+
+  uint64_t hash() const;
+};
+
+/* A (nullable) reference to a socket and the context it is in. It is unique within an entire
+ * nested node group hierarchy. This type is small and can be passed around by value.
+ *
+ * A #DSocket can represent an input or an output socket. If the type of a socket is known at
+ * compile time is is preferable to use #DInputSocket or #DOutputSocket instead. */
+class DSocket {
  protected:
-  DNode *node_;
-  const SocketRef *socket_ref_;
-  int id_;
-
-  friend DerivedNodeTree;
+  const DTreeContext *context_ = nullptr;
+  const SocketRef *socket_ref_ = nullptr;
 
  public:
-  const DNode &node() const;
+  DSocket() = default;
+  DSocket(const DTreeContext *context, const SocketRef *socket);
+  DSocket(const DInputSocket &input_socket);
+  DSocket(const DOutputSocket &output_socket);
 
-  int id() const;
-  int index() const;
+  const DTreeContext *context() const;
+  const SocketRef *socket_ref() const;
+  const SocketRef *operator->() const;
 
-  bool is_input() const;
-  bool is_output() const;
+  friend bool operator==(const DSocket &a, const DSocket &b);
+  friend bool operator!=(const DSocket &a, const DSocket &b);
+  operator bool() const;
 
-  const DSocket &as_base() const;
-  const DInputSocket &as_input() const;
-  const DOutputSocket &as_output() const;
-
-  PointerRNA *rna() const;
-  StringRefNull idname() const;
-  StringRefNull name() const;
-  StringRefNull identifier() const;
-  bNodeSocketType *typeinfo() const;
-
-  const SocketRef &socket_ref() const;
-  bNodeSocket *bsocket() const;
-
-  bool is_available() const;
+  uint64_t hash() const;
 };
 
+/* A (nullable) reference to an input socket and the context it is in. */
 class DInputSocket : public DSocket {
- private:
-  Vector<DOutputSocket *> linked_sockets_;
-  Vector<DGroupInput *> linked_group_inputs_;
-  bool is_multi_input_socket_;
-
-  friend DerivedNodeTree;
-
  public:
-  const InputSocketRef &socket_ref() const;
+  DInputSocket() = default;
+  DInputSocket(const DTreeContext *context, const InputSocketRef *socket);
+  explicit DInputSocket(const DSocket &base_socket);
 
-  Span<const DOutputSocket *> linked_sockets() const;
-  Span<const DGroupInput *> linked_group_inputs() const;
+  const InputSocketRef *socket_ref() const;
+  const InputSocketRef *operator->() const;
 
-  bool is_linked() const;
-  bool is_multi_input_socket() const;
+  DOutputSocket get_corresponding_group_node_output() const;
+  Vector<DOutputSocket, 4> get_corresponding_group_input_sockets() const;
+
+  void foreach_origin_socket(FunctionRef<void(DSocket)> callback) const;
 };
 
+/* A (nullable) reference to an output socket and the context it is in. */
 class DOutputSocket : public DSocket {
- private:
-  Vector<DInputSocket *> linked_sockets_;
-
-  friend DerivedNodeTree;
-
  public:
-  const OutputSocketRef &socket_ref() const;
-  Span<const DInputSocket *> linked_sockets() const;
+  DOutputSocket() = default;
+  DOutputSocket(const DTreeContext *context, const OutputSocketRef *socket);
+  explicit DOutputSocket(const DSocket &base_socket);
+
+  const OutputSocketRef *socket_ref() const;
+  const OutputSocketRef *operator->() const;
+
+  DInputSocket get_corresponding_group_node_input() const;
+  DInputSocket get_active_corresponding_group_output_socket() const;
+
+  void foreach_target_socket(FunctionRef<void(DInputSocket)> callback) const;
 };
 
-class DGroupInput : NonCopyable, NonMovable {
- private:
-  const InputSocketRef *socket_ref_;
-  DParentNode *parent_;
-  Vector<DInputSocket *> linked_sockets_;
-  int id_;
-
-  friend DerivedNodeTree;
-
- public:
-  const InputSocketRef &socket_ref() const;
-  bNodeSocket *bsocket() const;
-  const DParentNode *parent() const;
-  Span<const DInputSocket *> linked_sockets() const;
-  int id() const;
-  StringRefNull name() const;
-};
-
-class DNode : NonCopyable, NonMovable {
- private:
-  const NodeRef *node_ref_;
-  DParentNode *parent_;
-
-  Span<DInputSocket *> inputs_;
-  Span<DOutputSocket *> outputs_;
-
-  int id_;
-
-  friend DerivedNodeTree;
-
- public:
-  const NodeRef &node_ref() const;
-  const DParentNode *parent() const;
-
-  Span<const DInputSocket *> inputs() const;
-  Span<const DOutputSocket *> outputs() const;
-
-  const DInputSocket &input(int index) const;
-  const DOutputSocket &output(int index) const;
-
-  const DInputSocket &input(int index, StringRef expected_name) const;
-  const DOutputSocket &output(int index, StringRef expected_name) const;
-
-  int id() const;
-
-  PointerRNA *rna() const;
-  StringRefNull idname() const;
-  StringRefNull name() const;
-  bNode *bnode() const;
-  bNodeType *typeinfo() const;
-
- private:
-  void destruct_with_sockets();
-};
-
-class DParentNode : NonCopyable, NonMovable {
- private:
-  const NodeRef *node_ref_;
-  DParentNode *parent_;
-  int id_;
-
-  friend DerivedNodeTree;
-
- public:
-  const DParentNode *parent() const;
-  const NodeRef &node_ref() const;
-  int id() const;
-};
-
-class DerivedNodeTree : NonCopyable, NonMovable {
+class DerivedNodeTree {
  private:
   LinearAllocator<> allocator_;
-  Vector<DNode *> nodes_by_id_;
-  Vector<DGroupInput *> group_inputs_;
-  Vector<DParentNode *> parent_nodes_;
-
-  Vector<DSocket *> sockets_by_id_;
-  Vector<DInputSocket *> input_sockets_;
-  Vector<DOutputSocket *> output_sockets_;
-
-  MultiValueMap<const bNodeType *, DNode *> nodes_by_type_;
+  DTreeContext *root_context_;
   VectorSet<const NodeTreeRef *> used_node_tree_refs_;
-  bNodeTree *btree_;
 
  public:
-  DerivedNodeTree(bNodeTree *btree, NodeTreeRefMap &node_tree_refs);
+  DerivedNodeTree(bNodeTree &btree, NodeTreeRefMap &node_tree_refs);
   ~DerivedNodeTree();
 
-  bNodeTree *btree() const;
-
-  Span<const DNode *> nodes() const;
-  Span<const DNode *> nodes_by_type(StringRefNull idname) const;
-  Span<const DNode *> nodes_by_type(const bNodeType *nodetype) const;
-
-  Span<const DSocket *> sockets() const;
-  Span<const DInputSocket *> input_sockets() const;
-  Span<const DOutputSocket *> output_sockets() const;
-
-  Span<const DGroupInput *> group_inputs() const;
-
+  const DTreeContext &root_context() const;
   Span<const NodeTreeRef *> used_node_tree_refs() const;
 
   bool has_link_cycles() const;
-
-  std::string to_dot() const;
+  void foreach_node(FunctionRef<void(DNode)> callback) const;
 
  private:
-  /* Utility functions used during construction. */
-  void insert_nodes_and_links_in_id_order(const NodeTreeRef &tree_ref,
-                                          DParentNode *parent,
-                                          Vector<DNode *> &all_nodes);
-  DNode &create_node(const NodeRef &node_ref,
-                     DParentNode *parent,
-                     MutableSpan<DSocket *> r_sockets_map);
-  void expand_groups(Vector<DNode *> &all_nodes,
-                     Vector<DGroupInput *> &all_group_inputs,
-                     Vector<DParentNode *> &all_parent_nodes,
-                     NodeTreeRefMap &node_tree_refs);
-  void expand_group_node(DNode &group_node,
-                         Vector<DNode *> &all_nodes,
-                         Vector<DGroupInput *> &all_group_inputs,
-                         Vector<DParentNode *> &all_parent_nodes,
-                         NodeTreeRefMap &node_tree_refs);
-  void create_group_inputs_for_unlinked_inputs(DNode &node,
-                                               Vector<DGroupInput *> &all_group_inputs);
-  void relink_group_inputs(const NodeTreeRef &group_ref,
-                           Span<DNode *> nodes_by_id,
-                           DNode &group_node);
-  void relink_group_outputs(const NodeTreeRef &group_ref,
-                            Span<DNode *> nodes_by_id,
-                            DNode &group_node);
-  void remove_expanded_group_interfaces(Vector<DNode *> &all_nodes);
-  void remove_unused_group_inputs(Vector<DGroupInput *> &all_group_inputs);
-  void relink_and_remove_muted_nodes(Vector<DNode *> &all_nodes);
-  void relink_muted_node(DNode &muted_node);
-  void store_in_this_and_init_ids(Vector<DNode *> &&all_nodes,
-                                  Vector<DGroupInput *> &&all_group_inputs,
-                                  Vector<DParentNode *> &&all_parent_nodes);
+  DTreeContext &construct_context_recursively(DTreeContext *parent_context,
+                                              const NodeRef *parent_node,
+                                              bNodeTree &btree,
+                                              NodeTreeRefMap &node_tree_refs);
+  void destruct_context_recursively(DTreeContext *context);
+
+  void foreach_node_in_context_recursive(const DTreeContext &context,
+                                         FunctionRef<void(DNode)> callback) const;
 };
 
 namespace derived_node_tree_types {
+using namespace node_tree_ref_types;
 using nodes::DerivedNodeTree;
-using nodes::DGroupInput;
 using nodes::DInputSocket;
 using nodes::DNode;
 using nodes::DOutputSocket;
-using nodes::DParentNode;
-};  // namespace derived_node_tree_types
+using nodes::DSocket;
+using nodes::DTreeContext;
+}  // namespace derived_node_tree_types
 
 /* --------------------------------------------------------------------
- * DSocket inline methods.
+ * DTreeContext inline methods.
  */
 
-inline const DNode &DSocket::node() const
+inline const NodeTreeRef &DTreeContext::tree() const
 {
-  return *node_;
+  return *tree_;
 }
 
-inline int DSocket::id() const
+inline const DTreeContext *DTreeContext::parent_context() const
 {
-  return id_;
+  return parent_context_;
 }
 
-inline int DSocket::index() const
+inline const NodeRef *DTreeContext::parent_node() const
 {
-  return socket_ref_->index();
+  return parent_node_;
 }
 
-inline bool DSocket::is_input() const
+inline const DTreeContext *DTreeContext::child_context(const NodeRef &node) const
 {
-  return socket_ref_->is_input();
+  return children_.lookup_default(&node, nullptr);
 }
 
-inline bool DSocket::is_output() const
+inline bool DTreeContext::is_root() const
 {
-  return socket_ref_->is_output();
-}
-
-inline const DSocket &DSocket::as_base() const
-{
-  return *this;
-}
-
-inline const DInputSocket &DSocket::as_input() const
-{
-  return static_cast<const DInputSocket &>(*this);
-}
-
-inline const DOutputSocket &DSocket::as_output() const
-{
-  return static_cast<const DOutputSocket &>(*this);
-}
-
-inline PointerRNA *DSocket::rna() const
-{
-  return socket_ref_->rna();
-}
-
-inline StringRefNull DSocket::idname() const
-{
-  return socket_ref_->idname();
-}
-
-inline StringRefNull DSocket::name() const
-{
-  return socket_ref_->name();
-}
-
-inline StringRefNull DSocket::identifier() const
-{
-  return socket_ref_->identifier();
-}
-
-inline bNodeSocketType *DSocket::typeinfo() const
-{
-  return socket_ref_->bsocket()->typeinfo;
-}
-
-inline const SocketRef &DSocket::socket_ref() const
-{
-  return *socket_ref_;
-}
-
-inline bNodeSocket *DSocket::bsocket() const
-{
-  return socket_ref_->bsocket();
-}
-
-inline bool DSocket::is_available() const
-{
-  return (socket_ref_->bsocket()->flag & SOCK_UNAVAIL) == 0;
-}
-
-/* --------------------------------------------------------------------
- * DInputSocket inline methods.
- */
-
-inline const InputSocketRef &DInputSocket::socket_ref() const
-{
-  return socket_ref_->as_input();
-}
-
-inline Span<const DOutputSocket *> DInputSocket::linked_sockets() const
-{
-  return linked_sockets_;
-}
-
-inline Span<const DGroupInput *> DInputSocket::linked_group_inputs() const
-{
-  return linked_group_inputs_;
-}
-
-inline bool DInputSocket::is_linked() const
-{
-  return linked_sockets_.size() > 0 || linked_group_inputs_.size() > 0;
-}
-
-inline bool DInputSocket::is_multi_input_socket() const
-{
-  return is_multi_input_socket_;
-}
-
-/* --------------------------------------------------------------------
- * DOutputSocket inline methods.
- */
-
-inline const OutputSocketRef &DOutputSocket::socket_ref() const
-{
-  return socket_ref_->as_output();
-}
-
-inline Span<const DInputSocket *> DOutputSocket::linked_sockets() const
-{
-  return linked_sockets_;
-}
-
-/* --------------------------------------------------------------------
- * DGroupInput inline methods.
- */
-
-inline const InputSocketRef &DGroupInput::socket_ref() const
-{
-  return *socket_ref_;
-}
-
-inline bNodeSocket *DGroupInput::bsocket() const
-{
-  return socket_ref_->bsocket();
-}
-
-inline const DParentNode *DGroupInput::parent() const
-{
-  return parent_;
-}
-
-inline Span<const DInputSocket *> DGroupInput::linked_sockets() const
-{
-  return linked_sockets_;
-}
-
-inline int DGroupInput::id() const
-{
-  return id_;
-}
-
-inline StringRefNull DGroupInput::name() const
-{
-  return socket_ref_->name();
+  return parent_context_ == nullptr;
 }
 
 /* --------------------------------------------------------------------
  * DNode inline methods.
  */
 
-inline const NodeRef &DNode::node_ref() const
+inline DNode::DNode(const DTreeContext *context, const NodeRef *node_ref)
+    : context_(context), node_ref_(node_ref)
 {
-  return *node_ref_;
+  BLI_assert(node_ref == nullptr || &node_ref->tree() == &context->tree());
 }
 
-inline const DParentNode *DNode::parent() const
+inline const DTreeContext *DNode::context() const
 {
-  return parent_;
+  return context_;
 }
 
-inline Span<const DInputSocket *> DNode::inputs() const
+inline const NodeRef *DNode::node_ref() const
 {
-  return inputs_;
+  return node_ref_;
 }
 
-inline Span<const DOutputSocket *> DNode::outputs() const
+inline bool operator==(const DNode &a, const DNode &b)
 {
-  return outputs_;
+  return a.context_ == b.context_ && a.node_ref_ == b.node_ref_;
 }
 
-inline const DInputSocket &DNode::input(int index) const
+inline bool operator!=(const DNode &a, const DNode &b)
 {
-  return *inputs_[index];
+  return !(a == b);
 }
 
-inline const DOutputSocket &DNode::output(int index) const
+inline DNode::operator bool() const
 {
-  return *outputs_[index];
+  return node_ref_ != nullptr;
 }
 
-inline const DInputSocket &DNode::input(int index, StringRef expected_name) const
+inline const NodeRef *DNode::operator->() const
 {
-  const DInputSocket &socket = *inputs_[index];
-  BLI_assert(socket.name() == expected_name);
-  UNUSED_VARS_NDEBUG(expected_name);
-  return socket;
+  return node_ref_;
 }
 
-inline const DOutputSocket &DNode::output(int index, StringRef expected_name) const
+inline uint64_t DNode::hash() const
 {
-  const DOutputSocket &socket = *outputs_[index];
-  BLI_assert(socket.name() == expected_name);
-  UNUSED_VARS_NDEBUG(expected_name);
-  return socket;
-}
-
-inline int DNode::id() const
-{
-  return id_;
-}
-
-inline PointerRNA *DNode::rna() const
-{
-  return node_ref_->rna();
-}
-
-inline StringRefNull DNode::idname() const
-{
-  return node_ref_->idname();
-}
-
-inline StringRefNull DNode::name() const
-{
-  return node_ref_->name();
-}
-
-inline bNode *DNode::bnode() const
-{
-  return node_ref_->bnode();
-}
-
-inline bNodeType *DNode::typeinfo() const
-{
-  return node_ref_->bnode()->typeinfo;
+  return DefaultHash<const DTreeContext *>{}(context_) ^ DefaultHash<const NodeRef *>{}(node_ref_);
 }
 
 /* --------------------------------------------------------------------
- * DParentNode inline methods.
+ * DSocket inline methods.
  */
 
-inline const DParentNode *DParentNode::parent() const
+inline DSocket::DSocket(const DTreeContext *context, const SocketRef *socket_ref)
+    : context_(context), socket_ref_(socket_ref)
 {
-  return parent_;
+  BLI_assert(socket_ref == nullptr || &socket_ref->tree() == &context->tree());
 }
 
-inline const NodeRef &DParentNode::node_ref() const
+inline DSocket::DSocket(const DInputSocket &input_socket)
+    : DSocket(input_socket.context_, input_socket.socket_ref_)
 {
-  return *node_ref_;
 }
 
-inline int DParentNode::id() const
+inline DSocket::DSocket(const DOutputSocket &output_socket)
+    : DSocket(output_socket.context_, output_socket.socket_ref_)
 {
-  return id_;
+}
+
+inline const DTreeContext *DSocket::context() const
+{
+  return context_;
+}
+
+inline const SocketRef *DSocket::socket_ref() const
+{
+  return socket_ref_;
+}
+
+inline bool operator==(const DSocket &a, const DSocket &b)
+{
+  return a.context_ == b.context_ && a.socket_ref_ == b.socket_ref_;
+}
+
+inline bool operator!=(const DSocket &a, const DSocket &b)
+{
+  return !(a == b);
+}
+
+inline DSocket::operator bool() const
+{
+  return socket_ref_ != nullptr;
+}
+
+inline const SocketRef *DSocket::operator->() const
+{
+  return socket_ref_;
+}
+
+inline uint64_t DSocket::hash() const
+{
+  return DefaultHash<const DTreeContext *>{}(context_) ^
+         DefaultHash<const SocketRef *>{}(socket_ref_);
+}
+
+/* --------------------------------------------------------------------
+ * DInputSocket inline methods.
+ */
+
+inline DInputSocket::DInputSocket(const DTreeContext *context, const InputSocketRef *socket_ref)
+    : DSocket(context, socket_ref)
+{
+}
+
+inline DInputSocket::DInputSocket(const DSocket &base_socket) : DSocket(base_socket)
+{
+  BLI_assert(base_socket->is_input());
+}
+
+inline const InputSocketRef *DInputSocket::socket_ref() const
+{
+  return (const InputSocketRef *)socket_ref_;
+}
+
+inline const InputSocketRef *DInputSocket::operator->() const
+{
+  return (const InputSocketRef *)socket_ref_;
+}
+
+/* --------------------------------------------------------------------
+ * DOutputSocket inline methods.
+ */
+
+inline DOutputSocket::DOutputSocket(const DTreeContext *context, const OutputSocketRef *socket_ref)
+    : DSocket(context, socket_ref)
+{
+}
+
+inline DOutputSocket::DOutputSocket(const DSocket &base_socket) : DSocket(base_socket)
+{
+  BLI_assert(base_socket->is_output());
+}
+
+inline const OutputSocketRef *DOutputSocket::socket_ref() const
+{
+  return (const OutputSocketRef *)socket_ref_;
+}
+
+inline const OutputSocketRef *DOutputSocket::operator->() const
+{
+  return (const OutputSocketRef *)socket_ref_;
 }
 
 /* --------------------------------------------------------------------
  * DerivedNodeTree inline methods.
  */
 
-inline bNodeTree *DerivedNodeTree::btree() const
+inline const DTreeContext &DerivedNodeTree::root_context() const
 {
-  return btree_;
-}
-
-inline Span<const DNode *> DerivedNodeTree::nodes() const
-{
-  return nodes_by_id_;
-}
-
-inline Span<const DNode *> DerivedNodeTree::nodes_by_type(StringRefNull idname) const
-{
-  const bNodeType *nodetype = nodeTypeFind(idname.c_str());
-  return this->nodes_by_type(nodetype);
-}
-
-inline Span<const DNode *> DerivedNodeTree::nodes_by_type(const bNodeType *nodetype) const
-{
-  return nodes_by_type_.lookup(nodetype);
-}
-
-inline Span<const DSocket *> DerivedNodeTree::sockets() const
-{
-  return sockets_by_id_;
-}
-
-inline Span<const DInputSocket *> DerivedNodeTree::input_sockets() const
-{
-  return input_sockets_;
-}
-
-inline Span<const DOutputSocket *> DerivedNodeTree::output_sockets() const
-{
-  return output_sockets_;
-}
-
-inline Span<const DGroupInput *> DerivedNodeTree::group_inputs() const
-{
-  return group_inputs_;
+  return *root_context_;
 }
 
 inline Span<const NodeTreeRef *> DerivedNodeTree::used_node_tree_refs() const

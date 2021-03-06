@@ -26,17 +26,14 @@
 namespace libmv {
 
 /// Nearest neighbor interpolation.
-template<typename T>
-inline T SampleNearest(const Array3D<T> &image,
-                       float y, float x, int v = 0) {
+template <typename T>
+inline T SampleNearest(const Array3D<T>& image, float y, float x, int v = 0) {
   const int i = int(round(y));
   const int j = int(round(x));
   return image(i, j, v);
 }
 
-inline void LinearInitAxis(float x, int size,
-                           int *x1, int *x2,
-                           float *dx) {
+inline void LinearInitAxis(float x, int size, int* x1, int* x2, float* dx) {
   const int ix = static_cast<int>(x);
   if (ix < 0) {
     *x1 = 0;
@@ -54,32 +51,32 @@ inline void LinearInitAxis(float x, int size,
 }
 
 /// Linear interpolation.
-template<typename T>
-inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
+template <typename T>
+inline T SampleLinear(const Array3D<T>& image, float y, float x, int v = 0) {
   int x1, y1, x2, y2;
   float dx, dy;
 
   LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
-  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
+  LinearInitAxis(x, image.Width(), &x1, &x2, &dx);
 
   const T im11 = image(y1, x1, v);
   const T im12 = image(y1, x2, v);
   const T im21 = image(y2, x1, v);
   const T im22 = image(y2, x2, v);
 
-  return T(     dy  * (dx * im11 + (1.0 - dx) * im12) +
+  return T(dy * (dx * im11 + (1.0 - dx) * im12) +
            (1 - dy) * (dx * im21 + (1.0 - dx) * im22));
 }
 
 /// Linear interpolation, of all channels. The sample is assumed to have the
 /// same size as the number of channels in image.
-template<typename T>
-inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
+template <typename T>
+inline void SampleLinear(const Array3D<T>& image, float y, float x, T* sample) {
   int x1, y1, x2, y2;
   float dx, dy;
 
   LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
-  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
+  LinearInitAxis(x, image.Width(), &x1, &x2, &dx);
 
   for (int i = 0; i < image.Depth(); ++i) {
     const T im11 = image(y1, x1, i);
@@ -87,7 +84,7 @@ inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
     const T im21 = image(y2, x1, i);
     const T im22 = image(y2, x2, i);
 
-    sample[i] = T(     dy  * (dx * im11 + (1.0 - dx) * im12) +
+    sample[i] = T(dy * (dx * im11 + (1.0 - dx) * im12) +
                   (1 - dy) * (dx * im21 + (1.0 - dx) * im22));
   }
 }
@@ -95,7 +92,7 @@ inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
 // Downsample all channels by 2. If the image has odd width or height, the last
 // row or column is ignored.
 // FIXME(MatthiasF): this implementation shouldn't be in an interface file
-inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
+inline void DownsampleChannelsBy2(const Array3Df& in, Array3Df* out) {
   int height = in.Height() / 2;
   int width = in.Width() / 2;
   int depth = in.Depth();
@@ -106,10 +103,12 @@ inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
   for (int r = 0; r < height; ++r) {
     for (int c = 0; c < width; ++c) {
       for (int k = 0; k < depth; ++k) {
+        // clang-format off
         (*out)(r, c, k) = (in(2 * r,     2 * c,     k) +
                            in(2 * r + 1, 2 * c,     k) +
                            in(2 * r,     2 * c + 1, k) +
                            in(2 * r + 1, 2 * c + 1, k)) / 4.0f;
+        // clang-format on
       }
     }
   }
@@ -117,11 +116,12 @@ inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
 
 // Sample a region centered at x,y in image with size extending by half_width
 // from x,y. Channels specifies the number of channels to sample from.
-inline void SamplePattern(const FloatImage &image,
-                   double x, double y,
-                   int half_width,
-                   int channels,
-                   FloatImage *sampled) {
+inline void SamplePattern(const FloatImage& image,
+                          double x,
+                          double y,
+                          int half_width,
+                          int channels,
+                          FloatImage* sampled) {
   sampled->Resize(2 * half_width + 1, 2 * half_width + 1, channels);
   for (int r = -half_width; r <= half_width; ++r) {
     for (int c = -half_width; c <= half_width; ++c) {

@@ -6569,6 +6569,8 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_FILE_PARAMS, "rna_FileBrowser_FSMenu_active_update");
+
+  RNA_api_space_filebrowser(srna);
 }
 
 static void rna_def_space_info(BlenderRNA *brna)

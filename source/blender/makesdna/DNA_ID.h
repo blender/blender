@@ -730,7 +730,7 @@ typedef enum IDRecalcFlag {
  * About Order:
  * ------------
  *
- * This is (losely) defined with a relationship order in mind, from lowest level (ID types using,
+ * This is (loosely) defined with a relationship order in mind, from lowest level (ID types using,
  * referencing almost no other ID types) to highest level (ID types potentially using many other ID
  * types).
  *

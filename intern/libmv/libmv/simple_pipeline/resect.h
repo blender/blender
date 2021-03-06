@@ -22,8 +22,8 @@
 #define LIBMV_SIMPLE_PIPELINE_RESECT_H
 
 #include "libmv/base/vector.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/reconstruction.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -51,8 +51,9 @@ namespace libmv {
 
     \sa EuclideanIntersect, EuclideanReconstructTwoFrames
 */
-bool EuclideanResect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction, bool final_pass);
+bool EuclideanResect(const vector<Marker>& markers,
+                     EuclideanReconstruction* reconstruction,
+                     bool final_pass);
 
 /*!
     Estimate the projective pose of a camera from 2D to 3D correspondences.
@@ -78,8 +79,8 @@ bool EuclideanResect(const vector<Marker> &markers,
 
     \sa ProjectiveIntersect, ProjectiveReconstructTwoFrames
 */
-bool ProjectiveResect(const vector<Marker> &markers,
-                      ProjectiveReconstruction *reconstruction);
+bool ProjectiveResect(const vector<Marker>& markers,
+                      ProjectiveReconstruction* reconstruction);
 
 }  // namespace libmv
 

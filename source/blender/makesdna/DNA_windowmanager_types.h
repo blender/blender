@@ -154,8 +154,8 @@ typedef struct wmWindowManager {
   /** Operator registry. */
   ListBase operators;
 
-  /** Refresh/redraw wmNotifier structs. */
-  ListBase queue;
+  /** Refresh/redraw #wmNotifier structs. */
+  ListBase notifier_queue;
 
   /** Information and error reports. */
   struct ReportList reports;
@@ -251,13 +251,14 @@ typedef struct wmWindow {
 
   struct bScreen *screen DNA_DEPRECATED;
 
+  /** Winid also in screens, is for retrieving this window after read. */
+  int winid;
   /** Window coords. */
   short posx, posy, sizex, sizey;
   /** Borderless, full. */
   char windowstate;
   /** Set to 1 if an active window, for quick rejects. */
   char active;
-  char _pad0[4];
   /** Current mouse cursor type. */
   short cursor;
   /** Previous cursor when setting modal one. */
@@ -271,16 +272,22 @@ typedef struct wmWindow {
   char addmousemove;
   char tag_cursor_refresh;
 
-  /** Winid also in screens, is for retrieving this window after read. */
-  int winid;
+  /* Track the state of the event queue,
+   * these store the state that needs to be kept between handling events in the queue. */
+  /** Enable when #KM_PRESS events are not handled (keyboard/mouse-buttons only). */
+  char event_queue_check_click;
+  /** Enable when #KM_PRESS events are not handled (keyboard/mouse-buttons only). */
+  char event_queue_check_drag;
+
+  char _pad0[2];
 
   /** Internal, lock pie creation from this event until released. */
-  short lock_pie_event;
+  short pie_event_type_lock;
   /**
    * Exception to the above rule for nested pies, store last pie event for operators
    * that spawn a new pie right after destruction of last pie.
    */
-  short last_pie_event;
+  short pie_event_type_last;
 
   /** Storage for event system. */
   struct wmEvent *eventstate;
@@ -292,8 +299,8 @@ typedef struct wmWindow {
    * Currently WIN32, runtime-only data. */
   struct wmIMEData *ime_data;
 
-  /** All events (ghost level events were handled). */
-  ListBase queue;
+  /** All events #wmEvent (ghost level events were handled). */
+  ListBase event_queue;
   /** Window+screen handlers, handled last. */
   ListBase handlers;
   /** Priority handlers, handled first. */

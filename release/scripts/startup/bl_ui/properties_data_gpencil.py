@@ -392,7 +392,6 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         gpd = context.gpencil
-        gpl = gpd.layers.active
 
         layout.prop(gpd, "edit_line_color", text="Edit Line Color")
 

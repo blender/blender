@@ -624,7 +624,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   bool ok = false;
 
   /* set wait cursor in case this takes a while */
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
@@ -709,7 +709,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   MEM_freeN(bases);
 
   /* Recalculate/redraw + cleanup */
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   if (ok) {
     BKE_report(op->reports, RPT_INFO, "Separated bones");

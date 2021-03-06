@@ -115,8 +115,8 @@ class DilateDistanceOperation : public NodeOperation {
                      MemoryBuffer *outputMemoryBuffer,
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
-                     list<cl_mem> *clMemToCleanUp,
-                     list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_mem> *clMemToCleanUp,
+                     std::list<cl_kernel> *clKernelsToCleanUp);
 };
 class ErodeDistanceOperation : public DilateDistanceOperation {
  public:
@@ -131,8 +131,8 @@ class ErodeDistanceOperation : public DilateDistanceOperation {
                      MemoryBuffer *outputMemoryBuffer,
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
-                     list<cl_mem> *clMemToCleanUp,
-                     list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_mem> *clMemToCleanUp,
+                     std::list<cl_kernel> *clKernelsToCleanUp);
 };
 
 class DilateStepOperation : public NodeOperation {

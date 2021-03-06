@@ -1420,7 +1420,7 @@ void GPENCIL_OT_layer_merge(wmOperatorType *ot)
 
 /* ********************** Change Layer ***************************** */
 
-static int gpencil_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(evt))
+static int gpencil_layer_change_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   uiPopupMenu *pup;
   uiLayout *layout;

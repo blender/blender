@@ -56,10 +56,10 @@ typedef struct libmv_CameraIntrinsicsOptions {
   double brown_p1, brown_p2;
 } libmv_CameraIntrinsicsOptions;
 
-libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(
+libmv_CameraIntrinsics* libmv_cameraIntrinsicsNew(
     const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options);
 
-libmv_CameraIntrinsics *libmv_cameraIntrinsicsCopy(
+libmv_CameraIntrinsics* libmv_cameraIntrinsicsCopy(
     const libmv_CameraIntrinsics* libmv_intrinsics);
 
 void libmv_cameraIntrinsicsDestroy(libmv_CameraIntrinsics* libmv_intrinsics);
@@ -76,7 +76,7 @@ void libmv_cameraIntrinsicsExtractOptions(
 
 void libmv_cameraIntrinsicsUndistortByte(
     const libmv_CameraIntrinsics* libmv_intrinsics,
-    const unsigned char *source_image,
+    const unsigned char* source_image,
     int width,
     int height,
     float overscan,
@@ -94,12 +94,12 @@ void libmv_cameraIntrinsicsUndistortFloat(
 
 void libmv_cameraIntrinsicsDistortByte(
     const struct libmv_CameraIntrinsics* libmv_intrinsics,
-    const unsigned char *source_image,
+    const unsigned char* source_image,
     int width,
     int height,
     float overscan,
     int channels,
-    unsigned char *destination_image);
+    unsigned char* destination_image);
 
 void libmv_cameraIntrinsicsDistortFloat(
     const libmv_CameraIntrinsics* libmv_intrinsics,
@@ -131,7 +131,7 @@ void libmv_cameraIntrinsicsInvert(
 #ifdef __cplusplus
 
 namespace libmv {
-  class CameraIntrinsics;
+class CameraIntrinsics;
 }
 
 libmv::CameraIntrinsics* libmv_cameraIntrinsicsCreateFromOptions(

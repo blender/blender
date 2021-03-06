@@ -307,7 +307,7 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
           continue;
         }
         linestyle->id.tag &= ~LIB_TAG_DOIT;
-        outliner_add_element(space_outliner, lb, linestyle, te, 0, 0);
+        outliner_add_element(space_outliner, lb, linestyle, te, TSE_SOME_ID, 0);
       }
     }
   }
@@ -332,7 +332,7 @@ static void outliner_add_scene_contents(SpaceOutliner *space_outliner,
   }
 
   /* World */
-  outliner_add_element(space_outliner, lb, sce->world, te, 0, 0);
+  outliner_add_element(space_outliner, lb, sce->world, te, TSE_SOME_ID, 0);
 
   /* Collections */
   ten = outliner_add_element(space_outliner, lb, &sce->id, te, TSE_SCENE_COLLECTION_BASE, 0);
@@ -343,7 +343,7 @@ static void outliner_add_scene_contents(SpaceOutliner *space_outliner,
   ten = outliner_add_element(space_outliner, lb, sce, te, TSE_SCENE_OBJECTS_BASE, 0);
   ten->name = IFACE_("Objects");
   FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
-    outliner_add_element(space_outliner, &ten->subtree, ob, ten, 0, 0);
+    outliner_add_element(space_outliner, &ten->subtree, ob, ten, TSE_SOME_ID, 0);
   }
   FOREACH_SCENE_OBJECT_END;
   outliner_make_object_parent_hierarchy(&ten->subtree);
@@ -368,14 +368,14 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
                        &te->subtree,
                        ob->poselib,
                        te,
-                       0,
+                       TSE_SOME_ID,
                        0); /* XXX FIXME.. add a special type for this. */
 
   if (ob->proxy && !ID_IS_LINKED(ob)) {
     outliner_add_element(space_outliner, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
   }
 
-  outliner_add_element(space_outliner, &te->subtree, ob->data, te, 0, 0);
+  outliner_add_element(space_outliner, &te->subtree, ob->data, te, TSE_SOME_ID, 0);
 
   if (ob->pose) {
     bArmature *arm = ob->data;
@@ -458,7 +458,7 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   }
 
   for (int a = 0; a < ob->totcol; a++) {
-    outliner_add_element(space_outliner, &te->subtree, ob->mat[a], te, 0, a);
+    outliner_add_element(space_outliner, &te->subtree, ob->mat[a], te, TSE_SOME_ID, a);
   }
 
   if (!BLI_listbase_is_empty(&ob->constraints)) {
@@ -624,7 +624,8 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
 
   /* duplicated group */
   if (ob->instance_collection && (ob->transflag & OB_DUPLICOLLECTION)) {
-    outliner_add_element(space_outliner, &te->subtree, ob->instance_collection, te, 0, 0);
+    outliner_add_element(
+        space_outliner, &te->subtree, ob->instance_collection, te, TSE_SOME_ID, 0);
   }
 }
 
@@ -686,9 +687,9 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
         outliner_add_element(space_outliner, &te->subtree, me, te, TSE_ANIM_DATA, 0);
       }
 
-      outliner_add_element(space_outliner, &te->subtree, me->key, te, 0, 0);
+      outliner_add_element(space_outliner, &te->subtree, me->key, te, TSE_SOME_ID, 0);
       for (int a = 0; a < me->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, me->mat[a], te, 0, a);
+        outliner_add_element(space_outliner, &te->subtree, me->mat[a], te, TSE_SOME_ID, a);
       }
       /* could do tfaces with image links, but the images are not grouped nicely.
        * would require going over all tfaces, sort images in use. etc... */
@@ -702,7 +703,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
 
       for (int a = 0; a < cu->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, cu->mat[a], te, 0, a);
+        outliner_add_element(space_outliner, &te->subtree, cu->mat[a], te, TSE_SOME_ID, a);
       }
       break;
     }
@@ -714,7 +715,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
 
       for (int a = 0; a < mb->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, mb->mat[a], te, 0, a);
+        outliner_add_element(space_outliner, &te->subtree, mb->mat[a], te, TSE_SOME_ID, a);
       }
       break;
     }
@@ -730,7 +731,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       if (outliner_animdata_test(tex->adt)) {
         outliner_add_element(space_outliner, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
       }
-      outliner_add_element(space_outliner, &te->subtree, tex->ima, te, 0, 0);
+      outliner_add_element(space_outliner, &te->subtree, tex->ima, te, TSE_SOME_ID, 0);
       break;
     }
     case ID_CA: {
@@ -991,24 +992,23 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_ID_BASE) {
     /* pass */
   }
+  else if (type == TSE_SOME_ID) {
+    if (!te->type) {
+      BLI_assert(!"Expected this ID type to be ported to new Outliner tree-element design");
+    }
+  }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
 
-    /* do here too, for blend file viewer, own ID_LI then shows file name */
-    if (GS(id->name) == ID_LI) {
-      te->name = ((Library *)id)->filepath;
-    }
-    else {
-      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
-    }
+    te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
     te->idcode = GS(id->name);
   }
 
-  if (te->type) {
+  if (te->type && outliner_tree_element_type_is_expand_valid(te->type)) {
     outliner_tree_element_type_expand(te->type, space_outliner);
   }
-  else if (type == 0) {
+  else if (type == TSE_SOME_ID) {
     TreeStoreElem *tsepar = parent ? TREESTORE(parent) : NULL;
 
     /* ID data-block. */
@@ -1016,15 +1016,15 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
       outliner_add_id_contents(space_outliner, te, tselem, id);
     }
   }
-  else if (ELEM(type, TSE_ANIM_DATA, TSE_DRIVER_BASE, TSE_NLA, TSE_NLA_ACTION, TSE_NLA_TRACK)) {
+  else if (ELEM(type,
+                TSE_ANIM_DATA,
+                TSE_DRIVER_BASE,
+                TSE_NLA,
+                TSE_NLA_ACTION,
+                TSE_NLA_TRACK,
+                TSE_GP_LAYER)) {
     /* Should already use new AbstractTreeElement design. */
     BLI_assert(0);
-  }
-  else if (type == TSE_GP_LAYER) {
-    bGPDlayer *gpl = (bGPDlayer *)idv;
-
-    te->name = gpl->info;
-    te->directdata = gpl;
   }
   else if (type == TSE_SEQUENCE) {
     Sequence *seq = (Sequence *)idv;
@@ -1229,7 +1229,7 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
                                                 TreeElement *parent)
 {
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    outliner_add_element(space_outliner, tree, cob->ob, parent, 0, 0);
+    outliner_add_element(space_outliner, tree, cob->ob, parent, TSE_SOME_ID, 0);
   }
 }
 
@@ -1240,7 +1240,8 @@ static TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outli
   outliner_add_collection_init(ten, collection);
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    outliner_add_element(space_outliner, &ten->subtree, &child->collection->id, ten, 0, 0);
+    outliner_add_element(
+        space_outliner, &ten->subtree, &child->collection->id, ten, TSE_SOME_ID, 0);
   }
 
   if (space_outliner->outlinevis != SO_SCENES) {
@@ -1265,7 +1266,7 @@ void outliner_make_object_parent_hierarchy(ListBase *lb)
     TreeElement *ten = te->next;
     TreeStoreElem *tselem = TREESTORE(te);
 
-    if (tselem->type == 0 && te->idcode == ID_OB) {
+    if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
       Object *ob = (Object *)tselem->id;
       if (ob->parent && ob->parent->id.newid) {
         BLI_remlink(lb, te);
@@ -1406,7 +1407,7 @@ static void outliner_sort(ListBase *lb)
 
   /* sorting rules; only object lists, ID lists, or deformgroups */
   if (ELEM(tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
-      (tselem->type == 0 && te->idcode == ID_OB)) {
+      ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB))) {
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
@@ -1420,7 +1421,7 @@ static void outliner_sort(ListBase *lb)
         tp->name = te->name;
         tp->idcode = te->idcode;
 
-        if (tselem->type && tselem->type != TSE_DEFGROUP) {
+        if ((tselem->type != TSE_SOME_ID) && tselem->type != TSE_DEFGROUP) {
           tp->idcode = 0; /* Don't sort this. */
         }
         if (tselem->type == TSE_ID_BASE) {
@@ -1471,7 +1472,7 @@ static void outliner_collections_children_sort(ListBase *lb)
   TreeStoreElem *tselem = TREESTORE(te);
 
   /* Sorting rules: only object lists. */
-  if (tselem->type == 0 && te->idcode == ID_OB) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
@@ -1546,7 +1547,7 @@ static bool test_collection_callback(TreeElement *te)
 static bool test_object_callback(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
-  return ((tselem->type == 0) && (te->idcode == ID_OB));
+  return ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB));
 }
 
 /**
@@ -1707,7 +1708,7 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
   }
 
   TreeStoreElem *tselem = TREESTORE(te);
-  if ((tselem->type == 0) && (te->idcode == ID_OB)) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     if ((exclude_filter & SO_FILTER_OB_TYPE) == SO_FILTER_OB_TYPE) {
       return false;
     }
@@ -1790,14 +1791,15 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
       return is_visible;
     }
 
-    if ((te->parent != NULL) && (TREESTORE(te->parent)->type == 0) &&
+    if ((te->parent != NULL) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
         (te->parent->idcode == ID_OB)) {
       if (exclude_filter & SO_FILTER_NO_CHILDREN) {
         return false;
       }
     }
   }
-  else if (te->parent != NULL && TREESTORE(te->parent)->type == 0 && te->parent->idcode == ID_OB) {
+  else if ((te->parent != NULL) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
+           (te->parent->idcode == ID_OB)) {
     if (exclude_filter & SO_FILTER_NO_OB_CONTENT) {
       return false;
     }
@@ -1821,7 +1823,7 @@ static bool outliner_element_is_collection_or_object(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  if ((tselem->type == 0) && (te->idcode == ID_OB)) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     return true;
   }
 

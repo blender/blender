@@ -23,13 +23,13 @@
 
 namespace libmv {
 
-void P_From_KRt(const Mat3 &K, const Mat3 &R, const Vec3 &t, Mat34 *P) {
+void P_From_KRt(const Mat3& K, const Mat3& R, const Vec3& t, Mat34* P) {
   P->block<3, 3>(0, 0) = R;
   P->col(3) = t;
   (*P) = K * (*P);
 }
 
-void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
+void KRt_From_P(const Mat34& P, Mat3* Kp, Mat3* Rp, Vec3* tp) {
   // Decompose using the RQ decomposition HZ A4.1.1 pag.579.
   Mat3 K = P.block(0, 0, 3, 3);
 
@@ -44,9 +44,11 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     c /= l;
     s /= l;
     Mat3 Qx;
+    // clang-format off
     Qx << 1, 0,  0,
           0, c, -s,
           0, s,  c;
+    // clang-format on
     K = K * Qx;
     Q = Qx.transpose() * Q;
   }
@@ -58,9 +60,11 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     c /= l;
     s /= l;
     Mat3 Qy;
+    // clang-format off
     Qy << c, 0, s,
           0, 1, 0,
          -s, 0, c;
+    // clang-format on
     K = K * Qy;
     Q = Qy.transpose() * Q;
   }
@@ -72,9 +76,11 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     c /= l;
     s /= l;
     Mat3 Qz;
+    // clang-format off
     Qz << c, -s,  0,
           s,  c,  0,
           0,  0,  1;
+    // clang-format on
     K = K * Qz;
     Q = Qz.transpose() * Q;
   }
@@ -92,17 +98,21 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   }
   if (K(1, 1) < 0) {
     Mat3 S;
+    // clang-format off
     S << 1,  0,  0,
          0, -1,  0,
          0,  0,  1;
+    // clang-format on
     K = K * S;
     R = S * R;
   }
   if (K(0, 0) < 0) {
     Mat3 S;
+    // clang-format off
     S << -1, 0, 0,
           0, 1, 0,
           0, 0, 1;
+    // clang-format on
     K = K * S;
     R = S * R;
   }
@@ -122,26 +132,30 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   *tp = t;
 }
 
-void ProjectionShiftPrincipalPoint(const Mat34 &P,
-                                   const Vec2 &principal_point,
-                                   const Vec2 &principal_point_new,
-                                   Mat34 *P_new) {
+void ProjectionShiftPrincipalPoint(const Mat34& P,
+                                   const Vec2& principal_point,
+                                   const Vec2& principal_point_new,
+                                   Mat34* P_new) {
   Mat3 T;
+  // clang-format off
   T << 1, 0, principal_point_new(0) - principal_point(0),
        0, 1, principal_point_new(1) - principal_point(1),
        0, 0,                                           1;
+  // clang-format on
   *P_new = T * P;
 }
 
-void ProjectionChangeAspectRatio(const Mat34 &P,
-                                 const Vec2 &principal_point,
+void ProjectionChangeAspectRatio(const Mat34& P,
+                                 const Vec2& principal_point,
                                  double aspect_ratio,
                                  double aspect_ratio_new,
-                                 Mat34 *P_new) {
+                                 Mat34* P_new) {
   Mat3 T;
+  // clang-format off
   T << 1,                               0, 0,
        0, aspect_ratio_new / aspect_ratio, 0,
        0,                               0, 1;
+  // clang-format on
   Mat34 P_temp;
 
   ProjectionShiftPrincipalPoint(P, principal_point, Vec2(0, 0), &P_temp);
@@ -149,7 +163,7 @@ void ProjectionChangeAspectRatio(const Mat34 &P,
   ProjectionShiftPrincipalPoint(P_temp, Vec2(0, 0), principal_point, P_new);
 }
 
-void HomogeneousToEuclidean(const Mat &H, Mat *X) {
+void HomogeneousToEuclidean(const Mat& H, Mat* X) {
   int d = H.rows() - 1;
   int n = H.cols();
   X->resize(d, n);
@@ -161,29 +175,29 @@ void HomogeneousToEuclidean(const Mat &H, Mat *X) {
   }
 }
 
-void HomogeneousToEuclidean(const Mat3X &h, Mat2X *e) {
+void HomogeneousToEuclidean(const Mat3X& h, Mat2X* e) {
   e->resize(2, h.cols());
   e->row(0) = h.row(0).array() / h.row(2).array();
   e->row(1) = h.row(1).array() / h.row(2).array();
 }
-void HomogeneousToEuclidean(const Mat4X &h, Mat3X *e) {
+void HomogeneousToEuclidean(const Mat4X& h, Mat3X* e) {
   e->resize(3, h.cols());
   e->row(0) = h.row(0).array() / h.row(3).array();
   e->row(1) = h.row(1).array() / h.row(3).array();
   e->row(2) = h.row(2).array() / h.row(3).array();
 }
 
-void HomogeneousToEuclidean(const Vec3 &H, Vec2 *X) {
+void HomogeneousToEuclidean(const Vec3& H, Vec2* X) {
   double w = H(2);
   *X << H(0) / w, H(1) / w;
 }
 
-void HomogeneousToEuclidean(const Vec4 &H, Vec3 *X) {
+void HomogeneousToEuclidean(const Vec4& H, Vec3* X) {
   double w = H(3);
   *X << H(0) / w, H(1) / w, H(2) / w;
 }
 
-void EuclideanToHomogeneous(const Mat &X, Mat *H) {
+void EuclideanToHomogeneous(const Mat& X, Mat* H) {
   int d = X.rows();
   int n = X.cols();
   H->resize(d + 1, n);
@@ -191,32 +205,32 @@ void EuclideanToHomogeneous(const Mat &X, Mat *H) {
   H->row(d).setOnes();
 }
 
-void EuclideanToHomogeneous(const Vec2 &X, Vec3 *H) {
+void EuclideanToHomogeneous(const Vec2& X, Vec3* H) {
   *H << X(0), X(1), 1;
 }
 
-void EuclideanToHomogeneous(const Vec3 &X, Vec4 *H) {
+void EuclideanToHomogeneous(const Vec3& X, Vec4* H) {
   *H << X(0), X(1), X(2), 1;
 }
 
 // TODO(julien) Call conditioning.h/ApplyTransformationToPoints ?
-void EuclideanToNormalizedCamera(const Mat2X &x, const Mat3 &K, Mat2X *n) {
+void EuclideanToNormalizedCamera(const Mat2X& x, const Mat3& K, Mat2X* n) {
   Mat3X x_image_h;
   EuclideanToHomogeneous(x, &x_image_h);
   Mat3X x_camera_h = K.inverse() * x_image_h;
   HomogeneousToEuclidean(x_camera_h, n);
 }
 
-void HomogeneousToNormalizedCamera(const Mat3X &x, const Mat3 &K, Mat2X *n) {
+void HomogeneousToNormalizedCamera(const Mat3X& x, const Mat3& K, Mat2X* n) {
   Mat3X x_camera_h = K.inverse() * x;
   HomogeneousToEuclidean(x_camera_h, n);
 }
 
-double Depth(const Mat3 &R, const Vec3 &t, const Vec3 &X) {
-  return (R*X)(2) + t(2);
+double Depth(const Mat3& R, const Vec3& t, const Vec3& X) {
+  return (R * X)(2) + t(2);
 }
 
-double Depth(const Mat3 &R, const Vec3 &t, const Vec4 &X) {
+double Depth(const Mat3& R, const Vec3& t, const Vec4& X) {
   Vec3 Xe = X.head<3>() / X(3);
   return Depth(R, t, Xe);
 }

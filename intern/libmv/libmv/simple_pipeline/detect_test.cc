@@ -20,14 +20,14 @@
 
 #include "libmv/simple_pipeline/detect.h"
 
-#include "testing/testing.h"
 #include "libmv/logging/logging.h"
+#include "testing/testing.h"
 
 namespace libmv {
 
 namespace {
 
-void PreformSinglePointTest(const DetectOptions &options) {
+void PreformSinglePointTest(const DetectOptions& options) {
   // Prepare the image.
   FloatImage image(15, 15);
   image.fill(1.0);
@@ -40,7 +40,7 @@ void PreformSinglePointTest(const DetectOptions &options) {
   // Check detected features matches our expectations.
   EXPECT_EQ(1, detected_features.size());
   if (detected_features.size() == 1) {
-    Feature &feature = detected_features[0];
+    Feature& feature = detected_features[0];
     EXPECT_EQ(7, feature.x);
     EXPECT_EQ(7, feature.y);
   }
@@ -83,8 +83,8 @@ void PreformCheckerBoardTest(const DetectOptions &options) {
 }
 #endif
 
-void CheckExpectedFeatures(const vector<Feature> &detected_features,
-                           const vector<Feature> &expected_features) {
+void CheckExpectedFeatures(const vector<Feature>& detected_features,
+                           const vector<Feature>& expected_features) {
   EXPECT_EQ(expected_features.size(), detected_features.size());
 
   // That's unsafe to iterate over vectors when their lengths
@@ -95,10 +95,10 @@ void CheckExpectedFeatures(const vector<Feature> &detected_features,
   }
 
   for (int i = 0; i < expected_features.size(); ++i) {
-    const Feature &extected_feature = expected_features[i];
+    const Feature& extected_feature = expected_features[i];
     bool found = false;
     for (int j = 0; j < detected_features.size(); ++j) {
-      const Feature &detected_feature = detected_features[j];
+      const Feature& detected_feature = detected_features[j];
       if (extected_feature.x == detected_feature.x &&
           extected_feature.y == detected_feature.y) {
         found = true;
@@ -109,15 +109,14 @@ void CheckExpectedFeatures(const vector<Feature> &detected_features,
   }
 }
 
-void PreformSingleTriangleTest(const DetectOptions &options) {
+void PreformSingleTriangleTest(const DetectOptions& options) {
   // Prepare the image.
   FloatImage image(15, 21);
   image.fill(1.0);
 
   int vertex_x = 10, vertex_y = 5;
   for (int i = 0; i < 6; ++i) {
-    int current_x = vertex_x - i,
-        current_y = vertex_y + i;
+    int current_x = vertex_x - i, current_y = vertex_y + i;
     for (int j = 0; j < i * 2 + 1; ++j, ++current_x) {
       image(current_y, current_x) = 0.0;
     }

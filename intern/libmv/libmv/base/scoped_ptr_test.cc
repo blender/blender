@@ -25,9 +25,9 @@ namespace libmv {
 namespace {
 
 struct FreeMe {
-  FreeMe(int *freed) : freed(freed) {}
+  FreeMe(int* freed) : freed(freed) {}
   ~FreeMe() { (*freed)++; }
-  int *freed;
+  int* freed;
 };
 
 TEST(ScopedPtr, NullDoesNothing) {
@@ -61,8 +61,8 @@ TEST(ScopedPtr, Reset) {
 
 TEST(ScopedPtr, ReleaseAndGet) {
   int frees = 0;
-  FreeMe *allocated = new FreeMe(&frees);
-  FreeMe *released = NULL;
+  FreeMe* allocated = new FreeMe(&frees);
+  FreeMe* released = NULL;
   {
     scoped_ptr<FreeMe> scoped(allocated);
     EXPECT_EQ(0, frees);

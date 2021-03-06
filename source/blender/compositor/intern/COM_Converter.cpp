@@ -115,9 +115,9 @@
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
 
-bool Converter::is_fast_node(bNode *b_node)
+bool COM_bnode_is_fast_node(const bNode &b_node)
 {
-  return !ELEM(b_node->type,
+  return !ELEM(b_node.type,
                CMP_NODE_BLUR,
                CMP_NODE_VECBLUR,
                CMP_NODE_BILATERALBLUR,
@@ -132,7 +132,7 @@ bool Converter::is_fast_node(bNode *b_node)
                CMP_NODE_DENOISE);
 }
 
-Node *Converter::convert(bNode *b_node)
+Node *COM_convert_bnode(bNode *b_node)
 {
   Node *node = nullptr;
 
@@ -419,36 +419,37 @@ Node *Converter::convert(bNode *b_node)
   return node;
 }
 
-NodeOperation *Converter::convertDataType(NodeOperationOutput *from, NodeOperationInput *to)
+/* TODO(jbakker): make this an std::optional<NodeOperation>. */
+NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const NodeOperationInput &to)
 {
-  DataType fromDatatype = from->getDataType();
-  DataType toDatatype = to->getDataType();
+  const DataType src_data_type = from.getDataType();
+  const DataType dst_data_type = to.getDataType();
 
-  if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
+  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_COLOR) {
     return new ConvertValueToColorOperation();
   }
-  if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
+  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_VECTOR) {
     return new ConvertValueToVectorOperation();
   }
-  if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
+  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VALUE) {
     return new ConvertColorToValueOperation();
   }
-  if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
+  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VECTOR) {
     return new ConvertColorToVectorOperation();
   }
-  if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
+  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_VALUE) {
     return new ConvertVectorToValueOperation();
   }
-  if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
+  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_COLOR) {
     return new ConvertVectorToColorOperation();
   }
 
   return nullptr;
 }
 
-void Converter::convertResolution(NodeOperationBuilder &builder,
-                                  NodeOperationOutput *fromSocket,
-                                  NodeOperationInput *toSocket)
+void COM_convert_resolution(NodeOperationBuilder &builder,
+                            NodeOperationOutput *fromSocket,
+                            NodeOperationInput *toSocket)
 {
   InputResizeMode mode = toSocket->getResizeMode();
 

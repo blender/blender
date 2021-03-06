@@ -46,7 +46,7 @@ struct Region {
   Vec2f min;
   Vec2f max;
 
-  template<typename T>
+  template <typename T>
   void Offset(const T& offset) {
     min += offset.template cast<float>();
     max += offset.template cast<float>();

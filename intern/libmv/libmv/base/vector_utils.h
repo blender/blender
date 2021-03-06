@@ -18,14 +18,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
 #ifndef LIBMV_BASE_VECTOR_UTILS_H_
 #define LIBMV_BASE_VECTOR_UTILS_H_
 
 /// Delete the contents of a container.
 template <class Array>
-void DeleteElements(Array *array)  {
-  for (int i = 0; i < array->size(); ++i)  {
+void DeleteElements(Array* array) {
+  for (int i = 0; i < array->size(); ++i) {
     delete (*array)[i];
   }
   array->clear();

@@ -21,12 +21,9 @@
 # Some misc utilities...
 
 import collections
-import copy
-import hashlib
 import os
 import re
 import struct
-import sys
 import tempfile
 #import time
 

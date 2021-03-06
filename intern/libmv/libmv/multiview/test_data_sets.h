@@ -34,8 +34,8 @@ struct TwoViewDataSet {
   Vec3 t1, t2;   // Translation.
   Mat34 P1, P2;  // Projection matrix, P = K(R|t)
   Mat3 F;        // Fundamental matrix.
-  Mat3X X;        // 3D points.
-  Mat2X x1, x2;   // Projected points.
+  Mat3X X;       // 3D points.
+  Mat2X x1, x2;  // Projected points.
 };
 
 // Two cameras at (-1,-1,-10) and (2,1,-10) looking approximately towards z+.
@@ -45,13 +45,13 @@ TwoViewDataSet TwoRealisticCameras(bool same_K = false);
 // and the other reconstruction data types is that all points are seen by all
 // cameras.
 struct NViewDataSet {
-  vector<Mat3> K;   // Internal parameters (fx, fy, etc).
-  vector<Mat3> R;   // Rotation.
-  vector<Vec3> t;   // Translation.
-  vector<Vec3> C;   // Camera centers.
-  Mat3X X;     // 3D points.
-  vector<Mat2X> x;  // Projected points; may have noise added.
-  vector<Vecu>  x_ids;  // Indexes of points corresponding to the projections
+  vector<Mat3> K;      // Internal parameters (fx, fy, etc).
+  vector<Mat3> R;      // Rotation.
+  vector<Vec3> t;      // Translation.
+  vector<Vec3> C;      // Camera centers.
+  Mat3X X;             // 3D points.
+  vector<Mat2X> x;     // Projected points; may have noise added.
+  vector<Vecu> x_ids;  // Indexes of points corresponding to the projections
 
   int n;  // Actual number of cameras.
 
@@ -83,22 +83,26 @@ struct nViewDatasetConfigator {
   double _dist;
   double _jitter_amount;
 
-  nViewDatasetConfigator(int fx = 1000,  int fy = 1000,
-                         int cx = 500,   int cy  = 500,
+  nViewDatasetConfigator(int fx = 1000,
+                         int fy = 1000,
+                         int cx = 500,
+                         int cy = 500,
                          double distance = 1.5,
                          double jitter_amount = 0.01);
 };
 
-NViewDataSet NRealisticCamerasFull(int nviews, int npoints,
-                                   const nViewDatasetConfigator
-                                     config = nViewDatasetConfigator());
+NViewDataSet NRealisticCamerasFull(
+    int nviews,
+    int npoints,
+    const nViewDatasetConfigator config = nViewDatasetConfigator());
 
 // Generates sparse projections (not all points are projected)
-NViewDataSet NRealisticCamerasSparse(int nviews, int npoints,
-                                     float view_ratio = 0.6,
-                                     unsigned min_projections = 3,
-                                     const nViewDatasetConfigator
-                                       config = nViewDatasetConfigator());
+NViewDataSet NRealisticCamerasSparse(
+    int nviews,
+    int npoints,
+    float view_ratio = 0.6,
+    unsigned min_projections = 3,
+    const nViewDatasetConfigator config = nViewDatasetConfigator());
 
 }  // namespace libmv
 

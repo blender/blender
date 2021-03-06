@@ -21,9 +21,9 @@
 #include "libmv/image/array_nd.h"
 #include "testing/testing.h"
 
-using libmv::ArrayND;
 using libmv::Array3D;
 using libmv::Array3Df;
+using libmv::ArrayND;
 
 namespace {
 
@@ -100,7 +100,7 @@ TEST(ArrayND, Size) {
   int l[] = {0, 1, 2};
   ArrayND<int, 3>::Index last(l);
 
-  EXPECT_EQ(a.Size(), a.Offset(last)+1);
+  EXPECT_EQ(a.Size(), a.Offset(last) + 1);
   EXPECT_TRUE(a.Contains(last));
   EXPECT_FALSE(a.Contains(shape));
 }
@@ -120,8 +120,8 @@ TEST(ArrayND, Parenthesis) {
   int s[] = {3, 3};
   ArrayND<int, 2> a(s);
 
-  *(a.Data()+0) = 0;
-  *(a.Data()+5) = 5;
+  *(a.Data() + 0) = 0;
+  *(a.Data() + 5) = 5;
 
   int i1[] = {0, 0};
   EXPECT_EQ(0, a(Index(i1)));
@@ -210,7 +210,7 @@ TEST(ArrayND, MultiplyElements) {
   b(1, 1, 0) = 3;
   ArrayND<int, 3> c;
   MultiplyElements(a, b, &c);
-  EXPECT_FLOAT_EQ(6,  c(0, 0, 0));
+  EXPECT_FLOAT_EQ(6, c(0, 0, 0));
   EXPECT_FLOAT_EQ(10, c(0, 1, 0));
   EXPECT_FLOAT_EQ(12, c(1, 0, 0));
   EXPECT_FLOAT_EQ(12, c(1, 1, 0));

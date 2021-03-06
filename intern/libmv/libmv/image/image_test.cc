@@ -23,20 +23,20 @@
 #include "libmv/image/image.h"
 #include "testing/testing.h"
 
-using libmv::Image;
 using libmv::Array3Df;
+using libmv::Image;
 
 namespace {
 
 TEST(Image, SimpleImageAccessors) {
-  Array3Df *array = new Array3Df(2, 3);
+  Array3Df* array = new Array3Df(2, 3);
   Image image(array);
   EXPECT_EQ(array, image.AsArray3Df());
   EXPECT_TRUE(NULL == image.AsArray3Du());
 }
 
 TEST(Image, MemorySizeInBytes) {
-  Array3Df *array = new Array3Df(2, 3);
+  Array3Df* array = new Array3Df(2, 3);
   Image image(array);
   int size = sizeof(image) + array->MemorySizeInBytes();
   EXPECT_EQ(size, image.MemorySizeInBytes());

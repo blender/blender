@@ -198,7 +198,7 @@ void outliner_item_mode_toggle(bContext *C,
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  if (tselem->type == 0 && te->idcode == ID_OB) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     Object *ob = (Object *)tselem->id;
     Base *base = BKE_view_layer_base_find(tvc->view_layer, ob);
 
@@ -301,7 +301,7 @@ static void tree_element_object_activate(bContext *C,
   Object *ob = NULL;
 
   /* if id is not object, we search back */
-  if (tselem->type == 0 && te->idcode == ID_OB) {
+  if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
     ob = (Object *)tselem->id;
   }
   else {
@@ -443,7 +443,7 @@ static void tree_element_world_activate(bContext *C, Scene *scene, TreeElement *
   TreeElement *tep = te->parent;
   if (tep) {
     TreeStoreElem *tselem = TREESTORE(tep);
-    if (tselem->type == 0) {
+    if (tselem->type == TSE_SOME_ID) {
       sce = (Scene *)tselem->id;
     }
   }
@@ -1165,7 +1165,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
   int context = 0;
 
   /* ID Types */
-  if (tselem->type == 0) {
+  if (tselem->type == TSE_SOME_ID) {
     RNA_id_pointer_create(tselem->id, &ptr);
 
     switch (te->idcode) {
@@ -1374,12 +1374,12 @@ static void do_outliner_item_activate_tree_element(bContext *C,
                                  tvc->scene,
                                  tvc->view_layer,
                                  te,
-                                 (extend && tselem->type == 0) ? OL_SETSEL_EXTEND :
-                                                                 OL_SETSEL_NORMAL,
-                                 recursive && tselem->type == 0);
+                                 (extend && tselem->type == TSE_SOME_ID) ? OL_SETSEL_EXTEND :
+                                                                           OL_SETSEL_NORMAL,
+                                 recursive && tselem->type == TSE_SOME_ID);
   }
 
-  if (tselem->type == 0) { /* The lib blocks. */
+  if (tselem->type == TSE_SOME_ID) { /* The lib blocks. */
     if (do_activate_data == false) {
       /* Only select in outliner. */
     }

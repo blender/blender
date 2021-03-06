@@ -356,7 +356,7 @@ static int track_markers(bContext *C, wmOperator *op, bool use_job)
     G.is_break = false;
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
-    WM_cursor_wait(0);
+    WM_cursor_wait(false);
 
     /* Add modal handler for ESC. */
     WM_event_add_modal_handler(C, op);

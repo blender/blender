@@ -21,8 +21,8 @@
 #ifndef LIBMV_MULTIVIEW_EUCLIDEAN_RESECTION_H_
 #define LIBMV_MULTIVIEW_EUCLIDEAN_RESECTION_H_
 
-#include "libmv/numeric/numeric.h"
 #include "libmv/multiview/projection.h"
+#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 namespace euclidean_resection {
@@ -33,7 +33,7 @@ enum ResectionMethod {
   // The "EPnP" algorithm by Lepetit et al.
   // http://cvlab.epfl.ch/~lepetit/papers/lepetit_ijcv08.pdf
   RESECTION_EPNP,
-  
+
   // The Procrustes PNP algorithm ("PPnP")
   // http://www.diegm.uniud.it/fusiello/papers/3dimpvt12-b.pdf
   RESECTION_PPNP
@@ -50,9 +50,10 @@ enum ResectionMethod {
  * \param t         Solution for the camera translation vector
  * \param method    The resection method to use.
  */
-bool EuclideanResection(const Mat2X &x_camera,
-                        const Mat3X &X_world,
-                        Mat3 *R, Vec3 *t,
+bool EuclideanResection(const Mat2X& x_camera,
+                        const Mat3X& X_world,
+                        Mat3* R,
+                        Vec3* t,
                         ResectionMethod method = RESECTION_EPNP);
 
 /**
@@ -68,10 +69,11 @@ bool EuclideanResection(const Mat2X &x_camera,
  * \param t         Solution for the camera translation vector
  * \param method    Resection method
  */
-bool EuclideanResection(const Mat &x_image,
-                        const Mat3X &X_world,
-                        const Mat3 &K,
-                        Mat3 *R, Vec3 *t,
+bool EuclideanResection(const Mat& x_image,
+                        const Mat3X& X_world,
+                        const Mat3& K,
+                        Mat3* R,
+                        Vec3* t,
                         ResectionMethod method = RESECTION_EPNP);
 
 /**
@@ -84,10 +86,7 @@ bool EuclideanResection(const Mat &x_image,
  * Horn, Hilden, "Closed-form solution of absolute orientation using
  * orthonormal matrices"
  */
-void AbsoluteOrientation(const Mat3X &X,
-                         const Mat3X &Xp,
-                         Mat3 *R,
-                         Vec3 *t);
+void AbsoluteOrientation(const Mat3X& X, const Mat3X& Xp, Mat3* R, Vec3* t);
 
 /**
  * Computes the extrinsic parameters, R and t for a calibrated camera from 4 or
@@ -102,9 +101,10 @@ void AbsoluteOrientation(const Mat3X &X,
  * This is the algorithm described in: "Linear Pose Estimation from Points or
  * Lines", by Ansar, A. and Daniilidis, PAMI 2003. vol. 25, no. 5.
  */
-void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera,
-                                       const Mat3X &X_world,
-                                       Mat3 *R, Vec3 *t);
+void EuclideanResectionAnsarDaniilidis(const Mat2X& x_camera,
+                                       const Mat3X& X_world,
+                                       Mat3* R,
+                                       Vec3* t);
 /**
  * Computes the extrinsic parameters, R and t for a calibrated camera from 4 or
  * more 3D points and their images.
@@ -120,9 +120,10 @@ void EuclideanResectionAnsarDaniilidis(const Mat2X &x_camera,
  * and F. Moreno-Noguer and P. Fua, IJCV 2009. vol. 81, no. 2
  * \note: the non-linear optimization is not implemented here.
  */
-bool EuclideanResectionEPnP(const Mat2X &x_camera,
-                            const Mat3X &X_world,
-                            Mat3 *R, Vec3 *t);
+bool EuclideanResectionEPnP(const Mat2X& x_camera,
+                            const Mat3X& X_world,
+                            Mat3* R,
+                            Vec3* t);
 
 /**
  * Computes the extrinsic parameters, R and t for a calibrated camera from 4 or
@@ -137,12 +138,12 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
  * Straight from the paper:
  * http://www.diegm.uniud.it/fusiello/papers/3dimpvt12-b.pdf
  */
-bool EuclideanResectionPPnP(const Mat2X &x_camera,
-                            const Mat3X &X_world,
-                            Mat3 *R, Vec3 *t);
+bool EuclideanResectionPPnP(const Mat2X& x_camera,
+                            const Mat3X& X_world,
+                            Mat3* R,
+                            Vec3* t);
 
 }  // namespace euclidean_resection
 }  // namespace libmv
-
 
 #endif /* LIBMV_MULTIVIEW_EUCLIDEAN_RESECTION_H_ */

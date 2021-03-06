@@ -37,7 +37,7 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
     #     ob = context.object
     #     return ob and ob.type == 'GPENCIL'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator_menu_enum("object.shaderfx_add", "type")
         layout.template_shaderfx()

@@ -19,8 +19,8 @@
 // IN THE SOFTWARE.
 
 #include "libmv/tracking/pyramid_region_tracker.h"
-#include "libmv/tracking/klt_region_tracker.h"
 #include "libmv/image/image.h"
+#include "libmv/tracking/klt_region_tracker.h"
 #include "testing/testing.h"
 
 namespace libmv {
@@ -55,8 +55,7 @@ TEST(PyramidKltRegionTracker, Track) {
 
     KltRegionTracker tracker;
     tracker.half_window_size = half_window_size;
-    EXPECT_FALSE(tracker.Track(image1, image2, x1, y1,
-                               &x2_actual, &y2_actual));
+    EXPECT_FALSE(tracker.Track(image1, image2, x1, y1, &x2_actual, &y2_actual));
   }
 
   // Verify that it works with the pyramid tracker.
@@ -64,12 +63,11 @@ TEST(PyramidKltRegionTracker, Track) {
     double x2_actual = x1;
     double y2_actual = y1;
 
-    KltRegionTracker *klt_tracker = new KltRegionTracker;
+    KltRegionTracker* klt_tracker = new KltRegionTracker;
     klt_tracker->half_window_size = half_window_size;
 
     PyramidRegionTracker tracker(klt_tracker, 3);
-    EXPECT_TRUE(tracker.Track(image1, image2, x1, y1,
-                              &x2_actual, &y2_actual));
+    EXPECT_TRUE(tracker.Track(image1, image2, x1, y1, &x2_actual, &y2_actual));
 
     EXPECT_NEAR(x2_actual, x2, 0.001);
     EXPECT_NEAR(y2_actual, y2, 0.001);

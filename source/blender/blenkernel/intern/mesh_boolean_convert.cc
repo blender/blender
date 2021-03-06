@@ -611,6 +611,9 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
          * A non bmesh version could have the benefit of not copying data into src_blocks_ofs -
          * using the contiguous data instead. TODO: add to the custom data API. */
         int target_layer_type_index = CustomData_get_named_layer(target_cd, ty, name);
+        if (!CustomData_layer_has_interp(source_cd, source_layer_i)) {
+          continue;
+        }
         int source_layer_type_index = source_layer_i - source_cd->typemap[ty];
         BLI_assert(target_layer_type_index != -1 && source_layer_type_index >= 0);
         for (int j = 0; j < orig_mp->totloop; ++j) {

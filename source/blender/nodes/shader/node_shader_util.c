@@ -257,11 +257,11 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
     }
 
     if (do_it) {
-      if (node->typeinfo->gpufunc) {
+      if (node->typeinfo->gpu_fn) {
         node_get_stack(node, stack, nsin, nsout);
         gpu_stack_from_data_list(gpuin, &node->inputs, nsin);
         gpu_stack_from_data_list(gpuout, &node->outputs, nsout);
-        if (node->typeinfo->gpufunc(mat, node, &nodeexec->data, gpuin, gpuout)) {
+        if (node->typeinfo->gpu_fn(mat, node, &nodeexec->data, gpuin, gpuout)) {
           data_from_gpu_stack_list(&node->outputs, nsout, gpuout);
         }
       }

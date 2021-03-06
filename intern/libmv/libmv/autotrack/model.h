@@ -23,18 +23,13 @@
 #ifndef LIBMV_AUTOTRACK_MODEL_H_
 #define LIBMV_AUTOTRACK_MODEL_H_
 
-#include "libmv/numeric/numeric.h"
 #include "libmv/autotrack/quad.h"
+#include "libmv/numeric/numeric.h"
 
 namespace mv {
 
 struct Model {
-  enum ModelType {
-    POINT,
-    PLANE,
-    LINE,
-    CUBE
-  };
+  enum ModelType { POINT, PLANE, LINE, CUBE };
 
   // ???
 };

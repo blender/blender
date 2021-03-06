@@ -21,11 +21,15 @@ class ExecutionGroup;
 #pragma once
 
 #include "BKE_text.h"
+
 #include "COM_ExecutionGroup.h"
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
+
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
+
+#include "BLI_vector.hh"
 
 /**
  * \page execution Execution model
@@ -79,7 +83,7 @@ class ExecutionGroup;
  *     - [@ref InputSocketResizeMode.COM_SC_NO_RESIZE]:
  *       Bottom left of the images are aligned.
  *
- * \see Converter.convertDataType Datatype conversions
+ * \see COM_convert_data_type Datatype conversions
  * \see Converter.convertResolution Image size conversions
  *
  * \section EM_Step4 Step4: group operations in executions groups
@@ -113,9 +117,6 @@ class ExecutionGroup;
  * \brief the ExecutionSystem contains the whole compositor tree.
  */
 class ExecutionSystem {
- public:
-  typedef std::vector<NodeOperation *> Operations;
-  typedef std::vector<ExecutionGroup *> Groups;
 
  private:
   /**
@@ -126,24 +127,19 @@ class ExecutionSystem {
   /**
    * \brief vector of operations
    */
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
 
   /**
    * \brief vector of groups
    */
-  Groups m_groups;
+  blender::Vector<ExecutionGroup *> m_groups;
 
  private:  // methods
   /**
    * find all execution group with output nodes
    */
-  void findOutputExecutionGroup(vector<ExecutionGroup *> *result,
-                                CompositorPriority priority) const;
-
-  /**
-   * find all execution group with output nodes
-   */
-  void findOutputExecutionGroup(vector<ExecutionGroup *> *result) const;
+  blender::Vector<ExecutionGroup *> find_output_execution_groups(
+      CompositorPriority priority) const;
 
  public:
   /**
@@ -167,7 +163,8 @@ class ExecutionSystem {
    */
   ~ExecutionSystem();
 
-  void set_operations(const Operations &operations, const Groups &groups);
+  void set_operations(const blender::Vector<NodeOperation *> &operations,
+                      const blender::Vector<ExecutionGroup *> &groups);
 
   /**
    * \brief execute this system
@@ -186,7 +183,7 @@ class ExecutionSystem {
   }
 
  private:
-  void executeGroups(CompositorPriority priority);
+  void execute_groups(CompositorPriority priority);
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;

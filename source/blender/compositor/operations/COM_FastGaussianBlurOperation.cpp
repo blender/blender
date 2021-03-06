@@ -209,7 +209,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   (void)0
 
   // intermediate buffers
-  sz = max(src_width, src_height);
+  sz = MAX2(src_width, src_height);
   X = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss X buf");
   Y = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss Y buf");
   W = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss W buf");

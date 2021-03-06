@@ -218,7 +218,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   /* prepare all nodes for execution */
   for (n = 0, nodeexec = exec->nodeexec; n < totnodes; n++, nodeexec++) {
     node = nodeexec->node = nodelist[n];
-    nodeexec->freeexecfunc = node->typeinfo->freeexecfunc;
+    nodeexec->free_exec_fn = node->typeinfo->free_exec_fn;
 
     /* tag inputs */
     for (sock = node->inputs.first; sock; sock = sock->next) {
@@ -242,8 +242,8 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     nodeexec->data.preview = context->previews ?
                                  BKE_node_instance_hash_lookup(context->previews, nodekey) :
                                  NULL;
-    if (node->typeinfo->initexecfunc) {
-      nodeexec->data.data = node->typeinfo->initexecfunc(context, node, nodekey);
+    if (node->typeinfo->init_exec_fn) {
+      nodeexec->data.data = node->typeinfo->init_exec_fn(context, node, nodekey);
     }
   }
 
@@ -264,8 +264,8 @@ void ntree_exec_end(bNodeTreeExec *exec)
   }
 
   for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; n++, nodeexec++) {
-    if (nodeexec->freeexecfunc) {
-      nodeexec->freeexecfunc(nodeexec->data.data);
+    if (nodeexec->free_exec_fn) {
+      nodeexec->free_exec_fn(nodeexec->data.data);
     }
   }
 
@@ -323,8 +323,8 @@ bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
        * If the mute func is not set, assume the node should never be muted,
        * and hence execute it!
        */
-      if (node->typeinfo->execfunc && !(node->flag & NODE_MUTED)) {
-        node->typeinfo->execfunc(callerdata, thread, node, &nodeexec->data, nsin, nsout);
+      if (node->typeinfo->exec_fn && !(node->flag & NODE_MUTED)) {
+        node->typeinfo->exec_fn(callerdata, thread, node, &nodeexec->data, nsin, nsout);
       }
     }
   }

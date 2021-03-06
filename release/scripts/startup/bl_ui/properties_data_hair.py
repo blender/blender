@@ -81,7 +81,7 @@ class HAIR_MT_add_attribute(Menu):
 
 
 class HAIR_UL_attributes(UIList):
-    def draw_item(self, context, layout, data, attribute, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
         domain = attribute.bl_rna.properties['domain'].enum_items[attribute.domain]
 

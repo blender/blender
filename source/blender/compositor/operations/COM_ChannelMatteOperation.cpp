@@ -95,7 +95,7 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
   this->m_inputImageProgram->readSampled(inColor, x, y, sampler);
 
   /* matte operation */
-  alpha = inColor[this->m_ids[0]] - max(inColor[this->m_ids[1]], inColor[this->m_ids[2]]);
+  alpha = inColor[this->m_ids[0]] - MAX2(inColor[this->m_ids[1]], inColor[this->m_ids[2]]);
 
   /* flip because 0.0 is transparent, not 1.0 */
   alpha = 1.0f - alpha;
@@ -116,5 +116,5 @@ void ChannelMatteOperation::executePixelSampled(float output[4],
    */
 
   /* Don't make something that was more transparent less transparent. */
-  output[0] = min(alpha, inColor[3]);
+  output[0] = MIN2(alpha, inColor[3]);
 }

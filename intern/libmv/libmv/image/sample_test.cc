@@ -32,9 +32,9 @@ TEST(Image, Nearest) {
   image(1, 0) = 2;
   image(1, 1) = 3;
   EXPECT_EQ(0, SampleNearest(image, -0.4f, -0.4f));
-  EXPECT_EQ(0, SampleNearest(image,  0.4f,  0.4f));
-  EXPECT_EQ(3, SampleNearest(image,  0.6f,  0.6f));
-  EXPECT_EQ(3, SampleNearest(image,  1.4f,  1.4f));
+  EXPECT_EQ(0, SampleNearest(image, 0.4f, 0.4f));
+  EXPECT_EQ(3, SampleNearest(image, 0.6f, 0.6f));
+  EXPECT_EQ(3, SampleNearest(image, 1.4f, 1.4f));
 }
 
 TEST(Image, Linear) {
@@ -57,7 +57,7 @@ TEST(Image, DownsampleBy2) {
   ASSERT_EQ(1, resampled_image.Height());
   ASSERT_EQ(1, resampled_image.Width());
   ASSERT_EQ(1, resampled_image.Depth());
-  EXPECT_FLOAT_EQ(6./4., resampled_image(0, 0));
+  EXPECT_FLOAT_EQ(6. / 4., resampled_image(0, 0));
 }
 
 TEST(Image, DownsampleBy2MultiChannel) {
@@ -82,8 +82,8 @@ TEST(Image, DownsampleBy2MultiChannel) {
   ASSERT_EQ(1, resampled_image.Height());
   ASSERT_EQ(1, resampled_image.Width());
   ASSERT_EQ(3, resampled_image.Depth());
-  EXPECT_FLOAT_EQ((0+1+2+3)/4.,    resampled_image(0, 0, 0));
-  EXPECT_FLOAT_EQ((5+6+7+8)/4.,    resampled_image(0, 0, 1));
-  EXPECT_FLOAT_EQ((9+10+11+12)/4., resampled_image(0, 0, 2));
+  EXPECT_FLOAT_EQ((0 + 1 + 2 + 3) / 4., resampled_image(0, 0, 0));
+  EXPECT_FLOAT_EQ((5 + 6 + 7 + 8) / 4., resampled_image(0, 0, 1));
+  EXPECT_FLOAT_EQ((9 + 10 + 11 + 12) / 4., resampled_image(0, 0, 2));
 }
 }  // namespace

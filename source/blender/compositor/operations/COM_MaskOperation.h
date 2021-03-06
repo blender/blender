@@ -84,7 +84,7 @@ class MaskOperation : public NodeOperation {
 
   void setMotionBlurSamples(int samples)
   {
-    this->m_rasterMaskHandleTot = min(max(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
+    this->m_rasterMaskHandleTot = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
   }
   void setMotionBlurShutter(float shutter)
   {

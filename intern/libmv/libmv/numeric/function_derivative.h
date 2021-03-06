@@ -23,8 +23,8 @@
 
 #include <cmath>
 
-#include "libmv/numeric/numeric.h"
 #include "libmv/logging/logging.h"
+#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
@@ -36,7 +36,7 @@ enum NumericJacobianMode {
   FORWARD,
 };
 
-template<typename Function, NumericJacobianMode mode = CENTRAL>
+template <typename Function, NumericJacobianMode mode = CENTRAL>
 class NumericJacobian {
  public:
   typedef typename Function::XMatrixType Parameters;
@@ -45,12 +45,12 @@ class NumericJacobian {
   typedef Matrix<typename Function::FMatrixType::RealScalar,
                  Function::FMatrixType::RowsAtCompileTime,
                  Function::XMatrixType::RowsAtCompileTime>
-          JMatrixType;
+      JMatrixType;
 
-  NumericJacobian(const Function &f) : f_(f) {}
+  NumericJacobian(const Function& f) : f_(f) {}
 
   // TODO(keir): Perhaps passing the jacobian back by value is not a good idea.
-  JMatrixType operator()(const Parameters &x) {
+  JMatrixType operator()(const Parameters& x) {
     // Empirically determined constant.
     Parameters eps = x.array().abs() * XScalar(1e-5);
     // To handle cases where a paremeter is exactly zero, instead use the mean
@@ -87,12 +87,13 @@ class NumericJacobian {
     }
     return jacobian;
   }
+
  private:
-  const Function &f_;
+  const Function& f_;
 };
 
-template<typename Function, typename Jacobian>
-bool CheckJacobian(const Function &f, const typename Function::XMatrixType &x) {
+template <typename Function, typename Jacobian>
+bool CheckJacobian(const Function& f, const typename Function::XMatrixType& x) {
   Jacobian j_analytic(f);
   NumericJacobian<Function> j_numeric(f);
 
