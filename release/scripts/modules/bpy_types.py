@@ -19,7 +19,6 @@
 # <pep8-80 compliant>
 
 from _bpy import types as bpy_types
-import _bpy
 
 StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop

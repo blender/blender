@@ -19,10 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from bpy.app.translations import (
-    contexts as i18n_contexts,
-    pgettext_iface as iface_,
-)
 
 
 class OUTLINER_HT_header(Header):

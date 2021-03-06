@@ -17,9 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
 from bpy.types import Panel
-from bpy.app.translations import pgettext_iface as iface_
 
 
 class ModifierButtonsPanel:

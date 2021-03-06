@@ -32,7 +32,6 @@ __all__ = (
 import bpy
 
 from bpy.props import (
-    BoolProperty,
     FloatVectorProperty,
     EnumProperty,
 )
@@ -50,7 +49,7 @@ def add_object_align_init(context, operator):
     :rtype: :class:`mathutils.Matrix`
     """
 
-    from mathutils import Matrix, Vector, Euler
+    from mathutils import Matrix, Vector
     properties = operator.properties if operator is not None else None
 
     space_data = context.space_data

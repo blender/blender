@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Panel
 from bl_ui.utils import PresetPanel
 from .properties_physics_common import (
     effector_weights_ui,

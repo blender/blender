@@ -22,8 +22,6 @@
 # XXX: This script is meant to be used from inside Blender!
 #      You should not directly use this script, rather use update_msg.py!
 
-import collections
-import copy
 import datetime
 import os
 import re

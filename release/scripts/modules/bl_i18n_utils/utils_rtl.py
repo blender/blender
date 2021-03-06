@@ -32,7 +32,6 @@
 #        \", %s, %x12, %.4f, etc.), protecting them from ugly (evil) fribidi,
 #        which seems completely unaware of such things (as unicode is...).
 
-import sys
 import ctypes
 import re
 
