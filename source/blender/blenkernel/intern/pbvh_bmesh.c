@@ -18,6 +18,25 @@
  * \ingroup bli
  */
 
+ /*
+ TODO:
+
+ Convergence improvements:
+ 1. DONE: Limit number of edges processed per run.
+ 2. Scale split steps by ratio of long to short edges to
+    prevent runaway tesselation.
+ 3. Detect and dissole three and four valence vertices that are surrounded by
+    all tris.
+
+ Drawing improvements:
+ 4. Build and cache vertex index buffers, to reduce GPU bandwidth
+
+ Topology rake:
+ 5. Enable new curvature topology rake code and add to UI.
+ 6. Add code to cache curvature data per vertex in a CD layer.
+ 
+*/
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.h"
@@ -40,8 +59,9 @@
 #include "bmesh.h"
 #include "pbvh_intern.h"
 
-#define DYNTOPO_TIME_LIMIT 0.015
+//#define DYNTOPO_TIME_LIMIT 0.015
 #define DYNTOPO_RUN_INTERVAL 0.02
+#define DYNTOPO_MAX_ITER 1024
 
 #define DYNTOPO_USE_HEAP
 
@@ -893,7 +913,7 @@ BLI_INLINE float calc_weighted_edge_collapse(EdgeQueueContext *eq_ctx, BMVert *v
   return l * (n*n*4.0f);
 #elif 1  // penalize 4-valence verts
   float l = len_squared_v3v3(v1->co, v2->co);
-  //if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
+  // if (BM_vert_edge_count(v1) == 4 || BM_vert_edge_count(v2) == 4) {
   //  l *= 0.25f;
   //}
 
@@ -1927,23 +1947,6 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     if (!BLI_table_gset_haskey(pbvh->nodes[ni].bm_unique_verts, v_new)) {
       BLI_table_gset_add(pbvh->nodes[ni].bm_other_verts, v_new);
     }
-    //*
-    if (BM_vert_edge_count_is_over(v_opp, 8)) {
-      BMIter bm_iter;
-      BMEdge *e2;
-
-      BM_ITER_ELEM (e2, &bm_iter, v_opp, BM_EDGES_OF_VERT) {
-        BMVert *v2 = BM_edge_other_vert(e2, v_opp);
-        bool add = eq_ctx->q->edge_queue_vert_in_range(eq_ctx->q, v2);
-
-        add = add && BM_edge_calc_length_squared(e2) > eq_ctx->q->limit_len_squared;
-
-        if (add) {
-          long_edge_queue_edge_add(eq_ctx, e2);
-        }
-      }
-    }
-    //*/
   }
 
   BM_edge_kill(pbvh->bm, e);
@@ -1957,11 +1960,18 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   double time = PIL_check_seconds_timer();
 
   RNG *rng = BLI_rng_new((int)(time * 1000.0f));
+  int step = 0;
 
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
+    if (step++ > DYNTOPO_MAX_ITER) {
+      break;
+    }
+
+#ifdef DYNTOPO_TIME_LIMIT
     if (PIL_check_seconds_timer() - time > DYNTOPO_TIME_LIMIT) {
       break;
     }
+#endif
 
 #ifndef DYNTOPO_USE_HEAP
     if (eq_ctx->q->totelems == 0) {
@@ -2368,10 +2378,18 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   int _i = 0;
 #endif
 
+  int step = 0;
+
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
+    if (step++ > DYNTOPO_MAX_ITER) {
+      break;
+    }
+#ifdef DYNTOPO_TIME_LIMIT
     if (PIL_check_seconds_timer() - time > DYNTOPO_TIME_LIMIT) {
       break;
     }
+#endif
+
 #ifndef DYNTOPO_USE_HEAP
     if (eq_ctx->q->totelems == 0) {
       break;
@@ -3011,23 +3029,23 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
       continue;
     }
 
-    undopush(node, searchdata);
+    if (node->flag & PBVH_Leaf) {
+      undopush(node, searchdata);
 
-    modified =
-        modified ||
-        BKE_pbvh_bmesh_update_topology(
-            pbvh, mode, center, view_normal, radius, use_frontface, use_projected, sym_axis, updatePBVH);
-
-    if (i < pbvh->totnode) { //nodes could have been reallocated on us
-      node = pbvh->nodes + i;
-
-      if (node->flag & PBVH_Leaf) {
-        BKE_pbvh_node_mark_topology_update(pbvh->nodes + i);
-        BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, pbvh->nodes + i);
-      }
+      BKE_pbvh_node_mark_topology_update(pbvh->nodes + i);
+      BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, pbvh->nodes + i);
     }
   }
 
+  modified = modified || BKE_pbvh_bmesh_update_topology(pbvh,
+                                                        mode,
+                                                        center,
+                                                        view_normal,
+                                                        radius,
+                                                        use_frontface,
+                                                        use_projected,
+                                                        sym_axis,
+                                                        updatePBVH);
   return modified;
 }
 
