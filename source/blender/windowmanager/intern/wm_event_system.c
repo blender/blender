@@ -2343,7 +2343,7 @@ static int wm_handler_fileselect_do(bContext *C,
             wm_window_make_drawable(wm, ctx_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
              * opening (UI_BLOCK_MOVEMOUSE_QUIT). */
-            wm_get_cursor_position(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
+            wm_cursor_position_get(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
             wm->winactive = ctx_win; /* Reports use this... */
             if (handler->context.win == win) {
               handler->context.win = NULL;

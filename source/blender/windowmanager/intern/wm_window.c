@@ -520,7 +520,7 @@ void WM_window_set_dpi(const wmWindow *win)
 static void wm_window_update_eventstate(wmWindow *win)
 {
   /* Update mouse position when a window is activated. */
-  wm_get_cursor_position(win, &win->eventstate->x, &win->eventstate->y);
+  wm_cursor_position_get(win, &win->eventstate->x, &win->eventstate->y);
 }
 
 static void wm_window_ensure_eventstate(wmWindow *win)
@@ -983,15 +983,15 @@ void wm_cursor_position_to_ghost(wmWindow *win, int *x, int *y)
   GHOST_ClientToScreen(win->ghostwin, *x, *y, x, y);
 }
 
-void wm_get_cursor_position(wmWindow *win, int *x, int *y)
+void wm_cursor_position_get(wmWindow *win, int *r_x, int *r_y)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
-    *x = win->eventstate->x;
-    *y = win->eventstate->y;
+    *r_x = win->eventstate->x;
+    *r_y = win->eventstate->y;
     return;
   }
-  GHOST_GetCursorPosition(g_system, x, y);
-  wm_cursor_position_from_ghost(win, x, y);
+  GHOST_GetCursorPosition(g_system, r_x, r_y);
+  wm_cursor_position_from_ghost(win, r_x, r_y);
 }
 
 typedef enum {
