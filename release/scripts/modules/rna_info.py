@@ -622,8 +622,8 @@ def BuildRNAInfo():
                         yield (rna_sub_type_name, rna_sub_struct)
             i += 1
 
-    for (rna_type_name, rna_struct) in _bpy_types_iterator():
-        # if not rna_type_name.startswith('__'):
+    for (_rna_type_name, rna_struct) in _bpy_types_iterator():
+        # if not _rna_type_name.startswith('__'):
 
         identifier = rna_struct.identifier
 

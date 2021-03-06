@@ -2412,7 +2412,7 @@ class _defs_sequencer_generic:
     @ToolDef.from_fn
     def sample():
         def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.sample")
+            tool.operator_properties("sequencer.sample")
         return dict(
             idname="builtin.sample",
             label="Sample",

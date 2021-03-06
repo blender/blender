@@ -642,7 +642,7 @@ class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
     def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
-        edit = prefs.edit
+        # edit = prefs.edit
 
         layout.prop(system, "memory_cache_limit")
 

@@ -278,7 +278,6 @@ class OUTLINER_MT_object(Menu):
         layout = self.layout
 
         space = context.space_data
-        obj = context.active_object
 
         layout.operator("outliner.id_copy", text="Copy", icon='COPYDOWN')
         layout.operator("outliner.id_paste", text="Paste", icon='PASTEDOWN')

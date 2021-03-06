@@ -7009,10 +7009,9 @@ class VIEW3D_PT_gpencil_curve_edit(Panel):
     bl_label = "Curve Editing"
 
     def draw(self, context):
-        gpd = context.gpencil_data
-        settings = context.tool_settings.gpencil_sculpt
-
         layout = self.layout
+
+        gpd = context.gpencil_data
         col = layout.column(align=True)
         col.prop(gpd, "edit_curve_resolution")
         col.prop(gpd, "curve_edit_threshold")

@@ -77,8 +77,6 @@ class VIEWLAYER_PT_eevee_layer_passes_data(ViewLayerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
-        rd = scene.render
         view_layer = context.view_layer
 
         col = layout.column()
@@ -101,8 +99,6 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
 
         view_layer = context.view_layer
         view_layer_eevee = view_layer.eevee
-        scene = context.scene
-        scene_eevee = scene.eevee
 
         col = layout.column(heading="Diffuse", align=True)
         col.prop(view_layer, "use_pass_diffuse_direct", text="Light")

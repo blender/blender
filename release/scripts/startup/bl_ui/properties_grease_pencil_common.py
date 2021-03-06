@@ -37,8 +37,6 @@ class AnnotationDrawingToolsPanel:
 
         tool_settings = context.tool_settings
 
-        is_clip_editor = context.space_data.type == 'CLIP_EDITOR'
-
         col = layout.column(align=True)
 
         col.label(text="Draw:")
@@ -337,7 +335,6 @@ class GPENCIL_MT_material_active(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         ob = context.active_object
-        mat_active = ob.active_material
 
         for slot in ob.material_slots:
             mat = slot.material

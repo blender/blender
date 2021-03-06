@@ -113,7 +113,6 @@ def object_data_add(context, obdata, operator=None, name=None):
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """
-    scene = context.scene
     layer = context.view_layer
     layer_collection = context.layer_collection or layer.active_layer_collection
     scene_collection = layer_collection.collection
