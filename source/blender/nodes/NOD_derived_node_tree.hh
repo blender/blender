@@ -35,10 +35,10 @@ namespace blender::nodes {
 class DTreeContext;
 class DerivedNodeTree;
 
-struct DNode;
-struct DSocket;
-struct DInputSocket;
-struct DOutputSocket;
+class DNode;
+class DSocket;
+class DInputSocket;
+class DOutputSocket;
 
 /**
  * The context attached to every node or socket in a derived node tree. It can be used to determine
