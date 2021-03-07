@@ -2542,11 +2542,12 @@ static IMesh raycast_boolean(const IMesh &tm,
        * operation, we want to be pretty sure that the point is inside other_shape.
        * E.g., T75827.
        */
-      bool need_high_confidence = (op == BoolOpType::Difference) && (shape != 0);
+      bool need_high_confidence = (op == BoolOpType::Difference && shape != 0) ||
+                                  op == BoolOpType::Intersect;
       bool inside = in_shape[other_shape] >= (need_high_confidence ? 0.5f : 0.1f);
       if (dbg_level > 0) {
         std::cout << "test point is " << (inside ? "inside" : "outside") << " other_shape "
-                  << other_shape << "\n";
+                  << other_shape << " val = " << in_shape[other_shape] << "\n";
       }
       winding[other_shape] = inside;
     }
