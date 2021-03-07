@@ -307,7 +307,7 @@ class GeometryNodesEvaluator {
     /* Multi-input sockets contain a vector of inputs. */
     if (socket_to_compute->is_multi_input_socket()) {
       Vector<GMutablePointer> values;
-      for (const DSocket from_socket : from_sockets) {
+      for (const DSocket &from_socket : from_sockets) {
         GMutablePointer value = get_input_from_incoming_link(socket_to_compute, from_socket);
         values.append(value);
       }
