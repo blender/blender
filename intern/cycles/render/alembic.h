@@ -396,22 +396,19 @@ class AlembicProcedural : public Procedural {
 
   /* Read the data for an IPolyMesh at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */
-  void read_mesh(Scene *scene,
-                 AlembicObject *abc_object,
+  void read_mesh(AlembicObject *abc_object,
                  Alembic::AbcGeom::Abc::chrono_t frame_time,
                  Progress &progress);
 
   /* Read the data for an ICurves at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */
-  void read_curves(Scene *scene,
-                   AlembicObject *abc_object,
+  void read_curves(AlembicObject *abc_object,
                    Alembic::AbcGeom::Abc::chrono_t frame_time,
                    Progress &progress);
 
   /* Read the data for an ISubD at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */
-  void read_subd(Scene *scene,
-                 AlembicObject *abc_object,
+  void read_subd(AlembicObject *abc_object,
                  Alembic::AbcGeom::Abc::chrono_t frame_time,
                  Progress &progress);
 };
