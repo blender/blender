@@ -368,6 +368,8 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
   return brush->ob_mode & mode;
 }
 
+void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene);
+
 static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   Scene *scene = CTX_data_scene(C);

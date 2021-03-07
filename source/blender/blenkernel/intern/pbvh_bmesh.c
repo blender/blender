@@ -25,8 +25,9 @@
  1. DONE: Limit number of edges processed per run.
  2. Scale split steps by ratio of long to short edges to
     prevent runaway tesselation.
- 3. Detect and dissole three and four valence vertices that are surrounded by
+ 3. Detect and dissolve three and four valence vertices that are surrounded by
     all tris.
+ 4. Use different (coarser) brush spacing for applying dyntopo 
 
  Drawing improvements:
  4. Build and cache vertex index buffers, to reduce GPU bandwidth
