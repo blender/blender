@@ -54,7 +54,6 @@
 #include "BLI_map.hh"
 #include "BLT_translation.h"
 
-#include "FN_attributes_ref.hh"
 #include "FN_multi_function_network_evaluation.hh"
 #include "FN_multi_function_network_optimization.hh"
 
