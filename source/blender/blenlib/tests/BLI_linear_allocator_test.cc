@@ -79,7 +79,7 @@ TEST(linear_allocator, Construct)
   LinearAllocator<> allocator;
 
   std::array<int, 5> values = {1, 2, 3, 4, 5};
-  Vector<int> *vector = allocator.construct<Vector<int>>(values);
+  Vector<int> *vector = allocator.construct<Vector<int>>(values).release();
   EXPECT_EQ(vector->size(), 5);
   EXPECT_EQ((*vector)[3], 4);
   vector->~Vector();
