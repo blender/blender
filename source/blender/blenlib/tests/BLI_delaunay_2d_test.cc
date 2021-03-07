@@ -333,37 +333,37 @@ void graph_draw(const std::string &label,
   }
 
   f << "<div>" << label << "</div>\n<div>\n"
-    << "<svg version=\"1.1\" "
-       "xmlns=\"http://www.w3.org/2000/svg\" "
-       "xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
-       "xml:space=\"preserve\"\n"
-    << "width=\"" << view_width << "\" height=\"" << view_height << "\">n";
+    << R"(<svg version="1.1" )"
+       R"(xmlns="http://www.w3.org/2000/svg" )"
+       R"(xmlns:xlink="http://www.w3.org/1999/xlink" )"
+       R"(xml:space="preserve"\n)"
+    << R"(width=")" << view_width << R"(" height=")" << view_height << R"(">n)";
 
   for (const std::pair<int, int> &e : edges) {
     const vec2<T> &uco = verts[e.first];
     const vec2<T> &vco = verts[e.second];
     int strokew = thin_line;
-    f << "<line fill=\"none\" stroke=\"black\" stroke-width=\"" << strokew << "\" x1=\""
-      << SX(uco[0]) << "\" y1=\"" << SY(uco[1]) << "\" x2=\"" << SX(vco[0]) << "\" y2=\""
-      << SY(vco[1]) << "\">\n";
+    f << R"(<line fill="none" stroke="black" stroke-width=")" << strokew << R"(" x1=")"
+      << SX(uco[0]) << R"(" y1=")" << SY(uco[1]) << R"(" x2=")" << SX(vco[0]) << R"(" y2=")"
+      << SY(vco[1]) << R"(">\n)";
     f << "  <title>[" << e.first << "][" << e.second << "]</title>\n";
     f << "</line>\n";
     if (draw_edge_labels) {
-      f << "<text x=\"" << SX(0.5 * (uco[0] + vco[0])) << "\" y=\"" << SY(0.5 * (uco[1] + vco[1]))
-        << "\" font-size=\"small\">";
+      f << R"(<text x=")" << SX(0.5 * (uco[0] + vco[0])) << R"(" y=")"
+        << SY(0.5 * (uco[1] + vco[1])) << R"(" font-size="small">)";
       f << "[" << e.first << "][" << e.second << "]</text>\n";
     }
   }
 
   int i = 0;
   for (const vec2<T> &vco : verts) {
-    f << "<circle fill=\"black\" cx=\"" << SX(vco[0]) << "\" cy=\"" << SY(vco[1]) << "\" r=\""
-      << vert_radius << "\">\n";
+    f << R"(<circle fill="black" cx=")" << SX(vco[0]) << R"(" cy=")" << SY(vco[1]) << R"(" r=")"
+      << vert_radius << R"(">\n)";
     f << "  <title>[" << i << "]" << vco << "</title>\n";
     f << "</circle>\n";
     if (draw_vert_labels) {
-      f << "<text x=\"" << SX(vco[0]) + vert_radius << "\" y=\"" << SY(vco[1]) - vert_radius
-        << "\" font-size=\"small\">[" << i << "]</text>\n";
+      f << R"(<text x=")" << SX(vco[0]) + vert_radius << R"(" y=")" << SY(vco[1]) - vert_radius
+        << R"(" font-size="small">[)" << i << "]</text>\n";
     }
     ++i;
   }
