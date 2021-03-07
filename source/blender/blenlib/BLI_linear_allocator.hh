@@ -215,8 +215,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     int64_t size_in_bytes = min_allocation_size;
     if (size_in_bytes <= large_buffer_threshold) {
       /* Gradually grow buffer size with each allocation, up to a maximum. */
-      const int64_t grow_size = 1 << std::min<int64_t>(owned_buffers_.size() + 6, 20);
-      size_in_bytes = std::min(large_buffer_threshold, std::max(size_in_bytes, grow_size));
+      const int grow_size = 1 << std::min<int>(owned_buffers_.size() + 6, 20);
+      size_in_bytes = std::min(large_buffer_threshold,
+                               std::max<int64_t>(size_in_bytes, grow_size));
     }
 
     void *buffer = allocator_.allocate(size_in_bytes, min_alignment, __func__);
