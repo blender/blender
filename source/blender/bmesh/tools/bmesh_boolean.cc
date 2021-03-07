@@ -354,6 +354,7 @@ static bool bmesh_boolean(BMesh *bm,
                           const bool use_self,
                           const bool use_separate_all,
                           const bool keep_hidden,
+                          const bool hole_tolerant,
                           const BoolOpType boolean_mode)
 {
   IMeshArena arena;
@@ -389,7 +390,7 @@ static bool bmesh_boolean(BMesh *bm,
     };
   }
   IMesh m_out = boolean_mesh(
-      m_in, boolean_mode, nshapes, shape_fn, use_self, &m_triangulated, &arena);
+      m_in, boolean_mode, nshapes, shape_fn, use_self, hole_tolerant, &m_triangulated, &arena);
 #  ifdef PERF_DEBUG
   double boolean_time = PIL_check_seconds_timer();
   std::cout << "boolean done, time = " << boolean_time - mesh_time << "\n";
@@ -437,6 +438,7 @@ bool BM_mesh_boolean(BMesh *bm,
                      const int nshapes,
                      const bool use_self,
                      const bool keep_hidden,
+                     const bool hole_tolerant,
                      const int boolean_mode)
 {
   return blender::meshintersect::bmesh_boolean(
@@ -449,6 +451,7 @@ bool BM_mesh_boolean(BMesh *bm,
       use_self,
       false,
       keep_hidden,
+      hole_tolerant,
       static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
 }
 
@@ -468,6 +471,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            const int nshapes,
                            const bool use_self,
                            const bool use_separate_all,
+                           const bool hole_tolerant,
                            const bool keep_hidden)
 {
   return blender::meshintersect::bmesh_boolean(bm,
@@ -479,6 +483,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                                                use_self,
                                                use_separate_all,
                                                keep_hidden,
+                                               hole_tolerant,
                                                blender::meshintersect::BoolOpType::None);
 }
 #else
@@ -490,6 +495,7 @@ bool BM_mesh_boolean(BMesh *UNUSED(bm),
                      const int UNUSED(nshapes),
                      const bool UNUSED(use_self),
                      const bool UNUSED(keep_hidden),
+                     const bool UNUSED(hole_tolerant),
                      const int UNUSED(boolean_mode))
 {
   UNUSED_VARS(looptris, test_fn);
@@ -512,6 +518,7 @@ bool BM_mesh_boolean_knife(BMesh *UNUSED(bm),
                            const int UNUSED(nshapes),
                            const bool UNUSED(use_self),
                            const bool UNUSED(use_separate_all),
+                           const bool UNUSED(hole_tolerant),
                            const bool UNUSED(keep_hidden))
 {
   UNUSED_VARS(looptris, test_fn);

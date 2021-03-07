@@ -32,6 +32,7 @@ bool BM_mesh_boolean(BMesh *bm,
                      const int nshapes,
                      const bool use_self,
                      const bool keep_hidden,
+                     const bool hole_tolerant,
                      const int boolean_mode);
 
 bool BM_mesh_boolean_knife(BMesh *bm,
@@ -42,6 +43,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            const int nshapes,
                            const bool use_self,
                            const bool use_separate_all,
+                           const bool hole_tolerant,
                            const bool keep_hidden);
 
 #ifdef __cplusplus

@@ -100,7 +100,7 @@ static Mesh *mesh_boolean_calc(const Mesh *mesh_a, const Mesh *mesh_b, int boole
   }
 
   BM_mesh_boolean(
-      bm, looptris, tottri, bm_face_isect_pair, nullptr, 2, false, false, boolean_mode);
+      bm, looptris, tottri, bm_face_isect_pair, nullptr, 2, false, false, false, boolean_mode);
 
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh_a);
   BM_mesh_free(bm);

@@ -1292,7 +1292,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, true, boolean_mode);
+    BM_mesh_boolean(
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, true, false, boolean_mode);
   }
 
   MEM_freeN(looptris);
