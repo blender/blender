@@ -438,9 +438,6 @@ class ConvertedReadAttribute final : public ReadAttribute {
   ReadAttributePtr base_attribute_;
   const nodes::DataTypeConversions &conversions_;
 
-  static constexpr int MaxValueSize = 64;
-  static constexpr int MaxValueAlignment = 64;
-
  public:
   ConvertedReadAttribute(ReadAttributePtr base_attribute, const CPPType &to_type)
       : ReadAttribute(base_attribute->domain(), to_type, base_attribute->size()),
@@ -449,17 +446,13 @@ class ConvertedReadAttribute final : public ReadAttribute {
         base_attribute_(std::move(base_attribute)),
         conversions_(nodes::get_implicit_type_conversions())
   {
-    if (from_type_.size() > MaxValueSize || from_type_.alignment() > MaxValueAlignment) {
-      throw std::runtime_error(
-          "type is larger than expected, the buffer size has to be increased");
-    }
   }
 
   void get_internal(const int64_t index, void *r_value) const override
   {
-    AlignedBuffer<MaxValueSize, MaxValueAlignment> buffer;
-    base_attribute_->get(index, buffer.ptr());
-    conversions_.convert(from_type_, to_type_, buffer.ptr(), r_value);
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    base_attribute_->get(index, buffer);
+    conversions_.convert(from_type_, to_type_, buffer, r_value);
   }
 };
 

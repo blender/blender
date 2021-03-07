@@ -38,18 +38,20 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
 
   uintptr_t current_begin_;
   uintptr_t current_end_;
-  int64_t next_min_alloc_size_;
 
 #ifdef DEBUG
   int64_t debug_allocated_amount_ = 0;
 #endif
+
+  /* Buffers larger than that are not packed together with smaller allocations to avoid wasting
+   * memory. */
+  constexpr static inline int64_t large_buffer_threshold = 4096;
 
  public:
   LinearAllocator()
   {
     current_begin_ = 0;
     current_end_ = 0;
-    next_min_alloc_size_ = 64;
   }
 
   ~LinearAllocator()
@@ -71,23 +73,23 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     BLI_assert(alignment >= 1);
     BLI_assert(is_power_of_2_i(alignment));
 
-#ifdef DEBUG
-    debug_allocated_amount_ += size;
-#endif
-
     const uintptr_t alignment_mask = alignment - 1;
     const uintptr_t potential_allocation_begin = (current_begin_ + alignment_mask) &
                                                  ~alignment_mask;
     const uintptr_t potential_allocation_end = potential_allocation_begin + size;
 
     if (potential_allocation_end <= current_end_) {
+#ifdef DEBUG
+      debug_allocated_amount_ += size;
+#endif
       current_begin_ = potential_allocation_end;
       return reinterpret_cast<void *>(potential_allocation_begin);
     }
-    else {
-      this->allocate_new_buffer(size + alignment);
+    if (size <= large_buffer_threshold) {
+      this->allocate_new_buffer(size + alignment, alignment);
       return this->allocate(size, alignment);
     }
+    return this->allocator_large_buffer(size, alignment);
   };
 
   /**
@@ -116,14 +118,14 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    *
    * Arguments passed to this method will be forwarded to the constructor of T.
    *
-   * You must not call `delete` on the returned pointer.
-   * Instead, the destruct has to be called explicitly.
+   * You must not call `delete` on the returned value.
+   * Instead, only the destructor has to be called.
    */
-  template<typename T, typename... Args> T *construct(Args &&... args)
+  template<typename T, typename... Args> destruct_ptr<T> construct(Args &&... args)
   {
     void *buffer = this->allocate(sizeof(T), alignof(T));
     T *value = new (buffer) T(std::forward<Args>(args)...);
-    return value;
+    return destruct_ptr<T>(value);
   }
 
   /**
@@ -195,7 +197,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
  private:
-  void allocate_new_buffer(int64_t min_allocation_size)
+  void allocate_new_buffer(int64_t min_allocation_size, int64_t min_alignment)
   {
     for (int64_t i : unused_borrowed_buffers_.index_range()) {
       Span<char> buffer = unused_borrowed_buffers_[i];
@@ -207,14 +209,28 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
       }
     }
 
-    const int64_t size_in_bytes = power_of_2_min_u(
-        std::max(min_allocation_size, next_min_alloc_size_));
-    next_min_alloc_size_ = size_in_bytes * 2;
+    /* Possibly allocate more bytes than necessary for the current allocation. This way more small
+     * allocations can be packed together. Large buffers are allocated exactly to avoid wasting too
+     * much memory. */
+    int64_t size_in_bytes = min_allocation_size;
+    if (size_in_bytes <= large_buffer_threshold) {
+      /* Gradually grow buffer size with each allocation, up to a maximum. */
+      const int grow_size = 1 << std::min<int>(owned_buffers_.size() + 6, 20);
+      size_in_bytes = std::min(large_buffer_threshold,
+                               std::max<int64_t>(size_in_bytes, grow_size));
+    }
 
-    void *buffer = allocator_.allocate(size_in_bytes, 8, AT);
+    void *buffer = allocator_.allocate(size_in_bytes, min_alignment, __func__);
     owned_buffers_.append(buffer);
     current_begin_ = (uintptr_t)buffer;
     current_end_ = current_begin_ + size_in_bytes;
+  }
+
+  void *allocator_large_buffer(const int64_t size, const int64_t alignment)
+  {
+    void *buffer = allocator_.allocate(size, alignment, __func__);
+    owned_buffers_.append(buffer);
+    return buffer;
   }
 };
 

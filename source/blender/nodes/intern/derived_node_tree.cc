@@ -35,7 +35,7 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
                                                              bNodeTree &btree,
                                                              NodeTreeRefMap &node_tree_refs)
 {
-  DTreeContext &context = *allocator_.construct<DTreeContext>();
+  DTreeContext &context = *allocator_.construct<DTreeContext>().release();
   context.parent_context_ = parent_context;
   context.parent_node_ = parent_node;
   context.tree_ = &get_tree_ref_from_map(node_tree_refs, btree);
