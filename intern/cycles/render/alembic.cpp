@@ -1358,11 +1358,16 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   }
 
   bool need_shader_updates = false;
+  bool need_data_updates = false;
 
-  /* Check for changes in shaders (newly requested attributes). */
   foreach (Node *object_node, objects) {
     AlembicObject *object = static_cast<AlembicObject *>(object_node);
 
+    if (object->is_modified()) {
+      need_data_updates = true;
+    }
+
+    /* Check for changes in shaders (e.g. newly requested attributes). */
     foreach (Node *shader_node, object->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(shader_node);
 
@@ -1373,7 +1378,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
   }
 
-  if (!is_modified() && !need_shader_updates) {
+  if (!is_modified() && !need_shader_updates && !need_data_updates) {
     return;
   }
 
