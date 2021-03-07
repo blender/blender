@@ -935,3 +935,9 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
   { \
     return blender::fn::CPPType::get<TYPE_NAME>(); \
   }
+
+/* Utility for allocating an uninitialized buffer for a single value of the given #CPPType. */
+#define BUFFER_FOR_CPP_TYPE_VALUE(type, variable_name) \
+  blender::DynamicStackBuffer<64, 64> stack_buffer_for_##variable_name(type.size(), \
+                                                                       type.alignment()); \
+  void *variable_name = stack_buffer_for_##variable_name.buffer();
