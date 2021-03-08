@@ -60,7 +60,11 @@ vec2 get_ao_area(float view_depth, float radius)
 
 vec2 get_ao_noise(void)
 {
-  return texelfetch_noise_tex(gl_FragCoord.xy).xy;
+  vec2 noise = texelfetch_noise_tex(gl_FragCoord.xy).xy;
+  /* Decorrelate noise from AA. */
+  /* TODO(fclem) we should use a more general approach for more random number dimentions. */
+  noise = fract(noise * 6.1803402007);
+  return noise;
 }
 
 vec2 get_ao_dir(float jitter)
