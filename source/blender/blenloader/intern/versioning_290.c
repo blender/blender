@@ -1469,7 +1469,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
                 continue;
               }
               BKE_cryptomatte_matte_id_to_entries(storage, storage->matte_id);
-              MEM_SAFE_FREE(storage->matte_id);
             }
           }
         }

@@ -1070,7 +1070,8 @@ typedef struct CryptomatteEntry {
 typedef struct NodeCryptomatte {
   float add[3];
   float remove[3];
-  char *matte_id DNA_DEPRECATED;
+  /* Stores `entries` as a string for opening in 2.80-2.91. */
+  char *matte_id;
   /* Contains `CryptomatteEntry`. */
   ListBase entries;
   int num_inputs;

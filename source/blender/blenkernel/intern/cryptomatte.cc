@@ -208,6 +208,17 @@ void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const ch
   BLI_freelistN(&node_storage->entries);
   std::optional<CryptomatteSession> session = std::nullopt;
 
+  if (matte_id == nullptr) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    return;
+  }
+  /* Update the matte_id so the files can be opened in versions that don't
+   * use `CryptomatteEntry`. */
+  if (matte_id != node_storage->matte_id && STREQ(node_storage->matte_id, matte_id)) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    node_storage->matte_id = static_cast<char *>(MEM_dupallocN(matte_id));
+  }
+
   std::istringstream ss(matte_id);
   while (ss.good()) {
     CryptomatteEntry *entry = nullptr;
