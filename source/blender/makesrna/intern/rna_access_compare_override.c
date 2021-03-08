@@ -20,6 +20,8 @@
 
 #include <string.h>
 
+#include <CLG_log.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
@@ -52,6 +54,8 @@
 
 #include "rna_access_internal.h"
 #include "rna_internal.h"
+
+static CLG_LogRef LOG = {"rna.access_compare_override"};
 
 /**
  * Find the actual ID owner of the given \a ptr #PointerRNA, in override sense, and generate the
@@ -411,12 +415,11 @@ static int rna_property_override_diff(Main *bmain,
   }
 
   if (override_diff == NULL) {
-#ifndef NDEBUG
-    printf("'%s' gives unmatching or NULL RNA diff callbacks, should not happen (%d vs. %d).\n",
-           rna_path ? rna_path : prop_a->identifier,
-           !prop_a->is_idprop,
-           !prop_b->is_idprop);
-#endif
+    CLOG_ERROR(&LOG,
+               "'%s' gives unmatching or NULL RNA diff callbacks, should not happen (%d vs. %d)",
+               rna_path ? rna_path : prop_a->identifier,
+               !prop_a->is_idprop,
+               !prop_b->is_idprop);
     BLI_assert(0);
     return 1;
   }
@@ -501,12 +504,11 @@ static bool rna_property_override_operation_store(Main *bmain,
   }
 
   if (override_store == NULL) {
-#ifndef NDEBUG
-    printf("'%s' gives unmatching or NULL RNA store callbacks, should not happen (%d vs. %d).\n",
-           op->rna_path,
-           prop_local->magic == RNA_MAGIC,
-           prop_reference->magic == RNA_MAGIC);
-#endif
+    CLOG_ERROR(&LOG,
+               "'%s' gives unmatching or NULL RNA store callbacks, should not happen (%d vs. %d)",
+               op->rna_path,
+               prop_local->magic == RNA_MAGIC,
+               prop_reference->magic == RNA_MAGIC);
     BLI_assert(0);
     return changed;
   }
@@ -590,12 +592,12 @@ static bool rna_property_override_operation_apply(Main *bmain,
   }
 
   if (override_apply == NULL) {
-#ifndef NDEBUG
-    printf("'%s' gives unmatching or NULL RNA copy callbacks, should not happen (%d vs. %d).\n",
-           prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name : prop_dst->identifier,
-           prop_dst->magic == RNA_MAGIC,
-           prop_src->magic == RNA_MAGIC);
-#endif
+    CLOG_ERROR(&LOG,
+               "'%s' gives unmatching or NULL RNA apply callbacks, should not happen (%d vs. %d)",
+               prop_dst->magic != RNA_MAGIC ? ((IDProperty *)prop_dst)->name :
+                                              prop_dst->identifier,
+               prop_dst->magic == RNA_MAGIC,
+               prop_src->magic == RNA_MAGIC);
     BLI_assert(0);
     return false;
   }
@@ -788,7 +790,7 @@ bool RNA_struct_override_matches(Main *bmain,
       continue;
     }
 
-    //    printf("Override Checking %s\n", rna_path);
+    CLOG_INFO(&LOG, 5, "Override Checking %s\n", rna_path);
 
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
     if (ignore_overridden && op != NULL) {
@@ -990,11 +992,9 @@ static void rna_property_override_apply_ex(Main *bmain,
     if (!do_insert != !ELEM(opop->operation,
                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                             IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
-#ifndef NDEBUG
       if (!do_insert) {
-        printf("Skipping insert override operations in first pass (%s)!\n", op->rna_path);
+        CLOG_INFO(&LOG, 5, "Skipping insert override operations in first pass (%s)", op->rna_path);
       }
-#endif
       continue;
     }
 
@@ -1078,22 +1078,25 @@ static void rna_property_override_apply_ex(Main *bmain,
       ptr_item_src = &private_ptr_item_src;
       ptr_item_storage = &private_ptr_item_storage;
 
-#ifndef NDEBUG
       if (ptr_item_dst->type == NULL) {
-        printf("Failed to find destination sub-item '%s' (%d) of '%s' in new override data '%s'\n",
-               opop->subitem_reference_name,
-               opop->subitem_reference_index,
-               op->rna_path,
-               ptr_dst->owner_id->name);
+        CLOG_INFO(
+            &LOG,
+            2,
+            "Failed to find destination sub-item '%s' (%d) of '%s' in new override data '%s'",
+            opop->subitem_reference_name,
+            opop->subitem_reference_index,
+            op->rna_path,
+            ptr_dst->owner_id->name);
       }
       if (ptr_item_src->type == NULL) {
-        printf("Failed to find source sub-item '%s' (%d) of '%s' in old override data '%s'\n",
-               opop->subitem_local_name,
-               opop->subitem_local_index,
-               op->rna_path,
-               ptr_src->owner_id->name);
+        CLOG_INFO(&LOG,
+                  2,
+                  "Failed to find source sub-item '%s' (%d) of '%s' in old override data '%s'",
+                  opop->subitem_local_name,
+                  opop->subitem_local_index,
+                  op->rna_path,
+                  ptr_src->owner_id->name);
       }
-#endif
     }
 
     if (!rna_property_override_operation_apply(bmain,
@@ -1107,9 +1110,11 @@ static void rna_property_override_apply_ex(Main *bmain,
                                                ptr_item_src,
                                                ptr_item_storage,
                                                opop)) {
-      printf("Failed to apply '%s' override operation on %s\n",
-             op->rna_path,
-             ptr_src->owner_id->name);
+      CLOG_INFO(&LOG,
+                2,
+                "Failed to apply '%s' override operation on %s\n",
+                op->rna_path,
+                ptr_src->owner_id->name);
     }
   }
 }
@@ -1166,17 +1171,16 @@ void RNA_struct_override_apply(Main *bmain,
                                        op,
                                        do_insert);
       }
-#ifndef NDEBUG
       else {
-        printf(
-            "Failed to apply library override operation to '%s.%s' "
-            "(could not resolve some properties, local:  %d, override: %d)\n",
-            ((ID *)ptr_src->owner_id)->name,
-            op->rna_path,
-            RNA_path_resolve_property(ptr_dst, op->rna_path, &data_dst, &prop_dst),
-            RNA_path_resolve_property(ptr_src, op->rna_path, &data_src, &prop_src));
+        CLOG_INFO(&LOG,
+                  2,
+                  "Failed to apply library override operation to '%s.%s' "
+                  "(could not resolve some properties, local:  %d, override: %d)",
+                  ((ID *)ptr_src->owner_id)->name,
+                  op->rna_path,
+                  RNA_path_resolve_property(ptr_dst, op->rna_path, &data_dst, &prop_dst),
+                  RNA_path_resolve_property(ptr_src, op->rna_path, &data_src, &prop_src));
       }
-#endif
     }
   }
 
