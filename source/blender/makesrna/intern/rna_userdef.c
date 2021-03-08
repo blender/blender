@@ -3847,6 +3847,26 @@ static void rna_def_userdef_theme_space_statusbar(BlenderRNA *brna)
   rna_def_userdef_theme_spaces_main(srna);
 }
 
+static void rna_def_userdef_theme_space_spreadsheet(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* space_spreadsheet */
+
+  srna = RNA_def_struct(brna, "ThemeSpreadsheet", NULL);
+  RNA_def_struct_sdna(srna, "ThemeSpace");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "Theme Spreadsheet", "Theme settings for the Spreadsheet");
+
+  prop = RNA_def_property(srna, "row_alternate", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Alternate Rows", "Overlay color on every other row");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  rna_def_userdef_theme_spaces_main(srna);
+}
+
 static void rna_def_userdef_themes(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -3873,6 +3893,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
       {20, "CLIP_EDITOR", ICON_TRACKER, "Movie Clip Editor", ""},
       {21, "TOPBAR", ICON_TOPBAR, "Top Bar", ""},
       {22, "STATUSBAR", ICON_STATUSBAR, "Status Bar", ""},
+      {23, "SPREADSHEET", ICON_SPREADSHEET, "Spreadsheet"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -4001,6 +4022,12 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "space_statusbar");
   RNA_def_property_struct_type(prop, "ThemeStatusBar");
   RNA_def_property_ui_text(prop, "Status Bar", "");
+
+  prop = RNA_def_property(srna, "spreadsheet", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_pointer_sdna(prop, NULL, "space_spreadsheet");
+  RNA_def_property_struct_type(prop, "ThemeSpreadsheet");
+  RNA_def_property_ui_text(prop, "Spreadsheet", "");
   /* end space types */
 
   prop = RNA_def_property(srna, "bone_color_sets", PROP_COLLECTION, PROP_NONE);
@@ -4254,6 +4281,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
   rna_def_userdef_theme_space_clip(brna);
   rna_def_userdef_theme_space_topbar(brna);
   rna_def_userdef_theme_space_statusbar(brna);
+  rna_def_userdef_theme_space_spreadsheet(brna);
   rna_def_userdef_theme_colorset(brna);
   rna_def_userdef_theme_collection_color(brna);
   rna_def_userdef_themes(brna);

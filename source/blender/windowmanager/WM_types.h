@@ -427,6 +427,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_CHANGED (19 << 16) /*sent to a new editor type after it's replaced an old one*/
 #define ND_SPACE_CLIP (20 << 16)
 #define ND_SPACE_FILE_PREVIEW (21 << 16)
+#define ND_SPACE_SPREADSHEET (22 << 16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE 0x0000FF00

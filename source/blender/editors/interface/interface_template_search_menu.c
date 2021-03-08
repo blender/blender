@@ -642,6 +642,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
           SPACE_MENU_NOP(SPACE_SCRIPT);
           SPACE_MENU_NOP(SPACE_STATUSBAR);
           SPACE_MENU_NOP(SPACE_TOPBAR);
+          SPACE_MENU_NOP(SPACE_SPREADSHEET);
         }
       }
       for (int i = 0; i < idname_array_len; i++) {

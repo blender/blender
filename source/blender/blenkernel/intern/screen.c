@@ -1342,6 +1342,9 @@ static void write_area_regions(BlendWriter *writer, ScrArea *area)
     else if (sl->spacetype == SPACE_INFO) {
       BLO_write_struct(writer, SpaceInfo, sl);
     }
+    else if (sl->spacetype == SPACE_SPREADSHEET) {
+      BLO_write_struct(writer, SpaceSpreadsheet, sl);
+    }
   }
 }
 

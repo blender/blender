@@ -282,6 +282,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_info.info_property);
     FROM_DEFAULT_V4_UCHAR(space_info.info_error);
     FROM_DEFAULT_V4_UCHAR(space_info.info_operator);
+
+    btheme->space_spreadsheet = btheme->space_outliner;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
