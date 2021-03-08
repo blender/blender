@@ -3925,7 +3925,7 @@ static ModifierData *object_add_or_copy_particle_system(
   }
 
   if (name == NULL) {
-    name = (psys_orig != NULL) ? psys_orig->name : DATA_("ParticleSettings");
+    name = (psys_orig != NULL) ? psys_orig->name : DATA_("ParticleSystem");
   }
 
   psys = ob->particlesystem.first;
@@ -3943,7 +3943,7 @@ static ModifierData *object_add_or_copy_particle_system(
     id_us_plus(&psys->part->id);
   }
   else {
-    psys->part = BKE_particlesettings_add(bmain, psys->name);
+    psys->part = BKE_particlesettings_add(bmain, DATA_("ParticleSettings"));
   }
   md = BKE_modifier_new(eModifierType_ParticleSystem);
   BLI_strncpy(md->name, psys->name, sizeof(md->name));
