@@ -466,10 +466,10 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
            GP_STROKE_BOX,
            GP_STROKE_POLYLINE)) {
     if (hasNumInput(&tgpi->num)) {
-      char str_offs[NUM_STR_REP_LEN];
+      char str_ofs[NUM_STR_REP_LEN];
 
-      outputNumInput(&tgpi->num, str_offs, &scene->unit);
-      BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_offs);
+      outputNumInput(&tgpi->num, str_ofs, &scene->unit);
+      BLI_snprintf(status_str, sizeof(status_str), "%s: %s", msg_str, str_ofs);
     }
     else {
       if (tgpi->flag == IN_PROGRESS) {

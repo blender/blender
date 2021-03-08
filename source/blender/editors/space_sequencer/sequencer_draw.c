@@ -2112,7 +2112,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 typedef struct CacheDrawData {
   struct View2D *v2d;
-  float stripe_offs;
+  float stripe_ofs_y;
   float stripe_ht;
   int cache_flag;
   GPUVertBuf *raw_vbo;
@@ -2151,7 +2151,7 @@ static bool draw_cache_view_iter_fn(void *userdata,
 {
   CacheDrawData *drawdata = userdata;
   struct View2D *v2d = drawdata->v2d;
-  float stripe_bot, stripe_top, stripe_offs, stripe_ht;
+  float stripe_bot, stripe_top, stripe_ofs_y, stripe_ht;
   GPUVertBuf *vbo;
   size_t *vert_count;
 
@@ -2164,27 +2164,27 @@ static bool draw_cache_view_iter_fn(void *userdata,
     vert_count = &drawdata->final_out_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_VIEW_RAW)) {
-    stripe_offs = drawdata->stripe_offs;
+    stripe_ofs_y = drawdata->stripe_ofs_y;
     stripe_ht = drawdata->stripe_ht;
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_offs;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_ofs_y;
     stripe_top = stripe_bot + stripe_ht;
     vbo = drawdata->raw_vbo;
     vert_count = &drawdata->raw_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED)) {
-    stripe_offs = drawdata->stripe_offs;
+    stripe_ofs_y = drawdata->stripe_ofs_y;
     stripe_ht = drawdata->stripe_ht;
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + (stripe_offs + stripe_ht) + stripe_offs;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + (stripe_ofs_y + stripe_ht) + stripe_ofs_y;
     stripe_top = stripe_bot + stripe_ht;
     vbo = drawdata->preprocessed_vbo;
     vert_count = &drawdata->preprocessed_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE)) {
-    stripe_offs = drawdata->stripe_offs;
+    stripe_ofs_y = drawdata->stripe_ofs_y;
     stripe_ht = drawdata->stripe_ht;
-    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_offs;
+    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
     stripe_bot = stripe_top - stripe_ht;
     vbo = drawdata->composite_vbo;
     vert_count = &drawdata->composite_vert_count;
@@ -2237,12 +2237,12 @@ static void draw_cache_view(const bContext *C)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   float stripe_bot, stripe_top;
-  float stripe_offs = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
+  float stripe_ofs_y = UI_view2d_region_to_view_y(v2d, 1.0f) - v2d->cur.ymin;
   float stripe_ht = UI_view2d_region_to_view_y(v2d, 4.0f * UI_DPI_FAC * U.pixelsize) -
                     v2d->cur.ymin;
 
   CLAMP_MAX(stripe_ht, 0.2f);
-  CLAMP_MIN(stripe_offs, stripe_ht / 2);
+  CLAMP_MIN(stripe_ofs_y, stripe_ht / 2);
 
   if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
@@ -2262,7 +2262,7 @@ static void draw_cache_view(const bContext *C)
       continue;
     }
 
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_offs;
+    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + stripe_ofs_y;
     stripe_top = stripe_bot + stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
@@ -2271,7 +2271,7 @@ static void draw_cache_view(const bContext *C)
       immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
     }
 
-    stripe_bot += stripe_ht + stripe_offs;
+    stripe_bot += stripe_ht + stripe_ofs_y;
     stripe_top = stripe_bot + stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
@@ -2280,7 +2280,7 @@ static void draw_cache_view(const bContext *C)
       immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
     }
 
-    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_offs;
+    stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
     stripe_bot = stripe_top - stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
@@ -2297,7 +2297,7 @@ static void draw_cache_view(const bContext *C)
 
   CacheDrawData userdata;
   userdata.v2d = v2d;
-  userdata.stripe_offs = stripe_offs;
+  userdata.stripe_ofs_y = stripe_ofs_y;
   userdata.stripe_ht = stripe_ht;
   userdata.cache_flag = scene->ed->cache_flag;
   userdata.raw_vert_count = 0;

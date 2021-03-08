@@ -555,10 +555,10 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
                                               tex->noisebasis);
 
   if (texres->nor != NULL) {
-    float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
+    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + offs,
+    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + ofs,
                                                    texvec[1],
                                                    texvec[2],
                                                    tex->mg_H,
@@ -566,7 +566,7 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
                                                    tex->mg_octaves,
                                                    tex->noisebasis);
     texres->nor[1] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1] + offs,
+                                                   texvec[1] + ofs,
                                                    texvec[2],
                                                    tex->mg_H,
                                                    tex->mg_lacunarity,
@@ -574,7 +574,7 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
                                                    tex->noisebasis);
     texres->nor[2] = tex->ns_outscale * mgravefunc(texvec[0],
                                                    texvec[1],
-                                                   texvec[2] + offs,
+                                                   texvec[2] + ofs,
                                                    tex->mg_H,
                                                    tex->mg_lacunarity,
                                                    tex->mg_octaves,
@@ -612,10 +612,10 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
                                               tex->noisebasis);
 
   if (texres->nor != NULL) {
-    float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
+    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + offs,
+    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + ofs,
                                                    texvec[1],
                                                    texvec[2],
                                                    tex->mg_H,
@@ -625,7 +625,7 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
                                                    tex->mg_gain,
                                                    tex->noisebasis);
     texres->nor[1] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1] + offs,
+                                                   texvec[1] + ofs,
                                                    texvec[2],
                                                    tex->mg_H,
                                                    tex->mg_lacunarity,
@@ -635,7 +635,7 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
                                                    tex->noisebasis);
     texres->nor[2] = tex->ns_outscale * mgravefunc(texvec[0],
                                                    texvec[1],
-                                                   texvec[2] + offs,
+                                                   texvec[2] + ofs,
                                                    tex->mg_H,
                                                    tex->mg_lacunarity,
                                                    tex->mg_octaves,
@@ -666,10 +666,10 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
                                                                tex->noisebasis);
 
   if (texres->nor != NULL) {
-    float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
+    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0] + offs,
+    texres->nor[0] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0] + ofs,
                                                                     texvec[1],
                                                                     texvec[2],
                                                                     tex->mg_H,
@@ -678,7 +678,7 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
                                                                     tex->mg_offset,
                                                                     tex->noisebasis);
     texres->nor[1] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
-                                                                    texvec[1] + offs,
+                                                                    texvec[1] + ofs,
                                                                     texvec[2],
                                                                     tex->mg_H,
                                                                     tex->mg_lacunarity,
@@ -687,7 +687,7 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
                                                                     tex->noisebasis);
     texres->nor[2] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
                                                                     texvec[1],
-                                                                    texvec[2] + offs,
+                                                                    texvec[2] + ofs,
                                                                     tex->mg_H,
                                                                     tex->mg_lacunarity,
                                                                     tex->mg_octaves,
@@ -711,24 +711,24 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
       texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
   if (texres->nor != NULL) {
-    float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
+    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    texres->nor[0] = BLI_noise_mg_variable_lacunarity(texvec[0] + offs,
+    texres->nor[0] = BLI_noise_mg_variable_lacunarity(texvec[0] + ofs,
                                                       texvec[1],
                                                       texvec[2],
                                                       tex->dist_amount,
                                                       tex->noisebasis,
                                                       tex->noisebasis2);
     texres->nor[1] = BLI_noise_mg_variable_lacunarity(texvec[0],
-                                                      texvec[1] + offs,
+                                                      texvec[1] + ofs,
                                                       texvec[2],
                                                       tex->dist_amount,
                                                       tex->noisebasis,
                                                       tex->noisebasis2);
     texres->nor[2] = BLI_noise_mg_variable_lacunarity(texvec[0],
                                                       texvec[1],
-                                                      texvec[2] + offs,
+                                                      texvec[2] + ofs,
                                                       tex->dist_amount,
                                                       tex->noisebasis,
                                                       tex->noisebasis2);
@@ -805,14 +805,14 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
   }
 
   if (texres->nor != NULL) {
-    float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
+    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
-    BLI_noise_voronoi(texvec[0] + offs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0] + ofs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[0] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_noise_voronoi(texvec[0], texvec[1] + offs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0], texvec[1] + ofs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[1] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_noise_voronoi(texvec[0], texvec[1], texvec[2] + offs, da, pa, tex->vn_mexp, tex->vn_distm);
+    BLI_noise_voronoi(texvec[0], texvec[1], texvec[2] + ofs, da, pa, tex->vn_mexp, tex->vn_distm);
     texres->nor[2] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
     tex_normal_derivate(tex, texres);
