@@ -2061,6 +2061,19 @@ static int pyrna_py_to_prop(
               Py_XDECREF(value_new);
               return -1;
             }
+
+            if (value_owner_id->tag & LIB_TAG_TEMP_MAIN) {
+              /* Allow passing temporary ID's to functions, but not attribute assignment. */
+              if (ptr->type != &RNA_Function) {
+                PyErr_Format(PyExc_TypeError,
+                             "%.200s %.200s.%.200s ID type assignment is temporary, can't assign",
+                             error_prefix,
+                             RNA_struct_identifier(ptr->type),
+                             RNA_property_identifier(prop));
+                Py_XDECREF(value_new);
+                return -1;
+              }
+            }
           }
         }
 
