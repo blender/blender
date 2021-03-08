@@ -876,7 +876,7 @@ static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
     if (operand_object) {
       uiItemR(col, ptr, "use_self", 0, NULL, ICON_NONE);
     }
-    uiItemR(col, ptr, "hole_tolerant", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "use_hole_tolerant", 0, NULL, ICON_NONE);
   }
   else {
     uiItemR(col, ptr, "double_threshold", 0, NULL, ICON_NONE);
