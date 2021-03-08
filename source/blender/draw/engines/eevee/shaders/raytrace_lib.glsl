@@ -65,8 +65,6 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
   /* Clipping to frustum sides. */
   float clip_dist = line_unit_box_intersect_dist(ray.origin.xyz, ray.direction.xyz);
   ray.max_time = min(ray.max_time, clip_dist);
-  /* Avoid no iteration. */
-  ray.max_time = max(ray.max_time, 1.1);
   /* Convert to texture coords [0..1] range. */
   ray.origin = ray.origin * 0.5 + 0.5;
   ray.direction *= 0.5;
@@ -122,6 +120,8 @@ bool raytrace(Ray ray,
   }
 
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, params.thickness);
+  /* Avoid no iteration. */
+  ssray.max_time = max(ssray.max_time, 1.1);
 
   float prev_delta = 0.0, prev_time = 0.0;
   float depth_sample = get_depth_from_view_z(ray.origin.z);
@@ -173,6 +173,8 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   }
 
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray);
+  /* Avoid no iteration. */
+  ssray.max_time = max(ssray.max_time, 1.1);
 
   /* Planar Reflections have X mirrored. */
   ssray.origin.x = 1.0 - ssray.origin.x;
