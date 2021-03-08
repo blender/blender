@@ -53,17 +53,17 @@ TEST(cryptomatte, layer)
   ASSERT_EQ("{}", layer.manifest());
 
   layer.add_hash("Object", 123);
-  ASSERT_EQ(R"({"Object":"0000007b"})", layer.manifest());
+  ASSERT_EQ("{\"Object\":\"0000007b\"}", layer.manifest());
 
   layer.add_hash("Object2", 123245678);
-  ASSERT_EQ(R"({"Object":"0000007b","Object2":"0758946e"})", layer.manifest());
+  ASSERT_EQ("{\"Object\":\"0000007b\",\"Object2\":\"0758946e\"}", layer.manifest());
 }
 
 TEST(cryptomatte, layer_quoted)
 {
   blender::bke::cryptomatte::CryptomatteLayer layer;
-  layer.add_hash(R"("Object")", 123);
-  ASSERT_EQ(R"({"\"Object\"":"0000007b"})", layer.manifest());
+  layer.add_hash("\"Object\"", 123);
+  ASSERT_EQ("{\"\\\"Object\\\"\":\"0000007b\"}", layer.manifest());
 }
 
 static void test_cryptomatte_manifest(std::string expected, std::string manifest)
@@ -75,15 +75,17 @@ static void test_cryptomatte_manifest(std::string expected, std::string manifest
 TEST(cryptomatte, layer_from_manifest)
 {
   test_cryptomatte_manifest("{}", "{}");
-  test_cryptomatte_manifest(R"({"Object":"12345678"})", R"({"Object": "12345678"})");
-  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321"})",
-                            R"({"Object":"12345678","Object2":"87654321"})");
-  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321"})",
-                            R"(  {  "Object"  :  "12345678"  ,  "Object2"  :  "87654321"  }  )");
-  test_cryptomatte_manifest(R"({"Object\"01\"":"12345678"})", R"({"Object\"01\"": "12345678"})");
+  test_cryptomatte_manifest("{\"Object\":\"12345678\"}", "{\"Object\": \"12345678\"}");
+  test_cryptomatte_manifest("{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+                            "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}");
   test_cryptomatte_manifest(
-      R"({"Object\"01\"":"12345678","Object":"12345678","Object2":"87654321"})",
-      R"({"Object\"01\"":"12345678","Object":"12345678", "Object2":"87654321"})");
+      "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+      "  {  \"Object\"  :  \"12345678\"  ,  \"Object2\"  :  \"87654321\"  }  ");
+  test_cryptomatte_manifest("{\"Object\\\"01\\\"\":\"12345678\"}",
+                            "{\"Object\\\"01\\\"\": \"12345678\"}");
+  test_cryptomatte_manifest(
+      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
+      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\", \"Object2\":\"87654321\"}");
 }
 
 TEST(cryptomatte, extract_layer_hash_from_metadata_key)
@@ -151,10 +153,10 @@ TEST(cryptomatte, session_from_stamp_data)
       MEM_callocN(sizeof(RenderResult), __func__));
   BKE_render_result_stamp_data(render_result, "cryptomatte/qwerty/name", "layer1");
   BKE_render_result_stamp_data(
-      render_result, "cryptomatte/qwerty/manifest", R"({"Object":"12345678"})");
+      render_result, "cryptomatte/qwerty/manifest", "{\"Object\":\"12345678\"}");
   BKE_render_result_stamp_data(render_result, "cryptomatte/uiop/name", "layer2");
   BKE_render_result_stamp_data(
-      render_result, "cryptomatte/uiop/manifest", R"({"Object2":"87654321"})");
+      render_result, "cryptomatte/uiop/manifest", "{\"Object2\":\"87654321\"}");
   CryptomatteSession *session = BKE_cryptomatte_init_from_render_result(render_result);
   EXPECT_NE(session, nullptr);
   RE_FreeRenderResult(render_result);
