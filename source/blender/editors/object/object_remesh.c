@@ -162,7 +162,8 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME || mesh->flag & ME_REMESH_REPROJECT_PAINT_MASK ||
-      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
+      mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS ||
+      mesh->flag & ME_REMESH_REPROJECT_MATERIALS) {
     BKE_mesh_runtime_clear_geometry(mesh);
   }
 
@@ -176,6 +177,10 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (mesh->flag & ME_REMESH_REPROJECT_SCULPT_FACE_SETS) {
     BKE_remesh_reproject_sculpt_face_sets(new_mesh, mesh);
+  }
+
+  if (mesh->flag & ME_REMESH_REPROJECT_MATERIALS) {
+    BKE_remesh_reproject_materials(new_mesh, mesh);
   }
 
   if (mesh->flag & ME_REMESH_REPROJECT_VERTEX_COLORS) {
