@@ -459,6 +459,7 @@ static void file_listener(const wmSpaceTypeListenerParams *params)
           break;
         case NA_ADDED:
         case NA_REMOVED:
+        case NA_EDITED:
           if (sfile->files && filelist_needs_reset_on_main_changes(sfile->files)) {
             /* Full refresh of the file list if local asset data was changed. Refreshing this view
              * is cheap and users expect this to be updated immediately. */

@@ -92,7 +92,7 @@ static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
 
   BKE_previewimg_id_custom_set(id, path);
 
-  WM_event_add_notifier(C, NC_ASSET, nullptr);
+  WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -133,7 +133,7 @@ static int lib_id_generate_preview_exec(bContext *C, wmOperator *UNUSED(op))
   }
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
-  WM_event_add_notifier(C, NC_ASSET, nullptr);
+  WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
