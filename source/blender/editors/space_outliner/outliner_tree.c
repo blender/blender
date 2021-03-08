@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -92,9 +92,6 @@
 #endif
 
 /* prototypes */
-static TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
-                                                      Collection *collection,
-                                                      TreeElement *ten);
 static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner);
 
 /* ********************************************************* */
@@ -274,7 +271,7 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
   }
 }
 
-static bool outliner_animdata_test(AnimData *adt)
+bool outliner_animdata_test(const AnimData *adt)
 {
   if (adt) {
     return (adt->action || adt->drivers.first || adt->nla_tracks.first);
@@ -313,46 +310,6 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
   }
 }
 #endif
-
-static void outliner_add_scene_contents(SpaceOutliner *space_outliner,
-                                        ListBase *lb,
-                                        Scene *sce,
-                                        TreeElement *te)
-{
-  /* View layers */
-  TreeElement *ten = outliner_add_element(space_outliner, lb, sce, te, TSE_R_LAYER_BASE, 0);
-  ten->name = IFACE_("View Layers");
-
-  ViewLayer *view_layer;
-  for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
-    TreeElement *tenlay = outliner_add_element(
-        space_outliner, &ten->subtree, sce, ten, TSE_R_LAYER, 0);
-    tenlay->name = view_layer->name;
-    tenlay->directdata = view_layer;
-  }
-
-  /* World */
-  outliner_add_element(space_outliner, lb, sce->world, te, TSE_SOME_ID, 0);
-
-  /* Collections */
-  ten = outliner_add_element(space_outliner, lb, &sce->id, te, TSE_SCENE_COLLECTION_BASE, 0);
-  ten->name = IFACE_("Scene Collection");
-  outliner_add_collection_recursive(space_outliner, sce->master_collection, ten);
-
-  /* Objects */
-  ten = outliner_add_element(space_outliner, lb, sce, te, TSE_SCENE_OBJECTS_BASE, 0);
-  ten->name = IFACE_("Objects");
-  FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
-    outliner_add_element(space_outliner, &ten->subtree, ob, ten, TSE_SOME_ID, 0);
-  }
-  FOREACH_SCENE_OBJECT_END;
-  outliner_make_object_parent_hierarchy(&ten->subtree);
-
-  /* Animation Data */
-  if (outliner_animdata_test(sce->adt)) {
-    outliner_add_element(space_outliner, lb, sce, te, TSE_ANIM_DATA, 0);
-  }
-}
 
 /* Can be inlined if necessary. */
 static void outliner_add_object_contents(SpaceOutliner *space_outliner,
@@ -629,32 +586,6 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   }
 }
 
-static void outliner_add_library_override_contents(SpaceOutliner *soops, TreeElement *te, ID *id)
-{
-  if (!id->override_library) {
-    return;
-  }
-
-  PointerRNA idpoin;
-  RNA_id_pointer_create(id, &idpoin);
-
-  PointerRNA override_ptr;
-  PropertyRNA *override_prop;
-  int index = 0;
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-    if (!BKE_lib_override_rna_property_find(&idpoin, op, &override_ptr, &override_prop)) {
-      /* This is fine, override properties list is not always fully up-to-date with current
-       * RNA/IDProps etc., this gets cleaned up when re-generating the overrides rules,
-       * no error here. */
-      continue;
-    }
-
-    TreeElement *ten = outliner_add_element(
-        soops, &te->subtree, id, te, TSE_LIBRARY_OVERRIDE, index++);
-    ten->name = RNA_property_ui_name(override_prop);
-  }
-}
-
 /* Can be inlined if necessary. */
 static void outliner_add_id_contents(SpaceOutliner *space_outliner,
                                      TreeElement *te,
@@ -668,14 +599,10 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
 
   /* expand specific data always */
   switch (GS(id->name)) {
-    case ID_LI: {
-      te->name = ((Library *)id)->filepath;
+    case ID_LI:
+    case ID_SCE:
+      BLI_assert(!"ID type expected to be expanded through new tree-element design");
       break;
-    }
-    case ID_SCE: {
-      outliner_add_scene_contents(space_outliner, &te->subtree, (Scene *)id, te);
-      break;
-    }
     case ID_OB: {
       outliner_add_object_contents(space_outliner, te, tselem, (Object *)id);
       break;
@@ -902,17 +829,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     default:
       break;
   }
-
-  const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(space_outliner) ||
-                                     ((space_outliner->filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
-
-  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY(id)) {
-    TreeElement *ten = outliner_add_element(
-        space_outliner, &te->subtree, id, te, TSE_LIBRARY_OVERRIDE_BASE, 0);
-
-    ten->name = IFACE_("Library Overrides");
-    outliner_add_library_override_contents(space_outliner, ten, id);
-  }
 }
 
 /**
@@ -1001,7 +917,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
 
-    te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
+    /* The new type design sets the name already, don't override that here. We need to figure out
+     * how to deal with the idcode for non-TSE_SOME_ID types still. Some rely on it... */
+    if (!te->type) {
+      te->name = id->name + 2; /* Default, can be overridden by Library or non-ID data. */
+    }
     te->idcode = GS(id->name);
   }
 
@@ -1009,11 +929,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     outliner_tree_element_type_expand(te->type, space_outliner);
   }
   else if (type == TSE_SOME_ID) {
-    TreeStoreElem *tsepar = parent ? TREESTORE(parent) : NULL;
-
-    /* ID data-block. */
-    if (tsepar == NULL || tsepar->type != TSE_ID_BASE || space_outliner->filter_id_type) {
+    /* ID types not (fully) ported to new design yet. */
+    if (outliner_tree_element_type_expand_poll(te->type, space_outliner)) {
       outliner_add_id_contents(space_outliner, te, tselem, id);
+      outliner_tree_element_type_post_expand(te->type, space_outliner);
     }
   }
   else if (ELEM(type,
@@ -1233,9 +1152,9 @@ BLI_INLINE void outliner_add_collection_objects(SpaceOutliner *space_outliner,
   }
 }
 
-static TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
-                                                      Collection *collection,
-                                                      TreeElement *ten)
+TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
+                                               Collection *collection,
+                                               TreeElement *ten)
 {
   outliner_add_collection_init(ten, collection);
 

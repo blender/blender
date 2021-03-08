@@ -25,10 +25,16 @@
 namespace blender::ed::outliner {
 
 class TreeElementID : public AbstractTreeElement {
- public:
-  TreeElementID(TreeElement &legacy_te, const ID &id);
+ protected:
+  ID &id_;
 
-  static TreeElementID *createFromID(TreeElement &legacy_te, const ID &id);
+ public:
+  TreeElementID(TreeElement &legacy_te, ID &id);
+
+  static TreeElementID *createFromID(TreeElement &legacy_te, ID &id);
+
+  void postExpand(SpaceOutliner &) const override;
+  bool expandPoll(const SpaceOutliner &) const override;
 
   /**
    * Expanding not implemented for all types yet. Once it is, this can be set to true or
@@ -38,11 +44,36 @@ class TreeElementID : public AbstractTreeElement {
   {
     return false;
   }
+
+ protected:
+  /* ID types with animation data can use this. */
+  void expand_animation_data(SpaceOutliner &, const AnimData *) const;
+
+ private:
+  void expand_library_overrides(SpaceOutliner &) const;
 };
 
 class TreeElementIDLibrary final : public TreeElementID {
  public:
-  TreeElementIDLibrary(TreeElement &legacy_te, const ID &id);
+  TreeElementIDLibrary(TreeElement &legacy_te, Library &library);
+
+  bool isExpandValid() const override;
+};
+
+class TreeElementIDScene final : public TreeElementID {
+  Scene &scene_;
+
+ public:
+  TreeElementIDScene(TreeElement &legacy_te, Scene &scene);
+
+  void expand(SpaceOutliner &) const override;
+  bool isExpandValid() const override;
+
+ private:
+  void expandViewLayers(SpaceOutliner &) const;
+  void expandWorld(SpaceOutliner &) const;
+  void expandCollections(SpaceOutliner &) const;
+  void expandObjects(SpaceOutliner &) const;
 };
 
 }  // namespace blender::ed::outliner
