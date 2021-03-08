@@ -18,33 +18,34 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_collection.h"
+#include "DNA_layer_types.h"
 
-#include "BLI_utildefines.h"
+#include "BLI_listbase_wrapper.hh"
 
 #include "BLT_translation.h"
 
 #include "../outliner_intern.h"
 #include "tree_display.h"
 
-#include "tree_element_scene_objects_base.hh"
+#include "tree_element_view_layer.hh"
 
 namespace blender::ed::outliner {
 
-TreeElementSceneObjectsBase::TreeElementSceneObjectsBase(TreeElement &legacy_te, Scene &scene)
+TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene &scene)
     : AbstractTreeElement(legacy_te), scene_(scene)
 {
-  BLI_assert(legacy_te.store_elem->type == TSE_SCENE_OBJECTS_BASE);
-  legacy_te.name = IFACE_("Objects");
+  BLI_assert(legacy_te.store_elem->type == TSE_R_LAYER_BASE);
+  legacy_te_.name = IFACE_("View Layers");
 }
 
-void TreeElementSceneObjectsBase::expand(SpaceOutliner &space_outliner) const
+void TreeElementViewLayerBase::expand(SpaceOutliner &space_outliner) const
 {
-  FOREACH_SCENE_OBJECT_BEGIN (&scene_, ob) {
-    outliner_add_element(&space_outliner, &legacy_te_.subtree, ob, &legacy_te_, TSE_SOME_ID, 0);
+  for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
+    TreeElement *tenlay = outliner_add_element(
+        &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER, 0);
+    tenlay->name = view_layer->name;
+    tenlay->directdata = view_layer;
   }
-  FOREACH_SCENE_OBJECT_END;
-  outliner_make_object_parent_hierarchy(&legacy_te_.subtree);
 }
 
 }  // namespace blender::ed::outliner

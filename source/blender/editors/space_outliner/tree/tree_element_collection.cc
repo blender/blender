@@ -25,7 +25,7 @@
 #include "../outliner_intern.h"
 #include "tree_display.h"
 
-#include "tree_element_collection_base.hh"
+#include "tree_element_collection.hh"
 
 namespace blender::ed::outliner {
 

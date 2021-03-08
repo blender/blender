@@ -21,13 +21,13 @@
 #include "DNA_listBase.h"
 
 #include "tree_element_anim_data.hh"
-#include "tree_element_collection_base.hh"
-#include "tree_element_driver_base.hh"
+#include "tree_element_collection.hh"
+#include "tree_element_driver.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
 #include "tree_element_nla.hh"
-#include "tree_element_scene_objects_base.hh"
-#include "tree_element_view_layer_base.hh"
+#include "tree_element_scene_objects.hh"
+#include "tree_element_view_layer.hh"
 
 #include "tree_element.h"
 #include "tree_element.hh"
