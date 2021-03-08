@@ -331,6 +331,7 @@ void rescale_m4(float mat[4][4], const float scale[3]);
 void transform_pivot_set_m3(float mat[3][3], const float pivot[2]);
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3]);
 
+void mat4_to_rot(float rot[3][3], const float wmat[4][4]);
 void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3]);
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], const float wmat[4][4]);
 void mat4_to_loc_quat(float loc[3], float quat[4], const float wmat[4][4]);
