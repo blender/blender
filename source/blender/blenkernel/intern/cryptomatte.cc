@@ -206,7 +206,6 @@ char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const char *matte_id)
 {
   BLI_freelistN(&node_storage->entries);
-  std::optional<CryptomatteSession> session = std::nullopt;
 
   if (matte_id == nullptr) {
     MEM_SAFE_FREE(node_storage->matte_id);
