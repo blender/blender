@@ -66,7 +66,7 @@ endif()
 if(XCODE_VERSION)
   # Construct SDKs path ourselves, because xcode-select path could be ambiguous.
   # Both /Applications/Xcode.app/Contents/Developer or /Applications/Xcode.app would be allowed.
-  set(XCODE_SDK_DIR ${XCODE_DEVELOPER_DIR}/Platforms/MacOSX.platform//Developer/SDKs)
+  set(XCODE_SDK_DIR ${XCODE_DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs)
 
   # Detect SDK version to use
   if(NOT DEFINED OSX_SYSTEM)
