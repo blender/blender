@@ -25,22 +25,37 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_subdivision_surface_simple_in[] = {
+static bNodeSocketTemplate geo_node_subdivide_smooth_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
+    {SOCK_BOOLEAN, N_("Use Creases")},
+    {SOCK_BOOLEAN, N_("Boundary Smooth"), true},
+    {SOCK_BOOLEAN, N_("Smooth UVs")},
     {-1, ""},
 };
 
-static bNodeSocketTemplate geo_node_subdivision_surface_simple_out[] = {
+static bNodeSocketTemplate geo_node_subdivide_smooth_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
 
-namespace blender::nodes {
+static void geo_node_subdivide_smooth_layout(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *UNUSED(ptr))
+{
+#ifndef WITH_OPENSUBDIV
+  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
+#else
+  UNUSED_VARS(layout);
+#endif
+}
 
-static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
+namespace blender::nodes {
+static void geo_node_subdivide_smooth_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (!geometry_set.has_mesh()) {
     params.set_output("Geometry", geometry_set);
@@ -48,20 +63,21 @@ static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
   }
 
 #ifndef WITH_OPENSUBDIV
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was built without OpenSubdiv"));
+  /* Return input geometry if Blender is built without OpenSubdiv. */
   params.set_output("Geometry", std::move(geometry_set));
   return;
-#endif
+#else
+  const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 30);
 
-  /* See CCGSUBSURF_LEVEL_MAX for max limit. */
-  const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 11);
-
+  /* Only process subdivion if level is greater than 0. */
   if (subdiv_level == 0) {
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
 
+  const bool use_crease = params.extract_input<bool>("Use Creases");
+  const bool boundary_smooth = params.extract_input<bool>("Boundary Smooth");
+  const bool smooth_uvs = params.extract_input<bool>("Smooth UVs");
   const Mesh *mesh_in = geometry_set.get_mesh_for_read();
 
   /* Initialize mesh settings. */
@@ -71,15 +87,17 @@ static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
 
   /* Initialize subdivision settings. */
   SubdivSettings subdiv_settings;
-  subdiv_settings.is_simple = true;
+  subdiv_settings.is_simple = false;
   subdiv_settings.is_adaptive = false;
-  subdiv_settings.use_creases = false;
-  subdiv_settings.level = 1;
-  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      0);
-  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(0);
+  subdiv_settings.use_creases = use_crease;
+  subdiv_settings.level = subdiv_level;
 
-  /* Apply subdivision from mesh. */
+  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+      !boundary_smooth);
+  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+      smooth_uvs);
+
+  /* Apply subdivision to mesh. */
   Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
 
   /* In case of bad topology, skip to input mesh. */
@@ -91,25 +109,25 @@ static void geo_node_subdivision_surface_simple_exec(GeoNodeExecParams params)
   Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
   BKE_mesh_calc_normals(mesh_out);
 
-  geometry_set.replace_mesh(mesh_out);
+  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+  mesh_component.replace_mesh_but_keep_vertex_group_names(mesh_out);
 
+  // BKE_subdiv_stats_print(&subdiv->stats);
   BKE_subdiv_free(subdiv);
 
   params.set_output("Geometry", std::move(geometry_set));
+#endif
 }
 }  // namespace blender::nodes
 
-void register_node_type_geo_subdivision_surface_simple()
+void register_node_type_geo_subdivide_smooth()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     GEO_NODE_SUBDIVISION_SURFACE_SIMPLE,
-                     "Simple Subdivision Surface",
-                     NODE_CLASS_GEOMETRY,
-                     0);
-  node_type_socket_templates(
-      &ntype, geo_node_subdivision_surface_simple_in, geo_node_subdivision_surface_simple_out);
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_simple_exec;
+  geo_node_type_base(
+      &ntype, GEO_NODE_SUBDIVIDE_SMOOTH, "Subdivide Smooth", NODE_CLASS_GEOMETRY, 0);
+  node_type_socket_templates(&ntype, geo_node_subdivide_smooth_in, geo_node_subdivide_smooth_out);
+  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_smooth_exec;
+  ntype.draw_buttons = geo_node_subdivide_smooth_layout;
   nodeRegisterType(&ntype);
 }

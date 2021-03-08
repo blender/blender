@@ -516,8 +516,8 @@ geometry_node_categories = [
         NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
         NodeItem("GeometryNodeEdgeSplit"),
-        NodeItem("GeometryNodeSubdivisionSurface"),
-        NodeItem("GeometryNodeSubdivisionSurfaceSimple"),
+        NodeItem("GeometryNodeSubdivideSmooth"),
+        NodeItem("GeometryNodeSubdivide"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
         NodeItem("GeometryNodePointDistribute"),
