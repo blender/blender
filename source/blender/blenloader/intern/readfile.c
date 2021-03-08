@@ -967,15 +967,15 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 /* Warning! Caller's responsibility to ensure given bhead **is** an ID one! */
 const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead)
 {
-  return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
+  return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offset);
 }
 
 /* Warning! Caller's responsibility to ensure given bhead **is** an ID one! */
 AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead)
 {
   BLI_assert(BKE_idtype_idcode_is_valid(bhead->code));
-  return (fd->id_asset_data_offs >= 0) ?
-             *(AssetMetaData **)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_asset_data_offs) :
+  return (fd->id_asset_data_offset >= 0) ?
+             *(AssetMetaData **)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_asset_data_offset) :
              NULL;
 }
 
@@ -1054,9 +1054,9 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
         fd->reconstruct_info = DNA_reconstruct_info_create(
             fd->filesdna, fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
-        fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
-        BLI_assert(fd->id_name_offs != -1);
-        fd->id_asset_data_offs = DNA_elem_offset(
+        fd->id_name_offset = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
+        BLI_assert(fd->id_name_offset != -1);
+        fd->id_asset_data_offset = DNA_elem_offset(
             fd->filesdna, "ID", "AssetMetaData", "*asset_data");
 
         return true;
