@@ -31,6 +31,8 @@
 
 #include "../outliner_intern.h"
 #include "tree_display.h"
+#include "tree_element_id_library.hh"
+#include "tree_element_id_scene.hh"
 
 #include "tree_element_id.hh"
 
@@ -160,67 +162,6 @@ void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,
     outliner_add_element(
         &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_ANIM_DATA, 0);
   }
-}
-
-/* -------------------------------------------------------------------- */
-/* Library Tree-Element */
-
-TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, Library &library)
-    : TreeElementID(legacy_te, library.id)
-{
-  legacy_te.name = library.filepath;
-}
-
-bool TreeElementIDLibrary::isExpandValid() const
-{
-  return true;
-}
-
-/* -------------------------------------------------------------------- */
-/* Scene Tree-Element */
-
-TreeElementIDScene::TreeElementIDScene(TreeElement &legacy_te, Scene &scene)
-    : TreeElementID(legacy_te, scene.id), scene_(scene)
-{
-}
-
-bool TreeElementIDScene::isExpandValid() const
-{
-  return true;
-}
-
-void TreeElementIDScene::expand(SpaceOutliner &space_outliner) const
-{
-  expandViewLayers(space_outliner);
-  expandWorld(space_outliner);
-  expandCollections(space_outliner);
-  expandObjects(space_outliner);
-
-  expand_animation_data(space_outliner, scene_.adt);
-}
-
-void TreeElementIDScene::expandViewLayers(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER_BASE, 0);
-}
-
-void TreeElementIDScene::expandWorld(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, scene_.world, &legacy_te_, TSE_SOME_ID, 0);
-}
-
-void TreeElementIDScene::expandCollections(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_COLLECTION_BASE, 0);
-}
-
-void TreeElementIDScene::expandObjects(SpaceOutliner &space_outliner) const
-{
-  outliner_add_element(
-      &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_SCENE_OBJECTS_BASE, 0);
 }
 
 }  // namespace blender::ed::outliner
