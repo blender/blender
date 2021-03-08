@@ -262,7 +262,7 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 
 void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
-  LISTBASE_FOREACH (RegionDrawCB *, rdc, &region->type->drawcalls) {
+  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &region->type->drawcalls) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
 
