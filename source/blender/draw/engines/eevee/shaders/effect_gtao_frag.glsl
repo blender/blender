@@ -99,9 +99,12 @@ void main()
 
     OcclusionData data = occlusion_load(vP, 1.0);
 
-    float visibility = diffuse_occlusion(data, V, N, Ng);
-
-    FragColor = vec4(visibility);
+    if (min_v4(abs(data.horizons)) != M_PI) {
+      FragColor = vec4(diffuse_occlusion(data, V, N, Ng));
+    }
+    else {
+      FragColor = vec4(1.0);
+    }
   }
 }
 
