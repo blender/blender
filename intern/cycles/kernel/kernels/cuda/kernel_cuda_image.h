@@ -66,8 +66,8 @@ kernel_tex_image_interp_bicubic(const TextureInfo &info, CUtexObject tex, float 
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
 
-  float px = floor(x);
-  float py = floor(y);
+  float px = floorf(x);
+  float py = floorf(y);
   float fx = x - px;
   float fy = y - py;
 
@@ -91,9 +91,9 @@ ccl_device T kernel_tex_image_interp_bicubic_3d(
   y = (y * info.height) - 0.5f;
   z = (z * info.depth) - 0.5f;
 
-  float px = floor(x);
-  float py = floor(y);
-  float pz = floor(z);
+  float px = floorf(x);
+  float py = floorf(y);
+  float pz = floorf(z);
   float fx = x - px;
   float fy = y - py;
   float fz = z - pz;
