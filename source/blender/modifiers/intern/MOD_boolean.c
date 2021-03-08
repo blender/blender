@@ -21,7 +21,7 @@
  * \ingroup modifiers
  */
 
-// #ifdef DEBUG_TIME
+// #define DEBUG_TIME
 
 #include <stdio.h>
 
@@ -422,7 +422,7 @@ static void BMD_mesh_intersection(BMesh *bm,
 
   if (use_exact) {
     BM_mesh_boolean(
-        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, bmd->operation);
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, false, bmd->operation);
   }
   else {
     BM_mesh_intersect(bm,
@@ -587,8 +587,16 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
   }
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_mesh_boolean(
-      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, false, bmd->operation);
+  BM_mesh_boolean(bm,
+                  looptris,
+                  tottri,
+                  bm_face_isect_nary,
+                  shape,
+                  num_shapes,
+                  true,
+                  false,
+                  false,
+                  bmd->operation);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   BM_mesh_free(bm);
@@ -651,10 +659,12 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   }
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+  const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
   result = BKE_mesh_boolean((const Mesh **)meshes,
                             (const float(**)[4][4])obmats,
                             BLI_array_len(meshes),
                             use_self,
+                            hole_tolerant,
                             bmd->operation);
 
   BLI_array_free(meshes);
@@ -846,31 +856,43 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "collection", 0, NULL, ICON_NONE);
   }
 
-  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
-
   uiItemR(layout, ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-
-  if (use_exact) {
-    /* When operand is collection, we always use_self. */
-    if (operand_object) {
-      uiItemR(layout, ptr, "use_self", 0, NULL, ICON_NONE);
-    }
-  }
-  else {
-    uiItemR(layout, ptr, "double_threshold", 0, NULL, ICON_NONE);
-  }
-
-  if (G.debug) {
-    uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "debug_options", 0, NULL, ICON_NONE);
-  }
 
   modifier_panel_end(layout, ptr);
 }
 
+static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  uiLayout *col = uiLayoutColumn(layout, true);
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+
+  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
+  const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
+
+  if (use_exact) {
+    /* When operand is collection, we always use_self. */
+    if (operand_object) {
+      uiItemR(col, ptr, "use_self", 0, NULL, ICON_NONE);
+    }
+    uiItemR(col, ptr, "use_hole_tolerant", 0, NULL, ICON_NONE);
+  }
+  else {
+    uiItemR(col, ptr, "double_threshold", 0, NULL, ICON_NONE);
+  }
+
+  if (G.debug) {
+    col = uiLayoutColumn(layout, true);
+    uiItemR(col, ptr, "debug_options", 0, NULL, ICON_NONE);
+  }
+}
+
 static void panelRegister(ARegionType *region_type)
 {
-  modifier_panel_register(region_type, eModifierType_Boolean, panel_draw);
+  PanelType *panel = modifier_panel_register(region_type, eModifierType_Boolean, panel_draw);
+  modifier_subpanel_register(
+      region_type, "solver_options", "Solver Options", NULL, solver_options_panel_draw, panel);
 }
 
 ModifierTypeInfo modifierType_Boolean = {

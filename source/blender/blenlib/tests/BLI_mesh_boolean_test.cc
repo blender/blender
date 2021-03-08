@@ -113,7 +113,7 @@ TEST(boolean_trimesh, Empty)
 {
   IMeshArena arena;
   IMesh in;
-  IMesh out = boolean_trimesh(in, BoolOpType::None, 1, all_shape_zero, true, &arena);
+  IMesh out = boolean_trimesh(in, BoolOpType::None, 1, all_shape_zero, true, false, &arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 0);
   EXPECT_EQ(out.face_size(), 0);
@@ -141,7 +141,8 @@ TEST(boolean_trimesh, TetTetTrimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::None, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::None, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 11);
   EXPECT_EQ(out.face_size(), 20);
@@ -150,7 +151,8 @@ TEST(boolean_trimesh, TetTetTrimesh)
   }
 
   IMeshBuilder mb2(spec);
-  IMesh out2 = boolean_trimesh(mb2.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb2.arena);
+  IMesh out2 = boolean_trimesh(
+      mb2.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb2.arena);
   out2.populate_vert();
   EXPECT_EQ(out2.vert_size(), 10);
   EXPECT_EQ(out2.face_size(), 16);
@@ -160,7 +162,13 @@ TEST(boolean_trimesh, TetTetTrimesh)
 
   IMeshBuilder mb3(spec);
   IMesh out3 = boolean_trimesh(
-      mb3.imesh, BoolOpType::Union, 2, [](int t) { return t < 4 ? 0 : 1; }, false, &mb3.arena);
+      mb3.imesh,
+      BoolOpType::Union,
+      2,
+      [](int t) { return t < 4 ? 0 : 1; },
+      false,
+      false,
+      &mb3.arena);
   out3.populate_vert();
   EXPECT_EQ(out3.vert_size(), 10);
   EXPECT_EQ(out3.face_size(), 16);
@@ -170,7 +178,13 @@ TEST(boolean_trimesh, TetTetTrimesh)
 
   IMeshBuilder mb4(spec);
   IMesh out4 = boolean_trimesh(
-      mb4.imesh, BoolOpType::Union, 2, [](int t) { return t < 4 ? 0 : 1; }, true, &mb4.arena);
+      mb4.imesh,
+      BoolOpType::Union,
+      2,
+      [](int t) { return t < 4 ? 0 : 1; },
+      true,
+      false,
+      &mb4.arena);
   out4.populate_vert();
   EXPECT_EQ(out4.vert_size(), 10);
   EXPECT_EQ(out4.face_size(), 16);
@@ -180,7 +194,13 @@ TEST(boolean_trimesh, TetTetTrimesh)
 
   IMeshBuilder mb5(spec);
   IMesh out5 = boolean_trimesh(
-      mb5.imesh, BoolOpType::Intersect, 2, [](int t) { return t < 4 ? 0 : 1; }, false, &mb5.arena);
+      mb5.imesh,
+      BoolOpType::Intersect,
+      2,
+      [](int t) { return t < 4 ? 0 : 1; },
+      false,
+      false,
+      &mb5.arena);
   out5.populate_vert();
   EXPECT_EQ(out5.vert_size(), 4);
   EXPECT_EQ(out5.face_size(), 4);
@@ -194,6 +214,7 @@ TEST(boolean_trimesh, TetTetTrimesh)
       BoolOpType::Difference,
       2,
       [](int t) { return t < 4 ? 0 : 1; },
+      false,
       false,
       &mb6.arena);
   out6.populate_vert();
@@ -209,6 +230,7 @@ TEST(boolean_trimesh, TetTetTrimesh)
       BoolOpType::Difference,
       2,
       [](int t) { return t < 4 ? 1 : 0; },
+      false,
       false,
       &mb7.arena);
   out7.populate_vert();
@@ -241,7 +263,8 @@ TEST(boolean_trimesh, TetTet2Trimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 10);
   EXPECT_EQ(out.face_size(), 16);
@@ -284,7 +307,8 @@ TEST(boolean_trimesh, CubeTetTrimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 14);
   EXPECT_EQ(out.face_size(), 24);
@@ -316,7 +340,13 @@ TEST(boolean_trimesh, BinaryTetTetTrimesh)
 
   IMeshBuilder mb(spec);
   IMesh out = boolean_trimesh(
-      mb.imesh, BoolOpType::Intersect, 2, [](int t) { return t < 4 ? 0 : 1; }, false, &mb.arena);
+      mb.imesh,
+      BoolOpType::Intersect,
+      2,
+      [](int t) { return t < 4 ? 0 : 1; },
+      false,
+      false,
+      &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 4);
   EXPECT_EQ(out.face_size(), 4);
@@ -347,7 +377,8 @@ TEST(boolean_trimesh, TetTetCoplanarTrimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 5);
   EXPECT_EQ(out.face_size(), 6);
@@ -378,7 +409,8 @@ TEST(boolean_trimesh, TetInsideTetTrimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 4);
   EXPECT_EQ(out.face_size(), 4);
@@ -409,7 +441,8 @@ TEST(boolean_trimesh, TetBesideTetTrimesh)
   )";
 
   IMeshBuilder mb(spec);
-  IMesh out = boolean_trimesh(mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, &mb.arena);
+  IMesh out = boolean_trimesh(
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 8);
   EXPECT_EQ(out.face_size(), 8);
@@ -445,7 +478,13 @@ TEST(boolean_trimesh, DegenerateTris)
 
   IMeshBuilder mb(spec);
   IMesh out = boolean_trimesh(
-      mb.imesh, BoolOpType::Intersect, 2, [](int t) { return t < 5 ? 0 : 1; }, false, &mb.arena);
+      mb.imesh,
+      BoolOpType::Intersect,
+      2,
+      [](int t) { return t < 5 ? 0 : 1; },
+      false,
+      false,
+      &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 4);
   EXPECT_EQ(out.face_size(), 4);
@@ -477,7 +516,7 @@ TEST(boolean_polymesh, TetTet)
 
   IMeshBuilder mb(spec);
   IMesh out = boolean_mesh(
-      mb.imesh, BoolOpType::None, 1, all_shape_zero, true, nullptr, &mb.arena);
+      mb.imesh, BoolOpType::None, 1, all_shape_zero, true, false, nullptr, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 11);
   EXPECT_EQ(out.face_size(), 13);
@@ -491,6 +530,7 @@ TEST(boolean_polymesh, TetTet)
       BoolOpType::None,
       2,
       [](int t) { return t < 4 ? 0 : 1; },
+      false,
       false,
       nullptr,
       &mb2.arena);
@@ -540,7 +580,7 @@ TEST(boolean_polymesh, CubeCube)
     write_obj_mesh(mb.imesh, "cube_cube_in");
   }
   IMesh out = boolean_mesh(
-      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, nullptr, &mb.arena);
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, nullptr, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 20);
   EXPECT_EQ(out.face_size(), 12);
@@ -554,6 +594,7 @@ TEST(boolean_polymesh, CubeCube)
       BoolOpType::None,
       2,
       [](int t) { return t < 6 ? 0 : 1; },
+      false,
       false,
       nullptr,
       &mb2.arena);
@@ -597,7 +638,7 @@ TEST(boolean_polymesh, CubeCone)
 
   IMeshBuilder mb(spec);
   IMesh out = boolean_mesh(
-      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, nullptr, &mb.arena);
+      mb.imesh, BoolOpType::Union, 1, all_shape_zero, true, false, nullptr, &mb.arena);
   out.populate_vert();
   EXPECT_EQ(out.vert_size(), 14);
   EXPECT_EQ(out.face_size(), 12);
@@ -646,6 +687,7 @@ TEST(boolean_polymesh, CubeCubeCoplanar)
       2,
       [](int t) { return t < 6 ? 0 : 1; },
       false,
+      false,
       nullptr,
       &mb.arena);
   out.populate_vert();
@@ -683,6 +725,7 @@ TEST(boolean_polymesh, TetTeTCoplanarDiff)
       BoolOpType::Difference,
       2,
       [](int t) { return t < 4 ? 0 : 1; },
+      false,
       false,
       nullptr,
       &mb.arena);
@@ -734,6 +777,7 @@ TEST(boolean_polymesh, CubeCubeStep)
       2,
       [](int t) { return t < 6 ? 0 : 1; },
       false,
+      false,
       nullptr,
       &mb.arena);
   out.populate_vert();
@@ -783,6 +827,7 @@ TEST(boolean_polymesh, CubeCyl4)
       BoolOpType::Difference,
       2,
       [](int t) { return t < 6 ? 1 : 0; },
+      false,
       false,
       nullptr,
       &mb.arena);
@@ -855,6 +900,7 @@ TEST(boolean_polymesh, CubeCubesubdivDiff)
       2,
       [](int t) { return t < 16 ? 1 : 0; },
       false,
+      false,
       nullptr,
       &mb.arena);
   out.populate_vert();
@@ -895,6 +941,7 @@ TEST(boolean_polymesh, CubePlane)
       BoolOpType::Difference,
       2,
       [](int t) { return t >= 1 ? 0 : 1; },
+      false,
       false,
       nullptr,
       &mb.arena);

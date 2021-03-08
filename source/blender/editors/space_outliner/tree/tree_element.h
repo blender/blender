@@ -40,6 +40,8 @@ void outliner_tree_element_type_free(TreeElementType **type);
 
 void outliner_tree_element_type_expand(TreeElementType *type, SpaceOutliner *space_outliner);
 bool outliner_tree_element_type_is_expand_valid(TreeElementType *type);
+bool outliner_tree_element_type_expand_poll(TreeElementType *type, SpaceOutliner *space_outliner);
+void outliner_tree_element_type_post_expand(TreeElementType *type, SpaceOutliner *space_outliner);
 
 #ifdef __cplusplus
 }

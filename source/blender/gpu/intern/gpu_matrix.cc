@@ -736,7 +736,7 @@ float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float di
       int depthbits = 24;
       depth_fac = 1.0f / (float)((1 << depthbits) - 1);
     }
-    offs = (-1.0 / winmat[2][2]) * dist * depth_fac;
+    ofs = (-1.0 / winmat[2][2]) * dist * depth_fac;
 
     UNUSED_VARS(viewdist);
 #endif
@@ -765,10 +765,10 @@ void GPU_polygon_offset(float viewdist, float dist)
 
     /* dist is from camera to center point */
 
-    float offs = GPU_polygon_offset_calc(winmat, viewdist, dist);
+    float ofs = GPU_polygon_offset_calc(winmat, viewdist, dist);
 
-    winmat[3][2] -= offs;
-    offset += offs;
+    winmat[3][2] -= ofs;
+    offset += ofs;
   }
   else {
     winmat[3][2] += offset;

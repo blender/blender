@@ -339,16 +339,16 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  *
  * For places where this is used, see constraint.c for example...
  *
- * \param name_offs: should be calculated using offsetof(structname, membername)
- * macro from stddef.h
+ * \param name_offset: should be calculated using `offsetof(structname, membername)`
+ * macro from `stddef.h`
  */
-static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, int name_offs)
+static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, int name_offset)
 {
   Link *link;
 
   for (link = list->first; link; link = link->next) {
     if (link != vlink) {
-      if (STREQ(POINTER_OFFSET((const char *)link, name_offs), name)) {
+      if (STREQ(POINTER_OFFSET((const char *)link, name_offset), name)) {
         return true;
       }
     }
@@ -362,9 +362,9 @@ static bool uniquename_unique_check(void *arg, const char *name)
   struct {
     ListBase *lb;
     void *vlink;
-    int name_offs;
+    int name_offset;
   } *data = arg;
-  return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offs);
+  return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offset);
 }
 
 /**
@@ -375,20 +375,20 @@ static bool uniquename_unique_check(void *arg, const char *name)
  * \param vlink: The block to check the name for
  * \param defname: To initialize block name if latter is empty
  * \param delim: Delimits numeric suffix in name
- * \param name_offs: Offset of name within block structure
+ * \param name_offset: Offset of name within block structure
  * \param name_len: Maximum length of name area
  */
 bool BLI_uniquename(
-    ListBase *list, void *vlink, const char *defname, char delim, int name_offs, size_t name_len)
+    ListBase *list, void *vlink, const char *defname, char delim, int name_offset, size_t name_len)
 {
   struct {
     ListBase *lb;
     void *vlink;
-    int name_offs;
+    int name_offset;
   } data;
   data.lb = list;
   data.vlink = vlink;
-  data.name_offs = name_offs;
+  data.name_offset = name_offset;
 
   BLI_assert(name_len > 1);
 
@@ -397,8 +397,12 @@ bool BLI_uniquename(
     return false;
   }
 
-  return BLI_uniquename_cb(
-      uniquename_unique_check, &data, defname, delim, POINTER_OFFSET(vlink, name_offs), name_len);
+  return BLI_uniquename_cb(uniquename_unique_check,
+                           &data,
+                           defname,
+                           delim,
+                           POINTER_OFFSET(vlink, name_offset),
+                           name_len);
 }
 
 /* ------------------------------------------------------------------------- */

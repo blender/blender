@@ -3002,7 +3002,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
        * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
       if (event->val == KM_PRESS) {
-        if (event->prevval != KM_PRESS) {
+        if (event->is_repeat == false) {
           win->event_queue_check_click = true;
           win->event_queue_check_drag = true;
         }

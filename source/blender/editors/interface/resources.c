@@ -160,6 +160,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case SPACE_STATUSBAR:
           ts = &btheme->space_statusbar;
           break;
+        case SPACE_SPREADSHEET:
+          ts = &btheme->space_spreadsheet;
+          break;
         default:
           ts = &btheme->space_view3d;
           break;

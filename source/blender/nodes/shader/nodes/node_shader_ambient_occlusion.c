@@ -47,8 +47,15 @@ static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
   GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
 
   float inverted = node->custom2 ? 1.0f : 0.0f;
+  float f_samples = divide_ceil_u(node->custom1, 4);
 
-  return GPU_stack_link(mat, node, "node_ambient_occlusion", in, out, GPU_constant(&inverted));
+  return GPU_stack_link(mat,
+                        node,
+                        "node_ambient_occlusion",
+                        in,
+                        out,
+                        GPU_constant(&inverted),
+                        GPU_constant(&f_samples));
 }
 
 static void node_shader_init_ambient_occlusion(bNodeTree *UNUSED(ntree), bNode *node)

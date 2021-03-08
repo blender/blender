@@ -56,10 +56,15 @@ set(SRC
   tree/tree_display_view_layer.cc
   tree/tree_element.cc
   tree/tree_element_anim_data.cc
-  tree/tree_element_driver_base.cc
+  tree/tree_element_collection.cc
+  tree/tree_element_driver.cc
   tree/tree_element_gpencil_layer.cc
   tree/tree_element_id.cc
+  tree/tree_element_id_library.cc
+  tree/tree_element_id_scene.cc
   tree/tree_element_nla.cc
+  tree/tree_element_scene_objects.cc
+  tree/tree_element_view_layer.cc
 
   outliner_intern.h
   tree/tree_display.h
@@ -67,10 +72,15 @@ set(SRC
   tree/tree_element.h
   tree/tree_element.hh
   tree/tree_element_anim_data.hh
-  tree/tree_element_driver_base.hh
+  tree/tree_element_collection.hh
+  tree/tree_element_driver.hh
   tree/tree_element_gpencil_layer.hh
   tree/tree_element_id.hh
+  tree/tree_element_id_library.hh
+  tree/tree_element_id_scene.hh
   tree/tree_element_nla.hh
+  tree/tree_element_scene_objects.hh
+  tree/tree_element_view_layer.hh
 )
 
 set(LIB

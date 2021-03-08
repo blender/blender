@@ -30,7 +30,7 @@
 #include "../outliner_intern.h"
 #include "tree_display.h"
 
-#include "tree_element_driver_base.hh"
+#include "tree_element_driver.hh"
 
 namespace blender::ed::outliner {
 

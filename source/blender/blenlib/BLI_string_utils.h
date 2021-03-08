@@ -90,7 +90,7 @@ bool BLI_uniquename(struct ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
-                    int name_offs,
+                    int name_offset,
                     size_t len);
 
 #ifdef __cplusplus

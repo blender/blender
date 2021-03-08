@@ -873,12 +873,12 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 
   if (hasNumInput(&pso->num)) {
     Scene *scene = pso->scene;
-    char str_offs[NUM_STR_REP_LEN];
+    char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&pso->num, str_offs, &scene->unit);
+    outputNumInput(&pso->num, str_ofs, &scene->unit);
 
     BLI_snprintf(
-        status_str, sizeof(status_str), "%s: %s     |   %s", mode_str, str_offs, limits_str);
+        status_str, sizeof(status_str), "%s: %s     |   %s", mode_str, str_ofs, limits_str);
   }
   else {
     BLI_snprintf(status_str,

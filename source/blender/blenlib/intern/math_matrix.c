@@ -2140,6 +2140,16 @@ void mat3_to_rot_size(float rot[3][3], float size[3], const float mat3[3][3])
   }
 }
 
+void mat4_to_rot(float rot[3][3], const float wmat[4][4])
+{
+  normalize_v3_v3(rot[0], wmat[0]);
+  normalize_v3_v3(rot[1], wmat[1]);
+  normalize_v3_v3(rot[2], wmat[2]);
+  if (UNLIKELY(is_negative_m3(rot))) {
+    negate_m3(rot);
+  }
+}
+
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], const float wmat[4][4])
 {
   float mat3[3][3]; /* wmat -> 3x3 */

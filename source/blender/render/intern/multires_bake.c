@@ -658,10 +658,10 @@ static void get_ccgdm_data(DerivedMesh *lodm,
     /* get the original cage face index */
     int cage_face_index = index_mp_to_orig ? index_mp_to_orig[poly_index] : poly_index;
     /* local offset in total cage face grids
-     * (1 << (2 * lvl)) is number of all polys for one cage face */
-    int loc_cage_poly_offs = poly_index % (1 << (2 * lvl));
+     * `(1 << (2 * lvl))` is number of all polys for one cage face */
+    int loc_cage_poly_ofs = poly_index % (1 << (2 * lvl));
     /* local offset in the vertex grid itself */
-    int cell_index = loc_cage_poly_offs % (polys_per_grid_side * polys_per_grid_side);
+    int cell_index = loc_cage_poly_ofs % (polys_per_grid_side * polys_per_grid_side);
     int cell_side = (grid_size - 1) / polys_per_grid_side;
     /* row and column based on grid side */
     int row = cell_index / polys_per_grid_side;
@@ -1193,7 +1193,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
   MLoopUV *mloopuv = lores_dm->getLoopDataArray(lores_dm, CD_MLOOPUV);
   MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
-  int i, k, perm_offs;
+  int i, k, perm_ofs;
   float pos[3], nrm[3];
   float cen[3];
   float axisX[3], axisY[3], axisZ[3];
@@ -1236,7 +1236,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
   build_coordinate_frame(axisX, axisY, axisZ);
 
   /* static noise */
-  perm_offs = (get_ao_random2(get_ao_random1(x) + y)) & (MAX_NUMBER_OF_AO_RAYS - 1);
+  perm_ofs = (get_ao_random2(get_ao_random1(x) + y)) & (MAX_NUMBER_OF_AO_RAYS - 1);
 
   /* importance sample shadow rays (cosine weighted) */
   for (i = 0; i < ao_data->number_of_rays; i++) {
@@ -1246,12 +1246,12 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
      * a multi-dimensional domain (2D)
      */
     const unsigned short I =
-        ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
+        ao_data->permutation_table_1[(i + perm_ofs) % ao_data->number_of_rays];
     const unsigned short J = ao_data->permutation_table_2[i];
 
-    const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
+    const float JitPh = (get_ao_random2(I + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
                         ((float)MAX_NUMBER_OF_AO_RAYS);
-    const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
+    const float JitTh = (get_ao_random1(J + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
                         ((float)MAX_NUMBER_OF_AO_RAYS);
     const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
     const float Theta = (float)(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);

@@ -75,11 +75,8 @@ static Object *make_prim_init(bContext *C,
 
   ED_object_new_primitive_matrix(C, obedit, loc, rot, r_creation_data->mat);
 
-  if (scale && !equals_v3v3(scale, (const float[3]){1.0f, 1.0f, 1.0f})) {
-    float scale_half[3];
-    copy_v3_v3(scale_half, scale);
-    mul_v3_fl(scale_half, 0.5f);
-    rescale_m4(r_creation_data->mat, scale_half);
+  if (scale) {
+    rescale_m4(r_creation_data->mat, scale);
   }
 
   return obedit;

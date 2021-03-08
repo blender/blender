@@ -904,6 +904,7 @@ enum {
   eBooleanModifierFlag_Self = (1 << 0),
   eBooleanModifierFlag_Object = (1 << 1),
   eBooleanModifierFlag_Collection = (1 << 2),
+  eBooleanModifierFlag_HoleTolerant = (1 << 3),
 };
 
 /* bm_flag only used when G_DEBUG. */

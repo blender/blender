@@ -338,18 +338,18 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 {
   RNG *rng;
 
-  double offs[2], t;
+  double ofs[2], t;
 
   rng = BLI_rng_new(31415926 + n + seed);
-  offs[0] = BLI_rng_get_double(rng) + (double)amount;
-  offs[1] = BLI_rng_get_double(rng) + (double)amount;
+  ofs[0] = BLI_rng_get_double(rng) + (double)amount;
+  ofs[1] = BLI_rng_get_double(rng) + (double)amount;
   BLI_rng_free(rng);
 
   for (int k = 0; k < n; k++) {
     BLI_hammersley_1d(k, &t);
 
-    out[2 * k + 0] = fmod((double)k / (double)n + offs[0], 1.0);
-    out[2 * k + 1] = fmod(t + offs[1], 1.0);
+    out[2 * k + 0] = fmod((double)k / (double)n + ofs[0], 1.0);
+    out[2 * k + 1] = fmod(t + ofs[1], 1.0);
   }
 }
 

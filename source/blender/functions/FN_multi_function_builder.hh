@@ -170,6 +170,63 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
 
 /**
  * Generates a multi-function with the following parameters:
+ * 1. single input (SI) of type In1
+ * 2. single input (SI) of type In2
+ * 3. single input (SI) of type In3
+ * 4. single input (SI) of type In4
+ * 5. single output (SO) of type Out1
+ */
+template<typename In1, typename In2, typename In3, typename In4, typename Out1>
+class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
+ private:
+  using FunctionT = std::function<void(
+      IndexMask, VSpan<In1>, VSpan<In2>, VSpan<In3>, VSpan<In4>, MutableSpan<Out1>)>;
+  FunctionT function_;
+
+ public:
+  CustomMF_SI_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
+  {
+    MFSignatureBuilder signature = this->get_builder(name);
+    signature.single_input<In1>("In1");
+    signature.single_input<In2>("In2");
+    signature.single_input<In3>("In3");
+    signature.single_input<In4>("In4");
+    signature.single_output<Out1>("Out1");
+  }
+
+  template<typename ElementFuncT>
+  CustomMF_SI_SI_SI_SI_SO(StringRef name, ElementFuncT element_fn)
+      : CustomMF_SI_SI_SI_SI_SO(name, CustomMF_SI_SI_SI_SI_SO::create_function(element_fn))
+  {
+  }
+
+  template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
+  {
+    return [=](IndexMask mask,
+               VSpan<In1> in1,
+               VSpan<In2> in2,
+               VSpan<In3> in3,
+               VSpan<In4> in4,
+               MutableSpan<Out1> out1) {
+      mask.foreach_index([&](int i) {
+        new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i], in4[i]));
+      });
+    };
+  }
+
+  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
+  {
+    VSpan<In1> in1 = params.readonly_single_input<In1>(0);
+    VSpan<In2> in2 = params.readonly_single_input<In2>(1);
+    VSpan<In3> in3 = params.readonly_single_input<In3>(2);
+    VSpan<In4> in4 = params.readonly_single_input<In4>(3);
+    MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(4);
+    function_(mask, in1, in2, in3, in4, out1);
+  }
+};
+
+/**
+ * Generates a multi-function with the following parameters:
  * 1. single mutable (SM) of type Mut1
  */
 template<typename Mut1> class CustomMF_SM : public MultiFunction {

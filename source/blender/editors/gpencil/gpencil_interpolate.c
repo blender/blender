@@ -599,10 +599,10 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
   BLI_strncpy(msg_str, TIP_("GPencil Interpolation: "), UI_MAX_DRAW_STR);
 
   if (hasNumInput(&p->num)) {
-    char str_offs[NUM_STR_REP_LEN];
+    char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&p->num, str_offs, &scene->unit);
-    BLI_snprintf(status_str, sizeof(status_str), "%s%s", msg_str, str_offs);
+    outputNumInput(&p->num, str_ofs, &scene->unit);
+    BLI_snprintf(status_str, sizeof(status_str), "%s%s", msg_str, str_ofs);
   }
   else {
     BLI_snprintf(status_str,

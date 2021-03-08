@@ -21,10 +21,13 @@
 #include "DNA_listBase.h"
 
 #include "tree_element_anim_data.hh"
-#include "tree_element_driver_base.hh"
+#include "tree_element_collection.hh"
+#include "tree_element_driver.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
 #include "tree_element_nla.hh"
+#include "tree_element_scene_objects.hh"
+#include "tree_element_view_layer.hh"
 
 #include "tree_element.h"
 #include "tree_element.hh"
@@ -52,6 +55,12 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
       return new TreeElementNLAAction(legacy_te);
     case TSE_GP_LAYER:
       return new TreeElementGPencilLayer(legacy_te, *static_cast<bGPDlayer *>(idv));
+    case TSE_R_LAYER_BASE:
+      return new TreeElementViewLayerBase(legacy_te, *static_cast<Scene *>(idv));
+    case TSE_SCENE_COLLECTION_BASE:
+      return new TreeElementCollectionBase(legacy_te, *static_cast<Scene *>(idv));
+    case TSE_SCENE_OBJECTS_BASE:
+      return new TreeElementSceneObjectsBase(legacy_te, *static_cast<Scene *>(idv));
     default:
       break;
   }
@@ -67,7 +76,33 @@ static void tree_element_free(AbstractTreeElement **tree_element)
 
 static void tree_element_expand(AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
 {
+  /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common
+   * expanding. Could be done nicer, we could request a small "expander" helper object from the
+   * element type, that the IDs have a more advanced implementation for. */
+  if (!tree_element.expandPoll(space_outliner)) {
+    return;
+  }
   tree_element.expand(space_outliner);
+  tree_element.postExpand(space_outliner);
+}
+
+/**
+ * Needed for types that still expand in C, but need to execute the same post-expand logic. Can be
+ * removed once all ID types expand entirely using the new design.
+ */
+static void tree_element_post_expand_only(AbstractTreeElement &tree_element,
+                                          SpaceOutliner &space_outliner)
+{
+  tree_element.postExpand(space_outliner);
+}
+/**
+ * Needed for types that still expand in C, to poll if they should expand in current context. Can
+ * be removed once all ID types expand entirely using the new design.
+ */
+static bool tree_element_expand_poll(AbstractTreeElement &tree_element,
+                                     SpaceOutliner &space_outliner)
+{
+  return tree_element.expandPoll(space_outliner);
 }
 
 }  // namespace blender::ed::outliner
@@ -90,6 +125,16 @@ bool outliner_tree_element_type_is_expand_valid(TreeElementType *type)
   outliner::AbstractTreeElement &element = reinterpret_cast<outliner::AbstractTreeElement &>(
       *type);
   return element.isExpandValid();
+}
+bool outliner_tree_element_type_expand_poll(TreeElementType *type, SpaceOutliner *space_outliner)
+{
+  return outliner::tree_element_expand_poll(
+      reinterpret_cast<outliner::AbstractTreeElement &>(*type), *space_outliner);
+}
+void outliner_tree_element_type_post_expand(TreeElementType *type, SpaceOutliner *space_outliner)
+{
+  outliner::tree_element_post_expand_only(reinterpret_cast<outliner::AbstractTreeElement &>(*type),
+                                          *space_outliner);
 }
 
 void outliner_tree_element_type_free(TreeElementType **type)

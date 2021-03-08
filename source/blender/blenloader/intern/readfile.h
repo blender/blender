@@ -110,15 +110,23 @@ typedef struct FileData {
 
   int fileversion;
   /** Used to retrieve ID names from (bhead+1). */
-  int id_name_offs;
+  int id_name_offset;
   /** Used to retrieve asset data from (bhead+1). NOTE: This may not be available in old files,
    * will be -1 then! */
-  int id_asset_data_offs;
+  int id_asset_data_offset;
   /** For do_versions patching. */
   int globalf, fileflags;
 
   /** Optionally skip some data-blocks when they're not needed. */
   eBLOReadSkip skip_flags;
+
+  /**
+   * Tag to apply to all loaded ID data-blocks.
+   *
+   * \note This is initialized from #LibraryLink_Params.id_tag_extra since passing it as an
+   * argument would need an additional argument to be passed around when expanding library data.
+   */
+  int id_tag_extra;
 
   struct OldNewMap *datamap;
   struct OldNewMap *globmap;

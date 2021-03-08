@@ -103,7 +103,8 @@ static struct {
   struct GPUShader *minz_copydepth_sh;
   struct GPUShader *maxz_copydepth_sh;
 
-  /* Simple Down-sample */
+  /* Simple Down-sample. */
+  struct GPUShader *color_copy_sh;
   struct GPUShader *downsample_sh;
   struct GPUShader *downsample_cube_sh;
 
@@ -452,10 +453,20 @@ GPUShader *EEVEE_shaders_probe_planar_display_sh_get(void)
 /** \name Down-sampling
  * \{ */
 
+GPUShader *EEVEE_shaders_effect_color_copy_sh_get(void)
+{
+  if (e_data.color_copy_sh == NULL) {
+    e_data.color_copy_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_downsample_frag_glsl, e_data.lib, "#define COPY_SRC\n");
+  }
+  return e_data.color_copy_sh;
+}
+
 GPUShader *EEVEE_shaders_effect_downsample_sh_get(void)
 {
   if (e_data.downsample_sh == NULL) {
-    e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
+    e_data.downsample_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_downsample_frag_glsl, e_data.lib, NULL);
   }
   return e_data.downsample_sh;
 }
@@ -1537,6 +1548,7 @@ void EEVEE_shaders_free(void)
   MEM_SAFE_FREE(e_data.surface_geom_barycentric);
   DRW_SHADER_FREE_SAFE(e_data.lookdev_background);
   DRW_SHADER_FREE_SAFE(e_data.update_noise_sh);
+  DRW_SHADER_FREE_SAFE(e_data.color_copy_sh);
   DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
   DRW_SHADER_FREE_SAFE(e_data.downsample_cube_sh);
   DRW_SHADER_FREE_SAFE(e_data.minz_downlevel_sh);

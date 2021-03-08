@@ -506,7 +506,7 @@ check_descriptions: .FORCE
 #
 
 source_archive: .FORCE
-	./build_files/utils/make_source_archive.sh
+	python3 ./build_files/utils/make_source_archive.py
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE

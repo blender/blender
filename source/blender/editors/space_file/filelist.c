@@ -2701,6 +2701,19 @@ uint filelist_entry_select_index_get(FileList *filelist, const int index, FileCh
   return 0;
 }
 
+bool filelist_entry_is_selected(FileList *filelist, const int index)
+{
+  BLI_assert(index >= 0 && index < filelist->filelist.nbr_entries_filtered);
+  FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
+
+  /* BLI_ghash_lookup returns NULL if not found, which gets mapped to 0, which gets mapped to
+   * "not selected". */
+  const uint selection_state = POINTER_AS_UINT(
+      BLI_ghash_lookup(filelist->selection_state, intern_entry->uuid));
+
+  return selection_state != 0;
+}
+
 /**
  * Set selection of the '..' parent entry, but only if it's actually visible.
  */

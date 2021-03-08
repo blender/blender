@@ -112,19 +112,20 @@ static struct GPUTexture *create_hammersley_sample_texture(int samples)
 static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 {
   EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_EffectsInfo *fx = stl->effects;
 
   /* XXX TODO OPTIMIZATION: This is a complete waist of texture memory.
    * Instead of allocating each planar probe for each viewport,
    * only alloc them once using the biggest viewport resolution. */
-  const float *viewport_size = DRW_viewport_size_get();
 
   /* TODO get screen percentage from layer setting */
   // const DRWContextState *draw_ctx = DRW_context_state_get();
   // ViewLayer *view_layer = draw_ctx->view_layer;
-  float screen_percentage = 1.0f;
+  int screen_divider = 1;
 
-  int width = max_ii(1, (int)(viewport_size[0] * screen_percentage));
-  int height = max_ii(1, (int)(viewport_size[1] * screen_percentage));
+  int width = max_ii(1, fx->hiz_size[0] / screen_divider);
+  int height = max_ii(1, fx->hiz_size[1] / screen_divider);
 
   /* Fix case were the pool was allocated width the dummy size (1,1,1). */
   if (txl->planar_pool && (num_planar_ref > 0) &&
@@ -139,12 +140,12 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
     if (num_planar_ref > 0) {
       txl->planar_pool = DRW_texture_create_2d_array(width,
                                                      height,
-                                                     max_ii(1, num_planar_ref),
+                                                     num_planar_ref,
                                                      GPU_R11F_G11F_B10F,
                                                      DRW_TEX_FILTER | DRW_TEX_MIPMAP,
                                                      NULL);
       txl->planar_depth = DRW_texture_create_2d_array(
-          width, height, max_ii(1, num_planar_ref), GPU_DEPTH_COMPONENT24, 0, NULL);
+          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, 0, NULL);
     }
     else if (num_planar_ref == 0) {
       /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still
@@ -674,10 +675,12 @@ static void lightbake_planar_ensure_view(EEVEE_PlanarReflection *eplanar,
                                          const DRWView *main_view,
                                          DRWView **r_planar_view)
 {
-  float winmat[4][4], viewmat[4][4];
+  float winmat[4][4], viewmat[4][4], persmat[4][4];
   DRW_view_viewmat_get(main_view, viewmat, false);
   /* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
   DRW_view_winmat_get(main_view, winmat, false);
+  DRW_view_persmat_get(main_view, persmat, false);
+
   /* Invert X to avoid flipping the triangle facing direction. */
   winmat[0][0] = -winmat[0][0];
   winmat[1][0] = -winmat[1][0];
@@ -729,7 +732,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   /* For shading, save max level of the octahedron map */
   sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len;
-  sldata->common_data.prb_lod_planar_max = (float)MAX_PLANAR_LOD_LEVEL;
   sldata->common_data.prb_irradiance_vis_size = light_cache->vis_res;
   sldata->common_data.prb_irradiance_smooth = square_f(scene_eval->eevee.gi_irradiance_smoothing);
   sldata->common_data.prb_num_render_cube = max_ii(1, light_cache->cube_len);
@@ -1220,7 +1222,7 @@ static void EEVEE_lightbake_filter_planar(EEVEE_Data *vedata)
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->planar_pool)});
 
   GPU_framebuffer_recursive_downsample(
-      fbl->planar_downsample_fb, MAX_PLANAR_LOD_LEVEL, &downsample_planar, vedata);
+      fbl->planar_downsample_fb, MAX_SCREEN_BUFFERS_LOD_LEVEL, &downsample_planar, vedata);
   DRW_stats_group_end();
 }
 

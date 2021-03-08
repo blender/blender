@@ -1438,6 +1438,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
         const int cube_verts[3] = {3, 1, 4};
         for (int i = 0; i < 3; i++) {
           scale[i] = len_v3v3(bounds.vec[0], bounds.vec[cube_verts[i]]);
+          /* Primitives have size 2 by default, compensate for this here. */
+          scale[i] /= 2.0f;
         }
 
         wmOperatorType *ot = NULL;

@@ -62,12 +62,6 @@ const vec2 quad_offsets[4] = vec2[4](
 
 #define dof_coc_from_zdepth(d) calculate_coc(linear_depth(d))
 
-vec4 safe_color(vec4 c)
-{
-  /* Clamp to avoid black square artifacts if a pixel goes NaN. */
-  return clamp(c, vec4(0.0), vec4(1e20)); /* 1e20 arbitrary. */
-}
-
 float dof_hdr_color_weight(vec4 color)
 {
   /* From UE4. Very fast "luma" weighting. */

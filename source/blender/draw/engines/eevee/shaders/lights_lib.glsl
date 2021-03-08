@@ -276,31 +276,30 @@ float light_contact_shadows(
     /* Only compute if not already in shadow. */
     if (sd.sh_contact_dist > 0.0) {
       /* Contact Shadows. */
-      vec3 ray_ori, ray_dir;
-      float trace_distance;
+      Ray ray;
 
       if (ld.l_type == SUN) {
-        trace_distance = sd.sh_contact_dist;
-        ray_dir = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec * trace_distance;
+        ray.direction = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec *
+                        sd.sh_contact_dist;
       }
       else {
-        ray_dir = shadows_cube_data[int(sd.sh_data_index)].position.xyz - P;
-        float len = length(ray_dir);
-        trace_distance = min(sd.sh_contact_dist, len);
-        ray_dir *= trace_distance / len;
+        ray.direction = shadows_cube_data[int(sd.sh_data_index)].position.xyz - P;
+        ray.direction *= saturate(sd.sh_contact_dist * safe_rcp(length(ray.direction)));
       }
 
-      ray_dir = transform_direction(ViewMatrix, ray_dir);
-      ray_ori = vec3(vP.xy, tracing_depth) + vNg * sd.sh_contact_offset;
+      ray.direction = transform_direction(ViewMatrix, ray.direction);
+      ray.origin = vP + vNg * sd.sh_contact_offset;
 
-      vec3 hit_pos = raycast(
-          -1, ray_ori, ray_dir, sd.sh_contact_thickness, rand_x, 0.1, 0.001, false);
+      RayTraceParameters params;
+      params.thickness = sd.sh_contact_thickness;
+      params.jitter = rand_x;
+      params.trace_quality = 0.1;
+      params.roughness = 0.001;
 
-      if (hit_pos.z > 0.0) {
-        hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
-        float hit_dist = distance(vP, hit_pos);
-        float dist_ratio = hit_dist / trace_distance;
-        return saturate(dist_ratio * 3.0 - 2.0);
+      vec3 hit_position_unused;
+
+      if (raytrace(ray, params, false, hit_position_unused)) {
+        return 0.0;
       }
     }
   }

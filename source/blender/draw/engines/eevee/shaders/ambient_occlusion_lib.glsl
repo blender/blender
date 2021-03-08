@@ -31,7 +31,6 @@ uniform sampler2D horizonBuffer;
 #define USE_BENT_NORMAL 2
 #define USE_DENOISE 4
 
-#define MAX_LOD 6.0
 #define NO_OCCLUSION_DATA OcclusionData(vec4(M_PI, -M_PI, M_PI, -M_PI), 1.0)
 
 struct OcclusionData {
@@ -61,7 +60,11 @@ vec2 get_ao_area(float view_depth, float radius)
 
 vec2 get_ao_noise(void)
 {
-  return texelfetch_noise_tex(gl_FragCoord.xy).xy;
+  vec2 noise = texelfetch_noise_tex(gl_FragCoord.xy).xy;
+  /* Decorrelate noise from AA. */
+  /* TODO(fclem) we should use a more general approach for more random number dimentions. */
+  noise = fract(noise * 6.1803402007);
+  return noise;
 }
 
 vec2 get_ao_dir(float jitter)
@@ -77,25 +80,37 @@ vec2 get_ao_dir(float jitter)
 float search_horizon(vec3 vI,
                      vec3 vP,
                      float noise,
-                     vec2 uv_start,
-                     vec2 uv_dir,
+                     ScreenSpaceRay ssray,
                      sampler2D depth_tx,
                      const float inverted,
                      float radius,
                      const float sample_count)
 {
-  float sample_count_inv = 1.0 / sample_count;
   /* Init at cos(M_PI). */
   float h = (inverted != 0.0) ? 1.0 : -1.0;
 
-  /* TODO(fclem) samples steps should be using the same approach as raytrace. (DDA line algo.) */
-  for (float i = 0.0; i < sample_count; i++) {
-    float t = ((i + noise) * sample_count_inv);
-    vec2 uv = uv_start + uv_dir * t;
-    float lod = min(MAX_LOD, max(i - noise, 0.0) * aoQuality);
+  ssray.max_time -= 1.0;
 
-    int mip = int(lod) + hizMipOffset;
-    float depth = textureLod(depth_tx, uv * mipRatio[mip].xy, floor(lod)).r;
+  if (ssray.max_time <= 2.0) {
+    /* Produces self shadowing under this threshold. */
+    return fast_acos(h);
+  }
+
+  float prev_time, time = 0.0;
+  for (float iter = 0.0; time < ssray.max_time && iter < sample_count; iter++) {
+    prev_time = time;
+    /* Gives us good precision at center and ensure we cross at least one pixel per iteration. */
+    time = 1.0 + iter + sqr((iter + noise) / sample_count) * ssray.max_time;
+    float stride = time - prev_time;
+    float lod = (log2(stride) - noise) / (1.0 + aoQuality);
+
+    vec2 uv = ssray.origin.xy + ssray.direction.xy * time;
+    float depth = textureLod(depth_tx, uv * hizUvScale.xy, floor(lod)).r;
+
+    if (depth == 1.0 && inverted == 0.0) {
+      /* Skip background. This avoids issues with the thickness heuristic. */
+      continue;
+    }
 
     /* Bias depth a bit to avoid self shadowing issues. */
     const float bias = 2.0 * 2.4e-7;
@@ -108,25 +123,16 @@ float search_horizon(vec3 vI,
     float s_h = dot(vI, omega_s / len);
     /* Blend weight to fade artifacts. */
     float dist_ratio = abs(len) / radius;
-    /* TODO(fclem) parameter. */
-    float dist_fac = sqr(saturate(dist_ratio * 2.0 - 1.0));
+    /* Sphere falloff. */
+    float dist_fac = sqr(saturate(dist_ratio));
+    /* Unbiased, gives too much hard cut behind objects */
+    // float dist_fac = step(0.999, dist_ratio);
 
-    /* Thickness heuristic (Eq. 9). */
     if (inverted != 0.0) {
       h = min(h, s_h);
     }
     else {
-      /* TODO This need to take the stride distance into account. Now it works because stride is
-       * constant. */
-      if (s_h < h) {
-        /* TODO(fclem) parameter. */
-        const float thickness_fac = 0.2;
-        s_h = mix(h, s_h, thickness_fac);
-      }
-      else {
-        s_h = max(h, s_h);
-      }
-      h = mix(s_h, h, dist_fac);
+      h = mix(max(h, s_h), h, dist_fac);
     }
   }
   return fast_acos(h);
@@ -151,22 +157,22 @@ OcclusionData occlusion_search(
                                            NO_OCCLUSION_DATA;
 
   for (int i = 0; i < 2; i++) {
-    /* View > NDC > Uv space. */
-    vec2 uv_dir = dir * area * 0.5;
-    /* Offset the start one pixel to avoid self shadowing. */
-    /* TODO(fclem) Using DDA line algo should fix this. */
-    vec2 px_dir = uv_dir * textureSize(depth_tx, 0);
-    float max_px_dir = max_v2(abs(px_dir));
-    vec2 uv_ofs = (px_dir / max_px_dir) / textureSize(depth_tx, 0);
-    /* No need to trace more. */
-    uv_dir -= uv_ofs;
+    Ray ray;
+    ray.origin = vP;
+    ray.direction = vec3(dir * radius, 0.0);
 
-    if (max_px_dir > 1.0) {
-      data.horizons[0 + i * 2] = search_horizon(
-          vI, vP, noise.y, uv + uv_ofs, uv_dir, depth_tx, inverted, radius, dir_sample_count);
-      data.horizons[1 + i * 2] = -search_horizon(
-          vI, vP, noise.y, uv - uv_ofs, -uv_dir, depth_tx, inverted, radius, dir_sample_count);
-    }
+    ScreenSpaceRay ssray;
+
+    ssray = raytrace_screenspace_ray_create(ray);
+    data.horizons[0 + i * 2] = search_horizon(
+        vI, vP, noise.y, ssray, depth_tx, inverted, radius, dir_sample_count);
+
+    ray.direction = -ray.direction;
+
+    ssray = raytrace_screenspace_ray_create(ray);
+    data.horizons[1 + i * 2] = -search_horizon(
+        vI, vP, noise.y, ssray, depth_tx, inverted, radius, dir_sample_count);
+
     /* Rotate 90 degrees. */
     dir = vec2(-dir.y, dir.x);
   }
@@ -389,7 +395,7 @@ OcclusionData occlusion_load(vec3 vP, float custom_occlusion)
     data = unpack_occlusion_data(texelFetch(horizonBuffer, ivec2(gl_FragCoord.xy), 0));
   }
 #else
-  /* For blended surfaces and  */
+  /* For blended surfaces.  */
   data = occlusion_search(vP, maxzBuffer, aoDistance, 0.0, 8.0);
 #endif
 

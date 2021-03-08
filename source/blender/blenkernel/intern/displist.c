@@ -875,9 +875,9 @@ static float (*displist_vert_coords_alloc(ListBase *dispbase, int *r_vert_len))[
   allverts = MEM_mallocN(sizeof(float[3]) * (*r_vert_len), "displist_vert_coords_alloc allverts");
   fp = (float *)allverts;
   LISTBASE_FOREACH (DispList *, dl, dispbase) {
-    int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
-    memcpy(fp, dl->verts, sizeof(float) * offs);
-    fp += offs;
+    int ofs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
+    memcpy(fp, dl->verts, sizeof(float) * ofs);
+    fp += ofs;
   }
 
   return allverts;
@@ -889,9 +889,9 @@ static void displist_vert_coords_apply(ListBase *dispbase, float (*allverts)[3])
 
   fp = (float *)allverts;
   LISTBASE_FOREACH (DispList *, dl, dispbase) {
-    int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
-    memcpy(dl->verts, fp, sizeof(float) * offs);
-    fp += offs;
+    int ofs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
+    memcpy(dl->verts, fp, sizeof(float) * ofs);
+    fp += ofs;
   }
 }
 

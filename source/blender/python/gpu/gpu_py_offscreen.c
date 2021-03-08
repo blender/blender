@@ -96,20 +96,20 @@ static int pygpu_offscreen_valid_check(BPyGPUOffScreen *py_ofs)
 
 typedef struct {
   PyObject_HEAD /* required python macro */
-      BPyGPUOffScreen *py_offs;
+      BPyGPUOffScreen *py_offscreen;
   int level;
   bool is_explicitly_bound; /* Bound by "bind" method. */
 } OffScreenStackContext;
 
 static void pygpu_offscreen_stack_context__tp_dealloc(OffScreenStackContext *self)
 {
-  Py_DECREF(self->py_offs);
+  Py_DECREF(self->py_offscreen);
   PyObject_DEL(self);
 }
 
 static PyObject *pygpu_offscreen_stack_context_enter(OffScreenStackContext *self)
 {
-  BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offs);
+  BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offscreen);
 
   if (!self->is_explicitly_bound) {
     if (self->level != -1) {
@@ -117,7 +117,7 @@ static PyObject *pygpu_offscreen_stack_context_enter(OffScreenStackContext *self
       return NULL;
     }
 
-    GPU_offscreen_bind(self->py_offs->ofs, true);
+    GPU_offscreen_bind(self->py_offscreen->ofs, true);
     self->level = GPU_framebuffer_stack_level_get();
   }
 
@@ -127,7 +127,7 @@ static PyObject *pygpu_offscreen_stack_context_enter(OffScreenStackContext *self
 static PyObject *pygpu_offscreen_stack_context_exit(OffScreenStackContext *self,
                                                     PyObject *UNUSED(args))
 {
-  BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offs);
+  BPY_GPU_OFFSCREEN_CHECK_OBJ(self->py_offscreen);
 
   if (self->level == -1) {
     PyErr_SetString(PyExc_RuntimeError, "Not yet in use\n");
@@ -140,7 +140,7 @@ static PyObject *pygpu_offscreen_stack_context_exit(OffScreenStackContext *self,
         PyExc_RuntimeError, "Level of bind mismatch, expected %d, got %d\n", self->level, level);
   }
 
-  GPU_offscreen_unbind(self->py_offs->ofs, true);
+  GPU_offscreen_unbind(self->py_offscreen->ofs, true);
   Py_RETURN_NONE;
 }
 
@@ -166,7 +166,7 @@ static PyObject *pygpu_offscreen_bind(BPyGPUOffScreen *self)
 {
   OffScreenStackContext *ret = PyObject_New(OffScreenStackContext,
                                             &PyGPUOffscreenStackContext_Type);
-  ret->py_offs = self;
+  ret->py_offscreen = self;
   ret->level = -1;
   ret->is_explicitly_bound = false;
   Py_INCREF(self);

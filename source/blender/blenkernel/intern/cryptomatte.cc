@@ -184,37 +184,39 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
 
 char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 {
-  std::stringstream ss;
-  ss.precision(9);
-
+  DynStr *matte_id = BLI_dynstr_new();
   bool first = true;
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &node_storage->entries) {
     if (!first) {
-      ss << ',';
+      BLI_dynstr_append(matte_id, ",");
     }
-    blender::StringRef entry_name(entry->name, BLI_strnlen(entry->name, sizeof(entry->name)));
-    if (!entry_name.is_empty()) {
-      ss << entry_name;
+    if (BLI_strnlen(entry->name, sizeof(entry->name)) != 0) {
+      BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
     }
     else {
-      ss << '<' << std::scientific << entry->encoded_hash << '>';
+      BLI_dynstr_appendf(matte_id, "<%.9g>", entry->encoded_hash);
     }
     first = false;
   }
-
-  /* Convert result to C string. */
-  const std::string result_string = ss.str();
-  const char *c_str = result_string.c_str();
-  size_t result_len = result_string.size() + 1;
-  char *result = static_cast<char *>(MEM_mallocN(sizeof(char) * result_len, __func__));
-  memcpy(result, c_str, result_len);
+  char *result = BLI_dynstr_get_cstring(matte_id);
+  BLI_dynstr_free(matte_id);
   return result;
 }
 
 void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const char *matte_id)
 {
   BLI_freelistN(&node_storage->entries);
-  std::optional<CryptomatteSession> session = std::nullopt;
+
+  if (matte_id == nullptr) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    return;
+  }
+  /* Update the matte_id so the files can be opened in versions that don't
+   * use `CryptomatteEntry`. */
+  if (matte_id != node_storage->matte_id && STREQ(node_storage->matte_id, matte_id)) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    node_storage->matte_id = static_cast<char *>(MEM_dupallocN(matte_id));
+  }
 
   std::istringstream ss(matte_id);
   while (ss.good()) {

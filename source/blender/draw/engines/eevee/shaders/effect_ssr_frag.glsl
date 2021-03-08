@@ -63,14 +63,19 @@ void do_planar_ssr(
 
   pdfData = min(1024e32, pdf); /* Theoretical limit of 16bit float */
 
-  /* Since viewspace hit position can land behind the camera in this case,
-   * we save the reflected view position (visualize it as the hit position
-   * below the reflection plane). This way it's garanted that the hit will
-   * be in front of the camera. That let us tag the bad rays with a negative
-   * sign in the Z component. */
-  vec3 hit_pos = raycast(index, vP, R * 1e16, 1e16, rand.y, ssrQuality, a2, false);
+  Ray ray;
+  ray.origin = vP;
+  ray.direction = R * 1e16;
 
-  hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), true);
+  RayTraceParameters params;
+  params.jitter = rand.y;
+  params.trace_quality = ssrQuality;
+  params.roughness = a2;
+
+  vec3 hit_pos;
+  bool hit = raytrace_planar(ray, params, index, hit_pos);
+
+  hitData = encode_hit_data(hit_pos.xy, hit, true);
 }
 
 void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
@@ -104,22 +109,30 @@ void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
 
   pdfData = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 
-  vec3 hit_pos = raycast(-1, vP, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
+  vP = raytrace_offset(vP, vNg);
 
-  hitData = encode_hit_data(hit_pos.xy, (hit_pos.z > 0.0), false);
+  Ray ray;
+  ray.origin = vP;
+  ray.direction = R * 1e16;
+
+  RayTraceParameters params;
+  params.thickness = ssrThickness;
+  params.jitter = rand.y;
+  params.trace_quality = ssrQuality;
+  params.roughness = a2;
+
+  vec3 hit_pos;
+  bool hit = raytrace(ray, params, true, hit_pos);
+
+  hitData = encode_hit_data(hit_pos.xy, hit, false);
 }
+
+in vec4 uvcoordsvar;
 
 void main()
 {
-#  ifdef FULLRES
-  ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
-  ivec2 halfres_texel = fullres_texel;
-#  else
-  ivec2 fullres_texel = ivec2(gl_FragCoord.xy) * 2 + halfresOffset;
-  ivec2 halfres_texel = ivec2(gl_FragCoord.xy);
-#  endif
-
-  float depth = texelFetch(depthBuffer, fullres_texel, 0).r;
+  vec2 uvs = uvcoordsvar.xy;
+  float depth = textureLod(depthBuffer, uvs, 0.0).r;
 
   /* Default: not hits. */
   hitData = encode_hit_data(vec2(0.5), false, false);
@@ -131,18 +144,16 @@ void main()
     return;
   }
 
-  vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
-
   /* Using view space */
   vec3 vP = get_view_space_from_depth(uvs, depth);
   vec3 P = transform_point(ViewMatrixInverse, vP);
   vec3 vV = viewCameraVec(vP);
   vec3 V = cameraVec(P);
-  vec3 vN = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, vV);
+  vec3 vN = normal_decode(texture(normalBuffer, uvs, 0).rg, vV);
   vec3 N = transform_direction(ViewMatrixInverse, vN);
 
   /* Retrieve pixel data */
-  vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
+  vec4 speccol_roughness = texture(specroughBuffer, uvs, 0).rgba;
 
   /* Early out */
   if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {
@@ -158,7 +169,7 @@ void main()
     return;
   }
 
-  vec4 rand = texelfetch_noise_tex(halfres_texel);
+  vec4 rand = texelfetch_noise_tex(vec2(gl_FragCoord.xy));
 
   /* Gives *perfect* reflection for very small roughness */
   if (roughness < 0.04) {
@@ -188,11 +199,6 @@ void main()
       return;
     }
   }
-
-  /* Constant bias (due to depth buffer precision). Helps with self intersection. */
-  /* Magic numbers for 24bits of precision.
-   * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  vP.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
 
   do_ssr(vV, vN, vT, vB, vP, a2, rand);
 }
@@ -325,10 +331,10 @@ vec3 get_hit_vector(vec3 hit_pos,
 vec3 get_scene_color(vec2 ref_uvs, float mip, float planar_index, bool is_planar)
 {
   if (is_planar) {
-    return textureLod(probePlanars, vec3(ref_uvs, planar_index), min(mip, prbLodPlanarMax)).rgb;
+    return textureLod(probePlanars, vec3(ref_uvs, planar_index), mip).rgb;
   }
   else {
-    return textureLod(prevColorBuffer, ref_uvs, mip).rgb;
+    return textureLod(prevColorBuffer, ref_uvs * hizUvScale.xy, mip).rgb;
   }
 }
 
@@ -351,6 +357,8 @@ vec4 get_ssr_samples(vec4 hit_pdf,
   hit_co[1].xy = decode_hit_data(hit_data[1].xy, has_hit.z, is_planar.z);
   hit_co[1].zw = decode_hit_data(hit_data[1].zw, has_hit.w, is_planar.w);
 
+  /* TODO/FIXME(fclem) This is giving precision issues due to refined intersection. This is most
+   * noticeable on rough surfaces. */
   vec4 hit_depth;
   hit_depth.x = get_sample_depth(hit_co[0].xy, is_planar.x, planar_index);
   hit_depth.y = get_sample_depth(hit_co[0].zw, is_planar.y, planar_index);
@@ -402,12 +410,6 @@ vec4 get_ssr_samples(vec4 hit_pdf,
   /* Estimate a cone footprint to sample a corresponding mipmap level. */
   vec4 mip = log2(cone_footprint * max_v2(vec2(textureSize(depthBuffer, 0))));
   mip = clamp(mip, 0.0, MAX_MIP);
-
-  /* Correct UVs for mipmaping mis-alignment */
-  hit_co[0].xy *= mip_ratio_interp(mip.x);
-  hit_co[0].zw *= mip_ratio_interp(mip.y);
-  hit_co[1].xy *= mip_ratio_interp(mip.z);
-  hit_co[1].zw *= mip_ratio_interp(mip.w);
 
   /* Slide 54 */
   vec4 bsdf;
