@@ -2011,7 +2011,6 @@ def km_file_browser_main(params):
         # operator (i.e. in regular editor mode).
         ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
          {"properties": [("open", True), ("deselect_all", not params.legacy)]}),
-        ("file.refresh", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("open", False), ("deselect_all", not params.legacy)]}),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True},
@@ -2053,6 +2052,7 @@ def km_file_browser_main(params):
          {"properties": [("mode", 'SUB')]}),
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("file.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
     ])
 
     return keymap

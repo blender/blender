@@ -1309,6 +1309,7 @@ def km_file_browser_main(params):
          {"properties": [("mode", 'ADD')]}),
         ("file.highlight", {"type": 'MOUSEMOVE', "value": 'ANY', "any": True}, None),
         ("file.sort_column_ui_context", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("file.view_selected", {"type": 'F', "value": 'PRESS'}, None),
     ])
 
     return keymap
