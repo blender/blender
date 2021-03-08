@@ -345,7 +345,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 
   /* here appending/linking starts */
   struct LibraryLink_Params liblink_params;
-  BLO_library_link_params_init(&liblink_params, bmain, self->flag);
+  BLO_library_link_params_init(&liblink_params, bmain, self->flag, 0);
 
   mainl = BLO_library_link_begin(&(self->blo_handle), self->relpath, &liblink_params);
 

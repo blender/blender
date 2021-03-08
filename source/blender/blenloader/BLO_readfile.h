@@ -182,6 +182,8 @@ struct LibraryLink_Params {
   struct Main *bmain;
   /** Options for linking, used for instantiating. */
   int flag;
+  /** Additional tag for #ID.tag. */
+  int id_tag_extra;
   /** Context for instancing objects (optional, no instantiation will be performed when NULL). */
   struct {
     /** The scene in which to instantiate objects/collections. */
@@ -195,10 +197,12 @@ struct LibraryLink_Params {
 
 void BLO_library_link_params_init(struct LibraryLink_Params *params,
                                   struct Main *bmain,
-                                  const int flag);
+                                  const int flag,
+                                  const int id_tag_extra);
 void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
                                                struct Main *bmain,
                                                const int flag,
+                                               const int id_tag_extra,
                                                struct Scene *scene,
                                                struct ViewLayer *view_layer,
                                                const struct View3D *v3d);

@@ -120,6 +120,14 @@ typedef struct FileData {
   /** Optionally skip some data-blocks when they're not needed. */
   eBLOReadSkip skip_flags;
 
+  /**
+   * Tag to apply to all loaded ID data-blocks.
+   *
+   * \note This is initialized from #LibraryLink_Params.id_tag_extra since passing it as an
+   * argument would need an additional argument to be passed around when expanding library data.
+   */
+  int id_tag_extra;
+
   struct OldNewMap *datamap;
   struct OldNewMap *globmap;
   struct OldNewMap *libmap;

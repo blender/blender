@@ -4411,7 +4411,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (id == NULL) {
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, LIB_TAG_INDIRECT, false, NULL);
+      read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, NULL);
       /* commented because this can print way too much */
       // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
 
@@ -4466,7 +4466,12 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
     ID *id = is_yet_read(fd, mainvar, bhead);
     if (id == NULL) {
-      read_libblock(fd, mainvar, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, false, NULL);
+      read_libblock(fd,
+                    mainvar,
+                    bhead,
+                    fd->id_tag_extra | LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT,
+                    false,
+                    NULL);
     }
     else {
       /* Convert any previously read weak link to regular link
@@ -4847,7 +4852,7 @@ static ID *link_named_part(
     id = is_yet_read(fd, mainl, bhead);
     if (id == NULL) {
       /* not read yet */
-      const int tag = force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN;
+      const int tag = ((force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN) | fd->id_tag_extra);
       read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND, false, &id);
 
       if (id) {
@@ -4988,9 +4993,12 @@ static void library_link_clear_tag(Main *mainvar, const int flag)
   }
 }
 
-static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepath, const int flag)
+static Main *library_link_begin(
+    Main *mainvar, FileData **fd, const char *filepath, const int flag, const int id_tag_extra)
 {
   Main *mainl;
+
+  (*fd)->id_tag_extra = id_tag_extra;
 
   (*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 
@@ -5017,22 +5025,25 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 
 void BLO_library_link_params_init(struct LibraryLink_Params *params,
                                   struct Main *bmain,
-                                  const int flag)
+                                  const int flag,
+                                  const int id_tag_extra)
 {
   memset(params, 0, sizeof(*params));
   params->bmain = bmain;
   params->flag = flag;
+  params->id_tag_extra = id_tag_extra;
 }
 
 void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
                                                struct Main *bmain,
                                                const int flag,
+                                               const int id_tag_extra,
                                                /* Context arguments. */
                                                struct Scene *scene,
                                                struct ViewLayer *view_layer,
                                                const struct View3D *v3d)
 {
-  BLO_library_link_params_init(params, bmain, flag);
+  BLO_library_link_params_init(params, bmain, flag, id_tag_extra);
   if (scene != NULL) {
     /* Tagging is needed for instancing. */
     params->flag |= BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
@@ -5057,7 +5068,7 @@ Main *BLO_library_link_begin(BlendHandle **bh,
                              const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return library_link_begin(params->bmain, &fd, filepath, params->flag);
+  return library_link_begin(params->bmain, &fd, filepath, params->flag, params->id_tag_extra);
 }
 
 static void split_main_newid(Main *mainptr, Main *main_newid)
