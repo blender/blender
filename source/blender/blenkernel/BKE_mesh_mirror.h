@@ -46,7 +46,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
 struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(struct MirrorModifierData *mmd,
                                                                struct Object *ob,
                                                                const struct Mesh *mesh,
-                                                               int axis);
+                                                               const int axis);
 
 #ifdef __cplusplus
 }

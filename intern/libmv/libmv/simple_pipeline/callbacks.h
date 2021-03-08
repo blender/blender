@@ -26,7 +26,7 @@ namespace libmv {
 class ProgressUpdateCallback {
  public:
   virtual ~ProgressUpdateCallback() {}
-  virtual void invoke(double progress, const char *message) = 0;
+  virtual void invoke(double progress, const char* message) = 0;
 };
 
 }  // namespace libmv

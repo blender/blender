@@ -326,7 +326,7 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
   LISTBASE_FOREACH (TreeElement *, te, tree) {
     TreeStoreElem *tselem = TREESTORE(te);
 
-    if (tselem->type == 0 && te->idcode == ID_OB) {
+    if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) {
       if (sync_types->object) {
         outliner_select_sync_to_object(view_layer, te, tselem, selected_items->objects);
       }
@@ -503,7 +503,7 @@ static void outliner_sync_selection_to_outliner(ViewLayer *view_layer,
   LISTBASE_FOREACH (TreeElement *, te, tree) {
     TreeStoreElem *tselem = TREESTORE(te);
 
-    if (tselem->type == 0 && te->idcode == ID_OB) {
+    if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
       if (sync_types->object) {
         outliner_select_sync_from_object(view_layer, active_data->object, te, tselem);
       }

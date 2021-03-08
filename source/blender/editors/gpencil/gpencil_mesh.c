@@ -251,7 +251,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   gpd->draw_mode = (project_type == GP_REPROJECT_KEEP) ? GP_DRAWMODE_3D : GP_DRAWMODE_2D;
 
   /* Set cursor to indicate working. */
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   GP_SpaceConversion gsc = {NULL};
   SnapObjectContext *sctx = NULL;
@@ -385,7 +385,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
   /* Reset cursor. */
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   /* done */
   return OPERATOR_FINISHED;

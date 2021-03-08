@@ -57,23 +57,19 @@ struct Marker {
   float weight;
 
   enum Source {
-    MANUAL,      // The user placed this marker manually.
-    DETECTED,    // A keypoint detector found this point.
-    TRACKED,     // The tracking algorithm placed this marker.
-    MATCHED,     // A matching algorithm (e.g. SIFT or SURF or ORB) found this.
-    PREDICTED,   // A motion model predicted this marker. This is needed for
-                 // handling occlusions in some cases where an imaginary marker
-                 // is placed to keep camera motion smooth.
+    MANUAL,     // The user placed this marker manually.
+    DETECTED,   // A keypoint detector found this point.
+    TRACKED,    // The tracking algorithm placed this marker.
+    MATCHED,    // A matching algorithm (e.g. SIFT or SURF or ORB) found this.
+    PREDICTED,  // A motion model predicted this marker. This is needed for
+                // handling occlusions in some cases where an imaginary marker
+                // is placed to keep camera motion smooth.
   };
   Source source;
 
   // Markers may be inliers or outliers if the tracking fails; this allows
   // visualizing the markers in the image.
-  enum Status {
-    UNKNOWN,
-    INLIER,
-    OUTLIER
-  };
+  enum Status { UNKNOWN, INLIER, OUTLIER };
   Status status;
 
   // When doing correlation tracking, where to search in the current frame for
@@ -90,12 +86,7 @@ struct Marker {
   // another primitive (a rectangular prisim). This captures the information
   // needed to say that for example a collection of markers belongs to model #2
   // (and model #2 is a plane).
-  enum ModelType {
-    POINT,
-    PLANE,
-    LINE,
-    CUBE
-  };
+  enum ModelType { POINT, PLANE, LINE, CUBE };
   ModelType model_type;
 
   // The model ID this track (e.g. the second model, which is a plane).
@@ -114,7 +105,7 @@ struct Marker {
   int disabled_channels;
 
   // Offset everything (center, patch, search) by the given delta.
-  template<typename T>
+  template <typename T>
   void Offset(const T& offset) {
     center += offset.template cast<float>();
     patch.coordinates.rowwise() += offset.template cast<int>();
@@ -122,19 +113,15 @@ struct Marker {
   }
 
   // Shift the center to the given new position (and patch, search).
-  template<typename T>
+  template <typename T>
   void SetPosition(const T& new_center) {
     Offset(new_center - center);
   }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const Marker& marker) {
-  out << "{"
-      << marker.clip << ", "
-      << marker.frame << ", "
-      << marker.track << ", ("
-      << marker.center.x() << ", "
-      << marker.center.y() << ")"
+  out << "{" << marker.clip << ", " << marker.frame << ", " << marker.track
+      << ", (" << marker.center.x() << ", " << marker.center.y() << ")"
       << "}";
   return out;
 }

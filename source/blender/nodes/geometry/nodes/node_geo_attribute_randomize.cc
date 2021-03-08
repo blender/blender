@@ -224,7 +224,7 @@ static void randomize_attribute_on_component(GeometryComponent &component,
   if (operation != GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE) {
     if (!component.attribute_exists(attribute_name)) {
       params.error_message_add(NodeWarningType::Error,
-                               "No attribute with name '" + attribute_name + "'.");
+                               TIP_("No attribute with name \"") + attribute_name + "\"");
       return;
     }
   }

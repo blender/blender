@@ -256,7 +256,7 @@ void GaussianBlurReferenceOperation::initExecution()
 void GaussianBlurReferenceOperation::updateGauss()
 {
   int i;
-  int x = max(m_filtersizex, m_filtersizey);
+  int x = MAX2(m_filtersizex, m_filtersizey);
   m_maintabs = (float **)MEM_mallocN(x * sizeof(float *), "gauss array");
   for (i = 0; i < x; i++) {
     m_maintabs[i] = make_gausstab(i + 1, i + 1);
@@ -333,7 +333,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 void GaussianBlurReferenceOperation::deinitExecution()
 {
   int x, i;
-  x = max(this->m_filtersizex, this->m_filtersizey);
+  x = MAX2(this->m_filtersizex, this->m_filtersizey);
   for (i = 0; i < x; i++) {
     MEM_freeN(this->m_maintabs[i]);
   }

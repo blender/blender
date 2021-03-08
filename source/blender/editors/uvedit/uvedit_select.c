@@ -3313,7 +3313,6 @@ static bool do_lasso_select_mesh_uv(bContext *C,
     uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
   }
 
-  /* don't indent to avoid diff noise! */
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
 
@@ -3323,7 +3322,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
     const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-    if (use_face_center) { /* Face Center Sel */
+    if (use_face_center) { /* Face Center Select. */
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
         /* assume not touched */
@@ -3366,7 +3365,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         }
       }
     }
-    else { /* Vert Sel */
+    else { /* Vert Selection. */
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {

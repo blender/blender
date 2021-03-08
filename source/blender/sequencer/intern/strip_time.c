@@ -164,7 +164,6 @@ void SEQ_time_update_sequence_bounds(Scene *scene, Sequence *seq)
 void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
 {
   Sequence *seqm;
-  int min, max;
 
   /* check all metas recursively */
   seqm = seq->seqbase.first;
@@ -212,27 +211,6 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
     }
   }
   else {
-    if (seq->type == SEQ_TYPE_META) {
-      seqm = seq->seqbase.first;
-      if (seqm) {
-        min = MAXFRAME * 2;
-        max = -MAXFRAME * 2;
-        while (seqm) {
-          if (seqm->startdisp < min) {
-            min = seqm->startdisp;
-          }
-          if (seqm->enddisp > max) {
-            max = seqm->enddisp;
-          }
-          seqm = seqm->next;
-        }
-        seq->start = min + seq->anim_startofs;
-        seq->len = max - min;
-        seq->len -= seq->anim_startofs;
-        seq->len -= seq->anim_endofs;
-      }
-      seq_update_sound_bounds_recursive(scene, seq);
-    }
     SEQ_time_update_sequence_bounds(scene, seq);
   }
 }

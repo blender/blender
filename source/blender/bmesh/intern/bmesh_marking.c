@@ -46,7 +46,7 @@ static void recount_totsels(BMesh *bm)
   int *tots[3];
   int i;
 
-  /* recount (tot * sel) variables */
+  /* Recount total selection variables. */
   bm->totvertsel = bm->totedgesel = bm->totfacesel = 0;
   tots[0] = &bm->totvertsel;
   tots[1] = &bm->totedgesel;

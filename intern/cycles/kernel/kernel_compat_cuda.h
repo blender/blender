@@ -41,6 +41,18 @@ typedef unsigned long long uint64_t;
 typedef unsigned short half;
 typedef unsigned long long CUtexObject;
 
+//XXX fix compiler error on windows
+#ifdef __CUDA_ARCH__
+static __device__ float myfloor(float f) {
+  float f2 = (float)((int)f);
+  f2 += (float)(f < 0.0f);
+
+  return f2;
+}
+
+#define floor myfloor
+#endif
+
 #ifdef CYCLES_CUBIN_CC
 #  define FLT_MIN 1.175494350822287507969e-38f
 #  define FLT_MAX 340282346638528859811704183484516925440.0f

@@ -32,7 +32,28 @@ static bNodeSocketTemplate sh_node_vector_rotate_in[] = {
     {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""}};
 
-static bNodeSocketTemplate sh_node_vector_rotate_out[] = {{SOCK_VECTOR, N_("Vector")}, {-1, ""}};
+static bNodeSocketTemplate sh_node_vector_rotate_out[] = {
+    {SOCK_VECTOR, N_("Vector")},
+    {-1, ""},
+};
+
+static const char *gpu_shader_get_name(int mode)
+{
+  switch (mode) {
+    case NODE_VECTOR_ROTATE_TYPE_AXIS:
+      return "node_vector_rotate_axis_angle";
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_X:
+      return "node_vector_rotate_axis_x";
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_Y:
+      return "node_vector_rotate_axis_y";
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_Z:
+      return "node_vector_rotate_axis_z";
+    case NODE_VECTOR_ROTATE_TYPE_EULER_XYZ:
+      return "node_vector_rotate_euler_xyz";
+  }
+
+  return nullptr;
+}
 
 static int gpu_shader_vector_rotate(GPUMaterial *mat,
                                     bNode *node,
@@ -40,18 +61,11 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
                                     GPUNodeStack *in,
                                     GPUNodeStack *out)
 {
+  const char *name = gpu_shader_get_name(node->custom1);
 
-  static const char *names[] = {
-      [NODE_VECTOR_ROTATE_TYPE_AXIS] = "node_vector_rotate_axis_angle",
-      [NODE_VECTOR_ROTATE_TYPE_AXIS_X] = "node_vector_rotate_axis_x",
-      [NODE_VECTOR_ROTATE_TYPE_AXIS_Y] = "node_vector_rotate_axis_y",
-      [NODE_VECTOR_ROTATE_TYPE_AXIS_Z] = "node_vector_rotate_axis_z",
-      [NODE_VECTOR_ROTATE_TYPE_EULER_XYZ] = "node_vector_rotate_euler_xyz",
-  };
-
-  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
+  if (name != nullptr) {
     float invert = (node->custom2) ? -1.0 : 1.0;
-    return GPU_stack_link(mat, node, names[node->custom1], in, out, GPU_constant(&invert));
+    return GPU_stack_link(mat, node, name, in, out, GPU_constant(&invert));
   }
 
   return 0;

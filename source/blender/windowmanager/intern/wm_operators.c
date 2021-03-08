@@ -1809,7 +1809,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 {
   ot->name = "Call Menu";
   ot->idname = "WM_OT_call_menu";
-  ot->description = "Call (draw) a predefined menu";
+  ot->description = "Open a predefined menu";
 
   ot->exec = wm_call_menu_exec;
   ot->poll = WM_operator_winactive;
@@ -1840,7 +1840,7 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 {
   ot->name = "Call Pie Menu";
   ot->idname = "WM_OT_call_menu_pie";
-  ot->description = "Call (draw) a predefined pie menu";
+  ot->description = "Open a predefined pie menu";
 
   ot->invoke = wm_call_pie_menu_invoke;
   ot->exec = wm_call_pie_menu_exec;
@@ -1874,7 +1874,7 @@ static void WM_OT_call_panel(wmOperatorType *ot)
 {
   ot->name = "Call Panel";
   ot->idname = "WM_OT_call_panel";
-  ot->description = "Call (draw) a predefined panel";
+  ot->description = "Open a predefined panel";
 
   ot->exec = wm_call_panel_exec;
   ot->poll = WM_operator_winactive;
@@ -2046,7 +2046,7 @@ wmPaintCursor *WM_paint_cursor_activate(short space_type,
 bool WM_paint_cursor_end(wmPaintCursor *handle)
 {
   wmWindowManager *wm = G_MAIN->wm.first;
-  for (wmPaintCursor *pc = wm->paintcursors.first; pc; pc = pc->next) {
+  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->paintcursors) {
     if (pc == (wmPaintCursor *)handle) {
       BLI_remlink(&wm->paintcursors, pc);
       MEM_freeN(pc);
@@ -2058,9 +2058,7 @@ bool WM_paint_cursor_end(wmPaintCursor *handle)
 
 void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*free)(void *))
 {
-  wmPaintCursor *pc = wm->paintcursors.first;
-  while (pc) {
-    wmPaintCursor *pc_next = pc->next;
+  LISTBASE_FOREACH_MUTABLE (wmPaintCursor *, pc, &wm->paintcursors) {
     if (pc->draw == draw_fn) {
       if (free) {
         free(pc->customdata);
@@ -2068,7 +2066,6 @@ void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*f
       BLI_remlink(&wm->paintcursors, pc);
       MEM_freeN(pc);
     }
-    pc = pc_next;
   }
 }
 
@@ -3237,7 +3234,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
    */
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   double time_start = PIL_check_seconds_timer();
 
@@ -3260,7 +3257,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   RNA_enum_description(redraw_timer_type_items, type, &infostr);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   BKE_reportf(op->reports,
               RPT_WARNING,

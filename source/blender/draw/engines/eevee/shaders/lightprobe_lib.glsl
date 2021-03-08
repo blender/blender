@@ -304,5 +304,8 @@ vec3 probe_evaluate_grid(GridData gd, vec3 P, vec3 N, vec3 localpos)
 
 vec3 probe_evaluate_world_diff(vec3 N)
 {
+  if (prbNumRenderGrid == 0) {
+    return vec3(0);
+  }
   return irradiance_from_cell_get(0, N);
 }

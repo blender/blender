@@ -112,6 +112,21 @@ int autocomplete_file(struct bContext *C, char *str, void *arg_v);
 
 void file_params_renamefile_activate(struct SpaceFile *sfile, struct FileSelectParams *params);
 
+typedef void *onReloadFnData;
+typedef void (*onReloadFn)(struct SpaceFile *space_data, onReloadFnData custom_data);
+typedef struct SpaceFile_Runtime {
+  /* Called once after the file browser has reloaded. Reset to NULL after calling.
+   * Use file_on_reload_callback_register() to register a callback. */
+  onReloadFn on_reload;
+  onReloadFnData on_reload_custom_data;
+} SpaceFile_Runtime;
+
+/* Register an on-reload callback function. Note that there can only be one such function at a
+ * time; registering a new one will overwrite the previous one. */
+void file_on_reload_callback_register(struct SpaceFile *sfile,
+                                      onReloadFn callback,
+                                      onReloadFnData custom_data);
+
 /* file_panels.c */
 void file_tool_props_region_panels_register(struct ARegionType *art);
 void file_execute_region_panels_register(struct ARegionType *art);

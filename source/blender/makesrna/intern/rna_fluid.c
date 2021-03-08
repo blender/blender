@@ -2553,7 +2553,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "display_thickness");
   RNA_def_property_range(prop, 0.001, 1000.0);
   RNA_def_property_ui_range(prop, 0.1, 100.0, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Thickness", "Thickness of smoke drawing in the viewport");
+  RNA_def_property_ui_text(prop, "Thickness", "Thickness of smoke display in the viewport");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
   prop = RNA_def_property(srna, "display_interpolation", PROP_ENUM, PROP_NONE);

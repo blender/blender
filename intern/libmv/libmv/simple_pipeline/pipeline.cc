@@ -24,11 +24,11 @@
 
 #include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/bundle.h"
-#include "libmv/simple_pipeline/intersect.h"
-#include "libmv/simple_pipeline/resect.h"
-#include "libmv/simple_pipeline/reconstruction.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "libmv/simple_pipeline/intersect.h"
+#include "libmv/simple_pipeline/reconstruction.h"
+#include "libmv/simple_pipeline/resect.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 #ifdef _MSC_VER
 #  define snprintf _snprintf
@@ -46,24 +46,25 @@ struct EuclideanPipelineRoutines {
   typedef EuclideanCamera Camera;
   typedef EuclideanPoint Point;
 
-  static void Bundle(const Tracks &tracks,
-                     EuclideanReconstruction *reconstruction) {
+  static void Bundle(const Tracks& tracks,
+                     EuclideanReconstruction* reconstruction) {
     EuclideanBundle(tracks, reconstruction);
   }
 
-  static bool Resect(const vector<Marker> &markers,
-                     EuclideanReconstruction *reconstruction, bool final_pass) {
+  static bool Resect(const vector<Marker>& markers,
+                     EuclideanReconstruction* reconstruction,
+                     bool final_pass) {
     return EuclideanResect(markers, reconstruction, final_pass);
   }
 
-  static bool Intersect(const vector<Marker> &markers,
-                        EuclideanReconstruction *reconstruction) {
+  static bool Intersect(const vector<Marker>& markers,
+                        EuclideanReconstruction* reconstruction) {
     return EuclideanIntersect(markers, reconstruction);
   }
 
-  static Marker ProjectMarker(const EuclideanPoint &point,
-                              const EuclideanCamera &camera,
-                              const CameraIntrinsics &intrinsics) {
+  static Marker ProjectMarker(const EuclideanPoint& point,
+                              const EuclideanCamera& camera,
+                              const CameraIntrinsics& intrinsics) {
     Vec3 projected = camera.R * point.X + camera.t;
     projected /= projected(2);
 
@@ -84,26 +85,27 @@ struct ProjectivePipelineRoutines {
   typedef ProjectiveCamera Camera;
   typedef ProjectivePoint Point;
 
-  static void Bundle(const Tracks &tracks,
-                     ProjectiveReconstruction *reconstruction) {
+  static void Bundle(const Tracks& tracks,
+                     ProjectiveReconstruction* reconstruction) {
     ProjectiveBundle(tracks, reconstruction);
   }
 
-  static bool Resect(const vector<Marker> &markers,
-                     ProjectiveReconstruction *reconstruction, bool final_pass) {
-    (void) final_pass;  // Ignored.
+  static bool Resect(const vector<Marker>& markers,
+                     ProjectiveReconstruction* reconstruction,
+                     bool final_pass) {
+    (void)final_pass;  // Ignored.
 
     return ProjectiveResect(markers, reconstruction);
   }
 
-  static bool Intersect(const vector<Marker> &markers,
-                        ProjectiveReconstruction *reconstruction) {
+  static bool Intersect(const vector<Marker>& markers,
+                        ProjectiveReconstruction* reconstruction) {
     return ProjectiveIntersect(markers, reconstruction);
   }
 
-  static Marker ProjectMarker(const ProjectivePoint &point,
-                              const ProjectiveCamera &camera,
-                              const CameraIntrinsics &intrinsics) {
+  static Marker ProjectMarker(const ProjectivePoint& point,
+                              const ProjectiveCamera& camera,
+                              const CameraIntrinsics& intrinsics) {
     Vec3 projected = camera.P * point.X;
     projected /= projected(2);
 
@@ -122,28 +124,33 @@ struct ProjectivePipelineRoutines {
 }  // namespace
 
 static void CompleteReconstructionLogProgress(
-    ProgressUpdateCallback *update_callback,
+    ProgressUpdateCallback* update_callback,
     double progress,
-    const char *step = NULL) {
+    const char* step = NULL) {
   if (update_callback) {
     char message[256];
 
     if (step)
-      snprintf(message, sizeof(message), "Completing solution %d%% | %s",
-               (int)(progress*100), step);
+      snprintf(message,
+               sizeof(message),
+               "Completing solution %d%% | %s",
+               (int)(progress * 100),
+               step);
     else
-      snprintf(message, sizeof(message), "Completing solution %d%%",
-               (int)(progress*100));
+      snprintf(message,
+               sizeof(message),
+               "Completing solution %d%%",
+               (int)(progress * 100));
 
     update_callback->invoke(progress, message);
   }
 }
 
-template<typename PipelineRoutines>
+template <typename PipelineRoutines>
 void InternalCompleteReconstruction(
-    const Tracks &tracks,
-    typename PipelineRoutines::Reconstruction *reconstruction,
-    ProgressUpdateCallback *update_callback = NULL) {
+    const Tracks& tracks,
+    typename PipelineRoutines::Reconstruction* reconstruction,
+    ProgressUpdateCallback* update_callback = NULL) {
   int max_track = tracks.MaxTrack();
   int max_image = tracks.MaxImage();
   int num_resects = -1;
@@ -173,7 +180,7 @@ void InternalCompleteReconstruction(
          << " reconstructed markers for track " << track;
       if (reconstructed_markers.size() >= 2) {
         CompleteReconstructionLogProgress(update_callback,
-                                          (double)tot_resects/(max_image));
+                                          (double)tot_resects / (max_image));
         if (PipelineRoutines::Intersect(reconstructed_markers,
                                         reconstruction)) {
           num_intersects++;
@@ -184,9 +191,8 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_intersects) {
-      CompleteReconstructionLogProgress(update_callback,
-                                        (double)tot_resects/(max_image),
-                                        "Bundling...");
+      CompleteReconstructionLogProgress(
+          update_callback, (double)tot_resects / (max_image), "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
       LG << "Ran Bundle() after intersections.";
     }
@@ -212,9 +218,9 @@ void InternalCompleteReconstruction(
          << " reconstructed markers for image " << image;
       if (reconstructed_markers.size() >= 5) {
         CompleteReconstructionLogProgress(update_callback,
-                                          (double)tot_resects/(max_image));
-        if (PipelineRoutines::Resect(reconstructed_markers,
-                                     reconstruction, false)) {
+                                          (double)tot_resects / (max_image));
+        if (PipelineRoutines::Resect(
+                reconstructed_markers, reconstruction, false)) {
           num_resects++;
           tot_resects++;
           LG << "Ran Resect() for image " << image;
@@ -224,9 +230,8 @@ void InternalCompleteReconstruction(
       }
     }
     if (num_resects) {
-      CompleteReconstructionLogProgress(update_callback,
-                                        (double)tot_resects/(max_image),
-                                        "Bundling...");
+      CompleteReconstructionLogProgress(
+          update_callback, (double)tot_resects / (max_image), "Bundling...");
       PipelineRoutines::Bundle(tracks, reconstruction);
     }
     LG << "Did " << num_resects << " resects.";
@@ -249,9 +254,9 @@ void InternalCompleteReconstruction(
     }
     if (reconstructed_markers.size() >= 5) {
       CompleteReconstructionLogProgress(update_callback,
-                                        (double)tot_resects/(max_image));
-      if (PipelineRoutines::Resect(reconstructed_markers,
-                                   reconstruction, true)) {
+                                        (double)tot_resects / (max_image));
+      if (PipelineRoutines::Resect(
+              reconstructed_markers, reconstruction, true)) {
         num_resects++;
         LG << "Ran final Resect() for image " << image;
       } else {
@@ -260,27 +265,26 @@ void InternalCompleteReconstruction(
     }
   }
   if (num_resects) {
-    CompleteReconstructionLogProgress(update_callback,
-                                      (double)tot_resects/(max_image),
-                                      "Bundling...");
+    CompleteReconstructionLogProgress(
+        update_callback, (double)tot_resects / (max_image), "Bundling...");
     PipelineRoutines::Bundle(tracks, reconstruction);
   }
 }
 
-template<typename PipelineRoutines>
+template <typename PipelineRoutines>
 double InternalReprojectionError(
-        const Tracks &image_tracks,
-        const typename PipelineRoutines::Reconstruction &reconstruction,
-        const CameraIntrinsics &intrinsics) {
+    const Tracks& image_tracks,
+    const typename PipelineRoutines::Reconstruction& reconstruction,
+    const CameraIntrinsics& intrinsics) {
   int num_skipped = 0;
   int num_reprojected = 0;
   double total_error = 0.0;
   vector<Marker> markers = image_tracks.AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
     double weight = markers[i].weight;
-    const typename PipelineRoutines::Camera *camera =
+    const typename PipelineRoutines::Camera* camera =
         reconstruction.CameraForImage(markers[i].image);
-    const typename PipelineRoutines::Point *point =
+    const typename PipelineRoutines::Point* point =
         reconstruction.PointForTrack(markers[i].track);
     if (!camera || !point || weight == 0.0) {
       num_skipped++;
@@ -295,24 +299,25 @@ double InternalReprojectionError(
 
     const int N = 100;
     char line[N];
-    snprintf(line, N,
-           "image %-3d track %-3d "
-           "x %7.1f y %7.1f "
-           "rx %7.1f ry %7.1f "
-           "ex %7.1f ey %7.1f"
-           "    e %7.1f",
-           markers[i].image,
-           markers[i].track,
-           markers[i].x,
-           markers[i].y,
-           reprojected_marker.x,
-           reprojected_marker.y,
-           ex,
-           ey,
-           sqrt(ex*ex + ey*ey));
+    snprintf(line,
+             N,
+             "image %-3d track %-3d "
+             "x %7.1f y %7.1f "
+             "rx %7.1f ry %7.1f "
+             "ex %7.1f ey %7.1f"
+             "    e %7.1f",
+             markers[i].image,
+             markers[i].track,
+             markers[i].x,
+             markers[i].y,
+             reprojected_marker.x,
+             reprojected_marker.y,
+             ex,
+             ey,
+             sqrt(ex * ex + ey * ey));
     VLOG(1) << line;
 
-    total_error += sqrt(ex*ex + ey*ey);
+    total_error += sqrt(ex * ex + ey * ey);
   }
   LG << "Skipped " << num_skipped << " markers.";
   LG << "Reprojected " << num_reprojected << " markers.";
@@ -321,46 +326,41 @@ double InternalReprojectionError(
   return total_error / num_reprojected;
 }
 
-double EuclideanReprojectionError(const Tracks &image_tracks,
-                                  const EuclideanReconstruction &reconstruction,
-                                  const CameraIntrinsics &intrinsics) {
-  return InternalReprojectionError<EuclideanPipelineRoutines>(image_tracks,
-                                                              reconstruction,
-                                                              intrinsics);
+double EuclideanReprojectionError(const Tracks& image_tracks,
+                                  const EuclideanReconstruction& reconstruction,
+                                  const CameraIntrinsics& intrinsics) {
+  return InternalReprojectionError<EuclideanPipelineRoutines>(
+      image_tracks, reconstruction, intrinsics);
 }
 
 double ProjectiveReprojectionError(
-    const Tracks &image_tracks,
-    const ProjectiveReconstruction &reconstruction,
-    const CameraIntrinsics &intrinsics) {
-  return InternalReprojectionError<ProjectivePipelineRoutines>(image_tracks,
-                                                               reconstruction,
-                                                               intrinsics);
+    const Tracks& image_tracks,
+    const ProjectiveReconstruction& reconstruction,
+    const CameraIntrinsics& intrinsics) {
+  return InternalReprojectionError<ProjectivePipelineRoutines>(
+      image_tracks, reconstruction, intrinsics);
 }
 
-void EuclideanCompleteReconstruction(const Tracks &tracks,
-                                     EuclideanReconstruction *reconstruction,
-                                     ProgressUpdateCallback *update_callback) {
-  InternalCompleteReconstruction<EuclideanPipelineRoutines>(tracks,
-                                                            reconstruction,
-                                                            update_callback);
+void EuclideanCompleteReconstruction(const Tracks& tracks,
+                                     EuclideanReconstruction* reconstruction,
+                                     ProgressUpdateCallback* update_callback) {
+  InternalCompleteReconstruction<EuclideanPipelineRoutines>(
+      tracks, reconstruction, update_callback);
 }
 
-void ProjectiveCompleteReconstruction(const Tracks &tracks,
-                                      ProjectiveReconstruction *reconstruction) {
+void ProjectiveCompleteReconstruction(
+    const Tracks& tracks, ProjectiveReconstruction* reconstruction) {
   InternalCompleteReconstruction<ProjectivePipelineRoutines>(tracks,
                                                              reconstruction);
 }
 
-void InvertIntrinsicsForTracks(const Tracks &raw_tracks,
-                               const CameraIntrinsics &camera_intrinsics,
-                               Tracks *calibrated_tracks) {
+void InvertIntrinsicsForTracks(const Tracks& raw_tracks,
+                               const CameraIntrinsics& camera_intrinsics,
+                               Tracks* calibrated_tracks) {
   vector<Marker> markers = raw_tracks.AllMarkers();
   for (int i = 0; i < markers.size(); ++i) {
-    camera_intrinsics.InvertIntrinsics(markers[i].x,
-                                       markers[i].y,
-                                       &(markers[i].x),
-                                       &(markers[i].y));
+    camera_intrinsics.InvertIntrinsics(
+        markers[i].x, markers[i].y, &(markers[i].x), &(markers[i].y));
   }
   *calibrated_tracks = Tracks(markers);
 }

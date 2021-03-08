@@ -27,35 +27,36 @@
 #include "BLI_utildefines.h"
 #include "node_composite_util.h"
 
-static CryptomatteEntry *cryptomatte_find(NodeCryptomatte *n, float encoded_hash)
+extern "C" {
+static CryptomatteEntry *cryptomatte_find(const NodeCryptomatte &n, float encoded_hash)
 {
-  LISTBASE_FOREACH (CryptomatteEntry *, entry, &n->entries) {
+  LISTBASE_FOREACH (CryptomatteEntry *, entry, &n.entries) {
     if (entry->encoded_hash == encoded_hash) {
       return entry;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
-static void cryptomatte_add(NodeCryptomatte *n, float f)
+static void cryptomatte_add(NodeCryptomatte &n, float f)
 {
   /* Check if entry already exist. */
-  if (cryptomatte_find(n, f) != NULL) {
+  if (cryptomatte_find(n, f)) {
     return;
   }
-  CryptomatteEntry *entry = MEM_callocN(sizeof(CryptomatteEntry), __func__);
+  CryptomatteEntry *entry = static_cast<CryptomatteEntry *>(
+      MEM_callocN(sizeof(CryptomatteEntry), __func__));
   entry->encoded_hash = f;
-  BLI_addtail(&n->entries, entry);
+  BLI_addtail(&n.entries, entry);
 }
 
-static void cryptomatte_remove(NodeCryptomatte *n, float f)
+static void cryptomatte_remove(NodeCryptomatte &n, float f)
 {
   CryptomatteEntry *entry = cryptomatte_find(n, f);
-  if (entry == NULL) {
+  if (!entry) {
     return;
   }
-
-  BLI_remlink(&n->entries, entry);
+  BLI_remlink(&n.entries, entry);
   MEM_freeN(entry);
 }
 
@@ -68,44 +69,40 @@ static bNodeSocketTemplate outputs[] = {
 
 void ntreeCompositCryptomatteSyncFromAdd(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeCryptomatte *n = node->storage;
+  NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->add[0] != 0.0f) {
-    cryptomatte_add(n, n->add[0]);
-    n->add[0] = 0.0f;
-    n->add[1] = 0.0f;
-    n->add[2] = 0.0f;
+    cryptomatte_add(*n, n->add[0]);
+    zero_v3(n->add);
   }
 }
 
 void ntreeCompositCryptomatteSyncFromRemove(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeCryptomatte *n = node->storage;
+  NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->remove[0] != 0.0f) {
-    cryptomatte_remove(n, n->remove[0]);
-    n->remove[0] = 0.0f;
-    n->remove[1] = 0.0f;
-    n->remove[2] = 0.0f;
+    cryptomatte_remove(*n, n->remove[0]);
+    zero_v3(n->remove);
   }
 }
 
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
 {
-  NodeCryptomatte *n = node->storage;
+  NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
   n->num_inputs++;
   BLI_snprintf(sockname, sizeof(sockname), "Crypto %.2d", n->num_inputs - 1);
   bNodeSocket *sock = nodeAddStaticSocket(
-      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, NULL, sockname);
+      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, sockname);
   return sock;
 }
 
 int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
 {
-  NodeCryptomatte *n = node->storage;
+  NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->num_inputs < 2) {
     return 0;
   }
-  bNodeSocket *sock = node->inputs.last;
+  bNodeSocket *sock = static_cast<bNodeSocket *>(node->inputs.last);
   nodeRemoveSocket(ntree, node, sock);
   n->num_inputs--;
   return 1;
@@ -113,7 +110,8 @@ int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
 
 static void init(bNodeTree *ntree, bNode *node)
 {
-  NodeCryptomatte *user = MEM_callocN(sizeof(NodeCryptomatte), "cryptomatte user");
+  NodeCryptomatte *user = static_cast<NodeCryptomatte *>(
+      MEM_callocN(sizeof(NodeCryptomatte), __func__));
   node->storage = user;
 
   nodeAddStaticSocket(ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "image", "Image");
@@ -126,7 +124,7 @@ static void init(bNodeTree *ntree, bNode *node)
 
 static void node_free_cryptomatte(bNode *node)
 {
-  NodeCryptomatte *nc = node->storage;
+  NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
 
   if (nc) {
     BLI_freelistN(&nc->entries);
@@ -138,8 +136,8 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
                                   bNode *dest_node,
                                   const bNode *src_node)
 {
-  NodeCryptomatte *src_nc = src_node->storage;
-  NodeCryptomatte *dest_nc = MEM_dupallocN(src_nc);
+  NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
+  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
 
   BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
   dest_node->storage = dest_nc;
@@ -150,8 +148,9 @@ void register_node_type_cmp_cryptomatte(void)
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_CONVERTOR, 0);
-  node_type_socket_templates(&ntype, NULL, outputs);
+  node_type_socket_templates(&ntype, nullptr, outputs);
   node_type_init(&ntype, init);
   node_type_storage(&ntype, "NodeCryptomatte", node_free_cryptomatte, node_copy_cryptomatte);
   nodeRegisterType(&ntype);
+}
 }

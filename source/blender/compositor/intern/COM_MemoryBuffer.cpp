@@ -20,9 +20,6 @@
 
 #include "MEM_guardedalloc.h"
 
-using std::max;
-using std::min;
-
 static unsigned int determine_num_channels(DataType datatype)
 {
   switch (datatype) {
@@ -156,10 +153,10 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
     return;
   }
   unsigned int otherY;
-  unsigned int minX = max(this->m_rect.xmin, otherBuffer->m_rect.xmin);
-  unsigned int maxX = min(this->m_rect.xmax, otherBuffer->m_rect.xmax);
-  unsigned int minY = max(this->m_rect.ymin, otherBuffer->m_rect.ymin);
-  unsigned int maxY = min(this->m_rect.ymax, otherBuffer->m_rect.ymax);
+  unsigned int minX = MAX2(this->m_rect.xmin, otherBuffer->m_rect.xmin);
+  unsigned int maxX = MIN2(this->m_rect.xmax, otherBuffer->m_rect.xmax);
+  unsigned int minY = MAX2(this->m_rect.ymin, otherBuffer->m_rect.ymin);
+  unsigned int maxY = MIN2(this->m_rect.ymax, otherBuffer->m_rect.ymax);
   int offset;
   int otherOffset;
 

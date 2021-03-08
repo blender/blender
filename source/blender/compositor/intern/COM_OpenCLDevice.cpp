@@ -61,8 +61,8 @@ void OpenCLDevice::deinitialize()
 
 void OpenCLDevice::execute(WorkPackage *work)
 {
-  const unsigned int chunkNumber = work->getChunkNumber();
-  ExecutionGroup *executionGroup = work->getExecutionGroup();
+  const unsigned int chunkNumber = work->chunk_number;
+  ExecutionGroup *executionGroup = work->execution_group;
   rcti rect;
 
   executionGroup->determineChunkRect(&rect, chunkNumber);
@@ -79,7 +79,7 @@ void OpenCLDevice::execute(WorkPackage *work)
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
                                                                int parameterIndex,
                                                                int offsetIndex,
-                                                               list<cl_mem> *cleanup,
+                                                               std::list<cl_mem> *cleanup,
                                                                MemoryBuffer **inputMemoryBuffers,
                                                                SocketReader *reader)
 {
@@ -111,7 +111,7 @@ const cl_image_format *OpenCLDevice::determineImageFormat(MemoryBuffer *memoryBu
 cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
                                                                int parameterIndex,
                                                                int offsetIndex,
-                                                               list<cl_mem> *cleanup,
+                                                               std::list<cl_mem> *cleanup,
                                                                MemoryBuffer **inputMemoryBuffers,
                                                                ReadBufferOperation *reader)
 {
@@ -258,7 +258,7 @@ void OpenCLDevice::COM_clEnqueueRange(cl_kernel kernel,
 }
 
 cl_kernel OpenCLDevice::COM_clCreateKernel(const char *kernelname,
-                                           list<cl_kernel> *clKernelsToCleanUp)
+                                           std::list<cl_kernel> *clKernelsToCleanUp)
 {
   cl_int error;
   cl_kernel kernel = clCreateKernel(this->m_program, kernelname, &error);

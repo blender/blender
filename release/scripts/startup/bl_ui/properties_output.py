@@ -80,7 +80,7 @@ class RENDER_PT_dimensions(RenderOutputButtonsPanel, Panel):
             fps_rate = round(fps / fps_base, 2)
 
         # TODO: Change the following to iterate over existing presets
-        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
+        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60, 120, 240})
 
         if custom_framerate is True:
             fps_label_text = tip_("Custom (%.4g fps)") % fps_rate

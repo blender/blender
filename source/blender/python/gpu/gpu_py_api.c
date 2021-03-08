@@ -73,6 +73,9 @@ PyObject *BPyInit_gpu(void)
   PyModule_AddObject(mod, "state", (submodule = bpygpu_state_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
+  PyModule_AddObject(mod, "texture", (submodule = bpygpu_texture_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
   return mod;
 }
 

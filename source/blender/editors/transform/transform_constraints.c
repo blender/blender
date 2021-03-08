@@ -550,7 +550,7 @@ static void applyObjectConstraintSize(TransInfo *t,
 }
 
 static void constraints_rotation_impl(TransInfo *t,
-                                      float axismtx[3][3],
+                                      const float axismtx[3][3],
                                       float r_vec[3],
                                       float *r_angle)
 {
@@ -572,7 +572,8 @@ static void constraints_rotation_impl(TransInfo *t,
       break;
   }
   /* don't flip axis if asked to or if num input */
-  if (r_angle && !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
+  if (r_angle &&
+      !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL))) {
     float view_vector[3];
     view_vector_calc(t, t->center_global, view_vector);
     if (dot_v3v3(r_vec, view_vector) > 0.0f) {
@@ -620,7 +621,7 @@ static void applyObjectConstraintRot(
 {
   if (t->con.mode & CON_APPLY) {
     float tmp_axismtx[3][3];
-    float(*axismtx)[3];
+    const float(*axismtx)[3];
 
     /* on setup call, use first object */
     if (td == NULL) {

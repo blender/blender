@@ -1236,15 +1236,14 @@ static char *node_errors_tooltip_fn(bContext *UNUSED(C), void *argN, const char 
 
   for (const NodeWarning &warning : warnings.drop_back(1)) {
     complete_string += warning.message;
+    /* Adding the period is not ideal for multi-line messages, but it is consistent
+     * with other tooltip implementations in Blender, so it is added here. */
+    complete_string += '.';
     complete_string += '\n';
   }
 
+  /* Let the tooltip system automatically add the last period. */
   complete_string += warnings.last().message;
-
-  /* Remove the last period-- the tooltip system adds this automatically. */
-  if (complete_string.back() == '.') {
-    complete_string.pop_back();
-  }
 
   return BLI_strdupn(complete_string.c_str(), complete_string.size());
 }

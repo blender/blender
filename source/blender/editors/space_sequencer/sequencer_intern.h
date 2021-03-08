@@ -79,7 +79,7 @@ struct Sequence *find_neighboring_sequence(struct Scene *scene,
                                            struct Sequence *test,
                                            int lr,
                                            int sel);
-void recurs_sel_seq(struct Sequence *seqm);
+void recurs_sel_seq(struct Sequence *seq_meta);
 int seq_effect_find_selected(struct Scene *scene,
                              struct Sequence *activeseq,
                              int type,

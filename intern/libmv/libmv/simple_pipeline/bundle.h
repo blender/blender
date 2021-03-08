@@ -31,11 +31,8 @@ class ProjectiveReconstruction;
 class Tracks;
 
 struct BundleEvaluation {
-  BundleEvaluation() :
-    num_cameras(0),
-    num_points(0),
-    evaluate_jacobian(false) {
-  }
+  BundleEvaluation()
+      : num_cameras(0), num_points(0), evaluate_jacobian(false) {}
 
   // Number of cameras appeared in bundle adjustment problem
   int num_cameras;
@@ -72,8 +69,8 @@ struct BundleEvaluation {
 
     \sa EuclideanResect, EuclideanIntersect, EuclideanReconstructTwoFrames
 */
-void EuclideanBundle(const Tracks &tracks,
-                     EuclideanReconstruction *reconstruction);
+void EuclideanBundle(const Tracks& tracks,
+                     EuclideanReconstruction* reconstruction);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.
@@ -109,9 +106,7 @@ enum BundleIntrinsics {
   BUNDLE_RADIAL_K2 = (1 << 3),
   BUNDLE_RADIAL_K3 = (1 << 4),
   BUNDLE_RADIAL_K4 = (1 << 5),
-  BUNDLE_RADIAL = (BUNDLE_RADIAL_K1 |
-                   BUNDLE_RADIAL_K2 |
-                   BUNDLE_RADIAL_K3 |
+  BUNDLE_RADIAL = (BUNDLE_RADIAL_K1 | BUNDLE_RADIAL_K2 | BUNDLE_RADIAL_K3 |
                    BUNDLE_RADIAL_K4),
 
   BUNDLE_TANGENTIAL_P1 = (1 << 6),
@@ -122,13 +117,12 @@ enum BundleConstraints {
   BUNDLE_NO_CONSTRAINTS = 0,
   BUNDLE_NO_TRANSLATION = 1,
 };
-void EuclideanBundleCommonIntrinsics(
-    const Tracks &tracks,
-    const int bundle_intrinsics,
-    const int bundle_constraints,
-    EuclideanReconstruction *reconstruction,
-    CameraIntrinsics *intrinsics,
-    BundleEvaluation *evaluation = NULL);
+void EuclideanBundleCommonIntrinsics(const Tracks& tracks,
+                                     const int bundle_intrinsics,
+                                     const int bundle_constraints,
+                                     EuclideanReconstruction* reconstruction,
+                                     CameraIntrinsics* intrinsics,
+                                     BundleEvaluation* evaluation = NULL);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.
@@ -147,10 +141,9 @@ void EuclideanBundleCommonIntrinsics(
 
     \sa ProjectiveResect, ProjectiveIntersect, ProjectiveReconstructTwoFrames
 */
-void ProjectiveBundle(const Tracks &tracks,
-                      ProjectiveReconstruction *reconstruction);
+void ProjectiveBundle(const Tracks& tracks,
+                      ProjectiveReconstruction* reconstruction);
 
 }  // namespace libmv
 
-#endif   // LIBMV_SIMPLE_PIPELINE_BUNDLE_H
-
+#endif  // LIBMV_SIMPLE_PIPELINE_BUNDLE_H

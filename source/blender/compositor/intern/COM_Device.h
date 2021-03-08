@@ -55,7 +55,7 @@ class Device {
    * \brief execute a WorkPackage
    * \param work: the WorkPackage to execute
    */
-  virtual void execute(WorkPackage *work) = 0;
+  virtual void execute(struct WorkPackage *work) = 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:Device")

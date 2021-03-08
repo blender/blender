@@ -1204,15 +1204,15 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
 static void pyrna_struct_reference_set(BPy_StructRNA *self, PyObject *reference)
 {
   if (self->reference) {
-    //      PyObject_GC_UnTrack(self); /* INITIALIZED TRACKED ? */
-    pyrna_struct_clear(self);
+    PyObject_GC_UnTrack(self);
+    Py_CLEAR(self->reference);
   }
   /* Reference is now NULL. */
 
   if (reference) {
     self->reference = reference;
     Py_INCREF(reference);
-    //      PyObject_GC_Track(self);  /* INITIALIZED TRACKED ? */
+    PyObject_GC_Track(self);
   }
 }
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
@@ -2022,45 +2022,54 @@ static int pyrna_py_to_prop(
           }
         }
 
-        if (!BPy_StructRNA_Check(value) && value != Py_None) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s expected a %.200s type, not %.200s",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop),
-                       RNA_struct_identifier(ptr_type),
-                       Py_TYPE(value)->tp_name);
-          Py_XDECREF(value_new);
-          return -1;
+        BPy_StructRNA *param;
+        if (value == Py_None) {
+          if (flag & PROP_NEVER_NULL) {
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop),
+                         RNA_struct_identifier(ptr_type));
+            Py_XDECREF(value_new);
+            return -1;
+          }
+          param = NULL;
         }
-        if ((flag & PROP_NEVER_NULL) && value == Py_None) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s does not support a 'None' assignment %.200s type",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop),
-                       RNA_struct_identifier(ptr_type));
-          Py_XDECREF(value_new);
-          return -1;
-        }
-        if ((value != Py_None) && ((flag & PROP_ID_SELF_CHECK) &&
-                                   ptr->owner_id == ((BPy_StructRNA *)value)->ptr.owner_id)) {
-          PyErr_Format(PyExc_TypeError,
-                       "%.200s %.200s.%.200s ID type does not support assignment to itself",
-                       error_prefix,
-                       RNA_struct_identifier(ptr->type),
-                       RNA_property_identifier(prop));
-          Py_XDECREF(value_new);
-          return -1;
+        else {
+          if (!BPy_StructRNA_Check(value)) {
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s %.200s.%.200s expected a %.200s type, not %.200s",
+                         error_prefix,
+                         RNA_struct_identifier(ptr->type),
+                         RNA_property_identifier(prop),
+                         RNA_struct_identifier(ptr_type),
+                         Py_TYPE(value)->tp_name);
+            Py_XDECREF(value_new);
+            return -1;
+          }
+          param = (BPy_StructRNA *)value;
+
+          const ID *value_owner_id = ((BPy_StructRNA *)value)->ptr.owner_id;
+          if (value_owner_id != NULL) {
+            if ((flag & PROP_ID_SELF_CHECK) && (ptr->owner_id == value_owner_id)) {
+              PyErr_Format(PyExc_TypeError,
+                           "%.200s %.200s.%.200s ID type does not support assignment to itself",
+                           error_prefix,
+                           RNA_struct_identifier(ptr->type),
+                           RNA_property_identifier(prop));
+              Py_XDECREF(value_new);
+              return -1;
+            }
+          }
         }
 
-        BPy_StructRNA *param = (BPy_StructRNA *)value;
         bool raise_error = false;
         if (data) {
 
           if (flag_parameter & PARM_RNAPTR) {
             if (flag & PROP_THICK_WRAP) {
-              if (value == Py_None) {
+              if (param == NULL) {
                 memset(data, 0, sizeof(PointerRNA));
               }
               else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2075,7 +2084,7 @@ static int pyrna_py_to_prop(
                * but watch out that it remains valid!
                * We could possibly support this later if needed. */
               BLI_assert(value_new == NULL);
-              if (value == Py_None) {
+              if (param == NULL) {
                 *((void **)data) = NULL;
               }
               else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2086,7 +2095,7 @@ static int pyrna_py_to_prop(
               }
             }
           }
-          else if (value == Py_None) {
+          else if (param == NULL) {
             *((void **)data) = NULL;
           }
           else if (RNA_struct_is_a(param->ptr.type, ptr_type)) {
@@ -2098,11 +2107,11 @@ static int pyrna_py_to_prop(
         }
         else {
           /* Data == NULL, assign to RNA. */
-          if (value == Py_None || RNA_struct_is_a(param->ptr.type, ptr_type)) {
+          if ((param == NULL) || RNA_struct_is_a(param->ptr.type, ptr_type)) {
             ReportList reports;
             BKE_reports_init(&reports, RPT_STORE);
             RNA_property_pointer_set(
-                ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr, &reports);
+                ptr, prop, (param == NULL) ? PointerRNA_NULL : param->ptr, &reports);
             const int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
             if (err == -1) {
               Py_XDECREF(value_new);
@@ -4589,13 +4598,12 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 #else
   {
     /* Could just do this except for 1 awkward case.
-     * PyObject_GenericGetAttr((PyObject *)self, pyname);
-     * so as to support 'bpy.data.library.load()'
-     * note, this _only_ supports static methods */
+     * `PyObject_GenericGetAttr((PyObject *)self, pyname);`
+     * so as to support `bpy.data.library.load()` */
 
     PyObject *ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
 
-    if (ret == NULL && name[0] != '_') { /* Avoid inheriting __call__ and similar. */
+    if (ret == NULL && name[0] != '_') { /* Avoid inheriting `__call__` and similar. */
       /* Since this is least common case, handle it last. */
       PointerRNA r_ptr;
       if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
@@ -4612,6 +4620,19 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
         /* Restore the original error. */
         if (ret == NULL) {
           PyErr_Restore(error_type, error_value, error_traceback);
+        }
+        else {
+          if (Py_TYPE(ret) == &PyMethodDescr_Type) {
+            PyMethodDef *m = ((PyMethodDescrObject *)ret)->d_method;
+            /* TODO: #METH_CLASS */
+            if (m->ml_flags & METH_STATIC) {
+              /* Keep 'ret' as-is. */
+            }
+            else {
+              Py_DECREF(ret);
+              ret = PyCMethod_New(m, (PyObject *)self, NULL, NULL);
+            }
+          }
         }
       }
     }
@@ -5813,6 +5834,11 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
       BPy_StructRNA *ret;
       if ((ret = (BPy_StructRNA *)type->tp_alloc(type, 0))) {
         ret->ptr = base->ptr;
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+        /* #PyType_GenericAlloc will have set tracking.
+         * We only want tracking when `StructRNA.reference` has been set. */
+        PyObject_GC_UnTrack(ret);
+#endif
       }
       /* Pass on exception & NULL if tp_alloc fails. */
       return (PyObject *)ret;
@@ -6516,7 +6542,11 @@ PyTypeObject pyrna_struct_Type = {
     NULL, /* PyBufferProcs *tp_as_buffer; */
 
     /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* long tp_flags; */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+        | Py_TPFLAGS_HAVE_GC
+#endif
+    , /* long tp_flags; */
 
     NULL, /*  char *tp_doc;  Documentation string */
 /*** Assigned meaning in release 2.0 ***/
@@ -7453,13 +7483,28 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 
     if (tp) {
       pyrna = (BPy_StructRNA *)tp->tp_alloc(tp, 0);
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+      /* #PyType_GenericAlloc will have set tracking.
+       * We only want tracking when `StructRNA.reference` has been set. */
+      if (pyrna != NULL) {
+        PyObject_GC_UnTrack(pyrna);
+      }
+#endif
       Py_DECREF(tp); /* srna owns, can't hold a reference. */
     }
     else {
       CLOG_WARN(BPY_LOG_RNA, "could not make type '%s'", RNA_struct_identifier(ptr->type));
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
       pyrna = (BPy_StructRNA *)PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
+#else
+      pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
+#endif
+
 #ifdef USE_WEAKREFS
-      pyrna->in_weakreflist = NULL;
+      if (pyrna != NULL) {
+        pyrna->in_weakreflist = NULL;
+      }
 #endif
     }
   }
@@ -8961,7 +9006,7 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 
 #if 0
   if (PyDict_GetItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str_bl_rna) == NULL) {
-    PWM_cursor_wait(0);
+    PWM_cursor_wait(false);
     PyErr_SetString(PyExc_ValueError, "unregister_class(): not a registered as a subclass");
     return NULL;
   }

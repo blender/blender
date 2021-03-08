@@ -1816,11 +1816,11 @@ static bool save_image_op(
   opts->save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") &&
                           RNA_boolean_get(op->ptr, "save_as_render"));
 
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   bool ok = BKE_image_save(op->reports, bmain, ima, iuser, opts);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   /* Remember file path for next save. */
   BLI_strncpy(G.ima, opts->filepath, sizeof(G.ima));

@@ -79,8 +79,8 @@ static PyObject *make_alembic_info(void)
   SetStrItem("Unknown");
 #endif
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(alembic_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(alembic_info);
     return NULL;
   }
 

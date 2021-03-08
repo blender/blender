@@ -572,7 +572,7 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
   G.is_break = false;
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   /* add modal handler for ESC */
   WM_event_add_modal_handler(C, op);

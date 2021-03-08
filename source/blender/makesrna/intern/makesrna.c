@@ -3671,7 +3671,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
           }
         }
         else {
-          if (!defaultfound && !(eprop->itemf && eprop->item == DummyRNA_NULL_items)) {
+          if (!defaultfound && !(eprop->item_fn && eprop->item == DummyRNA_NULL_items)) {
             CLOG_ERROR(&LOG,
                        "%s%s.%s, enum default is not in items.",
                        srna->identifier,
@@ -3992,7 +3992,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               "\t%s, %s, %s, %s, %s, NULL, ",
               rna_function_string(eprop->get),
               rna_function_string(eprop->set),
-              rna_function_string(eprop->itemf),
+              rna_function_string(eprop->item_fn),
               rna_function_string(eprop->get_ex),
               rna_function_string(eprop->set_ex));
       if (eprop->item) {
@@ -4010,7 +4010,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
               "\t%s, %s, %s, %s,",
               rna_function_string(pprop->get),
               rna_function_string(pprop->set),
-              rna_function_string(pprop->typef),
+              rna_function_string(pprop->type_fn),
               rna_function_string(pprop->poll));
       if (pprop->type) {
         fprintf(f, "&RNA_%s\n", (const char *)pprop->type);

@@ -274,9 +274,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 
 void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*free)(void *))
 {
-  RegionDrawCB *rdc = art->drawcalls.first;
-  while (rdc) {
-    RegionDrawCB *rdc_next = rdc->next;
+  LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc->draw == draw_fn) {
       if (free) {
         free(rdc->customdata);
@@ -284,7 +282,6 @@ void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*fr
       BLI_remlink(&art->drawcalls, rdc);
       MEM_freeN(rdc);
     }
-    rdc = rdc_next;
   }
 }
 

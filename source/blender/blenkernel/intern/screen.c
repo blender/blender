@@ -1681,6 +1681,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       sfile->op = NULL;
       sfile->previews_timer = NULL;
       sfile->tags = 0;
+      sfile->runtime = NULL;
       BLO_read_data_address(reader, &sfile->params);
       BLO_read_data_address(reader, &sfile->asset_params);
     }

@@ -29,14 +29,18 @@ using namespace libmv;
 
 TEST(Projection, P_From_KRt) {
   Mat3 K, Kp;
+  // clang-format off
   K << 10,  1, 30,
         0, 20, 40,
         0,  0,  1;
+  // clang-format on
 
   Mat3 R, Rp;
+  // clang-format off
   R << 1, 0, 0,
        0, 1, 0,
        0, 0, 1;
+  // clang-format on
 
   Vec3 t, tp;
   t << 1, 2, 3;
@@ -62,16 +66,18 @@ Vec4 GetRandomPoint() {
 
 TEST(Projection, isInFrontOfCamera) {
   Mat34 P;
+  // clang-format off
   P << 1, 0, 0, 0,
        0, 1, 0, 0,
        0, 0, 1, 0;
+  // clang-format on
 
   Vec4 X_front = GetRandomPoint();
   Vec4 X_back = GetRandomPoint();
-  X_front(2) = 10;  /* Any point in the positive Z direction
-                     * where Z > 1 is in front of the camera. */
-  X_back(2) = -10;  /* Any point in the negative Z direction
-                     * is behind the camera. */
+  X_front(2) = 10; /* Any point in the positive Z direction
+                    * where Z > 1 is in front of the camera. */
+  X_back(2) = -10; /* Any point in the negative Z direction
+                    * is behind the camera. */
 
   bool res_front = isInFrontOfCamera(P, X_front);
   bool res_back = isInFrontOfCamera(P, X_back);
@@ -82,12 +88,14 @@ TEST(Projection, isInFrontOfCamera) {
 
 TEST(AutoCalibration, ProjectionShiftPrincipalPoint) {
   Mat34 P1, P2;
+  // clang-format off
   P1 << 1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0;
   P2 << 1, 0, 3, 0,
         0, 1, 4, 0,
         0, 0, 1, 0;
+  // clang-format on
   Mat34 P1_computed, P2_computed;
   ProjectionShiftPrincipalPoint(P1, Vec2(0, 0), Vec2(3, 4), &P2_computed);
   ProjectionShiftPrincipalPoint(P2, Vec2(3, 4), Vec2(0, 0), &P1_computed);
@@ -98,12 +106,14 @@ TEST(AutoCalibration, ProjectionShiftPrincipalPoint) {
 
 TEST(AutoCalibration, ProjectionChangeAspectRatio) {
   Mat34 P1, P2;
+  // clang-format off
   P1 << 1, 0, 3, 0,
         0, 1, 4, 0,
         0, 0, 1, 0;
   P2 << 1, 0, 3, 0,
         0, 2, 4, 0,
         0, 0, 1, 0;
+  // clang-format on
   Mat34 P1_computed, P2_computed;
   ProjectionChangeAspectRatio(P1, Vec2(3, 4), 1, 2, &P2_computed);
   ProjectionChangeAspectRatio(P2, Vec2(3, 4), 2, 1, &P1_computed);

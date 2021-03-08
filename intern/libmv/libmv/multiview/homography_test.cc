@@ -18,10 +18,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "testing/testing.h"
+#include "libmv/multiview/homography.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
-#include "libmv/multiview/homography.h"
+#include "testing/testing.h"
 
 namespace {
 using namespace libmv;
@@ -34,9 +34,7 @@ namespace {
 // TODO(sergey): Consider using this in all tests since possible homography
 // matrix is not fixed to a single value and different-looking matrices
 // might actually crrespond to the same exact transform.
-void CheckHomography2DTransform(const Mat3 &H,
-                                const Mat &x1,
-                                const Mat &x2) {
+void CheckHomography2DTransform(const Mat3& H, const Mat& x1, const Mat& x2) {
   for (int i = 0; i < x2.cols(); ++i) {
     Vec3 x2_expected = x2.col(i);
     Vec3 x2_observed = H * x1.col(i);
@@ -49,15 +47,19 @@ void CheckHomography2DTransform(const Mat3 &H,
 
 TEST(Homography2DTest, Rotation45AndTranslationXY) {
   Mat x1(3, 4);
+  // clang-format off
   x1 <<  0, 1, 0, 5,
          0, 0, 2, 3,
          1, 1, 1, 1;
+  // clang-format on
 
   double angle = 45.0;
   Mat3 m;
+  // clang-format off
   m << cos(angle), -sin(angle), -2,
        sin(angle),  cos(angle),  5,
        0,           0,           1;
+  // clang-format on
 
   Mat x2 = x1;
   // Transform point from ground truth matrix
@@ -76,13 +78,17 @@ TEST(Homography2DTest, Rotation45AndTranslationXY) {
 TEST(Homography2DTest, AffineGeneral4) {
   // TODO(julien) find why it doesn't work with 4 points!!!
   Mat x1(3, 4);
+  // clang-format off
   x1 << 0, 1, 0, 2,
         0, 0, 1, 2,
         1, 1, 1, 1;
+  // clang-format on
   Mat3 m;
+  // clang-format off
   m << 3, -1,  4,
        6, -2, -3,
        0,  0,  1;
+  // clang-format on
 
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i) {
@@ -109,13 +115,17 @@ TEST(Homography2DTest, AffineGeneral4) {
 
 TEST(Homography2DTest, AffineGeneral5) {
   Mat x1(3, 5);
+  // clang-format off
   x1 <<  0, 1, 0, 2, 5,
          0, 0, 1, 2, 2,
          1, 1, 1, 1, 1;
+  // clang-format on
   Mat3 m;
+  // clang-format off
   m <<   3, -1,  4,
          6, -2, -3,
          0,  0,  1;
+  // clang-format on
 
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i)
@@ -142,13 +152,17 @@ TEST(Homography2DTest, AffineGeneral5) {
 
 TEST(Homography2DTest, HomographyGeneral) {
   Mat x1(3, 4);
+  // clang-format off
   x1 <<  0, 1, 0, 5,
          0, 0, 2, 3,
          1, 1, 1, 1;
+  // clang-format on
   Mat3 m;
+  // clang-format off
   m <<   3, -1,  4,
          6, -2, -3,
          1, -3,  1;
+  // clang-format on
 
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i)
@@ -164,10 +178,12 @@ TEST(Homography2DTest, HomographyGeneral) {
 
 TEST(Homography3DTest, RotationAndTranslationXYZ) {
   Mat x1(4, 5);
+  // clang-format off
   x1 <<  0, 0, 1, 5, 2,
          0, 1, 2, 3, 5,
          0, 2, 0, 1, 5,
          1, 1, 1, 1, 1;
+  // clang-format on
   Mat4 M;
   M.setIdentity();
   /*
@@ -178,24 +194,30 @@ TEST(Homography3DTest, RotationAndTranslationXYZ) {
   // Rotation on x + translation
   double angle = 45.0;
   Mat4 rot;
+  // clang-format off
   rot <<  1,          0,           0,  1,
           0, cos(angle), -sin(angle),  3,
           0, sin(angle),  cos(angle), -2,
           0,          0,           0,  1;
+  // clang-format on
   M *= rot;
   // Rotation on y
   angle = 25.0;
+  // clang-format off
   rot <<  cos(angle), 0, sin(angle),  0,
           0,          1,          0,  0,
          -sin(angle), 0, cos(angle),  0,
           0,           0,          0, 1;
+  // clang-format on
   M *= rot;
   // Rotation on z
   angle = 5.0;
+  // clang-format off
   rot <<  cos(angle), -sin(angle), 0, 0,
           sin(angle),  cos(angle), 0, 0,
           0,           0,          1, 0,
           0,           0,          0, 1;
+  // clang-format on
   M *= rot;
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i) {
@@ -212,15 +234,19 @@ TEST(Homography3DTest, RotationAndTranslationXYZ) {
 
 TEST(Homography3DTest, AffineGeneral) {
   Mat x1(4, 5);
+  // clang-format off
   x1 <<  0, 0, 1, 5, 2,
          0, 1, 2, 3, 5,
          0, 2, 0, 1, 5,
          1, 1, 1, 1, 1;
+  // clang-format on
   Mat4 m;
+  // clang-format off
   m <<   3, -1,  4,  1,
          6, -2, -3, -6,
          1,  0,  1,  2,
          0,  0,  0,  1;
+  // clang-format on
 
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i) {
@@ -236,15 +262,19 @@ TEST(Homography3DTest, AffineGeneral) {
 
 TEST(Homography3DTest, HomographyGeneral) {
   Mat x1(4, 5);
+  // clang-format off
   x1 << 0, 0, 1, 5, 2,
         0, 1, 2, 3, 5,
         0, 2, 0, 1, 5,
         1, 1, 1, 1, 1;
+  // clang-format on
   Mat4 m;
+  // clang-format off
   m <<  3, -1,  4,  1,
         6, -2, -3, -6,
         1,  0,  1,  2,
        -3,  1,  0,  1;
+  // clang-format on
 
   Mat x2 = x1;
   for (int i = 0; i < x2.cols(); ++i) {

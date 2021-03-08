@@ -121,7 +121,8 @@ ExecutionSystem::~ExecutionSystem()
   this->m_groups.clear();
 }
 
-void ExecutionSystem::set_operations(const Operations &operations, const Groups &groups)
+void ExecutionSystem::set_operations(const blender::Vector<NodeOperation *> &operations,
+                                     const blender::Vector<ExecutionGroup *> &groups)
 {
   m_operations = operations;
   m_groups = groups;
@@ -135,10 +136,7 @@ void ExecutionSystem::execute()
   DebugInfo::execute_started(this);
 
   unsigned int order = 0;
-  for (vector<NodeOperation *>::iterator iter = this->m_operations.begin();
-       iter != this->m_operations.end();
-       ++iter) {
-    NodeOperation *operation = *iter;
+  for (NodeOperation *operation : m_operations) {
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
       readOperation->setOffset(order);
@@ -179,10 +177,10 @@ void ExecutionSystem::execute()
 
   WorkScheduler::start(this->m_context);
 
-  executeGroups(COM_PRIORITY_HIGH);
+  execute_groups(COM_PRIORITY_HIGH);
   if (!this->getContext().isFastCalculation()) {
-    executeGroups(COM_PRIORITY_MEDIUM);
-    executeGroups(COM_PRIORITY_LOW);
+    execute_groups(COM_PRIORITY_MEDIUM);
+    execute_groups(COM_PRIORITY_LOW);
   }
 
   WorkScheduler::finish();
@@ -199,37 +197,23 @@ void ExecutionSystem::execute()
   }
 }
 
-void ExecutionSystem::executeGroups(CompositorPriority priority)
+void ExecutionSystem::execute_groups(CompositorPriority priority)
 {
-  unsigned int index;
-  vector<ExecutionGroup *> executionGroups;
-  this->findOutputExecutionGroup(&executionGroups, priority);
-
-  for (index = 0; index < executionGroups.size(); index++) {
-    ExecutionGroup *group = executionGroups[index];
+  blender::Vector<ExecutionGroup *> execution_groups = find_output_execution_groups(priority);
+  for (ExecutionGroup *group : execution_groups) {
     group->execute(this);
   }
 }
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result,
-                                               CompositorPriority priority) const
+blender::Vector<ExecutionGroup *> ExecutionSystem::find_output_execution_groups(
+    CompositorPriority priority) const
 {
-  unsigned int index;
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *group = this->m_groups[index];
-    if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
-      result->push_back(group);
-    }
-  }
-}
+  blender::Vector<ExecutionGroup *> result;
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result) const
-{
-  unsigned int index;
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *group = this->m_groups[index];
-    if (group->isOutputExecutionGroup()) {
-      result->push_back(group);
+  for (ExecutionGroup *group : m_groups) {
+    if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
+      result.append(group);
     }
   }
+  return result;
 }

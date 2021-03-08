@@ -32,7 +32,6 @@ __all__ = (
 import bpy
 
 from bpy.props import (
-    BoolProperty,
     FloatVectorProperty,
     EnumProperty,
 )
@@ -50,7 +49,7 @@ def add_object_align_init(context, operator):
     :rtype: :class:`mathutils.Matrix`
     """
 
-    from mathutils import Matrix, Vector, Euler
+    from mathutils import Matrix, Vector
     properties = operator.properties if operator is not None else None
 
     space_data = context.space_data
@@ -113,7 +112,6 @@ def object_data_add(context, obdata, operator=None, name=None):
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """
-    scene = context.scene
     layer = context.view_layer
     layer_collection = context.layer_collection or layer.active_layer_collection
     scene_collection = layer_collection.collection

@@ -33,23 +33,23 @@ namespace libmv {
 namespace resection {
 
 // x's are 2D image coordinates, (x,y,1), and X's are homogeneous four vectors.
-template<typename T>
-void Resection(const Matrix<T, 2, Dynamic> &x,
-               const Matrix<T, 4, Dynamic> &X,
-               Matrix<T, 3, 4> *P) {
+template <typename T>
+void Resection(const Matrix<T, 2, Dynamic>& x,
+               const Matrix<T, 4, Dynamic>& X,
+               Matrix<T, 3, 4>* P) {
   int N = x.cols();
   assert(X.cols() == N);
 
-  Matrix<T, Dynamic, 12> design(2*N, 12);
+  Matrix<T, Dynamic, 12> design(2 * N, 12);
   design.setZero();
   for (int i = 0; i < N; i++) {
     T xi = x(0, i);
     T yi = x(1, i);
     // See equation (7.2) on page 179 of H&Z.
-    design.template block<1, 4>(2*i,     4) =    -X.col(i).transpose();
-    design.template block<1, 4>(2*i,     8) =  yi*X.col(i).transpose();
-    design.template block<1, 4>(2*i + 1, 0) =     X.col(i).transpose();
-    design.template block<1, 4>(2*i + 1, 8) = -xi*X.col(i).transpose();
+    design.template block<1, 4>(2 * i, 4) = -X.col(i).transpose();
+    design.template block<1, 4>(2 * i, 8) = yi * X.col(i).transpose();
+    design.template block<1, 4>(2 * i + 1, 0) = X.col(i).transpose();
+    design.template block<1, 4>(2 * i + 1, 8) = -xi * X.col(i).transpose();
   }
   Matrix<T, 12, 1> p;
   Nullspace(&design, &p);

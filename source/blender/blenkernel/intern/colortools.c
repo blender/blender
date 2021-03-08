@@ -965,6 +965,12 @@ void BKE_curvemapping_changed_all(CurveMapping *cumap)
   cumap->cur = cur;
 }
 
+/* Reset the view for current curve. */
+void BKE_curvemapping_reset_view(CurveMapping *cumap)
+{
+  cumap->curr = cumap->clipr;
+}
+
 /* table should be verified */
 float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, float value)
 {

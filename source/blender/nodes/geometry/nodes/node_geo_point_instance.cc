@@ -103,7 +103,7 @@ static void get_instanced_data__collection(
 
   if (BLI_listbase_is_empty(&collection->children) &&
       BLI_listbase_is_empty(&collection->gobject)) {
-    params.error_message_add(NodeWarningType::Info, "Collection is empty.");
+    params.error_message_add(NodeWarningType::Info, TIP_("Collection is empty"));
     return;
   }
 

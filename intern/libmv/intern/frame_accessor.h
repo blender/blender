@@ -32,14 +32,14 @@ extern "C" {
 typedef struct libmv_FrameAccessor libmv_FrameAccessor;
 typedef struct libmv_FrameTransform libmv_FrameTransform;
 typedef struct libmv_FrameAccessorUserData libmv_FrameAccessorUserData;
-typedef void *libmv_CacheKey;
+typedef void* libmv_CacheKey;
 
 typedef enum {
   LIBMV_IMAGE_MODE_MONO,
   LIBMV_IMAGE_MODE_RGBA,
 } libmv_InputMode;
 
-typedef libmv_CacheKey (*libmv_GetImageCallback) (
+typedef libmv_CacheKey (*libmv_GetImageCallback)(
     libmv_FrameAccessorUserData* user_data,
     int clip,
     int frame,
@@ -52,9 +52,9 @@ typedef libmv_CacheKey (*libmv_GetImageCallback) (
     int* height,
     int* channels);
 
-typedef void (*libmv_ReleaseImageCallback) (libmv_CacheKey cache_key);
+typedef void (*libmv_ReleaseImageCallback)(libmv_CacheKey cache_key);
 
-typedef libmv_CacheKey (*libmv_GetMaskForTrackCallback) (
+typedef libmv_CacheKey (*libmv_GetMaskForTrackCallback)(
     libmv_FrameAccessorUserData* user_data,
     int clip,
     int frame,
@@ -63,7 +63,7 @@ typedef libmv_CacheKey (*libmv_GetMaskForTrackCallback) (
     float** destination,
     int* width,
     int* height);
-typedef void (*libmv_ReleaseMaskCallback) (libmv_CacheKey cache_key);
+typedef void (*libmv_ReleaseMaskCallback)(libmv_CacheKey cache_key);
 
 libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_FrameAccessorUserData* user_data,
@@ -73,11 +73,12 @@ libmv_FrameAccessor* libmv_FrameAccessorNew(
     libmv_ReleaseMaskCallback release_mask_callback);
 void libmv_FrameAccessorDestroy(libmv_FrameAccessor* frame_accessor);
 
-int64_t libmv_frameAccessorgetTransformKey(const libmv_FrameTransform *transform);
+int64_t libmv_frameAccessorgetTransformKey(
+    const libmv_FrameTransform* transform);
 
-void libmv_frameAccessorgetTransformRun(const libmv_FrameTransform *transform,
-                                        const libmv_FloatImage *input_image,
-                                        libmv_FloatImage *output_image);
+void libmv_frameAccessorgetTransformRun(const libmv_FrameTransform* transform,
+                                        const libmv_FloatImage* input_image,
+                                        libmv_FloatImage* output_image);
 #ifdef __cplusplus
 }
 #endif

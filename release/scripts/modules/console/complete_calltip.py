@@ -107,11 +107,7 @@ def get_argspec(func, strip_self=True, doc=None, source=None):
     try:
         func = func.__func__
     except AttributeError:
-        try:
-            # py 2.X
-            func = func.im_func
-        except AttributeError:
-            pass
+        pass
     # is callable?
     if not hasattr(func, '__call__'):
         return ''
@@ -141,14 +137,10 @@ def get_argspec(func, strip_self=True, doc=None, source=None):
             argspec = inspect.formatargspec(*inspect.getfullargspec(func))
         except:
             try:
-                # py 2.X
-                argspec = inspect.formatargspec(*inspect.getargspec(func))
+                argspec = inspect.formatargvalues(
+                    *inspect.getargvalues(func))
             except:
-                try:
-                    argspec = inspect.formatargvalues(
-                        *inspect.getargvalues(func))
-                except:
-                    argspec = ''
+                argspec = ''
         if strip_self:
             argspec = argspec.replace('self, ', '')
     return argspec

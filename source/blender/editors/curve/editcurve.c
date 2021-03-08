@@ -1359,7 +1359,7 @@ static int separate_exec(bContext *C, wmOperator *op)
     int error_generic;
   } status = {0};
 
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
@@ -1426,7 +1426,7 @@ static int separate_exec(bContext *C, wmOperator *op)
     status.changed++;
   }
   MEM_freeN(bases);
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   if (status.unselected == bases_len) {
     BKE_report(op->reports, RPT_ERROR, "No point was selected");

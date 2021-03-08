@@ -60,7 +60,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
   blo_split_main(&mainlist, bmain);
 
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int i = set_listbasepointers(bmain, lbarray);
   while (i--) {
     for (ID *id = lbarray[i]->first; id != NULL; id = id->next) {

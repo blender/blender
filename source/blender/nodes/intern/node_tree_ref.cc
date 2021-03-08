@@ -52,6 +52,24 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
       RNA_pointer_create(&btree->id, &RNA_NodeSocket, bsocket, &socket.rna_);
     }
 
+    LISTBASE_FOREACH (bNodeLink *, blink, &bnode->internal_links) {
+      InternalLinkRef &internal_link = *allocator_.construct<InternalLinkRef>();
+      internal_link.blink_ = blink;
+      for (InputSocketRef *socket_ref : node.inputs_) {
+        if (socket_ref->bsocket_ == blink->fromsock) {
+          internal_link.from_ = socket_ref;
+          break;
+        }
+      }
+      for (OutputSocketRef *socket_ref : node.outputs_) {
+        if (socket_ref->bsocket_ == blink->tosock) {
+          internal_link.to_ = socket_ref;
+          break;
+        }
+      }
+      node.internal_links_.append(&internal_link);
+    }
+
     input_sockets_.extend(node.inputs_.as_span());
     output_sockets_.extend(node.outputs_.as_span());
 
@@ -64,8 +82,16 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     InputSocketRef &to_socket = this->find_input_socket(
         node_mapping, blink->tonode, blink->tosock);
 
+    LinkRef &link = *allocator_.construct<LinkRef>();
+    link.from_ = &from_socket;
+    link.to_ = &to_socket;
+    link.blink_ = blink;
+
+    links_.append(&link);
     from_socket.directly_linked_sockets_.append(&to_socket);
     to_socket.directly_linked_sockets_.append(&from_socket);
+    from_socket.directly_linked_links_.append(&link);
+    to_socket.directly_linked_links_.append(&link);
   }
 
   for (OutputSocketRef *socket : output_sockets_) {
@@ -85,6 +111,8 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
 
 NodeTreeRef::~NodeTreeRef()
 {
+  /* The destructor has to be called manually, because these types are allocated in a linear
+   * allocator. */
   for (NodeRef *node : nodes_by_id_) {
     node->~NodeRef();
   }
@@ -93,6 +121,9 @@ NodeTreeRef::~NodeTreeRef()
   }
   for (OutputSocketRef *socket : output_sockets_) {
     socket->~OutputSocketRef();
+  }
+  for (LinkRef *link : links_) {
+    link->~LinkRef();
   }
 }
 
@@ -214,6 +245,12 @@ std::string NodeTreeRef::to_dot() const
   }
 
   return digraph.to_dot_string();
+}
+
+const NodeTreeRef &get_tree_ref_from_map(NodeTreeRefMap &node_tree_refs, bNodeTree &btree)
+{
+  return *node_tree_refs.lookup_or_add_cb(&btree,
+                                          [&]() { return std::make_unique<NodeTreeRef>(&btree); });
 }
 
 }  // namespace blender::nodes

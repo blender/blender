@@ -58,6 +58,7 @@ def load_handler(dummy):
     # Grease pencil object
     scene = bpy.data.scenes[0]
     if scene:
+        scene.tool_settings.use_keyframe_insert_auto = True
         for ob in scene.objects:
             if ob.type == 'GPENCIL':
                 gpd = ob.data

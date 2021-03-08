@@ -74,7 +74,7 @@ void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
   this->determineDependingAreaOfInterest(
       rect, (ReadBufferOperation *)this->m_inputSizeProgram, &rect2);
 
-  const float max_dim = max(m_width, m_height);
+  const float max_dim = MAX2(m_width, m_height);
   const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
   data->maxBlurScalar = (int)(data->size->getMaximumValue(&rect2) * scalar);
@@ -102,7 +102,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
   float multiplier_accum[4];
   float color_accum[4];
 
-  const float max_dim = max(m_width, m_height);
+  const float max_dim = MAX2(m_width, m_height);
   const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
   int maxBlurScalar = tileData->maxBlurScalar;
 
@@ -120,10 +120,10 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
   int maxx = search[2];
   int maxy = search[3];
 #else
-  int minx = max(x - maxBlurScalar, 0);
-  int miny = max(y - maxBlurScalar, 0);
-  int maxx = min(x + maxBlurScalar, (int)m_width);
-  int maxy = min(y + maxBlurScalar, (int)m_height);
+  int minx = MAX2(x - maxBlurScalar, 0);
+  int miny = MAX2(y - maxBlurScalar, 0);
+  int maxx = MIN2(x + maxBlurScalar, (int)m_width);
+  int maxy = MIN2(y + maxBlurScalar, (int)m_height);
 #endif
   {
     inputSizeBuffer->readNoCheck(tempSize, x, y);
@@ -145,7 +145,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
         int offsetColorNxNy = offsetValueNxNy * COM_NUM_CHANNELS_COLOR;
         for (int nx = minx; nx < maxx; nx += addXStepValue) {
           if (nx != x || ny != y) {
-            float size = min(inputSizeFloatBuffer[offsetValueNxNy] * scalar, size_center);
+            float size = MIN2(inputSizeFloatBuffer[offsetValueNxNy] * scalar, size_center);
             if (size > this->m_threshold) {
               float dx = nx - x;
               if (size > fabsf(dx) && size > fabsf(dy)) {
@@ -185,8 +185,8 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
                                                    MemoryBuffer *outputMemoryBuffer,
                                                    cl_mem clOutputBuffer,
                                                    MemoryBuffer **inputMemoryBuffers,
-                                                   list<cl_mem> *clMemToCleanUp,
-                                                   list<cl_kernel> * /*clKernelsToCleanUp*/)
+                                                   std::list<cl_mem> *clMemToCleanUp,
+                                                   std::list<cl_kernel> * /*clKernelsToCleanUp*/)
 {
   cl_kernel defocusKernel = device->COM_clCreateKernel("defocusKernel", nullptr);
 
@@ -197,7 +197,7 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
   MemoryBuffer *sizeMemoryBuffer = this->m_inputSizeProgram->getInputMemoryBuffer(
       inputMemoryBuffers);
 
-  const float max_dim = max(m_width, m_height);
+  const float max_dim = MAX2(m_width, m_height);
   cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
   maxBlur = (cl_int)min_ff(sizeMemoryBuffer->getMaximumValue() * scalar, (float)this->m_maxBlur);
@@ -235,7 +235,7 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
   rcti newInput;
   rcti bokehInput;
 
-  const float max_dim = max(m_width, m_height);
+  const float max_dim = MAX2(m_width, m_height);
   const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
   int maxBlurScalar = this->m_maxBlur * scalar;
 

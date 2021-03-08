@@ -48,7 +48,7 @@ typedef struct bNodeExec {
   bNodeExecData data;
 
   /** Free function, stored in exec itself to avoid dangling node pointer access. */
-  NodeFreeExecFunction freeexecfunc;
+  NodeFreeExecFunction free_exec_fn;
 } bNodeExec;
 
 /* Execution Data for each instance of node tree execution */

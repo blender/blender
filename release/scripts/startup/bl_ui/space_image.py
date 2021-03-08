@@ -375,7 +375,7 @@ class IMAGE_MT_uvs_split(Menu):
 class IMAGE_MT_uvs_unwrap(Menu):
     bl_label = "Unwrap"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("uv.unwrap")

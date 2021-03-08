@@ -41,11 +41,11 @@
 
 namespace libmv {
 
-void *aligned_malloc(int size, int alignment) {
+void* aligned_malloc(int size, int alignment) {
 #ifdef _WIN32
   return _aligned_malloc(size, alignment);
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
-  void *result;
+  void* result;
 
   if (posix_memalign(&result, alignment, size)) {
     // non-zero means allocation error
@@ -58,7 +58,7 @@ void *aligned_malloc(int size, int alignment) {
 #endif
 }
 
-void aligned_free(void *ptr) {
+void aligned_free(void* ptr) {
 #ifdef _WIN32
   _aligned_free(ptr);
 #else

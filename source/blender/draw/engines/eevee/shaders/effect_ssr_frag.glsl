@@ -80,25 +80,24 @@ void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
   vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH);
   vec3 R = reflect(-V, H);
 
+  const float bad_ray_threshold = 0.01;
+
+  vec3 vNg = safe_normalize(cross(dFdx(vP), dFdy(vP)));
+
   /* If ray is bad (i.e. going below the surface) regenerate. */
-  /* This threshold is a bit higher than 0 to improve self intersection cases. */
-  const float bad_ray_threshold = 0.085;
-  if (dot(R, N) <= bad_ray_threshold) {
+  if (dot(R, vNg) < bad_ray_threshold) {
     H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH);
     R = reflect(-V, H);
   }
-
-  if (dot(R, N) <= bad_ray_threshold) {
+  if (dot(R, vNg) < bad_ray_threshold) {
     H = sample_ggx(rand.xzw * vec3(1.0, 1.0, -1.0), a2, N, T, B, NH);
     R = reflect(-V, H);
   }
-
-  if (dot(R, N) <= bad_ray_threshold) {
+  if (dot(R, vNg) < bad_ray_threshold) {
     H = sample_ggx(rand.xzw * vec3(1.0, -1.0, 1.0), a2, N, T, B, NH);
     R = reflect(-V, H);
   }
-
-  if (dot(R, N) <= bad_ray_threshold) {
+  if (dot(R, vNg) < bad_ray_threshold) {
     /* Not worth tracing. */
     return;
   }

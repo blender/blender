@@ -59,7 +59,8 @@ static void operator_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
 static void operator_search_update_fn(const bContext *C,
                                       void *UNUSED(arg),
                                       const char *str,
-                                      uiSearchItems *items)
+                                      uiSearchItems *items,
+                                      const bool UNUSED(is_first))
 {
   GHashIterator iter;
 

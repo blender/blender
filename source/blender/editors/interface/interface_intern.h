@@ -31,6 +31,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct AnimationEvalContext;
 struct CurveMapping;
@@ -316,6 +320,12 @@ typedef struct uiButSearch {
 
   struct PointerRNA rnasearchpoin;
   struct PropertyRNA *rnasearchprop;
+
+  /**
+   * The search box only provides suggestions, it does not force
+   * the string to match one of the search items when applying.
+   */
+  bool results_are_suggestions;
 } uiButSearch;
 
 /** Derived struct for #UI_BTYPE_DECORATOR */
@@ -414,8 +424,8 @@ struct PieMenuData {
   float last_pos[2];
   double duration_gesture;
   int flags;
-  /** initial event used to fire the pie menu, store here so we can query for release */
-  int event;
+  /** Initial event used to fire the pie menu, store here so we can query for release */
+  short event_type;
   float alphafac;
 };
 
@@ -1193,10 +1203,15 @@ typedef struct uiRNACollectionSearch {
 void ui_rna_collection_search_update_fn(const struct bContext *C,
                                         void *arg,
                                         const char *str,
-                                        uiSearchItems *items);
+                                        uiSearchItems *items,
+                                        const bool is_first);
 
 /* interface_ops.c */
 bool ui_jump_to_target_button_poll(struct bContext *C);
 
 /* interface_queries.c */
 void ui_interface_tag_script_reload_queries(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -38,7 +38,7 @@ typedef struct libmv_DetectOptions {
   int min_distance;
   int fast_min_trackness;
   int moravec_max_count;
-  unsigned char *moravec_pattern;
+  unsigned char* moravec_pattern;
   double harris_threshold;
 } libmv_DetectOptions;
 

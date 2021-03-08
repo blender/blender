@@ -23,9 +23,9 @@
 
 #include "libmv/base/vector.h"
 #include "libmv/multiview/conditioning.h"
+#include "libmv/multiview/homography_error.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/multiview/two_view_kernel.h"
-#include "libmv/multiview/homography_error.h"
 #include "libmv/numeric/numeric.h"
 
 namespace libmv {
@@ -34,18 +34,18 @@ namespace kernel {
 
 struct TwoPointSolver {
   enum { MINIMUM_SAMPLES = 2 };
-  static void Solve(const Mat &x1, const Mat &x2, vector<Mat3> *Hs);
+  static void Solve(const Mat& x1, const Mat& x2, vector<Mat3>* Hs);
 };
 
-typedef two_view::kernel::Kernel<
-    TwoPointSolver, homography::homography2D::AsymmetricError, Mat3>
-  UnnormalizedKernel;
+typedef two_view::kernel::
+    Kernel<TwoPointSolver, homography::homography2D::AsymmetricError, Mat3>
+        UnnormalizedKernel;
 
 typedef two_view::kernel::Kernel<
-        two_view::kernel::NormalizedSolver<TwoPointSolver, UnnormalizerI>,
-        homography::homography2D::AsymmetricError,
-        Mat3>
-  Kernel;
+    two_view::kernel::NormalizedSolver<TwoPointSolver, UnnormalizerI>,
+    homography::homography2D::AsymmetricError,
+    Mat3>
+    Kernel;
 
 }  // namespace kernel
 }  // namespace panography

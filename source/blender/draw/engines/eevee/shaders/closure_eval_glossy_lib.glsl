@@ -3,6 +3,7 @@
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
+#pragma BLENDER_REQUIRE(bsdf_common_lib.glsl)
 
 struct ClosureInputGlossy {
   vec3 N;          /** Shading normal. */
@@ -38,6 +39,10 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   cl_in.N = safe_normalize(cl_in.N);
   cl_in.roughness = clamp(cl_in.roughness, 1e-8, 0.9999);
   cl_out.radiance = vec3(0.0);
+
+#ifndef STEP_RESOLVE /* SSR */
+  cl_in.N = ensure_valid_reflection(cl_common.Ng, cl_common.V, cl_in.N);
+#endif
 
   float NV = dot(cl_in.N, cl_common.V);
   vec2 lut_uv = lut_coords(NV, cl_in.roughness);

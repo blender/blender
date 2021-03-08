@@ -46,10 +46,10 @@
 struct DupliObject;
 struct Object;
 
-/* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
+/** Use draw manager to call GPU_select, see: #DRW_draw_select_loop */
 #define USE_GPU_SELECT
 
-/* Use drawcall batching using instanced rendering. */
+/** Use draw-call batching using instanced rendering. */
 #define USE_BATCHING 1
 
 // #define DRW_DEBUG_CULLING

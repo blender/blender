@@ -48,7 +48,7 @@ static ThreadLocal(CPUDevice *) g_thread_device;
 static struct {
   /** \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created
    */
-  vector<CPUDevice *> cpu_devices;
+  std::vector<CPUDevice *> cpu_devices;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
   /** \brief list of all thread for every CPUDevice in cpudevices a thread exists. */
@@ -62,7 +62,7 @@ static struct {
   cl_program opencl_program;
   /** \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is
    * created. */
-  vector<OpenCLDevice *> gpu_devices;
+  std::vector<OpenCLDevice *> gpu_devices;
   /** \brief list of all thread for every GPUDevice in cpudevices a thread exists. */
   ListBase gpu_threads;
   /** \brief all scheduled work for the GPU. */

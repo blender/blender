@@ -67,6 +67,7 @@
 
 #include "ED_clip.h"
 #include "ED_gpencil.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -2155,6 +2156,10 @@ static void gpencil_paint_initstroke(tGPsdata *p,
         continue;
       }
 
+      if (!IS_AUTOKEY_ON(scene) && (gpl->actframe == NULL)) {
+        continue;
+      }
+
       /* Add a new frame if needed (and based off the active frame,
        * as we need some existing strokes to erase)
        *
@@ -2164,7 +2169,8 @@ static void gpencil_paint_initstroke(tGPsdata *p,
        */
       if (gpl->actframe && gpl->actframe->strokes.first) {
         if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
-          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+          short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
+          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, frame_mode);
         }
         has_layer_to_erase = true;
         break;
@@ -2187,11 +2193,16 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     /* Drawing Modes - Add a new frame if needed on the active layer */
     short add_frame_mode;
 
-    if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
-      add_frame_mode = GP_GETFRAME_ADD_COPY;
+    if (IS_AUTOKEY_ON(scene)) {
+      if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+        add_frame_mode = GP_GETFRAME_ADD_COPY;
+      }
+      else {
+        add_frame_mode = GP_GETFRAME_ADD_NEW;
+      }
     }
     else {
-      add_frame_mode = GP_GETFRAME_ADD_NEW;
+      add_frame_mode = GP_GETFRAME_USE_PREV;
     }
 
     bool need_tag = p->gpl->actframe == NULL;
@@ -2206,6 +2217,10 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       if (G.debug & G_DEBUG) {
         printf("Error: No frame created (gpencil_paint_init)\n");
       }
+      if (!IS_AUTOKEY_ON(scene)) {
+        BKE_report(p->reports, RPT_INFO, "No available frame for creating stroke");
+      }
+
       return;
     }
     p->gpf->flag |= GP_FRAME_PAINT;
@@ -2469,6 +2484,8 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
     return 0;
   }
 
+  p->reports = op->reports;
+
   /* init painting data */
   gpencil_paint_initstroke(p, paintmode, CTX_data_ensure_evaluated_depsgraph(C));
   if (p->status == GP_STATUS_ERROR) {
@@ -2482,8 +2499,6 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
   else {
     p->keymodifier = -1;
   }
-
-  p->reports = op->reports;
 
   /* everything is now setup ok */
   return 1;
@@ -2835,7 +2850,7 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* verify direction for straight lines and guides */
   if ((is_speed_guide) ||
-      ((event->alt > 0) && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
+      (event->alt && (RNA_boolean_get(op->ptr, "disable_straight") == false))) {
     if (p->straight == 0) {
       int dx = (int)fabsf(p->mval[0] - p->mvali[0]);
       int dy = (int)fabsf(p->mval[1] - p->mvali[1]);
@@ -2876,13 +2891,13 @@ static void gpencil_draw_apply_event(bContext *C,
 
   /* special eraser modes */
   if (p->paintmode == GP_PAINTMODE_ERASER) {
-    if (event->shift > 0) {
+    if (event->shift) {
       p->flags |= GP_PAINTFLAG_HARD_ERASER;
     }
     else {
       p->flags &= ~GP_PAINTFLAG_HARD_ERASER;
     }
-    if (event->alt > 0) {
+    if (event->alt) {
       p->flags |= GP_PAINTFLAG_STROKE_ERASER;
     }
     else {

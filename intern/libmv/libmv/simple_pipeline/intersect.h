@@ -22,8 +22,8 @@
 #define LIBMV_SIMPLE_PIPELINE_INTERSECT_H
 
 #include "libmv/base/vector.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/reconstruction.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -38,7 +38,8 @@ namespace libmv {
     \a markers should contain all \link Marker markers \endlink belonging to
        tracks visible in all frames.
     \a reconstruction should contain the cameras for all frames.
-       The new \link Point points \endlink will be inserted in \a reconstruction.
+       The new \link Point points \endlink will be inserted in \a
+   reconstruction.
 
     \note This assumes a calibrated reconstruction, e.g. the markers are
           already corrected for camera intrinsics and radial distortion.
@@ -46,8 +47,8 @@ namespace libmv {
 
     \sa EuclideanResect
 */
-bool EuclideanIntersect(const vector<Marker> &markers,
-                        EuclideanReconstruction *reconstruction);
+bool EuclideanIntersect(const vector<Marker>& markers,
+                        EuclideanReconstruction* reconstruction);
 
 /*!
     Estimate the homogeneous coordinates of a track by intersecting rays.
@@ -60,7 +61,8 @@ bool EuclideanIntersect(const vector<Marker> &markers,
     \a markers should contain all \link Marker markers \endlink belonging to
        tracks visible in all frames.
     \a reconstruction should contain the cameras for all frames.
-       The new \link Point points \endlink will be inserted in \a reconstruction.
+       The new \link Point points \endlink will be inserted in \a
+   reconstruction.
 
     \note This assumes that radial distortion is already corrected for, but
           does not assume that e.g. focal length and principal point are
@@ -69,8 +71,8 @@ bool EuclideanIntersect(const vector<Marker> &markers,
 
     \sa Resect
 */
-bool ProjectiveIntersect(const vector<Marker> &markers,
-                         ProjectiveReconstruction *reconstruction);
+bool ProjectiveIntersect(const vector<Marker>& markers,
+                         ProjectiveReconstruction* reconstruction);
 
 }  // namespace libmv
 

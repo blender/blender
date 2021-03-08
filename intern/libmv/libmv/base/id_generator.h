@@ -28,6 +28,7 @@ class IdGenerator {
  public:
   IdGenerator() : next_(0) {}
   ID Generate() { return next_++; }
+
  private:
   ID next_;
 };

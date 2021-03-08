@@ -64,7 +64,7 @@ void BoxMaskOperation::executePixelSampled(float output[4], float x, float y, Pi
   switch (this->m_maskType) {
     case CMP_NODE_MASKTYPE_ADD:
       if (inside) {
-        output[0] = max(inputMask[0], inputValue[0]);
+        output[0] = MAX2(inputMask[0], inputValue[0]);
       }
       else {
         output[0] = inputMask[0];

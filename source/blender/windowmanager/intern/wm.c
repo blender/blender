@@ -172,7 +172,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->ime_data = NULL;
 #endif
 
-    BLI_listbase_clear(&win->queue);
+    BLI_listbase_clear(&win->event_queue);
     BLI_listbase_clear(&win->handlers);
     BLI_listbase_clear(&win->modalhandlers);
     BLI_listbase_clear(&win->gesture);
@@ -184,6 +184,8 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->modalcursor = 0;
     win->grabcursor = 0;
     win->addmousemove = true;
+    win->event_queue_check_click = 0;
+    win->event_queue_check_drag = 0;
     BLO_read_data_address(reader, &win->stereo3d_format);
 
     /* Multi-view always fallback to anaglyph at file opening
@@ -198,7 +200,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   BLI_listbase_clear(&wm->timers);
   BLI_listbase_clear(&wm->operators);
   BLI_listbase_clear(&wm->paintcursors);
-  BLI_listbase_clear(&wm->queue);
+  BLI_listbase_clear(&wm->notifier_queue);
   BKE_reports_init(&wm->reports, RPT_STORE);
 
   BLI_listbase_clear(&wm->keyconfigs);
@@ -590,7 +592,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
     WM_keyconfig_free(keyconf);
   }
 
-  BLI_freelistN(&wm->queue);
+  BLI_freelistN(&wm->notifier_queue);
 
   if (wm->message_bus != NULL) {
     WM_msgbus_destroy(wm->message_bus);

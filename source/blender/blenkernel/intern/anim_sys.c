@@ -376,59 +376,56 @@ static bool is_fcurve_evaluatable(FCurve *fcu)
   return true;
 }
 
-bool BKE_animsys_store_rna_setting(PointerRNA *ptr,
-                                   /* typically 'fcu->rna_path', 'fcu->array_index' */
-                                   const char *rna_path,
-                                   const int array_index,
-                                   PathResolvedRNA *r_result)
+bool BKE_animsys_rna_path_resolve(PointerRNA *ptr,
+                                  /* typically 'fcu->rna_path', 'fcu->array_index' */
+                                  const char *rna_path,
+                                  const int array_index,
+                                  PathResolvedRNA *r_result)
 {
-  bool success = false;
-  const char *path = rna_path;
-
-  /* write value to setting */
-  if (path) {
-    /* get property to write to */
-    if (RNA_path_resolve_property(ptr, path, &r_result->ptr, &r_result->prop)) {
-      if ((ptr->owner_id == NULL) || RNA_property_animateable(&r_result->ptr, r_result->prop)) {
-        int array_len = RNA_property_array_length(&r_result->ptr, r_result->prop);
-
-        if (array_len && array_index >= array_len) {
-          if (G.debug & G_DEBUG) {
-            CLOG_WARN(&LOG,
-                      "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
-                      (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
-                      path,
-                      array_index,
-                      array_len - 1);
-          }
-        }
-        else {
-          r_result->prop_index = array_len ? array_index : -1;
-          success = true;
-        }
-      }
-    }
-    else {
-      /* failed to get path */
-      /* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
-       * where some channels will not exist, but shouldn't lock up Action */
-      if (G.debug & G_DEBUG) {
-        CLOG_WARN(&LOG,
-                  "Animato: Invalid path. ID = '%s',  '%s[%d]'",
-                  (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
-                  path,
-                  array_index);
-      }
-    }
+  if (rna_path == NULL) {
+    return false;
   }
 
-  return success;
+  const char *path = rna_path;
+  if (!RNA_path_resolve_property(ptr, path, &r_result->ptr, &r_result->prop)) {
+    /* failed to get path */
+    /* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
+     * where some channels will not exist, but shouldn't lock up Action */
+    if (G.debug & G_DEBUG) {
+      CLOG_WARN(&LOG,
+                "Animato: Invalid path. ID = '%s',  '%s[%d]'",
+                (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
+                path,
+                array_index);
+    }
+    return false;
+  }
+
+  if (ptr->owner_id != NULL && !RNA_property_animateable(&r_result->ptr, r_result->prop)) {
+    return false;
+  }
+
+  int array_len = RNA_property_array_length(&r_result->ptr, r_result->prop);
+  if (array_len && array_index >= array_len) {
+    if (G.debug & G_DEBUG) {
+      CLOG_WARN(&LOG,
+                "Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d",
+                (ptr->owner_id) ? (ptr->owner_id->name + 2) : "<No ID>",
+                path,
+                array_index,
+                array_len - 1);
+    }
+    return false;
+  }
+
+  r_result->prop_index = array_len ? array_index : -1;
+  return true;
 }
 
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
 
-bool BKE_animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
+bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value)
 {
   PropertyRNA *prop = anim_rna->prop;
   PointerRNA *ptr = &anim_rna->ptr;
@@ -491,7 +488,7 @@ bool BKE_animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
 }
 
 /* Write the given value to a setting using RNA, and return success */
-bool BKE_animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
+bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
 {
   PropertyRNA *prop = anim_rna->prop;
   PointerRNA *ptr = &anim_rna->ptr;
@@ -502,7 +499,7 @@ bool BKE_animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
 
   /* Check whether value is new. Otherwise we skip all the updates. */
   float old_value;
-  if (!BKE_animsys_read_rna_setting(anim_rna, &old_value)) {
+  if (!BKE_animsys_read_from_rna_path(anim_rna, &old_value)) {
     return false;
   }
   if (old_value == value) {
@@ -591,8 +588,8 @@ static void animsys_write_orig_anim_rna(PointerRNA *ptr,
   }
   PathResolvedRNA orig_anim_rna;
   /* TODO(sergey): Should be possible to cache resolved path in dependency graph somehow. */
-  if (BKE_animsys_store_rna_setting(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
-    BKE_animsys_write_rna_setting(&orig_anim_rna, value);
+  if (BKE_animsys_rna_path_resolve(&ptr_orig, rna_path, array_index, &orig_anim_rna)) {
+    BKE_animsys_write_to_rna_path(&orig_anim_rna, value);
   }
 }
 
@@ -614,9 +611,9 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr,
     }
 
     PathResolvedRNA anim_rna;
-    if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+    if (BKE_animsys_rna_path_resolve(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
       const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
-      BKE_animsys_write_rna_setting(&anim_rna, curval);
+      BKE_animsys_write_to_rna_path(&anim_rna, curval);
       if (flush_to_original) {
         animsys_write_orig_anim_rna(ptr, fcu->rna_path, fcu->array_index, curval);
       }
@@ -666,9 +663,9 @@ static void animsys_evaluate_drivers(PointerRNA *ptr,
          * NOTE: for 'layering' option later on, we should check if we should remove old value
          * before adding new to only be done when drivers only changed. */
         PathResolvedRNA anim_rna;
-        if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+        if (BKE_animsys_rna_path_resolve(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
           const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
-          ok = BKE_animsys_write_rna_setting(&anim_rna, curval);
+          ok = BKE_animsys_write_to_rna_path(&anim_rna, curval);
         }
 
         /* set error-flag if evaluation failed */
@@ -747,19 +744,19 @@ void animsys_evaluate_action_group(PointerRNA *ptr,
     /* check if this curve should be skipped */
     if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0 && !BKE_fcurve_is_empty(fcu)) {
       PathResolvedRNA anim_rna;
-      if (BKE_animsys_store_rna_setting(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      if (BKE_animsys_rna_path_resolve(ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         const float curval = calculate_fcurve(&anim_rna, fcu, anim_eval_context);
-        BKE_animsys_write_rna_setting(&anim_rna, curval);
+        BKE_animsys_write_to_rna_path(&anim_rna, curval);
       }
     }
   }
 }
 
 /* Evaluate Action (F-Curve Bag) */
-static void animsys_evaluate_action_ex(PointerRNA *ptr,
-                                       bAction *act,
-                                       const AnimationEvalContext *anim_eval_context,
-                                       const bool flush_to_original)
+void animsys_evaluate_action(PointerRNA *ptr,
+                             bAction *act,
+                             const AnimationEvalContext *anim_eval_context,
+                             const bool flush_to_original)
 {
   /* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
   if (act == NULL) {
@@ -770,14 +767,6 @@ static void animsys_evaluate_action_ex(PointerRNA *ptr,
 
   /* calculate then execute each curve */
   animsys_evaluate_fcurves(ptr, &act->curves, anim_eval_context, flush_to_original);
-}
-
-void animsys_evaluate_action(PointerRNA *ptr,
-                             bAction *act,
-                             const AnimationEvalContext *anim_eval_context,
-                             const bool flush_to_original)
-{
-  animsys_evaluate_action_ex(ptr, act, anim_eval_context, flush_to_original);
 }
 
 /* ***************************************** */
@@ -2008,7 +1997,7 @@ void nladata_flush_channels(PointerRNA *ptr,
         if (nec->is_array) {
           rna.prop_index = i;
         }
-        BKE_animsys_write_rna_setting(&rna, value);
+        BKE_animsys_write_to_rna_path(&rna, value);
         if (flush_to_original) {
           animsys_write_orig_anim_rna(ptr, nec->rna_path, rna.prop_index, value);
         }
@@ -2769,8 +2758,8 @@ static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)
   /* for each override, simply execute... */
   for (aor = adt->overrides.first; aor; aor = aor->next) {
     PathResolvedRNA anim_rna;
-    if (BKE_animsys_store_rna_setting(ptr, aor->rna_path, aor->array_index, &anim_rna)) {
-      BKE_animsys_write_rna_setting(&anim_rna, aor->value);
+    if (BKE_animsys_rna_path_resolve(ptr, aor->rna_path, aor->array_index, &anim_rna)) {
+      BKE_animsys_write_to_rna_path(&anim_rna, aor->value);
     }
   }
 }
@@ -2850,7 +2839,7 @@ void BKE_animsys_evaluate_animdata(ID *id,
     }
     /* evaluate Active Action only */
     else if (adt->action) {
-      animsys_evaluate_action_ex(&id_ptr, adt->action, anim_eval_context, flush_to_original);
+      animsys_evaluate_action(&id_ptr, adt->action, anim_eval_context, flush_to_original);
     }
   }
 
@@ -3100,13 +3089,13 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
       // printf("\told val = %f\n", fcu->curval);
 
       PathResolvedRNA anim_rna;
-      if (BKE_animsys_store_rna_setting(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      if (BKE_animsys_rna_path_resolve(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
         /* Evaluate driver, and write results to COW-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
             depsgraph, ctime);
         const float curval = calculate_fcurve(&anim_rna, fcu, &anim_eval_context);
-        ok = BKE_animsys_write_rna_setting(&anim_rna, curval);
+        ok = BKE_animsys_write_to_rna_path(&anim_rna, curval);
 
         /* Flush results & status codes to original data for UI (T59984) */
         if (ok && DEG_is_active(depsgraph)) {

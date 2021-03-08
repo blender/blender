@@ -79,19 +79,18 @@ typedef struct libmv_Marker {
 
 #ifdef __cplusplus
 namespace mv {
-  struct Marker;
+struct Marker;
 }
 void libmv_apiMarkerToMarker(const libmv_Marker& libmv_marker,
-                             mv::Marker *marker);
+                             mv::Marker* marker);
 
 void libmv_markerToApiMarker(const mv::Marker& marker,
-                             libmv_Marker *libmv_marker);
+                             libmv_Marker* libmv_marker);
 #endif
 
 libmv_TracksN* libmv_tracksNewN(void);
 
 void libmv_tracksDestroyN(libmv_TracksN* libmv_tracks);
-
 
 void libmv_tracksAddMarkerN(libmv_TracksN* libmv_tracks,
                             const libmv_Marker* libmv_marker);
@@ -107,8 +106,7 @@ void libmv_tracksRemoveMarkerN(libmv_TracksN* libmv_tracks,
                                int frame,
                                int track);
 
-void libmv_tracksRemoveMarkersForTrack(libmv_TracksN* libmv_tracks,
-                                       int track);
+void libmv_tracksRemoveMarkersForTrack(libmv_TracksN* libmv_tracks, int track);
 
 int libmv_tracksMaxClipN(libmv_TracksN* libmv_tracks);
 int libmv_tracksMaxFrameN(libmv_TracksN* libmv_tracks, int clip);

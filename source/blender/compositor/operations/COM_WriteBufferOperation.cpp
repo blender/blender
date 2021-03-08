@@ -143,9 +143,9 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   }
 
   // STEP 2
-  list<cl_mem> *clMemToCleanUp = new list<cl_mem>();
+  std::list<cl_mem> *clMemToCleanUp = new std::list<cl_mem>();
   clMemToCleanUp->push_back(clOutputBuffer);
-  list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
+  std::list<cl_kernel> *clKernelsToCleanUp = new std::list<cl_kernel>();
 
   this->m_input->executeOpenCL(device,
                                outputBuffer,

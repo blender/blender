@@ -336,11 +336,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                               backing:NSBackingStoreBuffered
                                                 defer:NO];
 
-  if (m_window == nil) {
-    [pool drain];
-    return;
-  }
-
   [m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 
   // Forbid to resize the window below the blender defined minimum one

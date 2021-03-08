@@ -26,7 +26,6 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_cryptomatte.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"

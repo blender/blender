@@ -278,7 +278,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 #ifdef GHOST_WAIT_FOR_VSYNC
   {
     GLint swapInt = 1;
-    /* wait for vsync, to avoid tearing artifacts */
+    /* Wait for vertical-sync, to avoid tearing artifacts. */
     [m_openGLContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
   }
 #endif

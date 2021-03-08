@@ -32,7 +32,7 @@ static bNodeSocketTemplate geo_node_attribute_proximity_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_GEOMETRY, N_("Target")},
     {SOCK_STRING, N_("Distance")},
-    {SOCK_STRING, N_("Location")},
+    {SOCK_STRING, N_("Position")},
     {-1, ""},
 };
 
@@ -172,7 +172,7 @@ static void attribute_calc_proximity(GeometryComponent &component,
   OutputAttributePtr distance_attribute = component.attribute_try_get_for_output(
       distance_attribute_name, result_domain, CD_PROP_FLOAT);
 
-  const std::string location_attribute_name = params.get_input<std::string>("Location");
+  const std::string location_attribute_name = params.get_input<std::string>("Position");
   OutputAttributePtr location_attribute = component.attribute_try_get_for_output(
       location_attribute_name, result_domain, CD_PROP_FLOAT3);
 

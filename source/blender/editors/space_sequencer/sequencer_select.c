@@ -360,6 +360,31 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 }
 #endif
 
+void recurs_sel_seq(Sequence *seq_meta)
+{
+  Sequence *seq;
+
+  seq = seq_meta->seqbase.first;
+  while (seq) {
+
+    if (seq_meta->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) {
+      seq->flag &= ~SEQ_ALLSEL;
+    }
+    else if (seq_meta->flag & SELECT) {
+      seq->flag |= SELECT;
+    }
+    else {
+      seq->flag &= ~SEQ_ALLSEL;
+    }
+
+    if (seq->seqbase.first) {
+      recurs_sel_seq(seq);
+    }
+
+    seq = seq->next;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

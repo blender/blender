@@ -22,6 +22,8 @@
 
 #include "tree_element_anim_data.hh"
 #include "tree_element_driver_base.hh"
+#include "tree_element_gpencil_layer.hh"
+#include "tree_element_id.hh"
 #include "tree_element_nla.hh"
 
 #include "tree_element.h"
@@ -36,6 +38,8 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
   ID &id = *static_cast<ID *>(idv);
 
   switch (type) {
+    case TSE_SOME_ID:
+      return TreeElementID::createFromID(legacy_te, id);
     case TSE_ANIM_DATA:
       return new TreeElementAnimData(legacy_te, id);
     case TSE_DRIVER_BASE:
@@ -46,6 +50,8 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
       return new TreeElementNLATrack(legacy_te, *static_cast<NlaTrack *>(idv));
     case TSE_NLA_ACTION:
       return new TreeElementNLAAction(legacy_te);
+    case TSE_GP_LAYER:
+      return new TreeElementGPencilLayer(legacy_te, *static_cast<bGPDlayer *>(idv));
     default:
       break;
   }
@@ -78,6 +84,12 @@ void outliner_tree_element_type_expand(TreeElementType *type, SpaceOutliner *spa
 {
   outliner::tree_element_expand(reinterpret_cast<outliner::AbstractTreeElement &>(*type),
                                 *space_outliner);
+}
+bool outliner_tree_element_type_is_expand_valid(TreeElementType *type)
+{
+  outliner::AbstractTreeElement &element = reinterpret_cast<outliner::AbstractTreeElement &>(
+      *type);
+  return element.isExpandValid();
 }
 
 void outliner_tree_element_type_free(TreeElementType **type)

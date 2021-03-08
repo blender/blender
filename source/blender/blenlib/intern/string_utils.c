@@ -333,11 +333,6 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
   return false;
 }
 
-/* little helper macro for BLI_uniquename */
-#ifndef GIVE_STRADDR
-#  define GIVE_STRADDR(data, offset) (((char *)data) + offset)
-#endif
-
 /**
  * Generic function to set a unique name. It is only designed to be used in situations
  * where the name is part of the struct.
@@ -353,7 +348,7 @@ static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, 
 
   for (link = list->first; link; link = link->next) {
     if (link != vlink) {
-      if (STREQ(GIVE_STRADDR(link, name_offs), name)) {
+      if (STREQ(POINTER_OFFSET((const char *)link, name_offs), name)) {
         return true;
       }
     }
@@ -403,7 +398,7 @@ bool BLI_uniquename(
   }
 
   return BLI_uniquename_cb(
-      uniquename_unique_check, &data, defname, delim, GIVE_STRADDR(vlink, name_offs), name_len);
+      uniquename_unique_check, &data, defname, delim, POINTER_OFFSET(vlink, name_offs), name_len);
 }
 
 /* ------------------------------------------------------------------------- */

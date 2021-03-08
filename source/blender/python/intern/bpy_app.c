@@ -216,7 +216,7 @@ static PyObject *make_app_info(void)
 #undef SetObjItem
 
   if (PyErr_Occurred()) {
-    Py_CLEAR(app_info);
+    Py_DECREF(app_info);
     return NULL;
   }
   return app_info;

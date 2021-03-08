@@ -301,11 +301,11 @@ typedef struct bNodeType {
   void (*free_self)(struct bNodeType *ntype);
 
   /* **** execution callbacks **** */
-  NodeInitExecFunction initexecfunc;
-  NodeFreeExecFunction freeexecfunc;
-  NodeExecFunction execfunc;
+  NodeInitExecFunction init_exec_fn;
+  NodeFreeExecFunction free_exec_fn;
+  NodeExecFunction exec_fn;
   /* gpu */
-  NodeGPUExecFunction gpufunc;
+  NodeGPUExecFunction gpu_fn;
 
   /* Expands the bNode into nodes in a multi-function network, which will be evaluated later on. */
   NodeExpandInMFNetworkFunction expand_in_mf_network;
@@ -829,10 +829,10 @@ void node_type_group_update(struct bNodeType *ntype,
                                                       struct bNode *node));
 
 void node_type_exec(struct bNodeType *ntype,
-                    NodeInitExecFunction initexecfunc,
-                    NodeFreeExecFunction freeexecfunc,
-                    NodeExecFunction execfunc);
-void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufunc);
+                    NodeInitExecFunction init_exec_fn,
+                    NodeFreeExecFunction free_exec_fn,
+                    NodeExecFunction exec_fn);
+void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn);
 void node_type_internal_links(struct bNodeType *ntype,
                               void (*update_internal_links)(struct bNodeTree *, struct bNode *));
 

@@ -32,17 +32,17 @@
 #undef DUMP_ALWAYS
 
 using libmv::FloatImage;
+using libmv::TrackRegion;
 using libmv::TrackRegionOptions;
 using libmv::TrackRegionResult;
-using libmv::TrackRegion;
 
 void libmv_configureTrackRegionOptions(
     const libmv_TrackRegionOptions& options,
     TrackRegionOptions* track_region_options) {
   switch (options.motion_model) {
-#define LIBMV_CONVERT(the_model) \
-  case TrackRegionOptions::the_model: \
-    track_region_options->mode = TrackRegionOptions::the_model; \
+#define LIBMV_CONVERT(the_model)                                               \
+  case TrackRegionOptions::the_model:                                          \
+    track_region_options->mode = TrackRegionOptions::the_model;                \
     break;
     LIBMV_CONVERT(TRANSLATION)
     LIBMV_CONVERT(TRANSLATION_ROTATION)
@@ -66,7 +66,8 @@ void libmv_configureTrackRegionOptions(
    * so disabling for now for until proper prediction model is landed.
    *
    * The thing is, currently blender sends input coordinates as the guess to
-   * region tracker and in case of fast motion such an early out ruins the track.
+   * region tracker and in case of fast motion such an early out ruins the
+   * track.
    */
   track_region_options->attempt_refine_before_brute = false;
   track_region_options->use_normalized_intensities = options.use_normalization;
@@ -74,7 +75,7 @@ void libmv_configureTrackRegionOptions(
 
 void libmv_regionTrackergetResult(const TrackRegionResult& track_region_result,
                                   libmv_TrackRegionResult* result) {
-  result->termination = (int) track_region_result.termination;
+  result->termination = (int)track_region_result.termination;
   result->termination_reason = "";
   result->correlation = track_region_result.correlation;
 }
@@ -108,33 +109,27 @@ int libmv_trackRegion(const libmv_TrackRegionOptions* options,
 
   libmv_configureTrackRegionOptions(*options, &track_region_options);
   if (options->image1_mask) {
-    libmv_floatBufferToFloatImage(options->image1_mask,
-                                  image1_width,
-                                  image1_height,
-                                  1,
-                                  &image1_mask);
+    libmv_floatBufferToFloatImage(
+        options->image1_mask, image1_width, image1_height, 1, &image1_mask);
 
     track_region_options.image1_mask = &image1_mask;
   }
 
   // Convert from raw float buffers to libmv's FloatImage.
   FloatImage old_patch, new_patch;
-  libmv_floatBufferToFloatImage(image1,
-                                image1_width,
-                                image1_height,
-                                1,
-                                &old_patch);
-  libmv_floatBufferToFloatImage(image2,
-                                image2_width,
-                                image2_height,
-                                1,
-                                &new_patch);
+  libmv_floatBufferToFloatImage(
+      image1, image1_width, image1_height, 1, &old_patch);
+  libmv_floatBufferToFloatImage(
+      image2, image2_width, image2_height, 1, &new_patch);
 
   TrackRegionResult track_region_result;
-  TrackRegion(old_patch, new_patch,
-              xx1, yy1,
+  TrackRegion(old_patch,
+              new_patch,
+              xx1,
+              yy1,
               track_region_options,
-              xx2, yy2,
+              xx2,
+              yy2,
               &track_region_result);
 
   // Convert to floats for the blender api.

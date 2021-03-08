@@ -67,12 +67,13 @@ static void fn_node_random_float_expand_in_mf_network(
     blender::nodes::NodeMFNetworkBuilder &builder)
 {
   uint32_t function_seed = 1746872341u;
-  const blender::nodes::DNode &node = builder.dnode();
+  blender::nodes::DNode node = builder.dnode();
   const blender::DefaultHash<blender::StringRefNull> hasher;
-  function_seed = 33 * function_seed + hasher(node.name());
-  for (const blender::nodes::DParentNode *parent = node.parent(); parent != nullptr;
-       parent = parent->parent()) {
-    function_seed = 33 * function_seed + hasher(parent->node_ref().name());
+  function_seed = 33 * function_seed + hasher(node->name());
+  for (const blender::nodes::DTreeContext *context = node.context();
+       context->parent_node() != nullptr;
+       context = context->parent_context()) {
+    function_seed = 33 * function_seed + hasher(context->parent_node()->name());
   }
 
   builder.construct_and_set_matching_fn<RandomFloatFunction>(function_seed);

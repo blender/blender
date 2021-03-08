@@ -93,10 +93,10 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
   const float y2 = this->m_centerY + (-this->m_sine * dxmax + this->m_cosine * dymin);
   const float y3 = this->m_centerY + (-this->m_sine * dxmin + this->m_cosine * dymax);
   const float y4 = this->m_centerY + (-this->m_sine * dxmax + this->m_cosine * dymax);
-  const float minx = min(x1, min(x2, min(x3, x4)));
-  const float maxx = max(x1, max(x2, max(x3, x4)));
-  const float miny = min(y1, min(y2, min(y3, y4)));
-  const float maxy = max(y1, max(y2, max(y3, y4)));
+  const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
+  const float maxx = MAX2(x1, MAX2(x2, MAX2(x3, x4)));
+  const float miny = MIN2(y1, MIN2(y2, MIN2(y3, y4)));
+  const float maxy = MAX2(y1, MAX2(y2, MAX2(y3, y4)));
 
   newInput.xmax = ceil(maxx) + 1;
   newInput.xmin = floor(minx) - 1;

@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "testing/testing.h"
 #include "libmv/numeric/dogleg.h"
+#include "testing/testing.h"
 
 using namespace libmv;
 
@@ -29,26 +29,26 @@ class F {
  public:
   typedef Vec4 FMatrixType;
   typedef Vec3 XMatrixType;
-  Vec4 operator()(const Vec3 &x) const {
+  Vec4 operator()(const Vec3& x) const {
     double x1 = x.x() - 2;
     double y1 = x.y() - 5;
     double z1 = x.z();
-    Vec4 fx; fx << x1*x1 + z1*z1,
-                   y1*y1 + z1*z1,
-                   z1*z1,
-                   x1*x1;
+    Vec4 fx;
+    fx << x1 * x1 + z1 * z1, y1 * y1 + z1 * z1, z1 * z1, x1 * x1;
     return fx;
   }
 };
 
 TEST(Dogleg, SimpleCase) {
-  Vec3 x; x << 0.76026643, -30.01799744, 0.55192142;
+  Vec3 x;
+  x << 0.76026643, -30.01799744, 0.55192142;
   F f;
   Dogleg<F>::SolverParameters params;
   Dogleg<F> lm(f);
   /* TODO(sergey): Better error handling. */
   /* Dogleg<F>::Results results = */ lm.minimize(params, &x);
-  Vec3 expected_min_x; expected_min_x << 2, 5, 0;
+  Vec3 expected_min_x;
+  expected_min_x << 2, 5, 0;
 
   EXPECT_MATRIX_NEAR(expected_min_x, x, 1e-5);
 }
@@ -59,20 +59,21 @@ class F32 {
  public:
   typedef Vec2 FMatrixType;
   typedef Vec2 XMatrixType;
-  Vec2 operator()(const Vec2 &x) const {
+  Vec2 operator()(const Vec2& x) const {
     double x1 = x(0);
-    double x2 = 10*x(0)/(x(0) + 0.1) + 2*x(1)*x(1);
-    Vec2 fx; fx << x1, x2;
+    double x2 = 10 * x(0) / (x(0) + 0.1) + 2 * x(1) * x(1);
+    Vec2 fx;
+    fx << x1, x2;
     return fx;
   }
 };
 
 class JF32 {
  public:
-  JF32(const F32 &f) { (void) f; }
-  Mat2 operator()(const Vec2 &x) {
-    Mat2 J; J << 1,                      0,
-                 1./pow(x(0) + 0.1, 2),  4*x(1)*x(1);
+  JF32(const F32& f) { (void)f; }
+  Mat2 operator()(const Vec2& x) {
+    Mat2 J;
+    J << 1, 0, 1. / pow(x(0) + 0.1, 2), 4 * x(1) * x(1);
     return J;
   }
 };

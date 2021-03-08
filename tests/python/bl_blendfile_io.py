@@ -15,7 +15,8 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         self.args = args
 
     def test_save_load(self):
-        bpy.ops.wm.read_factory_settings()
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+
         bpy.data.meshes.new("OrphanedMesh")
 
         output_dir = self.args.output_dir
@@ -70,6 +71,9 @@ def argparse_create():
 
 def main():
     args = argparse_create().parse_args()
+
+    # Don't write thumbnails into the home directory.
+    bpy.context.preferences.filepaths.use_save_preview_images = False
 
     for Test in TESTS:
         Test(args).run_all_tests()

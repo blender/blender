@@ -15,7 +15,9 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
         self.args = args
 
     def test_link_save_load(self):
-        bpy.ops.wm.read_factory_settings()
+
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+
         me = bpy.data.meshes.new("LibMesh")
         me.use_fake_user = True
 
@@ -26,7 +28,7 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
 
         bpy.ops.wm.save_as_mainfile(filepath=output_path, check_existing=False, compress=False)
 
-        bpy.ops.wm.read_factory_settings()
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
         bpy.data.orphans_purge()
 
         link_dir = os.path.join(output_path, "Mesh")
@@ -67,6 +69,9 @@ def argparse_create():
 
 def main():
     args = argparse_create().parse_args()
+
+    # Don't write thumbnails into the home directory.
+    bpy.context.preferences.filepaths.use_save_preview_images = False
 
     for Test in TESTS:
         Test(args).run_all_tests()

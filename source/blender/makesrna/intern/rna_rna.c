@@ -910,14 +910,14 @@ static const EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C,
     return DummyRNA_NULL_items;
   }
 
-  if ((eprop->itemf == NULL) || (eprop->itemf == rna_EnumProperty_default_itemf) ||
+  if ((eprop->item_fn == NULL) || (eprop->item_fn == rna_EnumProperty_default_itemf) ||
       (ptr->type == &RNA_EnumProperty) || (C == NULL)) {
     if (eprop->item) {
       return eprop->item;
     }
   }
 
-  return eprop->itemf(C, ptr, prop, r_free);
+  return eprop->item_fn(C, ptr, prop, r_free);
 }
 
 /* XXX - not sure this is needed? */

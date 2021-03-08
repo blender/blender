@@ -27,6 +27,7 @@
 
 #  include "BKE_global.h"
 
+#  include "ED_fileselect.h"
 #  include "ED_screen.h"
 #  include "ED_text.h"
 
@@ -113,6 +114,26 @@ void RNA_api_space_text(StructRNA *srna)
   parm = RNA_def_int_array(
       func, "result", 2, NULL, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
   RNA_def_function_output(func, parm);
+}
+
+void RNA_api_space_filebrowser(StructRNA *srna)
+{
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  func = RNA_def_function(srna, "activate_asset_by_id", "ED_fileselect_activate_by_id");
+  RNA_def_function_ui_description(func, "Activate the asset entry that represents the given ID");
+
+  parm = RNA_def_property(func, "id_to_activate", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(parm, "ID");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  parm = RNA_def_boolean(
+      func,
+      "deferred",
+      0,
+      "",
+      "Whether to activate the ID immediately (false) or after the file browser refreshes (true)");
 }
 
 #endif

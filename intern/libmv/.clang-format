@@ -1,2 +1,34 @@
-DisableFormat: true
-SortIncludes: false
+BasedOnStyle: Google
+
+ColumnLimit: 80
+
+Standard: Cpp11
+
+# Indent nested preprocessor.
+# #ifdef Foo
+# #  include <nested>
+# #endif
+IndentPPDirectives: AfterHash
+
+# For the cases when namespace is closing with a wrong comment
+FixNamespaceComments: true
+
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+
+# No bin packing, every argument is on its own line.
+BinPackArguments: false
+BinPackParameters: false
+
+# Ensure pointer alignment.
+# ObjectType* object;
+PointerAlignment: Left
+DerivePointerAlignment: false
+
+AlignEscapedNewlines: Right
+
+IncludeBlocks: Preserve
+SortIncludes: true

@@ -116,8 +116,8 @@ static PyObject *make_ffmpeg_info(void)
 
 #undef FFMPEG_LIB_VERSION
 
-  if (PyErr_Occurred()) {
-    Py_CLEAR(ffmpeg_info);
+  if (UNLIKELY(PyErr_Occurred())) {
+    Py_DECREF(ffmpeg_info);
     return NULL;
   }
 

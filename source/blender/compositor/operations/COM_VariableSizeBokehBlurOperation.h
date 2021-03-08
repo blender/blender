@@ -80,8 +80,8 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
                      MemoryBuffer *outputMemoryBuffer,
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
-                     list<cl_mem> *clMemToCleanUp,
-                     list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_mem> *clMemToCleanUp,
+                     std::list<cl_kernel> *clKernelsToCleanUp);
 };
 
 #ifdef COM_DEFOCUS_SEARCH

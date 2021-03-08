@@ -111,7 +111,7 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
 {
   const short filter_id_type = id_filter_get();
 
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   int tot;
   if (filter_id_type) {
     lbarray[0] = which_libbase(&mainvar, space_outliner_.filter_id_type);
@@ -144,7 +144,7 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
       if (!tenlib) {
         /* Create library tree element on demand, depending if there are any data-blocks. */
         if (lib) {
-          tenlib = outliner_add_element(&space_outliner_, &lb, lib, nullptr, 0, 0);
+          tenlib = outliner_add_element(&space_outliner_, &lb, lib, nullptr, TSE_SOME_ID, 0);
         }
         else {
           tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
@@ -168,7 +168,7 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar,
 
         for (ID *id : List<ID>(lbarray[a])) {
           if (library_id_filter_poll(lib, id)) {
-            outliner_add_element(&space_outliner_, &ten->subtree, id, ten, 0, 0);
+            outliner_add_element(&space_outliner_, &ten->subtree, id, ten, TSE_SOME_ID, 0);
           }
         }
       }

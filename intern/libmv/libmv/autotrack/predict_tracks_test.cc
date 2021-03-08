@@ -35,17 +35,15 @@ static void AddMarker(int frame, float x, float y, Tracks* tracks) {
   marker.frame = frame;
   marker.center.x() = x;
   marker.center.y() = y;
-  marker.patch.coordinates << x - 1, y - 1,
-                              x + 1, y - 1,
-                              x + 1, y + 1,
-                              x - 1, y + 1;
+  marker.patch.coordinates << x - 1, y - 1, x + 1, y - 1, x + 1, y + 1, x - 1,
+      y + 1;
   tracks->AddMarker(marker);
 }
 
 TEST(PredictMarkerPosition, EasyLinearMotion) {
   Tracks tracks;
-  AddMarker(0, 1.0,  0.0, &tracks);
-  AddMarker(1, 2.0,  5.0, &tracks);
+  AddMarker(0, 1.0, 0.0, &tracks);
+  AddMarker(1, 2.0, 5.0, &tracks);
   AddMarker(2, 3.0, 10.0, &tracks);
   AddMarker(3, 4.0, 15.0, &tracks);
   AddMarker(4, 5.0, 20.0, &tracks);
@@ -66,10 +64,8 @@ TEST(PredictMarkerPosition, EasyLinearMotion) {
   // Check the patch coordinates as well.
   double x = 9, y = 40.0;
   Quad2Df expected_patch;
-  expected_patch.coordinates << x - 1, y - 1,
-                                x + 1, y - 1,
-                                x + 1, y + 1,
-                                x - 1, y + 1;
+  expected_patch.coordinates << x - 1, y - 1, x + 1, y - 1, x + 1, y + 1, x - 1,
+      y + 1;
 
   error = (expected_patch.coordinates - predicted.patch.coordinates).norm();
   LG << "Patch error: " << error;
@@ -78,8 +74,8 @@ TEST(PredictMarkerPosition, EasyLinearMotion) {
 
 TEST(PredictMarkerPosition, EasyBackwardLinearMotion) {
   Tracks tracks;
-  AddMarker(8, 1.0,  0.0, &tracks);
-  AddMarker(7, 2.0,  5.0, &tracks);
+  AddMarker(8, 1.0, 0.0, &tracks);
+  AddMarker(7, 2.0, 5.0, &tracks);
   AddMarker(6, 3.0, 10.0, &tracks);
   AddMarker(5, 4.0, 15.0, &tracks);
   AddMarker(4, 5.0, 20.0, &tracks);
@@ -101,10 +97,8 @@ TEST(PredictMarkerPosition, EasyBackwardLinearMotion) {
   // Check the patch coordinates as well.
   double x = 9.0, y = 40.0;
   Quad2Df expected_patch;
-  expected_patch.coordinates << x - 1, y - 1,
-                                x + 1, y - 1,
-                                x + 1, y + 1,
-                                x - 1, y + 1;
+  expected_patch.coordinates << x - 1, y - 1, x + 1, y - 1, x + 1, y + 1, x - 1,
+      y + 1;
 
   error = (expected_patch.coordinates - predicted.patch.coordinates).norm();
   LG << "Patch error: " << error;
@@ -113,8 +107,8 @@ TEST(PredictMarkerPosition, EasyBackwardLinearMotion) {
 
 TEST(PredictMarkerPosition, TwoFrameGap) {
   Tracks tracks;
-  AddMarker(0, 1.0,  0.0, &tracks);
-  AddMarker(1, 2.0,  5.0, &tracks);
+  AddMarker(0, 1.0, 0.0, &tracks);
+  AddMarker(1, 2.0, 5.0, &tracks);
   AddMarker(2, 3.0, 10.0, &tracks);
   AddMarker(3, 4.0, 15.0, &tracks);
   AddMarker(4, 5.0, 20.0, &tracks);
@@ -135,8 +129,8 @@ TEST(PredictMarkerPosition, TwoFrameGap) {
 
 TEST(PredictMarkerPosition, FourFrameGap) {
   Tracks tracks;
-  AddMarker(0, 1.0,  0.0, &tracks);
-  AddMarker(1, 2.0,  5.0, &tracks);
+  AddMarker(0, 1.0, 0.0, &tracks);
+  AddMarker(1, 2.0, 5.0, &tracks);
   AddMarker(2, 3.0, 10.0, &tracks);
   AddMarker(3, 4.0, 15.0, &tracks);
   // Missing frames 4, 5, 6, 7.
@@ -154,13 +148,13 @@ TEST(PredictMarkerPosition, FourFrameGap) {
 
 TEST(PredictMarkerPosition, MultipleGaps) {
   Tracks tracks;
-  AddMarker(0, 1.0,  0.0, &tracks);
-  AddMarker(1, 2.0,  5.0, &tracks);
+  AddMarker(0, 1.0, 0.0, &tracks);
+  AddMarker(1, 2.0, 5.0, &tracks);
   AddMarker(2, 3.0, 10.0, &tracks);
   // AddMarker(3, 4.0, 15.0, &tracks);   // Note the 3-frame gap.
   // AddMarker(4, 5.0, 20.0, &tracks);
   // AddMarker(5, 6.0, 25.0, &tracks);
-  AddMarker(6, 7.0, 30.0, &tracks);      // Intermediate measurement.
+  AddMarker(6, 7.0, 30.0, &tracks);  // Intermediate measurement.
   // AddMarker(7, 8.0, 35.0, &tracks);
 
   Marker predicted;
@@ -178,14 +172,14 @@ TEST(PredictMarkerPosition, MarkersInRandomOrder) {
   Tracks tracks;
 
   // This is the same as the easy, except that the tracks are randomly ordered.
-  AddMarker(0, 1.0,  0.0, &tracks);
+  AddMarker(0, 1.0, 0.0, &tracks);
   AddMarker(2, 3.0, 10.0, &tracks);
   AddMarker(7, 8.0, 35.0, &tracks);
   AddMarker(5, 6.0, 25.0, &tracks);
   AddMarker(4, 5.0, 20.0, &tracks);
   AddMarker(3, 4.0, 15.0, &tracks);
   AddMarker(6, 7.0, 30.0, &tracks);
-  AddMarker(1, 2.0,  5.0, &tracks);
+  AddMarker(1, 2.0, 5.0, &tracks);
 
   Marker predicted;
   predicted.clip = 0;

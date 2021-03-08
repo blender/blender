@@ -54,7 +54,7 @@ void LuminanceMatteOperation::executePixelSampled(float output[4],
   float alpha;
 
   /* one line thread-friend algorithm:
-   * output[0] = min(inputValue[3], min(1.0f, max(0.0f, ((luminance - low) / (high - low))));
+   * output[0] = MIN2(inputValue[3], MIN2(1.0f, MAX2(0.0f, ((luminance - low) / (high - low))));
    */
 
   /* test range */

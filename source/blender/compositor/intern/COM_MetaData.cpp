@@ -18,7 +18,6 @@
 
 #include "COM_MetaData.h"
 
-#include "BKE_cryptomatte.hh"
 #include "BKE_image.h"
 
 #include "RE_pipeline.h"
@@ -67,5 +66,41 @@ void MetaData::addToRenderResult(RenderResult *render_result) const
 {
   for (blender::Map<std::string, std::string>::Item entry : entries_.items()) {
     BKE_render_result_stamp_data(render_result, entry.key.c_str(), entry.value.c_str());
+  }
+}
+
+void MetaDataExtractCallbackData::addMetaData(blender::StringRef key, blender::StringRefNull value)
+{
+  if (!meta_data) {
+    meta_data = std::make_unique<MetaData>();
+  }
+  meta_data->add(key, value);
+}
+
+void MetaDataExtractCallbackData::setCryptomatteKeys(blender::StringRef cryptomatte_layer_name)
+{
+  manifest_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
+                                                                          "manifest");
+  hash_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
+                                                                      "hash");
+  conversion_key = blender::bke::cryptomatte::BKE_cryptomatte_meta_data_key(cryptomatte_layer_name,
+                                                                            "conversion");
+}
+
+void MetaDataExtractCallbackData::extract_cryptomatte_meta_data(void *_data,
+                                                                const char *propname,
+                                                                char *propvalue,
+                                                                int UNUSED(len))
+{
+  MetaDataExtractCallbackData *data = static_cast<MetaDataExtractCallbackData *>(_data);
+  blender::StringRefNull key(propname);
+  if (key == data->hash_key) {
+    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_HASH, propvalue);
+  }
+  else if (key == data->conversion_key) {
+    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_CONVERSION, propvalue);
+  }
+  else if (key == data->manifest_key) {
+    data->addMetaData(META_DATA_KEY_CRYPTOMATTE_MANIFEST, propvalue);
   }
 }

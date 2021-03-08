@@ -126,12 +126,12 @@ wmEvent *wm_event_add_ex(wmWindow *win,
   *event = *event_to_add;
 
   if (event_to_add_after == NULL) {
-    BLI_addtail(&win->queue, event);
+    BLI_addtail(&win->event_queue, event);
   }
   else {
     /* Note: strictly speaking this breaks const-correctness,
      * however we're only changing 'next' member. */
-    BLI_insertlinkafter(&win->queue, (void *)event_to_add_after, event);
+    BLI_insertlinkafter(&win->event_queue, (void *)event_to_add_after, event);
   }
   return event;
 }
@@ -149,23 +149,25 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
   }
   wmEvent *event = wm_event_add(win, event_to_add);
 
+  /* Logic for setting previous value is documented on the #wmEvent struct,
+   * see #wm_event_add_ghostevent for the implementation of logic this follows. */
+
   win->eventstate->x = event->x;
   win->eventstate->y = event->y;
 
-  win->eventstate->prevval = event->prevval = win->eventstate->val;
-  win->eventstate->prevtype = event->prevtype = win->eventstate->type;
-  win->eventstate->prevx = event->prevx = win->eventstate->x;
-  win->eventstate->prevy = event->prevy = win->eventstate->y;
-
   if (event->type == MOUSEMOVE) {
-    /* Pass. */
+    win->eventstate->prevx = event->prevx = win->eventstate->x;
+    win->eventstate->prevy = event->prevy = win->eventstate->y;
   }
-  else {
+  else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
+    win->eventstate->prevval = event->prevval = win->eventstate->val;
+    win->eventstate->prevtype = event->prevtype = win->eventstate->type;
+
     win->eventstate->val = event->val;
     win->eventstate->type = event->type;
 
-    if (ISMOUSE_BUTTON(event->type)) {
-      if (event->val == KM_PRESS) {
+    if (event->val == KM_PRESS) {
+      if (event->is_repeat == false) {
         win->eventstate->prevclickx = event->x;
         win->eventstate->prevclicky = event->y;
       }
@@ -203,7 +205,7 @@ void wm_event_free(wmEvent *event)
 
 static void wm_event_free_last(wmWindow *win)
 {
-  wmEvent *event = BLI_poptail(&win->queue);
+  wmEvent *event = BLI_poptail(&win->event_queue);
   if (event != NULL) {
     wm_event_free(event);
   }
@@ -212,7 +214,7 @@ static void wm_event_free_last(wmWindow *win)
 void wm_event_free_all(wmWindow *win)
 {
   wmEvent *event;
-  while ((event = BLI_pophead(&win->queue))) {
+  while ((event = BLI_pophead(&win->event_queue))) {
     wm_event_free(event);
   }
 }
@@ -230,7 +232,7 @@ void wm_event_init_from_window(wmWindow *win, wmEvent *event)
 
 static bool wm_test_duplicate_notifier(const wmWindowManager *wm, uint type, void *reference)
 {
-  LISTBASE_FOREACH (wmNotifier *, note, &wm->queue) {
+  LISTBASE_FOREACH (wmNotifier *, note, &wm->notifier_queue) {
     if ((note->category | note->data | note->subtype | note->action) == type &&
         note->reference == reference) {
       return true;
@@ -248,7 +250,7 @@ void WM_event_add_notifier_ex(wmWindowManager *wm, const wmWindow *win, uint typ
 
   wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  BLI_addtail(&wm->queue, note);
+  BLI_addtail(&wm->notifier_queue, note);
 
   note->window = win;
 
@@ -277,7 +279,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 
   wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
 
-  BLI_addtail(&wm->queue, note);
+  BLI_addtail(&wm->notifier_queue, note);
 
   note->category = type & NOTE_CATEGORY;
   note->data = type & NOTE_DATA;
@@ -296,7 +298,7 @@ void WM_main_remove_notifier_reference(const void *reference)
   wmWindowManager *wm = bmain->wm.first;
 
   if (wm) {
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->queue) {
+    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
       if (note->reference == reference) {
         /* Don't remove because this causes problems for #wm_event_do_notifiers
          * which may be looping on the data (deleting screens). */
@@ -448,7 +450,7 @@ void wm_event_do_notifiers(bContext *C)
 
     CTX_wm_window_set(C, win);
 
-    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->queue) {
+    LISTBASE_FOREACH_MUTABLE (wmNotifier *, note, &wm->notifier_queue) {
       if (note->category == NC_WM) {
         if (ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
           wm->file_saved = 1;
@@ -537,7 +539,7 @@ void wm_event_do_notifiers(bContext *C)
 
   /* The notifiers are sent without context, to keep it clean. */
   wmNotifier *note;
-  while ((note = BLI_pophead(&wm->queue))) {
+  while ((note = BLI_pophead(&wm->notifier_queue))) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       Scene *scene = WM_window_get_active_scene(win);
       bScreen *screen = WM_window_get_active_screen(win);
@@ -1957,6 +1959,13 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
   return NULL;
 }
 
+struct wmEvent_ModalMapStore {
+  short prevtype;
+  short prevval;
+
+  bool dbl_click_disabled;
+};
+
 /**
  * This function prepares events for use with #wmOperatorType.modal by:
  *
@@ -1970,7 +1979,7 @@ static wmKeyMapItem *wm_eventmatch_modal_keymap_items(const wmKeyMap *keymap,
 static void wm_event_modalkeymap_begin(const bContext *C,
                                        wmOperator *op,
                                        wmEvent *event,
-                                       bool *dbl_click_disabled)
+                                       struct wmEvent_ModalMapStore *event_backup)
 {
   BLI_assert(event->type != EVT_MODAL_MAP);
 
@@ -1978,6 +1987,8 @@ static void wm_event_modalkeymap_begin(const bContext *C,
   if (op->opm) {
     op = op->opm;
   }
+
+  event_backup->dbl_click_disabled = false;
 
   if (op->type->modalkeymap) {
     wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
@@ -1998,6 +2009,9 @@ static void wm_event_modalkeymap_begin(const bContext *C,
     }
 
     if (event_match != NULL) {
+      event_backup->prevtype = event->prevtype;
+      event_backup->prevval = event->prevval;
+
       event->prevtype = event_match->type;
       event->prevval = event_match->val;
       event->type = EVT_MODAL_MAP;
@@ -2008,7 +2022,7 @@ static void wm_event_modalkeymap_begin(const bContext *C,
        * which would break when modal functions expect press/release. */
       if (event->prevtype == KM_DBL_CLICK) {
         event->prevtype = KM_PRESS;
-        *dbl_click_disabled = true;
+        event_backup->dbl_click_disabled = true;
       }
     }
   }
@@ -2017,7 +2031,7 @@ static void wm_event_modalkeymap_begin(const bContext *C,
     /* This bypass just disables support for double-click in modal handlers. */
     if (event->val == KM_DBL_CLICK) {
       event->val = KM_PRESS;
-      *dbl_click_disabled = true;
+      event_backup->dbl_click_disabled = true;
     }
   }
 }
@@ -2029,16 +2043,18 @@ static void wm_event_modalkeymap_begin(const bContext *C,
  * better restore event type for checking of #KM_CLICK for example.
  * Modal maps could use different method (ton).
  */
-static void wm_event_modalkeymap_end(wmEvent *event, bool dbl_click_disabled)
+static void wm_event_modalkeymap_end(wmEvent *event,
+                                     const struct wmEvent_ModalMapStore *event_backup)
 {
   if (event->type == EVT_MODAL_MAP) {
     event->type = event->prevtype;
-    event->prevtype = 0;
     event->val = event->prevval;
-    event->prevval = 0;
+
+    event->prevtype = event_backup->prevtype;
+    event->prevval = event_backup->prevval;
   }
 
-  if (dbl_click_disabled) {
+  if (event_backup->dbl_click_disabled) {
     event->val = KM_DBL_CLICK;
   }
 }
@@ -2070,11 +2086,12 @@ static int wm_handler_operator_call(bContext *C,
       wmWindowManager *wm = CTX_wm_manager(C);
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
-      bool dbl_click_disabled = false;
 
       wm_handler_op_context(C, handler, event);
       wm_region_mouse_co(C, event);
-      wm_event_modalkeymap_begin(C, op, event, &dbl_click_disabled);
+
+      struct wmEvent_ModalMapStore event_backup;
+      wm_event_modalkeymap_begin(C, op, event, &event_backup);
 
       if (ot->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
@@ -2089,7 +2106,7 @@ static int wm_handler_operator_call(bContext *C,
        * the event, operator etc have all been freed. - campbell */
       if (CTX_wm_manager(C) == wm) {
 
-        wm_event_modalkeymap_end(event, dbl_click_disabled);
+        wm_event_modalkeymap_end(event, &event_backup);
 
         if (ot->flag & OPTYPE_UNDO) {
           wm->op_undo_depth--;
@@ -2326,7 +2343,7 @@ static int wm_handler_fileselect_do(bContext *C,
             wm_window_make_drawable(wm, ctx_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
              * opening (UI_BLOCK_MOVEMOUSE_QUIT). */
-            wm_get_cursor_position(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
+            wm_cursor_position_get(ctx_win, &ctx_win->eventstate->x, &ctx_win->eventstate->y);
             wm->winactive = ctx_win; /* Reports use this... */
             if (handler->context.win == win) {
               handler->context.win = NULL;
@@ -2934,27 +2951,26 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
   int action = wm_handlers_do_intern(C, event, handlers);
 
-  /* Fileread case. */
-  if (CTX_wm_window(C) == NULL) {
+  /* Will be NULL in the file read case. */
+  wmWindow *win = CTX_wm_window(C);
+  if (win == NULL) {
     return action;
   }
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-
     /* Test for CLICK_DRAG events. */
     if (wm_action_not_handled(action)) {
-      if (event->check_drag) {
-        wmWindow *win = CTX_wm_window(C);
-        if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
+      if (win->event_queue_check_drag) {
+        if (WM_event_drag_test(event, &event->prevclickx)) {
           int x = event->x;
           int y = event->y;
           short val = event->val;
           short type = event->type;
 
-          event->x = win->eventstate->prevclickx;
-          event->y = win->eventstate->prevclicky;
+          event->x = event->prevclickx;
+          event->y = event->prevclicky;
           event->val = KM_CLICK_DRAG;
-          event->type = win->eventstate->type;
+          event->type = event->prevtype;
 
           CLOG_INFO(WM_LOG_HANDLERS, 1, "handling PRESS_DRAG");
 
@@ -2965,16 +2981,16 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
           event->x = x;
           event->y = y;
 
-          win->eventstate->check_click = false;
-          win->eventstate->check_drag = false;
+          win->event_queue_check_click = false;
+          if (!wm_action_not_handled(action)) {
+            /* Only disable when handled as other handlers may use this drag event. */
+            win->event_queue_check_drag = false;
+          }
         }
       }
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        win->eventstate->check_drag = false;
-      }
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_BUTTON(event->type) || ISKEYBOARD(event->type)) {
@@ -2982,46 +2998,47 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
     /* Test for CLICK events. */
     if (wm_action_not_handled(action)) {
-      wmWindow *win = CTX_wm_window(C);
-
       /* eventstate stores if previous event was a KM_PRESS, in case that
        * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 
-      if (win != NULL) {
-        if (event->val == KM_PRESS) {
-          win->eventstate->check_click = true;
-          win->eventstate->check_drag = true;
-        }
-        else if (event->val == KM_RELEASE) {
-          win->eventstate->check_drag = false;
+      if (event->val == KM_PRESS) {
+        if (event->prevval != KM_PRESS) {
+          win->event_queue_check_click = true;
+          win->event_queue_check_drag = true;
         }
       }
+      else if (event->val == KM_RELEASE) {
+        win->event_queue_check_drag = false;
+      }
 
-      if (win && win->eventstate->prevtype == event->type) {
+      if (event->prevtype == event->type) {
 
-        if ((event->val == KM_RELEASE) && (win->eventstate->prevval == KM_PRESS) &&
-            (win->eventstate->check_click == true)) {
-          if (WM_event_drag_test(event, &win->eventstate->prevclickx)) {
-            win->eventstate->check_click = 0;
-            win->eventstate->check_drag = 0;
-          }
-          else {
-            /* Position is where the actual click happens, for more
-             * accurate selecting in case the mouse drifts a little. */
-            int x = event->x;
-            int y = event->y;
+        if (event->val == KM_RELEASE) {
+          if (event->prevval == KM_PRESS) {
+            if (win->event_queue_check_click == true) {
+              if (WM_event_drag_test(event, &event->prevclickx)) {
+                win->event_queue_check_click = false;
+                win->event_queue_check_drag = false;
+              }
+              else {
+                /* Position is where the actual click happens, for more
+                 * accurate selecting in case the mouse drifts a little. */
+                int x = event->x;
+                int y = event->y;
 
-            event->x = win->eventstate->prevclickx;
-            event->y = win->eventstate->prevclicky;
-            event->val = KM_CLICK;
+                event->x = event->prevclickx;
+                event->y = event->prevclicky;
+                event->val = KM_CLICK;
 
-            CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
+                CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
 
-            action |= wm_handlers_do_intern(C, event, handlers);
+                action |= wm_handlers_do_intern(C, event, handlers);
 
-            event->val = KM_RELEASE;
-            event->x = x;
-            event->y = y;
+                event->val = KM_RELEASE;
+                event->x = x;
+                event->y = y;
+              }
+            }
           }
         }
         else if (event->val == KM_DBL_CLICK) {
@@ -3037,11 +3054,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       }
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        win->eventstate->check_click = 0;
-        win->eventstate->check_drag = 0;
-      }
+      win->event_queue_check_click = false;
+      win->event_queue_check_drag = false;
     }
   }
   else if (ISMOUSE_WHEEL(event->type) || ISMOUSE_GESTURE(event->type)) {
@@ -3051,11 +3065,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
       /* pass */
     }
     else {
-      wmWindow *win = CTX_wm_window(C);
-      if (win) {
-        if (ISKEYMODIFIER(win->eventstate->type)) {
-          win->eventstate->check_click = 0;
-        }
+      if (ISKEYMODIFIER(event->prevtype)) {
+        win->event_queue_check_click = false;
       }
     }
   }
@@ -3201,9 +3212,9 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
 /* Filter out all events of the pie that spawned the last pie unless it's a release event. */
 static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 {
-  if (win->lock_pie_event && win->lock_pie_event == event->type) {
+  if (win->pie_event_type_lock && win->pie_event_type_lock == event->type) {
     if (event->val == KM_RELEASE) {
-      win->lock_pie_event = EVENT_NONE;
+      win->pie_event_type_lock = EVENT_NONE;
       return false;
     }
     return true;
@@ -3214,7 +3225,7 @@ static bool wm_event_pie_filter(wmWindow *win, const wmEvent *event)
 /**
  * Account for the special case when events are being handled and a file is loaded.
  * In this case event handling exits early, however when "Load UI" is disabled
- * the even will still be in #wmWindow.queue.
+ * the even will still be in #wmWindow.event_queue.
  *
  * Without this it's possible to continuously handle the same event, see: T76484.
  */
@@ -3222,7 +3233,7 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 {
   LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      if (BLI_remlink_safe(&win->queue, event)) {
+      if (BLI_remlink_safe(&win->event_queue, event)) {
         wm_event_free(event);
         return;
       }
@@ -3311,7 +3322,7 @@ void wm_event_do_handlers(bContext *C)
     }
 
     wmEvent *event;
-    while ((event = win->queue.first)) {
+    while ((event = win->event_queue.first)) {
       int action = WM_HANDLER_CONTINUE;
 
       /* Active screen might change during handlers, update pointer. */
@@ -3328,7 +3339,7 @@ void wm_event_do_handlers(bContext *C)
         if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
           CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
         }
-        BLI_remlink(&win->queue, event);
+        BLI_remlink(&win->event_queue, event);
         wm_event_free(event);
         continue;
       }
@@ -3477,7 +3488,7 @@ void wm_event_do_handlers(bContext *C)
        * press in tool keymap can override click in editor keymap.*/
       if (ISMOUSE_BUTTON(event->type) && event->val == KM_PRESS &&
           !wm_action_not_handled(action)) {
-        win->eventstate->check_click = false;
+        win->event_queue_check_click = false;
       }
 
       /* Update previous mouse position for following events to use. */
@@ -3485,11 +3496,11 @@ void wm_event_do_handlers(bContext *C)
       win->eventstate->prevy = event->y;
 
       /* Unlink and free here, blender-quit then frees all. */
-      BLI_remlink(&win->queue, event);
+      BLI_remlink(&win->event_queue, event);
       wm_event_free(event);
     }
 
-    /* Only add mousemove when queue was read entirely. */
+    /* Only add mouse-move when the event queue was read entirely. */
     if (win->addmousemove && win->eventstate) {
       wmEvent tevent = *(win->eventstate);
       // printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
@@ -4330,25 +4341,25 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *owin;
-    if (WM_window_find_under_cursor(wm, win, win, mval, &owin, mval)) {
+    wmWindow *win_other;
+    if (WM_window_find_under_cursor(wm, win, win, mval, &win_other, mval)) {
       event->x = mval[0];
       event->y = mval[1];
-      return owin;
+      return win_other;
     }
   }
   return NULL;
 }
 
-static bool wm_event_is_double_click(const wmEvent *event, const wmEvent *event_state)
+static bool wm_event_is_double_click(const wmEvent *event)
 {
-  if ((event->type == event_state->prevtype) && (event_state->prevval == KM_RELEASE) &&
+  if ((event->type == event->prevtype) && (event->prevval == KM_RELEASE) &&
       (event->val == KM_PRESS)) {
-    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event_state->prevclickx)) {
+    if (ISMOUSE(event->type) && WM_event_drag_test(event, &event->prevclickx)) {
       /* Pass. */
     }
     else {
-      if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
+      if ((PIL_check_seconds_timer() - event->prevclicktime) * 1000 < U.dbl_click_time) {
         return true;
       }
     }
@@ -4357,9 +4368,25 @@ static bool wm_event_is_double_click(const wmEvent *event, const wmEvent *event_
   return false;
 }
 
+/**
+ * Copy the current state to the previous event state.
+ */
+static void wm_event_prev_values_set(wmEvent *event, wmEvent *event_state)
+{
+  event->prevval = event_state->prevval = event_state->val;
+  event->prevtype = event_state->prevtype = event_state->type;
+}
+
+static void wm_event_prev_click_set(wmEvent *event, wmEvent *event_state)
+{
+  event->prevclicktime = event_state->prevclicktime = PIL_check_seconds_timer();
+  event->prevclickx = event_state->prevclickx = event_state->x;
+  event->prevclicky = event_state->prevclicky = event_state->y;
+}
+
 static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
-  wmEvent *event_last = win->queue.last;
+  wmEvent *event_last = win->event_queue.last;
 
   /* Some painting operators want accurate mouse events, they can
    * handle in between mouse move moves, others can happily ignore
@@ -4381,7 +4408,7 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 {
   /* Ignore in between trackpad events for performance, we only need high accuracy
    * for painting with mouse moves, for navigation using the accumulated value is ok. */
-  wmEvent *event_last = win->queue.last;
+  wmEvent *event_last = win->event_queue.last;
   if (event_last && event_last->type == event->type) {
     deltax += event_last->x - event_last->prevx;
     deltay += event_last->y - event_last->prevy;
@@ -4397,8 +4424,9 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
   return event_new;
 }
 
-/* Windows store own event queues, no bContext here. */
-/* Time is in 1000s of seconds, from Ghost. */
+/**
+ * Windows store own event queues #wmWindow.event_queue (no #bContext here).
+ */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
@@ -4406,20 +4434,49 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   }
 
   /**
-   * Having both, \a event and \a evt, can be highly confusing to work with,
+   * Having both, \a event and \a event_state, can be highly confusing to work with,
    * but is necessary for our current event system, so let's clear things up a bit:
    *
    * - Data added to event only will be handled immediately,
    *   but will not be copied to the next event.
-   * - Data added to \a evt only stays,
+   * - Data added to \a event_state only stays,
    *   but is handled with the next event -> execution delay.
-   * - Data added to event and \a evt stays and is handled immediately.
+   * - Data added to event and \a event_state stays and is handled immediately.
    */
-  wmEvent event, *evt = win->eventstate;
+  wmEvent event, *event_state = win->eventstate;
 
   /* Initialize and copy state (only mouse x y and modifiers). */
-  event = *evt;
+  event = *event_state;
   event.is_repeat = false;
+
+  /**
+   * Always support accessing the last key press/release. This is set from `win->eventstate`,
+   * so it will always be a valid event type to store in the previous state.
+   *
+   * Note that these values are intentionally _not_ set in the `win->eventstate`,
+   * as copying these values only makes sense when `win->eventstate->{val/type}` would be
+   * written to (which only happens for some kinds of events).
+   * If this was done it could leave `win->eventstate` previous and current value
+   * set to the same key press/release state which doesn't make sense.
+   */
+  event.prevtype = event.type;
+  event.prevval = event.val;
+
+  /* Ensure the event state is correct, any deviation from this may cause bugs. */
+#ifndef NDEBUG
+  if ((event_state->type || event_state->val) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(event_state->type) || ISKEYBOARD(event_state->type))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
+              event_state->type);
+  }
+  if ((event_state->prevtype || event_state->prevval) && /* Ignore cleared event state. */
+      !(ISMOUSE_BUTTON(event_state->prevtype) || ISKEYBOARD(event_state->prevtype))) {
+    CLOG_WARN(WM_LOG_HANDLERS,
+              "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
+              event_state->prevtype);
+  }
+#endif
 
   switch (type) {
     /* Mouse move, also to inactive window (X11 does this). */
@@ -4430,31 +4487,29 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_stereo3d_mouse_offset_apply(win, &event.x);
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
-      event.prevtype = event.type;
-      event.prevval = event.val;
       event.type = MOUSEMOVE;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
-        copy_v2_v2_int(&evt->x, &event_new->x);
-        evt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+        copy_v2_v2_int(&event_state->x, &event_new->x);
+        event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
       }
 
       /* Also add to other window if event is there, this makes overdraws disappear nicely. */
       /* It remaps mousecoord to other window in event. */
-      wmWindow *owin = wm_event_cursor_other_windows(wm, win, &event);
-      if (owin) {
-        wmEvent oevent, *oevt = owin->eventstate;
+      wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
+      if (win_other) {
+        wmEvent event_other = *win_other->eventstate;
 
-        oevent = *oevt;
+        /* See comment for this operation on `event` for details. */
+        event_other.prevtype = event_other.type;
+        event_other.prevval = event_other.val;
 
-        copy_v2_v2_int(&oevent.x, &event.x);
-        oevent.prevtype = oevent.type;
-        oevent.prevval = oevent.val;
-        oevent.type = MOUSEMOVE;
+        copy_v2_v2_int(&event_other.x, &event.x);
+        event_other.type = MOUSEMOVE;
         {
-          wmEvent *event_new = wm_event_add_mousemove(owin, &oevent);
-          copy_v2_v2_int(&oevt->x, &event_new->x);
-          oevt->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
+          wmEvent *event_new = wm_event_add_mousemove(win_other, &event_other);
+          copy_v2_v2_int(&win_other->eventstate->x, &event_new->x);
+          win_other->eventstate->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
         }
       }
 
@@ -4480,8 +4535,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
           break;
       }
 
-      event.x = evt->x = pd->x;
-      event.y = evt->y = pd->y;
+      event.x = event_state->x = pd->x;
+      event.y = event_state->y = pd->y;
       event.val = KM_NOTHING;
 
       /* The direction is inverted from the device due to system preferences. */
@@ -4524,38 +4579,37 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-
-      /* Copy previous state to prev event state (two old!). */
-      evt->prevval = evt->val;
-      evt->prevtype = evt->type;
+      wm_event_prev_values_set(&event, event_state);
 
       /* Copy to event state. */
-      evt->val = event.val;
-      evt->type = event.type;
+      event_state->val = event.val;
+      event_state->type = event.type;
 
       /* Double click test. */
-      if (wm_event_is_double_click(&event, evt)) {
+      if (wm_event_is_double_click(&event)) {
         CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
         event.val = KM_DBL_CLICK;
       }
       if (event.val == KM_PRESS) {
-        evt->prevclicktime = PIL_check_seconds_timer();
-        evt->prevclickx = event.x;
-        evt->prevclicky = event.y;
+        wm_event_prev_click_set(&event, event_state);
       }
 
       /* Add to other window if event is there (not to both!). */
-      wmWindow *owin = wm_event_cursor_other_windows(wm, win, &event);
-      if (owin) {
-        wmEvent oevent = *(owin->eventstate);
+      wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
+      if (win_other) {
+        wmEvent event_other = *win_other->eventstate;
 
-        oevent.x = event.x;
-        oevent.y = event.y;
-        oevent.type = event.type;
-        oevent.val = event.val;
-        oevent.tablet = event.tablet;
+        /* See comment for this operation on `event` for details. */
+        event_other.prevtype = event_other.type;
+        event_other.prevval = event_other.val;
 
-        wm_event_add(owin, &oevent);
+        copy_v2_v2_int(&event_other.x, &event.x);
+
+        event_other.type = event.type;
+        event_other.val = event.val;
+        event_other.tablet = event.tablet;
+
+        wm_event_add(win_other, &event_other);
       }
       else {
         wm_event_add(win, &event);
@@ -4576,15 +4630,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 
       wm_eventemulation(&event, false);
-
-      /* Copy previous state to prev event state (two old!). */
-      evt->prevval = evt->val;
-      evt->prevtype = evt->type;
+      wm_event_prev_values_set(&event, event_state);
 
       /* Copy to event state. */
-      evt->val = event.val;
-      evt->type = event.type;
-      evt->is_repeat = event.is_repeat;
+      event_state->val = event.val;
+      event_state->type = event.type;
+      event_state->is_repeat = event.is_repeat;
 
       /* Exclude arrow keys, esc, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
@@ -4620,64 +4671,64 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         case EVT_LEFTSHIFTKEY:
         case EVT_RIGHTSHIFTKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->alt || evt->oskey) {
+            if (event_state->ctrl || event_state->alt || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.shift = evt->shift = keymodifier;
+          event.shift = event_state->shift = keymodifier;
           break;
         case EVT_LEFTCTRLKEY:
         case EVT_RIGHTCTRLKEY:
           if (event.val == KM_PRESS) {
-            if (evt->shift || evt->alt || evt->oskey) {
+            if (event_state->shift || event_state->alt || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.ctrl = evt->ctrl = keymodifier;
+          event.ctrl = event_state->ctrl = keymodifier;
           break;
         case EVT_LEFTALTKEY:
         case EVT_RIGHTALTKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->shift || evt->oskey) {
+            if (event_state->ctrl || event_state->shift || event_state->oskey) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.alt = evt->alt = keymodifier;
+          event.alt = event_state->alt = keymodifier;
           break;
         case EVT_OSKEY:
           if (event.val == KM_PRESS) {
-            if (evt->ctrl || evt->alt || evt->shift) {
+            if (event_state->ctrl || event_state->alt || event_state->shift) {
               keymodifier = (KM_MOD_FIRST | KM_MOD_SECOND);
             }
             else {
               keymodifier = KM_MOD_FIRST;
             }
           }
-          event.oskey = evt->oskey = keymodifier;
+          event.oskey = event_state->oskey = keymodifier;
           break;
         default:
           if (event.val == KM_PRESS && event.keymodifier == 0) {
             /* Only set in eventstate, for next event. */
-            evt->keymodifier = event.type;
+            event_state->keymodifier = event.type;
           }
           else if (event.val == KM_RELEASE && event.keymodifier == event.type) {
-            event.keymodifier = evt->keymodifier = 0;
+            event.keymodifier = event_state->keymodifier = 0;
           }
           break;
       }
 
       /* Double click test. */
       /* If previous event was same type, and previous was release, and now it presses... */
-      if (wm_event_is_double_click(&event, evt)) {
+      if (wm_event_is_double_click(&event)) {
         CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
         event.val = KM_DBL_CLICK;
       }
@@ -4693,7 +4744,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
        * Since it's impossible to map a key modifier to an unknown key,
        * it shouldn't harm to clear it. */
       if (event.keymodifier == EVT_UNKNOWNKEY) {
-        evt->keymodifier = event.keymodifier = 0;
+        event_state->keymodifier = event.keymodifier = 0;
       }
 
       /* If test_break set, it catches this. Do not set with modifier presses.
@@ -4707,10 +4758,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       /* Double click test - only for press. */
       if (event.val == KM_PRESS) {
         /* Don't reset timer & location when holding the key generates repeat events. */
-        if ((evt->prevtype != event.type) || (evt->prevval != KM_PRESS)) {
-          evt->prevclicktime = PIL_check_seconds_timer();
-          evt->prevclickx = event.x;
-          evt->prevclicky = event.y;
+        if (event.is_repeat == false) {
+          wm_event_prev_click_set(&event, event_state);
         }
       }
 

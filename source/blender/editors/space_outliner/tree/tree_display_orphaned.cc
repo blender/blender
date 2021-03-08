@@ -42,7 +42,7 @@ TreeDisplayIDOrphans::TreeDisplayIDOrphans(SpaceOutliner &space_outliner)
 ListBase TreeDisplayIDOrphans::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
-  ListBase *lbarray[MAX_LIBARRAY];
+  ListBase *lbarray[INDEX_ID_MAX];
   short filter_id_type = (space_outliner_.filter & SO_FILTER_ID_TYPE) ?
                              space_outliner_.filter_id_type :
                              0;
@@ -76,7 +76,8 @@ ListBase TreeDisplayIDOrphans::buildTree(const TreeSourceData &source_data)
     /* Add the orphaned data-blocks - these will not be added with any subtrees attached. */
     for (ID *id : List<ID>(lbarray[a])) {
       if (ID_REAL_USERS(id) <= 0) {
-        outliner_add_element(&space_outliner_, (te) ? &te->subtree : &tree, id, te, 0, 0);
+        outliner_add_element(
+            &space_outliner_, (te) ? &te->subtree : &tree, id, te, TSE_SOME_ID, 0);
       }
     }
   }

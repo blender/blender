@@ -168,12 +168,14 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 #define PIE_MENU_INTERVAL 0.01
 #define BUTTON_AUTO_OPEN_THRESH 0.2
 #define BUTTON_MOUSE_TOWARDS_THRESH 1.0
-/* pixels to move the cursor to get out of keyboard navigation */
+/** Pixels to move the cursor to get out of keyboard navigation. */
 #define BUTTON_KEYNAV_PX_LIMIT 8
 
-#define MENU_TOWARDS_MARGIN 20      /* margin in pixels */
-#define MENU_TOWARDS_WIGGLE_ROOM 64 /* tolerance in pixels */
-/* drag-lock distance threshold in pixels */
+/** Margin around the menu, use to check if we're moving towards this rectangle (in pixels). */
+#define MENU_TOWARDS_MARGIN 20
+/** Tolerance for closing menus (in pixels). */
+#define MENU_TOWARDS_WIGGLE_ROOM 64
+/** Drag-lock distance threshold (in pixels). */
 #define BUTTON_DRAGLOCK_THRESH 3
 
 typedef enum uiButtonActivateType {
@@ -3408,8 +3410,12 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
     if (data->searchbox) {
       if (data->cancel == false) {
+        BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
+        uiButSearch *but_search = (uiButSearch *)but;
+
         if ((ui_searchbox_apply(but, data->searchbox) == false) &&
-            (ui_searchbox_find_index(data->searchbox, but->editstr) == -1)) {
+            (ui_searchbox_find_index(data->searchbox, but->editstr) == -1) &&
+            !but_search->results_are_suggestions) {
           data->cancel = true;
 
           /* ensure menu (popup) too is closed! */
@@ -10440,7 +10446,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
       }
     }
 
-    if (event->type == block->pie_data.event && !is_click_style) {
+    if (event->type == block->pie_data.event_type && !is_click_style) {
       if (event->val != KM_RELEASE) {
         ui_handle_menu_button(C, event, menu);
 
@@ -10614,7 +10620,7 @@ static int ui_handle_menus_recursive(bContext *C,
     /* root pie menus accept the key that spawned
      * them as double click to improve responsiveness */
     const bool do_recursion = (!(block->flag & UI_BLOCK_RADIAL) ||
-                               event->type != block->pie_data.event);
+                               event->type != block->pie_data.event_type);
 
     if (do_recursion) {
       if (is_parent_inside == false) {
@@ -10907,7 +10913,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
 
     /* set last pie event to allow chained pie spawning */
     if (block->flag & UI_BLOCK_RADIAL) {
-      win->last_pie_event = block->pie_data.event;
+      win->pie_event_type_last = block->pie_data.event_type;
       reset_pie = true;
     }
 
@@ -10950,7 +10956,7 @@ static int ui_popup_handler(bContext *C, const wmEvent *event, void *userdata)
     wmWindow *win = CTX_wm_window(C);
 
     if (win) {
-      win->last_pie_event = EVENT_NONE;
+      win->pie_event_type_last = EVENT_NONE;
     }
   }
 

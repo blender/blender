@@ -24,8 +24,6 @@
 
 #include "COM_NodeGraph.h"
 
-using std::vector;
-
 class CompositorContext;
 
 class Node;
@@ -64,9 +62,7 @@ class NodeOperationBuilder {
     }
   };
 
-  typedef std::vector<NodeOperation *> Operations;
   typedef std::vector<Link> Links;
-  typedef std::vector<ExecutionGroup *> Groups;
 
   typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
   typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
@@ -78,9 +74,9 @@ class NodeOperationBuilder {
   const CompositorContext *m_context;
   NodeGraph m_graph;
 
-  Operations m_operations;
+  blender::Vector<NodeOperation *> m_operations;
   Links m_links;
-  Groups m_groups;
+  blender::Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
   InputSocketMap m_input_map;

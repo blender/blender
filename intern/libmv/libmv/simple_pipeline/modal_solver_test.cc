@@ -20,10 +20,10 @@
 
 #include "libmv/simple_pipeline/modal_solver.h"
 
-#include "testing/testing.h"
 #include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/camera_intrinsics.h"
+#include "testing/testing.h"
 
 #include <stdio.h>
 
@@ -38,14 +38,21 @@ TEST(ModalSolver, SyntheticCubeSceneMotion) {
   intrinsics.SetRadialDistortion(0.0, 0.0, 0.0);
 
   Marker markers[] = {
-      {1, 0, 212.172775, 354.713538, 1.0}, {2, 0, 773.468399, 358.735306, 1.0},
-      {1, 1, 62.415197, 287.905354, 1.0},  {2, 1, 619.103336, 324.402537, 1.0},
-      {1, 2, 206.847939, 237.567925, 1.0}, {2, 2, 737.496986, 247.881383, 1.0},
-      {1, 3, 351.743889, 316.415906, 1.0}, {2, 3, 908.779621, 290.703617, 1.0},
-      {1, 4, 232.941413, 54.265443, 1.0},  {2, 4, 719.444847, 63.062531, 1.0},
-      {1, 5, 96.391611, 119.283537, 1.0},  {2, 5, 611.413136, 160.890715, 1.0},
-      {1, 6, 363.444958, 150.838144, 1.0}, {2, 6, 876.374531, 114.916206, 1.0},
-    };
+      {1, 0, 212.172775, 354.713538, 1.0},
+      {2, 0, 773.468399, 358.735306, 1.0},
+      {1, 1, 62.415197, 287.905354, 1.0},
+      {2, 1, 619.103336, 324.402537, 1.0},
+      {1, 2, 206.847939, 237.567925, 1.0},
+      {2, 2, 737.496986, 247.881383, 1.0},
+      {1, 3, 351.743889, 316.415906, 1.0},
+      {2, 3, 908.779621, 290.703617, 1.0},
+      {1, 4, 232.941413, 54.265443, 1.0},
+      {2, 4, 719.444847, 63.062531, 1.0},
+      {1, 5, 96.391611, 119.283537, 1.0},
+      {2, 5, 611.413136, 160.890715, 1.0},
+      {1, 6, 363.444958, 150.838144, 1.0},
+      {2, 6, 876.374531, 114.916206, 1.0},
+  };
   int num_markers = sizeof(markers) / sizeof(Marker);
 
   Tracks tracks;
@@ -65,12 +72,14 @@ TEST(ModalSolver, SyntheticCubeSceneMotion) {
                                   NULL);
 
   Mat3 expected_rotation;
+  // clang-format off
   expected_rotation << 0.98215101743472, 0.17798354937546,  0.06083777694542,
                       -0.16875283983360, 0.97665300495333, -0.13293376908719,
                       -0.08307742172243, 0.12029448893171,  0.98925597189636;
+  // clang-format on
 
-  Mat3 &first_camera_R = reconstruction.CameraForImage(1)->R;
-  Mat3 &second_camera_R = reconstruction.CameraForImage(2)->R;
+  Mat3& first_camera_R = reconstruction.CameraForImage(1)->R;
+  Mat3& second_camera_R = reconstruction.CameraForImage(2)->R;
 
   EXPECT_TRUE(Mat3::Identity().isApprox(first_camera_R, kTolerance));
   EXPECT_TRUE(expected_rotation.isApprox(second_camera_R, kTolerance));

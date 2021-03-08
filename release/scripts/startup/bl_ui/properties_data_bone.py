@@ -255,17 +255,11 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        ob = context.object
         bone = context.bone
-        pchan = None
-
-        if ob and bone:
-            pchan = ob.pose.bones[bone.name]
-        elif bone is None:
+        if bone is None:
             bone = context.edit_bone
 
         if bone:
-
             col = layout.column()
             col.prop(bone, "hide", text="Hide", toggle=False)
 

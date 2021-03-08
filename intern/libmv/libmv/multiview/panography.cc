@@ -24,8 +24,9 @@
 namespace libmv {
 
 static bool Build_Minimal2Point_PolynomialFactor(
-                                          const Mat & x1, const Mat & x2,
-                                          double * P) {  // P must be a double[4]
+    const Mat& x1,
+    const Mat& x2,
+    double* P) {  // P must be a double[4]
   assert(2 == x1.rows());
   assert(2 == x1.cols());
   assert(x1.rows() == x2.rows());
@@ -40,11 +41,11 @@ static bool Build_Minimal2Point_PolynomialFactor(
   Vec yx2 = (x2.col(1)).transpose();
   double b12 = xx2.dot(yx2);
 
-  double a1  = xx1.squaredNorm();
-  double a2  = yx1.squaredNorm();
+  double a1 = xx1.squaredNorm();
+  double a2 = yx1.squaredNorm();
 
-  double b1  = xx2.squaredNorm();
-  double b2  = yx2.squaredNorm();
+  double b1 = xx2.squaredNorm();
+  double b2 = yx2.squaredNorm();
 
   // Build the 3rd degre polynomial in F^2.
   //
@@ -52,10 +53,12 @@ static bool Build_Minimal2Point_PolynomialFactor(
   //
   // Coefficients in ascending powers of alpha, i.e. P[N]*x^N.
   // Run panography_coeffs.py to get the below coefficients.
-  P[0] = b1*b2*a12*a12-a1*a2*b12*b12;
-  P[1] = -2*a1*a2*b12+2*a12*b1*b2+b1*a12*a12+b2*a12*a12-a1*b12*b12-a2*b12*b12;
-  P[2] = b1*b2-a1*a2-2*a1*b12-2*a2*b12+2*a12*b1+2*a12*b2+a12*a12-b12*b12;
-  P[3] = b1+b2-2*b12-a1-a2+2*a12;
+  P[0] = b1 * b2 * a12 * a12 - a1 * a2 * b12 * b12;
+  P[1] = -2 * a1 * a2 * b12 + 2 * a12 * b1 * b2 + b1 * a12 * a12 +
+         b2 * a12 * a12 - a1 * b12 * b12 - a2 * b12 * b12;
+  P[2] = b1 * b2 - a1 * a2 - 2 * a1 * b12 - 2 * a2 * b12 + 2 * a12 * b1 +
+         2 * a12 * b2 + a12 * a12 - b12 * b12;
+  P[3] = b1 + b2 - 2 * b12 - a1 - a2 + 2 * a12;
 
   // If P[3] equal to 0 we get ill conditionned data
   return (P[3] != 0.0);
@@ -67,8 +70,9 @@ static bool Build_Minimal2Point_PolynomialFactor(
 //
 //   [1] M. Brown and R. Hartley and D. Nister. Minimal Solutions for Panoramic
 //       Stitching. CVPR07.
-void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
-                                  vector<double> *fs) {
+void F_FromCorrespondance_2points(const Mat& x1,
+                                  const Mat& x2,
+                                  vector<double>* fs) {
   // Build Polynomial factor to get squared focal value.
   double P[4];
   Build_Minimal2Point_PolynomialFactor(x1, x2, &P[0]);
@@ -79,8 +83,8 @@ void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
   //
   double roots[3];
   int num_roots = SolveCubicPolynomial(P, roots);
-  for (int i = 0; i < num_roots; ++i)  {
-    if (roots[i] > 0.0)  {
+  for (int i = 0; i < num_roots; ++i) {
+    if (roots[i] > 0.0) {
       fs->push_back(sqrt(roots[i]));
     }
   }
@@ -92,17 +96,18 @@ void F_FromCorrespondance_2points(const Mat &x1, const Mat &x2,
 //   K. Arun,T. Huand and D. Blostein. Least-squares fitting of 2 3-D point
 //   sets.  IEEE Transactions on Pattern Analysis and Machine Intelligence,
 //   9:698-700, 1987.
-void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
+void GetR_FixedCameraCenter(const Mat& x1,
+                            const Mat& x2,
                             const double focal,
-                            Mat3 *R)  {
+                            Mat3* R) {
   assert(3 == x1.rows());
   assert(2 <= x1.cols());
   assert(x1.rows() == x2.rows());
   assert(x1.cols() == x2.cols());
 
   // Build simplified K matrix
-  Mat3 K(Mat3::Identity() * 1.0/focal);
-  K(2, 2)= 1.0;
+  Mat3 K(Mat3::Identity() * 1.0 / focal);
+  K(2, 2) = 1.0;
 
   // Build the correlation matrix; equation (22) in [1].
   Mat3 C = Mat3::Zero();
@@ -115,9 +120,9 @@ void GetR_FixedCameraCenter(const Mat &x1, const Mat &x2,
   // Solve for rotation. Equations (24) and (25) in [1].
   Eigen::JacobiSVD<Mat> svd(C, Eigen::ComputeThinU | Eigen::ComputeThinV);
   Mat3 scale = Mat3::Identity();
-  scale(2, 2) = ((svd.matrixU() * svd.matrixV().transpose()).determinant() > 0.0)
-             ?  1.0
-             : -1.0;
+  scale(2, 2) =
+      ((svd.matrixU() * svd.matrixV().transpose()).determinant() > 0.0) ? 1.0
+                                                                        : -1.0;
 
   (*R) = svd.matrixU() * scale * svd.matrixV().transpose();
 }

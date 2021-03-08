@@ -41,25 +41,34 @@ struct InvertPolynomialIntrinsicsCostFunction {
                                          const double p2,
                                          const double image_x,
                                          const double image_y)
-    : focal_length_x_(focal_length_x),
-      focal_length_y_(focal_length_y),
-      principal_point_x_(principal_point_x),
-      principal_point_y_(principal_point_y),
-      k1_(k1), k2_(k2), k3_(k3),
-      p1_(p1), p2_(p2),
-      x_(image_x), y_(image_y) {}
+      : focal_length_x_(focal_length_x),
+        focal_length_y_(focal_length_y),
+        principal_point_x_(principal_point_x),
+        principal_point_y_(principal_point_y),
+        k1_(k1),
+        k2_(k2),
+        k3_(k3),
+        p1_(p1),
+        p2_(p2),
+        x_(image_x),
+        y_(image_y) {}
 
-  Vec2 operator()(const Vec2 &u) const {
+  Vec2 operator()(const Vec2& u) const {
     double xx, yy;
 
     ApplyPolynomialDistortionModel(focal_length_x_,
                                    focal_length_y_,
                                    principal_point_x_,
                                    principal_point_y_,
-                                   k1_, k2_, k3_,
-                                   p1_, p2_,
-                                   u(0), u(1),
-                                   &xx, &yy);
+                                   k1_,
+                                   k2_,
+                                   k3_,
+                                   p1_,
+                                   p2_,
+                                   u(0),
+                                   u(1),
+                                   &xx,
+                                   &yy);
 
     Vec2 fx;
     fx << (xx - x_), (yy - y_);
@@ -87,23 +96,28 @@ struct InvertDivisionIntrinsicsCostFunction {
                                        const double k2,
                                        const double image_x,
                                        const double image_y)
-    : focal_length_x_(focal_length_x),
-      focal_length_y_(focal_length_y),
-      principal_point_x_(principal_point_x),
-      principal_point_y_(principal_point_y),
-      k1_(k1), k2_(k2),
-      x_(image_x), y_(image_y) {}
+      : focal_length_x_(focal_length_x),
+        focal_length_y_(focal_length_y),
+        principal_point_x_(principal_point_x),
+        principal_point_y_(principal_point_y),
+        k1_(k1),
+        k2_(k2),
+        x_(image_x),
+        y_(image_y) {}
 
-  Vec2 operator()(const Vec2 &u) const {
+  Vec2 operator()(const Vec2& u) const {
     double xx, yy;
 
     ApplyDivisionDistortionModel(focal_length_x_,
                                  focal_length_y_,
                                  principal_point_x_,
                                  principal_point_y_,
-                                 k1_, k2_,
-                                 u(0), u(1),
-                                 &xx, &yy);
+                                 k1_,
+                                 k2_,
+                                 u(0),
+                                 u(1),
+                                 &xx,
+                                 &yy);
 
     Vec2 fx;
     fx << (xx - x_), (yy - y_);
@@ -134,25 +148,36 @@ struct InvertBrownIntrinsicsCostFunction {
                                     const double p2,
                                     const double image_x,
                                     const double image_y)
-    : focal_length_x_(focal_length_x),
-      focal_length_y_(focal_length_y),
-      principal_point_x_(principal_point_x),
-      principal_point_y_(principal_point_y),
-      k1_(k1), k2_(k2), k3_(k3), k4_(k4),
-      p1_(p1), p2_(p2),
-      x_(image_x), y_(image_y) {}
+      : focal_length_x_(focal_length_x),
+        focal_length_y_(focal_length_y),
+        principal_point_x_(principal_point_x),
+        principal_point_y_(principal_point_y),
+        k1_(k1),
+        k2_(k2),
+        k3_(k3),
+        k4_(k4),
+        p1_(p1),
+        p2_(p2),
+        x_(image_x),
+        y_(image_y) {}
 
-  Vec2 operator()(const Vec2 &u) const {
+  Vec2 operator()(const Vec2& u) const {
     double xx, yy;
 
     ApplyBrownDistortionModel(focal_length_x_,
                               focal_length_y_,
                               principal_point_x_,
                               principal_point_y_,
-                              k1_, k2_, k3_, k4_,
-                              p1_, p2_,
-                              u(0), u(1),
-                              &xx, &yy);
+                              k1_,
+                              k2_,
+                              k3_,
+                              k4_,
+                              p1_,
+                              p2_,
+                              u(0),
+                              u(1),
+                              &xx,
+                              &yy);
 
     Vec2 fx;
     fx << (xx - x_), (yy - y_);
@@ -180,8 +205,8 @@ void InvertPolynomialDistortionModel(const double focal_length_x,
                                      const double p2,
                                      const double image_x,
                                      const double image_y,
-                                     double *normalized_x,
-                                     double *normalized_y) {
+                                     double* normalized_x,
+                                     double* normalized_y) {
   // Compute the initial guess. For a camera with no distortion, this will also
   // be the final answer; the LM iteration will terminate immediately.
   Vec2 normalized;
@@ -194,13 +219,17 @@ void InvertPolynomialDistortionModel(const double focal_length_x,
                                                          focal_length_y,
                                                          principal_point_x,
                                                          principal_point_y,
-                                                         k1, k2, k3,
-                                                         p1, p2,
-                                                         image_x, image_y);
+                                                         k1,
+                                                         k2,
+                                                         k3,
+                                                         p1,
+                                                         p2,
+                                                         image_x,
+                                                         image_y);
   Solver::SolverParameters params;
   Solver solver(intrinsics_cost);
 
-  /*Solver::Results results =*/ solver.minimize(params, &normalized);
+  /*Solver::Results results =*/solver.minimize(params, &normalized);
 
   // TODO(keir): Better error handling.
 
@@ -216,8 +245,8 @@ void InvertDivisionDistortionModel(const double focal_length_x,
                                    const double k2,
                                    const double image_x,
                                    const double image_y,
-                                   double *normalized_x,
-                                   double *normalized_y) {
+                                   double* normalized_x,
+                                   double* normalized_y) {
   // Compute the initial guess. For a camera with no distortion, this will also
   // be the final answer; the LM iteration will terminate immediately.
   Vec2 normalized;
@@ -231,12 +260,14 @@ void InvertDivisionDistortionModel(const double focal_length_x,
                                                        focal_length_y,
                                                        principal_point_x,
                                                        principal_point_y,
-                                                       k1, k2,
-                                                       image_x, image_y);
+                                                       k1,
+                                                       k2,
+                                                       image_x,
+                                                       image_y);
   Solver::SolverParameters params;
   Solver solver(intrinsics_cost);
 
-  /*Solver::Results results =*/ solver.minimize(params, &normalized);
+  /*Solver::Results results =*/solver.minimize(params, &normalized);
 
   // TODO(keir): Better error handling.
 
@@ -256,8 +287,8 @@ void InvertBrownDistortionModel(const double focal_length_x,
                                 const double p2,
                                 const double image_x,
                                 const double image_y,
-                                double *normalized_x,
-                                double *normalized_y) {
+                                double* normalized_x,
+                                double* normalized_y) {
   // Compute the initial guess. For a camera with no distortion, this will also
   // be the final answer; the LM iteration will terminate immediately.
   Vec2 normalized;
@@ -270,13 +301,18 @@ void InvertBrownDistortionModel(const double focal_length_x,
                                                     focal_length_y,
                                                     principal_point_x,
                                                     principal_point_y,
-                                                    k1, k2, k3, k4,
-                                                    p1, p2,
-                                                    image_x, image_y);
+                                                    k1,
+                                                    k2,
+                                                    k3,
+                                                    k4,
+                                                    p1,
+                                                    p2,
+                                                    image_x,
+                                                    image_y);
   Solver::SolverParameters params;
   Solver solver(intrinsics_cost);
 
-  /*Solver::Results results =*/ solver.minimize(params, &normalized);
+  /*Solver::Results results =*/solver.minimize(params, &normalized);
 
   // TODO(keir): Better error handling.
 
@@ -299,31 +335,36 @@ struct ApplyNukeIntrinsicsCostFunction {
                                   const double k2,
                                   const double expected_normalized_x,
                                   const double expected_normalized_y)
-    : focal_length_x_(focal_length_x),
-      focal_length_y_(focal_length_y),
-      principal_point_x_(principal_point_x),
-      principal_point_y_(principal_point_y),
-      image_width_(image_width),
-      image_height_(image_height),
-      k1_(k1), k2_(k2),
-      expected_normalized_x_(expected_normalized_x),
-      expected_normalized_y_(expected_normalized_y) {}
+      : focal_length_x_(focal_length_x),
+        focal_length_y_(focal_length_y),
+        principal_point_x_(principal_point_x),
+        principal_point_y_(principal_point_y),
+        image_width_(image_width),
+        image_height_(image_height),
+        k1_(k1),
+        k2_(k2),
+        expected_normalized_x_(expected_normalized_x),
+        expected_normalized_y_(expected_normalized_y) {}
 
-  Vec2 operator()(const Vec2 &image_coordinate) const {
+  Vec2 operator()(const Vec2& image_coordinate) const {
     double actual_normalized_x, actual_normalized_y;
 
     InvertNukeDistortionModel(focal_length_x_,
                               focal_length_y_,
                               principal_point_x_,
                               principal_point_y_,
-                              image_width_, image_height_,
-                              k1_, k2_,
-                              image_coordinate(0), image_coordinate(1),
-                              &actual_normalized_x, &actual_normalized_y);
+                              image_width_,
+                              image_height_,
+                              k1_,
+                              k2_,
+                              image_coordinate(0),
+                              image_coordinate(1),
+                              &actual_normalized_x,
+                              &actual_normalized_y);
 
     Vec2 fx;
     fx << (actual_normalized_x - expected_normalized_x_),
-          (actual_normalized_y - expected_normalized_y_);
+        (actual_normalized_y - expected_normalized_y_);
     return fx;
   }
   double focal_length_x_;
@@ -346,8 +387,8 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                               const double k2,
                               const double normalized_x,
                               const double normalized_y,
-                              double *image_x,
-                              double *image_y) {
+                              double* image_x,
+                              double* image_y) {
   // Compute the initial guess. For a camera with no distortion, this will also
   // be the final answer; the LM iteration will terminate immediately.
   Vec2 image;
@@ -363,12 +404,14 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                                                   principal_point_y,
                                                   image_width,
                                                   image_height,
-                                                  k1, k2,
-                                                  normalized_x, normalized_y);
+                                                  k1,
+                                                  k2,
+                                                  normalized_x,
+                                                  normalized_y);
   Solver::SolverParameters params;
   Solver solver(intrinsics_cost);
 
-  /*Solver::Results results =*/ solver.minimize(params, &image);
+  /*Solver::Results results =*/solver.minimize(params, &image);
 
   // TODO(keir): Better error handling.
 

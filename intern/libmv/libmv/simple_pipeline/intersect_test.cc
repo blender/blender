@@ -22,10 +22,10 @@
 
 #include <iostream>
 
-#include "testing/testing.h"
+#include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
-#include "libmv/logging/logging.h"
+#include "testing/testing.h"
 
 namespace libmv {
 
@@ -40,13 +40,15 @@ TEST(Intersect, EuclideanIntersect) {
   //        0,   0,   1;
   Mat3 R1 = RotationAroundZ(-0.1);
   Mat3 R2 = RotationAroundX(-0.1);
-  Vec3 t1; t1 <<  1,  1, 10;
-  Vec3 t2; t2 << -2, -1, 10;
+  Vec3 t1;
+  t1 << 1, 1, 10;
+  Vec3 t2;
+  t2 << -2, -1, 10;
   Mat34 P1, P2;
   P_From_KRt(K1, R1, t1, &P1);
   P_From_KRt(K2, R2, t2, &P2);
 
-  //Mat3 F; FundamentalFromProjections(P1, P2, &F);
+  // Mat3 F; FundamentalFromProjections(P1, P2, &F);
 
   Mat3X X;
   X.resize(3, 30);
@@ -68,9 +70,9 @@ TEST(Intersect, EuclideanIntersect) {
     reconstruction.InsertCamera(2, R2, t2);
 
     vector<Marker> markers;
-    Marker a = { 1, 0, x1.x(), x1.y(), 1.0 };
+    Marker a = {1, 0, x1.x(), x1.y(), 1.0};
     markers.push_back(a);
-    Marker b = { 2, 0, x2.x(), x2.y(), 1.0 };
+    Marker b = {2, 0, x2.x(), x2.y(), 1.0};
     markers.push_back(b);
 
     EuclideanIntersect(markers, &reconstruction);
@@ -78,4 +80,4 @@ TEST(Intersect, EuclideanIntersect) {
     EXPECT_NEAR(0, DistanceLInfinity(estimated, expected), 1e-8);
   }
 }
-}  // namespace
+}  // namespace libmv

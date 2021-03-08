@@ -938,7 +938,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   /* handle UI stuff */
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   /* flush sculpt and editmode changes */
   ED_editors_flush_edits_ex(bmain, true, false);
@@ -1058,7 +1058,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
   /* we set G.is_rendering here already instead of only in the job, this ensure

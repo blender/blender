@@ -425,22 +425,6 @@ static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_Itasc_update(bmain, scene, ptr);
 }
 
-static void rna_PoseChannel_bone_custom_set(PointerRNA *ptr,
-                                            PointerRNA value,
-                                            struct ReportList *UNUSED(reports))
-{
-  bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-
-  if (pchan->custom) {
-    id_us_min(&pchan->custom->id);
-    pchan->custom = NULL;
-  }
-
-  pchan->custom = value.data;
-
-  id_us_plus(&pchan->custom->id);
-}
-
 static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
@@ -1368,11 +1352,10 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "custom_shape", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "custom");
   RNA_def_property_struct_type(prop, "Object");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_pointer_funcs(prop, NULL, "rna_PoseChannel_bone_custom_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
-      prop, "Custom Object", "Object that defines custom draw type for this bone");
+      prop, "Custom Object", "Object that defines custom display shape for this bone");
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
 

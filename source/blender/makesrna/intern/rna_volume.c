@@ -366,7 +366,7 @@ static void rna_def_volume_display(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.00001, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.1, 100.0, 1, 3);
-  RNA_def_property_ui_text(prop, "Density", "Thickness of volume drawing in the viewport");
+  RNA_def_property_ui_text(prop, "Density", "Thickness of volume display in the viewport");
   RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   static const EnumPropertyItem wireframe_type_items[] = {

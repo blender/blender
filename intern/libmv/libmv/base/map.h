@@ -26,8 +26,8 @@
 
 namespace libmv {
 
-using std::map;
 using std::make_pair;
+using std::map;
 
 }  // namespace libmv
 

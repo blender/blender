@@ -1405,12 +1405,14 @@ void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef index)
   BLI_gsqueue_push(flood->queue, &index);
 }
 
-void SCULPT_floodfill_add_initial_with_symmetry(Sculpt *sd,
-                                                Object *ob,
-                                                SculptSession *ss,
-                                                SculptFloodFill *flood,
-                                                SculptVertRef vertex,
-                                                float radius)
+void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index)
+{
+  BLI_gsqueue_push(flood->queue, &index);
+  BLI_BITMAP_ENABLE(flood->visited_vertices, index);
+}
+
+void SCULPT_floodfill_add_initial_with_symmetry(
+    Sculpt *sd, Object *ob, SculptSession *ss, SculptFloodFill *flood, SculptVertRef index, float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -9543,7 +9545,7 @@ static bool SCULPT_connected_components_floodfill_cb(SculptSession *ss,
   return true;
 }
 
-static void sculpt_connected_components_ensure(Object *ob)
+void SCULPT_connected_components_ensure(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -9622,7 +9624,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
     return;
   }
 
-  sculpt_connected_components_ensure(ob);
+  SCULPT_connected_components_ensure(ob);
   SCULPT_fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {
@@ -10335,4 +10337,6 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_color_filter);
   WM_operatortype_append(SCULPT_OT_mask_by_color);
   WM_operatortype_append(SCULPT_OT_dyntopo_detail_size_edit);
+
+  WM_operatortype_append(SCULPT_OT_expand);
 }

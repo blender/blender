@@ -499,10 +499,14 @@ typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 typedef struct ARegion *(*uiButSearchCreateFn)(struct bContext *C,
                                                struct ARegion *butregion,
                                                struct uiButSearch *search_but);
+/* `is_first` is typically used to ignore search filtering when the menu is first opened in order
+ * to display the full list of options. The value will be false after the button's text is edited
+ * (for every call except the first). */
 typedef void (*uiButSearchUpdateFn)(const struct bContext *C,
                                     void *arg,
                                     const char *str,
-                                    uiSearchItems *items);
+                                    uiSearchItems *items,
+                                    const bool is_first);
 typedef void (*uiButSearchArgFreeFn)(void *arg);
 typedef bool (*uiButSearchContextMenuFn)(struct bContext *C,
                                          void *arg,
@@ -1602,6 +1606,7 @@ void UI_but_func_search_set(uiBut *but,
 void UI_but_func_search_set_context_menu(uiBut *but, uiButSearchContextMenuFn context_menu_fn);
 void UI_but_func_search_set_tooltip(uiBut *but, uiButSearchTooltipFn tooltip_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
+void UI_but_func_search_set_results_are_suggestions(uiBut *but, const bool value);
 
 /* height in pixels, it's using hardcoded values still */
 int UI_searchbox_size_y(void);

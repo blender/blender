@@ -514,7 +514,7 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
   ImBuf *ibuf = sli->ibuf;
   float *gpu_matcap_3components = MEM_callocN(sizeof(float[3]) * ibuf->x * ibuf->y, __func__);
 
-  float(*offset4)[4] = (float(*)[4])ibuf->rect_float;
+  const float(*offset4)[4] = (const float(*)[4])ibuf->rect_float;
   float(*offset3)[3] = (float(*)[3])gpu_matcap_3components;
   for (int i = 0; i < ibuf->x * ibuf->y; i++, offset4++, offset3++) {
     copy_v3_v3(*offset3, *offset4);

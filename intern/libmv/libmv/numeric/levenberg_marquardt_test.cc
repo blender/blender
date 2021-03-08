@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "testing/testing.h"
 #include "libmv/numeric/levenberg_marquardt.h"
+#include "testing/testing.h"
 
 using namespace libmv;
 
@@ -29,14 +29,12 @@ class F {
  public:
   typedef Vec4 FMatrixType;
   typedef Vec3 XMatrixType;
-  Vec4 operator()(const Vec3 &x) const {
+  Vec4 operator()(const Vec3& x) const {
     double x1 = x.x() - 2;
     double y1 = x.y() - 5;
     double z1 = x.z();
-    Vec4 fx; fx << x1*x1 + z1*z1,
-                   y1*y1 + z1*z1,
-                   z1*z1,
-                   x1*x1;
+    Vec4 fx;
+    fx << x1 * x1 + z1 * z1, y1 * y1 + z1 * z1, z1 * z1, x1 * x1;
     return fx;
   }
 };

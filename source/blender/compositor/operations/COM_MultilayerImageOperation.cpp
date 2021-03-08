@@ -21,10 +21,14 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-MultilayerBaseOperation::MultilayerBaseOperation(int passindex, int view)
+MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
+                                                 RenderPass *render_pass,
+                                                 int view)
 {
-  this->m_passId = passindex;
+  this->m_passId = BLI_findindex(&render_layer->passes, render_pass);
   this->m_view = view;
+  this->m_renderLayer = render_layer;
+  this->m_renderPass = render_pass;
 }
 
 ImBuf *MultilayerBaseOperation::getImBuf()
@@ -43,6 +47,32 @@ ImBuf *MultilayerBaseOperation::getImBuf()
 
   this->m_imageUser->view = view;
   return nullptr;
+}
+
+std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData() const
+{
+  BLI_assert(this->m_buffer);
+  MetaDataExtractCallbackData callback_data = {nullptr};
+  RenderResult *render_result = this->m_image->rr;
+  if (render_result && render_result->stamp_data) {
+    RenderLayer *render_layer = this->m_renderLayer;
+    RenderPass *render_pass = this->m_renderPass;
+    std::string full_layer_name =
+        std::string(render_layer->name,
+                    BLI_strnlen(render_layer->name, sizeof(render_layer->name))) +
+        "." +
+        std::string(render_pass->name, BLI_strnlen(render_pass->name, sizeof(render_pass->name)));
+    blender::StringRef cryptomatte_layer_name =
+        blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(full_layer_name);
+    callback_data.setCryptomatteKeys(cryptomatte_layer_name);
+
+    BKE_stamp_info_callback(&callback_data,
+                            render_result->stamp_data,
+                            MetaDataExtractCallbackData::extract_cryptomatte_meta_data,
+                            false);
+  }
+
+  return std::move(callback_data.meta_data);
 }
 
 void MultilayerColorOperation::executePixelSampled(float output[4],

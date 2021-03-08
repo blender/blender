@@ -131,7 +131,7 @@ void GPENCIL_OT_stroke_enter_editcurve_mode(wmOperatorType *ot)
                        "Error Threshold",
                        "Threshold on the maximum deviation from the actual stroke",
                        FLT_MIN,
-                       10.f);
+                       10.0f);
   RNA_def_property_ui_range(prop, FLT_MIN, 10.0f, 0.1f, 5);
 }
 

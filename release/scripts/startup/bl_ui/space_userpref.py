@@ -96,7 +96,7 @@ class USERPREF_MT_editor_menus(Menu):
 class USERPREF_MT_view(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.menu("INFO_MT_area")
@@ -241,7 +241,7 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
     bl_translation_context = i18n_contexts.id_windowmanager
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return bpy.app.build_options.international
 
     def draw_centered(self, context, layout):
@@ -581,7 +581,7 @@ class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Cycles Render Devices"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         # No GPU rendering on macOS currently.
         import sys
         return bpy.app.build_options.cycles and sys.platform != "darwin"
@@ -642,7 +642,7 @@ class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):
     def draw_centered(self, context, layout):
         prefs = context.preferences
         system = prefs.system
-        edit = prefs.edit
+        # edit = prefs.edit
 
         layout.prop(system, "memory_cache_limit")
 
@@ -2185,7 +2185,7 @@ class ExperimentalPanel:
     url_prefix = "https://developer.blender.org/"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         return bpy.app.version_cycle == 'alpha'
 
     def _draw_items(self, context, items):
@@ -2260,7 +2260,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
     bl_label = "Debugging"
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _context):
         # Unlike the other experimental panels, the debugging one is always visible
         # even in beta or release.
         return True

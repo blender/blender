@@ -1141,7 +1141,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
   if (!MAIN_VERSION_ATLEAST(bmain, 276, 5)) {
-    ListBase *lbarray[MAX_LIBARRAY];
+    ListBase *lbarray[INDEX_ID_MAX];
     int a;
 
     /* Important to clear all non-persistent flags from older versions here,

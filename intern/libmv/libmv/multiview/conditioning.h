@@ -26,32 +26,30 @@
 namespace libmv {
 
 // Point conditioning (non isotropic)
-void PreconditionerFromPoints(const Mat &points, Mat3 *T);
+void PreconditionerFromPoints(const Mat& points, Mat3* T);
 // Point conditioning (isotropic)
-void IsotropicPreconditionerFromPoints(const Mat &points, Mat3 *T);
+void IsotropicPreconditionerFromPoints(const Mat& points, Mat3* T);
 
-void ApplyTransformationToPoints(const Mat &points,
-                                 const Mat3 &T,
-                                 Mat *transformed_points);
+void ApplyTransformationToPoints(const Mat& points,
+                                 const Mat3& T,
+                                 Mat* transformed_points);
 
-void NormalizePoints(const Mat &points,
-                     Mat *normalized_points,
-                     Mat3 *T);
+void NormalizePoints(const Mat& points, Mat* normalized_points, Mat3* T);
 
-void NormalizeIsotropicPoints(const Mat &points,
-                              Mat *normalized_points,
-                              Mat3 *T);
+void NormalizeIsotropicPoints(const Mat& points,
+                              Mat* normalized_points,
+                              Mat3* T);
 
 /// Use inverse for unnormalize
 struct UnnormalizerI {
   // Denormalize the results. See HZ page 109.
-  static void Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H);
+  static void Unnormalize(const Mat3& T1, const Mat3& T2, Mat3* H);
 };
 
 /// Use transpose for unnormalize
 struct UnnormalizerT {
   // Denormalize the results. See HZ page 109.
-  static void Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H);
+  static void Unnormalize(const Mat3& T1, const Mat3& T2, Mat3* H);
 };
 
 }  // namespace libmv

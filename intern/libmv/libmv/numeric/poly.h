@@ -21,8 +21,8 @@
 #ifndef LIBMV_NUMERIC_POLY_H_
 #define LIBMV_NUMERIC_POLY_H_
 
-#include <cmath>
 #include <stdio.h>
+#include <cmath>
 
 namespace libmv {
 
@@ -35,9 +35,8 @@ namespace libmv {
 // if there are 2 roots, only x0 and x1 are set.
 //
 // The GSL cubic solver was used as a reference for this routine.
-template<typename Real>
-int SolveCubicPolynomial(Real a, Real b, Real c,
-                         Real *x0, Real *x1, Real *x2) {
+template <typename Real>
+int SolveCubicPolynomial(Real a, Real b, Real c, Real* x0, Real* x1, Real* x2) {
   Real q = a * a - 3 * b;
   Real r = 2 * a * a * a - 9 * a * b + 27 * c;
 
@@ -65,12 +64,12 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
     Real sqrtQ = sqrt(Q);
     if (R > 0) {
       *x0 = -2 * sqrtQ - a / 3;
-      *x1 =      sqrtQ - a / 3;
-      *x2 =      sqrtQ - a / 3;
+      *x1 = sqrtQ - a / 3;
+      *x2 = sqrtQ - a / 3;
     } else {
-      *x0 =     -sqrtQ - a / 3;
-      *x1 =     -sqrtQ - a / 3;
-      *x2 =  2 * sqrtQ - a / 3;
+      *x0 = -sqrtQ - a / 3;
+      *x1 = -sqrtQ - a / 3;
+      *x2 = 2 * sqrtQ - a / 3;
     }
     return 3;
 
@@ -97,15 +96,15 @@ int SolveCubicPolynomial(Real a, Real b, Real c,
     return 3;
   }
   Real sgnR = (R >= 0 ? 1 : -1);
-  Real A = -sgnR * pow(fabs(R) + sqrt(R2 - Q3), 1.0/3.0);
+  Real A = -sgnR * pow(fabs(R) + sqrt(R2 - Q3), 1.0 / 3.0);
   Real B = Q / A;
   *x0 = A + B - a / 3;
   return 1;
 }
 
 // The coefficients are in ascending powers, i.e. coeffs[N]*x^N.
-template<typename Real>
-int SolveCubicPolynomial(const Real *coeffs, Real *solutions) {
+template <typename Real>
+int SolveCubicPolynomial(const Real* coeffs, Real* solutions) {
   if (coeffs[0] == 0.0) {
     // TODO(keir): This is a quadratic not a cubic. Implement a quadratic
     // solver!
@@ -114,10 +113,8 @@ int SolveCubicPolynomial(const Real *coeffs, Real *solutions) {
   Real a = coeffs[2] / coeffs[3];
   Real b = coeffs[1] / coeffs[3];
   Real c = coeffs[0] / coeffs[3];
-  return SolveCubicPolynomial(a, b, c,
-                              solutions + 0,
-                              solutions + 1,
-                              solutions + 2);
+  return SolveCubicPolynomial(
+      a, b, c, solutions + 0, solutions + 1, solutions + 2);
 }
 }  // namespace libmv
 #endif  // LIBMV_NUMERIC_POLY_H_

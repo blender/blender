@@ -20,10 +20,10 @@
 
 #include "libmv/tracking/klt_region_tracker.h"
 
-#include "libmv/logging/logging.h"
-#include "libmv/image/image.h"
 #include "libmv/image/convolve.h"
+#include "libmv/image/image.h"
 #include "libmv/image/sample.h"
+#include "libmv/logging/logging.h"
 
 namespace libmv {
 
@@ -33,16 +33,18 @@ namespace libmv {
 // TODO(keir): The calls to SampleLinear() do boundary checking that should
 // instead happen outside the loop. Since this is the innermost loop, the extra
 // bounds checking hurts performance.
-static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
-                                    const Array3Df &image_and_gradient2,
-                                    double x1, double y1,
-                                    double x2, double y2,
+static void ComputeTrackingEquation(const Array3Df& image_and_gradient1,
+                                    const Array3Df& image_and_gradient2,
+                                    double x1,
+                                    double y1,
+                                    double x2,
+                                    double y2,
                                     int half_width,
-                                    float *gxx,
-                                    float *gxy,
-                                    float *gyy,
-                                    float *ex,
-                                    float *ey) {
+                                    float* gxx,
+                                    float* gxy,
+                                    float* gyy,
+                                    float* ex,
+                                    float* ey) {
   *gxx = *gxy = *gyy = 0;
   *ex = *ey = 0;
   for (int r = -half_width; r <= half_width; ++r) {
@@ -51,8 +53,8 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
       float yy1 = y1 + r;
       float xx2 = x2 + c;
       float yy2 = y2 + r;
-      float I =  SampleLinear(image_and_gradient1, yy1, xx1, 0);
-      float J =  SampleLinear(image_and_gradient2, yy2, xx2, 0);
+      float I = SampleLinear(image_and_gradient1, yy1, xx1, 0);
+      float J = SampleLinear(image_and_gradient2, yy2, xx2, 0);
       float gx = SampleLinear(image_and_gradient2, yy2, xx2, 1);
       float gy = SampleLinear(image_and_gradient2, yy2, xx2, 2);
       *gxx += gx * gx;
@@ -64,22 +66,21 @@ static void ComputeTrackingEquation(const Array3Df &image_and_gradient1,
   }
 }
 
-static bool RegionIsInBounds(const FloatImage &image1,
-                      double x, double y,
-                      int half_window_size) {
+static bool RegionIsInBounds(const FloatImage& image1,
+                             double x,
+                             double y,
+                             int half_window_size) {
   // Check the minimum coordinates.
   int min_x = floor(x) - half_window_size - 1;
   int min_y = floor(y) - half_window_size - 1;
-  if (min_x < 0.0 ||
-      min_y < 0.0) {
+  if (min_x < 0.0 || min_y < 0.0) {
     return false;
   }
 
   // Check the maximum coordinates.
   int max_x = ceil(x) + half_window_size + 1;
   int max_y = ceil(y) + half_window_size + 1;
-  if (max_x > image1.cols() ||
-      max_y > image1.rows()) {
+  if (max_x > image1.cols() || max_y > image1.rows()) {
     return false;
   }
 
@@ -87,10 +88,12 @@ static bool RegionIsInBounds(const FloatImage &image1,
   return true;
 }
 
-bool KltRegionTracker::Track(const FloatImage &image1,
-                             const FloatImage &image2,
-                             double  x1, double  y1,
-                             double *x2, double *y2) const {
+bool KltRegionTracker::Track(const FloatImage& image1,
+                             const FloatImage& image2,
+                             double x1,
+                             double y1,
+                             double* x2,
+                             double* y2) const {
   if (!RegionIsInBounds(image1, x1, y1, half_window_size)) {
     LG << "Fell out of image1's window with x1=" << x1 << ", y1=" << y1
        << ", hw=" << half_window_size << ".";
@@ -116,10 +119,16 @@ bool KltRegionTracker::Track(const FloatImage &image1,
     float gxx, gxy, gyy, ex, ey;
     ComputeTrackingEquation(image_and_gradient1,
                             image_and_gradient2,
-                            x1, y1,
-                            *x2, *y2,
+                            x1,
+                            y1,
+                            *x2,
+                            *y2,
                             half_window_size,
-                            &gxx, &gxy, &gyy, &ex, &ey);
+                            &gxx,
+                            &gxy,
+                            &gyy,
+                            &ex,
+                            &ey);
 
     // Solve the tracking equation
     //

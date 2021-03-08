@@ -372,7 +372,8 @@ static ID *node_owner_get(Main *bmain, ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return id;
   }
-  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
+  /* TODO: Sort this NO_MAIN or not for embedded node trees. See T86119. */
+  // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   ListBase *lists[] = {&bmain->materials,
                        &bmain->lights,
@@ -3554,7 +3555,8 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
         tnode->flag &= ~NODE_ACTIVE_ID;
       }
     }
-    if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+    if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
+        (node->typeinfo->type == GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE)) {
       tnode->flag &= ~NODE_ACTIVE_TEXTURE;
     }
   }
@@ -3563,7 +3565,8 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   if (node->id) {
     node->flag |= NODE_ACTIVE_ID;
   }
-  if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+  if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
+      (node->typeinfo->type == GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE)) {
     node->flag |= NODE_ACTIVE_TEXTURE;
   }
 }
@@ -4479,18 +4482,18 @@ void node_type_group_update(struct bNodeType *ntype,
 }
 
 void node_type_exec(struct bNodeType *ntype,
-                    NodeInitExecFunction initexecfunc,
-                    NodeFreeExecFunction freeexecfunc,
-                    NodeExecFunction execfunc)
+                    NodeInitExecFunction init_exec_fn,
+                    NodeFreeExecFunction free_exec_fn,
+                    NodeExecFunction exec_fn)
 {
-  ntype->initexecfunc = initexecfunc;
-  ntype->freeexecfunc = freeexecfunc;
-  ntype->execfunc = execfunc;
+  ntype->init_exec_fn = init_exec_fn;
+  ntype->free_exec_fn = free_exec_fn;
+  ntype->exec_fn = exec_fn;
 }
 
-void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufunc)
+void node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpu_fn)
 {
-  ntype->gpufunc = gpufunc;
+  ntype->gpu_fn = gpu_fn;
 }
 
 void node_type_internal_links(bNodeType *ntype,

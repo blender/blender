@@ -208,12 +208,14 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_stencil_mask(shgrp, sss_id);
 
   {
+    eGPUSamplerState state = GPU_SAMPLER_DEFAULT;
+
     DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_subsurface_first_pass_sh_get(),
                                               psl->sss_blur_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
-    DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_irradiance);
-    DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "sssIrradiance", &effects->sss_irradiance, state);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "sssRadius", &effects->sss_radius, state);
     DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
@@ -223,9 +225,9 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
     grp = DRW_shgroup_create(EEVEE_shaders_subsurface_second_pass_sh_get(), psl->sss_resolve_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
-    DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_blur);
-    DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
-    DRW_shgroup_uniform_texture_ref(grp, "sssRadius", &effects->sss_radius);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "sssIrradiance", &effects->sss_blur, state);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "sssAlbedo", &effects->sss_albedo, state);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "sssRadius", &effects->sss_radius, state);
     DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);

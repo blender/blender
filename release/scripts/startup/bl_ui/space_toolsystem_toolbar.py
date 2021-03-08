@@ -1096,7 +1096,7 @@ class _defs_edit_curve:
 
     @ToolDef.from_fn
     def draw():
-        def draw_settings(context, layout, tool, *, extra=False):
+        def draw_settings(context, layout, _tool, *, extra=False):
             # Tool settings initialize operator options.
             tool_settings = context.tool_settings
             cps = tool_settings.curve_paint_settings
@@ -1589,7 +1589,7 @@ class _defs_weight_paint:
 
     @ToolDef.from_fn
     def sample_weight():
-        def draw_settings(context, layout, tool):
+        def draw_settings(context, layout, _tool):
             if context.tool_settings.unified_paint_settings.use_unified_weight:
                 weight = context.tool_settings.unified_paint_settings.weight
             elif context.tool_settings.weight_paint.brush:
@@ -1869,7 +1869,7 @@ class _defs_image_uv_sculpt:
 class _defs_gpencil_paint:
 
     @staticmethod
-    def gpencil_primitive_toolbar(context, layout, tool, props):
+    def gpencil_primitive_toolbar(context, layout, _tool, props):
         paint = context.tool_settings.gpencil_paint
         brush = paint.brush
 
@@ -1907,7 +1907,7 @@ class _defs_gpencil_paint:
 
     @ToolDef.from_fn
     def cutter():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("gpencil.stroke_cutter")
             row = layout.row()
             row.use_property_split = False
@@ -2020,7 +2020,7 @@ class _defs_gpencil_paint:
 
     @ToolDef.from_fn
     def eyedropper():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("ui.eyedropper_gpencil_color")
             row = layout.row()
             row.use_property_split = False
@@ -2037,7 +2037,7 @@ class _defs_gpencil_paint:
 
     @ToolDef.from_fn
     def interpolate():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("gpencil.interpolate")
             layout.prop(props, "layers")
             layout.prop(props, "flip")
@@ -2201,7 +2201,7 @@ class _defs_gpencil_edit:
 
     @ToolDef.from_fn
     def transform_fill():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("gpencil.transform_fill")
             row = layout.row()
             row.use_property_split = False
@@ -2219,7 +2219,7 @@ class _defs_gpencil_edit:
 
     @ToolDef.from_fn
     def interpolate():
-        def draw_settings(context, layout, tool):
+        def draw_settings(_context, layout, tool):
             props = tool.operator_properties("gpencil.interpolate")
             layout.prop(props, "layers")
             layout.prop(props, "interpolate_selected_only")
@@ -2411,8 +2411,6 @@ class _defs_sequencer_generic:
 
     @ToolDef.from_fn
     def sample():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("sequencer.sample")
         return dict(
             idname="builtin.sample",
             label="Sample",
@@ -2421,7 +2419,6 @@ class _defs_sequencer_generic:
             ),
             icon="ops.paint.weight_sample",  # XXX, needs own icon.
             keymap="Sequencer Tool: Sample",
-            draw_settings=draw_settings,
         )
 
 

@@ -31,7 +31,7 @@
 namespace libmv {
 
 #if COMPILER_SUPPORTS_CXX11
-using mutex =  std::mutex;
+using mutex = std::mutex;
 using scoped_lock = std::unique_lock<std::mutex>;
 using condition_variable = std::condition_variable;
 #else

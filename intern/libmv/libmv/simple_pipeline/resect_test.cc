@@ -153,7 +153,7 @@ TEST(EuclideanResection, Points4KnownImagePointsRandomTranslationRotation) {
   // not precise enough with only 4 points.
   //
   // TODO(jmichot): Reenable this test when there is nonlinear refinement.
-#if 0
+#  if 0
   R_output.setIdentity();
   T_output.setZero();
 
@@ -163,7 +163,7 @@ TEST(EuclideanResection, Points4KnownImagePointsRandomTranslationRotation) {
 
   EXPECT_MATRIX_NEAR(T_output, T_expected, 1e-5);
   EXPECT_MATRIX_NEAR(R_output, R_expected, 1e-7);*/
-#endif
+#  endif
 }
 
 // TODO(jmichot): Reduce the code duplication here with the code above.

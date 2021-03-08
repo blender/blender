@@ -20,8 +20,8 @@
 //
 // Author: mierle@gmail.com (Keir Mierle)
 
-#include "libmv/autotrack/marker.h"
 #include "libmv/autotrack/predict_tracks.h"
+#include "libmv/autotrack/marker.h"
 #include "libmv/autotrack/tracks.h"
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
@@ -31,8 +31,8 @@ namespace mv {
 
 namespace {
 
-using libmv::vector;
 using libmv::Vec2;
+using libmv::vector;
 
 // Implied time delta between steps. Set empirically by tweaking and seeing
 // what numbers did best at prediction.
@@ -57,6 +57,8 @@ const double dt = 3.8;
 
 // For a typical system having constant velocity. This gives smooth-appearing
 // predictions, but they are not always as accurate.
+//
+// clang-format off
 const double velocity_state_transition_data[] = {
   1, dt,       0,  0,  0,        0,
   0,  1,       0,  0,  0,        0,
@@ -65,10 +67,13 @@ const double velocity_state_transition_data[] = {
   0,  0,       0,  0,  1,        0,
   0,  0,       0,  0,  0,        1
 };
+// clang-format on
 
 #if 0
 // This 3rd-order system also models acceleration. This makes for "jerky"
 // predictions, but that tend to be more accurate.
+//
+// clang-format off
 const double acceleration_state_transition_data[] = {
   1, dt, dt*dt/2,  0,  0,        0,
   0,  1,      dt,  0,  0,        0,
@@ -77,9 +82,12 @@ const double acceleration_state_transition_data[] = {
   0,  0,       0,  0,  1,       dt,
   0,  0,       0,  0,  0,        1
 };
+// clang-format on
 
 // This system (attempts) to add an angular velocity component. However, it's
 // total junk.
+//
+// clang-format off
 const double angular_state_transition_data[] = {
   1, dt,     -dt,  0,  0,        0,   // Position x
   0,  1,       0,  0,  0,        0,   // Velocity x
@@ -88,17 +96,22 @@ const double angular_state_transition_data[] = {
   0,  0,       0,  0,  1,        0,   // Velocity y
   0,  0,       0,  0,  0,        1    // Ignored
 };
+// clang-format on
 #endif
 
 const double* state_transition_data = velocity_state_transition_data;
 
 // Observation matrix.
+// clang-format off
 const double observation_data[] = {
   1., 0., 0., 0., 0., 0.,
   0., 0., 0., 1., 0., 0.
 };
+// clang-format on
 
 // Process covariance.
+//
+// clang-format off
 const double process_covariance_data[] = {
  35,  0,  0,  0,  0,  0,
   0,  5,  0,  0,  0,  0,
@@ -107,14 +120,19 @@ const double process_covariance_data[] = {
   0,  0,  0,  0,  5,  0,
   0,  0,  0,  0,  0,  5
 };
+// clang-format on
 
 // Process covariance.
 const double measurement_covariance_data[] = {
-  0.01,  0.00,
-  0.00,  0.01,
+    0.01,
+    0.00,
+    0.00,
+    0.01,
 };
 
 // Initial covariance.
+//
+// clang-format off
 const double initial_covariance_data[] = {
  10,  0,  0,  0,  0,  0,
   0,  1,  0,  0,  0,  0,
@@ -123,6 +141,7 @@ const double initial_covariance_data[] = {
   0,  0,  0,  0,  1,  0,
   0,  0,  0,  0,  0,  1
 };
+// clang-format on
 
 typedef mv::KalmanFilter<double, 6, 2> TrackerKalman;
 
@@ -138,7 +157,7 @@ bool OrderByFrameLessThan(const Marker* a, const Marker* b) {
     }
     return a->clip < b->clip;
   }
-  return a->frame < b-> frame;
+  return a->frame < b->frame;
 }
 
 // Predicted must be after the previous markers (in the frame numbering sense).
@@ -146,9 +165,9 @@ void RunPrediction(const vector<Marker*> previous_markers,
                    Marker* predicted_marker) {
   TrackerKalman::State state;
   state.mean << previous_markers[0]->center.x(), 0, 0,
-                previous_markers[0]->center.y(), 0, 0;
-  state.covariance = Eigen::Matrix<double, 6, 6, Eigen::RowMajor>(
-      initial_covariance_data);
+      previous_markers[0]->center.y(), 0, 0;
+  state.covariance =
+      Eigen::Matrix<double, 6, 6, Eigen::RowMajor>(initial_covariance_data);
 
   int current_frame = previous_markers[0]->frame;
   int target_frame = predicted_marker->frame;
@@ -159,19 +178,18 @@ void RunPrediction(const vector<Marker*> previous_markers,
   for (int i = 1; i < previous_markers.size(); ++i) {
     // Step forward predicting the state until it is on the current marker.
     int predictions = 0;
-    for (;
-         current_frame != previous_markers[i]->frame;
+    for (; current_frame != previous_markers[i]->frame;
          current_frame += frame_delta) {
       filter.Step(&state);
       predictions++;
-      LG << "Predicted point (frame " << current_frame << "): "
-         << state.mean(0) << ", " << state.mean(3);
+      LG << "Predicted point (frame " << current_frame << "): " << state.mean(0)
+         << ", " << state.mean(3);
     }
     // Log the error -- not actually used, but interesting.
     Vec2 error = previous_markers[i]->center.cast<double>() -
                  Vec2(state.mean(0), state.mean(3));
-    LG << "Prediction error for " << predictions << " steps: ("
-       << error.x() << ", " << error.y() << "); norm: " << error.norm();
+    LG << "Prediction error for " << predictions << " steps: (" << error.x()
+       << ", " << error.y() << "); norm: " << error.norm();
     // Now that the state is predicted in the current frame, update the state
     // based on the measurement from the current frame.
     filter.Update(previous_markers[i]->center.cast<double>(),
@@ -184,8 +202,8 @@ void RunPrediction(const vector<Marker*> previous_markers,
   // predict until the target frame.
   for (; current_frame != target_frame; current_frame += frame_delta) {
     filter.Step(&state);
-    LG << "Final predicted point (frame " << current_frame << "): "
-       << state.mean(0) << ", " << state.mean(3);
+    LG << "Final predicted point (frame " << current_frame
+       << "): " << state.mean(0) << ", " << state.mean(3);
   }
 
   // The x and y positions are at 0 and 3; ignore acceleration and velocity.
@@ -253,13 +271,13 @@ bool PredictMarkerPosition(const Tracks& tracks, Marker* marker) {
   } else if (insert_at != -1) {
     // Found existing marker; scan before and after it.
     forward_scan_begin = insert_at + 1;
-    forward_scan_end = markers.size() - 1;;
+    forward_scan_end = markers.size() - 1;
     backward_scan_begin = insert_at - 1;
     backward_scan_end = 0;
   } else {
     // Didn't find existing marker but found an insertion point.
     forward_scan_begin = insert_before;
-    forward_scan_end = markers.size() - 1;;
+    forward_scan_end = markers.size() - 1;
     backward_scan_begin = insert_before - 1;
     backward_scan_end = 0;
   }
@@ -301,9 +319,8 @@ bool PredictMarkerPosition(const Tracks& tracks, Marker* marker) {
       return false;
     }
     LG << "Predicting backward";
-    int predict_begin =
-        std::min(forward_scan_begin + max_frames_to_predict_from,
-                 forward_scan_end);
+    int predict_begin = std::min(
+        forward_scan_begin + max_frames_to_predict_from, forward_scan_end);
     int predict_end = forward_scan_begin;
     vector<Marker*> previous_markers;
     for (int i = predict_begin; i >= predict_end; --i) {
@@ -312,7 +329,6 @@ bool PredictMarkerPosition(const Tracks& tracks, Marker* marker) {
     RunPrediction(previous_markers, marker);
     return false;
   }
-
 }
 
 }  // namespace mv

@@ -66,7 +66,7 @@ struct IDNameLib_TypeMap {
  * Opaque structure, external API users only see this.
  */
 struct IDNameLib_Map {
-  struct IDNameLib_TypeMap type_maps[MAX_LIBARRAY];
+  struct IDNameLib_TypeMap type_maps[INDEX_ID_MAX];
   struct GHash *uuid_map;
   struct Main *bmain;
   struct GSet *valid_id_pointers;
@@ -77,7 +77,7 @@ static struct IDNameLib_TypeMap *main_idmap_from_idcode(struct IDNameLib_Map *id
                                                         short id_type)
 {
   if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
-    for (int i = 0; i < MAX_LIBARRAY; i++) {
+    for (int i = 0; i < INDEX_ID_MAX; i++) {
       if (id_map->type_maps[i].id_type == id_type) {
         return &id_map->type_maps[i];
       }
@@ -108,13 +108,13 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
   id_map->idmap_types = idmap_types;
 
   int index = 0;
-  while (index < MAX_LIBARRAY) {
+  while (index < INDEX_ID_MAX) {
     struct IDNameLib_TypeMap *type_map = &id_map->type_maps[index];
     type_map->map = NULL;
     type_map->id_type = BKE_idtype_idcode_iter_step(&index);
     BLI_assert(type_map->id_type != 0);
   }
-  BLI_assert(index == MAX_LIBARRAY);
+  BLI_assert(index == INDEX_ID_MAX);
 
   if (idmap_types & MAIN_IDMAP_TYPE_UUID) {
     ID *id;
@@ -231,7 +231,7 @@ void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map)
 {
   if (id_map->idmap_types & MAIN_IDMAP_TYPE_NAME) {
     struct IDNameLib_TypeMap *type_map = id_map->type_maps;
-    for (int i = 0; i < MAX_LIBARRAY; i++, type_map++) {
+    for (int i = 0; i < INDEX_ID_MAX; i++, type_map++) {
       if (type_map->map) {
         BLI_ghash_free(type_map->map, NULL, NULL);
         type_map->map = NULL;

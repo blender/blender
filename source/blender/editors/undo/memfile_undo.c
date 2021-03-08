@@ -152,7 +152,7 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
   bool use_old_bmain_data = true;
 
-  if (USER_EXPERIMENTAL_TEST(&U, use_undo_legacy)) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_undo_legacy) || !(U.uiflag & USER_GLOBALUNDO)) {
     use_old_bmain_data = false;
   }
   else if (undo_direction == STEP_REDO) {

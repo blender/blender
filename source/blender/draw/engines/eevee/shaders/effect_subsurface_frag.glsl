@@ -26,7 +26,7 @@ void main(void)
   vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO precompute */
   vec2 uvs = gl_FragCoord.xy * pixel_size;
   vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
-  float sss_radius = texture(sssRadius, uvs).r;
+  float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w;
   float depth = texture(depthBuffer, uvs).r;
   float depth_view = get_view_z_from_depth(depth);
 
@@ -43,8 +43,7 @@ void main(void)
   /* Compute kernel bounds in 2D. */
   float homcoord = ProjectionMatrix[2][3] * depth_view + ProjectionMatrix[3][3];
   vec2 scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * sss_radius / homcoord;
-  vec2 finalStep = scale * radii_max_radius.w;
-  finalStep *= 0.5; /* samples range -1..1 */
+  vec2 finalStep = scale * 0.5; /* samples range -1..1 */
 
   /* Center sample */
   vec3 accum = sss_irradiance * kernel[0].rgb;
@@ -55,15 +54,18 @@ void main(void)
     vec3 color = texture(sssIrradiance, sample_uv).rgb;
     float sample_depth = texture(depthBuffer, sample_uv).r;
     sample_depth = get_view_z_from_depth(sample_depth);
-    /* Depth correction factor. */
-    float depth_delta = depth_view - sample_depth;
-    float s = clamp(1.0 - exp(-(depth_delta * depth_delta) / (2.0 * sss_radius)), 0.0, 1.0);
+    /* Depth correction factor. See Real Time Realistic Skin Translucency 2010
+     * by Jimenez, eqs. 2 and 9, and D9740.
+     * Coefficient -2 follows from gaussian_profile() from gpu_material.c and
+     * from the definition of finalStep. */
+    float depth_delta = (depth_view - sample_depth) / sss_radius;
+    float s = exp(-2.0 * sqr(depth_delta));
     /* Out of view samples. */
     if (any(lessThan(sample_uv, vec2(0.0))) || any(greaterThan(sample_uv, vec2(1.0)))) {
-      s = 1.0;
+      s = 0.0;
     }
     /* Mix with first sample in failure case and apply kernel color. */
-    accum += kernel[i].rgb * mix(color, sss_irradiance, s);
+    accum += kernel[i].rgb * mix(sss_irradiance, color, s);
   }
 
 #if defined(FIRST_PASS)

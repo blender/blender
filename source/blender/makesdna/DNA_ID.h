@@ -168,7 +168,7 @@ typedef struct IDOverrideLibraryPropertyOperation {
   int subitem_local_index;
 } IDOverrideLibraryPropertyOperation;
 
-/* IDOverridePropertyOperation->operation. */
+/* IDOverrideLibraryPropertyOperation->operation. */
 enum {
   /* Basic operations. */
   IDOVERRIDE_LIBRARY_OP_NOOP = 0, /* Special value, forbids any overriding. */
@@ -188,7 +188,7 @@ enum {
   /* We can add more if needed (move, delete, ...). */
 };
 
-/* IDOverridePropertyOperation->flag. */
+/* IDOverrideLibraryPropertyOperation->flag. */
 enum {
   /** User cannot remove that override operation. */
   IDOVERRIDE_LIBRARY_FLAG_MANDATORY = 1 << 0,
@@ -210,10 +210,14 @@ typedef struct IDOverrideLibraryProperty {
    */
   char *rna_path;
 
-  /** List of overriding operations (IDOverridePropertyOperation) applied to this property. */
+  /**
+   * List of overriding operations (IDOverrideLibraryPropertyOperation) applied to this property.
+   */
   ListBase operations;
 
-  /** Runtime, tags are common to both IDOverrideProperty and IDOverridePropertyOperation. */
+  /**
+   * Runtime, tags are common to both IDOverrideLibraryProperty and
+   * IDOverrideLibraryPropertyOperation. */
   short tag;
   char _pad[2];
 
@@ -221,7 +225,7 @@ typedef struct IDOverrideLibraryProperty {
   unsigned int rna_prop_type;
 } IDOverrideLibraryProperty;
 
-/* IDOverrideProperty->tag and IDOverridePropertyOperation->tag. */
+/* IDOverrideLibraryProperty->tag and IDOverrideLibraryPropertyOperation->tag. */
 enum {
   /** This override property (operation) is unused and should be removed by cleanup process. */
   IDOVERRIDE_LIBRARY_TAG_UNUSED = 1 << 0,
@@ -244,7 +248,7 @@ enum {
 typedef struct IDOverrideLibrary {
   /** Reference linked ID which this one overrides. */
   struct ID *reference;
-  /** List of IDOverrideProperty structs. */
+  /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
   /* Read/write data. */
@@ -718,8 +722,36 @@ typedef enum IDRecalcFlag {
    FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | FILTER_ID_WS | \
    FILTER_ID_LP | FILTER_ID_HA | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
 
-/* IMPORTANT: this enum matches the order currently use in set_listbasepointers,
- * keep them in sync! */
+/**
+ * This enum defines the index assigned to each type of IDs in the array returned by
+ * #set_listbasepointers, and by extension, controls the default order in which each ID type is
+ * processed during standard 'foreach' looping over all IDs of a #Main data-base.
+ *
+ * About Order:
+ * ------------
+ *
+ * This is (loosely) defined with a relationship order in mind, from lowest level (ID types using,
+ * referencing almost no other ID types) to highest level (ID types potentially using many other ID
+ * types).
+ *
+ * So e.g. it ensures that this dependency chain is respected:
+ *   #Material <- #Mesh <- #Object <- #Collection <- #Scene
+ *
+ * Default order of processing of IDs in 'foreach' macros (#FOREACH_MAIN_ID_BEGIN and the like),
+ * built on top of #set_listbasepointers, is actually reversed compared to the order defined here,
+ * since processing usually needs to happen on users before it happens on used IDs (when freeing
+ * e.g.).
+ *
+ * DO NOT rely on this order as being full-proofed dependency order, there are many cases were it
+ * can be violated (most obvious cases being custom properties and drivers, which can reference any
+ * other ID types).
+ *
+ * However, this order can be considered as an optimization heuristic, especially when processing
+ * relationships in a non-recursive pattern: in typical cases, a vast majority of those
+ * relationships can be processed fine in the first pass, and only few additional passes are
+ * required to address all remaining relationship cases.
+ * See e.g. how #BKE_library_unused_linked_data_set_tag is doing this.
+ */
 enum {
   INDEX_ID_LI = 0,
   INDEX_ID_IP,
@@ -759,6 +791,8 @@ enum {
   INDEX_ID_SCE,
   INDEX_ID_WS,
   INDEX_ID_WM,
+  /* TODO: This should probably be tweaked, #Mask and #Simulation are rather low-level types that
+   * should most likely be defined //before// #Object and geometry type indices? */
   INDEX_ID_MSK,
   INDEX_ID_SIM,
   INDEX_ID_NULL,

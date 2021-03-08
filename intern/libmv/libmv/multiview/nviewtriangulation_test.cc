@@ -54,7 +54,7 @@ TEST(NViewTriangulate, FiveViews) {
 
     // Check reprojection error. Should be nearly zero.
     for (int j = 0; j < nviews; ++j) {
-      Vec3 x_reprojected = Ps[j]*X;
+      Vec3 x_reprojected = Ps[j] * X;
       x_reprojected /= x_reprojected(2);
       double error = (x_reprojected.head(2) - xs.col(j)).norm();
       EXPECT_NEAR(error, 0.0, 1e-9);
@@ -84,7 +84,7 @@ TEST(NViewTriangulateAlgebraic, FiveViews) {
 
     // Check reprojection error. Should be nearly zero.
     for (int j = 0; j < nviews; ++j) {
-      Vec3 x_reprojected = Ps[j]*X;
+      Vec3 x_reprojected = Ps[j] * X;
       x_reprojected /= x_reprojected(2);
       double error = (x_reprojected.head<2>() - xs.col(j)).norm();
       EXPECT_NEAR(error, 0.0, 1e-9);

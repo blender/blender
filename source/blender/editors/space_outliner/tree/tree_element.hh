@@ -48,6 +48,15 @@ class AbstractTreeElement {
   virtual void expand(SpaceOutliner &) const
   {
   }
+
+  /**
+   * Just while transitioning to the new tree-element design: Some types are only partially ported,
+   * and the expanding isn't done yet.
+   */
+  virtual bool isExpandValid() const
+  {
+    return true;
+  }
 };
 
 }  // namespace blender::ed::outliner

@@ -1149,7 +1149,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
       }
     }
     else {
-      pos = (int64_t)(position - anim->preseek) * AV_TIME_BASE / frame_rate;
+      pos = (int64_t)position * AV_TIME_BASE / frame_rate;
 
       av_log(anim->pFormatCtx,
              AV_LOG_DEBUG,

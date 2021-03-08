@@ -344,6 +344,58 @@ ListBase *SEQ_active_seqbase_get(const Editing *ed)
 
   return ed->seqbasep;
 }
+
+/**
+ * Set seqbase that is being viewed currently. This can be main seqbase or meta strip seqbase
+ *
+ * \param ed: sequence editor data
+ * \param seqbase: ListBase with strips
+ */
+void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase)
+{
+  ed->seqbasep = seqbase;
+}
+
+/**
+ * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
+ *
+ * \param ed: sequence editor data
+ * \param seq_meta: meta strip
+ * \return pointer to created meta stack
+ */
+MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
+{
+  MetaStack *ms = MEM_mallocN(sizeof(MetaStack), "metastack");
+  BLI_addtail(&ed->metastack, ms);
+  ms->parseq = seq_meta;
+  ms->oldbasep = ed->seqbasep;
+  copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
+  return ms;
+}
+
+/**
+ * Free #MetaStack and remove it from `ed->metastack` ListBase.
+ *
+ * \param ed: sequence editor data
+ * \param ms: meta stack
+ */
+void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
+{
+  BLI_remlink(&ed->metastack, ms);
+  MEM_freeN(ms);
+}
+
+/**
+ * Get #MetaStack that corresponds to current level that is being viewed
+ *
+ * \param ed: sequence editor data
+ * \return pointer to meta stack
+ */
+MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
+{
+  return ed->metastack.last;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

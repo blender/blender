@@ -203,10 +203,8 @@ static const EnumPropertyItem property_subtype_array_items[] = {
 
 static void bpy_prop_deferred_dealloc(BPy_PropDeferred *self)
 {
-  if (self->kw) {
-    PyObject_GC_UnTrack(self);
-    Py_CLEAR(self->kw);
-  }
+  PyObject_GC_UnTrack(self);
+  Py_CLEAR(self->kw);
   PyObject_GC_Del(self);
 }
 

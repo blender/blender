@@ -34,7 +34,7 @@ struct libmv_Features {
 
 namespace {
 
-libmv_Features *libmv_featuresFromVector(
+libmv_Features* libmv_featuresFromVector(
     const libmv::vector<Feature>& features) {
   libmv_Features* libmv_features = LIBMV_STRUCT_NEW(libmv_Features, 1);
   int count = features.size();
@@ -50,12 +50,12 @@ libmv_Features *libmv_featuresFromVector(
   return libmv_features;
 }
 
-void libmv_convertDetectorOptions(libmv_DetectOptions *options,
-                                  DetectOptions *detector_options) {
+void libmv_convertDetectorOptions(libmv_DetectOptions* options,
+                                  DetectOptions* detector_options) {
   switch (options->detector) {
-#define LIBMV_CONVERT(the_detector) \
-  case LIBMV_DETECTOR_ ## the_detector:                 \
-    detector_options->type = DetectOptions::the_detector; \
+#define LIBMV_CONVERT(the_detector)                                            \
+  case LIBMV_DETECTOR_##the_detector:                                          \
+    detector_options->type = DetectOptions::the_detector;                      \
     break;
     LIBMV_CONVERT(FAST)
     LIBMV_CONVERT(MORAVEC)
@@ -72,7 +72,7 @@ void libmv_convertDetectorOptions(libmv_DetectOptions *options,
 
 }  // namespace
 
-libmv_Features *libmv_detectFeaturesByte(const unsigned char* image_buffer,
+libmv_Features* libmv_detectFeaturesByte(const unsigned char* image_buffer,
                                          int width,
                                          int height,
                                          int channels,
@@ -133,7 +133,7 @@ void libmv_getFeature(const libmv_Features* libmv_features,
                       double* y,
                       double* score,
                       double* size) {
-  Feature &feature = libmv_features->features[number];
+  Feature& feature = libmv_features->features[number];
   *x = feature.x;
   *y = feature.y;
   *score = feature.score;

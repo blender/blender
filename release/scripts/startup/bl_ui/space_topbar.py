@@ -244,7 +244,7 @@ class TOPBAR_MT_app(Menu):
 class TOPBAR_MT_file_cleanup(Menu):
     bl_label = "Clean Up"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.separator()
 
@@ -475,7 +475,7 @@ class TOPBAR_MT_file_export(Menu):
     bl_label = "Export"
     bl_owner_use_filter = False
 
-    def draw(self, context):
+    def draw(self, _context):
         if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_export",
                                  text="Collada (Default) (.dae)")

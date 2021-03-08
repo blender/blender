@@ -27,8 +27,12 @@
 
 #include "BLI_string.h"
 
+#include "DNA_image_types.h"
+
 #include "GPU_context.h"
 #include "GPU_texture.h"
+
+#include "BKE_image.h"
 
 #include "../generic/py_capi_utils.h"
 
@@ -510,6 +514,53 @@ PyTypeObject BPyGPUTexture_Type = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name GPU Texture module
+ * \{ */
+PyDoc_STRVAR(pygpu_texture_from_image_doc,
+             ".. function:: from_image(image)\n"
+             "\n"
+             "   Get GPUTexture corresponding to an Image datablock. The GPUTexture memory is "
+             "shared with Blender.\n"
+             "   Note: Colors read from the texture will be in scene linear color space and have "
+             "premultiplied or straight alpha matching the image alpha mode.\n"
+             "\n"
+             "   :arg image: The Image datablock.\n"
+             "   :type image: `bpy.types.Image`\n"
+             "   :return: The GPUTexture used by the image.\n"
+             "   :rtype: :class:`gpu.types.GPUTexture`\n");
+static PyObject *pygpu_texture_from_image(PyObject *UNUSED(self), PyObject *arg)
+{
+  Image *ima = PyC_RNA_AsPointer(arg, "Image");
+  if (ima == NULL) {
+    return NULL;
+  }
+
+  ImageUser iuser;
+  BKE_imageuser_default(&iuser);
+  GPUTexture *tex = BKE_image_get_gpu_texture(ima, &iuser, NULL);
+
+  /* Increase the texture reference count. */
+  GPU_texture_ref(tex);
+
+  return BPyGPUTexture_CreatePyObject(tex);
+}
+
+static struct PyMethodDef pygpu_texture__m_methods[] = {
+    {"from_image", (PyCFunction)pygpu_texture_from_image, METH_O, pygpu_texture_from_image_doc},
+    {NULL, NULL, 0, NULL},
+};
+
+PyDoc_STRVAR(pygpu_texure__m_doc, "This module provides utils for textures.");
+static PyModuleDef pygpu_texture_module_def = {
+    PyModuleDef_HEAD_INIT,
+    .m_name = "gpu.texture",
+    .m_doc = pygpu_texure__m_doc,
+    .m_methods = pygpu_texture__m_methods,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Local API
  * \{ */
 
@@ -532,6 +583,14 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
 
   *(GPUTexture **)p = ((BPyGPUTexture *)o)->tex;
   return 1;
+}
+
+PyObject *bpygpu_texture_init(void)
+{
+  PyObject *submodule;
+  submodule = PyModule_Create(&pygpu_texture_module_def);
+
+  return submodule;
 }
 
 /** \} */

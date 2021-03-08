@@ -893,10 +893,10 @@ bool ED_object_parent_set(ReportList *reports,
           reports, depsgraph, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
     }
     else if (partype == PAR_ARMATURE_AUTO) {
-      WM_cursor_wait(1);
+      WM_cursor_wait(true);
       ED_object_vgroup_calc_from_armature(
           reports, depsgraph, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
-      WM_cursor_wait(0);
+      WM_cursor_wait(false);
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
@@ -912,9 +912,9 @@ bool ED_object_parent_set(ReportList *reports,
       ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
     }
     else if (ELEM(partype, PAR_ARMATURE_AUTO, PAR_ARMATURE_ENVELOPE)) {
-      WM_cursor_wait(1);
+      WM_cursor_wait(true);
       ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);
-      WM_cursor_wait(0);
+      WM_cursor_wait(false);
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;

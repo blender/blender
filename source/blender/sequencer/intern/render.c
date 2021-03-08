@@ -203,34 +203,6 @@ void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4
   }
 }
 
-void SEQ_render_init_colorspace(Sequence *seq)
-{
-  if (seq->strip && seq->strip->stripdata) {
-    char name[FILE_MAX];
-    ImBuf *ibuf;
-
-    BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-    BLI_path_abs(name, BKE_main_blendfile_path_from_global());
-
-    /* initialize input color space */
-    if (seq->type == SEQ_TYPE_IMAGE) {
-      ibuf = IMB_loadiffname(
-          name, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
-
-      /* byte images are default to straight alpha, however sequencer
-       * works in premul space, so mark strip to be premultiplied first
-       */
-      seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
-      if (ibuf) {
-        if (ibuf->flags & IB_alphamode_premul) {
-          seq->alpha_mode = IMA_ALPHA_PREMUL;
-        }
-
-        IMB_freeImBuf(ibuf);
-      }
-    }
-  }
-}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -611,6 +583,7 @@ static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_ima
     return true;
   }
   if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->type == SEQ_TYPE_MASK ||
+      seq->type == SEQ_TYPE_META ||
       (seq->type == SEQ_TYPE_SCENE && ((seq->flag & SEQ_SCENE_STRIPS) != 0))) {
     return true;
   }

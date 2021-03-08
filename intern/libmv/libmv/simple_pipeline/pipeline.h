@@ -22,8 +22,8 @@
 #define LIBMV_SIMPLE_PIPELINE_PIPELINE_H_
 
 #include "libmv/simple_pipeline/callbacks.h"
-#include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/reconstruction.h"
+#include "libmv/simple_pipeline/tracks.h"
 
 namespace libmv {
 
@@ -47,9 +47,9 @@ namespace libmv {
     \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
 void EuclideanCompleteReconstruction(
-        const Tracks &tracks,
-        EuclideanReconstruction *reconstruction,
-        ProgressUpdateCallback *update_callback = NULL);
+    const Tracks& tracks,
+    EuclideanReconstruction* reconstruction,
+    ProgressUpdateCallback* update_callback = NULL);
 
 /*!
     Estimate camera matrices and homogeneous 3D coordinates for all frames and
@@ -71,27 +71,26 @@ void EuclideanCompleteReconstruction(
 
     \sa ProjectiveResect, ProjectiveIntersect, ProjectiveBundle
 */
-void ProjectiveCompleteReconstruction(const Tracks &tracks,
-                                      ProjectiveReconstruction *reconstruction);
-
+void ProjectiveCompleteReconstruction(const Tracks& tracks,
+                                      ProjectiveReconstruction* reconstruction);
 
 class CameraIntrinsics;
 
 // TODO(keir): Decide if we want these in the public API, and if so, what the
 // appropriate include file is.
 
-double EuclideanReprojectionError(const Tracks &image_tracks,
-                                  const EuclideanReconstruction &reconstruction,
-                                  const CameraIntrinsics &intrinsics);
+double EuclideanReprojectionError(const Tracks& image_tracks,
+                                  const EuclideanReconstruction& reconstruction,
+                                  const CameraIntrinsics& intrinsics);
 
 double ProjectiveReprojectionError(
-    const Tracks &image_tracks,
-    const ProjectiveReconstruction &reconstruction,
-    const CameraIntrinsics &intrinsics);
+    const Tracks& image_tracks,
+    const ProjectiveReconstruction& reconstruction,
+    const CameraIntrinsics& intrinsics);
 
-void InvertIntrinsicsForTracks(const Tracks &raw_tracks,
-                               const CameraIntrinsics &camera_intrinsics,
-                               Tracks *calibrated_tracks);
+void InvertIntrinsicsForTracks(const Tracks& raw_tracks,
+                               const CameraIntrinsics& camera_intrinsics,
+                               Tracks* calibrated_tracks);
 
 }  // namespace libmv
 

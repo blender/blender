@@ -21,8 +21,8 @@
 #ifndef LIBMV_TRACKING_RETRACK_REGION_TRACKER_H_
 #define LIBMV_TRACKING_RETRACK_REGION_TRACKER_H_
 
-#include "libmv/image/image.h"
 #include "libmv/base/scoped_ptr.h"
+#include "libmv/image/image.h"
 #include "libmv/tracking/region_tracker.h"
 
 namespace libmv {
@@ -31,13 +31,16 @@ namespace libmv {
 // track that doesn't track backwards to the starting point.
 class RetrackRegionTracker : public RegionTracker {
  public:
-  RetrackRegionTracker(RegionTracker *tracker, double tolerance)
+  RetrackRegionTracker(RegionTracker* tracker, double tolerance)
       : tracker_(tracker), tolerance_(tolerance) {}
 
-  virtual bool Track(const FloatImage &image1,
-                     const FloatImage &image2,
-                     double  x1, double  y1,
-                     double *x2, double *y2) const;
+  virtual bool Track(const FloatImage& image1,
+                     const FloatImage& image2,
+                     double x1,
+                     double y1,
+                     double* x2,
+                     double* y2) const;
+
  private:
   scoped_ptr<RegionTracker> tracker_;
   double tolerance_;

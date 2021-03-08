@@ -24,7 +24,7 @@
 namespace libmv {
 
 // HZ 4.4.4 pag.109: Point conditioning (non isotropic)
-void PreconditionerFromPoints(const Mat &points, Mat3 *T) {
+void PreconditionerFromPoints(const Mat& points, Mat3* T) {
   Vec mean, variance;
   MeanAndVarianceAlongRows(points, &mean, &variance);
 
@@ -38,12 +38,14 @@ void PreconditionerFromPoints(const Mat &points, Mat3 *T) {
   if (variance(1) < 1e-8)
     yfactor = mean(1) = 1.0;
 
+  // clang-format off
   *T << xfactor, 0,       -xfactor * mean(0),
         0,       yfactor, -yfactor * mean(1),
         0,       0,        1;
+  // clang-format on
 }
 // HZ 4.4.4 pag.107: Point conditioning (isotropic)
-void IsotropicPreconditionerFromPoints(const Mat &points, Mat3 *T) {
+void IsotropicPreconditionerFromPoints(const Mat& points, Mat3* T) {
   Vec mean, variance;
   MeanAndVarianceAlongRows(points, &mean, &variance);
 
@@ -57,14 +59,16 @@ void IsotropicPreconditionerFromPoints(const Mat &points, Mat3 *T) {
     mean.setOnes();
   }
 
+  // clang-format off
   *T << factor, 0,       -factor * mean(0),
         0,       factor, -factor * mean(1),
         0,       0,        1;
+  // clang-format on
 }
 
-void ApplyTransformationToPoints(const Mat &points,
-                                 const Mat3 &T,
-                                 Mat *transformed_points) {
+void ApplyTransformationToPoints(const Mat& points,
+                                 const Mat3& T,
+                                 Mat* transformed_points) {
   int n = points.cols();
   transformed_points->resize(2, n);
   Mat3X p(3, n);
@@ -73,26 +77,24 @@ void ApplyTransformationToPoints(const Mat &points,
   HomogeneousToEuclidean(p, transformed_points);
 }
 
-void NormalizePoints(const Mat &points,
-                     Mat *normalized_points,
-                     Mat3 *T) {
+void NormalizePoints(const Mat& points, Mat* normalized_points, Mat3* T) {
   PreconditionerFromPoints(points, T);
   ApplyTransformationToPoints(points, *T, normalized_points);
 }
 
-void NormalizeIsotropicPoints(const Mat &points,
-                              Mat *normalized_points,
-                              Mat3 *T) {
+void NormalizeIsotropicPoints(const Mat& points,
+                              Mat* normalized_points,
+                              Mat3* T) {
   IsotropicPreconditionerFromPoints(points, T);
   ApplyTransformationToPoints(points, *T, normalized_points);
 }
 
 // Denormalize the results. See HZ page 109.
-void UnnormalizerT::Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H)  {
+void UnnormalizerT::Unnormalize(const Mat3& T1, const Mat3& T2, Mat3* H) {
   *H = T2.transpose() * (*H) * T1;
 }
 
-void UnnormalizerI::Unnormalize(const Mat3 &T1, const Mat3 &T2, Mat3 *H)  {
+void UnnormalizerI::Unnormalize(const Mat3& T1, const Mat3& T2, Mat3* H) {
   *H = T2.inverse() * (*H) * T1;
 }
 

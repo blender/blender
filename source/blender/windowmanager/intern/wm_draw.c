@@ -117,7 +117,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
 
       if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
         int x = 0, y = 0;
-        wm_get_cursor_position(win, &x, &y);
+        wm_cursor_position_get(win, &x, &y);
         pc->draw(C, x, y, pc->customdata);
       }
       else {

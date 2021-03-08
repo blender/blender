@@ -711,7 +711,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   /* so we can get the error message */
   errno = 0;
 
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   wm_file_read_pre(C, use_data, use_userdef);
 
@@ -809,7 +809,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     }
   }
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   return success;
 }
@@ -1498,7 +1498,7 @@ static bool wm_file_write(bContext *C,
   }
 
   /* don't forget not to return without! */
-  WM_cursor_wait(1);
+  WM_cursor_wait(true);
 
   ED_editors_flush_edits(bmain);
 
@@ -1560,7 +1560,7 @@ static bool wm_file_write(bContext *C,
     MEM_freeN(thumb);
   }
 
-  WM_cursor_wait(0);
+  WM_cursor_wait(false);
 
   return ok;
 }
@@ -1776,7 +1776,12 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
                      filepath,
                      fileflags,
                      &(const struct BlendFileWriteParams){
-                         .remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE,
+                         /* Make all paths absolute when saving the startup file.
+                          * On load the `G.relbase_valid` will be false so the paths
+                          * wont have a base for resolving the relative paths. */
+                         .remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE,
+                         /* Don't apply any path changes to the current blend file. */
+                         .use_save_as_copy = true,
                      },
                      op->reports) == 0) {
     printf("fail\n");
