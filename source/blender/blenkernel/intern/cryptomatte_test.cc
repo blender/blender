@@ -75,17 +75,15 @@ static void test_cryptomatte_manifest(std::string expected, std::string manifest
 TEST(cryptomatte, layer_from_manifest)
 {
   test_cryptomatte_manifest("{}", "{}");
-  test_cryptomatte_manifest("{\"Object\":\"12345678\"}", "{\"Object\": \"12345678\"}");
-  test_cryptomatte_manifest("{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
-                            "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}");
+  test_cryptomatte_manifest(R"({"Object":"12345678"})", R"({"Object": "12345678"})");
+  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321")})",
+                            R"({"Object":"12345678","Object2":"87654321"})");
+  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321"})",
+                            R"(  {  "Object"  :  "12345678"  ,  "Object2"  :  "87654321"  }  )");
+  test_cryptomatte_manifest(R"({"Object\"01\"":"12345678"})", R"({"Object\"01\"": "12345678"})");
   test_cryptomatte_manifest(
-      "{\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
-      "  {  \"Object\"  :  \"12345678\"  ,  \"Object2\"  :  \"87654321\"  }  ");
-  test_cryptomatte_manifest("{\"Object\\\"01\\\"\":\"12345678\"}",
-                            "{\"Object\\\"01\\\"\": \"12345678\"}");
-  test_cryptomatte_manifest(
-      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\",\"Object2\":\"87654321\"}",
-      "{\"Object\\\"01\\\"\":\"12345678\",\"Object\":\"12345678\", \"Object2\":\"87654321\"}");
+      R"({"Object\"01\"":"12345678","Object":"12345678","Object2":"87654321"})",
+      R"({"Object\"01\"":"12345678","Object":"12345678", "Object2":"87654321"})");
 }
 
 TEST(cryptomatte, extract_layer_hash_from_metadata_key)
@@ -125,7 +123,7 @@ static void validate_cryptomatte_session_from_stamp_data(void *UNUSED(data),
     EXPECT_STREQ("uint32_to_float32", propvalue);
   }
   else if (prop_name == "cryptomatte/87f095e/manifest") {
-    EXPECT_STREQ("{\"Object\":\"12345678\"}", propvalue);
+    EXPECT_STREQ(R"({"Object":"12345678"})", propvalue);
   }
 
   else if (prop_name == "cryptomatte/c42daa7/name") {
@@ -138,7 +136,7 @@ static void validate_cryptomatte_session_from_stamp_data(void *UNUSED(data),
     EXPECT_STREQ("uint32_to_float32", propvalue);
   }
   else if (prop_name == "cryptomatte/c42daa7/manifest") {
-    EXPECT_STREQ("{\"Object2\":\"87654321\"}", propvalue);
+    EXPECT_STREQ(R"({"Object2":"87654321"})", propvalue);
   }
 
   else {
@@ -153,10 +151,10 @@ TEST(cryptomatte, session_from_stamp_data)
       MEM_callocN(sizeof(RenderResult), __func__));
   BKE_render_result_stamp_data(render_result, "cryptomatte/qwerty/name", "layer1");
   BKE_render_result_stamp_data(
-      render_result, "cryptomatte/qwerty/manifest", "{\"Object\":\"12345678\"}");
+      render_result, "cryptomatte/qwerty/manifest", R"({"Object":"12345678"})");
   BKE_render_result_stamp_data(render_result, "cryptomatte/uiop/name", "layer2");
   BKE_render_result_stamp_data(
-      render_result, "cryptomatte/uiop/manifest", "{\"Object2\":\"87654321\"}");
+      render_result, "cryptomatte/uiop/manifest", R"({"Object2":"87654321"})");
   CryptomatteSessionPtr session(BKE_cryptomatte_init_from_render_result(render_result));
   EXPECT_NE(session.get(), nullptr);
   RE_FreeRenderResult(render_result);
