@@ -149,7 +149,7 @@ BLI_NOINLINE static KDTree_3d *build_kdtree(Span<Vector<float3>> positions_all,
   KDTree_3d *kdtree = BLI_kdtree_3d_new(initial_points_len);
 
   int i_point = 0;
-  for (const Vector<float3> positions : positions_all) {
+  for (const Vector<float3> &positions : positions_all) {
     for (const float3 position : positions) {
       BLI_kdtree_3d_insert(kdtree, i_point, position);
       i_point++;
@@ -611,13 +611,13 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       "Density Attribute");
 
   if (density <= 0.0f) {
-    params.set_output("Geometry", std::move(GeometrySet()));
+    params.set_output("Geometry", GeometrySet());
     return;
   }
 
   Vector<GeometryInstanceGroup> set_groups = bke::geometry_set_gather_instances(geometry_set);
   if (set_groups.is_empty()) {
-    params.set_output("Geometry", std::move(GeometrySet()));
+    params.set_output("Geometry", GeometrySet());
     return;
   }
 
@@ -631,7 +631,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
 
   if (set_groups.is_empty()) {
     params.error_message_add(NodeWarningType::Error, TIP_("Input geometry must contain a mesh"));
-    params.set_output("Geometry", std::move(GeometrySet()));
+    params.set_output("Geometry", GeometrySet());
     return;
   }
 
