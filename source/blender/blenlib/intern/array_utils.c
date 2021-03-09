@@ -27,13 +27,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
-
 #include "BLI_alloca.h"
+#include "BLI_math_base.h"
+#include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_array_utils.h"
 
 /**
  *In-place array reverse.
@@ -317,4 +317,95 @@ bool _bli_array_is_zeroed(const void *arr_v, unsigned int arr_len, size_t arr_st
     }
   }
   return true;
+}
+
+/**
+ * Smart function to sample a rect spiraling outside.
+ * Nice for selection ID.
+ *
+ * \param arr_shape: dimensions [w, h].
+ * \param center: coordinates [x, y] indicating where to start transversing.
+ */
+bool _bli_array_iter_spiral_square(const void *arr_v,
+                                   const int arr_shape[2],
+                                   size_t elem_size,
+                                   const int center[2],
+                                   const bool (*test_fn)(const void *arr_item, void *user_data),
+                                   void *user_data)
+{
+  BLI_assert(center[0] >= 0 && center[1] >= 0 && center[0] < arr_shape[0] &&
+             center[1] < arr_shape[1]);
+
+  const char *arr = arr_v;
+  const int stride[2] = {arr_shape[1] * (int)elem_size, (int)elem_size};
+
+  /* Test center first. */
+  int ofs[2] = {center[0] * stride[0], center[1] * stride[1]};
+  if (test_fn(arr + ofs[0] + ofs[1], user_data)) {
+    return true;
+  }
+
+  /* #steps_in and #steps_out are the "diameters" of the inscribed and ciscunscript squares in the
+   * rectangle. Each step smaller than #steps_in does not need to check bounds. */
+  int steps_in, steps_out;
+  {
+    int x_minus = center[0];
+    int x_plus = arr_shape[0] - center[0] - 1;
+    int y_minus = center[1];
+    int y_plus = arr_shape[1] - center[1] - 1;
+
+    steps_in = 2 * min_iiii(x_minus, x_plus, y_minus, y_plus);
+    steps_out = 2 * max_iiii(x_minus, x_plus, y_minus, y_plus);
+  }
+
+  /* For check_bounds. */
+  int limits[2] = {(arr_shape[0] - 1) * stride[0], stride[0] - stride[1]};
+
+  int steps = 0;
+  while (steps < steps_out) {
+    steps += 2;
+
+    /* Move one step to the diagonal of the negative quadrant. */
+    ofs[0] -= stride[0];
+    ofs[1] -= stride[1];
+
+    bool check_bounds = steps > steps_in;
+
+    /* sign: 0 neg; 1 pos; */
+    for (int sign = 2; sign--;) {
+      /* axis: 0 x; 1 y; */
+      for (int axis = 2; axis--;) {
+        int ofs_step = stride[axis];
+        if (!sign) {
+          ofs_step *= -1;
+        }
+
+        int ofs_iter = ofs[axis] + ofs_step;
+        int ofs_dest = ofs[axis] + steps * ofs_step;
+        int ofs_other = ofs[!axis];
+
+        ofs[axis] = ofs_dest;
+        if (check_bounds) {
+          if (ofs_other < 0 || ofs_other > limits[!axis]) {
+            /* Out of bounds. */
+            continue;
+          }
+
+          CLAMP(ofs_iter, 0, limits[axis]);
+          CLAMP(ofs_dest, 0, limits[axis]);
+        }
+
+        while (true) {
+          if (test_fn(arr + ofs_other + ofs_iter, user_data)) {
+            return true;
+          }
+          if (ofs_iter == ofs_dest) {
+            break;
+          }
+          ofs_iter += ofs_step;
+        }
+      }
+    }
+  }
+  return false;
 }

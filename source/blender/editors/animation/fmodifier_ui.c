@@ -173,15 +173,11 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
                                            PanelTypePollFn poll,
                                            const char *id_prefix)
 {
-  /* Get the name for the modifier's panel. */
-  char panel_idname[BKE_ST_MAXNAME];
-  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
-  BLI_snprintf(panel_idname, BKE_ST_MAXNAME, "%s_PT_%s", id_prefix, fmi->name);
-
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), panel_idname);
+  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
 
   /* Intentionally leave the label field blank. The header is filled with buttons. */
-  BLI_strncpy(panel_type->idname, panel_idname, BKE_ST_MAXNAME);
+  const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
+  BLI_snprintf(panel_type->idname, BKE_ST_MAXNAME, "%s_PT_%s", id_prefix, fmi->name);
   BLI_strncpy(panel_type->category, "Modifiers", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
 
@@ -215,13 +211,9 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
                                               PanelTypePollFn poll,
                                               PanelType *parent)
 {
-  /* Create the subpanel's ID name. */
-  char panel_idname[BKE_ST_MAXNAME];
-  BLI_snprintf(panel_idname, BKE_ST_MAXNAME, "%s_%s", parent->idname, name);
+  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
 
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), panel_idname);
-
-  BLI_strncpy(panel_type->idname, panel_idname, BKE_ST_MAXNAME);
+  BLI_snprintf(panel_type->idname, BKE_ST_MAXNAME, "%s_%s", parent->idname, name);
   BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->category, "Modifiers", BKE_ST_MAXNAME);
   BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);

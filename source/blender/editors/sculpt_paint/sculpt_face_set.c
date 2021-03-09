@@ -556,14 +556,6 @@ static bool sculpt_face_sets_init_bevel_weight_test(
   return BM_elem_float_data_get(&bm->edata, from_e, CD_BWEIGHT) < threshold;
 }
 
-static bool sculpt_face_sets_init_face_set_boundary_test(
-    BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
-{
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
-  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
-         BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
-}
-
 static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
                                                    BMFace *UNUSED(from_f),
                                                    BMEdge *from_e,
@@ -571,6 +563,14 @@ static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
                                                    const float UNUSED(threshold))
 {
   return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
+}
+
+static bool sculpt_face_sets_init_face_set_boundary_test(
+    BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
+{
+  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
+         BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
 }
 
 static void sculpt_face_sets_init_flood_fill(Object *ob,

@@ -492,6 +492,7 @@ typedef enum eGraphEdit_Flag {
   SIPO_NORMALIZE_FREEZE = (1 << 15),
   /* show markers region */
   SIPO_SHOW_MARKERS = (1 << 16),
+  SIPO_NO_DRAW_EXTRAPOLATION = (1 << 17),
 } eGraphEdit_Flag;
 
 /* SpaceGraph.mode (Graph Editor Mode) */
