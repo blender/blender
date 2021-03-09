@@ -5681,6 +5681,11 @@ static void rna_def_space_graph(BlenderRNA *brna)
       "If any exists, show markers in a separate row at the bottom of the editor");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 
+  prop = RNA_def_property(srna, "show_extrapolation", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NO_DRAW_EXTRAPOLATION);
+  RNA_def_property_ui_text(prop, "Show Extrapolation", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
+
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOTRANSKEYCULL);

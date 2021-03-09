@@ -35,6 +35,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -579,8 +580,13 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 
 /* Helper func - just draw the F-Curve by sampling the visible region
  * (for drawing curves with modifiers). */
-static void draw_fcurve_curve(
-    bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, uint pos, const bool use_nla_remap)
+static void draw_fcurve_curve(bAnimContext *ac,
+                              ID *id,
+                              FCurve *fcu_,
+                              View2D *v2d,
+                              uint pos,
+                              const bool use_nla_remap,
+                              const bool draw_extrapolation)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   short mapping_flag = ANIM_get_normalization_flags(ac);
@@ -641,40 +647,90 @@ static void draw_fcurve_curve(
 
   /* the start/end times are simply the horizontal extents of the 'cur' rect */
   float stime = v2d->cur.xmin;
-  float etime = v2d->cur.xmax +
-                samplefreq; /* + samplefreq here so that last item gets included... */
+  float etime = v2d->cur.xmax;
 
-  /* at each sampling interval, add a new vertex
-   * - apply the unit correction factor to the calculated values so that
-   *   the displayed values appear correctly in the viewport
-   */
+  AnimData *adt = use_nla_remap ? BKE_animdata_from_id(id) : NULL;
 
-  int n = roundf((etime - stime) / samplefreq);
+  /* If not drawing extrapolation, then change fcurve drawing bounds to its keyframe bounds clamped
+   * by graph editor bounds. */
+  if (!draw_extrapolation) {
+    float fcu_start = 0;
+    float fcu_end = 0;
+    BKE_fcurve_calc_range(fcu_, &fcu_start, &fcu_end, false, false);
 
-  if (n > 0) {
-    immBegin(GPU_PRIM_LINE_STRIP, (n + 1));
+    fcu_start = BKE_nla_tweakedit_remap(adt, fcu_start, NLATIME_CONVERT_MAP);
+    fcu_end = BKE_nla_tweakedit_remap(adt, fcu_end, NLATIME_CONVERT_MAP);
 
-    AnimData *adt = use_nla_remap ? BKE_animdata_from_id(id) : NULL;
-    /* NLA remapping is linear so we don't have to remap per iteration. */
-    const float eval_start = BKE_nla_tweakedit_remap(adt, stime, NLATIME_CONVERT_UNMAP);
-    const float eval_freq = BKE_nla_tweakedit_remap(
-                                adt, stime + samplefreq, NLATIME_CONVERT_UNMAP) -
-                            eval_start;
-
-    for (int i = 0; i <= n; i++) {
-      float ctime = stime + i * samplefreq;
-      const float eval_time = eval_start + i * eval_freq;
-      immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, eval_time) + offset) * unitFac);
+    /* Account for reversed NLA strip effect. */
+    if (fcu_end < fcu_start) {
+      SWAP(float, fcu_start, fcu_end);
     }
 
-    immEnd();
+    /* Clamp to graph editor rendering bounds. */
+    stime = max_ff(stime, fcu_start);
+    etime = min_ff(etime, fcu_end);
   }
+
+  const int total_samples = roundf((etime - stime) / samplefreq);
+  if (total_samples <= 0) {
+    return;
+  }
+
+  /* NLA remapping is linear so we don't have to remap per iteration. */
+  const float eval_start = BKE_nla_tweakedit_remap(adt, stime, NLATIME_CONVERT_UNMAP);
+  const float eval_freq = BKE_nla_tweakedit_remap(adt, stime + samplefreq, NLATIME_CONVERT_UNMAP) -
+                          eval_start;
+  const float eval_end = BKE_nla_tweakedit_remap(adt, etime, NLATIME_CONVERT_UNMAP);
+
+  immBegin(GPU_PRIM_LINE_STRIP, (total_samples + 1));
+
+  /* At each sampling interval, add a new vertex.
+   *
+   * Apply the unit correction factor to the calculated values so that the displayed values appear
+   * correctly in the viewport.
+   */
+  for (int i = 0; i < total_samples; i++) {
+    const float ctime = stime + i * samplefreq;
+    float eval_time = eval_start + i * eval_freq;
+
+    /* Prevent drawing past bounds, due to floating point problems.
+     * User-wise, prevent visual flickering.
+     *
+     * This is to cover the case where:
+     * eval_start + total_samples * eval_freq > eval_end
+     * due to floating point problems.
+     */
+    if (eval_time > eval_end) {
+      eval_time = eval_end;
+    }
+
+    immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, eval_time) + offset) * unitFac);
+  }
+
+  /* Ensure we include end boundary point.
+   * User-wise, prevent visual flickering.
+   *
+   * This is to cover the case where:
+   * eval_start + total_samples * eval_freq < eval_end
+   * due to floating point problems.
+   */
+  immVertex2f(pos, etime, (evaluate_fcurve(&fcurve_for_draw, eval_end) + offset) * unitFac);
+
+  immEnd();
 }
 
 /* helper func - draw a samples-based F-Curve */
-static void draw_fcurve_curve_samples(
-    bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, const uint shdr_pos)
+static void draw_fcurve_curve_samples(bAnimContext *ac,
+                                      ID *id,
+                                      FCurve *fcu,
+                                      View2D *v2d,
+                                      const uint shdr_pos,
+                                      const bool draw_extrapolation)
 {
+  if (!draw_extrapolation && fcu->totvert == 1) {
+    return;
+  }
+
   FPoint *prevfpt = fcu->fpt;
   FPoint *fpt = prevfpt + 1;
   float fac, v[2];
@@ -683,11 +739,13 @@ static void draw_fcurve_curve_samples(
   short mapping_flag = ANIM_get_normalization_flags(ac);
   int count = fcu->totvert;
 
-  if (prevfpt->vec[0] > v2d->cur.xmin) {
+  const bool extrap_left = draw_extrapolation && prevfpt->vec[0] > v2d->cur.xmin;
+  if (extrap_left) {
     count++;
   }
 
-  if ((prevfpt + b - 1)->vec[0] < v2d->cur.xmax) {
+  const bool extrap_right = draw_extrapolation && (prevfpt + b - 1)->vec[0] < v2d->cur.xmax;
+  if (extrap_right) {
     count++;
   }
 
@@ -700,7 +758,7 @@ static void draw_fcurve_curve_samples(
   immBegin(GPU_PRIM_LINE_STRIP, count);
 
   /* extrapolate to left? - left-side of view comes before first keyframe? */
-  if (prevfpt->vec[0] > v2d->cur.xmin) {
+  if (extrap_left) {
     v[0] = v2d->cur.xmin;
 
     /* y-value depends on the interpolation */
@@ -734,7 +792,7 @@ static void draw_fcurve_curve_samples(
   }
 
   /* extrapolate to right? (see code for left-extrapolation above too) */
-  if (prevfpt->vec[0] < v2d->cur.xmax) {
+  if (extrap_right) {
     v[0] = v2d->cur.xmax;
 
     /* y-value depends on the interpolation */
@@ -779,8 +837,13 @@ static bool fcurve_can_use_simple_bezt_drawing(FCurve *fcu)
 }
 
 /* helper func - draw one repeat of an F-Curve (using Bezier curve approximations) */
-static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos)
+static void draw_fcurve_curve_bezts(
+    bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, uint pos, const bool draw_extrapolation)
 {
+  if (!draw_extrapolation && fcu->totvert == 1) {
+    return;
+  }
+
   BezTriple *prevbezt = fcu->bezt;
   BezTriple *bezt = prevbezt + 1;
   float v1[2], v2[2], v3[2], v4[2];
@@ -803,7 +866,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
   immBeginAtMost(GPU_PRIM_LINE_STRIP, (b * 32 + 3));
 
   /* extrapolate to left? */
-  if (prevbezt->vec[1][0] > v2d->cur.xmin) {
+  if (draw_extrapolation && prevbezt->vec[1][0] > v2d->cur.xmin) {
     /* left-side of view comes before first keyframe, so need to extend as not cyclic */
     v1[0] = v2d->cur.xmin;
 
@@ -923,7 +986,7 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
   }
 
   /* extrapolate to right? (see code for left-extrapolation above too) */
-  if (prevbezt->vec[1][0] < v2d->cur.xmax) {
+  if (draw_extrapolation && prevbezt->vec[1][0] < v2d->cur.xmax) {
     v1[0] = v2d->cur.xmax;
 
     /* y-value depends on the interpolation */
@@ -1026,6 +1089,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
       immUniformColor3fvAlpha(fcu->color, fcurve_display_alpha(fcu));
     }
 
+    const bool draw_extrapolation = (sipo->flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
     /* draw F-Curve */
     if ((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) {
       /* draw a curve affected by modifiers or only allowed to have integer values
@@ -1039,25 +1103,25 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
          * curve itself. Afterward, we go back and redo the keyframe remapping so the controls are
          * drawn properly. */
         ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, true, false);
-        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, true);
+        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, true, draw_extrapolation);
         ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, false, false);
       }
       else {
-        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false);
+        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false, draw_extrapolation);
       }
     }
     else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
       /* just draw curve based on defined data (i.e. no modifiers) */
       if (fcu->bezt) {
         if (fcurve_can_use_simple_bezt_drawing(fcu)) {
-          draw_fcurve_curve_bezts(ac, ale->id, fcu, &region->v2d, shdr_pos);
+          draw_fcurve_curve_bezts(ac, ale->id, fcu, &region->v2d, shdr_pos, draw_extrapolation);
         }
         else {
-          draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false);
+          draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos, false, draw_extrapolation);
         }
       }
       else if (fcu->fpt) {
-        draw_fcurve_curve_samples(ac, ale->id, fcu, &region->v2d, shdr_pos);
+        draw_fcurve_curve_samples(ac, ale->id, fcu, &region->v2d, shdr_pos, draw_extrapolation);
       }
     }
 
@@ -1278,6 +1342,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
   immUniform1f("dash_width", 20.0f);
   immUniform1f("dash_factor", 0.5f);
 
+  const bool draw_extrapolation = (sipo->flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
   /* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
   for (fcu = sipo->runtime.ghost_curves.first; fcu; fcu = fcu->next) {
     /* set whatever color the curve has set
@@ -1287,7 +1352,7 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
     immUniformColor3fvAlpha(fcu->color, 0.5f);
 
     /* simply draw the stored samples */
-    draw_fcurve_curve_samples(ac, NULL, fcu, &region->v2d, shdr_pos);
+    draw_fcurve_curve_samples(ac, NULL, fcu, &region->v2d, shdr_pos, draw_extrapolation);
   }
 
   immUnbindProgram();
