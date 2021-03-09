@@ -674,9 +674,8 @@ GHOST_TUns8 GHOST_SystemCocoa::getNumDisplays() const
   // Note that OS X supports monitor hot plug
   // We do not support multiple monitors at the moment
   @autoreleasepool {
-    GHOST_TUns8 count = [[NSScreen screens] count];
+    return NSScreen.screens.count;
   }
-  return count;
 }
 
 void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TUns32 &height) const
@@ -1945,18 +1944,6 @@ GHOST_TUns8 *GHOST_SystemCocoa::getClipboard(bool selection) const
 
     NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
 
-    if (pasteBoard == nil) {
-      return NULL;
-    }
-
-    NSArray *supportedTypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
-
-    NSString *bestType = [[NSPasteboard generalPasteboard] availableTypeFromArray:supportedTypes];
-
-    if (bestType == nil) {
-      return NULL;
-    }
-
     NSString *textPasted = [pasteBoard stringForType:NSStringPboardType];
 
     if (textPasted == nil) {
@@ -1987,25 +1974,14 @@ GHOST_TUns8 *GHOST_SystemCocoa::getClipboard(bool selection) const
 
 void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
-  NSString *textToCopy;
-
   if (selection)
     return;  // for copying the selection, used on X11
 
   @autoreleasepool {
 
-    NSPasteboard *pasteBoard = [NSPasteboard generalPasteboard];
-
-    if (pasteBoard == nil) {
-      return;
-    }
-
-    NSArray *supportedTypes = [NSArray arrayWithObject:NSStringPboardType];
-
-    [pasteBoard declareTypes:supportedTypes owner:nil];
-
-    textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
-
+    NSPasteboard *pasteBoard = NSPasteboard.generalPasteboard;
+    [pasteBoard declareTypes:@[ NSStringPboardType ] owner:nil];
+    NSString *textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
     [pasteBoard setString:textToCopy forType:NSStringPboardType];
   }
 }
