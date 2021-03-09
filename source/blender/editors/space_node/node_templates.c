@@ -330,6 +330,10 @@ static void ui_node_link_items(NodeLinkArg *arg,
     int i;
 
     for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
+      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup)) {
+        continue;
+      }
+
       ListBase *lb = ((in_out == SOCK_IN) ? &ngroup->inputs : &ngroup->outputs);
       totitems += BLI_listbase_count(lb);
     }
@@ -339,6 +343,10 @@ static void ui_node_link_items(NodeLinkArg *arg,
 
       i = 0;
       for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
+        if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup)) {
+          continue;
+        }
+
         ListBase *lb = (in_out == SOCK_IN ? &ngroup->inputs : &ngroup->outputs);
         bNodeSocket *stemp;
         int index;
