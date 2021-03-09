@@ -424,6 +424,10 @@ class GeometryNodesEvaluator {
       if (socket_ref->bsocket()->type != SOCK_GEOMETRY) {
         continue;
       }
+      if (socket_ref->is_multi_input_socket()) {
+        /* Not needed currently. */
+        continue;
+      }
 
       bNodeTree *btree_cow = node->btree();
       bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
