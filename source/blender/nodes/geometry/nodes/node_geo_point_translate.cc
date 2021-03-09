@@ -46,6 +46,9 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
 {
   OutputAttributePtr position_attribute = component.attribute_try_get_for_output(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+  if (!position_attribute) {
+    return;
+  }
   ReadAttributePtr attribute = params.get_input_attribute(
       "Translation", component, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, nullptr);
   if (!attribute) {
