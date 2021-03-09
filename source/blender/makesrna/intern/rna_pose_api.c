@@ -136,7 +136,7 @@ void RNA_api_pose(StructRNA *srna)
   RNA_def_function_ui_description(
       func,
       "Apply the given action to this pose by evaluating it at a specific time. Only updates the "
-      "pose of selected bones, or all bones if none are selected");
+      "pose of selected bones, or all bones if none are selected.");
 
   parm = RNA_def_pointer(func, "action", "Action", "Action", "The Action containing the pose");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

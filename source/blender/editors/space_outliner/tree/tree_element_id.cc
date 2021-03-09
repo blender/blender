@@ -152,7 +152,7 @@ void TreeElementID::postExpand(SpaceOutliner &space_outliner) const
 bool TreeElementID::expandPoll(const SpaceOutliner &space_outliner) const
 {
   const TreeStoreElem *tsepar = legacy_te_.parent ? TREESTORE(legacy_te_.parent) : nullptr;
-  return (tsepar == NULL || tsepar->type != TSE_ID_BASE || space_outliner.filter_id_type);
+  return (tsepar == nullptr || tsepar->type != TSE_ID_BASE || space_outliner.filter_id_type);
 }
 
 void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,

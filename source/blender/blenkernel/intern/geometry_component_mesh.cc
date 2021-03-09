@@ -405,6 +405,29 @@ static void update_vertex_normals_when_dirty(const GeometryComponent &component)
   }
 }
 
+static bool get_shade_smooth(const MPoly &mpoly)
+{
+  return mpoly.flag & ME_SMOOTH;
+}
+
+static void set_shade_smooth(MPoly &mpoly, const bool &value)
+{
+  SET_FLAG_FROM_TEST(mpoly.flag, value, ME_SMOOTH);
+}
+
+static ReadAttributePtr make_shade_smooth_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<MPoly, bool, get_shade_smooth>>(
+      ATTR_DOMAIN_POLYGON, Span<MPoly>((const MPoly *)data, domain_size));
+}
+
+static WriteAttributePtr make_shade_smooth_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<
+      DerivedArrayWriteAttribute<MPoly, bool, get_shade_smooth, set_shade_smooth>>(
+      ATTR_DOMAIN_POLYGON, MutableSpan<MPoly>((MPoly *)data, domain_size));
+}
+
 static float2 get_loop_uv(const MLoopUV &uv)
 {
   return float2(uv.uv);
@@ -680,6 +703,19 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        nullptr,
                                                        nullptr);
 
+  static BuiltinCustomDataLayerProvider shade_smooth("shade_smooth",
+                                                     ATTR_DOMAIN_POLYGON,
+                                                     CD_PROP_BOOL,
+                                                     CD_MPOLY,
+                                                     BuiltinAttributeProvider::NonCreatable,
+                                                     BuiltinAttributeProvider::Writable,
+                                                     BuiltinAttributeProvider::NonDeletable,
+                                                     polygon_access,
+                                                     make_shade_smooth_read_attribute,
+                                                     make_shade_smooth_write_attribute,
+                                                     nullptr,
+                                                     nullptr);
+
   static BuiltinCustomDataLayerProvider vertex_normal("vertex_normal",
                                                       ATTR_DOMAIN_POINT,
                                                       CD_PROP_FLOAT3,
@@ -713,7 +749,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider polygon_custom_data(ATTR_DOMAIN_POLYGON, polygon_access);
 
-  return ComponentAttributeProviders({&position, &material_index, &vertex_normal},
+  return ComponentAttributeProviders({&position, &material_index, &vertex_normal, &shade_smooth},
                                      {&uvs,
                                       &vertex_colors,
                                       &corner_custom_data,

@@ -120,13 +120,17 @@ class GeoNodeExecParams {
   template<typename T> Vector<T> extract_multi_input(StringRef identifier)
   {
     Vector<T> values;
-    values.append(input_values_.extract<T>(identifier));
-    int i = 1;
-    std::string sub_identifier = identifier + "[1]";
-    while (input_values_.contains(sub_identifier)) {
+    int index = 0;
+    while (true) {
+      std::string sub_identifier = identifier;
+      if (index > 0) {
+        sub_identifier += "[" + std::to_string(index) + "]";
+      }
+      if (!input_values_.contains(sub_identifier)) {
+        break;
+      }
       values.append(input_values_.extract<T>(sub_identifier));
-      i++;
-      sub_identifier = identifier + "[" + std::to_string(i) + "]";
+      index++;
     }
     return values;
   }

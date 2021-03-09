@@ -1216,6 +1216,11 @@ void RNA_api_keymaps(StructRNA *srna)
 
   func = RNA_def_function(srna, "new", "rna_keymap_new"); /* add_keymap */
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(
+      func,
+      "Ensure the keymap exists. This will return the one with the given name/space type/region "
+      "type, or create a new one if it does not exist yet.");
+
   parm = RNA_def_string(func, "name", NULL, 0, "Name", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");

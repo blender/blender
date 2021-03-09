@@ -19,18 +19,11 @@
 #include "COM_ChunkOrderHotspot.h"
 #include <cmath>
 
-ChunkOrderHotspot::ChunkOrderHotspot(int x, int y, float addition)
-{
-  x = x;
-  y = y;
-  addition = addition;
-}
-
 double ChunkOrderHotspot::calc_distance(int x, int y)
 {
-  int dx = x - x;
-  int dy = y - y;
+  int dx = this->x - x;
+  int dy = this->y - y;
   double result = sqrt((double)(dx * dx + dy * dy));
-  result += (double)addition;
+  result += (double)this->addition;
   return result;
 }

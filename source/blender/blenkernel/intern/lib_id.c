@@ -171,7 +171,9 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
 
   /* Conceptually, an ID made local is not the same as the linked one anymore. Reflect that by
    * regenerating its session UUID. */
-  BKE_lib_libblock_session_uuid_renew(id);
+  if ((id->tag & LIB_TAG_TEMP_MAIN) == 0) {
+    BKE_lib_libblock_session_uuid_renew(id);
+  }
 
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
    * ones are two completely different data-blocks that were virtually remapped, even though in

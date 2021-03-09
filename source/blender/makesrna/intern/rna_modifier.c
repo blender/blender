@@ -2791,7 +2791,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_hole_tolerant", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", eBooleanModifierFlag_HoleTolerant);
-  RNA_def_property_ui_text(prop, "Hole tolerant", "Better results when there are holes (slower)");
+  RNA_def_property_ui_text(prop, "Hole Tolerant", "Better results when there are holes (slower)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   /* BMesh debugging options, only used when G_DEBUG is set */
@@ -3139,7 +3139,8 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_range(prop, 1, FLT_MAX);
   RNA_def_property_ui_range(prop, 1, 1000, 1, 3);
-  RNA_def_property_ui_text(prop, "Aspect X", "Horizontal aspect ratio (only used for camera projectors)");
+  RNA_def_property_ui_text(
+      prop, "Aspect X", "Horizontal aspect ratio (only used for camera projectors)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "aspect_y", PROP_FLOAT, PROP_NONE);
@@ -3147,7 +3148,8 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
   RNA_def_property_range(prop, 1, FLT_MAX);
   RNA_def_property_ui_range(prop, 1, 1000, 1, 3);
-  RNA_def_property_ui_text(prop, "Aspect Y", "Vertical aspect ratio (only used for camera projectors)");
+  RNA_def_property_ui_text(
+      prop, "Aspect Y", "Vertical aspect ratio (only used for camera projectors)");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_NONE);

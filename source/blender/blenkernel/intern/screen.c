@@ -1217,7 +1217,7 @@ static void write_panel_list(BlendWriter *writer, ListBase *lb)
   }
 }
 
-static void write_area_regions(BlendWriter *writer, ScrArea *area)
+static void write_area(BlendWriter *writer, ScrArea *area)
 {
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     write_region(writer, region, area->spacetype);
@@ -1359,7 +1359,7 @@ void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
 
     BLO_write_struct(writer, ScrGlobalAreaData, area->global);
 
-    write_area_regions(writer, area);
+    write_area(writer, area);
 
     area->butspacetype = SPACE_EMPTY; /* Unset again, was changed above. */
   }
