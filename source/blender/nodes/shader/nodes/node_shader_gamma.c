@@ -62,7 +62,7 @@ void register_node_type_sh_gamma(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, 0);
+  sh_node_type_base(&ntype, SH_NODE_GAMMA, "Gamma", NODE_CLASS_OP_COLOR, 0);
   node_type_socket_templates(&ntype, sh_node_gamma_in, sh_node_gamma_out);
   node_type_init(&ntype, NULL);
   node_type_storage(&ntype, "", NULL, NULL);
