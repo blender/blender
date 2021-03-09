@@ -490,7 +490,7 @@ void EEVEE_renderpasses_draw_debug(EEVEE_Data *vedata)
       tx = txl->maxzbuffer;
       break;
     case 2:
-      tx = effects->ssr_pdf_output;
+      /* UNUSED */
       break;
     case 3:
       tx = effects->ssr_normal_input;

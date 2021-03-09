@@ -15,13 +15,6 @@ struct Ray {
   vec3 direction;
 };
 
-vec3 raytrace_offset(vec3 P, vec3 Ng)
-{
-  /* TODO(fclem) better offset */
-  const float epsilon_f = 1e-4;
-  return P + epsilon_f * Ng;
-}
-
 /* Inputs expected to be in viewspace. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {

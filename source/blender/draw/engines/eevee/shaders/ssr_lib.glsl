@@ -9,6 +9,10 @@
 
 #define BTDF_BIAS 0.85
 
+uniform sampler2D refractColorBuffer;
+
+uniform float refractionDepth;
+
 vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
 {
   float a2 = max(5e-6, roughnessSquared * roughnessSquared);
@@ -75,10 +79,10 @@ vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughness
     vec2 hit_uvs = project_point(ProjectionMatrix, hit_pos).xy * 0.5 + 0.5;
 
     /* Texel footprint */
-    vec2 texture_size = vec2(textureSize(colorBuffer, 0).xy);
+    vec2 texture_size = vec2(textureSize(refractColorBuffer, 0).xy) / hizUvScale.xy;
     float mip = clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, 9.0);
 
-    vec3 spec = textureLod(colorBuffer, hit_uvs * hizUvScale.xy, mip).xyz;
+    vec3 spec = textureLod(refractColorBuffer, hit_uvs * hizUvScale.xy, mip).xyz;
     float mask = screen_border_mask(hit_uvs);
 
     return vec4(spec, mask);
