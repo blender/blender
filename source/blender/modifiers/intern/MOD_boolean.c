@@ -864,13 +864,15 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
-  uiLayout *col = uiLayoutColumn(layout, true);
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
   const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
 
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, true);
   if (use_exact) {
     /* When operand is collection, we always use_self. */
     if (operand_object) {
@@ -883,7 +885,6 @@ static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 
   if (G.debug) {
-    col = uiLayoutColumn(layout, true);
     uiItemR(col, ptr, "debug_options", 0, NULL, ICON_NONE);
   }
 }
