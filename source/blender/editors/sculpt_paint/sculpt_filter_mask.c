@@ -482,7 +482,7 @@ static float sculpt_ipmask_vertex_softer_cb(SculptSession *UNUSED(ss),
 
 /* Contrast Increase/Decrease callbacks. */
 
-#define SCULPT_IPMASK_FILTER_CONTRAST_STEP 0.01f
+#define SCULPT_IPMASK_FILTER_CONTRAST_STEP 0.05f
 static float sculpt_ipmask_filter_contrast(const float mask, const float contrast)
 {
   float offset;
