@@ -386,13 +386,11 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (id)init
 {
   self = [super init];
-  if (self) {
-    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    [center addObserver:self
-               selector:@selector(windowWillClose:)
-                   name:NSWindowWillCloseNotification
-                 object:nil];
-  }
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  [center addObserver:self
+             selector:@selector(windowWillClose:)
+                 name:NSWindowWillCloseNotification
+               object:nil];
   return self;
 }
 
@@ -1669,10 +1667,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
       NSEventPhase momentumPhase = NSEventPhaseNone;
       NSEventPhase phase = NSEventPhaseNone;
 
-      if ([event respondsToSelector:@selector(momentumPhase)])
-        momentumPhase = [event momentumPhase];
-      if ([event respondsToSelector:@selector(phase)])
-        phase = [event phase];
+      momentumPhase = [event momentumPhase];
+      phase = [event phase];
 
       /* when pressing a key while momentum scrolling continues after
        * lifting fingers off the trackpad, the action can unexpectedly
