@@ -1074,6 +1074,11 @@ static int view_layer_remove_aov_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (view_layer->active_aov == NULL) {
+    return OPERATOR_FINISHED;
+  }
+
   BKE_view_layer_remove_aov(view_layer, view_layer->active_aov);
 
   RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
