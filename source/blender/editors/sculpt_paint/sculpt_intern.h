@@ -1465,6 +1465,9 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot);
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 
+/* Mask Init. */
+void SCULPT_OT_mask_init(struct wmOperatorType *ot);
+
 /* Expand. */
 void SCULPT_OT_expand(struct wmOperatorType *ot);
 void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);
