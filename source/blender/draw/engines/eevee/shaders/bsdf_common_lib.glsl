@@ -102,7 +102,7 @@ float D_ggx_opti(float NH, float a2)
   return M_PI * tmp * tmp; /* Doing RCP and mul a2 at the end */
 }
 
-float G1_Smith_GGX(float NX, float a2)
+float G1_Smith_GGX_opti(float NX, float a2)
 {
   /* Using Brian Karis approach and refactoring by NX/NX
    * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
@@ -122,7 +122,7 @@ float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
   float NL = max(dot(N, L), 1e-8);
   float NV = max(dot(N, V), 1e-8);
 
-  float G = G1_Smith_GGX(NV, a2) * G1_Smith_GGX(NL, a2); /* Doing RCP at the end */
+  float G = G1_Smith_GGX_opti(NV, a2) * G1_Smith_GGX_opti(NL, a2); /* Doing RCP at the end */
   float D = D_ggx_opti(NH, a2);
 
   /* Denominator is canceled by G1_Smith */

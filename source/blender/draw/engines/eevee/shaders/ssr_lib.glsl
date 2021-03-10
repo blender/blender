@@ -15,21 +15,20 @@ uniform float refractionDepth;
 
 vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
 {
-  float a2 = max(5e-6, roughnessSquared * roughnessSquared);
+  float alpha = max(0.002, roughnessSquared);
 
   /* Importance sampling bias */
   rand.x = mix(rand.x, 0.0, BTDF_BIAS);
 
   vec3 T, B;
-  float NH;
   make_orthonormal_basis(N, T, B);
-  vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
-  float pdf = pdf_ggx_reflect(NH, a2);
+  float pdf;
+  /* Microfacet normal */
+  vec3 H = sample_ggx(rand.xzw, alpha, V, N, T, B, pdf);
 
   /* If ray is bad (i.e. going below the plane) regenerate. */
   if (F_eta(ior, dot(H, V)) < 1.0) {
-    H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH); /* Microfacet normal */
-    pdf = pdf_ggx_reflect(NH, a2);
+    H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), alpha, V, N, T, B, pdf);
   }
 
   vec3 vV = viewCameraVec(vP);

@@ -245,7 +245,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
     DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
-    DRW_shgroup_uniform_float(grp, "roughnessSquared", &pinfo->roughness, 1);
+    DRW_shgroup_uniform_float(grp, "roughness", &pinfo->roughness, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
     DRW_shgroup_uniform_float(grp, "texelSize", &pinfo->texel_size, 1);
@@ -1045,8 +1045,8 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     /* Disney Roughness */
     pinfo->roughness = square_f(pinfo->roughness);
     /* Distribute Roughness across lod more evenly */
-    pinfo->roughness = square_f(square_f(pinfo->roughness));
-    CLAMP(pinfo->roughness, 1e-8f, 0.99999f); /* Avoid artifacts */
+    pinfo->roughness = square_f(pinfo->roughness);
+    CLAMP(pinfo->roughness, 1e-4f, 0.9999f); /* Avoid artifacts */
 
 #if 1 /* Variable Sample count and bias (fast) */
     switch (i) {

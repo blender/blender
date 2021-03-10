@@ -64,26 +64,21 @@ uniform sampler2D specroughBuffer;
 
 layout(location = 0) out vec4 hitData;
 
-void do_planar_ssr(
-    int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPlaneNormal, vec3 vP, float a2, vec4 rand)
+void do_planar_ssr(int index,
+                   vec3 V,
+                   vec3 N,
+                   vec3 T,
+                   vec3 B,
+                   vec3 viewPlaneNormal,
+                   vec3 vP,
+                   float alpha,
+                   vec4 rand)
 {
-  float NH;
+  float pdf;
   /* Microfacet normal */
-  vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH);
-  float pdf = pdf_ggx_reflect(NH, a2);
-
+  vec3 H = sample_ggx(rand.xzw, alpha, V, N, T, B, pdf);
   vec3 R = reflect(-V, H);
   R = reflect(R, viewPlaneNormal);
-
-  /* If ray is bad (i.e. going below the plane) regenerate. */
-  if (dot(R, viewPlaneNormal) > 0.0) {
-    /* Microfacet normal */
-    vec3 H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH);
-    pdf = pdf_ggx_reflect(NH, a2);
-
-    R = reflect(-V, H);
-    R = reflect(R, viewPlaneNormal);
-  }
 
   Ray ray;
   ray.origin = vP;
@@ -92,7 +87,7 @@ void do_planar_ssr(
   RayTraceParameters params;
   params.jitter = rand.y;
   params.trace_quality = ssrQuality;
-  params.roughness = a2;
+  params.roughness = alpha * alpha;
 
   HitData data;
   data.is_planar = true;
@@ -104,26 +99,26 @@ void do_planar_ssr(
   hitData = encode_hit_data(data);
 }
 
-void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float a2, vec4 rand)
+void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float alpha, vec4 rand)
 {
-  float NH;
+  float pdf;
   /* Microfacet normal */
-  vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH);
+  vec3 H = sample_ggx(rand.xzw, alpha, V, N, T, B, pdf);
   vec3 R = reflect(-V, H);
 
   Ray ray;
-  ray.origin = vP;
+  ray.origin = vP + N * 1e-4;
   ray.direction = R * 1e16;
 
   RayTraceParameters params;
   params.thickness = ssrThickness;
   params.jitter = rand.y;
   params.trace_quality = ssrQuality;
-  params.roughness = a2;
+  params.roughness = alpha * alpha;
 
   HitData data;
   data.is_planar = true;
-  data.ray_pdf_inv = safe_rcp(pdf_ggx_reflect(NH, a2));
+  data.ray_pdf_inv = safe_rcp(pdf);
   data.is_hit = raytrace(ray, params, true, data.hit_dir);
   data.hit_dir = get_view_space_from_depth(data.hit_dir.xy, data.hit_dir.z);
   data.hit_dir -= ray.origin;
@@ -170,8 +165,7 @@ void main()
   }
 
   float roughness = speccol_roughness.a;
-  float roughnessSquared = max(1e-3, roughness * roughness);
-  float a2 = roughnessSquared * roughnessSquared;
+  float alpha = max(1e-3, roughness * roughness);
 
   /* Early out */
   if (roughness > ssrMaxRoughness + 0.2) {
@@ -204,12 +198,12 @@ void main()
       tracePosition = transform_point(ViewMatrix, tracePosition);
       vec3 viewPlaneNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
-      do_planar_ssr(i, vV, vN, vT, vB, viewPlaneNormal, tracePosition, a2, rand);
+      do_planar_ssr(i, vV, vN, vT, vB, viewPlaneNormal, tracePosition, alpha, rand);
       return;
     }
   }
 
-  do_ssr(vV, vN, vT, vB, vP, a2, rand);
+  do_ssr(vV, vN, vT, vB, vP, alpha, rand);
 }
 
 #else /* STEP_RESOLVE */
