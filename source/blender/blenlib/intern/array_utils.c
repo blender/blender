@@ -330,7 +330,7 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
                                    const int arr_shape[2],
                                    size_t elem_size,
                                    const int center[2],
-                                   const bool (*test_fn)(const void *arr_item, void *user_data),
+                                   bool (*test_fn)(const void *arr_item, void *user_data),
                                    void *user_data)
 {
   BLI_assert(center[0] >= 0 && center[1] >= 0 && center[0] < arr_shape[0] &&
