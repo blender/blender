@@ -38,7 +38,7 @@ def geometry_node_group_empty_new():
     return group
 
 
-def geometry_modifier_poll(context) -> bool:
+def geometry_modifier_poll(context):
     ob = context.object
 
     # Test object support for geometry node modifier (No volume, curve, or hair object support yet)

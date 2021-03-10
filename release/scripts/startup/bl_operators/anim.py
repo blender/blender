@@ -438,7 +438,7 @@ class ANIM_OT_show_group_colors_deprecated(Operator):
     bl_options = {'REGISTER'}
 
     @classmethod
-    def poll(cls, context) -> bool:
+    def poll(cls, context):
         return False
 
 
