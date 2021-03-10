@@ -65,10 +65,10 @@ uniform sampler2D specroughBuffer;
 layout(location = 0) out vec4 hitData;
 
 void do_planar_ssr(int index,
-                   vec3 V,
-                   vec3 N,
-                   vec3 T,
-                   vec3 B,
+                   vec3 vV,
+                   vec3 vN,
+                   vec3 vT,
+                   vec3 vB,
                    vec3 viewPlaneNormal,
                    vec3 vP,
                    float alpha,
@@ -76,13 +76,13 @@ void do_planar_ssr(int index,
 {
   float pdf;
   /* Microfacet normal */
-  vec3 H = sample_ggx(rand.xzw, alpha, V, N, T, B, pdf);
-  vec3 R = reflect(-V, H);
-  R = reflect(R, viewPlaneNormal);
+  vec3 vH = sample_ggx(rand.xzw, alpha, vV, vN, vT, vB, pdf);
+  vec3 vR = reflect(-vV, vH);
+  vR = reflect(vR, viewPlaneNormal);
 
   Ray ray;
   ray.origin = vP;
-  ray.direction = R * 1e16;
+  ray.direction = vR * 1e16;
 
   RayTraceParameters params;
   params.jitter = rand.y;
@@ -99,16 +99,16 @@ void do_planar_ssr(int index,
   hitData = encode_hit_data(data);
 }
 
-void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 vP, float alpha, vec4 rand)
+void do_ssr(vec3 vV, vec3 vN, vec3 vT, vec3 vB, vec3 vP, float alpha, vec4 rand)
 {
   float pdf;
   /* Microfacet normal */
-  vec3 H = sample_ggx(rand.xzw, alpha, V, N, T, B, pdf);
-  vec3 R = reflect(-V, H);
+  vec3 vH = sample_ggx(rand.xzw, alpha, vV, vN, vT, vB, pdf);
+  vec3 vR = reflect(-vV, vH);
 
   Ray ray;
-  ray.origin = vP + N * 1e-4;
-  ray.direction = R * 1e16;
+  ray.origin = vP + vN * 1e-4;
+  ray.direction = vR * 1e16;
 
   RayTraceParameters params;
   params.thickness = ssrThickness;
