@@ -224,6 +224,12 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         BKE_LIB_FOREACHID_PROCESS(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
         break;
       }
+      case SPACE_SPREADSHEET: {
+        SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+        BKE_LIB_FOREACHID_PROCESS_ID(data, sspreadsheet->pinned_id, IDWALK_CB_NOP);
+        break;
+      }
       default:
         break;
     }
@@ -1906,6 +1912,11 @@ void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrAr
         SpaceClip *sclip = (SpaceClip *)sl;
         BLO_read_id_address(reader, parent_id->lib, &sclip->clip);
         BLO_read_id_address(reader, parent_id->lib, &sclip->mask_info.mask);
+        break;
+      }
+      case SPACE_SPREADSHEET: {
+        SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+        BLO_read_id_address(reader, parent_id->lib, &sspreadsheet->pinned_id);
         break;
       }
       default:

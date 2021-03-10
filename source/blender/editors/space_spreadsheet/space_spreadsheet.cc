@@ -32,12 +32,19 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "spreadsheet_intern.hh"
+
+#include "spreadsheet_from_geometry.hh"
+#include "spreadsheet_intern.hh"
+
+using namespace blender::ed::spreadsheet;
 
 static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
@@ -94,9 +101,49 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void spreadsheet_main_region_draw(const bContext *UNUSED(C), ARegion *UNUSED(region))
+static ID *get_used_id(const bContext *C)
 {
-  UI_ThemeClearColor(TH_BACK);
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  if (sspreadsheet->pinned_id != nullptr) {
+    return sspreadsheet->pinned_id;
+  }
+  Object *active_object = CTX_data_active_object(C);
+  return (ID *)active_object;
+}
+
+class FallbackSpreadsheetDrawer : public SpreadsheetDrawer {
+};
+
+static std::unique_ptr<SpreadsheetDrawer> generate_spreadsheet_drawer(const bContext *C)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  ID *used_id = get_used_id(C);
+  if (used_id == nullptr) {
+    return {};
+  }
+  const ID_Type id_type = GS(used_id->name);
+  if (id_type != ID_OB) {
+    return {};
+  }
+  Object *object_orig = (Object *)used_id;
+  if (object_orig->type != OB_MESH) {
+    return {};
+  }
+  Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
+  if (object_eval == nullptr) {
+    return {};
+  }
+
+  return spreadsheet_drawer_from_geometry_attributes(C, object_eval);
+}
+
+static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
+{
+  std::unique_ptr<SpreadsheetDrawer> drawer = generate_spreadsheet_drawer(C);
+  if (!drawer) {
+    drawer = std::make_unique<FallbackSpreadsheetDrawer>();
+  }
+  draw_spreadsheet_in_region(C, region, *drawer);
 }
 
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
@@ -108,6 +155,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
     case NC_SCENE: {
       switch (wmn->data) {
         case ND_MODE:
+        case ND_FRAME:
         case ND_OB_ACTIVE: {
           ED_region_tag_redraw(region);
           break;
