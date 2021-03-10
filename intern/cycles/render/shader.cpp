@@ -831,7 +831,8 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
 
 void ShaderManager::init_xyz_transforms()
 {
-  /* Default to ITU-BT.709 in case no appropriate transform found. */
+  /* Default to ITU-BT.709 in case no appropriate transform found.
+   * Note XYZ here is defined as having a D65 white point. */
   xyz_to_r = make_float3(3.2404542f, -1.5371385f, -0.4985314f);
   xyz_to_g = make_float3(-0.9692660f, 1.8760108f, 0.0415560f);
   xyz_to_b = make_float3(0.0556434f, -0.2040259f, 1.0572252f);
@@ -848,24 +849,27 @@ void ShaderManager::init_xyz_transforms()
 
   if (config->hasRole("aces_interchange")) {
     /* Standard OpenColorIO role, defined as ACES2065-1. */
-    const Transform xyz_to_aces = make_transform(1.0498110175f,
-                                                 0.0f,
-                                                 -0.0000974845f,
-                                                 0.0f,
-                                                 -0.4959030231f,
-                                                 1.3733130458f,
-                                                 0.0982400361f,
-                                                 0.0f,
-                                                 0.0f,
-                                                 0.0f,
-                                                 0.9912520182f,
-                                                 0.0f);
+    const Transform xyz_E_to_aces = make_transform(1.0498110175f,
+                                                   0.0f,
+                                                   -0.0000974845f,
+                                                   0.0f,
+                                                   -0.4959030231f,
+                                                   1.3733130458f,
+                                                   0.0982400361f,
+                                                   0.0f,
+                                                   0.0f,
+                                                   0.0f,
+                                                   0.9912520182f,
+                                                   0.0f);
+    const Transform xyz_D65_to_E = make_transform(
+        1.0521111f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.9184170f, 0.0f);
+
     Transform aces_to_rgb;
     if (!to_scene_linear_transform(config, "aces_interchange", aces_to_rgb)) {
       return;
     }
 
-    xyz_to_rgb = aces_to_rgb * xyz_to_aces;
+    xyz_to_rgb = aces_to_rgb * xyz_E_to_aces * xyz_D65_to_E;
   }
   else if (config->hasRole("XYZ")) {
     /* Custom role used before the standard existed. */
