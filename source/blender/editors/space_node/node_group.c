@@ -1030,6 +1030,9 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     nodeSetActive(ntree, gnode);
     if (ngroup) {
       ED_node_tree_push(snode, ngroup, gnode);
+      LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
+        sort_multi_input_socket_links(snode, node, NULL, NULL);
+      }
       ntreeUpdateTree(bmain, ngroup);
     }
   }

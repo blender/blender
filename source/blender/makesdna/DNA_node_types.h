@@ -394,7 +394,6 @@ typedef struct bNodeLink {
   bNodeSocket *fromsock, *tosock;
 
   int flag;
-  /* A runtime storage for automatically sorted links to multi-input sockets. */
   int multi_input_socket_index;
 } bNodeLink;
 
