@@ -84,6 +84,13 @@ typedef struct BMwEdgeboundaryWalker {
   BMEdge *e;
 } BMwEdgeboundaryWalker;
 
+typedef struct BMwNonManifoldEdgeLoopWalker {
+  BMwGenericWalker header;
+  BMEdge *start, *cur;
+  BMVert *startv, *lastv;
+  int face_count; /* face count around the edge. */
+} BMwNonManifoldEdgeLoopWalker;
+
 typedef struct BMwUVEdgeWalker {
   BMwGenericWalker header;
   BMLoop *l;

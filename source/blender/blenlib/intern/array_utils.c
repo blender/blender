@@ -324,13 +324,13 @@ bool _bli_array_is_zeroed(const void *arr_v, unsigned int arr_len, size_t arr_st
  * Nice for selection ID.
  *
  * \param arr_shape: dimensions [w, h].
- * \param center: coordinates [x, y] indicating where to start transversing.
+ * \param center: coordinates [x, y] indicating where to start traversing.
  */
 bool _bli_array_iter_spiral_square(const void *arr_v,
                                    const int arr_shape[2],
                                    size_t elem_size,
                                    const int center[2],
-                                   const bool (*test_fn)(const void *arr_item, void *user_data),
+                                   bool (*test_fn)(const void *arr_item, void *user_data),
                                    void *user_data)
 {
   BLI_assert(center[0] >= 0 && center[1] >= 0 && center[0] < arr_shape[0] &&
@@ -345,7 +345,7 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
     return true;
   }
 
-  /* #steps_in and #steps_out are the "diameters" of the inscribed and ciscunscript squares in the
+  /* #steps_in and #steps_out are the "diameters" of the inscribed and circumscribed squares in the
    * rectangle. Each step smaller than #steps_in does not need to check bounds. */
   int steps_in, steps_out;
   {

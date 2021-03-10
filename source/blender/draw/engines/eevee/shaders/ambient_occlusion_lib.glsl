@@ -50,14 +50,6 @@ OcclusionData unpack_occlusion_data(vec4 v)
   return OcclusionData((1.0 - v) * vec4(1, -1, 1, -1) * M_PI, 0.0);
 }
 
-/* Returns maximum screen distance an AO ray can travel for a given view depth, in NDC space. */
-vec2 get_ao_area(float view_depth, float radius)
-{
-  float homcco = ProjectionMatrix[2][3] * view_depth + ProjectionMatrix[3][3];
-  float max_dist = radius / homcco;
-  return vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * max_dist;
-}
-
 vec2 get_ao_noise(void)
 {
   vec2 noise = texelfetch_noise_tex(gl_FragCoord.xy).xy;
@@ -108,7 +100,7 @@ float search_horizon(vec3 vI,
     float depth = textureLod(depth_tx, uv * hizUvScale.xy, floor(lod)).r;
 
     if (depth == 1.0 && inverted == 0.0) {
-      /* Skip background. This avoids issues with the thickness heuristic. */
+      /* Skip background. Avoids making shadow on the geometry near the far plane. */
       continue;
     }
 
@@ -146,7 +138,6 @@ OcclusionData occlusion_search(
   }
 
   vec2 noise = get_ao_noise();
-  vec2 area = get_ao_area(vP.z, radius);
   vec2 dir = get_ao_dir(noise.x);
   vec2 uv = get_uvs_from_view(vP);
   vec3 vI = ((ProjectionMatrix[3][3] == 0.0) ? normalize(-vP) : vec3(0.0, 0.0, 1.0));

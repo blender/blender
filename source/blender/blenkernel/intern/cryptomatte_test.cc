@@ -76,7 +76,7 @@ TEST(cryptomatte, layer_from_manifest)
 {
   test_cryptomatte_manifest("{}", "{}");
   test_cryptomatte_manifest(R"({"Object":"12345678"})", R"({"Object": "12345678"})");
-  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321")})",
+  test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321"})",
                             R"({"Object":"12345678","Object2":"87654321"})");
   test_cryptomatte_manifest(R"({"Object":"12345678","Object2":"87654321"})",
                             R"(  {  "Object"  :  "12345678"  ,  "Object2"  :  "87654321"  }  )");

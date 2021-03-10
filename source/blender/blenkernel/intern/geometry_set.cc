@@ -56,13 +56,13 @@ GeometryComponent ::~GeometryComponent()
 GeometryComponent *GeometryComponent::create(GeometryComponentType component_type)
 {
   switch (component_type) {
-    case GeometryComponentType::Mesh:
+    case GEO_COMPONENT_TYPE_MESH:
       return new MeshComponent();
-    case GeometryComponentType::PointCloud:
+    case GEO_COMPONENT_TYPE_POINT_CLOUD:
       return new PointCloudComponent();
-    case GeometryComponentType::Instances:
+    case GEO_COMPONENT_TYPE_INSTANCES:
       return new InstancesComponent();
-    case GeometryComponentType::Volume:
+    case GEO_COMPONENT_TYPE_VOLUME:
       return new VolumeComponent();
   }
   BLI_assert(false);

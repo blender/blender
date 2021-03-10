@@ -847,7 +847,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
        * overestimates the contribution of foreground pixels but looks a
        * bit better without a sudden cutoff. */
       blendfac = ((samples - step) / (float)samples);
-      /* smoothstep to make it look a bit nicer as well */
+      /* Smooth-step to make it look a bit nicer as well. */
       blendfac = 3.0f * pow(blendfac, 2.0f) - 2.0f * pow(blendfac, 3.0f);
 
       /* accum */

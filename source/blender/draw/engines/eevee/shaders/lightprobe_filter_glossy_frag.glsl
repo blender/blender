@@ -3,7 +3,7 @@
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 uniform samplerCube probeHdr;
-uniform float roughnessSquared;
+uniform float roughness;
 uniform float texelSize;
 uniform float lodFactor;
 uniform float lodMax;
@@ -52,7 +52,9 @@ void main()
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {
-    vec3 H = sample_ggx(i, invSampleCount, roughnessSquared, N, T, B); /* Microfacet normal */
+    float pdf;
+    /* Microfacet normal */
+    vec3 H = sample_ggx(i, invSampleCount, roughness, V, N, T, B, pdf);
     vec3 L = -reflect(V, H);
     float NL = dot(N, L);
 
@@ -62,7 +64,6 @@ void main()
       /* Coarse Approximation of the mapping distortion
        * Unit Sphere -> Cubemap Face */
       const float dist = 4.0 * M_PI / 6.0;
-      float pdf = pdf_ggx_reflect(NH, roughnessSquared);
       /* http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html : Equation 13 */
       float lod = clamp(lodFactor - 0.5 * log2(pdf * dist), 0.0, lodMax);
 

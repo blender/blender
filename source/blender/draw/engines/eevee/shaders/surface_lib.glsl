@@ -1,12 +1,5 @@
 /** This describe the entire interface of the shader.  */
 
-/* Samplers */
-uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
-
-/* Uniforms */
-uniform float refractionDepth;
-
 #define SURFACE_INTERFACE \
   vec3 worldPosition; \
   vec3 viewPosition; \

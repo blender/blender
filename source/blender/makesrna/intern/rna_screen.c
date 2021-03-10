@@ -201,10 +201,6 @@ static const EnumPropertyItem *rna_Area_ui_type_itemf(bContext *C,
     if (ELEM(item_from->value, SPACE_TOPBAR, SPACE_STATUSBAR)) {
       continue;
     }
-    /* Hide spreadsheet editor until we want to expose it in the ui. */
-    if (item_from->value == SPACE_SPREADSHEET) {
-      continue;
-    }
 
     SpaceType *st = item_from->identifier[0] ? BKE_spacetype_from_id(item_from->value) : NULL;
     int totitem_prev = totitem;

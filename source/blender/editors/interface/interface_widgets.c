@@ -658,7 +658,7 @@ static int round_box_shadow_edges(
   const float maxx = rect->xmax + step;
   const float maxy = rect->ymax + step;
 
-  /* mult */
+  /* Multiply. */
   for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
     vec[a][0] = rad * cornervec[a][0];
     vec[a][1] = rad * cornervec[a][1];

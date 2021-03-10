@@ -306,12 +306,7 @@ class GeometryNodesEvaluator {
 
     /* Multi-input sockets contain a vector of inputs. */
     if (socket_to_compute->is_multi_input_socket()) {
-      Vector<GMutablePointer> values;
-      for (const DSocket &from_socket : from_sockets) {
-        GMutablePointer value = get_input_from_incoming_link(socket_to_compute, from_socket);
-        values.append(value);
-      }
-      return values;
+      return this->get_inputs_from_incoming_links(socket_to_compute, from_sockets);
     }
 
     if (from_sockets.is_empty()) {
@@ -323,6 +318,29 @@ class GeometryNodesEvaluator {
     const DSocket from_socket = from_sockets[0];
     GMutablePointer value = this->get_input_from_incoming_link(socket_to_compute, from_socket);
     return {value};
+  }
+
+  Vector<GMutablePointer> get_inputs_from_incoming_links(const DInputSocket socket_to_compute,
+                                                         const Span<DSocket> from_sockets)
+  {
+    Vector<GMutablePointer> values;
+    for (const int i : from_sockets.index_range()) {
+      const DSocket from_socket = from_sockets[i];
+      const int first_occurence = from_sockets.take_front(i).first_index_try(from_socket);
+      if (first_occurence == -1) {
+        values.append(this->get_input_from_incoming_link(socket_to_compute, from_socket));
+      }
+      else {
+        /* If the same from-socket occures more than once, we make a copy of the first value. This
+         * can happen when a node linked to a multi-input-socket is muted. */
+        GMutablePointer value = values[first_occurence];
+        const CPPType *type = value.type();
+        void *copy_buffer = allocator_.allocate(type->size(), type->alignment());
+        type->copy_to_uninitialized(value.get(), copy_buffer);
+        values.append({type, copy_buffer});
+      }
+    }
+    return values;
   }
 
   GMutablePointer get_input_from_incoming_link(const DInputSocket socket_to_compute,
@@ -500,7 +518,7 @@ class GeometryNodesEvaluator {
     /* For all sockets that are linked with the from_socket push the value to their node. */
     Vector<DInputSocket> to_sockets_all;
     from_socket.foreach_target_socket(
-        [&](DInputSocket to_socket) { to_sockets_all.append(to_socket); });
+        [&](DInputSocket to_socket) { to_sockets_all.append_non_duplicates(to_socket); });
 
     const CPPType &from_type = *value_to_forward.type();
     Vector<DInputSocket> to_sockets_same_type;

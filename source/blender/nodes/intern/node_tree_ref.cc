@@ -88,17 +88,35 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     link.blink_ = blink;
 
     links_.append(&link);
+
     from_socket.directly_linked_sockets_.append(&to_socket);
-    to_socket.directly_linked_sockets_.append(&from_socket);
     from_socket.directly_linked_links_.append(&link);
     to_socket.directly_linked_links_.append(&link);
   }
 
-  for (OutputSocketRef *socket : output_sockets_) {
+  for (InputSocketRef *input_socket : input_sockets_) {
+    if (input_socket->is_multi_input_socket()) {
+      std::sort(input_socket->directly_linked_links_.begin(),
+                input_socket->directly_linked_links_.end(),
+                [&](const LinkRef *a, const LinkRef *b) -> bool {
+                  int index_a = a->blink()->multi_input_socket_index;
+                  int index_b = b->blink()->multi_input_socket_index;
+                  return index_a > index_b;
+                });
+    }
+  }
+
+  for (InputSocketRef *input_socket : input_sockets_) {
+    for (const LinkRef *link : input_socket->directly_linked_links()) {
+      input_socket->directly_linked_sockets_.append(link->from_);
+    }
+  }
+
+  for (InputSocketRef *socket : input_sockets_) {
     if (!socket->node_->is_reroute_node()) {
-      this->find_targets_skipping_reroutes(*socket, socket->linked_sockets_);
-      for (SocketRef *target : socket->linked_sockets_) {
-        target->linked_sockets_.append(socket);
+      this->find_origins_skipping_reroutes(*socket, socket->linked_sockets_);
+      for (SocketRef *origin : socket->linked_sockets_) {
+        origin->linked_sockets_.append(socket);
       }
     }
   }
@@ -155,15 +173,15 @@ OutputSocketRef &NodeTreeRef::find_output_socket(Map<bNode *, NodeRef *> &node_m
   return *node->outputs_[0];
 }
 
-void NodeTreeRef::find_targets_skipping_reroutes(OutputSocketRef &socket,
-                                                 Vector<SocketRef *> &r_targets)
+void NodeTreeRef::find_origins_skipping_reroutes(InputSocketRef &socket,
+                                                 Vector<SocketRef *> &r_origins)
 {
-  for (SocketRef *direct_target : socket.directly_linked_sockets_) {
-    if (direct_target->node_->is_reroute_node()) {
-      this->find_targets_skipping_reroutes(*direct_target->node_->outputs_[0], r_targets);
+  for (SocketRef *direct_origin : socket.directly_linked_sockets_) {
+    if (direct_origin->node_->is_reroute_node()) {
+      this->find_origins_skipping_reroutes(*direct_origin->node_->inputs_[0], r_origins);
     }
     else {
-      r_targets.append_non_duplicates(direct_target);
+      r_origins.append_non_duplicates(direct_origin);
     }
   }
 }

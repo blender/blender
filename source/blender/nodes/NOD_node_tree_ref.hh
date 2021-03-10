@@ -238,7 +238,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   OutputSocketRef &find_output_socket(Map<bNode *, NodeRef *> &node_mapping,
                                       bNode *bnode,
                                       bNodeSocket *bsocket);
-  void find_targets_skipping_reroutes(OutputSocketRef &socket_ref, Vector<SocketRef *> &r_targets);
+  void find_origins_skipping_reroutes(InputSocketRef &socket, Vector<SocketRef *> &r_origins);
 };
 
 using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;

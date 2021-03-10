@@ -206,6 +206,9 @@ static DataTypeConversions create_implicit_conversions()
     return (a) ? Color4f(1.0f, 1.0f, 1.0f, 1.0f) : Color4f(0.0f, 0.0f, 0.0f, 1.0f);
   });
 
+  add_implicit_conversion<Color4f, bool>(conversions, "Color4f to boolean", [](Color4f a) {
+    return a.r == 0.0f && a.g == 0.0f && a.b == 0.0f;
+  });
   add_implicit_conversion<Color4f, float>(
       conversions, "Color4f to float", [](Color4f a) { return rgb_to_grayscale(a); });
   add_implicit_conversion<Color4f, float2>(

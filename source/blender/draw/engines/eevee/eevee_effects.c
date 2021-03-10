@@ -149,15 +149,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    */
   common_data->hiz_uv_scale[0] = viewport_size[0] / effects->hiz_size[0];
   common_data->hiz_uv_scale[1] = viewport_size[1] / effects->hiz_size[1];
-  common_data->hiz_uv_scale[2] = 1.0f / effects->hiz_size[0];
-  common_data->hiz_uv_scale[3] = 1.0f / effects->hiz_size[1];
 
   /* Compute pixel size. Size is multiplied by 2 because it is applied in NDC [-1..1] range. */
   sldata->common_data.ssr_pixelsize[0] = 2.0f / size_fs[0];
   sldata->common_data.ssr_pixelsize[1] = 2.0f / size_fs[1];
 
   /**
-   * Color buffer with correct downsampling alignment.
+   * Color buffer with correct down-sampling alignment.
    * Used for SSReflections & SSRefractions.
    */
   if ((effects->enabled_effects & EFFECT_RADIANCE_BUFFER) != 0) {

@@ -6383,9 +6383,9 @@ void uiTemplateList(uiLayout *layout,
   }
 
   if (glob) {
-    /* About UI_BTYPE_GRIP drag-resize:
+    /* About #UI_BTYPE_GRIP drag-resize:
      * We can't directly use results from a grip button, since we have a
-     * rather complex behavior here (sizing by discrete steps and, overall, autosize feature).
+     * rather complex behavior here (sizing by discrete steps and, overall, auto-size feature).
      * Since we *never* know whether we are grip-resizing or not
      * (because there is no callback for when a button enters/leaves its "edit mode"),
      * we use the fact that grip-controlled value (dyn_data->resize) is completely handled
@@ -6393,7 +6393,7 @@ void uiTemplateList(uiLayout *layout,
      *
      * It is only meaningful when we are not resizing,
      * in which case this gives us the correct "init drag" value.
-     * Note we cannot affect dyn_data->resize_prev here,
+     * Note we cannot affect `dyn_data->resize_prev here`,
      * since this value is not controlled by the grip!
      */
     dyn_data->resize = dyn_data->resize_prev +

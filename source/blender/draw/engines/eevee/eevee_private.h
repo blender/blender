@@ -737,7 +737,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *ssr_normal_input; /* Textures from pool */
   struct GPUTexture *ssr_specrough_input;
   struct GPUTexture *ssr_hit_output;
-  struct GPUTexture *ssr_pdf_output;
+  struct GPUTexture *ssr_hit_depth;
   /* Temporal Anti Aliasing */
   int taa_reproject_sample;
   int taa_current_sample;
@@ -854,8 +854,8 @@ typedef struct EEVEE_EffectsInfo {
  * - Arrays of vec2/vec3 are padded as arrays of vec4.
  * - sizeof(bool) == sizeof(int) in GLSL so use int in C */
 typedef struct EEVEE_CommonUniformBuffer {
-  float prev_persmat[4][4]; /* mat4 */
-  float hiz_uv_scale[4];    /* vec4 */
+  float prev_persmat[4][4];               /* mat4 */
+  float hiz_uv_scale[2], ssr_uv_scale[2]; /* vec4 */
   /* Ambient Occlusion */
   /* -- 16 byte aligned -- */
   float ao_dist, pad1, ao_factor, pad2;                    /* vec4 */

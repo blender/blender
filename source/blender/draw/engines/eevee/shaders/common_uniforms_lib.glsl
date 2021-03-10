@@ -69,3 +69,5 @@ layout(std140) uniform common_block
 #define ssrQuality ssrParameters.x
 #define ssrThickness ssrParameters.y
 #define ssrPixelSize ssrParameters.zw
+
+#define ssrUvScale hizUvScale.zw

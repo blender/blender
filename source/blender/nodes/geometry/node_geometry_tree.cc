@@ -71,6 +71,17 @@ static void geometry_node_tree_update(bNodeTree *ntree)
   ntree_update_reroute_nodes(ntree);
 }
 
+static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
+{
+  func(calldata, NODE_CLASS_INPUT, N_("Input"));
+  func(calldata, NODE_CLASS_GEOMETRY, N_("Geometry"));
+  func(calldata, NODE_CLASS_ATTRIBUTE, N_("Attribute"));
+  func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
+  func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
+  func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+  func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
+}
+
 void register_node_tree_type_geo(void)
 {
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
@@ -83,6 +94,7 @@ void register_node_tree_type_geo(void)
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;
+  tt->foreach_nodeclass = foreach_nodeclass;
 
   ntreeTypeAdd(tt);
 }

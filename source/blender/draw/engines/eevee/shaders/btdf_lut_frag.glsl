@@ -37,7 +37,7 @@ void main()
       Xi.yz = vec2(cos(Xi.y * M_2PI), sin(Xi.y * M_2PI));
 
       /* Microfacet normal. */
-      vec3 H = sample_ggx(Xi, a2);
+      vec3 H = sample_ggx(Xi, a2, V);
 
       float VH = dot(V, H);
 
@@ -59,7 +59,7 @@ void main()
         float LH = dot(L, H);
 
         /* Balancing the adjustments made in G1_Smith. */
-        float G1_l = NL * 2.0 / G1_Smith_GGX(NL, a2);
+        float G1_l = NL * 2.0 / G1_Smith_GGX_opti(NL, a2);
 
         /* btdf = abs(VH*LH) * (ior*ior) * D * G(V) * G(L) / (Ht2 * NV)
          * pdf = (VH * abs(LH)) * (ior*ior) * D * G(V) / (Ht2 * NV) */

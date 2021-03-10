@@ -2983,6 +2983,14 @@ static void rna_SpaceFileBrowser_browse_mode_update(Main *UNUSED(bmain),
   ED_area_tag_refresh(area);
 }
 
+static void rna_SpaceSpreadsheet_pinned_id_set(PointerRNA *ptr,
+                                               PointerRNA value,
+                                               struct ReportList *UNUSED(reports))
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
+  sspreadsheet->pinned_id = value.data;
+}
+
 #else
 
 static const EnumPropertyItem dt_uv_items[] = {
@@ -7185,10 +7193,23 @@ static void rna_def_space_clip(BlenderRNA *brna)
 
 static void rna_def_space_spreadsheet(BlenderRNA *brna)
 {
+  PropertyRNA *prop;
   StructRNA *srna;
 
   srna = RNA_def_struct(brna, "SpaceSpreadsheet", "Space");
   RNA_def_struct_ui_text(srna, "Space Spreadsheet", "Spreadsheet space data");
+
+  prop = RNA_def_property(srna, "pinned_id", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceSpreadsheet_pinned_id_set", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Pinned ID", "Data-block whose values are displayed");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", SPREADSHEET_FILTER_SELECTED_ONLY);
+  RNA_def_property_ui_text(
+      prop, "Show Only Selected", "Only include rows that correspond to selected elements");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 
 void RNA_def_space(BlenderRNA *brna)

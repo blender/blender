@@ -125,7 +125,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end();
 
-  /* Force rebuild of pbvh for better BB placement. */
+  /* Force rebuild of PBVH for better BB placement. */
   SCULPT_pbvh_clear(ob);
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -723,7 +723,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   copy_m4_m4(cd->gizmo_mat, cursor_trans);
   mul_m4_m4_post(cd->gizmo_mat, cursor_rot);
 
-  /* Initize the position of the triangle vertices. */
+  /* Initialize the position of the triangle vertices. */
   const float y_axis[3] = {0.0f, cd->radius, 0.0f};
   for (int i = 0; i < 3; i++) {
     zero_v3(cd->preview_tri[i]);

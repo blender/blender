@@ -304,6 +304,7 @@ static struct _inittab bpy_internal_modules[] = {
     {NULL, NULL},
 };
 
+#ifndef WITH_PYTHON_MODULE
 /**
  * Convenience function for #BPY_python_start.
  *
@@ -321,6 +322,7 @@ static void pystatus_exit_on_error(PyStatus status)
     Py_ExitStatusException(status);
   }
 }
+#endif
 
 /* call BPY_context_set first */
 void BPY_python_start(bContext *C, int argc, const char **argv)

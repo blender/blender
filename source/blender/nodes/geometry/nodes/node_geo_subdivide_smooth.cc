@@ -69,7 +69,7 @@ static void geo_node_subdivide_smooth_exec(GeoNodeExecParams params)
 #else
   const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 30);
 
-  /* Only process subdivion if level is greater than 0. */
+  /* Only process subdivision if level is greater than 0. */
   if (subdiv_level == 0) {
     params.set_output("Geometry", std::move(geometry_set));
     return;

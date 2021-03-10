@@ -39,7 +39,7 @@ using blender::bke::ReadAttributePtr;
 /** \name Geometry Component Implementation
  * \{ */
 
-MeshComponent::MeshComponent() : GeometryComponent(GeometryComponentType::Mesh)
+MeshComponent::MeshComponent() : GeometryComponent(GEO_COMPONENT_TYPE_MESH)
 {
 }
 
@@ -466,14 +466,14 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
 
 static Mesh *get_mesh_from_component_for_write(GeometryComponent &component)
 {
-  BLI_assert(component.type() == GeometryComponentType::Mesh);
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
   MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
   return mesh_component.get_for_write();
 }
 
 static const Mesh *get_mesh_from_component_for_read(const GeometryComponent &component)
 {
-  BLI_assert(component.type() == GeometryComponentType::Mesh);
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
   const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
   return mesh_component.get_for_read();
 }
@@ -713,7 +713,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   ReadAttributePtr try_get_for_read(const GeometryComponent &component,
                                     const StringRef attribute_name) const final
   {
-    BLI_assert(component.type() == GeometryComponentType::Mesh);
+    BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
     const int vertex_group_index = mesh_component.vertex_group_names().lookup_default_as(
@@ -733,7 +733,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   WriteAttributePtr try_get_for_write(GeometryComponent &component,
                                       const StringRef attribute_name) const final
   {
-    BLI_assert(component.type() == GeometryComponentType::Mesh);
+    BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
     Mesh *mesh = mesh_component.get_for_write();
     if (mesh == nullptr) {
@@ -758,7 +758,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final
   {
-    BLI_assert(component.type() == GeometryComponentType::Mesh);
+    BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
 
     const int vertex_group_index = mesh_component.vertex_group_names().pop_default_as(
@@ -783,7 +783,7 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final
   {
-    BLI_assert(component.type() == GeometryComponentType::Mesh);
+    BLI_assert(component.type() == GEO_COMPONENT_TYPE_MESH);
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     for (const auto item : mesh_component.vertex_group_names().items()) {
       const StringRefNull name = item.key;
