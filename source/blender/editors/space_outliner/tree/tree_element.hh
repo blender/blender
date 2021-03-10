@@ -40,7 +40,7 @@ class AbstractTreeElement {
   virtual ~AbstractTreeElement() = default;
 
   /**
-   * Check if the type is expandible in current context.
+   * Check if the type is expandable in current context.
    */
   virtual bool expandPoll(const SpaceOutliner &) const
   {

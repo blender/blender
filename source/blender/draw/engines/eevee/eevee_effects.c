@@ -157,7 +157,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   sldata->common_data.ssr_pixelsize[1] = 2.0f / size_fs[1];
 
   /**
-   * Color buffer with correct downsampling alignment.
+   * Color buffer with correct down-sampling alignment.
    * Used for SSReflections & SSRefractions.
    */
   if ((effects->enabled_effects & EFFECT_RADIANCE_BUFFER) != 0) {

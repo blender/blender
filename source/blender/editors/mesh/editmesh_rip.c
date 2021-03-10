@@ -97,7 +97,9 @@ static float edbm_rip_linedist(
 }
 #endif
 
-/* calculaters a point along the loop tangent which can be used to measure against edges */
+/**
+ * Calculates a point along the loop tangent which can be used to measure against edges.
+ */
 static void edbm_calc_loop_co(BMLoop *l, float l_mid_co[3])
 {
   BM_loop_calc_face_tangent(l, l_mid_co);

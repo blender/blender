@@ -834,7 +834,7 @@ static void dof_scatter_pass_init(EEVEE_FramebufferList *fbl,
   int input_size[2], target_size[2];
   GPU_texture_get_mipmap_size(fx->dof_half_res_color_tx, 0, input_size);
   GPU_texture_get_mipmap_size(fx->dof_bg_color_tx, 0, target_size);
-  /* Draw a sprite for every four halfres pixels. */
+  /* Draw a sprite for every four half-res pixels. */
   int sprite_count = (input_size[0] / 2) * (input_size[1] / 2);
   float target_texel_size[2] = {1.0f / target_size[0], 1.0f / target_size[1]};
   const bool use_bokeh_tx = (fx->dof_bokeh_gather_lut_tx != NULL);

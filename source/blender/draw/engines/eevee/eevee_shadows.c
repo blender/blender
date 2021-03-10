@@ -174,7 +174,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   }
 
   EEVEE_BoundBox *aabb = &frontbuffer->bbox[id];
-  /* Note that *aabb has not been initialised yet. */
+  /* Note that `*aabb` has not been initialized yet. */
   add_v3_v3v3(aabb->center, min, max);
   mul_v3_fl(aabb->center, 0.5f);
   sub_v3_v3v3(aabb->halfdim, aabb->center, max);

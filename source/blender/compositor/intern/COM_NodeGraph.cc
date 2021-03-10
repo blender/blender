@@ -103,7 +103,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
 {
   const bNodeTree *basetree = context.getbNodeTree();
 
-  /* update viewers in the active edittree as well the base tree (for backdrop) */
+  /* Update viewers in the active edit-tree as well the base tree (for backdrop). */
   bool is_active_group = (parent_key.value == basetree->active_viewer_key.value);
 
   /* add all nodes of the tree to the node list */
@@ -113,7 +113,7 @@ void NodeGraph::add_bNodeTree(const CompositorContext &context,
   }
 
   NodeRange node_range(m_nodes.begin() + nodes_start, m_nodes.end());
-  /* add all nodelinks of the tree to the link list */
+  /* Add all node-links of the tree to the link list. */
   for (bNodeLink *nodelink = (bNodeLink *)tree->links.first; nodelink; nodelink = nodelink->next) {
     add_bNodeLink(node_range, nodelink);
   }
