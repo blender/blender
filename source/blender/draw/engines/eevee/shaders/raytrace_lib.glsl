@@ -48,6 +48,11 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
   if (len_squared(ray.direction.xy) < 0.00001) {
     ray.direction.xy = vec2(0.0, 0.01);
   }
+  /* Avoid divide by 0 error in line_unit_box_intersect_dist, leading to undefined behavior
+   * (see T86429). */
+  if (ray.direction.z == 0.0) {
+    ray.direction.z = 0.0001;
+  }
   float ray_len_sqr = len_squared(ray.direction.xyz);
   /* Make ray.direction cover one pixel. */
   bool is_more_vertical = abs(ray.direction.x) < abs(ray.direction.y);
