@@ -425,6 +425,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(ToolSettings),
     SDNA_DEFAULT_DECL_EX(CurvePaintSettings, ToolSettings.curve_paint_settings),
     SDNA_DEFAULT_DECL_EX(ImagePaintSettings, ToolSettings.imapaint),
+    SDNA_DEFAULT_DECL_EX(UnifiedPaintSettings, ToolSettings.unified_paint_settings),
     SDNA_DEFAULT_DECL_EX(ParticleEditSettings, ToolSettings.particle),
     SDNA_DEFAULT_DECL_EX(ParticleBrushData, ToolSettings.particle.brush[0]),
     SDNA_DEFAULT_DECL_EX(MeshStatVis, ToolSettings.statvis),
