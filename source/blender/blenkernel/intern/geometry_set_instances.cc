@@ -371,9 +371,9 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
   dst_component.replace(new_mesh);
 
   Vector<GeometryComponentType> component_types;
-  component_types.append(GeometryComponentType::Mesh);
+  component_types.append(GEO_COMPONENT_TYPE_MESH);
   if (convert_points_to_vertices) {
-    component_types.append(GeometryComponentType::PointCloud);
+    component_types.append(GEO_COMPONENT_TYPE_POINT_CLOUD);
   }
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
@@ -402,9 +402,9 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(totpoint);
   dst_component.replace(pointcloud);
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(attributes, {GeometryComponentType::PointCloud}, set_groups, {});
+  gather_attribute_info(attributes, {GEO_COMPONENT_TYPE_POINT_CLOUD}, set_groups, {});
   join_attributes(set_groups,
-                  {GeometryComponentType::PointCloud},
+                  {GEO_COMPONENT_TYPE_POINT_CLOUD},
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
 }

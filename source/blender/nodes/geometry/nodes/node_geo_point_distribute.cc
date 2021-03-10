@@ -695,7 +695,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
 
   Map<std::string, AttributeKind> attributes;
   bke::gather_attribute_info(
-      attributes, {GeometryComponentType::Mesh}, set_groups, {"position", "normal", "id"});
+      attributes, {GEO_COMPONENT_TYPE_MESH}, set_groups, {"position", "normal", "id"});
   add_remaining_point_attributes(set_groups,
                                  instance_start_offsets,
                                  attributes,

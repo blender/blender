@@ -408,7 +408,7 @@ std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(c
                                                    "geometry set");
 
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
-  const GeometryComponentType component_type = GeometryComponentType::Mesh;
+  const GeometryComponentType component_type = GEO_COMPONENT_TYPE_MESH;
   const GeometryComponent *component = geometry_set.get_component_for_read(component_type);
   if (component == nullptr) {
     return {};
@@ -425,7 +425,7 @@ std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(c
   }
 
   /* The filter below only works for mesh vertices currently. */
-  BLI_assert(domain == ATTR_DOMAIN_POINT && component_type == GeometryComponentType::Mesh);
+  BLI_assert(domain == ATTR_DOMAIN_POINT && component_type == GEO_COMPONENT_TYPE_MESH);
   Span<int64_t> visible_rows = filter_visible_mesh_vertex_rows(
       C, object_eval, static_cast<const MeshComponent *>(component), *resources);
 
