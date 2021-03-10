@@ -97,11 +97,13 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     /* Ray-tracing output. */
     effects->ssr_hit_output = DRW_texture_pool_query_2d(UNPACK2(tracing_res), GPU_RGBA16F, owner);
+    effects->ssr_hit_depth = DRW_texture_pool_query_2d(UNPACK2(tracing_res), GPU_R16F, owner);
 
     GPU_framebuffer_ensure_config(&fbl->screen_tracing_fb,
                                   {
                                       GPU_ATTACHMENT_NONE,
                                       GPU_ATTACHMENT_TEXTURE(effects->ssr_hit_output),
+                                      GPU_ATTACHMENT_TEXTURE(effects->ssr_hit_depth),
                                   });
 
     return EFFECT_SSR | EFFECT_NORMAL_BUFFER | EFFECT_RADIANCE_BUFFER | EFFECT_DOUBLE_BUFFER |
@@ -173,6 +175,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &vedata->txl->planar_pool);
     DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
     DRW_shgroup_uniform_texture_ref_ex(grp, "hitBuffer", &effects->ssr_hit_output, no_filter);
+    DRW_shgroup_uniform_texture_ref_ex(grp, "hitDepth", &effects->ssr_hit_depth, no_filter);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &txl->filtered_radiance);
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
     DRW_shgroup_uniform_texture_ref(grp, "shadowCubeTexture", &sldata->shadow_cube_pool);

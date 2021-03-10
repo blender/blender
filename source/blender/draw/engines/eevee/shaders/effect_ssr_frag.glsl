@@ -25,6 +25,8 @@ uniform ivec2 halfresOffset;
 struct HitData {
   /** Hit direction scaled by intersection time. */
   vec3 hit_dir;
+  /** Screen space [0..1] depth of the reflection hit position, or -1.0 for planar reflections. */
+  float hit_depth;
   /** Inverse probability of ray spawning in this direction. */
   float ray_pdf_inv;
   /** True if ray has hit valid geometry. */
@@ -33,27 +35,24 @@ struct HitData {
   bool is_planar;
 };
 
-vec4 encode_hit_data(HitData data)
+void encode_hit_data(HitData data, vec3 hit_sP, vec3 vP, out vec4 hit_data, out float hit_depth)
 {
-  vec4 encoded_data;
-  encoded_data.xyz = data.hit_dir;
-  /* Encode planar in Z sign. */
-  /* TODO fixme */
-  // encoded_data.z = data.is_planar ? -encoded_data.z : encoded_data.z;
+  vec3 hit_vP = get_view_space_from_depth(hit_sP.xy, hit_sP.z);
+  hit_data.xyz = hit_vP - vP;
+  hit_depth = data.is_planar ? -1.0 : hit_sP.z;
   /* Record 1.0 / pdf to reduce the computation in the resolve phase. */
   /* Encode hit validity in sign. */
-  encoded_data.w = data.ray_pdf_inv * ((data.is_hit) ? 1.0 : -1.0);
-  return encoded_data;
+  hit_data.w = data.ray_pdf_inv * ((data.is_hit) ? 1.0 : -1.0);
 }
 
-HitData decode_hit_data(vec4 encoded_data)
+HitData decode_hit_data(vec4 hit_data, float hit_depth)
 {
   HitData data;
-  data.hit_dir.xyz = encoded_data.xyz;
-  /* TODO fixme */
-  data.is_planar = false;
-  data.ray_pdf_inv = abs(encoded_data.w);
-  data.is_hit = (encoded_data.w > 0.0);
+  data.hit_dir.xyz = hit_data.xyz;
+  data.hit_depth = hit_depth;
+  data.is_planar = (hit_depth == -1.0);
+  data.ray_pdf_inv = abs(hit_data.w);
+  data.is_hit = (hit_data.w > 0.0);
   return data;
 }
 
@@ -63,6 +62,7 @@ uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
 layout(location = 0) out vec4 hitData;
+layout(location = 1) out float hitDepth;
 
 void do_planar_ssr(int index,
                    vec3 vV,
@@ -89,14 +89,13 @@ void do_planar_ssr(int index,
   params.trace_quality = ssrQuality;
   params.roughness = alpha * alpha;
 
+  vec3 hit_sP;
   HitData data;
   data.is_planar = true;
   data.ray_pdf_inv = safe_rcp(pdf);
-  data.is_hit = raytrace_planar(ray, params, index, data.hit_dir);
-  data.hit_dir = get_view_space_from_depth(data.hit_dir.xy, data.hit_dir.z);
-  data.hit_dir -= ray.origin;
+  data.is_hit = raytrace_planar(ray, params, index, hit_sP);
 
-  hitData = encode_hit_data(data);
+  encode_hit_data(data, hit_sP, ray.origin, hitData, hitDepth);
 }
 
 void do_ssr(vec3 vV, vec3 vN, vec3 vT, vec3 vB, vec3 vP, float alpha, vec4 rand)
@@ -116,14 +115,13 @@ void do_ssr(vec3 vV, vec3 vN, vec3 vT, vec3 vB, vec3 vP, float alpha, vec4 rand)
   params.trace_quality = ssrQuality;
   params.roughness = alpha * alpha;
 
+  vec3 hit_sP;
   HitData data;
-  data.is_planar = true;
+  data.is_planar = false;
   data.ray_pdf_inv = safe_rcp(pdf);
-  data.is_hit = raytrace(ray, params, true, data.hit_dir);
-  data.hit_dir = get_view_space_from_depth(data.hit_dir.xy, data.hit_dir.z);
-  data.hit_dir -= ray.origin;
+  data.is_hit = raytrace(ray, params, true, hit_sP);
 
-  hitData = encode_hit_data(data);
+  encode_hit_data(data, hit_sP, ray.origin, hitData, hitDepth);
 }
 
 in vec4 uvcoordsvar;
@@ -135,12 +133,12 @@ void main()
 
   HitData data;
   data.is_planar = false;
-  data.ray_pdf_inv = safe_rcp(0.0);
+  data.ray_pdf_inv = 0.0;
   data.is_hit = false;
   data.hit_dir = vec3(0.0, 0.0, 0.0);
 
   /* Default: not hits. */
-  hitData = encode_hit_data(data);
+  encode_hit_data(data, data.hit_dir, data.hit_dir, hitData, hitDepth);
 
   /* Early out */
   /* We can't do discard because we don't clear the render target. */
@@ -212,6 +210,7 @@ uniform sampler2D colorBuffer; /* previous frame */
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 uniform sampler2D hitBuffer;
+uniform sampler2D hitDepth;
 
 in vec4 uvcoordsvar;
 
@@ -264,7 +263,9 @@ void resolve_reflection_sample(int planar_index,
                                inout float weight_accum,
                                inout vec4 ssr_accum)
 {
-  HitData data = decode_hit_data(texture(hitBuffer, sample_uv * ssrUvScale));
+  vec4 hit_data = texture(hitBuffer, sample_uv * ssrUvScale);
+  float hit_depth = texture(hitDepth, sample_uv * ssrUvScale).r;
+  HitData data = decode_hit_data(hit_data, hit_depth);
 
   float hit_dist = length(data.hit_dir);
 

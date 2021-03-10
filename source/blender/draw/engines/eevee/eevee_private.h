@@ -737,6 +737,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *ssr_normal_input; /* Textures from pool */
   struct GPUTexture *ssr_specrough_input;
   struct GPUTexture *ssr_hit_output;
+  struct GPUTexture *ssr_hit_depth;
   /* Temporal Anti Aliasing */
   int taa_reproject_sample;
   int taa_current_sample;

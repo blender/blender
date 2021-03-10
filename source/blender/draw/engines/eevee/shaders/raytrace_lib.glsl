@@ -43,12 +43,12 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
   ray.direction.zw += bias;
 
   ray.direction -= ray.origin;
-  float ray_len_sqr = len_squared(ray.direction.xyz);
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
-  if (ray_len_sqr < 0.00001) {
-    ray.direction.xy = vec2(0.0, 0.0001);
+  if (len_squared(ray.direction.xy) < 0.00001) {
+    ray.direction.xy = vec2(0.0, 0.01);
   }
+  float ray_len_sqr = len_squared(ray.direction.xyz);
   /* Make ray.direction cover one pixel. */
   bool is_more_vertical = abs(ray.direction.x) < abs(ray.direction.y);
   ray.direction /= (is_more_vertical) ? abs(ray.direction.y) : abs(ray.direction.x);
@@ -166,8 +166,6 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   }
 
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray);
-  /* Avoid no iteration. */
-  ssray.max_time = max(ssray.max_time, 1.1);
 
   /* Planar Reflections have X mirrored. */
   ssray.origin.x = 1.0 - ssray.origin.x;
@@ -177,9 +175,10 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   float depth_sample = get_depth_from_view_z(ray.origin.z);
   float delta = depth_sample - ssray.origin.z;
 
-  /* Cross at least one pixel. */
-  float t = 1.001, time = 1.001;
-  bool hit = false;
+  float t = 0.0, time = 0.0;
+  /* On very sharp reflections, the ray can be perfectly aligned with the view direction
+   * making the tracing useless. Bypass tracing in this case. */
+  bool hit = (ssray.max_time < 1.0);
   const float max_steps = 255.0;
   for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
     float stride = 1.0 + iter * params.trace_quality;
@@ -205,6 +204,8 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
   hit_position = ssray.origin.xyz + ssray.direction.xyz * time;
+  /* Planar Reflections have X mirrored. */
+  hit_position.x = 1.0 - hit_position.x;
 
   return hit;
 }
