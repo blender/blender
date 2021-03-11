@@ -52,7 +52,7 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
     case TSE_NLA_TRACK:
       return new TreeElementNLATrack(legacy_te, *static_cast<NlaTrack *>(idv));
     case TSE_NLA_ACTION:
-      return new TreeElementNLAAction(legacy_te);
+      return new TreeElementNLAAction(legacy_te, *static_cast<bAction *>(idv));
     case TSE_GP_LAYER:
       return new TreeElementGPencilLayer(legacy_te, *static_cast<bGPDlayer *>(idv));
     case TSE_R_LAYER_BASE:

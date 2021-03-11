@@ -70,9 +70,11 @@ void TreeElementNLATrack::expand(SpaceOutliner &space_outliner) const
 
 /* -------------------------------------------------------------------- */
 
-TreeElementNLAAction::TreeElementNLAAction(TreeElement &legacy_te) : AbstractTreeElement(legacy_te)
+TreeElementNLAAction::TreeElementNLAAction(TreeElement &legacy_te, const bAction &action)
+    : AbstractTreeElement(legacy_te)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_NLA_ACTION);
+  legacy_te.name = action.id.name + 2;
 }
 
 }  // namespace blender::ed::outliner
