@@ -193,6 +193,8 @@ static void file_init(wmWindowManager *UNUSED(wm), ScrArea *area)
   if (sfile->runtime == NULL) {
     sfile->runtime = MEM_callocN(sizeof(*sfile->runtime), __func__);
   }
+  /* Validate the params right after file read. */
+  fileselect_refresh_params(sfile);
 }
 
 static void file_exit(wmWindowManager *wm, ScrArea *area)
