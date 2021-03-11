@@ -132,11 +132,9 @@ static void setup_app_userdef(BlendFileData *bfd)
  * should be avoided or check (mode != LOAD_UNDO).
  *
  * \param bfd: Blend file data, freed by this function on exit.
- * \param filepath: File path or identifier.
  */
 static void setup_app_data(bContext *C,
                            BlendFileData *bfd,
-                           const char *filepath,
                            const struct BlendFileReadParams *params,
                            ReportList *reports)
 {
@@ -350,16 +348,10 @@ static void setup_app_data(bContext *C,
   if (is_startup) {
     bmain->name[0] = '\0';
   }
-  else if (recover && G.relbase_valid) {
-    /* in case of autosave or quit.blend, use original filename instead
-     * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
-    filepath = bfd->filename;
+  else if (recover) {
+    /* In case of autosave or quit.blend, use original filename instead. */
     bmain->recovered = 1;
-
-    /* these are the same at times, should never copy to the same location */
-    if (bmain->name != filepath) {
-      BLI_strncpy(bmain->name, filepath, FILE_MAX);
-    }
+    BLI_strncpy(bmain->name, bfd->filename, FILE_MAX);
   }
 
   /* baseflags, groups, make depsgraph, etc */
@@ -413,7 +405,6 @@ static void setup_app_data(bContext *C,
 
 static void setup_app_blend_file_data(bContext *C,
                                       BlendFileData *bfd,
-                                      const char *filepath,
                                       const struct BlendFileReadParams *params,
                                       ReportList *reports)
 {
@@ -421,7 +412,7 @@ static void setup_app_blend_file_data(bContext *C,
     setup_app_userdef(bfd);
   }
   if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-    setup_app_data(C, bfd, filepath, params, reports);
+    setup_app_data(C, bfd, params, reports);
   }
 }
 
@@ -460,7 +451,7 @@ bool BKE_blendfile_read_ex(bContext *C,
         BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
       }
     }
-    setup_app_blend_file_data(C, bfd, filepath, params, reports);
+    setup_app_blend_file_data(C, bfd, params, reports);
     BLO_blendfiledata_free(bfd);
   }
   else {
@@ -493,7 +484,7 @@ bool BKE_blendfile_read_from_memory_ex(bContext *C,
         BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
       }
     }
-    setup_app_blend_file_data(C, bfd, "<memory2>", params, reports);
+    setup_app_blend_file_data(C, bfd, params, reports);
     BLO_blendfiledata_free(bfd);
   }
   else {
@@ -529,7 +520,7 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
     BLI_assert(BLI_listbase_is_empty(&bfd->main->workspaces));
     BLI_assert(BLI_listbase_is_empty(&bfd->main->screens));
 
-    setup_app_blend_file_data(C, bfd, "<memory1>", params, reports);
+    setup_app_blend_file_data(C, bfd, params, reports);
     BLO_blendfiledata_free(bfd);
   }
   else {

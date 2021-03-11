@@ -729,8 +729,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     /* also exit screens and editors */
     wm_window_match_init(C, &wmbase);
 
-    /* confusing this global... */
-    G.relbase_valid = 1;
     success = BKE_blendfile_read(
         C,
         filepath,
@@ -746,9 +744,10 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     /* BKE_file_read sets new Main into context. */
     Main *bmain = CTX_data_main(C);
 
-    /* when loading startup.blend's, we can be left with a blank path */
+    /* When recovering a session from an unsaved file, this can have a blank path. */
     if (BKE_main_blendfile_path(bmain)[0] != '\0') {
       G.save_over = 1;
+      G.relbase_valid = 1;
     }
     else {
       G.save_over = 0;
