@@ -1284,6 +1284,7 @@ static void update_attributes(AttributeSet &attributes, CachedData &cached_data,
     }
 
     memcpy(attr->data(), attr_data->data(), attr_data->size());
+    attr->modified = true;
   }
 
   /* remove any attributes not in cached_attributes */
@@ -1291,6 +1292,7 @@ static void update_attributes(AttributeSet &attributes, CachedData &cached_data,
   for (it = attributes.attributes.begin(); it != attributes.attributes.end();) {
     if (cached_attributes.find(&(*it)) == cached_attributes.end()) {
       attributes.attributes.erase(it++);
+      attributes.modified = true;
       continue;
     }
 
