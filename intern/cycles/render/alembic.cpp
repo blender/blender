@@ -402,8 +402,6 @@ static void add_uvs(AlembicProcedural *proc,
     }
 
     const ISampleSelector iss = ISampleSelector(time);
-    const IV2fGeomParam::Sample sample = uvs.getExpandedValue(iss);
-
     const IV2fGeomParam::Sample uvsample = uvs.getIndexedValue(iss);
 
     if (!uvsample.valid()) {
