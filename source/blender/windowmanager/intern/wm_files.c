@@ -81,6 +81,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -296,6 +297,29 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
 {
   wmWindowManager *oldwm = current_wm_list->first;
   wmWindowManager *wm = readfile_wm_list->first; /* will become our new WM */
+
+  /* Support window-manager ID references being held between file load operations by keeping
+   * #Main.wm.first memory address in-place, while swapping all of it's contents.
+   *
+   * This is needed so items such as key-maps can be held by an add-on,
+   * without it pointing to invalid memory, see: T86431 */
+  {
+    /* Referencing the window-manager pointer from elsewhere in the file is highly unlikely
+     * however it's possible with ID-properties & animation-drivers.
+     * At some point we could check on disallowing this since it doesn't seem practical. */
+    Main *bmain = G_MAIN;
+    BLI_assert(bmain->relations == NULL);
+    BKE_libblock_remap(bmain, wm, oldwm, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+
+    /* Simple pointer swapping step. */
+    BLI_remlink(current_wm_list, oldwm);
+    BLI_remlink(readfile_wm_list, wm);
+    SWAP(wmWindowManager, *oldwm, *wm);
+    SWAP(wmWindowManager *, oldwm, wm);
+    BLI_addhead(current_wm_list, oldwm);
+    BLI_addhead(readfile_wm_list, wm);
+  }
+
   bool has_match = false;
 
   /* this code could move to setup_appdata */
