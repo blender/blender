@@ -50,7 +50,7 @@ void register_node_type_sh_value(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT, 0);
   node_type_socket_templates(&ntype, nullptr, sh_node_value_out);
   node_type_gpu(&ntype, gpu_shader_value);
   ntype.expand_in_mf_network = sh_node_value_expand_in_mf_network;

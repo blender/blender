@@ -2985,6 +2985,12 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           sclip->scopes.ok = 0;
         }
+        else if (sl->spacetype == SPACE_SPREADSHEET) {
+          SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+          sspreadsheet->pinned_id = restore_pointer_by_name(
+              id_map, sspreadsheet->pinned_id, USER_IGNORE);
+        }
       }
     }
   }

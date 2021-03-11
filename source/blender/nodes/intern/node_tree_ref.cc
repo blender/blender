@@ -181,7 +181,7 @@ void NodeTreeRef::find_origins_skipping_reroutes(InputSocketRef &socket,
       this->find_origins_skipping_reroutes(*direct_origin->node_->inputs_[0], r_origins);
     }
     else {
-      r_origins.append_non_duplicates(direct_origin);
+      r_origins.append(direct_origin);
     }
   }
 }

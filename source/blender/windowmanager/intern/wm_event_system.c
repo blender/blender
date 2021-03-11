@@ -577,6 +577,10 @@ void wm_event_do_notifiers(bContext *C)
         }
 
         ED_screen_areas_iter (win, screen, area) {
+          if ((note->category == NC_SPACE) && note->reference &&
+              (note->reference != area->spacedata.first)) {
+            continue;
+          }
           wmSpaceTypeListenerParams area_params = {
               .window = win,
               .area = area,
@@ -1319,7 +1323,7 @@ static int wm_operator_invoke(bContext *C,
       op->flag |= OP_IS_INVOKE;
     }
 
-    /* /initialize setting from previous run. */
+    /* Initialize setting from previous run. */
     if (!is_nested_call && use_last_properties) { /* Not called by py script. */
       WM_operator_last_properties_init(op);
     }
@@ -3190,7 +3194,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
   else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     event->type = EVT_DROP;
 
-    /* Vreate customdata, first free existing. */
+    /* Create customdata, first free existing. */
     if (event->customdata) {
       if (event->customdatafree) {
         MEM_freeN(event->customdata);
@@ -3201,7 +3205,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
     event->customdata = &wm->drags;
     event->customdatafree = 1;
 
-    /* Vlear drop icon. */
+    /* Clear drop icon. */
     screen->do_draw_drag = true;
 
     /* restore cursor (disabled, see wm_dragdrop.c) */

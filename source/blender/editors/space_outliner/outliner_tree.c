@@ -889,6 +889,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   /* New C++ based type handle (`TreeElementType` in C, `AbstractTreeElement` in C++). Only some
    * support this, eventually this should replace `TreeElement` entirely. */
   te->type = outliner_tree_element_type_create(type, te, idv);
+  if (te->type) {
+    /* Element types ported to the new design are expected to have their name set at this point! */
+    BLI_assert(te->name != NULL);
+  }
 
   if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
     /* pass */

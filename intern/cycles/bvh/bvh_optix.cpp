@@ -27,8 +27,8 @@ BVHOptiX::BVHOptiX(const BVHParams &params_,
                    Device *device)
     : BVH(params_, geometry_, objects_),
       traversable_handle(0),
-      as_data(device, params_.top_level ? "optix tlas" : "optix blas"),
-      motion_transform_data(device, "optix motion transform")
+      as_data(device, params_.top_level ? "optix tlas" : "optix blas", false),
+      motion_transform_data(device, "optix motion transform", false)
 {
 }
 

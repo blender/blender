@@ -171,7 +171,8 @@ class DenoisingTask {
     bool gpu_temporary_mem;
 
     DenoiseBuffers(Device *device)
-        : mem(device, "denoising pixel buffer"), temporary_mem(device, "denoising temporary mem")
+        : mem(device, "denoising pixel buffer"),
+          temporary_mem(device, "denoising temporary mem", true)
     {
     }
   } buffer;
