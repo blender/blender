@@ -429,15 +429,46 @@ static void handle_subversion_warning(Main *main, ReportList *reports)
   }
 }
 
-bool BKE_blendfile_read_ex(bContext *C,
-                           const char *filepath,
-                           const struct BlendFileReadParams *params,
-                           ReportList *reports,
-                           /* Extra args. */
-                           const bool startup_update_defaults,
-                           const char *startup_app_template)
+/**
+ * Shared setup function that makes the data from `bfd` into the current blend file,
+ * replacing the contents of #G.main.
+ * This uses the bfd #BKE_blendfile_read and similarly named functions.
+ *
+ * This is done in a separate step so the caller may perform actions after it is known the file
+ * loaded correctly but before the file replaces the existing blend file contents.
+ */
+void BKE_blendfile_read_setup_ex(bContext *C,
+                                 BlendFileData *bfd,
+                                 const struct BlendFileReadParams *params,
+                                 ReportList *reports,
+                                 /* Extra args. */
+                                 const bool startup_update_defaults,
+                                 const char *startup_app_template)
 {
+  if (startup_update_defaults) {
+    if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+      BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
+    }
+  }
+  setup_app_blend_file_data(C, bfd, params, reports);
+  BLO_blendfiledata_free(bfd);
+}
 
+void BKE_blendfile_read_setup(bContext *C,
+                              BlendFileData *bfd,
+                              const struct BlendFileReadParams *params,
+                              ReportList *reports)
+{
+  BKE_blendfile_read_setup_ex(C, bfd, params, reports, false, NULL);
+}
+
+/**
+ * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ */
+struct BlendFileData *BKE_blendfile_read(const char *filepath,
+                                         const struct BlendFileReadParams *params,
+                                         ReportList *reports)
+{
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
     printf("Read blend: %s\n", filepath);
@@ -446,69 +477,40 @@ bool BKE_blendfile_read_ex(bContext *C,
   BlendFileData *bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
   if (bfd) {
     handle_subversion_warning(bfd->main, reports);
-    if (startup_update_defaults) {
-      if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-        BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
-      }
-    }
-    setup_app_blend_file_data(C, bfd, params, reports);
-    BLO_blendfiledata_free(bfd);
   }
   else {
     BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
   }
-  return (bfd != NULL);
+  return bfd;
 }
 
-bool BKE_blendfile_read(bContext *C,
-                        const char *filepath,
-                        const struct BlendFileReadParams *params,
-                        ReportList *reports)
-{
-  return BKE_blendfile_read_ex(C, filepath, params, reports, false, NULL);
-}
-
-bool BKE_blendfile_read_from_memory_ex(bContext *C,
-                                       const void *filebuf,
-                                       int filelength,
-                                       const struct BlendFileReadParams *params,
-                                       ReportList *reports,
-                                       /* Extra args. */
-                                       const bool startup_update_defaults,
-                                       const char *startup_app_template)
+/**
+ * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ */
+struct BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
+                                                     int filelength,
+                                                     const struct BlendFileReadParams *params,
+                                                     ReportList *reports)
 {
   BlendFileData *bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
   if (bfd) {
-    if (startup_update_defaults) {
-      if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-        BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
-      }
-    }
-    setup_app_blend_file_data(C, bfd, params, reports);
-    BLO_blendfiledata_free(bfd);
+    /* Pass. */
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
   }
-  return (bfd != NULL);
+  return bfd;
 }
 
-bool BKE_blendfile_read_from_memory(bContext *C,
-                                    const void *filebuf,
-                                    int filelength,
-                                    const struct BlendFileReadParams *params,
-                                    ReportList *reports)
+/**
+ * \return Blend file data, this must be passed to #BKE_blendfile_read_setup when non-NULL.
+ * \note `memfile` is the undo buffer.
+ */
+struct BlendFileData *BKE_blendfile_read_from_memfile(Main *bmain,
+                                                      struct MemFile *memfile,
+                                                      const struct BlendFileReadParams *params,
+                                                      ReportList *reports)
 {
-  return BKE_blendfile_read_from_memory_ex(C, filebuf, filelength, params, reports, false, NULL);
-}
-
-/* memfile is the undo buffer */
-bool BKE_blendfile_read_from_memfile(bContext *C,
-                                     struct MemFile *memfile,
-                                     const struct BlendFileReadParams *params,
-                                     ReportList *reports)
-{
-  Main *bmain = CTX_data_main(C);
   BlendFileData *bfd = BLO_read_from_memfile(
       bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);
   if (bfd) {
@@ -519,14 +521,11 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
     BLI_assert(BLI_listbase_is_empty(&bfd->main->wm));
     BLI_assert(BLI_listbase_is_empty(&bfd->main->workspaces));
     BLI_assert(BLI_listbase_is_empty(&bfd->main->screens));
-
-    setup_app_blend_file_data(C, bfd, params, reports);
-    BLO_blendfiledata_free(bfd);
   }
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
   }
-  return (bfd != NULL);
+  return bfd;
 }
 
 /**

@@ -729,17 +729,19 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
     /* also exit screens and editors */
     wm_window_match_init(C, &wmbase);
 
-    success = BKE_blendfile_read(
-        C,
-        filepath,
-        /* Loading preferences when the user intended to load a regular file is a security risk,
-         * because the excluded path list is also loaded.
-         * Further it's just confusing if a user loads a file and various preferences change. */
-        &(const struct BlendFileReadParams){
-            .is_startup = false,
-            .skip_flags = BLO_READ_SKIP_USERDEF,
-        },
-        reports);
+    const struct BlendFileReadParams params = {
+        .is_startup = false,
+        /* Loading preferences when the user intended to load a regular file is a security
+         * risk, because the excluded path list is also loaded. Further it's just confusing
+         * if a user loads a file and various preferences change. */
+        .skip_flags = BLO_READ_SKIP_USERDEF,
+    };
+
+    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, reports);
+    if (bfd != NULL) {
+      BKE_blendfile_read_setup(C, bfd, &params, reports);
+      success = true;
+    }
 
     /* BKE_file_read sets new Main into context. */
     Main *bmain = CTX_data_main(C);
@@ -1040,15 +1042,17 @@ void wm_homefile_read(bContext *C,
 
   if (!use_factory_settings || (filepath_startup[0] != '\0')) {
     if (BLI_access(filepath_startup, R_OK) == 0) {
-      success = BKE_blendfile_read_ex(C,
-                                      filepath_startup,
-                                      &(const struct BlendFileReadParams){
-                                          .is_startup = true,
-                                          .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
-                                      },
-                                      NULL,
-                                      update_defaults && use_data,
-                                      app_template);
+      const struct BlendFileReadParams params = {
+          .is_startup = true,
+          .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
+      };
+
+      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, NULL);
+      if (bfd != NULL) {
+        BKE_blendfile_read_setup_ex(
+            C, bfd, &params, NULL, update_defaults && use_data, app_template);
+        success = true;
+      }
     }
     if (success) {
       is_factory_startup = filepath_startup_is_factory;
@@ -1069,16 +1073,16 @@ void wm_homefile_read(bContext *C,
   }
 
   if (success == false) {
-    success = BKE_blendfile_read_from_memory_ex(C,
-                                                datatoc_startup_blend,
-                                                datatoc_startup_blend_size,
-                                                &(const struct BlendFileReadParams){
-                                                    .is_startup = true,
-                                                    .skip_flags = skip_flags,
-                                                },
-                                                NULL,
-                                                true,
-                                                NULL);
+    const struct BlendFileReadParams params = {
+        .is_startup = true,
+        .skip_flags = skip_flags,
+    };
+    struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
+        datatoc_startup_blend, datatoc_startup_blend_size, &params, NULL);
+    if (bfd != NULL) {
+      BKE_blendfile_read_setup_ex(C, bfd, &params, NULL, true, NULL);
+      success = true;
+    }
 
     if (use_data && BLI_listbase_is_empty(&wmbase)) {
       wm_clear_default_size(C);
