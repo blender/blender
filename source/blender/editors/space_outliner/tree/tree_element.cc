@@ -18,6 +18,7 @@
  * \ingroup spoutliner
  */
 
+#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 
 #include "tree_element_anim_data.hh"
@@ -44,7 +45,7 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
     case TSE_SOME_ID:
       return TreeElementID::createFromID(legacy_te, id);
     case TSE_ANIM_DATA:
-      return new TreeElementAnimData(legacy_te, id);
+      return new TreeElementAnimData(legacy_te, *reinterpret_cast<IdAdtTemplate &>(id).adt);
     case TSE_DRIVER_BASE:
       return new TreeElementDriverBase(legacy_te, *static_cast<AnimData *>(idv));
     case TSE_NLA:
