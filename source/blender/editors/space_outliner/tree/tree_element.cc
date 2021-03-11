@@ -37,9 +37,19 @@ namespace blender::ed::outliner {
 
 static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te, void *idv)
 {
-  /* Would be nice to get rid of void * here, can we somehow expect the right type right away?
-   * Perfect forwarding maybe, once the API is C++ only? */
   ID &id = *static_cast<ID *>(idv);
+
+  /*
+   * The following calls make an implicit assumption about what data was passed to the `idv`
+   * argument of #outliner_add_element(). The old code does this already, here we just centralize
+   * it as much as possible for now. Would be nice to entirely get rid of that, no more `void *`.
+   *
+   * Once #outliner_add_element() is sufficiently simplified, it should be replaced by a C++ call.
+   * It could take the derived type as template paramenter (e.g. #TreeElementAnimData) and use C++
+   * perfect forwarding to pass any data to the type's constructor.
+   * If general Outliner code wants to access the data, they can query that through the derived
+   * element type then. There's no need for `void *` anymore then.
+   */
 
   switch (type) {
     case TSE_SOME_ID:
