@@ -311,6 +311,10 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
     BLI_assert(bmain->relations == NULL);
     BKE_libblock_remap(bmain, wm, oldwm, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_USER_CLEAR);
 
+    /* Maintain the undo-depth between file loads. Useful so Python can perform
+     * nested operator calls that exit with the proper undo-depth. */
+    wm->op_undo_depth = oldwm->op_undo_depth;
+
     /* Simple pointer swapping step. */
     BLI_remlink(current_wm_list, oldwm);
     BLI_remlink(readfile_wm_list, wm);
