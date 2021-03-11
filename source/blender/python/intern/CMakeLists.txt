@@ -288,6 +288,10 @@ if(WITH_PULSEAUDIO)
   add_definitions(-DWITH_PULSEAUDIO)
 endif()
 
+if(WITH_WASAPI)
+  add_definitions(-DWITH_WASAPI)
+endif()
+
 if(WITH_MOD_OCEANSIM)
   add_definitions(-DWITH_OCEANSIM)
 endif()

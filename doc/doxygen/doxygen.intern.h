@@ -63,6 +63,9 @@
 /** \defgroup audpulseaudio Audaspace PulseAudio
  *  \ingroup audaspace
  */
+/** \defgroup audwasapi Audaspace WASAPI
+ *  \ingroup audaspace
+ */
 /** \defgroup audpython Audaspace Python
  *  \ingroup audaspace
  */

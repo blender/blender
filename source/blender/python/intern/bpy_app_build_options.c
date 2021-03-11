@@ -51,6 +51,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"sdl_dynload", NULL},
     {"jack", NULL},
     {"pulseaudio", NULL},
+    {"wasapi", NULL},
     {"libmv", NULL},
     {"mod_oceansim", NULL},
     {"mod_remesh", NULL},
@@ -219,6 +220,12 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_PULSEAUDIO
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_WASAPI
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);
