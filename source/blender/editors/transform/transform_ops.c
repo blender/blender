@@ -163,14 +163,13 @@ const EnumPropertyItem rna_enum_transform_mode_types[] = {
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  View3D *v3d = CTX_wm_view3d(C);
 
   int orientation = RNA_enum_get(op->ptr, "orientation");
 
   BKE_scene_orientation_slot_set_index(&scene->orientation_slots[SCE_ORIENT_DEFAULT], orientation);
 
   WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   WM_msg_publish_rna_prop(mbus, &scene->id, scene, TransformOrientationSlot, type);
@@ -286,7 +285,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
   }
 
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
   return OPERATOR_FINISHED;
 }

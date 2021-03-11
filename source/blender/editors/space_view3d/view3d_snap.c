@@ -667,7 +667,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
   curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
   curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
 
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d); /* hrm */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* hrm */
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
   return OPERATOR_FINISHED;
@@ -913,7 +913,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
   View3D *v3d = CTX_wm_view3d(C);
 
   if (snap_calc_active_center(C, false, scene->cursor.location)) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
     return OPERATOR_FINISHED;

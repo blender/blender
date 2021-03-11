@@ -577,6 +577,10 @@ void wm_event_do_notifiers(bContext *C)
         }
 
         ED_screen_areas_iter (win, screen, area) {
+          if ((note->category == NC_SPACE) && note->reference &&
+              (note->reference != area->spacedata.first)) {
+            continue;
+          }
           wmSpaceTypeListenerParams area_params = {
               .window = win,
               .area = area,

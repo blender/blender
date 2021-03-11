@@ -1575,7 +1575,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
   }
 
   /* default for now */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
 static bool view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
