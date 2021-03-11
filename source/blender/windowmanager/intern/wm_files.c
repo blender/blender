@@ -713,8 +713,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(true);
 
-  wm_file_read_pre(C, use_data, use_userdef);
-
   /* first try to append data from exotic file formats... */
   /* it throws error box when file doesn't exist and returns -1 */
   /* note; it should set some error message somewhere... (ton) */
@@ -722,13 +720,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   /* we didn't succeed, now try to read Blender file */
   if (retval == BKE_READ_EXOTIC_OK_BLEND) {
-    const int G_f_orig = G.f;
-    ListBase wmbase;
-
-    /* put aside screens to match with persistent windows later */
-    /* also exit screens and editors */
-    wm_window_match_init(C, &wmbase);
-
     const struct BlendFileReadParams params = {
         .is_startup = false,
         /* Loading preferences when the user intended to load a regular file is a security
@@ -739,42 +730,50 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
     struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, reports);
     if (bfd != NULL) {
+      wm_file_read_pre(C, use_data, use_userdef);
+
+      /* Put aside screens to match with persistent windows later,
+       * also exit screens and editors. */
+      ListBase wmbase;
+      wm_window_match_init(C, &wmbase);
+
+      /* This flag is initialized by the operator but overwritten on read.
+       * need to re-enable it here else drivers + registered scripts wont work. */
+      const int G_f_orig = G.f;
+
       BKE_blendfile_read_setup(C, bfd, &params, reports);
-      success = true;
-    }
 
-    /* BKE_file_read sets new Main into context. */
-    Main *bmain = CTX_data_main(C);
+      if (G.f != G_f_orig) {
+        const int flags_keep = G_FLAG_ALL_RUNTIME;
+        G.f &= G_FLAG_ALL_READFILE;
+        G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
+      }
 
-    /* When recovering a session from an unsaved file, this can have a blank path. */
-    if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-      G.save_over = 1;
-      G.relbase_valid = 1;
-    }
-    else {
-      G.save_over = 0;
-      G.relbase_valid = 0;
-    }
+      /* #BKE_blendfile_read_result_setup sets new Main into context. */
+      Main *bmain = CTX_data_main(C);
 
-    /* this flag is initialized by the operator but overwritten on read.
-     * need to re-enable it here else drivers + registered scripts wont work. */
-    if (G.f != G_f_orig) {
-      const int flags_keep = G_FLAG_ALL_RUNTIME;
-      G.f &= G_FLAG_ALL_READFILE;
-      G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
-    }
+      /* When recovering a session from an unsaved file, this can have a blank path. */
+      if (BKE_main_blendfile_path(bmain)[0] != '\0') {
+        G.save_over = 1;
+        G.relbase_valid = 1;
+      }
+      else {
+        G.save_over = 0;
+        G.relbase_valid = 0;
+      }
 
-    /* match the read WM with current WM */
-    wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
-    WM_check(C); /* opens window(s), checks keymaps */
+      /* match the read WM with current WM */
+      wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+      WM_check(C); /* opens window(s), checks keymaps */
 
-    if (success) {
       if (do_history_file_update) {
         wm_history_file_update();
       }
-    }
 
-    wm_file_read_post(C, false, false, use_data, use_userdef, false);
+      wm_file_read_post(C, false, false, use_data, use_userdef, false);
+
+      success = true;
+    }
   }
 #if 0
   else if (retval == BKE_READ_EXOTIC_OK_OTHER) {
@@ -951,6 +950,9 @@ void wm_homefile_read(bContext *C,
 #endif /* WITH_PYTHON */
   }
 
+  /* For regular file loading this only runs after the file is successfully read.
+   * In the case of the startup file, the in-memory startup file is used as a fallback
+   * so we know this will work if all else fails. */
   wm_file_read_pre(C, use_data, use_userdef);
 
   if (use_data) {
