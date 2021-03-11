@@ -332,10 +332,11 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
   }
 }
 
-static GeometrySet get_display_geometry_set(Object *object_eval)
+static GeometrySet get_display_geometry_set(Object *object_eval,
+                                            const GeometryComponentType used_component_type)
 {
   GeometrySet geometry_set;
-  if (object_eval->mode == OB_MODE_EDIT) {
+  if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
     Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
     if (mesh == nullptr) {
       return geometry_set;
@@ -354,10 +355,87 @@ static GeometrySet get_display_geometry_set(Object *object_eval)
   return geometry_set;
 }
 
-static Span<int64_t> filter_visible_mesh_vertex_rows(const bContext *C,
-                                                     Object *object_eval,
-                                                     const MeshComponent *component,
-                                                     ResourceCollector &resources)
+using IsVertexSelectedFn = FunctionRef<bool(int vertex_index)>;
+
+static void get_selected_vertex_indices(const Mesh &mesh,
+                                        const IsVertexSelectedFn is_vertex_selected_fn,
+                                        Vector<int64_t> &r_vertex_indices)
+{
+  for (const int i : IndexRange(mesh.totvert)) {
+    if (is_vertex_selected_fn(i)) {
+      r_vertex_indices.append(i);
+    }
+  }
+}
+
+static void get_selected_corner_indices(const Mesh &mesh,
+                                        const IsVertexSelectedFn is_vertex_selected_fn,
+                                        Vector<int64_t> &r_corner_indices)
+{
+  for (const int i : IndexRange(mesh.totloop)) {
+    const MLoop &loop = mesh.mloop[i];
+    if (is_vertex_selected_fn(loop.v)) {
+      r_corner_indices.append(i);
+    }
+  }
+}
+
+static void get_selected_polygon_indices(const Mesh &mesh,
+                                         const IsVertexSelectedFn is_vertex_selected_fn,
+                                         Vector<int64_t> &r_polygon_indices)
+{
+  for (const int poly_index : IndexRange(mesh.totpoly)) {
+    const MPoly &poly = mesh.mpoly[poly_index];
+    bool is_selected = true;
+    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
+      const MLoop &loop = mesh.mloop[loop_index];
+      if (!is_vertex_selected_fn(loop.v)) {
+        is_selected = false;
+        break;
+      }
+    }
+    if (is_selected) {
+      r_polygon_indices.append(poly_index);
+    }
+  }
+}
+
+static void get_selected_edge_indices(const Mesh &mesh,
+                                      const IsVertexSelectedFn is_vertex_selected_fn,
+                                      Vector<int64_t> &r_edge_indices)
+{
+  for (const int i : IndexRange(mesh.totedge)) {
+    const MEdge &edge = mesh.medge[i];
+    if (is_vertex_selected_fn(edge.v1) && is_vertex_selected_fn(edge.v2)) {
+      r_edge_indices.append(i);
+    }
+  }
+}
+
+static void get_selected_indices_on_domain(const Mesh &mesh,
+                                           const AttributeDomain domain,
+                                           const IsVertexSelectedFn is_vertex_selected_fn,
+                                           Vector<int64_t> &r_indices)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return get_selected_vertex_indices(mesh, is_vertex_selected_fn, r_indices);
+    case ATTR_DOMAIN_POLYGON:
+      return get_selected_polygon_indices(mesh, is_vertex_selected_fn, r_indices);
+    case ATTR_DOMAIN_CORNER:
+      return get_selected_corner_indices(mesh, is_vertex_selected_fn, r_indices);
+    case ATTR_DOMAIN_EDGE:
+      return get_selected_edge_indices(mesh, is_vertex_selected_fn, r_indices);
+    default:
+      return;
+  }
+}
+
+static Span<int64_t> filter_mesh_elements_by_selection(const bContext *C,
+                                                       Object *object_eval,
+                                                       const MeshComponent *component,
+                                                       const AttributeDomain domain,
+                                                       ResourceCollector &resources)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const bool show_only_selected = sspreadsheet->filter_flag & SPREADSHEET_FILTER_SELECTED_ONLY;
@@ -372,45 +450,53 @@ static Span<int64_t> filter_visible_mesh_vertex_rows(const bContext *C,
     int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
     if (orig_indices != nullptr) {
       /* Use CD_ORIGINDEX layer if it exists. */
-      for (const int i_eval : IndexRange(mesh_eval->totvert)) {
-        const int i_orig = orig_indices[i_eval];
-        if (i_orig >= 0 && i_orig < bm->totvert) {
-          BMVert *vert = bm->vtable[i_orig];
-          if (BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
-            visible_rows.append(i_eval);
-          }
+      auto is_vertex_selected = [&](int vertex_index) -> bool {
+        const int i_orig = orig_indices[vertex_index];
+        if (i_orig < 0) {
+          return false;
         }
-      }
+        if (i_orig >= bm->totvert) {
+          return false;
+        }
+        BMVert *vert = bm->vtable[i_orig];
+        return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+      };
+      get_selected_indices_on_domain(*mesh_eval, domain, is_vertex_selected, visible_rows);
     }
     else if (mesh_eval->totvert == bm->totvert) {
       /* Use a simple heuristic to match original vertices to evaluated ones. */
-      for (const int i : IndexRange(mesh_eval->totvert)) {
-        BMVert *vert = bm->vtable[i];
-        if (BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
-          visible_rows.append(i);
-        }
-      }
+      auto is_vertex_selected = [&](int vertex_index) -> bool {
+        BMVert *vert = bm->vtable[vertex_index];
+        return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+      };
+      get_selected_indices_on_domain(*mesh_eval, domain, is_vertex_selected, visible_rows);
     }
     /* This is safe, because the vector lives in the resource collector. */
     return visible_rows.as_span();
   }
   /* No filter is used. */
-  const int domain_size = component->attribute_domain_size(ATTR_DOMAIN_POINT);
+  const int domain_size = component->attribute_domain_size(domain);
   return IndexRange(domain_size).as_span();
 }
 
 std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(const bContext *C,
                                                                                Object *object_eval)
 {
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
+  const GeometryComponentType component_type = (GeometryComponentType)
+                                                   sspreadsheet->geometry_component_type;
+
   /* Create a resource collector that owns stuff that needs to live until drawing is done. */
   std::unique_ptr<ResourceCollector> resources = std::make_unique<ResourceCollector>();
-  GeometrySet &geometry_set = resources->add_value(get_display_geometry_set(object_eval),
-                                                   "geometry set");
+  GeometrySet &geometry_set = resources->add_value(
+      get_display_geometry_set(object_eval, component_type), "geometry set");
 
-  const AttributeDomain domain = ATTR_DOMAIN_POINT;
-  const GeometryComponentType component_type = GEO_COMPONENT_TYPE_MESH;
   const GeometryComponent *component = geometry_set.get_component_for_read(component_type);
   if (component == nullptr) {
+    return {};
+  }
+  if (!component->attribute_domain_supported(domain)) {
     return {};
   }
 
@@ -425,9 +511,14 @@ std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(c
   }
 
   /* The filter below only works for mesh vertices currently. */
-  BLI_assert(domain == ATTR_DOMAIN_POINT && component_type == GEO_COMPONENT_TYPE_MESH);
-  Span<int64_t> visible_rows = filter_visible_mesh_vertex_rows(
-      C, object_eval, static_cast<const MeshComponent *>(component), *resources);
+  Span<int64_t> visible_rows;
+  if (component_type == GEO_COMPONENT_TYPE_MESH) {
+    visible_rows = filter_mesh_elements_by_selection(
+        C, object_eval, static_cast<const MeshComponent *>(component), domain, *resources);
+  }
+  else {
+    visible_rows = IndexRange(component->attribute_domain_size(domain)).as_span();
+  }
 
   const int domain_size = component->attribute_domain_size(domain);
   return std::make_unique<GeometryAttributeSpreadsheetDrawer>(

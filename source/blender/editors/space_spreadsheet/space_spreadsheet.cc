@@ -126,7 +126,7 @@ static std::unique_ptr<SpreadsheetDrawer> generate_spreadsheet_drawer(const bCon
     return {};
   }
   Object *object_orig = (Object *)used_id;
-  if (object_orig->type != OB_MESH) {
+  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD)) {
     return {};
   }
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
