@@ -139,13 +139,13 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
      *
      * Following Frostbite stochastic SSR.
      *
-     * - First pass Trace rays across the depth buffer. The hit position and pdf are
+     * - First pass Trace rays across the depth buffer. The hit position and PDF are
      *   recorded in a RGBA16F render target for each ray (sample).
      *
      * - We down-sample the previous frame color buffer.
      *
      * - For each final pixel, we gather neighbors rays and choose a color buffer
-     *   mipmap for each ray using its pdf. (filtered importance sampling)
+     *   mipmap for each ray using its PDF. (filtered importance sampling)
      *   We then evaluate the lighting from the probes and mix the results together.
      */
     DRW_PASS_CREATE(psl->ssr_raytrace, DRW_STATE_WRITE_COLOR);

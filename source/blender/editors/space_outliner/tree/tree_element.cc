@@ -45,7 +45,7 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
    * it as much as possible for now. Would be nice to entirely get rid of that, no more `void *`.
    *
    * Once #outliner_add_element() is sufficiently simplified, it should be replaced by a C++ call.
-   * It could take the derived type as template paramenter (e.g. #TreeElementAnimData) and use C++
+   * It could take the derived type as template parameter (e.g. #TreeElementAnimData) and use C++
    * perfect forwarding to pass any data to the type's constructor.
    * If general Outliner code wants to access the data, they can query that through the derived
    * element type then. There's no need for `void *` anymore then.

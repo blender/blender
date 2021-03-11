@@ -331,7 +331,7 @@ class GeometryNodesEvaluator {
         values.append(this->get_input_from_incoming_link(socket_to_compute, from_socket));
       }
       else {
-        /* If the same from-socket occures more than once, we make a copy of the first value. This
+        /* If the same from-socket occurs more than once, we make a copy of the first value. This
          * can happen when a node linked to a multi-input-socket is muted. */
         GMutablePointer value = values[first_occurence];
         const CPPType *type = value.type();
@@ -647,7 +647,7 @@ static IDProperty *socket_add_property(IDProperty *settings_prop_group,
 
   prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
 
-  /* Make the group in the ui container group to hold the property's UI settings. */
+  /* Make the group in the UI container group to hold the property's UI settings. */
   IDProperty *prop_ui_group;
   {
     IDPropertyTemplate idprop = {0};

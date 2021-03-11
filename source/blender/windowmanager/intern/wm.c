@@ -20,7 +20,7 @@
 /** \file
  * \ingroup wm
  *
- * Internal functions for managing UI registrable types (operator, UI and menu types).
+ * Internal functions for managing UI registerable types (operator, UI and menu types).
  *
  * Also Blender's main event loop (WM_main).
  */
