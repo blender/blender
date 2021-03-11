@@ -715,7 +715,6 @@ void AlembicObject::read_face_sets(SchemaType &schema,
 
 void AlembicObject::load_all_data(AlembicProcedural *proc,
                                   IPolyMeshSchema &schema,
-                                  float scale,
                                   Progress &progress)
 {
   cached_data.clear();
@@ -778,19 +777,10 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
     add_uvs(proc, uvs, cached_data, progress);
   }
 
-  if (progress.get_cancel()) {
-    return;
-  }
-
-  setup_transform_cache(scale);
-
   data_loaded = true;
 }
 
-void AlembicObject::load_all_data(AlembicProcedural *proc,
-                                  ISubDSchema &schema,
-                                  float scale,
-                                  Progress &progress)
+void AlembicObject::load_all_data(AlembicProcedural *proc, ISubDSchema &schema, Progress &progress)
 {
   cached_data.clear();
 
@@ -918,14 +908,11 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
     return;
   }
 
-  setup_transform_cache(scale);
-
   data_loaded = true;
 }
 
 void AlembicObject::load_all_data(AlembicProcedural *proc,
                                   const ICurvesSchema &schema,
-                                  float scale,
                                   Progress &progress,
                                   float default_radius)
 {
@@ -1004,8 +991,6 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
   }
 
   // TODO(@kevindietrich): attributes, need example files
-
-  setup_transform_cache(scale);
 
   data_loaded = true;
 }
@@ -1410,6 +1395,8 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   const chrono_t frame_time = (chrono_t)((frame - frame_offset) / frame_rate);
 
+  build_caches(progress);
+
   foreach (Node *node, objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
@@ -1418,19 +1405,19 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
 
     /* skip constant objects */
-    if (object->has_data_loaded() && object->is_constant() && !object->is_modified() &&
-        !object->need_shader_update && !scale_is_modified()) {
+    if (object->is_constant() && !object->is_modified() && !object->need_shader_update &&
+        !scale_is_modified()) {
       continue;
     }
 
     if (object->schema_type == AlembicObject::POLY_MESH) {
-      read_mesh(object, frame_time, progress);
+      read_mesh(object, frame_time);
     }
     else if (object->schema_type == AlembicObject::CURVES) {
-      read_curves(object, frame_time, progress);
+      read_curves(object, frame_time);
     }
     else if (object->schema_type == AlembicObject::SUBD) {
-      read_subd(object, frame_time, progress);
+      read_subd(object, frame_time);
     }
 
     object->clear_modified();
@@ -1519,29 +1506,9 @@ void AlembicProcedural::load_objects(Progress &progress)
   }
 }
 
-void AlembicProcedural::read_mesh(AlembicObject *abc_object,
-                                  Abc::chrono_t frame_time,
-                                  Progress &progress)
+void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame_time)
 {
-  IPolyMesh polymesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
-
-  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-
   CachedData &cached_data = abc_object->get_cached_data();
-  IPolyMeshSchema schema = polymesh.getSchema();
-
-  if (!abc_object->has_data_loaded()) {
-    abc_object->load_all_data(this, schema, scale, progress);
-  }
-  else {
-    if (abc_object->need_shader_update) {
-      abc_object->update_shader_attributes(schema.getArbGeomParams(), progress);
-    }
-
-    if (scale_is_modified()) {
-      abc_object->setup_transform_cache(scale);
-    }
-  }
 
   /* update sockets */
 
@@ -1551,6 +1518,8 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object,
   if (object->is_modified()) {
     object->tag_update(scene_);
   }
+
+  Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
 
   cached_data.vertices.copy_to_socket(frame_time, mesh, mesh->get_verts_socket());
 
@@ -1594,40 +1563,25 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object,
   }
 }
 
-void AlembicProcedural::read_subd(AlembicObject *abc_object,
-                                  Abc::chrono_t frame_time,
-                                  Progress &progress)
+void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame_time)
 {
-  ISubD subd_mesh(abc_object->iobject, Alembic::Abc::kWrapExisting);
-  ISubDSchema schema = subd_mesh.getSchema();
-
-  Mesh *mesh = static_cast<Mesh *>(abc_object->get_object()->get_geometry());
-
-  /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
-  mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
-
-  if (!abc_object->has_data_loaded()) {
-    abc_object->load_all_data(this, schema, scale, progress);
-  }
-  else {
-    if (abc_object->need_shader_update) {
-      abc_object->update_shader_attributes(schema.getArbGeomParams(), progress);
-    }
-
-    if (scale_is_modified()) {
-      abc_object->setup_transform_cache(scale);
-    }
-  }
-
-  mesh->set_subd_max_level(abc_object->get_subd_max_level());
-  mesh->set_subd_dicing_rate(abc_object->get_subd_dicing_rate());
-
   CachedData &cached_data = abc_object->get_cached_data();
 
   if (abc_object->subd_max_level_is_modified() || abc_object->subd_dicing_rate_is_modified()) {
     /* need to reset the current data is something changed */
     cached_data.invalidate_last_loaded_time();
   }
+
+  /* Update sockets. */
+
+  Object *object = abc_object->get_object();
+  cached_data.transforms.copy_to_socket(frame_time, object, object->get_tfm_socket());
+
+  if (object->is_modified()) {
+    object->tag_update(scene_);
+  }
+
+  Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
 
   /* Cycles overwrites the original triangles when computing displacement, so we always have to
    * repass the data if something is animated (vertices most likely) to avoid buffer overflows. */
@@ -1641,14 +1595,10 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object,
 
   mesh->clear_non_sockets();
 
-  /* Update sockets. */
-
-  Object *object = abc_object->get_object();
-  cached_data.transforms.copy_to_socket(frame_time, object, object->get_tfm_socket());
-
-  if (object->is_modified()) {
-    object->tag_update(scene_);
-  }
+  /* Alembic is OpenSubDiv compliant, there is no option to set another subdivision type. */
+  mesh->set_subdivision_type(Mesh::SubdivisionType::SUBDIVISION_CATMULL_CLARK);
+  mesh->set_subd_max_level(abc_object->get_subd_max_level());
+  mesh->set_subd_dicing_rate(abc_object->get_subd_dicing_rate());
 
   cached_data.vertices.copy_to_socket(frame_time, mesh, mesh->get_verts_socket());
 
@@ -1703,25 +1653,8 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object,
   }
 }
 
-void AlembicProcedural::read_curves(AlembicObject *abc_object,
-                                    Abc::chrono_t frame_time,
-                                    Progress &progress)
+void AlembicProcedural::read_curves(AlembicObject *abc_object, Abc::chrono_t frame_time)
 {
-  ICurves curves(abc_object->iobject, Alembic::Abc::kWrapExisting);
-  Hair *hair = static_cast<Hair *>(abc_object->get_object()->get_geometry());
-
-  ICurvesSchema schema = curves.getSchema();
-
-  if (!abc_object->has_data_loaded() || default_radius_is_modified() ||
-      abc_object->radius_scale_is_modified()) {
-    abc_object->load_all_data(this, schema, scale, progress, default_radius);
-  }
-  else {
-    if (scale_is_modified()) {
-      abc_object->setup_transform_cache(scale);
-    }
-  }
-
   CachedData &cached_data = abc_object->get_cached_data();
 
   /* update sockets */
@@ -1732,6 +1665,8 @@ void AlembicProcedural::read_curves(AlembicObject *abc_object,
   if (object->is_modified()) {
     object->tag_update(scene_);
   }
+
+  Hair *hair = static_cast<Hair *>(object->get_geometry());
 
   cached_data.curve_keys.copy_to_socket(frame_time, hair, hair->get_curve_keys_socket());
 
@@ -1880,6 +1815,54 @@ void AlembicProcedural::walk_hierarchy(
     for (size_t i = 0; i < next_object.getNumChildren(); ++i) {
       walk_hierarchy(
           next_object, next_object.getChildHeader(i), matrix_samples_data, object_map, progress);
+    }
+  }
+}
+
+void AlembicProcedural::build_caches(Progress &progress)
+{
+  for (Node *node : objects) {
+    AlembicObject *object = static_cast<AlembicObject *>(node);
+
+    if (progress.get_cancel()) {
+      return;
+    }
+
+    if (object->schema_type == AlembicObject::POLY_MESH) {
+      if (!object->has_data_loaded()) {
+        IPolyMesh polymesh(object->iobject, Alembic::Abc::kWrapExisting);
+        IPolyMeshSchema schema = polymesh.getSchema();
+        object->load_all_data(this, schema, progress);
+      }
+      else if (object->need_shader_update) {
+        IPolyMesh polymesh(object->iobject, Alembic::Abc::kWrapExisting);
+        IPolyMeshSchema schema = polymesh.getSchema();
+        object->update_shader_attributes(schema.getArbGeomParams(), progress);
+      }
+    }
+    else if (object->schema_type == AlembicObject::CURVES) {
+      if (!object->has_data_loaded() || default_radius_is_modified() ||
+          object->radius_scale_is_modified()) {
+        ICurves curves(object->iobject, Alembic::Abc::kWrapExisting);
+        ICurvesSchema schema = curves.getSchema();
+        object->load_all_data(this, schema, progress, default_radius);
+      }
+    }
+    else if (object->schema_type == AlembicObject::SUBD) {
+      if (!object->has_data_loaded()) {
+        ISubD subd_mesh(object->iobject, Alembic::Abc::kWrapExisting);
+        ISubDSchema schema = subd_mesh.getSchema();
+        object->load_all_data(this, schema, progress);
+      }
+      else if (object->need_shader_update) {
+        ISubD subd_mesh(object->iobject, Alembic::Abc::kWrapExisting);
+        ISubDSchema schema = subd_mesh.getSchema();
+        object->update_shader_attributes(schema.getArbGeomParams(), progress);
+      }
+    }
+
+    if (scale_is_modified() || object->get_cached_data().transforms.size() == 0) {
+      object->setup_transform_cache(scale);
     }
   }
 }
