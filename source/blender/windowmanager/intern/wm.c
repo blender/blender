@@ -642,10 +642,10 @@ void WM_main(bContext *C)
     /* Per window, all events to the window, screen, area and region handlers. */
     wm_event_do_handlers(C);
 
-    /* Wvents have left notes about changes, we handle and cache it. */
+    /* Events have left notes about changes, we handle and cache it. */
     wm_event_do_notifiers(C);
 
-    /* Wxecute cached changes draw. */
+    /* Execute cached changes draw. */
     wm_draw_update(C);
   }
 }
