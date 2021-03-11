@@ -1017,6 +1017,10 @@ void AlembicObject::setup_transform_cache(float scale)
   cached_data.transforms.clear();
   cached_data.transforms.invalidate_last_loaded_time();
 
+  if (scale == 0.0f) {
+    scale = 1.0f;
+  }
+
   if (xform_time_sampling) {
     cached_data.transforms.set_time_sampling(*xform_time_sampling);
   }
