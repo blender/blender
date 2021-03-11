@@ -910,7 +910,6 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  View3D *v3d = CTX_wm_view3d(C);
 
   if (snap_calc_active_center(C, false, scene->cursor.location)) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
