@@ -63,7 +63,6 @@ extern struct DrawEngineType draw_engine_eevee_type;
 /* Only define one of these. */
 // #define IRRADIANCE_SH_L2
 #define IRRADIANCE_HL2
-#define HAMMERSLEY_SIZE 1024
 
 #if defined(IRRADIANCE_SH_L2)
 #  define SHADER_IRRADIANCE "#define IRRADIANCE_SH_L2\n"
@@ -608,7 +607,6 @@ typedef struct EEVEE_LightProbesInfo {
   float texel_size;
   float padding_size;
   float samples_len;
-  float samples_len_inv;
   float near_clip;
   float far_clip;
   float roughness;
@@ -1180,7 +1178,6 @@ void EEVEE_sample_ellipse(int sample_ofs,
 void EEVEE_random_rotation_m4(int sample_ofs, float scale, float r_mat[4][4]);
 
 /* eevee_shaders.c */
-void EEVEE_shaders_lightprobe_shaders_init(void);
 void EEVEE_shaders_material_shaders_init(void);
 struct DRWShaderLibrary *EEVEE_shader_lib_get(void);
 struct GPUShader *EEVEE_shaders_bloom_blit_get(bool high_quality);

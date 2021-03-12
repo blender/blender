@@ -50,12 +50,10 @@
 #include "WM_types.h"
 
 static struct {
-  struct GPUTexture *hammersley;
   struct GPUTexture *planar_pool_placeholder;
   struct GPUTexture *depth_placeholder;
   struct GPUTexture *depth_array_placeholder;
 
-  struct GPUVertFormat *format_probe_display_cube;
   struct GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
 
@@ -88,25 +86,6 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
   }
 
   return vis_in && oed->ob_vis;
-}
-
-static struct GPUTexture *create_hammersley_sample_texture(int samples)
-{
-  struct GPUTexture *tex;
-  float(*texels)[2] = MEM_mallocN(sizeof(float[2]) * samples, "hammersley_tex");
-  int i;
-
-  for (i = 0; i < samples; i++) {
-    double dphi;
-    BLI_hammersley_1d(i, &dphi);
-    float phi = (float)dphi * 2.0f * M_PI;
-    texels[i][0] = cosf(phi);
-    texels[i][1] = sinf(phi);
-  }
-
-  tex = DRW_texture_create_1d(samples, GPU_RG16F, DRW_TEX_WRAP, (float *)texels);
-  MEM_freeN(texels);
-  return tex;
 }
 
 static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
@@ -166,10 +145,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
   vedata->info[0] = '\0';
 
-  if (!e_data.hammersley) {
-    EEVEE_shaders_lightprobe_shaders_init();
-    e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
-  }
+  EEVEE_shaders_material_shaders_init();
 
   memset(stl->g_data->bake_views, 0, sizeof(stl->g_data->bake_views));
   memset(stl->g_data->cube_views, 0, sizeof(stl->g_data->cube_views));
@@ -244,7 +220,6 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
 
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
     DRW_shgroup_uniform_float(grp, "roughness", &pinfo->roughness, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
@@ -252,7 +227,6 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "paddingSize", &pinfo->padding_size, 1);
     DRW_shgroup_uniform_float(grp, "fireflyFactor", &pinfo->firefly_fac, 1);
     DRW_shgroup_uniform_int(grp, "Layer", &pinfo->layer, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
     // DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
     DRW_shgroup_uniform_texture(grp, "probeHdr", rt_color);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -270,10 +244,8 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_int(grp, "probeSize", &pinfo->shres, 1);
 #else
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 #endif
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_texture(grp, "probeHdr", rt_color);
@@ -292,11 +264,9 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "visibilityRange", &pinfo->visibility_range, 1);
     DRW_shgroup_uniform_float(grp, "visibilityBlur", &pinfo->visibility_blur, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
     DRW_shgroup_uniform_float(grp, "storedTexelSize", &pinfo->texel_size, 1);
     DRW_shgroup_uniform_float(grp, "nearClip", &pinfo->near_clip, 1);
     DRW_shgroup_uniform_float(grp, "farClip", &pinfo->far_clip, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
     DRW_shgroup_uniform_texture(grp, "probeDepth", rt_depth);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
@@ -1078,10 +1048,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     CLAMP(filter_quality, 1.0f, 8.0f);
     pinfo->samples_len *= filter_quality;
 
-    pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
-    pinfo->lodfactor = bias +
-                       0.5f * log((float)(target_size * target_size) * pinfo->samples_len_inv) /
-                           log(2);
+    pinfo->lodfactor = bias + 0.5f * log(square_f(target_size) / pinfo->samples_len) / log(2);
     pinfo->firefly_fac = (firefly_fac > 0.0) ? firefly_fac : 1e16;
 
     GPU_framebuffer_ensure_config(&fb,
@@ -1129,10 +1096,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 #ifndef IRRADIANCE_SH_L2
   /* Tweaking parameters to balance perf. vs precision */
   const float bias = 0.0f;
-  pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
-  pinfo->lodfactor = bias + 0.5f *
-                                log((float)(target_size * target_size) * pinfo->samples_len_inv) /
-                                log(2);
+  pinfo->lodfactor = bias + 0.5f * log(square_f(target_size) / pinfo->samples_len) / log(2);
   pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;
 #else
   pinfo->shres = 32;        /* Less texture fetches & reduce branches */
@@ -1170,7 +1134,6 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
   pinfo->samples_len = 512.0f; /* TODO refine */
-  pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
   pinfo->shres = vis_size;
   pinfo->visibility_range = vis_range;
   pinfo->visibility_blur = vis_blur;
@@ -1293,9 +1256,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 void EEVEE_lightprobes_free(void)
 {
-  MEM_SAFE_FREE(e_data.format_probe_display_cube);
   MEM_SAFE_FREE(e_data.format_probe_display_planar);
-  DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
   DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
   DRW_TEXTURE_FREE_SAFE(e_data.depth_placeholder);
   DRW_TEXTURE_FREE_SAFE(e_data.depth_array_placeholder);

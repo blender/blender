@@ -41,11 +41,11 @@
 #include "eevee_engine.h"
 #include "eevee_private.h"
 
-static const char *filter_defines = "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
+static const char *filter_defines =
 #if defined(IRRADIANCE_SH_L2)
-                               "#define IRRADIANCE_SH_L2\n";
+    "#define IRRADIANCE_SH_L2\n";
 #elif defined(IRRADIANCE_HL2)
-                               "#define IRRADIANCE_HL2\n";
+    "#define IRRADIANCE_HL2\n";
 #endif
 
 static struct {
@@ -252,6 +252,7 @@ extern char datatoc_object_motion_vert_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_prepass_frag_glsl[];
 extern char datatoc_prepass_vert_glsl[];
+extern char datatoc_random_lib_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_renderpass_lib_glsl[];
 extern char datatoc_renderpass_postprocess_frag_glsl[];
@@ -286,6 +287,7 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, common_view_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_uniforms_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, gpu_shader_common_obinfos_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, random_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, renderpass_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, bsdf_common_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_utiltex_lib);
@@ -320,35 +322,6 @@ static void eevee_shader_library_ensure(void)
   }
 }
 
-void EEVEE_shaders_lightprobe_shaders_init(void)
-{
-  BLI_assert(e_data.probe_filter_glossy_sh == NULL);
-
-  eevee_shader_library_ensure();
-
-  e_data.probe_filter_glossy_sh = DRW_shader_create_with_shaderlib(
-      datatoc_lightprobe_vert_glsl,
-      datatoc_lightprobe_geom_glsl,
-      datatoc_lightprobe_filter_glossy_frag_glsl,
-      e_data.lib,
-      filter_defines);
-
-  e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_lightprobe_filter_diffuse_frag_glsl, e_data.lib, filter_defines);
-
-  e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_lightprobe_filter_visibility_frag_glsl, e_data.lib, filter_defines);
-
-  e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_lightprobe_grid_fill_frag_glsl, e_data.lib, filter_defines);
-
-  e_data.probe_planar_downsample_sh = DRW_shader_create(
-      datatoc_lightprobe_planar_downsample_vert_glsl,
-      datatoc_lightprobe_planar_downsample_geom_glsl,
-      datatoc_lightprobe_planar_downsample_frag_glsl,
-      NULL);
-}
-
 void EEVEE_shaders_material_shaders_init(void)
 {
   eevee_shader_library_ensure();
@@ -362,26 +335,53 @@ DRWShaderLibrary *EEVEE_shader_lib_get(void)
 
 GPUShader *EEVEE_shaders_probe_filter_glossy_sh_get(void)
 {
+  if (e_data.probe_filter_glossy_sh == NULL) {
+    e_data.probe_filter_glossy_sh = DRW_shader_create_with_shaderlib(
+        datatoc_lightprobe_vert_glsl,
+        datatoc_lightprobe_geom_glsl,
+        datatoc_lightprobe_filter_glossy_frag_glsl,
+        e_data.lib,
+        filter_defines);
+  }
   return e_data.probe_filter_glossy_sh;
 }
 
 GPUShader *EEVEE_shaders_probe_filter_diffuse_sh_get(void)
 {
+  if (e_data.probe_filter_diffuse_sh == NULL) {
+    e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_lightprobe_filter_diffuse_frag_glsl, e_data.lib, filter_defines);
+  }
   return e_data.probe_filter_diffuse_sh;
 }
 
 GPUShader *EEVEE_shaders_probe_filter_visibility_sh_get(void)
 {
+  if (e_data.probe_filter_visibility_sh == NULL) {
+    e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_lightprobe_filter_visibility_frag_glsl, e_data.lib, filter_defines);
+  }
   return e_data.probe_filter_visibility_sh;
 }
 
 GPUShader *EEVEE_shaders_probe_grid_fill_sh_get(void)
 {
+  if (e_data.probe_grid_fill_sh == NULL) {
+    e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_lightprobe_grid_fill_frag_glsl, e_data.lib, filter_defines);
+  }
   return e_data.probe_grid_fill_sh;
 }
 
 GPUShader *EEVEE_shaders_probe_planar_downsample_sh_get(void)
 {
+  if (e_data.probe_planar_downsample_sh == NULL) {
+    e_data.probe_planar_downsample_sh = DRW_shader_create(
+        datatoc_lightprobe_planar_downsample_vert_glsl,
+        datatoc_lightprobe_planar_downsample_geom_glsl,
+        datatoc_lightprobe_planar_downsample_frag_glsl,
+        NULL);
+  }
   return e_data.probe_planar_downsample_sh;
 }
 
@@ -588,7 +588,7 @@ GPUShader *EEVEE_shaders_ggx_refraction_lut_sh_get(void)
 {
   if (e_data.ggx_refraction_lut_sh == NULL) {
     e_data.ggx_refraction_lut_sh = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_btdf_lut_frag_glsl, e_data.lib, "#define HAMMERSLEY_SIZE 8192\n");
+        datatoc_btdf_lut_frag_glsl, e_data.lib, NULL);
   }
   return e_data.ggx_refraction_lut_sh;
 }

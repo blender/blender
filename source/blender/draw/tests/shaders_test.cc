@@ -288,7 +288,6 @@ TEST_F(DrawTest, overlay_glsl_shaders)
 
 TEST_F(DrawTest, eevee_glsl_shaders_static)
 {
-  EEVEE_shaders_lightprobe_shaders_init();
   EEVEE_shaders_material_shaders_init();
 
   EXPECT_NE(EEVEE_shaders_bloom_blit_get(false), nullptr);

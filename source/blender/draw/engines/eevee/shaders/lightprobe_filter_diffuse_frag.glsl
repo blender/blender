@@ -1,4 +1,5 @@
 
+#pragma BLENDER_REQUIRE(random_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(irradiance_lib.glsl)
@@ -10,7 +11,6 @@ uniform float lodMax;
 uniform float intensityFac;
 
 uniform float sampleCount;
-uniform float invSampleCount;
 
 in vec3 worldPosition;
 
@@ -147,8 +147,10 @@ void main()
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {
+    vec3 Xi = rand2d_to_cylinder(hammersley_2d(i, sampleCount));
+
     float pdf;
-    vec3 L = sample_hemisphere(i, invSampleCount, N, T, B, pdf);
+    vec3 L = sample_uniform_hemisphere(Xi, N, T, B, pdf);
     float NL = dot(N, L);
 
     if (NL > 0.0) {
