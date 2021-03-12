@@ -719,6 +719,11 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
 {
   cached_data.clear();
 
+  /* Only load data for the original Geometry. */
+  if (instance_of) {
+    return;
+  }
+
   const TimeSamplingPtr time_sampling = schema.getTimeSampling();
   cached_data.set_time_sampling(*time_sampling);
 
@@ -783,6 +788,11 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
 void AlembicObject::load_all_data(AlembicProcedural *proc, ISubDSchema &schema, Progress &progress)
 {
   cached_data.clear();
+
+  /* Only load data for the original Geometry. */
+  if (instance_of) {
+    return;
+  }
 
   AttributeRequestSet requested_attributes = get_requested_attributes();
 
@@ -917,6 +927,11 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
                                   float default_radius)
 {
   cached_data.clear();
+
+  /* Only load data for the original Geometry. */
+  if (instance_of) {
+    return;
+  }
 
   const TimeSamplingPtr time_sampling = schema.getTimeSampling();
   cached_data.set_time_sampling(*time_sampling);
@@ -1480,22 +1495,24 @@ void AlembicProcedural::load_objects(Progress &progress)
 
     Geometry *geometry = nullptr;
 
-    if (abc_object->schema_type == AlembicObject::CURVES) {
-      geometry = scene_->create_node<Hair>();
-    }
-    else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
-             abc_object->schema_type == AlembicObject::SUBD) {
-      geometry = scene_->create_node<Mesh>();
-    }
-    else {
-      continue;
-    }
+    if (!abc_object->instance_of) {
+      if (abc_object->schema_type == AlembicObject::CURVES) {
+        geometry = scene_->create_node<Hair>();
+      }
+      else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
+               abc_object->schema_type == AlembicObject::SUBD) {
+        geometry = scene_->create_node<Mesh>();
+      }
+      else {
+        continue;
+      }
 
-    geometry->set_owner(this);
-    geometry->name = abc_object->iobject.getName();
+      geometry->set_owner(this);
+      geometry->name = abc_object->iobject.getName();
 
-    array<Node *> used_shaders = abc_object->get_used_shaders();
-    geometry->set_used_shaders(used_shaders);
+      array<Node *> used_shaders = abc_object->get_used_shaders();
+      geometry->set_used_shaders(used_shaders);
+    }
 
     Object *object = scene_->create_node<Object>();
     object->set_owner(this);
@@ -1503,6 +1520,17 @@ void AlembicProcedural::load_objects(Progress &progress)
     object->name = abc_object->iobject.getName();
 
     abc_object->set_object(object);
+  }
+
+  /* Share geometries between instances. */
+  foreach (Node *node, objects) {
+    AlembicObject *abc_object = static_cast<AlembicObject *>(node);
+
+    if (abc_object->instance_of) {
+      abc_object->get_object()->set_geometry(
+          abc_object->instance_of->get_object()->get_geometry());
+      abc_object->schema_type = abc_object->instance_of->schema_type;
+    }
   }
 }
 
@@ -1517,6 +1545,11 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
 
   if (object->is_modified()) {
     object->tag_update(scene_);
+  }
+
+  /* Only update sockets for the original Geometry. */
+  if (abc_object->instance_of) {
+    return;
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
@@ -1579,6 +1612,11 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
 
   if (object->is_modified()) {
     object->tag_update(scene_);
+  }
+
+  /* Only update sockets for the original Geometry. */
+  if (abc_object->instance_of) {
+    return;
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
@@ -1664,6 +1702,11 @@ void AlembicProcedural::read_curves(AlembicObject *abc_object, Abc::chrono_t fra
 
   if (object->is_modified()) {
     object->tag_update(scene_);
+  }
+
+  /* Only update sockets for the original Geometry. */
+  if (abc_object->instance_of) {
+    return;
   }
 
   Hair *hair = static_cast<Hair *>(object->get_geometry());
@@ -1806,9 +1849,38 @@ void AlembicProcedural::walk_hierarchy(
   else if (IFaceSet::matches(header)) {
     // ignore the face set, it will be read along with the data
   }
+  else if (IPoints::matches(header)) {
+    // unsupported for now
+  }
+  else if (INuPatch::matches(header)) {
+    // unsupported for now
+  }
   else {
-    // unsupported type for now (Points, NuPatch)
     next_object = parent.getChild(header.getName());
+
+    if (next_object.isInstanceRoot()) {
+      unordered_map<std::string, AlembicObject *>::const_iterator iter;
+
+      /* Was this object asked to be rendered? */
+      iter = object_map.find(next_object.getFullName());
+
+      if (iter != object_map.end()) {
+        AlembicObject *abc_object = iter->second;
+
+        /* Only try to render an instance if the original object is also rendered. */
+        iter = object_map.find(next_object.instanceSourcePath());
+
+        if (iter != object_map.end()) {
+          abc_object->iobject = next_object;
+          abc_object->instance_of = iter->second;
+
+          if (matrix_samples_data.samples) {
+            abc_object->xform_samples = *matrix_samples_data.samples;
+            abc_object->xform_time_sampling = matrix_samples_data.time_sampling;
+          }
+        }
+      }
+    }
   }
 
   if (next_object.valid()) {

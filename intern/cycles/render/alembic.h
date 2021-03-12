@@ -276,6 +276,8 @@ class AlembicObject : public Node {
 
   bool need_shader_update = true;
 
+  AlembicObject *instance_of = nullptr;
+
   Alembic::AbcCoreAbstract::TimeSamplingPtr xform_time_sampling;
   MatrixSampleMap xform_samples;
   Alembic::AbcGeom::IObject iobject;
