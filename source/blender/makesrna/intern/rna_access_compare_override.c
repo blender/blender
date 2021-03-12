@@ -1123,7 +1123,8 @@ void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *ptr_dst,
                                PointerRNA *ptr_src,
                                PointerRNA *ptr_storage,
-                               IDOverrideLibrary *override)
+                               IDOverrideLibrary *override,
+                               const eRNAOverrideApplyFlag flag)
 {
 #ifdef DEBUG_OVERRIDE_TIMEIT
   TIMEIT_START_AVERAGED(RNA_struct_override_apply);
@@ -1184,6 +1185,39 @@ void RNA_struct_override_apply(Main *bmain,
             ptr_dst->owner_id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
             CLOG_INFO(
                 &LOG, 3, "Local override %s detected as needing resync", ptr_dst->owner_id->name);
+          }
+        }
+
+        /* Workaround for older broken overrides, we then assume that non-matching ID pointers
+         * override operations that replace a non-NULL value are 'mistakes', and ignore (do not
+         * apply) them. */
+        if ((flag & RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS) != 0 &&
+            op->rna_prop_type == PROP_POINTER &&
+            (((IDOverrideLibraryPropertyOperation *)op->operations.first)->flag &
+             IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
+          BLI_assert(ptr_src->owner_id ==
+                     rna_property_override_property_real_id_owner(bmain, &data_src, NULL, NULL));
+          BLI_assert(ptr_dst->owner_id ==
+                     rna_property_override_property_real_id_owner(bmain, &data_dst, NULL, NULL));
+
+          PointerRNA prop_ptr_dst = RNA_property_pointer_get(&data_dst, prop_dst);
+          if (prop_ptr_dst.type != NULL && RNA_struct_is_ID(prop_ptr_dst.type)) {
+#ifndef NDEBUG
+            PointerRNA prop_ptr_src = RNA_property_pointer_get(&data_src, prop_src);
+            BLI_assert(prop_ptr_src.type == NULL || RNA_struct_is_ID(prop_ptr_src.type));
+#endif
+            ID *id_dst = rna_property_override_property_real_id_owner(
+                bmain, &prop_ptr_dst, NULL, NULL);
+
+            if (id_dst != NULL) {
+              CLOG_INFO(&LOG,
+                        3,
+                        "%s: Ignoring local override on ID pointer property '%s', as requested by "
+                        "RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
+                        ptr_dst->owner_id->name,
+                        op->rna_path);
+              continue;
+            }
           }
         }
 

@@ -829,7 +829,8 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
  * \param id_root: The root liboverride ID to resync from.
  * \return true if override was successfully resynced.
  */
-bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root)
+bool BKE_lib_override_library_resync(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, const bool do_hierarchy_enforce)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
@@ -978,8 +979,14 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
           }
         }
 
-        RNA_struct_override_apply(
-            bmain, &rnaptr_dst, &rnaptr_src, NULL, id_override_new->override_library);
+        RNA_struct_override_apply(bmain,
+                                  &rnaptr_dst,
+                                  &rnaptr_src,
+                                  NULL,
+                                  id_override_new->override_library,
+                                  do_hierarchy_enforce ?
+                                      RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS :
+                                      RNA_OVERRIDE_APPLY_FLAG_NOP);
       }
     }
   }
@@ -1144,7 +1151,7 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
           continue;
         }
         do_continue = true;
-        const bool success = BKE_lib_override_library_resync(bmain, scene, view_layer, id);
+        const bool success = BKE_lib_override_library_resync(bmain, scene, view_layer, id, false);
         CLOG_INFO(&LOG, 2, "Resynced %s, success: %d", id->name, success);
         break;
       }
@@ -2104,8 +2111,12 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     RNA_id_pointer_create(local->override_library->storage, rnaptr_storage);
   }
 
-  RNA_struct_override_apply(
-      bmain, &rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_library);
+  RNA_struct_override_apply(bmain,
+                            &rnaptr_dst,
+                            &rnaptr_src,
+                            rnaptr_storage,
+                            local->override_library,
+                            RNA_OVERRIDE_APPLY_FLAG_NOP);
 
   /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
    * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
