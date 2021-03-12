@@ -27,17 +27,13 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_light_types.h"
-#include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_shader_fx_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -52,19 +48,15 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_shader_fx.h"
-#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
 #include "ED_buttons.h"
-#include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
@@ -76,7 +68,6 @@
 #include "SEQ_sequencer.h"
 
 #include "WM_api.h"
-#include "WM_toolsystem.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
