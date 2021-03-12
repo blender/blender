@@ -114,6 +114,7 @@ void main()
   ray.direction = vR * 1e16;
 
   RayTraceParameters params;
+  params.thickness = ssrThickness;
   params.jitter = rand.y;
   params.trace_quality = ssrQuality;
   params.roughness = alpha * alpha;
