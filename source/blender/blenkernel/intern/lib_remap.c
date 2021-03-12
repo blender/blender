@@ -373,9 +373,12 @@ static void libblock_remap_data(
     Main *bmain, ID *id, ID *old_id, ID *new_id, const short remap_flags, IDRemap *r_id_remap_data)
 {
   IDRemap id_remap_data;
-  const int foreach_id_flags = (remap_flags & ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE) != 0 ?
-                                   IDWALK_NO_INDIRECT_PROXY_DATA_USAGE :
-                                   IDWALK_NOP;
+  const int foreach_id_flags = ((remap_flags & ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE) != 0 ?
+                                    IDWALK_NO_INDIRECT_PROXY_DATA_USAGE :
+                                    IDWALK_NOP) |
+                               ((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
+                                    IDWALK_DO_INTERNAL_RUNTIME_POINTERS :
+                                    IDWALK_NOP);
 
   if (r_id_remap_data == NULL) {
     r_id_remap_data = &id_remap_data;
