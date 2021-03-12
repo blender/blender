@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
+ * The Original Code is Copyright (C) 2021 Blender Foundation.
  * All rights reserved.
  */
 
@@ -64,6 +64,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+/* Mask Init operator. */
+/* Initializes mask values for the entire mesh depending on the mode. */
+
 typedef enum eSculptMaskInitMode {
   SCULPT_MASK_INIT_RANDOM_PER_VERTEX,
   SCULPT_MASK_INIT_RANDOM_PER_FACE_SET,
@@ -93,7 +96,6 @@ static EnumPropertyItem prop_sculpt_mask_init_mode_types[] = {
         "",
     },
     {0, NULL, 0, NULL, NULL},
-
 };
 
 static void mask_init_task_cb(void *__restrict userdata,
@@ -142,7 +144,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   int totnode;
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
-  if (!nodes) {
+  if (totnode == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -177,7 +179,7 @@ void SCULPT_OT_mask_init(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Init Mask";
-  ot->description = "Creates a new mask for the mesh";
+  ot->description = "Creates a new mask for the entire mesh";
   ot->idname = "SCULPT_OT_mask_init";
 
   /* api callbacks */

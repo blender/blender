@@ -226,6 +226,9 @@ def update_render_passes(self, context):
     view_layer = context.view_layer
     view_layer.update_render_passes()
 
+def poll_object_is_camera(self, obj):
+    return obj.type == 'CAMERA'
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
 
@@ -538,7 +541,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Camera to use as reference point when subdividing geometry, useful to avoid crawling "
         "artifacts in animations when the scene camera is moving",
         type=bpy.types.Object,
-        poll=lambda self, obj: obj.type == 'CAMERA',
+        poll=poll_object_is_camera,
     )
     offscreen_dicing_scale: FloatProperty(
         name="Offscreen Dicing Scale",

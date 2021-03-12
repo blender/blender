@@ -555,14 +555,14 @@ static void read_file_version(FileData *fd, Main *main)
   }
 }
 
-static bool blo_bhead_is_id(BHead *bhead)
+static bool blo_bhead_is_id(const BHead *bhead)
 {
   /* BHead codes are four bytes (like 'ENDB', 'TEST', etc.), but if the two most-significant bytes
    * are zero, the values actually indicate an ID type. */
   return bhead->code <= 0xFFFF;
 }
 
-static bool blo_bhead_is_id_valid_type(BHead *bhead)
+static bool blo_bhead_is_id_valid_type(const BHead *bhead)
 {
   if (!blo_bhead_is_id(bhead)) {
     return false;

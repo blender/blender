@@ -1468,10 +1468,6 @@ void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 /* Mask Init. */
 void SCULPT_OT_mask_init(struct wmOperatorType *ot);
 
-/* Expand. */
-void SCULPT_OT_expand(struct wmOperatorType *ot);
-void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);
-
 /* Detail size. */
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(struct wmOperatorType *ot);
