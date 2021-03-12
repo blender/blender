@@ -577,9 +577,12 @@ void wm_event_do_notifiers(bContext *C)
         }
 
         ED_screen_areas_iter (win, screen, area) {
-          if ((note->category == NC_SPACE) && note->reference &&
-              (note->reference != area->spacedata.first)) {
-            continue;
+          if ((note->category == NC_SPACE) && note->reference) {
+            /* Filter out notifiers sent to other spaces. RNA sets the reference to the owning ID
+             * though, the screen, so let notifiers through that reference the entire screen. */
+            if ((note->reference != area->spacedata.first) && (note->reference != screen)) {
+              continue;
+            }
           }
           wmSpaceTypeListenerParams area_params = {
               .window = win,

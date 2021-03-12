@@ -266,7 +266,7 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
 void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,
                              const struct AnimationEvalContext *anim_eval_context,
-                             const bool flush_to_original);
+                             bool flush_to_original);
 
 /* Evaluate Action Group */
 void animsys_evaluate_action_group(struct PointerRNA *ptr,

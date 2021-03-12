@@ -1372,6 +1372,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_COMBINE_XYZ 1027
 #define GEO_NODE_ATTRIBUTE_SEPARATE_XYZ 1028
 #define GEO_NODE_SUBDIVIDE 1029
+#define GEO_NODE_ATTRIBUTE_REMOVE 1030
 
 /** \} */
 
