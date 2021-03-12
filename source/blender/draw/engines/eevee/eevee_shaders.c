@@ -132,7 +132,8 @@ static struct {
   struct GPUShader *cryptomatte_sh[2];
 
   /* Screen Space Reflection */
-  struct GPUShader *ssr_sh[SSR_MAX_SHADER];
+  struct GPUShader *reflection_trace;
+  struct GPUShader *reflection_resolve;
 
   /* Shadows */
   struct GPUShader *shadow_sh;
@@ -747,42 +748,29 @@ GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Screen Raytrace
+/** \name Raytraced Reflections
  * \{ */
 
-struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOptions options)
+struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void)
 {
-  if (e_data.ssr_sh[options] == NULL) {
-    DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-    DynStr *ds_defines = BLI_dynstr_new();
-    BLI_dynstr_append(ds_defines, SHADER_DEFINES);
-    if (options & SSR_RESOLVE) {
-      BLI_dynstr_append(ds_defines, "#define STEP_RESOLVE\n");
-    }
-    else {
-      BLI_dynstr_append(ds_defines, "#define STEP_RAYTRACE\n");
-      BLI_dynstr_append(ds_defines, "#define PLANAR_PROBE_RAYTRACE\n");
-    }
-    if (options & SSR_FULL_TRACE) {
-      BLI_dynstr_append(ds_defines, "#define FULLRES\n");
-    }
-    char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
-    BLI_dynstr_free(ds_defines);
-
-    if (options & SSR_RESOLVE) {
-      e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
-          datatoc_effect_reflection_resolve_frag_glsl, lib, ssr_define_str);
-    }
-    else {
-      e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
-          datatoc_effect_reflection_trace_frag_glsl, lib, ssr_define_str);
-    }
-
-    MEM_freeN(ssr_define_str);
+  if (e_data.reflection_trace == NULL) {
+    e_data.reflection_trace = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_reflection_trace_frag_glsl,
+        e_data.lib,
+        SHADER_DEFINES "#define STEP_RAYTRACE\n");
   }
+  return e_data.reflection_trace;
+}
 
-  return e_data.ssr_sh[options];
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void)
+{
+  if (e_data.reflection_resolve == NULL) {
+    e_data.reflection_resolve = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_reflection_resolve_frag_glsl,
+        e_data.lib,
+        SHADER_DEFINES "#define STEP_RESOLVE\n");
+  }
+  return e_data.reflection_resolve;
 }
 
 /** \} */
@@ -1636,9 +1624,8 @@ void EEVEE_shaders_free(void)
     DRW_SHADER_FREE_SAFE(e_data.bloom_upsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_resolve_sh[i]);
   }
-  for (int i = 0; i < SSR_MAX_SHADER; i++) {
-    DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
-  }
+  DRW_SHADER_FREE_SAFE(e_data.reflection_trace);
+  DRW_SHADER_FREE_SAFE(e_data.reflection_resolve);
   DRW_SHADER_LIB_FREE_SAFE(e_data.lib);
 
   if (e_data.default_world) {

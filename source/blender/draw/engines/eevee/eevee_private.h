@@ -200,13 +200,6 @@ enum {
   KEY_SHADOW = (1 << 3),
 };
 
-/* SSR shader variations */
-typedef enum EEVEE_SSRShaderOptions {
-  SSR_RESOLVE = (1 << 0),
-  SSR_FULL_TRACE = (1 << 1),
-  SSR_MAX_SHADER = (1 << 2),
-} EEVEE_SSRShaderOptions;
-
 /* DOF Gather pass shader variations */
 typedef enum EEVEE_DofGatherPass {
   DOF_GATHER_FOREGROUND = 0,
@@ -731,7 +724,6 @@ typedef struct EEVEE_EffectsInfo {
   bool ssr_was_persp;
   bool ssr_was_valid_double_buffer;
   int ssr_neighbor_ofs;
-  int ssr_halfres_ofs[2];
   struct GPUTexture *ssr_normal_input; /* Textures from pool */
   struct GPUTexture *ssr_specrough_input;
   struct GPUTexture *ssr_hit_output;
@@ -1215,7 +1207,8 @@ struct GPUShader *EEVEE_shaders_effect_motion_blur_velocity_tiles_expand_sh_get(
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
-struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOptions options);
+struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void);
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
 struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);
