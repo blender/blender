@@ -1714,9 +1714,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   LISTBASE_FOREACH (bGPDlayer *, gpl, &tgpf->gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        if (gps->flag & GP_STROKE_TAG) {
-          gps->flag &= ~GP_STROKE_TAG;
-        }
+        gps->flag &= ~GP_STROKE_TAG;
       }
     }
   }
