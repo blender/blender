@@ -1492,7 +1492,8 @@ static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
 
 static void sculpt_undosys_step_decode_undo(struct bContext *C,
                                             Depsgraph *depsgraph,
-                                            SculptUndoStep *us)
+                                            SculptUndoStep *us,
+                                            const bool is_final)
 {
   SculptUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
@@ -1501,8 +1502,12 @@ static void sculpt_undosys_step_decode_undo(struct bContext *C,
     }
     us_iter = (SculptUndoStep *)us_iter->step.next;
   }
-  while (us_iter != us) {
+
+  while ((us_iter != us) || (!is_final && us_iter == us)) {
     sculpt_undosys_step_decode_undo_impl(C, depsgraph, us_iter);
+    if (us_iter == us) {
+      break;
+    }
     us_iter = (SculptUndoStep *)us_iter->step.prev;
   }
 }
@@ -1527,11 +1532,8 @@ static void sculpt_undosys_step_decode_redo(struct bContext *C,
   }
 }
 
-static void sculpt_undosys_step_decode(struct bContext *C,
-                                       struct Main *bmain,
-                                       UndoStep *us_p,
-                                       const eUndoStepDir dir,
-                                       bool UNUSED(is_final))
+static void sculpt_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
   BLI_assert(dir != STEP_INVALID);
 
@@ -1574,7 +1576,7 @@ static void sculpt_undosys_step_decode(struct bContext *C,
 
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   if (dir == STEP_UNDO) {
-    sculpt_undosys_step_decode_undo(C, depsgraph, us);
+    sculpt_undosys_step_decode_undo(C, depsgraph, us, is_final);
   }
   else if (dir == STEP_REDO) {
     sculpt_undosys_step_decode_redo(C, depsgraph, us);
