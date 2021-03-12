@@ -217,7 +217,9 @@ extern char datatoc_effect_gtao_frag_glsl[];
 extern char datatoc_effect_minmaxz_frag_glsl[];
 extern char datatoc_effect_mist_frag_glsl[];
 extern char datatoc_effect_motion_blur_frag_glsl[];
-extern char datatoc_effect_ssr_frag_glsl[];
+extern char datatoc_effect_reflection_lib_glsl[];
+extern char datatoc_effect_reflection_resolve_frag_glsl[];
+extern char datatoc_effect_reflection_trace_frag_glsl[];
 extern char datatoc_effect_subsurface_frag_glsl[];
 extern char datatoc_effect_temporal_aa_glsl[];
 extern char datatoc_effect_translucency_frag_glsl[];
@@ -304,6 +306,7 @@ static void eevee_shader_library_ensure(void)
     DRW_SHADER_LIB_ADD(e_data.lib, volumetric_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, ssr_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, effect_dof_lib);
+    DRW_SHADER_LIB_ADD(e_data.lib, effect_reflection_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_type_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, closure_eval_diffuse_lib);
@@ -767,8 +770,14 @@ struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOpt
     char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
     BLI_dynstr_free(ds_defines);
 
-    e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_ssr_frag_glsl, lib, ssr_define_str);
+    if (options & SSR_RESOLVE) {
+      e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
+          datatoc_effect_reflection_resolve_frag_glsl, lib, ssr_define_str);
+    }
+    else {
+      e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
+          datatoc_effect_reflection_trace_frag_glsl, lib, ssr_define_str);
+    }
 
     MEM_freeN(ssr_define_str);
   }

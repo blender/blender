@@ -1,14 +1,12 @@
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(closure_eval_glossy_lib.glsl)
 #pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_common_lib.glsl)
-#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
+#pragma BLENDER_REQUIRE(effect_reflection_lib.glsl)
 
 /* Based on:
  * "Stochastic Screen Space Reflections"
@@ -20,193 +18,7 @@
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
 
-uniform ivec2 halfresOffset;
-
-struct HitData {
-  /** Hit direction scaled by intersection time. */
-  vec3 hit_dir;
-  /** Screen space [0..1] depth of the reflection hit position, or -1.0 for planar reflections. */
-  float hit_depth;
-  /** Inverse probability of ray spawning in this direction. */
-  float ray_pdf_inv;
-  /** True if ray has hit valid geometry. */
-  bool is_hit;
-  /** True if ray was generated from a planar reflection probe. */
-  bool is_planar;
-};
-
-void encode_hit_data(HitData data, vec3 hit_sP, vec3 vP, out vec4 hit_data, out float hit_depth)
-{
-  vec3 hit_vP = get_view_space_from_depth(hit_sP.xy, hit_sP.z);
-  hit_data.xyz = hit_vP - vP;
-  hit_depth = data.is_planar ? -1.0 : hit_sP.z;
-  /* Record 1.0 / pdf to reduce the computation in the resolve phase. */
-  /* Encode hit validity in sign. */
-  hit_data.w = data.ray_pdf_inv * ((data.is_hit) ? 1.0 : -1.0);
-}
-
-HitData decode_hit_data(vec4 hit_data, float hit_depth)
-{
-  HitData data;
-  data.hit_dir.xyz = hit_data.xyz;
-  data.hit_depth = hit_depth;
-  data.is_planar = (hit_depth == -1.0);
-  data.ray_pdf_inv = abs(hit_data.w);
-  data.is_hit = (hit_data.w > 0.0);
-  return data;
-}
-
-#ifdef STEP_RAYTRACE
-
-uniform sampler2D normalBuffer;
-uniform sampler2D specroughBuffer;
-
-layout(location = 0) out vec4 hitData;
-layout(location = 1) out float hitDepth;
-
-void do_planar_ssr(int index,
-                   vec3 vV,
-                   vec3 vN,
-                   vec3 vT,
-                   vec3 vB,
-                   vec3 viewPlaneNormal,
-                   vec3 vP,
-                   float alpha,
-                   vec4 rand)
-{
-  float pdf;
-  /* Microfacet normal */
-  vec3 vH = sample_ggx(rand.xzw, alpha, vV, vN, vT, vB, pdf);
-  vec3 vR = reflect(-vV, vH);
-  vR = reflect(vR, viewPlaneNormal);
-
-  Ray ray;
-  ray.origin = vP;
-  ray.direction = vR * 1e16;
-
-  RayTraceParameters params;
-  params.jitter = rand.y;
-  params.trace_quality = ssrQuality;
-  params.roughness = alpha * alpha;
-
-  vec3 hit_sP;
-  HitData data;
-  data.is_planar = true;
-  data.ray_pdf_inv = safe_rcp(pdf);
-  data.is_hit = raytrace_planar(ray, params, index, hit_sP);
-
-  encode_hit_data(data, hit_sP, ray.origin, hitData, hitDepth);
-}
-
-void do_ssr(vec3 vV, vec3 vN, vec3 vT, vec3 vB, vec3 vP, float alpha, vec4 rand)
-{
-  float pdf;
-  /* Microfacet normal */
-  vec3 vH = sample_ggx(rand.xzw, alpha, vV, vN, vT, vB, pdf);
-  vec3 vR = reflect(-vV, vH);
-
-  Ray ray;
-  ray.origin = vP + vN * 1e-4;
-  ray.direction = vR * 1e16;
-
-  RayTraceParameters params;
-  params.thickness = ssrThickness;
-  params.jitter = rand.y;
-  params.trace_quality = ssrQuality;
-  params.roughness = alpha * alpha;
-
-  vec3 hit_sP;
-  HitData data;
-  data.is_planar = false;
-  data.ray_pdf_inv = safe_rcp(pdf);
-  data.is_hit = raytrace(ray, params, true, hit_sP);
-
-  encode_hit_data(data, hit_sP, ray.origin, hitData, hitDepth);
-}
-
-in vec4 uvcoordsvar;
-
-void main()
-{
-  vec2 uvs = uvcoordsvar.xy;
-  float depth = textureLod(maxzBuffer, uvs * hizUvScale.xy, 0.0).r;
-
-  HitData data;
-  data.is_planar = false;
-  data.ray_pdf_inv = 0.0;
-  data.is_hit = false;
-  data.hit_dir = vec3(0.0, 0.0, 0.0);
-
-  /* Default: not hits. */
-  encode_hit_data(data, data.hit_dir, data.hit_dir, hitData, hitDepth);
-
-  /* Early out */
-  /* We can't do discard because we don't clear the render target. */
-  if (depth == 1.0) {
-    return;
-  }
-
-  /* Using view space */
-  vec3 vP = get_view_space_from_depth(uvs, depth);
-  vec3 P = transform_point(ViewMatrixInverse, vP);
-  vec3 vV = viewCameraVec(vP);
-  vec3 V = cameraVec(P);
-  vec3 vN = normal_decode(texture(normalBuffer, uvs, 0).rg, vV);
-  vec3 N = transform_direction(ViewMatrixInverse, vN);
-
-  /* Retrieve pixel data */
-  vec4 speccol_roughness = texture(specroughBuffer, uvs, 0).rgba;
-
-  /* Early out */
-  if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {
-    return;
-  }
-
-  float roughness = speccol_roughness.a;
-  float alpha = max(1e-3, roughness * roughness);
-
-  /* Early out */
-  if (roughness > ssrMaxRoughness + 0.2) {
-    return;
-  }
-
-  vec4 rand = texelfetch_noise_tex(vec2(gl_FragCoord.xy));
-
-  /* Gives *perfect* reflection for very small roughness */
-  if (roughness < 0.04) {
-    rand.xzw *= 0.0;
-  }
-  /* Importance sampling bias */
-  rand.x = mix(rand.x, 0.0, ssrBrdfBias);
-
-  vec3 vT, vB;
-  make_orthonormal_basis(vN, vT, vB); /* Generate tangent space */
-
-  /* Planar Reflections */
-  for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; i++) {
-    PlanarData pd = planars_data[i];
-
-    float fade = probe_attenuation_planar(pd, P);
-    fade *= probe_attenuation_planar_normal_roughness(pd, N, 0.0);
-
-    if (fade > 0.5) {
-      /* Find view vector / reflection plane intersection. */
-      /* TODO optimize, use view space for all. */
-      vec3 tracePosition = line_plane_intersect(P, V, pd.pl_plane_eq);
-      tracePosition = transform_point(ViewMatrix, tracePosition);
-      vec3 viewPlaneNormal = transform_direction(ViewMatrix, pd.pl_normal);
-
-      do_planar_ssr(i, vV, vN, vT, vB, viewPlaneNormal, tracePosition, alpha, rand);
-      return;
-    }
-  }
-
-  do_ssr(vV, vN, vT, vB, vP, alpha, rand);
-}
-
-#else /* STEP_RESOLVE */
-
-uniform sampler2D colorBuffer; /* previous frame */
+uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 uniform sampler2D hitBuffer;
@@ -398,5 +210,3 @@ void main()
 
   fragColor = vec4(out_Glossy_0.radiance * brdf, 1.0);
 }
-
-#endif
