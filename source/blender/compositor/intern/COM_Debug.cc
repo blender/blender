@@ -56,9 +56,7 @@ std::string DebugInfo::node_name(const Node *node)
   if (it != m_node_names.end()) {
     return it->second;
   }
-  else {
-    return "";
-  }
+  return "";
 }
 
 std::string DebugInfo::operation_name(const NodeOperation *op)
@@ -67,9 +65,7 @@ std::string DebugInfo::operation_name(const NodeOperation *op)
   if (it != m_op_names.end()) {
     return it->second;
   }
-  else {
-    return "";
-  }
+  return "";
 }
 
 void DebugInfo::convert_started()
@@ -81,10 +77,8 @@ void DebugInfo::execute_started(const ExecutionSystem *system)
 {
   m_file_index = 1;
   m_group_states.clear();
-  for (ExecutionSystem::Groups::const_iterator it = system->m_groups.begin();
-       it != system->m_groups.end();
-       ++it) {
-    m_group_states[*it] = EG_WAIT;
+  for (ExecutionGroup *execution_group : system->m_groups) {
+    m_group_states[execution_group] = EG_WAIT;
   }
 }
 
@@ -355,10 +349,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=chartreuse4\r\n");
     }
 
-    for (ExecutionGroup::Operations::const_iterator it = group->m_operations.begin();
-         it != group->m_operations.end();
-         ++it) {
-      NodeOperation *operation = *it;
+    for (NodeOperation *operation : group->m_operations) {
 
       sprintf(strbuf, "_%p", group);
       op_groups[operation].push_back(std::string(strbuf));
@@ -385,7 +376,8 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
     op_groups[operation].push_back(std::string(""));
 
-    len += graphviz_operation(system, operation, 0, str + len, maxlen > len ? maxlen - len : 0);
+    len += graphviz_operation(
+        system, operation, nullptr, str + len, maxlen > len ? maxlen - len : 0);
   }
 
   for (int i = 0; i < totops; i++) {
@@ -452,7 +444,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
         for (int l = 0; l < to_groups.size(); l++) {
           len += snprintf(str + len,
                           maxlen > len ? maxlen - len : 0,
-                          "\"O_%p%s\":\"OUT_%p\":e -> \"O_%p%s\":\"IN_%p\":w",
+                          R"("O_%p%s":"OUT_%p":e -> "O_%p%s":"IN_%p":w)",
                           from_op,
                           from_groups[k].c_str(),
                           from,

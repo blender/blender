@@ -1347,7 +1347,7 @@ typedef struct FilterCache {
   float sphere_center[3];
   float sphere_radius;
 
-  /* Filter orientaiton. */
+  /* Filter orientation. */
   SculptFilterOrientation orientation;
   float obmat[4][4];
   float obmat_inv[4][4];

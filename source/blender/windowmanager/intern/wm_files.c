@@ -322,6 +322,9 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
     SWAP(wmWindowManager *, oldwm, wm);
     BLI_addhead(current_wm_list, oldwm);
     BLI_addhead(readfile_wm_list, wm);
+
+    /* Don't leave the old pointer in the context. */
+    CTX_wm_manager_set(C, wm);
   }
 
   bool has_match = false;

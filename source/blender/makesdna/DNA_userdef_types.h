@@ -635,6 +635,7 @@ typedef struct UserDef_FileSpaceData {
 typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
+  char no_override_auto_resync;
   char use_cycles_debug;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
@@ -645,7 +646,7 @@ typedef struct UserDef_Experimental {
   char use_switch_object_operator;
   char use_sculpt_tools_tilt;
   char use_asset_browser;
-  char _pad[7];
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

@@ -6245,6 +6245,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Undo Legacy",
       "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
 
+  prop = RNA_def_property(srna, "override_auto_resync", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "no_override_auto_resync", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Override Auto Resync",
+      "Enable library overrides automatic resync detection and process on file load. Disable when "
+      "dealing with older .blend files that need manual Resync (Enforce) handling");
+
   prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);
   RNA_def_property_ui_text(

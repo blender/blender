@@ -962,7 +962,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Select All Operator
+/** \name View Selected Operator
  * \{ */
 
 static int file_view_selected_exec(bContext *C, wmOperator *UNUSED(op))

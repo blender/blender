@@ -78,6 +78,13 @@ enum {
   ID_REMAP_SKIP_OVERRIDE_LIBRARY = 1 << 5,
   /** Don't touch the user count (use for low level actions such as swapping pointers). */
   ID_REMAP_SKIP_USER_CLEAR = 1 << 6,
+  /**
+   * Force internal ID runtime pointers (like `ID.newid`, `ID.orig_id` etc.) to also be processed.
+   * This should only be needed in some very specific cases, typically only BKE ID management code
+   * should need it (e.g. required from `id_delete` to ensure no runtime pointer remains using
+   * freed ones).
+   */
+  ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS = 1 << 7,
 };
 
 /* Note: Requiring new_id to be non-null, this *may* not be the case ultimately,

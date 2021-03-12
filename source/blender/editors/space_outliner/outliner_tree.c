@@ -62,22 +62,13 @@
 #include "BLT_translation.h"
 
 #include "BKE_armature.h"
-#include "BKE_fcurve_driver.h"
-#include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_outliner_treehash.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-
 #include "ED_screen.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "RNA_access.h"
 

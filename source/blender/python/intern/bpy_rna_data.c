@@ -100,8 +100,8 @@ static PyTypeObject bpy_rna_data_context_Type = {
     NULL, /* reprfunc tp_str; */
 
     /* will only use these if this is a subtype of a py class */
-    NULL /*PyObject_GenericGetAttr is assigned later */, /* getattrofunc tp_getattro; */
-    NULL,                                                /* setattrofunc tp_setattro; */
+    NULL, /* getattrofunc tp_getattro; */
+    NULL, /* setattrofunc tp_setattro; */
 
     /* Functions to access object as input/output buffer */
     NULL, /* PyBufferProcs *tp_as_buffer; */
