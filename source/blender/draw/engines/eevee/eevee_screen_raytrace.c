@@ -130,6 +130,9 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     struct GPUShader *trace_shader = EEVEE_shaders_effect_reflection_trace_sh_get();
     struct GPUShader *resolve_shader = EEVEE_shaders_effect_reflection_resolve_sh_get();
 
+    int hitbuf_size[3];
+    GPU_texture_get_mipmap_size(effects->ssr_hit_output, 0, hitbuf_size);
+
     /** Screen space raytracing overview
      *
      * Following Frostbite stochastic SSR.
@@ -155,6 +158,9 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_uniform_vec2_copy(grp, "targetSize", (float[2]){hitbuf_size[0], hitbuf_size[1]});
+    DRW_shgroup_uniform_float_copy(
+        grp, "randomScale", effects->reflection_trace_full ? 0.0f : 0.5f);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
     eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
