@@ -650,53 +650,59 @@ static void lib_override_library_create_post_process(
 {
   BKE_main_collection_sync(bmain);
 
-  switch (GS(id_root->name)) {
-    case ID_GR: {
-      Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
-                                 (Object *)id_reference :
-                                 NULL;
-      Collection *collection_new = ((Collection *)id_root->newid);
-      if (ob_reference != NULL) {
-        BKE_collection_add_from_object(bmain, scene, ob_reference, collection_new);
-      }
-      else if (id_reference != NULL) {
-        BKE_collection_add_from_collection(
-            bmain, scene, ((Collection *)id_reference), collection_new);
-      }
-      else {
-        BKE_collection_add_from_collection(bmain, scene, ((Collection *)id_root), collection_new);
-      }
+  if (id_root->newid != NULL) {
+    switch (GS(id_root->name)) {
+      case ID_GR: {
+        Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
+                                   (Object *)id_reference :
+                                   NULL;
+        Collection *collection_new = ((Collection *)id_root->newid);
+        if (ob_reference != NULL) {
+          BKE_collection_add_from_object(bmain, scene, ob_reference, collection_new);
+        }
+        else if (id_reference != NULL) {
+          BLI_assert(GS(id_reference->name) == ID_GR);
+          BKE_collection_add_from_collection(
+              bmain, scene, ((Collection *)id_reference), collection_new);
+        }
+        else {
+          BKE_collection_add_from_collection(
+              bmain, scene, ((Collection *)id_root), collection_new);
+        }
 
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
-        if (ob_new != NULL && ob_new->id.override_library != NULL) {
-          if (ob_reference != NULL) {
-            Base *base;
-            if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
-              BKE_collection_object_add_from(bmain, scene, ob_reference, ob_new);
-              base = BKE_view_layer_base_find(view_layer, ob_new);
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
+          if (ob_new != NULL && ob_new->id.override_library != NULL) {
+            if (ob_reference != NULL) {
+              Base *base;
+              if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
+                BKE_collection_object_add_from(bmain, scene, ob_reference, ob_new);
+                base = BKE_view_layer_base_find(view_layer, ob_new);
+                DEG_id_tag_update_ex(
+                    bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
+              }
+
+              if (ob_new == (Object *)ob_reference->id.newid) {
+                /* TODO: is setting active needed? */
+                BKE_view_layer_base_select_and_set_active(view_layer, base);
+              }
+            }
+            else if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
+              BKE_collection_object_add(bmain, collection_new, ob_new);
               DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
             }
-
-            if (ob_new == (Object *)ob_reference->id.newid) {
-              /* TODO: is setting active needed? */
-              BKE_view_layer_base_select_and_set_active(view_layer, base);
-            }
-          }
-          else if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
-            BKE_collection_object_add(bmain, collection_new, ob_new);
-            DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
           }
         }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        break;
       }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-      break;
+      case ID_OB: {
+        BKE_collection_object_add_from(
+            bmain, scene, (Object *)id_root, ((Object *)id_root->newid));
+        break;
+      }
+      default:
+        break;
     }
-    case ID_OB: {
-      BKE_collection_object_add_from(bmain, scene, (Object *)id_root, ((Object *)id_root->newid));
-      break;
-    }
-    default:
-      break;
   }
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
