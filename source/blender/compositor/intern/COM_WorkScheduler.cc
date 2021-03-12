@@ -190,10 +190,10 @@ bool WorkScheduler::has_gpu_devices()
 #  ifdef COM_OPENCL_ENABLED
   return !g_work_scheduler.gpu_devices.empty();
 #  else
-  return 0;
+  return false;
 #  endif
 #else
-  return 0;
+  return false;
 #endif
 }
 
