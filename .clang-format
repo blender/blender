@@ -161,6 +161,7 @@ PenaltyBreakString: 1000000
 # "^\s+[A-Z][A-Z0-9_]+\s*\([^\n]*\)\n\s*\{"
 ForEachMacros:
   - BEGIN_ANIMFILTER_SUBCHANNELS
+  - BKE_pbvh_vertex_iter_begin
   - BLI_FOREACH_SPARSE_RANGE
   - BLI_SMALLSTACK_ITER_BEGIN
   - BMO_ITER

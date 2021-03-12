@@ -377,8 +377,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
                                              data->cloth_sim_radius * data->cloth_sim_radius :
                                              FLT_MAX;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     const float len_squared = len_squared_v3v3(vd.co, data->cloth_sim_initial_location);
     if (len_squared < cloth_sim_radius_squared) {
 
@@ -518,8 +517,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     madd_v3_v3fl(gravity, ss->cache->gravity_direction, -data->sd->gravity_factor);
   }
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float force[3];
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
@@ -783,8 +781,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float sim_location[3];
     cloth_brush_simulation_location_get(ss, brush, sim_location);
     const float sim_factor =
@@ -1449,8 +1446,7 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
   mul_v3_fl(sculpt_gravity, sd->gravity_factor * data->filter_strength);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
     fade = 1.0f - fade;

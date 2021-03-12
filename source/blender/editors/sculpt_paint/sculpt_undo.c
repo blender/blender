@@ -1104,8 +1104,7 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v3_v3(unode->co[vd.i], vd.co);
     if (vd.no) {
       copy_v3_v3_short(unode->no[vd.i], vd.no);
@@ -1147,8 +1146,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     unode->mask[vd.i] = *vd.mask;
   }
   BKE_pbvh_vertex_iter_end;
@@ -1159,8 +1157,7 @@ static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v4_v4(unode->col[vd.i], vd.col);
   }
   BKE_pbvh_vertex_iter_end;
@@ -1258,8 +1255,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_MASK:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
-        BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-        {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;
@@ -1268,8 +1264,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_HIDDEN: {
         GSetIterator gs_iter;
         GSet *faces = BKE_pbvh_bmesh_node_faces(node);
-        BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-        {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;

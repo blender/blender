@@ -85,8 +85,7 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -139,8 +138,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
                                  BKE_brush_color_get(ss->scene, brush));
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     bool affect_vertex = false;
@@ -227,8 +225,7 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
   test.radius *= data->brush->wet_paint_radius_factor;
   test.radius_squared = test.radius * test.radius;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -384,8 +381,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -454,8 +450,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.index));
   }
   BKE_pbvh_vertex_iter_end;

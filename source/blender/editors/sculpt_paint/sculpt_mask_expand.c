@@ -85,8 +85,7 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
     }
     else {
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-      {
+      BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
         *vd.mask = ss->filter_cache->prev_mask[vd.index];
       }
       BKE_pbvh_vertex_iter_end;
@@ -114,8 +113,7 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   int update_it = data->mask_expand_update_it;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
     if (data->mask_expand_use_normals) {
@@ -227,8 +225,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
       for (int n = 0; n < ss->filter_cache->totnode; n++) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin(ss->pbvh, ss->filter_cache->nodes[n], vd, PBVH_ITER_UNIQUE)
-        {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, ss->filter_cache->nodes[n], vd, PBVH_ITER_UNIQUE) {
           const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(
