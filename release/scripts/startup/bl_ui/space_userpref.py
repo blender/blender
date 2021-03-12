@@ -2269,6 +2269,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
+                ({"property": "override_auto_resync"}, "T83811"),
                 ({"property": "use_cycles_debug"}, None),
             ),
         )

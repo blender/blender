@@ -395,7 +395,7 @@ static void setup_app_data(bContext *C,
     BKE_main_id_refcount_recompute(bmain, false);
   }
 
-  if (mode != LOAD_UNDO) {
+  if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
     BKE_lib_override_library_main_resync(
         bmain,
         curscene,
