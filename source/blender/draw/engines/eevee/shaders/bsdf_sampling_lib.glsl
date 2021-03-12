@@ -42,11 +42,6 @@ float pdf_ggx_reflect(float NH, float NV, float VH, float alpha)
 #endif
 }
 
-float pdf_hemisphere()
-{
-  return 0.5 * M_1_PI;
-}
-
 vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
 {
 #if USE_VISIBLE_NORMAL
@@ -94,20 +89,24 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out floa
   return tangent_to_world(Ht, N, T, B);
 }
 
+float pdf_hemisphere()
+{
+  return 0.5 * M_1_PI;
+}
+
 vec3 sample_hemisphere(vec3 rand)
 {
-  /* Theta is the cone angle. */
   float z = rand.x;                      /* cos theta */
   float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
   float x = r * rand.y;
   float y = r * rand.z;
-
   return vec3(x, y, z);
 }
 
-vec3 sample_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B)
+vec3 sample_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B, out float pdf)
 {
   vec3 Ht = sample_hemisphere(rand);
+  pdf = pdf_hemisphere();
   return tangent_to_world(Ht, N, T, B);
 }
 
@@ -125,10 +124,11 @@ vec3 sample_ggx(float nsample,
   return sample_ggx(Xi, alpha, V, N, T, B, pdf);
 }
 
-vec3 sample_hemisphere(float nsample, float inv_sample_count, vec3 N, vec3 T, vec3 B)
+vec3 sample_hemisphere(
+    float nsample, float inv_sample_count, vec3 N, vec3 T, vec3 B, out float pdf)
 {
   vec3 Xi = hammersley_3d(nsample, inv_sample_count);
-  return sample_hemisphere(Xi, N, T, B);
+  return sample_hemisphere(Xi, N, T, B, pdf);
 }
 
 vec3 sample_cone(float nsample, float inv_sample_count, float angle, vec3 N, vec3 T, vec3 B)
