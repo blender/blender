@@ -3121,6 +3121,11 @@ class VIEW3D_MT_mask(Menu):
 
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
 
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
+
+
 
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
@@ -3221,6 +3226,21 @@ class VIEW3D_MT_face_sets_init(Menu):
         op = layout.operator("sculpt.face_sets_init", text='By Face Maps')
         op.mode = 'FACE_MAPS'
 
+
+class VIEW3D_MT_random_mask(Menu):
+    bl_label = "Random Mask"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        op = layout.operator("sculpt.mask_init", text='Per Vertex')
+        op.mode = 'RANDOM_PER_VERTEX'
+
+        op = layout.operator("sculpt.mask_init", text='Per Face Set')
+        op.mode = 'RANDOM_PER_FACE_SET'
+
+        op = layout.operator("sculpt.mask_init", text='Per Loose Part')
+        op.mode = 'RANDOM_PER_LOOSE_PART'
 
 class VIEW3D_MT_particle(Menu):
     bl_label = "Particle"
@@ -7563,6 +7583,7 @@ classes = (
     VIEW3D_MT_mask,
     VIEW3D_MT_face_sets,
     VIEW3D_MT_face_sets_init,
+    VIEW3D_MT_random_mask,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_context_menu,
     VIEW3D_MT_particle_showhide,

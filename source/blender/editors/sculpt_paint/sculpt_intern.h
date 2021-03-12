@@ -792,6 +792,9 @@ typedef struct SculptThreadedTaskData {
   int face_set;
   int filter_undo_type;
 
+  int mask_init_mode;
+  int mask_init_seed;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;
@@ -1355,6 +1358,9 @@ void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
+
+/* Mask Init. */
+void SCULPT_OT_mask_init(struct wmOperatorType *ot);
 
 /* Detail size. */
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
