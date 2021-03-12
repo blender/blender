@@ -1367,7 +1367,7 @@ void GeometryManager::device_update_bvh(Device *device,
   dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
   dscene->data.bvh.curve_subdivisions = scene->params.curve_subdivisions();
   /* The scene handle is set in 'CPUDevice::const_copy_to' and 'OptiXDevice::const_copy_to' */
-  dscene->data.bvh.scene = NULL;
+  dscene->data.bvh.scene = 0;
 }
 
 /* Set of flags used to help determining what data has been modified or needs reallocation, so we
