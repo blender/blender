@@ -767,6 +767,65 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
 };
 
 /**
+ * This provider makes face normals available as a read-only float3 attribute.
+ */
+class NormalAttributeProvider final : public BuiltinAttributeProvider {
+ public:
+  NormalAttributeProvider()
+      : BuiltinAttributeProvider(
+            "normal", ATTR_DOMAIN_POLYGON, CD_PROP_FLOAT3, NonCreatable, Readonly, NonDeletable)
+  {
+  }
+
+  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const
+  {
+    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+    const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return {};
+    }
+
+    /* Use existing normals if possible. */
+    if (!(mesh->runtime.cd_dirty_poly & CD_MASK_NORMAL) &&
+        CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
+      const void *data = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+
+      return std::make_unique<ArrayReadAttribute<float3>>(
+          ATTR_DOMAIN_POLYGON, Span<float3>((const float3 *)data, mesh->totpoly));
+    }
+
+    Array<float3> normals(mesh->totpoly);
+    for (const int i : IndexRange(mesh->totpoly)) {
+      const MPoly *poly = &mesh->mpoly[i];
+      BKE_mesh_calc_poly_normal(poly, &mesh->mloop[poly->loopstart], mesh->mvert, normals[i]);
+    }
+
+    return std::make_unique<OwnedArrayReadAttribute<float3>>(ATTR_DOMAIN_POLYGON,
+                                                             std::move(normals));
+  }
+
+  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const
+  {
+    return {};
+  }
+
+  bool try_delete(GeometryComponent &UNUSED(component)) const
+  {
+    return false;
+  }
+
+  bool try_create(GeometryComponent &UNUSED(component)) const
+  {
+    return false;
+  }
+
+  bool exists(const GeometryComponent &component) const
+  {
+    return component.attribute_domain_size(ATTR_DOMAIN_POLYGON) != 0;
+  }
+};
+
+/**
  * In this function all the attribute providers for a mesh component are created. Most data in this
  * function is statically allocated, because it does not change over time.
  */
@@ -818,6 +877,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                  make_vertex_position_write_attribute,
                                                  tag_normals_dirty_when_writing_position);
 
+  static NormalAttributeProvider normal;
+
   static BuiltinCustomDataLayerProvider material_index("material_index",
                                                        ATTR_DOMAIN_POLYGON,
                                                        CD_PROP_INT32,
@@ -862,7 +923,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider polygon_custom_data(ATTR_DOMAIN_POLYGON, polygon_access);
 
-  return ComponentAttributeProviders({&position, &material_index, &shade_smooth},
+  return ComponentAttributeProviders({&position, &material_index, &shade_smooth, &normal},
                                      {&uvs,
                                       &vertex_colors,
                                       &corner_custom_data,
