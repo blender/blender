@@ -10,6 +10,8 @@
  * The final integration is done at the resolve stage with the shading normal.
  */
 
+in vec4 uvcoordsvar;
+
 out vec4 FragColor;
 
 uniform sampler2D normalBuffer;
@@ -79,8 +81,6 @@ bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, ou
 
 #ifdef DEBUG_AO
 
-in vec4 uvcoordsvar;
-
 void main()
 {
   vec3 vP, vNg;
@@ -112,8 +112,8 @@ void main()
 
 void main()
 {
-  vec2 uvs = gl_FragCoord.xy / vec2(textureSize(gtao_depthBuffer, 0).xy);
-  float depth = gtao_textureLod(gtao_depthBuffer, uvs, 0.0).r;
+  vec2 uvs = uvcoordsvar.xy;
+  float depth = textureLod(maxzBuffer, uvs * hizUvScale.xy, 0.0).r;
   vec3 vP = get_view_space_from_depth(uvs, depth);
 
   OcclusionData data = NO_OCCLUSION_DATA;
