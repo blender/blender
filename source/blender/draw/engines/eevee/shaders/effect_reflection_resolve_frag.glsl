@@ -24,6 +24,8 @@ uniform sampler2D specroughBuffer;
 uniform sampler2D hitBuffer;
 uniform sampler2D hitDepth;
 
+uniform int samplePoolOffset;
+
 in vec4 uvcoordsvar;
 
 out vec4 fragColor;
@@ -75,8 +77,8 @@ void resolve_reflection_sample(int planar_index,
                                inout float weight_accum,
                                inout vec4 ssr_accum)
 {
-  vec4 hit_data = texture(hitBuffer, sample_uv * ssrUvScale);
-  float hit_depth = texture(hitDepth, sample_uv * ssrUvScale).r;
+  vec4 hit_data = texture(hitBuffer, sample_uv);
+  float hit_depth = texture(hitDepth, sample_uv).r;
   HitData data = decode_hit_data(hit_data, hit_depth);
 
   float hit_dist = length(data.hit_dir);
@@ -86,9 +88,12 @@ void resolve_reflection_sample(int planar_index,
 
   float weight = bsdf * data.ray_pdf_inv;
 
+  /* Do not reuse hitpoint from planar reflections for normal reflections and vice versa. */
+  if ((planar_index == -1 && data.is_planar) || (planar_index != -1 && !data.is_planar)) {
+    return;
+  }
   /* Do not add light if ray has failed but still weight it. */
-  if (!data.is_hit || (planar_index == -1 && data.is_planar) ||
-      (planar_index != -1 && !data.is_planar)) {
+  if (!data.is_hit) {
     weight_accum += weight;
     return;
   }
@@ -155,10 +160,18 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
     float cone_tan = sqrt(1.0 - cone_cos * cone_cos) / cone_cos;
     cone_tan *= mix(saturate(dot(vN, -vV) * 2.0), 1.0, roughness); /* Elongation fit */
 
-    vec2 sample_uv = uvcoordsvar.xy;
+    int sample_pool = int((uint(gl_FragCoord.x) & 1u) + (uint(gl_FragCoord.y) & 1u) * 2u);
+    sample_pool = (sample_pool + (samplePoolOffset / 5)) % 4;
 
-    resolve_reflection_sample(
-        planar_index, sample_uv, vP, vN, vV, roughness_squared, cone_tan, weight_acc, ssr_accum);
+    for (int i = 0; i < resolve_samples_count; i++) {
+      int sample_id = sample_pool * resolve_samples_count + i;
+      vec2 texture_size = vec2(textureSize(hitBuffer, 0));
+      vec2 sample_texel = texture_size * uvcoordsvar.xy * ssrUvScale;
+      vec2 sample_uv = (sample_texel + resolve_sample_offsets[sample_id]) / texture_size;
+
+      resolve_reflection_sample(
+          planar_index, sample_uv, vP, vN, vV, roughness_squared, cone_tan, weight_acc, ssr_accum);
+    }
   }
 
   /* Compute SSR contribution */

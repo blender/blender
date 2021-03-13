@@ -32,11 +32,6 @@
 #include "GPU_texture.h"
 #include "eevee_private.h"
 
-static struct {
-  /* These are just references, not actually allocated */
-  struct GPUTexture *depth_src;
-} e_data = {NULL}; /* Engine data */
-
 int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
@@ -186,7 +181,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
     DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-    DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
+    DRW_shgroup_uniform_int(grp, "samplePoolOffset", &effects->taa_current_sample, 1);
     DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
@@ -216,9 +211,6 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
   EEVEE_EffectsInfo *effects = stl->effects;
 
   if (((effects->enabled_effects & EFFECT_SSR) != 0) && stl->g_data->valid_double_buffer) {
-    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-    e_data.depth_src = dtxl->depth;
-
     DRW_stats_group_start("SSR");
 
     /* Raytrace. */
