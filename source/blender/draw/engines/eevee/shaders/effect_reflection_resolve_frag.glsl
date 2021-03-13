@@ -30,11 +30,6 @@ in vec4 uvcoordsvar;
 
 out vec4 fragColor;
 
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
-
 vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
 {
   vec2 uv;
@@ -60,7 +55,7 @@ vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
   }
 
   /* Clamped brightness. */
-  float luma = brightness(color);
+  float luma = max_v3(color);
   color *= 1.0 - max(0.0, luma - ssrFireflyFac) * safe_rcp(luma);
 
   float mask = screen_border_mask(uv);

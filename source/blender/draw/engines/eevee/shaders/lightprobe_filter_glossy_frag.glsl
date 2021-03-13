@@ -18,11 +18,6 @@ in vec3 worldPosition;
 
 out vec4 FragColor;
 
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
-
 vec3 octahedral_to_cubemap_proj(vec2 co)
 {
   co = co * 2.0 - 1.0;
@@ -72,7 +67,7 @@ void main()
       vec3 l_col = textureLod(probeHdr, L, lod).rgb;
 
       /* Clamped brightness. */
-      float luma = max(1e-8, brightness(l_col));
+      float luma = max(1e-8, max_v3(l_col));
       l_col *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 
       out_radiance += l_col * NL;

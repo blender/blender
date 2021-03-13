@@ -380,10 +380,11 @@ GPUShader *EEVEE_shaders_probe_grid_fill_sh_get(void)
 GPUShader *EEVEE_shaders_probe_planar_downsample_sh_get(void)
 {
   if (e_data.probe_planar_downsample_sh == NULL) {
-    e_data.probe_planar_downsample_sh = DRW_shader_create(
+    e_data.probe_planar_downsample_sh = DRW_shader_create_with_shaderlib(
         datatoc_lightprobe_planar_downsample_vert_glsl,
         datatoc_lightprobe_planar_downsample_geom_glsl,
         datatoc_lightprobe_planar_downsample_frag_glsl,
+        e_data.lib,
         NULL);
   }
   return e_data.probe_planar_downsample_sh;
@@ -478,10 +479,12 @@ GPUShader *EEVEE_shaders_effect_downsample_sh_get(void)
 GPUShader *EEVEE_shaders_effect_downsample_cube_sh_get(void)
 {
   if (e_data.downsample_cube_sh == NULL) {
-    e_data.downsample_cube_sh = DRW_shader_create(datatoc_lightprobe_vert_glsl,
-                                                  datatoc_lightprobe_geom_glsl,
-                                                  datatoc_effect_downsample_cube_frag_glsl,
-                                                  NULL);
+    e_data.downsample_cube_sh = DRW_shader_create_with_shaderlib(
+        datatoc_lightprobe_vert_glsl,
+        datatoc_lightprobe_geom_glsl,
+        datatoc_effect_downsample_cube_frag_glsl,
+        e_data.lib,
+        NULL);
   }
   return e_data.downsample_cube_sh;
 }
@@ -963,8 +966,8 @@ GPUShader *EEVEE_shaders_bloom_blit_get(bool high_quality)
     const char *define = high_quality ? "#define STEP_BLIT\n"
                                         "#define HIGH_QUALITY\n" :
                                         "#define STEP_BLIT\n";
-    e_data.bloom_blit_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
-                                                               define);
+    e_data.bloom_blit_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_bloom_frag_glsl, e_data.lib, define);
   }
   return e_data.bloom_blit_sh[index];
 }
@@ -977,8 +980,8 @@ GPUShader *EEVEE_shaders_bloom_downsample_get(bool high_quality)
     const char *define = high_quality ? "#define STEP_DOWNSAMPLE\n"
                                         "#define HIGH_QUALITY\n" :
                                         "#define STEP_DOWNSAMPLE\n";
-    e_data.bloom_downsample_sh[index] = DRW_shader_create_fullscreen(
-        datatoc_effect_bloom_frag_glsl, define);
+    e_data.bloom_downsample_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_bloom_frag_glsl, e_data.lib, define);
   }
   return e_data.bloom_downsample_sh[index];
 }
@@ -991,8 +994,8 @@ GPUShader *EEVEE_shaders_bloom_upsample_get(bool high_quality)
     const char *define = high_quality ? "#define STEP_UPSAMPLE\n"
                                         "#define HIGH_QUALITY\n" :
                                         "#define STEP_UPSAMPLE\n";
-    e_data.bloom_upsample_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
-                                                                   define);
+    e_data.bloom_upsample_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_bloom_frag_glsl, e_data.lib, define);
   }
   return e_data.bloom_upsample_sh[index];
 }
@@ -1005,8 +1008,8 @@ GPUShader *EEVEE_shaders_bloom_resolve_get(bool high_quality)
     const char *define = high_quality ? "#define STEP_RESOLVE\n"
                                         "#define HIGH_QUALITY\n" :
                                         "#define STEP_RESOLVE\n";
-    e_data.bloom_resolve_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
-                                                                  define);
+    e_data.bloom_resolve_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_bloom_frag_glsl, e_data.lib, define);
   }
   return e_data.bloom_resolve_sh[index];
 }

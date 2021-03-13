@@ -2,6 +2,8 @@
  * Simple down-sample shader. Takes the average of the 4 texels of lower mip.
  */
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform samplerCube source;
 uniform float texelSize;
 
@@ -27,11 +29,6 @@ const vec3 y_axis[6] = vec3[6](vec3(0.0, -1.0, 0.0),
                                vec3(0.0, 0.0, -1.0),
                                vec3(0.0, -1.0, 0.0),
                                vec3(0.0, -1.0, 0.0));
-
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
 
 void main()
 {

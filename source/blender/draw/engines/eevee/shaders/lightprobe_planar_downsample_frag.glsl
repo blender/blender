@@ -2,6 +2,8 @@
  * Simple down-sample shader. Takes the average of the 4 texels of lower mip.
  */
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform sampler2DArray source;
 uniform float fireflyFactor;
 
@@ -9,11 +11,6 @@ in vec2 uvs;
 flat in float layer;
 
 out vec4 FragColor;
-
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
 
 void main()
 {
@@ -34,7 +31,7 @@ void main()
   FragColor *= 0.25;
 
   /* Clamped brightness. */
-  float luma = max(1e-8, brightness(FragColor.rgb));
+  float luma = max(1e-8, max_v3(FragColor.rgb));
   FragColor *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 #endif
 }
