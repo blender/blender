@@ -405,7 +405,6 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
-  const UpdateOnRead update_on_read_;
   const UpdateOnWrite update_on_write_;
 
  public:
@@ -419,7 +418,6 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const CustomDataAccessInfo custom_data_access,
                                  const AsReadAttribute as_read_attribute,
                                  const AsWriteAttribute as_write_attribute,
-                                 const UpdateOnRead update_on_read,
                                  const UpdateOnWrite update_on_write)
       : BuiltinAttributeProvider(
             std::move(attribute_name), domain, attribute_type, creatable, writable, deletable),
@@ -427,7 +425,6 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
         custom_data_access_(custom_data_access),
         as_read_attribute_(as_read_attribute),
         as_write_attribute_(as_write_attribute),
-        update_on_read_(update_on_read),
         update_on_write_(update_on_write)
   {
   }
