@@ -69,7 +69,7 @@ static void eevee_engine_init(void *ved)
   stl->g_data->render_timesteps = 1;
 
   /* Main Buffer */
-  DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+  DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER);
 
   GPU_framebuffer_ensure_config(&fbl->main_fb,
                                 {GPU_ATTACHMENT_TEXTURE(dtxl->depth),
