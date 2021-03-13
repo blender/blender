@@ -113,6 +113,13 @@ void main()
   vec3 vH = sample_ggx(rand.xzw, alpha, vV, vN, vT, vB, pdf);
   vec3 vR = reflect(-vV, vH);
 
+  if (isnan(pdf)) {
+    /* Seems that somethings went wrong.
+     * This only happens on extreme cases where the normal deformed too much to have any valid
+     * reflections. */
+    return;
+  }
+
   if (data.is_planar) {
     vec3 view_plane_normal = transform_direction(ViewMatrix, planars_data[planar_id].pl_normal);
     /* For planar reflections, we trace inside the reflected view. */
