@@ -15,18 +15,6 @@ in vec4 uvcoordsvar;
 out vec4 FragColor;
 
 uniform sampler2D normalBuffer;
-#ifdef LAYERED_DEPTH
-uniform sampler2DArray depthBufferLayered;
-uniform int layer;
-#  define gtao_depthBuffer depthBufferLayered
-#  define gtao_textureLod(a, b, c) textureLod(a, vec3(b, layer), c)
-
-#else
-uniform sampler2D depthBuffer;
-#  define gtao_depthBuffer depthBuffer
-#  define gtao_textureLod(a, b, c) textureLod(a, b, c)
-
-#endif
 
 /* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
  * This samples the depth buffer 4 time for each direction to get the most correct
@@ -38,10 +26,10 @@ vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float dept
   vec2 uv3 = uvs + ofs;
   vec2 uv4 = uvs + ofs * 2.0;
   vec4 H;
-  H.x = gtao_textureLod(gtao_depthBuffer, uv1, 0.0).r;
-  H.y = gtao_textureLod(gtao_depthBuffer, uv2, 0.0).r;
-  H.z = gtao_textureLod(gtao_depthBuffer, uv3, 0.0).r;
-  H.w = gtao_textureLod(gtao_depthBuffer, uv4, 0.0).r;
+  H.x = textureLod(maxzBuffer, uv1, 0.0).r;
+  H.y = textureLod(maxzBuffer, uv2, 0.0).r;
+  H.z = textureLod(maxzBuffer, uv3, 0.0).r;
+  H.w = textureLod(maxzBuffer, uv4, 0.0).r;
   /* Fix issue with depth precision. Take even larger diff. */
   vec4 diff = abs(vec4(depth_center, H.yzw) - H.x);
   if (max_v4(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
@@ -60,9 +48,9 @@ vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float dept
 /* TODO(fclem) port to a common place for other effects to use. */
 bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, out vec3 vNg)
 {
-  vec2 texel_size = 1.0 / vec2(textureSize(gtao_depthBuffer, 0).xy);
-  vec2 uvs = gl_FragCoord.xy * texel_size;
-  float depth_center = gtao_textureLod(gtao_depthBuffer, uvs, 0.0).r;
+  vec2 texel_size = 1.0 / vec2(textureSize(maxzBuffer, 0).xy);
+  vec2 uvs = texel * texel_size;
+  float depth_center = textureLod(maxzBuffer, uvs, 0.0).r;
 
   /* Background case. */
   if (depth_center == 1.0) {

@@ -931,7 +931,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 
   DRW_draw_pass(psl->probe_background);
   EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
-  EEVEE_occlusion_compute(sldata, vedata, tmp_planar_depth, layer);
+  EEVEE_occlusion_compute(sldata, vedata);
 
   GPU_framebuffer_bind(fbl->planarref_fb);
 

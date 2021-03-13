@@ -263,7 +263,6 @@ typedef struct EEVEE_PassList {
 
   /* Effects */
   struct DRWPass *ao_horizon_search;
-  struct DRWPass *ao_horizon_search_layer;
   struct DRWPass *ao_horizon_debug;
   struct DRWPass *ao_accum_ps;
   struct DRWPass *mist_accum_ps;
@@ -739,8 +738,6 @@ typedef struct EEVEE_EffectsInfo {
   float prev_drw_persmat[4][4]; /* Used for checking view validity and reprojection. */
   struct DRWView *taa_view;
   /* Ambient Occlusion */
-  int ao_depth_layer;
-  struct GPUTexture *ao_src_depth;             /* pointer copy */
   struct GPUTexture *gtao_horizons;            /* Textures from pool */
   struct GPUTexture *gtao_horizons_renderpass; /* Texture when rendering render pass */
   struct GPUTexture *gtao_horizons_debug;
@@ -1204,7 +1201,6 @@ struct GPUShader *EEVEE_shaders_effect_motion_blur_hair_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_motion_blur_velocity_tiles_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_motion_blur_velocity_tiles_expand_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void);
-struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void);
@@ -1352,10 +1348,7 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata,
                                  uint tot_samples);
 void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata,
-                             EEVEE_Data *vedata,
-                             struct GPUTexture *depth_src,
-                             int layer);
+void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_draw_debug(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_free(void);
 

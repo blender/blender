@@ -684,15 +684,6 @@ GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void)
   return e_data.gtao_sh;
 }
 
-GPUShader *EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(void)
-{
-  if (e_data.gtao_layer_sh == NULL) {
-    e_data.gtao_layer_sh = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_gtao_frag_glsl, e_data.lib, "#define LAYERED_DEPTH\n");
-  }
-  return e_data.gtao_layer_sh;
-}
-
 GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void)
 {
   if (e_data.gtao_debug_sh == NULL) {

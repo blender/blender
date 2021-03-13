@@ -630,7 +630,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     DRW_draw_pass(psl->depth_ps);
     /* Create minmax texture */
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
-    EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
+    EEVEE_occlusion_compute(sldata, vedata);
     EEVEE_volumes_compute(sldata, vedata);
     /* Shading pass */
     eevee_render_draw_background(vedata);

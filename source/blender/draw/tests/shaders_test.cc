@@ -339,7 +339,6 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EXPECT_NE(EEVEE_shaders_effect_motion_blur_velocity_tiles_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_effect_motion_blur_velocity_tiles_expand_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_effect_ambient_occlusion_sh_get(), nullptr);
-  EXPECT_NE(EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_ggx_lut_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_ggx_refraction_lut_sh_get(), nullptr);
