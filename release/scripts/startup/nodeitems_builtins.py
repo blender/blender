@@ -485,6 +485,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeRandomize"),
         NodeItem("GeometryNodeAttributeMath"),
         NodeItem("GeometryNodeAttributeCompare"),
+        NodeItem("GeometryNodeAttributeConvert"),
         NodeItem("GeometryNodeAttributeFill"),
         NodeItem("GeometryNodeAttributeMix"),
         NodeItem("GeometryNodeAttributeProximity"),

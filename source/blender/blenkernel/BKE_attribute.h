@@ -39,6 +39,7 @@ struct ReportList;
 
 /* Attribute.domain */
 typedef enum AttributeDomain {
+  ATTR_DOMAIN_AUTO = -1,   /* Use for nodes to choose automatically based on other data. */
   ATTR_DOMAIN_POINT = 0,   /* Mesh, Hair or PointCloud Point */
   ATTR_DOMAIN_EDGE = 1,    /* Mesh Edge */
   ATTR_DOMAIN_CORNER = 2,  /* Mesh Corner */

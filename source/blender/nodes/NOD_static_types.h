@@ -300,6 +300,7 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COMBINE_XYZ, def_geo_attribute_combine_
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SEPARATE_XYZ, def_geo_attribute_separate_xyz, "ATTRIBUTE_SEPARATE_XYZ", AttributeSeparateXYZ, "Attribute Separate XYZ", "")
 DefNode(GeometryNode, GEO_NODE_SUBDIVIDE, 0, "SUBDIVIDE", Subdivide, "Subdivide", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CONVERT, def_geo_attribute_convert, "ATTRIBUTE_CONVERT", AttributeConvert, "Attribute Convert", "")
 
 /* undefine macros */
 #undef DefNode
