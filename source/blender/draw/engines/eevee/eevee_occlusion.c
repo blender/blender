@@ -157,8 +157,6 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_EffectsInfo *effects = stl->effects;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
-
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
     /**  Occlusion algorithm overview
      *
