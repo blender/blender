@@ -175,12 +175,12 @@ static DataTypeConversions create_implicit_conversions()
   add_implicit_conversion<float2, int32_t>(
       conversions, "float2 to int32_t", [](float2 a) { return (int32_t)a.length(); });
   add_implicit_conversion<float2, bool>(
-      conversions, "float2 to bool", [](float2 a) { return a.length_squared() == 0.0f; });
+      conversions, "float2 to bool", [](float2 a) { return !is_zero_v2(a); });
   add_implicit_conversion<float2, Color4f>(
       conversions, "float2 to Color4f", [](float2 a) { return Color4f(a.x, a.y, 0.0f, 1.0f); });
 
   add_implicit_conversion<float3, bool>(
-      conversions, "float3 to boolean", [](float3 a) { return a.length_squared() == 0.0f; });
+      conversions, "float3 to boolean", [](float3 a) { return !is_zero_v3(a); });
   add_implicit_conversion<float3, float>(
       conversions, "Vector Length", [](float3 a) { return a.length(); });
   add_implicit_conversion<float3, int32_t>(
@@ -207,7 +207,7 @@ static DataTypeConversions create_implicit_conversions()
   });
 
   add_implicit_conversion<Color4f, bool>(conversions, "Color4f to boolean", [](Color4f a) {
-    return a.r == 0.0f && a.g == 0.0f && a.b == 0.0f;
+    return a.r != 0.0f && a.g != 0.0f && a.b != 0.0f;
   });
   add_implicit_conversion<Color4f, float>(
       conversions, "Color4f to float", [](Color4f a) { return rgb_to_grayscale(a); });
