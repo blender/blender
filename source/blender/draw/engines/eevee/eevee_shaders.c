@@ -688,7 +688,10 @@ GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void)
 {
   if (e_data.gtao_debug_sh == NULL) {
     e_data.gtao_debug_sh = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_gtao_frag_glsl, e_data.lib, "#define DEBUG_AO\n");
+        datatoc_effect_gtao_frag_glsl,
+        e_data.lib,
+        "#define DEBUG_AO\n"
+        "#define ENABLE_DEFERED_AO");
   }
   return e_data.gtao_debug_sh;
 }

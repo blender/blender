@@ -46,16 +46,10 @@ vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float dept
 }
 
 /* TODO(fclem) port to a common place for other effects to use. */
-bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, out vec3 vNg)
+bool reconstruct_view_position_and_normal_from_depth(vec2 uvs, out vec3 vP, out vec3 vNg)
 {
-  vec2 texel_size = 1.0 / vec2(textureSize(maxzBuffer, 0).xy);
-  vec2 uvs = texel * texel_size;
+  vec2 texel_size = vec2(abs(dFdx(uvs.x)), abs(dFdy(uvs.y)));
   float depth_center = textureLod(maxzBuffer, uvs, 0.0).r;
-
-  /* Background case. */
-  if (depth_center == 1.0) {
-    return false;
-  }
 
   vP = get_view_space_from_depth(uvs, depth_center);
 
@@ -63,6 +57,11 @@ bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, ou
   vec3 dPdy = view_position_derivative_from_depth(uvs, texel_size * vec2(0, 1), vP, depth_center);
 
   vNg = safe_normalize(cross(dPdx, dPdy));
+
+  /* Background case. */
+  if (depth_center == 1.0) {
+    return false;
+  }
 
   return true;
 }
@@ -72,8 +71,9 @@ bool reconstruct_view_position_and_normal_from_depth(vec2 texel, out vec3 vP, ou
 void main()
 {
   vec3 vP, vNg;
+  vec2 uvs = uvcoordsvar.xy;
 
-  if (!reconstruct_view_position_and_normal_from_depth(gl_FragCoord.xy, vP, vNg)) {
+  if (!reconstruct_view_position_and_normal_from_depth(uvs * hizUvScale.xy, vP, vNg)) {
     /* Handle Background case. Prevent artifact due to uncleared Horizon Render Target. */
     FragColor = vec4(0.0);
   }
@@ -81,7 +81,7 @@ void main()
     vec3 P = transform_point(ViewMatrixInverse, vP);
     vec3 V = cameraVec(P);
     vec3 vV = viewCameraVec(vP);
-    vec3 vN = normal_decode(texture(normalBuffer, uvcoordsvar.xy).rg, vV);
+    vec3 vN = normal_decode(texture(normalBuffer, uvs).rg, vV);
     vec3 N = transform_direction(ViewMatrixInverse, vN);
     vec3 Ng = transform_direction(ViewMatrixInverse, vNg);
 
