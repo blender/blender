@@ -18,7 +18,16 @@
 
 static bNodeSocketTemplate geo_node_attribute_remove_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Attribute")},
+    {SOCK_STRING,
+     N_("Attribute"),
+     0.0f,
+     0.0f,
+     0.0f,
+     1.0f,
+     -1.0f,
+     1.0f,
+     PROP_NONE,
+     SOCK_MULTI_INPUT},
     {-1, ""},
 };
 
@@ -29,30 +38,37 @@ static bNodeSocketTemplate geo_node_attribute_remove_out[] = {
 
 namespace blender::nodes {
 
-static void remove_attribute(GeometryComponent &component, const GeoNodeExecParams &params)
+static void remove_attribute(GeometryComponent &component,
+                             GeoNodeExecParams &params,
+                             Span<std::string> attribute_names)
 {
-  const std::string attribute_name = params.get_input<std::string>("Attribute");
-  if (attribute_name.empty()) {
-    return;
-  }
+  for (std::string attribute_name : attribute_names) {
+    if (attribute_name.empty()) {
+      continue;
+    }
 
-  if (!component.attribute_try_delete(attribute_name)) {
-    params.error_message_add(NodeWarningType::Error,
-                             TIP_("Cannot delete attribute with name \"") + attribute_name + "\"");
+    if (!component.attribute_try_delete(attribute_name)) {
+      params.error_message_add(NodeWarningType::Error,
+                               TIP_("Cannot delete attribute with name \"") + attribute_name +
+                                   "\"");
+    }
   }
 }
 
 static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  Vector<std::string> attribute_names = params.extract_multi_input<std::string>("Attribute");
 
   geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (geometry_set.has<MeshComponent>()) {
-    remove_attribute(geometry_set.get_component_for_write<MeshComponent>(), params);
+    remove_attribute(
+        geometry_set.get_component_for_write<MeshComponent>(), params, attribute_names);
   }
   if (geometry_set.has<PointCloudComponent>()) {
-    remove_attribute(geometry_set.get_component_for_write<PointCloudComponent>(), params);
+    remove_attribute(
+        geometry_set.get_component_for_write<PointCloudComponent>(), params, attribute_names);
   }
 
   params.set_output("Geometry", geometry_set);

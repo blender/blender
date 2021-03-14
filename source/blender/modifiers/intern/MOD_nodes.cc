@@ -304,15 +304,15 @@ class GeometryNodesEvaluator {
     Vector<DSocket> from_sockets;
     socket_to_compute.foreach_origin_socket([&](DSocket socket) { from_sockets.append(socket); });
 
-    /* Multi-input sockets contain a vector of inputs. */
-    if (socket_to_compute->is_multi_input_socket()) {
-      return this->get_inputs_from_incoming_links(socket_to_compute, from_sockets);
-    }
-
     if (from_sockets.is_empty()) {
       /* The input is not connected, use the value from the socket itself. */
       const CPPType &type = *blender::nodes::socket_cpp_type_get(*socket_to_compute->typeinfo());
       return {get_unlinked_input_value(socket_to_compute, type)};
+    }
+
+    /* Multi-input sockets contain a vector of inputs. */
+    if (socket_to_compute->is_multi_input_socket()) {
+      return this->get_inputs_from_incoming_links(socket_to_compute, from_sockets);
     }
 
     const DSocket from_socket = from_sockets[0];
