@@ -280,6 +280,10 @@ if(WITH_JACK)
   add_definitions(-DWITH_JACK)
 endif()
 
+if(WITH_COREAUDIO)
+  add_definitions(-DWITH_COREAUDIO)
+endif()
+
 if(WITH_LIBMV)
   add_definitions(-DWITH_LIBMV)
 endif()

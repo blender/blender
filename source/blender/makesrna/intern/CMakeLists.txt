@@ -298,6 +298,10 @@ if(WITH_OPENAL)
   add_definitions(-DWITH_OPENAL)
 endif()
 
+if(WITH_COREAUDIO)
+  add_definitions(-DWITH_COREAUDIO)
+endif()
+
 if(WITH_JACK)
   add_definitions(-DWITH_JACK)
 endif()

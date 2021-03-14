@@ -284,7 +284,9 @@ if(AUDASPACE_STANDALONE)
 	option(WITH_PYTHON "Build With Python Library" TRUE)
 	option(WITH_SDL "Build With SDL" TRUE)
 	option(WITH_STRICT_DEPENDENCIES "Error and abort instead of warning if a library is not found." FALSE)
-
+	if(APPLE)
+		option(WITH_COREAUDIO "Build With CoreAudio" TRUE)
+	endif()
 	if(NOT WIN32 AND NOT APPLE)
 		option(WITH_PULSEAUDIO "Build With PulseAudio" TRUE)
 	endif()
@@ -298,7 +300,7 @@ if(AUDASPACE_STANDALONE)
 endif()
 
 if(AUDASPACE_STANDALONE)
-	if(WIN32)
+	if(WIN32 OR APPLE)
 		set(DEFAULT_PLUGIN_PATH "." CACHE STRING "Default plugin installation and loading path.")
 		set(DOCUMENTATION_INSTALL_PATH "doc" CACHE PATH "Path where the documentation is installed.")
 	else()
@@ -309,6 +311,7 @@ endif()
 
 if(AUDASPACE_STANDALONE)
 	cmake_dependent_option(SEPARATE_C "Build C Binding as separate library" TRUE "WITH_C" FALSE)
+	cmake_dependent_option(PLUGIN_COREAUDIO "Build CoreAudio Plugin" TRUE "WITH_COREAUDIO;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_FFMPEG "Build FFMPEG Plugin" TRUE "WITH_FFMPEG;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_JACK "Build JACK Plugin" TRUE "WITH_JACK;SHARED_LIBRARY" FALSE)
 	cmake_dependent_option(PLUGIN_LIBSNDFILE "Build LibSndFile Plugin" TRUE "WITH_LIBSNDFILE;SHARED_LIBRARY" FALSE)
@@ -407,6 +410,44 @@ if(WITH_C)
 		list(APPEND HDR ${C_HDR})
 	else()
 		set(AUDASPACE_C_LIBRARY -laudaspace-c)
+	endif()
+endif()
+
+# CoreAudio
+if(WITH_COREAUDIO)
+	find_library(COREAUDIO_LIBRARY CoreAudio)
+	find_library(AUDIOUNIT_LIBRARY AudioUnit)
+	find_library(AUDIOTOOLBOX_LIBRARY AudioToolbox)
+	find_path(AUDIOUNIT_INCLUDE_DIR AudioUnit/AudioUnit.h)
+	find_path(AUDIOTOOLBOX_INCLUDE_DIR AudioToolbox/CoreAudioClock.h)
+
+	if(COREAUDIO_LIBRARY AND AUDIOUNIT_LIBRARY AND AUDIOUNIT_INCLUDE_DIR)
+		set(COREAUDIO_LIBRARIES ${COREAUDIO_LIBRARY} ${AUDIOUNIT_LIBRARY} ${AUDIOTOOLBOX_LIBRARY})
+		set(COREAUDIO_INCLUDE_DIRS ${AUDIOUNIT_INCLUDE_DIR} ${AUDIOTOOLBOX_INCLUDE_DIR})
+
+		set(COREAUDIO_SRC
+			plugins/coreaudio/CoreAudioDevice.cpp
+			plugins/coreaudio/CoreAudioSynchronizer.cpp
+		)
+		set(COREAUDIO_HDR
+			plugins/coreaudio/CoreAudioDevice.h
+			plugins/coreaudio/CoreAudioSynchronizer.h
+		)
+
+		if(NOT PLUGIN_COREAUDIO)
+			list(APPEND INCLUDE ${COREAUDIO_INCLUDE_DIRS})
+			list(APPEND LIBRARIES ${COREAUDIO_LIBRARIES})
+			list(APPEND SRC ${COREAUDIO_SRC})
+			list(APPEND HDR ${COREAUDIO_HDR})
+			list(APPEND STATIC_PLUGINS CoreAudioDevice)
+		endif()
+	else()
+		if(WITH_STRICT_DEPENDENCIES)
+			message(ERROR "CoreAudio not found!")
+		else()
+			set(WITH_COREAUDIO FALSE CACHE BOOL "Build With CoreAudio" FORCE)
+			message(WARNING "CoreAudio not found, plugin will not be built.")
+		endif()
 	endif()
 endif()
 
@@ -819,6 +860,17 @@ if(AUDASPACE_STANDALONE)
 endif()
 
 # plugins
+
+if(WITH_COREAUDIO AND PLUGIN_COREAUDIO)
+	add_definitions(-DCOREAUDIO_PLUGIN)
+	include_directories(${INCLUDE} ${COREAUDIO_INCLUDE_DIRS})
+	add_library(audcoreaudio SHARED ${COREAUDIO_SRC} ${COREAUDIO_HDR} ${HDR})
+	if(WITH_VERSIONED_PLUGINS)
+		set_target_properties(audcoreaudio PROPERTIES SOVERSION ${AUDASPACE_VERSION})
+	endif()
+	target_link_libraries(audcoreaudio audaspace ${COREAUDIO_LIBRARIES})
+	install(TARGETS audcoreaudio DESTINATION ${DEFAULT_PLUGIN_PATH})
+endif()
 
 if(WITH_FFMPEG AND PLUGIN_FFMPEG)
 	add_definitions(-DFFMPEG_PLUGIN)

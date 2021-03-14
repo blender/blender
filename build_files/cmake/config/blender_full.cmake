@@ -59,6 +59,9 @@ set(WITH_MEM_JEMALLOC        ON  CACHE BOOL "" FORCE)
 
 
 # platform dependent options
+if(APPLE)
+  set(WITH_COREAUDIO           ON  CACHE BOOL "" FORCE)
+endif()
 if(NOT WIN32)
   set(WITH_JACK                ON  CACHE BOOL "" FORCE)
 endif()

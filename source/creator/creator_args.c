@@ -1330,7 +1330,7 @@ static const char arg_handle_audio_set_doc[] =
     "\n\t"
     "Force sound system to a specific device."
     "\n\t"
-    "'None' 'SDL' 'OpenAL' 'JACK' 'PulseAudio' 'WASAPI'.";
+    "'None' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
 static int arg_handle_audio_set(int argc, const char **argv, void *UNUSED(data))
 {
   if (argc < 1) {

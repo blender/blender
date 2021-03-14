@@ -54,6 +54,9 @@
  *  \ingroup intern undoc
  *  \todo add to doxygen
  */
+/** \defgroup audcoreaudio Audaspace CoreAudio
+ *  \ingroup audaspace
+ */
 /** \defgroup audfx Audaspace FX
  *  \ingroup audaspace
  */

@@ -63,6 +63,9 @@ set(CYCLES_CUDA_BINARIES_ARCH sm_30;sm_35;sm_37;sm_50;sm_52;sm_60;sm_61;sm_70;sm
 set(WITH_CYCLES_DEVICE_OPTIX   ON CACHE BOOL "" FORCE)
 
 # platform dependent options
+if(APPLE)
+  set(WITH_COREAUDIO           ON  CACHE BOOL "" FORCE)
+endif()
 if(NOT WIN32)
   set(WITH_JACK                ON  CACHE BOOL "" FORCE)
 endif()
