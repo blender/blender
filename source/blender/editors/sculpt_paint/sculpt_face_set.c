@@ -1060,6 +1060,7 @@ typedef enum eSculptFaceSetEditMode {
   SCULPT_FACE_SET_EDIT_FAIR_CURVATURE = 5,
   SCULPT_FACE_SET_EDIT_FILL_COMPONENT = 6,
   SCULPT_FACE_SET_EDIT_EXTRUDE = 7,
+  SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY = 8,
 } eSculptFaceSetEditMode;
 
 static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
@@ -1122,6 +1123,13 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
         "EXTRUDE",
         0,
         "Extrude",
+        "Extrude a Face Set along the normals of the faces",
+    },
+    {
+        SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY,
+        "ALL_TANGENCY",
+        0,
+        "All tangency",
         "Extrude a Face Set along the normals of the faces",
     },
     {0, NULL, 0, NULL, NULL},
@@ -1345,6 +1353,20 @@ static void sculpt_face_set_apply_edit(Object *ob,
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
       sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
       break;
+    case SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY: {
+      GSet *face_sets_ids = BLI_gset_int_new("ids");
+      for (int i = 0; i < ss->totfaces; i++) {
+        BLI_gset_add(face_sets_ids, POINTER_FROM_INT(ss->face_sets[i]));
+      }
+
+      GSetIterator gs_iter;
+      GSET_ITER (gs_iter, face_sets_ids) {
+        const int face_set_id = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+        sculpt_face_set_edit_fair_face_set(ob, face_set_id, MESH_FAIRING_DEPTH_TANGENCY);
+      }
+
+      BLI_gset_free(face_sets_ids, NULL);
+    } break;
     case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
       sculpt_face_set_edit_fair_face_set(ob, active_face_set_id, MESH_FAIRING_DEPTH_CURVATURE);
       break;
@@ -1703,6 +1725,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     case SCULPT_FACE_SET_EDIT_FAIR_POSITIONS:
     case SCULPT_FACE_SET_EDIT_FAIR_TANGENCY:
     case SCULPT_FACE_SET_EDIT_FAIR_CURVATURE:
+    case SCULPT_FACE_SET_EDIT_FAIR_ALL_TANGENCY:
       sculpt_face_set_edit_modify_coordinates(C, ob, active_face_set, mode);
       break;
   }
