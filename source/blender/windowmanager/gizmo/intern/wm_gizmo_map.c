@@ -1258,9 +1258,6 @@ void wm_gizmomaptypes_free(void)
  */
 void wm_gizmos_keymap(wmKeyConfig *keyconf)
 {
-  /* we add this item-less keymap once and use it to group gizmo-group keymaps into it */
-  WM_keymap_ensure(keyconf, "Gizmos", 0, 0);
-
   LISTBASE_FOREACH (wmGizmoMapType *, gzmap_type, &gizmomaptypes) {
     LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
       wm_gizmogrouptype_setup_keymap(gzgt_ref->type, keyconf);
