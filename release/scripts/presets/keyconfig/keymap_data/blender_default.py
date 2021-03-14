@@ -2900,7 +2900,9 @@ def km_clip_editor(params):
     ])
 
     if not params.legacy:
-        op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        items.extend([
+            op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        ])
     else:
         items.extend([
             # Old pivot.
