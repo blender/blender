@@ -3071,7 +3071,7 @@ def km_frames(params):
     return keymap
 
 
-def km_animation(params):
+def km_animation(_params):
     items = []
     keymap = (
         "Animation",
@@ -3350,7 +3350,7 @@ def km_grease_pencil_stroke_edit_mode(params):
 
     return keymap
 
-def km_grease_pencil_stroke_curve_edit_mode(params):
+def km_grease_pencil_stroke_curve_edit_mode(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Curve Edit Mode",
@@ -3485,7 +3485,7 @@ def km_grease_pencil_stroke_paint_erase(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_fill(params):
+def km_grease_pencil_stroke_paint_fill(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Fill)",
@@ -3510,7 +3510,7 @@ def km_grease_pencil_stroke_paint_fill(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_tint(params):
+def km_grease_pencil_stroke_paint_tint(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Tint)",
@@ -3837,7 +3837,7 @@ def km_grease_pencil_stroke_vertex_mode(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_draw(params):
+def km_grease_pencil_stroke_vertex_draw(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Draw)",
@@ -3862,7 +3862,7 @@ def km_grease_pencil_stroke_vertex_draw(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_blur(params):
+def km_grease_pencil_stroke_vertex_blur(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Blur)",
@@ -3885,7 +3885,7 @@ def km_grease_pencil_stroke_vertex_blur(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_average(params):
+def km_grease_pencil_stroke_vertex_average(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Average)",
@@ -3910,7 +3910,7 @@ def km_grease_pencil_stroke_vertex_average(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_smear(params):
+def km_grease_pencil_stroke_vertex_smear(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Smear)",
@@ -3933,7 +3933,7 @@ def km_grease_pencil_stroke_vertex_smear(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_replace(params):
+def km_grease_pencil_stroke_vertex_replace(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Replace)",
