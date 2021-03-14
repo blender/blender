@@ -1004,8 +1004,7 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
   SculptOrigVertData orig_data;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (boundary->edit_info[vd.index].num_propagation_steps == -1) {
       continue;
     }

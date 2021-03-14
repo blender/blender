@@ -177,8 +177,7 @@ static void do_pose_brush_bend_task_cb_ex(void *__restrict userdata,
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     const float ik_chain_weight = segments[0].weights[vd.index] *

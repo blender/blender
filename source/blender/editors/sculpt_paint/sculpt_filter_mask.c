@@ -622,8 +622,7 @@ static void ipmask_filter_apply_task_cb(void *__restrict userdata,
   PBVHNode *node = filter_cache->nodes[i];
   PBVHVertexIter vd;
   bool update = false;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
       continue;
     }
@@ -818,8 +817,7 @@ static void ipmask_filter_apply_from_original_task_cb(
   const eSculptIPMaskFilterType filter_type = data->filter_type;
   bool update = false;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, node);
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (SCULPT_automasking_factor_get(filter_cache->automasking, ss, vd.index) < 0.5f) {
       continue;
     }
@@ -893,8 +891,7 @@ static void ipmask_filter_restore_original_mask_task_cb(
   bool update = false;
   SCULPT_orig_vert_data_init(&orig_data, data->ob, node);
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     *vd.mask = orig_data.mask;
     update = true;

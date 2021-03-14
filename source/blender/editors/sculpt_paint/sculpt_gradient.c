@@ -89,8 +89,7 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
     if (fade == 0.0f) {

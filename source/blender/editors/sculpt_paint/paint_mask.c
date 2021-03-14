@@ -1531,8 +1531,7 @@ static void project_gesture_tag_fairing_task_cb(void *__restrict userdata,
 
   SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
 
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
       continue;
     }
@@ -1559,8 +1558,7 @@ static void project_gesture_project_fairing_boundary_task_cb(
 
   PBVHNode *node = sgcontext->nodes[i];
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     bool project_vertex = false;
     bool vertex_fairing_mask = project_operation->fairing_mask[vd.index];
 
