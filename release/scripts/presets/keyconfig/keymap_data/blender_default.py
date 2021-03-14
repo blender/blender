@@ -352,12 +352,12 @@ def _template_items_tool_select_actions(operator, *, type, value):
 
 
 # This could have a more generic name, for now use for circle select.
-def _template_items_tool_select_actions_simple(operator, *, type, value, properties=[]):
+def _template_items_tool_select_actions_simple(operator, *, type, value, properties=()):
     kmi_args = {"type": type, "value": value}
     return [
         # Don't define 'SET' here, take from the tool options.
         (operator, kmi_args,
-         {"properties": properties}),
+         {"properties": [*properties]}),
         (operator, {**kmi_args, "shift": True},
          {"properties": [*properties, ("mode", 'ADD')]}),
         (operator, {**kmi_args, "ctrl": True},
@@ -368,7 +368,11 @@ def _template_items_tool_select_actions_simple(operator, *, type, value, propert
 def _template_items_legacy_tools_from_numbers():
     return [
         ("wm.tool_set_by_index",
-         {"type": NUMBERS_1[i % 10], "value": 'PRESS', "shift": i >= 10},
+         {
+             "type": NUMBERS_1[i % 10],
+             "value": 'PRESS',
+             **({"shift": True} if i >= 10 else {}),
+         },
          {"properties": [("index", i)]})
         for i in range(20)
     ]
@@ -2728,7 +2732,7 @@ def km_console(_params):
         ("console.delete", {"type": 'BACK_SPACE', "value": 'PRESS', "repeat": True},
          {"properties": [("type", 'PREVIOUS_CHARACTER')]}),
         ("console.delete", {"type": 'BACK_SPACE', "value": 'PRESS', "shift": True, "repeat": True},
-         {"properties": [("type", 'PREVIOUS_CHARACTER')], "repeat": True}),
+         {"properties": [("type", 'PREVIOUS_CHARACTER')]}),
         ("console.delete", {"type": 'DEL', "value": 'PRESS', "ctrl": True, "repeat": True},
          {"properties": [("type", 'NEXT_WORD')]}),
         ("console.delete", {"type": 'BACK_SPACE', "value": 'PRESS', "ctrl": True, "repeat": True},
@@ -2900,7 +2904,9 @@ def km_clip_editor(params):
     ])
 
     if not params.legacy:
-        op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        items.extend([
+            op_menu_pie("CLIP_MT_pivot_pie", {"type": 'PERIOD', "value": 'PRESS'}),
+        ])
     else:
         items.extend([
             # Old pivot.
@@ -3065,7 +3071,7 @@ def km_frames(params):
     return keymap
 
 
-def km_animation(params):
+def km_animation(_params):
     items = []
     keymap = (
         "Animation",
@@ -3344,7 +3350,7 @@ def km_grease_pencil_stroke_edit_mode(params):
 
     return keymap
 
-def km_grease_pencil_stroke_curve_edit_mode(params):
+def km_grease_pencil_stroke_curve_edit_mode(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Curve Edit Mode",
@@ -3479,7 +3485,7 @@ def km_grease_pencil_stroke_paint_erase(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_fill(params):
+def km_grease_pencil_stroke_paint_fill(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Fill)",
@@ -3504,7 +3510,7 @@ def km_grease_pencil_stroke_paint_fill(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_tint(params):
+def km_grease_pencil_stroke_paint_tint(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Tint)",
@@ -3831,7 +3837,7 @@ def km_grease_pencil_stroke_vertex_mode(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_draw(params):
+def km_grease_pencil_stroke_vertex_draw(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Draw)",
@@ -3856,7 +3862,7 @@ def km_grease_pencil_stroke_vertex_draw(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_blur(params):
+def km_grease_pencil_stroke_vertex_blur(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Blur)",
@@ -3879,7 +3885,7 @@ def km_grease_pencil_stroke_vertex_blur(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_average(params):
+def km_grease_pencil_stroke_vertex_average(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Average)",
@@ -3904,7 +3910,7 @@ def km_grease_pencil_stroke_vertex_average(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_smear(params):
+def km_grease_pencil_stroke_vertex_smear(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Smear)",
@@ -3927,7 +3933,7 @@ def km_grease_pencil_stroke_vertex_smear(params):
     return keymap
 
 
-def km_grease_pencil_stroke_vertex_replace(params):
+def km_grease_pencil_stroke_vertex_replace(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Vertex (Replace)",
@@ -5587,26 +5593,24 @@ def km_sculpt_expand_modal(_params):
         ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'PRESS', "any": True}, None),
         ("CONFIRM", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
-        ("INVERT", {"type": 'F', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("PRESERVE", {"type": 'E', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("RECURSION_STEP_GEODESIC", {"type": 'R', "value": 'PRESS', "repeat" : False}, None),
-        ("RECURSION_STEP_TOPOLOGY", {"type": 'R', "value": 'PRESS', "alt" : True ,"any": True, "repeat" : False}, None),
-        ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True, "repeat" : False}, None),
-        ("FALLOFF_GEODESICS", {"type": 'ONE', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("FALLOFF_TOPOLOGY_DIAGONALS", {"type": 'THREE', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("FALLOFF_SPHERICAL", {"type": 'FOUR', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY', "repeat" : False}, None),
-        ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat" : True}, None),
-        ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat" : True}, None),
-        ("BRUSH_GRADIENT_TOGGLE", {"type": 'B', "value": 'PRESS', "any": True, "repeat" : False}, None),
-        ("TEXTURE_DISTORTION_INCREASE", {"type": 'Y', "value": 'PRESS', "any": False, "repeat" : True}, None),
-        ("TEXTURE_DISTORTION_DECREASE", {"type": 'T', "value": 'PRESS', "any": False, "repeat" : True}, None),
+        ("INVERT", {"type": 'F', "value": 'PRESS', "any": True}, None),
+        ("PRESERVE", {"type": 'E', "value": 'PRESS', "any": True}, None),
+        ("GRADIENT", {"type": 'G', "value": 'PRESS', "any": True}, None),
+        ("RECURSION_STEP_GEODESIC", {"type": 'R', "value": 'PRESS'}, None),
+        ("RECURSION_STEP_TOPOLOGY", {"type": 'R', "value": 'PRESS', "alt": True}, None),
+        ("MOVE_TOGGLE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
+        ("FALLOFF_GEODESICS", {"type": 'ONE', "value": 'PRESS', "any": True}, None),
+        ("FALLOFF_TOPOLOGY", {"type": 'TWO', "value": 'PRESS', "any": True}, None),
+        ("FALLOFF_TOPOLOGY_DIAGONALS", {"type": 'THREE', "value": 'PRESS', "any": True}, None),
+        ("FALLOFF_SPHERICAL", {"type": 'FOUR', "value": 'PRESS', "any": True}, None),
+        ("SNAP_TOGGLE", {"type": 'LEFT_CTRL', "value": 'ANY'}, None),
+        ("LOOP_COUNT_INCREASE", {"type": 'W', "value": 'PRESS', "any": True, "repeat": True}, None),
+        ("LOOP_COUNT_DECREASE", {"type": 'Q', "value": 'PRESS', "any": True, "repeat": True}, None),
+        ("BRUSH_GRADIENT_TOGGLE", {"type": 'B', "value": 'PRESS', "any": True}, None),
+        ("TEXTURE_DISTORTION_INCREASE", {"type": 'Y', "value": 'PRESS'}, None),
+        ("TEXTURE_DISTORTION_DECREASE", {"type": 'T', "value": 'PRESS'}, None),
     ])
     return keymap
-
-
 
 
 # Fallback for gizmos that don't have custom a custom key-map.
@@ -5713,7 +5717,7 @@ def km_popup_toolbar(_params):
 def km_generic_tool_annotate(params):
     return (
         "Generic Tool: Annotate",
-        {"region_type": 'WINDOW'},
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": [
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'DRAW'), ("wait_for_input", False)]}),
@@ -5726,7 +5730,7 @@ def km_generic_tool_annotate(params):
 def km_generic_tool_annotate_line(params):
     return (
         "Generic Tool: Annotate Line",
-        {"region_type": 'WINDOW'},
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": [
             ("gpencil.annotate", {"type": params.tool_tweak, "value": 'ANY'},
              {"properties": [("mode", 'DRAW_STRAIGHT'), ("wait_for_input", False)]}),
@@ -5739,7 +5743,7 @@ def km_generic_tool_annotate_line(params):
 def km_generic_tool_annotate_polygon(params):
     return (
         "Generic Tool: Annotate Polygon",
-        {"region_type": 'WINDOW'},
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": [
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'DRAW_POLY'), ("wait_for_input", False)]}),
@@ -5752,7 +5756,7 @@ def km_generic_tool_annotate_polygon(params):
 def km_generic_tool_annotate_eraser(params):
     return (
         "Generic Tool: Annotate Eraser",
-        {"region_type": 'WINDOW'},
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
         {"items": [
             ("gpencil.annotate", {"type": params.tool_mouse, "value": 'PRESS'},
              {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),

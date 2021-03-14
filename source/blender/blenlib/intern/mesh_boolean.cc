@@ -408,6 +408,7 @@ class Cell {
   void add_patch(int p)
   {
     patches_.add(p);
+    zero_volume_ = false; /* If it was true before, it no longer is. */
   }
 
   const Set<int> &patches() const

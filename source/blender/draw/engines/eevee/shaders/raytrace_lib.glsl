@@ -148,7 +148,7 @@ bool raytrace(Ray ray,
     /* Check if the ray is below the surface ... */
     hit = (delta < 0.0);
     /* ... and above it with the added thickness. */
-    hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride));
+    hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
   }
   /* Discard backface hits. */
   hit = hit && !(discard_backface && prev_delta < 0.0);

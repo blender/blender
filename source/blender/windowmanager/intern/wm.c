@@ -473,7 +473,10 @@ void WM_keyconfig_init(bContext *C)
       wm->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
     }
 
-    WM_keyconfig_update_tag(NULL, NULL);
+    /* Harmless, but no need to update in background mode. */
+    if (!G.background) {
+      WM_keyconfig_update_tag(NULL, NULL);
+    }
     WM_keyconfig_update(wm);
 
     wm->initialized |= WM_KEYCONFIG_IS_INIT;

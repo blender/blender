@@ -93,6 +93,9 @@ class MeshesToIMeshInfo {
   /* Transformation matrix to transform a coordinate in the corresponding
    * Mesh to the local space of the first Mesh. */
   Array<float4x4> to_obj0;
+  /* For each input mesh, how to remap the material slot numbers to
+   * the material slots in the first mesh. */
+  Array<const short *> material_remaps;
   /* Total number of input mesh vertices. */
   int tot_meshes_verts;
   /* Total number of input mesh edges. */
@@ -238,6 +241,7 @@ const MEdge *MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  */
 static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
                              Span<const float4x4 *> obmats,
+                             Span<const short *> material_remaps,
                              IMeshArena &arena,
                              MeshesToIMeshInfo *r_info)
 {
@@ -267,6 +271,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   r_info->mesh_edge_offset = Array<int>(nmeshes);
   r_info->mesh_poly_offset = Array<int>(nmeshes);
   r_info->to_obj0 = Array<float4x4>(nmeshes);
+  r_info->material_remaps = Array<const short *>(nmeshes);
   int v = 0;
   int e = 0;
   int f = 0;
@@ -305,6 +310,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       r_info->mesh_edge_offset[mi] = 0;
       r_info->mesh_poly_offset[mi] = 0;
       unit_m4(r_info->to_obj0[0].values);
+      r_info->material_remaps[0] = nullptr;
     }
     else {
       r_info->mesh_vert_offset[mi] = v;
@@ -321,6 +327,12 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       }
       objn_to_obj0_mat = inv_obj0_mat * objn_mat;
       r_info->to_obj0[mi] = objn_to_obj0_mat;
+      if (mi < material_remaps.size()) {
+        r_info->material_remaps[mi] = material_remaps[mi];
+      }
+      else {
+        r_info->material_remaps[mi] = nullptr;
+      }
     }
     for (int vi = 0; vi < me->totvert; ++vi) {
       float3 co = me->mvert[vi].co;
@@ -390,11 +402,20 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  const MPoly *orig_mp,
                                  const Mesh *orig_me,
                                  int mp_index,
-                                 int index_in_orig_me)
+                                 int index_in_orig_me,
+                                 const short *material_remap)
 {
   mp->mat_nr = orig_mp->mat_nr;
   if (mp->mat_nr >= dest_mesh->totcol) {
     mp->mat_nr = 0;
+  }
+  else {
+    if (material_remap) {
+      short mat_nr = material_remap[orig_mp->mat_nr];
+      if (mat_nr >= 0 && mat_nr < dest_mesh->totcol) {
+        mp->mat_nr = mat_nr;
+      }
+    }
   }
   mp->flag = orig_mp->flag;
   CustomData *target_cd = &dest_mesh->pdata;
@@ -721,7 +742,9 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
       ++l;
       ++cur_loop_index;
     }
-    copy_poly_attributes(result, mp, orig_mp, orig_me, fi, index_in_orig_me);
+
+    copy_poly_attributes(
+        result, mp, orig_mp, orig_me, fi, index_in_orig_me, mim.material_remaps[orig_me_index]);
     copy_or_interp_loop_attributes(result, f, mp, orig_mp, orig_me, orig_me_index, mim);
   }
 
@@ -761,6 +784,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
  */
 static Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                                  Span<const float4x4 *> obmats,
+                                 Span<const short *> material_remaps,
                                  const bool use_self,
                                  const bool hole_tolerant,
                                  const BoolOpType boolean_mode)
@@ -776,7 +800,7 @@ static Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
   }
   MeshesToIMeshInfo mim;
   IMeshArena arena;
-  IMesh m_in = meshes_to_imesh(meshes, obmats, arena, &mim);
+  IMesh m_in = meshes_to_imesh(meshes, obmats, material_remaps, arena, &mim);
   std::function<int(int)> shape_fn = [&mim](int f) {
     for (int mi = 0; mi < mim.mesh_poly_offset.size() - 1; ++mi) {
       if (f < mim.mesh_poly_offset[mi + 1]) {
@@ -804,10 +828,14 @@ extern "C" {
 /* Do a mesh boolean directly on meshes (without going back and forth to BMesh).
  * The \a meshes argument is an array of \a meshes_len of Mesh pointers.
  * The \a obmats argument is an array of \a meshes_len of pointers to the obmat
+ * The \a material_remaps is an array of pointers to arrays of maps from material
+ * slot numbers in the corresponding mesh to the material slot in the first mesh.
+ * It is OK for material_remaps or any of its constituent arrays to be NULL.
  * matrices that transform local coordinates to global ones. It is allowed
  * for the pointers to be nullptr, meaning the transformation is the identity. */
 Mesh *BKE_mesh_boolean(const Mesh **meshes,
                        const float (*obmats[])[4][4],
+                       const short **material_remaps,
                        const int meshes_len,
                        const bool use_self,
                        const bool hole_tolerant,
@@ -817,6 +845,7 @@ Mesh *BKE_mesh_boolean(const Mesh **meshes,
   return blender::meshintersect::direct_mesh_boolean(
       blender::Span(meshes, meshes_len),
       blender::Span(transforms, meshes_len),
+      blender::Span(material_remaps, material_remaps ? meshes_len : 0),
       use_self,
       hole_tolerant,
       static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
@@ -825,6 +854,7 @@ Mesh *BKE_mesh_boolean(const Mesh **meshes,
 #else
 Mesh *BKE_mesh_boolean(const Mesh **UNUSED(meshes),
                        const float (*obmats[])[4][4],
+                       const short **UNUSED(material_remaps),
                        const int UNUSED(meshes_len),
                        const bool UNUSED(use_self),
                        const bool UNUSED(hole_tolerant),

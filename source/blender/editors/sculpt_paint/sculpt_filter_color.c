@@ -110,8 +110,7 @@ static void color_filter_task_cb(void *__restrict userdata,
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float orig_color[3], final_color[4], hsv_color[3];
     int hue;

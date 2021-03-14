@@ -31,7 +31,6 @@
 #include "BLI_color.hh"
 #include "BLI_float2.hh"
 #include "BLI_span.hh"
-#include "BLI_threads.h"
 
 #include "CLG_log.h"
 
@@ -373,10 +372,6 @@ ReadAttributePtr BuiltinCustomDataLayerProvider::try_get_for_read(
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
   if (custom_data == nullptr) {
     return {};
-  }
-
-  if (update_on_read_ != nullptr) {
-    update_on_read_(component);
   }
 
   const int domain_size = component.attribute_domain_size(domain_);

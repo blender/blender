@@ -30,6 +30,7 @@ void register_node_type_geo_align_rotation_to_vector(void);
 void register_node_type_geo_attribute_color_ramp(void);
 void register_node_type_geo_attribute_combine_xyz(void);
 void register_node_type_geo_attribute_compare(void);
+void register_node_type_geo_attribute_convert(void);
 void register_node_type_geo_attribute_fill(void);
 void register_node_type_geo_attribute_math(void);
 void register_node_type_geo_attribute_mix(void);

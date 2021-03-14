@@ -15,8 +15,9 @@ void node_ambient_occlusion(vec4 color,
   vec3 N = normalize(normal);
   vec3 Ng = safe_normalize(cross(dFdx(worldPosition), dFdy(worldPosition)));
 
+  float unused_error;
   vec3 unused;
-  occlusion_eval(data, V, N, Ng, inverted, result_ao, unused);
+  occlusion_eval(data, V, N, Ng, inverted, result_ao, unused_error, unused);
   result_color = result_ao * color;
 }
 #else

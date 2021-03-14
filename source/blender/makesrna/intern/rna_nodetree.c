@@ -1929,6 +1929,23 @@ static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
   rna_Node_socket_update(bmain, scene, ptr);
 }
 
+static bool attribute_convert_type_supported(const EnumPropertyItem *item)
+{
+  return ELEM(item->value,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
+              CD_PROP_FLOAT3,
+              CD_PROP_COLOR,
+              CD_PROP_BOOL,
+              CD_PROP_INT32);
+}
+static const EnumPropertyItem *rna_GeometryNodeAttributeConvert_type_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_type_items, attribute_convert_type_supported);
+}
+
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(
@@ -8647,6 +8664,35 @@ static void def_geo_attribute_fill(StructRNA *srna)
                                   "rna_GeometryNodeAttributeFill_domain_itemf");
 }
 
+static void def_geo_attribute_convert(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_enum_attribute_convert_domain_items[] = {
+      {ATTR_DOMAIN_AUTO, "AUTO", 0, "Auto", ""},
+      {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+      {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
+      {ATTR_DOMAIN_CORNER, "CORNER", 0, "Corner", "Attribute on mesh polygon corner"},
+      {ATTR_DOMAIN_POLYGON, "POLYGON", 0, "Polygon", "Attribute on mesh polygons"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeAttributeConvert", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeConvert_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "The data type to save the result attribute with");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+
+  prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_convert_domain_items);
+  RNA_def_property_enum_default(prop, ATTR_DOMAIN_AUTO);
+  RNA_def_property_ui_text(prop, "Domain", "The geometry domain to save the result attribute in");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_attribute_math(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10042,6 +10088,8 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
       brna, "NodeSocketFloatAngle", "NodeSocketInterfaceFloatAngle", PROP_ANGLE);
   rna_def_node_socket_float(
       brna, "NodeSocketFloatTime", "NodeSocketInterfaceFloatTime", PROP_TIME);
+  rna_def_node_socket_float(
+      brna, "NodeSocketFloatDistance", "NodeSocketInterfaceFloatDistance", PROP_DISTANCE);
 
   rna_def_node_socket_int(brna, "NodeSocketInt", "NodeSocketInterfaceInt", PROP_NONE);
   rna_def_node_socket_int(

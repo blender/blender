@@ -45,6 +45,8 @@ void main(void)
   vec2 scale = vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * sss_radius / homcoord;
   vec2 finalStep = scale * 0.5; /* samples range -1..1 */
 
+  float sss_radius_inv = 1.0 / max(1e-8, sss_radius);
+
   /* Center sample */
   vec3 accum = sss_irradiance * kernel[0].rgb;
 
@@ -58,7 +60,7 @@ void main(void)
      * by Jimenez, eqs. 2 and 9, and D9740.
      * Coefficient -2 follows from gaussian_profile() from gpu_material.c and
      * from the definition of finalStep. */
-    float depth_delta = (depth_view - sample_depth) / sss_radius;
+    float depth_delta = (depth_view - sample_depth) * sss_radius_inv;
     float s = exp(-2.0 * sqr(depth_delta));
     /* Out of view samples. */
     if (any(lessThan(sample_uv, vec2(0.0))) || any(greaterThan(sample_uv, vec2(1.0)))) {

@@ -116,4 +116,14 @@ vec3 normal_decode(vec2 enc, vec3 view)
   return n;
 }
 
+vec3 tangent_to_world(vec3 vector, vec3 N, vec3 T, vec3 B)
+{
+  return T * vector.x + B * vector.y + N * vector.z;
+}
+
+vec3 world_to_tangent(vec3 vector, vec3 N, vec3 T, vec3 B)
+{
+  return vec3(dot(T, vector), dot(B, vector), dot(N, vector));
+}
+
 /** \} */

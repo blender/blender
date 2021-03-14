@@ -157,8 +157,6 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_EffectsInfo *effects = stl->effects;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
-
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
     /**  Occlusion algorithm overview
      *
@@ -176,21 +174,9 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
                                               psl->ao_horizon_search);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
-    DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &effects->ao_src_depth);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-    DRW_shgroup_call(grp, quad, NULL);
-
-    DRW_PASS_CREATE(psl->ao_horizon_search_layer, DRW_STATE_WRITE_COLOR);
-    grp = DRW_shgroup_create(EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(),
-                             psl->ao_horizon_search_layer);
-    DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-    DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
-    DRW_shgroup_uniform_texture_ref(grp, "depthBufferLayered", &effects->ao_src_depth);
-    DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-    DRW_shgroup_uniform_int(grp, "layer", &stl->effects->ao_depth_layer, 1);
-    DRW_shgroup_call(grp, quad, NULL);
+    DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
     if (G.debug_value == 6) {
       DRW_PASS_CREATE(psl->ao_horizon_debug, DRW_STATE_WRITE_COLOR);
@@ -203,15 +189,12 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons_renderpass);
       DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
       DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
-      DRW_shgroup_call(grp, quad, NULL);
+      DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
     }
   }
 }
 
-void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata),
-                             EEVEE_Data *vedata,
-                             struct GPUTexture *depth_src,
-                             int layer)
+void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -220,17 +203,10 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata),
 
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
     DRW_stats_group_start("GTAO Horizon Scan");
-    effects->ao_src_depth = depth_src;
-    effects->ao_depth_layer = layer;
 
     GPU_framebuffer_bind(fbl->gtao_fb);
 
-    if (layer >= 0) {
-      DRW_draw_pass(psl->ao_horizon_search_layer);
-    }
-    else {
-      DRW_draw_pass(psl->ao_horizon_search);
-    }
+    DRW_draw_pass(psl->ao_horizon_search);
 
     if (GPU_mip_render_workaround() ||
         GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY)) {
@@ -275,7 +251,7 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
 
     /* Update the min_max/horizon buffers so the refraction materials appear in it. */
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
-    EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
+    EEVEE_occlusion_compute(sldata, vedata);
 
     GPU_framebuffer_bind(fbl->ao_accum_fb);
     DRW_draw_pass(psl->ao_accum_ps);

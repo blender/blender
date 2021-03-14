@@ -11,11 +11,6 @@ uniform float fireflyFactor;
 
 out vec4 FragColor;
 
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
-
 void main()
 {
   vec2 texel_size = 1.0 / vec2(textureSize(source, 0));
@@ -26,7 +21,7 @@ void main()
   FragColor = safe_color(FragColor);
 
   /* Clamped brightness. */
-  float luma = max(1e-8, brightness(FragColor.rgb));
+  float luma = max(1e-8, max_v3(FragColor.rgb));
   FragColor *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 
 #else

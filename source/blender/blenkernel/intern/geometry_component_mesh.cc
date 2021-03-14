@@ -15,7 +15,6 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_threads.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -535,43 +534,6 @@ static WriteAttributePtr make_material_index_write_attribute(void *data, const i
       ATTR_DOMAIN_POLYGON, MutableSpan<MPoly>((MPoly *)data, domain_size));
 }
 
-static float3 get_vertex_normal(const MVert &vert)
-{
-  float3 result;
-  normal_short_to_float_v3(result, vert.no);
-  return result;
-}
-
-static ReadAttributePtr make_vertex_normal_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MVert, float3, get_vertex_normal>>(
-      ATTR_DOMAIN_POINT, Span<MVert>((const MVert *)data, domain_size));
-}
-
-static void update_vertex_normals_when_dirty(const GeometryComponent &component)
-{
-  const Mesh *mesh = get_mesh_from_component_for_read(component);
-  if (mesh == nullptr) {
-    return;
-  }
-
-  /* Since normals are derived data, const write access to them is okay. However, ensure that
-   * two threads don't use write normals to a mesh at the same time. Note that this relies on
-   * the idempotence of the operation; calculating the normals just fills the MVert struct
-   * rather than allocating new memory. */
-  if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
-    ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
-    BLI_mutex_lock(mesh_eval_mutex);
-
-    /* Check again to avoid a second thread needlessly recalculating the same normals. */
-    if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
-      BKE_mesh_calc_normals(const_cast<Mesh *>(mesh));
-    }
-
-    BLI_mutex_unlock(mesh_eval_mutex);
-  }
-}
-
 static bool get_shade_smooth(const MPoly &mpoly)
 {
   return mpoly.flag & ME_SMOOTH;
@@ -805,6 +767,65 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
 };
 
 /**
+ * This provider makes face normals available as a read-only float3 attribute.
+ */
+class NormalAttributeProvider final : public BuiltinAttributeProvider {
+ public:
+  NormalAttributeProvider()
+      : BuiltinAttributeProvider(
+            "normal", ATTR_DOMAIN_POLYGON, CD_PROP_FLOAT3, NonCreatable, Readonly, NonDeletable)
+  {
+  }
+
+  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const
+  {
+    const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
+    const Mesh *mesh = mesh_component.get_for_read();
+    if (mesh == nullptr) {
+      return {};
+    }
+
+    /* Use existing normals if possible. */
+    if (!(mesh->runtime.cd_dirty_poly & CD_MASK_NORMAL) &&
+        CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
+      const void *data = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+
+      return std::make_unique<ArrayReadAttribute<float3>>(
+          ATTR_DOMAIN_POLYGON, Span<float3>((const float3 *)data, mesh->totpoly));
+    }
+
+    Array<float3> normals(mesh->totpoly);
+    for (const int i : IndexRange(mesh->totpoly)) {
+      const MPoly *poly = &mesh->mpoly[i];
+      BKE_mesh_calc_poly_normal(poly, &mesh->mloop[poly->loopstart], mesh->mvert, normals[i]);
+    }
+
+    return std::make_unique<OwnedArrayReadAttribute<float3>>(ATTR_DOMAIN_POLYGON,
+                                                             std::move(normals));
+  }
+
+  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const
+  {
+    return {};
+  }
+
+  bool try_delete(GeometryComponent &UNUSED(component)) const
+  {
+    return false;
+  }
+
+  bool try_create(GeometryComponent &UNUSED(component)) const
+  {
+    return false;
+  }
+
+  bool exists(const GeometryComponent &component) const
+  {
+    return component.attribute_domain_size(ATTR_DOMAIN_POLYGON) != 0;
+  }
+};
+
+/**
  * In this function all the attribute providers for a mesh component are created. Most data in this
  * function is statically allocated, because it does not change over time.
  */
@@ -854,8 +875,9 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                  point_access,
                                                  make_vertex_position_read_attribute,
                                                  make_vertex_position_write_attribute,
-                                                 nullptr,
                                                  tag_normals_dirty_when_writing_position);
+
+  static NormalAttributeProvider normal;
 
   static BuiltinCustomDataLayerProvider material_index("material_index",
                                                        ATTR_DOMAIN_POLYGON,
@@ -867,7 +889,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                        polygon_access,
                                                        make_material_index_read_attribute,
                                                        make_material_index_write_attribute,
-                                                       nullptr,
                                                        nullptr);
 
   static BuiltinCustomDataLayerProvider shade_smooth("shade_smooth",
@@ -880,21 +901,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                      polygon_access,
                                                      make_shade_smooth_read_attribute,
                                                      make_shade_smooth_write_attribute,
-                                                     nullptr,
                                                      nullptr);
-
-  static BuiltinCustomDataLayerProvider vertex_normal("vertex_normal",
-                                                      ATTR_DOMAIN_POINT,
-                                                      CD_PROP_FLOAT3,
-                                                      CD_MVERT,
-                                                      BuiltinAttributeProvider::NonCreatable,
-                                                      BuiltinAttributeProvider::Readonly,
-                                                      BuiltinAttributeProvider::NonDeletable,
-                                                      point_access,
-                                                      make_vertex_normal_read_attribute,
-                                                      nullptr,
-                                                      update_vertex_normals_when_dirty,
-                                                      nullptr);
 
   static NamedLegacyCustomDataProvider uvs(ATTR_DOMAIN_CORNER,
                                            CD_PROP_FLOAT2,
@@ -916,7 +923,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider polygon_custom_data(ATTR_DOMAIN_POLYGON, polygon_access);
 
-  return ComponentAttributeProviders({&position, &material_index, &vertex_normal, &shade_smooth},
+  return ComponentAttributeProviders({&position, &material_index, &shade_smooth, &normal},
                                      {&uvs,
                                       &vertex_colors,
                                       &corner_custom_data,

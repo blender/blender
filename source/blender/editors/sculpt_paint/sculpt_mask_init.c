@@ -109,8 +109,7 @@ static void mask_init_task_cb(void *__restrict userdata,
   const int mode = data->mask_init_mode;
   const int seed = data->mask_init_seed;
   SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     switch (mode) {
       case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
         *vd.mask = BLI_hash_int_01(vd.index + seed);

@@ -193,7 +193,7 @@ void node_bsdf_principled(vec4 base_color,
   result.radiance *= alpha;
   result.ssr_data.rgb *= alpha;
 #  ifdef USE_SSS
-  result.sss_irradiance *= alpha;
+  result.sss_albedo *= alpha;
 #  endif
 }
 

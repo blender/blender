@@ -85,8 +85,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   test_radius *= brush->normal_radius_factor;
   test.radius_squared = test_radius * test_radius;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -166,8 +165,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;

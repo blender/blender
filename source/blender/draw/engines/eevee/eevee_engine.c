@@ -69,7 +69,7 @@ static void eevee_engine_init(void *ved)
   stl->g_data->render_timesteps = 1;
 
   /* Main Buffer */
-  DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+  DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER);
 
   GPU_framebuffer_ensure_config(&fbl->main_fb,
                                 {GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -286,7 +286,7 @@ static void eevee_draw_scene(void *vedata)
     EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
     DRW_stats_group_end();
 
-    EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
+    EEVEE_occlusion_compute(sldata, vedata);
     EEVEE_volumes_compute(sldata, vedata);
 
     /* Shading pass */

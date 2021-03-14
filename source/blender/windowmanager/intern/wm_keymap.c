@@ -1773,10 +1773,6 @@ void WM_keyconfig_update(wmWindowManager *wm)
 {
   bool compat_update = false;
 
-  if (G.background) {
-    return;
-  }
-
   if (wm_keymap_update_flag == 0) {
     return;
   }
@@ -1805,71 +1801,70 @@ void WM_keyconfig_update(wmWindowManager *wm)
     wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
   }
 
-  if (wm_keymap_update_flag == 0) {
-    return;
-  }
-
-  /* update operator properties for non-modal user keymaps */
-  LISTBASE_FOREACH (wmKeyMap *, km, &U.user_keymaps) {
-    if ((km->flag & KEYMAP_MODAL) == 0) {
-      LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
-        if (kmdi->add_item) {
-          wm_keymap_item_properties_set(kmdi->add_item);
+  if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_RECONFIGURE) {
+    /* update operator properties for non-modal user keymaps */
+    LISTBASE_FOREACH (wmKeyMap *, km, &U.user_keymaps) {
+      if ((km->flag & KEYMAP_MODAL) == 0) {
+        LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
+          if (kmdi->add_item) {
+            wm_keymap_item_properties_set(kmdi->add_item);
+          }
+          if (kmdi->remove_item) {
+            wm_keymap_item_properties_set(kmdi->remove_item);
+          }
         }
-        if (kmdi->remove_item) {
-          wm_keymap_item_properties_set(kmdi->remove_item);
-        }
-      }
 
-      LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
-        wm_keymap_item_properties_set(kmi);
+        LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
+          wm_keymap_item_properties_set(kmi);
+        }
       }
     }
-  }
 
-  /* update U.user_keymaps with user key configuration changes */
-  LISTBASE_FOREACH (wmKeyMap *, km, &wm->userconf->keymaps) {
-    /* only diff if the user keymap was modified */
-    if (wm_keymap_test_and_clear_update(km)) {
+    /* update U.user_keymaps with user key configuration changes */
+    LISTBASE_FOREACH (wmKeyMap *, km, &wm->userconf->keymaps) {
+      /* only diff if the user keymap was modified */
+      if (wm_keymap_test_and_clear_update(km)) {
+        /* find keymaps */
+        wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
+        wmKeyMap *addonmap = WM_keymap_list_find(
+            &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
+
+        /* diff */
+        if (defaultmap) {
+          wm_keymap_diff_update(&U.user_keymaps, defaultmap, addonmap, km);
+        }
+      }
+    }
+
+    /* create user key configuration from preset + addon + user preferences */
+    LISTBASE_FOREACH (wmKeyMap *, km, &wm->defaultconf->keymaps) {
       /* find keymaps */
       wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
       wmKeyMap *addonmap = WM_keymap_list_find(
           &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
+      wmKeyMap *usermap = WM_keymap_list_find(
+          &U.user_keymaps, km->idname, km->spaceid, km->regionid);
 
-      /* diff */
-      if (defaultmap) {
-        wm_keymap_diff_update(&U.user_keymaps, defaultmap, addonmap, km);
+      /* For now only the default map defines modal key-maps,
+       * if we support modal keymaps for 'addonmap', these will need to be enabled too. */
+      wm_user_modal_keymap_set_items(wm, defaultmap);
+
+      /* add */
+      wmKeyMap *kmn = wm_keymap_patch_update(
+          &wm->userconf->keymaps, defaultmap, addonmap, usermap);
+
+      if (kmn) {
+        kmn->modal_items = km->modal_items;
+        kmn->poll = km->poll;
+        kmn->poll_modal_item = km->poll_modal_item;
       }
-    }
-  }
 
-  /* create user key configuration from preset + addon + user preferences */
-  LISTBASE_FOREACH (wmKeyMap *, km, &wm->defaultconf->keymaps) {
-    /* find keymaps */
-    wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
-    wmKeyMap *addonmap = WM_keymap_list_find(
-        &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
-    wmKeyMap *usermap = WM_keymap_list_find(
-        &U.user_keymaps, km->idname, km->spaceid, km->regionid);
-
-    /* For now only the default map defines modal key-maps,
-     * if we support modal keymaps for 'addonmap', these will need to be enabled too. */
-    wm_user_modal_keymap_set_items(wm, defaultmap);
-
-    /* add */
-    wmKeyMap *kmn = wm_keymap_patch_update(&wm->userconf->keymaps, defaultmap, addonmap, usermap);
-
-    if (kmn) {
-      kmn->modal_items = km->modal_items;
-      kmn->poll = km->poll;
-      kmn->poll_modal_item = km->poll_modal_item;
+      /* in case of old non-diff keymaps, force extra update to create diffs */
+      compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
     }
 
-    /* in case of old non-diff keymaps, force extra update to create diffs */
-    compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
+    wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_RECONFIGURE;
   }
-
-  wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_RECONFIGURE;
 
   BLI_assert(wm_keymap_update_flag == 0);
 

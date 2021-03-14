@@ -1226,6 +1226,14 @@ typedef struct NodeAttributeSeparateXYZ {
   uint8_t input_type;
 } NodeAttributeSeparateXYZ;
 
+typedef struct NodeAttributeConvert {
+  /* CustomDataType. */
+  uint8_t data_type;
+  char _pad[1];
+  /* AttributeDomain. */
+  int16_t domain;
+} NodeAttributeConvert;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
