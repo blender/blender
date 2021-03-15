@@ -139,6 +139,8 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "CLG_log.h"
+
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
 static void wm_history_files_free(void);
@@ -146,6 +148,8 @@ static void wm_history_file_update(void);
 static void wm_history_file_write(void);
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
+
+static CLG_LogRef LOG = {"wm.files"};
 
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
@@ -1440,7 +1444,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
   else {
     /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
-    fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
+    CLOG_WARN(&LOG, "failed to create thumbnail: %s", err_out);
     thumb = NULL;
   }
 
@@ -1649,14 +1653,18 @@ static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 
   wm_autosave_location(filepath);
 
-  if (U.uiflag & USER_GLOBALUNDO) {
-    /* fast save of last undobuffer, now with UI */
-    struct MemFile *memfile = ED_undosys_stack_memfile_get_active(wm->undo_stack);
-    if (memfile) {
-      BLO_memfile_write_file(memfile, filepath);
-    }
+  /* Fast save of last undo-buffer, now with UI. */
+  const bool use_memfile = (U.uiflag & USER_GLOBALUNDO) != 0;
+  MemFile *memfile = use_memfile ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : NULL;
+  if (memfile != NULL) {
+    BLO_memfile_write_file(memfile, filepath);
   }
   else {
+    if (use_memfile) {
+      /* This is very unlikely, alert developers of this unexpected case. */
+      CLOG_WARN(&LOG, "undo-data not found for writing, fallback to regular file write!");
+    }
+
     /* Save as regular blend file with recovery information. */
     const int fileflags = (G.fileflags & ~G_FILE_COMPRESS) | G_FILE_RECOVER_WRITE;
 
