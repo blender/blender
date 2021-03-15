@@ -185,6 +185,8 @@ void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
                                 libmv_TrackRegionOptions *options)
 {
+  /* TODO(sergey): Use explicit conversion, so that options are decoupled between the Libmv library
+   * and enumerator values in DNA. */
   options->motion_model = track->motion_model;
 
   options->use_brute = ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_BRUTE) != 0);
