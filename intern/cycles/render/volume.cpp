@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 NODE_DEFINE(Volume)
 {
-  NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::node_type);
+  NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::get_node_type());
 
   SOCKET_FLOAT(clipping, "Clipping", 0.001f);
   SOCKET_FLOAT(step_size, "Step Size", 0.0f);
@@ -45,7 +45,7 @@ NODE_DEFINE(Volume)
   return type;
 }
 
-Volume::Volume() : Mesh(node_type, Geometry::VOLUME)
+Volume::Volume() : Mesh(get_node_type(), Geometry::VOLUME)
 {
   clipping = 0.001f;
   step_size = 0.0f;

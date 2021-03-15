@@ -87,7 +87,7 @@ struct SocketType {
   int struct_offset;
   const void *default_value;
   const NodeEnum *enum_values;
-  const NodeType **node_type;
+  const NodeType *node_type;
   int flags;
   ustring ui_name;
   SocketModifiedFlags modified_flag_bit;
@@ -115,7 +115,7 @@ struct NodeType {
                       int struct_offset,
                       const void *default_value,
                       const NodeEnum *enum_values = NULL,
-                      const NodeType **node_type = NULL,
+                      const NodeType *node_type = NULL,
                       int flags = 0,
                       int extra_flags = 0);
   void register_output(ustring name, ustring ui_name, SocketType::Type type);
@@ -140,27 +140,38 @@ struct NodeType {
   static unordered_map<ustring, NodeType, ustringHash> &types();
 };
 
-/* Node Definition Macros */
+/* Node Definition Macros
+ *
+ * Node we use accessor to get node types to ensure correct static
+ * initialization order. */
 
 #define NODE_DECLARE \
+  static const NodeType *get_node_type(); \
   template<typename T> static const NodeType *register_type(); \
-  static Node *create(const NodeType *type); \
-  static const NodeType *node_type;
+  static Node *create(const NodeType *type);
 
 #define NODE_DEFINE(structname) \
-  const NodeType *structname::node_type = structname::register_type<structname>(); \
   Node *structname::create(const NodeType *) \
   { \
     return new structname(); \
+  } \
+  const NodeType *structname::get_node_type() \
+  { \
+    static const NodeType *node_type = register_type<structname>(); \
+    return node_type; \
   } \
   template<typename T> const NodeType *structname::register_type()
 
 #define NODE_ABSTRACT_DECLARE \
   template<typename T> static const NodeType *register_base_type(); \
-  static const NodeType *node_base_type;
+  static const NodeType *get_node_base_type();
 
 #define NODE_ABSTRACT_DEFINE(structname) \
-  const NodeType *structname::node_base_type = structname::register_base_type<structname>(); \
+  const NodeType *structname::get_node_base_type() \
+  { \
+    static const NodeType *node_base_type = register_base_type<structname>(); \
+    return node_base_type; \
+  } \
   template<typename T> const NodeType *structname::register_base_type()
 
 /* Sock Definition Macros */

@@ -52,7 +52,7 @@ NODE_ABSTRACT_DEFINE(Geometry)
 
   SOCKET_UINT(motion_steps, "Motion Steps", 3);
   SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
-  SOCKET_NODE_ARRAY(used_shaders, "Shaders", &Shader::node_type);
+  SOCKET_NODE_ARRAY(used_shaders, "Shaders", Shader::get_node_type());
 
   return type;
 }
