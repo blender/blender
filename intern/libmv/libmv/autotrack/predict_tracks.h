@@ -28,9 +28,27 @@ namespace mv {
 class Tracks;
 struct Marker;
 
+enum class PredictDirection {
+  // Detect direction in which to predict marker position based on an existing
+  // Tracks context. Prediction will happen in the preferred direction of a
+  // missing information.
+  // If markers exists to the both sides of the given one the prediction
+  // direction is preferred to be forward.
+  AUTO,
+
+  // Predict position of the marker from the past to the future (used for
+  // forward tracking).
+  FORWARD,
+
+  // Predict position from the future to the past (used for backward tracking).
+  BACKWARD,
+};
+
 // Predict the position of the given marker, and update it accordingly. The
 // existing position will be overwritten.
-bool PredictMarkerPosition(const Tracks& tracks, Marker* marker);
+bool PredictMarkerPosition(const Tracks& tracks,
+                           const PredictDirection direction,
+                           Marker* marker);
 
 }  // namespace mv
 

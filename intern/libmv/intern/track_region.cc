@@ -39,6 +39,19 @@ using libmv::TrackRegionResult;
 
 namespace {
 
+TrackRegionOptions::Direction convertDirection(
+    libmv_TrackRegionDirection direction) {
+  switch (direction) {
+    case LIBMV_TRACK_REGION_FORWARD: return TrackRegionOptions::FORWARD;
+    case LIBMV_TRACK_REGION_BACKWARD: return TrackRegionOptions::BACKWARD;
+  }
+
+  LOG(FATAL) << "Unhandled tracking direction " << direction
+             << ", should never happen.";
+
+  return TrackRegionOptions::FORWARD;
+}
+
 TrackRegionOptions::Mode convertMotionModelToMode(int motion_model) {
   switch (motion_model) {
 #define LIBMV_CONVERT(the_model)                                               \
@@ -65,6 +78,7 @@ TrackRegionOptions::Mode convertMotionModelToMode(int motion_model) {
 void libmv_configureTrackRegionOptions(
     const libmv_TrackRegionOptions& options,
     TrackRegionOptions* track_region_options) {
+  track_region_options->direction = convertDirection(options.direction);
   track_region_options->mode = convertMotionModelToMode(options.motion_model);
   track_region_options->minimum_correlation = options.minimum_correlation;
   track_region_options->max_iterations = options.num_iterations;

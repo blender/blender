@@ -225,7 +225,9 @@ void RunPrediction(const vector<Marker*> previous_markers,
 
 }  // namespace
 
-bool PredictMarkerPosition(const Tracks& tracks, Marker* marker) {
+bool PredictMarkerPosition(const Tracks& tracks,
+                           const PredictDirection direction,
+                           Marker* marker) {
   // Get all markers for this clip and track.
   vector<Marker> markers;
   tracks.GetMarkersForTrackInClip(marker->clip, marker->track, &markers);
@@ -290,9 +292,17 @@ bool PredictMarkerPosition(const Tracks& tracks, Marker* marker) {
   }
 
   bool predict_forward = false;
-  if (backward_scan_end <= backward_scan_begin) {
-    // TODO(keir): Add smarter handling and detecting of consecutive frames!
-    predict_forward = true;
+  switch (direction) {
+    case PredictDirection::AUTO:
+      if (backward_scan_end <= backward_scan_begin) {
+        // TODO(keir): Add smarter handling and detecting of consecutive frames!
+        predict_forward = true;
+      }
+      break;
+
+    case PredictDirection::FORWARD: predict_forward = true; break;
+
+    case PredictDirection::BACKWARD: predict_forward = false; break;
   }
 
   const int max_frames_to_predict_from = 20;

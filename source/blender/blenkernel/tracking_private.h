@@ -111,6 +111,7 @@ struct libmv_TrackRegionOptions;
 
 void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
+                                bool is_backwards,
                                 struct libmv_TrackRegionOptions *options);
 
 struct MovieTrackingMarker *tracking_get_keyframed_marker(struct MovieTrackingTrack *track,

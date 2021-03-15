@@ -24,7 +24,13 @@
 extern "C" {
 #endif
 
+typedef enum libmv_TrackRegionDirection {
+  LIBMV_TRACK_REGION_FORWARD,
+  LIBMV_TRACK_REGION_BACKWARD,
+} libmv_TrackRegionDirection;
+
 typedef struct libmv_TrackRegionOptions {
+  libmv_TrackRegionDirection direction;
   int motion_model;
   int num_iterations;
   int use_brute;
