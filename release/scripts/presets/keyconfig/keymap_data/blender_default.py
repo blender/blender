@@ -6628,7 +6628,7 @@ def km_3d_view_tool_sculpt_color_filter(params):
 
 def km_3d_view_tool_sculpt_mask_by_color(params):
     return (
-        "3D View Tool: Sculpt, Mask By Color",
+        "3D View Tool: Sculpt, Mask by Color",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("sculpt.mask_by_color", {"type": params.tool_mouse, "value": 'ANY'},
