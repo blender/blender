@@ -28,13 +28,6 @@ void main()
   vec4 rand = texelfetch_noise_tex(texel);
 
   float accum_light = 0.0;
-  float tracing_depth = depth;
-  /* Constant bias (due to depth buffer precision) */
-  /* Magic numbers for 24bits of precision.
-   * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
-  tracing_depth -= mix(2.4e-7, 4.8e-7, depth);
-  /* Convert to view Z. */
-  tracing_depth = get_view_z_from_depth(tracing_depth);
 
   vec3 vP = get_view_space_from_depth(uvs, depth);
   vec3 P = transform_point(ViewMatrixInverse, vP);
@@ -50,7 +43,7 @@ void main()
 
     float l_vis = light_shadowing(ld, P, 1.0);
 
-    l_vis *= light_contact_shadows(ld, P, vP, tracing_depth, vNg, rand.x, 1.0);
+    l_vis *= light_contact_shadows(ld, P, vP, vNg, rand.x, 1.0);
 
     accum_light += l_vis;
   }
