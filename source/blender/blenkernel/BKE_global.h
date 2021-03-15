@@ -170,8 +170,14 @@ enum {
 
   /* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
 
-  /** On read, use #FileGlobal.filename instead of the real location on-disk,
-   * needed for recovering temp files so relative paths resolve */
+  /**
+   * On read, use #FileGlobal.filename instead of the real location on-disk,
+   * needed for recovering temp files so relative paths resolve.
+   *
+   * \note In some ways it would be nicer to make this an argument passed to file loading.
+   * In practice this means recover needs to be passed around to too many low level functions,
+   * so keep this as a flag.
+   */
   G_FILE_RECOVER = (1 << 23),
   /** BMesh option to save as older mesh format */
   /* #define G_FILE_MESH_COMPAT       (1 << 26) */

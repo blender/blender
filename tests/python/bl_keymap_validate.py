@@ -193,7 +193,7 @@ def main() -> None:
 
     argv = (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
 
-    # If we want full arg parsing.
+    # Use `argparse` for full arg parsing, for now this is enough.
     relaxed = "--relaxed" not in argv
 
     has_error = False

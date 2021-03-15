@@ -1653,36 +1653,8 @@ int WM_operator_call_py(bContext *C,
                         const bool is_undo)
 {
   int retval = OPERATOR_CANCELLED;
-
-#if 0
-  wmOperator *op;
-  op = wm_operator_create(wm, ot, properties, reports);
-
-  if (op->type->exec) {
-    if (is_undo && op->type->flag & OPTYPE_UNDO) {
-      wm->op_undo_depth++;
-    }
-
-    retval = op->type->exec(C, op);
-    OPERATOR_RETVAL_CHECK(retval);
-
-    if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
-      wm->op_undo_depth--;
-    }
-  }
-  else {
-    CLOG_WARN(WM_LOG_OPERATORS,
-              "\"%s\" operator has no exec function, Python cannot call it",
-              op->type->name);
-  }
-
-#endif
-
   /* Not especially nice using undo depth here. It's used so Python never
-   * triggers undo or stores an operator's last used state.
-   *
-   * We could have some more obvious way of doing this like passing a flag.
-   */
+   * triggers undo or stores an operator's last used state. */
   wmWindowManager *wm = CTX_wm_manager(C);
   if (!is_undo && wm) {
     wm->op_undo_depth++;
