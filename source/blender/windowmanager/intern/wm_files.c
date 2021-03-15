@@ -1607,7 +1607,7 @@ static bool wm_file_write(bContext *C,
 /** \name Auto-Save API
  * \{ */
 
-void wm_autosave_location(char *filepath)
+static void wm_autosave_location(char *filepath)
 {
   const int pid = abs(getpid());
   char path[1024];
@@ -1720,14 +1720,6 @@ void wm_autosave_delete(void)
       BLI_rename(filename, str);
     }
   }
-}
-
-void wm_autosave_read(bContext *C, ReportList *reports)
-{
-  char filename[FILE_MAX];
-
-  wm_autosave_location(filename);
-  WM_file_read(C, filename, reports);
 }
 
 /** \} */
