@@ -37,6 +37,7 @@
 #include "bmesh.h"
 
 #include "spreadsheet_from_geometry.hh"
+#include "spreadsheet_intern.hh"
 
 namespace blender::ed::spreadsheet {
 
@@ -521,6 +522,9 @@ std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(c
   }
 
   const int domain_size = component->attribute_domain_size(domain);
+  sspreadsheet->runtime->tot_rows = domain_size;
+  sspreadsheet->runtime->visible_rows = visible_rows.size();
+  sspreadsheet->runtime->tot_columns = columns.size();
   return std::make_unique<GeometryAttributeSpreadsheetDrawer>(
       std::move(resources), std::move(columns), visible_rows, domain_size);
 }

@@ -69,6 +69,9 @@ typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 /* Defined in `file_intern.h`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;
 
+/* Defined in `spreadsheet_intern.hh`. */
+typedef struct SpaceSpreadsheet_Runtime SpaceSpreadsheet_Runtime;
+
 /* -------------------------------------------------------------------- */
 /** \name SpaceLink (Base)
  * \{ */
@@ -1864,6 +1867,8 @@ typedef struct SpaceSpreadsheet {
   uint8_t attribute_domain;
 
   char _pad1[5];
+
+  SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;
 
 /** \} */
