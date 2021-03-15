@@ -168,7 +168,7 @@ void main()
     vec3 rev = texture(revealBuf, uv).rgb;
     if (threshold.x > -1.0) {
       if (threshold.y > -1.0) {
-        if (all(lessThan(abs(col - threshold), vec3(0.05)))) {
+        if (any(greaterThan(abs(col - threshold), vec3(0.05)))) {
           weight = 0.0;
         }
       }
