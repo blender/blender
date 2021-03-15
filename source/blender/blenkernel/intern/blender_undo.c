@@ -115,6 +115,9 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
 {
   MemFileUndoData *mfu = MEM_callocN(sizeof(MemFileUndoData), __func__);
 
+  /* Include recovery infomation since undo-data is written out as #BLENDER_QUIT_FILE. */
+  const int fileflags = G.fileflags | G_FILE_RECOVER_WRITE;
+
   /* disk save version */
   if (UNDO_DISK) {
     static int counter = 0;
@@ -129,7 +132,7 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), numstr);
 
     /* success = */ /* UNUSED */ BLO_write_file(
-        bmain, filename, G.fileflags, &(const struct BlendFileWriteParams){0}, NULL);
+        bmain, filename, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
 
     BLI_strncpy(mfu->filename, filename, sizeof(mfu->filename));
   }
@@ -138,7 +141,7 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
     if (prevfile) {
       BLO_memfile_clear_future(prevfile);
     }
-    /* success = */ /* UNUSED */ BLO_write_file_mem(bmain, prevfile, &mfu->memfile, G.fileflags);
+    /* success = */ /* UNUSED */ BLO_write_file_mem(bmain, prevfile, &mfu->memfile, fileflags);
     mfu->undo_size = mfu->memfile.size;
   }
 

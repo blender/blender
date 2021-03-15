@@ -1682,8 +1682,8 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
     }
   }
   else {
-    /* Save as regular blend file. */
-    const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
+    /* Save as regular blend file with recovery information. */
+    const int fileflags = (G.fileflags & ~G_FILE_COMPRESS) | G_FILE_RECOVER_WRITE;
 
     ED_editors_flush_edits(bmain);
 

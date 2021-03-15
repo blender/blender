@@ -870,7 +870,10 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
   fg.fileflags = (fileflags & ~G_FILE_FLAG_ALL_RUNTIME);
 
   fg.globalf = G.f;
-  BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
+  /* Write information needed for recovery. */
+  if (fileflags & G_FILE_RECOVER_WRITE) {
+    BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
+  }
   sprintf(subvstr, "%4d", BLENDER_FILE_SUBVERSION);
   memcpy(fg.subvstr, subvstr, 4);
 
