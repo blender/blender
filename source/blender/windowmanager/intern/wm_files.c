@@ -2595,9 +2595,9 @@ bool WM_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
   const bool success = wm_file_read_opwrap(C, filepath, reports);
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
   return success;
 }
 
@@ -2654,11 +2654,11 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
 
   success = wm_file_read_opwrap(C, filepath, op->reports);
 
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
 
   if (success) {
     if (!G.background) {

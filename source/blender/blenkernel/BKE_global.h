@@ -178,7 +178,7 @@ enum {
    * In practice this means recover needs to be passed around to too many low level functions,
    * so keep this as a flag.
    */
-  G_FILE_RECOVER = (1 << 23),
+  G_FILE_RECOVER_READ = (1 << 23),
   /** BMesh option to save as older mesh format */
   /* #define G_FILE_MESH_COMPAT       (1 << 26) */
   /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
