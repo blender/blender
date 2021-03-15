@@ -114,7 +114,7 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
     column.get_value(real_index, cell_value);
 
     if (std::holds_alternative<int>(cell_value.value)) {
-      const int value = std::get<int>(cell_value.value);
+      const int value = *std::get_if<int>(&cell_value.value);
       const std::string value_str = std::to_string(value);
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
@@ -133,7 +133,7 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        nullptr);
     }
     else if (std::holds_alternative<float>(cell_value.value)) {
-      const float value = std::get<float>(cell_value.value);
+      const float value = *std::get_if<float>(&cell_value.value);
       std::stringstream ss;
       ss << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
@@ -154,7 +154,7 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        nullptr);
     }
     else if (std::holds_alternative<bool>(cell_value.value)) {
-      const bool value = std::get<bool>(cell_value.value);
+      const bool value = *std::get_if<bool>(&cell_value.value);
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
