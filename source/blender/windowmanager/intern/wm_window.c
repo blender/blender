@@ -216,7 +216,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   /* end running jobs, a job end also removes its timer */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
     if (wt->win == win && wt->event_type == TIMERJOBS) {
-      wm_jobs_timer_ended(wm, wt);
+      wm_jobs_timer_end(wm, wt);
     }
   }
 

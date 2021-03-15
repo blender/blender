@@ -1645,7 +1645,7 @@ void wm_autosave_location(char *filepath)
 
 void WM_autosave_init(wmWindowManager *wm)
 {
-  wm_autosave_timer_ended(wm);
+  wm_autosave_timer_end(wm);
 
   if (U.flag & USER_AUTOSAVE) {
     wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
@@ -1694,7 +1694,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
   wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
 }
 
-void wm_autosave_timer_ended(wmWindowManager *wm)
+void wm_autosave_timer_end(wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
     WM_event_remove_timer(wm, NULL, wm->autosavetimer);
