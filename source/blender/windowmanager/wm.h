@@ -75,6 +75,7 @@ void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt);
 
 /* wm_files.c */
 void wm_autosave_timer(struct Main *bmain, wmWindowManager *wm, wmTimer *wt);
+void wm_autosave_timer_begin(struct wmWindowManager *wm);
 void wm_autosave_timer_end(wmWindowManager *wm);
 void wm_autosave_delete(void);
 

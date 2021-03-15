@@ -1643,34 +1643,9 @@ static void wm_autosave_location(char *filepath)
   BLI_join_dirfile(filepath, FILE_MAX, BKE_tempdir_base(), path);
 }
 
-void WM_autosave_init(wmWindowManager *wm)
-{
-  wm_autosave_timer_end(wm);
-
-  if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
-  }
-}
-
-void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 {
   char filepath[FILE_MAX];
-
-  WM_event_remove_timer(wm, NULL, wm->autosavetimer);
-
-  /* If a modal operator is running, don't autosave because we might not be in
-   * a valid state to save. But try again in 10ms. */
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
-      if (handler_base->type == WM_HANDLER_TYPE_OP) {
-        wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
-        if (handler->op) {
-          wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 0.01);
-          return;
-        }
-      }
-    }
-  }
 
   wm_autosave_location(filepath);
 
@@ -1690,8 +1665,20 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
     /* Error reporting into console. */
     BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
   }
-  /* do timer after file write, just in case file write takes a long time */
-  wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
+}
+
+static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
+{
+  wm_autosave_timer_end(wm);
+
+  if (U.flag & USER_AUTOSAVE) {
+    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, timestep);
+  }
+}
+
+void wm_autosave_timer_begin(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin_ex(wm, U.savetime * 60.0);
 }
 
 void wm_autosave_timer_end(wmWindowManager *wm)
@@ -1700,6 +1687,38 @@ void wm_autosave_timer_end(wmWindowManager *wm)
     WM_event_remove_timer(wm, NULL, wm->autosavetimer);
     wm->autosavetimer = NULL;
   }
+}
+
+void WM_autosave_init(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin(wm);
+}
+
+/**
+ * Run the auto-save timer action.
+ */
+void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+{
+  wm_autosave_timer_end(wm);
+
+  /* If a modal operator is running, don't autosave because we might not be in
+   * a valid state to save. But try again in 10ms. */
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+      if (handler_base->type == WM_HANDLER_TYPE_OP) {
+        wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+        if (handler->op) {
+          wm_autosave_timer_begin_ex(wm, 0.01);
+          return;
+        }
+      }
+    }
+  }
+
+  wm_autosave_write(bmain, wm);
+
+  /* Restart the timer after file write, just in case file write takes a long time. */
+  wm_autosave_timer_begin(wm);
 }
 
 void wm_autosave_delete(void)
