@@ -208,6 +208,9 @@ bNode *node_add_node(
     const struct bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(struct wmOperatorType *ot);
 void NODE_OT_add_group(struct wmOperatorType *ot);
+void NODE_OT_add_object(struct wmOperatorType *ot);
+void NODE_OT_add_collection(struct wmOperatorType *ot);
+void NODE_OT_add_texture(struct wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 void NODE_OT_add_mask(struct wmOperatorType *ot);
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);

@@ -23,7 +23,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_node_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -413,6 +415,305 @@ void NODE_OT_add_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node Object Operator
+ * \{ */
+
+static Object *node_add_object_get_and_poll_object_node_tree(Main *bmain, wmOperator *op)
+{
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", name);
+
+  Object *object = (Object *)BKE_libblock_find_name(bmain, ID_OB, name);
+  if (!object) {
+    return NULL;
+  }
+
+  return object;
+}
+
+static int node_add_object_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+  Object *object;
+
+  if (!(object = node_add_object_get_and_poll_object_node_tree(bmain, op))) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  bNode *object_node = node_add_node(
+      C, NULL, GEO_NODE_OBJECT_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+  if (!object_node) {
+    BKE_report(op->reports, RPT_WARNING, "Could not add node object");
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeSocket *sock = nodeFindSocket(object_node, SOCK_IN, "Object");
+  if (!sock) {
+    BKE_report(op->reports, RPT_WARNING, "Could not find node object socket");
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeSocketValueObject *socket_data = sock->default_value;
+  socket_data->value = object;
+  id_us_plus(&object->id);
+
+  nodeSetActive(ntree, object_node);
+  ntreeUpdateTree(bmain, ntree);
+
+  snode_notify(C, snode);
+  snode_dag_update(C, snode);
+
+  return OPERATOR_FINISHED;
+}
+
+static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region->v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
+
+  return node_add_object_exec(C, op);
+}
+
+static bool node_add_object_poll(bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+}
+
+void NODE_OT_add_object(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Node Object";
+  ot->description = "Add an object info node to the current node editor";
+  ot->idname = "NODE_OT_add_object";
+
+  /* callbacks */
+  ot->exec = node_add_object_exec;
+  ot->invoke = node_add_object_invoke;
+  ot->poll = node_add_object_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(ot->srna, "name", "Object", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node Texture Operator
+ * \{ */
+
+static Tex *node_add_texture_get_and_poll_texture_node_tree(Main *bmain, wmOperator *op)
+{
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", name);
+
+  Tex *texture = (Tex *)BKE_libblock_find_name(bmain, ID_TE, name);
+  if (!texture) {
+    return NULL;
+  }
+
+  return texture;
+}
+
+static int node_add_texture_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+  Tex *texture;
+
+  if (!(texture = node_add_texture_get_and_poll_texture_node_tree(bmain, op))) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  bNode *texture_node = node_add_node(C,
+                                      NULL,
+                                      GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE,
+                                      snode->runtime->cursor[0],
+                                      snode->runtime->cursor[1]);
+  if (!texture_node) {
+    BKE_report(op->reports, RPT_WARNING, "Could not add texture node");
+    return OPERATOR_CANCELLED;
+  }
+
+  texture_node->id = &texture->id;
+  id_us_plus(&texture->id);
+
+  nodeSetActive(ntree, texture_node);
+  ntreeUpdateTree(bmain, ntree);
+
+  snode_notify(C, snode);
+  snode_dag_update(C, snode);
+
+  return OPERATOR_FINISHED;
+}
+
+static int node_add_texture_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region->v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
+
+  return node_add_texture_exec(C, op);
+}
+
+static bool node_add_texture_poll(bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+}
+
+void NODE_OT_add_texture(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Node Texture";
+  ot->description = "Add a texture to the current node editor";
+  ot->idname = "NODE_OT_add_texture";
+
+  /* callbacks */
+  ot->exec = node_add_texture_exec;
+  ot->invoke = node_add_texture_invoke;
+  ot->poll = node_add_texture_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(
+      ot->srna, "name", "Texture", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node Collection Operator
+ * \{ */
+
+static Collection *node_add_collection_get_and_poll_collection_node_tree(Main *bmain,
+                                                                         wmOperator *op)
+{
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", name);
+
+  Collection *collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
+  if (!collection) {
+    return NULL;
+  }
+
+  return collection;
+}
+
+static int node_add_collection_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNodeTree *ntree = snode->edittree;
+  Collection *collection;
+
+  if (!(collection = node_add_collection_get_and_poll_collection_node_tree(bmain, op))) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+
+  bNode *collection_node = node_add_node(
+      C, NULL, GEO_NODE_COLLECTION_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+  if (!collection_node) {
+    BKE_report(op->reports, RPT_WARNING, "Could not add node collection");
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeSocket *sock = nodeFindSocket(collection_node, SOCK_IN, "Collection");
+  if (!sock) {
+    BKE_report(op->reports, RPT_WARNING, "Could not find node collection socket");
+    return OPERATOR_CANCELLED;
+  }
+
+  bNodeSocketValueCollection *socket_data = sock->default_value;
+  socket_data->value = collection;
+  id_us_plus(&collection->id);
+
+  nodeSetActive(ntree, collection_node);
+  ntreeUpdateTree(bmain, ntree);
+
+  snode_notify(C, snode);
+  snode_dag_update(C, snode);
+
+  return OPERATOR_FINISHED;
+}
+
+static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  ARegion *region = CTX_wm_region(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  /* Convert mouse coordinates to v2d space. */
+  UI_view2d_region_to_view(&region->v2d,
+                           event->mval[0],
+                           event->mval[1],
+                           &snode->runtime->cursor[0],
+                           &snode->runtime->cursor[1]);
+
+  snode->runtime->cursor[0] /= UI_DPI_FAC;
+  snode->runtime->cursor[1] /= UI_DPI_FAC;
+
+  return node_add_collection_exec(C, op);
+}
+
+static bool node_add_collection_poll(bContext *C)
+{
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+}
+
+void NODE_OT_add_collection(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Node Collection";
+  ot->description = "Add an collection info node to the current node editor";
+  ot->idname = "NODE_OT_add_collection";
+
+  /* callbacks */
+  ot->exec = node_add_collection_exec;
+  ot->invoke = node_add_collection_invoke;
+  ot->poll = node_add_collection_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  RNA_def_string(
+      ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 
 /** \} */
