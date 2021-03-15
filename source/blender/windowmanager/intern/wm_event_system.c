@@ -2063,6 +2063,7 @@ static int wm_handler_operator_call(bContext *C,
     else if (ot->modal) {
       /* We set context to where modal handler came from. */
       wmWindowManager *wm = CTX_wm_manager(C);
+      wmWindow *win = CTX_wm_window(C);
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
 
@@ -2080,22 +2081,21 @@ static int wm_handler_operator_call(bContext *C,
       retval = ot->modal(C, op, event);
       OPERATOR_RETVAL_CHECK(retval);
 
-      /* When this is _not_ the case the modal modifier may have loaded
-       * a new blend file (demo mode does this), so we have to assume
-       * the event, operator etc have all been freed. - campbell */
-      if (CTX_wm_manager(C) == wm) {
+      if (ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
+        wm->op_undo_depth--;
+      }
+
+      /* When the window changes the the modal modifier may have loaded a new blend file
+       * (the `system_demo_mode` add-on does this), so we have to assume the event,
+       * operator, area, region etc have all been freed. */
+      if ((CTX_wm_window(C) == win)) {
 
         wm_event_modalkeymap_end(event, &event_backup);
-
-        if (ot->flag & OPTYPE_UNDO) {
-          wm->op_undo_depth--;
-        }
 
         if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
           wm_operator_reports(C, op, retval, false);
 
           if (op->type->modalkeymap) {
-            wmWindow *win = CTX_wm_window(C);
             WM_window_status_area_tag_redraw(win);
           }
         }
