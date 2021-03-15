@@ -174,6 +174,11 @@ struct float3 {
     return len_squared_v3(*this);
   }
 
+  bool is_zero() const
+  {
+    return this->x == 0.0f && this->y == 0.0f && this->z == 0.0f;
+  }
+
   void reflect(const float3 &normal)
   {
     *this = this->reflected(normal);
