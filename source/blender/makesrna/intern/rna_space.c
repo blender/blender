@@ -26,6 +26,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
+#include "BKE_context.h"
 #include "BKE_geometry_set.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -3003,17 +3004,33 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
   }
 }
 
-const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UNUSED(C),
+const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
                                                                     PointerRNA *ptr,
                                                                     PropertyRNA *UNUSED(prop),
                                                                     bool *r_free)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
+  GeometryComponentType component_type = sspreadsheet->geometry_component_type;
+  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
+    Object *active_object = CTX_data_active_object(C);
+    Object *used_object = (sspreadsheet->pinned_id && GS(sspreadsheet->pinned_id->name) == ID_OB) ?
+                              (Object *)sspreadsheet->pinned_id :
+                              active_object;
+    if (used_object != NULL) {
+      if (used_object->type == OB_POINTCLOUD) {
+        component_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
+      }
+      else {
+        component_type = GEO_COMPONENT_TYPE_MESH;
+      }
+    }
+  }
+
   EnumPropertyItem *item_array = NULL;
   int items_len = 0;
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != NULL;
        item++) {
-    if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_MESH) {
+    if (component_type == GEO_COMPONENT_TYPE_MESH) {
       if (!ELEM(item->value,
                 ATTR_DOMAIN_CORNER,
                 ATTR_DOMAIN_EDGE,
@@ -3022,7 +3039,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UN
         continue;
       }
     }
-    if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
+    if (component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
       if (item->value != ATTR_DOMAIN_POINT) {
         continue;
       }
@@ -7254,6 +7271,20 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem object_eval_state_items[] = {
+      {SPREADSHEET_OBJECT_EVAL_STATE_FINAL,
+       "FINAL",
+       ICON_NONE,
+       "Final",
+       "Use data from object with all modifiers applied"},
+      {SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL,
+       "ORIGINAL",
+       ICON_NONE,
+       "Original",
+       "Use data from original object without any modifiers applied"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SpaceSpreadsheet", "Space");
   RNA_def_struct_ui_text(srna, "Space Spreadsheet", "Spreadsheet space data");
 
@@ -7283,6 +7314,11 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceSpreadsheet_attribute_domain_itemf");
   RNA_def_property_ui_text(prop, "Attribute Domain", "Attribute domain to display");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "object_eval_state", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, object_eval_state_items);
+  RNA_def_property_ui_text(prop, "Object Evaluation State", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 

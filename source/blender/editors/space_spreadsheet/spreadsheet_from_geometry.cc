@@ -24,6 +24,8 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_lib_id.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 
@@ -333,24 +335,56 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
   }
 }
 
-static GeometrySet get_display_geometry_set(Object *object_eval,
+static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
+                                            Object *object_eval,
                                             const GeometryComponentType used_component_type)
 {
   GeometrySet geometry_set;
-  if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
-    Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
-    if (mesh == nullptr) {
-      return geometry_set;
+  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+    if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
+      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
+      if (mesh == nullptr) {
+        return geometry_set;
+      }
+      BKE_mesh_wrapper_ensure_mdata(mesh);
+      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+      mesh_component.copy_vertex_group_names_from_object(*object_eval);
     }
-    BKE_mesh_wrapper_ensure_mdata(mesh);
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
-    mesh_component.copy_vertex_group_names_from_object(*object_eval);
+    else {
+      if (object_eval->runtime.geometry_set_eval != nullptr) {
+        /* This does not copy the geometry data itself. */
+        geometry_set = *object_eval->runtime.geometry_set_eval;
+      }
+    }
   }
   else {
-    if (object_eval->runtime.geometry_set_eval != nullptr) {
-      /* This does not copy the geometry data itself. */
-      geometry_set = *object_eval->runtime.geometry_set_eval;
+    Object *object_orig = DEG_get_original_object(object_eval);
+    if (object_orig->type == OB_MESH) {
+      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      if (object_orig->mode == OB_MODE_EDIT) {
+        Mesh *mesh = (Mesh *)object_orig->data;
+        BMEditMesh *em = mesh->edit_mesh;
+        if (em != nullptr) {
+          Mesh *new_mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
+          /* This is a potentially heavy operation to do on every redraw. The best solution here is
+           * to display the data directly from the bmesh without a conversion, which can be
+           * implemented a bit later. */
+          BM_mesh_bm_to_me_for_eval(em->bm, new_mesh, nullptr);
+          mesh_component.replace(new_mesh, GeometryOwnershipType::Owned);
+        }
+      }
+      else {
+        Mesh *mesh = (Mesh *)object_orig->data;
+        mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+      }
+      mesh_component.copy_vertex_group_names_from_object(*object_orig);
+    }
+    else if (object_orig->type == OB_POINTCLOUD) {
+      PointCloud *pointcloud = (PointCloud *)object_orig->data;
+      PointCloudComponent &pointcloud_component =
+          geometry_set.get_component_for_write<PointCloudComponent>();
+      pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
   }
   return geometry_set;
@@ -480,18 +514,29 @@ static Span<int64_t> filter_mesh_elements_by_selection(const bContext *C,
   return IndexRange(domain_size).as_span();
 }
 
+static GeometryComponentType get_display_component_type(const bContext *C, Object *object_eval)
+{
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+    return (GeometryComponentType)sspreadsheet->geometry_component_type;
+  }
+  if (object_eval->type == OB_POINTCLOUD) {
+    return GEO_COMPONENT_TYPE_POINT_CLOUD;
+  }
+  return GEO_COMPONENT_TYPE_MESH;
+}
+
 std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(const bContext *C,
                                                                                Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
-  const GeometryComponentType component_type = (GeometryComponentType)
-                                                   sspreadsheet->geometry_component_type;
+  const GeometryComponentType component_type = get_display_component_type(C, object_eval);
 
   /* Create a resource collector that owns stuff that needs to live until drawing is done. */
   std::unique_ptr<ResourceCollector> resources = std::make_unique<ResourceCollector>();
   GeometrySet &geometry_set = resources->add_value(
-      get_display_geometry_set(object_eval, component_type), "geometry set");
+      get_display_geometry_set(sspreadsheet, object_eval, component_type), "geometry set");
 
   const GeometryComponent *component = geometry_set.get_component_for_read(component_type);
   if (component == nullptr) {
