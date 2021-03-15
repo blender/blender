@@ -22,7 +22,7 @@ shader node_tangent(normal NormalIn = N,
                     string axis = "z",
                     output normal Tangent = normalize(dPdu))
 {
-  vector T;
+  vector T = vector(0.0, 0.0, 0.0);
 
   if (direction_type == "uv_map") {
     getattribute(attr_name, T);
