@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_resource_collector.hh"
 
 #include "BKE_screen.h"
 
@@ -42,6 +43,7 @@
 
 #include "spreadsheet_intern.hh"
 
+#include "spreadsheet_column_layout.hh"
 #include "spreadsheet_from_geometry.hh"
 #include "spreadsheet_intern.hh"
 
@@ -134,39 +136,44 @@ static ID *get_used_id(const bContext *C)
 class FallbackSpreadsheetDrawer : public SpreadsheetDrawer {
 };
 
-static std::unique_ptr<SpreadsheetDrawer> generate_spreadsheet_drawer(const bContext *C)
+static void gather_spreadsheet_columns(const bContext *C,
+                                       SpreadsheetColumnLayout &column_layout,
+                                       blender::ResourceCollector &resources)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ID *used_id = get_used_id(C);
   if (used_id == nullptr) {
-    return {};
+    return;
   }
   const ID_Type id_type = GS(used_id->name);
   if (id_type != ID_OB) {
-    return {};
+    return;
   }
   Object *object_orig = (Object *)used_id;
   if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD)) {
-    return {};
+    return;
   }
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
   if (object_eval == nullptr) {
-    return {};
+    return;
   }
 
-  return spreadsheet_drawer_from_geometry_attributes(C, object_eval);
+  return spreadsheet_columns_from_geometry(C, object_eval, column_layout, resources);
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  std::unique_ptr<SpreadsheetDrawer> drawer = generate_spreadsheet_drawer(C);
-  if (!drawer) {
-    sspreadsheet->runtime->visible_rows = 0;
-    sspreadsheet->runtime->tot_columns = 0;
-    sspreadsheet->runtime->tot_rows = 0;
-    drawer = std::make_unique<FallbackSpreadsheetDrawer>();
-  }
+
+  blender::ResourceCollector resources;
+  SpreadsheetColumnLayout column_layout;
+  gather_spreadsheet_columns(C, column_layout, resources);
+
+  sspreadsheet->runtime->visible_rows = column_layout.row_indices.size();
+  sspreadsheet->runtime->tot_columns = column_layout.columns.size();
+  sspreadsheet->runtime->tot_rows = column_layout.tot_rows;
+
+  std::unique_ptr<SpreadsheetDrawer> drawer = spreadsheet_drawer_from_column_layout(column_layout);
   draw_spreadsheet_in_region(C, region, *drawer);
 
   /* Tag footer for redraw, because the main region updates data for the footer. */
