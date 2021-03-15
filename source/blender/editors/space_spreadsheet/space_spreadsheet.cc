@@ -272,8 +272,11 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
   std::stringstream ss;
-  ss << "Rows: " << runtime->visible_rows << " / " << runtime->tot_rows
-     << "   |   Columns: " << runtime->tot_columns;
+  ss << "Rows: ";
+  if (runtime->visible_rows != runtime->tot_rows) {
+    ss << runtime->visible_rows << " / ";
+  }
+  ss << runtime->tot_rows << "   |   Columns: " << runtime->tot_columns;
   std::string stats_str = ss.str();
 
   UI_ThemeClearColor(TH_BACK);
