@@ -60,6 +60,8 @@ typedef struct bNodeLinkDrag {
 
   /** Temporarily stores the last picked link from multi input socket operator. */
   struct bNodeLink *last_picked_multi_input_socket_link;
+
+  struct bNode *last_node_hovered_while_dragging_a_link;
 } bNodeLinkDrag;
 
 typedef struct SpaceNode_Runtime {
@@ -77,7 +79,6 @@ typedef struct SpaceNode_Runtime {
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
   struct NodeInsertOfsData *iofsd;
-  struct bNode *last_node_hovered_while_dragging_a_link;
 } SpaceNode_Runtime;
 
 /* space_node.c */
