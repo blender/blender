@@ -777,7 +777,7 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const
+  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const final
   {
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
@@ -804,22 +804,22 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
                                                              std::move(normals));
   }
 
-  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const
+  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const final
   {
     return {};
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const
+  bool try_delete(GeometryComponent &UNUSED(component)) const final
   {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component)) const
+  bool try_create(GeometryComponent &UNUSED(component)) const final
   {
     return false;
   }
 
-  bool exists(const GeometryComponent &component) const
+  bool exists(const GeometryComponent &component) const final
   {
     return component.attribute_domain_size(ATTR_DOMAIN_POLYGON) != 0;
   }
