@@ -35,6 +35,7 @@ struct Main;
 struct Scene;
 struct SeqIndexBuildContext;
 struct Sequence;
+struct SeqRenderData;
 
 bool SEQ_proxy_rebuild_context(struct Main *bmain,
                                struct Depsgraph *depsgraph,
@@ -48,7 +49,7 @@ void SEQ_proxy_rebuild(struct SeqIndexBuildContext *context,
                        float *progress);
 void SEQ_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
 void SEQ_proxy_set(struct Sequence *seq, bool value);
-bool SEQ_can_use_proxy(struct Sequence *seq, int psize);
+bool SEQ_can_use_proxy(const struct SeqRenderData *context, struct Sequence *seq, int psize);
 int SEQ_rendersize_to_proxysize(int render_size);
 double SEQ_rendersize_to_scale_factor(int size);
 

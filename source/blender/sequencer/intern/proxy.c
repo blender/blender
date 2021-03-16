@@ -199,11 +199,12 @@ static bool seq_proxy_get_fname(Editing *ed,
   return true;
 }
 
-bool SEQ_can_use_proxy(Sequence *seq, int psize)
+bool SEQ_can_use_proxy(const struct SeqRenderData *context, Sequence *seq, int psize)
 {
-  if (seq->strip->proxy == NULL) {
+  if (seq->strip->proxy == NULL || !context->use_proxies) {
     return false;
   }
+
   short size_flags = seq->strip->proxy->build_size_flags;
   return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
 }
@@ -217,7 +218,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   StripAnim *sanim;
 
   /* only use proxies, if they are enabled (even if present!) */
-  if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(psize))) {
+  if (!SEQ_can_use_proxy(context, seq, SEQ_rendersize_to_proxysize(psize))) {
     return NULL;
   }
 

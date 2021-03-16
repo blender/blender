@@ -62,6 +62,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 
+#include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -99,6 +100,15 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   }
 
   return render_size;
+}
+
+static bool can_use_proxy(Sequence *seq, int psize)
+{
+  if (seq->strip->proxy == NULL) {
+    return false;
+  }
+  short size_flags = seq->strip->proxy->build_size_flags;
+  return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
@@ -149,7 +159,7 @@ static void seq_convert_transform_crop(const Scene *scene,
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
 
-    if (SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+    if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
       image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
       image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
     }
@@ -282,7 +292,7 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   int image_size_x = s_elem->orig_width;
   int image_size_y = s_elem->orig_height;
 
-  if (SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+  if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
     image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
     image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
   }
@@ -1841,6 +1851,30 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 12)) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              if (ELEM(sseq->render_size,
+                       SEQ_RENDER_SIZE_PROXY_100,
+                       SEQ_RENDER_SIZE_PROXY_75,
+                       SEQ_RENDER_SIZE_PROXY_50,
+                       SEQ_RENDER_SIZE_PROXY_25)) {
+                sseq->flag |= SEQ_USE_PROXIES;
+              }
+              if (sseq->render_size == SEQ_RENDER_SIZE_FULL) {
+                sseq->render_size = SEQ_RENDER_SIZE_PROXY_100;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1852,22 +1886,5 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-          if (sl->spacetype == SPACE_SPREADSHEET) {
-            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
-                                                                   &sl->regionbase;
-            ARegion *new_footer = do_versions_add_region_if_not_found(
-                regionbase, RGN_TYPE_FOOTER, "footer for spreadsheet", RGN_TYPE_HEADER);
-            if (new_footer != NULL) {
-              new_footer->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP :
-                                                                        RGN_ALIGN_BOTTOM;
-            }
-          }
-        }
-      }
-    }
   }
 }
