@@ -62,20 +62,16 @@ class NodeOperationBuilder {
     }
   };
 
-  typedef std::vector<Link> Links;
-
   typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
   typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
-
-  typedef std::vector<NodeOperationInput *> OpInputs;
-  typedef std::map<NodeInput *, OpInputs> OpInputInverseMap;
+  typedef std::map<NodeInput *, blender::Vector<NodeOperationInput *>> OpInputInverseMap;
 
  private:
   const CompositorContext *m_context;
   NodeGraph m_graph;
 
   blender::Vector<NodeOperation *> m_operations;
-  Links m_links;
+  blender::Vector<Link> m_links;
   blender::Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
@@ -127,8 +123,8 @@ class NodeOperationBuilder {
 
  protected:
   static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);
-  static const OpInputs &find_operation_inputs(const OpInputInverseMap &map,
-                                               NodeInput *node_input);
+  static const blender::Vector<NodeOperationInput *> &find_operation_inputs(
+      const OpInputInverseMap &map, NodeInput *node_input);
   static NodeOperationOutput *find_operation_output(const OutputSocketMap &map,
                                                     NodeOutput *node_output);
 
@@ -146,7 +142,7 @@ class NodeOperationBuilder {
   void determineResolutions();
 
   /** Helper function to store connected inputs for replacement */
-  OpInputs cache_output_links(NodeOperationOutput *output) const;
+  blender::Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;
   /** Find a connected write buffer operation to an OpOutput */
   WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
   /** Add read/write buffer operations around complex operations */
