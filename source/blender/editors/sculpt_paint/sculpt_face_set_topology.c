@@ -96,7 +96,59 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+
+static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+
+  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+  MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
+
+  if (initial_poly->totloop != 4) {
+    return;
+  }
+
+  if (!ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  mesh->medge,
+                                  mesh->totedge,
+                                  mesh->mpoly,
+                                  mesh->totpoly,
+                                  mesh->mloop,
+                                  mesh->totloop);
+  }
+  if (!ss->vemap) {
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+  }
+
+  int closest_vert_index = mesh->mloop[initial_poly->loopstart].v;
+  for (int i = 0; i < initial_poly->totloop; i++) {
+    if (len_squared_v3v3(mvert[initial_poly->loopstart + i].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_index].co, ss->cursor_location)) {
+      closest_vert_index = initial_poly->loopstart + i;
+    }
+  }
+
+  int initial_edge_index = ss->vemap[closest_vert_index].indices[0];
+  int closest_vert_on_initial_edge_index = mesh->medge[initial_edge_index].v1 == closest_vert_index ? mesh->medge[initial_edge_index].v2 : mesh->medge[initial_edge_index].v1;
+  for (int i = 0; i < ss->vemap[closest_vert_index].count; i++) {
+    const int edge_index = ss->vemap[closest_vert_index].indices[i];
+    const int other_vert = mesh->medge[edge_index].v1 == closest_vert_index ? mesh->medge[edge_index].v2 : mesh->medge[edge_index].v1;
+    if (len_squared_v3v3(mvert[other_vert].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_on_initial_edge_index].co, ss->cursor_location)) {
+      initial_edge_index = edge_index;
+      closest_vert_on_initial_edge_index = other_vert;
+    }
+  }
+
+  
+
+  
+
+}
+
+static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -129,6 +181,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
       break;
 
     case SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP:
+      sculpt_face_set_by_topology_poly_loop(ob, next_face_set);
       break;
   }
 
@@ -146,7 +199,7 @@ void SCULPT_OT_face_set_by_topology(struct wmOperatorType *ot)
   ot->description = "Create a new Face Set following the mesh topology";
 
   /* Api callbacks. */
-  ot->invoke = sculpt_face_set_edit_invoke;
+  ot->invoke = sculpt_face_set_by_topology_invoke;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
