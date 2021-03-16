@@ -860,7 +860,9 @@ class WM_OT_url_open_preset(Operator):
 
     type: EnumProperty(
         name="Site",
-        items=WM_OT_url_open_preset._preset_items,
+        items=lambda self, _context: (
+            item for (item, _) in WM_OT_url_open_preset.preset_items
+        ),
     )
 
     id: StringProperty(
@@ -914,10 +916,6 @@ class WM_OT_url_open_preset(Operator):
           "Lists committers to Blender's source code"),
          "https://www.blender.org/about/credits/"),
     ]
-
-    @staticmethod
-    def _preset_items(_self, _context):
-        return (item for (item, _) in WM_OT_url_open_preset.preset_items)
 
     def execute(self, context):
         url = None
@@ -1220,13 +1218,10 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=WM_OT_properties_edit._subtype_items_fn,
+        items=lambda self, _context: WM_OT_properties_edit.subtype_items,
     )
 
     subtype_items = rna_vector_subtype_items
-
-    def _subtype_items_fn(_self, _context):
-        return WM_OT_properties_edit.subtype_items
 
     def _init_subtype(self, prop_type, is_array, subtype):
         subtype = subtype or 'NONE'
