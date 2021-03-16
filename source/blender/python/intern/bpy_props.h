@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 PyObject *BPY_rna_props(void);
+void BPY_rna_props_clear_all(void);
 
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);

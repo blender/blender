@@ -29,6 +29,7 @@
 
 #include "RNA_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "bpy_capi_utils.h"
@@ -47,14 +48,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-/* initial definition of callback slots we'll probably have more than 1 */
-enum {
-  BPY_DATA_CB_SLOT_UPDATE = 0,
-  BPY_DATA_CB_SLOT_GET = 1,
-  BPY_DATA_CB_SLOT_SET = 2,
-  BPY_DATA_CB_SLOT_POLL = 3,
-  BPY_DATA_CB_SLOT_SIZE = 4,
-};
+static struct BPyPropStore *bpy_prop_py_data_ensure(struct PropertyRNA *prop);
 
 static const EnumPropertyItem property_flag_items[] = {
     {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
@@ -192,6 +186,83 @@ static const EnumPropertyItem property_subtype_array_items[] = {
   "'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', " \
   "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
   "   :type subtype: string\n"
+
+/* -------------------------------------------------------------------- */
+/** \name Python Property Storage API
+ *
+ * Functionality needed to use Python native callbacks from generic C RNA callbacks.
+ * \{ */
+
+/**
+ * Slots for #PyObject slots stored in #PropertyRNA.py_data (these hold a reference).
+ * #bpy_prop_callback_free_py_data manages decrementing.
+ */
+struct BPyPropStore {
+  struct BPyPropStore *next, *prev;
+
+  /**
+   * Only store #PyObject types, can be cast to an an array and operated on.
+   * NULL members are ignored/skipped. */
+  struct {
+    PyObject *update_fn;
+    PyObject *get_fn;
+    PyObject *set_fn;
+    PyObject *poll_fn;
+    /** Arguments by type. */
+    union {
+      struct {
+        PyObject *itemf_fn;
+      } enum_data;
+    };
+  } py_data;
+};
+
+#define BPY_PROP_STORE_PY_DATA_SIZE \
+  (sizeof(((struct BPyPropStore *)NULL)->py_data) / sizeof(PyObject *))
+
+#define ASSIGN_PYOBJECT_INCREF(a, b) \
+  { \
+    BLI_assert((a) == NULL); \
+    Py_INCREF(b); \
+    a = b; \
+  } \
+  ((void)0)
+
+/**
+ * Maintain a list of Python defined properties, so the GC can visit them,
+ * and so they can be cleared on exit.
+ */
+static ListBase g_bpy_prop_store_list = {NULL, NULL};
+
+static struct BPyPropStore *bpy_prop_py_data_ensure(struct PropertyRNA *prop)
+{
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
+  if (prop_store == NULL) {
+    prop_store = MEM_callocN(sizeof(*prop_store), __func__);
+    RNA_def_py_data(prop, prop_store);
+    BLI_addtail(&g_bpy_prop_store_list, prop_store);
+  }
+  return prop_store;
+}
+
+/**
+ * Perform all removal actions except for freeing, which is handled by RNA.
+ */
+static void bpy_prop_py_data_remove(PropertyRNA *prop)
+{
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
+  if (prop_store == NULL) {
+    return;
+  }
+
+  PyObject **py_data = (PyObject **)&prop_store->py_data;
+  for (int i = 0; i < BPY_PROP_STORE_PY_DATA_SIZE; i++) {
+    Py_XDECREF(py_data[i]);
+  }
+  BLI_remlink(&g_bpy_prop_store_list, prop_store);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Deferred Property Type
@@ -371,15 +442,15 @@ static void bpy_prop_update_cb(struct bContext *C,
                                struct PointerRNA *ptr,
                                struct PropertyRNA *prop)
 {
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyGILState_STATE gilstate;
-  PyObject **py_data = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
   PyObject *ret;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -387,7 +458,7 @@ static void bpy_prop_update_cb(struct bContext *C,
 
   bpy_context_set(C, &gilstate);
 
-  py_func = py_data[BPY_DATA_CB_SLOT_UPDATE];
+  py_func = prop_store->py_data.update_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -421,7 +492,7 @@ static void bpy_prop_update_cb(struct bContext *C,
 
 static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -431,7 +502,7 @@ static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *
   const bool is_write_ok = pyrna_write_check();
   bool value;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -443,7 +514,7 @@ static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -484,7 +555,7 @@ static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *
 
 static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -493,7 +564,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -505,7 +576,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -542,10 +613,10 @@ static bool bpy_prop_poll_cb(struct PointerRNA *self,
                              PointerRNA candidate,
                              struct PropertyRNA *prop)
 {
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_self;
   PyObject *py_candidate;
   PyObject *py_func;
-  PyObject **py_data = RNA_property_py_data_get(prop);
   PyObject *args;
   PyObject *ret;
   bool result;
@@ -556,7 +627,7 @@ static bool bpy_prop_poll_cb(struct PointerRNA *self,
 
   py_self = pyrna_struct_as_instance(self);
   py_candidate = pyrna_struct_as_instance(&candidate);
-  py_func = py_data[BPY_DATA_CB_SLOT_POLL];
+  py_func = prop_store->py_data.poll_fn;
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -591,7 +662,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr,
                                           struct PropertyRNA *prop,
                                           bool *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -601,7 +672,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   int i, len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -613,7 +684,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -658,7 +729,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
                                           struct PropertyRNA *prop,
                                           const bool *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -669,7 +740,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -681,7 +752,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -717,7 +788,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
 
 static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -727,7 +798,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
   const bool is_write_ok = pyrna_write_check();
   int value;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -739,7 +810,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -777,7 +848,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 
 static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -786,7 +857,7 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -798,7 +869,7 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -835,7 +906,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr,
                                       struct PropertyRNA *prop,
                                       int *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -845,7 +916,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   int i, len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -857,7 +928,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -902,7 +973,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
                                       struct PropertyRNA *prop,
                                       const int *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -913,7 +984,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -925,7 +996,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -961,7 +1032,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
 
 static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -971,7 +1042,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   const bool is_write_ok = pyrna_write_check();
   float value;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -983,7 +1054,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -1021,7 +1092,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, float value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1030,7 +1101,7 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1042,7 +1113,7 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -1079,7 +1150,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr,
                                         struct PropertyRNA *prop,
                                         float *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1089,7 +1160,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   int i, len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1101,7 +1172,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -1146,7 +1217,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
                                         struct PropertyRNA *prop,
                                         const float *values)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1157,7 +1228,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   const int len = RNA_property_array_length(ptr, prop);
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1169,7 +1240,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -1205,7 +1276,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
 
 static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1214,7 +1285,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1226,7 +1297,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -1265,7 +1336,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 
 static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1275,7 +1346,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
   const bool is_write_ok = pyrna_write_check();
   int length;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1287,7 +1358,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -1330,7 +1401,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
                                    struct PropertyRNA *prop,
                                    const char *value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1340,7 +1411,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
   const bool is_write_ok = pyrna_write_check();
   PyObject *py_value;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1352,7 +1423,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -1394,7 +1465,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
 
 static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1404,7 +1475,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
   const bool is_write_ok = pyrna_write_check();
   int value;
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1416,7 +1487,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_GET];
+  py_func = prop_store->py_data.get_fn;
 
   args = PyTuple_New(1);
   self = pyrna_struct_as_instance(ptr);
@@ -1454,7 +1525,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 
 static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
-  PyObject **py_data = RNA_property_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
   PyObject *args;
   PyObject *self;
@@ -1463,7 +1534,7 @@ static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pro
   bool use_gil;
   const bool is_write_ok = pyrna_write_check();
 
-  BLI_assert(py_data != NULL);
+  BLI_assert(prop_store != NULL);
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1475,7 +1546,7 @@ static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pro
     gilstate = PyGILState_Ensure();
   }
 
-  py_func = py_data[BPY_DATA_CB_SLOT_SET];
+  py_func = prop_store->py_data.set_fn;
 
   args = PyTuple_New(2);
   self = pyrna_struct_as_instance(ptr);
@@ -1732,8 +1803,8 @@ static const EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C,
                                                       bool *r_free)
 {
   PyGILState_STATE gilstate;
-
-  PyObject *py_func = RNA_property_enum_py_data_get(prop);
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
+  PyObject *py_func = prop_store->py_data.enum_data.itemf_fn;
   PyObject *self = NULL;
   PyObject *args;
   PyObject *items; /* returned from the function call */
@@ -1836,24 +1907,14 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
   return 0;
 }
 
-static PyObject **bpy_prop_py_data_get(struct PropertyRNA *prop)
-{
-  PyObject **py_data = RNA_property_py_data_get(prop);
-  if (!py_data) {
-    py_data = MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, __func__);
-    RNA_def_py_data(prop, py_data);
-  }
-  return py_data;
-}
-
 static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *update_cb)
 {
   /* assume this is already checked for type and arg length */
   if (update_cb && update_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
-    py_data[BPY_DATA_CB_SLOT_UPDATE] = update_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.update_fn, update_cb);
 
     RNA_def_property_flag(prop, PROP_CONTEXT_PROPERTY_UPDATE);
   }
@@ -1862,10 +1923,10 @@ static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *
 static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject *poll_cb)
 {
   if (poll_cb && poll_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_poll_runtime(prop, (void *)bpy_prop_poll_cb);
-    py_data[BPY_DATA_CB_SLOT_POLL] = poll_cb;
+    RNA_def_property_poll_runtime(prop, bpy_prop_poll_cb);
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.poll_fn, poll_cb);
   }
 }
 
@@ -1877,17 +1938,17 @@ static void bpy_prop_callback_assign_boolean(struct PropertyRNA *prop,
   BooleanPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_boolean_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_boolean_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_boolean_funcs_runtime(prop, rna_get_cb, rna_set_cb);
@@ -1901,17 +1962,17 @@ static void bpy_prop_callback_assign_boolean_array(struct PropertyRNA *prop,
   BooleanArrayPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_boolean_array_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_boolean_array_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_boolean_array_funcs_runtime(prop, rna_get_cb, rna_set_cb);
@@ -1925,17 +1986,17 @@ static void bpy_prop_callback_assign_int(struct PropertyRNA *prop,
   IntPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_int_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_int_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_int_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
@@ -1949,17 +2010,17 @@ static void bpy_prop_callback_assign_int_array(struct PropertyRNA *prop,
   IntArrayPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_int_array_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_int_array_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_int_array_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
@@ -1973,17 +2034,17 @@ static void bpy_prop_callback_assign_float(struct PropertyRNA *prop,
   FloatPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_float_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_float_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_float_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
@@ -1997,17 +2058,17 @@ static void bpy_prop_callback_assign_float_array(struct PropertyRNA *prop,
   FloatArrayPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_float_array_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_float_array_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_float_array_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
@@ -2022,18 +2083,18 @@ static void bpy_prop_callback_assign_string(struct PropertyRNA *prop,
   StringPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_string_get_cb;
     rna_length_cb = bpy_prop_string_length_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_string_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   RNA_def_property_string_funcs_runtime(prop, rna_get_cb, rna_length_cb, rna_set_cb);
@@ -2049,26 +2110,23 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
   EnumPropertySetFunc rna_set_cb = NULL;
 
   if (get_cb && get_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_get_cb = bpy_prop_enum_get_cb;
-    py_data[BPY_DATA_CB_SLOT_GET] = get_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
   }
 
   if (set_cb && set_cb != Py_None) {
-    PyObject **py_data = bpy_prop_py_data_get(prop);
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     rna_set_cb = bpy_prop_enum_set_cb;
-    py_data[BPY_DATA_CB_SLOT_SET] = set_cb;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
   }
 
   if (itemf_cb && itemf_cb != Py_None) {
+    struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
     rna_itemf_cb = bpy_prop_enum_itemf_cb;
-    RNA_def_property_enum_py_data(prop, (void *)itemf_cb);
-
-    /* watch out!, if a user is tricky they can probably crash blender
-     * if they manage to free the callback, take care! */
-    /* Py_INCREF(itemf_cb); */
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.enum_data.itemf_fn, itemf_cb);
   }
 
   RNA_def_property_enum_funcs_runtime(prop, rna_get_cb, rna_set_cb, rna_itemf_cb);
@@ -3723,6 +3781,28 @@ static struct PyMethodDef props_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+static int props_visit(PyObject *UNUSED(self), visitproc visit, void *arg)
+{
+  LISTBASE_FOREACH (struct BPyPropStore *, prop_store, &g_bpy_prop_store_list) {
+    PyObject **py_data = (PyObject **)&prop_store->py_data;
+    for (int i = 0; i < BPY_PROP_STORE_PY_DATA_SIZE; i++) {
+      Py_VISIT(py_data[i]);
+    }
+  }
+  return 0;
+}
+
+static int props_clear(PyObject *UNUSED(self))
+{
+  LISTBASE_FOREACH (struct BPyPropStore *, prop_store, &g_bpy_prop_store_list) {
+    PyObject **py_data = (PyObject **)&prop_store->py_data;
+    for (int i = 0; i < BPY_PROP_STORE_PY_DATA_SIZE; i++) {
+      Py_CLEAR(py_data[i]);
+    }
+  }
+  return 0;
+}
+
 static struct PyModuleDef props_module = {
     PyModuleDef_HEAD_INIT,
     "bpy.props",
@@ -3735,8 +3815,8 @@ static struct PyModuleDef props_module = {
     -1, /* multiple "initialization" just copies the module dict. */
     props_methods,
     NULL,
-    NULL,
-    NULL,
+    props_visit,
+    props_clear,
     NULL,
 };
 
@@ -3770,5 +3850,24 @@ PyObject *BPY_rna_props(void)
   }
   PyModule_AddType(submodule, &bpy_prop_deferred_Type);
 
+  /* Run this when properties are freed. */
+  RNA_def_property_free_pointers_set_py_data_callback(bpy_prop_py_data_remove);
+
   return submodule;
+}
+
+/**
+ * Run this on exit, clearing all Python callback users and disable the RNA callback,
+ * as it would be called after Python has already finished.
+ */
+void BPY_rna_props_clear_all(void)
+{
+  /* Remove all user counts, so this isn't considered a leak from Python's perspective. */
+  props_clear(NULL);
+
+  /* Running is harmless, but redundant. */
+  RNA_def_property_free_pointers_set_py_data_callback(NULL);
+
+  /* Include as it's correct, in practice this should never be used again. */
+  BLI_listbase_clear(&g_bpy_prop_store_list);
 }
