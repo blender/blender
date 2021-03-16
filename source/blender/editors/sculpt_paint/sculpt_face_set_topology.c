@@ -97,6 +97,43 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
 };
 
 
+
+
+#define SCULPT_FACE_SET_LOOP_STEP_NONE -1
+static bool sculpt_face_set_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
+   if (!ss->epmap) {
+     return false;
+   }
+
+   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
+   for (int i = 0; i < ss->epmap[edge].count; i++) {
+     if (ss->epmap[edge].indices[i] != from_poly) {
+       next_poly = ss->epmap[edge].indices[i];
+     }
+   }
+
+   if (next_poly == SCULPT_FACE_SET_LOOP_STEP_NONE) {
+     return false;
+   }
+}
+
+static int sculpt_face_set_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
+  if (ss->mpoly[poly].totloop != 4) {
+    return edge;
+  } 
+  
+  int edge_index_in_poly = 0;
+  for (int i = 0; i < ss->mpoly[poly].totloop; i++) {
+     if (edge == ss->mloop[ss->mpoly[poly].loopstart + i].e) {
+       edge_index_in_poly = i;
+       break;
+     }
+  }
+
+  const int next_edge_index_in_poly = (edge_index_in_poly + 2) % 4;
+  return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
+}
+
 static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -142,10 +179,26 @@ static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_fac
     }
   }
 
-  
+  ss->face_sets[ss->active_face_index] = next_face_set_id;
 
-  
+  int current_poly = ss->active_face_index;
+  int current_edge = initial_edge_index;
+  int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
+  while(sculpt_face_set_loop_step(ss, current_poly, current_edge, &next_poly)) {
+    if (ss->face_sets[next_poly] == next_face_set_id) {
+      break;
+    }
+    if (ss->face_sets[next_poly] < 0) {
+      break;
+    }
+    if (ss->mpoly[next_poly].totloop != 4) {
+      break;
+    }
 
+    ss->face_sets[next_poly] = next_face_set_id;
+    current_edge = sculpt_face_set_loop_opposite_edge_in_quad(ss, next_poly, current_edge);
+    current_poly = next_poly;
+  }
 }
 
 static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const wmEvent *event)
