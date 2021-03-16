@@ -270,8 +270,7 @@ void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 void NodeOperationBuilder::add_datatype_conversions()
 {
   Links convert_links;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    const Link &link = *it;
+  for (const Link &link : m_links) {
 
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
@@ -284,8 +283,7 @@ void NodeOperationBuilder::add_datatype_conversions()
       convert_links.push_back(link);
     }
   }
-  for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
-    const Link &link = *it;
+  for (const Link &link : convert_links) {
     NodeOperation *converter = COM_convert_data_type(*link.from(), *link.to());
     if (converter) {
       addOperation(converter);
