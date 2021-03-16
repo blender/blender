@@ -130,9 +130,9 @@ PyDoc_STRVAR(pygpu_shader_uniform_from_name_doc,
              "   Get uniform location by name.\n"
              "\n"
              "   :param name: Name of the uniform variable whose location is to be queried.\n"
-             "   :type name: `str`\n"
+             "   :type name: str\n"
              "   :return: Location of the uniform variable.\n"
-             "   :rtype: `int`\n");
+             "   :rtype: int\n");
 static PyObject *pygpu_shader_uniform_from_name(BPyGPUShader *self, PyObject *arg)
 {
   const char *name = PyUnicode_AsUTF8(arg);
@@ -157,9 +157,9 @@ PyDoc_STRVAR(
     "   Get uniform block location by name.\n"
     "\n"
     "   :param name: Name of the uniform block variable whose location is to be queried.\n"
-    "   :type name: `str`\n"
+    "   :type name: str\n"
     "   :return: The location of the uniform block variable.\n"
-    "   :rtype: `int`\n");
+    "   :rtype: int\n");
 static PyObject *pygpu_shader_uniform_block_from_name(BPyGPUShader *self, PyObject *arg)
 {
   const char *name = PyUnicode_AsUTF8(arg);
@@ -559,7 +559,7 @@ PyDoc_STRVAR(pygpu_shader_calc_format_doc,
              "   Build a new format based on the attributes of the shader.\n"
              "\n"
              "   :return: vertex attribute format for the shader\n"
-             "   :rtype: GPUVertFormat\n");
+             "   :rtype: :class:`gpu.types.GPUVertFormat`\n");
 static PyObject *pygpu_shader_calc_format(BPyGPUShader *self, PyObject *UNUSED(arg))
 {
   BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);

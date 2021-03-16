@@ -272,21 +272,17 @@ static PyObject *pygpu_texture_format_get(BPyGPUTexture *self, void *UNUSED(type
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_textureformat_items, format));
 }
 
-PyDoc_STRVAR(pygpu_texture_clear_doc,
-             ".. method:: clear(format='FLOAT', value=(0.0, 0.0, 0.0, 1.0))\n"
-             "\n"
-             "   Fill texture with specific value.\n"
-             "\n"
-             "   :param format: One of these primitive types: {\n"
-             "      `FLOAT`,\n"
-             "      `INT`,\n"
-             "      `UINT`,\n"
-             "      `UBYTE`,\n"
-             "      `UINT_24_8`,\n"
-             "      `10_11_11_REV`,\n"
-             "   :type type: `str`\n"
-             "   :arg value: sequence each representing the value to fill.\n"
-             "   :type value: sequence of 1, 2, 3 or 4 values\n");
+PyDoc_STRVAR(
+    pygpu_texture_clear_doc,
+    ".. method:: clear(format='FLOAT', value=(0.0, 0.0, 0.0, 1.0))\n"
+    "\n"
+    "   Fill texture with specific value.\n"
+    "\n"
+    "   :param format: The format that describes the content of a single item.\n"
+    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
+    "   :type type: str\n"
+    "   :arg value: sequence each representing the value to fill.\n"
+    "   :type value: sequence of 1, 2, 3 or 4 values\n");
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
@@ -447,12 +443,12 @@ PyDoc_STRVAR(
     "   This object gives access to off GPU textures.\n"
     "\n"
     "   :arg size: Dimensions of the texture 1D, 2D, 3D or cubemap.\n"
-    "   :type size: `tuple` or `int`\n"
+    "   :type size: tuple or int\n"
     "   :arg layers: Number of layers in texture array or number of cubemaps in cubemap array\n"
-    "   :type layers: `int`\n"
+    "   :type layers: int\n"
     "   :arg is_cubemap: Indicates the creation of a cubemap texture.\n"
-    "   :type is_cubemap: `int`\n"
-    "   :arg format: One of these primitive types: {\n"
+    "   :type is_cubemap: int\n"
+    "   :arg format: Internal data format inside GPU memory. Possible values are:\n"
     "      `RGBA8UI`,\n"
     "      `RGBA8I`,\n"
     "      `RGBA8`,\n"
@@ -497,9 +493,9 @@ PyDoc_STRVAR(
     "      `DEPTH_COMPONENT32F`,\n"
     "      `DEPTH_COMPONENT24`,\n"
     "      `DEPTH_COMPONENT16`,\n"
-    "   :type format: `str`\n"
+    "   :type format: str\n"
     "   :arg data: Buffer object to fill the texture.\n"
-    "   :type data: `Buffer`\n");
+    "   :type data: :class:`gpu.types.Buffer`\n");
 PyTypeObject BPyGPUTexture_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUTexture",
     .tp_basicsize = sizeof(BPyGPUTexture),
