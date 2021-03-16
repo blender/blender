@@ -55,6 +55,7 @@
 #include "IMB_metadata.h"
 
 #include "SEQ_proxy.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
@@ -395,6 +396,17 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
+static bool seq_proxy_need_rebuild(Sequence *seq, struct anim *anim)
+{
+  if ((seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0) {
+    return true;
+  }
+
+  IMB_Proxy_Size required_proxies = seq->strip->proxy->build_size_flags;
+  IMB_Proxy_Size built_proxies = IMB_anim_proxy_get_existing(anim);
+  return (required_proxies & built_proxies) != required_proxies;
+}
+
 bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
                                Scene *scene,
@@ -423,6 +435,16 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
       continue;
     }
 
+    /* Check if proxies are already built here, because actually opening anims takes a lot of
+     * time. */
+    seq_open_anim_file(scene, seq, false);
+    StripAnim *sanim = BLI_findlink(&seq->anims, i);
+    if (sanim->anim && !seq_proxy_need_rebuild(seq, sanim->anim)) {
+      continue;
+    }
+
+    SEQ_relations_sequence_free_anim(seq);
+
     context = MEM_callocN(sizeof(SeqIndexBuildContext), "seq proxy rebuild context");
 
     nseq = SEQ_sequence_dupli_recursive(scene, scene, NULL, seq, 0);
@@ -441,28 +463,25 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->view_id = i; /* only for images */
 
     if (nseq->type == SEQ_TYPE_MOVIE) {
-      StripAnim *sanim;
-
       seq_open_anim_file(scene, nseq, true);
       sanim = BLI_findlink(&nseq->anims, i);
 
-      if (sanim->anim) {
-        context->index_context = IMB_anim_index_rebuild_context(sanim->anim,
-                                                                context->tc_flags,
-                                                                context->size_flags,
-                                                                context->quality,
-                                                                context->overwrite,
-                                                                file_list);
-      }
-      if (!context->index_context) {
-        MEM_freeN(context);
-        return false;
-      }
+      context->index_context = IMB_anim_index_rebuild_context(sanim->anim,
+                                                              context->tc_flags,
+                                                              context->size_flags,
+                                                              context->quality,
+                                                              context->overwrite,
+                                                              file_list);
+    }
+    if (!context->index_context) {
+      SEQ_proxy_rebuild_finish(context, false);
+      return false;
     }
 
     link = BLI_genericNodeN(context);
     BLI_addtail(queue, link);
   }
+
   return true;
 }
 

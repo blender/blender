@@ -56,7 +56,9 @@
 
 #include "rna_internal.h"
 
+#include "SEQ_proxy.h"
 #include "SEQ_relations.h"
+#include "SEQ_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2234,6 +2236,48 @@ static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain),
                                             PointerRNA *UNUSED(ptr))
 {
   SEQ_cache_cleanup(scene);
+}
+
+static void seq_build_proxy(bContext *C, PointerRNA *ptr)
+{
+  if (U.sequencer_proxy_setup != USER_SEQ_PROXY_SETUP_AUTOMATIC) {
+    return;
+  }
+
+  SpaceSeq *sseq = ptr->data;
+  Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene, false));
+
+  GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
+  ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type != SEQ_TYPE_MOVIE) {
+      continue;
+    }
+
+    /* Add new proxy size. */
+    seq->strip->proxy->build_size_flags |= SEQ_rendersize_to_proxysize(sseq->render_size);
+
+    /* Build proxy. */
+    SEQ_proxy_rebuild_context(pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+  }
+
+  BLI_gset_free(file_list, MEM_freeN);
+
+  if (!WM_jobs_is_running(wm_job)) {
+    G.is_break = false;
+    WM_jobs_start(CTX_wm_manager(C), wm_job);
+  }
+
+  ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+static void rna_SequenceEditor_render_size_update(bContext *C, PointerRNA *ptr)
+{
+  seq_build_proxy(C, ptr);
+  rna_SequenceEditor_update_cache(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
 static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
@@ -5325,8 +5369,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "proxy_render_size", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "render_size");
   RNA_def_property_enum_items(prop, proxy_render_size_items);
-  RNA_def_property_ui_text(prop, "Preview Size", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
+  RNA_def_property_ui_text(prop,
+                           "Proxy Render Size",
+                           "Display preview using full resolution or different proxy resolutions");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_render_size_update");
 
   prop = RNA_def_property(srna, "use_proxies", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXIES);

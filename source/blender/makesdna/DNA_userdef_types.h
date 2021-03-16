@@ -921,7 +921,7 @@ typedef struct UserDef {
   int sequencer_disk_cache_compression; /* eUserpref_DiskCacheCompression */
   int sequencer_disk_cache_size_limit;
   short sequencer_disk_cache_flag;
-  char _pad5[2];
+  short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
 
   float collection_instance_empty_size;
   char _pad10[3];
@@ -1385,6 +1385,11 @@ typedef enum eUserpref_DiskCacheCompression {
   USER_SEQ_DISK_CACHE_COMPRESSION_LOW = 1,
   USER_SEQ_DISK_CACHE_COMPRESSION_HIGH = 2,
 } eUserpref_DiskCacheCompression;
+
+typedef enum eUserpref_SeqProxySetup {
+  USER_SEQ_PROXY_SETUP_MANUAL = 0,
+  USER_SEQ_PROXY_SETUP_AUTOMATIC = 1,
+} eUserpref_SeqProxySetup;
 
 /* Locale Ids. Auto will try to get local from OS. Our default is English though. */
 /** #UserDef.language */

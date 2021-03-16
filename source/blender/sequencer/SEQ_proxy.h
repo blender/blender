@@ -53,6 +53,17 @@ bool SEQ_can_use_proxy(const struct SeqRenderData *context, struct Sequence *seq
 int SEQ_rendersize_to_proxysize(int render_size);
 double SEQ_rendersize_to_scale_factor(int size);
 
+typedef struct ProxyBuildJob {
+  struct Main *main;
+  struct Depsgraph *depsgraph;
+  struct Scene *scene;
+  struct ListBase queue;
+  int stop;
+} ProxyJob;
+
+struct wmJob *ED_seq_proxy_wm_job_get(const struct bContext *C);
+ProxyJob *ED_seq_proxy_job_get(const struct bContext *C, struct wmJob *wm_job);
+
 #ifdef __cplusplus
 }
 #endif
