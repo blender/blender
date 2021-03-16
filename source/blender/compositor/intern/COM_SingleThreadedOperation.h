@@ -27,7 +27,7 @@ class SingleThreadedOperation : public NodeOperation {
  protected:
   inline bool isCached()
   {
-    return this->m_cachedInstance != NULL;
+    return this->m_cachedInstance != nullptr;
   }
 
  public:

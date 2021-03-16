@@ -42,7 +42,7 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   this->m_threshold = 1.0f;
   this->m_do_size_scale = false;
 #ifdef COM_DEFOCUS_SEARCH
-  this->m_inputSearchProgram = NULL;
+  this->m_inputSearchProgram = nullptr;
 #endif
 }
 
@@ -114,7 +114,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
   this->m_inputSearchProgram->read(search,
                                    x / InverseSearchRadiusOperation::DIVIDER,
                                    y / InverseSearchRadiusOperation::DIVIDER,
-                                   NULL);
+                                   nullptr);
   int minx = search[0];
   int miny = search[1];
   int maxx = search[2];
@@ -225,7 +225,7 @@ void VariableSizeBokehBlurOperation::deinitExecution()
   this->m_inputBokehProgram = nullptr;
   this->m_inputSizeProgram = nullptr;
 #ifdef COM_DEFOCUS_SEARCH
-  this->m_inputSearchProgram = NULL;
+  this->m_inputSearchProgram = nullptr;
 #endif
 }
 
@@ -281,7 +281,7 @@ InverseSearchRadiusOperation::InverseSearchRadiusOperation()
   this->addInputSocket(COM_DT_VALUE, COM_SC_NO_RESIZE);  // radius
   this->addOutputSocket(COM_DT_COLOR);
   this->setComplex(true);
-  this->m_inputRadius = NULL;
+  this->m_inputRadius = nullptr;
 }
 
 void InverseSearchRadiusOperation::initExecution()
@@ -359,7 +359,7 @@ void InverseSearchRadiusOperation::deinitializeTileData(rcti *rect, void *data)
 
 void InverseSearchRadiusOperation::deinitExecution()
 {
-  this->m_inputRadius = NULL;
+  this->m_inputRadius = nullptr;
 }
 
 void InverseSearchRadiusOperation::determineResolution(unsigned int resolution[2],
