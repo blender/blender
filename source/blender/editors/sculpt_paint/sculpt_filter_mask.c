@@ -1021,6 +1021,7 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   const int filter_type = RNA_enum_get(op->ptr, "filter_type");
+  const int direction = RNA_enum_get(op->ptr, "direction");
   const bool use_step_interpolation = RNA_boolean_get(op->ptr, "use_step_interpolation");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
   const float strength = RNA_float_get(op->ptr, "strength");
@@ -1035,12 +1036,13 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
     SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
   }
 
+  const int step = direction == MASK_FILTER_STEP_DIRECTION_FORWARD? 1 : -1;
   if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
-    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, strength);
+    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, step * strength);
   }
   else {
     sculpt_ipmask_filter_update_to_target_step(
-        ss, 1, iteration_count, 0.0f);
+        ss, step, iteration_count, 0.0f);
   }
 
    for (int i = 0; i < totnode; i++) {
@@ -1117,6 +1119,12 @@ static EnumPropertyItem prop_ipmask_filter_direction_types[] = {
                IPMASK_FILTER_GROW_SHRINK,
                "Type",
                "Filter that is going to be applied to the mask");
+  RNA_def_enum(ot->srna,
+               "direction",
+               prop_ipmask_filter_direction_types,
+               MASK_FILTER_STEP_DIRECTION_FORWARD,
+               "Direction",
+               "Direction to apply the filter step");
   RNA_def_int(ot->srna,
               "iterations",
               1,
