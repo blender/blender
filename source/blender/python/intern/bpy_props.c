@@ -48,7 +48,9 @@
 
 #include "../generic/py_capi_utils.h"
 
-static struct BPyPropStore *bpy_prop_py_data_ensure(struct PropertyRNA *prop);
+/* -------------------------------------------------------------------- */
+/** \name Shared Enums & Doc-Strings
+ * \{ */
 
 static const EnumPropertyItem property_flag_items[] = {
     {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
@@ -186,6 +188,8 @@ static const EnumPropertyItem property_subtype_array_items[] = {
   "'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', " \
   "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
   "   :type subtype: string\n"
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Python Property Storage API
@@ -437,6 +441,14 @@ static void bpy_prop_assign_flag_override(PropertyRNA *prop, const int flag_over
   RNA_def_property_override_flag(prop, flag_override);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Property Callbacks
+ *
+ * Unique data is accessed via #RNA_property_py_data_get
+ * \{ */
+
 /* callbacks */
 static void bpy_prop_update_fn(struct bContext *C,
                                struct PointerRNA *ptr,
@@ -489,6 +501,12 @@ static void bpy_prop_update_fn(struct bContext *C,
     pyrna_write_set(false);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Boolean Property Callbacks
+ * \{ */
 
 static bool bpy_prop_boolean_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
@@ -607,55 +625,6 @@ static void bpy_prop_boolean_set_fn(struct PointerRNA *ptr, struct PropertyRNA *
   if (!is_write_ok) {
     pyrna_write_set(false);
   }
-}
-
-static bool bpy_prop_poll_fn(struct PointerRNA *self,
-                             PointerRNA candidate,
-                             struct PropertyRNA *prop)
-{
-  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
-  PyObject *py_self;
-  PyObject *py_candidate;
-  PyObject *py_func;
-  PyObject *args;
-  PyObject *ret;
-  bool result;
-  const int is_write_ok = pyrna_write_check();
-  const PyGILState_STATE gilstate = PyGILState_Ensure();
-
-  BLI_assert(self != NULL);
-
-  py_self = pyrna_struct_as_instance(self);
-  py_candidate = pyrna_struct_as_instance(&candidate);
-  py_func = prop_store->py_data.poll_fn;
-
-  if (!is_write_ok) {
-    pyrna_write_set(true);
-  }
-
-  args = PyTuple_New(2);
-  PyTuple_SET_ITEM(args, 0, py_self);
-  PyTuple_SET_ITEM(args, 1, py_candidate);
-
-  ret = PyObject_CallObject(py_func, args);
-
-  Py_DECREF(args);
-
-  if (ret == NULL) {
-    PyC_Err_PrintWithFunc(py_func);
-    result = false;
-  }
-  else {
-    result = PyObject_IsTrue(ret);
-    Py_DECREF(ret);
-  }
-
-  PyGILState_Release(gilstate);
-  if (!is_write_ok) {
-    pyrna_write_set(false);
-  }
-
-  return result;
 }
 
 static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
@@ -785,6 +754,12 @@ static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
     pyrna_write_set(false);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Int Property Callbacks
+ * \{ */
 
 static int bpy_prop_int_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
@@ -1030,6 +1005,12 @@ static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Float Property Callbacks
+ * \{ */
+
 static float bpy_prop_float_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
@@ -1274,6 +1255,12 @@ static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Property Callbacks
+ * \{ */
+
 static void bpy_prop_string_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
@@ -1462,6 +1449,67 @@ static void bpy_prop_string_set_fn(struct PointerRNA *ptr,
     pyrna_write_set(false);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pointer Property Callbacks
+ * \{ */
+
+static bool bpy_prop_pointer_poll_fn(struct PointerRNA *self,
+                                     PointerRNA candidate,
+                                     struct PropertyRNA *prop)
+{
+  struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
+  PyObject *py_self;
+  PyObject *py_candidate;
+  PyObject *py_func;
+  PyObject *args;
+  PyObject *ret;
+  bool result;
+  const int is_write_ok = pyrna_write_check();
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
+
+  BLI_assert(self != NULL);
+
+  py_self = pyrna_struct_as_instance(self);
+  py_candidate = pyrna_struct_as_instance(&candidate);
+  py_func = prop_store->py_data.poll_fn;
+
+  if (!is_write_ok) {
+    pyrna_write_set(true);
+  }
+
+  args = PyTuple_New(2);
+  PyTuple_SET_ITEM(args, 0, py_self);
+  PyTuple_SET_ITEM(args, 1, py_candidate);
+
+  ret = PyObject_CallObject(py_func, args);
+
+  Py_DECREF(args);
+
+  if (ret == NULL) {
+    PyC_Err_PrintWithFunc(py_func);
+    result = false;
+  }
+  else {
+    result = PyObject_IsTrue(ret);
+    Py_DECREF(ret);
+  }
+
+  PyGILState_Release(gilstate);
+  if (!is_write_ok) {
+    pyrna_write_set(false);
+  }
+
+  return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Enum Property Callbacks
+ * \{ */
 
 static int bpy_prop_enum_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
@@ -1907,6 +1955,12 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
   return 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Callback Assignment
+ * \{ */
+
 static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *update_fn)
 {
   /* assume this is already checked for type and arg length */
@@ -1925,7 +1979,7 @@ static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject 
   if (poll_fn && poll_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_poll_runtime(prop, bpy_prop_poll_fn);
+    RNA_def_property_poll_runtime(prop, bpy_prop_pointer_poll_fn);
     ASSIGN_PYOBJECT_INCREF(prop_store->py_data.poll_fn, poll_fn);
   }
 }
@@ -2132,6 +2186,12 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
   RNA_def_property_enum_funcs_runtime(prop, rna_get_fn, rna_set_fn, rna_itemf_fn);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Method Utilities
+ * \{ */
+
 /* this define runs at the start of each function and deals with
  * returning a deferred property (to be registered later) */
 #define BPY_PROPDEF_HEAD(_func) \
@@ -2210,6 +2270,12 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
     return NULL; \
   } \
   (void)0
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Method Doc-Strings
+ * \{ */
 
 #define BPY_PROPDEF_NAME_DOC \
   "   :arg name: Name used in the user interface.\n" \
@@ -2296,6 +2362,12 @@ static int bpy_struct_id_used(StructRNA *srna, char *identifier)
   return (RNA_struct_find_property(&ptr, identifier) != NULL);
 }
 #endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Module Methods
+ * \{ */
 
 /* Function that sets RNA, NOTE - self is NULL when called from python,
  * but being abused from C so we can pass the srna along.
@@ -3732,6 +3804,12 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
   Py_RETURN_NONE;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Module `bpy.props`
+ * \{ */
+
 static struct PyMethodDef props_methods[] = {
     {"BoolProperty",
      (PyCFunction)BPy_BoolProperty,
@@ -3871,3 +3949,5 @@ void BPY_rna_props_clear_all(void)
   /* Include as it's correct, in practice this should never be used again. */
   BLI_listbase_clear(&g_bpy_prop_store_list);
 }
+
+/** \} */
