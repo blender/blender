@@ -45,9 +45,7 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
 
 void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 {
-  if (!id_.override_library) {
-    return;
-  }
+  BLI_assert(id_.override_library != nullptr);
 
   PointerRNA idpoin;
   RNA_id_pointer_create(&id_, &idpoin);

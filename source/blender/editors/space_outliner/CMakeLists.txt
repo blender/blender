@@ -63,6 +63,7 @@ set(SRC
   tree/tree_element_id_library.cc
   tree/tree_element_id_scene.cc
   tree/tree_element_nla.cc
+  tree/tree_element_overrides.cc
   tree/tree_element_scene_objects.cc
   tree/tree_element_view_layer.cc
 
@@ -79,6 +80,7 @@ set(SRC
   tree/tree_element_id_library.hh
   tree/tree_element_id_scene.hh
   tree/tree_element_nla.hh
+  tree/tree_element_overrides.hh
   tree/tree_element_scene_objects.hh
   tree/tree_element_view_layer.hh
 )

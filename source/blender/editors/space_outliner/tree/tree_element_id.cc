@@ -106,46 +106,14 @@ TreeElementID::TreeElementID(TreeElement &legacy_te, ID &id)
   legacy_te_.idcode = GS(id.name);
 }
 
-void TreeElementID::expand_library_overrides(SpaceOutliner &space_outliner) const
-{
-  if (!id_.override_library) {
-    return;
-  }
-
-  PointerRNA idpoin;
-  RNA_id_pointer_create(&id_, &idpoin);
-
-  PointerRNA override_rna_ptr;
-  PropertyRNA *override_rna_prop;
-  int index = 0;
-
-  for (auto *override_prop :
-       ListBaseWrapper<IDOverrideLibraryProperty>(id_.override_library->properties)) {
-    if (!BKE_lib_override_rna_property_find(
-            &idpoin, override_prop, &override_rna_ptr, &override_rna_prop)) {
-      /* This is fine, override properties list is not always fully up-to-date with current
-       * RNA/IDProps etc., this gets cleaned up when re-generating the overrides rules,
-       * no error here. */
-      continue;
-    }
-
-    TreeElement *ten = outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_LIBRARY_OVERRIDE, index++);
-    ten->name = RNA_property_ui_name(override_rna_prop);
-  }
-}
-
 void TreeElementID::postExpand(SpaceOutliner &space_outliner) const
 {
   const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(&space_outliner) ||
                                      ((space_outliner.filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
 
-  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY(&id_)) {
-    TreeElement *ten = outliner_add_element(
+  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY_REAL(&id_)) {
+    outliner_add_element(
         &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_LIBRARY_OVERRIDE_BASE, 0);
-
-    ten->name = IFACE_("Library Overrides");
-    expand_library_overrides(space_outliner);
   }
 }
 

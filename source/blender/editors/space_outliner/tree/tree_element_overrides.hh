@@ -44,8 +44,6 @@ class TreeElementOverridesProperty final : public AbstractTreeElement {
 
  public:
   TreeElementOverridesProperty(TreeElement &legacy_te, TreeElementOverridesData &override_data);
-
-  void expand(SpaceOutliner &) const override;
 };
 
 }  // namespace blender::ed::outliner

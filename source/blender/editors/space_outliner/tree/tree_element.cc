@@ -27,6 +27,7 @@
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
 #include "tree_element_nla.hh"
+#include "tree_element_overrides.hh"
 #include "tree_element_scene_objects.hh"
 #include "tree_element_view_layer.hh"
 
@@ -72,6 +73,11 @@ static AbstractTreeElement *tree_element_create(int type, TreeElement &legacy_te
       return new TreeElementCollectionBase(legacy_te, *static_cast<Scene *>(idv));
     case TSE_SCENE_OBJECTS_BASE:
       return new TreeElementSceneObjectsBase(legacy_te, *static_cast<Scene *>(idv));
+    case TSE_LIBRARY_OVERRIDE_BASE:
+      return new TreeElementOverridesBase(legacy_te, id);
+    case TSE_LIBRARY_OVERRIDE:
+      return new TreeElementOverridesProperty(legacy_te,
+                                              *static_cast<TreeElementOverridesData *>(idv));
     default:
       break;
   }
