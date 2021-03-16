@@ -402,8 +402,15 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
     {0, "CryptoObject", 0, "Object", "Use Object layer"},
     {1, "CryptoMaterial", 0, "Material", "Use Material layer"},
     {2, "CryptoAsset", 0, "Asset", "Use Asset layer"},
-    {0, NULL, 0, NULL, NULL}};
+    {0, NULL, 0, NULL, NULL},
+};
 
+static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
+    {GEO_NODE_MESH_CIRCLE_FILL_NONE, "NONE", 0, "None", ""},
+    {GEO_NODE_MESH_CIRCLE_FILL_NGON, "NGON", 0, "N-Gon", ""},
+    {GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN, "TRIANGLE_FAN", 0, "Triangles", ""},
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 
 #define ITEM_ATTRIBUTE \
@@ -9434,6 +9441,87 @@ static void def_geo_attribute_separate_xyz(StructRNA *srna)
   prop = RNA_def_property(srna, "input_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
   RNA_def_property_ui_text(prop, "Input Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_mesh_circle(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCircle", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_cylinder(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCylinder", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_cone(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCone", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_line(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_LINE_MODE_OFFSET,
+       "OFFSET",
+       0,
+       "Offset",
+       "Specify the offset from one vertex to the next"},
+      {GEO_NODE_MESH_LINE_MODE_END_POINTS,
+       "END_POINTS",
+       0,
+       "End Points",
+       "Specify the line's start and end points"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static EnumPropertyItem count_mode_items[] = {
+      {GEO_NODE_MESH_LINE_COUNT_TOTAL,
+       "TOTAL",
+       0,
+       "Count",
+       "Specify the total number of vertices"},
+      {GEO_NODE_MESH_LINE_COUNT_RESOLUTION,
+       "RESOLUTION",
+       0,
+       "Resolution",
+       "Specify the distance between vertices"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshLine", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "count_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, count_mode_items);
+  RNA_def_property_ui_text(prop, "Count Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 

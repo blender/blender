@@ -1258,6 +1258,28 @@ typedef struct NodeAttributeConvert {
   int16_t domain;
 } NodeAttributeConvert;
 
+typedef struct NodeGeometryMeshCircle {
+  /* GeometryNodeMeshCircleFillType. */
+  uint8_t fill_type;
+} NodeGeometryMeshCircle;
+
+typedef struct NodeGeometryMeshCylinder {
+  /* GeometryNodeMeshCircleFillType. */
+  uint8_t fill_type;
+} NodeGeometryMeshCylinder;
+
+typedef struct NodeGeometryMeshCone {
+  /* GeometryNodeMeshCircleFillType. */
+  uint8_t fill_type;
+} NodeGeometryMeshCone;
+
+typedef struct NodeGeometryMeshLine {
+  /* GeometryNodeMeshLineMode. */
+  uint8_t mode;
+  /* GeometryNodeMeshLineCountMode. */
+  uint8_t count_mode;
+} NodeGeometryMeshLine;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1733,6 +1755,22 @@ typedef enum GeometryNodePointsToVolumeResolutionMode {
   GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT = 0,
   GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE = 1,
 } GeometryNodePointsToVolumeResolutionMode;
+
+typedef enum GeometryNodeMeshCircleFillType {
+  GEO_NODE_MESH_CIRCLE_FILL_NONE = 0,
+  GEO_NODE_MESH_CIRCLE_FILL_NGON = 1,
+  GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
+} GeometryNodeMeshCircleFillType;
+
+typedef enum GeometryNodeMeshLineMode {
+  GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,
+  GEO_NODE_MESH_LINE_MODE_OFFSET = 1,
+} GeometryNodeMeshLineMode;
+
+typedef enum GeometryNodeMeshLineCountMode {
+  GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
+  GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
+} GeometryNodeMeshLineCountMode;
 
 #ifdef __cplusplus
 }
