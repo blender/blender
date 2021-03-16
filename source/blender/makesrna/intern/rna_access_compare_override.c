@@ -1107,7 +1107,7 @@ static void rna_property_override_apply_ex(Main *bmain,
                                                ptr_item_storage,
                                                opop)) {
       CLOG_INFO(&LOG,
-                2,
+                4,
                 "Failed to apply '%s' override operation on %s\n",
                 op->rna_path,
                 ptr_src->owner_id->name);
@@ -1211,7 +1211,7 @@ void RNA_struct_override_apply(Main *bmain,
 
             if (id_dst != NULL) {
               CLOG_INFO(&LOG,
-                        3,
+                        4,
                         "%s: Ignoring local override on ID pointer property '%s', as requested by "
                         "RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
                         ptr_dst->owner_id->name,
@@ -1236,7 +1236,7 @@ void RNA_struct_override_apply(Main *bmain,
       }
       else {
         CLOG_INFO(&LOG,
-                  2,
+                  4,
                   "Failed to apply library override operation to '%s.%s' "
                   "(could not resolve some properties, local:  %d, override: %d)",
                   ((ID *)ptr_src->owner_id)->name,

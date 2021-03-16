@@ -1024,13 +1024,13 @@ bool BKE_lib_override_library_resync(
         /* If user never edited them, we can delete them. */
         id->tag |= LIB_TAG_DOIT;
         id->tag &= ~LIB_TAG_MISSING;
-        CLOG_INFO(&LOG, 3, "Old override %s is being deleted", id->name);
+        CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
       }
       else {
         /* Otherwise, keep them, user needs to decide whether what to do with them. */
         BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
         id_fake_user_set(id);
-        CLOG_INFO(&LOG, 3, "Old override %s is being kept around as it was user-edited", id->name);
+        CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
       }
     }
   }
@@ -1158,8 +1158,9 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
           continue;
         }
         do_continue = true;
+        CLOG_INFO(&LOG, 2, "Resyncing %s...", id->name);
         const bool success = BKE_lib_override_library_resync(bmain, scene, view_layer, id, false);
-        CLOG_INFO(&LOG, 2, "Resynced %s, success: %d", id->name, success);
+        CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
         break;
       }
       FOREACH_MAIN_LISTBASE_ID_END;
