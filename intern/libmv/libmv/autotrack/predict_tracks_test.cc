@@ -56,7 +56,7 @@ TEST(PredictMarkerPosition, EasyLinearMotion) {
   predicted.track = 0;
   predicted.frame = 8;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
   EXPECT_LT(error, 0.1);
@@ -88,7 +88,7 @@ TEST(PredictMarkerPosition, EasyBackwardLinearMotion) {
   predicted.track = 0;
   predicted.frame = 0;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   LG << predicted;
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
@@ -121,7 +121,7 @@ TEST(PredictMarkerPosition, TwoFrameGap) {
   predicted.track = 0;
   predicted.frame = 8;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
   EXPECT_LT(error, 0.1);
@@ -140,7 +140,7 @@ TEST(PredictMarkerPosition, FourFrameGap) {
   predicted.track = 0;
   predicted.frame = 8;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
   EXPECT_LT(error, 2.0);  // Generous error due to larger prediction window.
@@ -162,7 +162,7 @@ TEST(PredictMarkerPosition, MultipleGaps) {
   predicted.track = 0;
   predicted.frame = 8;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
   EXPECT_LT(error, 1.0);  // Generous error due to larger prediction window.
@@ -186,7 +186,7 @@ TEST(PredictMarkerPosition, MarkersInRandomOrder) {
   predicted.track = 0;
   predicted.frame = 8;
 
-  PredictMarkerPosition(tracks, &predicted);
+  PredictMarkerPosition(tracks, PredictDirection::AUTO, &predicted);
   double error = (libmv::Vec2f(9.0, 40.0) - predicted.center).norm();
   LG << "Got error: " << error;
   EXPECT_LT(error, 0.1);

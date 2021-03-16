@@ -226,6 +226,7 @@ const UserDef U_default = {
     .sequencer_disk_cache_compression = 0,
     .sequencer_disk_cache_size_limit = 100,
     .sequencer_disk_cache_flag = 0,
+    .sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC,
 
     .collection_instance_empty_size = 1.0f,
 

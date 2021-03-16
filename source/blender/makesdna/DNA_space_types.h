@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -68,6 +68,9 @@ typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 
 /* Defined in `file_intern.h`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;
+
+/* Defined in `spreadsheet_intern.hh`. */
+typedef struct SpaceSpreadsheet_Runtime SpaceSpreadsheet_Runtime;
 
 /* -------------------------------------------------------------------- */
 /** \name SpaceLink (Base)
@@ -225,6 +228,7 @@ typedef enum eSpaceButtons_Context {
   BCONTEXT_TOOL = 14,
   BCONTEXT_SHADERFX = 15,
   BCONTEXT_OUTPUT = 16,
+  BCONTEXT_COLLECTION = 17,
 
   /* Keep last. */
   BCONTEXT_TOT,
@@ -643,6 +647,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_SHOW_STRIP_NAME = (1 << 14),
   SEQ_SHOW_STRIP_SOURCE = (1 << 15),
   SEQ_SHOW_STRIP_DURATION = (1 << 16),
+  SEQ_USE_PROXIES = (1 << 17),
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */
@@ -1862,8 +1867,12 @@ typedef struct SpaceSpreadsheet {
   uint8_t geometry_component_type;
   /* #AttributeDomain. */
   uint8_t attribute_domain;
+  /* eSpaceSpreadsheet_ObjectContext. */
+  uint8_t object_eval_state;
 
-  char _pad1[5];
+  char _pad1[4];
+
+  SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;
 
 /** \} */
@@ -1871,6 +1880,11 @@ typedef struct SpaceSpreadsheet {
 typedef enum eSpaceSpreadsheet_FilterFlag {
   SPREADSHEET_FILTER_SELECTED_ONLY = (1 << 0),
 } eSpaceSpreadsheet_FilterFlag;
+
+typedef enum eSpaceSpreadsheet_ObjectEvalState {
+  SPREADSHEET_OBJECT_EVAL_STATE_FINAL = 0,
+  SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL = 1,
+} eSpaceSpreadsheet_Context;
 
 /* -------------------------------------------------------------------- */
 /** \name Space Defines (eSpace_Type)

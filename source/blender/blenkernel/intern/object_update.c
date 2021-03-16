@@ -176,12 +176,14 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
-      if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
-        /* Make sure Freestyle edge/face marks appear in DM for render (see T40315). */
+      /* Make sure Freestyle edge/face marks appear in DM for render (see T40315). Due to Line Art
+       * impementation, edge marks should also be shown in viewport. */
 #ifdef WITH_FREESTYLE
-        cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
-        cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
+      cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
+      cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
+      cddata_masks.vmask |= CD_MASK_MDEFORMVERT;
 #endif
+      if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
         /* Always compute UVs, vertex colors as orcos for render. */
         cddata_masks.lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
         cddata_masks.vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;

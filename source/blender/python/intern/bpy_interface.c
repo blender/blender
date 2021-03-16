@@ -45,6 +45,7 @@
 #include "bpy_capi_utils.h"
 #include "bpy_intern_string.h"
 #include "bpy_path.h"
+#include "bpy_props.h"
 #include "bpy_rna.h"
 #include "bpy_traceback.h"
 
@@ -522,6 +523,9 @@ void BPY_python_end(void)
 
   /* finalizing, no need to grab the state, except when we are a module */
   gilstate = PyGILState_Ensure();
+
+  /* Decrement user counts of all callback functions. */
+  BPY_rna_props_clear_all();
 
   /* free other python data. */
   pyrna_free_types();

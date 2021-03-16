@@ -36,7 +36,7 @@ NODE_DEFINE(ParticleSystem)
   return type;
 }
 
-ParticleSystem::ParticleSystem() : Node(node_type)
+ParticleSystem::ParticleSystem() : Node(get_node_type())
 {
 }
 

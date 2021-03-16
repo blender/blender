@@ -269,6 +269,23 @@ ImBuf *ED_space_clip_get_stable_buffer(SpaceClip *sc, float loc[2], float *scale
   return NULL;
 }
 
+bool ED_space_clip_get_position(struct SpaceClip *sc,
+                                struct ARegion *ar,
+                                int mval[2],
+                                float fpos[2])
+{
+  ImBuf *ibuf = ED_space_clip_get_buffer(sc);
+  if (!ibuf) {
+    return false;
+  }
+
+  /* map the mouse coords to the backdrop image space */
+  ED_clip_mouse_pos(sc, ar, mval, fpos);
+
+  IMB_freeImBuf(ibuf);
+  return true;
+}
+
 /* Returns color in linear space, matching ED_space_image_color_sample(). */
 bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, int mval[2], float r_col[3])
 {

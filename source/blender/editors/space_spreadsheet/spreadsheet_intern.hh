@@ -16,4 +16,10 @@
 
 #pragma once
 
+typedef struct SpaceSpreadsheet_Runtime {
+  int visible_rows;
+  int tot_rows;
+  int tot_columns;
+} SpaceSpreadsheet_Runtime;
+
 void spreadsheet_operatortypes(void);

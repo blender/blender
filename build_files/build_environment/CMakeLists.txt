@@ -47,6 +47,7 @@ include(ExternalProject)
 include(cmake/check_software.cmake)
 include(cmake/options.cmake)
 include(cmake/versions.cmake)
+include(cmake/download.cmake)
 
 if(ENABLE_MINGW64)
   include(cmake/setup_mingw64.cmake)

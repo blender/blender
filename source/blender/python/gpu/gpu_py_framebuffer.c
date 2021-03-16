@@ -356,9 +356,9 @@ PyDoc_STRVAR(pygpu_framebuffer_clear_doc,
              "   :arg color: float sequence each representing ``(r, g, b, a)``.\n"
              "   :type color: sequence of 3 or 4 floats\n"
              "   :arg depth: depth value.\n"
-             "   :type depth: `float`\n"
+             "   :type depth: float\n"
              "   :arg stencil: stencil value.\n"
-             "   :type stencil: `int`\n");
+             "   :type stencil: int\n");
 static PyObject *pygpu_framebuffer_clear(BPyGPUFrameBuffer *self, PyObject *args, PyObject *kwds)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
@@ -417,7 +417,7 @@ PyDoc_STRVAR(pygpu_framebuffer_viewport_set_doc,
              "\n"
              "   :param x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
              "   :param xsize, ysize: width and height of the viewport_set.\n"
-             "   :type x, y, xsize, ysize: `int`\n");
+             "   :type x, y, xsize, ysize: int\n");
 static PyObject *pygpu_framebuffer_viewport_set(BPyGPUFrameBuffer *self,
                                                 PyObject *args,
                                                 void *UNUSED(type))
@@ -510,10 +510,10 @@ PyDoc_STRVAR(pygpu_framebuffer__tp_doc,
              "\n"
              "   :arg depth_slot: GPUTexture to attach or a `dict` containing keywords: "
              "'texture', 'layer' and 'mip'.\n"
-             "   :type depth_slot: :class:`gpu.types.GPUTexture`, `dict` or `Nonetype`\n"
+             "   :type depth_slot: :class:`gpu.types.GPUTexture`, dict or Nonetype\n"
              "   :arg color_slots: Tuple where each item can be a GPUTexture or a `dict` "
              "containing keywords: 'texture', 'layer' and 'mip'.\n"
-             "   :type color_slots: `tuple` or `Nonetype`\n");
+             "   :type color_slots: tuple or Nonetype\n");
 PyTypeObject BPyGPUFrameBuffer_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUFrameBuffer",
     .tp_basicsize = sizeof(BPyGPUFrameBuffer),

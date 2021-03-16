@@ -605,7 +605,7 @@ void WM_jobs_kill(wmWindowManager *wm,
 }
 
 /* kill job entirely, also removes timer itself */
-void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
+void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
     if (wm_job->wt == wt) {

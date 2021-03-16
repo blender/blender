@@ -30,14 +30,17 @@
 extern "C" {
 #endif
 
+/* Forward declarations. */
 struct CryptomatteSession;
 struct Material;
 struct Object;
 struct RenderResult;
+struct Scene;
 
 struct CryptomatteSession *BKE_cryptomatte_init(void);
 struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
     const struct RenderResult *render_result);
+struct CryptomatteSession *BKE_cryptomatte_init_from_scene(const struct Scene *scene);
 void BKE_cryptomatte_free(struct CryptomatteSession *session);
 void BKE_cryptomatte_add_layer(struct CryptomatteSession *session, const char *layer_name);
 
@@ -52,6 +55,10 @@ uint32_t BKE_cryptomatte_asset_hash(struct CryptomatteSession *session,
                                     const char *layer_name,
                                     const struct Object *object);
 float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
+bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
+                               const float encoded_hash,
+                               char *r_name,
+                               int name_len);
 
 char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
 void BKE_cryptomatte_matte_id_to_entries(struct NodeCryptomatte *node_storage,

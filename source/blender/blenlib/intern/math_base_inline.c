@@ -180,6 +180,18 @@ MINLINE double interpd(double target, double origin, double fac)
   return (fac * target) + (1.0f - fac) * origin;
 }
 
+MINLINE float ratiof(float min, float max, float pos)
+{
+  float range = max - min;
+  return range == 0 ? 0 : ((pos - min) / range);
+}
+
+MINLINE double ratiod(double min, double max, double pos)
+{
+  double range = max - min;
+  return range == 0 ? 0 : ((pos - min) / range);
+}
+
 /* used for zoom values*/
 MINLINE float power_of_2(float val)
 {

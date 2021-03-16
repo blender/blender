@@ -23,7 +23,7 @@ shader node_attribute(string bump_offset = "center",
                       output float Fac = 0.0,
                       output float Alpha = 0.0)
 {
-  float data[4];
+  float data[4] = {0.0, 0.0, 0.0, 0.0};
   getattribute(name, data);
   Color = color(data[0], data[1], data[2]);
   Vector = point(Color);

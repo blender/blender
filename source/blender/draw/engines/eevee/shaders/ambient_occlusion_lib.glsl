@@ -12,7 +12,9 @@
 #  if !defined(USE_ALPHA_HASH)
 #    if !defined(DEPTH_SHADER)
 #      if !defined(USE_ALPHA_BLEND)
-#        define ENABLE_DEFERED_AO
+#        if !defined(USE_REFRACTION)
+#          define ENABLE_DEFERED_AO
+#        endif
 #      endif
 #    endif
 #  endif

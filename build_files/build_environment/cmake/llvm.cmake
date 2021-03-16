@@ -52,9 +52,9 @@ endif()
 
 # short project name due to long filename issues on windows
 ExternalProject_Add(ll
-  URL ${LLVM_URI}
+  URL file://${PACKAGE_DIR}/${LLVM_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${LLVM_HASH}
+  URL_HASH ${LLVM_HASH_TYPE}=${LLVM_HASH}
   CMAKE_GENERATOR ${LLVM_GENERATOR}
   LIST_SEPARATOR ^^
   PREFIX ${BUILD_DIR}/ll

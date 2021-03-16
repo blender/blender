@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_resource_collector.hh"
 
 #include "BKE_screen.h"
 
@@ -29,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -41,6 +43,7 @@
 
 #include "spreadsheet_intern.hh"
 
+#include "spreadsheet_column_layout.hh"
 #include "spreadsheet_from_geometry.hh"
 #include "spreadsheet_intern.hh"
 
@@ -53,7 +56,7 @@ static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *U
   spreadsheet_space->spacetype = SPACE_SPREADSHEET;
 
   {
-    /* header */
+    /* Header. */
     ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "spreadsheet header");
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_HEADER;
@@ -61,7 +64,15 @@ static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *U
   }
 
   {
-    /* main window */
+    /* Footer. */
+    ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "spreadsheet footer region");
+    BLI_addtail(&spreadsheet_space->regionbase, region);
+    region->regiontype = RGN_TYPE_FOOTER;
+    region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+  }
+
+  {
+    /* Main window. */
     ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "spreadsheet main region");
     BLI_addtail(&spreadsheet_space->regionbase, region);
     region->regiontype = RGN_TYPE_WINDOW;
@@ -70,17 +81,28 @@ static SpaceLink *spreadsheet_create(const ScrArea *UNUSED(area), const Scene *U
   return (SpaceLink *)spreadsheet_space;
 }
 
-static void spreadsheet_free(SpaceLink *UNUSED(sl))
+static void spreadsheet_free(SpaceLink *sl)
 {
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+  MEM_SAFE_FREE(sspreadsheet->runtime);
 }
 
-static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
+static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)area->spacedata.first;
+  if (sspreadsheet->runtime == nullptr) {
+    sspreadsheet->runtime = (SpaceSpreadsheet_Runtime *)MEM_callocN(
+        sizeof(SpaceSpreadsheet_Runtime), __func__);
+  }
 }
 
 static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
 {
-  return (SpaceLink *)MEM_dupallocN(sl);
+  const SpaceSpreadsheet *sspreadsheet_old = (SpaceSpreadsheet *)sl;
+  SpaceSpreadsheet *sspreadsheet_new = (SpaceSpreadsheet *)MEM_dupallocN(sspreadsheet_old);
+  sspreadsheet_new->runtime = (SpaceSpreadsheet_Runtime *)MEM_dupallocN(sspreadsheet_old->runtime);
+
+  return (SpaceLink *)sspreadsheet_new;
 }
 
 static void spreadsheet_keymap(wmKeyConfig *UNUSED(keyconf))
@@ -114,36 +136,49 @@ static ID *get_used_id(const bContext *C)
 class FallbackSpreadsheetDrawer : public SpreadsheetDrawer {
 };
 
-static std::unique_ptr<SpreadsheetDrawer> generate_spreadsheet_drawer(const bContext *C)
+static void gather_spreadsheet_columns(const bContext *C,
+                                       SpreadsheetColumnLayout &column_layout,
+                                       blender::ResourceCollector &resources)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ID *used_id = get_used_id(C);
   if (used_id == nullptr) {
-    return {};
+    return;
   }
   const ID_Type id_type = GS(used_id->name);
   if (id_type != ID_OB) {
-    return {};
+    return;
   }
   Object *object_orig = (Object *)used_id;
   if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD)) {
-    return {};
+    return;
   }
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
   if (object_eval == nullptr) {
-    return {};
+    return;
   }
 
-  return spreadsheet_drawer_from_geometry_attributes(C, object_eval);
+  return spreadsheet_columns_from_geometry(C, object_eval, column_layout, resources);
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
-  std::unique_ptr<SpreadsheetDrawer> drawer = generate_spreadsheet_drawer(C);
-  if (!drawer) {
-    drawer = std::make_unique<FallbackSpreadsheetDrawer>();
-  }
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+
+  blender::ResourceCollector resources;
+  SpreadsheetColumnLayout column_layout;
+  gather_spreadsheet_columns(C, column_layout, resources);
+
+  sspreadsheet->runtime->visible_rows = column_layout.row_indices.size();
+  sspreadsheet->runtime->tot_columns = column_layout.columns.size();
+  sspreadsheet->runtime->tot_rows = column_layout.tot_rows;
+
+  std::unique_ptr<SpreadsheetDrawer> drawer = spreadsheet_drawer_from_column_layout(column_layout);
   draw_spreadsheet_in_region(C, region, *drawer);
+
+  /* Tag footer for redraw, because the main region updates data for the footer. */
+  ARegion *footer = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_FOOTER);
+  ED_region_tag_redraw(footer);
 }
 
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
@@ -227,6 +262,53 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
   }
 }
 
+static void spreadsheet_footer_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+{
+  ED_region_header_init(region);
+}
+
+static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
+{
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
+  std::stringstream ss;
+  ss << "Rows: ";
+  if (runtime->visible_rows != runtime->tot_rows) {
+    ss << runtime->visible_rows << " / ";
+  }
+  ss << runtime->tot_rows << "   |   Columns: " << runtime->tot_columns;
+  std::string stats_str = ss.str();
+
+  UI_ThemeClearColor(TH_BACK);
+
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  const uiStyle *style = UI_style_get_dpi();
+  uiLayout *layout = UI_block_layout(block,
+                                     UI_LAYOUT_HORIZONTAL,
+                                     UI_LAYOUT_HEADER,
+                                     UI_HEADER_OFFSET,
+                                     region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
+                                     region->sizex,
+                                     1,
+                                     0,
+                                     style);
+  uiItemSpacer(layout);
+  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_RIGHT);
+  uiItemL(layout, stats_str.c_str(), ICON_NONE);
+  UI_block_layout_resolve(block, nullptr, nullptr);
+  UI_block_align_end(block);
+  UI_block_end(C, block);
+  UI_block_draw(C, block);
+}
+
+static void spreadsheet_footer_region_free(ARegion *UNUSED(region))
+{
+}
+
+static void spreadsheet_footer_region_listener(const wmRegionListenerParams *UNUSED(params))
+{
+}
+
 void ED_spacetype_spreadsheet(void)
 {
   SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype spreadsheet");
@@ -263,6 +345,19 @@ void ED_spacetype_spreadsheet(void)
   art->draw = spreadsheet_header_region_draw;
   art->free = spreadsheet_header_region_free;
   art->listener = spreadsheet_header_region_listener;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: footer */
+  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype spreadsheet footer region");
+  art->regionid = RGN_TYPE_FOOTER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = 0;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
+
+  art->init = spreadsheet_footer_region_init;
+  art->draw = spreadsheet_footer_region_draw;
+  art->free = spreadsheet_footer_region_free;
+  art->listener = spreadsheet_footer_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
   BKE_spacetype_register(st);

@@ -18,9 +18,9 @@
 
 
 ExternalProject_Add(external_openmp
-  URL ${OPENMP_URI}
+  URL file://${PACKAGE_DIR}/${OPENMP_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${OPENMP_HASH}
+  URL_HASH ${OPENMP_HASH_TYPE}=${OPENMP_HASH}
   PREFIX ${BUILD_DIR}/openmp
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openmp/src/external_openmp < ${PATCH_DIR}/openmp.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openmp ${DEFAULT_CMAKE_FLAGS}

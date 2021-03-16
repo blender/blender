@@ -599,7 +599,7 @@ NODE_DEFINE(AlembicObject)
   NodeType *type = NodeType::add("alembic_object", create);
 
   SOCKET_STRING(path, "Alembic Path", ustring());
-  SOCKET_NODE_ARRAY(used_shaders, "Used Shaders", &Shader::node_type);
+  SOCKET_NODE_ARRAY(used_shaders, "Used Shaders", Shader::get_node_type());
 
   SOCKET_INT(subd_max_level, "Max Subdivision Level", 1);
   SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f);
@@ -609,7 +609,7 @@ NODE_DEFINE(AlembicObject)
   return type;
 }
 
-AlembicObject::AlembicObject() : Node(node_type)
+AlembicObject::AlembicObject() : Node(get_node_type())
 {
   schema_type = INVALID;
 }
@@ -1320,12 +1320,12 @@ NODE_DEFINE(AlembicProcedural)
   SOCKET_FLOAT(default_radius, "Default Radius", 0.01f);
   SOCKET_FLOAT(scale, "Scale", 1.0f);
 
-  SOCKET_NODE_ARRAY(objects, "Objects", &AlembicObject::node_type);
+  SOCKET_NODE_ARRAY(objects, "Objects", AlembicObject::get_node_type());
 
   return type;
 }
 
-AlembicProcedural::AlembicProcedural() : Procedural(node_type)
+AlembicProcedural::AlembicProcedural() : Procedural(get_node_type())
 {
   objects_loaded = false;
   scene_ = nullptr;

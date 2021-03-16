@@ -139,6 +139,8 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "CLG_log.h"
+
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
 static void wm_history_files_free(void);
@@ -146,6 +148,8 @@ static void wm_history_file_update(void);
 static void wm_history_file_write(void);
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
+
+static CLG_LogRef LOG = {"wm.files"};
 
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
@@ -1440,7 +1444,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
   else {
     /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
-    fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
+    CLOG_WARN(&LOG, "failed to create thumbnail: %s", err_out);
     thumb = NULL;
   }
 
@@ -1607,7 +1611,7 @@ static bool wm_file_write(bContext *C,
 /** \name Auto-Save API
  * \{ */
 
-void wm_autosave_location(char *filepath)
+static void wm_autosave_location(char *filepath)
 {
   const int pid = abs(getpid());
   char path[1024];
@@ -1643,20 +1647,67 @@ void wm_autosave_location(char *filepath)
   BLI_join_dirfile(filepath, FILE_MAX, BKE_tempdir_base(), path);
 }
 
-void WM_autosave_init(wmWindowManager *wm)
-{
-  wm_autosave_timer_ended(wm);
-
-  if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
-  }
-}
-
-void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 {
   char filepath[FILE_MAX];
 
-  WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+  wm_autosave_location(filepath);
+
+  /* Fast save of last undo-buffer, now with UI. */
+  const bool use_memfile = (U.uiflag & USER_GLOBALUNDO) != 0;
+  MemFile *memfile = use_memfile ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : NULL;
+  if (memfile != NULL) {
+    BLO_memfile_write_file(memfile, filepath);
+  }
+  else {
+    if (use_memfile) {
+      /* This is very unlikely, alert developers of this unexpected case. */
+      CLOG_WARN(&LOG, "undo-data not found for writing, fallback to regular file write!");
+    }
+
+    /* Save as regular blend file with recovery information. */
+    const int fileflags = (G.fileflags & ~G_FILE_COMPRESS) | G_FILE_RECOVER_WRITE;
+
+    ED_editors_flush_edits(bmain);
+
+    /* Error reporting into console. */
+    BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
+  }
+}
+
+static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
+{
+  wm_autosave_timer_end(wm);
+
+  if (U.flag & USER_AUTOSAVE) {
+    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, timestep);
+  }
+}
+
+void wm_autosave_timer_begin(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin_ex(wm, U.savetime * 60.0);
+}
+
+void wm_autosave_timer_end(wmWindowManager *wm)
+{
+  if (wm->autosavetimer) {
+    WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+    wm->autosavetimer = NULL;
+  }
+}
+
+void WM_autosave_init(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin(wm);
+}
+
+/**
+ * Run the auto-save timer action.
+ */
+void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+{
+  wm_autosave_timer_end(wm);
 
   /* If a modal operator is running, don't autosave because we might not be in
    * a valid state to save. But try again in 10ms. */
@@ -1665,41 +1716,17 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op) {
-          wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 0.01);
+          wm_autosave_timer_begin_ex(wm, 0.01);
           return;
         }
       }
     }
   }
 
-  wm_autosave_location(filepath);
+  wm_autosave_write(bmain, wm);
 
-  if (U.uiflag & USER_GLOBALUNDO) {
-    /* fast save of last undobuffer, now with UI */
-    struct MemFile *memfile = ED_undosys_stack_memfile_get_active(wm->undo_stack);
-    if (memfile) {
-      BLO_memfile_write_file(memfile, filepath);
-    }
-  }
-  else {
-    /* Save as regular blend file. */
-    const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
-
-    ED_editors_flush_edits(bmain);
-
-    /* Error reporting into console. */
-    BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
-  }
-  /* do timer after file write, just in case file write takes a long time */
-  wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
-}
-
-void wm_autosave_timer_ended(wmWindowManager *wm)
-{
-  if (wm->autosavetimer) {
-    WM_event_remove_timer(wm, NULL, wm->autosavetimer);
-    wm->autosavetimer = NULL;
-  }
+  /* Restart the timer after file write, just in case file write takes a long time. */
+  wm_autosave_timer_begin(wm);
 }
 
 void wm_autosave_delete(void)
@@ -1720,14 +1747,6 @@ void wm_autosave_delete(void)
       BLI_rename(filename, str);
     }
   }
-}
-
-void wm_autosave_read(bContext *C, ReportList *reports)
-{
-  char filename[FILE_MAX];
-
-  wm_autosave_location(filename);
-  WM_file_read(C, filename, reports);
 }
 
 /** \} */
@@ -2595,9 +2614,9 @@ bool WM_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
   const bool success = wm_file_read_opwrap(C, filepath, reports);
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
   return success;
 }
 
@@ -2654,11 +2673,11 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
 
   success = wm_file_read_opwrap(C, filepath, op->reports);
 
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
 
   if (success) {
     if (!G.background) {

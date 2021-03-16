@@ -212,6 +212,10 @@ void BKE_gpencil_layer_mask_sort(struct bGPdata *gpd, struct bGPDlayer *gpl);
 void BKE_gpencil_layer_mask_sort_all(struct bGPdata *gpd);
 void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
 
+struct bGPDlayer *BKE_gpencil_layer_get_by_name(struct bGPdata *gpd,
+                                                char *name,
+                                                int first_if_not_found);
+
 /* Brush */
 struct Material *BKE_gpencil_brush_material_get(struct Brush *brush);
 void BKE_gpencil_brush_material_set(struct Brush *brush, struct Material *material);
@@ -231,6 +235,7 @@ struct Material *BKE_gpencil_object_material_new(struct Main *bmain,
                                                  int *r_index);
 
 int BKE_gpencil_object_material_index_get(struct Object *ob, struct Material *ma);
+int BKE_gpencil_object_material_get_index_name(struct Object *ob, char *name);
 
 struct Material *BKE_gpencil_object_material_from_brush_get(struct Object *ob,
                                                             struct Brush *brush);

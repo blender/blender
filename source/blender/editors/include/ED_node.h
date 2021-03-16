@@ -121,6 +121,11 @@ void ED_node_composite_job(const struct bContext *C,
 void ED_operatormacros_node(void);
 
 /* node_view.c */
+bool ED_space_node_get_position(struct Main *bmain,
+                                struct SpaceNode *snode,
+                                struct ARegion *region,
+                                const int mval[2],
+                                float fpos[2]);
 bool ED_space_node_color_sample(struct Main *bmain,
                                 struct SpaceNode *snode,
                                 struct ARegion *region,

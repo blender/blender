@@ -125,7 +125,7 @@ float3 Mesh::SubdFace::normal(const Mesh *mesh) const
 
 NODE_DEFINE(Mesh)
 {
-  NodeType *type = NodeType::add("mesh", create, NodeType::NONE, Geometry::node_base_type);
+  NodeType *type = NodeType::add("mesh", create, NodeType::NONE, Geometry::get_node_base_type());
 
   SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());
   SOCKET_POINT_ARRAY(verts, "Vertices", array<float3>());
@@ -202,7 +202,7 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
   patch_table = NULL;
 }
 
-Mesh::Mesh() : Mesh(node_type, Geometry::MESH)
+Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH)
 {
 }
 

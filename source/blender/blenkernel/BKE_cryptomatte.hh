@@ -26,6 +26,8 @@
 #include <optional>
 #include <string>
 
+#include "BKE_cryptomatte.h"
+
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 
@@ -104,6 +106,9 @@ struct CryptomatteStampDataCallbackData {
   /* C type callback function (StampCallback). */
   static void extract_layer_manifest(void *_data, const char *propname, char *propvalue, int len);
 };
+
+const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(
+    const CryptomatteSession &session);
 
 struct CryptomatteSessionDeleter {
   void operator()(CryptomatteSession *session)

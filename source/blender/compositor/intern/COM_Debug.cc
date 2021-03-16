@@ -314,26 +314,11 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rankdir=LR\r\n");
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "splines=false\r\n");
 
-#  if 0
-  for (ExecutionSystem::Operations::const_iterator it = system->m_operations.begin();
-       it != system->m_operations.end();
-       ++it) {
-    NodeOperation *op = *it;
-    len += snprintf(str + len,
-                    maxlen > len ? maxlen - len : 0,
-                    "// OPERATION: %s\r\n",
-                    node->getbNode()->typeinfo->ui_name);
-  }
-#  endif
-
-  int totops = system->m_operations.size();
-  int totgroups = system->m_groups.size();
   std::map<NodeOperation *, std::vector<std::string>> op_groups;
-  for (int i = 0; i < totgroups; i++) {
-    const ExecutionGroup *group = system->m_groups[i];
-
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", i);
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", i);
+  int index = 0;
+  for (const ExecutionGroup *group : system->m_groups) {
+    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", index);
+    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", index);
     /* used as a check for executing group */
     if (m_group_states[group] == EG_WAIT) {
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=dashed\r\n");
@@ -358,18 +343,12 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           system, operation, group, str + len, maxlen > len ? maxlen - len : 0);
     }
 
-    // len += snprintf(str+len,
-    //     maxlen>len ? maxlen-len : 0,
-    //     "//  OUTPUTOPERATION: %p\r\n", group->getOutputOperation());
-    // len += snprintf(
-    //     str+len, maxlen>len ? maxlen-len : 0,
-    //     " O_%p\r\n", group->getOutputOperation());
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
+    index++;
   }
 
   /* operations not included in any group */
-  for (int j = 0; j < totops; j++) {
-    NodeOperation *operation = system->m_operations[j];
+  for (NodeOperation *operation : system->m_operations) {
     if (op_groups.find(operation) != op_groups.end()) {
       continue;
     }
@@ -380,9 +359,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
         system, operation, nullptr, str + len, maxlen > len ? maxlen - len : 0);
   }
 
-  for (int i = 0; i < totops; i++) {
-    NodeOperation *operation = system->m_operations[i];
-
+  for (NodeOperation *operation : system->m_operations) {
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *read = (ReadBufferOperation *)operation;
       WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
@@ -403,12 +380,8 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
     }
   }
 
-  for (int i = 0; i < totops; i++) {
-    NodeOperation *op = system->m_operations[i];
-
-    for (NodeOperation::Inputs::const_iterator it = op->m_inputs.begin(); it != op->m_inputs.end();
-         ++it) {
-      NodeOperationInput *to = *it;
+  for (NodeOperation *op : system->m_operations) {
+    for (NodeOperationInput *to : op->m_inputs) {
       NodeOperationOutput *from = to->getLink();
 
       if (!from) {

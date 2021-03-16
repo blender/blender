@@ -604,6 +604,28 @@ static WriteAttributePtr make_vertex_color_write_attribute(void *data, const int
       ATTR_DOMAIN_CORNER, MutableSpan((MLoopCol *)data, domain_size));
 }
 
+static float get_crease(const MEdge &edge)
+{
+  return edge.crease / 255.0f;
+}
+
+static void set_crease(MEdge &edge, const float &value)
+{
+  edge.crease = round_fl_to_uchar_clamp(value * 255.0f);
+}
+
+static ReadAttributePtr make_crease_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<MEdge, float, get_crease>>(
+      ATTR_DOMAIN_EDGE, Span((const MEdge *)data, domain_size));
+}
+
+static WriteAttributePtr make_crease_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayWriteAttribute<MEdge, float, get_crease, set_crease>>(
+      ATTR_DOMAIN_EDGE, MutableSpan((MEdge *)data, domain_size));
+}
+
 class VertexWeightWriteAttribute final : public WriteAttribute {
  private:
   MDeformVert *dverts_;
@@ -777,7 +799,7 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const
+  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const final
   {
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
     const Mesh *mesh = mesh_component.get_for_read();
@@ -804,22 +826,22 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
                                                              std::move(normals));
   }
 
-  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const
+  WriteAttributePtr try_get_for_write(GeometryComponent &UNUSED(component)) const final
   {
     return {};
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const
+  bool try_delete(GeometryComponent &UNUSED(component)) const final
   {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component)) const
+  bool try_create(GeometryComponent &UNUSED(component)) const final
   {
     return false;
   }
 
-  bool exists(const GeometryComponent &component) const
+  bool exists(const GeometryComponent &component) const final
   {
     return component.attribute_domain_size(ATTR_DOMAIN_POLYGON) != 0;
   }
@@ -903,6 +925,18 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                      make_shade_smooth_write_attribute,
                                                      nullptr);
 
+  static BuiltinCustomDataLayerProvider crease("crease",
+                                               ATTR_DOMAIN_EDGE,
+                                               CD_PROP_FLOAT,
+                                               CD_MEDGE,
+                                               BuiltinAttributeProvider::NonCreatable,
+                                               BuiltinAttributeProvider::Writable,
+                                               BuiltinAttributeProvider::NonDeletable,
+                                               edge_access,
+                                               make_crease_read_attribute,
+                                               make_crease_write_attribute,
+                                               nullptr);
+
   static NamedLegacyCustomDataProvider uvs(ATTR_DOMAIN_CORNER,
                                            CD_PROP_FLOAT2,
                                            CD_MLOOPUV,
@@ -923,7 +957,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static CustomDataAttributeProvider edge_custom_data(ATTR_DOMAIN_EDGE, edge_access);
   static CustomDataAttributeProvider polygon_custom_data(ATTR_DOMAIN_POLYGON, polygon_access);
 
-  return ComponentAttributeProviders({&position, &material_index, &shade_smooth, &normal},
+  return ComponentAttributeProviders({&position, &material_index, &shade_smooth, &normal, &crease},
                                      {&uvs,
                                       &vertex_colors,
                                       &corner_custom_data,

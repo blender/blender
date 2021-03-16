@@ -129,7 +129,7 @@ class GeoNodeExecParams {
       if (!input_values_.contains(sub_identifier)) {
         break;
       }
-      values.append(input_values_.extract<T>(sub_identifier));
+      values.append(input_values_.extract<T, StringRef>(sub_identifier));
       index++;
     }
     return values;

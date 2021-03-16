@@ -570,7 +570,7 @@ void wm_add_default(Main *bmain, bContext *C)
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
-    wm_autosave_timer_ended(wm);
+    wm_autosave_timer_end(wm);
   }
 
 #ifdef WITH_XR_OPENXR

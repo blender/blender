@@ -207,7 +207,9 @@ static bool isDisabled(GpencilModifierData *UNUSED(md), int UNUSED(userRenderPar
   return false;
 }
 
-static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void updateDepsgraph(GpencilModifierData *md,
+                            const ModifierUpdateDepsgraphContext *ctx,
+                            const int UNUSED(mode))
 {
   MirrorGpencilModifierData *lmd = (MirrorGpencilModifierData *)md;
   if (lmd->object != NULL) {

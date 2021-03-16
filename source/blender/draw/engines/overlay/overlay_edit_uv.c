@@ -28,6 +28,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 
 #include "DNA_brush_types.h"
@@ -417,6 +418,10 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
+  if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+    return;
+  }
+
   OVERLAY_StorageList *stl = vedata->stl;
   OVERLAY_PrivateData *pd = stl->pd;
   GPUBatch *geom;

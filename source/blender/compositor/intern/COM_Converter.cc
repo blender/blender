@@ -406,6 +406,9 @@ Node *COM_convert_bnode(bNode *b_node)
     case CMP_NODE_SUNBEAMS:
       node = new SunBeamsNode(b_node);
       break;
+    case CMP_NODE_CRYPTOMATTE_LEGACY:
+      node = new CryptomatteLegacyNode(b_node);
+      break;
     case CMP_NODE_CRYPTOMATTE:
       node = new CryptomatteNode(b_node);
       break;

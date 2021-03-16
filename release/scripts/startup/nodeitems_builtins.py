@@ -390,6 +390,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeColorMatte"),
         NodeItem("CompositorNodeDoubleEdgeMask"),
         NodeItem("CompositorNodeCryptomatte"),
+        NodeItem("CompositorNodeCryptomatteV2"),
     ]),
     CompositorNodeCategory("CMP_DISTORT", "Distort", items=[
         NodeItem("CompositorNodeScale"),

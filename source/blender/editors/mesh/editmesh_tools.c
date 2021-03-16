@@ -7746,7 +7746,7 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 
 /** \} */
 
-#ifdef WITH_FREESTYLE
+#if defined(WITH_FREESTYLE)
 
 /* -------------------------------------------------------------------- */
 /** \name Mark Edge (Freestyle) Operator

@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_opus
-  URL ${OPUS_URI}
+  URL file://${PACKAGE_DIR}/${OPUS_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${OPUS_HASH}
+  URL_HASH ${OPUS_HASH_TYPE}=${OPUS_HASH}
   PREFIX ${BUILD_DIR}/opus
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/opus
     --disable-shared

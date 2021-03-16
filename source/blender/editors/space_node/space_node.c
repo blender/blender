@@ -667,6 +667,30 @@ static bool node_group_drop_poll(bContext *UNUSED(C),
   return WM_drag_is_ID_type(drag, ID_NT);
 }
 
+static bool node_object_drop_poll(bContext *UNUSED(C),
+                                  wmDrag *drag,
+                                  const wmEvent *UNUSED(event),
+                                  const char **UNUSED(r_tooltip))
+{
+  return WM_drag_is_ID_type(drag, ID_OB);
+}
+
+static bool node_collection_drop_poll(bContext *UNUSED(C),
+                                      wmDrag *drag,
+                                      const wmEvent *UNUSED(event),
+                                      const char **UNUSED(r_tooltip))
+{
+  return WM_drag_is_ID_type(drag, ID_GR);
+}
+
+static bool node_texture_drop_poll(bContext *UNUSED(C),
+                                   wmDrag *drag,
+                                   const wmEvent *UNUSED(event),
+                                   const char **UNUSED(r_tooltip))
+{
+  return WM_drag_is_ID_type(drag, ID_TE);
+}
+
 static bool node_ima_drop_poll(bContext *UNUSED(C),
                                wmDrag *drag,
                                const wmEvent *UNUSED(event),
@@ -720,6 +744,21 @@ static void node_dropboxes(void)
 {
   ListBase *lb = WM_dropboxmap_find("Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_object",
+                 node_object_drop_poll,
+                 node_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_collection",
+                 node_collection_drop_poll,
+                 node_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
+  WM_dropbox_add(lb,
+                 "NODE_OT_add_texture",
+                 node_texture_drop_poll,
+                 node_id_drop_copy,
+                 WM_drag_free_imported_drag_ID);
   WM_dropbox_add(lb,
                  "NODE_OT_add_group",
                  node_group_drop_poll,

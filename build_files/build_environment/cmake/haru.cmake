@@ -24,9 +24,9 @@ set(HARU_EXTRA_ARGS
 )
 
 ExternalProject_Add(external_haru
-  URL ${HARU_URI}
+  URL file://${PACKAGE_DIR}/${HARU_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${HARU_HASH}
+  URL_HASH ${HARU_HASH_TYPE}=${HARU_HASH}
   PREFIX ${BUILD_DIR}/haru
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/haru/src/external_haru < ${PATCH_DIR}/haru.diff
   CMAKE_ARGS

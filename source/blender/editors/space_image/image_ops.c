@@ -3147,6 +3147,23 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
+/* Returns mouse position in image space. */
+bool ED_space_image_get_position(SpaceImage *sima, struct ARegion *ar, int mval[2], float fpos[2])
+{
+  void *lock;
+  ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+
+  if (ibuf == NULL) {
+    ED_space_image_release_buffer(sima, ibuf, lock);
+    return false;
+  }
+
+  UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &fpos[0], &fpos[1]);
+
+  ED_space_image_release_buffer(sima, ibuf, lock);
+  return true;
+}
+
 /* Returns color in linear space, matching ED_space_node_color_sample(). */
 bool ED_space_image_color_sample(
     SpaceImage *sima, ARegion *region, int mval[2], float r_col[3], bool *r_is_data)

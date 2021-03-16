@@ -36,6 +36,7 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -159,6 +160,21 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
     {GP_EMPTY, "EMPTY", ICON_EMPTY_AXIS, "Blank", "Create an empty grease pencil object"},
     {GP_STROKE, "STROKE", ICON_STROKE, "Stroke", "Create a simple stroke with basic colors"},
     {GP_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Construct a Suzanne grease pencil object"},
+    {GP_LRT_SCENE,
+     "LRT_SCENE",
+     ICON_SCENE_DATA,
+     "Scene Line Art",
+     "Quickly set up Line Art for the whole scene"},
+    {GP_LRT_COLLECTION,
+     "LRT_COLLECTION",
+     ICON_OUTLINER_COLLECTION,
+     "Collection Line Art",
+     "Quickly set up Line Art for active collection"},
+    {GP_LRT_OBJECT,
+     "LRT_OBJECT",
+     ICON_CUBE,
+     "Object Line Art",
+     "Quickly set up Line Art for active collection"},
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem parent_type_items[] = {
@@ -2083,6 +2099,12 @@ int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
   return (ss && ss->bm);
 }
 
+static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -2643,6 +2665,59 @@ static void rna_def_object_display(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   RNA_define_lib_overridable(false);
+}
+
+static void rna_def_object_lineart(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static EnumPropertyItem prop_feature_line_usage_items[] = {
+      {OBJECT_LRT_INHERENT,
+       "INHEREIT",
+       0,
+       "Inhereit",
+       "Follow settings from the parent collection"},
+      {OBJECT_LRT_INCLUDE, "INCLUDE", 0, "Include", "Include this object into LRT calculation"},
+      {OBJECT_LRT_OCCLUSION_ONLY,
+       "OCCLUSION_ONLY",
+       0,
+       "Occlusion Only",
+       "Don't produce lines, only used as occlusion object"},
+      {OBJECT_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this object for LRT rendering"},
+      {OBJECT_LRT_INTERSECTION_ONLY,
+       "INTERSECTION_ONLY",
+       0,
+       "Intersection Only",
+       "Only to generate intersection lines with this object"},
+      {OBJECT_LRT_NO_INTERSECTION,
+       "NO_INTERSECTION",
+       0,
+       "No Intersection",
+       "Include this object but do not generate intersection lines"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  srna = RNA_def_struct(brna, "ObjectLineArt", NULL);
+  RNA_def_struct_ui_text(srna, "Object Line Art", "Object lineart settings");
+  RNA_def_struct_sdna(srna, "ObjectLineArt");
+
+  prop = RNA_def_property(srna, "usage", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_feature_line_usage_items);
+  RNA_def_property_ui_text(prop, "Usage", "How to use this object in line art calculation");
+  RNA_def_property_update(prop, 0, "rna_object_lineart_update");
+
+  prop = RNA_def_property(srna, "use_crease_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", OBJECT_LRT_OWN_CREASE);
+  RNA_def_property_ui_text(prop, "Own Crease", "Use own crease setting to overwrite scene global");
+  RNA_def_property_update(prop, 0, "rna_object_lineart_update");
+
+  prop = RNA_def_property(srna, "crease_threshold", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0, DEG2RAD(180.0f));
+  RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(180.0f), 0.01f, 1);
+  RNA_def_property_ui_text(
+      prop, "Own Crease", "Angles smaller than this will be treated as creases");
+  RNA_def_property_update(prop, 0, "rna_object_lineart_update");
 }
 
 static void rna_def_object(BlenderRNA *brna)
@@ -3414,6 +3489,11 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_Object_display_get", NULL, NULL, NULL);
   RNA_def_property_ui_text(prop, "Object Display", "Object display settings for 3D viewport");
 
+  /* Line Art */
+  prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ObjectLineArt");
+  RNA_def_property_ui_text(prop, "Line Art", "Line Art settings for the object");
+
   RNA_define_lib_overridable(false);
 
   /* anim */
@@ -3434,6 +3514,7 @@ void RNA_def_object(BlenderRNA *brna)
   rna_def_face_map(brna);
   rna_def_material_slot(brna);
   rna_def_object_display(brna);
+  rna_def_object_lineart(brna);
   RNA_define_animate_sdna(true);
 }
 

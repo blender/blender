@@ -137,8 +137,8 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
           "verts.out",
           false,
           "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4 calc_uvs=%b",
-          1,
-          1,
+          0,
+          0,
           RNA_float_get(op->ptr, "size") / 2.0f,
           creation_data.mat,
           calc_uvs)) {
@@ -531,9 +531,9 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
   /* Note that if you use MESH_ADD_VERTS_MAXI for both x and y at the same time
    * you will still reach impossible values (10^12 vertices or so...). */
   RNA_def_int(
-      ot->srna, "x_subdivisions", 10, 2, MESH_ADD_VERTS_MAXI, "X Subdivisions", "", 2, 1000);
+      ot->srna, "x_subdivisions", 10, 1, MESH_ADD_VERTS_MAXI, "X Subdivisions", "", 1, 1000);
   RNA_def_int(
-      ot->srna, "y_subdivisions", 10, 2, MESH_ADD_VERTS_MAXI, "Y Subdivisions", "", 2, 1000);
+      ot->srna, "y_subdivisions", 10, 1, MESH_ADD_VERTS_MAXI, "Y Subdivisions", "", 1, 1000);
 
   ED_object_add_unit_props_size(ot);
   ED_object_add_mesh_props(ot);

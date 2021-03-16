@@ -202,8 +202,7 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
   }
 
   NodeInputs inputs = find_inputs(node_range, b_nodelink->tosock);
-  for (NodeInputs::const_iterator it = inputs.begin(); it != inputs.end(); ++it) {
-    NodeInput *input = *it;
+  for (NodeInput *input : inputs) {
     if (input->isLinked()) {
       continue;
     }

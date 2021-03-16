@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_vorbis
-  URL ${VORBIS_URI}
+  URL file://${PACKAGE_DIR}/${VORBIS_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${VORBIS_HASH}
+  URL_HASH ${VORBIS_HASH_TYPE}=${VORBIS_HASH}
   PREFIX ${BUILD_DIR}/vorbis
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vorbis/src/external_vorbis/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/vorbis
     --disable-shared

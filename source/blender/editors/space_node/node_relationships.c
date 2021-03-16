@@ -902,7 +902,7 @@ static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
         /* attach links to the socket */
         link->tonode = tnode;
         link->tosock = tsock;
-        snode->runtime->last_node_hovered_while_dragging_a_link = tnode;
+        nldrag->last_node_hovered_while_dragging_a_link = tnode;
         if (existing_link_connected_to_fromsock) {
           link->multi_input_socket_index =
               existing_link_connected_to_fromsock->multi_input_socket_index;
@@ -914,9 +914,9 @@ static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
     else {
       LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
         bNodeLink *link = linkdata->data;
-        if (snode->runtime->last_node_hovered_while_dragging_a_link) {
+        if (nldrag->last_node_hovered_while_dragging_a_link) {
           sort_multi_input_socket_links(
-              snode, snode->runtime->last_node_hovered_while_dragging_a_link, NULL, cursor);
+              snode, nldrag->last_node_hovered_while_dragging_a_link, NULL, cursor);
         }
         link->tonode = NULL;
         link->tosock = NULL;

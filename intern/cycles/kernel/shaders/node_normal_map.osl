@@ -31,7 +31,7 @@ shader node_normal_map(normal NormalIn = N,
     vector tangent;
     vector ninterp;
     float tangent_sign;
-    float is_smooth;
+    float is_smooth = 0.0;
 
     getattribute("geom:is_smooth", is_smooth);
     if (!is_smooth) {

@@ -21,9 +21,9 @@ set(POTRACE_EXTRA_ARGS
 
 if((WIN32 AND BUILD_MODE STREQUAL Release) OR UNIX)
   ExternalProject_Add(external_potrace
-    URL ${POTRACE_URI}
+    URL file://${PACKAGE_DIR}/${POTRACE_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH MD5=${POTRACE_HASH}
+    URL_HASH ${POTRACE_HASH_TYPE}=${POTRACE_HASH}
     PREFIX ${BUILD_DIR}/potrace
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_potrace.txt ${BUILD_DIR}/potrace/src/external_potrace/CMakeLists.txt
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/potrace ${DEFAULT_CMAKE_FLAGS} ${POTRACE_EXTRA_ARGS}

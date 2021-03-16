@@ -266,11 +266,6 @@ class MemoryBuffer {
     BLI_assert(offset < this->determineBufferSize() * this->m_num_channels);
     BLI_assert(!(extend_x == COM_MB_CLIP && (u < m_rect.xmin || u >= m_rect.xmax)) &&
                !(extend_y == COM_MB_CLIP && (v < m_rect.ymin || v >= m_rect.ymax)));
-#if 0
-    /* always true */
-    BLI_assert((int)(MEM_allocN_len(this->m_buffer) / sizeof(*this->m_buffer)) ==
-               (int)(this->determineBufferSize() * COM_NUMBER_OF_CHANNELS));
-#endif
     float *buffer = &this->m_buffer[offset];
     memcpy(result, buffer, sizeof(float) * this->m_num_channels);
   }

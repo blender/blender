@@ -50,6 +50,7 @@ struct Main;
 struct Object;
 struct PointerRNA;
 struct PropertyRNA;
+struct ReportList;
 struct Scene;
 struct ViewLayer;
 
@@ -128,6 +129,11 @@ bool BKE_lib_override_library_property_operation_operands_validate(
     struct PropertyRNA *prop_dst,
     struct PropertyRNA *prop_src,
     struct PropertyRNA *prop_storage);
+
+void BKE_lib_override_library_validate(struct Main *bmain,
+                                       struct ID *id,
+                                       struct ReportList *reports);
+void BKE_lib_override_library_main_validate(struct Main *bmain, struct ReportList *reports);
 
 bool BKE_lib_override_library_status_check_local(struct Main *bmain, struct ID *local);
 bool BKE_lib_override_library_status_check_reference(struct Main *bmain, struct ID *local);

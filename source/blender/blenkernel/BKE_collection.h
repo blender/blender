@@ -82,6 +82,8 @@ struct Collection *BKE_collection_master_add(void);
 
 bool BKE_collection_has_object(struct Collection *collection, const struct Object *ob);
 bool BKE_collection_has_object_recursive(struct Collection *collection, struct Object *ob);
+bool BKE_collection_has_object_recursive_instanced(struct Collection *collection,
+                                                   struct Object *ob);
 struct Collection *BKE_collection_object_find(struct Main *bmain,
                                               struct Scene *scene,
                                               struct Collection *collection,
@@ -123,6 +125,7 @@ bool BKE_collection_object_cyclic_check(struct Main *bmain,
 /* Object list cache. */
 
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
+ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
 void BKE_collection_object_cache_free(struct Collection *collection);
 
 struct Base *BKE_collection_or_layer_objects(const struct ViewLayer *view_layer,

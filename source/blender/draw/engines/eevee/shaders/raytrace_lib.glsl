@@ -12,6 +12,7 @@ uniform sampler2DArray planarDepth;
 
 struct Ray {
   vec3 origin;
+  /* Ray direction premultiplied by its maximum length. */
   vec3 direction;
 };
 
@@ -46,12 +47,7 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
   if (len_squared(ray.direction.xy) < 0.00001) {
-    ray.direction.xy = vec2(0.0, 0.01);
-  }
-  /* Avoid divide by 0 error in line_unit_box_intersect_dist, leading to undefined behavior
-   * (see T86429). */
-  if (ray.direction.z == 0.0) {
-    ray.direction.z = 0.0001;
+    ray.direction.xy = vec2(0.0, 0.00001);
   }
   float ray_len_sqr = len_squared(ray.direction.xyz);
   /* Make ray.direction cover one pixel. */
@@ -61,7 +57,7 @@ void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
   /* Clip to segment's end. */
   ray.max_time = sqrt(ray_len_sqr * safe_rcp(len_squared(ray.direction.xyz)));
   /* Clipping to frustum sides. */
-  float clip_dist = line_unit_box_intersect_dist(ray.origin.xyz, ray.direction.xyz);
+  float clip_dist = line_unit_box_intersect_dist_safe(ray.origin.xyz, ray.direction.xyz);
   ray.max_time = min(ray.max_time, clip_dist);
   /* Convert to texture coords [0..1] range. */
   ray.origin = ray.origin * 0.5 + 0.5;
@@ -104,8 +100,7 @@ struct RayTraceParameters {
   float roughness;
 };
 
-/* Return true on hit. */
-/* __ray_dir__ is the ray direction premultiplied by its maximum length */
+/* Returns true on hit. */
 /* TODO fclem remove the backface check and do it the SSR resolve code. */
 bool raytrace(Ray ray,
               RayTraceParameters params,
@@ -119,7 +114,10 @@ bool raytrace(Ray ray,
 
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, params.thickness);
   /* Avoid no iteration. */
-  ssray.max_time = max(ssray.max_time, 1.1);
+  if (ssray.max_time < 1.1) {
+    hit_position = ssray.origin.xyz + ssray.direction.xyz;
+    return false;
+  }
 
   float prev_delta = 0.0, prev_time = 0.0;
   float depth_sample = get_depth_from_view_z(ray.origin.z);
@@ -177,13 +175,13 @@ bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out 
   ssray.direction.x = -ssray.direction.x;
 
   float prev_delta = 0.0, prev_time = 0.0;
-  float depth_sample = get_depth_from_view_z(ray.origin.z);
+  float depth_sample = texture(planarDepth, vec3(ssray.origin.xy, planar_ref_id)).r;
   float delta = depth_sample - ssray.origin.z;
 
   float t = 0.0, time = 0.0;
   /* On very sharp reflections, the ray can be perfectly aligned with the view direction
    * making the tracing useless. Bypass tracing in this case. */
-  bool hit = (ssray.max_time < 1.0);
+  bool hit = false;
   const float max_steps = 255.0;
   for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
     float stride = 1.0 + iter * params.trace_quality;

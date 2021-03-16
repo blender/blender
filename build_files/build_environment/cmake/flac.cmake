@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_flac
-  URL ${FLAC_URI}
+  URL file://${PACKAGE_DIR}/${FLAC_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${FLAC_HASH}
+  URL_HASH ${FLAC_HASH_TYPE}=${FLAC_HASH}
   PREFIX ${BUILD_DIR}/flac
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flac/src/external_flac/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flac/src/external_flac/ && make -j${MAKE_THREADS}

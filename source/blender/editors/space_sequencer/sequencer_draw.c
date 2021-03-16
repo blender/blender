@@ -1312,6 +1312,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
   SEQ_render_new_render_data(
       bmain, depsgraph, scene, rectx, recty, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
+  context.use_proxies = (sseq->flag & SEQ_USE_PROXIES) != 0;
 
   /* Sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
    * by Escape pressed somewhere in the past. */
