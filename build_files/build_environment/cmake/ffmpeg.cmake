@@ -60,9 +60,9 @@ elseif(UNIX)
 endif()
 
 ExternalProject_Add(external_ffmpeg
-  URL ${FFMPEG_URI}
+  URL file://${PACKAGE_DIR}/${FFMPEG_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${FFMPEG_HASH}
+  URL_HASH ${FFMPEG_HASH_TYPE}=${FFMPEG_HASH}
   # OpenJpeg is compiled with pthread support on Linux, which is all fine and is what we
   # want for maximum runtime performance, but due to static nature of that library we
   # need to force ffmpeg to link against pthread, otherwise test program used by autoconf

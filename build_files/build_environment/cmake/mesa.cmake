@@ -53,9 +53,9 @@ set(MESA_EXTRA_FLAGS
 )
 
 ExternalProject_Add(external_mesa
-  URL ${MESA_URI}
+  URL file://${PACKAGE_DIR}/${MESA_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${MESA_HASH}
+  URL_HASH ${MESA_HASH_TYPE}=${MESA_HASH}
   PREFIX ${BUILD_DIR}/mesa
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/mesa/src/external_mesa/ &&

@@ -37,9 +37,9 @@ endif()
 
 # CMake script for TBB from https://github.com/wjakob/tbb/blob/master/CMakeLists.txt
 ExternalProject_Add(external_tbb
-  URL ${TBB_URI}
+  URL file://${PACKAGE_DIR}/${TBB_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${TBB_HASH}
+  URL_HASH ${TBB_HASH_TYPE}=${TBB_HASH}
   PREFIX ${BUILD_DIR}/tbb
   PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_tbb.txt ${BUILD_DIR}/tbb/src/external_tbb/CMakeLists.txt &&
   ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/tbb/src/external_tbb/build/vs2013/version_string.ver ${BUILD_DIR}/tbb/src/external_tbb/src/tbb/version_string.ver &&

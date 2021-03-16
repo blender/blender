@@ -28,9 +28,9 @@ else()
 endif()
 
 ExternalProject_Add(external_fftw3
-  URL ${FFTW_URI}
+  URL file://${PACKAGE_DIR}/${FFTW_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${FFTW_HASH}
+  URL_HASH ${FFTW_HASH_TYPE}=${FFTW_HASH}
   PREFIX ${BUILD_DIR}/fftw3
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/fftw3/src/external_fftw3/ && ${CONFIGURE_COMMAND} ${FFTW_EXTRA_ARGS} --prefix=${mingw_LIBDIR}/fftw3
   PATCH_COMMAND ${FFTW3_PATCH_COMMAND}

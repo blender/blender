@@ -53,9 +53,9 @@ set(USD_EXTRA_ARGS
 )
 
 ExternalProject_Add(external_usd
-  URL ${USD_URI}
+  URL file://${PACKAGE_DIR}/${USD_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${USD_HASH}
+  URL_HASH ${USD_HASH_TYPE}=${USD_HASH}
   PREFIX ${BUILD_DIR}/usd
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${USD_EXTRA_ARGS}

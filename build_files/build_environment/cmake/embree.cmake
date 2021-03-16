@@ -58,9 +58,9 @@ if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
   )
 else()
   ExternalProject_Add(external_embree
-    URL ${EMBREE_URI}
+    URL file://${PACKAGE_DIR}/${EMBREE_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH MD5=${EMBREE_HASH}
+    URL_HASH ${EMBREE_HASH_TYPE}=${EMBREE_HASH}
     PREFIX ${BUILD_DIR}/embree
     PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}

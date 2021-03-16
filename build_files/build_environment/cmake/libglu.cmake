@@ -27,9 +27,9 @@ set(LIBGLU_EXTRA_FLAGS
 )
 
 ExternalProject_Add(external_libglu
-  URL ${LIBGLU_URI}
+  URL file://${PACKAGE_DIR}/${LIBGLU_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${LIBGLU_HASH}
+  URL_HASH ${LIBGLU_HASH_TYPE}=${LIBGLU_HASH}
   PREFIX ${BUILD_DIR}/libglu
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/libglu/src/external_libglu/ &&

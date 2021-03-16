@@ -31,9 +31,9 @@ else()
 endif()
 
 ExternalProject_Add(external_ssl
-  URL ${SSL_URI}
+  URL file://${PACKAGE_DIR}/${SSL_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${SSL_HASH}
+  URL_HASH ${SSL_HASH_TYPE}=${SSL_HASH}
   PREFIX ${BUILD_DIR}/ssl
   PATCH_COMMAND ${SSL_PATCH_CMD}
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ssl/src/external_ssl/ && ${SSL_CONFIGURE_COMMAND} --prefix=${LIBDIR}/ssl

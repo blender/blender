@@ -24,9 +24,9 @@ if(WIN32)
     )
 
     ExternalProject_Add(external_freeglut
-      URL ${FREEGLUT_URI}
+      URL file://${PACKAGE_DIR}/${FREEGLUT_FILE}
       DOWNLOAD_DIR ${DOWNLOAD_DIR}
-      URL_HASH MD5=${FREEGLUT_HASH}
+      URL_HASH ${FREEGLUT_HASH_TYPE}=${FREEGLUT_HASH}
       PREFIX ${BUILD_DIR}/freeglut
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/freeglut ${DEFAULT_C_FLAGS} ${DEFAULT_CXX_FLAGS} ${FREEGLUT_EXTRA_ARGS}
       INSTALL_DIR ${LIBDIR}/freeglut

@@ -24,9 +24,9 @@ if(MSVC)
 endif()
 
 ExternalProject_Add(external_lame
-  URL ${LAME_URI}
+  URL file://${PACKAGE_DIR}/${LAME_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${LAME_HASH}
+  URL_HASH ${LAME_HASH_TYPE}=${LAME_HASH}
   PREFIX ${BUILD_DIR}/lame
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/lame/src/external_lame/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/lame --disable-shared --enable-static ${LAME_EXTRA_ARGS}
     --enable-export=full
