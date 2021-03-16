@@ -195,6 +195,9 @@ static DataTypeConversions create_implicit_conversions()
       conversions, "int32 to float2", [](int32_t a) { return float2((float)a); });
   add_implicit_conversion<int32_t, float3>(
       conversions, "int32 to float3", [](int32_t a) { return float3((float)a); });
+  add_implicit_conversion<int32_t, Color4f>(conversions, "int32 to Color4f", [](int32_t a) {
+    return Color4f((float)a, (float)a, (float)a, 1.0f);
+  });
 
   add_implicit_conversion<bool, float>(conversions);
   add_implicit_conversion<bool, int32_t>(conversions);
