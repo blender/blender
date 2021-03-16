@@ -438,7 +438,7 @@ static void bpy_prop_assign_flag_override(PropertyRNA *prop, const int flag_over
 }
 
 /* callbacks */
-static void bpy_prop_update_cb(struct bContext *C,
+static void bpy_prop_update_fn(struct bContext *C,
                                struct PointerRNA *ptr,
                                struct PropertyRNA *prop)
 {
@@ -490,7 +490,7 @@ static void bpy_prop_update_cb(struct bContext *C,
   }
 }
 
-static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static bool bpy_prop_boolean_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -553,7 +553,7 @@ static bool bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *
   return value;
 }
 
-static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value)
+static void bpy_prop_boolean_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, bool value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -609,7 +609,7 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
   }
 }
 
-static bool bpy_prop_poll_cb(struct PointerRNA *self,
+static bool bpy_prop_poll_fn(struct PointerRNA *self,
                              PointerRNA candidate,
                              struct PropertyRNA *prop)
 {
@@ -658,7 +658,7 @@ static bool bpy_prop_poll_cb(struct PointerRNA *self,
   return result;
 }
 
-static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr,
+static void bpy_prop_boolean_array_get_fn(struct PointerRNA *ptr,
                                           struct PropertyRNA *prop,
                                           bool *values)
 {
@@ -725,7 +725,7 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
+static void bpy_prop_boolean_array_set_fn(struct PointerRNA *ptr,
                                           struct PropertyRNA *prop,
                                           const bool *values)
 {
@@ -786,7 +786,7 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr,
   }
 }
 
-static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_int_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -846,7 +846,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
   return value;
 }
 
-static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
+static void bpy_prop_int_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -902,7 +902,7 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
   }
 }
 
-static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr,
+static void bpy_prop_int_array_get_fn(struct PointerRNA *ptr,
                                       struct PropertyRNA *prop,
                                       int *values)
 {
@@ -969,7 +969,7 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
+static void bpy_prop_int_array_set_fn(struct PointerRNA *ptr,
                                       struct PropertyRNA *prop,
                                       const int *values)
 {
@@ -1030,7 +1030,7 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr,
   }
 }
 
-static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static float bpy_prop_float_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1090,7 +1090,7 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   return value;
 }
 
-static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, float value)
+static void bpy_prop_float_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, float value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1146,7 +1146,7 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
   }
 }
 
-static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr,
+static void bpy_prop_float_array_get_fn(struct PointerRNA *ptr,
                                         struct PropertyRNA *prop,
                                         float *values)
 {
@@ -1213,7 +1213,7 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
+static void bpy_prop_float_array_set_fn(struct PointerRNA *ptr,
                                         struct PropertyRNA *prop,
                                         const float *values)
 {
@@ -1274,7 +1274,7 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr,
   }
 }
 
-static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
+static void bpy_prop_string_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1334,7 +1334,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
   }
 }
 
-static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_string_length_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1397,7 +1397,7 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
   return length;
 }
 
-static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
+static void bpy_prop_string_set_fn(struct PointerRNA *ptr,
                                    struct PropertyRNA *prop,
                                    const char *value)
 {
@@ -1463,7 +1463,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr,
   }
 }
 
-static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
+static int bpy_prop_enum_get_fn(struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1523,7 +1523,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
   return value;
 }
 
-static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
+static void bpy_prop_enum_set_fn(struct PointerRNA *ptr, struct PropertyRNA *prop, int value)
 {
   struct BPyPropStore *prop_store = RNA_property_py_data_get(prop);
   PyObject *py_func;
@@ -1797,7 +1797,7 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   return items;
 }
 
-static const EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C,
+static const EnumPropertyItem *bpy_prop_enum_itemf_fn(struct bContext *C,
                                                       PointerRNA *ptr,
                                                       PropertyRNA *prop,
                                                       bool *r_free)
@@ -1907,229 +1907,229 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
   return 0;
 }
 
-static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *update_cb)
+static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *update_fn)
 {
   /* assume this is already checked for type and arg length */
-  if (update_cb && update_cb != Py_None) {
+  if (update_fn && update_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.update_fn, update_cb);
+    RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_fn);
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.update_fn, update_fn);
 
     RNA_def_property_flag(prop, PROP_CONTEXT_PROPERTY_UPDATE);
   }
 }
 
-static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject *poll_cb)
+static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject *poll_fn)
 {
-  if (poll_cb && poll_cb != Py_None) {
+  if (poll_fn && poll_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_poll_runtime(prop, bpy_prop_poll_cb);
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.poll_fn, poll_cb);
+    RNA_def_property_poll_runtime(prop, bpy_prop_poll_fn);
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.poll_fn, poll_fn);
   }
 }
 
 static void bpy_prop_callback_assign_boolean(struct PropertyRNA *prop,
-                                             PyObject *get_cb,
-                                             PyObject *set_cb)
+                                             PyObject *get_fn,
+                                             PyObject *set_fn)
 {
-  BooleanPropertyGetFunc rna_get_cb = NULL;
-  BooleanPropertySetFunc rna_set_cb = NULL;
+  BooleanPropertyGetFunc rna_get_fn = NULL;
+  BooleanPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_boolean_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_boolean_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_boolean_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_boolean_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_boolean_funcs_runtime(prop, rna_get_cb, rna_set_cb);
+  RNA_def_property_boolean_funcs_runtime(prop, rna_get_fn, rna_set_fn);
 }
 
 static void bpy_prop_callback_assign_boolean_array(struct PropertyRNA *prop,
-                                                   PyObject *get_cb,
-                                                   PyObject *set_cb)
+                                                   PyObject *get_fn,
+                                                   PyObject *set_fn)
 {
-  BooleanArrayPropertyGetFunc rna_get_cb = NULL;
-  BooleanArrayPropertySetFunc rna_set_cb = NULL;
+  BooleanArrayPropertyGetFunc rna_get_fn = NULL;
+  BooleanArrayPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_boolean_array_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_boolean_array_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_boolean_array_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_boolean_array_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_boolean_array_funcs_runtime(prop, rna_get_cb, rna_set_cb);
+  RNA_def_property_boolean_array_funcs_runtime(prop, rna_get_fn, rna_set_fn);
 }
 
 static void bpy_prop_callback_assign_int(struct PropertyRNA *prop,
-                                         PyObject *get_cb,
-                                         PyObject *set_cb)
+                                         PyObject *get_fn,
+                                         PyObject *set_fn)
 {
-  IntPropertyGetFunc rna_get_cb = NULL;
-  IntPropertySetFunc rna_set_cb = NULL;
+  IntPropertyGetFunc rna_get_fn = NULL;
+  IntPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_int_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_int_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_int_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_int_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_int_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
+  RNA_def_property_int_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
 static void bpy_prop_callback_assign_int_array(struct PropertyRNA *prop,
-                                               PyObject *get_cb,
-                                               PyObject *set_cb)
+                                               PyObject *get_fn,
+                                               PyObject *set_fn)
 {
-  IntArrayPropertyGetFunc rna_get_cb = NULL;
-  IntArrayPropertySetFunc rna_set_cb = NULL;
+  IntArrayPropertyGetFunc rna_get_fn = NULL;
+  IntArrayPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_int_array_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_int_array_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_int_array_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_int_array_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_int_array_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
+  RNA_def_property_int_array_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
 static void bpy_prop_callback_assign_float(struct PropertyRNA *prop,
-                                           PyObject *get_cb,
-                                           PyObject *set_cb)
+                                           PyObject *get_fn,
+                                           PyObject *set_fn)
 {
-  FloatPropertyGetFunc rna_get_cb = NULL;
-  FloatPropertySetFunc rna_set_cb = NULL;
+  FloatPropertyGetFunc rna_get_fn = NULL;
+  FloatPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_float_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_float_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_float_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_float_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_float_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
+  RNA_def_property_float_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
 static void bpy_prop_callback_assign_float_array(struct PropertyRNA *prop,
-                                                 PyObject *get_cb,
-                                                 PyObject *set_cb)
+                                                 PyObject *get_fn,
+                                                 PyObject *set_fn)
 {
-  FloatArrayPropertyGetFunc rna_get_cb = NULL;
-  FloatArrayPropertySetFunc rna_set_cb = NULL;
+  FloatArrayPropertyGetFunc rna_get_fn = NULL;
+  FloatArrayPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_float_array_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_float_array_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_float_array_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_float_array_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_float_array_funcs_runtime(prop, rna_get_cb, rna_set_cb, NULL);
+  RNA_def_property_float_array_funcs_runtime(prop, rna_get_fn, rna_set_fn, NULL);
 }
 
 static void bpy_prop_callback_assign_string(struct PropertyRNA *prop,
-                                            PyObject *get_cb,
-                                            PyObject *set_cb)
+                                            PyObject *get_fn,
+                                            PyObject *set_fn)
 {
-  StringPropertyGetFunc rna_get_cb = NULL;
-  StringPropertyLengthFunc rna_length_cb = NULL;
-  StringPropertySetFunc rna_set_cb = NULL;
+  StringPropertyGetFunc rna_get_fn = NULL;
+  StringPropertyLengthFunc rna_length_fn = NULL;
+  StringPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_string_get_cb;
-    rna_length_cb = bpy_prop_string_length_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_string_get_fn;
+    rna_length_fn = bpy_prop_string_length_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_string_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_string_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  RNA_def_property_string_funcs_runtime(prop, rna_get_cb, rna_length_cb, rna_set_cb);
+  RNA_def_property_string_funcs_runtime(prop, rna_get_fn, rna_length_fn, rna_set_fn);
 }
 
 static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
-                                          PyObject *get_cb,
-                                          PyObject *set_cb,
-                                          PyObject *itemf_cb)
+                                          PyObject *get_fn,
+                                          PyObject *set_fn,
+                                          PyObject *itemf_fn)
 {
-  EnumPropertyGetFunc rna_get_cb = NULL;
-  EnumPropertyItemFunc rna_itemf_cb = NULL;
-  EnumPropertySetFunc rna_set_cb = NULL;
+  EnumPropertyGetFunc rna_get_fn = NULL;
+  EnumPropertyItemFunc rna_itemf_fn = NULL;
+  EnumPropertySetFunc rna_set_fn = NULL;
 
-  if (get_cb && get_cb != Py_None) {
+  if (get_fn && get_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_get_cb = bpy_prop_enum_get_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_cb);
+    rna_get_fn = bpy_prop_enum_get_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.get_fn, get_fn);
   }
 
-  if (set_cb && set_cb != Py_None) {
+  if (set_fn && set_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    rna_set_cb = bpy_prop_enum_set_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_cb);
+    rna_set_fn = bpy_prop_enum_set_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.set_fn, set_fn);
   }
 
-  if (itemf_cb && itemf_cb != Py_None) {
+  if (itemf_fn && itemf_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
-    rna_itemf_cb = bpy_prop_enum_itemf_cb;
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.enum_data.itemf_fn, itemf_cb);
+    rna_itemf_fn = bpy_prop_enum_itemf_fn;
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.enum_data.itemf_fn, itemf_fn);
   }
 
-  RNA_def_property_enum_funcs_runtime(prop, rna_get_cb, rna_set_cb, rna_itemf_cb);
+  RNA_def_property_enum_funcs_runtime(prop, rna_get_fn, rna_set_fn, rna_itemf_fn);
 }
 
 /* this define runs at the start of each function and deals with
@@ -2335,9 +2335,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
     int prop_tags = 0;
     const char *pysubtype = NULL;
     int subtype = PROP_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -2371,9 +2371,9 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
                                           &PySet_Type,
                                           &py_tags,
                                           &pysubtype,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -2382,13 +2382,13 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
                               property_flag_override_items,
                               property_subtype_number_items);
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -2405,8 +2405,8 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_boolean(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_boolean(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
 
@@ -2453,9 +2453,9 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
     int prop_tags = 0;
     const char *pysubtype = NULL;
     int subtype = PROP_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -2490,9 +2490,9 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
                                           &py_tags,
                                           &pysubtype,
                                           &size,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -2515,13 +2515,13 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       return NULL;
     }
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -2545,8 +2545,8 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_boolean_array(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_boolean_array(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
 
@@ -2594,9 +2594,9 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
     int prop_tags = 0;
     const char *pysubtype = NULL;
     int subtype = PROP_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -2639,9 +2639,9 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
                                           &PySet_Type,
                                           &py_tags,
                                           &pysubtype,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -2650,13 +2650,13 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
                               property_flag_override_items,
                               property_subtype_number_items);
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -2675,8 +2675,8 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_int(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_int(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
@@ -2730,9 +2730,9 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
     int prop_tags = 0;
     const char *pysubtype = NULL;
     int subtype = PROP_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -2777,9 +2777,9 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
                                           &py_tags,
                                           &pysubtype,
                                           &size,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -2802,13 +2802,13 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
       return NULL;
     }
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -2830,8 +2830,8 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_int_array(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_int_array(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
@@ -2885,9 +2885,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
     int subtype = PROP_NONE;
     const char *pyunit = NULL;
     int unit = PROP_UNIT_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -2918,9 +2918,9 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
                                           &py_tags,
                                           &pysubtype,
                                           &pyunit,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -2934,13 +2934,13 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
       return NULL;
     }
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -2959,8 +2959,8 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_float(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_float(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
@@ -3018,9 +3018,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
     int subtype = PROP_NONE;
     const char *pyunit = NULL;
     int unit = PROP_UNIT_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -3052,9 +3052,9 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
                                           &pysubtype,
                                           &pyunit,
                                           &size,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -3083,13 +3083,13 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
       return NULL;
     }
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -3111,8 +3111,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_float_array(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_float_array(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
@@ -3157,9 +3157,9 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
     int prop_tags = 0;
     const char *pysubtype = NULL;
     int subtype = PROP_NONE;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -3194,9 +3194,9 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
                                           &PySet_Type,
                                           &py_tags,
                                           &pysubtype,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
@@ -3205,13 +3205,13 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
                               property_flag_override_items,
                               property_subtype_string_items);
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -3234,8 +3234,8 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_string(prop, get_cb, set_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_string(prop, get_fn, set_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
@@ -3316,9 +3316,9 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     int opts_override = 0;
     int prop_tags = 0;
     bool is_itemf = false;
-    PyObject *update_cb = NULL;
-    PyObject *get_cb = NULL;
-    PyObject *set_cb = NULL;
+    PyObject *update_fn = NULL;
+    PyObject *get_fn = NULL;
+    PyObject *set_fn = NULL;
     PyObject *py_tags = NULL;
 
     static const char *_keywords[] = {
@@ -3351,21 +3351,21 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
                                           &pyopts_override,
                                           &PySet_Type,
                                           &py_tags,
-                                          &update_cb,
-                                          &get_cb,
-                                          &set_cb)) {
+                                          &update_fn,
+                                          &get_fn,
+                                          &set_fn)) {
       return NULL;
     }
 
     BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items, property_flag_override_items);
 
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(get_cb, "get", 1) == -1) {
+    if (bpy_prop_callback_check(get_fn, "get", 1) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(set_cb, "set", 2) == -1) {
+    if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
       return NULL;
     }
 
@@ -3432,8 +3432,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (pyopts_override) {
       bpy_prop_assign_flag_override(prop, opts_override);
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_enum(prop, get_cb, set_cb, (is_itemf ? items : NULL));
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_enum(prop, get_fn, set_fn, (is_itemf ? items : NULL));
     RNA_def_property_duplicate_pointers(srna, prop);
 
     if (is_itemf == false) {
@@ -3504,7 +3504,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
     int opts = 0;
     int opts_override = 0;
     int prop_tags = 0;
-    PyObject *update_cb = NULL, *poll_cb = NULL;
+    PyObject *update_fn = NULL, *poll_fn = NULL;
 
     static const char *_keywords[] = {
         "attr",
@@ -3533,8 +3533,8 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
                                           &pyopts_override,
                                           &PySet_Type,
                                           &py_tags,
-                                          &poll_cb,
-                                          &update_cb)) {
+                                          &poll_fn,
+                                          &update_fn)) {
       return NULL;
     }
 
@@ -3551,10 +3551,10 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
                    RNA_struct_ui_name(&RNA_PropertyGroup));
       return NULL;
     }
-    if (bpy_prop_callback_check(update_cb, "update", 2) == -1) {
+    if (bpy_prop_callback_check(update_fn, "update", 2) == -1) {
       return NULL;
     }
-    if (bpy_prop_callback_check(poll_cb, "poll", 2) == -1) {
+    if (bpy_prop_callback_check(poll_fn, "poll", 2) == -1) {
       return NULL;
     }
     prop = RNA_def_pointer_runtime(srna, id, ptype, name ? name : id, description);
@@ -3573,8 +3573,8 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
         RNA_def_struct_flag(srna, STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES);
       }
     }
-    bpy_prop_callback_assign_update(prop, update_cb);
-    bpy_prop_callback_assign_pointer(prop, poll_cb);
+    bpy_prop_callback_assign_update(prop, update_fn);
+    bpy_prop_callback_assign_pointer(prop, poll_fn);
     RNA_def_property_duplicate_pointers(srna, prop);
   }
   Py_RETURN_NONE;
