@@ -716,6 +716,7 @@ static float *sculpt_ipmask_compute_and_store_step(SculptSession *ss,
     MEM_freeN(current_mask);
     current_mask = MEM_dupallocN(next_mask);
   }
+  MEM_freeN(current_mask);
 
   /* Pack and store the delta step. */
   MaskFilterDeltaStep *delta_step;
