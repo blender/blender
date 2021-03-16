@@ -1031,22 +1031,30 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  const int direction = RNA_enum_get(op->ptr, "direction");
-  const bool use_step_interpolation = RNA_boolean_get(op->ptr, "use_step_interpolation");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
   const float strength = RNA_float_get(op->ptr, "strength");
   const int filter_type = RNA_enum_get(op->ptr, "filter_type");
+  const int direction = RNA_enum_get(op->ptr, "direction");
 
   SCULPT_undo_push_begin(ob, "mask filter");
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
   ss->filter_cache = sculpt_ipmask_filter_cache_init(ob, sd, filter_type, false);
   sculpt_ipmask_store_initial_undo_step(ob);
   sculpt_ipmask_store_reference_step(ss);
 
-    SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
-    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+  const float target_step = direction == MASK_FILTER_STEP_DIRECTION_FORWARD? 1 : -1;
+  if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
+    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, strength * target_step);
+  }
+  else {
+    sculpt_ipmask_filter_update_to_target_step(
+        ss, target_step, iteration_count, 0.0f);
+  }
+
+  SCULPT_tag_update_overlays(C);
+  SCULPT_filter_cache_free(ss);
+  SCULPT_undo_push_end();
+  SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   return OPERATOR_FINISHED;
 }
 
