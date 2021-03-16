@@ -410,6 +410,9 @@ static bool from_manifest(CryptomatteLayer &layer, blender::StringRefNull manife
       ref = ref.drop_prefix(quoted_name_len);
       ref = skip_whitespaces_(ref);
 
+      if (ref.is_empty()) {
+        return false;
+      }
       char colon = ref.front();
       if (colon != ':') {
         return false;
@@ -417,7 +420,7 @@ static bool from_manifest(CryptomatteLayer &layer, blender::StringRefNull manife
       ref = ref.drop_prefix(1);
       ref = skip_whitespaces_(ref);
 
-      if (ref.front() != '\"') {
+      if (ref.is_empty() || ref.front() != '\"') {
         return false;
       }
 
