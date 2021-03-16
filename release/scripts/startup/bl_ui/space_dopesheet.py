@@ -598,6 +598,7 @@ class DOPESHEET_MT_context_menu(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        st = _context.space_data
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
@@ -608,16 +609,26 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
-        layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
-        layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
-        layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
+        
+        if st.mode != 'GPENCIL':
+           layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
+           layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+           layout.operator_menu_enum("action.easing_type", "type", text="Easing Mode")
 
         layout.separator()
 
         layout.operator("action.keyframe_insert").type = 'SEL'
         layout.operator("action.duplicate_move")
+
+        if st.mode == 'GPENCIL':
+            layout.separator()
+
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("action.delete")
+
+        if st.mode == 'GPENCIL':
+           layout.operator("gpencil.interpolate_reverse")
+           layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicate Frames")
 
         layout.separator()
 
