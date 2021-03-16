@@ -1422,6 +1422,9 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
 
 /* Operators. */
 
+/* Face Set by Topology. */
+void SCULPT_OT_face_set_by_topology(struct wmOperatorType *ot);
+
 /* Expand. */
 void SCULPT_OT_expand(struct wmOperatorType *ot);
 void sculpt_expand_modal_keymap(struct wmKeyConfig *keyconf);

@@ -10055,6 +10055,7 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_init);
   WM_operatortype_append(SCULPT_OT_reset_brushes);
   WM_operatortype_append(SCULPT_OT_ipmask_filter);
+  WM_operatortype_append(SCULPT_OT_face_set_by_topology);
 
   WM_operatortype_append(SCULPT_OT_expand);
 }

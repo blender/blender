@@ -115,6 +115,9 @@ static bool sculpt_face_set_loop_step(SculptSession *ss, const int from_poly, co
    if (next_poly == SCULPT_FACE_SET_LOOP_STEP_NONE) {
      return false;
    }
+
+   *r_next_poly = next_poly;
+   return true;
 }
 
 static int sculpt_face_set_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
@@ -143,6 +146,7 @@ static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_fac
   MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
 
   if (initial_poly->totloop != 4) {
+    printf("NO QUAD ON INITIAL\n");
     return;
   }
 
@@ -184,24 +188,30 @@ static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_fac
   int current_poly = ss->active_face_index;
   int current_edge = initial_edge_index;
   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
-  while(sculpt_face_set_loop_step(ss, current_poly, current_edge, &next_poly)) {
-    if (ss->face_sets[next_poly] == next_face_set_id) {
+  int max_steps = ss->totfaces;
+  while(max_steps && sculpt_face_set_loop_step(ss, current_poly, current_edge, &next_poly)) {
+    printf("LOOP STEP\n");
+    if (ss->face_sets[next_poly] == ss->active_face_index) {
+      printf("BREAK INITIAL\n");
       break;
     }
     if (ss->face_sets[next_poly] < 0) {
+      printf("BREAK HIDDEN\n");
       break;
     }
     if (ss->mpoly[next_poly].totloop != 4) {
+      printf("BREAK NON QUAD %d\n", next_poly);
       break;
     }
 
     ss->face_sets[next_poly] = next_face_set_id;
     current_edge = sculpt_face_set_loop_opposite_edge_in_quad(ss, next_poly, current_edge);
     current_poly = next_poly;
+    max_steps--;
   }
 }
 
-static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const wmEvent *event)
+static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -209,6 +219,7 @@ static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const 
 
   const int mode = RNA_enum_get(op->ptr, "mode");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  printf("FACE SET TOPOLOGY\n");
 
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
@@ -224,10 +235,11 @@ static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const 
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
   SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
-  MEM_freeN(nodes);
+
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   const int next_face_set = ED_sculpt_face_sets_find_next_available_id(mesh);
+  printf("NEXT FACE SET %d\n", next_face_set);
 
   switch (mode) {
     case SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART:
@@ -237,6 +249,22 @@ static int sculpt_face_set_by_topology_invok(bContext *C, wmOperator *op, const 
       sculpt_face_set_by_topology_poly_loop(ob, next_face_set);
       break;
   }
+
+
+  /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
+  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
+
+  for (int i = 0; i < totnode; i++) {
+    BKE_pbvh_node_mark_update_visibility(nodes[i]);
+  }
+
+  BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    BKE_mesh_flush_hidden_from_verts(ob->data);
+  }
+
+  MEM_freeN(nodes);
 
   SCULPT_undo_push_end();
   SCULPT_tag_update_overlays(C);

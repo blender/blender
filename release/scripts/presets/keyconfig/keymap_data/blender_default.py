@@ -4476,6 +4476,9 @@ def km_sculpt(params):
          {"properties": [("mode", 'INVERT')]}),
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SMOOTH')]}),
+        # Face Set by Topology
+        ("sculpt.face_set_by_topology", {"type": 'J', "value": 'PRESS'},
+         {"properties": [("mode", "POLY_LOOP")]}),
         # Expand
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True},
          {"properties": [("target", "MASK"), ("falloff_type", "GEODESIC"), ("invert", True)]}),
