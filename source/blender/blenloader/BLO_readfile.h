@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include "BLI_listbase.h"
 #include "BLI_sys_types.h"
 
 /** \file
@@ -220,6 +221,26 @@ void BLO_library_link_end(struct Main *mainl,
                           const struct LibraryLink_Params *params);
 
 int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const uint64_t id_types_mask);
+
+/**
+ * Struct for temporarily loading datablocks from a blend file.
+ */
+typedef struct TempLibraryContext {
+  struct Main *temp_main;
+  struct BlendHandle *blendhandle;
+  struct LibraryLink_Params liblink_params;
+  struct Library *lib;
+
+  /* The ID datablock that was loaded. Is NULL if loading failed. */
+  struct ID *temp_id;
+} TempLibraryContext;
+
+TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
+                                             const char *blend_file_path,
+                                             const short idcode,
+                                             const char *idname,
+                                             struct ReportList *reports);
+void BLO_library_temp_free(TempLibraryContext *temp_lib_ctx);
 
 /** \} */
 
