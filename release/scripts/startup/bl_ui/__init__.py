@@ -67,6 +67,7 @@ _modules = [
     "properties_scene",
     "properties_texture",
     "properties_world",
+    "properties_collection",
 
     # Generic Space Modules
     #
@@ -103,6 +104,8 @@ import bpy
 
 if bpy.app.build_options.freestyle:
     _modules.append("properties_freestyle")
+
+_modules.append("properties_lineart")
 
 __import__(name=__name__, fromlist=_modules)
 _namespace = globals()

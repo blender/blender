@@ -130,7 +130,7 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_loop_multi_select);
   WM_operatortype_append(MESH_OT_mark_seam);
   WM_operatortype_append(MESH_OT_mark_sharp);
-#ifdef WITH_FREESTYLE
+#if defined(WITH_FREESTYLE)
   WM_operatortype_append(MESH_OT_mark_freestyle_edge);
 #endif
   WM_operatortype_append(MESH_OT_vertices_smooth);

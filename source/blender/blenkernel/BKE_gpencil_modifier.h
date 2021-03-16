@@ -206,7 +206,8 @@ typedef struct GpencilModifierTypeInfo {
    * This function is optional.
    */
   void (*updateDepsgraph)(struct GpencilModifierData *md,
-                          const struct ModifierUpdateDepsgraphContext *ctx);
+                          const struct ModifierUpdateDepsgraphContext *ctx,
+                          const int mode);
 
   /**
    * Should return true if the modifier needs to be recalculated on time

@@ -56,6 +56,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_layer_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_light_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lightprobe_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lineart_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_listBase.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mask_types.h

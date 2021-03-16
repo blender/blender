@@ -458,6 +458,7 @@ static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},
     {BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View Layer Properties"},
     {BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World Properties"},
+    {BCONTEXT_COLLECTION, "COLLECTION", ICON_GROUP, "Collection", "Collection Properties"},
     {BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object Properties"},
     {BCONTEXT_CONSTRAINT,
      "CONSTRAINT",

@@ -53,6 +53,7 @@ set(SRC
   intern/MOD_gpencilbuild.c
   intern/MOD_gpencilcolor.c
   intern/MOD_gpencilhook.c
+  intern/MOD_gpencillineart.c
   intern/MOD_gpencillattice.c
   intern/MOD_gpencilmirror.c
   intern/MOD_gpencilmultiply.c
@@ -70,6 +71,16 @@ set(SRC
   MOD_gpencil_modifiertypes.h
   intern/MOD_gpencil_ui_common.h
   intern/MOD_gpencil_util.h
+
+  # Lineart code
+  intern/lineart/lineart_ops.c
+  intern/lineart/lineart_cpu.c
+  intern/lineart/lineart_chain.c
+  intern/lineart/lineart_util.c
+
+  intern/lineart/lineart_intern.h
+  intern/lineart/MOD_lineart.h
+
 )
 
 set(LIB
@@ -79,6 +90,7 @@ if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_gpencil_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

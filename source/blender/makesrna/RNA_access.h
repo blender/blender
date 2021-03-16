@@ -456,6 +456,7 @@ extern StructRNA RNA_NormalEditModifier;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_ObjectBase;
 extern StructRNA RNA_ObjectDisplay;
+extern StructRNA RNA_ObjectLineArt;
 extern StructRNA RNA_OceanModifier;
 extern StructRNA RNA_OceanTexData;
 extern StructRNA RNA_OffsetGpencilModifier;

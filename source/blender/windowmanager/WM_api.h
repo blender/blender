@@ -755,6 +755,7 @@ enum {
   WM_JOB_TYPE_FSMENU_BOOKMARK_VALIDATE,
   WM_JOB_TYPE_QUADRIFLOW_REMESH,
   WM_JOB_TYPE_TRACE_IMAGE,
+  WM_JOB_TYPE_LINEART,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 };

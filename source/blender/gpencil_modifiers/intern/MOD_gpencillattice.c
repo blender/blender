@@ -195,7 +195,9 @@ static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
   return !mmd->object || mmd->object->type != OB_LATTICE;
 }
 
-static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void updateDepsgraph(GpencilModifierData *md,
+                            const ModifierUpdateDepsgraphContext *ctx,
+                            const int UNUSED(mode))
 {
   LatticeGpencilModifierData *lmd = (LatticeGpencilModifierData *)md;
   if (lmd->object != NULL) {

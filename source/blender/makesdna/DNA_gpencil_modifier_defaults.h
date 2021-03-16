@@ -283,4 +283,17 @@
     .colorband = NULL, \
   }
 
+#define _DNA_DEFAULT_LineartGpencilModifierData \
+  { \
+    .line_types = LRT_EDGE_FLAG_ALL_TYPE, \
+    .thickness = 25, \
+    .opacity = 1.0f, \
+    .flags = LRT_GPENCIL_MATCH_OUTPUT_VGROUP | LRT_GPENCIL_SOFT_SELECTION, \
+    .crease_threshold = DEG2RAD(140.0f), \
+    .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_REMOVE_DOUBLES | LRT_ALLOW_OVERLAPPING_EDGES | LRT_ALLOW_CLIPPING_BOUNDARIES, \
+    .angle_splitting_threshold = DEG2RAD(60.0f), \
+    .chaining_geometry_threshold = 0.001f, \
+    .chaining_image_threshold = 0.001f, \
+  }
+
 /* clang-format off */

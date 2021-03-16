@@ -37,6 +37,8 @@
 
 #include "object_intern.h"
 
+#include "MOD_gpencil_lineart.h"
+
 /* ************************** registration **********************************/
 
 void ED_operatortypes_object(void)
@@ -153,6 +155,9 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_apply);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy_to_selected);
+
+  /* grease pencil line art */
+  WM_operatortypes_lineart();
 
   /* Shader FX. */
   WM_operatortype_append(OBJECT_OT_shaderfx_add);

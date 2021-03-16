@@ -33,6 +33,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -150,6 +151,29 @@ static bool buttons_context_path_world(ButsContextPath *path)
   }
 
   /* no path to a world possible */
+  return false;
+}
+
+static bool buttons_context_path_collection(ButsContextPath *path, wmWindow *window)
+{
+  PointerRNA *ptr = &path->ptr[path->len - 1];
+
+  /* if we already have a (pinned) collection, we're done */
+  if (RNA_struct_is_a(ptr->type, &RNA_Collection)) {
+    return true;
+  }
+  /* if we have a view layer, use the view layer's active collection */
+  if (buttons_context_path_view_layer(path, window)) {
+    ViewLayer *view_layer = path->ptr[path->len - 1].data;
+    Collection *c = view_layer->active_collection->collection;
+    if (c) {
+      RNA_id_pointer_create(&c->id, &path->ptr[path->len]);
+      path->len++;
+      return true;
+    }
+  }
+
+  /* no path to a collection possible */
   return false;
 }
 
@@ -575,6 +599,9 @@ static bool buttons_context_path(
     case BCONTEXT_WORLD:
       found = buttons_context_path_world(path);
       break;
+    case BCONTEXT_COLLECTION: /* This is for Line Art collection flags */
+      found = buttons_context_path_collection(path, window);
+      break;
     case BCONTEXT_TOOL:
       found = true;
       break;
@@ -857,6 +884,10 @@ int /*eContextResult*/ buttons_context(const bContext *C,
   if (CTX_data_equals(member, "world")) {
     set_pointer_type(path, result, &RNA_World);
     return CTX_RESULT_OK;
+  }
+  if (CTX_data_equals(member, "collection")) {
+    set_pointer_type(path, result, &RNA_Collection);
+    return 1;
   }
   if (CTX_data_equals(member, "object")) {
     set_pointer_type(path, result, &RNA_Object);

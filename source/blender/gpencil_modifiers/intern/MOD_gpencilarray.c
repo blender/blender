@@ -318,7 +318,9 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   generate_geometry(md, depsgraph, scene, ob);
 }
 
-static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void updateDepsgraph(GpencilModifierData *md,
+                            const ModifierUpdateDepsgraphContext *ctx,
+                            const int UNUSED(mode))
 {
   ArrayGpencilModifierData *lmd = (ArrayGpencilModifierData *)md;
   if (lmd->object != NULL) {

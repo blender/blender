@@ -122,7 +122,9 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
   }
 
   collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection_dst->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
   BLI_listbase_clear(&collection_dst->object_cache);
+  BLI_listbase_clear(&collection_dst->object_cache_instanced);
 
   BLI_listbase_clear(&collection_dst->gobject);
   BLI_listbase_clear(&collection_dst->children);
@@ -214,8 +216,10 @@ static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_a
   if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
     /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
     collection->tag = 0;
     BLI_listbase_clear(&collection->object_cache);
+    BLI_listbase_clear(&collection->object_cache_instanced);
     BLI_listbase_clear(&collection->parents);
 
     /* write LibData */
@@ -246,8 +250,10 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
   BKE_previewimg_blend_read(reader, collection->preview);
 
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
   collection->tag = 0;
   BLI_listbase_clear(&collection->object_cache);
+  BLI_listbase_clear(&collection->object_cache_instanced);
   BLI_listbase_clear(&collection->parents);
 
 #ifdef USE_COLLECTION_COMPAT_28
@@ -773,7 +779,10 @@ const char *BKE_collection_ui_name_get(struct Collection *collection)
 /** \name Object List Cache
  * \{ */
 
-static void collection_object_cache_fill(ListBase *lb, Collection *collection, int parent_restrict)
+static void collection_object_cache_fill(ListBase *lb,
+                                         Collection *collection,
+                                         int parent_restrict,
+                                         bool with_instances)
 {
   int child_restrict = collection->flag | parent_restrict;
 
@@ -784,6 +793,10 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
       base = MEM_callocN(sizeof(Base), "Object Base");
       base->object = cob->ob;
       BLI_addtail(lb, base);
+      if (with_instances && cob->ob->instance_collection) {
+        collection_object_cache_fill(
+            lb, cob->ob->instance_collection, child_restrict, with_instances);
+      }
     }
 
     /* Only collection flags are checked here currently, object restrict flag is checked
@@ -798,7 +811,7 @@ static void collection_object_cache_fill(ListBase *lb, Collection *collection, i
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    collection_object_cache_fill(lb, child->collection, child_restrict);
+    collection_object_cache_fill(lb, child->collection, child_restrict, with_instances);
   }
 }
 
@@ -809,7 +822,7 @@ ListBase BKE_collection_object_cache_get(Collection *collection)
 
     BLI_mutex_lock(&cache_lock);
     if (!(collection->flag & COLLECTION_HAS_OBJECT_CACHE)) {
-      collection_object_cache_fill(&collection->object_cache, collection, 0);
+      collection_object_cache_fill(&collection->object_cache, collection, 0, false);
       collection->flag |= COLLECTION_HAS_OBJECT_CACHE;
     }
     BLI_mutex_unlock(&cache_lock);
@@ -818,11 +831,29 @@ ListBase BKE_collection_object_cache_get(Collection *collection)
   return collection->object_cache;
 }
 
+ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
+{
+  if (!(collection->flag & COLLECTION_HAS_OBJECT_CACHE_INSTANCED)) {
+    static ThreadMutex cache_lock = BLI_MUTEX_INITIALIZER;
+
+    BLI_mutex_lock(&cache_lock);
+    if (!(collection->flag & COLLECTION_HAS_OBJECT_CACHE_INSTANCED)) {
+      collection_object_cache_fill(&collection->object_cache_instanced, collection, 0, true);
+      collection->flag |= COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
+    }
+    BLI_mutex_unlock(&cache_lock);
+  }
+
+  return collection->object_cache_instanced;
+}
+
 static void collection_object_cache_free(Collection *collection)
 {
   /* Clear own cache an for all parents, since those are affected by changes as well. */
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE_INSTANCED;
   BLI_freelistN(&collection->object_cache);
+  BLI_freelistN(&collection->object_cache_instanced);
 
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->parents) {
     collection_object_cache_free(parent->collection);
@@ -925,6 +956,16 @@ bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
   }
 
   const ListBase objects = BKE_collection_object_cache_get(collection);
+  return (BLI_findptr(&objects, ob, offsetof(Base, object)));
+}
+
+bool BKE_collection_has_object_recursive_instanced(Collection *collection, Object *ob)
+{
+  if (ELEM(NULL, collection, ob)) {
+    return false;
+  }
+
+  const ListBase objects = BKE_collection_object_cache_instanced_get(collection);
   return (BLI_findptr(&objects, ob, offsetof(Base, object)));
 }
 
