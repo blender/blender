@@ -319,7 +319,6 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /******************************************************************************************/
 /* Interactive Preview Mask Filter */
 
-
 #define SCULPT_IPMASK_FILTER_MIN_MULTITHREAD 1000
 #define SCULPT_IPMASK_FILTER_GRANULARITY 100
 
@@ -331,7 +330,6 @@ typedef enum eSculptIPMaskFilterType {
   IPMASK_FILTER_ADD_SUBSTRACT,
   IPMASK_FILTER_INVERT,
 } eSculptIPMaskFilterType;
-
 
 typedef enum MaskFilterStepDirectionType {
   MASK_FILTER_STEP_DIRECTION_FORWARD,
@@ -963,14 +961,19 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_ipmask_store_initial_undo_step(Object *ob) {
+static void sculpt_ipmask_store_initial_undo_step(Object *ob)
+{
   SculptSession *ss = ob->sculpt;
   for (int i = 0; i < ss->filter_cache->totnode; i++) {
     SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
   }
 }
 
-static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob, Sculpt *sd, const eSculptIPMaskFilterType filter_type, const bool init_automasking) {
+static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob,
+                                                    Sculpt *sd,
+                                                    const eSculptIPMaskFilterType filter_type,
+                                                    const bool init_automasking)
+{
   SculptSession *ss = ob->sculpt;
   FilterCache *filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
 
@@ -1042,13 +1045,12 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
   sculpt_ipmask_store_initial_undo_step(ob);
   sculpt_ipmask_store_reference_step(ss);
 
-  const float target_step = direction == MASK_FILTER_STEP_DIRECTION_FORWARD? 1 : -1;
+  const float target_step = direction == MASK_FILTER_STEP_DIRECTION_FORWARD ? 1 : -1;
   if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
     sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, strength * target_step);
   }
   else {
-    sculpt_ipmask_filter_update_to_target_step(
-        ss, target_step, iteration_count, 0.0f);
+    sculpt_ipmask_filter_update_to_target_step(ss, target_step, iteration_count, 0.0f);
   }
 
   SCULPT_tag_update_overlays(C);
@@ -1074,46 +1076,45 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
+  static EnumPropertyItem prop_ipmask_filter_types[] = {
+      {IPMASK_FILTER_SMOOTH_SHARPEN,
+       "SMOOTH_SHARPEN",
+       0,
+       "Smooth/Sharpen",
+       "Smooth and sharpen the mask"},
+      {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
+      {IPMASK_FILTER_HARDER_SOFTER,
+       "HARDER_SOFTER",
+       0,
+       "Harder/Softer",
+       "Makes the entire mask harder or softer"},
+      {IPMASK_FILTER_ADD_SUBSTRACT,
+       "ADD_SUBSTRACT",
+       0,
+       "Add/Substract",
+       "Adds or substract a value to the mask"},
+      {IPMASK_FILTER_CONTRAST,
+       "CONTRAST",
+       0,
+       "Contrast",
+       "Increases or decreases the contrast of the mask"},
+      {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
-static EnumPropertyItem prop_ipmask_filter_types[] = {
-    {IPMASK_FILTER_SMOOTH_SHARPEN,
-     "SMOOTH_SHARPEN",
-     0,
-     "Smooth/Sharpen",
-     "Smooth and sharpen the mask"},
-    {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
-    {IPMASK_FILTER_HARDER_SOFTER,
-     "HARDER_SOFTER",
-     0,
-     "Harder/Softer",
-     "Makes the entire mask harder or softer"},
-    {IPMASK_FILTER_ADD_SUBSTRACT,
-     "ADD_SUBSTRACT",
-     0,
-     "Add/Substract",
-     "Adds or substract a value to the mask"},
-    {IPMASK_FILTER_CONTRAST,
-     "CONTRAST",
-     0,
-     "Contrast",
-     "Increases or decreases the contrast of the mask"},
-    {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-static EnumPropertyItem prop_ipmask_filter_direction_types[] = {
-    {MASK_FILTER_STEP_DIRECTION_FORWARD,
-     "FORWARD",
-     0,
-     "Forward",
-     "Apply the filter in the forward direction"},
-    {MASK_FILTER_STEP_DIRECTION_BACKWARD,
-     "BACKWARD",
-     0,
-     "Backward",
-     "Apply the filter in the backward direction"},
-    {0, NULL, 0, NULL, NULL},
-};
+  static EnumPropertyItem prop_ipmask_filter_direction_types[] = {
+      {MASK_FILTER_STEP_DIRECTION_FORWARD,
+       "FORWARD",
+       0,
+       "Forward",
+       "Apply the filter in the forward direction"},
+      {MASK_FILTER_STEP_DIRECTION_BACKWARD,
+       "BACKWARD",
+       0,
+       "Backward",
+       "Apply the filter in the backward direction"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
   /* RNA. */
   RNA_def_enum(ot->srna,
