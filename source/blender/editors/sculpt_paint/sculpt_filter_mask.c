@@ -963,34 +963,26 @@ static int sculpt_ipmask_filter_modal(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  Object *ob = CTX_data_active_object(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+static void sculpt_ipmask_store_initial_undo_step(Object *ob) {
   SculptSession *ss = ob->sculpt;
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  for (int i = 0; i < ss->filter_cache->totnode; i++) {
+    SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
+  }
+}
 
-  SCULPT_undo_push_begin(ob, "mask filter");
+static FilterCache *sculpt_ipmask_filter_cache_init(Object *ob, Sculpt *sd, const eSculptIPMaskFilterType filter_type, const bool init_automasking) {
+  SculptSession *ss = ob->sculpt;
+  FilterCache *filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
 
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
-  ss->filter_cache = MEM_callocN(sizeof(FilterCache), "filter cache");
-
-  FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  if (init_automasking) {
+    filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  }
   filter_cache->mask_filter_current_step = 0;
 
   BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &filter_cache->nodes, &filter_cache->totnode);
-  for (int i = 0; i < filter_cache->totnode; i++) {
-    SCULPT_undo_push_node(ob, filter_cache->nodes[i], SCULPT_UNDO_MASK);
-  }
 
   filter_cache->mask_delta_step = BLI_ghash_int_new("mask filter delta steps");
-
-  sculpt_ipmask_store_reference_step(ss);
-
-  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
   switch (filter_type) {
     case IPMASK_FILTER_SMOOTH_SHARPEN:
       filter_cache->mask_filter_step_forward = sculpt_ipmask_vertex_smooth_cb;
@@ -1010,6 +1002,25 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
       break;
   }
 
+  return filter_cache;
+}
+
+static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = ob->sculpt;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  SCULPT_undo_push_begin(ob, "mask filter");
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
+  ss->filter_cache = sculpt_ipmask_filter_cache_init(ob, sd, filter_type, true);
+  sculpt_ipmask_store_initial_undo_step(ob);
+  sculpt_ipmask_store_reference_step(ss);
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1020,34 +1031,18 @@ static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
   const int direction = RNA_enum_get(op->ptr, "direction");
   const bool use_step_interpolation = RNA_boolean_get(op->ptr, "use_step_interpolation");
   const int iteration_count = RNA_int_get(op->ptr, "iterations");
   const float strength = RNA_float_get(op->ptr, "strength");
+  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   SCULPT_undo_push_begin(ob, "mask filter");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-
-  PBVHNode **nodes;
-  int totnode;
-  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-  for (int i = 0; i < totnode; i++) {
-    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
-  }
-
-  const int step = direction == MASK_FILTER_STEP_DIRECTION_FORWARD? 1 : -1;
-  if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
-    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, step * strength);
-  }
-  else {
-    sculpt_ipmask_filter_update_to_target_step(
-        ss, step, iteration_count, 0.0f);
-  }
-
-   for (int i = 0; i < totnode; i++) {
-      BKE_pbvh_node_mark_update_mask(nodes[i]);
-   }
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  ss->filter_cache = sculpt_ipmask_filter_cache_init(ob, sd, filter_type, false);
+  sculpt_ipmask_store_initial_undo_step(ob);
+  sculpt_ipmask_store_reference_step(ss);
 
     SCULPT_filter_cache_free(ss);
     SCULPT_undo_push_end();
