@@ -27,6 +27,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -477,7 +478,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   struct proxy_output_ctx *rv = MEM_callocN(sizeof(struct proxy_output_ctx), "alloc_proxy_output");
 
   char fname[FILE_MAX];
-  int ffmpeg_quality;
 
   rv->proxy_size = proxy_size;
   rv->anim = anim;
@@ -496,12 +496,15 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->st->id = 0;
 
   rv->c = rv->st->codec;
-  rv->c->thread_count = BLI_system_thread_count();
-  rv->c->thread_type = FF_THREAD_SLICE;
   rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
-  rv->c->codec_id = AV_CODEC_ID_MJPEG;
+  rv->c->codec_id = AV_CODEC_ID_H264;
   rv->c->width = width;
   rv->c->height = height;
+  rv->c->gop_size = 2;
+  rv->c->max_b_frames = 0;
+  /* Correct wrong default ffmpeg param which crash x264. */
+  rv->c->qmin = 10;
+  rv->c->qmax = 51;
 
   rv->of->oformat->video_codec = rv->c->codec_id;
   rv->codec = avcodec_find_encoder(rv->c->codec_id);
@@ -527,11 +530,19 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->c->time_base.num = 1;
   rv->st->time_base = rv->c->time_base;
 
-  /* there's no  way to set JPEG quality in the same way as in AVI JPEG and image sequence,
-   * but this seems to be giving expected quality result */
-  ffmpeg_quality = (int)(1.0f + 30.0f * (1.0f - (float)quality / 100.0f) + 0.5f);
-  av_opt_set_int(rv->c, "qmin", ffmpeg_quality, 0);
-  av_opt_set_int(rv->c, "qmax", ffmpeg_quality, 0);
+  /* This range matches eFFMpegCrf. Crf_range_min corresponds to lowest quality, crf_range_max to
+   * highest quality. */
+  const int crf_range_min = 32;
+  const int crf_range_max = 17;
+  int crf = round_fl_to_int((quality / 100.0f) * (crf_range_max - crf_range_min) + crf_range_min);
+
+  AVDictionary *codec_opts = NULL;
+  /* High quality preset value. */
+  av_dict_set_int(&codec_opts, "crf", crf, 0);
+  /* Prefer smaller filesize. */
+  av_dict_set(&codec_opts, "preset", "slow", 0);
+  /* Thread count. */
+  av_dict_set_int(&codec_opts, "threads", BLI_system_thread_count(), 0);
 
   if (rv->of->flags & AVFMT_GLOBALHEADER) {
     rv->c->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -545,7 +556,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     return 0;
   }
 
-  avcodec_open2(rv->c, rv->codec, NULL);
+  avcodec_open2(rv->c, rv->codec, &codec_opts);
 
   rv->orig_height = av_get_cropped_height_from_codec(st->codec);
 
@@ -783,7 +794,11 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
 
   context->iCodecCtx->workaround_bugs = 1;
 
-  if (avcodec_open2(context->iCodecCtx, context->iCodec, NULL) < 0) {
+  AVDictionary *codec_opts = NULL;
+  /* Thread count. */
+  av_dict_set_int(&codec_opts, "threads", BLI_system_thread_count(), 0);
+
+  if (avcodec_open2(context->iCodecCtx, context->iCodec, &codec_opts) < 0) {
     avformat_close_input(&context->iFormatCtx);
     MEM_freeN(context);
     return NULL;
