@@ -697,8 +697,10 @@ static void lib_override_library_create_post_process(
         break;
       }
       case ID_OB: {
-        BKE_collection_object_add_from(
-            bmain, scene, (Object *)id_root, ((Object *)id_root->newid));
+        if (BKE_view_layer_base_find(view_layer, (Object *)id_root->newid) == NULL) {
+          BKE_collection_object_add_from(
+              bmain, scene, (Object *)id_root, (Object *)id_root->newid);
+        }
         break;
       }
       default:
