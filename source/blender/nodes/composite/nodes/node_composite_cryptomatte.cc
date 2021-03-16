@@ -80,10 +80,10 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
 
     case CMP_CRYPTOMATTE_SRC_IMAGE: {
       Image *image = (Image *)node.id;
-      BLI_assert(!image || GS(image->id.name) == ID_IM);
-      if (!image || image->type != IMA_TYPE_MULTILAYER) {
+      if (!image) {
         break;
       }
+      BLI_assert(GS(image->id.name) == ID_IM);
 
       ImageUser *iuser = &node_cryptomatte->iuser;
       BKE_image_user_frame_calc(image, iuser, frame_number);
