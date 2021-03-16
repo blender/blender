@@ -62,10 +62,6 @@ class NodeOperationBuilder {
     }
   };
 
-  typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
-  typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
-  typedef std::map<NodeInput *, blender::Vector<NodeOperationInput *>> OpInputInverseMap;
-
  private:
   const CompositorContext *m_context;
   NodeGraph m_graph;
@@ -75,9 +71,9 @@ class NodeOperationBuilder {
   blender::Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
-  InputSocketMap m_input_map;
+  blender::Map<NodeOperationInput *, NodeInput *> m_input_map;
   /** Maps node outputs to operation outputs */
-  OutputSocketMap m_output_map;
+  blender::Map<NodeOutput *, NodeOperationOutput *> m_output_map;
 
   Node *m_current_node;
 
@@ -122,12 +118,6 @@ class NodeOperationBuilder {
   }
 
  protected:
-  static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);
-  static const blender::Vector<NodeOperationInput *> &find_operation_inputs(
-      const OpInputInverseMap &map, NodeInput *node_input);
-  static NodeOperationOutput *find_operation_output(const OutputSocketMap &map,
-                                                    NodeOutput *node_output);
-
   /** Add datatype conversion where needed */
   void add_datatype_conversions();
 

@@ -67,19 +67,19 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
    * Inverting yields a map of node inputs to all connected operation inputs,
    * so multiple operations can use the same node input.
    */
-  OpInputInverseMap inverse_input_map;
-  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); ++it) {
-    inverse_input_map[it->second].append(it->first);
+  blender::Map<NodeInput *, blender::Vector<NodeOperationInput *>> inverse_input_map;
+  for (blender::Map<NodeOperationInput *, NodeInput *>::MutableItem item : m_input_map.items()) {
+    inverse_input_map.lookup_or_add_default(item.value).append(item.key);
   }
 
   for (const NodeGraph::Link &link : m_graph.links()) {
     NodeOutput *from = link.from;
     NodeInput *to = link.to;
 
-    NodeOperationOutput *op_from = find_operation_output(m_output_map, from);
-    const blender::Vector<NodeOperationInput *> &op_to_list = find_operation_inputs(
-        inverse_input_map, to);
-    if (!op_from || op_to_list.is_empty()) {
+    NodeOperationOutput *op_from = m_output_map.lookup(from);
+
+    const blender::Vector<NodeOperationInput *> *op_to_list = inverse_input_map.lookup_ptr(to);
+    if (!op_from || op_to_list == nullptr || op_to_list->is_empty()) {
       /* XXX allow this? error/debug message? */
       // BLI_assert(false);
       /* XXX note: this can happen with certain nodes (e.g. OutputFile)
@@ -89,7 +89,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
       continue;
     }
 
-    for (NodeOperationInput *op_to : op_to_list) {
+    for (NodeOperationInput *op_to : *op_to_list) {
       addLink(op_from, op_to);
     }
   }
@@ -136,7 +136,7 @@ void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
    * for resolving links the map will be inverted first in convertToOperations,
    * to get a list of links for each node input socket.
    */
-  m_input_map[operation_socket] = node_socket;
+  m_input_map.add_new(operation_socket, node_socket);
 }
 
 void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
@@ -145,7 +145,7 @@ void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
   BLI_assert(m_current_node);
   BLI_assert(node_socket->getNode() == m_current_node);
 
-  m_output_map[node_socket] = operation_socket;
+  m_output_map.add_new(node_socket, operation_socket);
 }
 
 void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput *to)
@@ -173,28 +173,6 @@ void NodeOperationBuilder::removeInputLink(NodeOperationInput *to)
     }
     index++;
   }
-}
-
-NodeInput *NodeOperationBuilder::find_node_input(const InputSocketMap &map,
-                                                 NodeOperationInput *op_input)
-{
-  InputSocketMap::const_iterator it = map.find(op_input);
-  return (it != map.end() ? it->second : NULL);
-}
-
-const blender::Vector<NodeOperationInput *> &NodeOperationBuilder::find_operation_inputs(
-    const OpInputInverseMap &map, NodeInput *node_input)
-{
-  static const blender::Vector<NodeOperationInput *> empty_list;
-  OpInputInverseMap::const_iterator it = map.find(node_input);
-  return (it != map.end() ? it->second : empty_list);
-}
-
-NodeOperationOutput *NodeOperationBuilder::find_operation_output(const OutputSocketMap &map,
-                                                                 NodeOutput *node_output)
-{
-  OutputSocketMap::const_iterator it = map.find(node_output);
-  return (it != map.end() ? it->second : NULL);
 }
 
 PreviewOperation *NodeOperationBuilder::make_preview_operation() const
@@ -312,7 +290,7 @@ void NodeOperationBuilder::add_operation_input_constants()
   }
   for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
     NodeOperationInput *input = *it;
-    add_input_constant_value(input, find_node_input(m_input_map, input));
+    add_input_constant_value(input, m_input_map.lookup(input));
   }
 }
 
