@@ -380,16 +380,16 @@ if(WITH_C)
 		bindings/C/AUD_Types.h
 	)
 
-if(WITH_FFTW)
-	list(APPEND C_SRC
+	if(WITH_FFTW)
+		list(APPEND C_SRC
 			bindings/C/AUD_HRTF.cpp
 			bindings/C/AUD_ImpulseResponse.cpp
-			)
+		)
 
 		list(APPEND C_HDR
 			bindings/C/AUD_HRTF.h
 			bindings/C/AUD_ImpulseResponse.h
-			)
+		)
 	endif()
 
 	if(NOT SEPARATE_C)
@@ -504,7 +504,7 @@ if(WITH_JACK)
 			plugins/jack/JackSymbols.h
 		)
 
-	if(DYNLOAD_JACK)
+		if(DYNLOAD_JACK)
 			add_definitions(-DDYNLOAD_JACK)
 		endif()
 

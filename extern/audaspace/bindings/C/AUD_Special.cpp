@@ -376,7 +376,7 @@ AUD_API AUD_Device* AUD_init(const char* device, AUD_DeviceSpecs specs, int buff
 {
 	try
 	{
-		std::shared_ptr<IDeviceFactory> factory = DeviceManager::getDeviceFactory(device);
+		std::shared_ptr<IDeviceFactory> factory = device ? DeviceManager::getDeviceFactory(device) : DeviceManager::getDefaultDeviceFactory();
 
 		if(factory)
 		{
