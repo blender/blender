@@ -646,8 +646,24 @@ static bool lib_override_library_create_do(Main *bmain, ID *id_root)
   return BKE_lib_override_library_create_from_tag(bmain);
 }
 
-static void lib_override_library_create_post_process(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, ID *id_reference)
+BLI_INLINE bool lib_override_library_create_post_process_object_is_instantiated(
+    ViewLayer *view_layer, Object *object, const bool is_resync)
+{
+  /* We cannot rely on check for object being actually instantiated in resync case, because often
+   * the overridden collection is 'excluded' from the current viewlayer.
+   *
+   * Fallback to a basic usercount check then, this is weak (since it could lead to some object not
+   * being instantiated at all), but it should work fine in most common cases. */
+  return ((is_resync && ID_REAL_USERS(object) >= 1) ||
+          (!is_resync && BKE_view_layer_base_find(view_layer, object) != NULL));
+}
+
+static void lib_override_library_create_post_process(Main *bmain,
+                                                     Scene *scene,
+                                                     ViewLayer *view_layer,
+                                                     ID *id_root,
+                                                     ID *id_reference,
+                                                     const bool is_resync)
 {
   BKE_main_collection_sync(bmain);
 
@@ -674,20 +690,22 @@ static void lib_override_library_create_post_process(
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
           if (ob_new != NULL && ob_new->id.override_library != NULL) {
             if (ob_reference != NULL) {
-              Base *base;
-              if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
+              Base *base = BKE_view_layer_base_find(view_layer, ob_new);
+              if (!lib_override_library_create_post_process_object_is_instantiated(
+                      view_layer, ob_new, is_resync)) {
                 BKE_collection_object_add_from(bmain, scene, ob_reference, ob_new);
                 base = BKE_view_layer_base_find(view_layer, ob_new);
                 DEG_id_tag_update_ex(
                     bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
               }
 
-              if (ob_new == (Object *)ob_reference->id.newid) {
+              if (ob_new == (Object *)ob_reference->id.newid && base != NULL) {
                 /* TODO: is setting active needed? */
                 BKE_view_layer_base_select_and_set_active(view_layer, base);
               }
             }
-            else if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
+            else if (!lib_override_library_create_post_process_object_is_instantiated(
+                         view_layer, ob_new, is_resync)) {
               BKE_collection_object_add(bmain, collection_new, ob_new);
               DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
             }
@@ -697,9 +715,10 @@ static void lib_override_library_create_post_process(
         break;
       }
       case ID_OB: {
-        if (BKE_view_layer_base_find(view_layer, (Object *)id_root->newid) == NULL) {
-          BKE_collection_object_add_from(
-              bmain, scene, (Object *)id_root, (Object *)id_root->newid);
+        Object *ob_new = (Object *)id_root->newid;
+        if (!lib_override_library_create_post_process_object_is_instantiated(
+                view_layer, ob_new, is_resync)) {
+          BKE_collection_object_add_from(bmain, scene, (Object *)id_root, ob_new);
         }
         break;
       }
@@ -716,7 +735,8 @@ static void lib_override_library_create_post_process(
                  ob_new->id.override_library->reference == &ob->id);
 
       Collection *default_instantiating_collection = NULL;
-      if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
+      if (!lib_override_library_create_post_process_object_is_instantiated(
+              view_layer, ob_new, is_resync)) {
         if (default_instantiating_collection == NULL) {
           switch (GS(id_root->name)) {
             case ID_GR: {
@@ -779,7 +799,7 @@ bool BKE_lib_override_library_create(
     return success;
   }
 
-  lib_override_library_create_post_process(bmain, scene, view_layer, id_root, id_reference);
+  lib_override_library_create_post_process(bmain, scene, view_layer, id_root, id_reference, false);
 
   /* Cleanup. */
   BKE_main_id_clear_newpoins(bmain);
@@ -1049,7 +1069,8 @@ bool BKE_lib_override_library_resync(
    * since we already relinked old root override collection to new resync'ed one above. So this
    * call is not expected to instantiate this new resync'ed collection anywhere, just to ensure
    * that we do not have any stray objects. */
-  lib_override_library_create_post_process(bmain, scene, view_layer, id_root_reference, id_root);
+  lib_override_library_create_post_process(
+      bmain, scene, view_layer, id_root_reference, id_root, true);
 
   /* Cleanup. */
   BLI_ghash_free(linkedref_to_old_override, NULL, NULL);
