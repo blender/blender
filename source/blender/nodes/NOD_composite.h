@@ -106,6 +106,7 @@ void register_node_type_cmp_doubleedgemask(void);
 void register_node_type_cmp_keyingscreen(void);
 void register_node_type_cmp_keying(void);
 void register_node_type_cmp_cryptomatte(void);
+void register_node_type_cmp_cryptomatte_legacy(void);
 
 void register_node_type_cmp_translate(void);
 void register_node_type_cmp_rotate(void);

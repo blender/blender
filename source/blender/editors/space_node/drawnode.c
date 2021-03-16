@@ -643,7 +643,8 @@ static void node_buts_image_user(uiLayout *layout,
                                  PointerRNA *ptr,
                                  PointerRNA *imaptr,
                                  PointerRNA *iuserptr,
-                                 bool compositor)
+                                 const bool show_layer_selection,
+                                 const bool show_color_management)
 {
   if (!imaptr->data) {
     return;
@@ -677,20 +678,22 @@ static void node_buts_image_user(uiLayout *layout,
     uiItemR(col, ptr, "use_auto_refresh", DEFAULT_FLAGS, NULL, ICON_NONE);
   }
 
-  if (compositor && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
+  if (show_layer_selection && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
       RNA_boolean_get(ptr, "has_layers")) {
     col = uiLayoutColumn(layout, false);
     uiItemR(col, ptr, "layer", DEFAULT_FLAGS, NULL, ICON_NONE);
   }
 
-  uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
-  PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
-  uiItemL(split, IFACE_("Color Space"), ICON_NONE);
-  uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+  if (show_color_management) {
+    uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
+    PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
+    uiItemL(split, IFACE_("Color Space"), ICON_NONE);
+    uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
 
-  /* Avoid losing changes image is painted. */
-  if (BKE_image_is_dirty(imaptr->data)) {
-    uiLayoutSetEnabled(split, false);
+    /* Avoid losing changes image is painted. */
+    if (BKE_image_is_dirty(imaptr->data)) {
+      uiLayoutSetEnabled(split, false);
+    }
   }
 }
 
@@ -756,7 +759,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   /* note: image user properties used directly here, unlike compositor image node,
    * which redefines them in the node struct RNA to get proper updates.
    */
-  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
+  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
 static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -785,7 +788,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
   uiItemR(layout, ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
-  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
+  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
 static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1374,7 +1377,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
 
-  node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr, true);
+  node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr, true, true);
 
   node_buts_image_views(layout, C, ptr, &imaptr);
 }
@@ -2665,25 +2668,62 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(layout, ptr, "ray_length", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
-static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
+                                                  bContext *UNUSED(C),
+                                                  PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
 
   uiItemL(col, IFACE_("Matte Objects:"), ICON_NONE);
 
   uiLayout *row = uiLayoutRow(col, true);
-  uiTemplateCryptoPicker(row, ptr, "add");
-  uiTemplateCryptoPicker(row, ptr, "remove");
+  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
 
   uiItemR(col, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_composit_buts_cryptomatte_ex(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *UNUSED(ptr))
+static void node_composit_buts_cryptomatte_legacy_ex(uiLayout *layout,
+                                                     bContext *UNUSED(C),
+                                                     PointerRNA *UNUSED(ptr))
 {
   uiItemO(layout, IFACE_("Add Crypto Layer"), ICON_ADD, "NODE_OT_cryptomatte_layer_add");
   uiItemO(layout, IFACE_("Remove Crypto Layer"), ICON_REMOVE, "NODE_OT_cryptomatte_layer_remove");
+}
+
+static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = ptr->data;
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiItemR(row, ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+  if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
+    uiTemplateID(col, C, ptr, "scene", NULL, NULL, NULL, UI_TEMPLATE_ID_FILTER_ALL, false, NULL);
+  }
+  else {
+    uiTemplateID(
+        col, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false, NULL);
+
+    NodeCryptomatte *crypto = (NodeCryptomatte *)node->storage;
+    PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+    PointerRNA iuserptr;
+    RNA_pointer_create((ID *)ptr->owner_id, &RNA_ImageUser, &crypto->iuser, &iuserptr);
+    uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+
+    node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
+    node_buts_image_views(col, C, ptr, &imaptr);
+  }
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "layer_name", 0, "", ICON_NONE);
+  uiItemL(col, IFACE_("Matte ID:"), ICON_NONE);
+
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
+  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
 }
 
 static void node_composit_buts_brightcontrast(uiLayout *layout,
@@ -2938,7 +2978,10 @@ static void node_composit_set_butfunc(bNodeType *ntype)
       break;
     case CMP_NODE_CRYPTOMATTE:
       ntype->draw_buttons = node_composit_buts_cryptomatte;
-      ntype->draw_buttons_ex = node_composit_buts_cryptomatte_ex;
+      break;
+    case CMP_NODE_CRYPTOMATTE_LEGACY:
+      ntype->draw_buttons = node_composit_buts_cryptomatte_legacy;
+      ntype->draw_buttons_ex = node_composit_buts_cryptomatte_legacy_ex;
       break;
     case CMP_NODE_BRIGHTCONTRAST:
       ntype->draw_buttons = node_composit_buts_brightcontrast;

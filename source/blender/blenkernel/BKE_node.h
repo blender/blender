@@ -47,6 +47,7 @@ struct BlendLibReader;
 struct BlendWriter;
 struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
+struct CryptomatteSession;
 struct FreestyleLineStyle;
 struct GPUMaterial;
 struct GPUNodeStack;
@@ -1204,9 +1205,10 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_NODE_PLANETRACKDEFORM 320
 #define CMP_NODE_CORNERPIN 321
 #define CMP_NODE_SWITCH_VIEW 322
-#define CMP_NODE_CRYPTOMATTE 323
+#define CMP_NODE_CRYPTOMATTE_LEGACY 323
 #define CMP_NODE_DENOISE 324
 #define CMP_NODE_EXPOSURE 325
+#define CMP_NODE_CRYPTOMATTE 326
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1
@@ -1235,6 +1237,10 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_TRACKPOS_RELATIVE_START 1
 #define CMP_TRACKPOS_RELATIVE_FRAME 2
 #define CMP_TRACKPOS_ABSOLUTE_FRAME 3
+
+/* Cryptomatte source. */
+#define CMP_CRYPTOMATTE_SRC_RENDER 0
+#define CMP_CRYPTOMATTE_SRC_IMAGE 1
 
 /* API */
 void ntreeCompositExecTree(struct Scene *scene,
@@ -1278,11 +1284,15 @@ void ntreeCompositOutputFileUniqueLayer(struct ListBase *list,
 void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
 void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
 
-void ntreeCompositCryptomatteSyncFromAdd(bNodeTree *ntree, bNode *node);
-void ntreeCompositCryptomatteSyncFromRemove(bNodeTree *ntree, bNode *node);
-struct bNodeSocket *ntreeCompositCryptomatteAddSocket(struct bNodeTree *ntree, struct bNode *node);
-int ntreeCompositCryptomatteRemoveSocket(struct bNodeTree *ntree, struct bNode *node);
+void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
+void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
+bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
+int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
+void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_len);
 
+/* Update the runtime layer names with the cryptomatte layer names of the references
+ * render layer or image. */
+void ntreeCompositCryptomatteUpdateLayerNames(bNode *node);
 /** \} */
 
 /* -------------------------------------------------------------------- */
