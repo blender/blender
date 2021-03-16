@@ -72,6 +72,7 @@ typedef enum WMCursorType {
   WM_CURSOR_ZOOM_OUT,
 
   WM_CURSOR_NONE,
+  WM_CURSOR_MUTE,
 
   /* --- ALWAYS LAST ----- */
   WM_CURSOR_NUM,

@@ -188,7 +188,8 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
   if (!(b_nodelink->flag & NODE_LINK_VALID)) {
     return;
   }
-  if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL)) {
+  if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL) ||
+      (b_nodelink->flag & NODE_LINK_MUTED)) {
     return;
   }
 

@@ -77,6 +77,9 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
   }
 
   LISTBASE_FOREACH (bNodeLink *, blink, &btree->links) {
+    if (blink->flag & NODE_LINK_MUTED) {
+      continue;
+    }
     OutputSocketRef &from_socket = this->find_output_socket(
         node_mapping, blink->fromnode, blink->fromsock);
     InputSocketRef &to_socket = this->find_input_socket(

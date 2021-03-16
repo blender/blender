@@ -627,6 +627,7 @@ struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNodeSocket *tosock);
 void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+void nodeMuteLinkToggle(struct bNodeTree *ntree, struct bNodeLink *link);
 bool nodeLinkIsHidden(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 

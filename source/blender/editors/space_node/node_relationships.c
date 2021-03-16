@@ -1227,8 +1227,8 @@ void NODE_OT_link_make(wmOperatorType *ot)
       ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
 }
 
-/* ********************** Cut Link operator ***************** */
-static bool cut_links_intersect(bNodeLink *link, const float mcoords[][2], int tot)
+/* ********************** Node Link Intersect ***************** */
+static bool node_links_intersect(bNodeLink *link, const float mcoords[][2], int tot)
 {
   float coord_array[NODE_LINK_RESOL + 1][2];
 
@@ -1244,6 +1244,7 @@ static bool cut_links_intersect(bNodeLink *link, const float mcoords[][2], int t
   return 0;
 }
 
+/* ********************** Cut Link operator ***************** */
 static int cut_links_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1276,7 +1277,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (cut_links_intersect(link, mcoords, i)) {
+      if (node_links_intersect(link, mcoords, i)) {
 
         if (found == false) {
           /* TODO(sergey): Why did we kill jobs twice? */
@@ -1333,6 +1334,110 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 
   /* internal */
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_KNIFE, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+/* ********************** Mute links operator ***************** */
+
+static int mute_links_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  ARegion *region = CTX_wm_region(C);
+  bool do_tag_update = false;
+
+  int i = 0;
+  float mcoords[256][2];
+  RNA_BEGIN (op->ptr, itemptr, "path") {
+    float loc[2];
+
+    RNA_float_get_array(&itemptr, "loc", loc);
+    UI_view2d_region_to_view(
+        &region->v2d, (int)loc[0], (int)loc[1], &mcoords[i][0], &mcoords[i][1]);
+    i++;
+    if (i >= 256) {
+      break;
+    }
+  }
+  RNA_END;
+
+  if (i > 1) {
+    ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+
+    /* Count intersected links and clear test flag. */
+    int tot = 0;
+    LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
+      if (nodeLinkIsHidden(link)) {
+        continue;
+      }
+      link->flag &= ~NODE_LINK_TEST;
+      if (node_links_intersect(link, mcoords, i)) {
+        tot++;
+      }
+    }
+    if (tot == 0) {
+      return OPERATOR_CANCELLED;
+    }
+
+    /* Mute links. */
+    LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
+      if (nodeLinkIsHidden(link) || (link->flag & NODE_LINK_TEST)) {
+        continue;
+      }
+
+      if (node_links_intersect(link, mcoords, i)) {
+        do_tag_update |= (do_tag_update ||
+                          node_connected_to_output(bmain, snode->edittree, link->tonode));
+
+        snode_update(snode, link->tonode);
+        nodeMuteLinkToggle(snode->edittree, link);
+      }
+    }
+
+    /* Clear remaining test flags. */
+    LISTBASE_FOREACH (bNodeLink *, link, &snode->edittree->links) {
+      if (nodeLinkIsHidden(link)) {
+        continue;
+      }
+      link->flag &= ~NODE_LINK_TEST;
+    }
+
+    do_tag_update |= ED_node_is_geometry(snode);
+
+    ntreeUpdateTree(CTX_data_main(C), snode->edittree);
+    snode_notify(C, snode);
+    if (do_tag_update) {
+      snode_dag_update(C, snode);
+    }
+
+    return OPERATOR_FINISHED;
+  }
+
+  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+}
+
+void NODE_OT_links_mute(wmOperatorType *ot)
+{
+  ot->name = "Mute Links";
+  ot->idname = "NODE_OT_links_mute";
+  ot->description = "Use the mouse to mute links";
+
+  ot->invoke = WM_gesture_lines_invoke;
+  ot->modal = WM_gesture_lines_modal;
+  ot->exec = mute_links_exec;
+  ot->cancel = WM_gesture_lines_cancel;
+
+  ot->poll = ED_operator_node_editable;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop;
+  prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  /* internal */
+  RNA_def_int(ot->srna, "cursor", WM_CURSOR_MUTE, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
 /* ********************** Detach links operator ***************** */
