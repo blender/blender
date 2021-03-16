@@ -319,6 +319,7 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
 /******************************************************************************************/
 /* Interactive Preview Mask Filter */
 
+
 #define SCULPT_IPMASK_FILTER_MIN_MULTITHREAD 1000
 #define SCULPT_IPMASK_FILTER_GRANULARITY 100
 
@@ -331,31 +332,6 @@ typedef enum eSculptIPMaskFilterType {
   IPMASK_FILTER_INVERT,
 } eSculptIPMaskFilterType;
 
-static EnumPropertyItem prop_ipmask_filter_types[] = {
-    {IPMASK_FILTER_SMOOTH_SHARPEN,
-     "SMOOTH_SHARPEN",
-     0,
-     "Smooth/Sharpen",
-     "Smooth and sharpen the mask"},
-    {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
-    {IPMASK_FILTER_HARDER_SOFTER,
-     "HARDER_SOFTER",
-     0,
-     "Harder/Softer",
-     "Makes the entire mask harder or softer"},
-    {IPMASK_FILTER_ADD_SUBSTRACT,
-     "ADD_SUBSTRACT",
-     0,
-     "Add/Substract",
-     "Adds or substract a value to the mask"},
-    {IPMASK_FILTER_CONTRAST,
-     "CONTRAST",
-     0,
-     "Contrast",
-     "Increases or decreases the contrast of the mask"},
-    {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
-    {0, NULL, 0, NULL, NULL},
-};
 
 typedef enum MaskFilterStepDirectionType {
   MASK_FILTER_STEP_DIRECTION_FORWARD,
@@ -1039,6 +1015,41 @@ static int sculpt_ipmask_filter_invoke(bContext *C, wmOperator *op, const wmEven
 }
 static int sculpt_ipmask_filter_exec(bContext *C, wmOperator *op)
 {
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = ob->sculpt;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  const int filter_type = RNA_enum_get(op->ptr, "filter_type");
+  const bool use_step_interpolation = RNA_boolean_get(op->ptr, "use_step_interpolation");
+  const int iteration_count = RNA_int_get(op->ptr, "iterations");
+  const float strength = RNA_float_get(op->ptr, "strength");
+
+  SCULPT_undo_push_begin(ob, "mask filter");
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  PBVHNode **nodes;
+  int totnode;
+  BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+  for (int i = 0; i < totnode; i++) {
+    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+  }
+
+  if (sculpt_ipmask_filter_uses_apply_from_original(filter_type)) {
+    sculpt_ipmask_apply_from_original_mask_data(ob, filter_type, strength);
+  }
+  else {
+    sculpt_ipmask_filter_update_to_target_step(
+        ss, 1, iteration_count, 0.0f);
+  }
+
+   for (int i = 0; i < totnode; i++) {
+      BKE_pbvh_node_mark_update_mask(nodes[i]);
+   }
+
+    SCULPT_filter_cache_free(ss);
+    SCULPT_undo_push_end();
+    SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   return OPERATOR_FINISHED;
 }
 
@@ -1057,6 +1068,47 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
+
+
+static EnumPropertyItem prop_ipmask_filter_types[] = {
+    {IPMASK_FILTER_SMOOTH_SHARPEN,
+     "SMOOTH_SHARPEN",
+     0,
+     "Smooth/Sharpen",
+     "Smooth and sharpen the mask"},
+    {IPMASK_FILTER_GROW_SHRINK, "GROW_SHRINK", 0, "Grow/Shrink", "Grow and shirnk the mask"},
+    {IPMASK_FILTER_HARDER_SOFTER,
+     "HARDER_SOFTER",
+     0,
+     "Harder/Softer",
+     "Makes the entire mask harder or softer"},
+    {IPMASK_FILTER_ADD_SUBSTRACT,
+     "ADD_SUBSTRACT",
+     0,
+     "Add/Substract",
+     "Adds or substract a value to the mask"},
+    {IPMASK_FILTER_CONTRAST,
+     "CONTRAST",
+     0,
+     "Contrast",
+     "Increases or decreases the contrast of the mask"},
+    {IPMASK_FILTER_INVERT, "INVERT", 0, "Invert", "Inverts the mask"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem prop_ipmask_filter_direction_types[] = {
+    {MASK_FILTER_STEP_DIRECTION_FORWARD,
+     "FORWARD",
+     0,
+     "Forward",
+     "Apply the filter in the forward direction"},
+    {MASK_FILTER_STEP_DIRECTION_BACKWARD,
+     "BACKWARD",
+     0,
+     "Backward",
+     "Apply the filter in the backward direction"},
+    {0, NULL, 0, NULL, NULL},
+};
 
   /* RNA. */
   RNA_def_enum(ot->srna,
@@ -1080,6 +1132,8 @@ void SCULPT_OT_ipmask_filter(struct wmOperatorType *ot)
       true,
       "Step Interpolation",
       "Calculate and render intermediate values between multiple full steps of the filter");
+  RNA_def_float(
+      ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
 }
 
 /******************************************************************************************/
