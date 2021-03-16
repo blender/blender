@@ -100,7 +100,7 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
 
 
 #define SCULPT_FACE_SET_LOOP_STEP_NONE -1
-static bool sculpt_face_set_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
+static bool sculpt_poly_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
    if (!ss->epmap) {
      return false;
    }
@@ -120,7 +120,7 @@ static bool sculpt_face_set_loop_step(SculptSession *ss, const int from_poly, co
    return true;
 }
 
-static int sculpt_face_set_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
+static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
   if (ss->mpoly[poly].totloop != 4) {
     return edge;
   } 
@@ -137,32 +137,15 @@ static int sculpt_face_set_loop_opposite_edge_in_quad(SculptSession *ss, const i
   return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
 }
 
-static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
+static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
   MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
 
   if (initial_poly->totloop != 4) {
-    printf("NO QUAD ON INITIAL\n");
-    return;
-  }
-
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  mesh->medge,
-                                  mesh->totedge,
-                                  mesh->mpoly,
-                                  mesh->totpoly,
-                                  mesh->mloop,
-                                  mesh->totloop);
-  }
-  if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+    return 0;
   }
 
   int closest_vert_index = mesh->mloop[initial_poly->loopstart].v;
@@ -182,33 +165,80 @@ static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_fac
       closest_vert_on_initial_edge_index = other_vert;
     }
   }
+  printf("INITIAL EDGE INDEX %d\n");
+  return initial_edge_index;
+}
 
-  ss->face_sets[ss->active_face_index] = next_face_set_id;
+static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-  int current_poly = ss->active_face_index;
-  int current_edge = initial_edge_index;
+  if (!ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  mesh->medge,
+                                  mesh->totedge,
+                                  mesh->mpoly,
+                                  mesh->totpoly,
+                                  mesh->mloop,
+                                  mesh->totloop);
+  }
+  if (!ss->vemap) {
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+  }
+}
+
+static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initial_poly, const int initial_edge, BLI_bitmap *poly_loop) {
+  int current_poly = initial_poly;
+  int current_edge = initial_edge;
   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
   int max_steps = ss->totfaces;
-  while(max_steps && sculpt_face_set_loop_step(ss, current_poly, current_edge, &next_poly)) {
-    printf("LOOP STEP\n");
-    if (ss->face_sets[next_poly] == ss->active_face_index) {
-      printf("BREAK INITIAL\n");
+
+  BLI_BITMAP_ENABLE(poly_loop, initial_poly);
+
+  while(max_steps && sculpt_poly_loop_step(ss, current_poly, current_edge, &next_poly)) {
+    if (ss->face_sets[next_poly] == initial_poly) {
       break;
     }
     if (ss->face_sets[next_poly] < 0) {
-      printf("BREAK HIDDEN\n");
       break;
     }
     if (ss->mpoly[next_poly].totloop != 4) {
-      printf("BREAK NON QUAD %d\n", next_poly);
       break;
     }
 
-    ss->face_sets[next_poly] = next_face_set_id;
-    current_edge = sculpt_face_set_loop_opposite_edge_in_quad(ss, next_poly, current_edge);
+    BLI_BITMAP_ENABLE(poly_loop, next_poly);
+    current_edge = sculpt_poly_loop_opposite_edge_in_quad(ss, next_poly, current_edge);
     current_poly = next_poly;
     max_steps--;
   }
+}
+
+BLI_bitmap * sculpt_poly_loop_from_cursor(Object *ob) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  BLI_bitmap *poly_loop = BLI_BITMAP_NEW(mesh->totpoly, "poly loop");
+
+  sculpt_poly_loop_topology_data_ensure(ob);
+  const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
+  const int initial_poly = ss->active_face_index;
+  const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(ss, initial_poly, initial_edge);
+  sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge, poly_loop);
+  sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge_opposite, poly_loop);
+
+  return poly_loop;
+}
+
+static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
+  SculptSession *ss = ob->sculpt;
+  BLI_bitmap *poly_loop = sculpt_poly_loop_from_cursor(ob);
+  for (int i = 0; i < ss->totfaces; i++)  {
+    if (BLI_BITMAP_TEST(poly_loop, i)) {
+      ss->face_sets[i] = next_face_set_id;
+    }
+  }
+  MEM_freeN(poly_loop);
 }
 
 static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const wmEvent *event)
