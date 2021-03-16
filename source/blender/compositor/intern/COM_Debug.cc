@@ -314,18 +314,6 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rankdir=LR\r\n");
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "splines=false\r\n");
 
-#  if 0
-  for (ExecutionSystem::Operations::const_iterator it = system->m_operations.begin();
-       it != system->m_operations.end();
-       ++it) {
-    NodeOperation *op = *it;
-    len += snprintf(str + len,
-                    maxlen > len ? maxlen - len : 0,
-                    "// OPERATION: %s\r\n",
-                    node->getbNode()->typeinfo->ui_name);
-  }
-#  endif
-
   int totops = system->m_operations.size();
   int totgroups = system->m_groups.size();
   std::map<NodeOperation *, std::vector<std::string>> op_groups;
