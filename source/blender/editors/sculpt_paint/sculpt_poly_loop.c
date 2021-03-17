@@ -72,30 +72,25 @@
 #include <math.h>
 #include <stdlib.h>
 
-typedef enum eSculptFaceSetByTopologyMode {
-  SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART = 0,
-  SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP = 1,
-};
+static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
 
-
-static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
-    {
-        SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART,
-        "LOOSE_PART",
-        0,
-        "Loose Part",
-        "",
-    },
-    {
-        SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP,
-        "POLY_LOOP",
-        0,
-        "Face Loop",
-        "",
-    },
-    {0, NULL, 0, NULL, NULL},
-};
-
+  if (!ss->epmap) {
+    BKE_mesh_edge_poly_map_create(&ss->epmap,
+                                  &ss->epmap_mem,
+                                  mesh->medge,
+                                  mesh->totedge,
+                                  mesh->mpoly,
+                                  mesh->totpoly,
+                                  mesh->mloop,
+                                  mesh->totloop);
+  }
+  if (!ss->vemap) {
+    BKE_mesh_vert_edge_map_create(
+        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
+  }
+}
 
 #define SCULPT_FACE_SET_LOOP_STEP_NONE -1
 static bool sculpt_poly_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
@@ -135,9 +130,11 @@ static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss, const int p
   return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
 }
 
-static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
+int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
+
+  sculpt_poly_loop_topology_data_ensure(ob);
 
   float *location = ss->cursor_location;
 
@@ -166,26 +163,6 @@ static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
     }
   }
   return initial_edge;
-}
-
-static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  mesh->medge,
-                                  mesh->totedge,
-                                  mesh->mpoly,
-                                  mesh->totpoly,
-                                  mesh->mloop,
-                                  mesh->totloop);
-  }
-  if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
-  }
 }
 
 static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initial_poly, const int initial_edge, BLI_bitmap *poly_loop) {

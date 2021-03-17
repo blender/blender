@@ -1422,6 +1422,7 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
 
 
 /* Poly Loops. */
+int sculpt_poly_loop_initial_edge_from_cursor(Object *ob);
 BLI_bitmap * sculpt_poly_loop_from_cursor(struct Object *ob);
 
 

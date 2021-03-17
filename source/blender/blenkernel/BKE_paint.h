@@ -560,6 +560,8 @@ typedef struct SculptSession {
 
   /* Face Sets by topology. */
   int face_set_last_created;
+  int face_set_last_poly;
+  int face_set_last_edge;
 
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
