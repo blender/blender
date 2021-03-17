@@ -6872,6 +6872,8 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
    * See #object_join_exec for detailed comment on why the safe version is used. */
   invert_m4_m4_safe_ortho(imat, ob_active->obmat);
 
+  Curve *cu_active = ob_active->data;
+
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter->type == ob_active->type) {
       if (ob_iter != ob_active) {
@@ -6881,6 +6883,15 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
         if (cu->nurb.first) {
           /* watch it: switch order here really goes wrong */
           mul_m4_m4m4(cmat, imat, ob_iter->obmat);
+
+          /* Compensate for different bevel depth. */
+          bool do_radius = false;
+          float compensate_radius = 0.0f;
+          if (cu->ext2 != 0.0f && cu_active->ext2 != 0.0f) {
+            float compensate_scale = mat4_to_scale(cmat);
+            compensate_radius = cu->ext2 / cu_active->ext2 * compensate_scale;
+            do_radius = true;
+          }
 
           LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
             Nurb *newnu = BKE_nurb_duplicate(nu);
@@ -6895,6 +6906,11 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
             if ((bezt = newnu->bezt)) {
               a = newnu->pntsu;
               while (a--) {
+                /* Compensate for different bevel depth. */
+                if (do_radius) {
+                  bezt->radius *= compensate_radius;
+                }
+
                 mul_m4_v3(cmat, bezt->vec[0]);
                 mul_m4_v3(cmat, bezt->vec[1]);
                 mul_m4_v3(cmat, bezt->vec[2]);
