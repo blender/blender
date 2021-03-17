@@ -260,18 +260,24 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
   else {
     /* We have yet to reach a existing cutting point even after we searched the whole line, so we
      * append the new cut to the end. */
-    ns->occlusion = (irls = rl->segments.last)->occlusion;
+    irls = rl->segments.last;
+    ns->occlusion = irls->occlusion;
+    ns->transparency_mask = irls->transparency_mask;
     BLI_addtail(&rl->segments, ns);
   }
   if (cut_end_before) {
     /* The same manipulation as on "cut_start_before". */
     if (cut_end_before != ns2) {
-      ns2->occlusion = cut_end_before->prev ? (irls = cut_end_before->prev)->occlusion : 0;
+      irls = cut_end_before->prev ? cut_end_before->prev : NULL;
+      ns2->occlusion = irls ? irls->occlusion : 0;
+      ns2->transparency_mask = irls ? irls->transparency_mask : 0;
       BLI_insertlinkbefore(&rl->segments, (void *)cut_end_before, (void *)ns2);
     }
   }
   else {
-    ns2->occlusion = (irls = rl->segments.last)->occlusion;
+    irls = rl->segments.last;
+    ns2->occlusion = irls->occlusion;
+    ns2->transparency_mask = irls->transparency_mask;
     BLI_addtail(&rl->segments, ns2);
   }
 

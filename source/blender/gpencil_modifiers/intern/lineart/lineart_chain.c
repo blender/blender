@@ -128,6 +128,7 @@ static LineartLineChainItem *lineart_chain_append_point(LineartRenderBuffer *rb,
     LineartLineChainItem *old_rlci = rlc->chain.last;
     old_rlci->line_type = type;
     old_rlci->occlusion = level;
+    old_rlci->transparency_mask = transparency_mask;
     return old_rlci;
   }
 
@@ -356,6 +357,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                  rls->transparency_mask,
                                  rl->l_obindex);
       last_occlusion = rls->occlusion;
+      last_transparency = rls->transparency_mask;
     }
     VERT_COORD_TO_FLOAT(rl->r)
     lineart_chain_append_point(rb,
@@ -399,6 +401,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
         last_transparency = rls->transparency_mask;
         /* Fix leading vertex occlusion. */
         rlci->occlusion = last_occlusion;
+        rlci->transparency_mask = last_transparency;
         for (rls = new_rl->segments.last; rls; rls = rls->prev) {
           double gpos[3], lpos[3];
           double *lfb = new_rl->l->fbcoord, *rfb = new_rl->r->fbcoord;
@@ -406,6 +409,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
           interp_v3_v3v3_db(lpos, new_rl->l->fbcoord, new_rl->r->fbcoord, rls->at);
           interp_v3_v3v3_db(gpos, new_rl->l->gloc, new_rl->r->gloc, global_at);
           last_occlusion = rls->prev ? rls->prev->occlusion : last_occlusion;
+          last_transparency = rls->prev ? rls->prev->transparency_mask : last_transparency;
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_append_point(rb,
                                      rlc,
@@ -423,6 +427,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
         last_occlusion = rls->occlusion;
         last_transparency = rls->transparency_mask;
         rlci->occlusion = last_occlusion;
+        rlci->transparency_mask = last_transparency;
         rls = rls->next;
         for (; rls; rls = rls->next) {
           double gpos[3], lpos[3];
@@ -595,6 +600,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
           /* Set the same occlusion level for the end vertex, so when further connection is needed
            * the backwards occlusion info is also correct.  */
           rlci->occlusion = fixed_occ;
+          rlci->transparency_mask = fixed_mask;
           /* No need to split at the last point anyway. */
           break;
         }
