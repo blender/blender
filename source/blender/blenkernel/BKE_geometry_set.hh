@@ -49,16 +49,6 @@ enum class GeometryOwnershipType {
   ReadOnly = 2,
 };
 
-/* Make it possible to use the component type as key in hash tables. */
-namespace blender {
-template<> struct DefaultHash<GeometryComponentType> {
-  uint64_t operator()(const GeometryComponentType &value) const
-  {
-    return (uint64_t)value;
-  }
-};
-}  // namespace blender
-
 namespace blender::bke {
 class ComponentAttributeProviders;
 }

@@ -88,11 +88,18 @@ namespace blender {
  * If there is no other specialization of #DefaultHash for a given type, try to call `hash()` on
  * the value. If there is no such method, this will result in a compiler error. Usually that means
  * that you have to implement a hash function using one of three strategies listed above.
+ *
+ * In the case of an enum type, the default hash is just to cast the enum value to an integer.
  */
 template<typename T> struct DefaultHash {
   uint64_t operator()(const T &value) const
   {
-    return value.hash();
+    if constexpr (std::is_enum_v<T>) {
+      return (uint64_t)value;
+    }
+    else {
+      return value.hash();
+    }
   }
 };
 
