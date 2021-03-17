@@ -82,8 +82,6 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   Mesh *mesh = create_cylinder_or_cone_mesh(
       location, rotation, radius, radius, depth, verts_num, fill_type);
 
-  transform_mesh(mesh, location, rotation, float3(1));
-
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 
