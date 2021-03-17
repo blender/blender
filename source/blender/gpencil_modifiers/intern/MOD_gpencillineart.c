@@ -267,29 +267,28 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Edge Types"));
 
-  uiItemR(col, ptr, "use_contour", 0, "Contour", ICON_NONE);
-  uiItemR(col, ptr, "use_material", 0, "Material", ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", 0, "Edge Marks", ICON_NONE);
-  uiItemR(col, ptr, "use_intersection", 0, "Intersection", ICON_NONE);
+  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
+  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
+  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
+  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
+  uiItemR(col, ptr, "use_crease", 0, IFACE_("Crease"), ICON_NONE);
+  uiLayout *sub = uiLayoutRow(col, true);
+  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));
+  uiLayoutSetPropSep(sub, true);
 
-  uiLayout *row = uiLayoutRow(col, true);
-  /* Don't automatically add the "animate property" button. */
-  uiLayoutSetPropDecorate(row, false);
-
-  const bool use_crease = RNA_boolean_get(ptr, "use_crease");
-  uiLayout *sub = uiLayoutRow(row, true);
-  uiItemR(sub, ptr, "use_crease", 0, "Crease", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
-  uiLayoutSetEnabled(sub, use_crease);
-  uiItemR(sub, ptr, "crease_threshold", UI_ITEM_R_SLIDER, "", ICON_NONE);
-  uiItemDecoratorR(row, ptr, "crease_threshold", 0);
+  uiItemR(sub, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
 
   uiItemPointerR(layout, ptr, "target_layer", &obj_data_ptr, "layers", NULL, ICON_GREASEPENCIL);
   uiItemPointerR(
       layout, ptr, "target_material", &obj_data_ptr, "materials", NULL, ICON_SHADING_TEXTURE);
 
   uiItemR(layout, ptr, "remove_doubles", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "allow_overlapping_edges", 0, "Overlapping Edges As Contour", ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "allow_overlapping_edges",
+          0,
+          IFACE_("Overlapping Edges As Contour"),
+          ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -322,9 +321,8 @@ static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   const bool use_multiple_levels = RNA_boolean_get(ptr, "use_multiple_levels");
-  const bool use_transparency = RNA_boolean_get(ptr, "use_transparency");
 
-  uiItemR(layout, ptr, "use_multiple_levels", 0, "Multiple Levels", ICON_NONE);
+  uiItemR(layout, ptr, "use_multiple_levels", 0, IFACE_("Range"), ICON_NONE);
 
   if (use_multiple_levels) {
     uiLayout *col = uiLayoutColumn(layout, true);
@@ -332,28 +330,43 @@ static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(col, ptr, "level_end", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "level_start", 0, "Level", ICON_NONE);
+    uiItemR(layout, ptr, "level_start", 0, IFACE_("Level"), ICON_NONE);
   }
+}
 
-  uiItemR(layout, ptr, "use_transparency", 0, "Transparency", ICON_NONE);
+static void transparency_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  uiItemR(layout, ptr, "use_transparency", 0, IFACE_("Transparency"), ICON_NONE);
+}
+
+static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_transparency"));
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetPropDecorate(row, false);
+  uiLayout *sub = uiLayoutRow(row, true);
+  uiItemR(sub, ptr, "transparency_mask_0", UI_ITEM_R_TOGGLE, IFACE_("0"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_1", UI_ITEM_R_TOGGLE, IFACE_("1"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_2", UI_ITEM_R_TOGGLE, IFACE_("2"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_3", UI_ITEM_R_TOGGLE, IFACE_("3"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_4", UI_ITEM_R_TOGGLE, IFACE_("4"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_5", UI_ITEM_R_TOGGLE, IFACE_("5"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_6", UI_ITEM_R_TOGGLE, IFACE_("6"), ICON_NONE);
+  uiItemR(sub, ptr, "transparency_mask_7", UI_ITEM_R_TOGGLE, IFACE_("7"), ICON_NONE);
+  uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
   uiLayout *col = uiLayoutColumn(layout, true);
-
-  if (use_transparency) {
-    uiItemR(col, ptr, "transparency_match", 0, "Match", ICON_NONE);
-  }
-
-  if (use_transparency) {
-    uiLayout *row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "transparency_mask_0", UI_ITEM_R_TOGGLE, "0", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_1", UI_ITEM_R_TOGGLE, "1", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_2", UI_ITEM_R_TOGGLE, "2", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_3", UI_ITEM_R_TOGGLE, "3", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_4", UI_ITEM_R_TOGGLE, "4", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_5", UI_ITEM_R_TOGGLE, "5", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_6", UI_ITEM_R_TOGGLE, "6", ICON_NONE);
-    uiItemR(row, ptr, "transparency_mask_7", UI_ITEM_R_TOGGLE, "7", ICON_NONE);
-  }
+  // uiLayoutSetPropDecorate(col, true);
+  uiItemR(col, ptr, "transparency_match", 0, IFACE_("Match All Masks"), ICON_NONE);
 }
 
 static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -395,17 +408,18 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, true);
 
   uiLayout *row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "source_vertex_group", 0, "Filter Source", ICON_GROUP_VERTEX);
+  uiItemR(row, ptr, "source_vertex_group", 0, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
   uiItemR(row, ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
 
   uiItemR(col, ptr, "match_output_vertex_group", 0, NULL, ICON_NONE);
 
   bool match_output = RNA_boolean_get(ptr, "match_output_vertex_group");
   if (!match_output) {
-    uiItemPointerR(col, ptr, "vertex_group", &ob_ptr, "vertex_groups", "Target", ICON_NONE);
+    uiItemPointerR(
+        col, ptr, "vertex_group", &ob_ptr, "vertex_groups", IFACE_("Target"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "soft_selection", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "soft_selection", 0, NULL, ICON_NONE);
 }
 
 static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -421,8 +435,9 @@ static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (is_baked) {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetPropSep(col, false);
-    uiItemL(col, "Modifier has baked data.", ICON_NONE);
-    uiItemR(col, ptr, "is_baked", UI_ITEM_R_TOGGLE, "Continue Without Clearing", ICON_NONE);
+    uiItemL(col, IFACE_("Modifier has baked data."), ICON_NONE);
+    uiItemR(
+        col, ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }
 
   uiLayout *col = uiLayoutColumn(layout, false);
@@ -442,8 +457,14 @@ static void panelRegister(ARegionType *region_type)
 
   gpencil_modifier_subpanel_register(
       region_type, "style", "Style", NULL, style_panel_draw, panel_type);
-  gpencil_modifier_subpanel_register(
+  PanelType *occlusion_panel = gpencil_modifier_subpanel_register(
       region_type, "occlusion", "Occlusion", NULL, occlusion_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(region_type,
+                                     "transparency",
+                                     "",
+                                     transparency_panel_draw_header,
+                                     transparency_panel_draw,
+                                     occlusion_panel);
   gpencil_modifier_subpanel_register(
       region_type, "chaining", "Chaining", NULL, chaining_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(

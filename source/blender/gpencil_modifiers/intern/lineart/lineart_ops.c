@@ -402,7 +402,7 @@ void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
 void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 {
   ot->name = "Bake Line Art (All)";
-  ot->description = "Bake all GPencil objects who has at least one Line Art modifier";
+  ot->description = "Bake all Grease Pencil objects that have a line art modifier";
   ot->idname = "OBJECT_OT_lineart_bake_strokes_all";
 
   ot->invoke = lineart_gpencil_bake_strokes_all_invoke;
@@ -424,7 +424,7 @@ void OBJECT_OT_lineart_clear(wmOperatorType *ot)
 void OBJECT_OT_lineart_clear_all(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art (All)";
-  ot->description = "Clear all strokes in all GPencil obejcts who has a Line Art modifier";
+  ot->description = "Clear all strokes in all Grease Pencil objects that have a line art modifier";
   ot->idname = "OBJECT_OT_lineart_clear_all";
 
   ot->exec = lineart_gpencil_clear_strokes_all_exec;

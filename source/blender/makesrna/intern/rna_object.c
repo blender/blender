@@ -164,17 +164,17 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
      "LRT_SCENE",
      ICON_SCENE_DATA,
      "Scene Line Art",
-     "Quickly set up Line Art for the whole scene"},
+     "Quickly set up line art for the entire scene"},
     {GP_LRT_COLLECTION,
      "LRT_COLLECTION",
      ICON_OUTLINER_COLLECTION,
      "Collection Line Art",
-     "Quickly set up Line Art for active collection"},
+     "Quickly set up line art for the active collection"},
     {GP_LRT_OBJECT,
      "LRT_OBJECT",
      ICON_OBJECT_DATA,
      "Object Line Art",
-     "Quickly set up Line Art for the active object"},
+     "Quickly set up line art for the active object"},
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem parent_type_items[] = {
@@ -2673,23 +2673,27 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static EnumPropertyItem prop_feature_line_usage_items[] = {
-      {OBJECT_LRT_INHERENT,
-       "INHEREIT",
+      {OBJECT_LRT_INHERENT, "INHEREIT", 0, "Inhereit", "Use settings from the parent collection"},
+      {OBJECT_LRT_INCLUDE,
+       "INCLUDE",
        0,
-       "Inhereit",
-       "Follow settings from the parent collection"},
-      {OBJECT_LRT_INCLUDE, "INCLUDE", 0, "Include", "Include this object into LRT calculation"},
+       "Include",
+       "Generate feature lines for this object's data"},
       {OBJECT_LRT_OCCLUSION_ONLY,
        "OCCLUSION_ONLY",
        0,
        "Occlusion Only",
-       "Don't produce lines, only used as occlusion object"},
-      {OBJECT_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this object for LRT rendering"},
+       "Only use the object data to produce occlusion"},
+      {OBJECT_LRT_EXCLUDE,
+       "EXCLUDE",
+       0,
+       "Exclude",
+       "Don't use this object for Line Art rendering"},
       {OBJECT_LRT_INTERSECTION_ONLY,
        "INTERSECTION_ONLY",
        0,
        "Intersection Only",
-       "Only to generate intersection lines with this object"},
+       "Only generate intersection lines for this collection"},
       {OBJECT_LRT_NO_INTERSECTION,
        "NO_INTERSECTION",
        0,
@@ -2699,7 +2703,7 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "ObjectLineArt", NULL);
-  RNA_def_struct_ui_text(srna, "Object Line Art", "Object lineart settings");
+  RNA_def_struct_ui_text(srna, "Object Line Art", "Object line art settings");
   RNA_def_struct_sdna(srna, "ObjectLineArt");
 
   prop = RNA_def_property(srna, "usage", PROP_ENUM, PROP_NONE);
@@ -2709,14 +2713,14 @@ static void rna_def_object_lineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_crease_override", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", OBJECT_LRT_OWN_CREASE);
-  RNA_def_property_ui_text(prop, "Own Crease", "Use own crease setting to overwrite scene global");
+  RNA_def_property_ui_text(
+      prop, "Use Crease", "Use this object's crease setting to overwrite scene global");
   RNA_def_property_update(prop, 0, "rna_object_lineart_update");
 
   prop = RNA_def_property(srna, "crease_threshold", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_range(prop, 0, DEG2RAD(180.0f));
   RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(180.0f), 0.01f, 1);
-  RNA_def_property_ui_text(
-      prop, "Own Crease", "Angles smaller than this will be treated as creases");
+  RNA_def_property_ui_text(prop, "Crease", "Angles smaller than this will be treated as creases");
   RNA_def_property_update(prop, 0, "rna_object_lineart_update");
 }
 
@@ -3492,7 +3496,7 @@ static void rna_def_object(BlenderRNA *brna)
   /* Line Art */
   prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ObjectLineArt");
-  RNA_def_property_ui_text(prop, "Line Art", "Line Art settings for the object");
+  RNA_def_property_ui_text(prop, "Line Art", "Line art settings for the object");
 
   RNA_define_lib_overridable(false);
 
