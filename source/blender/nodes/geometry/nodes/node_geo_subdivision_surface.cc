@@ -25,7 +25,7 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_subdivide_smooth_in[] = {
+static bNodeSocketTemplate geo_node_subdivision_surface_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_INT, N_("Level"), 1, 0, 0, 0, 0, 6},
     {SOCK_BOOLEAN, N_("Use Creases")},
@@ -34,14 +34,14 @@ static bNodeSocketTemplate geo_node_subdivide_smooth_in[] = {
     {-1, ""},
 };
 
-static bNodeSocketTemplate geo_node_subdivide_smooth_out[] = {
+static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
 
-static void geo_node_subdivide_smooth_layout(uiLayout *layout,
-                                             bContext *UNUSED(C),
-                                             PointerRNA *UNUSED(ptr))
+static void geo_node_subdivision_surface_layout(uiLayout *layout,
+                                                bContext *UNUSED(C),
+                                                PointerRNA *UNUSED(ptr))
 {
 #ifndef WITH_OPENSUBDIV
   uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
@@ -51,7 +51,7 @@ static void geo_node_subdivide_smooth_layout(uiLayout *layout,
 }
 
 namespace blender::nodes {
-static void geo_node_subdivide_smooth_exec(GeoNodeExecParams params)
+static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
@@ -120,14 +120,15 @@ static void geo_node_subdivide_smooth_exec(GeoNodeExecParams params)
 }
 }  // namespace blender::nodes
 
-void register_node_type_geo_subdivide_smooth()
+void register_node_type_geo_subdivision_surface()
 {
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_SUBDIVIDE_SMOOTH, "Subdivide Smooth", NODE_CLASS_GEOMETRY, 0);
-  node_type_socket_templates(&ntype, geo_node_subdivide_smooth_in, geo_node_subdivide_smooth_out);
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_smooth_exec;
-  ntype.draw_buttons = geo_node_subdivide_smooth_layout;
+      &ntype, GEO_NODE_SUBDIVISION_SURFACE, "Subdivision Surface", NODE_CLASS_GEOMETRY, 0);
+  node_type_socket_templates(
+      &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
+  ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
+  ntype.draw_buttons = geo_node_subdivision_surface_layout;
   nodeRegisterType(&ntype);
 }
