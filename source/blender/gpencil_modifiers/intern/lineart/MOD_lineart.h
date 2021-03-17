@@ -45,12 +45,12 @@ typedef struct LineartStaticMemPool {
   SpinLock lock_mem;
 } LineartStaticMemPool;
 
-typedef struct LineartRenderTriangleAdjacent {
-  struct LineartRenderLine *rl[3];
-} LineartRenderTriangleAdjacent;
+typedef struct LineartTriangleAdjacent {
+  struct LineartLine *rl[3];
+} LineartTriangleAdjacent;
 
-typedef struct LineartRenderTriangle {
-  struct LineartRenderVert *v[3];
+typedef struct LineartTriangle {
+  struct LineartVert *v[3];
 
   /* first culled in line list to use adjacent triangle info, then go through triangle list. */
   double gn[3];
@@ -63,18 +63,18 @@ typedef struct LineartRenderTriangle {
    * This variable is also reused to store the pointer to adjacent lines of this triangle before
    * intersection statge */
   struct LinkNode *intersecting_verts;
-} LineartRenderTriangle;
+} LineartTriangle;
 
-typedef struct LineartRenderTriangleThread {
-  struct LineartRenderTriangle base;
+typedef struct LineartTriangleThread {
+  struct LineartTriangle base;
   /* This variable is used to store per-thread triangle-line testing pair,
    * also re-used to store triangle-triangle pair for intersection testing stage.
-   * Do not directly use LineartRenderTriangleThread.
-   * The size of LineartRenderTriangle is dynamically allocated to contain set thread number of
+   * Do not directly use LineartTriangleThread.
+   * The size of LineartTriangle is dynamically allocated to contain set thread number of
    * "testing" field. Worker threads will test lines against the "base" triangle.
    * At least one thread is present, thus we always have at least testing[0]. */
-  struct LineartRenderLine *testing[1];
-} LineartRenderTriangleThread;
+  struct LineartLine *testing[1];
+} LineartTriangleThread;
 
 typedef enum eLineArtElementNodeFlag {
   LRT_ELEMENT_IS_ADDITIONAL = (1 << 0),
@@ -82,8 +82,8 @@ typedef enum eLineArtElementNodeFlag {
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
 } eLineArtElementNodeFlag;
 
-typedef struct LineartRenderElementLinkNode {
-  struct LineartRenderElementLinkNode *next, *prev;
+typedef struct LineartElementLinkNode {
+  struct LineartElementLinkNode *next, *prev;
   void *pointer;
   int element_count;
   void *object_ref;
@@ -91,10 +91,10 @@ typedef struct LineartRenderElementLinkNode {
 
   /* Per object value, always set, if not enabled by ObjectLineArt, then it's set to global. */
   float crease_threshold;
-} LineartRenderElementLinkNode;
+} LineartElementLinkNode;
 
-typedef struct LineartRenderLineSegment {
-  struct LineartRenderLineSegment *next, *prev;
+typedef struct LineartLineSegment {
+  struct LineartLineSegment *next, *prev;
   /** at==0: left  at==1: right  (this is in 2D projected space) */
   double at;
   /** Occlusion level after "at" point */
@@ -106,9 +106,9 @@ typedef struct LineartRenderLineSegment {
    *  enought for most cases.
    */
   unsigned char transparency_mask;
-} LineartRenderLineSegment;
+} LineartLineSegment;
 
-typedef struct LineartRenderVert {
+typedef struct LineartVert {
   double gloc[3];
   double fbcoord[4];
 
@@ -121,28 +121,28 @@ typedef struct LineartRenderVert {
    */
   char flag;
 
-} LineartRenderVert;
+} LineartVert;
 
-typedef struct LineartRenderVertIntersection {
-  struct LineartRenderVert base;
+typedef struct LineartVertIntersection {
+  struct LineartVert base;
   /* Use vert index because we only use this to check vertex equal. This way we save 8 Bytes. */
   int isec1, isec2;
-  struct LineartRenderTriangle *intersecting_with;
-} LineartRenderVertIntersection;
+  struct LineartTriangle *intersecting_with;
+} LineartVertIntersection;
 
 typedef enum eLineArtVertFlags {
   LRT_VERT_HAS_INTERSECTION_DATA = (1 << 0),
   LRT_VERT_EDGE_USED = (1 << 1),
 } eLineArtVertFlags;
 
-typedef struct LineartRenderLine {
+typedef struct LineartLine {
   /* We only need link node kind of list here. */
-  struct LineartRenderLine *next;
-  struct LineartRenderVert *l, *r;
+  struct LineartLine *next;
+  struct LineartVert *l, *r;
   /* Local vertex index for two ends, not puting in RenderVert because all verts are loaded, so as
    * long as fewer than half of the mesh edges are becoming a feature line, we save more memory. */
   int l_obindex, r_obindex;
-  struct LineartRenderTriangle *tl, *tr;
+  struct LineartTriangle *tl, *tr;
   ListBase segments;
   char min_occ;
 
@@ -154,10 +154,10 @@ typedef struct LineartRenderLine {
    * another bit in flags to be able to show the difference.
    */
   struct Object *object_ref;
-} LineartRenderLine;
+} LineartLine;
 
-typedef struct LineartRenderLineChain {
-  struct LineartRenderLineChain *next, *prev;
+typedef struct LineartLineChain {
+  struct LineartLineChain *next, *prev;
   ListBase chain;
 
   /**  Calculated before draw cmd. */
@@ -172,10 +172,10 @@ typedef struct LineartRenderLineChain {
   unsigned char transparency_mask;
 
   struct Object *object_ref;
-} LineartRenderLineChain;
+} LineartLineChain;
 
-typedef struct LineartRenderLineChainItem {
-  struct LineartRenderLineChainItem *next, *prev;
+typedef struct LineartLineChainItem {
+  struct LineartLineChainItem *next, *prev;
   /** Need z value for fading */
   float pos[3];
   /** For restoring position to 3d space */
@@ -185,12 +185,12 @@ typedef struct LineartRenderLineChainItem {
   char occlusion;
   unsigned char transparency_mask;
   size_t index;
-} LineartRenderLineChainItem;
+} LineartLineChainItem;
 
 typedef struct LineartChainRegisterEntry {
   struct LineartChainRegisterEntry *next, *prev;
-  LineartRenderLineChain *rlc;
-  LineartRenderLineChainItem *rlci;
+  LineartLineChain *rlc;
+  LineartLineChainItem *rlci;
   char picked;
 
   /** left/right mark.
@@ -232,29 +232,29 @@ typedef struct LineartRenderBuffer {
 
   unsigned int contour_count;
   unsigned int contour_processed;
-  LineartRenderLine *contour_managed;
+  LineartLine *contour_managed;
   /* Now changed to linknodes. */
-  LineartRenderLine *contours;
+  LineartLine *contours;
 
   unsigned int intersection_count;
   unsigned int intersection_processed;
-  LineartRenderLine *intersection_managed;
-  LineartRenderLine *intersection_lines;
+  LineartLine *intersection_managed;
+  LineartLine *intersection_lines;
 
   unsigned int crease_count;
   unsigned int crease_processed;
-  LineartRenderLine *crease_managed;
-  LineartRenderLine *crease_lines;
+  LineartLine *crease_managed;
+  LineartLine *crease_lines;
 
   unsigned int material_line_count;
   unsigned int material_processed;
-  LineartRenderLine *material_managed;
-  LineartRenderLine *material_lines;
+  LineartLine *material_managed;
+  LineartLine *material_lines;
 
   unsigned int edge_mark_count;
   unsigned int edge_mark_processed;
-  LineartRenderLine *edge_mark_managed;
-  LineartRenderLine *edge_marks;
+  LineartLine *edge_mark_managed;
+  LineartLine *edge_marks;
 
   ListBase chains;
 
@@ -317,20 +317,20 @@ typedef struct LineartRenderTaskInfo {
 
   int thread_id;
 
-  LineartRenderLine *contour;
-  LineartRenderLine *contour_end;
+  LineartLine *contour;
+  LineartLine *contour_end;
 
-  LineartRenderLine *intersection;
-  LineartRenderLine *intersection_end;
+  LineartLine *intersection;
+  LineartLine *intersection_end;
 
-  LineartRenderLine *crease;
-  LineartRenderLine *crease_end;
+  LineartLine *crease;
+  LineartLine *crease_end;
 
-  LineartRenderLine *material;
-  LineartRenderLine *material_end;
+  LineartLine *material;
+  LineartLine *material_end;
 
-  LineartRenderLine *edge_mark;
-  LineartRenderLine *edge_mark_end;
+  LineartLine *edge_mark;
+  LineartLine *edge_mark_end;
 
 } LineartRenderTaskInfo;
 
@@ -507,7 +507,7 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb, const bool do_geometry_s
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 
-int MOD_lineart_chain_count(const LineartRenderLineChain *rlc);
+int MOD_lineart_chain_count(const LineartLineChain *rlc);
 void MOD_lineart_chain_clear_picked_flag(struct LineartRenderBuffer *rb);
 
 int MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
@@ -545,7 +545,7 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   const char *vgname,
                                   int modifier_flags);
 
-float MOD_lineart_chain_compute_length(LineartRenderLineChain *rlc);
+float MOD_lineart_chain_compute_length(LineartLineChain *rlc);
 
 struct wmOperatorType;
 
