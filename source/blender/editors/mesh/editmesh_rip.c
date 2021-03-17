@@ -386,7 +386,7 @@ static void edbm_ripsel_deselect_helper(BMesh *bm,
  * use for rebuilding face-fill
  *
  * \note the method currently used fails for edges with 3+ face users and gives
- *       nasty holes in the mesh, there isnt a good way of knowing ahead of time
+ *       nasty holes in the mesh, there isn't a good way of knowing ahead of time
  *       which loops will be split apart (its possible to figure out but quite involved).
  *       So for now this is a known limitation of current rip-fill option.
  */

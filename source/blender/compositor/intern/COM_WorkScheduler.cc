@@ -35,7 +35,7 @@
 #include "BKE_global.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-#  ifndef DEBUG /* test this so we dont get warnings in debug builds */
+#  ifndef DEBUG /* Test this so we don't get warnings in debug builds. */
 #    warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
 #  endif
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE

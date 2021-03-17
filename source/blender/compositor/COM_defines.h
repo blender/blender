@@ -94,7 +94,7 @@ typedef enum OrderOfChunks {
   COM_TO_RANDOM = 1,
   /** \brief no ordering */
   COM_TO_TOP_DOWN = 2,
-  /** \brief experimental ordering with 9 hotspots */
+  /** \brief experimental ordering with 9 hot-spots. */
   COM_TO_RULE_OF_THIRDS = 3,
 } OrderOfChunks;
 

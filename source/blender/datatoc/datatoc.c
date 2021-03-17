@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     fprintf(fpout, "%3d,", getc(fpin));
   }
 
-  /* trailing NULL terminator, this isnt needed in some cases and
+  /* Trailing NULL terminator, this isn't needed in some cases and
    * won't be taken into account by the size variable, but its useful when dealing with
    * NULL terminated string data */
   fprintf(fpout, "0\n};\n\n");

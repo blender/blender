@@ -635,7 +635,7 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
 
     /* map faces to quads */
     if (looptri_len != mpoly_len) {
-      /* over alloc, since we dont know how many ngon or quads we have */
+      /* Over allocate, since we don't know how many ngon or quads we have. */
 
       /* map fake face index to looptri */
       face_as_quad_map = MEM_mallocN(sizeof(int) * looptri_len, __func__);

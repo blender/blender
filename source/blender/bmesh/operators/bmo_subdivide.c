@@ -1344,7 +1344,7 @@ void BM_mesh_esubdivide(BMesh *bm,
 {
   BMOperator op;
 
-  /* use_sphere isnt exposed here since its only used for new primitives */
+  /* `use_sphere` isn't exposed here since its only used for new primitives. */
   BMO_op_initf(bm,
                &op,
                BMO_FLAG_DEFAULTS,

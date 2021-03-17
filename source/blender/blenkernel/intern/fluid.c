@@ -2310,7 +2310,7 @@ static void adaptive_domain_adjust(
                                 z - fds->res_min[2]);
         max_den = (fuel) ? MAX2(density[index], fuel[index]) : density[index];
 
-        /* check high resolution bounds if max density isnt already high enough */
+        /* Check high resolution bounds if max density isn't already high enough. */
         if (max_den < fds->adapt_threshold && fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
           int i, j, k;
           /* high res grid index */

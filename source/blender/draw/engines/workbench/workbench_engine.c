@@ -68,7 +68,7 @@ void workbench_engine_init(void *ved)
     wpd->object_id_tx = DRW_texture_pool_query_fullscreen(GPU_R16UI, &draw_engine_workbench);
   }
   else {
-    /* Dont free because it's a pool texture. */
+    /* Don't free because it's a pool texture. */
     wpd->object_id_tx = NULL;
   }
 

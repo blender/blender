@@ -2097,7 +2097,7 @@ static void ui_apply_but(
       }
     }
     if (data->select_others.elems_len == 0) {
-      /* dont check again */
+      /* Don't check again. */
       data->select_others.elems_len = -1;
     }
 #endif
@@ -4894,7 +4894,7 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
     else {
       /* only scale large int buttons */
       non_linear_range_limit = 129.0f;
-      /* larger for ints, we dont need to fine tune them */
+      /* Larger for ints, we don't need to fine tune them. */
       non_linear_pixel_map = 250.0f;
 
       /* prevent large ranges from getting too out of control */
@@ -7779,7 +7779,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
         else if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
           /* --> (BUTTON_MULTI_INIT_ENABLE) */
           const float margin_x = DRAG_MULTINUM_THRESHOLD_DRAG_X / sqrtf(block->aspect);
-          /* check if we're dont setting buttons */
+          /* Check if we're don't setting buttons. */
           if ((data->str &&
                ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING)) ||
               ((abs(data->multi_data.drag_lock_x - event->x) > margin_x) &&

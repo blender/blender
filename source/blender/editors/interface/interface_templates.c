@@ -2083,11 +2083,11 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     UI_panels_free_instanced(C, region);
     bConstraint *con = (constraints == NULL) ? NULL : constraints->first;
     for (int i = 0; con; i++, con = con->next) {
-      /* Dont show invalid/legacy constraints. */
+      /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
       }
-      /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
+      /* Don't show temporary constraints (AutoIK and target-less IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
         if (data->flag & CONSTRAINT_IK_TEMP) {
@@ -2116,11 +2116,11 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (bConstraint *, con, constraints) {
-      /* Dont show invalid/legacy constraints. */
+      /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
       }
-      /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
+      /* Don't show temporary constraints (AutoIK and target-less IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
         if (data->flag & CONSTRAINT_IK_TEMP) {

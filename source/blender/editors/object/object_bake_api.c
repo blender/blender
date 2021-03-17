@@ -156,8 +156,10 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
   return OPERATOR_PASS_THROUGH;
 }
 
-/* for exec() when there is no render job
- * note: this wont check for the escape key being pressed, but doing so isnt threadsafe */
+/**
+ * for exec() when there is no render job
+ * note: this wont check for the escape key being pressed, but doing so isn't thread-safe.
+ */
 static int bake_break(void *UNUSED(rjv))
 {
   if (G.is_break) {

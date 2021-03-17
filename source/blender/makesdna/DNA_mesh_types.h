@@ -57,7 +57,7 @@ typedef struct EditMeshData {
   /** lazy initialize (when \a vertexCos is set) */
   float const (*vertexNos)[3];
   float const (*polyNos)[3];
-  /** also lazy init but dont depend on \a vertexCos */
+  /** also lazy init but don't depend on \a vertexCos */
   const float (*polyCos)[3];
 } EditMeshData;
 
