@@ -704,6 +704,72 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const int v)
   return dists;
 }
 
+
+/**
+ * Poly Loop: 
+ */
+static float *sculpt_expand_poly_loop_falloff_create(Object *ob, const int v)
+{
+  SculptSession *ss = ob->sculpt;
+  const int totvert = SCULPT_vertex_count_get(ss);
+  float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
+  BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
+  GSQueue *queue = BLI_gsqueue_new(sizeof(int));
+
+ printf("POLY LOOP FALLOFF\n");
+
+  /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  for (char symm_it = 0; symm_it <= symm; symm_it++) {
+    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+      continue;
+    }
+
+    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
+
+    BLI_bitmap *poly_loop = sculpt_poly_loop_from_cursor(ob);
+
+    for (int i = 0; i < ss->totfaces; i++) {
+      if (!BLI_BITMAP_TEST(poly_loop, i)) {
+        continue;
+      }
+      MPoly *poly = &ss->mpoly[i];
+      for (int l = 0; l < poly->totloop; l++) {
+        const int vertex = ss->mloop[poly->loopstart + l].v;
+        BLI_gsqueue_push(queue, &vertex);
+        BLI_BITMAP_ENABLE(visited_vertices, vertex);
+      }
+    }
+    MEM_freeN(poly_loop);
+  }
+
+  /* If there are no boundaries, return a falloff with all values set to 0. */
+  if (BLI_gsqueue_is_empty(queue)) {
+    return dists;
+  }
+
+  /* Propagate the values from the boundaries to the rest of the mesh. */
+  while (!BLI_gsqueue_is_empty(queue)) {
+    int v_next;
+    BLI_gsqueue_pop(queue, &v_next);
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_next, ni) {
+      if (BLI_BITMAP_TEST(visited_vertices, ni.index)) {
+        continue;
+      }
+      dists[ni.index] = dists[v_next] + 1.0f;
+      BLI_BITMAP_ENABLE(visited_vertices, ni.index);
+      BLI_gsqueue_push(queue, &ni.index);
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  }
+
+  BLI_gsqueue_free(queue);
+  MEM_freeN(visited_vertices);
+  return dists;
+}
+
 /* Functions to update the max_falloff value in the #ExpandCache. These functions are called after
  * initializing a new falloff to make sure that this value is always updated. */
 
@@ -1032,6 +1098,11 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     case SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET:
       sculpt_expand_initialize_from_face_set_boundary(
           ob, expand_cache, expand_cache->initial_active_face_set, false);
+      break;
+    case SCULPT_EXPAND_FALLOFF_POLY_LOOP:
+      expand_cache->vert_falloff = has_topology_info ?
+                                       sculpt_expand_poly_loop_falloff_create(ob, v) :
+                                       sculpt_expand_spherical_falloff_create(ob, v);
       break;
   }
 
@@ -2190,6 +2261,7 @@ void SCULPT_OT_expand(wmOperatorType *ot)
       {SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY, "BOUNDARY_TOPOLOGY", 0, "Boundary Topology", ""},
       {SCULPT_EXPAND_FALLOFF_BOUNDARY_FACE_SET, "BOUNDARY_FACE_SET", 0, "Boundary Face Set", ""},
       {SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET, "ACTIVE_FACE_SET", 0, "Active Face Set", ""},
+      {SCULPT_EXPAND_FALLOFF_POLY_LOOP, "POLY_LOOP", 0, "POLY_LOOP", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

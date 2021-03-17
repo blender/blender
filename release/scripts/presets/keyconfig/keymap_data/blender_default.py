@@ -4489,6 +4489,8 @@ def km_sculpt(params):
          {"properties": [("target", "FACE_SETS"), ("falloff_type", "GEODESIC"), ("invert", False), ("use_modify_active", False)]}),
         ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True, "alt": True},
          {"properties": [("target", "FACE_SETS"), ("falloff_type", "BOUNDARY_FACE_SET"),("invert", False), ("use_modify_active", True)]}),
+        ("sculpt.expand", {"type": 'W', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("target", "FACE_SETS"), ("falloff_type", "POLY_LOOP"), ("invert", False), ("use_modify_active", False)]}),
         # Partial Visibility Show/hide
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS'},
          {"properties": [("mode", 'TOGGLE')]}),
