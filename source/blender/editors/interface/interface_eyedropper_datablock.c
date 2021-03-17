@@ -77,7 +77,7 @@ typedef struct DataDropper {
 static void datadropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
 {
   DataDropper *ddr = arg;
-  eyedropper_draw_cursor_text(C, region, ddr->name);
+  eyedropper_draw_cursor_text_region(C, region, ddr->name);
 }
 
 static int datadropper_init(bContext *C, wmOperator *op)

@@ -577,7 +577,7 @@ static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
 
 static void seq_build_proxy(bContext *C, Sequence *seq)
 {
-  if (U.sequencer_proxy_setup == USER_SEQ_PROXY_SETUP_AUTOMATIC) {
+  if (U.sequencer_proxy_setup != USER_SEQ_PROXY_SETUP_AUTOMATIC) {
     return;
   }
 

@@ -18,6 +18,9 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
+
+#include "BKE_geometry_set.hh"
 
 namespace blender::bke {
 
@@ -105,7 +108,7 @@ template<typename T> class OwnedArrayReadAttribute final : public ReadAttribute 
 template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
 class DerivedArrayReadAttribute final : public ReadAttribute {
  private:
-  blender::Span<StructT> data_;
+  Span<StructT> data_;
 
  public:
   DerivedArrayReadAttribute(AttributeDomain domain, Span<StructT> data)
@@ -159,10 +162,10 @@ template<typename StructT,
          void (*SetFunc)(StructT &, const ElemT &)>
 class DerivedArrayWriteAttribute final : public WriteAttribute {
  private:
-  blender::MutableSpan<StructT> data_;
+  MutableSpan<StructT> data_;
 
  public:
-  DerivedArrayWriteAttribute(AttributeDomain domain, blender::MutableSpan<StructT> data)
+  DerivedArrayWriteAttribute(AttributeDomain domain, MutableSpan<StructT> data)
       : WriteAttribute(domain, CPPType::get<ElemT>(), data.size()), data_(data)
   {
   }
@@ -247,7 +250,7 @@ class BuiltinAttributeProvider {
   virtual bool try_create(GeometryComponent &UNUSED(component)) const = 0;
   virtual bool exists(const GeometryComponent &component) const = 0;
 
-  blender::StringRefNull name() const
+  StringRefNull name() const
   {
     return name_;
   }
@@ -270,13 +273,12 @@ class BuiltinAttributeProvider {
 class DynamicAttributesProvider {
  public:
   virtual ReadAttributePtr try_get_for_read(const GeometryComponent &component,
-                                            const blender::StringRef attribute_name) const = 0;
+                                            const StringRef attribute_name) const = 0;
   virtual WriteAttributePtr try_get_for_write(GeometryComponent &component,
-                                              const blender::StringRef attribute_name) const = 0;
-  virtual bool try_delete(GeometryComponent &component,
-                          const blender::StringRef attribute_name) const = 0;
+                                              const StringRef attribute_name) const = 0;
+  virtual bool try_delete(GeometryComponent &component, const StringRef attribute_name) const = 0;
   virtual bool try_create(GeometryComponent &UNUSED(component),
-                          const blender::StringRef UNUSED(attribute_name),
+                          const StringRef UNUSED(attribute_name),
                           const AttributeDomain UNUSED(domain),
                           const CustomDataType UNUSED(data_type)) const
   {
@@ -286,7 +288,7 @@ class DynamicAttributesProvider {
 
   virtual bool foreach_attribute(const GeometryComponent &component,
                                  const AttributeForeachCallback callback) const = 0;
-  virtual void supported_domains(blender::Vector<AttributeDomain> &r_domains) const = 0;
+  virtual void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const = 0;
 };
 
 /**
@@ -308,25 +310,24 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   }
 
   ReadAttributePtr try_get_for_read(const GeometryComponent &component,
-                                    const blender::StringRef attribute_name) const final;
+                                    const StringRef attribute_name) const final;
 
   WriteAttributePtr try_get_for_write(GeometryComponent &component,
-                                      const blender::StringRef attribute_name) const final;
+                                      const StringRef attribute_name) const final;
 
-  bool try_delete(GeometryComponent &component,
-                  const blender::StringRef attribute_name) const final;
+  bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final;
 
   bool try_create(GeometryComponent &component,
-                  const blender::StringRef attribute_name,
+                  const StringRef attribute_name,
                   const AttributeDomain domain,
                   const CustomDataType data_type) const final;
 
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
 
-  void supported_domains(blender::Vector<AttributeDomain> &r_domains) const final
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
   {
-    r_domains.append_non_duplicates(domain_);
+    callback(domain_);
   }
 
  private:
@@ -388,7 +389,7 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final;
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
-  void supported_domains(Vector<AttributeDomain> &r_domains) const final;
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
 };
 
 /**
@@ -448,46 +449,43 @@ class ComponentAttributeProviders {
    * higher priority when an attribute name is looked up. Usually, that means that builtin
    * providers are checked before dynamic ones.
    */
-  blender::Map<std::string, const BuiltinAttributeProvider *> builtin_attribute_providers_;
+  Map<std::string, const BuiltinAttributeProvider *> builtin_attribute_providers_;
   /**
    * An ordered list of dynamic attribute providers. The order is important because that is order
    * in which they are checked when an attribute is looked up.
    */
-  blender::Vector<const DynamicAttributesProvider *> dynamic_attribute_providers_;
+  Vector<const DynamicAttributesProvider *> dynamic_attribute_providers_;
   /**
    * All the domains that are supported by at least one of the providers above.
    */
-  blender::Vector<AttributeDomain> supported_domains_;
+  VectorSet<AttributeDomain> supported_domains_;
 
  public:
-  ComponentAttributeProviders(
-      blender::Span<const BuiltinAttributeProvider *> builtin_attribute_providers,
-      blender::Span<const DynamicAttributesProvider *> dynamic_attribute_providers)
+  ComponentAttributeProviders(Span<const BuiltinAttributeProvider *> builtin_attribute_providers,
+                              Span<const DynamicAttributesProvider *> dynamic_attribute_providers)
       : dynamic_attribute_providers_(dynamic_attribute_providers)
   {
-    blender::Set<AttributeDomain> domains;
     for (const BuiltinAttributeProvider *provider : builtin_attribute_providers) {
       /* Use #add_new to make sure that no two builtin attributes have the same name. */
       builtin_attribute_providers_.add_new(provider->name(), provider);
-      supported_domains_.append_non_duplicates(provider->domain());
+      supported_domains_.add(provider->domain());
     }
     for (const DynamicAttributesProvider *provider : dynamic_attribute_providers) {
-      provider->supported_domains(supported_domains_);
+      provider->foreach_domain([&](AttributeDomain domain) { supported_domains_.add(domain); });
     }
   }
 
-  const blender::Map<std::string, const BuiltinAttributeProvider *> &builtin_attribute_providers()
-      const
+  const Map<std::string, const BuiltinAttributeProvider *> &builtin_attribute_providers() const
   {
     return builtin_attribute_providers_;
   }
 
-  blender::Span<const DynamicAttributesProvider *> dynamic_attribute_providers() const
+  Span<const DynamicAttributesProvider *> dynamic_attribute_providers() const
   {
     return dynamic_attribute_providers_;
   }
 
-  blender::Span<AttributeDomain> supported_domains() const
+  Span<AttributeDomain> supported_domains() const
   {
     return supported_domains_;
   }

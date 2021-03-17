@@ -1820,11 +1820,6 @@ static bool outliner_id_operation_item_poll(bContext *C,
     return false;
   }
 
-  Object *ob = NULL;
-  if (GS(tselem->id->name) == ID_OB) {
-    ob = (Object *)tselem->id;
-  }
-
   switch (enum_value) {
     case OUTLINER_IDOP_MARK_ASSET:
     case OUTLINER_IDOP_CLEAR_ASSET:
@@ -1839,11 +1834,16 @@ static bool outliner_id_operation_item_poll(bContext *C,
         return true;
       }
       return false;
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT:
-      if (ob != NULL && ob->proxy != NULL) {
-        return true;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT: {
+      if (GS(tselem->id->name) == ID_OB) {
+        Object *ob = (Object *)tselem->id;
+
+        if ((ob != NULL) && (ob->proxy != NULL)) {
+          return true;
+        }
       }
       return false;
+    }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY:
@@ -1854,7 +1854,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
       }
       return false;
     case OUTLINER_IDOP_SINGLE:
-      if (!space_outliner || ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
+      if (ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
       }
       /* TODO(dalai): enable in the few cases where this can be supported
@@ -1873,7 +1873,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
   EnumPropertyItem *items = NULL;
   int totitem = 0;
 
-  if (C == NULL) {
+  if ((C == NULL) || (ED_operator_outliner_active(C) == false)) {
     return prop_id_op_types;
   }
   for (const EnumPropertyItem *it = prop_id_op_types; it->identifier != NULL; it++) {

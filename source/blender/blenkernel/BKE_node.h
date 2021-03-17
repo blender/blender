@@ -627,6 +627,7 @@ struct bNodeLink *nodeAddLink(struct bNodeTree *ntree,
                               struct bNodeSocket *tosock);
 void nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+void nodeMuteLinkToggle(struct bNodeTree *ntree, struct bNodeLink *link);
 bool nodeLinkIsHidden(const struct bNodeLink *link);
 void nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
@@ -1289,10 +1290,11 @@ void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
 int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
 void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_len);
-
 /* Update the runtime layer names with the cryptomatte layer names of the references
  * render layer or image. */
 void ntreeCompositCryptomatteUpdateLayerNames(bNode *node);
+struct CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1384,6 +1386,14 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_SUBDIVIDE 1029
 #define GEO_NODE_ATTRIBUTE_REMOVE 1030
 #define GEO_NODE_ATTRIBUTE_CONVERT 1031
+#define GEO_NODE_MESH_PRIMITIVE_CUBE 1032
+#define GEO_NODE_MESH_PRIMITIVE_CIRCLE 1033
+#define GEO_NODE_MESH_PRIMITIVE_UV_SPHERE 1034
+#define GEO_NODE_MESH_PRIMITIVE_CYLINDER 1035
+#define GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE 1036
+#define GEO_NODE_MESH_PRIMITIVE_CONE 1037
+#define GEO_NODE_MESH_PRIMITIVE_LINE 1038
+#define GEO_NODE_MESH_PRIMITIVE_PLANE 1039
 
 /** \} */
 

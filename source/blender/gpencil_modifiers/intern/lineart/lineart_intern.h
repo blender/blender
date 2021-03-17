@@ -35,7 +35,7 @@
 
 struct LineartStaticMemPool;
 struct LineartStaticMemPoolNode;
-struct LineartRenderLine;
+struct LineartLine;
 struct LineartRenderBuffer;
 
 void *lineart_list_append_pointer_pool(ListBase *h, struct LineartStaticMemPool *smp, void *data);
@@ -58,7 +58,7 @@ void *lineart_mem_aquire(struct LineartStaticMemPool *smp, size_t size);
 void *lineart_mem_aquire_thread(struct LineartStaticMemPool *smp, size_t size);
 void lineart_mem_destroy(struct LineartStaticMemPool *smp);
 
-void lineart_prepend_line_direct(struct LineartRenderLine **first, void *node);
+void lineart_prepend_line_direct(struct LineartLine **first, void *node);
 void lineart_prepend_pool(LinkNode **first, struct LineartStaticMemPool *smp, void *link);
 
 void lineart_matrix_ortho_44d(double (*mProjection)[4],
@@ -76,7 +76,7 @@ int lineart_count_intersection_segment_count(struct LineartRenderBuffer *rb);
 void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb);
 
 #define LRT_ITER_ALL_LINES_BEGIN \
-  LineartRenderLine *rl, *next_rl, **current_list; \
+  LineartLine *rl, *next_rl, **current_list; \
   rl = rb->contours; \
   for (current_list = &rb->contours; rl; rl = next_rl) { \
     next_rl = rl->next;

@@ -674,9 +674,10 @@ bool NamedLegacyCustomDataProvider::foreach_attribute(
   return true;
 }
 
-void NamedLegacyCustomDataProvider::supported_domains(Vector<AttributeDomain> &r_domains) const
+void NamedLegacyCustomDataProvider::foreach_domain(
+    const FunctionRef<void(AttributeDomain)> callback) const
 {
-  r_domains.append_non_duplicates(domain_);
+  callback(domain_);
 }
 
 }  // namespace blender::bke

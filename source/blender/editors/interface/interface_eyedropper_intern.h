@@ -23,9 +23,10 @@
 #pragma once
 
 /* interface_eyedropper.c */
-void eyedropper_draw_cursor_text(const struct bContext *C,
-                                 const struct ARegion *region,
-                                 const char *name);
+void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name);
+void eyedropper_draw_cursor_text_region(const struct bContext *C,
+                                        const struct ARegion *region,
+                                        const char *name);
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
 
 /* interface_eyedropper_color.c (expose for color-band picker) */

@@ -68,6 +68,7 @@ void node_operatortypes(void)
   WM_operatortype_append(NODE_OT_link_make);
   WM_operatortype_append(NODE_OT_links_cut);
   WM_operatortype_append(NODE_OT_links_detach);
+  WM_operatortype_append(NODE_OT_links_mute);
   WM_operatortype_append(NODE_OT_add_reroute);
 
   WM_operatortype_append(NODE_OT_group_make);

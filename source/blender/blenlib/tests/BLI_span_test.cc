@@ -392,4 +392,16 @@ TEST(span, Constexpr)
   EXPECT_EQ(span.slice(1, 2).size(), 2);
 }
 
+TEST(span, ImplicitConversions)
+{
+  BLI_STATIC_ASSERT((std::is_convertible_v<MutableSpan<int>, Span<int>>), "");
+  BLI_STATIC_ASSERT((std::is_convertible_v<Span<int *>, Span<const int *>>), "");
+  BLI_STATIC_ASSERT((std::is_convertible_v<MutableSpan<int *>, Span<int *>>), "");
+  BLI_STATIC_ASSERT((std::is_convertible_v<MutableSpan<int *>, Span<const int *>>), "");
+  BLI_STATIC_ASSERT((std::is_convertible_v<MutableSpan<int *>, MutableSpan<const int *>>), "");
+  BLI_STATIC_ASSERT((!std::is_convertible_v<MutableSpan<const int *>, MutableSpan<int *>>), "");
+  BLI_STATIC_ASSERT((!std::is_convertible_v<Span<const int *>, Span<int *>>), "");
+  BLI_STATIC_ASSERT((!std::is_convertible_v<Span<int *>, MutableSpan<const int *>>), "");
+}
+
 }  // namespace blender::tests

@@ -3751,17 +3751,21 @@ bool node_link_bezier_points(const View2D *v2d,
 #define LINK_WIDTH (2.5f * UI_DPI_FAC)
 #define ARROW_SIZE (7 * UI_DPI_FAC)
 
+/* Reroute arrow shape and mute bar. These are expanded here and shrunk in the glsl code.
+ * See: gpu_shader_2D_nodelink_vert.glsl */
 static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
+static float mute_verts[3][2] = {{0.7071f, 1.0f}, {0.7071f, 0.0f}, {0.7071f, -1.0f}};
+static float mute_expand_axis[3][2] = {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, -0.0f}};
 
 static struct {
   GPUBatch *batch;        /* for batching line together */
   GPUBatch *batch_single; /* for single line */
   GPUVertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
-  uint colid_id;
+  uint colid_id, muted_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
-  GPUVertBufRaw colid_step;
+  GPUVertBufRaw colid_step, muted_step;
   uint count;
   bool enabled;
 } g_batch_link = {0};
@@ -3774,6 +3778,8 @@ static void nodelink_batch_reset(void)
   GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p3_id, &g_batch_link.p3_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.colid_id, &g_batch_link.colid_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.muted_id, &g_batch_link.muted_step);
   g_batch_link.count = 0;
 }
 
@@ -3801,6 +3807,8 @@ static void nodelink_batch_init(void)
   int vcount = LINK_RESOL * 2; /* curve */
   vcount += 2;                 /* restart strip */
   vcount += 3 * 2;             /* arrow */
+  vcount += 2;                 /* restart strip */
+  vcount += 3 * 2;             /* mute */
   vcount *= 2;                 /* shadow */
   vcount += 2;                 /* restart strip */
   GPU_vertbuf_data_alloc(vbo, vcount);
@@ -3844,6 +3852,25 @@ static void nodelink_batch_init(void)
     }
 
     /* restart */
+    set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+
+    uv[0] = 127;
+    uv[1] = 0;
+    copy_v2_v2(pos, mute_verts[0]);
+    copy_v2_v2(exp, mute_expand_axis[0]);
+    set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+    /* bar */
+    for (int i = 0; i < 3; ++i) {
+      uv[1] = 0;
+      copy_v2_v2(pos, mute_verts[i]);
+      copy_v2_v2(exp, mute_expand_axis[i]);
+      set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+
+      uv[1] = 255;
+      set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+    }
+
+    /* restart */
     if (k == 0) {
       set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
     }
@@ -3867,6 +3894,8 @@ static void nodelink_batch_init(void)
       &format_inst, "P3", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   g_batch_link.colid_id = GPU_vertformat_attr_add(
       &format_inst, "colid_doarrow", GPU_COMP_U8, 4, GPU_FETCH_INT);
+  g_batch_link.muted_id = GPU_vertformat_attr_add(
+      &format_inst, "domuted", GPU_COMP_U8, 2, GPU_FETCH_INT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -3941,12 +3970,13 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
                                     int th_col1,
                                     int th_col2,
                                     int th_col3,
-                                    bool drawarrow)
+                                    bool drawarrow,
+                                    bool drawmuted)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
   BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
   BLI_assert(ELEM(th_col2, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
-  BLI_assert(ELEM(th_col3, TH_WIRE, -1));
+  BLI_assert(ELEM(th_col3, TH_WIRE, TH_REDALERT, -1));
 
   g_batch_link.count++;
   copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p0_step), p0);
@@ -3958,6 +3988,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
   colid[1] = nodelink_get_color_id(th_col2);
   colid[2] = nodelink_get_color_id(th_col3);
   colid[3] = drawarrow;
+  char *muted = GPU_vertbuf_raw_step(&g_batch_link.muted_step);
+  muted[0] = drawmuted;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -3977,7 +4009,7 @@ void node_draw_link_bezier(const View2D *v2d,
   if (node_link_bezier_handles(v2d, snode, link, vec)) {
     int drawarrow = ((link->tonode && (link->tonode->type == NODE_REROUTE)) &&
                      (link->fromnode && (link->fromnode->type == NODE_REROUTE)));
-
+    int drawmuted = (link->flag & NODE_LINK_MUTED);
     if (g_batch_link.batch == NULL) {
       nodelink_batch_init();
     }
@@ -3985,7 +4017,7 @@ void node_draw_link_bezier(const View2D *v2d,
     if (g_batch_link.enabled && !highlighted) {
       /* Add link to batch. */
       nodelink_batch_add_link(
-          snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow);
+          snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow, drawmuted);
     }
     else {
       /* Draw single link. */
@@ -4009,6 +4041,7 @@ void node_draw_link_bezier(const View2D *v2d,
       GPU_batch_uniform_1f(batch, "expandSize", snode->runtime->aspect * LINK_WIDTH);
       GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
+      GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
       GPU_batch_draw(batch);
     }
   }
@@ -4041,8 +4074,11 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       if (link->flag & NODE_LINKFLAG_HILITE) {
         th_col1 = th_col2 = TH_ACTIVE;
       }
+      else if (link->flag & NODE_LINK_MUTED) {
+        th_col1 = th_col2 = TH_REDALERT;
+      }
       else {
-        /* regular link */
+        /* Regular link, highlight if connected to selected node. */
         if (link->fromnode && link->fromnode->flag & SELECT) {
           th_col1 = TH_EDGE_SELECT;
         }
@@ -4052,7 +4088,8 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       }
     }
     else {
-      th_col1 = th_col2 = TH_REDALERT;
+      /* Invalid link. */
+      th_col1 = th_col2 = th_col3 = TH_REDALERT;
       // th_col3 = -1; /* no shadow */
     }
   }

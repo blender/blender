@@ -57,14 +57,16 @@ static bool use_translate(const float3 rotation, const float3 scale)
   return true;
 }
 
-static void transform_mesh(Mesh *mesh,
-                           const float3 translation,
-                           const float3 rotation,
-                           const float3 scale)
+void transform_mesh(Mesh *mesh,
+                    const float3 translation,
+                    const float3 rotation,
+                    const float3 scale)
 {
   /* Use only translation if rotation and scale are zero. */
   if (use_translate(rotation, scale)) {
-    BKE_mesh_translate(mesh, translation, true);
+    if (!translation.is_zero()) {
+      BKE_mesh_translate(mesh, translation, true);
+    }
   }
   else {
     float mat[4][4];

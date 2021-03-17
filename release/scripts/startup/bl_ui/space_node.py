@@ -331,6 +331,7 @@ class NODE_MT_node(Menu):
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
         layout.operator("node.links_cut")
         layout.operator("node.links_detach")
+        layout.operator("node.links_mute")
 
         layout.separator()
 

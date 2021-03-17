@@ -16,6 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
+#include "BLI_multi_value_map.hh"
 #include "BLI_utildefines.h"
 
 #include "COM_Converter.h"
@@ -67,19 +68,19 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
    * Inverting yields a map of node inputs to all connected operation inputs,
    * so multiple operations can use the same node input.
    */
-  blender::Map<NodeInput *, blender::Vector<NodeOperationInput *>> inverse_input_map;
+  blender::MultiValueMap<NodeInput *, NodeOperationInput *> inverse_input_map;
   for (blender::Map<NodeOperationInput *, NodeInput *>::MutableItem item : m_input_map.items()) {
-    inverse_input_map.lookup_or_add_default(item.value).append(item.key);
+    inverse_input_map.add(item.value, item.key);
   }
 
   for (const NodeGraph::Link &link : m_graph.links()) {
     NodeOutput *from = link.from;
     NodeInput *to = link.to;
 
-    NodeOperationOutput *op_from = m_output_map.lookup(from);
+    NodeOperationOutput *op_from = m_output_map.lookup_default(from, nullptr);
 
-    const blender::Vector<NodeOperationInput *> *op_to_list = inverse_input_map.lookup_ptr(to);
-    if (!op_from || op_to_list == nullptr || op_to_list->is_empty()) {
+    const blender::Span<NodeOperationInput *> op_to_list = inverse_input_map.lookup(to);
+    if (!op_from || op_to_list.is_empty()) {
       /* XXX allow this? error/debug message? */
       // BLI_assert(false);
       /* XXX note: this can happen with certain nodes (e.g. OutputFile)
@@ -89,7 +90,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
       continue;
     }
 
-    for (NodeOperationInput *op_to : *op_to_list) {
+    for (NodeOperationInput *op_to : op_to_list) {
       addLink(op_from, op_to);
     }
   }

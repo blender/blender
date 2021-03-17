@@ -782,9 +782,9 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     return true;
   }
 
-  void supported_domains(Vector<AttributeDomain> &r_domains) const final
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
   {
-    r_domains.append_non_duplicates(ATTR_DOMAIN_POINT);
+    callback(ATTR_DOMAIN_POINT);
   }
 };
 

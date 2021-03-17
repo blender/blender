@@ -2254,7 +2254,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->type != SEQ_TYPE_MOVIE) {
+    if (seq->type != SEQ_TYPE_MOVIE || seq->strip == NULL || seq->strip->proxy == NULL) {
       continue;
     }
 
