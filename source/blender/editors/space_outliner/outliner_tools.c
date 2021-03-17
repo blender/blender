@@ -1820,11 +1820,6 @@ static bool outliner_id_operation_item_poll(bContext *C,
     return false;
   }
 
-  Object *ob = NULL;
-  if (GS(tselem->id->name) == ID_OB) {
-    ob = (Object *)tselem->id;
-  }
-
   switch (enum_value) {
     case OUTLINER_IDOP_MARK_ASSET:
     case OUTLINER_IDOP_CLEAR_ASSET:
@@ -1839,11 +1834,16 @@ static bool outliner_id_operation_item_poll(bContext *C,
         return true;
       }
       return false;
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT:
-      if (ob != NULL && ob->proxy != NULL) {
-        return true;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT: {
+      if (GS(tselem->id->name) == ID_OB) {
+        Object *ob = (Object *)tselem->id;
+
+        if ((ob != NULL) && (ob->proxy != NULL)) {
+          return true;
+        }
       }
       return false;
+    }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY:
