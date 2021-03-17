@@ -36,6 +36,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_cryptomatte.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -58,6 +59,9 @@
 #include "ED_clip.h"
 #include "ED_image.h"
 #include "ED_node.h"
+#include "ED_screen.h"
+
+#include "RE_pipeline.h"
 
 #include "RE_pipeline.h"
 
@@ -78,8 +82,18 @@ typedef struct Eyedropper {
   float accum_col[3];
   int accum_tot;
 
+  void *draw_handle_sample_text;
+  char sample_text[MAX_NAME];
+
   bNode *crypto_node;
+  struct CryptomatteSession *cryptomatte_session;
 } Eyedropper;
+
+static void eyedropper_draw_cb(const wmWindow *window, void *arg)
+{
+  Eyedropper *eye = arg;
+  eyedropper_draw_cursor_text_window(window, eye->sample_text);
+}
 
 static bool eyedropper_init(bContext *C, wmOperator *op)
 {
@@ -104,6 +118,8 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
   RNA_property_float_get_array(&eye->ptr, eye->prop, col);
   if (ELEM(eye->ptr.type, &RNA_CompositorNodeCryptomatteV2, &RNA_CompositorNodeCryptomatte)) {
     eye->crypto_node = (bNode *)eye->ptr.data;
+    eye->cryptomatte_session = ntreeCompositCryptomatteSession(eye->crypto_node);
+    eye->draw_handle_sample_text = WM_draw_cb_activate(CTX_wm_window(C), eyedropper_draw_cb, eye);
   }
   else {
     eye->crypto_node = NULL;
@@ -128,12 +144,21 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
 static void eyedropper_exit(bContext *C, wmOperator *op)
 {
-  WM_cursor_modal_restore(CTX_wm_window(C));
+  Eyedropper *eye = op->customdata;
+  wmWindow *window = CTX_wm_window(C);
+  WM_cursor_modal_restore(window);
 
-  if (op->customdata) {
-    MEM_freeN(op->customdata);
-    op->customdata = NULL;
+  if (eye->draw_handle_sample_text) {
+    WM_draw_cb_exit(window, eye->draw_handle_sample_text);
+    eye->draw_handle_sample_text = NULL;
   }
+
+  if (eye->cryptomatte_session) {
+    BKE_cryptomatte_free(eye->cryptomatte_session);
+    eye->cryptomatte_session = NULL;
+  }
+
+  MEM_SAFE_FREE(op->customdata);
 }
 
 /* *** eyedropper_color_ helper functions *** */
@@ -416,6 +441,20 @@ static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my
   eyedropper_color_set(C, eye, accum_col);
 }
 
+static void eyedropper_color_sample_text_update(bContext *C, Eyedropper *eye, int mx, int my)
+{
+  float col[3];
+  eye->sample_text[0] = '\0';
+
+  if (eye->cryptomatte_session) {
+    if (eyedropper_cryptomatte_sample_fl(C, eye, mx, my, col)) {
+      BKE_cryptomatte_find_name(
+          eye->cryptomatte_session, col[0], eye->sample_text, sizeof(eye->sample_text));
+      eye->sample_text[sizeof(eye->sample_text) - 1] = '\0';
+    }
+  }
+}
+
 static void eyedropper_cancel(bContext *C, wmOperator *op)
 {
   Eyedropper *eye = op->customdata;
@@ -461,6 +500,11 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (eye->accum_start) {
       /* button is pressed so keep sampling */
       eyedropper_color_sample(C, eye, event->x, event->y);
+    }
+
+    if (eye->draw_handle_sample_text) {
+      eyedropper_color_sample_text_update(C, eye, event->x, event->y);
+      ED_region_tag_redraw(CTX_wm_region(C));
     }
   }
 

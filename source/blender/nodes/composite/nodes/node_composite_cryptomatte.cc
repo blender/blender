@@ -216,6 +216,13 @@ void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size
   BLI_strncpy(r_prefix, cstr, prefix_len);
 }
 
+CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
+{
+  blender::bke::cryptomatte::CryptomatteSessionPtr session_ptr = cryptomatte_init_from_node(
+      *node, 0, true);
+  return session_ptr.release();
+}
+
 static void node_init_cryptomatte(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeCryptomatte *user = static_cast<NodeCryptomatte *>(
