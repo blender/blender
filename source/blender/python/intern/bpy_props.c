@@ -208,15 +208,24 @@ struct BPyPropStore {
    * Only store #PyObject types, can be cast to an an array and operated on.
    * NULL members are ignored/skipped. */
   struct {
-    PyObject *update_fn;
+    /** Wrap: `RNA_def_property_*_funcs` (depending on type). */
     PyObject *get_fn;
     PyObject *set_fn;
-    PyObject *poll_fn;
+    /** Wrap: #RNA_def_property_update_runtime */
+    PyObject *update_fn;
+
     /** Arguments by type. */
     union {
+      /** #PROP_ENUM type. */
       struct {
+        /** Wrap: #RNA_def_property_enum_funcs_runtime */
         PyObject *itemf_fn;
       } enum_data;
+      /** #PROP_POINTER type. */
+      struct {
+        /** Wrap: #RNA_def_property_poll_runtime */
+        PyObject *poll_fn;
+      } pointer_data;
     };
   } py_data;
 };
@@ -1474,7 +1483,7 @@ static bool bpy_prop_pointer_poll_fn(struct PointerRNA *self,
 
   py_self = pyrna_struct_as_instance(self);
   py_candidate = pyrna_struct_as_instance(&candidate);
-  py_func = prop_store->py_data.poll_fn;
+  py_func = prop_store->py_data.pointer_data.poll_fn;
 
   if (!is_write_ok) {
     pyrna_write_set(true);
@@ -1967,7 +1976,7 @@ static void bpy_prop_callback_assign_update(struct PropertyRNA *prop, PyObject *
   if (update_fn && update_fn != Py_None) {
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_fn);
+    RNA_def_property_update_runtime(prop, bpy_prop_update_fn);
     ASSIGN_PYOBJECT_INCREF(prop_store->py_data.update_fn, update_fn);
 
     RNA_def_property_flag(prop, PROP_CONTEXT_PROPERTY_UPDATE);
@@ -1980,7 +1989,7 @@ static void bpy_prop_callback_assign_pointer(struct PropertyRNA *prop, PyObject 
     struct BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
     RNA_def_property_poll_runtime(prop, bpy_prop_pointer_poll_fn);
-    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.poll_fn, poll_fn);
+    ASSIGN_PYOBJECT_INCREF(prop_store->py_data.pointer_data.poll_fn, poll_fn);
   }
 }
 
