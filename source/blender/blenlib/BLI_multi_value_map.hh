@@ -25,7 +25,7 @@
  * and their order is maintained.
  *
  * This data structure is different from a `std::multi_map`, because multi_map can store the same
- * key more than once and MultiValueMap can't.
+* key more than once and MultiValueMap can't.
  *
  * Currently, this class exists mainly for convenience. There are no performance benefits over
  * using Map<Key, Vector<Value>>. In the future, a better implementation for this data structure
