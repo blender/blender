@@ -164,12 +164,12 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
                              unsigned char transparency_mask)
 {
   LineartRenderLineSegment *rls, *irls, *next_rls, *prev_rls;
-  LineartRenderLineSegment *start_segment = 0, *end_segment = 0;
+  LineartRenderLineSegment *cut_start_before = 0, *cut_end_before = 0;
   LineartRenderLineSegment *ns = 0, *ns2 = 0;
   int untouched = 0;
 
   /* If for some reason the occlusion function may give a result that has zero length, or reversed
-   * in direction, or NAN, so we take care of them here. */
+   * in direction, or NAN, we take care of them here. */
   if (LRT_DOUBLE_CLOSE_ENOUGH(start, end)) {
     return;
   }
@@ -194,8 +194,8 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
    * through the segments. */
   for (rls = rl->segments.first; rls; rls = rls->next) {
     if (LRT_DOUBLE_CLOSE_ENOUGH(rls->at, start)) {
-      start_segment = rls;
-      ns = start_segment;
+      cut_start_before = rls;
+      ns = cut_start_before;
       break;
     }
     if (rls->next == NULL) {
@@ -203,67 +203,71 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
     }
     irls = rls->next;
     if (irls->at > start + 1e-09 && start > rls->at) {
-      start_segment = irls;
-      ns = lineart_mem_aquire_thread(&rb->render_data_pool, sizeof(LineartRenderLineSegment));
+      cut_start_before = irls;
+      ns = lineart_line_give_segment(rb);
       break;
     }
   }
-  if (!start_segment && LRT_DOUBLE_CLOSE_ENOUGH(1, end)) {
+  if (!cut_start_before && LRT_DOUBLE_CLOSE_ENOUGH(1, end)) {
     untouched = 1;
   }
-  for (rls = start_segment; rls; rls = rls->next) {
+  for (rls = cut_start_before; rls; rls = rls->next) {
     /* We tried to cut at existing cutting point (e.g. where the line's occluded by a triangle
      * strip). */
     if (LRT_DOUBLE_CLOSE_ENOUGH(rls->at, end)) {
-      end_segment = rls;
-      ns2 = end_segment;
+      cut_end_before = rls;
+      ns2 = cut_end_before;
       break;
     }
     /*  This check is to prevent rls->at == 1.0 (where we don't need to cut because we are at the
      * end point). */
     if (!rls->next && LRT_DOUBLE_CLOSE_ENOUGH(1, end)) {
-      end_segment = rls;
-      ns2 = end_segment;
+      cut_end_before = rls;
+      ns2 = cut_end_before;
       untouched = 1;
       break;
     }
     /* When an actual cut is needed in the line. */
     if (rls->at > end) {
-      end_segment = rls;
+      cut_end_before = rls;
       ns2 = lineart_line_give_segment(rb);
       break;
     }
   }
 
-  /* When an actual cut is needed in the line. */
+  /* When we still can't find any existing cut in the line, we allocate new ones. */
   if (ns == NULL) {
     ns = lineart_line_give_segment(rb);
   }
   if (ns2 == NULL) {
     if (untouched) {
       ns2 = ns;
-      end_segment = ns2;
+      cut_end_before = ns2;
     }
     else {
       ns2 = lineart_line_give_segment(rb);
     }
   }
 
-  /* Insert cutting points. */
-  if (start_segment) {
-    if (start_segment != ns) {
-      ns->occlusion = start_segment->prev ? (irls = start_segment->prev)->occlusion : 0;
-      BLI_insertlinkbefore(&rl->segments, (void *)start_segment, (void *)ns);
+  if (cut_start_before) {
+    if (cut_start_before != ns) {
+      /* Insert cutting points for when a new cut is needed. */
+      ns->occlusion = cut_start_before->prev ? (irls = cut_start_before->prev)->occlusion : 0;
+      BLI_insertlinkbefore(&rl->segments, (void *)cut_start_before, (void *)ns);
     }
+    /* Otherwise we already found a existing cutting point, no need to insert a new one. */
   }
   else {
+    /* We have yet to reach a existing cutting point even after we searched the whole line, so we
+     * append the new cut to the end. */
     ns->occlusion = (irls = rl->segments.last)->occlusion;
     BLI_addtail(&rl->segments, ns);
   }
-  if (end_segment) {
-    if (end_segment != ns2) {
-      ns2->occlusion = end_segment->prev ? (irls = end_segment->prev)->occlusion : 0;
-      BLI_insertlinkbefore(&rl->segments, (void *)end_segment, (void *)ns2);
+  if (cut_end_before) {
+    /* The same manipulation as on "cut_start_before". */
+    if (cut_end_before != ns2) {
+      ns2->occlusion = cut_end_before->prev ? (irls = cut_end_before->prev)->occlusion : 0;
+      BLI_insertlinkbefore(&rl->segments, (void *)cut_end_before, (void *)ns2);
     }
   }
   else {
@@ -271,15 +275,18 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
     BLI_addtail(&rl->segments, ns2);
   }
 
+  /* If we touched the cut list, we assign the new cut position based on new cut position, this way
+   * we accomomdate precision lost due to multiple cut inserts. */
   ns->at = start;
   if (!untouched) {
     ns2->at = end;
   }
   else {
+    /* For the convenience of the loop below. */
     ns2 = ns2->next;
   }
 
-  /* Register 1 level of occlusion. */
+  /* Register 1 level of occlusion for all touched segments. */
   for (rls = ns; rls && rls != ns2; rls = rls->next) {
     rls->occlusion++;
     rls->transparency_mask |= transparency_mask;
@@ -294,7 +301,7 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
     if (prev_rls && prev_rls->occlusion == rls->occlusion &&
         prev_rls->transparency_mask == rls->transparency_mask) {
       BLI_remlink(&rl->segments, rls);
-      /* This put the node back to the render buffer, if more cut happens, these unused nodes get
+      /* This puts the node back to the render buffer, if more cut happens, these unused nodes get
        * picked first. */
       lineart_line_discard_segment(rb, rls);
       continue;
