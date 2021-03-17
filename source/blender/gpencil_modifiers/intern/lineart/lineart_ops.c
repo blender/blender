@@ -105,7 +105,7 @@ static bool bake_strokes(Object *ob, Depsgraph *dg, GpencilModifierData *md, int
       lmd->level_start,
       lmd->use_multiple_levels ? lmd->level_end : lmd->level_start,
       lmd->target_material ? BKE_gpencil_object_material_index_get(ob, lmd->target_material) : 0,
-      lmd->line_types,
+      lmd->edge_types,
       lmd->transparency_flags,
       lmd->transparency_mask,
       lmd->thickness,

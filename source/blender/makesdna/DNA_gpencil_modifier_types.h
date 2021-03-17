@@ -832,7 +832,7 @@ typedef enum eLineartGpencilTransparencyFlags {
 typedef struct LineartGpencilModifierData {
   GpencilModifierData modifier;
 
-  short line_types; /* line type enable flags, bits in eLineartEdgeFlag */
+  short edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 
   char source_type; /* Object or Collection, from eLineartGpencilModifierSource */
 
