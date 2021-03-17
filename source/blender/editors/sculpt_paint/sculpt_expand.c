@@ -138,7 +138,8 @@ enum {
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY,
   SCULPT_EXPAND_MODAL_FALLOFF_TOPOLOGY_DIAGONALS,
   SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL,
-  SCULPT_EXPAND_MODAL_SNAP_TOGGLE,
+  SCULPT_EXPAND_MODAL_SNAP_ENABLE,
+  SCULPT_EXPAND_MODAL_SNAP_DISABLE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
   SCULPT_EXPAND_MODAL_LOOP_COUNT_DECREASE,
   SCULPT_EXPAND_MODAL_BRUSH_GRADIENT_TOGGLE,
@@ -297,7 +298,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
 
     const float active_factor = fmod(expand_cache->active_falloff, loop_len);
     const float falloff_factor = fmod(expand_cache->face_falloff[f], loop_len);
-    enabled = falloff_factor < active_factor;
+    enabled = falloff_factor <= active_factor;
   }
 
   if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET) {
@@ -1806,22 +1807,20 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         }
         break;
       }
-      case SCULPT_EXPAND_MODAL_SNAP_TOGGLE: {
-        if (expand_cache->snap) {
-          expand_cache->snap = false;
-          if (expand_cache->snap_enabled_face_sets) {
-            BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
-            expand_cache->snap_enabled_face_sets = NULL;
-          }
-        }
-        else {
+      case SCULPT_EXPAND_MODAL_SNAP_ENABLE: {
           expand_cache->snap = true;
           if (!expand_cache->snap_enabled_face_sets) {
             expand_cache->snap_enabled_face_sets = BLI_gset_int_new("snap face sets");
           }
           sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
-        }
       } break;
+      case SCULPT_EXPAND_MODAL_SNAP_DISABLE: {
+          expand_cache->snap = false;
+          if (expand_cache->snap_enabled_face_sets) {
+            BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
+            expand_cache->snap_enabled_face_sets = NULL;
+          }
+      }break;
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
@@ -2192,7 +2191,8 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        "Diagonals Falloff",
        ""},
       {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL, "FALLOFF_SPHERICAL", 0, "Spherical Falloff", ""},
-      {SCULPT_EXPAND_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap expand to Face Sets", ""},
+      {SCULPT_EXPAND_MODAL_SNAP_ENABLE, "SNAP_ENABLE", 0, "Snap expand to Face Sets", ""},
+      {SCULPT_EXPAND_MODAL_SNAP_DISABLE, "SNAP_DISABLE", 0, "Disable Snap expand to Face Sets", ""},
       {SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
        "LOOP_COUNT_INCREASE",
        0,
