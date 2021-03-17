@@ -18,6 +18,9 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
+
+#include "BKE_geometry_set.hh"
 
 namespace blender::bke {
 
@@ -286,7 +289,7 @@ class DynamicAttributesProvider {
 
   virtual bool foreach_attribute(const GeometryComponent &component,
                                  const AttributeForeachCallback callback) const = 0;
-  virtual void supported_domains(blender::Vector<AttributeDomain> &r_domains) const = 0;
+  virtual void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const = 0;
 };
 
 /**
@@ -324,9 +327,9 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
 
-  void supported_domains(blender::Vector<AttributeDomain> &r_domains) const final
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
   {
-    r_domains.append_non_duplicates(domain_);
+    callback(domain_);
   }
 
  private:
@@ -388,7 +391,7 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final;
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
-  void supported_domains(Vector<AttributeDomain> &r_domains) const final;
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
 };
 
 /**
@@ -457,7 +460,7 @@ class ComponentAttributeProviders {
   /**
    * All the domains that are supported by at least one of the providers above.
    */
-  blender::Vector<AttributeDomain> supported_domains_;
+  blender::VectorSet<AttributeDomain> supported_domains_;
 
  public:
   ComponentAttributeProviders(
@@ -465,14 +468,13 @@ class ComponentAttributeProviders {
       blender::Span<const DynamicAttributesProvider *> dynamic_attribute_providers)
       : dynamic_attribute_providers_(dynamic_attribute_providers)
   {
-    blender::Set<AttributeDomain> domains;
     for (const BuiltinAttributeProvider *provider : builtin_attribute_providers) {
       /* Use #add_new to make sure that no two builtin attributes have the same name. */
       builtin_attribute_providers_.add_new(provider->name(), provider);
-      supported_domains_.append_non_duplicates(provider->domain());
+      supported_domains_.add(provider->domain());
     }
     for (const DynamicAttributesProvider *provider : dynamic_attribute_providers) {
-      provider->supported_domains(supported_domains_);
+      provider->foreach_domain([&](AttributeDomain domain) { supported_domains_.add(domain); });
     }
   }
 
