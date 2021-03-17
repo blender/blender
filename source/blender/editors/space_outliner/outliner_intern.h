@@ -349,8 +349,6 @@ void outliner_do_object_operation(struct bContext *C,
                                   struct ListBase *lb,
                                   outliner_operation_fn operation_fn);
 
-int common_restrict_check(struct bContext *C, struct Object *ob);
-
 int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
 bool outliner_flag_set(ListBase *lb, short flag, short set);
 bool outliner_flag_flip(ListBase *lb, short flag);
