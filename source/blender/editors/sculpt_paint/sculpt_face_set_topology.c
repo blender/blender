@@ -97,140 +97,6 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
 };
 
 
-
-
-#define SCULPT_FACE_SET_LOOP_STEP_NONE -1
-static bool sculpt_poly_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
-   if (!ss->epmap) {
-     return false;
-   }
-
-   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
-   for (int i = 0; i < ss->epmap[edge].count; i++) {
-     if (ss->epmap[edge].indices[i] != from_poly) {
-       next_poly = ss->epmap[edge].indices[i];
-     }
-   }
-
-   if (next_poly == SCULPT_FACE_SET_LOOP_STEP_NONE) {
-     return false;
-   }
-
-   *r_next_poly = next_poly;
-   return true;
-}
-
-static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
-  if (ss->mpoly[poly].totloop != 4) {
-    return edge;
-  } 
-  
-  int edge_index_in_poly = 0;
-  for (int i = 0; i < ss->mpoly[poly].totloop; i++) {
-     if (edge == ss->mloop[ss->mpoly[poly].loopstart + i].e) {
-       edge_index_in_poly = i;
-       break;
-     }
-  }
-
-  const int next_edge_index_in_poly = (edge_index_in_poly + 2) % 4;
-  return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
-}
-
-static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
-
-  if (initial_poly->totloop != 4) {
-    return 0;
-  }
-
-  int closest_vert_index = mesh->mloop[initial_poly->loopstart].v;
-  for (int i = 0; i < initial_poly->totloop; i++) {
-    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_index].co, ss->cursor_location)) {
-      closest_vert_index = ss->mloop[initial_poly->loopstart + i].v;
-    }
-  }
-
-  int initial_edge_index = ss->vemap[closest_vert_index].indices[0];
-  int closest_vert_on_initial_edge_index = mesh->medge[initial_edge_index].v1 == closest_vert_index ? mesh->medge[initial_edge_index].v2 : mesh->medge[initial_edge_index].v1;
-  for (int i = 0; i < ss->vemap[closest_vert_index].count; i++) {
-    const int edge_index = ss->vemap[closest_vert_index].indices[i];
-    const int other_vert = mesh->medge[edge_index].v1 == closest_vert_index ? mesh->medge[edge_index].v2 : mesh->medge[edge_index].v1;
-    if (len_squared_v3v3(mvert[other_vert].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_on_initial_edge_index].co, ss->cursor_location)) {
-      initial_edge_index = edge_index;
-      closest_vert_on_initial_edge_index = other_vert;
-    }
-  }
-  printf("CLOSEST VERT INDEX %d\n", closest_vert_index);
-  printf("INITIAL EDGE INDEX %d\n", initial_edge_index);
-  return initial_edge_index;
-}
-
-static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-
-  if (!ss->epmap) {
-    BKE_mesh_edge_poly_map_create(&ss->epmap,
-                                  &ss->epmap_mem,
-                                  mesh->medge,
-                                  mesh->totedge,
-                                  mesh->mpoly,
-                                  mesh->totpoly,
-                                  mesh->mloop,
-                                  mesh->totloop);
-  }
-  if (!ss->vemap) {
-    BKE_mesh_vert_edge_map_create(
-        &ss->vemap, &ss->vemap_mem, mesh->medge, mesh->totvert, mesh->totedge);
-  }
-}
-
-static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initial_poly, const int initial_edge, BLI_bitmap *poly_loop) {
-  int current_poly = initial_poly;
-  int current_edge = initial_edge;
-  int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
-  int max_steps = ss->totfaces;
-
-  BLI_BITMAP_ENABLE(poly_loop, initial_poly);
-
-  while(max_steps && sculpt_poly_loop_step(ss, current_poly, current_edge, &next_poly)) {
-    if (ss->face_sets[next_poly] == initial_poly) {
-      break;
-    }
-    if (ss->face_sets[next_poly] < 0) {
-      break;
-    }
-    if (ss->mpoly[next_poly].totloop != 4) {
-      break;
-    }
-
-    BLI_BITMAP_ENABLE(poly_loop, next_poly);
-    current_edge = sculpt_poly_loop_opposite_edge_in_quad(ss, next_poly, current_edge);
-    current_poly = next_poly;
-    max_steps--;
-  }
-}
-
-BLI_bitmap * sculpt_poly_loop_from_cursor(Object *ob) {
-  SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
-  BLI_bitmap *poly_loop = BLI_BITMAP_NEW(mesh->totpoly, "poly loop");
-
-  sculpt_poly_loop_topology_data_ensure(ob);
-  const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
-  const int initial_poly = ss->active_face_index;
-  const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(ss, initial_poly, initial_edge);
-  sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge, poly_loop);
-  sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge_opposite, poly_loop);
-
-  return poly_loop;
-}
-
 static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
   SculptSession *ss = ob->sculpt;
   BLI_bitmap *poly_loop = sculpt_poly_loop_from_cursor(ob);
@@ -249,6 +115,7 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
+  const bool repeat_previous = RNA_boolean_get(op->ptr, "repeat_previous");
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
   printf("FACE SET TOPOLOGY\n");
 
@@ -269,17 +136,25 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
 
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  const int next_face_set = ED_sculpt_face_sets_find_next_available_id(mesh);
-  printf("NEXT FACE SET %d\n", next_face_set);
+  int new_face_set = SCULPT_FACE_SET_NONE;
+  if (repeat_previous && ss->face_set_last_created != SCULPT_FACE_SET_NONE) {
+    new_face_set = ss->face_set_last_created;
+  }
+  else {
+    new_face_set = ED_sculpt_face_sets_find_next_available_id(mesh);
+  }
 
   switch (mode) {
     case SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART:
       break;
 
     case SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP:
-      sculpt_face_set_by_topology_poly_loop(ob, next_face_set);
+      sculpt_face_set_by_topology_poly_loop(ob, new_face_set);
       break;
   }
+
+
+ ss->face_set_last_created = new_face_set;
 
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
@@ -318,4 +193,7 @@ void SCULPT_OT_face_set_by_topology(struct wmOperatorType *ot)
 
   RNA_def_enum(
       ot->srna, "mode", prop_sculpt_face_set_by_topology, SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP, "Mode", "");
+
+  RNA_def_boolean(
+      ot->srna, "repeat_previous", false, "Repeat previous Face Set", "Repeat the latest created Face Set instead of a new one");
 }

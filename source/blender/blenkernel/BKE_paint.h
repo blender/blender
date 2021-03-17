@@ -558,6 +558,9 @@ typedef struct SculptSession {
   struct View3D *v3d;
   struct Scene *scene;
 
+  /* Face Sets by topology. */
+  int face_set_last_created;
+
   /* Dynamic mesh preview */
   int *preview_vert_index_list;
   int preview_vert_index_count;

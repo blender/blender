@@ -4477,8 +4477,10 @@ def km_sculpt(params):
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("mode", 'SMOOTH')]}),
         # Face Set by Topology
-        ("sculpt.face_set_by_topology", {"type": 'J', "value": 'PRESS'},
-         {"properties": [("mode", "POLY_LOOP")]}),
+        ("sculpt.face_set_by_topology", {"type": 'W', "value": 'RELEASE', "ctrl": True},
+         {"properties": [("mode", "POLY_LOOP"), ("repeat_previous", True)]}),
+        ("sculpt.face_set_by_topology", {"type": 'W', "value": 'DOUBLE_CLICK', "ctrl": True},
+         {"properties": [("mode", "POLY_LOOP"), ("repeat_previous", False)]}),
         # Expand
         ("sculpt.expand", {"type": 'A', "value": 'PRESS', "shift": True},
          {"properties": [("target", "MASK"), ("falloff_type", "GEODESIC"), ("invert", True)]}),
@@ -4495,10 +4497,6 @@ def km_sculpt(params):
          {"properties": [("mode", 'HIDE_ACTIVE')]}),
         ("sculpt.face_set_change_visibility", {"type": 'H', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'SHOW_ALL')]}),
-        ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True},
-         {"properties": [("mode", 'GROW')]}),
-        ("sculpt.face_set_edit", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True},
-         {"properties": [("mode", 'SHRINK')]}),
         # Subdivision levels
         *_template_items_object_subdivision_set(),
         ("object.subdivision_set", {"type": 'PAGE_UP', "value": 'PRESS', "repeat": True},
