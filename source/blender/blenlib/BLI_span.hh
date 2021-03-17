@@ -417,6 +417,19 @@ template<typename T> class Span {
     return Span<NewT>(reinterpret_cast<const NewT *>(data_), new_size);
   }
 
+  friend bool operator==(const Span<T> a, const Span<T> b)
+  {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin());
+  }
+
+  friend bool operator!=(const Span<T> a, const Span<T> b)
+  {
+    return !(a == b);
+  }
+
   /**
    * A debug utility to print the content of the Span. Every element will be printed on a
    * separate line using the given callback.
