@@ -456,9 +456,13 @@ class GeometryNodesEvaluator {
 
       for (const GeometryComponent *component : components) {
         component->attribute_foreach(
-            [&](StringRefNull attribute_name, const AttributeMetaData &UNUSED(meta_data)) {
-              BKE_nodetree_attribute_hint_add(
-                  *btree_original, context, *node->bnode(), attribute_name);
+            [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
+              BKE_nodetree_attribute_hint_add(*btree_original,
+                                              context,
+                                              *node->bnode(),
+                                              attribute_name,
+                                              meta_data.domain,
+                                              meta_data.data_type);
               return true;
             });
       }
