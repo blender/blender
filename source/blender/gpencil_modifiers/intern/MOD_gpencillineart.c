@@ -295,9 +295,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
 static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
   uiLayout *layout = panel->layout;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
@@ -311,9 +310,8 @@ static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
 static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
   uiLayout *layout = panel->layout;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
@@ -339,6 +337,9 @@ static void transparency_panel_draw_header(const bContext *UNUSED(C), Panel *pan
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  uiLayoutSetEnabled(layout, !is_baked);
+
   uiItemR(layout, ptr, "use_transparency", 0, IFACE_("Transparency"), ICON_NONE);
 }
 
@@ -346,6 +347,9 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  uiLayoutSetEnabled(layout, !is_baked);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -365,7 +369,6 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  // uiLayoutSetPropDecorate(col, true);
   uiItemR(col, ptr, "transparency_match", 0, IFACE_("Match All Masks"), ICON_NONE);
 }
 
@@ -400,7 +403,7 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *layout = panel->layout;
 
-  bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetEnabled(layout, !is_baked);
@@ -413,7 +416,7 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(col, ptr, "match_output_vertex_group", 0, NULL, ICON_NONE);
 
-  bool match_output = RNA_boolean_get(ptr, "match_output_vertex_group");
+  const bool match_output = RNA_boolean_get(ptr, "match_output_vertex_group");
   if (!match_output) {
     uiItemPointerR(
         col, ptr, "vertex_group", &ob_ptr, "vertex_groups", IFACE_("Target"), ICON_NONE);
@@ -428,7 +431,7 @@ static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
   uiLayoutSetPropSep(layout, true);
 
