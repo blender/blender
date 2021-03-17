@@ -224,6 +224,28 @@ static void ed_undo_step_post(bContext *C,
 
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  ScrArea *area = CTX_wm_area(C);
+
+  /* Set special modes for grease pencil */
+  if (area != NULL && (area->spacetype == SPACE_VIEW3D)) {
+    Object *obact = CTX_data_active_object(C);
+    if (obact && (obact->type == OB_GPENCIL)) {
+      /* set cursor */
+      if (ELEM(obact->mode,
+               OB_MODE_PAINT_GPENCIL,
+               OB_MODE_SCULPT_GPENCIL,
+               OB_MODE_WEIGHT_GPENCIL,
+               OB_MODE_VERTEX_GPENCIL)) {
+        ED_gpencil_toggle_brush_cursor(C, true, NULL);
+      }
+      else {
+        ED_gpencil_toggle_brush_cursor(C, false, NULL);
+      }
+      /* set workspace mode */
+      Base *basact = CTX_data_active_base(C);
+      ED_object_base_activate(C, basact);
+    }
+  }
 
   /* App-Handlers (post). */
   {
