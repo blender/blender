@@ -359,8 +359,8 @@ static void drw_viewport_colormanagement_set(void)
   }
   else if (DST.draw_ctx.space_data && DST.draw_ctx.space_data->spacetype == SPACE_NODE) {
     SpaceNode *snode = (SpaceNode *)DST.draw_ctx.space_data;
-    const eSpaceImage_Flag display_channels_mode = snode->flag;
-    const bool display_color_channel = (display_channels_mode & (SI_SHOW_ALPHA)) == 0;
+    const eSpaceNode_Flag display_channels_mode = snode->flag;
+    const bool display_color_channel = (display_channels_mode & SNODE_SHOW_ALPHA) == 0;
     if (display_color_channel) {
       use_render_settings = true;
     }
