@@ -511,7 +511,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 
   if (!rv->codec) {
     fprintf(stderr,
-            "No ffmpeg MJPEG encoder available? "
+            "No ffmpeg encoder available? "
             "Proxy not built!\n");
     av_free(rv->of);
     return NULL;
