@@ -97,8 +97,6 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
 };
 
 
-
-
 #define SCULPT_FACE_SET_LOOP_STEP_NONE -1
 static bool sculpt_poly_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
    if (!ss->epmap) {
@@ -141,6 +139,8 @@ static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
+  float *location = ss->cursor_location;
+
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
   MPoly *initial_poly = &mesh->mpoly[ss->active_face_index];
 
@@ -148,26 +148,24 @@ static int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
     return 0;
   }
 
-  int closest_vert_index = mesh->mloop[initial_poly->loopstart].v;
+  int closest_vert = mesh->mloop[initial_poly->loopstart].v;
   for (int i = 0; i < initial_poly->totloop; i++) {
-    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_index].co, ss->cursor_location)) {
-      closest_vert_index = ss->mloop[initial_poly->loopstart + i].v;
+    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, location) < len_squared_v3v3(mvert[closest_vert].co, location)) {
+      closest_vert = ss->mloop[initial_poly->loopstart + i].v;
     }
   }
 
-  int initial_edge_index = ss->vemap[closest_vert_index].indices[0];
-  int closest_vert_on_initial_edge_index = mesh->medge[initial_edge_index].v1 == closest_vert_index ? mesh->medge[initial_edge_index].v2 : mesh->medge[initial_edge_index].v1;
-  for (int i = 0; i < ss->vemap[closest_vert_index].count; i++) {
-    const int edge_index = ss->vemap[closest_vert_index].indices[i];
-    const int other_vert = mesh->medge[edge_index].v1 == closest_vert_index ? mesh->medge[edge_index].v2 : mesh->medge[edge_index].v1;
-    if (len_squared_v3v3(mvert[other_vert].co, ss->cursor_location) < len_squared_v3v3(mvert[closest_vert_on_initial_edge_index].co, ss->cursor_location)) {
-      initial_edge_index = edge_index;
-      closest_vert_on_initial_edge_index = other_vert;
+  int initial_edge = ss->vemap[closest_vert].indices[0];
+  int closest_vert_on_initial_edge = mesh->medge[initial_edge].v1 == closest_vert ? mesh->medge[initial_edge].v2 : mesh->medge[initial_edge].v1;
+  for (int i = 0; i < ss->vemap[closest_vert].count; i++) {
+    const int edge_index = ss->vemap[closest_vert].indices[i];
+    const int other_vert = mesh->medge[edge_index].v1 == closest_vert ? mesh->medge[edge_index].v2 : mesh->medge[edge_index].v1;
+    if (dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[other_vert].co) < dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[closest_vert_on_initial_edge].co)) {
+      initial_edge = edge_index;
+      closest_vert_on_initial_edge = other_vert;
     }
   }
-  printf("CLOSEST VERT INDEX %d\n", closest_vert_index);
-  printf("INITIAL EDGE INDEX %d\n", initial_edge_index);
-  return initial_edge_index;
+  return initial_edge;
 }
 
 static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
