@@ -77,7 +77,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
     NodeOutput *from = link.from;
     NodeInput *to = link.to;
 
-    NodeOperationOutput *op_from = m_output_map.lookup(from);
+    NodeOperationOutput *op_from = m_output_map.lookup_default(from, nullptr);
 
     const blender::Span<NodeOperationInput *> op_to_list = inverse_input_map.lookup(to);
     if (!op_from || op_to_list.is_empty()) {
