@@ -172,9 +172,9 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
      "Quickly set up Line Art for active collection"},
     {GP_LRT_OBJECT,
      "LRT_OBJECT",
-     ICON_CUBE,
+     ICON_OBJECT_DATA,
      "Object Line Art",
-     "Quickly set up Line Art for active collection"},
+     "Quickly set up Line Art for the active object"},
     {0, NULL, 0, NULL, NULL}};
 
 static const EnumPropertyItem parent_type_items[] = {
