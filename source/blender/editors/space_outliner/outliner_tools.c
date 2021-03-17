@@ -1854,7 +1854,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
       }
       return false;
     case OUTLINER_IDOP_SINGLE:
-      if (!space_outliner || ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
+      if (ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
       }
       /* TODO(dalai): enable in the few cases where this can be supported
@@ -1873,7 +1873,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
   EnumPropertyItem *items = NULL;
   int totitem = 0;
 
-  if (C == NULL) {
+  if ((C == NULL) || (ED_operator_outliner_active(C) == false)) {
     return prop_id_op_types;
   }
   for (const EnumPropertyItem *it = prop_id_op_types; it->identifier != NULL; it++) {
