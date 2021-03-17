@@ -252,7 +252,9 @@ static void lineart_line_cut(LineartRenderBuffer *rb,
   if (cut_start_before) {
     if (cut_start_before != ns) {
       /* Insert cutting points for when a new cut is needed. */
-      ns->occlusion = cut_start_before->prev ? (irls = cut_start_before->prev)->occlusion : 0;
+      irls = cut_start_before->prev ? cut_start_before->prev : NULL;
+      ns->occlusion = irls ? irls->occlusion : 0;
+      ns->transparency_mask = irls->transparency_mask;
       BLI_insertlinkbefore(&rl->segments, (void *)cut_start_before, (void *)ns);
     }
     /* Otherwise we already found a existing cutting point, no need to insert a new one. */
