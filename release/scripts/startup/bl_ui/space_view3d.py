@@ -3144,7 +3144,7 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_face_sets_init", text="Init Face Sets")
+        layout.menu("VIEW3D_MT_face_sets_init", text="Initialize Face Sets")
 
         layout.separator()
 
