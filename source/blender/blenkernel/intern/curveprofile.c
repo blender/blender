@@ -436,6 +436,14 @@ static void curveprofile_build_steps(CurveProfile *profile)
 }
 
 /**
+ * Reset the view to the clipping rectangle.
+ */
+void BKE_curveprofile_reset_view(CurveProfile *profile)
+{
+  profile->view_rect = profile->clip_rect;
+}
+
+/**
  * Resets the profile to the current preset.
  *
  * \note Requires #BKE_curveprofile_update call after.

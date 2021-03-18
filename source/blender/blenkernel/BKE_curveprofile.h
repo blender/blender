@@ -66,6 +66,8 @@ void BKE_curveprofile_selected_handle_set(struct CurveProfile *profile, int type
 
 void BKE_curveprofile_reverse(struct CurveProfile *profile);
 
+void BKE_curveprofile_reset_view(struct CurveProfile *profile);
+
 void BKE_curveprofile_reset(struct CurveProfile *profile);
 
 void BKE_curveprofile_create_samples(struct CurveProfile *profile,
