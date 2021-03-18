@@ -355,6 +355,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
       continue;
     }
     BKE_gpencil_free_frames(gpl);
+    BKE_gpencil_frame_addnew(gpl, 0);
 
     md->mode |= eGpencilModifierMode_Realtime | eGpencilModifierMode_Render;
 

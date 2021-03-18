@@ -152,7 +152,6 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   BKE_gpencil_frame_active_set(depsgraph, gpd);
   bGPDframe *gpf = gpl->actframe;
   if (gpf == NULL) {
-    BKE_gpencil_frame_addnew(gpl, DEG_get_evaluated_scene(depsgraph)->r.cfra);
     return;
   }
 
