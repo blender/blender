@@ -2635,12 +2635,12 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
   prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_float_sdna(prop, NULL, "mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_ui_text(prop, "Name", "Name of the custom transform orientation");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 }
 
 static void rna_def_transform_orientation_slot(BlenderRNA *brna)
@@ -2661,7 +2661,7 @@ static void rna_def_transform_orientation_slot(BlenderRNA *brna)
                               "rna_TransformOrientationSlot_type_set",
                               "rna_TransformOrientation_with_scene_itemf");
   RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 
   prop = RNA_def_property(srna, "custom_orientation", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "TransformOrientation");
@@ -3041,19 +3041,19 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop,
       "Only Locations",
       "Only transform object locations, without affecting rotation or scaling");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 
   prop = RNA_def_property(srna, "use_transform_data_origin", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transform_flag", SCE_XFORM_DATA_ORIGIN);
   RNA_def_property_ui_text(
       prop, "Transform Origins", "Transform object origins, while leaving the shape in place");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 
   prop = RNA_def_property(srna, "use_transform_skip_children", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transform_flag", SCE_XFORM_SKIP_CHILDREN);
   RNA_def_property_ui_text(
       prop, "Transform Parents", "Transform the parents, leaving the children in place");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_TRANSFORM, NULL);
 
   prop = RNA_def_property(srna, "use_transform_correct_face_attributes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uvcalc_flag", UVCALC_TRANSFORM_CORRECT);
@@ -6502,7 +6502,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Setup Stereo Mode", "");
   RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_views_format_set", NULL);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_WINDOW, NULL);
 
   /* engine */
   prop = RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
@@ -7892,7 +7892,7 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "MovieClip");
   RNA_def_property_ui_text(
       prop, "Active Movie Clip", "Active movie clip used for constraints and viewport drawing");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
 
   /* color management */
   prop = RNA_def_property(srna, "view_settings", PROP_POINTER, PROP_NONE);

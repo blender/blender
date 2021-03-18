@@ -921,6 +921,9 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           ED_region_tag_redraw(region);
           WM_gizmomap_tag_refresh(gzmap);
           break;
+        case ND_DRAW_ANIMVIZ:
+          ED_region_tag_redraw(region);
+          break;
       }
       switch (wmn->action) {
         case NA_ADDED:
