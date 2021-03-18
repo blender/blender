@@ -45,7 +45,16 @@ DeviceTask::DeviceTask(Type type_)
       shader_filter(0),
       shader_x(0),
       shader_w(0),
-      buffers(nullptr)
+      buffers(nullptr),
+      tile_types(0),
+      denoising_from_render(false),
+      pass_stride(0),
+      frame_stride(0),
+      target_pass_stride(0),
+      pass_denoising_data(0),
+      pass_denoising_clean(0),
+      need_finish_queue(false),
+      integrator_branched(false)
 {
   last_update_time = time_dt();
 }

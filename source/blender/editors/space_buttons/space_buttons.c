@@ -206,6 +206,14 @@ int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
     context_tabs_array[length] = -1;
     length++;
   }
+  if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {
+    context_tabs_array[length] = BCONTEXT_COLLECTION;
+    length++;
+  }
+  if (length != 0) {
+    context_tabs_array[length] = -1;
+    length++;
+  }
   if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {
     context_tabs_array[length] = BCONTEXT_OBJECT;
     length++;
@@ -271,6 +279,8 @@ static const char *buttons_main_region_context_string(const short mainb)
       return "view_layer";
     case BCONTEXT_WORLD:
       return "world";
+    case BCONTEXT_COLLECTION:
+      return "collection";
     case BCONTEXT_OBJECT:
       return "object";
     case BCONTEXT_DATA:

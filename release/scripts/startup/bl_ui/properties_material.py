@@ -274,6 +274,38 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
         col.prop(mat, "roughness")
 
 
+class MATERIAL_PT_lineart(MaterialButtonsPanel, Panel):
+    bl_label = "Line Art"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        mat = context.material
+        return mat and not mat.grease_pencil
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material
+        lineart = mat.lineart
+
+        layout.prop(lineart, "use_transparency")
+
+        if lineart.use_transparency:
+
+            layout.label(text="Transparency Masks:")
+
+            row = layout.row(align=True)
+            row.prop(lineart, "transparency_mask_0", text="0", toggle=True)
+            row.prop(lineart, "transparency_mask_1", text="1", toggle=True)
+            row.prop(lineart, "transparency_mask_2", text="2", toggle=True)
+            row.prop(lineart, "transparency_mask_3", text="3", toggle=True)
+            row.prop(lineart, "transparency_mask_4", text="4", toggle=True)
+            row.prop(lineart, "transparency_mask_5", text="5", toggle=True)
+            row.prop(lineart, "transparency_mask_6", text="6", toggle=True)
+            row.prop(lineart, "transparency_mask_7", text="7", toggle=True)
+
+
 classes = (
     MATERIAL_MT_context_menu,
     MATERIAL_UL_matslots,
@@ -282,6 +314,7 @@ classes = (
     EEVEE_MATERIAL_PT_surface,
     EEVEE_MATERIAL_PT_volume,
     EEVEE_MATERIAL_PT_settings,
+    MATERIAL_PT_lineart,
     MATERIAL_PT_viewport,
     EEVEE_MATERIAL_PT_viewport_settings,
     MATERIAL_PT_custom_props,

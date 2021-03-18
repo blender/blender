@@ -552,6 +552,14 @@ if(WITH_JACK)
   endif()
 endif()
 
+# Pulse is intended to use the system library.
+if(WITH_PULSEAUDIO)
+  find_package_wrapper(Pulse)
+  if(NOT PULSE_FOUND)
+    set(WITH_PULSEAUDIO OFF)
+  endif()
+endif()
+
 # Audio IO
 if(WITH_SYSTEM_AUDASPACE)
   find_package_wrapper(Audaspace)

@@ -1,32 +1,14 @@
 
+/**
+ * Sampling distribution routines for Monte-carlo integration.
+ **/
+
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_common_lib.glsl)
 
-uniform sampler1D texHammersley;
-
-vec3 tangent_to_world(vec3 vector, vec3 N, vec3 T, vec3 B)
-{
-  return T * vector.x + B * vector.y + N * vector.z;
-}
-
-vec3 world_to_tangent(vec3 vector, vec3 N, vec3 T, vec3 B)
-{
-  return vec3(dot(T, vector), dot(B, vector), dot(N, vector));
-}
-
-#ifdef HAMMERSLEY_SIZE
-vec3 hammersley_3d(float i, float invsamplenbr)
-{
-  vec3 Xi; /* Theta, cos(Phi), sin(Phi) */
-
-  Xi.x = i * invsamplenbr;
-  Xi.yz = texelFetch(texHammersley, int(i), 0).rg;
-
-  return Xi;
-}
-#endif
-
-/* -------------- BSDFS -------------- */
+/* -------------------------------------------------------------------- */
+/** \name Microfacet GGX distribution
+ * \{ */
 
 #define USE_VISIBLE_NORMAL 1
 
@@ -40,11 +22,6 @@ float pdf_ggx_reflect(float NH, float NV, float VH, float alpha)
 #else
   return NH * a2 / D_ggx_opti(NH, a2);
 #endif
-}
-
-float pdf_hemisphere()
-{
-  return 0.5 * M_1_PI;
 }
 
 vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
@@ -94,54 +71,53 @@ vec3 sample_ggx(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out floa
   return tangent_to_world(Ht, N, T, B);
 }
 
-vec3 sample_hemisphere(vec3 rand)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform Hemisphere
+ * \{ */
+
+float pdf_uniform_hemisphere()
 {
-  /* Theta is the cone angle. */
+  return 0.5 * M_1_PI;
+}
+
+vec3 sample_uniform_hemisphere(vec3 rand)
+{
   float z = rand.x;                      /* cos theta */
   float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
   float x = r * rand.y;
   float y = r * rand.z;
-
   return vec3(x, y, z);
 }
 
-vec3 sample_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B)
+vec3 sample_uniform_hemisphere(vec3 rand, vec3 N, vec3 T, vec3 B, out float pdf)
 {
-  vec3 Ht = sample_hemisphere(rand);
+  vec3 Ht = sample_uniform_hemisphere(rand);
+  pdf = pdf_uniform_hemisphere();
   return tangent_to_world(Ht, N, T, B);
 }
 
-#ifdef HAMMERSLEY_SIZE
-vec3 sample_ggx(float nsample,
-                float inv_sample_count,
-                float alpha,
-                vec3 V,
-                vec3 N,
-                vec3 T,
-                vec3 B,
-                out float pdf)
-{
-  vec3 Xi = hammersley_3d(nsample, inv_sample_count);
-  return sample_ggx(Xi, alpha, V, N, T, B, pdf);
-}
+/** \} */
 
-vec3 sample_hemisphere(float nsample, float inv_sample_count, vec3 N, vec3 T, vec3 B)
-{
-  vec3 Xi = hammersley_3d(nsample, inv_sample_count);
-  return sample_hemisphere(Xi, N, T, B);
-}
+/* -------------------------------------------------------------------- */
+/** \name Uniform Cone sampling
+ * \{ */
 
-vec3 sample_cone(float nsample, float inv_sample_count, float angle, vec3 N, vec3 T, vec3 B)
+vec3 sample_uniform_cone(vec3 rand, float angle)
 {
-  vec3 Xi = hammersley_3d(nsample, inv_sample_count);
-
-  float z = cos(angle * Xi.x);           /* cos theta */
+  float z = cos(angle * rand.x);         /* cos theta */
   float r = sqrt(max(0.0, 1.0 - z * z)); /* sin theta */
-  float x = r * Xi.y;
-  float y = r * Xi.z;
+  float x = r * rand.y;
+  float y = r * rand.z;
+  return vec3(x, y, z);
+}
 
-  vec3 Ht = vec3(x, y, z);
-
+vec3 sample_uniform_cone(vec3 rand, float angle, vec3 N, vec3 T, vec3 B)
+{
+  vec3 Ht = sample_uniform_cone(rand, angle);
+  /* TODO pdf? */
   return tangent_to_world(Ht, N, T, B);
 }
-#endif
+
+/** \} */

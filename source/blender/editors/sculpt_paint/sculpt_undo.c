@@ -1104,8 +1104,7 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v3_v3(unode->co[vd.i], vd.co);
     if (vd.no) {
       copy_v3_v3_short(unode->no[vd.i], vd.no);
@@ -1147,8 +1146,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     unode->mask[vd.i] = *vd.mask;
   }
   BKE_pbvh_vertex_iter_end;
@@ -1159,8 +1157,7 @@ static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v4_v4(unode->col[vd.i], vd.col);
   }
   BKE_pbvh_vertex_iter_end;
@@ -1258,8 +1255,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_MASK:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
-        BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-        {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;
@@ -1268,8 +1264,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_HIDDEN: {
         GSetIterator gs_iter;
         GSet *faces = BKE_pbvh_bmesh_node_faces(node);
-        BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-        {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;
@@ -1492,8 +1487,11 @@ static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
 
 static void sculpt_undosys_step_decode_undo(struct bContext *C,
                                             Depsgraph *depsgraph,
-                                            SculptUndoStep *us)
+                                            SculptUndoStep *us,
+                                            const bool is_final)
 {
+  /* Walk forward over any applied steps of same type,
+   * then walk back in the next loop, un-applying them. */
   SculptUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
     if (us_iter->step.next->is_applied == false) {
@@ -1501,8 +1499,13 @@ static void sculpt_undosys_step_decode_undo(struct bContext *C,
     }
     us_iter = (SculptUndoStep *)us_iter->step.next;
   }
-  while (us_iter != us) {
+
+  while ((us_iter != us) || (!is_final && us_iter == us)) {
+    BLI_assert(us_iter->step.type == us->step.type); /* Previous loop ensures this. */
     sculpt_undosys_step_decode_undo_impl(C, depsgraph, us_iter);
+    if (us_iter == us) {
+      break;
+    }
     us_iter = (SculptUndoStep *)us_iter->step.prev;
   }
 }
@@ -1527,12 +1530,10 @@ static void sculpt_undosys_step_decode_redo(struct bContext *C,
   }
 }
 
-static void sculpt_undosys_step_decode(struct bContext *C,
-                                       struct Main *bmain,
-                                       UndoStep *us_p,
-                                       const eUndoStepDir dir,
-                                       bool UNUSED(is_final))
+static void sculpt_undosys_step_decode(
+    struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
+  /* NOTE: behavior for undo/redo closely matches image undo. */
   BLI_assert(dir != STEP_INVALID);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -1574,7 +1575,7 @@ static void sculpt_undosys_step_decode(struct bContext *C,
 
   SculptUndoStep *us = (SculptUndoStep *)us_p;
   if (dir == STEP_UNDO) {
-    sculpt_undosys_step_decode_undo(C, depsgraph, us);
+    sculpt_undosys_step_decode_undo(C, depsgraph, us, is_final);
   }
   else if (dir == STEP_REDO) {
     sculpt_undosys_step_decode_redo(C, depsgraph, us);

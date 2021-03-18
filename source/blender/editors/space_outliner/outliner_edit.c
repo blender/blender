@@ -28,7 +28,6 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -43,27 +42,19 @@
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_idtype.h"
-#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_outliner_treehash.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "../blenloader/BLO_readfile.h"
-
 #include "ED_keyframing.h"
-#include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -72,7 +63,6 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
@@ -1110,36 +1100,6 @@ bool outliner_flag_flip(ListBase *lb, short flag)
   }
 
   return changed;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Restriction Column Utility
- * \{ */
-
-/* same check needed for both object operation and restrict column button func
- * return 0 when in edit mode (cannot restrict view or select)
- * otherwise return 1 */
-int common_restrict_check(bContext *C, Object *ob)
-{
-  /* Don't allow hide an object in edit mode,
-   * check the bugs (T22153 and T21609, T23977).
-   */
-  Object *obedit = CTX_data_edit_object(C);
-  if (obedit && obedit == ob) {
-    /* found object is hidden, reset */
-    if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
-      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
-    }
-    /* found object is unselectable, reset */
-    if (ob->restrictflag & OB_RESTRICT_SELECT) {
-      ob->restrictflag &= ~OB_RESTRICT_SELECT;
-    }
-    return 0;
-  }
-
-  return 1;
 }
 
 /** \} */

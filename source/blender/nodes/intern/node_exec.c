@@ -71,7 +71,8 @@ void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack 
 static void node_init_input_index(bNodeSocket *sock, int *index)
 {
   /* Only consider existing link if from socket is valid! */
-  if (sock->link && sock->link->fromsock && sock->link->fromsock->stack_index >= 0) {
+  if (sock->link && !(sock->link->flag & NODE_LINK_MUTED) && sock->link->fromsock &&
+      sock->link->fromsock->stack_index >= 0) {
     sock->stack_index = sock->link->fromsock->stack_index;
   }
   else {
@@ -131,7 +132,7 @@ static struct bNodeStack *setup_stack(bNodeStack *stack,
   }
 
   /* don't mess with remote socket stacks, these are initialized by other nodes! */
-  if (sock->link) {
+  if (sock->link && !(sock->link->flag & NODE_LINK_MUTED)) {
     return ns;
   }
 

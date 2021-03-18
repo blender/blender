@@ -22,7 +22,7 @@ extern "C" {
 
 /* only include from header */
 #ifndef __BLI_ENDIAN_SWITCH_H__
-#  error "this file isnt to be directly included"
+#  error "this file isn't to be directly included"
 #endif
 
 /** \file

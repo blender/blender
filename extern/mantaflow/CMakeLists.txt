@@ -32,9 +32,7 @@ if(MSVC_CLANG AND WITH_OPENMP AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0.1
 endif()
 
 # Exporting functions from the blender binary gives linker warnings on Apple arm64 systems.
-# For now and until Apple arm64 is officially supported, these will just be silenced here.
-# TODO (sebbas): Check if official arm64 devices give linker warnings without this block.
-
+# Silence them here.
 if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
   if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     string(APPEND CMAKE_C_FLAGS " -fvisibility=hidden")

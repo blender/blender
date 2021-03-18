@@ -31,6 +31,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
@@ -68,6 +69,7 @@
 #include "BKE_geometry_set.h"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_hair.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -1305,7 +1307,7 @@ static bool object_gpencil_add_poll(bContext *C)
 
 static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = CTX_data_active_object(C), *ob_orig = ob;
   bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? ob->data : NULL;
 
   const int type = RNA_enum_get(op->ptr, "type");
@@ -1331,6 +1333,11 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       }
       case GP_STROKE: {
         ob_name = "Stroke";
+        break;
+      }
+      case GP_LRT_OBJECT:
+      case GP_LRT_COLLECTION: {
+        ob_name = "Line Art";
         break;
       }
       default: {
@@ -1373,6 +1380,46 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       ED_gpencil_create_monkey(C, ob, mat);
       break;
     }
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION:
+    case GP_LRT_OBJECT: {
+      float radius = RNA_float_get(op->ptr, "radius");
+      float mat[4][4];
+
+      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+      mul_v3_fl(mat[0], radius);
+      mul_v3_fl(mat[1], radius);
+      mul_v3_fl(mat[2], radius);
+
+      ED_gpencil_create_lineart(C, ob);
+
+      gpd = ob->data;
+
+      /* Add Line Art modifier */
+      LineartGpencilModifierData *md = (LineartGpencilModifierData *)BKE_gpencil_modifier_new(
+          eGpencilModifierType_Lineart);
+      BLI_addtail(&ob->greasepencil_modifiers, md);
+      BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, (GpencilModifierData *)md);
+
+      if (type == GP_LRT_COLLECTION) {
+        md->source_type = LRT_SOURCE_COLLECTION;
+        md->source_collection = CTX_data_collection(C);
+      }
+      else if (type == GP_LRT_OBJECT) {
+        md->source_type = LRT_SOURCE_OBJECT;
+        md->source_object = ob_orig;
+      }
+      else {
+        /* Whole scene. */
+        md->source_type = LRT_SOURCE_SCENE;
+      }
+      /* Only created one layer and one material. */
+      strcpy(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);
+      md->target_material = BKE_gpencil_material(ob, 1);
+
+      /* Stroke object is drawn in front of meshes by default. */
+      ob->dtx |= OB_DRAW_IN_FRONT;
+    }
     case GP_EMPTY:
       /* do nothing */
       break;
@@ -1391,6 +1438,41 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   }
 
   return OPERATOR_FINISHED;
+}
+
+static const EnumPropertyItem *object_gpencil_add_options(bContext *C,
+                                                          PointerRNA *UNUSED(ptr),
+                                                          PropertyRNA *UNUSED(prop),
+                                                          bool *r_free)
+{
+  EnumPropertyItem *item = NULL;
+  const EnumPropertyItem *item_ref = rna_enum_object_gpencil_type_items;
+  int totitem = 0;
+  int i = 0;
+  int orig_count = RNA_enum_items_count(item_ref);
+
+  /* Default types. */
+  for (i = 0; i < orig_count; i++) {
+    if (item_ref[i].value == GP_LRT_OBJECT || item_ref[i].value == GP_LRT_COLLECTION ||
+        item_ref[i].value == GP_LRT_SCENE) {
+      if (item_ref[i].value == GP_LRT_SCENE) {
+        /* separator before line art types */
+        RNA_enum_item_add_separator(&item, &totitem);
+      }
+      else if (item_ref[i].value == GP_LRT_OBJECT) {
+        Object *ob = CTX_data_active_object(C);
+        if (!ob || ob->type != OB_MESH) {
+          continue;
+        }
+      }
+    }
+    RNA_enum_item_add(&item, &totitem, &item_ref[i]);
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
 }
 
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
@@ -1413,6 +1495,7 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
   ED_object_add_generic_props(ot, false);
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+  RNA_def_enum_funcs(ot->prop, object_gpencil_add_options);
 }
 
 /** \} */

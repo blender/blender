@@ -2083,11 +2083,11 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     UI_panels_free_instanced(C, region);
     bConstraint *con = (constraints == NULL) ? NULL : constraints->first;
     for (int i = 0; con; i++, con = con->next) {
-      /* Dont show invalid/legacy constraints. */
+      /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
       }
-      /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
+      /* Don't show temporary constraints (AutoIK and target-less IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
         if (data->flag & CONSTRAINT_IK_TEMP) {
@@ -2116,11 +2116,11 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (bConstraint *, con, constraints) {
-      /* Dont show invalid/legacy constraints. */
+      /* Don't show invalid/legacy constraints. */
       if (con->type == CONSTRAINT_TYPE_NULL) {
         continue;
       }
-      /* Dont show temporary constraints (AutoIK and targetless IK constraints). */
+      /* Don't show temporary constraints (AutoIK and target-less IK constraints). */
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = con->data;
         if (data->flag & CONSTRAINT_IK_TEMP) {
@@ -5485,7 +5485,7 @@ void uiTemplatePalette(uiLayout *layout,
   }
 }
 
-void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propname)
+void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propname, int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -5500,7 +5500,7 @@ void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propn
                                  UI_BTYPE_BUT,
                                  "UI_OT_eyedropper_color",
                                  WM_OP_INVOKE_DEFAULT,
-                                 ICON_EYEDROPPER,
+                                 icon,
                                  RNA_property_ui_name(prop),
                                  0,
                                  0,
@@ -5510,10 +5510,6 @@ void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propn
   but->rnapoin = *ptr;
   but->rnaprop = prop;
   but->rnaindex = -1;
-
-  PointerRNA *opptr = UI_but_operator_ptr_get(but);
-  /* Important for crypto-matte operation. */
-  RNA_boolean_set(opptr, "use_accumulate", false);
 }
 
 /** \} */

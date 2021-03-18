@@ -381,7 +381,7 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
   gather_attribute_info(attributes,
                         component_types,
                         set_groups,
-                        {"position", "material_index", "vertex_normal", "shade_smooth"});
+                        {"position", "material_index", "normal", "shade_smooth", "crease"});
   join_attributes(
       set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
 }

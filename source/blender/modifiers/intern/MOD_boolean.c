@@ -615,6 +615,23 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
 }
 
 #ifdef WITH_GMP
+
+/* Get a mapping from material slot numbers in the src_ob to slot numbers in the dst_ob.
+ * If a material doesn't exist in the dst_ob, the mapping just goes to the same slot
+ * or to zero if there aren't enough slots in the destination.
+ * Caller must MEM_freeN the returned array. */
+static short *get_material_remap(Object *dest_ob, Object *src_ob)
+{
+  short *remap;
+  int n = dest_ob->totcol;
+  if (n <= 0) {
+    n = 1;
+  }
+  remap = MEM_mallocN(n * sizeof(short), __func__);
+  BKE_object_material_remap_calc(dest_ob, src_ob, remap);
+  return remap;
+}
+
 /* New method: bypass trip through BMesh. */
 static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
                                 const ModifierEvalContext *ctx,
@@ -622,25 +639,32 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 {
   Mesh *result;
   Mesh *mesh_operand;
+  short *remap;
   Mesh **meshes = NULL;
   const float(**obmats)[4][4] = NULL;
+  short **material_remaps = NULL;
   BLI_array_declare(meshes);
   BLI_array_declare(obmats);
+  BLI_array_declare(material_remaps);
 
 #  ifdef DEBUG_TIME
   TIMEIT_START(boolean_bmesh);
 #  endif
 
+  if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object == NULL) {
+    return mesh;
+  }
+
   BLI_array_append(meshes, mesh);
   BLI_array_append(obmats, &ctx->object->obmat);
+  BLI_array_append(material_remaps, NULL);
   if (bmd->flag & eBooleanModifierFlag_Object) {
-    if (bmd->object == NULL) {
-      return mesh;
-    }
     mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     BLI_array_append(meshes, mesh_operand);
     BLI_array_append(obmats, &bmd->object->obmat);
+    remap = get_material_remap(ctx->object, bmd->object);
+    BLI_array_append(material_remaps, remap);
   }
   else if (bmd->flag & eBooleanModifierFlag_Collection) {
     Collection *collection = bmd->collection;
@@ -652,6 +676,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           BLI_array_append(meshes, collection_mesh);
           BLI_array_append(obmats, &ob->obmat);
+          remap = get_material_remap(ctx->object, ob);
+          BLI_array_append(material_remaps, remap);
         }
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -662,6 +688,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
   result = BKE_mesh_boolean((const Mesh **)meshes,
                             (const float(**)[4][4])obmats,
+                            (const short **)material_remaps,
                             BLI_array_len(meshes),
                             use_self,
                             hole_tolerant,
@@ -669,6 +696,13 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   BLI_array_free(meshes);
   BLI_array_free(obmats);
+  for (int i = 0; i < BLI_array_len(material_remaps); i++) {
+    remap = material_remaps[i];
+    if (remap) {
+      MEM_freeN(remap);
+    }
+  }
+  BLI_array_free(material_remaps);
 
 #  ifdef DEBUG_TIME
   TIMEIT_END(boolean_bmesh);

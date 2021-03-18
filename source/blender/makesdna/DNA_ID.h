@@ -572,6 +572,10 @@ enum {
    * When set #ID.session_uuid isn't initialized, since the data isn't part of the session. */
   LIB_TAG_TEMP_MAIN = 1 << 20,
 
+  /**
+   * The data-block is a library override that needs re-sync to its linked reference.
+   */
+  LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 21,
 };
 
 /* Tag given ID for an update in all the dependency graphs. */

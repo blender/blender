@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -81,6 +82,7 @@
 #  include "COM_compositor.h"
 #endif
 
+using blender::Set;
 using blender::Span;
 using blender::Vector;
 
@@ -1746,10 +1748,11 @@ static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     LISTBASE_FOREACH (struct bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
+        Set<bNodeSocket *> visited_from_sockets;
         socket->total_inputs = 0;
         LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
           if (link->tosock == socket) {
-            socket->total_inputs++;
+            visited_from_sockets.add(link->fromsock);
           }
         }
         /* Count temporary links going into this socket. */
@@ -1757,10 +1760,11 @@ static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
           LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
             bNodeLink *link = (bNodeLink *)linkdata->data;
             if (link->tosock == socket) {
-              socket->total_inputs++;
+              visited_from_sockets.add(link->fromsock);
             }
           }
         }
+        socket->total_inputs = visited_from_sockets.size();
       }
     }
   }

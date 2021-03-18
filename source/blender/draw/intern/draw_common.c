@@ -279,7 +279,7 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 
   float viewdist = rv3d->dist;
 
-  /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
+  /* special exception for ortho camera (`viewdist` isn't used for perspective cameras). */
   if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
     viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
   }

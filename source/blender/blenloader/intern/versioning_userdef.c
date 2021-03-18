@@ -845,6 +845,14 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->experimental.use_asset_browser = true;
   }
 
+  if (!USER_VERSION_ATLEAST(293, 12)) {
+    if (userdef->gizmo_size_navigate_v3d == 0) {
+      userdef->gizmo_size_navigate_v3d = 80;
+    }
+
+    userdef->sequencer_proxy_setup = USER_SEQ_PROXY_SETUP_AUTOMATIC;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -856,9 +864,6 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-    if (userdef->gizmo_size_navigate_v3d == 0) {
-      userdef->gizmo_size_navigate_v3d = 80;
-    }
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {

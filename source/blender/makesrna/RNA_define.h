@@ -465,8 +465,6 @@ void RNA_def_property_string_funcs_runtime(PropertyRNA *prop,
                                            StringPropertyLengthFunc lengthfunc,
                                            StringPropertySetFunc setfunc);
 
-void RNA_def_property_enum_py_data(PropertyRNA *prop, void *py_data);
-
 void RNA_def_property_translation_context(PropertyRNA *prop, const char *context);
 
 /* Function */
@@ -506,6 +504,9 @@ void RNA_def_func_free_pointers(FunctionRNA *func);
 void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop);
 void RNA_def_property_free_pointers(PropertyRNA *prop);
 int RNA_def_property_free_identifier(StructOrFunctionRNA *cont_, const char *identifier);
+
+void RNA_def_property_free_pointers_set_py_data_callback(
+    void (*py_data_clear_fn)(PropertyRNA *prop));
 
 /* utilities */
 const char *RNA_property_typename(PropertyType type);

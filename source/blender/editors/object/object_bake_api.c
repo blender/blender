@@ -156,8 +156,10 @@ static int bake_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
   return OPERATOR_PASS_THROUGH;
 }
 
-/* for exec() when there is no render job
- * note: this wont check for the escape key being pressed, but doing so isnt threadsafe */
+/**
+ * for exec() when there is no render job
+ * note: this wont check for the escape key being pressed, but doing so isn't thread-safe.
+ */
 static int bake_break(void *UNUSED(rjv))
 {
   if (G.is_break) {
@@ -450,8 +452,9 @@ static bool bake_object_check(ViewLayer *view_layer,
 
   if (target == R_BAKE_TARGET_VERTEX_COLORS) {
     MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+    const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
     MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
-    if (mcol == NULL && mloopcol == NULL) {
+    if (mloopcol == NULL && !mcol_valid) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No vertex colors layer found in the object \"%s\"",
@@ -933,8 +936,9 @@ static bool bake_targets_init_vertex_colors(BakeTargets *targets, Object *ob, Re
 
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+  const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
   MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
-  if (mcol == NULL && mloopcol == NULL) {
+  if (mloopcol == NULL && !mcol_valid) {
     BKE_report(reports, RPT_ERROR, "No vertex colors layer found to bake to");
     return false;
   }
@@ -1043,6 +1047,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, 
 {
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+  const bool mcol_valid = (mcol != NULL && U.experimental.use_sculpt_vertex_colors);
   MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
   const int num_channels = targets->num_channels;
   const float *result = targets->result;
@@ -1052,7 +1057,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, 
   BLI_assert(me->totloop == me_split->totloop);
   UNUSED_VARS_NDEBUG(me_split);
 
-  if (mcol) {
+  if (mcol_valid) {
     const int totvert = me->totvert;
     const int totloop = me->totloop;
 

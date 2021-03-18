@@ -151,8 +151,7 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
 
 void NodeOperation::getConnectedInputSockets(Inputs *sockets)
 {
-  for (Inputs::const_iterator it = m_inputs.begin(); it != m_inputs.end(); ++it) {
-    NodeOperationInput *input = *it;
+  for (NodeOperationInput *input : m_inputs) {
     if (input->isConnected()) {
       sockets->push_back(input);
     }

@@ -78,7 +78,7 @@ typedef struct DepthDropper {
 static void depthdropper_draw_cb(const struct bContext *C, ARegion *region, void *arg)
 {
   DepthDropper *ddr = arg;
-  eyedropper_draw_cursor_text(C, region, ddr->name);
+  eyedropper_draw_cursor_text_region(C, region, ddr->name);
 }
 
 static int depthdropper_init(bContext *C, wmOperator *op)

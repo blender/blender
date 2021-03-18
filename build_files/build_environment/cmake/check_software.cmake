@@ -72,8 +72,11 @@ if(UNIX)
       "On Debian and Ubuntu:\n"
       "  apt install autoconf automake libtool yasm tcl ninja-build meson python3-mako\n"
       "\n"
-      "On macOS (with homebrew):\n"
+      "On macOS Intel (with homebrew):\n"
       "  brew install autoconf automake bison libtool pkg-config yasm\n"
+      "\n"
+      "On macOS ARM (with homebrew):\n"
+      "  brew install autoconf automake bison flex libtool pkg-config yasm\n"
       "\n"
       "Other platforms:\n"
       "  Install equivalent packages.\n")

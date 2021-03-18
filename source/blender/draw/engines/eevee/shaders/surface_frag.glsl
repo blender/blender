@@ -79,7 +79,7 @@ void main()
 #endif
 
 #ifndef USE_ALPHA_BLEND
-  float alpha_div = 1.0 / max(1e-8, alpha);
+  float alpha_div = safe_rcp(alpha);
   outRadiance.rgb *= alpha_div;
   ssrData.rgb *= alpha_div;
 #  ifdef USE_SSS

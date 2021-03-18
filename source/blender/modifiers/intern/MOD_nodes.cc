@@ -304,15 +304,15 @@ class GeometryNodesEvaluator {
     Vector<DSocket> from_sockets;
     socket_to_compute.foreach_origin_socket([&](DSocket socket) { from_sockets.append(socket); });
 
-    /* Multi-input sockets contain a vector of inputs. */
-    if (socket_to_compute->is_multi_input_socket()) {
-      return this->get_inputs_from_incoming_links(socket_to_compute, from_sockets);
-    }
-
     if (from_sockets.is_empty()) {
       /* The input is not connected, use the value from the socket itself. */
       const CPPType &type = *blender::nodes::socket_cpp_type_get(*socket_to_compute->typeinfo());
       return {get_unlinked_input_value(socket_to_compute, type)};
+    }
+
+    /* Multi-input sockets contain a vector of inputs. */
+    if (socket_to_compute->is_multi_input_socket()) {
+      return this->get_inputs_from_incoming_links(socket_to_compute, from_sockets);
     }
 
     const DSocket from_socket = from_sockets[0];
@@ -331,7 +331,7 @@ class GeometryNodesEvaluator {
         values.append(this->get_input_from_incoming_link(socket_to_compute, from_socket));
       }
       else {
-        /* If the same from-socket occures more than once, we make a copy of the first value. This
+        /* If the same from-socket occurs more than once, we make a copy of the first value. This
          * can happen when a node linked to a multi-input-socket is muted. */
         GMutablePointer value = values[first_occurence];
         const CPPType *type = value.type();
@@ -456,9 +456,13 @@ class GeometryNodesEvaluator {
 
       for (const GeometryComponent *component : components) {
         component->attribute_foreach(
-            [&](StringRefNull attribute_name, const AttributeMetaData &UNUSED(meta_data)) {
-              BKE_nodetree_attribute_hint_add(
-                  *btree_original, context, *node->bnode(), attribute_name);
+            [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
+              BKE_nodetree_attribute_hint_add(*btree_original,
+                                              context,
+                                              *node->bnode(),
+                                              attribute_name,
+                                              meta_data.domain,
+                                              meta_data.data_type);
               return true;
             });
       }
@@ -647,7 +651,7 @@ static IDProperty *socket_add_property(IDProperty *settings_prop_group,
 
   prop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY;
 
-  /* Make the group in the ui container group to hold the property's UI settings. */
+  /* Make the group in the UI container group to hold the property's UI settings. */
   IDProperty *prop_ui_group;
   {
     IDPropertyTemplate idprop = {0};

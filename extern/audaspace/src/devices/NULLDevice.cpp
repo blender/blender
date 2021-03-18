@@ -187,7 +187,7 @@ public:
 
 void NULLDevice::registerPlugin()
 {
-	DeviceManager::registerDevice("Null", std::shared_ptr<IDeviceFactory>(new NULLDeviceFactory));
+	DeviceManager::registerDevice("None", std::shared_ptr<IDeviceFactory>(new NULLDeviceFactory));
 }
 
 AUD_NAMESPACE_END

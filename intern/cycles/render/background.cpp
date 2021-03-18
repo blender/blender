@@ -47,12 +47,12 @@ NODE_DEFINE(Background)
 
   SOCKET_FLOAT(volume_step_size, "Volume Step Size", 0.1f);
 
-  SOCKET_NODE(shader, "Shader", &Shader::node_type);
+  SOCKET_NODE(shader, "Shader", Shader::get_node_type());
 
   return type;
 }
 
-Background::Background() : Node(node_type)
+Background::Background() : Node(get_node_type())
 {
   shader = NULL;
 }

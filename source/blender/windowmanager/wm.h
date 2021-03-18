@@ -71,14 +71,13 @@ void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_jobs.c */
 void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt);
-void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt);
+void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt);
 
 /* wm_files.c */
 void wm_autosave_timer(struct Main *bmain, wmWindowManager *wm, wmTimer *wt);
-void wm_autosave_timer_ended(wmWindowManager *wm);
+void wm_autosave_timer_begin(struct wmWindowManager *wm);
+void wm_autosave_timer_end(wmWindowManager *wm);
 void wm_autosave_delete(void);
-void wm_autosave_read(bContext *C, struct ReportList *reports);
-void wm_autosave_location(char *filepath);
 
 /* wm_splash_screen.c */
 void WM_OT_splash(wmOperatorType *ot);

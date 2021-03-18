@@ -175,7 +175,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
       point_access,
       make_array_read_attribute<float3, ATTR_DOMAIN_POINT>,
       make_array_write_attribute<float3, ATTR_DOMAIN_POINT>,
-      nullptr,
       nullptr);
   static BuiltinCustomDataLayerProvider radius(
       "radius",
@@ -188,7 +187,6 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
       point_access,
       make_array_read_attribute<float, ATTR_DOMAIN_POINT>,
       make_array_write_attribute<float, ATTR_DOMAIN_POINT>,
-      nullptr,
       nullptr);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
   return ComponentAttributeProviders({&position, &radius}, {&point_custom_data});

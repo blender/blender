@@ -158,7 +158,7 @@ int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
 /**
  * \brief Iterator as Array
  *
- * Allocates a new array, has the advantage that you dont need to know the size ahead of time.
+ * Allocates a new array, has the advantage that you don't need to know the size ahead of time.
  *
  * Takes advantage of less common iterator usage to avoid counting twice,
  * which you might end up doing when #BM_iter_as_array is used.
@@ -410,7 +410,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  */
 
 /* see bug T36923 for why we need this,
- * allow adding but not removing, this isnt _totally_ safe since
+ * allow adding but not removing, this isn't _totally_ safe since
  * you could add/remove within the same loop, but catches common cases
  */
 #ifdef DEBUG

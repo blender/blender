@@ -161,7 +161,7 @@ PyDoc_STRVAR(pygpu_uniformbuffer__tp_doc,
              "   This object gives access to off uniform buffers.\n"
              "\n"
              "   :arg data: Buffer object.\n"
-             "   :type data: `Buffer`\n");
+             "   :type data: :class:`gpu.types.Buffer`\n");
 PyTypeObject BPyGPUUniformBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUUniformBuf",
     .tp_basicsize = sizeof(BPyGPUUniformBuf),

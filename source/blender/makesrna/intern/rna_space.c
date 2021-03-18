@@ -25,6 +25,9 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.h"
+#include "BKE_context.h"
+#include "BKE_geometry_set.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
@@ -53,7 +56,9 @@
 
 #include "rna_internal.h"
 
+#include "SEQ_proxy.h"
 #include "SEQ_relations.h"
+#include "SEQ_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -453,6 +458,7 @@ static const EnumPropertyItem buttons_context_items[] = {
     {BCONTEXT_OUTPUT, "OUTPUT", ICON_OUTPUT, "Output", "Output Properties"},
     {BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDER_RESULT, "View Layer", "View Layer Properties"},
     {BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World Properties"},
+    {BCONTEXT_COLLECTION, "COLLECTION", ICON_GROUP, "Collection", "Collection Properties"},
     {BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object Properties"},
     {BCONTEXT_CONSTRAINT,
      "CONSTRAINT",
@@ -2233,6 +2239,48 @@ static void rna_SequenceEditor_update_cache(Main *UNUSED(bmain),
   SEQ_cache_cleanup(scene);
 }
 
+static void seq_build_proxy(bContext *C, PointerRNA *ptr)
+{
+  if (U.sequencer_proxy_setup != USER_SEQ_PROXY_SETUP_AUTOMATIC) {
+    return;
+  }
+
+  SpaceSeq *sseq = ptr->data;
+  Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene, false));
+
+  GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
+  ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    if (seq->type != SEQ_TYPE_MOVIE || seq->strip == NULL || seq->strip->proxy == NULL) {
+      continue;
+    }
+
+    /* Add new proxy size. */
+    seq->strip->proxy->build_size_flags |= SEQ_rendersize_to_proxysize(sseq->render_size);
+
+    /* Build proxy. */
+    SEQ_proxy_rebuild_context(pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue);
+  }
+
+  BLI_gset_free(file_list, MEM_freeN);
+
+  if (!WM_jobs_is_running(wm_job)) {
+    G.is_break = false;
+    WM_jobs_start(CTX_wm_manager(C), wm_job);
+  }
+
+  ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+static void rna_SequenceEditor_render_size_update(bContext *C, PointerRNA *ptr)
+{
+  seq_build_proxy(C, ptr);
+  rna_SequenceEditor_update_cache(CTX_data_main(C), CTX_data_scene(C), ptr);
+}
+
 static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
                                            Scene *UNUSED(scene),
                                            PointerRNA *ptr)
@@ -2989,6 +3037,64 @@ static void rna_SpaceSpreadsheet_pinned_id_set(PointerRNA *ptr,
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
   sspreadsheet->pinned_id = value.data;
+}
+
+static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bmain),
+                                                                Scene *UNUSED(scene),
+                                                                PointerRNA *ptr)
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
+  if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
+    sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+  }
+}
+
+const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
+                                                                    PointerRNA *ptr,
+                                                                    PropertyRNA *UNUSED(prop),
+                                                                    bool *r_free)
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
+  GeometryComponentType component_type = sspreadsheet->geometry_component_type;
+  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
+    Object *active_object = CTX_data_active_object(C);
+    Object *used_object = (sspreadsheet->pinned_id && GS(sspreadsheet->pinned_id->name) == ID_OB) ?
+                              (Object *)sspreadsheet->pinned_id :
+                              active_object;
+    if (used_object != NULL) {
+      if (used_object->type == OB_POINTCLOUD) {
+        component_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
+      }
+      else {
+        component_type = GEO_COMPONENT_TYPE_MESH;
+      }
+    }
+  }
+
+  EnumPropertyItem *item_array = NULL;
+  int items_len = 0;
+  for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != NULL;
+       item++) {
+    if (component_type == GEO_COMPONENT_TYPE_MESH) {
+      if (!ELEM(item->value,
+                ATTR_DOMAIN_CORNER,
+                ATTR_DOMAIN_EDGE,
+                ATTR_DOMAIN_POINT,
+                ATTR_DOMAIN_POLYGON)) {
+        continue;
+      }
+    }
+    if (component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
+      if (item->value != ATTR_DOMAIN_POINT) {
+        continue;
+      }
+    }
+    RNA_enum_item_add(&item_array, &items_len, item);
+  }
+  RNA_enum_item_end(&item_array, &items_len);
+
+  *r_free = true;
+  return item_array;
 }
 
 #else
@@ -5109,12 +5215,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 
   static const EnumPropertyItem proxy_render_size_items[] = {
       {SEQ_RENDER_SIZE_NONE, "NONE", 0, "No display", ""},
-      {SEQ_RENDER_SIZE_SCENE, "SCENE", 0, "Scene render size", ""},
-      {SEQ_RENDER_SIZE_PROXY_25, "PROXY_25", 0, "Proxy size 25%", ""},
-      {SEQ_RENDER_SIZE_PROXY_50, "PROXY_50", 0, "Proxy size 50%", ""},
-      {SEQ_RENDER_SIZE_PROXY_75, "PROXY_75", 0, "Proxy size 75%", ""},
-      {SEQ_RENDER_SIZE_PROXY_100, "PROXY_100", 0, "Proxy size 100%", ""},
-      {SEQ_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
+      {SEQ_RENDER_SIZE_SCENE, "SCENE", 0, "Scene size", ""},
+      {SEQ_RENDER_SIZE_PROXY_25, "PROXY_25", 0, "25%", ""},
+      {SEQ_RENDER_SIZE_PROXY_50, "PROXY_50", 0, "50%", ""},
+      {SEQ_RENDER_SIZE_PROXY_75, "PROXY_75", 0, "75%", ""},
+      {SEQ_RENDER_SIZE_PROXY_100, "PROXY_100", 0, "100%", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -5268,7 +5373,15 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Proxy Render Size",
                            "Display preview using full resolution or different proxy resolutions");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_render_size_update");
+
+  prop = RNA_def_property(srna, "use_proxies", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXIES);
+  RNA_def_property_ui_text(
+      prop, "Use Proxies", "Use optimized files for faster scrubbing when available");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
@@ -7196,8 +7309,38 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   PropertyRNA *prop;
   StructRNA *srna;
 
+  static const EnumPropertyItem geometry_component_type_items[] = {
+      {GEO_COMPONENT_TYPE_MESH,
+       "MESH",
+       ICON_MESH_DATA,
+       "Mesh",
+       "Mesh component containing point, corner, edge and polygon data"},
+      {GEO_COMPONENT_TYPE_POINT_CLOUD,
+       "POINTCLOUD",
+       ICON_POINTCLOUD_DATA,
+       "Point Cloud",
+       "Point cloud component containing only point data"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem object_eval_state_items[] = {
+      {SPREADSHEET_OBJECT_EVAL_STATE_FINAL,
+       "FINAL",
+       ICON_NONE,
+       "Final",
+       "Use data from object with all modifiers applied"},
+      {SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL,
+       "ORIGINAL",
+       ICON_NONE,
+       "Original",
+       "Use data from original object without any modifiers applied"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "SpaceSpreadsheet", "Space");
   RNA_def_struct_ui_text(srna, "Space Spreadsheet", "Spreadsheet space data");
+
+  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_FOOTER));
 
   prop = RNA_def_property(srna, "pinned_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -7209,6 +7352,25 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "filter_flag", SPREADSHEET_FILTER_SELECTED_ONLY);
   RNA_def_property_ui_text(
       prop, "Show Only Selected", "Only include rows that correspond to selected elements");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "geometry_component_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, geometry_component_type_items);
+  RNA_def_property_ui_text(
+      prop, "Geometry Component", "Part of the geometry to display data from");
+  RNA_def_property_update(prop,
+                          NC_SPACE | ND_SPACE_SPREADSHEET,
+                          "rna_SpaceSpreadsheet_geometry_component_type_update");
+
+  prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceSpreadsheet_attribute_domain_itemf");
+  RNA_def_property_ui_text(prop, "Attribute Domain", "Attribute domain to display");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "object_eval_state", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, object_eval_state_items);
+  RNA_def_property_ui_text(prop, "Object Evaluation State", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 }
 

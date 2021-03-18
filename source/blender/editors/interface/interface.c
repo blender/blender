@@ -4162,7 +4162,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
   RNA_property_enum_items_gettexted(
       block->evil_C, &but->rnapoin, but->rnaprop, &item_array, NULL, &free);
 
-  /* we dont want nested rows, cols in menus */
+  /* We don't want nested rows, cols in menus. */
   UI_block_layout_set_current(block, layout);
 
   int totitems = 0;

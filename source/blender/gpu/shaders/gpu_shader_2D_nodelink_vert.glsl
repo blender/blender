@@ -2,7 +2,7 @@
  * 2D Quadratic Bezier thick line drawing
  */
 
-#define MID_VERTEX 57
+#define MID_VERTEX 65
 
 /* u is position along the curve, defining the tangent space.
  * v is "signed" distance (compressed to [0..1] range) from the pos in expand direction */
@@ -17,6 +17,7 @@ in vec2 P1;
 in vec2 P2;
 in vec2 P3;
 in ivec4 colid_doarrow;
+in ivec2 domuted;
 
 uniform vec4 colors[6];
 
@@ -24,6 +25,7 @@ uniform vec4 colors[6];
 #  define colEnd colors[colid_doarrow[1]]
 #  define colShadow colors[colid_doarrow[2]]
 #  define doArrow (colid_doarrow[3] != 0)
+#  define doMuted (domuted[0] != 0)
 
 #else
 /* Single curve drawcall, use uniform. */
@@ -36,6 +38,7 @@ uniform vec2 bezierPts[4];
 
 uniform vec4 colors[3];
 uniform bool doArrow;
+uniform bool doMuted;
 
 #  define colShadow colors[0]
 #  define colStart colors[1]
@@ -90,13 +93,18 @@ void main(void)
     /* Second pass */
     finalColor = mix(colStart, colEnd, uv.x);
     expand_dist *= 0.5;
+    if (doMuted) {
+      finalColor[3] = 0.65;
+    }
   }
 
   /* Expand into a line */
   gl_Position.xy += exp_axis * expandSize * expand_dist;
 
-  /* if arrow */
-  if (expand.y != 1.0 && !doArrow) {
+  /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
+   * the line. Magic numbers are defined in drawnode.c */
+  if ((expand.x == 1.0 && !doMuted) ||
+      (expand.y != 1.0 && (pos.x < 0.70 || pos.x > 0.71) && !doArrow)) {
     gl_Position.xy *= 0.0;
   }
 }

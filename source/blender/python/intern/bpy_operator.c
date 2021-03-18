@@ -17,12 +17,12 @@
 /** \file
  * \ingroup pythonintern
  *
- * This file defines '_bpy.ops', an internal python module which gives python
- * the ability to inspect and call both C and Python defined operators.
+ * This file defines `_bpy.ops`, an internal python module which gives Python
+ * the ability to inspect and call operators (defined by C or Python).
  *
  * \note
- * This module is exposed to the user via 'release/scripts/modules/bpy/ops.py'
- * which fakes exposing operators as modules/functions using its own classes.
+ * This C module is private, it should only be used by `release/scripts/modules/bpy/ops.py` which
+ * exposes operators as dynamically defined modules & callable objects to access all operators.
  */
 
 #include <Python.h>
@@ -38,7 +38,7 @@
 #include "bpy_capi_utils.h"
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
-#include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
+#include "bpy_rna.h" /* for setting argument properties & type method `get_rna_type`. */
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"

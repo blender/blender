@@ -154,7 +154,7 @@ void NodeType::register_input(ustring name,
                               int struct_offset,
                               const void *default_value,
                               const NodeEnum *enum_values,
-                              const NodeType **node_type,
+                              const NodeType *node_type,
                               int flags,
                               int extra_flags)
 {

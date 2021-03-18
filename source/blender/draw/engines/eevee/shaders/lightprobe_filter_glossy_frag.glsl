@@ -1,4 +1,5 @@
 
+#pragma BLENDER_REQUIRE(random_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
@@ -12,16 +13,10 @@ uniform float intensityFac;
 uniform float fireflyFactor;
 
 uniform float sampleCount;
-uniform float invSampleCount;
 
 in vec3 worldPosition;
 
 out vec4 FragColor;
-
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
 
 vec3 octahedral_to_cubemap_proj(vec2 co)
 {
@@ -52,9 +47,11 @@ void main()
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {
+    vec3 Xi = rand2d_to_cylinder(hammersley_2d(i, sampleCount));
+
     float pdf;
     /* Microfacet normal */
-    vec3 H = sample_ggx(i, invSampleCount, roughness, V, N, T, B, pdf);
+    vec3 H = sample_ggx(Xi, roughness, V, N, T, B, pdf);
     vec3 L = -reflect(V, H);
     float NL = dot(N, L);
 
@@ -70,7 +67,7 @@ void main()
       vec3 l_col = textureLod(probeHdr, L, lod).rgb;
 
       /* Clamped brightness. */
-      float luma = max(1e-8, brightness(l_col));
+      float luma = max(1e-8, max_v3(l_col));
       l_col *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 
       out_radiance += l_col * NL;

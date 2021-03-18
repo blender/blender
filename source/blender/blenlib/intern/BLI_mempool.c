@@ -76,7 +76,7 @@
  */
 #define USEDWORD MAKE_ID('u', 's', 'e', 'd')
 
-/* currently totalloc isnt used */
+/* Currently totalloc isn't used. */
 // #define USE_TOTALLOC
 
 /* optimize pool size */

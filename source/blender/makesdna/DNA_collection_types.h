@@ -46,6 +46,14 @@ typedef struct CollectionChild {
   struct Collection *collection;
 } CollectionChild;
 
+enum CollectionFeatureLine_Usage {
+  COLLECTION_LRT_INCLUDE = 0,
+  COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
+  COLLECTION_LRT_EXCLUDE = (1 << 1),
+  COLLECTION_LRT_INTERSECTION_ONLY = (1 << 2),
+  COLLECTION_LRT_NO_INTERSECTION = (1 << 3),
+};
+
 typedef struct Collection {
   ID id;
 
@@ -63,14 +71,19 @@ typedef struct Collection {
   /* Runtime-only, always cleared on file load. */
   short tag;
 
+  /** Line Art engine specific */
+  short lineart_usage;
+
   int16_t color_tag;
-  char _pad[2];
 
   /* Runtime. Cache of objects in this collection and all its
    * children. This is created on demand when e.g. some physics
    * simulation needs it, we don't want to have it for every
    * collections due to memory usage reasons. */
   ListBase object_cache;
+
+  /* Need this for line art sub-collection selections. */
+  ListBase object_cache_instanced;
 
   /* Runtime. List of collections that are a parent of this
    * datablock. */
@@ -89,6 +102,7 @@ enum {
   COLLECTION_RESTRICT_RENDER = (1 << 3),           /* Disable in renders. */
   COLLECTION_HAS_OBJECT_CACHE = (1 << 4),          /* Runtime: object_cache is populated. */
   COLLECTION_IS_MASTER = (1 << 5), /* Is master collection embedded in the scene. */
+  COLLECTION_HAS_OBJECT_CACHE_INSTANCED = (1 << 6), /* for object_cache_instanced. */
 };
 
 /* Collection->tag */

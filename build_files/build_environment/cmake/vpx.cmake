@@ -35,9 +35,9 @@ else()
 endif()
 
 ExternalProject_Add(external_vpx
-  URL ${VPX_URI}
+  URL file://${PACKAGE_DIR}/${VPX_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${VPX_HASH}
+  URL_HASH ${VPX_HASH_TYPE}=${VPX_HASH}
   PREFIX ${BUILD_DIR}/vpx
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/vpx/src/external_vpx/ &&

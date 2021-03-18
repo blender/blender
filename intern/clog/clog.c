@@ -303,19 +303,27 @@ static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
  * - `foo` exact match of `foo`.
  * - `foo.bar` exact match for `foo.bar`
  * - `foo.*` match for `foo` & `foo.bar` & `foo.bar.baz`
+ * - `*bar*` match for `foo.bar` & `baz.bar` & `foo.barbaz`
  * - `*` matches everything.
  */
 static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
 {
-  const int identifier_len = strlen(identifier);
+  const size_t identifier_len = strlen(identifier);
   for (uint i = 0; i < 2; i++) {
     const CLG_IDFilter *flt = ctx->filters[i];
     while (flt != NULL) {
-      const int len = strlen(flt->match);
+      const size_t len = strlen(flt->match);
       if (STREQ(flt->match, "*") || ((len == identifier_len) && (STREQ(identifier, flt->match)))) {
         return (bool)i;
       }
-      if ((len >= 2) && (STREQLEN(".*", &flt->match[len - 2], 2))) {
+      if (flt->match[0] == '*' && flt->match[len - 1] == '*') {
+        char *match = MEM_callocN(sizeof(char) * len - 1, __func__);
+        memcpy(match, flt->match + 1, len - 2);
+        if (strstr(identifier, match) != NULL) {
+          return (bool)i;
+        }
+      }
+      else if ((len >= 2) && (STREQLEN(".*", &flt->match[len - 2], 2))) {
         if (((identifier_len == len - 2) && STREQLEN(identifier, flt->match, len - 2)) ||
             ((identifier_len >= len - 1) && STREQLEN(identifier, flt->match, len - 1))) {
           return (bool)i;

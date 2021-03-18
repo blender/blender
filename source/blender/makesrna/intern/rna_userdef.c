@@ -98,7 +98,7 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
 };
 
 static const EnumPropertyItem audio_device_items[] = {
-    {0, "Null", 0, "None", "Null device - there will be no audio output"},
+    {0, "None", 0, "None", "No device - there will be no audio output"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -5378,6 +5378,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem seq_proxy_setup_options[] = {
+      {USER_SEQ_PROXY_SETUP_MANUAL, "MANUAL", 0, "Manual", "Set up proxies manually"},
+      {USER_SEQ_PROXY_SETUP_AUTOMATIC,
+       "AUTOMATIC",
+       0,
+       "Automatic",
+       "Build proxies for added movie and image strips in each preview size"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "PreferencesSystem", NULL);
   RNA_def_struct_sdna(srna, "UserDef");
   RNA_def_struct_nested(brna, srna, "Preferences");
@@ -5444,6 +5454,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop,
       "Disk Cache Compression Level",
       "Smaller compression will result in larger files, but less decoding overhead");
+
+  /* Sequencer proxy setup */
+
+  prop = RNA_def_property(srna, "sequencer_proxy_setup", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, seq_proxy_setup_options);
+  RNA_def_property_enum_sdna(prop, NULL, "sequencer_proxy_setup");
+  RNA_def_property_ui_text(prop, "Proxy setup", "When and how proxies are created");
 
   prop = RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "scrollback");
@@ -6244,6 +6261,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       prop,
       "Undo Legacy",
       "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
+
+  prop = RNA_def_property(srna, "override_auto_resync", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "no_override_auto_resync", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Override Auto Resync",
+      "Enable library overrides automatic resync detection and process on file load. Disable when "
+      "dealing with older .blend files that need manual Resync (Enforce) handling");
 
   prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);

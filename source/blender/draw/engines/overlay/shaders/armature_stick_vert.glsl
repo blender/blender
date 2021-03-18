@@ -15,10 +15,10 @@ in uint flag;
 /* ---- Per instance Attrs ---- */
 in vec3 boneStart;
 in vec3 boneEnd;
-in vec4 wireColor; /* alpha encode if we do wire. If 0.0 we dont. */
-in vec4 boneColor; /* alpha encode if we do bone. If 0.0 we dont. */
-in vec4 headColor; /* alpha encode if we do head. If 0.0 we dont. */
-in vec4 tailColor; /* alpha encode if we do tail. If 0.0 we dont. */
+in vec4 wireColor; /* alpha encode if we do wire. If 0.0 we don't. */
+in vec4 boneColor; /* alpha encode if we do bone. If 0.0 we don't. */
+in vec4 headColor; /* alpha encode if we do head. If 0.0 we don't. */
+in vec4 tailColor; /* alpha encode if we do tail. If 0.0 we don't. */
 
 #define do_wire (wireColor.a > 0.0)
 #define is_head bool(flag & POS_HEAD)

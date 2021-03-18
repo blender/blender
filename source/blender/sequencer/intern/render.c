@@ -1121,7 +1121,7 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
 
   IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
-  if (SEQ_can_use_proxy(seq, psize)) {
+  if (SEQ_can_use_proxy(context, seq, psize)) {
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
     if (context->scene->ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE &&
@@ -1793,7 +1793,8 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
   }
 
   /* Proxies are not stored in cache. */
-  if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
+  if (!SEQ_can_use_proxy(
+          context, seq, SEQ_rendersize_to_proxysize(context->preview_render_size))) {
     ibuf = seq_cache_get(context, seq, timeline_frame, SEQ_CACHE_STORE_RAW);
   }
 

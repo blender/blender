@@ -32,32 +32,36 @@ extern "C" {
 /**
  * Counts how many bytes is required for future utf-8 string using utf-16
  * \param string16: pointer to working utf-16 string
- * \return How many bytes must be allocated includeng NULL.
+ * \return How many bytes must be allocated including NULL.
  */
 size_t count_utf_8_from_16(const wchar_t *string16);
 
 /**
  * Counts how many wchar_t (two byte) is required for future utf-16 string using utf-8
  * \param string8: pointer to working utf-8 string
- * \return How many bytes must be allocated includeng NULL.
+ * \return How many bytes must be allocated including NULL.
  */
 size_t count_utf_16_from_8(const char *string8);
 
-/**
+/*
  * conv_utf_*** errors
  */
-#define UTF_ERROR_NULL_IN (1 << 0) /* Error occures when requered parameter is missing*/
-#define UTF_ERROR_ILLCHAR (1 << 1) /* Error if character is in illigal UTF rage*/
-#define UTF_ERROR_SMALL \
-  (1 << 2) /* Passed size is to small. It gives legal string with character missing at the end */
-#define UTF_ERROR_ILLSEQ (1 << 3) /* Error if sequence is broken and doesn't finish*/
+
+/** Error occurs when required parameter is missing. */
+#define UTF_ERROR_NULL_IN (1 << 0)
+/** Error if character is in illegal UTF range. */
+#define UTF_ERROR_ILLCHAR (1 << 1)
+/** Passed size is to small. It gives legal string with character missing at the end. */
+#define UTF_ERROR_SMALL (1 << 2)
+/** Error if sequence is broken and doesn't finish. */
+#define UTF_ERROR_ILLSEQ (1 << 3)
 
 /**
  * Converts utf-16 string to allocated utf-8 string
  * \param in16: utf-16 string to convert
  * \param out8: utf-8 string to string the conversion
  * \param size8: the allocated size in bytes of out8
- * \return Returns any errors occured during conversion. See the block above,
+ * \return Returns any errors occurred during conversion. See the block above,
  */
 int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8);
 
@@ -66,7 +70,7 @@ int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8);
  * \param in8: utf-8 string to convert
  * \param out16: utf-16 string to string the conversion
  * \param size16: the allocated size in wchar_t (two byte) of out16
- * \return Returns any errors occured during conversion. See the block above,
+ * \return Returns any errors occurred during conversion. See the block above,
  */
 int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16);
 

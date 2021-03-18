@@ -184,7 +184,7 @@ PyDoc_STRVAR(pygpu_offscreen_unbind_doc,
              "\n"
              "   :arg restore: Restore the OpenGL state, can only be used when the state has been "
              "saved before.\n"
-             "   :type restore: `bool`\n");
+             "   :type restore: bool\n");
 static PyObject *pygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
   bool restore = true;
@@ -412,9 +412,9 @@ PyDoc_STRVAR(pygpu_offscreen__tp_doc,
              "   This object gives access to off screen buffers.\n"
              "\n"
              "   :arg width: Horizontal dimension of the buffer.\n"
-             "   :type width: `int`\n"
+             "   :type width: int\n"
              "   :arg height: Vertical dimension of the buffer.\n"
-             "   :type height: `int`\n");
+             "   :type height: int\n");
 PyTypeObject BPyGPUOffScreen_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUOffScreen",
     .tp_basicsize = sizeof(BPyGPUOffScreen),

@@ -21,9 +21,9 @@ if(WIN32)
 endif()
 
 ExternalProject_Add(external_xvidcore
-  URL ${XVIDCORE_URI}
+  URL file://${PACKAGE_DIR}/${XVIDCORE_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${XVIDCORE_HASH}
+  URL_HASH ${XVIDCORE_HASH_TYPE}=${XVIDCORE_HASH}
   PREFIX ${BUILD_DIR}/xvidcore
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/xvidcore/src/external_xvidcore/build/generic && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/xvidcore ${XVIDCORE_EXTRA_ARGS}
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/xvidcore/src/external_xvidcore/build/generic && make -j${MAKE_THREADS}

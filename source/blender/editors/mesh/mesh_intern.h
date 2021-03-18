@@ -267,7 +267,7 @@ void MESH_OT_paint_mask_slice(struct wmOperatorType *ot);
 
 struct wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);
 
-#ifdef WITH_FREESTYLE
+#if defined(WITH_FREESTYLE)
 void MESH_OT_mark_freestyle_edge(struct wmOperatorType *ot);
 void MESH_OT_mark_freestyle_face(struct wmOperatorType *ot);
 #endif

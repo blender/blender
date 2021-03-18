@@ -89,7 +89,6 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
 
     links_.append(&link);
 
-    from_socket.directly_linked_sockets_.append(&to_socket);
     from_socket.directly_linked_links_.append(&link);
     to_socket.directly_linked_links_.append(&link);
   }
@@ -106,20 +105,7 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
     }
   }
 
-  for (InputSocketRef *input_socket : input_sockets_) {
-    for (const LinkRef *link : input_socket->directly_linked_links()) {
-      input_socket->directly_linked_sockets_.append(link->from_);
-    }
-  }
-
-  for (InputSocketRef *socket : input_sockets_) {
-    if (!socket->node_->is_reroute_node()) {
-      this->find_origins_skipping_reroutes(*socket, socket->linked_sockets_);
-      for (SocketRef *origin : socket->linked_sockets_) {
-        origin->linked_sockets_.append(socket);
-      }
-    }
-  }
+  this->create_linked_socket_caches();
 
   for (NodeRef *node : nodes_by_id_) {
     const bNodeType *nodetype = node->bnode_->typeinfo;
@@ -173,15 +159,84 @@ OutputSocketRef &NodeTreeRef::find_output_socket(Map<bNode *, NodeRef *> &node_m
   return *node->outputs_[0];
 }
 
-void NodeTreeRef::find_origins_skipping_reroutes(InputSocketRef &socket,
-                                                 Vector<SocketRef *> &r_origins)
+void NodeTreeRef::create_linked_socket_caches()
 {
-  for (SocketRef *direct_origin : socket.directly_linked_sockets_) {
-    if (direct_origin->node_->is_reroute_node()) {
-      this->find_origins_skipping_reroutes(*direct_origin->node_->inputs_[0], r_origins);
+  for (InputSocketRef *socket : input_sockets_) {
+    /* Find directly linked socket based on incident links. */
+    Vector<SocketRef *> directly_linked_sockets;
+    for (LinkRef *link : socket->directly_linked_links_) {
+      directly_linked_sockets.append(link->from_);
+    }
+    socket->directly_linked_sockets_ = allocator_.construct_array_copy(
+        directly_linked_sockets.as_span());
+
+    /* Find linked sockets when skipping reroutes. */
+    Vector<SocketRef *> linked_sockets;
+    this->foreach_origin_skipping_reroutes_and_muted_links(
+        *socket, [&](OutputSocketRef &origin) { linked_sockets.append(&origin); });
+    if (linked_sockets == directly_linked_sockets) {
+      socket->linked_sockets_without_reroutes_and_muted_links_ = socket->directly_linked_sockets_;
     }
     else {
-      r_origins.append_non_duplicates(direct_origin);
+      socket->linked_sockets_without_reroutes_and_muted_links_ = allocator_.construct_array_copy(
+          linked_sockets.as_span());
+    }
+  }
+
+  for (OutputSocketRef *socket : output_sockets_) {
+    /* Find directly linked socket based on incident links. */
+    Vector<SocketRef *> directly_linked_sockets;
+    for (LinkRef *link : socket->directly_linked_links_) {
+      directly_linked_sockets.append(link->to_);
+    }
+    socket->directly_linked_sockets_ = allocator_.construct_array_copy(
+        directly_linked_sockets.as_span());
+
+    /* Find linked sockets when skipping reroutes. */
+    Vector<SocketRef *> linked_sockets;
+    this->foreach_target_skipping_reroutes_and_muted_links(
+        *socket, [&](InputSocketRef &target) { linked_sockets.append(&target); });
+    if (linked_sockets == directly_linked_sockets) {
+      socket->linked_sockets_without_reroutes_and_muted_links_ = socket->directly_linked_sockets_;
+    }
+    else {
+      socket->linked_sockets_without_reroutes_and_muted_links_ = allocator_.construct_array_copy(
+          linked_sockets.as_span());
+    }
+  }
+}
+
+void NodeTreeRef::foreach_origin_skipping_reroutes_and_muted_links(
+    InputSocketRef &socket, FunctionRef<void(OutputSocketRef &)> callback)
+{
+  for (LinkRef *link : socket.directly_linked_links_) {
+    if (link->is_muted()) {
+      continue;
+    }
+    OutputSocketRef *origin = link->from_;
+    if (origin->node_->is_reroute_node()) {
+      this->foreach_origin_skipping_reroutes_and_muted_links(*origin->node_->inputs_[0], callback);
+    }
+    else {
+      callback(*(OutputSocketRef *)origin);
+    }
+  }
+}
+
+void NodeTreeRef::foreach_target_skipping_reroutes_and_muted_links(
+    OutputSocketRef &socket, FunctionRef<void(InputSocketRef &)> callback)
+{
+  for (LinkRef *link : socket.directly_linked_links_) {
+    if (link->is_muted()) {
+      continue;
+    }
+    InputSocketRef *target = link->to_;
+    if (target->node_->is_reroute_node()) {
+      this->foreach_target_skipping_reroutes_and_muted_links(*target->node_->outputs_[0],
+                                                             callback);
+    }
+    else {
+      callback(*(InputSocketRef *)target);
     }
   }
 }

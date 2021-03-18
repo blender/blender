@@ -1404,8 +1404,12 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
-    if (node->type == CMP_NODE_R_LAYERS) {
+    if ((node->type == CMP_NODE_R_LAYERS) ||
+        (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)) {
       ID *id = node->id;
+      if (id == NULL) {
+        continue;
+      }
       if (id->tag & LIB_TAG_DOIT) {
         RE_ReadRenderResult(curscene, (Scene *)id);
         ntreeCompositTagRender((Scene *)id);
@@ -2742,7 +2746,7 @@ static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
     node = nodeGetActive(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_CRYPTOMATTE) {
+  if (!node || node->type != CMP_NODE_CRYPTOMATTE_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2786,7 +2790,7 @@ static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator *UNUSED(o
     node = nodeGetActive(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_CRYPTOMATTE) {
+  if (!node || node->type != CMP_NODE_CRYPTOMATTE_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 

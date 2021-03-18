@@ -2548,7 +2548,7 @@ static void knifetool_finish_ex(KnifeTool_OpData *kcd)
   EDBM_mesh_normals_update(kcd->em);
   EDBM_update_generic(kcd->ob->data, true, true);
 
-  /* re-tessellating makes this invalid, dont use again by accident */
+  /* Re-tessellating makes this invalid, don't use again by accident. */
   knifetool_free_bmbvh(kcd);
 }
 static void knifetool_finish(wmOperator *op)

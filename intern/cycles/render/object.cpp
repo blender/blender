@@ -82,7 +82,7 @@ NODE_DEFINE(Object)
 {
   NodeType *type = NodeType::add("object", create);
 
-  SOCKET_NODE(geometry, "Geometry", &Geometry::node_base_type);
+  SOCKET_NODE(geometry, "Geometry", Geometry::get_node_base_type());
   SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
   SOCKET_UINT(visibility, "Visibility", ~0);
   SOCKET_COLOR(color, "Color", zero_float3());
@@ -98,13 +98,13 @@ NODE_DEFINE(Object)
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
 
-  SOCKET_NODE(particle_system, "Particle System", &ParticleSystem::node_type);
+  SOCKET_NODE(particle_system, "Particle System", ParticleSystem::get_node_type());
   SOCKET_INT(particle_index, "Particle Index", 0);
 
   return type;
 }
 
-Object::Object() : Node(node_type)
+Object::Object() : Node(get_node_type())
 {
   particle_system = NULL;
   particle_index = 0;

@@ -45,6 +45,7 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -77,9 +78,10 @@ class SocketRef : NonCopyable, NonMovable {
   int id_;
   int index_;
   PointerRNA rna_;
-  Vector<SocketRef *> linked_sockets_;
-  Vector<SocketRef *> directly_linked_sockets_;
   Vector<LinkRef *> directly_linked_links_;
+  /* This is derived data that is cached for easy and fast access. */
+  MutableSpan<SocketRef *> directly_linked_sockets_;
+  MutableSpan<SocketRef *> linked_sockets_without_reroutes_and_muted_links_;
 
   friend NodeTreeRef;
 
@@ -182,6 +184,8 @@ class LinkRef : NonCopyable, NonMovable {
   const InputSocketRef &to() const;
 
   bNodeLink *blink() const;
+
+  bool is_muted() const;
 };
 
 class InternalLinkRef : NonCopyable, NonMovable {
@@ -238,7 +242,12 @@ class NodeTreeRef : NonCopyable, NonMovable {
   OutputSocketRef &find_output_socket(Map<bNode *, NodeRef *> &node_mapping,
                                       bNode *bnode,
                                       bNodeSocket *bsocket);
-  void find_origins_skipping_reroutes(InputSocketRef &socket, Vector<SocketRef *> &r_origins);
+
+  void create_linked_socket_caches();
+  void foreach_origin_skipping_reroutes_and_muted_links(
+      InputSocketRef &socket, FunctionRef<void(OutputSocketRef &)> callback);
+  void foreach_target_skipping_reroutes_and_muted_links(
+      OutputSocketRef &socket, FunctionRef<void(InputSocketRef &)> callback);
 };
 
 using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
@@ -260,7 +269,7 @@ using nodes::SocketRef;
 
 inline Span<const SocketRef *> SocketRef::linked_sockets() const
 {
-  return linked_sockets_;
+  return linked_sockets_without_reroutes_and_muted_links_;
 }
 
 inline Span<const SocketRef *> SocketRef::directly_linked_sockets() const
@@ -275,7 +284,7 @@ inline Span<const LinkRef *> SocketRef::directly_linked_links() const
 
 inline bool SocketRef::is_linked() const
 {
-  return linked_sockets_.size() > 0;
+  return linked_sockets_without_reroutes_and_muted_links_.size() > 0;
 }
 
 inline const NodeRef &SocketRef::node() const
@@ -376,12 +385,13 @@ inline bool SocketRef::is_available() const
 
 inline Span<const OutputSocketRef *> InputSocketRef::linked_sockets() const
 {
-  return linked_sockets_.as_span().cast<const OutputSocketRef *>();
+  return linked_sockets_without_reroutes_and_muted_links_.as_span()
+      .cast<const OutputSocketRef *>();
 }
 
 inline Span<const OutputSocketRef *> InputSocketRef::directly_linked_sockets() const
 {
-  return directly_linked_sockets_.as_span().cast<const OutputSocketRef *>();
+  return directly_linked_sockets_.cast<const OutputSocketRef *>();
 }
 
 inline bool InputSocketRef::is_multi_input_socket() const
@@ -395,12 +405,12 @@ inline bool InputSocketRef::is_multi_input_socket() const
 
 inline Span<const InputSocketRef *> OutputSocketRef::linked_sockets() const
 {
-  return linked_sockets_.as_span().cast<const InputSocketRef *>();
+  return linked_sockets_without_reroutes_and_muted_links_.as_span().cast<const InputSocketRef *>();
 }
 
 inline Span<const InputSocketRef *> OutputSocketRef::directly_linked_sockets() const
 {
-  return directly_linked_sockets_.as_span().cast<const InputSocketRef *>();
+  return directly_linked_sockets_.cast<const InputSocketRef *>();
 }
 
 /* --------------------------------------------------------------------
@@ -514,6 +524,11 @@ inline const InputSocketRef &LinkRef::to() const
 inline bNodeLink *LinkRef::blink() const
 {
   return blink_;
+}
+
+inline bool LinkRef::is_muted() const
+{
+  return blink_->flag & NODE_LINK_MUTED;
 }
 
 /* --------------------------------------------------------------------

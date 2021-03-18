@@ -134,7 +134,8 @@ void main()
     fragColor *= line_coverage(dist, line_kernel);
   }
 
-  /* We dont order fragments but use alpha over/alpha under based on current minimum frag depth. */
+  /* We don't order fragments but use alpha over/alpha under based on current minimum frag depth.
+   */
   neighbor_blend(coverage.x, depths.x, neightbor_col0, depth, fragColor);
   neighbor_blend(coverage.y, depths.y, neightbor_col1, depth, fragColor);
   neighbor_blend(coverage.z, depths.z, neightbor_col2, depth, fragColor);

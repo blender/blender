@@ -1263,6 +1263,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 
         if (
                 part.type == 'EMITTER' or
+                part.type in {'FLIP', 'SPRAY', 'BUBBLE', 'FOAM', 'TRACER',
+                              'SPRAYFOAM', 'SPRAYBUBBLE', 'FOAMBUBBLE', 'SPRAYFOAMBUBBLE'} or
                 (part.render_type in {'OBJECT', 'COLLECTION'} and part.type == 'HAIR')
         ):
             if part.render_type != 'NONE':

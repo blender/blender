@@ -9,6 +9,10 @@ from typing import Iterable, TextIO
 
 # This script can run from any location,
 # output is created in the $CWD
+#
+# NOTE: while the Python part of this script is portable,
+# it relies on external commands typically found on GNU/Linux.
+# Support for other platforms could be added by moving GNU `tar` & `md5sum` use to Python.
 
 SKIP_NAMES = {
     ".gitignore",
@@ -52,8 +56,9 @@ class BlenderVersion:
         >>> str(BlenderVersion(327, 0, "release"))
         '3.27.0'
         """
-
-        as_string = f"{self.version/100:.2f}.{self.patch}"
+        version_major = self.version // 100
+        version_minor = self.version % 100
+        as_string = f"{version_major}.{version_minor}.{self.patch}"
         if self.is_release:
             return as_string
         return f"{as_string}-{self.cycle}"
@@ -101,6 +106,7 @@ def submodules_to_manifest(version: BlenderVersion, outfile: TextIO) -> None:
     for line in git_command("submodule"):
         submodule = line.split()[1]
 
+        # Don't use native slashes as GIT for MS-Windows outputs forward slashes.
         if skip_addon_contrib and submodule == "release/scripts/addons_contrib":
             continue
 
@@ -110,6 +116,7 @@ def submodules_to_manifest(version: BlenderVersion, outfile: TextIO) -> None:
 
 def create_tarball(version: BlenderVersion, tarball: Path, manifest: Path) -> None:
     print(f'Creating archive:            "{tarball}" ...', end="", flush=True)
+    # Requires GNU `tar`, since `--transform` is used.
     command = [
         "tar",
         "--transform",
@@ -139,7 +146,7 @@ def create_checksum_file(tarball: Path) -> None:
     md5_cmd = subprocess.run(
         command, stdout=subprocess.PIPE, check=True, text=True, timeout=300
     )
-    with md5_path.open("w") as outfile:
+    with md5_path.open("w", encoding="utf-8") as outfile:
         outfile.write(md5_cmd.stdout)
     print("OK")
 

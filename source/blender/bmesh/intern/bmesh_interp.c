@@ -939,7 +939,7 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   data->pool = NULL;
 
   has_layer = CustomData_free_layer_active(data, type, 0);
-  /* assert because its expensive to realloc - better not do if layer isnt present */
+  /* Assert because its expensive to realloc - better not do if layer isn't present. */
   BLI_assert(has_layer != false);
   UNUSED_VARS_NDEBUG(has_layer);
 
@@ -961,7 +961,7 @@ void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
   data->pool = NULL;
 
   has_layer = CustomData_free_layer(data, type, 0, CustomData_get_layer_index_n(data, type, n));
-  /* assert because its expensive to realloc - better not do if layer isnt present */
+  /* Assert because its expensive to realloc - better not do if layer isn't present. */
   BLI_assert(has_layer != false);
   UNUSED_VARS_NDEBUG(has_layer);
 

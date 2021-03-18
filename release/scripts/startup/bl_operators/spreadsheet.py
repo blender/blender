@@ -24,7 +24,7 @@ class SPREADSHEET_OT_toggle_pin(bpy.types.Operator):
     '''Turn on or off pinning'''
     bl_idname = "spreadsheet.toggle_pin"
     bl_label = "Toggle Pin"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     @classmethod
     def poll(cls, context):

@@ -12,7 +12,9 @@
 #  if !defined(USE_ALPHA_HASH)
 #    if !defined(DEPTH_SHADER)
 #      if !defined(USE_ALPHA_BLEND)
-#        define ENABLE_DEFERED_AO
+#        if !defined(USE_REFRACTION)
+#          define ENABLE_DEFERED_AO
+#        endif
 #      endif
 #    endif
 #  endif
@@ -193,6 +195,7 @@ void occlusion_eval(OcclusionData data,
                     vec3 Ng,
                     const float inverted,
                     out float visibility,
+                    out float visibility_error,
                     out vec3 bent_normal)
 {
   if ((int(aoSettings) & USE_AO) == 0) {
@@ -219,6 +222,7 @@ void occlusion_eval(OcclusionData data,
   vec2 noise = get_ao_noise();
   vec2 dir = get_ao_dir(noise.x);
 
+  visibility_error = 0.0;
   visibility = 0.0;
   bent_normal = N * 0.001;
 
@@ -258,12 +262,17 @@ void occlusion_eval(OcclusionData data,
     float a = dot(-cos(2.0 * h - angle_N) + N_cos + 2.0 * h * N_sin, vec2(0.25));
     /* Correct normal not on plane (Eq. 8). */
     visibility += proj_N_len * a;
+    /* Using a very low number of slices (2) leads to over-darkening of surfaces orthogonal to
+     * the view. This is particularly annoying for sharp reflections occlusion. So we compute how
+     * much the error is and correct the visibility later. */
+    visibility_error += proj_N_len;
 
     /* Rotate 90 degrees. */
     dir = vec2(-dir.y, dir.x);
   }
   /* We integrated 2 directions. */
   visibility *= 0.5;
+  visibility_error *= 0.5;
 
   visibility = min(visibility, data.custom_occlusion);
 
@@ -297,8 +306,9 @@ float gtao_multibounce(float visibility, vec3 albedo)
 float diffuse_occlusion(OcclusionData data, vec3 V, vec3 N, vec3 Ng)
 {
   vec3 unused;
+  float unused_error;
   float visibility;
-  occlusion_eval(data, V, N, Ng, 0.0, visibility, unused);
+  occlusion_eval(data, V, N, Ng, 0.0, visibility, unused_error, unused);
   /* Scale by user factor */
   visibility = pow(saturate(visibility), aoFactor);
   return visibility;
@@ -308,7 +318,8 @@ float diffuse_occlusion(
     OcclusionData data, vec3 V, vec3 N, vec3 Ng, vec3 albedo, out vec3 bent_normal)
 {
   float visibility;
-  occlusion_eval(data, V, N, Ng, 0.0, visibility, bent_normal);
+  float unused_error;
+  occlusion_eval(data, V, N, Ng, 0.0, visibility, unused_error, bent_normal);
 
   visibility = gtao_multibounce(visibility, albedo);
   /* Scale by user factor */
@@ -351,8 +362,12 @@ float specular_occlusion(
     OcclusionData data, vec3 V, vec3 N, float roughness, inout vec3 specular_dir)
 {
   vec3 visibility_dir;
+  float visibility_error;
   float visibility;
-  occlusion_eval(data, V, N, N, 0.0, visibility, visibility_dir);
+  occlusion_eval(data, V, N, N, 0.0, visibility, visibility_error, visibility_dir);
+
+  /* Correct visibility error for very sharp surfaces. */
+  visibility *= mix(safe_rcp(visibility_error), 1.0, roughness);
 
   specular_dir = normalize(mix(specular_dir, visibility_dir, roughness * (1.0 - visibility)));
 
@@ -368,7 +383,7 @@ float specular_occlusion(
   float specular_solid_angle = spherical_cap_intersection(M_PI_2, spec_angle, cone_nor_dist);
   float specular_occlusion = isect_solid_angle / specular_solid_angle;
   /* Mix because it is unstable in unoccluded areas. */
-  visibility = mix(isect_solid_angle / specular_solid_angle, 1.0, pow(visibility, 8.0));
+  visibility = mix(specular_occlusion, 1.0, pow(visibility, 8.0));
 
   /* Scale by user factor */
   visibility = pow(saturate(visibility), aoFactor);

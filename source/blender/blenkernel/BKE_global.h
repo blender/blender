@@ -77,6 +77,7 @@ typedef struct Global {
    *   *   1112: Disable new Cloth internal springs handling (09/2014).
    *   *   1234: Disable new dyntopo code fixing skinny faces generation (04/2015).
    *   *   3001: Enable additional Fluid modifier (Mantaflow) options (02/2020).
+   *   *   4000: Line Art state output and debugging logs (03/2021).
    *   * 16384 and above: Reserved for python (add-ons) usage.
    */
   short debug_value;
@@ -170,9 +171,23 @@ enum {
 
   /* Bits 11 to 22 (inclusive) are deprecated & need to be cleared */
 
-  /** On read, use #FileGlobal.filename instead of the real location on-disk,
-   * needed for recovering temp files so relative paths resolve */
-  G_FILE_RECOVER = (1 << 23),
+  /**
+   * On read, use #FileGlobal.filename instead of the real location on-disk,
+   * needed for recovering temp files so relative paths resolve.
+   *
+   * \note In some ways it would be nicer to make this an argument passed to file loading.
+   * In practice this means recover needs to be passed around to too many low level functions,
+   * so keep this as a flag.
+   */
+  G_FILE_RECOVER_READ = (1 << 23),
+  /**
+   * On write, assign use #FileGlobal.filename, otherwise leave it blank,
+   * needed so files can be recovered at their original locations.
+   *
+   * \note only #BLENDER_QUIT_FILE and auto-save files include recovery information.
+   * As users/developers may not want their paths exposed in publicly distributed files.
+   */
+  G_FILE_RECOVER_WRITE = (1 << 24),
   /** BMesh option to save as older mesh format */
   /* #define G_FILE_MESH_COMPAT       (1 << 26) */
   /* #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28) */ /* deprecated */
@@ -182,7 +197,7 @@ enum {
  * Run-time only #G.fileflags which are never read or written to/from Blend files.
  * This means we can change the values without worrying about do-versions.
  */
-#define G_FILE_FLAG_ALL_RUNTIME (G_FILE_NO_UI)
+#define G_FILE_FLAG_ALL_RUNTIME (G_FILE_NO_UI | G_FILE_RECOVER_READ | G_FILE_RECOVER_WRITE)
 
 /** ENDIAN_ORDER: indicates what endianness the platform where the file was written had. */
 #if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)

@@ -81,6 +81,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -138,6 +139,8 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "CLG_log.h"
+
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
 static void wm_history_files_free(void);
@@ -145,6 +148,8 @@ static void wm_history_file_update(void);
 static void wm_history_file_write(void);
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
+
+static CLG_LogRef LOG = {"wm.files"};
 
 /* -------------------------------------------------------------------- */
 /** \name Misc Utility Functions
@@ -296,6 +301,36 @@ static void wm_window_match_replace_by_file_wm(bContext *C,
 {
   wmWindowManager *oldwm = current_wm_list->first;
   wmWindowManager *wm = readfile_wm_list->first; /* will become our new WM */
+
+  /* Support window-manager ID references being held between file load operations by keeping
+   * #Main.wm.first memory address in-place, while swapping all of it's contents.
+   *
+   * This is needed so items such as key-maps can be held by an add-on,
+   * without it pointing to invalid memory, see: T86431 */
+  {
+    /* Referencing the window-manager pointer from elsewhere in the file is highly unlikely
+     * however it's possible with ID-properties & animation-drivers.
+     * At some point we could check on disallowing this since it doesn't seem practical. */
+    Main *bmain = G_MAIN;
+    BLI_assert(bmain->relations == NULL);
+    BKE_libblock_remap(bmain, wm, oldwm, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_USER_CLEAR);
+
+    /* Maintain the undo-depth between file loads. Useful so Python can perform
+     * nested operator calls that exit with the proper undo-depth. */
+    wm->op_undo_depth = oldwm->op_undo_depth;
+
+    /* Simple pointer swapping step. */
+    BLI_remlink(current_wm_list, oldwm);
+    BLI_remlink(readfile_wm_list, wm);
+    SWAP(wmWindowManager, *oldwm, *wm);
+    SWAP(wmWindowManager *, oldwm, wm);
+    BLI_addhead(current_wm_list, oldwm);
+    BLI_addhead(readfile_wm_list, wm);
+
+    /* Don't leave the old pointer in the context. */
+    CTX_wm_manager_set(C, wm);
+  }
+
   bool has_match = false;
 
   /* this code could move to setup_appdata */
@@ -713,8 +748,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   WM_cursor_wait(true);
 
-  wm_file_read_pre(C, use_data, use_userdef);
-
   /* first try to append data from exotic file formats... */
   /* it throws error box when file doesn't exist and returns -1 */
   /* note; it should set some error message somewhere... (ton) */
@@ -722,58 +755,60 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
   /* we didn't succeed, now try to read Blender file */
   if (retval == BKE_READ_EXOTIC_OK_BLEND) {
-    const int G_f_orig = G.f;
-    ListBase wmbase;
+    const struct BlendFileReadParams params = {
+        .is_startup = false,
+        /* Loading preferences when the user intended to load a regular file is a security
+         * risk, because the excluded path list is also loaded. Further it's just confusing
+         * if a user loads a file and various preferences change. */
+        .skip_flags = BLO_READ_SKIP_USERDEF,
+    };
 
-    /* put aside screens to match with persistent windows later */
-    /* also exit screens and editors */
-    wm_window_match_init(C, &wmbase);
+    struct BlendFileData *bfd = BKE_blendfile_read(filepath, &params, reports);
+    if (bfd != NULL) {
+      wm_file_read_pre(C, use_data, use_userdef);
 
-    /* confusing this global... */
-    G.relbase_valid = 1;
-    success = BKE_blendfile_read(
-        C,
-        filepath,
-        /* Loading preferences when the user intended to load a regular file is a security risk,
-         * because the excluded path list is also loaded.
-         * Further it's just confusing if a user loads a file and various preferences change. */
-        &(const struct BlendFileReadParams){
-            .is_startup = false,
-            .skip_flags = BLO_READ_SKIP_USERDEF,
-        },
-        reports);
+      /* Put aside screens to match with persistent windows later,
+       * also exit screens and editors. */
+      ListBase wmbase;
+      wm_window_match_init(C, &wmbase);
 
-    /* BKE_file_read sets new Main into context. */
-    Main *bmain = CTX_data_main(C);
+      /* This flag is initialized by the operator but overwritten on read.
+       * need to re-enable it here else drivers + registered scripts wont work. */
+      const int G_f_orig = G.f;
 
-    /* when loading startup.blend's, we can be left with a blank path */
-    if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-      G.save_over = 1;
-    }
-    else {
-      G.save_over = 0;
-      G.relbase_valid = 0;
-    }
+      BKE_blendfile_read_setup(C, bfd, &params, reports);
 
-    /* this flag is initialized by the operator but overwritten on read.
-     * need to re-enable it here else drivers + registered scripts wont work. */
-    if (G.f != G_f_orig) {
-      const int flags_keep = G_FLAG_ALL_RUNTIME;
-      G.f &= G_FLAG_ALL_READFILE;
-      G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
-    }
+      if (G.f != G_f_orig) {
+        const int flags_keep = G_FLAG_ALL_RUNTIME;
+        G.f &= G_FLAG_ALL_READFILE;
+        G.f = (G.f & ~flags_keep) | (G_f_orig & flags_keep);
+      }
 
-    /* match the read WM with current WM */
-    wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
-    WM_check(C); /* opens window(s), checks keymaps */
+      /* #BKE_blendfile_read_result_setup sets new Main into context. */
+      Main *bmain = CTX_data_main(C);
 
-    if (success) {
+      /* When recovering a session from an unsaved file, this can have a blank path. */
+      if (BKE_main_blendfile_path(bmain)[0] != '\0') {
+        G.save_over = 1;
+        G.relbase_valid = 1;
+      }
+      else {
+        G.save_over = 0;
+        G.relbase_valid = 0;
+      }
+
+      /* match the read WM with current WM */
+      wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
+      WM_check(C); /* opens window(s), checks keymaps */
+
       if (do_history_file_update) {
         wm_history_file_update();
       }
-    }
 
-    wm_file_read_post(C, false, false, use_data, use_userdef, false);
+      wm_file_read_post(C, false, false, use_data, use_userdef, false);
+
+      success = true;
+    }
   }
 #if 0
   else if (retval == BKE_READ_EXOTIC_OK_OTHER) {
@@ -950,6 +985,9 @@ void wm_homefile_read(bContext *C,
 #endif /* WITH_PYTHON */
   }
 
+  /* For regular file loading this only runs after the file is successfully read.
+   * In the case of the startup file, the in-memory startup file is used as a fallback
+   * so we know this will work if all else fails. */
   wm_file_read_pre(C, use_data, use_userdef);
 
   if (use_data) {
@@ -1041,15 +1079,17 @@ void wm_homefile_read(bContext *C,
 
   if (!use_factory_settings || (filepath_startup[0] != '\0')) {
     if (BLI_access(filepath_startup, R_OK) == 0) {
-      success = BKE_blendfile_read_ex(C,
-                                      filepath_startup,
-                                      &(const struct BlendFileReadParams){
-                                          .is_startup = true,
-                                          .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
-                                      },
-                                      NULL,
-                                      update_defaults && use_data,
-                                      app_template);
+      const struct BlendFileReadParams params = {
+          .is_startup = true,
+          .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
+      };
+
+      struct BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, NULL);
+      if (bfd != NULL) {
+        BKE_blendfile_read_setup_ex(
+            C, bfd, &params, NULL, update_defaults && use_data, app_template);
+        success = true;
+      }
     }
     if (success) {
       is_factory_startup = filepath_startup_is_factory;
@@ -1070,16 +1110,16 @@ void wm_homefile_read(bContext *C,
   }
 
   if (success == false) {
-    success = BKE_blendfile_read_from_memory_ex(C,
-                                                datatoc_startup_blend,
-                                                datatoc_startup_blend_size,
-                                                &(const struct BlendFileReadParams){
-                                                    .is_startup = true,
-                                                    .skip_flags = skip_flags,
-                                                },
-                                                NULL,
-                                                true,
-                                                NULL);
+    const struct BlendFileReadParams params = {
+        .is_startup = true,
+        .skip_flags = skip_flags,
+    };
+    struct BlendFileData *bfd = BKE_blendfile_read_from_memory(
+        datatoc_startup_blend, datatoc_startup_blend_size, &params, NULL);
+    if (bfd != NULL) {
+      BKE_blendfile_read_setup_ex(C, bfd, &params, NULL, true, NULL);
+      success = true;
+    }
 
     if (use_data && BLI_listbase_is_empty(&wmbase)) {
       wm_clear_default_size(C);
@@ -1404,7 +1444,7 @@ static ImBuf *blend_file_thumb(const bContext *C,
   }
   else {
     /* '*thumb_pt' needs to stay NULL to prevent a bad thumbnail from being handled */
-    fprintf(stderr, "blend_file_thumb failed to create thumbnail: %s\n", err_out);
+    CLOG_WARN(&LOG, "failed to create thumbnail: %s", err_out);
     thumb = NULL;
   }
 
@@ -1571,7 +1611,7 @@ static bool wm_file_write(bContext *C,
 /** \name Auto-Save API
  * \{ */
 
-void wm_autosave_location(char *filepath)
+static void wm_autosave_location(char *filepath)
 {
   const int pid = abs(getpid());
   char path[1024];
@@ -1607,20 +1647,67 @@ void wm_autosave_location(char *filepath)
   BLI_join_dirfile(filepath, FILE_MAX, BKE_tempdir_base(), path);
 }
 
-void WM_autosave_init(wmWindowManager *wm)
-{
-  wm_autosave_timer_ended(wm);
-
-  if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
-  }
-}
-
-void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+static void wm_autosave_write(Main *bmain, wmWindowManager *wm)
 {
   char filepath[FILE_MAX];
 
-  WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+  wm_autosave_location(filepath);
+
+  /* Fast save of last undo-buffer, now with UI. */
+  const bool use_memfile = (U.uiflag & USER_GLOBALUNDO) != 0;
+  MemFile *memfile = use_memfile ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : NULL;
+  if (memfile != NULL) {
+    BLO_memfile_write_file(memfile, filepath);
+  }
+  else {
+    if (use_memfile) {
+      /* This is very unlikely, alert developers of this unexpected case. */
+      CLOG_WARN(&LOG, "undo-data not found for writing, fallback to regular file write!");
+    }
+
+    /* Save as regular blend file with recovery information. */
+    const int fileflags = (G.fileflags & ~G_FILE_COMPRESS) | G_FILE_RECOVER_WRITE;
+
+    ED_editors_flush_edits(bmain);
+
+    /* Error reporting into console. */
+    BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
+  }
+}
+
+static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
+{
+  wm_autosave_timer_end(wm);
+
+  if (U.flag & USER_AUTOSAVE) {
+    wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, timestep);
+  }
+}
+
+void wm_autosave_timer_begin(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin_ex(wm, U.savetime * 60.0);
+}
+
+void wm_autosave_timer_end(wmWindowManager *wm)
+{
+  if (wm->autosavetimer) {
+    WM_event_remove_timer(wm, NULL, wm->autosavetimer);
+    wm->autosavetimer = NULL;
+  }
+}
+
+void WM_autosave_init(wmWindowManager *wm)
+{
+  wm_autosave_timer_begin(wm);
+}
+
+/**
+ * Run the auto-save timer action.
+ */
+void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
+{
+  wm_autosave_timer_end(wm);
 
   /* If a modal operator is running, don't autosave because we might not be in
    * a valid state to save. But try again in 10ms. */
@@ -1629,41 +1716,17 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->op) {
-          wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, 0.01);
+          wm_autosave_timer_begin_ex(wm, 0.01);
           return;
         }
       }
     }
   }
 
-  wm_autosave_location(filepath);
+  wm_autosave_write(bmain, wm);
 
-  if (U.uiflag & USER_GLOBALUNDO) {
-    /* fast save of last undobuffer, now with UI */
-    struct MemFile *memfile = ED_undosys_stack_memfile_get_active(wm->undo_stack);
-    if (memfile) {
-      BLO_memfile_write_file(memfile, filepath);
-    }
-  }
-  else {
-    /* Save as regular blend file. */
-    const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
-
-    ED_editors_flush_edits(bmain);
-
-    /* Error reporting into console. */
-    BLO_write_file(bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
-  }
-  /* do timer after file write, just in case file write takes a long time */
-  wm->autosavetimer = WM_event_add_timer(wm, NULL, TIMERAUTOSAVE, U.savetime * 60.0);
-}
-
-void wm_autosave_timer_ended(wmWindowManager *wm)
-{
-  if (wm->autosavetimer) {
-    WM_event_remove_timer(wm, NULL, wm->autosavetimer);
-    wm->autosavetimer = NULL;
-  }
+  /* Restart the timer after file write, just in case file write takes a long time. */
+  wm_autosave_timer_begin(wm);
 }
 
 void wm_autosave_delete(void)
@@ -1684,14 +1747,6 @@ void wm_autosave_delete(void)
       BLI_rename(filename, str);
     }
   }
-}
-
-void wm_autosave_read(bContext *C, ReportList *reports)
-{
-  char filename[FILE_MAX];
-
-  wm_autosave_location(filename);
-  WM_file_read(C, filename, reports);
 }
 
 /** \} */
@@ -2559,9 +2614,9 @@ bool WM_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
   const bool success = wm_file_read_opwrap(C, filepath, reports);
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
   return success;
 }
 
@@ -2618,11 +2673,11 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
 
-  G.fileflags |= G_FILE_RECOVER;
+  G.fileflags |= G_FILE_RECOVER_READ;
 
   success = wm_file_read_opwrap(C, filepath, op->reports);
 
-  G.fileflags &= ~G_FILE_RECOVER;
+  G.fileflags &= ~G_FILE_RECOVER_READ;
 
   if (success) {
     if (!G.background) {

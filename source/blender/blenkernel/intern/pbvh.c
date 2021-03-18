@@ -137,8 +137,7 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node)
   if (node->flag & PBVH_Leaf) {
     PBVHVertexIter vd;
 
-    BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
-    {
+    BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
       BB_expand(&vb, vd.co);
     }
     BKE_pbvh_vertex_iter_end;
@@ -1143,8 +1142,7 @@ static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
     if (node->flag & PBVH_Leaf) {
       PBVHVertexIter vd;
 
-      BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
-      {
+      BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
         if (vd.mask && *vd.mask < 1.0f) {
           has_unmasked = true;
         }
@@ -1191,8 +1189,7 @@ static void pbvh_update_visibility_redraw_task_cb(void *__restrict userdata,
     BKE_pbvh_node_fully_hidden_set(node, true);
     if (node->flag & PBVH_Leaf) {
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
-      {
+      BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
         if (vd.visible) {
           BKE_pbvh_node_fully_hidden_set(node, false);
           return;

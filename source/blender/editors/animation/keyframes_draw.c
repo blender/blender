@@ -49,6 +49,7 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -691,13 +692,16 @@ static void draw_keylist(View2D *v2d,
                          bool channelLocked,
                          int saction_flag)
 {
+  if (keys == NULL) {
+    return;
+  }
+
   const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
   const float half_icon_sz = 0.5f * icon_sz;
-  const float quarter_icon_sz = 0.25f * icon_sz;
   const float smaller_sz = 0.35f * icon_sz;
   const float ipo_sz = 0.1f * icon_sz;
-
-  GPU_blend(GPU_BLEND_ALPHA);
+  const float gpencil_sz = smaller_sz * 0.8f;
+  const float screenspace_margin = (0.35f * (float)UI_UNIT_X) / UI_view2d_scale_get_x(v2d);
 
   /* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
   /* TODO: allow this opacity factor to be themed? */
@@ -705,175 +709,167 @@ static void draw_keylist(View2D *v2d,
 
   /* Show interpolation and handle type? */
   bool show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
-
   /* draw keyblocks */
-  if (keys) {
-    float sel_color[4], unsel_color[4];
-    float sel_mhcol[4], unsel_mhcol[4];
-    float ipo_color[4], ipo_color_mix[4];
+  float sel_color[4], unsel_color[4];
+  float sel_mhcol[4], unsel_mhcol[4];
+  float ipo_color[4], ipo_color_mix[4];
 
-    /* cache colors first */
-    UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
-    UI_GetThemeColor4fv(TH_STRIP, unsel_color);
-    UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ipo_color);
+  /* cache colors first */
+  UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
+  UI_GetThemeColor4fv(TH_STRIP, unsel_color);
+  UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ipo_color);
 
-    sel_color[3] *= alpha;
-    unsel_color[3] *= alpha;
-    ipo_color[3] *= alpha;
+  sel_color[3] *= alpha;
+  unsel_color[3] *= alpha;
+  ipo_color[3] *= alpha;
 
-    copy_v4_v4(sel_mhcol, sel_color);
-    sel_mhcol[3] *= 0.8f;
-    copy_v4_v4(unsel_mhcol, unsel_color);
-    unsel_mhcol[3] *= 0.8f;
-    copy_v4_v4(ipo_color_mix, ipo_color);
-    ipo_color_mix[3] *= 0.5f;
+  copy_v4_v4(sel_mhcol, sel_color);
+  sel_mhcol[3] *= 0.8f;
+  copy_v4_v4(unsel_mhcol, unsel_color);
+  unsel_mhcol[3] *= 0.8f;
+  copy_v4_v4(ipo_color_mix, ipo_color);
+  ipo_color_mix[3] *= 0.5f;
 
-    uint block_len = 0;
-    uint gpencil_len = 0;
-    LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
-      if (actkeyblock_get_valid_hold(ab)) {
-        block_len++;
+  LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
+    /* Draw grease pencil bars between keyframes. */
+    if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
+      UI_draw_roundbox_corner_set(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+      float size = 1.0f;
+      switch (ab->next->key_type) {
+        case BEZT_KEYTYPE_BREAKDOWN:
+        case BEZT_KEYTYPE_MOVEHOLD:
+        case BEZT_KEYTYPE_JITTER:
+          size *= 0.5f;
+          break;
+        case BEZT_KEYTYPE_KEYFRAME:
+          size *= 0.8f;
+          break;
+        default:
+          break;
+      }
+      UI_draw_roundbox_4fv(
+          &(const rctf){
+              .xmin = ab->cfra,
+              .xmax = min_ff(ab->next->cfra - (screenspace_margin * size), ab->next->cfra),
+              .ymin = ypos - gpencil_sz,
+              .ymax = ypos + gpencil_sz,
+          },
+          true,
+          0.25f * (float)UI_UNIT_X,
+          (ab->block.sel) ? sel_mhcol : unsel_mhcol);
+    }
+    else {
+      /* Draw other types. */
+      UI_draw_roundbox_corner_set(UI_CNR_NONE);
+
+      int valid_hold = actkeyblock_get_valid_hold(ab);
+      if (valid_hold != 0) {
+        if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
+          /* draw "moving hold" long-keyframe block - slightly smaller */
+          UI_draw_roundbox_4fv(
+              &(const rctf){
+                  .xmin = ab->cfra,
+                  .xmax = ab->next->cfra,
+                  .ymin = ypos - smaller_sz,
+                  .ymax = ypos + smaller_sz,
+              },
+              true,
+              3.0f,
+              (ab->block.sel) ? sel_mhcol : unsel_mhcol);
+        }
+        else {
+          /* draw standard long-keyframe block */
+          UI_draw_roundbox_4fv(
+              &(const rctf){
+                  .xmin = ab->cfra,
+                  .xmax = ab->next->cfra,
+                  .ymin = ypos - half_icon_sz,
+                  .ymax = ypos + half_icon_sz,
+              },
+              true,
+              3.0f,
+              (ab->block.sel) ? sel_color : unsel_color);
+        }
       }
       if (show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
-        block_len++;
+        /* draw an interpolation line */
+        UI_draw_roundbox_4fv(
+            &(const rctf){
+                .xmin = ab->cfra,
+                .xmax = ab->next->cfra,
+                .ymin = ypos - ipo_sz,
+                .ymax = ypos + ipo_sz,
+            },
+            true,
+            3.0f,
+            (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
       }
-      if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
-        gpencil_len++;
-      }
-    }
-
-    if ((block_len > 0) || (gpencil_len > 0)) {
-      GPUVertFormat *format = immVertexFormat();
-      uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-
-      /* Normal Dopesheet. */
-      if (block_len > 0) {
-        immBegin(GPU_PRIM_TRIS, 6 * block_len);
-        LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
-          int valid_hold = actkeyblock_get_valid_hold(ab);
-          if (valid_hold != 0) {
-            if ((valid_hold & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
-              /* draw "moving hold" long-keyframe block - slightly smaller */
-              immRectf_fast_with_color(pos_id,
-                                       color_id,
-                                       ab->cfra,
-                                       ypos - smaller_sz,
-                                       ab->next->cfra,
-                                       ypos + smaller_sz,
-                                       (ab->block.sel) ? sel_mhcol : unsel_mhcol);
-            }
-            else {
-              /* draw standard long-keyframe block */
-              immRectf_fast_with_color(pos_id,
-                                       color_id,
-                                       ab->cfra,
-                                       ypos - half_icon_sz,
-                                       ab->next->cfra,
-                                       ypos + half_icon_sz,
-                                       (ab->block.sel) ? sel_color : unsel_color);
-            }
-          }
-          if (show_ipo && actkeyblock_is_valid(ab) &&
-              (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
-            /* draw an interpolation line */
-            immRectf_fast_with_color(
-                pos_id,
-                color_id,
-                ab->cfra,
-                ypos - ipo_sz,
-                ab->next->cfra,
-                ypos + ipo_sz,
-                (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
-          }
-        }
-      }
-      /* Grease Pencil Dopesheet. */
-      else {
-        immBegin(GPU_PRIM_TRIS, 6 * gpencil_len);
-        LISTBASE_FOREACH (ActKeyColumn *, ab, keys) {
-          if (ab->next == NULL) {
-            continue;
-          }
-          immRectf_fast_with_color(pos_id,
-                                   color_id,
-                                   ab->cfra,
-                                   ypos - quarter_icon_sz,
-                                   ab->next->cfra,
-                                   ypos + quarter_icon_sz,
-                                   (ab->block.sel) ? sel_mhcol : unsel_mhcol);
-        }
-      }
-      immEnd();
-      immUnbindProgram();
     }
   }
 
-  if (keys) {
-    /* count keys */
-    uint key_len = 0;
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  /* count keys */
+  uint key_len = 0;
+  LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
+    /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
+     * in visible area, don't draw.
+     * This might give some improvements,
+     * since we current have to flip between view/region matrices.
+     */
+    if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
+      key_len++;
+    }
+  }
+
+  if (key_len > 0) {
+    /* draw keys */
+    GPUVertFormat *format = immVertexFormat();
+    uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    uint color_id = GPU_vertformat_attr_add(
+        format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    uint outline_color_id = GPU_vertformat_attr_add(
+        format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+
+    GPU_program_point_size(true);
+    immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
+    immUniform1f("outline_scale", 1.0f);
+    immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
+    immBegin(GPU_PRIM_POINTS, key_len);
+
+    short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
+
     LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
-      /* Optimization: if keyframe doesn't appear within 5 units (screenspace)
-       * in visible area, don't draw.
-       * This might give some improvements,
-       * since we current have to flip between view/region matrices.
-       */
       if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
-        key_len++;
-      }
-    }
-
-    if (key_len > 0) {
-      /* draw keys */
-      GPUVertFormat *format = immVertexFormat();
-      uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-      uint color_id = GPU_vertformat_attr_add(
-          format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-      uint outline_color_id = GPU_vertformat_attr_add(
-          format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-      uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
-
-      GPU_program_point_size(true);
-      immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
-      immUniform1f("outline_scale", 1.0f);
-      immUniform2f(
-          "ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
-      immBegin(GPU_PRIM_POINTS, key_len);
-
-      short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
-
-      LISTBASE_FOREACH (ActKeyColumn *, ak, keys) {
-        if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
-          if (show_ipo) {
-            handle_type = ak->handle_type;
-          }
-          if (saction_flag & SACTION_SHOW_EXTREMES) {
-            extreme_type = ak->extreme_type;
-          }
-
-          draw_keyframe_shape(ak->cfra,
-                              ypos,
-                              icon_sz,
-                              (ak->sel & SELECT),
-                              ak->key_type,
-                              KEYFRAME_SHAPE_BOTH,
-                              alpha,
-                              pos_id,
-                              size_id,
-                              color_id,
-                              outline_color_id,
-                              flags_id,
-                              handle_type,
-                              extreme_type);
+        if (show_ipo) {
+          handle_type = ak->handle_type;
         }
-      }
+        if (saction_flag & SACTION_SHOW_EXTREMES) {
+          extreme_type = ak->extreme_type;
+        }
 
-      immEnd();
-      GPU_program_point_size(false);
-      immUnbindProgram();
+        draw_keyframe_shape(ak->cfra,
+                            ypos,
+                            icon_sz,
+                            (ak->sel & SELECT),
+                            ak->key_type,
+                            KEYFRAME_SHAPE_BOTH,
+                            alpha,
+                            pos_id,
+                            size_id,
+                            color_id,
+                            outline_color_id,
+                            flags_id,
+                            handle_type,
+                            extreme_type);
+      }
     }
+
+    immEnd();
+    GPU_program_point_size(false);
+    immUnbindProgram();
   }
 
   GPU_blend(GPU_BLEND_NONE);

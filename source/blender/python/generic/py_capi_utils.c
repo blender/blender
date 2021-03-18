@@ -293,7 +293,7 @@ const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *ite
   return NULL;
 }
 
-/* silly function, we dont use arg. just check its compatible with __deepcopy__ */
+/* Silly function, we don't use arg. just check its compatible with `__deepcopy__`. */
 int PyC_CheckArgs_DeepCopy(PyObject *args)
 {
   PyObject *dummy_pydict;

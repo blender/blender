@@ -37,9 +37,9 @@ if(WIN32)
   cmake_to_dos_path(${DOWNLOADS_EXTERNALS_FOLDER} DOWNLOADS_EXTERNALS_FOLDER_DOS)
 
   ExternalProject_Add(external_python
-    URL ${PYTHON_URI}
+    URL file://${PACKAGE_DIR}/${PYTHON_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH MD5=${PYTHON_HASH}
+    URL_HASH ${PYTHON_HASH_TYPE}=${PYTHON_HASH}
     PREFIX ${BUILD_DIR}/python
     CONFIGURE_COMMAND ""
     BUILD_COMMAND cd ${BUILD_DIR}/python/src/external_python/pcbuild/ && set IncludeTkinter=false && call build.bat -e -p x64 -c ${BUILD_MODE}
@@ -90,9 +90,9 @@ else()
     export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig)
 
   ExternalProject_Add(external_python
-    URL ${PYTHON_URI}
+    URL file://${PACKAGE_DIR}/${PYTHON_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH MD5=${PYTHON_HASH}
+    URL_HASH ${PYTHON_HASH_TYPE}=${PYTHON_HASH}
     PREFIX ${BUILD_DIR}/python
     PATCH_COMMAND ${PYTHON_PATCH}
     CONFIGURE_COMMAND ${PYTHON_CONFIGURE_ENV} && ${PYTHON_CONFIGURE_EXTRA_ENV} && cd ${BUILD_DIR}/python/src/external_python/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/python ${PYTHON_CONFIGURE_EXTRA_ARGS}

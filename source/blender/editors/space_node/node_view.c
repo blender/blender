@@ -443,6 +443,32 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
   }
 }
 
+/* Returns mouse position in image space. */
+bool ED_space_node_get_position(
+    Main *bmain, SpaceNode *snode, struct ARegion *ar, const int mval[2], float fpos[2])
+{
+  if (!ED_node_is_compositor(snode) || (snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  void *lock;
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  if (!ibuf) {
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return false;
+  }
+
+  /* map the mouse coords to the backdrop image space */
+  float bufx = ibuf->x * snode->zoom;
+  float bufy = ibuf->y * snode->zoom;
+  fpos[0] = (bufx > 0.0f ? ((float)mval[0] - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+  fpos[1] = (bufy > 0.0f ? ((float)mval[1] - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+  return true;
+}
+
 /* Returns color in linear space, matching ED_space_image_color_sample().
  * And here we've got recursion in the comments tips...
  */

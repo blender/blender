@@ -197,8 +197,8 @@ class OptiXDevice : public CUDADevice {
   OptiXDevice(DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool background_)
       : CUDADevice(info_, stats_, profiler_, background_),
         sbt_data(this, "__sbt", MEM_READ_ONLY),
-        launch_params(this, "__params"),
-        denoiser_state(this, "__denoiser_state")
+        launch_params(this, "__params", false),
+        denoiser_state(this, "__denoiser_state", true)
   {
     // Store number of CUDA streams in device info
     info.cpu_threads = DebugFlags().optix.cuda_streams;
@@ -878,8 +878,8 @@ class OptiXDevice : public CUDADevice {
       device_ptr input_ptr = rtile.buffer + pixel_offset;
 
       // Copy tile data into a common buffer if necessary
-      device_only_memory<float> input(this, "denoiser input");
-      device_vector<TileInfo> tile_info_mem(this, "denoiser tile info", MEM_READ_WRITE);
+      device_only_memory<float> input(this, "denoiser input", true);
+      device_vector<TileInfo> tile_info_mem(this, "denoiser tile info", MEM_READ_ONLY);
 
       bool contiguous_memory = true;
       for (int i = 0; i < RenderTileNeighbors::SIZE; i++) {
@@ -924,7 +924,7 @@ class OptiXDevice : public CUDADevice {
       }
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
-      device_only_memory<float> input_rgb(this, "denoiser input rgb");
+      device_only_memory<float> input_rgb(this, "denoiser input rgb", true);
       input_rgb.alloc_to_device(rect_size.x * rect_size.y * 3 * task.denoising.input_passes);
 
       void *input_args[] = {&input_rgb.device_pointer,
@@ -1146,6 +1146,13 @@ class OptiXDevice : public CUDADevice {
                        const OptixBuildInput &build_input,
                        uint16_t num_motion_steps)
   {
+    /* Allocate and build acceleration structures only one at a time, to prevent parallel builds
+     * from running out of memory (since both original and compacted acceleration structure memory
+     * may be allocated at the same time for the duration of this function). The builds would
+     * otherwise happen on the same CUDA stream anyway. */
+    static thread_mutex mutex;
+    thread_scoped_lock lock(mutex);
+
     const CUDAContextScope scope(cuContext);
 
     // Compute memory usage
@@ -1170,11 +1177,12 @@ class OptiXDevice : public CUDADevice {
         optixAccelComputeMemoryUsage(context, &options, &build_input, 1, &sizes));
 
     // Allocate required output buffers
-    device_only_memory<char> temp_mem(this, "optix temp as build mem");
+    device_only_memory<char> temp_mem(this, "optix temp as build mem", true);
     temp_mem.alloc_to_device(align_up(sizes.tempSizeInBytes, 8) + 8);
     if (!temp_mem.device_pointer)
       return false;  // Make sure temporary memory allocation succeeded
 
+    // Acceleration structure memory has to be allocated on the device (not allowed to be on host)
     device_only_memory<char> &out_data = bvh->as_data;
     if (operation == OPTIX_BUILD_OPERATION_BUILD) {
       assert(out_data.device == this);
@@ -1222,7 +1230,7 @@ class OptiXDevice : public CUDADevice {
 
       // There is no point compacting if the size does not change
       if (compacted_size < sizes.outputSizeInBytes) {
-        device_only_memory<char> compacted_data(this, "optix compacted as");
+        device_only_memory<char> compacted_data(this, "optix compacted as", false);
         compacted_data.alloc_to_device(compacted_size);
         if (!compacted_data.device_pointer)
           // Do not compact if memory allocation for compacted acceleration structure fails
@@ -1242,6 +1250,7 @@ class OptiXDevice : public CUDADevice {
 
         std::swap(out_data.device_size, compacted_data.device_size);
         std::swap(out_data.device_pointer, compacted_data.device_pointer);
+        // Original acceleration structure memory is freed when 'compacted_data' goes out of scope
       }
     }
 

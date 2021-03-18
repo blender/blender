@@ -183,8 +183,13 @@ static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip,
 /* Fill in libmv tracker options structure with settings need to be used to perform track. */
 void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
+                                const bool is_backwards,
                                 libmv_TrackRegionOptions *options)
 {
+  options->direction = is_backwards ? LIBMV_TRACK_REGION_BACKWARD : LIBMV_TRACK_REGION_FORWARD;
+
+  /* TODO(sergey): Use explicit conversion, so that options are decoupled between the Libmv library
+   * and enumerator values in DNA. */
   options->motion_model = track->motion_model;
 
   options->use_brute = ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_BRUTE) != 0);
@@ -218,6 +223,7 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf,
                                       int reference_search_area_width,
                                       int reference_search_area_height,
                                       float *mask,
+                                      const bool is_backward,
                                       double dst_pixel_x[5],
                                       double dst_pixel_y[5])
 {
@@ -246,7 +252,7 @@ static bool configure_and_run_tracker(ImBuf *destination_ibuf,
       destination_ibuf, track, marker, &new_search_area_width, &new_search_area_height);
 
   /* configure the tracker */
-  tracking_configure_tracker(track, mask, &options);
+  tracking_configure_tracker(track, mask, is_backward, &options);
 
   /* Convert the marker corners and center into pixel coordinates in the
    * search/destination images. */
@@ -372,6 +378,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
                                       search_area_width,
                                       search_area_height,
                                       mask,
+                                      backwards,
                                       dst_pixel_x,
                                       dst_pixel_y);
 

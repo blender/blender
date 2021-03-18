@@ -813,7 +813,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
     RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item_array, NULL, &free);
   }
 
-  /* we dont want nested rows, cols in menus */
+  /* We don't want nested rows, cols in menus. */
   uiLayout *layout_radial = NULL;
   if (radial) {
     if (layout->root->layout == layout) {

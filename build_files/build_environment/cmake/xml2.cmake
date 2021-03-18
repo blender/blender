@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_xml2
-  URL ${XML2_URI}
+  URL file://${PACKAGE_DIR}/${XML2_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${XML2_HASH}
+  URL_HASH ${XML2_HASH_TYPE}=${XML2_HASH}
   PREFIX ${BUILD_DIR}/xml2
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/xml2/src/external_xml2/ && ${CONFIGURE_COMMAND}
     --prefix=${LIBDIR}/xml2

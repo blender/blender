@@ -20,7 +20,7 @@
 /** \file
  * \ingroup wm
  *
- * Internal functions for managing UI registrable types (operator, UI and menu types).
+ * Internal functions for managing UI registerable types (operator, UI and menu types).
  *
  * Also Blender's main event loop (WM_main).
  */
@@ -473,7 +473,10 @@ void WM_keyconfig_init(bContext *C)
       wm->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
     }
 
-    WM_keyconfig_update_tag(NULL, NULL);
+    /* Harmless, but no need to update in background mode. */
+    if (!G.background) {
+      WM_keyconfig_update_tag(NULL, NULL);
+    }
     WM_keyconfig_update(wm);
 
     wm->initialized |= WM_KEYCONFIG_IS_INIT;
@@ -567,7 +570,7 @@ void wm_add_default(Main *bmain, bContext *C)
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
-    wm_autosave_timer_ended(wm);
+    wm_autosave_timer_end(wm);
   }
 
 #ifdef WITH_XR_OPENXR
@@ -642,10 +645,10 @@ void WM_main(bContext *C)
     /* Per window, all events to the window, screen, area and region handlers. */
     wm_event_do_handlers(C);
 
-    /* Wvents have left notes about changes, we handle and cache it. */
+    /* Events have left notes about changes, we handle and cache it. */
     wm_event_do_notifiers(C);
 
-    /* Wxecute cached changes draw. */
+    /* Execute cached changes draw. */
     wm_draw_update(C);
   }
 }

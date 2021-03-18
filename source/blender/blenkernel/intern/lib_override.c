@@ -48,6 +48,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "BLI_ghash.h"
@@ -217,6 +218,32 @@ static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
   return local_id;
 }
 
+/** Check if given ID has some override rules that actually indicate the user edited it.
+ *
+ * TODO: This could be simplified by storing a flag in IDOverrideLibrary during the diffing
+ * process? */
+bool BKE_lib_override_library_is_user_edited(struct ID *id)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if ((opop->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
+        continue;
+      }
+      if (opop->operation == IDOVERRIDE_LIBRARY_OP_NOOP) {
+        continue;
+      }
+      /* If an operation does not match the filters above, it is considered as a user-editing one,
+       * therefore this override is user-edited. */
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Create an overridden local copy of linked reference. */
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
@@ -383,7 +410,7 @@ typedef struct LibOverrideGroupTagData {
  *
  * Requires existing `Main.relations`.
  *
- * Note: this is typically called to complete `lib_override_linked_group_tag()`.
+ * NOTE: This is typically called to complete `lib_override_linked_group_tag()`.
  */
 static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTagData *data)
 {
@@ -619,58 +646,85 @@ static bool lib_override_library_create_do(Main *bmain, ID *id_root)
   return BKE_lib_override_library_create_from_tag(bmain);
 }
 
-static void lib_override_library_create_post_process(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, ID *id_reference)
+BLI_INLINE bool lib_override_library_create_post_process_object_is_instantiated(
+    ViewLayer *view_layer, Object *object, const bool is_resync)
+{
+  /* We cannot rely on check for object being actually instantiated in resync case, because often
+   * the overridden collection is 'excluded' from the current viewlayer.
+   *
+   * Fallback to a basic usercount check then, this is weak (since it could lead to some object not
+   * being instantiated at all), but it should work fine in most common cases. */
+  return ((is_resync && ID_REAL_USERS(object) >= 1) ||
+          (!is_resync && BKE_view_layer_base_find(view_layer, object) != NULL));
+}
+
+static void lib_override_library_create_post_process(Main *bmain,
+                                                     Scene *scene,
+                                                     ViewLayer *view_layer,
+                                                     ID *id_root,
+                                                     ID *id_reference,
+                                                     const bool is_resync)
 {
   BKE_main_collection_sync(bmain);
 
-  switch (GS(id_root->name)) {
-    case ID_GR: {
-      Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
-                                 (Object *)id_reference :
-                                 NULL;
-      Collection *collection_new = ((Collection *)id_root->newid);
-      if (ob_reference != NULL) {
-        BKE_collection_add_from_object(bmain, scene, ob_reference, collection_new);
-      }
-      else if (id_reference != NULL) {
-        BKE_collection_add_from_collection(
-            bmain, scene, ((Collection *)id_reference), collection_new);
-      }
-      else {
-        BKE_collection_add_from_collection(bmain, scene, ((Collection *)id_root), collection_new);
-      }
+  if (id_root->newid != NULL) {
+    switch (GS(id_root->name)) {
+      case ID_GR: {
+        Object *ob_reference = id_reference != NULL && GS(id_reference->name) == ID_OB ?
+                                   (Object *)id_reference :
+                                   NULL;
+        Collection *collection_new = ((Collection *)id_root->newid);
+        if (ob_reference != NULL) {
+          BKE_collection_add_from_object(bmain, scene, ob_reference, collection_new);
+        }
+        else if (id_reference != NULL) {
+          BLI_assert(GS(id_reference->name) == ID_GR);
+          BKE_collection_add_from_collection(
+              bmain, scene, ((Collection *)id_reference), collection_new);
+        }
+        else {
+          BKE_collection_add_from_collection(
+              bmain, scene, ((Collection *)id_root), collection_new);
+        }
 
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
-        if (ob_new != NULL && ob_new->id.override_library != NULL) {
-          if (ob_reference != NULL) {
-            Base *base;
-            if ((base = BKE_view_layer_base_find(view_layer, ob_new)) == NULL) {
-              BKE_collection_object_add_from(bmain, scene, ob_reference, ob_new);
-              base = BKE_view_layer_base_find(view_layer, ob_new);
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection_new, ob_new) {
+          if (ob_new != NULL && ob_new->id.override_library != NULL) {
+            if (ob_reference != NULL) {
+              Base *base = BKE_view_layer_base_find(view_layer, ob_new);
+              if (!lib_override_library_create_post_process_object_is_instantiated(
+                      view_layer, ob_new, is_resync)) {
+                BKE_collection_object_add_from(bmain, scene, ob_reference, ob_new);
+                base = BKE_view_layer_base_find(view_layer, ob_new);
+                DEG_id_tag_update_ex(
+                    bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
+              }
+
+              if (ob_new == (Object *)ob_reference->id.newid && base != NULL) {
+                /* TODO: is setting active needed? */
+                BKE_view_layer_base_select_and_set_active(view_layer, base);
+              }
+            }
+            else if (!lib_override_library_create_post_process_object_is_instantiated(
+                         view_layer, ob_new, is_resync)) {
+              BKE_collection_object_add(bmain, collection_new, ob_new);
               DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
             }
-
-            if (ob_new == (Object *)ob_reference->id.newid) {
-              /* TODO: is setting active needed? */
-              BKE_view_layer_base_select_and_set_active(view_layer, base);
-            }
-          }
-          else if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
-            BKE_collection_object_add(bmain, collection_new, ob_new);
-            DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
           }
         }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        break;
       }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-      break;
+      case ID_OB: {
+        Object *ob_new = (Object *)id_root->newid;
+        if (!lib_override_library_create_post_process_object_is_instantiated(
+                view_layer, ob_new, is_resync)) {
+          BKE_collection_object_add_from(bmain, scene, (Object *)id_root, ob_new);
+        }
+        break;
+      }
+      default:
+        break;
     }
-    case ID_OB: {
-      BKE_collection_object_add_from(bmain, scene, (Object *)id_root, ((Object *)id_root->newid));
-      break;
-    }
-    default:
-      break;
   }
 
   /* We need to ensure all new overrides of objects are properly instantiated. */
@@ -681,7 +735,8 @@ static void lib_override_library_create_post_process(
                  ob_new->id.override_library->reference == &ob->id);
 
       Collection *default_instantiating_collection = NULL;
-      if (BKE_view_layer_base_find(view_layer, ob_new) == NULL) {
+      if (!lib_override_library_create_post_process_object_is_instantiated(
+              view_layer, ob_new, is_resync)) {
         if (default_instantiating_collection == NULL) {
           switch (GS(id_root->name)) {
             case ID_GR: {
@@ -744,7 +799,7 @@ bool BKE_lib_override_library_create(
     return success;
   }
 
-  lib_override_library_create_post_process(bmain, scene, view_layer, id_root, id_reference);
+  lib_override_library_create_post_process(bmain, scene, view_layer, id_root, id_reference, false);
 
   /* Cleanup. */
   BKE_main_id_clear_newpoins(bmain);
@@ -803,7 +858,8 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
  * \param id_root: The root liboverride ID to resync from.
  * \return true if override was successfully resynced.
  */
-bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root)
+bool BKE_lib_override_library_resync(
+    Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, const bool do_hierarchy_enforce)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
@@ -883,6 +939,8 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
         ID *id_override_new = id->newid;
         ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
 
+        BLI_assert((id_override_new->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0);
+
         if (id_override_old != NULL) {
           /* Swap the names between old override ID and new one. */
           char id_name_buf[MAX_ID_NAME];
@@ -950,8 +1008,14 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
           }
         }
 
-        RNA_struct_override_apply(
-            bmain, &rnaptr_dst, &rnaptr_src, NULL, id_override_new->override_library);
+        RNA_struct_override_apply(bmain,
+                                  &rnaptr_dst,
+                                  &rnaptr_src,
+                                  NULL,
+                                  id_override_new->override_library,
+                                  do_hierarchy_enforce ?
+                                      RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS :
+                                      RNA_OVERRIDE_APPLY_FLAG_NOP);
       }
     }
   }
@@ -975,11 +1039,21 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
       }
       id->tag &= ~LIB_TAG_DOIT;
     }
-    /* Also cleanup old overrides that went missing in new linked data. */
+    /* Also deal with old overrides that went missing in new linked data. */
     else if (id->tag & LIB_TAG_MISSING && !ID_IS_LINKED(id)) {
       BLI_assert(ID_IS_OVERRIDE_LIBRARY(id));
-      id->tag |= LIB_TAG_DOIT;
-      id->tag &= ~LIB_TAG_MISSING;
+      if (!BKE_lib_override_library_is_user_edited(id)) {
+        /* If user never edited them, we can delete them. */
+        id->tag |= LIB_TAG_DOIT;
+        id->tag &= ~LIB_TAG_MISSING;
+        CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
+      }
+      else {
+        /* Otherwise, keep them, user needs to decide whether what to do with them. */
+        BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
+        id_fake_user_set(id);
+        CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
+      }
     }
   }
   FOREACH_MAIN_ID_END;
@@ -995,7 +1069,8 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
    * since we already relinked old root override collection to new resync'ed one above. So this
    * call is not expected to instantiate this new resync'ed collection anywhere, just to ensure
    * that we do not have any stray objects. */
-  lib_override_library_create_post_process(bmain, scene, view_layer, id_root_reference, id_root);
+  lib_override_library_create_post_process(
+      bmain, scene, view_layer, id_root_reference, id_root, true);
 
   /* Cleanup. */
   BLI_ghash_free(linkedref_to_old_override, NULL, NULL);
@@ -1004,6 +1079,120 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
 
   return success;
+}
+
+/**
+ * Detect and handle required resync of overrides data, when relations between reference linked IDs
+ * have changed.
+ *
+ * This is a fairly complex and costly operation, typically it should be called after
+ * #BKE_lib_override_library_main_update, which would already detect and tag a lot of cases.
+ *
+ * This function will first detect the remaining cases requiring a resync (namely, either when an
+ * existing linked ID that did not require to be overridden before now would be, or when new IDs
+ * are added to the hierarchy).
+ *
+ * Then it will handle the resync of necessary IDs (through calls to
+ * #BKE_lib_override_library_resync).
+ */
+void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *view_layer)
+{
+  BKE_main_relations_create(bmain, 0);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* NOTE: in code below, the order in which `FOREACH_MAIN_ID_BEGIN` processes ID types ensures
+   * that we always process 'higher-level' overrides first (i.e. scenes, then collections, then
+   * objects, then other types). */
+
+  /* Detect all linked data that would need to be overridden if we had to create an override from
+   * those used by current existing overrides. */
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+    if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
+      /* We already processed that ID as part of another ID's hierarchy. */
+      continue;
+    }
+
+    LibOverrideGroupTagData data = {.bmain = bmain,
+                                    .id_root = id->override_library->reference,
+                                    .tag = LIB_TAG_DOIT,
+                                    .missing_tag = LIB_TAG_MISSING};
+    lib_override_linked_group_tag(&data);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+    lib_override_hierarchy_dependencies_recursive_tag(&data);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Now check existing overrides, those needing resync will be the one either already tagged as
+   * such, or the one using linked data that is now tagged as needing override. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+
+    if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
+      CLOG_INFO(&LOG, 4, "ID %s was already tagged as needing resync", id->name);
+      continue;
+    }
+
+    MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
+    BLI_assert(entry != NULL);
+
+    for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != NULL;
+         entry_item = entry_item->next) {
+      if (entry_item->usage_flag &
+          (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+        continue;
+      }
+      ID *id_to = *entry_item->id_pointer.to;
+
+      /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
+      if (ID_IS_LINKED(id_to) && (id_to->tag & LIB_TAG_DOIT) != 0) {
+        id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+        CLOG_INFO(&LOG,
+                  3,
+                  "ID %s now tagged as needing resync because they use linked %s that now needs "
+                  "to be overridden",
+                  id->name,
+                  id_to->name);
+        break;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_main_relations_free(bmain);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* And do the actual resync for all IDs detected as needing it.
+   * NOTE: Since this changes `bmain` (adding **and** removing IDs), we cannot use
+   * `FOREACH_MAIN_ID_BEGIN/END` here, and need special multi-loop processing. */
+  bool do_continue = true;
+  while (do_continue) {
+    ListBase *lb;
+    do_continue = false;
+    FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
+        if ((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0) {
+          continue;
+        }
+        do_continue = true;
+        CLOG_INFO(&LOG, 2, "Resyncing %s...", id->name);
+        const bool success = BKE_lib_override_library_resync(bmain, scene, view_layer, id, false);
+        CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
+        break;
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+      if (do_continue) {
+        break;
+      }
+    }
+    FOREACH_MAIN_LISTBASE_END;
+  }
 }
 
 /**
@@ -1374,6 +1563,53 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   }
 
   return true;
+}
+
+/** Check against potential  \a bmain. */
+void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
+{
+  if (id->override_library == NULL) {
+    return;
+  }
+  if (id->override_library->reference == NULL) {
+    /* This is a template ID, could be linked or local, not an override. */
+    return;
+  }
+  if (id->override_library->reference == id) {
+    /* Very serious data corruption, cannot do much about it besides removing the reference
+     * (therefore making the id a local override template one only). */
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Data corruption: data-block '%s' is using itself as library override reference",
+                id->name);
+    id->override_library->reference = NULL;
+    return;
+  }
+  if (id->override_library->reference->lib == NULL) {
+    /* Very serious data corruption, cannot do much about it besides removing the reference
+     * (therefore making the id a local override template one only). */
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Data corruption: data-block '%s' is using another local data-block ('%s') as "
+                "library override reference",
+                id->name,
+                id->override_library->reference->name);
+    id->override_library->reference = NULL;
+    return;
+  }
+}
+
+/** Check against potential  \a bmain. */
+void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)
+{
+  ID *id;
+
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (id->override_library != NULL) {
+      BKE_lib_override_library_validate(bmain, id, reports);
+    }
+  }
+  FOREACH_MAIN_ID_END;
 }
 
 /**
@@ -1882,6 +2118,14 @@ void BKE_lib_override_library_main_unused_cleanup(struct Main *bmain)
   FOREACH_MAIN_ID_END;
 }
 
+static void lib_override_id_swap(Main *bmain, ID *id_local, ID *id_temp)
+{
+  BKE_lib_id_swap(bmain, id_local, id_temp);
+  /* We need to keep these tags from temp ID into orig one.
+   * ID swap does not swap most of ID data itself. */
+  id_local->tag |= (id_temp->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC);
+}
+
 /** Update given override from its reference (re-applying overridden properties). */
 void BKE_lib_override_library_update(Main *bmain, ID *local)
 {
@@ -1945,16 +2189,20 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     RNA_id_pointer_create(local->override_library->storage, rnaptr_storage);
   }
 
-  RNA_struct_override_apply(
-      bmain, &rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_library);
+  RNA_struct_override_apply(bmain,
+                            &rnaptr_dst,
+                            &rnaptr_src,
+                            rnaptr_storage,
+                            local->override_library,
+                            RNA_OVERRIDE_APPLY_FLAG_NOP);
 
   /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
    * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
-  BKE_lib_id_swap(bmain, local, tmp_id);
+  lib_override_id_swap(bmain, local, tmp_id);
 
   if (local_key != NULL && tmp_key != NULL) {
     /* This is some kind of hard-coded 'always enforced override'. */
-    BKE_lib_id_swap(bmain, &local_key->id, &tmp_key->id);
+    lib_override_id_swap(bmain, &local_key->id, &tmp_key->id);
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
     /* The swap of local and tmp_id inverted those pointers, we need to redefine proper
      * relationships. */

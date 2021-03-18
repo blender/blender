@@ -37,6 +37,7 @@
 
 using blender::IndexRange;
 using blender::Map;
+using blender::MultiValueMap;
 using blender::Set;
 using blender::StringRef;
 
@@ -62,9 +63,10 @@ static void attribute_search_update_fn(
     return;
   }
 
-  const Set<std::string> &attribute_name_hints = ui_storage->attribute_name_hints;
+  const MultiValueMap<std::string, AvailableAttributeInfo> &attribute_hints =
+      ui_storage->attribute_hints;
 
-  if (str[0] != '\0' && !attribute_name_hints.contains_as(StringRef(str))) {
+  if (str[0] != '\0' && attribute_hints.lookup_as(StringRef(str)).is_empty()) {
     /* Any string may be valid, so add the current search string with the hints. */
     UI_search_item_add(items, str, (void *)str, ICON_ADD, 0, 0);
   }
@@ -80,7 +82,7 @@ static void attribute_search_update_fn(
   const char *string = is_first ? "" : str;
 
   StringSearch *search = BLI_string_search_new();
-  for (const std::string &attribute_name : attribute_name_hints) {
+  for (const std::string &attribute_name : attribute_hints.keys()) {
     BLI_string_search_add(search, attribute_name.c_str(), (void *)&attribute_name);
   }
 

@@ -31,7 +31,6 @@
 #include "BLI_color.hh"
 #include "BLI_float2.hh"
 #include "BLI_span.hh"
-#include "BLI_threads.h"
 
 #include "CLG_log.h"
 
@@ -375,10 +374,6 @@ ReadAttributePtr BuiltinCustomDataLayerProvider::try_get_for_read(
     return {};
   }
 
-  if (update_on_read_ != nullptr) {
-    update_on_read_(component);
-  }
-
   const int domain_size = component.attribute_domain_size(domain_);
   const void *data = CustomData_get_layer(custom_data, stored_type_);
   if (data == nullptr) {
@@ -679,9 +674,10 @@ bool NamedLegacyCustomDataProvider::foreach_attribute(
   return true;
 }
 
-void NamedLegacyCustomDataProvider::supported_domains(Vector<AttributeDomain> &r_domains) const
+void NamedLegacyCustomDataProvider::foreach_domain(
+    const FunctionRef<void(AttributeDomain)> callback) const
 {
-  r_domains.append_non_duplicates(domain_);
+  callback(domain_);
 }
 
 }  // namespace blender::bke

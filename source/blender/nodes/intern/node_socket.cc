@@ -712,6 +712,7 @@ void register_standard_node_socket_types(void)
   nodeRegisterSocketType(make_socket_type_float(PROP_FACTOR));
   nodeRegisterSocketType(make_socket_type_float(PROP_ANGLE));
   nodeRegisterSocketType(make_socket_type_float(PROP_TIME));
+  nodeRegisterSocketType(make_socket_type_float(PROP_DISTANCE));
 
   nodeRegisterSocketType(make_socket_type_int(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_int(PROP_UNSIGNED));

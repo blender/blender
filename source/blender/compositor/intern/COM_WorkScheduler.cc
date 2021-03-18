@@ -35,7 +35,7 @@
 #include "BKE_global.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-#  ifndef DEBUG /* test this so we dont get warnings in debug builds */
+#  ifndef DEBUG /* Test this so we don't get warnings in debug builds. */
 #    warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
 #  endif
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
@@ -190,10 +190,10 @@ bool WorkScheduler::has_gpu_devices()
 #  ifdef COM_OPENCL_ENABLED
   return !g_work_scheduler.gpu_devices.empty();
 #  else
-  return 0;
+  return false;
 #  endif
 #else
-  return 0;
+  return false;
 #endif
 }
 

@@ -26,7 +26,7 @@ ccl_device void kernel_path_init(KernelGlobals *kg)
   int ray_index = ccl_global_id(0) + ccl_global_id(1) * ccl_global_size(0);
 
   /* This is the first assignment to ray_state;
-   * So we dont use ASSIGN_RAY_STATE macro.
+   * So we don't use ASSIGN_RAY_STATE macro.
    */
   kernel_split_state.ray_state[ray_index] = RAY_ACTIVE;
 

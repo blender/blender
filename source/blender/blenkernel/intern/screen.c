@@ -1701,6 +1701,11 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       sclip->scopes.track_preview = NULL;
       sclip->scopes.ok = 0;
     }
+    else if (sl->spacetype == SPACE_SPREADSHEET) {
+      SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+      sspreadsheet->runtime = NULL;
+    }
   }
 
   BLI_listbase_clear(&area->actionzones);

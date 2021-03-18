@@ -34,9 +34,9 @@ else()
 endif()
 
 ExternalProject_Add(external_sndfile
-  URL ${SNDFILE_URI}
+  URL file://${PACKAGE_DIR}/${SNDFILE_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${SNDFILE_HASH}
+  URL_HASH ${SNDFILE_HASH_TYPE}=${SNDFILE_HASH}
   PREFIX ${BUILD_DIR}/sndfile
   PATCH_COMMAND ${SNDFILE_PATCH_CMD}
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile

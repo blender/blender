@@ -50,9 +50,6 @@ class TreeElementID : public AbstractTreeElement {
  protected:
   /* ID types with animation data can use this. */
   void expand_animation_data(SpaceOutliner &, const AnimData *) const;
-
- private:
-  void expand_library_overrides(SpaceOutliner &) const;
 };
 
 }  // namespace blender::ed::outliner

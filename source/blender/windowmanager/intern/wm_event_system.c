@@ -577,6 +577,13 @@ void wm_event_do_notifiers(bContext *C)
         }
 
         ED_screen_areas_iter (win, screen, area) {
+          if ((note->category == NC_SPACE) && note->reference) {
+            /* Filter out notifiers sent to other spaces. RNA sets the reference to the owning ID
+             * though, the screen, so let notifiers through that reference the entire screen. */
+            if ((note->reference != area->spacedata.first) && (note->reference != screen)) {
+              continue;
+            }
+          }
           wmSpaceTypeListenerParams area_params = {
               .window = win,
               .area = area,
@@ -1319,7 +1326,7 @@ static int wm_operator_invoke(bContext *C,
       op->flag |= OP_IS_INVOKE;
     }
 
-    /* /initialize setting from previous run. */
+    /* Initialize setting from previous run. */
     if (!is_nested_call && use_last_properties) { /* Not called by py script. */
       WM_operator_last_properties_init(op);
     }
@@ -1646,36 +1653,8 @@ int WM_operator_call_py(bContext *C,
                         const bool is_undo)
 {
   int retval = OPERATOR_CANCELLED;
-
-#if 0
-  wmOperator *op;
-  op = wm_operator_create(wm, ot, properties, reports);
-
-  if (op->type->exec) {
-    if (is_undo && op->type->flag & OPTYPE_UNDO) {
-      wm->op_undo_depth++;
-    }
-
-    retval = op->type->exec(C, op);
-    OPERATOR_RETVAL_CHECK(retval);
-
-    if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
-      wm->op_undo_depth--;
-    }
-  }
-  else {
-    CLOG_WARN(WM_LOG_OPERATORS,
-              "\"%s\" operator has no exec function, Python cannot call it",
-              op->type->name);
-  }
-
-#endif
-
   /* Not especially nice using undo depth here. It's used so Python never
-   * triggers undo or stores an operator's last used state.
-   *
-   * We could have some more obvious way of doing this like passing a flag.
-   */
+   * triggers undo or stores an operator's last used state. */
   wmWindowManager *wm = CTX_wm_manager(C);
   if (!is_undo && wm) {
     wm->op_undo_depth++;
@@ -2084,6 +2063,7 @@ static int wm_handler_operator_call(bContext *C,
     else if (ot->modal) {
       /* We set context to where modal handler came from. */
       wmWindowManager *wm = CTX_wm_manager(C);
+      wmWindow *win = CTX_wm_window(C);
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
 
@@ -2101,22 +2081,21 @@ static int wm_handler_operator_call(bContext *C,
       retval = ot->modal(C, op, event);
       OPERATOR_RETVAL_CHECK(retval);
 
-      /* When this is _not_ the case the modal modifier may have loaded
-       * a new blend file (demo mode does this), so we have to assume
-       * the event, operator etc have all been freed. - campbell */
-      if (CTX_wm_manager(C) == wm) {
+      if (ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
+        wm->op_undo_depth--;
+      }
+
+      /* When the window changes the the modal modifier may have loaded a new blend file
+       * (the `system_demo_mode` add-on does this), so we have to assume the event,
+       * operator, area, region etc have all been freed. */
+      if ((CTX_wm_window(C) == win)) {
 
         wm_event_modalkeymap_end(event, &event_backup);
-
-        if (ot->flag & OPTYPE_UNDO) {
-          wm->op_undo_depth--;
-        }
 
         if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
           wm_operator_reports(C, op, retval, false);
 
           if (op->type->modalkeymap) {
-            wmWindow *win = CTX_wm_window(C);
             WM_window_status_area_tag_redraw(win);
           }
         }
@@ -3190,7 +3169,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
   else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     event->type = EVT_DROP;
 
-    /* Vreate customdata, first free existing. */
+    /* Create customdata, first free existing. */
     if (event->customdata) {
       if (event->customdatafree) {
         MEM_freeN(event->customdata);
@@ -3201,7 +3180,7 @@ static void wm_event_drag_and_drop_test(wmWindowManager *wm, wmWindow *win, wmEv
     event->customdata = &wm->drags;
     event->customdatafree = 1;
 
-    /* Vlear drop icon. */
+    /* Clear drop icon. */
     screen->do_draw_drag = true;
 
     /* restore cursor (disabled, see wm_dragdrop.c) */

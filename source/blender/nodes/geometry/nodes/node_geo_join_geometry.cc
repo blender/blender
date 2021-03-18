@@ -224,7 +224,7 @@ static void join_components(Span<const MeshComponent *> src_components, Geometry
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   join_attributes(to_base_components(src_components),
                   dst_component,
-                  {"position", "material_index", "vertex_normal", "shade_smooth"});
+                  {"position", "material_index", "normal", "shade_smooth", "crease"});
 }
 
 static void join_components(Span<const PointCloudComponent *> src_components, GeometrySet &result)

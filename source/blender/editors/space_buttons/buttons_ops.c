@@ -217,7 +217,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     BLI_path_abs(path, id ? ID_BLEND_PATH(bmain, id) : BKE_main_blendfile_path(bmain));
 
     if (BLI_is_dir(path)) {
-      /* Do this first so '//' isnt converted to '//\' on windows. */
+      /* Do this first so '//' isn't converted to '//\' on windows. */
       BLI_path_slash_ensure(path);
       if (is_relative) {
         BLI_strncpy(path, str, FILE_MAX);

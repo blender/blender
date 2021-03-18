@@ -163,7 +163,7 @@ NODE_DEFINE(Camera)
   return type;
 }
 
-Camera::Camera() : Node(node_type)
+Camera::Camera() : Node(get_node_type())
 {
   shutter_table_offset = TABLE_OFFSET_INVALID;
 

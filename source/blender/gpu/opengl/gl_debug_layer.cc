@@ -53,7 +53,7 @@ using GPUvoidptr = void *;
 
 namespace blender::gpu::debug {
 
-/* List of wrapped functions. We dont have to support all of them.
+/* List of wrapped functions. We don't have to support all of them.
  * Some functions might be declared as `extern` in GLEW. We cannot override them in this case.
  * Keep the list in alphabetical order. */
 

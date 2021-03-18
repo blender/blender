@@ -17,8 +17,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_zlib_mingw
-  URL ${ZLIB_URI}
-  URL_HASH MD5=${ZLIB_HASH}
+  URL file://${PACKAGE_DIR}/${ZLIB_FILE}
+  URL_HASH ${ZLIB_HASH_TYPE}=${ZLIB_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/zlib_mingw
   CONFIGURE_COMMAND echo .

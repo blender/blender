@@ -20,13 +20,15 @@
 
 #include "BLI_resource_collector.hh"
 
-#include "spreadsheet_draw.hh"
+#include "spreadsheet_column_layout.hh"
 
 struct bContext;
 
 namespace blender::ed::spreadsheet {
 
-std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_geometry_attributes(
-    const bContext *C, Object *object_eval);
+void spreadsheet_columns_from_geometry(const bContext *C,
+                                       Object *object_eval,
+                                       SpreadsheetColumnLayout &column_layout,
+                                       ResourceCollector &resources);
 
 }  // namespace blender::ed::spreadsheet

@@ -16,6 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
+#include "BLI_multi_value_map.hh"
 #include "BLI_utildefines.h"
 
 #include "COM_Converter.h"
@@ -67,18 +68,19 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
    * Inverting yields a map of node inputs to all connected operation inputs,
    * so multiple operations can use the same node input.
    */
-  OpInputInverseMap inverse_input_map;
-  for (InputSocketMap::const_iterator it = m_input_map.begin(); it != m_input_map.end(); ++it) {
-    inverse_input_map[it->second].push_back(it->first);
+  blender::MultiValueMap<NodeInput *, NodeOperationInput *> inverse_input_map;
+  for (blender::Map<NodeOperationInput *, NodeInput *>::MutableItem item : m_input_map.items()) {
+    inverse_input_map.add(item.value, item.key);
   }
 
   for (const NodeGraph::Link &link : m_graph.links()) {
     NodeOutput *from = link.from;
     NodeInput *to = link.to;
 
-    NodeOperationOutput *op_from = find_operation_output(m_output_map, from);
-    const OpInputs &op_to_list = find_operation_inputs(inverse_input_map, to);
-    if (!op_from || op_to_list.empty()) {
+    NodeOperationOutput *op_from = m_output_map.lookup_default(from, nullptr);
+
+    const blender::Span<NodeOperationInput *> op_to_list = inverse_input_map.lookup(to);
+    if (!op_from || op_to_list.is_empty()) {
       /* XXX allow this? error/debug message? */
       // BLI_assert(false);
       /* XXX note: this can happen with certain nodes (e.g. OutputFile)
@@ -88,8 +90,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
       continue;
     }
 
-    for (OpInputs::const_iterator it = op_to_list.begin(); it != op_to_list.end(); ++it) {
-      NodeOperationInput *op_to = *it;
+    for (NodeOperationInput *op_to : op_to_list) {
       addLink(op_from, op_to);
     }
   }
@@ -136,7 +137,7 @@ void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
    * for resolving links the map will be inverted first in convertToOperations,
    * to get a list of links for each node input socket.
    */
-  m_input_map[operation_socket] = node_socket;
+  m_input_map.add_new(operation_socket, node_socket);
 }
 
 void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
@@ -145,7 +146,7 @@ void NodeOperationBuilder::mapOutputSocket(NodeOutput *node_socket,
   BLI_assert(m_current_node);
   BLI_assert(node_socket->getNode() == m_current_node);
 
-  m_output_map[node_socket] = operation_socket;
+  m_output_map.add_new(node_socket, operation_socket);
 }
 
 void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput *to)
@@ -154,7 +155,7 @@ void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput
     return;
   }
 
-  m_links.push_back(Link(from, to));
+  m_links.append(Link(from, to));
 
   /* register with the input */
   to->setLink(from);
@@ -162,38 +163,17 @@ void NodeOperationBuilder::addLink(NodeOperationOutput *from, NodeOperationInput
 
 void NodeOperationBuilder::removeInputLink(NodeOperationInput *to)
 {
-  for (Links::iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    Link &link = *it;
+  int index = 0;
+  for (Link &link : m_links) {
     if (link.to() == to) {
       /* unregister with the input */
       to->setLink(nullptr);
 
-      m_links.erase(it);
+      m_links.remove(index);
       return;
     }
+    index++;
   }
-}
-
-NodeInput *NodeOperationBuilder::find_node_input(const InputSocketMap &map,
-                                                 NodeOperationInput *op_input)
-{
-  InputSocketMap::const_iterator it = map.find(op_input);
-  return (it != map.end() ? it->second : NULL);
-}
-
-const NodeOperationBuilder::OpInputs &NodeOperationBuilder::find_operation_inputs(
-    const OpInputInverseMap &map, NodeInput *node_input)
-{
-  static const OpInputs empty_list;
-  OpInputInverseMap::const_iterator it = map.find(node_input);
-  return (it != map.end() ? it->second : empty_list);
-}
-
-NodeOperationOutput *NodeOperationBuilder::find_operation_output(const OutputSocketMap &map,
-                                                                 NodeOutput *node_output)
-{
-  OutputSocketMap::const_iterator it = map.find(node_output);
-  return (it != map.end() ? it->second : NULL);
 }
 
 PreviewOperation *NodeOperationBuilder::make_preview_operation() const
@@ -269,10 +249,8 @@ void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 
 void NodeOperationBuilder::add_datatype_conversions()
 {
-  Links convert_links;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    const Link &link = *it;
-
+  blender::Vector<Link> convert_links;
+  for (const Link &link : m_links) {
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
     NodeOperation *to_op = &link.to()->getOperation();
@@ -281,11 +259,10 @@ void NodeOperationBuilder::add_datatype_conversions()
     }
 
     if (link.from()->getDataType() != link.to()->getDataType()) {
-      convert_links.push_back(link);
+      convert_links.append(link);
     }
   }
-  for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
-    const Link &link = *it;
+  for (const Link &link : convert_links) {
     NodeOperation *converter = COM_convert_data_type(*link.from(), *link.to());
     if (converter) {
       addOperation(converter);
@@ -314,7 +291,7 @@ void NodeOperationBuilder::add_operation_input_constants()
   }
   for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
     NodeOperationInput *input = *it;
-    add_input_constant_value(input, find_node_input(m_input_map, input));
+    add_input_constant_value(input, m_input_map.lookup(input));
   }
 }
 
@@ -372,19 +349,16 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
 
 void NodeOperationBuilder::resolve_proxies()
 {
-  Links proxy_links;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    const Link &link = *it;
+  blender::Vector<Link> proxy_links;
+  for (const Link &link : m_links) {
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
     if (link.from()->getOperation().isProxyOperation() &&
         !link.to()->getOperation().isProxyOperation()) {
-      proxy_links.push_back(link);
+      proxy_links.append(link);
     }
   }
 
-  for (Links::const_iterator it = proxy_links.begin(); it != proxy_links.end(); ++it) {
-    const Link &link = *it;
-
+  for (const Link &link : proxy_links) {
     NodeOperationInput *to = link.to();
     NodeOperationOutput *from = link.from();
     do {
@@ -425,33 +399,29 @@ void NodeOperationBuilder::determineResolutions()
 
   /* add convert resolution operations when needed */
   {
-    Links convert_links;
-    for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-      const Link &link = *it;
-
+    blender::Vector<Link> convert_links;
+    for (const Link &link : m_links) {
       if (link.to()->getResizeMode() != COM_SC_NO_RESIZE) {
         NodeOperation &from_op = link.from()->getOperation();
         NodeOperation &to_op = link.to()->getOperation();
         if (from_op.getWidth() != to_op.getWidth() || from_op.getHeight() != to_op.getHeight()) {
-          convert_links.push_back(link);
+          convert_links.append(link);
         }
       }
     }
-    for (Links::const_iterator it = convert_links.begin(); it != convert_links.end(); ++it) {
-      const Link &link = *it;
+    for (const Link &link : convert_links) {
       COM_convert_resolution(*this, link.from(), link.to());
     }
   }
 }
 
-NodeOperationBuilder::OpInputs NodeOperationBuilder::cache_output_links(
+blender::Vector<NodeOperationInput *> NodeOperationBuilder::cache_output_links(
     NodeOperationOutput *output) const
 {
-  OpInputs inputs;
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    const Link &link = *it;
+  blender::Vector<NodeOperationInput *> inputs;
+  for (const Link &link : m_links) {
     if (link.from() == output) {
-      inputs.push_back(link.to());
+      inputs.append(link.to());
     }
   }
   return inputs;
@@ -460,8 +430,7 @@ NodeOperationBuilder::OpInputs NodeOperationBuilder::cache_output_links(
 WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation(
     NodeOperationOutput *output) const
 {
-  for (Links::const_iterator it = m_links.begin(); it != m_links.end(); ++it) {
-    const Link &link = *it;
+  for (const Link &link : m_links) {
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
       if (op.isWriteBufferOperation()) {
@@ -514,15 +483,13 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
                                               NodeOperationOutput *output)
 {
   /* cache connected sockets, so we can safely remove links first before replacing them */
-  OpInputs targets = cache_output_links(output);
-  if (targets.empty()) {
+  blender::Vector<NodeOperationInput *> targets = cache_output_links(output);
+  if (targets.is_empty()) {
     return;
   }
 
   WriteBufferOperation *writeOperation = nullptr;
-  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
-    NodeOperationInput *target = *it;
-
+  for (NodeOperationInput *target : targets) {
     /* try to find existing write buffer operation */
     if (target->getOperation().isWriteBufferOperation()) {
       BLI_assert(writeOperation == nullptr); /* there should only be one write op connected */
@@ -546,8 +513,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   writeOperation->readResolutionFromInputSocket();
 
   /* add readbuffer op for every former connected input */
-  for (OpInputs::const_iterator it = targets.begin(); it != targets.end(); ++it) {
-    NodeOperationInput *target = *it;
+  for (NodeOperationInput *target : targets) {
     if (&target->getOperation() == writeOperation) {
       continue; /* skip existing write op links */
     }

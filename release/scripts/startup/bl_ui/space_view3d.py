@@ -3121,6 +3121,11 @@ class VIEW3D_MT_mask(Menu):
 
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
 
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_random_mask", text="Random Mask")
+
+
 
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
@@ -3139,7 +3144,7 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_face_sets_init", text="Init Face Sets")
+        layout.menu("VIEW3D_MT_face_sets_init", text="Initialize Face Sets")
 
         layout.separator()
 
@@ -3221,6 +3226,21 @@ class VIEW3D_MT_face_sets_init(Menu):
         op = layout.operator("sculpt.face_sets_init", text='By Face Maps')
         op.mode = 'FACE_MAPS'
 
+
+class VIEW3D_MT_random_mask(Menu):
+    bl_label = "Random Mask"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        op = layout.operator("sculpt.mask_init", text='Per Vertex')
+        op.mode = 'RANDOM_PER_VERTEX'
+
+        op = layout.operator("sculpt.mask_init", text='Per Face Set')
+        op.mode = 'RANDOM_PER_FACE_SET'
+
+        op = layout.operator("sculpt.mask_init", text='Per Loose Part')
+        op.mode = 'RANDOM_PER_LOOSE_PART'
 
 class VIEW3D_MT_particle(Menu):
     bl_label = "Particle"
@@ -3809,11 +3829,10 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.mark_sharp")
             col.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
 
-            if render.use_freestyle:
-                col.separator()
+            col.separator()
 
-                col.operator("mesh.mark_freestyle_edge").clear = False
-                col.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+            col.operator("mesh.mark_freestyle_edge").clear = False
+            col.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
             col.separator()
 
@@ -4008,11 +4027,10 @@ class VIEW3D_MT_edit_mesh_edges_data(Menu):
         props.use_verts = True
         props.clear = True
 
-        if render.use_freestyle:
-            layout.separator()
+        layout.separator()
 
-            layout.operator("mesh.mark_freestyle_edge").clear = False
-            layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+        layout.operator("mesh.mark_freestyle_edge").clear = False
+        layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
 
 class VIEW3D_MT_edit_mesh_edges(Menu):
@@ -4984,7 +5002,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         layout.menu("VIEW3D_MT_edit_gpencil_showhide")
 
-        layout.operator_menu_enum("gpencil.stroke_separate", "mode")
+        layout.operator_menu_enum("gpencil.stroke_separate", "mode", text="Separate")
         layout.menu("GPENCIL_MT_cleanup")
 
         layout.separator()
@@ -5013,7 +5031,7 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.menu("GPENCIL_MT_move_to_layer")
         layout.menu("VIEW3D_MT_assign_material")
         layout.operator("gpencil.set_active_material", text="Set as Active Material")
-        layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
+        layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange")
 
         layout.separator()
 
@@ -5024,7 +5042,7 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.operator("gpencil.stroke_cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
         layout.operator_menu_enum("gpencil.stroke_caps_set", text="Toggle Caps", property="type")
         layout.operator("gpencil.stroke_flip", text="Switch Direction")
-        layout.prop(settings, "use_scale_thickness")
+        layout.prop(settings, "use_scale_thickness", text="Scale Thickness")
 
         layout.separator()
         layout.operator("gpencil.reset_transform_fill", text="Reset Fill Transform")
@@ -5036,15 +5054,15 @@ class VIEW3D_MT_edit_gpencil_point(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("gpencil.extrude_move", text="Extrude Points")
+        layout.operator("gpencil.extrude_move", text="Extrude")
 
         layout.separator()
 
-        layout.operator("gpencil.stroke_smooth", text="Smooth Points").only_selected = True
+        layout.operator("gpencil.stroke_smooth", text="Smooth").only_selected = True
 
         layout.separator()
 
-        layout.operator("gpencil.stroke_merge", text="Merge Points")
+        layout.operator("gpencil.stroke_merge", text="Merge")
 
         # TODO: add new RIP operator
 
@@ -7048,12 +7066,12 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
             col.separator()
 
-            col.operator("gpencil.extrude_move", text="Extrude Points")
+            col.operator("gpencil.extrude_move", text="Extrude")
 
             col.separator()
 
             # Deform Operators
-            col.operator("gpencil.stroke_smooth", text="Smooth Points").only_selected = True
+            col.operator("gpencil.stroke_smooth", text="Smooth").only_selected = True
             col.operator("transform.bend", text="Bend")
             col.operator("transform.shear", text="Shear")
             col.operator("transform.tosphere", text="To Sphere")
@@ -7061,8 +7079,8 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
             col.separator()
 
-            col.menu("VIEW3D_MT_mirror", text="Mirror Points")
-            col.menu("GPENCIL_MT_snap", text="Snap Points")
+            col.menu("VIEW3D_MT_mirror", text="Mirror")
+            col.menu("GPENCIL_MT_snap", text="Snap")
 
             col.separator()
 
@@ -7075,15 +7093,15 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.separator()
 
             # Removal Operators
-            col.operator("gpencil.stroke_merge", text="Merge Points")
+            col.operator("gpencil.stroke_merge", text="Merge")
             col.operator("gpencil.stroke_merge_by_distance").use_unselected = False
             col.operator("gpencil.stroke_split", text="Split")
             col.operator("gpencil.stroke_separate", text="Separate").mode = 'POINT'
 
             col.separator()
 
-            col.operator("gpencil.delete", text="Delete Points").type = 'POINTS'
-            col.operator("gpencil.dissolve", text="Dissolve Points").type = 'POINTS'
+            col.operator("gpencil.delete", text="Delete").type = 'POINTS'
+            col.operator("gpencil.dissolve", text="Dissolve").type = 'POINTS'
             col.operator("gpencil.dissolve", text="Dissolve Between").type = 'BETWEEN'
             col.operator("gpencil.dissolve", text="Dissolve Unselected").type = 'UNSELECT'
 
@@ -7100,7 +7118,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
             col.separator()
 
-            col.operator("gpencil.stroke_smooth", text="Smooth Stroke").only_selected = False
+            col.operator("gpencil.stroke_smooth", text="Smooth").only_selected = False
             col.operator("transform.transform", text="Shrink/Fatten").mode = 'GPENCIL_SHRINKFATTEN'
 
             col.separator()
@@ -7109,12 +7127,12 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
             col.menu("GPENCIL_MT_move_to_layer")
             col.menu("VIEW3D_MT_assign_material")
             col.operator("gpencil.set_active_material", text="Set as Active Material")
-            col.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
+            col.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange")
 
             col.separator()
 
-            col.menu("VIEW3D_MT_mirror", text="Mirror Stroke")
-            col.menu("VIEW3D_MT_snap", text="Snap Stroke")
+            col.menu("VIEW3D_MT_mirror", text="Mirror")
+            col.menu("VIEW3D_MT_snap", text="Snap")
 
             col.separator()
 
@@ -7134,11 +7152,11 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
             col.separator()
 
-            col.operator("gpencil.delete", text="Delete Strokes").type = 'STROKES'
+            col.operator("gpencil.delete", text="Delete").type = 'STROKES'
 
             col.separator()
 
-            col.operator("gpencil.reproject", text="Reproject Strokes")
+            col.operator("gpencil.reproject", text="Reproject")
 
 
 def draw_gpencil_layer_active(context, layout):
@@ -7563,6 +7581,7 @@ classes = (
     VIEW3D_MT_mask,
     VIEW3D_MT_face_sets,
     VIEW3D_MT_face_sets_init,
+    VIEW3D_MT_random_mask,
     VIEW3D_MT_particle,
     VIEW3D_MT_particle_context_menu,
     VIEW3D_MT_particle_showhide,

@@ -60,6 +60,8 @@ typedef struct bNodeLinkDrag {
 
   /** Temporarily stores the last picked link from multi input socket operator. */
   struct bNodeLink *last_picked_multi_input_socket_link;
+
+  struct bNode *last_node_hovered_while_dragging_a_link;
 } bNodeLinkDrag;
 
 typedef struct SpaceNode_Runtime {
@@ -77,7 +79,6 @@ typedef struct SpaceNode_Runtime {
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
   struct NodeInsertOfsData *iofsd;
-  struct bNode *last_node_hovered_while_dragging_a_link;
 } SpaceNode_Runtime;
 
 /* space_node.c */
@@ -207,6 +208,9 @@ bNode *node_add_node(
     const struct bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(struct wmOperatorType *ot);
 void NODE_OT_add_group(struct wmOperatorType *ot);
+void NODE_OT_add_object(struct wmOperatorType *ot);
+void NODE_OT_add_collection(struct wmOperatorType *ot);
+void NODE_OT_add_texture(struct wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 void NODE_OT_add_mask(struct wmOperatorType *ot);
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);
@@ -230,6 +234,7 @@ void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
 void NODE_OT_links_detach(struct wmOperatorType *ot);
+void NODE_OT_links_mute(struct wmOperatorType *ot);
 
 void NODE_OT_parent_set(struct wmOperatorType *ot);
 void NODE_OT_join(struct wmOperatorType *ot);

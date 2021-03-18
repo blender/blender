@@ -115,7 +115,7 @@ void createTransNodeData(TransInfo *t)
     return;
   }
 
-  /* nodes dont support PET and probably never will */
+  /* Nodes don't support PET and probably never will. */
   t->flag &= ~T_PROP_EDIT_ALL;
 
   /* set transform flags on nodes */

@@ -599,7 +599,7 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
   const short oflag = EDGE_MARK;
   int i;
 
-  /* check flags dont change once set */
+  /* Check flags don't change once set. */
 #ifndef NDEBUG
   int tot_test;
 #endif

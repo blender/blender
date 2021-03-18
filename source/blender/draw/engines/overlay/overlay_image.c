@@ -164,7 +164,7 @@ static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgp
 
       BKE_image_user_frame_calc(image, iuser, ctime);
       if (image->source == IMA_SRC_SEQUENCE && !(iuser->flag & IMA_USER_FRAME_IN_RANGE)) {
-        /* Frame is out of range, dont show. */
+        /* Frame is out of range, don't show. */
         return NULL;
       }
 

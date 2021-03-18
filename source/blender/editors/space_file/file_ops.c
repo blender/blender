@@ -452,7 +452,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
       for (idx = sel.last; idx >= 0; idx--) {
         const FileDirEntry *file = filelist_file(sfile->files, idx);
 
-        /* dont highlight readonly file (".." or ".") on box select */
+        /* Don't highlight read-only file (".." or ".") on box select. */
         if (FILENAME_IS_CURRPAR(file->relpath)) {
           filelist_entry_select_set(
               sfile->files, file, FILE_SEL_REMOVE, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
@@ -962,7 +962,7 @@ void FILE_OT_select_all(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Select All Operator
+/** \name View Selected Operator
  * \{ */
 
 static int file_view_selected_exec(bContext *C, wmOperator *UNUSED(op))

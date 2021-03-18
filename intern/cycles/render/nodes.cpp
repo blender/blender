@@ -258,7 +258,7 @@ NODE_DEFINE(ImageTextureNode)
   return type;
 }
 
-ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(node_type)
+ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(get_node_type())
 {
   colorspace = u_colorspace_raw;
   animated = false;
@@ -309,11 +309,11 @@ void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
   ustring attribute;
   if (vector_in->link) {
     ShaderNode *node = vector_in->link->parent;
-    if (node->type == UVMapNode::node_type) {
+    if (node->type == UVMapNode::get_node_type()) {
       UVMapNode *uvmap = (UVMapNode *)node;
       attribute = uvmap->get_attribute();
     }
-    else if (node->type == TextureCoordinateNode::node_type) {
+    else if (node->type == TextureCoordinateNode::get_node_type()) {
       if (vector_in->link != node->output("UV")) {
         return;
       }
@@ -525,7 +525,7 @@ NODE_DEFINE(EnvironmentTextureNode)
   return type;
 }
 
-EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(node_type)
+EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(get_node_type())
 {
   colorspace = u_colorspace_raw;
   animated = false;
@@ -818,7 +818,7 @@ NODE_DEFINE(SkyTextureNode)
   return type;
 }
 
-SkyTextureNode::SkyTextureNode() : TextureNode(node_type)
+SkyTextureNode::SkyTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1000,7 +1000,7 @@ NODE_DEFINE(GradientTextureNode)
   return type;
 }
 
-GradientTextureNode::GradientTextureNode() : TextureNode(node_type)
+GradientTextureNode::GradientTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1057,7 +1057,7 @@ NODE_DEFINE(NoiseTextureNode)
   return type;
 }
 
-NoiseTextureNode::NoiseTextureNode() : TextureNode(node_type)
+NoiseTextureNode::NoiseTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1150,7 +1150,7 @@ NODE_DEFINE(VoronoiTextureNode)
   return type;
 }
 
-VoronoiTextureNode::VoronoiTextureNode() : TextureNode(node_type)
+VoronoiTextureNode::VoronoiTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1229,7 +1229,7 @@ NODE_DEFINE(IESLightNode)
   return type;
 }
 
-IESLightNode::IESLightNode() : TextureNode(node_type)
+IESLightNode::IESLightNode() : TextureNode(get_node_type())
 {
   light_manager = NULL;
   slot = -1;
@@ -1321,7 +1321,7 @@ NODE_DEFINE(WhiteNoiseTextureNode)
   return type;
 }
 
-WhiteNoiseTextureNode::WhiteNoiseTextureNode() : ShaderNode(node_type)
+WhiteNoiseTextureNode::WhiteNoiseTextureNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -1386,7 +1386,7 @@ NODE_DEFINE(MusgraveTextureNode)
   return type;
 }
 
-MusgraveTextureNode::MusgraveTextureNode() : TextureNode(node_type)
+MusgraveTextureNode::MusgraveTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1484,7 +1484,7 @@ NODE_DEFINE(WaveTextureNode)
   return type;
 }
 
-WaveTextureNode::WaveTextureNode() : TextureNode(node_type)
+WaveTextureNode::WaveTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1558,7 +1558,7 @@ NODE_DEFINE(MagicTextureNode)
   return type;
 }
 
-MagicTextureNode::MagicTextureNode() : TextureNode(node_type)
+MagicTextureNode::MagicTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1611,7 +1611,7 @@ NODE_DEFINE(CheckerTextureNode)
   return type;
 }
 
-CheckerTextureNode::CheckerTextureNode() : TextureNode(node_type)
+CheckerTextureNode::CheckerTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1677,7 +1677,7 @@ NODE_DEFINE(BrickTextureNode)
   return type;
 }
 
-BrickTextureNode::BrickTextureNode() : TextureNode(node_type)
+BrickTextureNode::BrickTextureNode() : TextureNode(get_node_type())
 {
 }
 
@@ -1770,7 +1770,7 @@ NODE_DEFINE(PointDensityTextureNode)
   return type;
 }
 
-PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(node_type)
+PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -1887,7 +1887,7 @@ NODE_DEFINE(NormalNode)
   return type;
 }
 
-NormalNode::NormalNode() : ShaderNode(node_type)
+NormalNode::NormalNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -1934,7 +1934,7 @@ NODE_DEFINE(MappingNode)
   return type;
 }
 
-MappingNode::MappingNode() : ShaderNode(node_type)
+MappingNode::MappingNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -1989,7 +1989,7 @@ NODE_DEFINE(RGBToBWNode)
   return type;
 }
 
-RGBToBWNode::RGBToBWNode() : ShaderNode(node_type)
+RGBToBWNode::RGBToBWNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -2312,7 +2312,7 @@ NODE_DEFINE(AnisotropicBsdfNode)
   return type;
 }
 
-AnisotropicBsdfNode::AnisotropicBsdfNode() : BsdfNode(node_type)
+AnisotropicBsdfNode::AnisotropicBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
 }
@@ -2370,7 +2370,7 @@ NODE_DEFINE(GlossyBsdfNode)
   return type;
 }
 
-GlossyBsdfNode::GlossyBsdfNode() : BsdfNode(node_type)
+GlossyBsdfNode::GlossyBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
   distribution_orig = NBUILTIN_CLOSURES;
@@ -2463,7 +2463,7 @@ NODE_DEFINE(GlassBsdfNode)
   return type;
 }
 
-GlassBsdfNode::GlassBsdfNode() : BsdfNode(node_type)
+GlassBsdfNode::GlassBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_SHARP_GLASS_ID;
   distribution_orig = NBUILTIN_CLOSURES;
@@ -2556,7 +2556,7 @@ NODE_DEFINE(RefractionBsdfNode)
   return type;
 }
 
-RefractionBsdfNode::RefractionBsdfNode() : BsdfNode(node_type)
+RefractionBsdfNode::RefractionBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_REFRACTION_ID;
   distribution_orig = NBUILTIN_CLOSURES;
@@ -2644,7 +2644,7 @@ NODE_DEFINE(ToonBsdfNode)
   return type;
 }
 
-ToonBsdfNode::ToonBsdfNode() : BsdfNode(node_type)
+ToonBsdfNode::ToonBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_DIFFUSE_TOON_ID;
 }
@@ -2678,7 +2678,7 @@ NODE_DEFINE(VelvetBsdfNode)
   return type;
 }
 
-VelvetBsdfNode::VelvetBsdfNode() : BsdfNode(node_type)
+VelvetBsdfNode::VelvetBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 }
@@ -2709,7 +2709,7 @@ NODE_DEFINE(DiffuseBsdfNode)
   return type;
 }
 
-DiffuseBsdfNode::DiffuseBsdfNode() : BsdfNode(node_type)
+DiffuseBsdfNode::DiffuseBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_DIFFUSE_ID;
 }
@@ -2773,7 +2773,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   return type;
 }
 
-PrincipledBsdfNode::PrincipledBsdfNode() : BsdfBaseNode(node_type)
+PrincipledBsdfNode::PrincipledBsdfNode() : BsdfBaseNode(get_node_type())
 {
   closure = CLOSURE_BSDF_PRINCIPLED_ID;
   distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
@@ -2994,7 +2994,7 @@ NODE_DEFINE(TranslucentBsdfNode)
   return type;
 }
 
-TranslucentBsdfNode::TranslucentBsdfNode() : BsdfNode(node_type)
+TranslucentBsdfNode::TranslucentBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_TRANSLUCENT_ID;
 }
@@ -3023,7 +3023,7 @@ NODE_DEFINE(TransparentBsdfNode)
   return type;
 }
 
-TransparentBsdfNode::TransparentBsdfNode() : BsdfNode(node_type)
+TransparentBsdfNode::TransparentBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_TRANSPARENT_ID;
 }
@@ -3064,7 +3064,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
   return type;
 }
 
-SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(node_type)
+SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(get_node_type())
 {
   closure = falloff;
 }
@@ -3106,7 +3106,7 @@ NODE_DEFINE(EmissionNode)
   return type;
 }
 
-EmissionNode::EmissionNode() : ShaderNode(node_type)
+EmissionNode::EmissionNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -3155,7 +3155,7 @@ NODE_DEFINE(BackgroundNode)
   return type;
 }
 
-BackgroundNode::BackgroundNode() : ShaderNode(node_type)
+BackgroundNode::BackgroundNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -3203,7 +3203,7 @@ NODE_DEFINE(HoldoutNode)
   return type;
 }
 
-HoldoutNode::HoldoutNode() : ShaderNode(node_type)
+HoldoutNode::HoldoutNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -3241,7 +3241,7 @@ NODE_DEFINE(AmbientOcclusionNode)
   return type;
 }
 
-AmbientOcclusionNode::AmbientOcclusionNode() : ShaderNode(node_type)
+AmbientOcclusionNode::AmbientOcclusionNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -3329,7 +3329,7 @@ NODE_DEFINE(AbsorptionVolumeNode)
   return type;
 }
 
-AbsorptionVolumeNode::AbsorptionVolumeNode() : VolumeNode(node_type)
+AbsorptionVolumeNode::AbsorptionVolumeNode() : VolumeNode(get_node_type())
 {
   closure = CLOSURE_VOLUME_ABSORPTION_ID;
 }
@@ -3360,7 +3360,7 @@ NODE_DEFINE(ScatterVolumeNode)
   return type;
 }
 
-ScatterVolumeNode::ScatterVolumeNode() : VolumeNode(node_type)
+ScatterVolumeNode::ScatterVolumeNode() : VolumeNode(get_node_type())
 {
   closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
 }
@@ -3401,7 +3401,7 @@ NODE_DEFINE(PrincipledVolumeNode)
   return type;
 }
 
-PrincipledVolumeNode::PrincipledVolumeNode() : VolumeNode(node_type)
+PrincipledVolumeNode::PrincipledVolumeNode() : VolumeNode(get_node_type())
 {
   closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
   density_attribute = ustring("density");
@@ -3526,7 +3526,7 @@ NODE_DEFINE(PrincipledHairBsdfNode)
   return type;
 }
 
-PrincipledHairBsdfNode::PrincipledHairBsdfNode() : BsdfBaseNode(node_type)
+PrincipledHairBsdfNode::PrincipledHairBsdfNode() : BsdfBaseNode(get_node_type())
 {
   closure = CLOSURE_BSDF_HAIR_PRINCIPLED_ID;
 }
@@ -3637,7 +3637,7 @@ NODE_DEFINE(HairBsdfNode)
   return type;
 }
 
-HairBsdfNode::HairBsdfNode() : BsdfNode(node_type)
+HairBsdfNode::HairBsdfNode() : BsdfNode(get_node_type())
 {
   closure = CLOSURE_BSDF_HAIR_REFLECTION_ID;
 }
@@ -3677,7 +3677,7 @@ NODE_DEFINE(GeometryNode)
   return type;
 }
 
-GeometryNode::GeometryNode() : ShaderNode(node_type)
+GeometryNode::GeometryNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_GEOMETRY;
 }
@@ -3824,7 +3824,7 @@ NODE_DEFINE(TextureCoordinateNode)
   return type;
 }
 
-TextureCoordinateNode::TextureCoordinateNode() : ShaderNode(node_type)
+TextureCoordinateNode::TextureCoordinateNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -3971,7 +3971,7 @@ NODE_DEFINE(UVMapNode)
   return type;
 }
 
-UVMapNode::UVMapNode() : ShaderNode(node_type)
+UVMapNode::UVMapNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4060,7 +4060,7 @@ NODE_DEFINE(LightPathNode)
   return type;
 }
 
-LightPathNode::LightPathNode() : ShaderNode(node_type)
+LightPathNode::LightPathNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4160,7 +4160,7 @@ NODE_DEFINE(LightFalloffNode)
   return type;
 }
 
-LightFalloffNode::LightFalloffNode() : ShaderNode(node_type)
+LightFalloffNode::LightFalloffNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4217,7 +4217,7 @@ NODE_DEFINE(ObjectInfoNode)
   return type;
 }
 
-ObjectInfoNode::ObjectInfoNode() : ShaderNode(node_type)
+ObjectInfoNode::ObjectInfoNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4275,7 +4275,7 @@ NODE_DEFINE(ParticleInfoNode)
   return type;
 }
 
-ParticleInfoNode::ParticleInfoNode() : ShaderNode(node_type)
+ParticleInfoNode::ParticleInfoNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4382,7 +4382,7 @@ NODE_DEFINE(HairInfoNode)
   return type;
 }
 
-HairInfoNode::HairInfoNode() : ShaderNode(node_type)
+HairInfoNode::HairInfoNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4457,7 +4457,7 @@ NODE_DEFINE(VolumeInfoNode)
   return type;
 }
 
-VolumeInfoNode::VolumeInfoNode() : ShaderNode(node_type)
+VolumeInfoNode::VolumeInfoNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4538,7 +4538,7 @@ NODE_DEFINE(VertexColorNode)
   return type;
 }
 
-VertexColorNode::VertexColorNode() : ShaderNode(node_type)
+VertexColorNode::VertexColorNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4619,7 +4619,7 @@ NODE_DEFINE(ValueNode)
   return type;
 }
 
-ValueNode::ValueNode() : ShaderNode(node_type)
+ValueNode::ValueNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4653,7 +4653,7 @@ NODE_DEFINE(ColorNode)
   return type;
 }
 
-ColorNode::ColorNode() : ShaderNode(node_type)
+ColorNode::ColorNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4692,7 +4692,7 @@ NODE_DEFINE(AddClosureNode)
   return type;
 }
 
-AddClosureNode::AddClosureNode() : ShaderNode(node_type)
+AddClosureNode::AddClosureNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_COMBINE_CLOSURE;
 }
@@ -4736,7 +4736,7 @@ NODE_DEFINE(MixClosureNode)
   return type;
 }
 
-MixClosureNode::MixClosureNode() : ShaderNode(node_type)
+MixClosureNode::MixClosureNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_COMBINE_CLOSURE;
 }
@@ -4790,7 +4790,7 @@ NODE_DEFINE(MixClosureWeightNode)
   return type;
 }
 
-MixClosureWeightNode::MixClosureWeightNode() : ShaderNode(node_type)
+MixClosureWeightNode::MixClosureWeightNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4827,7 +4827,7 @@ NODE_DEFINE(InvertNode)
   return type;
 }
 
-InvertNode::InvertNode() : ShaderNode(node_type)
+InvertNode::InvertNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4903,7 +4903,7 @@ NODE_DEFINE(MixNode)
   return type;
 }
 
-MixNode::MixNode() : ShaderNode(node_type)
+MixNode::MixNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -4958,7 +4958,7 @@ NODE_DEFINE(CombineRGBNode)
   return type;
 }
 
-CombineRGBNode::CombineRGBNode() : ShaderNode(node_type)
+CombineRGBNode::CombineRGBNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5006,7 +5006,7 @@ NODE_DEFINE(CombineXYZNode)
   return type;
 }
 
-CombineXYZNode::CombineXYZNode() : ShaderNode(node_type)
+CombineXYZNode::CombineXYZNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5054,7 +5054,7 @@ NODE_DEFINE(CombineHSVNode)
   return type;
 }
 
-CombineHSVNode::CombineHSVNode() : ShaderNode(node_type)
+CombineHSVNode::CombineHSVNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5097,7 +5097,7 @@ NODE_DEFINE(GammaNode)
   return type;
 }
 
-GammaNode::GammaNode() : ShaderNode(node_type)
+GammaNode::GammaNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5153,7 +5153,7 @@ NODE_DEFINE(BrightContrastNode)
   return type;
 }
 
-BrightContrastNode::BrightContrastNode() : ShaderNode(node_type)
+BrightContrastNode::BrightContrastNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5198,7 +5198,7 @@ NODE_DEFINE(SeparateRGBNode)
   return type;
 }
 
-SeparateRGBNode::SeparateRGBNode() : ShaderNode(node_type)
+SeparateRGBNode::SeparateRGBNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5251,7 +5251,7 @@ NODE_DEFINE(SeparateXYZNode)
   return type;
 }
 
-SeparateXYZNode::SeparateXYZNode() : ShaderNode(node_type)
+SeparateXYZNode::SeparateXYZNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5304,7 +5304,7 @@ NODE_DEFINE(SeparateHSVNode)
   return type;
 }
 
-SeparateHSVNode::SeparateHSVNode() : ShaderNode(node_type)
+SeparateHSVNode::SeparateHSVNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5358,7 +5358,7 @@ NODE_DEFINE(HSVNode)
   return type;
 }
 
-HSVNode::HSVNode() : ShaderNode(node_type)
+HSVNode::HSVNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5401,7 +5401,7 @@ NODE_DEFINE(AttributeNode)
   return type;
 }
 
-AttributeNode::AttributeNode() : ShaderNode(node_type)
+AttributeNode::AttributeNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5489,7 +5489,7 @@ NODE_DEFINE(CameraNode)
   return type;
 }
 
-CameraNode::CameraNode() : ShaderNode(node_type)
+CameraNode::CameraNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5525,7 +5525,7 @@ NODE_DEFINE(FresnelNode)
   return type;
 }
 
-FresnelNode::FresnelNode() : ShaderNode(node_type)
+FresnelNode::FresnelNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5563,7 +5563,7 @@ NODE_DEFINE(LayerWeightNode)
   return type;
 }
 
-LayerWeightNode::LayerWeightNode() : ShaderNode(node_type)
+LayerWeightNode::LayerWeightNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5611,7 +5611,7 @@ NODE_DEFINE(WireframeNode)
   return type;
 }
 
-WireframeNode::WireframeNode() : ShaderNode(node_type)
+WireframeNode::WireframeNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5659,7 +5659,7 @@ NODE_DEFINE(WavelengthNode)
   return type;
 }
 
-WavelengthNode::WavelengthNode() : ShaderNode(node_type)
+WavelengthNode::WavelengthNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5689,7 +5689,7 @@ NODE_DEFINE(BlackbodyNode)
   return type;
 }
 
-BlackbodyNode::BlackbodyNode() : ShaderNode(node_type)
+BlackbodyNode::BlackbodyNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5728,7 +5728,7 @@ NODE_DEFINE(OutputNode)
   return type;
 }
 
-OutputNode::OutputNode() : ShaderNode(node_type)
+OutputNode::OutputNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_OUTPUT;
 }
@@ -5780,7 +5780,7 @@ NODE_DEFINE(MapRangeNode)
   return type;
 }
 
-MapRangeNode::MapRangeNode() : ShaderNode(node_type)
+MapRangeNode::MapRangeNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5868,7 +5868,7 @@ NODE_DEFINE(ClampNode)
   return type;
 }
 
-ClampNode::ClampNode() : ShaderNode(node_type)
+ClampNode::ClampNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -5923,7 +5923,7 @@ NODE_DEFINE(OutputAOVNode)
   return type;
 }
 
-OutputAOVNode::OutputAOVNode() : ShaderNode(node_type)
+OutputAOVNode::OutputAOVNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_OUTPUT_AOV;
   slot = -1;
@@ -6021,7 +6021,7 @@ NODE_DEFINE(MathNode)
   return type;
 }
 
-MathNode::MathNode() : ShaderNode(node_type)
+MathNode::MathNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6124,7 +6124,7 @@ NODE_DEFINE(VectorMathNode)
   return type;
 }
 
-VectorMathNode::VectorMathNode() : ShaderNode(node_type)
+VectorMathNode::VectorMathNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6213,7 +6213,7 @@ NODE_DEFINE(VectorRotateNode)
   return type;
 }
 
-VectorRotateNode::VectorRotateNode() : ShaderNode(node_type)
+VectorRotateNode::VectorRotateNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6269,7 +6269,7 @@ NODE_DEFINE(VectorTransformNode)
   return type;
 }
 
-VectorTransformNode::VectorTransformNode() : ShaderNode(node_type)
+VectorTransformNode::VectorTransformNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6317,7 +6317,7 @@ NODE_DEFINE(BumpNode)
   return type;
 }
 
-BumpNode::BumpNode() : ShaderNode(node_type)
+BumpNode::BumpNode() : ShaderNode(get_node_type())
 {
   special_type = SHADER_SPECIAL_TYPE_BUMP;
 }
@@ -6464,7 +6464,7 @@ NODE_DEFINE(RGBCurvesNode)
   return type;
 }
 
-RGBCurvesNode::RGBCurvesNode() : CurvesNode(node_type)
+RGBCurvesNode::RGBCurvesNode() : CurvesNode(get_node_type())
 {
 }
 
@@ -6501,7 +6501,7 @@ NODE_DEFINE(VectorCurvesNode)
   return type;
 }
 
-VectorCurvesNode::VectorCurvesNode() : CurvesNode(node_type)
+VectorCurvesNode::VectorCurvesNode() : CurvesNode(get_node_type())
 {
 }
 
@@ -6538,7 +6538,7 @@ NODE_DEFINE(RGBRampNode)
   return type;
 }
 
-RGBRampNode::RGBRampNode() : ShaderNode(node_type)
+RGBRampNode::RGBRampNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6611,7 +6611,7 @@ NODE_DEFINE(SetNormalNode)
   return type;
 }
 
-SetNormalNode::SetNormalNode() : ShaderNode(node_type)
+SetNormalNode::SetNormalNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6733,7 +6733,7 @@ NODE_DEFINE(NormalMapNode)
   return type;
 }
 
-NormalMapNode::NormalMapNode() : ShaderNode(node_type)
+NormalMapNode::NormalMapNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6827,7 +6827,7 @@ NODE_DEFINE(TangentNode)
   return type;
 }
 
-TangentNode::TangentNode() : ShaderNode(node_type)
+TangentNode::TangentNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6897,7 +6897,7 @@ NODE_DEFINE(BevelNode)
   return type;
 }
 
-BevelNode::BevelNode() : ShaderNode(node_type)
+BevelNode::BevelNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -6942,7 +6942,7 @@ NODE_DEFINE(DisplacementNode)
   return type;
 }
 
-DisplacementNode::DisplacementNode() : ShaderNode(node_type)
+DisplacementNode::DisplacementNode() : ShaderNode(get_node_type())
 {
 }
 
@@ -7001,7 +7001,7 @@ NODE_DEFINE(VectorDisplacementNode)
   return type;
 }
 
-VectorDisplacementNode::VectorDisplacementNode() : ShaderNode(node_type)
+VectorDisplacementNode::VectorDisplacementNode() : ShaderNode(get_node_type())
 {
 }
 

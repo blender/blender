@@ -283,7 +283,7 @@ void Hair::Curve::cardinal_keys_for_step(const float3 *curve_keys,
 
 NODE_DEFINE(Hair)
 {
-  NodeType *type = NodeType::add("hair", create, NodeType::NONE, Geometry::node_base_type);
+  NodeType *type = NodeType::add("hair", create, NodeType::NONE, Geometry::get_node_base_type());
 
   SOCKET_POINT_ARRAY(curve_keys, "Curve Keys", array<float3>());
   SOCKET_FLOAT_ARRAY(curve_radius, "Curve Radius", array<float>());
@@ -293,7 +293,7 @@ NODE_DEFINE(Hair)
   return type;
 }
 
-Hair::Hair() : Geometry(node_type, Geometry::HAIR)
+Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
 {
   curvekey_offset = 0;
   curve_shape = CURVE_RIBBON;
