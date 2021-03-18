@@ -98,7 +98,6 @@ static const ColorTemplate gp_stroke_material_black = {
 void ED_gpencil_create_lineart(bContext *C, Object *ob)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
   /* create colors */
