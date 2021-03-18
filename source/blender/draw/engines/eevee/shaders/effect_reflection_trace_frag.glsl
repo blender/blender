@@ -141,7 +141,7 @@ void main()
     data.is_hit = raytrace_planar(ray, params, planar_id, hit_sP);
   }
   else {
-    data.is_hit = raytrace(ray, params, true, hit_sP);
+    data.is_hit = raytrace(ray, params, true, false, hit_sP);
   }
   data.ray_pdf_inv = safe_rcp(pdf);
 

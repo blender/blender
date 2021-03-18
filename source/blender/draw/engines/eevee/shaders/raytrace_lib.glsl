@@ -105,6 +105,7 @@ struct RayTraceParameters {
 bool raytrace(Ray ray,
               RayTraceParameters params,
               const bool discard_backface,
+              const bool allow_self_intersection,
               out vec3 hit_position)
 {
   /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
@@ -114,10 +115,12 @@ bool raytrace(Ray ray,
 
   ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, params.thickness);
   /* Avoid no iteration. */
-  if (ssray.max_time < 1.1) {
+  if (!allow_self_intersection && ssray.max_time < 1.1) {
     hit_position = ssray.origin.xyz + ssray.direction.xyz;
     return false;
   }
+
+  ssray.max_time = max(1.1, ssray.max_time);
 
   float prev_delta = 0.0, prev_time = 0.0;
   float depth_sample = get_depth_from_view_z(ray.origin.z);
