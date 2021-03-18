@@ -65,8 +65,9 @@
 
 #include "armature_intern.h"
 
-/* ********************************************** */
-/* Pose Apply */
+/* -------------------------------------------------------------------- */
+/** \name Apply Pose as Rest Pose
+ * \{ */
 
 /* helper for apply_armature_pose2bones - fixes parenting of objects
  * that are bone-parented to armature */
@@ -500,6 +501,12 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
                   "Only apply the selected bones (with propagation to children)");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Apply Visual Transform Operator
+ * \{ */
+
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -557,8 +564,11 @@ void POSE_OT_visual_transform_apply(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Copy/Paste */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy/Paste Utilities
+ * \{ */
 
 /* This function is used to indicate that a bone is selected
  * and needs to be included in copy buffer (used to be for inserting keys)
@@ -733,7 +743,11 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
   return pchan;
 }
 
-/* ---- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Copy Pose Operator
+ * \{ */
 
 static int pose_copy_exec(bContext *C, wmOperator *op)
 {
@@ -799,7 +813,11 @@ void POSE_OT_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
-/* ---- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Paste Pose Operator
+ * \{ */
 
 static int pose_paste_exec(bContext *C, wmOperator *op)
 {
@@ -913,8 +931,11 @@ void POSE_OT_paste(wmOperatorType *ot)
                   "Only paste the stored pose on to selected bones in the current pose");
 }
 
-/* ********************************************** */
-/* Clear Pose Transforms */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Pose Transforms Utilities
+ * \{ */
 
 /* clear scale of pose-channel */
 static void pchan_clear_scale(bPoseChannel *pchan)
@@ -1207,7 +1228,11 @@ static int pose_clear_transform_generic_exec(bContext *C,
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-/* --------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Pose Scale Operator
+ * \{ */
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 {
@@ -1230,6 +1255,12 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Pose Rotation Operator
+ * \{ */
+
 static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
@@ -1251,6 +1282,12 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Pose Location Operator
+ * \{ */
+
 static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
@@ -1271,6 +1308,12 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear Pose Transforms Operator
+ * \{ */
 
 static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
 {
@@ -1294,8 +1337,11 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************************** */
-/* Clear User Transforms */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clear User Transforms Operator
+ * \{ */
 
 static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 {
@@ -1375,3 +1421,5 @@ void POSE_OT_user_transforms_clear(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna, "only_selected", true, "Only Selected", "Only visible/selected bones");
 }
+
+/** \} */
