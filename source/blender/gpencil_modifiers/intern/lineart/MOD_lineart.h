@@ -193,7 +193,7 @@ typedef struct LineartChainRegisterEntry {
   LineartLineChainItem *rlci;
   char picked;
 
-  /** left/right mark.
+  /* left/right mark.
    * Because we revert list in chaining so we need the flag. */
   char is_left;
 } LineartChainRegisterEntry;
@@ -220,7 +220,7 @@ typedef struct LineartRenderBuffer {
   ListBase triangle_adjacent_pointers;
 
   ListBase intersecting_vertex_buffer;
-  /** Use the one comes with Line Art. */
+  /* Use the one comes with Line Art. */
   LineartStaticMemPool render_data_pool;
   ListBase wasted_cuts;
   SpinLock lock_cuts;
@@ -258,7 +258,7 @@ typedef struct LineartRenderBuffer {
 
   ListBase chains;
 
-  /** For managing calculation tasks for multiple threads. */
+  /* For managing calculation tasks for multiple threads. */
   SpinLock lock_task;
 
   /*  settings */
@@ -281,7 +281,7 @@ typedef struct LineartRenderBuffer {
   bool allow_overlapping_edges;
   bool remove_doubles;
 
-  /** Keep an copy of these data so when line art is running it's self-contained. */
+  /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;
   float cam_obmat[4][4];
   double camera_pos[3];
@@ -291,6 +291,15 @@ typedef struct LineartRenderBuffer {
   float chaining_image_threshold;
   float chaining_geometry_threshold;
   float angle_splitting_threshold;
+
+  /* FIXME: (Yiming) Temporary solution for speeding up calculation by not including lines that
+   * are not in the selected source. This will not be needed after we have a proper scene-wise
+   * cache running because multiple modifiers can then select results from that without further
+   * calculation. */
+  int _source_type;
+  struct Collection *_source_collection;
+  struct Object *_source_object;
+
 } LineartRenderBuffer;
 
 #define DBL_TRIANGLE_LIM 1e-8

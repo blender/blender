@@ -1719,18 +1719,35 @@ static void lineart_geometry_object_load(Depsgraph *dg,
 #undef LRT_MESH_FINISH
 }
 
+static bool _lineart_object_not_in_source_collection(Collection *source, Object *ob)
+{
+  CollectionChild *cc;
+  Collection *c = source->id.orig_id ? (Collection *)source->id.orig_id : source;
+  if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+    return false;
+  }
+  for (cc = source->children.first; cc; cc = cc->next) {
+    if (!_lineart_object_not_in_source_collection(cc->collection, ob)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /* See if this object in such collection is used for generating line art,
- * Disabling a collection for line art will diable all objects inside. */
-static int lineart_usage_check(Collection *c, Object *ob)
+ * Disabling a collection for line art will diable all objects inside.
+ * "_rb" is used to provide source selection info. See the definition of rb->_source_type for
+ * details. */
+static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_rb)
 {
 
   if (!c) {
     return OBJECT_LRT_INHERENT;
   }
 
-  int object_is_used = (ob->lineart.usage != OBJECT_LRT_INHERENT);
+  int object_has_special_usage = (ob->lineart.usage != OBJECT_LRT_INHERENT);
 
-  if (object_is_used) {
+  if (object_has_special_usage) {
     return ob->lineart.usage;
   }
 
@@ -1755,9 +1772,22 @@ static int lineart_usage_check(Collection *c, Object *ob)
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
-    int result = lineart_usage_check(cc->collection, ob);
+    int result = lineart_usage_check(cc->collection, ob, _rb);
     if (result > OBJECT_LRT_INHERENT) {
       return result;
+    }
+  }
+
+  /* Temp solution to speed up calculation in the modifier without cache. See the definition of
+   * rb->_source_type for details. */
+  if (_rb->_source_type == LRT_SOURCE_OBJECT) {
+    if (ob != _rb->_source_object) {
+      return OBJECT_LRT_OCCLUSION_ONLY;
+    }
+  }
+  else if (_rb->_source_type == LRT_SOURCE_COLLECTION) {
+    if (_lineart_object_not_in_source_collection(_rb->_source_collection, ob)) {
+      return OBJECT_LRT_OCCLUSION_ONLY;
     }
   }
 
@@ -1813,7 +1843,7 @@ static void lineart_main_load_geometries(
   int global_i = 0;
 
   DEG_OBJECT_ITER_BEGIN (depsgraph, ob, flags) {
-    int usage = lineart_usage_check(scene->master_collection, ob);
+    int usage = lineart_usage_check(scene->master_collection, ob, rb);
 
     lineart_geometry_object_load(depsgraph, ob, view, proj, rb, usage, &global_i);
   }
@@ -2228,8 +2258,10 @@ static void lineart_vert_set_intersection_2v(LineartVert *rv, LineartVert *v1, L
   irv->isec2 = v2->index;
 }
 
-/* This tests a triangle against a virtual line represented by v1---v2. The vertices returned after
- * repeated calls to this function is then used to create a triangle/triangle intersection line. */
+/* This tests a triangle against a virtual line represented by v1---v2. The vertices returned
+ * after
+ * repeated calls to this function is then used to create a triangle/triangle intersection line.
+ */
 static LineartVert *lineart_triangle_2v_intersection_test(LineartRenderBuffer *rb,
                                                           LineartVert *v1,
                                                           LineartVert *v2,
@@ -2268,7 +2300,8 @@ static LineartVert *lineart_triangle_2v_intersection_test(LineartRenderBuffer *r
 
   interp_v3_v3v3_db(gloc, l->gloc, r->gloc, dot_l / (dot_l + dot_r));
 
-  /* Due to precision issue, we might end up with the same point as the one we already detected. */
+  /* Due to precision issue, we might end up with the same point as the one we already detected.
+   */
   if (last && LRT_DOUBLE_CLOSE_ENOUGH(last->gloc[0], gloc[0]) &&
       LRT_DOUBLE_CLOSE_ENOUGH(last->gloc[1], gloc[1]) &&
       LRT_DOUBLE_CLOSE_ENOUGH(last->gloc[2], gloc[2])) {
@@ -2401,8 +2434,8 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
     }
   }
 
-  /* The intersection line has been generated only in geometry space, so we need to transform them
-   * as well. */
+  /* The intersection line has been generated only in geometry space, so we need to transform
+   * them as well. */
   mul_v4_m4v3_db(v1->fbcoord, rb->view_projection, v1->gloc);
   mul_v4_m4v3_db(v2->fbcoord, rb->view_projection, v2->gloc);
   mul_v3db_db(v1->fbcoord, (1 / v1->fbcoord[3]));
@@ -2476,25 +2509,28 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
     testing_triangle = lip->data;
     rtt = (LineartTriangleThread *)testing_triangle;
 
-    if (testing_triangle == rt || rtt->testing_e[0] == (LineartEdge *)rt ||
-        (testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
+    if (testing_triangle == rt || rtt->testing_e[0] == (LineartEdge *)rt) {
+      continue;
+    }
+    rtt->testing_e[0] = (LineartEdge *)rt;
+
+    if ((testing_triangle->flags & LRT_TRIANGLE_NO_INTERSECTION) ||
         ((testing_triangle->flags & LRT_TRIANGLE_INTERSECTION_ONLY) &&
-         (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY)) ||
-        lineart_triangle_share_edge(rt, testing_triangle)) {
+         (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY))) {
       continue;
     }
 
-    rtt->testing_e[0] = (LineartEdge *)rt;
     double *RG0 = testing_triangle->v[0]->gloc, *RG1 = testing_triangle->v[1]->gloc,
            *RG2 = testing_triangle->v[2]->gloc;
 
-    /* Bounding box not overlapping, not potential of intersecting. */
+    /* Bounding box not overlapping or triangles share edges, not potential of intersecting. */
     if ((MIN3(G0[2], G1[2], G2[2]) > MAX3(RG0[2], RG1[2], RG2[2])) ||
         (MAX3(G0[2], G1[2], G2[2]) < MIN3(RG0[2], RG1[2], RG2[2])) ||
         (MIN3(G0[0], G1[0], G2[0]) > MAX3(RG0[0], RG1[0], RG2[0])) ||
         (MAX3(G0[0], G1[0], G2[0]) < MIN3(RG0[0], RG1[0], RG2[0])) ||
         (MIN3(G0[1], G1[1], G2[1]) > MAX3(RG0[1], RG1[1], RG2[1])) ||
-        (MAX3(G0[1], G1[1], G2[1]) < MIN3(RG0[1], RG1[1], RG2[1]))) {
+        (MAX3(G0[1], G1[1], G2[1]) < MIN3(RG0[1], RG1[1], RG2[1])) ||
+        lineart_triangle_share_edge(rt, testing_triangle)) {
       continue;
     }
 
@@ -3581,6 +3617,11 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
    * occlusion levels will get ignored. */
   rb->max_occlusion_level = MAX2(lmd->level_start, lmd->level_end);
 
+  /* FIXME: (Yiming) See definition of int LineartRenderBuffer::_source_type for detailes. */
+  rb->_source_type = lmd->source_type;
+  rb->_source_collection = lmd->source_collection;
+  rb->_source_object = lmd->source_object;
+
   /* Get view vector before loading geometries, because we detect feature lines there. */
   lineart_main_get_view_vector(rb);
   lineart_main_load_geometries(
@@ -3608,13 +3649,13 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
   lineart_main_perspective_division(rb);
 
   /* Triangle intersections are done here during sequential adding of them. Only after this,
-   * triangles and lines are all linked with acceleration structure, and the 2D occlusion stage can
-   * do its job. */
+   * triangles and lines are all linked with acceleration structure, and the 2D occlusion stage
+   * can do its job. */
   lineart_main_add_triangles(rb);
 
-  /* Link lines to acceleration structure, this can only be done after perspective division, if we
-   * do it after triangles being added, the acceleration structure has already been subdivided,
-   * this way we do less list manipulations. */
+  /* Link lines to acceleration structure, this can only be done after perspective division, if
+   * we do it after triangles being added, the acceleration structure has already been
+   * subdivided, this way we do less list manipulations. */
   lineart_main_link_lines(rb);
 
   /* "intersection_only" is preserved for being called in a standalone fashion.
@@ -3627,12 +3668,12 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
     lineart_main_occlusion_begin(rb);
 
     /* Chaining is all single threaded. See lineart_chain.c
-     * In this particular call, only lines that are geometrically connected (share the _exact_ same
-     * end point) will be chained together. */
+     * In this particular call, only lines that are geometrically connected (share the _exact_
+     * same end point) will be chained together. */
     MOD_lineart_chain_feature_lines(rb);
 
-    /* We are unable to take care of occlusion if we only connect end points, so here we do a spit,
-     * where the splitting point could be any cut in e->segments. */
+    /* We are unable to take care of occlusion if we only connect end points, so here we do a
+     * spit, where the splitting point could be any cut in e->segments. */
     MOD_lineart_chain_split_for_fixed_occlusion(rb);
 
     /* Then we connect chains based on the _proximity_ of their end points in geometry or image
