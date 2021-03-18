@@ -867,7 +867,7 @@ typedef struct LineartGpencilModifierData {
   float chaining_geometry_threshold;
   float chaining_image_threshold;
 
-  float pre_sample_length;
+  float resample_length;
 
   /* Ported from SceneLineArt flags. */
   int calculation_flags;

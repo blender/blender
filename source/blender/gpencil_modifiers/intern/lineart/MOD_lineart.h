@@ -549,7 +549,7 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   unsigned char transparency_mask,
                                   short thickness,
                                   float opacity,
-                                  float pre_sample_length,
+                                  float resample_length,
                                   const char *source_vgname,
                                   const char *vgname,
                                   int modifier_flags);
