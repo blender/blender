@@ -2093,7 +2093,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 
       if (value == NULL) {
         CLOG_ERROR(&LOG,
-                   "\"%s.%s\", NULL string passed (dont call in this case).",
+                   "\"%s.%s\", NULL string passed (don't call in this case).",
                    srna->identifier,
                    prop->identifier);
         DefRNA.error = true;
@@ -2102,7 +2102,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 
       if (!value[0]) {
         CLOG_ERROR(&LOG,
-                   "\"%s.%s\", empty string passed (dont call in this case).",
+                   "\"%s.%s\", empty string passed (don't call in this case).",
                    srna->identifier,
                    prop->identifier);
         DefRNA.error = true;

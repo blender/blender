@@ -1733,7 +1733,7 @@ static float project_paint_uvpixel_mask(const ProjPaintState *ps,
                     ps->mvert_eval[lt_vtri[1]].co,
                     ps->mvert_eval[lt_vtri[2]].co);
 #else
-      /* don't use because some modifiers dont have normal data (subsurf for eg) */
+      /* Don't use because some modifiers don't have normal data (subsurf for eg). */
       copy_v3_v3(no, (float *)ps->dm->getTessFaceData(ps->dm, tri_index, CD_NORMAL));
 #endif
     }

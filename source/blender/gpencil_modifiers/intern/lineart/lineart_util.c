@@ -130,11 +130,11 @@ void lineart_mem_destroy(LineartStaticMemPool *smp)
   }
 }
 
-void lineart_prepend_line_direct(LineartLine **first, void *node)
+void lineart_prepend_edge_direct(LineartEdge **first, void *node)
 {
-  LineartLine *ln = (LineartLine *)node;
-  ln->next = (*first);
-  (*first) = ln;
+  LineartEdge *e_n = (LineartEdge *)node;
+  e_n->next = (*first);
+  (*first) = e_n;
 }
 
 void lineart_prepend_pool(LinkNode **first, LineartStaticMemPool *smp, void *link)
@@ -215,7 +215,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
 
   LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->line_buffer_pointers) {
     count_this++;
-    sum_this += reln->element_count * sizeof(LineartLine);
+    sum_this += reln->element_count * sizeof(LineartEdge);
   }
   printf("             allocated %lu edge blocks, total %lu Bytes.\n", count_this, sum_this);
   total += sum_this;

@@ -282,7 +282,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
           m_wintab.maxAzimuth = Orientation[0].axMax;
           m_wintab.maxAltitude = Orientation[1].axMax;
         }
-        else { /* no so dont do tilt stuff */
+        else { /* No so don't do tilt stuff. */
           m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
         }
       }
@@ -1057,7 +1057,7 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
         m_wintab.maxAzimuth = Orientation[0].axMax;
         m_wintab.maxAltitude = Orientation[1].axMax;
       }
-      else { /* no so dont do tilt stuff */
+      else { /* No so don't do tilt stuff. */
         m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
       }
     }

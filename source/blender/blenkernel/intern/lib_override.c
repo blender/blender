@@ -2240,10 +2240,11 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
 
   local->tag |= LIB_TAG_OVERRIDE_LIBRARY_REFOK;
 
-  /* Full rebuild of Depsgraph! */
-  /* Note: this is really brute force, in theory updates from RNA should have handled this already,
-   * but for now let's play it safe. */
-  DEG_id_tag_update_ex(bmain, local, ID_RECALC_COPY_ON_WRITE);
+  /* Note: Since we reload full content from linked ID here, potentially from edited local
+   * override, we do not really have a way to know *what* is changed, so we need to rely on the
+   * massive destruction weapon of `ID_RECALC_ALL` here. */
+  DEG_id_tag_update_ex(bmain, local, ID_RECALC_ALL);
+  /* For same reason as above, also assume that the relationships between IDs changed. */
   DEG_relations_tag_update(bmain);
 }
 

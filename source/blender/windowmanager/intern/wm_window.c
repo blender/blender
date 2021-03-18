@@ -701,8 +701,8 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
   if (wm_init_state.size_x == 0) {
     wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
 
-    /* note!, this isnt quite correct, active screen maybe offset 1000s if PX,
-     * we'd need a wm_get_screensize like function that gives offset,
+    /* NOTE: this isn't quite correct, active screen maybe offset 1000s if PX,
+     * we'd need a #wm_get_screensize like function that gives offset,
      * in practice the window manager will likely move to the correct monitor */
     wm_init_state.start_x = 0;
     wm_init_state.start_y = 0;
@@ -1694,7 +1694,7 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
     LISTBASE_FOREACH (wmEvent *, event, &win->event_queue) {
       if (event->customdata == wt) {
         event->customdata = NULL;
-        event->type = EVENT_NONE; /* timer users customdata, dont want NULL == NULL */
+        event->type = EVENT_NONE; /* Timer users customdata, don't want `NULL == NULL`. */
       }
     }
   }

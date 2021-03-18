@@ -46,7 +46,7 @@ typedef struct LineartStaticMemPool {
 } LineartStaticMemPool;
 
 typedef struct LineartTriangleAdjacent {
-  struct LineartLine *rl[3];
+  struct LineartEdge *e[3];
 } LineartTriangleAdjacent;
 
 typedef struct LineartTriangle {
@@ -71,9 +71,9 @@ typedef struct LineartTriangleThread {
    * also re-used to store triangle-triangle pair for intersection testing stage.
    * Do not directly use LineartTriangleThread.
    * The size of LineartTriangle is dynamically allocated to contain set thread number of
-   * "testing" field. Worker threads will test lines against the "base" triangle.
-   * At least one thread is present, thus we always have at least testing[0]. */
-  struct LineartLine *testing[1];
+   * "testing_e" field. Worker threads will test lines against the "base" triangle.
+   * At least one thread is present, thus we always have at least testing_e[0]. */
+  struct LineartEdge *testing_e[1];
 } LineartTriangleThread;
 
 typedef enum eLineArtElementNodeFlag {
@@ -135,14 +135,14 @@ typedef enum eLineArtVertFlags {
   LRT_VERT_EDGE_USED = (1 << 1),
 } eLineArtVertFlags;
 
-typedef struct LineartLine {
+typedef struct LineartEdge {
   /* We only need link node kind of list here. */
-  struct LineartLine *next;
-  struct LineartVert *l, *r;
+  struct LineartEdge *next;
+  struct LineartVert *v1, *v2;
   /* Local vertex index for two ends, not puting in RenderVert because all verts are loaded, so as
    * long as fewer than half of the mesh edges are becoming a feature line, we save more memory. */
-  int l_obindex, r_obindex;
-  struct LineartTriangle *tl, *tr;
+  int v1_obindex, v2_obindex;
+  struct LineartTriangle *t1, *t2;
   ListBase segments;
   char min_occ;
 
@@ -154,7 +154,7 @@ typedef struct LineartLine {
    * another bit in flags to be able to show the difference.
    */
   struct Object *object_ref;
-} LineartLine;
+} LineartEdge;
 
 typedef struct LineartLineChain {
   struct LineartLineChain *next, *prev;
@@ -193,7 +193,7 @@ typedef struct LineartChainRegisterEntry {
   LineartLineChainItem *rlci;
   char picked;
 
-  /** left/right mark.
+  /* left/right mark.
    * Because we revert list in chaining so we need the flag. */
   char is_left;
 } LineartChainRegisterEntry;
@@ -220,7 +220,7 @@ typedef struct LineartRenderBuffer {
   ListBase triangle_adjacent_pointers;
 
   ListBase intersecting_vertex_buffer;
-  /** Use the one comes with Line Art. */
+  /* Use the one comes with Line Art. */
   LineartStaticMemPool render_data_pool;
   ListBase wasted_cuts;
   SpinLock lock_cuts;
@@ -232,33 +232,33 @@ typedef struct LineartRenderBuffer {
 
   unsigned int contour_count;
   unsigned int contour_processed;
-  LineartLine *contour_managed;
+  LineartEdge *contour_managed;
   /* Now changed to linknodes. */
-  LineartLine *contours;
+  LineartEdge *contours;
 
   unsigned int intersection_count;
   unsigned int intersection_processed;
-  LineartLine *intersection_managed;
-  LineartLine *intersection_lines;
+  LineartEdge *intersection_managed;
+  LineartEdge *intersection_lines;
 
   unsigned int crease_count;
   unsigned int crease_processed;
-  LineartLine *crease_managed;
-  LineartLine *crease_lines;
+  LineartEdge *crease_managed;
+  LineartEdge *crease_lines;
 
   unsigned int material_line_count;
   unsigned int material_processed;
-  LineartLine *material_managed;
-  LineartLine *material_lines;
+  LineartEdge *material_managed;
+  LineartEdge *material_lines;
 
   unsigned int edge_mark_count;
   unsigned int edge_mark_processed;
-  LineartLine *edge_mark_managed;
-  LineartLine *edge_marks;
+  LineartEdge *edge_mark_managed;
+  LineartEdge *edge_marks;
 
   ListBase chains;
 
-  /** For managing calculation tasks for multiple threads. */
+  /* For managing calculation tasks for multiple threads. */
   SpinLock lock_task;
 
   /*  settings */
@@ -281,7 +281,7 @@ typedef struct LineartRenderBuffer {
   bool allow_overlapping_edges;
   bool remove_doubles;
 
-  /** Keep an copy of these data so when line art is running it's self-contained. */
+  /* Keep an copy of these data so when line art is running it's self-contained. */
   bool cam_is_persp;
   float cam_obmat[4][4];
   double camera_pos[3];
@@ -291,6 +291,15 @@ typedef struct LineartRenderBuffer {
   float chaining_image_threshold;
   float chaining_geometry_threshold;
   float angle_splitting_threshold;
+
+  /* FIXME: (Yiming) Temporary solution for speeding up calculation by not including lines that
+   * are not in the selected source. This will not be needed after we have a proper scene-wise
+   * cache running because multiple modifiers can then select results from that without further
+   * calculation. */
+  int _source_type;
+  struct Collection *_source_collection;
+  struct Object *_source_object;
+
 } LineartRenderBuffer;
 
 #define DBL_TRIANGLE_LIM 1e-8
@@ -307,30 +316,30 @@ typedef enum eLineartTriangleFlags {
   LRT_TRIANGLE_NO_INTERSECTION = (1 << 4),
 } eLineartTriangleFlags;
 
-/** Controls how many lines a worker thread is processing at one request.
+/** Controls how many edges a worker thread is processing at one request.
  * There's no significant performance impact on choosing different values.
  * Don't make it too small so that the worker thread won't request too many times. */
-#define LRT_THREAD_LINE_COUNT 1000
+#define LRT_THREAD_EDGE_COUNT 1000
 
 typedef struct LineartRenderTaskInfo {
   struct LineartRenderBuffer *rb;
 
   int thread_id;
 
-  LineartLine *contour;
-  LineartLine *contour_end;
+  LineartEdge *contour;
+  LineartEdge *contour_end;
 
-  LineartLine *intersection;
-  LineartLine *intersection_end;
+  LineartEdge *intersection;
+  LineartEdge *intersection_end;
 
-  LineartLine *crease;
-  LineartLine *crease_end;
+  LineartEdge *crease;
+  LineartEdge *crease_end;
 
-  LineartLine *material;
-  LineartLine *material_end;
+  LineartEdge *material;
+  LineartEdge *material_end;
 
-  LineartLine *edge_mark;
-  LineartLine *edge_mark_end;
+  LineartEdge *edge_mark;
+  LineartEdge *edge_mark_end;
 
 } LineartRenderTaskInfo;
 
@@ -535,12 +544,12 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   int level_start,
                                   int level_end,
                                   int mat_nr,
-                                  short line_types,
+                                  short edge_types,
                                   unsigned char transparency_flags,
                                   unsigned char transparency_mask,
                                   short thickness,
                                   float opacity,
-                                  float pre_sample_length,
+                                  float resample_length,
                                   const char *source_vgname,
                                   const char *vgname,
                                   int modifier_flags);

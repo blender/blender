@@ -879,6 +879,16 @@ class Vector {
     return IndexRange(this->size());
   }
 
+  friend bool operator==(const Vector &a, const Vector &b)
+  {
+    return a.as_span() == b.as_span();
+  }
+
+  friend bool operator!=(const Vector &a, const Vector &b)
+  {
+    return !(a == b);
+  }
+
   /**
    * Print some debug information about the vector.
    */

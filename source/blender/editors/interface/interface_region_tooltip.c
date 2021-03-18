@@ -240,7 +240,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fstyle_mono.uifont_id = blf_mono_font;
 
       UI_fontstyle_set(&fstyle_mono);
-      /* XXX, needed because we dont have mono in 'U.uifonts' */
+      /* XXX, needed because we don't have mono in 'U.uifonts' */
       BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
       rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
       UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, drawcol, &fs_params);

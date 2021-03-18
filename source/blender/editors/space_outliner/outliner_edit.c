@@ -1105,36 +1105,6 @@ bool outliner_flag_flip(ListBase *lb, short flag)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Restriction Column Utility
- * \{ */
-
-/* same check needed for both object operation and restrict column button func
- * return 0 when in edit mode (cannot restrict view or select)
- * otherwise return 1 */
-int common_restrict_check(bContext *C, Object *ob)
-{
-  /* Don't allow hide an object in edit mode,
-   * check the bugs (T22153 and T21609, T23977).
-   */
-  Object *obedit = CTX_data_edit_object(C);
-  if (obedit && obedit == ob) {
-    /* found object is hidden, reset */
-    if (ob->restrictflag & OB_RESTRICT_VIEWPORT) {
-      ob->restrictflag &= ~OB_RESTRICT_VIEWPORT;
-    }
-    /* found object is unselectable, reset */
-    if (ob->restrictflag & OB_RESTRICT_SELECT) {
-      ob->restrictflag &= ~OB_RESTRICT_SELECT;
-    }
-    return 0;
-  }
-
-  return 1;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Toggle Expanded (Outliner) Operator
  * \{ */
 

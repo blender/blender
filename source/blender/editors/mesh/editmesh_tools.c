@@ -853,7 +853,7 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 }
 static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_desel, BMFace *f)
 {
-  /* now we need to find the edge that isnt connected to this element */
+  /* Now we need to find the edge that isn't connected to this element. */
   BM_select_history_clear(bm);
 
   /* Notes on hidden geometry:
@@ -896,7 +896,7 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
 
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
-  /* when this is used to dissolve we could avoid this, but checking isnt too slow */
+  /* When this is used to dissolve we could avoid this, but checking isn't too slow. */
   bool changed_multi = false;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
@@ -4815,11 +4815,11 @@ static bool edbm_fill_grid_prepare(BMesh *bm, int offset, int *span_p, const boo
 
     if (span_calc) {
       /* calculate the span by finding the next corner in 'verts'
-       * we dont know what defines a corner exactly so find the 4 verts
+       * we don't know what defines a corner exactly so find the 4 verts
        * in the loop with the greatest angle.
        * Tag them and use the first tagged vertex to calculate the span.
        *
-       * note: we may have already checked 'edbm_fill_grid_vert_tag_angle()' on each
+       * NOTE: we may have already checked 'edbm_fill_grid_vert_tag_angle()' on each
        * vert, but advantage of de-duplicating is minimal. */
       struct SortPtrByFloat *ele_sort = MEM_mallocN(sizeof(*ele_sort) * verts_len, __func__);
       LinkData *v_link;

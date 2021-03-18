@@ -97,7 +97,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
   snapGrid(t, angle_rad);
 #else
   /* hrmf, snapping radius is using 'angle' steps, need to convert to something else
-   * this isnt essential but nicer to give reasonable snapping values for radius */
+   * this isn't essential but nicer to give reasonable snapping values for radius. */
   if (t->tsnap.mode & SCE_SNAP_MODE_INCREMENT) {
     const float radius_snap = 0.1f;
     const float snap_hack = (t->snap[0] * data->warp_init_dist) / radius_snap;

@@ -939,7 +939,7 @@ static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
  * intended for speed over flexibility.
  * can only collapse edges connected to (1, 2) tris.
  *
- * Important - dont add vert/edge/face data on collapsing!
+ * Important - don't add vert/edge/face data on collapsing!
  *
  * \param r_e_clear_other: Let caller know what edges we remove besides \a e_clear
  * \param customdata_flag: Merge factor, scales from 0 - 1 ('v_clear' -> 'v_other')
@@ -1394,7 +1394,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
        * \note
        * - `eheap_table[e_index_mirr]` is only removed from the heap at the last moment
        *   since its possible (in theory) for collapsing `e` to remove `e_mirr`.
-       * - edges sharing a vertex are ignored, so the pivot vertex isnt moved to one side.
+       * - edges sharing a vertex are ignored, so the pivot vertex isn't moved to one side.
        */
 
       BMEdge *e = BLI_heap_pop_min(eheap);

@@ -90,9 +90,9 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      "Subdivide stroke adding more control points"},
     {eGpencilModifierType_Lineart,
      "GP_LINEART",
-     ICON_MOD_EDGESPLIT,
+     ICON_MOD_EDGESPLIT, /* TODO: Use a proper icon. */
      "Line Art",
-     "Generate Line Art strokes from selected source"},
+     "Generate line art strokes from selected source"},
     {0, "", 0, N_("Deform"), ""},
     {eGpencilModifierType_Armature,
      "GP_ARMATURE",
@@ -2327,7 +2327,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "LineartGpencilModifier", "GpencilModifier");
   RNA_def_struct_ui_text(
-      srna, "Line Art Modifier", "Generate Line Art strokes from selected source");
+      srna, "Line Art Modifier", "Generate line art strokes from selected source");
   RNA_def_struct_sdna(srna, "LineartGpencilModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
 
@@ -2355,9 +2355,10 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "allow_overlapping_edges", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_OVERLAPPING_EDGES);
-  RNA_def_property_ui_text(prop,
-                           "Handle Overlapping Edges",
-                           "Allow lines from edge split to show properly, may run slower");
+  RNA_def_property_ui_text(
+      prop,
+      "Handle Overlapping Edges",
+      "Allow edges in the same location (i.e. from edge split) to show properly. May run slower");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "allow_clipping_boundaries", PROP_BOOLEAN, PROP_NONE);
@@ -2384,13 +2385,13 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "remove_doubles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_REMOVE_DOUBLES);
   RNA_def_property_ui_text(
-      prop, "Remove Doubles", "Remove doubles when line art is loading geometries");
+      prop, "Remove Doubles", "Remove doubles from the source geometry before generating stokes");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "chaining_geometry_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(prop,
                            "Geometry Threshold",
-                           "Segments where their geometric distance between them lower than this "
+                           "Segments with a geometric distance between them lower than this "
                            "will be chained together");
   RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.001f, 3);
   RNA_def_property_range(prop, 0.0f, 0.5f);
@@ -2407,7 +2408,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "source_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, modifier_lineart_source_type);
-  RNA_def_property_ui_text(prop, "Source Type", "Lineart stroke source type");
+  RNA_def_property_ui_text(prop, "Source Type", "Line art stroke source type");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "source_object", PROP_POINTER, PROP_NONE);
@@ -2415,7 +2416,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(
-      prop, "Source Object", "Source object that this modifier grabs data from");
+      prop, "Source Object", "Source object that this modifier uses data from");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   prop = RNA_def_property(srna, "source_collection", PROP_POINTER, PROP_NONE);
@@ -2428,46 +2429,46 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   /* types */
   prop = RNA_def_property(srna, "use_contour", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "line_types", LRT_EDGE_FLAG_CONTOUR);
-  RNA_def_property_ui_text(prop, "Use Contour", "Include contour lines in the result");
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_CONTOUR);
+  RNA_def_property_ui_text(prop, "Use Contour", "Generate strokes from contours lines");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_crease", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "line_types", LRT_EDGE_FLAG_CREASE);
-  RNA_def_property_ui_text(prop, "Use Crease", "Include sharp edges in the result");
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_CREASE);
+  RNA_def_property_ui_text(prop, "Use Crease", "Generate strokes from creased edges");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_material", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "line_types", LRT_EDGE_FLAG_MATERIAL);
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_MATERIAL);
   RNA_def_property_ui_text(
-      prop, "Use Material", "Include material separation lines in the result");
+      prop, "Use Material", "Generate strokes from borders between materials");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_edge_mark", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "line_types", LRT_EDGE_FLAG_EDGE_MARK);
-  RNA_def_property_ui_text(prop, "Use Edge Mark", "Include freestyle edge marks in the result");
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_EDGE_MARK);
+  RNA_def_property_ui_text(prop, "Use Edge Mark", "Generate strokes from freestyle marked edges");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_intersection", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "line_types", LRT_EDGE_FLAG_INTERSECTION);
-  RNA_def_property_ui_text(prop, "Use Intersection", "Include intersection lines in the result");
+  RNA_def_property_boolean_sdna(prop, NULL, "edge_types", LRT_EDGE_FLAG_INTERSECTION);
+  RNA_def_property_ui_text(prop, "Use Intersection", "Generate strokes from intersections");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_multiple_levels", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_multiple_levels", 0);
   RNA_def_property_ui_text(
-      prop, "Use Multiple Levels", "Select lines from multiple occlusion levels");
+      prop, "Use Occlusion Range", "Generate strokes from a range of occlusion levels");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "level_start", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(
-      prop, "Level Start", "Minimum level of occlusion level that gets selected");
+      prop, "Level Start", "Minimum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "level_end", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(
-      prop, "Level End", "Maximum level of occlusion level that gets selected");
+      prop, "Level End", "Maximum number of occlusions for the generated strokes");
   RNA_def_property_range(prop, 0, 128);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2488,7 +2489,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Source Vertex Group",
-      "Matches the beginning of vertex group names from mesh objects, match all when left empty");
+      "Match the beginning of vertex group names from mesh objects, match all when left empty");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
@@ -2499,18 +2500,18 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert_source_vertex_group", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_INVERT_SOURCE_VGROUP);
-  RNA_def_property_ui_text(prop, "Invert Source", "Invert source vertex group values");
+  RNA_def_property_ui_text(prop, "Invert Vertex Group", "Invert source vertex group values");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "match_output_vertex_group", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_MATCH_OUTPUT_VGROUP);
-  RNA_def_property_ui_text(prop, "Match Output", "Match output vertex group");
+  RNA_def_property_ui_text(prop, "Match Output", "Match output vertex group based on name");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "soft_selection", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_SOFT_SELECTION);
   RNA_def_property_ui_text(
-      prop, "Soft selection", "Preserve original vertex weight instead of clipping to 0/1");
+      prop, "Clip", "Preserve original vertex weight instead of clipping to 0/1");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
@@ -2519,19 +2520,22 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Thickness", "The thickness that used to generate strokes");
+  RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
   RNA_def_property_ui_range(prop, 1, 100, 1, 1);
   RNA_def_property_range(prop, 1, 200);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Opacity", "The strength value used to generate strokes");
+  RNA_def_property_ui_text(prop, "Opacity", "The strength value for the generate strokes");
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 2);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "pre_sample_length", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Pre Sample Length", "Sample strokes before sending out");
+  prop = RNA_def_property(srna, "resample_length", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_ui_text(prop,
+                           "Resample Length",
+                           "Resample the strokes so that the stroke points have the specified "
+                           "length between them. Zero length disables the resampling");
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 2);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -2539,52 +2543,53 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_transparency", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_flags", LRT_GPENCIL_TRANSPARENCY_ENABLE);
   RNA_def_property_ui_text(
-      prop, "Use Transparency", "Use transparency mask from this material in Line Art");
+      prop, "Use Transparency", "Use transparency mask from this material in line art");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_match", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_flags", LRT_GPENCIL_TRANSPARENCY_MATCH);
-  RNA_def_property_ui_text(prop, "Match Transparency", "Match all transparency bits");
+  RNA_def_property_ui_text(
+      prop, "Match Transparency", "Require matching all transparency masks instead of just one");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_0", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 0);
-  RNA_def_property_ui_text(prop, "Mask 0", "Mask bit 0");
+  RNA_def_property_ui_text(prop, "Mask 0", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_1", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 1);
-  RNA_def_property_ui_text(prop, "Mask 1", "Mask bit 1");
+  RNA_def_property_ui_text(prop, "Mask 1", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_2", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 2);
-  RNA_def_property_ui_text(prop, "Mask 2", "Mask bit 2");
+  RNA_def_property_ui_text(prop, "Mask 2", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_3", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 3);
-  RNA_def_property_ui_text(prop, "Mask 3", "Mask bit 3");
+  RNA_def_property_ui_text(prop, "Mask 3", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_4", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 4);
-  RNA_def_property_ui_text(prop, "Mask 4", "Mask bit 4");
+  RNA_def_property_ui_text(prop, "Mask 4", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_5", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 5);
-  RNA_def_property_ui_text(prop, "Mask 5", "Mask bit 5");
+  RNA_def_property_ui_text(prop, "Mask 5", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_6", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 6);
-  RNA_def_property_ui_text(prop, "mask 6", "Mask bit 6");
+  RNA_def_property_ui_text(prop, "Mask 6", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "transparency_mask_7", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 7);
-  RNA_def_property_ui_text(prop, "Mask 7", "Mask bit 7");
+  RNA_def_property_ui_text(prop, "Mask 7", "");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 

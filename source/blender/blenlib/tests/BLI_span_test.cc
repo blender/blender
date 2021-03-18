@@ -404,4 +404,21 @@ TEST(span, ImplicitConversions)
   BLI_STATIC_ASSERT((!std::is_convertible_v<Span<int *>, MutableSpan<const int *>>), "");
 }
 
+TEST(span, Comparison)
+{
+  std::array<int, 3> a = {3, 4, 5};
+  std::array<int, 4> b = {3, 4, 5, 6};
+
+  EXPECT_FALSE(Span(a) == Span(b));
+  EXPECT_FALSE(Span(b) == Span(a));
+  EXPECT_TRUE(Span(a) == Span(b).take_front(3));
+  EXPECT_TRUE(Span(a) == Span(a));
+  EXPECT_TRUE(Span(b) == Span(b));
+
+  EXPECT_TRUE(Span(a) != Span(b));
+  EXPECT_TRUE(Span(b) != Span(a));
+  EXPECT_FALSE(Span(a) != Span(b).take_front(3));
+  EXPECT_FALSE(Span(a) != Span(a));
+}
+
 }  // namespace blender::tests

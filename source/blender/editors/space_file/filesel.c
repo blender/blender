@@ -639,7 +639,7 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *region)
    *
    * - *_item: size of each (row|col), (including padding)
    * - *_view: (x|y) size of the view.
-   * - *_over: extra pixels, to take into account, when the fit isnt exact
+   * - *_over: extra pixels, to take into account, when the fit isn't exact
    *   (needed since you may see the end of the previous column and the beginning of the next).
    *
    * Could be more clever and take scrolling into account,

@@ -650,7 +650,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
   prop = RNA_struct_find_property(op->ptr, "error_threshold");
   if (!RNA_property_is_set(op->ptr, prop)) {
 
-    /* error isnt set so we'll have to calculate it from the pixel values */
+    /* Error isn't set so we'll have to calculate it from the pixel values. */
     BLI_mempool_iter iter;
     const struct StrokeElem *selem, *selem_prev;
 

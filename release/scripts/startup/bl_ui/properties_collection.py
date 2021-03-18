@@ -62,18 +62,6 @@ class COLLECTION_PT_collection_flags(CollectionButtonsPanel, Panel):
         col.prop(vlc, "indirect_only", toggle=False)
 
 
-class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
-    bl_label = "Line Art"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        collection = context.collection
-
-        row = layout.row()
-        row.prop(collection, "lineart_usage")
-
 class COLLECTION_PT_instancing(CollectionButtonsPanel, Panel):
     bl_label = "Instancing"
 
@@ -86,10 +74,24 @@ class COLLECTION_PT_instancing(CollectionButtonsPanel, Panel):
         row = layout.row()
         row.prop(collection, "instance_offset")
 
+
+class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
+    bl_label = "Line Art"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        collection = context.collection
+
+        row = layout.row()
+        row.prop(collection, "lineart_usage")
+
+
 classes = (
     COLLECTION_PT_collection_flags,
-    COLLECTION_PT_lineart_collection,
     COLLECTION_PT_instancing,
+    COLLECTION_PT_lineart_collection,
 )
 
 if __name__ == "__main__":  # only for live edit.

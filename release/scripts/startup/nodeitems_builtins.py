@@ -518,7 +518,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
         NodeItem("GeometryNodeEdgeSplit"),
-        NodeItem("GeometryNodeSubdivideSmooth"),
+        NodeItem("GeometryNodeSubdivisionSurface"),
         NodeItem("GeometryNodeSubdivide"),
 
         # These should be in a sub-menu, but that requires a refactor to build the add menu manually.

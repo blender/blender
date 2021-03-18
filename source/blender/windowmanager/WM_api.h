@@ -727,7 +727,7 @@ enum {
 };
 
 /**
- * Identifying jobs by owner alone is unreliable, this isnt saved,
+ * Identifying jobs by owner alone is unreliable, this isn't saved,
  * order can change (keep 0 for 'any').
  */
 enum {

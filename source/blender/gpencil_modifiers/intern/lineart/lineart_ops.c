@@ -105,12 +105,12 @@ static bool bake_strokes(Object *ob, Depsgraph *dg, GpencilModifierData *md, int
       lmd->level_start,
       lmd->use_multiple_levels ? lmd->level_end : lmd->level_start,
       lmd->target_material ? BKE_gpencil_object_material_index_get(ob, lmd->target_material) : 0,
-      lmd->line_types,
+      lmd->edge_types,
       lmd->transparency_flags,
       lmd->transparency_mask,
       lmd->thickness,
       lmd->opacity,
-      lmd->pre_sample_length,
+      lmd->resample_length,
       lmd->source_vertex_group,
       lmd->vgname,
       lmd->flags);
@@ -355,6 +355,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
       continue;
     }
     BKE_gpencil_free_frames(gpl);
+    BKE_gpencil_frame_addnew(gpl, 0);
 
     md->mode |= eGpencilModifierMode_Realtime | eGpencilModifierMode_Render;
 
@@ -402,7 +403,7 @@ void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
 void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 {
   ot->name = "Bake Line Art (All)";
-  ot->description = "Bake all GPencil objects who has at least one Line Art modifier";
+  ot->description = "Bake all Grease Pencil objects that have a line art modifier";
   ot->idname = "OBJECT_OT_lineart_bake_strokes_all";
 
   ot->invoke = lineart_gpencil_bake_strokes_all_invoke;
@@ -424,7 +425,7 @@ void OBJECT_OT_lineart_clear(wmOperatorType *ot)
 void OBJECT_OT_lineart_clear_all(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art (All)";
-  ot->description = "Clear all strokes in all GPencil obejcts who has a Line Art modifier";
+  ot->description = "Clear all strokes in all Grease Pencil objects that have a line art modifier";
   ot->idname = "OBJECT_OT_lineart_clear_all";
 
   ot->exec = lineart_gpencil_clear_strokes_all_exec;

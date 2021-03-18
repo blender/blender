@@ -98,7 +98,6 @@ static const ColorTemplate gp_stroke_material_black = {
 void ED_gpencil_create_lineart(bContext *C, Object *ob)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
   /* create colors */
@@ -111,7 +110,7 @@ void ED_gpencil_create_lineart(bContext *C, Object *ob)
   bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
 
   /* frames */
-  BKE_gpencil_frame_addnew(lines, CFRA);
+  BKE_gpencil_frame_addnew(lines, 0);
 
   /* update depsgraph */
   /* To trigger modifier update, this is still needed although we don't have any strokes. */

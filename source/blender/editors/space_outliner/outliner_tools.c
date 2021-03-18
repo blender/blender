@@ -784,10 +784,10 @@ typedef struct OutlinerLibOverrideData {
 } OutlinerLibOverrideData;
 
 static void id_override_library_create_fn(bContext *C,
-                                          ReportList *UNUSED(reports),
-                                          Scene *UNUSED(scene),
+                                          ReportList *reports,
+                                          Scene *scene,
                                           TreeElement *te,
-                                          TreeStoreElem *UNUSED(tsep),
+                                          TreeStoreElem *tsep,
                                           TreeStoreElem *tselem,
                                           void *user_data)
 {
@@ -795,6 +795,21 @@ static void id_override_library_create_fn(bContext *C,
   ID *id_root = tselem->id;
   OutlinerLibOverrideData *data = user_data;
   const bool do_hierarchy = data->do_hierarchy;
+  bool success = false;
+
+  ID *id_reference = NULL;
+  bool is_override_instancing_object = false;
+  if (tsep != NULL && tsep->type == TSE_SOME_ID && tsep->id != NULL &&
+      GS(tsep->id->name) == ID_OB) {
+    Object *ob = (Object *)tsep->id;
+    if (ob->type == OB_EMPTY && &ob->instance_collection->id == id_root) {
+      BLI_assert(GS(id_root->name) == ID_GR);
+      /* Empty instantiating the collection we override, we need to pass it to BKE overriding code
+       * for proper handling. */
+      id_reference = tsep->id;
+      is_override_instancing_object = true;
+    }
+  }
 
   if (ID_IS_OVERRIDABLE_LIBRARY(id_root) || (ID_IS_LINKED(id_root) && do_hierarchy)) {
     Main *bmain = CTX_data_main(C);
@@ -824,19 +839,28 @@ static void id_override_library_create_fn(bContext *C,
         }
         te->store_elem->id->tag |= LIB_TAG_DOIT;
       }
-      BKE_lib_override_library_create(
-          bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, NULL);
+      success = BKE_lib_override_library_create(
+          bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root, id_reference);
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
-      BKE_lib_override_library_create_from_id(bmain, id_root, true);
+      success = BKE_lib_override_library_create_from_id(bmain, id_root, true) != NULL;
 
       /* Cleanup. */
       BKE_main_id_clear_newpoins(bmain);
       BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
     }
+
+    /* Remove the instance empty from this scene, the items now have an overridden collection
+     * instead. */
+    if (success && is_override_instancing_object) {
+      ED_object_base_free_and_unlink(bmain, scene, (Object *)id_reference);
+    }
   }
-  else {
-    CLOG_WARN(&LOG, "Could not create library override for data block '%s'", id_root->name);
+  if (!success) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Could not create library override from data-block '%s'",
+                id_root->name);
   }
 }
 
@@ -1751,13 +1775,13 @@ static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
      "OVERRIDE_LIBRARY_CREATE",
      0,
-     "Add Library Override",
-     "Add a local override of this linked data-block"},
+     "Make Library Override",
+     "Make a local override of this linked data-block"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
      "OVERRIDE_LIBRARY_CREATE_HIERARCHY",
      0,
-     "Add Library Override Hierarchy",
-     "Add a local override of this linked data-block, and its hierarchy of dependencies"},
+     "Make Library Override Hierarchy",
+     "Make a local override of this linked data-block, and its hierarchy of dependencies"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_PROXY_CONVERT,
      "OVERRIDE_LIBRARY_PROXY_CONVERT",
      0,

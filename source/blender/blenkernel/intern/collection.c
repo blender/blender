@@ -485,6 +485,11 @@ void BKE_collection_add_from_collection(Main *bmain,
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
+    else if (!is_instantiated && collection_find_child(collection, collection_dst)) {
+      /* If given collection_dst is already instantiated in scene, even if its 'model' src one is
+       * not, do not add it to master scene collection. */
+      is_instantiated = true;
+    }
   }
   FOREACH_SCENE_COLLECTION_END;
 

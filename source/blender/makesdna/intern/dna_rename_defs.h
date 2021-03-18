@@ -129,3 +129,4 @@ DNA_STRUCT_RENAME_ELEM(RigidBodyWorld, steps_per_second, substeps_per_frame)
 /* Write with a different name, old Blender versions crash loading files with non-NULL
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)
+DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, line_types, edge_types)

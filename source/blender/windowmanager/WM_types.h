@@ -370,6 +370,8 @@ typedef struct wmNotifier {
 #define ND_DRAW_RENDER_VIEWPORT \
   (31 << 16) /* for camera & sequencer viewport update, also /w NC_SCENE */
 #define ND_SHADERFX (32 << 16)
+/* For updating motion paths in 3dview. */
+#define ND_DRAW_ANIMVIZ (33 << 16)
 
 /* NC_MATERIAL Material */
 #define ND_SHADING (30 << 16)
