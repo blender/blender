@@ -384,7 +384,7 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy &mem
 {
   MemoryBuffer *imageBuffer = memoryProxy.getBuffer();
   MemoryBuffer *result = new MemoryBuffer(&memoryProxy, rect);
-  result->copyContentFrom(imageBuffer);
+  result->fill_from(*imageBuffer);
   return result;
 }
 

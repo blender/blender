@@ -132,7 +132,7 @@ float MemoryBuffer::getMaximumValue(rcti *rect)
 
   if (!BLI_rcti_is_empty(&rect_clamp)) {
     MemoryBuffer temp_buffer(this->m_datatype, rect_clamp);
-    temp_buffer.copyContentFrom(this);
+    temp_buffer.fill_from(*this);
     return temp_buffer.getMaximumValue();
   }
 
@@ -148,28 +148,23 @@ MemoryBuffer::~MemoryBuffer()
   }
 }
 
-void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
+void MemoryBuffer::fill_from(const MemoryBuffer &src)
 {
-  if (!otherBuffer) {
-    BLI_assert(0);
-    return;
-  }
   unsigned int otherY;
-  unsigned int minX = MAX2(this->m_rect.xmin, otherBuffer->m_rect.xmin);
-  unsigned int maxX = MIN2(this->m_rect.xmax, otherBuffer->m_rect.xmax);
-  unsigned int minY = MAX2(this->m_rect.ymin, otherBuffer->m_rect.ymin);
-  unsigned int maxY = MIN2(this->m_rect.ymax, otherBuffer->m_rect.ymax);
+  unsigned int minX = MAX2(this->m_rect.xmin, src.m_rect.xmin);
+  unsigned int maxX = MIN2(this->m_rect.xmax, src.m_rect.xmax);
+  unsigned int minY = MAX2(this->m_rect.ymin, src.m_rect.ymin);
+  unsigned int maxY = MIN2(this->m_rect.ymax, src.m_rect.ymax);
   int offset;
   int otherOffset;
 
   for (otherY = minY; otherY < maxY; otherY++) {
-    otherOffset = ((otherY - otherBuffer->m_rect.ymin) * otherBuffer->m_width + minX -
-                   otherBuffer->m_rect.xmin) *
+    otherOffset = ((otherY - src.m_rect.ymin) * src.m_width + minX - src.m_rect.xmin) *
                   this->m_num_channels;
     offset = ((otherY - this->m_rect.ymin) * this->m_width + minX - this->m_rect.xmin) *
              this->m_num_channels;
     memcpy(&this->m_buffer[offset],
-           &otherBuffer->m_buffer[otherOffset],
+           &src.m_buffer[otherOffset],
            (maxX - minX) * this->m_num_channels * sizeof(float));
   }
 }

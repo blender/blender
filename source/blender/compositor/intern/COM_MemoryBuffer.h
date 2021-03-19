@@ -319,7 +319,7 @@ class MemoryBuffer {
    * \note take care when running this on a new buffer since it wont fill in
    *       uninitialized values in areas where the buffers don't overlap.
    */
-  void copyContentFrom(MemoryBuffer *otherBuffer);
+  void fill_from(const MemoryBuffer &src);
 
   /**
    * \brief get the rect of this MemoryBuffer

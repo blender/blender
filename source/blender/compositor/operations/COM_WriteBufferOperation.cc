@@ -181,7 +181,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
     printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
   }
 
-  this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
+  this->getMemoryProxy()->getBuffer()->fill_from(*outputBuffer);
 
   // STEP 4
   while (!clMemToCleanUp->empty()) {
