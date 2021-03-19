@@ -197,8 +197,8 @@ void ViewerOperation::updateImage(rcti *rect)
 CompositorPriority ViewerOperation::getRenderPriority() const
 {
   if (this->isActiveViewerOutput()) {
-    return COM_PRIORITY_HIGH;
+    return CompositorPriority::High;
   }
 
-  return COM_PRIORITY_LOW;
+  return CompositorPriority::Low;
 }

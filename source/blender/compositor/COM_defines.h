@@ -49,14 +49,14 @@ typedef enum CompositorQuality {
  * \brief Possible priority settings
  * \ingroup Execution
  */
-typedef enum CompositorPriority {
+enum class CompositorPriority {
   /** \brief High quality setting */
-  COM_PRIORITY_HIGH = 2,
+  High = 2,
   /** \brief Medium quality setting */
-  COM_PRIORITY_MEDIUM = 1,
+  Medium = 1,
   /** \brief Low quality setting */
-  COM_PRIORITY_LOW = 0,
-} CompositorPriority;
+  Low = 0,
+};
 
 // configurable items
 

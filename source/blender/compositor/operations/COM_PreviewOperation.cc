@@ -157,5 +157,5 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
 
 CompositorPriority PreviewOperation::getRenderPriority() const
 {
-  return COM_PRIORITY_LOW;
+  return CompositorPriority::Low;
 }

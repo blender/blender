@@ -111,7 +111,7 @@ class CompositorOperation : public NodeOperation {
   void deinitExecution();
   CompositorPriority getRenderPriority() const
   {
-    return COM_PRIORITY_MEDIUM;
+    return CompositorPriority::Medium;
   }
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
   void setUseAlphaInput(bool value)
