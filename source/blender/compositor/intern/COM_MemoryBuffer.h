@@ -81,7 +81,7 @@ class MemoryBuffer {
    * \brief the number of channels of a single value in the buffer.
    * For value buffers this is 1, vector 3 and color 4
    */
-  unsigned int m_num_channels;
+  uint8_t m_num_channels;
 
  public:
   /**
@@ -104,7 +104,7 @@ class MemoryBuffer {
    */
   ~MemoryBuffer();
 
-  unsigned int get_num_channels()
+  uint8_t get_num_channels()
   {
     return this->m_num_channels;
   }

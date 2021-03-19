@@ -122,7 +122,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   unsigned int x, y, sz;
   unsigned int i;
   float *buffer = src->getBuffer();
-  const unsigned int num_channels = src->get_num_channels();
+  const uint8_t num_channels = src->get_num_channels();
 
   // <0.5 not valid, though can have a possibly useful sort of sharpening effect
   if (sigma < 0.5f) {
