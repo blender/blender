@@ -225,6 +225,8 @@ static void updateDepsgraph(GpencilModifierData *md,
   }
   DEG_add_object_relation(
       ctx->node, ctx->scene->camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
+  DEG_add_object_relation(
+      ctx->node, ctx->scene->camera, DEG_OB_COMP_PARAMETERS, "Line Art Modifier");
 }
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -289,6 +291,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
           IFACE_("Overlapping Edges As Contour"),
           ICON_NONE);
   uiItemR(layout, ptr, "allow_duplication", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "allow_clipping_boundaries", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
