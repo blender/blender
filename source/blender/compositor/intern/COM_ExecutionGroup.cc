@@ -383,7 +383,7 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy &mem
                                                                 rcti &rect)
 {
   MemoryBuffer *imageBuffer = memoryProxy.getBuffer();
-  MemoryBuffer *result = new MemoryBuffer(&memoryProxy, rect);
+  MemoryBuffer *result = new MemoryBuffer(&memoryProxy, rect, MemoryBufferState::Temporary);
   result->fill_from(*imageBuffer);
   return result;
 }
@@ -460,7 +460,8 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
   NodeOperation *operation = this->getOutputOperation();
   if (operation->isWriteBufferOperation()) {
     WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation;
-    MemoryBuffer *buffer = new MemoryBuffer(writeOperation->getMemoryProxy(), rect);
+    MemoryBuffer *buffer = new MemoryBuffer(
+        writeOperation->getMemoryProxy(), rect, MemoryBufferState::Temporary);
     return buffer;
   }
   return nullptr;

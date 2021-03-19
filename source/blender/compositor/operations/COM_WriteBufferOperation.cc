@@ -105,7 +105,6 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
       }
     }
   }
-  memoryBuffer->setCreatedState();
 }
 
 void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,

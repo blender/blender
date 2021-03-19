@@ -33,27 +33,14 @@ static unsigned int determine_num_channels(DataType datatype)
   }
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, const rcti &rect)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state)
 {
   m_rect = rect;
   this->m_memoryProxy = memoryProxy;
-  this->m_chunkNumber = chunkNumber;
   this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
   this->m_buffer = (float *)MEM_mallocN_aligned(
       sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
-  this->m_state = COM_MB_ALLOCATED;
-  this->m_datatype = memoryProxy->getDataType();
-}
-
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect)
-{
-  m_rect = rect;
-  this->m_memoryProxy = memoryProxy;
-  this->m_chunkNumber = -1;
-  this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
-  this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
-  this->m_state = COM_MB_TEMPORARILY;
+  this->m_state = state;
   this->m_datatype = memoryProxy->getDataType();
 }
 
@@ -61,22 +48,22 @@ MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
 {
   m_rect = rect;
   this->m_memoryProxy = nullptr;
-  this->m_chunkNumber = -1;
   this->m_num_channels = determine_num_channels(dataType);
   this->m_buffer = (float *)MEM_mallocN_aligned(
       sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
-  this->m_state = COM_MB_TEMPORARILY;
+  this->m_state = MemoryBufferState::Temporary;
   this->m_datatype = dataType;
 }
 
-MemoryBuffer::MemoryBuffer(const MemoryBuffer &src) : MemoryBuffer(src.m_memoryProxy, src.m_rect)
+MemoryBuffer::MemoryBuffer(const MemoryBuffer &src)
+    : MemoryBuffer(src.m_memoryProxy, src.m_rect, MemoryBufferState::Temporary)
 {
   memcpy(m_buffer, src.m_buffer, buffer_len() * m_num_channels * sizeof(float));
 }
 
 void MemoryBuffer::clear()
 {
-  memset(this->m_buffer, 0, this->buffer_len() * this->m_num_channels * sizeof(float));
+  memset(m_buffer, 0, buffer_len() * m_num_channels * sizeof(float));
 }
 
 float MemoryBuffer::get_max_value() const

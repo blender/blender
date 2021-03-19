@@ -31,15 +31,13 @@ class MemoryBuffer;
  * \brief state of a memory buffer
  * \ingroup Memory
  */
-typedef enum MemoryBufferState {
+enum class MemoryBufferState {
   /** \brief memory has been allocated on creator device and CPU machine,
    * but kernel has not been executed */
-  COM_MB_ALLOCATED = 1,
-  /** \brief memory is available for use, content has been created */
-  COM_MB_AVAILABLE = 2,
+  Default = 0,
   /** \brief chunk is consolidated from other chunks. special state.*/
-  COM_MB_TEMPORARILY = 6,
-} MemoryBufferState;
+  Temporary = 6,
+};
 
 typedef enum MemoryBufferExtend {
   COM_MB_CLIP,
@@ -70,12 +68,6 @@ class MemoryBuffer {
   rcti m_rect;
 
   /**
-   * brief refers to the chunk-number within the execution-group where related to the MemoryProxy
-   * \see memoryProxy
-   */
-  unsigned int m_chunkNumber;
-
-  /**
    * \brief state of the buffer
    */
   MemoryBufferState m_state;
@@ -93,14 +85,9 @@ class MemoryBuffer {
 
  public:
   /**
-   * \brief construct new MemoryBuffer for a chunk
-   */
-  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, const rcti &rect);
-
-  /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
@@ -117,14 +104,6 @@ class MemoryBuffer {
    */
   ~MemoryBuffer();
 
-  /**
-   * \brief read the ChunkNumber of this MemoryBuffer
-   */
-  unsigned int getChunkNumber()
-  {
-    return this->m_chunkNumber;
-  }
-
   unsigned int get_num_channels()
   {
     return this->m_num_channels;
@@ -137,14 +116,6 @@ class MemoryBuffer {
   float *getBuffer()
   {
     return this->m_buffer;
-  }
-
-  /**
-   * \brief after execution the state will be set to available by calling this method
-   */
-  void setCreatedState()
-  {
-    this->m_state = COM_MB_AVAILABLE;
   }
 
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
@@ -306,7 +277,7 @@ class MemoryBuffer {
    */
   inline bool isTemporarily() const
   {
-    return this->m_state == COM_MB_TEMPORARILY;
+    return this->m_state == MemoryBufferState::Temporary;
   }
 
   /**
