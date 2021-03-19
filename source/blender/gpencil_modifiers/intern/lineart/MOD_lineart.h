@@ -289,7 +289,6 @@ typedef struct LineartRenderBuffer {
   float shift_x, shift_y;
   float crease_threshold;
   float chaining_image_threshold;
-  float chaining_geometry_threshold;
   float angle_splitting_threshold;
 
   /* FIXME: (Yiming) Temporary solution for speeding up calculation by not including lines that
@@ -512,7 +511,7 @@ void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
 void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb);
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb);
-void MOD_lineart_chain_connect(LineartRenderBuffer *rb, const bool do_geometry_space);
+void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 
