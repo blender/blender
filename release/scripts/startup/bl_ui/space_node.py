@@ -164,7 +164,10 @@ class NODE_HT_header(Header):
             elif ob:
                 active_modifier = ob.modifiers.active
                 if active_modifier and active_modifier.type == "NODES":
-                    row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
+                    if active_modifier.node_group:
+                        row.template_ID(active_modifier, "node_group", new="node.copy_geometry_node_group_assign")
+                    else:
+                        row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                 else:
                     row.template_ID(snode, "node_tree", new="node.new_geometry_nodes_modifier")
 
