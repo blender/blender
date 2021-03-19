@@ -3806,21 +3806,23 @@ static void init_text_effect(Sequence *seq)
   data = seq->effectdata = MEM_callocN(sizeof(TextVars), "textvars");
   data->text_font = NULL;
   data->text_blf_id = -1;
-  data->text_size = 30;
+  data->text_size = 60;
 
   copy_v4_fl(data->color, 1.0f);
-  data->shadow_color[3] = 1.0f;
-  data->box_color[0] = 0.5f;
-  data->box_color[1] = 0.5f;
-  data->box_color[2] = 0.5f;
-  data->box_color[3] = 1.0f;
+  data->shadow_color[3] = 0.7f;
+  data->box_color[0] = 0.2f;
+  data->box_color[1] = 0.2f;
+  data->box_color[2] = 0.2f;
+  data->box_color[3] = 0.7f;
   data->box_margin = 0.01f;
 
   BLI_strncpy(data->text, "Text", sizeof(data->text));
 
   data->loc[0] = 0.5f;
+  data->loc[1] = 0.5f;
   data->align = SEQ_TEXT_ALIGN_X_CENTER;
-  data->align_y = SEQ_TEXT_ALIGN_Y_BOTTOM;
+  data->align_y = SEQ_TEXT_ALIGN_Y_CENTER;
+  data->wrap_width = 1.0f;
 }
 
 void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
@@ -4001,31 +4003,15 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
       const int maxx = x + wrap.rect.xmax + margin;
       const int miny = y + wrap.rect.ymin - margin;
       const int maxy = y + wrap.rect.ymax + margin;
-
-      if (data->flag & SEQ_TEXT_SHADOW) {
-        /* draw a shadow behind the box */
-        int shadow_offset = 0.005f * width;
-
-        if (shadow_offset == 0) {
-          shadow_offset = 1;
-        }
-
-        IMB_rectfill_area_replace(out,
-                                  data->shadow_color,
-                                  minx + shadow_offset,
-                                  miny - shadow_offset,
-                                  maxx + shadow_offset,
-                                  maxy - shadow_offset);
-      }
       IMB_rectfill_area_replace(out, data->box_color, minx, miny, maxx, maxy);
     }
   }
   /* BLF_SHADOW won't work with buffers, instead use cheap shadow trick */
-  else if (data->flag & SEQ_TEXT_SHADOW) {
+  if (data->flag & SEQ_TEXT_SHADOW) {
     int fontx, fonty;
     fontx = BLF_width_max(font);
     fonty = line_height;
-    BLF_position(font, x + max_ii(fontx / 25, 1), y + max_ii(fonty / 25, 1), 0.0f);
+    BLF_position(font, x + max_ii(fontx / 55, 1), y - max_ii(fonty / 30, 1), 0.0f);
     BLF_buffer_col(font, data->shadow_color);
     BLF_draw_buffer(font, data->text, BLF_DRAW_STR_DUMMY_MAX);
   }
