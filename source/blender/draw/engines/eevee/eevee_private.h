@@ -484,11 +484,12 @@ typedef struct EEVEE_RenderPassData {
 /* ************ LIGHT UBO ************* */
 typedef struct EEVEE_Light {
   float position[3], invsqrdist;
-  float color[3], spec;
+  float color[3], invsqrdist_volume;
   float spotsize, spotblend, radius, shadow_id;
   float rightvec[3], sizex;
   float upvec[3], sizey;
   float forwardvec[3], light_type;
+  float diff, spec, volume, _pad0[1];
 } EEVEE_Light;
 
 /* Special type for elliptic area lights, matches lamps_lib.glsl */

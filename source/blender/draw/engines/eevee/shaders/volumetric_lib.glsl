@@ -64,38 +64,35 @@ float phase_function(vec3 v, vec3 l, float g)
 
 vec3 light_volume(LightData ld, vec4 l_vector)
 {
-  float power;
-  /* TODO : Area lighting ? */
-  /* XXX : Removing Area Power. */
-  /* TODO : put this out of the shader. */
-  /* See eevee_light_setup(). */
-  if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
-    power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
-    if (ld.l_type == AREA_ELLIPSE) {
-      power *= M_PI * 0.25;
+  float power = 1.0;
+  if (ld.l_type != SUN) {
+    /**
+     * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
+     * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
+     * http://www.cemyuksel.com/research/pointlightattenuation/
+     **/
+    float d = l_vector.w;
+    float d_sqr = sqr(d);
+    float r_sqr = sqr(ld.l_radius);
+    /* Using reformulation that has better numerical percision. */
+    power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
+
+    if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
+      /* Modulate by light plane orientation / solid angle. */
+      power *= saturate(dot(-ld.l_forward, l_vector.xyz / l_vector.w));
     }
-    power *= 20.0 *
-             max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
   }
-  else if (ld.l_type == SUN) {
-    power = ld.l_radius * ld.l_radius * M_PI; /* Removing area light power*/
-    power /= 1.0f + (ld.l_radius * ld.l_radius * 0.5f);
-    power *= M_PI * 0.5; /* Matching cycles. */
+  return ld.l_color * ld.l_volume * power;
+}
+
+vec3 light_volume_light_vector(LightData ld, vec3 P)
+{
+  if (ld.l_type == SUN) {
+    return -ld.l_forward;
   }
   else {
-    power = (4.0 * ld.l_radius * ld.l_radius) * (1.0 / 10.0);
-    power *= M_2PI; /* Matching cycles with point light. */
+    return ld.l_position - P;
   }
-
-  power /= (l_vector.w * l_vector.w);
-
-  /* OPTI: find a better way than calculating this on the fly */
-  float lum = dot(ld.l_color, vec3(0.3, 0.6, 0.1));       /* luminance approx. */
-  vec3 tint = (lum > 0.0) ? ld.l_color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
-
-  lum = min(lum * power, volLightClamp);
-
-  return tint * lum;
 }
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0

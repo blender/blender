@@ -50,7 +50,7 @@ static float light_attenuation_radius_get(const Light *la, float light_threshold
   /* Compute max light power. */
   float power = max_fff(la->r, la->g, la->b);
   power *= fabsf(la->energy / 100.0f);
-  power *= max_ff(1.0f, la->spec_fac);
+  power *= max_fff(la->diff_fac, la->spec_fac, la->volume_fac);
   /* Compute the distance (using the inverse square law)
    * at which the light power reaches the light_threshold. */
   float distance = sqrtf(max_ff(1e-16, power / max_ff(1e-16, light_threshold)));
@@ -75,6 +75,8 @@ static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, const
     else {
       evli->sizey = max_ff(0.003f, la->area_size * scale[1] * 0.5f);
     }
+    /* For volume point lighting. */
+    evli->radius = max_ff(0.001f, hypotf(evli->sizex, evli->sizey));
   }
   else if (la->type == LA_SUN) {
     evli->radius = max_ff(0.001f, tanf(min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f));
@@ -103,8 +105,8 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     /* for point lights (a.k.a radius == 0.0) */
     // power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
   }
-  else {
-    power = 1.0f / (evli->radius * evli->radius * M_PI); /* 1/(r²*Pi) */
+  else { /* LA_SUN */
+    power = 1.0f / (evli->radius * evli->radius * M_PI);
     /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
      * cannot reproduce so we account for that by scaling the light power. This function is the
      * result of a rough manual fitting. */
@@ -113,11 +115,30 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   return power;
 }
 
+static float light_shape_power_volume_get(const Light *la, float area_power)
+{
+  /* Volume light is evaluated as point lights. Remove the shape power. */
+  float power = 1.0f / area_power;
+  /* Make illumination power constant */
+  if (la->type == LA_AREA) {
+    /* Match cycles. Empirical fit... must correspond to some constant. */
+    power *= 0.0792f * M_PI;
+  }
+  else if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
+    /* Match cycles. Empirical fit... must correspond to some constant. */
+    power *= 0.0792f;
+  }
+  else { /* LA_SUN */
+    /* Nothing to do. */
+  }
+  return power;
+}
+
 /* Update buffer with light data */
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 {
-  Light *la = (Light *)ob->data;
-  float mat[4][4], scale[3], power, att_radius;
+  const Light *la = (Light *)ob->data;
+  float mat[4][4], scale[3], att_radius;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const float light_threshold = draw_ctx->scene->eevee.light_threshold;
@@ -128,7 +149,9 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   /* Color */
   copy_v3_v3(evli->color, &la->r);
 
+  evli->diff = la->diff_fac;
   evli->spec = la->spec_fac;
+  evli->volume = la->volume_fac;
 
   /* Influence Radius */
   att_radius = light_attenuation_radius_get(la, light_threshold);
@@ -163,8 +186,10 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
     evli->light_type = LAMPTYPE_AREA_ELLIPSE;
   }
 
-  power = light_shape_power_get(la, evli);
-  mul_v3_fl(evli->color, power * la->energy);
+  float shape_power = light_shape_power_get(la, evli);
+  mul_v3_fl(evli->color, shape_power * la->energy);
+
+  evli->volume *= light_shape_power_volume_get(la, shape_power);
 
   /* No shadow by default */
   evli->shadow_id = -1.0f;

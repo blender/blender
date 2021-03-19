@@ -44,7 +44,7 @@ void main()
     LightData ld = lights_data[i];
 
     vec4 l_vector;
-    l_vector.xyz = (ld.l_type == SUN) ? -ld.l_forward : ld.l_position - P;
+    l_vector.xyz = light_volume_light_vector(ld, P);
     l_vector.w = length(l_vector.xyz);
 
     float Vis = light_visibility(ld, P, l_vector);

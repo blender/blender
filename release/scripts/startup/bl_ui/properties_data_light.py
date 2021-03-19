@@ -97,7 +97,12 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
         col = layout.column()
         col.prop(light, "color")
         col.prop(light, "energy")
+
+        col.separator()
+
+        col.prop(light, "diffuse_factor", text="Diffuse")
         col.prop(light, "specular_factor", text="Specular")
+        col.prop(light, "volume_factor", text="Volume")
 
         col.separator()
 
