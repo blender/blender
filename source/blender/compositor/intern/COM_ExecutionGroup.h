@@ -217,7 +217,7 @@ class ExecutionGroup {
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool scheduleChunkWhenPossible(ExecutionSystem *graph, int xChunk, int yChunk);
+  bool scheduleChunkWhenPossible(ExecutionSystem *graph, const int chunk_x, const int chunk_y);
 
   /**
    * \brief try to schedule a specific area.
@@ -395,14 +395,6 @@ class ExecutionGroup {
    * \param graph:
    */
   void execute(ExecutionSystem *graph);
-
-  /**
-   * \brief this method determines the MemoryProxy's where this execution group depends on.
-   * \note After this method determineDependingAreaOfInterest can be called to determine
-   * \note the area of the MemoryProxy.creator that has to be executed.
-   * \param memoryProxies: result
-   */
-  void determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies);
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.

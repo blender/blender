@@ -368,10 +368,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
   rcti rect;
-  std::vector<MemoryProxy *> memoryproxies;
   determineChunkRect(&rect, chunkNumber);
 
-  this->determineDependingMemoryProxies(&memoryproxies);
   MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
       sizeof(MemoryBuffer *) * this->m_max_read_buffer_offset, __func__);
   rcti output;
@@ -516,54 +514,44 @@ bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
   return false;
 }
 
-bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph, int xChunk, int yChunk)
+bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph,
+                                               const int chunk_x,
+                                               const int chunk_y)
 {
-  if (xChunk < 0 || xChunk >= (int)this->m_x_chunks_len) {
+  if (chunk_x < 0 || chunk_x >= (int)this->m_x_chunks_len) {
     return true;
   }
-  if (yChunk < 0 || yChunk >= (int)this->m_y_chunks_len) {
-    return true;
-  }
-  int chunkNumber = yChunk * this->m_x_chunks_len + xChunk;
-  // chunk is already executed
-  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::EXECUTED) {
+  if (chunk_y < 0 || chunk_y >= (int)this->m_y_chunks_len) {
     return true;
   }
 
-  // chunk is scheduled, but not executed
-  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::SCHEDULED) {
+  // Check if chunk is already executed or scheduled and not yet executed.
+  const int chunk_index = chunk_y * this->m_x_chunks_len + chunk_x;
+  if (this->m_chunk_execution_states[chunk_index] == eChunkExecutionState::EXECUTED) {
+    return true;
+  }
+  if (this->m_chunk_execution_states[chunk_index] == eChunkExecutionState::SCHEDULED) {
     return false;
   }
 
-  // chunk is nor executed nor scheduled.
-  std::vector<MemoryProxy *> memoryProxies;
-  this->determineDependingMemoryProxies(&memoryProxies);
-
   rcti rect;
-  determineChunkRect(&rect, xChunk, yChunk);
-  unsigned int index;
-  bool canBeExecuted = true;
+  determineChunkRect(&rect, chunk_x, chunk_y);
+  bool can_be_executed = true;
   rcti area;
 
-  for (index = 0; index < m_read_operations.size(); index++) {
-    ReadBufferOperation *readOperation = m_read_operations[index];
+  for (ReadBufferOperation *read_operation : m_read_operations) {
     BLI_rcti_init(&area, 0, 0, 0, 0);
-    MemoryProxy *memoryProxy = memoryProxies[index];
-    determineDependingAreaOfInterest(&rect, readOperation, &area);
-    ExecutionGroup *group = memoryProxy->getExecutor();
+    MemoryProxy *memory_proxy = read_operation->getMemoryProxy();
+    determineDependingAreaOfInterest(&rect, read_operation, &area);
+    ExecutionGroup *group = memory_proxy->getExecutor();
 
-    if (group != nullptr) {
-      if (!group->scheduleAreaWhenPossible(graph, &area)) {
-        canBeExecuted = false;
-      }
-    }
-    else {
-      throw "ERROR";
+    if (!group->scheduleAreaWhenPossible(graph, &area)) {
+      can_be_executed = false;
     }
   }
 
-  if (canBeExecuted) {
-    scheduleChunk(chunkNumber);
+  if (can_be_executed) {
+    scheduleChunk(chunk_index);
   }
 
   return false;
@@ -574,13 +562,6 @@ void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
                                                       rcti *output)
 {
   this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
-}
-
-void ExecutionGroup::determineDependingMemoryProxies(std::vector<MemoryProxy *> *memoryProxies)
-{
-  for (ReadBufferOperation *readOperation : m_read_operations) {
-    memoryProxies->push_back(readOperation->getMemoryProxy());
-  }
 }
 
 bool ExecutionGroup::isOpenCL()
