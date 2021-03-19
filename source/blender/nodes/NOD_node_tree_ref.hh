@@ -116,6 +116,9 @@ class SocketRef : NonCopyable, NonMovable {
   bNodeTree *btree() const;
 
   bool is_available() const;
+
+  void *default_value() const;
+  template<typename T> T *default_value() const;
 };
 
 class InputSocketRef final : public SocketRef {
@@ -169,6 +172,9 @@ class NodeRef : NonCopyable, NonMovable {
   bool is_group_input_node() const;
   bool is_group_output_node() const;
   bool is_muted() const;
+
+  void *storage() const;
+  template<typename T> T *storage() const;
 };
 
 class LinkRef : NonCopyable, NonMovable {
@@ -379,6 +385,16 @@ inline bool SocketRef::is_available() const
   return (bsocket_->flag & SOCK_UNAVAIL) == 0;
 }
 
+inline void *SocketRef::default_value() const
+{
+  return bsocket_->default_value;
+}
+
+template<typename T> inline T *SocketRef::default_value() const
+{
+  return (T *)bsocket_->default_value;
+}
+
 /* --------------------------------------------------------------------
  * InputSocketRef inline methods.
  */
@@ -505,6 +521,16 @@ inline bool NodeRef::is_group_output_node() const
 inline bool NodeRef::is_muted() const
 {
   return (bnode_->flag & NODE_MUTED) != 0;
+}
+
+inline void *NodeRef::storage() const
+{
+  return bnode_->storage;
+}
+
+template<typename T> inline T *NodeRef::storage() const
+{
+  return (T *)bnode_->storage;
 }
 
 /* --------------------------------------------------------------------
