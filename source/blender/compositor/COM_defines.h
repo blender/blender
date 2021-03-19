@@ -36,14 +36,14 @@ typedef enum DataType {
  * \see CompositorContext.quality
  * \ingroup Execution
  */
-typedef enum CompositorQuality {
+enum class CompositorQuality {
   /** \brief High quality setting */
-  COM_QUALITY_HIGH = 0,
+  High = 0,
   /** \brief Medium quality setting */
-  COM_QUALITY_MEDIUM = 1,
+  Medium = 1,
   /** \brief Low quality setting */
-  COM_QUALITY_LOW = 2,
-} CompositorQuality;
+  Low = 2,
+};
 
 /**
  * \brief Possible priority settings

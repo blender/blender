@@ -110,7 +110,7 @@ void DefocusNode::convertToOperations(NodeConverter &converter,
 
   VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
   if (data->preview) {
-    operation->setQuality(COM_QUALITY_LOW);
+    operation->setQuality(CompositorQuality::Low);
   }
   else {
     operation->setQuality(context.getQuality());
