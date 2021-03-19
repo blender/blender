@@ -862,6 +862,7 @@ bool BKE_lib_override_library_resync(
     Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, const bool do_hierarchy_enforce)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
+  BLI_assert(!ID_IS_LINKED(id_root));
 
   ID *id_root_reference = id_root->override_library->reference;
 
@@ -1108,7 +1109,7 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
    * those used by current existing overrides. */
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
       continue;
     }
     if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
@@ -1130,7 +1131,7 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
   /* Now check existing overrides, those needing resync will be the one either already tagged as
    * such, or the one using linked data that is now tagged as needing override. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
       continue;
     }
 
@@ -1178,6 +1179,10 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
     FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
       FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
         if ((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0) {
+          continue;
+        }
+        BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
+        if (ID_IS_LINKED(id)) {
           continue;
         }
         do_continue = true;
