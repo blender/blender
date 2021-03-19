@@ -156,7 +156,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
                    float dist_min,
                    float dist_max)
   {
-    rcti rect = *input->getRect();
+    const rcti &rect = input->get_rect();
     int buffer_width = input->getWidth();
     int x, y, num;
     float v, dv;

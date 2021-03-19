@@ -98,17 +98,17 @@ class MemoryBuffer {
   /**
    * \brief construct new MemoryBuffer for a chunk
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti &rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, const rcti &rect);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, rcti &rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(DataType datatype, rcti &rect);
+  MemoryBuffer(DataType datatype, const rcti &rect);
 
   /**
    * \brief destructor
@@ -319,9 +319,9 @@ class MemoryBuffer {
   /**
    * \brief get the rect of this MemoryBuffer
    */
-  rcti *getRect()
+  const rcti &get_rect() const
   {
-    return &this->m_rect;
+    return this->m_rect;
   }
 
   /**

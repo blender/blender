@@ -152,8 +152,8 @@ void OpenCLDevice::COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel ker
 {
   if (offsetIndex != -1) {
     cl_int error;
-    rcti *rect = memoryBuffer->getRect();
-    cl_int2 offset = {{rect->xmin, rect->ymin}};
+    const rcti &rect = memoryBuffer->get_rect();
+    cl_int2 offset = {{rect.xmin, rect.ymin}};
 
     error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
     if (error != CL_SUCCESS) {

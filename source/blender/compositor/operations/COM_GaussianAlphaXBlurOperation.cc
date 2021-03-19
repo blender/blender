@@ -87,10 +87,11 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   int bufferwidth = inputBuffer->getWidth();
-  int bufferstartx = inputBuffer->getRect()->xmin;
-  int bufferstarty = inputBuffer->getRect()->ymin;
+  const rcti &input_rect = inputBuffer->get_rect();
+  int bufferstartx = input_rect.xmin;
+  int bufferstarty = input_rect.ymin;
 
-  rcti &rect = *inputBuffer->getRect();
+  const rcti &rect = inputBuffer->get_rect();
   int xmin = max_ii(x - m_filtersize, rect.xmin);
   int xmax = min_ii(x + m_filtersize + 1, rect.xmax);
   int ymin = max_ii(y, rect.ymin);

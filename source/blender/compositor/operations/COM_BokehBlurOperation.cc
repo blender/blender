@@ -80,10 +80,11 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
   if (tempBoundingBox[0] > 0.0f) {
     float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
+    const rcti &input_rect = inputBuffer->get_rect();
     float *buffer = inputBuffer->getBuffer();
     int bufferwidth = inputBuffer->getWidth();
-    int bufferstartx = inputBuffer->getRect()->xmin;
-    int bufferstarty = inputBuffer->getRect()->ymin;
+    int bufferstartx = input_rect.xmin;
+    int bufferstarty = input_rect.ymin;
     const float max_dim = MAX2(this->getWidth(), this->getHeight());
     int pixelSize = this->m_size * max_dim / 100.0f;
     zero_v4(color_accum);
@@ -99,10 +100,10 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
     int maxy = y + pixelSize;
     int minx = x - pixelSize;
     int maxx = x + pixelSize;
-    miny = MAX2(miny, inputBuffer->getRect()->ymin);
-    minx = MAX2(minx, inputBuffer->getRect()->xmin);
-    maxy = MIN2(maxy, inputBuffer->getRect()->ymax);
-    maxx = MIN2(maxx, inputBuffer->getRect()->xmax);
+    miny = MAX2(miny, input_rect.ymin);
+    minx = MAX2(minx, input_rect.xmin);
+    maxy = MIN2(maxy, input_rect.ymax);
+    maxx = MIN2(maxx, input_rect.xmax);
 
     int step = getStep();
     int offsetadd = getOffsetAdd() * COM_NUM_CHANNELS_COLOR;

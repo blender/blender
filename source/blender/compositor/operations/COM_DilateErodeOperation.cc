@@ -70,19 +70,19 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
-  rcti *rect = inputBuffer->getRect();
-  const int minx = MAX2(x - this->m_scope, rect->xmin);
-  const int miny = MAX2(y - this->m_scope, rect->ymin);
-  const int maxx = MIN2(x + this->m_scope, rect->xmax);
-  const int maxy = MIN2(y + this->m_scope, rect->ymax);
-  const int bufferWidth = BLI_rcti_size_x(rect);
+  const rcti &input_rect = inputBuffer->get_rect();
+  const int minx = MAX2(x - this->m_scope, input_rect.xmin);
+  const int miny = MAX2(y - this->m_scope, input_rect.ymin);
+  const int maxx = MIN2(x + this->m_scope, input_rect.xmax);
+  const int maxy = MIN2(y + this->m_scope, input_rect.ymax);
+  const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
   inputBuffer->read(inputValue, x, y);
   if (inputValue[0] > sw) {
     for (int yi = miny; yi < maxy; yi++) {
       const float dy = yi - y;
-      offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin));
+      offset = ((yi - input_rect.ymin) * bufferWidth + (minx - input_rect.xmin));
       for (int xi = minx; xi < maxx; xi++) {
         if (buffer[offset] < sw) {
           const float dx = xi - x;
@@ -97,7 +97,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
   else {
     for (int yi = miny; yi < maxy; yi++) {
       const float dy = yi - y;
-      offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin));
+      offset = ((yi - input_rect.ymin) * bufferWidth + (minx - input_rect.xmin));
       for (int xi = minx; xi < maxx; xi++) {
         if (buffer[offset] > sw) {
           const float dx = xi - x;
@@ -190,19 +190,19 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
-  rcti *rect = inputBuffer->getRect();
-  const int minx = MAX2(x - this->m_scope, rect->xmin);
-  const int miny = MAX2(y - this->m_scope, rect->ymin);
-  const int maxx = MIN2(x + this->m_scope, rect->xmax);
-  const int maxy = MIN2(y + this->m_scope, rect->ymax);
-  const int bufferWidth = BLI_rcti_size_x(rect);
+  const rcti &input_rect = inputBuffer->get_rect();
+  const int minx = MAX2(x - this->m_scope, input_rect.xmin);
+  const int miny = MAX2(y - this->m_scope, input_rect.ymin);
+  const int maxx = MIN2(x + this->m_scope, input_rect.xmax);
+  const int maxy = MIN2(y + this->m_scope, input_rect.ymax);
+  const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
   float value = 0.0f;
 
   for (int yi = miny; yi < maxy; yi++) {
     const float dy = yi - y;
-    offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin));
+    offset = ((yi - input_rect.ymin) * bufferWidth + (minx - input_rect.xmin));
     for (int xi = minx; xi < maxx; xi++) {
       const float dx = xi - x;
       const float dis = dx * dx + dy * dy;
@@ -269,19 +269,19 @@ void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *d
 
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
-  rcti *rect = inputBuffer->getRect();
-  const int minx = MAX2(x - this->m_scope, rect->xmin);
-  const int miny = MAX2(y - this->m_scope, rect->ymin);
-  const int maxx = MIN2(x + this->m_scope, rect->xmax);
-  const int maxy = MIN2(y + this->m_scope, rect->ymax);
-  const int bufferWidth = BLI_rcti_size_x(rect);
+  const rcti &input_rect = inputBuffer->get_rect();
+  const int minx = MAX2(x - this->m_scope, input_rect.xmin);
+  const int miny = MAX2(y - this->m_scope, input_rect.ymin);
+  const int maxx = MIN2(x + this->m_scope, input_rect.xmax);
+  const int maxy = MIN2(y + this->m_scope, input_rect.ymax);
+  const int bufferWidth = inputBuffer->getWidth();
   int offset;
 
   float value = 1.0f;
 
   for (int yi = miny; yi < maxy; yi++) {
     const float dy = yi - y;
-    offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin));
+    offset = ((yi - input_rect.ymin) * bufferWidth + (minx - input_rect.xmin));
     for (int xi = minx; xi < maxx; xi++) {
       const float dx = xi - x;
       const float dis = dx * dx + dy * dy;

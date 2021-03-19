@@ -268,7 +268,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   float *kernelBuffer = in2->getBuffer();
   float *imageBuffer = in1->getBuffer();
 
-  MemoryBuffer *rdst = new MemoryBuffer(DataType::Color, *in1->getRect());
+  MemoryBuffer *rdst = new MemoryBuffer(DataType::Color, in1->get_rect());
   memset(rdst->getBuffer(),
          0,
          rdst->getWidth() * rdst->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));

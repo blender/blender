@@ -121,14 +121,14 @@ void GaussianBokehBlurOperation::executePixel(float output[4], int x, int y, voi
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
   float *buffer = inputBuffer->getBuffer();
   int bufferwidth = inputBuffer->getWidth();
-  int bufferstartx = inputBuffer->getRect()->xmin;
-  int bufferstarty = inputBuffer->getRect()->ymin;
+  const rcti &input_rect = inputBuffer->get_rect();
+  int bufferstartx = input_rect.xmin;
+  int bufferstarty = input_rect.ymin;
 
-  rcti &rect = *inputBuffer->getRect();
-  int ymin = max_ii(y - this->m_rady, rect.ymin);
-  int ymax = min_ii(y + this->m_rady + 1, rect.ymax);
-  int xmin = max_ii(x - this->m_radx, rect.xmin);
-  int xmax = min_ii(x + this->m_radx + 1, rect.xmax);
+  int ymin = max_ii(y - this->m_rady, input_rect.ymin);
+  int ymax = min_ii(y + this->m_rady + 1, input_rect.ymax);
+  int xmin = max_ii(x - this->m_radx, input_rect.xmin);
+  int xmax = min_ii(x + this->m_radx + 1, input_rect.xmax);
 
   int index;
   int step = QualityStepHelper::getStep();

@@ -47,7 +47,7 @@ int MemoryBuffer::getHeight() const
   return this->m_height;
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti &rect)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, const rcti &rect)
 {
   m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
@@ -61,7 +61,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
   this->m_datatype = memoryProxy->getDataType();
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti &rect)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect)
 {
   m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
@@ -74,7 +74,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti &rect)
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = memoryProxy->getDataType();
 }
-MemoryBuffer::MemoryBuffer(DataType dataType, rcti &rect)
+MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
 {
   m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
