@@ -291,7 +291,7 @@ void NodeOperationBuilder::add_operation_input_constants()
   }
   for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
     NodeOperationInput *input = *it;
-    add_input_constant_value(input, m_input_map.lookup(input));
+    add_input_constant_value(input, m_input_map.lookup_default(input, nullptr));
   }
 }
 
