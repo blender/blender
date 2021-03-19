@@ -91,9 +91,6 @@ class MemoryBuffer {
    */
   unsigned int m_num_channels;
 
-  int m_width;
-  int m_height;
-
  public:
   /**
    * \brief construct new MemoryBuffer for a chunk
@@ -152,8 +149,8 @@ class MemoryBuffer {
 
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
   {
-    int w = this->m_width;
-    int h = this->m_height;
+    const int w = getWidth();
+    const int h = getHeight();
     x = x - m_rect.xmin;
     y = y - m_rect.ymin;
 
@@ -195,8 +192,8 @@ class MemoryBuffer {
                          MemoryBufferExtend extend_x,
                          MemoryBufferExtend extend_y)
   {
-    float w = (float)this->m_width;
-    float h = (float)this->m_height;
+    const float w = (float)getWidth();
+    const float h = (float)getHeight();
     x = x - m_rect.xmin;
     y = y - m_rect.ymin;
 
@@ -249,7 +246,7 @@ class MemoryBuffer {
       int u = x;
       int v = y;
       this->wrap_pixel(u, v, extend_x, extend_y);
-      const int offset = (this->m_width * y + x) * this->m_num_channels;
+      const int offset = (getWidth() * y + x) * this->m_num_channels;
       float *buffer = &this->m_buffer[offset];
       memcpy(result, buffer, sizeof(float) * this->m_num_channels);
     }
@@ -265,10 +262,10 @@ class MemoryBuffer {
     int v = y;
 
     this->wrap_pixel(u, v, extend_x, extend_y);
-    const int offset = (this->m_width * v + u) * this->m_num_channels;
+    const int offset = (getWidth() * v + u) * this->m_num_channels;
 
     BLI_assert(offset >= 0);
-    BLI_assert(offset < this->determineBufferSize() * this->m_num_channels);
+    BLI_assert(offset < this->buffer_len() * this->m_num_channels);
     BLI_assert(!(extend_x == COM_MB_CLIP && (u < m_rect.xmin || u >= m_rect.xmax)) &&
                !(extend_y == COM_MB_CLIP && (v < m_rect.ymin || v >= m_rect.ymax)));
     float *buffer = &this->m_buffer[offset];
@@ -286,15 +283,15 @@ class MemoryBuffer {
     float u = x;
     float v = y;
     this->wrap_pixel(u, v, extend_x, extend_y);
-    if ((extend_x != COM_MB_REPEAT && (u < 0.0f || u >= this->m_width)) ||
-        (extend_y != COM_MB_REPEAT && (v < 0.0f || v >= this->m_height))) {
+    if ((extend_x != COM_MB_REPEAT && (u < 0.0f || u >= getWidth())) ||
+        (extend_y != COM_MB_REPEAT && (v < 0.0f || v >= getHeight()))) {
       copy_vn_fl(result, this->m_num_channels, 0.0f);
       return;
     }
     BLI_bilinear_interpolation_wrap_fl(this->m_buffer,
                                        result,
-                                       this->m_width,
-                                       this->m_height,
+                                       getWidth(),
+                                       getHeight(),
                                        this->m_num_channels,
                                        u,
                                        v,
@@ -332,23 +329,32 @@ class MemoryBuffer {
   /**
    * \brief get the width of this MemoryBuffer
    */
-  int getWidth() const;
+  const int getWidth() const
+  {
+    return BLI_rcti_size_x(&m_rect);
+  }
 
   /**
    * \brief get the height of this MemoryBuffer
    */
-  int getHeight() const;
+  const int getHeight() const
+  {
+    return BLI_rcti_size_y(&m_rect);
+  }
 
   /**
    * \brief clear the buffer. Make all pixels black transparent.
    */
   void clear();
 
-  float getMaximumValue();
-  float getMaximumValue(rcti *rect);
+  float get_max_value() const;
+  float get_max_value(const rcti &rect) const;
 
  private:
-  unsigned int determineBufferSize();
+  const int buffer_len() const
+  {
+    return getWidth() * getHeight();
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")

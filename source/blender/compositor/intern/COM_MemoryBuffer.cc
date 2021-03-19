@@ -33,30 +33,14 @@ static unsigned int determine_num_channels(DataType datatype)
   }
 }
 
-unsigned int MemoryBuffer::determineBufferSize()
-{
-  return getWidth() * getHeight();
-}
-
-int MemoryBuffer::getWidth() const
-{
-  return this->m_width;
-}
-int MemoryBuffer::getHeight() const
-{
-  return this->m_height;
-}
-
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, const rcti &rect)
 {
   m_rect = rect;
-  this->m_width = BLI_rcti_size_x(&this->m_rect);
-  this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_memoryProxy = memoryProxy;
   this->m_chunkNumber = chunkNumber;
   this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
   this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * determineBufferSize() * this->m_num_channels, 16, "COM_MemoryBuffer");
+      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
   this->m_state = COM_MB_ALLOCATED;
   this->m_datatype = memoryProxy->getDataType();
 }
@@ -64,13 +48,11 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, c
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect)
 {
   m_rect = rect;
-  this->m_width = BLI_rcti_size_x(&this->m_rect);
-  this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_memoryProxy = memoryProxy;
   this->m_chunkNumber = -1;
   this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
   this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * determineBufferSize() * this->m_num_channels, 16, "COM_MemoryBuffer");
+      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = memoryProxy->getDataType();
 }
@@ -78,37 +60,29 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect)
 MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
 {
   m_rect = rect;
-  this->m_width = BLI_rcti_size_x(&this->m_rect);
-  this->m_height = BLI_rcti_size_y(&this->m_rect);
-  this->m_height = this->m_rect.ymax - this->m_rect.ymin;
   this->m_memoryProxy = nullptr;
   this->m_chunkNumber = -1;
   this->m_num_channels = determine_num_channels(dataType);
   this->m_buffer = (float *)MEM_mallocN_aligned(
-      sizeof(float) * determineBufferSize() * this->m_num_channels, 16, "COM_MemoryBuffer");
+      sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = dataType;
 }
 
 MemoryBuffer::MemoryBuffer(const MemoryBuffer &src) : MemoryBuffer(src.m_memoryProxy, src.m_rect)
 {
-  memcpy(m_buffer, src.m_buffer, determineBufferSize() * m_num_channels * sizeof(float));
+  memcpy(m_buffer, src.m_buffer, buffer_len() * m_num_channels * sizeof(float));
 }
-
-// MemoryBuffer *MemoryBuffer::duplicate()
-// {
-//   return new MemoryBuffer(*this);
-// }
 
 void MemoryBuffer::clear()
 {
-  memset(this->m_buffer, 0, this->determineBufferSize() * this->m_num_channels * sizeof(float));
+  memset(this->m_buffer, 0, this->buffer_len() * this->m_num_channels * sizeof(float));
 }
 
-float MemoryBuffer::getMaximumValue()
+float MemoryBuffer::get_max_value() const
 {
   float result = this->m_buffer[0];
-  const unsigned int size = this->determineBufferSize();
+  const unsigned int size = this->buffer_len();
   unsigned int i;
 
   const float *fp_src = this->m_buffer;
@@ -123,17 +97,17 @@ float MemoryBuffer::getMaximumValue()
   return result;
 }
 
-float MemoryBuffer::getMaximumValue(rcti *rect)
+float MemoryBuffer::get_max_value(const rcti &rect) const
 {
   rcti rect_clamp;
 
   /* first clamp the rect by the bounds or we get un-initialized values */
-  BLI_rcti_isect(rect, &this->m_rect, &rect_clamp);
+  BLI_rcti_isect(&rect, &this->m_rect, &rect_clamp);
 
   if (!BLI_rcti_is_empty(&rect_clamp)) {
     MemoryBuffer temp_buffer(this->m_datatype, rect_clamp);
     temp_buffer.fill_from(*this);
-    return temp_buffer.getMaximumValue();
+    return temp_buffer.get_max_value();
   }
 
   BLI_assert(0);
@@ -159,9 +133,9 @@ void MemoryBuffer::fill_from(const MemoryBuffer &src)
   int otherOffset;
 
   for (otherY = minY; otherY < maxY; otherY++) {
-    otherOffset = ((otherY - src.m_rect.ymin) * src.m_width + minX - src.m_rect.xmin) *
+    otherOffset = ((otherY - src.m_rect.ymin) * src.getWidth() + minX - src.m_rect.xmin) *
                   this->m_num_channels;
-    offset = ((otherY - this->m_rect.ymin) * this->m_width + minX - this->m_rect.xmin) *
+    offset = ((otherY - this->m_rect.ymin) * getWidth() + minX - this->m_rect.xmin) *
              this->m_num_channels;
     memcpy(&this->m_buffer[offset],
            &src.m_buffer[otherOffset],
@@ -173,7 +147,7 @@ void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
   if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
       y < this->m_rect.ymax) {
-    const int offset = (this->m_width * (y - this->m_rect.ymin) + x - this->m_rect.xmin) *
+    const int offset = (getWidth() * (y - this->m_rect.ymin) + x - this->m_rect.xmin) *
                        this->m_num_channels;
     memcpy(&this->m_buffer[offset], color, sizeof(float) * this->m_num_channels);
   }
@@ -183,7 +157,7 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 {
   if (x >= this->m_rect.xmin && x < this->m_rect.xmax && y >= this->m_rect.ymin &&
       y < this->m_rect.ymax) {
-    const int offset = (this->m_width * (y - this->m_rect.ymin) + x - this->m_rect.xmin) *
+    const int offset = (getWidth() * (y - this->m_rect.ymin) + x - this->m_rect.xmin) *
                        this->m_num_channels;
     float *dst = &this->m_buffer[offset];
     const float *src = color;
