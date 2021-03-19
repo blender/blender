@@ -113,6 +113,19 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D v
   /* Heterogeneous volume shadows */
   float dd = l_vector.w / volShadowSteps;
   vec3 L = l_vector.xyz / volShadowSteps;
+
+  if (ld.l_type == SUN) {
+    /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
+    vec3 ndcP = project_point(ViewProjectionMatrix, ray_wpos);
+    vec3 ndcL = project_point(ViewProjectionMatrix, ray_wpos + l_vector.xyz) - ndcP;
+
+    vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+
+    L = project_point(ViewProjectionMatrixInverse, frustum_isect) - ray_wpos;
+    L /= volShadowSteps;
+    dd = length(L);
+  }
+
   vec3 shadow = vec3(1.0);
   for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volShadowSteps; s += 1.0) {
     vec3 pos = ray_wpos + L * s;
