@@ -7320,6 +7320,11 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        ICON_POINTCLOUD_DATA,
        "Point Cloud",
        "Point cloud component containing only point data"},
+      {GEO_COMPONENT_TYPE_INSTANCES,
+       "INSTANCES",
+       ICON_EMPTY_AXIS,
+       "Instances",
+       "Instances of objects or collections"},
       {0, NULL, 0, NULL, NULL},
   };
 

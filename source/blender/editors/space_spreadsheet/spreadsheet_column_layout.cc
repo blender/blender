@@ -52,10 +52,15 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
     const int minimum_column_width = 3 * UI_UNIT_X;
     const int header_name_padding = UI_UNIT_X;
     for (const SpreadsheetColumn *column : column_layout_.columns) {
-      StringRefNull name = column->name();
-      const int name_width = BLF_width(fontid, name.data(), name.size());
-      const int width = std::max(name_width + header_name_padding, minimum_column_width);
-      column_widths_.append(width);
+      if (column->default_width == 0.0f) {
+        StringRefNull name = column->name();
+        const int name_width = BLF_width(fontid, name.data(), name.size());
+        const int width = std::max(name_width + header_name_padding, minimum_column_width);
+        column_widths_.append(width);
+      }
+      else {
+        column_widths_.append(column->default_width * UI_UNIT_X);
+      }
     }
   }
 
@@ -161,6 +166,42 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        icon,
                        "",
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       0,
+                       0,
+                       0,
+                       0,
+                       nullptr);
+    }
+    else if (std::holds_alternative<ObjectCellValue>(cell_value.value)) {
+      const ObjectCellValue value = *std::get_if<ObjectCellValue>(&cell_value.value);
+      uiDefIconTextBut(params.block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       ICON_OBJECT_DATA,
+                       reinterpret_cast<const ID *const>(value.object)->name + 2,
+                       params.xmin,
+                       params.ymin,
+                       params.width,
+                       params.height,
+                       nullptr,
+                       0,
+                       0,
+                       0,
+                       0,
+                       nullptr);
+    }
+    else if (std::holds_alternative<CollectionCellValue>(cell_value.value)) {
+      const CollectionCellValue value = *std::get_if<CollectionCellValue>(&cell_value.value);
+      uiDefIconTextBut(params.block,
+                       UI_BTYPE_LABEL,
+                       0,
+                       ICON_OUTLINER_COLLECTION,
+                       reinterpret_cast<const ID *const>(value.collection)->name + 2,
                        params.xmin,
                        params.ymin,
                        params.width,

@@ -20,7 +20,18 @@
 
 #include "spreadsheet_draw.hh"
 
+struct Object;
+struct Collection;
+
 namespace blender::ed::spreadsheet {
+
+struct ObjectCellValue {
+  const Object *object;
+};
+
+struct CollectionCellValue {
+  const Collection *collection;
+};
 
 /**
  * This is a small type that can hold the value of a cell in a spreadsheet. This type allows us to
@@ -30,7 +41,8 @@ class CellValue {
  public:
   /* The implementation just uses a `std::variant` for simplicity. It can be encapsulated better,
    * but it's not really worth the complixity for now. */
-  using VariantType = std::variant<std::monostate, int, float, bool>;
+  using VariantType =
+      std::variant<std::monostate, int, float, bool, ObjectCellValue, CollectionCellValue>;
 
   VariantType value;
 };
@@ -56,6 +68,9 @@ class SpreadsheetColumn {
   {
     return name_;
   }
+
+  /* The default width of newly created columns, in UI units. */
+  float default_width = 0.0f;
 };
 
 /* Utility class for the function below. */
