@@ -610,7 +610,7 @@ class GeometryNodesEvaluator {
       return {required_type, converted_buffer};
     }
     void *default_buffer = allocator_.allocate(required_type.size(), required_type.alignment());
-    type.copy_to_uninitialized(type.default_value(), default_buffer);
+    required_type.copy_to_uninitialized(required_type.default_value(), default_buffer);
     return {required_type, default_buffer};
   }
 };
