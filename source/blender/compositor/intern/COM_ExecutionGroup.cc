@@ -194,7 +194,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
   NodeOperation *operation = this->getOutputOperation();
   float centerX = 0.5f;
   float centerY = 0.5f;
-  OrderOfChunks order_type = COM_ORDER_OF_CHUNKS_DEFAULT;
+  ChunkOrdering order_type = ChunkOrdering::Default;
 
   if (operation->isViewerOperation()) {
     ViewerOperation *viewer = (ViewerOperation *)operation;
@@ -207,7 +207,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
   const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
 
   switch (order_type) {
-    case COM_TO_RANDOM: {
+    case ChunkOrdering::Random: {
       static blender::RandomNumberGenerator rng;
       blender::MutableSpan<unsigned int> span = chunk_order.as_mutable_span();
       /* Shuffle twice to make it more random. */
@@ -215,7 +215,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
       rng.shuffle(span);
       break;
     }
-    case COM_TO_CENTER_OUT: {
+    case ChunkOrdering::CenterOut: {
       ChunkOrderHotspot hotspot(border_width * centerX, border_height * centerY, 0.0f);
       blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
       for (index = 0; index < this->m_chunks_len; index++) {
@@ -234,7 +234,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
 
       break;
     }
-    case COM_TO_RULE_OF_THIRDS: {
+    case ChunkOrdering::RuleOfThirds: {
       unsigned int tx = border_width / 6;
       unsigned int ty = border_height / 6;
       unsigned int mx = border_width / 2;
@@ -273,7 +273,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
 
       break;
     }
-    case COM_TO_TOP_DOWN:
+    case ChunkOrdering::TopDown:
     default:
       break;
   }

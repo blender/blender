@@ -87,18 +87,18 @@ enum class CompositorPriority {
  * \brief The order of chunks to be scheduled
  * \ingroup Execution
  */
-typedef enum OrderOfChunks {
+enum class ChunkOrdering {
   /** \brief order from a distance to centerX/centerY */
-  COM_TO_CENTER_OUT = 0,
+  CenterOut = 0,
   /** \brief order randomly */
-  COM_TO_RANDOM = 1,
+  Random = 1,
   /** \brief no ordering */
-  COM_TO_TOP_DOWN = 2,
+  TopDown = 2,
   /** \brief experimental ordering with 9 hot-spots. */
-  COM_TO_RULE_OF_THIRDS = 3,
-} OrderOfChunks;
+  RuleOfThirds = 3,
 
-#define COM_ORDER_OF_CHUNKS_DEFAULT COM_TO_CENTER_OUT
+  Default = ChunkOrdering::CenterOut,
+};
 
 #define COM_RULE_OF_THIRDS_DIVIDER 100.0f
 
