@@ -49,8 +49,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "UI_resources.h"
-
 #include "outliner_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */

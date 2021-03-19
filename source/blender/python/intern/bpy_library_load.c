@@ -34,6 +34,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -67,8 +68,10 @@ typedef struct {
   BlendHandle *blo_handle;
   int flag;
   PyObject *dict;
-  /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries. */
+  /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
+   * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true. */
   Main *bmain;
+  bool bmain_is_temp;
 } BPy_Library;
 
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kwds);
@@ -115,8 +118,8 @@ static PyTypeObject bpy_lib_Type = {
     NULL, /* reprfunc tp_str; */
 
     /* will only use these if this is a subtype of a py class */
-    NULL /*PyObject_GenericGetAttr is assigned later */, /* getattrofunc tp_getattro; */
-    NULL,                                                /* setattrofunc tp_setattro; */
+    PyObject_GenericGetAttr, /* getattrofunc tp_getattro; */
+    NULL,                    /* setattrofunc tp_setattro; */
 
     /* Functions to access object as input/output buffer */
     NULL, /* PyBufferProcs *tp_as_buffer; */
@@ -185,6 +188,7 @@ PyDoc_STRVAR(
     "   :type assets_only: bool\n");
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
+  Main *bmain_base = CTX_data_main(BPY_context_get());
   Main *bmain = self->ptr.data; /* Typically #G_MAIN */
   BPy_Library *ret;
   const char *filename = NULL;
@@ -212,6 +216,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   BLI_path_abs(ret->abspath, BKE_main_blendfile_path(bmain));
 
   ret->bmain = bmain;
+  ret->bmain_is_temp = (bmain != bmain_base);
 
   ret->blo_handle = NULL;
   ret->flag = ((is_link ? FILE_LINK : 0) | (is_rel ? FILE_RELPATH : 0) |
@@ -344,8 +349,9 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* here appending/linking starts */
+  const int id_tag_extra = self->bmain_is_temp ? LIB_TAG_TEMP_MAIN : 0;
   struct LibraryLink_Params liblink_params;
-  BLO_library_link_params_init(&liblink_params, bmain, self->flag);
+  BLO_library_link_params_init(&liblink_params, bmain, self->flag, id_tag_extra);
 
   mainl = BLO_library_link_begin(&(self->blo_handle), self->relpath, &liblink_params);
 
@@ -372,6 +378,12 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
               ID *id = BLO_library_link_named_part(
                   mainl, &(self->blo_handle), idcode, item_idname, &liblink_params);
               if (id) {
+
+                if (self->bmain_is_temp) {
+                  /* If this fails, #LibraryLink_Params.id_tag_extra is not being applied. */
+                  BLI_assert(id->tag & LIB_TAG_TEMP_MAIN);
+                }
+
 #ifdef USE_RNA_DATABLOCKS
                 /* swap name for pointer to the id */
                 item_dst = PyCapsule_New((void *)id, NULL, NULL);
@@ -486,10 +498,6 @@ PyMethodDef BPY_library_load_method_def = {
 
 int BPY_library_load_type_ready(void)
 {
-
-  /* some compilers don't like accessing this directly, delay assignment */
-  bpy_lib_Type.tp_getattro = PyObject_GenericGetAttr;
-
   if (PyType_Ready(&bpy_lib_Type) < 0) {
     return -1;
   }

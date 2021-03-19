@@ -27,7 +27,6 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/attributes_ref.cc
   intern/cpp_types.cc
   intern/multi_function.cc
   intern/multi_function_builder.cc
@@ -36,7 +35,6 @@ set(SRC
   intern/multi_function_network_optimization.cc
 
   FN_array_spans.hh
-  FN_attributes_ref.hh
   FN_cpp_type.hh
   FN_generic_pointer.hh
   FN_generic_value_map.hh
@@ -63,7 +61,6 @@ blender_add_lib(bf_functions "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/FN_array_spans_test.cc
-    tests/FN_attributes_ref_test.cc
     tests/FN_cpp_type_test.cc
     tests/FN_generic_vector_array_test.cc
     tests/FN_multi_function_network_test.cc

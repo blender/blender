@@ -50,12 +50,10 @@
 #include "WM_types.h"
 
 static struct {
-  struct GPUTexture *hammersley;
   struct GPUTexture *planar_pool_placeholder;
   struct GPUTexture *depth_placeholder;
   struct GPUTexture *depth_array_placeholder;
 
-  struct GPUVertFormat *format_probe_display_cube;
   struct GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
 
@@ -90,41 +88,23 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
   return vis_in && oed->ob_vis;
 }
 
-static struct GPUTexture *create_hammersley_sample_texture(int samples)
-{
-  struct GPUTexture *tex;
-  float(*texels)[2] = MEM_mallocN(sizeof(float[2]) * samples, "hammersley_tex");
-  int i;
-
-  for (i = 0; i < samples; i++) {
-    double dphi;
-    BLI_hammersley_1d(i, &dphi);
-    float phi = (float)dphi * 2.0f * M_PI;
-    texels[i][0] = cosf(phi);
-    texels[i][1] = sinf(phi);
-  }
-
-  tex = DRW_texture_create_1d(samples, GPU_RG16F, DRW_TEX_WRAP, (float *)texels);
-  MEM_freeN(texels);
-  return tex;
-}
-
 static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 {
   EEVEE_TextureList *txl = vedata->txl;
+  EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_EffectsInfo *fx = stl->effects;
 
   /* XXX TODO OPTIMIZATION: This is a complete waist of texture memory.
    * Instead of allocating each planar probe for each viewport,
    * only alloc them once using the biggest viewport resolution. */
-  const float *viewport_size = DRW_viewport_size_get();
 
   /* TODO get screen percentage from layer setting */
   // const DRWContextState *draw_ctx = DRW_context_state_get();
   // ViewLayer *view_layer = draw_ctx->view_layer;
-  float screen_percentage = 1.0f;
+  int screen_divider = 1;
 
-  int width = max_ii(1, (int)(viewport_size[0] * screen_percentage));
-  int height = max_ii(1, (int)(viewport_size[1] * screen_percentage));
+  int width = max_ii(1, fx->hiz_size[0] / screen_divider);
+  int height = max_ii(1, fx->hiz_size[1] / screen_divider);
 
   /* Fix case were the pool was allocated width the dummy size (1,1,1). */
   if (txl->planar_pool && (num_planar_ref > 0) &&
@@ -139,12 +119,12 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
     if (num_planar_ref > 0) {
       txl->planar_pool = DRW_texture_create_2d_array(width,
                                                      height,
-                                                     max_ii(1, num_planar_ref),
+                                                     num_planar_ref,
                                                      GPU_R11F_G11F_B10F,
                                                      DRW_TEX_FILTER | DRW_TEX_MIPMAP,
                                                      NULL);
       txl->planar_depth = DRW_texture_create_2d_array(
-          width, height, max_ii(1, num_planar_ref), GPU_DEPTH_COMPONENT24, 0, NULL);
+          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, 0, NULL);
     }
     else if (num_planar_ref == 0) {
       /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still
@@ -165,10 +145,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
   vedata->info[0] = '\0';
 
-  if (!e_data.hammersley) {
-    EEVEE_shaders_lightprobe_shaders_init();
-    e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
-  }
+  EEVEE_shaders_material_shaders_init();
 
   memset(stl->g_data->bake_views, 0, sizeof(stl->g_data->bake_views));
   memset(stl->g_data->cube_views, 0, sizeof(stl->g_data->cube_views));
@@ -243,15 +220,13 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
 
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
-    DRW_shgroup_uniform_float(grp, "roughnessSquared", &pinfo->roughness, 1);
+    DRW_shgroup_uniform_float(grp, "roughness", &pinfo->roughness, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
     DRW_shgroup_uniform_float(grp, "texelSize", &pinfo->texel_size, 1);
     DRW_shgroup_uniform_float(grp, "paddingSize", &pinfo->padding_size, 1);
     DRW_shgroup_uniform_float(grp, "fireflyFactor", &pinfo->firefly_fac, 1);
     DRW_shgroup_uniform_int(grp, "Layer", &pinfo->layer, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
     // DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
     DRW_shgroup_uniform_texture(grp, "probeHdr", rt_color);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -269,10 +244,8 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_int(grp, "probeSize", &pinfo->shres, 1);
 #else
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 #endif
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_texture(grp, "probeHdr", rt_color);
@@ -291,11 +264,9 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_float(grp, "visibilityRange", &pinfo->visibility_range, 1);
     DRW_shgroup_uniform_float(grp, "visibilityBlur", &pinfo->visibility_blur, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->samples_len_inv, 1);
     DRW_shgroup_uniform_float(grp, "storedTexelSize", &pinfo->texel_size, 1);
     DRW_shgroup_uniform_float(grp, "nearClip", &pinfo->near_clip, 1);
     DRW_shgroup_uniform_float(grp, "farClip", &pinfo->far_clip, 1);
-    DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
     DRW_shgroup_uniform_texture(grp, "probeDepth", rt_depth);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
@@ -674,10 +645,12 @@ static void lightbake_planar_ensure_view(EEVEE_PlanarReflection *eplanar,
                                          const DRWView *main_view,
                                          DRWView **r_planar_view)
 {
-  float winmat[4][4], viewmat[4][4];
+  float winmat[4][4], viewmat[4][4], persmat[4][4];
   DRW_view_viewmat_get(main_view, viewmat, false);
   /* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
   DRW_view_winmat_get(main_view, winmat, false);
+  DRW_view_persmat_get(main_view, persmat, false);
+
   /* Invert X to avoid flipping the triangle facing direction. */
   winmat[0][0] = -winmat[0][0];
   winmat[1][0] = -winmat[1][0];
@@ -729,7 +702,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   /* For shading, save max level of the octahedron map */
   sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len;
-  sldata->common_data.prb_lod_planar_max = (float)MAX_PLANAR_LOD_LEVEL;
   sldata->common_data.prb_irradiance_vis_size = light_cache->vis_res;
   sldata->common_data.prb_irradiance_smooth = square_f(scene_eval->eevee.gi_irradiance_smoothing);
   sldata->common_data.prb_num_render_cube = max_ii(1, light_cache->cube_len);
@@ -959,7 +931,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 
   DRW_draw_pass(psl->probe_background);
   EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
-  EEVEE_occlusion_compute(sldata, vedata, tmp_planar_depth, layer);
+  EEVEE_occlusion_compute(sldata, vedata);
 
   GPU_framebuffer_bind(fbl->planarref_fb);
 
@@ -1043,8 +1015,8 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     /* Disney Roughness */
     pinfo->roughness = square_f(pinfo->roughness);
     /* Distribute Roughness across lod more evenly */
-    pinfo->roughness = square_f(square_f(pinfo->roughness));
-    CLAMP(pinfo->roughness, 1e-8f, 0.99999f); /* Avoid artifacts */
+    pinfo->roughness = square_f(pinfo->roughness);
+    CLAMP(pinfo->roughness, 1e-4f, 0.9999f); /* Avoid artifacts */
 
 #if 1 /* Variable Sample count and bias (fast) */
     switch (i) {
@@ -1076,10 +1048,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
     CLAMP(filter_quality, 1.0f, 8.0f);
     pinfo->samples_len *= filter_quality;
 
-    pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
-    pinfo->lodfactor = bias +
-                       0.5f * log((float)(target_size * target_size) * pinfo->samples_len_inv) /
-                           log(2);
+    pinfo->lodfactor = bias + 0.5f * log(square_f(target_size) / pinfo->samples_len) / log(2);
     pinfo->firefly_fac = (firefly_fac > 0.0) ? firefly_fac : 1e16;
 
     GPU_framebuffer_ensure_config(&fb,
@@ -1127,10 +1096,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 #ifndef IRRADIANCE_SH_L2
   /* Tweaking parameters to balance perf. vs precision */
   const float bias = 0.0f;
-  pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
-  pinfo->lodfactor = bias + 0.5f *
-                                log((float)(target_size * target_size) * pinfo->samples_len_inv) /
-                                log(2);
+  pinfo->lodfactor = bias + 0.5f * log(square_f(target_size) / pinfo->samples_len) / log(2);
   pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;
 #else
   pinfo->shres = 32;        /* Less texture fetches & reduce branches */
@@ -1168,7 +1134,6 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
   pinfo->samples_len = 512.0f; /* TODO refine */
-  pinfo->samples_len_inv = 1.0f / pinfo->samples_len;
   pinfo->shres = vis_size;
   pinfo->visibility_range = vis_range;
   pinfo->visibility_blur = vis_blur;
@@ -1220,7 +1185,7 @@ static void EEVEE_lightbake_filter_planar(EEVEE_Data *vedata)
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->planar_pool)});
 
   GPU_framebuffer_recursive_downsample(
-      fbl->planar_downsample_fb, MAX_PLANAR_LOD_LEVEL, &downsample_planar, vedata);
+      fbl->planar_downsample_fb, MAX_SCREEN_BUFFERS_LOD_LEVEL, &downsample_planar, vedata);
   DRW_stats_group_end();
 }
 
@@ -1291,9 +1256,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 void EEVEE_lightprobes_free(void)
 {
-  MEM_SAFE_FREE(e_data.format_probe_display_cube);
   MEM_SAFE_FREE(e_data.format_probe_display_planar);
-  DRW_TEXTURE_FREE_SAFE(e_data.hammersley);
   DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);
   DRW_TEXTURE_FREE_SAFE(e_data.depth_placeholder);
   DRW_TEXTURE_FREE_SAFE(e_data.depth_array_placeholder);

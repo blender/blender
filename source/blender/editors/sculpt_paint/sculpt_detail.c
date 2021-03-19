@@ -37,10 +37,17 @@
 
 #include "DEG_depsgraph.h"
 
+#include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
+#include "GPU_state.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_sculpt.h"
+#include "ED_space_api.h"
 #include "ED_view3d.h"
 #include "sculpt_intern.h"
 
@@ -118,7 +125,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   MEM_SAFE_FREE(nodes);
   SCULPT_undo_push_end();
 
-  /* Force rebuild of pbvh for better BB placement. */
+  /* Force rebuild of PBVH for better BB placement. */
   SCULPT_pbvh_clear(ob);
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -359,8 +366,12 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 
 /* Dynamic-topology detail size.
  *
- * This should be improved further, perhaps by showing a triangle
- * grid rather than brush alpha. */
+ * Currently, there are two operators editing the detail size:
+ * - SCULPT_OT_set_detail_size uses radial control for all methods
+ * - SCULPT_OT_dyntopo_detail_size_edit shows a triangle grid representation of the detail
+ * resolution (for constant detail method, falls back to radial control for the remaining methods).
+ */
+
 static void set_brush_rc_props(PointerRNA *ptr, const char *prop)
 {
   char *path = BLI_sprintfN("tool_settings.sculpt.brush.%s", prop);
@@ -368,7 +379,7 @@ static void set_brush_rc_props(PointerRNA *ptr, const char *prop)
   MEM_freeN(path);
 }
 
-static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
+static void sculpt_detail_size_set_radial_control(bContext *C)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
@@ -394,6 +405,11 @@ static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 
   WM_operator_properties_free(&props_ptr);
+}
+
+static int sculpt_set_detail_size_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  sculpt_detail_size_set_radial_control(C);
 
   return OPERATOR_FINISHED;
 }
@@ -409,6 +425,337 @@ void SCULPT_OT_set_detail_size(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sculpt_set_detail_size_exec;
   ot->poll = sculpt_and_dynamic_topology_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Dyntopo Detail Size Edit Operator
+ * \{ */
+
+/* Defines how much the mouse movement will modify the detail size value. */
+#define DETAIL_SIZE_DELTA_SPEED 0.08f
+#define DETAIL_SIZE_DELTA_ACCURATE_SPEED 0.004f
+
+typedef struct DyntopoDetailSizeEditCustomData {
+  void *draw_handle;
+  Object *active_object;
+
+  float init_mval[2];
+  float accurate_mval[2];
+
+  float outline_col[4];
+
+  bool accurate_mode;
+  bool sample_mode;
+
+  float init_detail_size;
+  float accurate_detail_size;
+  float detail_size;
+  float radius;
+
+  float preview_tri[3][3];
+  float gizmo_mat[4][4];
+} DyntopoDetailSizeEditCustomData;
+
+static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
+                                                    DyntopoDetailSizeEditCustomData *cd,
+                                                    const float start_co[3],
+                                                    const float end_co[3],
+                                                    bool flip,
+                                                    const float angle)
+{
+  float object_space_constant_detail = 1.0f /
+                                       (cd->detail_size * mat4_to_scale(cd->active_object->obmat));
+
+  /* The constant detail represents the maximum edge length allowed before subdividing it. If the
+   * triangle grid preview is created with this value it will represent an ideal mesh density where
+   * all edges have the exact maximum length, which never happens in practice. As the minimum edge
+   * length for dyntopo is 0.4 * max_edge_length, this adjust the detail size to the average
+   * between max and min edge length so the preview is more accurate. */
+  object_space_constant_detail *= 0.7f;
+
+  const float total_len = len_v3v3(cd->preview_tri[0], cd->preview_tri[1]);
+  const int tot_lines = (int)(total_len / object_space_constant_detail) + 1;
+  const float tot_lines_fl = total_len / object_space_constant_detail;
+  float spacing_disp[3];
+  sub_v3_v3v3(spacing_disp, end_co, start_co);
+  normalize_v3(spacing_disp);
+
+  float line_disp[3];
+  rotate_v2_v2fl(line_disp, spacing_disp, DEG2RAD(angle));
+  mul_v3_fl(spacing_disp, total_len / tot_lines_fl);
+
+  immBegin(GPU_PRIM_LINES, (uint)tot_lines * 2);
+  for (int i = 0; i < tot_lines; i++) {
+    float line_length;
+    if (flip) {
+      line_length = total_len * ((float)i / (float)tot_lines_fl);
+    }
+    else {
+      line_length = total_len * (1.0f - ((float)i / (float)tot_lines_fl));
+    }
+    float line_start[3];
+    copy_v3_v3(line_start, start_co);
+    madd_v3_v3v3fl(line_start, line_start, spacing_disp, i);
+    float line_end[3];
+    madd_v3_v3v3fl(line_end, line_start, line_disp, line_length);
+    immVertex3fv(pos3d, line_start);
+    immVertex3fv(pos3d, line_end);
+  }
+  immEnd();
+}
+
+static void dyntopo_detail_size_edit_draw(const bContext *UNUSED(C),
+                                          ARegion *UNUSED(ar),
+                                          void *arg)
+{
+  DyntopoDetailSizeEditCustomData *cd = arg;
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_smooth(true);
+
+  uint pos3d = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  GPU_matrix_push();
+  GPU_matrix_mul(cd->gizmo_mat);
+
+  /* Draw Cursor */
+  immUniformColor4fv(cd->outline_col);
+  GPU_line_width(3.0f);
+
+  imm_draw_circle_wire_3d(pos3d, 0, 0, cd->radius, 80);
+
+  /* Draw Triangle. */
+  immUniformColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+  immBegin(GPU_PRIM_LINES, 6);
+  immVertex3fv(pos3d, cd->preview_tri[0]);
+  immVertex3fv(pos3d, cd->preview_tri[1]);
+
+  immVertex3fv(pos3d, cd->preview_tri[1]);
+  immVertex3fv(pos3d, cd->preview_tri[2]);
+
+  immVertex3fv(pos3d, cd->preview_tri[2]);
+  immVertex3fv(pos3d, cd->preview_tri[0]);
+  immEnd();
+
+  /* Draw Grid */
+  GPU_line_width(1.0f);
+  dyntopo_detail_size_parallel_lines_draw(
+      pos3d, cd, cd->preview_tri[0], cd->preview_tri[1], false, 60.0f);
+  dyntopo_detail_size_parallel_lines_draw(
+      pos3d, cd, cd->preview_tri[0], cd->preview_tri[1], true, 120.0f);
+  dyntopo_detail_size_parallel_lines_draw(
+      pos3d, cd, cd->preview_tri[0], cd->preview_tri[2], false, -60.0f);
+
+  immUnbindProgram();
+  GPU_matrix_pop();
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_line_smooth(false);
+}
+
+static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
+{
+  Object *active_object = CTX_data_active_object(C);
+  SculptSession *ss = active_object->sculpt;
+  ARegion *region = CTX_wm_region(C);
+  DyntopoDetailSizeEditCustomData *cd = op->customdata;
+  ED_region_draw_cb_exit(region->type, cd->draw_handle);
+  ss->draw_faded_cursor = false;
+  MEM_freeN(op->customdata);
+  ED_workspace_status_text(C, NULL);
+}
+
+static void dyntopo_detail_size_sample_from_surface(Object *ob,
+                                                    DyntopoDetailSizeEditCustomData *cd)
+{
+  SculptSession *ss = ob->sculpt;
+  const int active_vertex = SCULPT_active_vertex_get(ss);
+
+  float len_accum = 0;
+  int num_neighbors = 0;
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
+    len_accum += len_v3v3(SCULPT_vertex_co_get(ss, active_vertex),
+                          SCULPT_vertex_co_get(ss, ni.index));
+    num_neighbors++;
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  if (num_neighbors > 0) {
+    const float avg_edge_len = len_accum / num_neighbors;
+    /* Use 0.7 as the average of min and max dyntopo edge length. */
+    const float detail_size = 0.7f / (avg_edge_len * mat4_to_scale(cd->active_object->obmat));
+    cd->detail_size = clamp_f(detail_size, 1.0f, 500.0f);
+  }
+}
+
+static void dyntopo_detail_size_update_from_mouse_delta(DyntopoDetailSizeEditCustomData *cd,
+                                                        const wmEvent *event)
+{
+  const float mval[2] = {event->mval[0], event->mval[1]};
+
+  float detail_size_delta;
+  if (cd->accurate_mode) {
+    detail_size_delta = mval[0] - cd->accurate_mval[0];
+    cd->detail_size = cd->accurate_detail_size +
+                      detail_size_delta * DETAIL_SIZE_DELTA_ACCURATE_SPEED;
+  }
+  else {
+    detail_size_delta = mval[0] - cd->init_mval[0];
+    cd->detail_size = cd->init_detail_size + detail_size_delta * DETAIL_SIZE_DELTA_SPEED;
+  }
+
+  if (event->type == EVT_LEFTSHIFTKEY && event->val == KM_PRESS) {
+    cd->accurate_mode = true;
+    copy_v2_v2(cd->accurate_mval, mval);
+    cd->accurate_detail_size = cd->detail_size;
+  }
+  if (event->type == EVT_LEFTSHIFTKEY && event->val == KM_RELEASE) {
+    cd->accurate_mode = false;
+    cd->accurate_detail_size = 0.0f;
+  }
+
+  cd->detail_size = clamp_f(cd->detail_size, 1.0f, 500.0f);
+}
+
+static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *active_object = CTX_data_active_object(C);
+  SculptSession *ss = active_object->sculpt;
+  ARegion *region = CTX_wm_region(C);
+  DyntopoDetailSizeEditCustomData *cd = op->customdata;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  /* Cancel modal operator */
+  if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+    dyntopo_detail_size_edit_cancel(C, op);
+    ED_region_tag_redraw(region);
+    return OPERATOR_FINISHED;
+  }
+
+  /* Finish modal operator */
+  if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
+      (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
+      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+    ED_region_draw_cb_exit(region->type, cd->draw_handle);
+    sd->constant_detail = cd->detail_size;
+    ss->draw_faded_cursor = false;
+    MEM_freeN(op->customdata);
+    ED_region_tag_redraw(region);
+    ED_workspace_status_text(C, NULL);
+    return OPERATOR_FINISHED;
+  }
+
+  ED_region_tag_redraw(region);
+
+  if (event->type == EVT_LEFTCTRLKEY && event->val == KM_PRESS) {
+    cd->sample_mode = true;
+  }
+  if (event->type == EVT_LEFTCTRLKEY && event->val == KM_RELEASE) {
+    cd->sample_mode = false;
+  }
+
+  /* Sample mode sets the detail size sampling the average edge length under the surface. */
+  if (cd->sample_mode) {
+    dyntopo_detail_size_sample_from_surface(active_object, cd);
+    return OPERATOR_RUNNING_MODAL;
+  }
+  /* Regular mode, changes the detail size by moving the cursor. */
+  dyntopo_detail_size_update_from_mouse_delta(cd, event);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  /* Fallback to radial control for modes other than SCULPT_DYNTOPO_DETAIL_CONSTANT [same as in
+   * SCULPT_OT_set_detail_size]. */
+  if (!(sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL))) {
+    sculpt_detail_size_set_radial_control(C);
+
+    return OPERATOR_FINISHED;
+  }
+
+  /* Special method for SCULPT_DYNTOPO_DETAIL_CONSTANT. */
+  ARegion *region = CTX_wm_region(C);
+  Object *active_object = CTX_data_active_object(C);
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  DyntopoDetailSizeEditCustomData *cd = MEM_callocN(sizeof(DyntopoDetailSizeEditCustomData),
+                                                    "Dyntopo Detail Size Edit OP Custom Data");
+
+  /* Initial operator Custom Data setup. */
+  cd->draw_handle = ED_region_draw_cb_activate(
+      region->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
+  cd->active_object = active_object;
+  cd->init_mval[0] = event->mval[0];
+  cd->init_mval[1] = event->mval[1];
+  cd->detail_size = sd->constant_detail;
+  cd->init_detail_size = sd->constant_detail;
+  copy_v4_v4(cd->outline_col, brush->add_col);
+  op->customdata = cd;
+
+  SculptSession *ss = active_object->sculpt;
+  cd->radius = ss->cursor_radius;
+
+  /* Generates the matrix to position the gizmo in the surface of the mesh using the same location
+   * and orientation as the brush cursor. */
+  float cursor_trans[4][4], cursor_rot[4][4];
+  const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+  float quat[4];
+  copy_m4_m4(cursor_trans, active_object->obmat);
+  translate_m4(
+      cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
+
+  float cursor_normal[3];
+  if (!is_zero_v3(ss->cursor_sampled_normal)) {
+    copy_v3_v3(cursor_normal, ss->cursor_sampled_normal);
+  }
+  else {
+    copy_v3_v3(cursor_normal, ss->cursor_normal);
+  }
+
+  rotation_between_vecs_to_quat(quat, z_axis, cursor_normal);
+  quat_to_mat4(cursor_rot, quat);
+  copy_m4_m4(cd->gizmo_mat, cursor_trans);
+  mul_m4_m4_post(cd->gizmo_mat, cursor_rot);
+
+  /* Initialize the position of the triangle vertices. */
+  const float y_axis[3] = {0.0f, cd->radius, 0.0f};
+  for (int i = 0; i < 3; i++) {
+    zero_v3(cd->preview_tri[i]);
+    rotate_v2_v2fl(cd->preview_tri[i], y_axis, DEG2RAD(120.0f * i));
+  }
+
+  SCULPT_vertex_random_access_ensure(ss);
+
+  WM_event_add_modal_handler(C, op);
+  ED_region_tag_redraw(region);
+
+  ss->draw_faded_cursor = true;
+
+  const char *status_str = TIP_(
+      "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel");
+  ED_workspace_status_text(C, status_str);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Edit Dyntopo Detail Size";
+  ot->description = "Modify the detail size of dyntopo interactively";
+  ot->idname = "SCULPT_OT_dyntopo_detail_size_edit";
+
+  /* api callbacks */
+  ot->poll = sculpt_and_dynamic_topology_poll;
+  ot->invoke = dyntopo_detail_size_edit_invoke;
+  ot->modal = dyntopo_detail_size_edit_modal;
+  ot->cancel = dyntopo_detail_size_edit_cancel;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

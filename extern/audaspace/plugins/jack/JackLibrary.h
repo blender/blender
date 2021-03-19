@@ -21,9 +21,8 @@
 #endif
 
 /**
- * @file JackDevice.h
+ * @file JackLibrary.h
  * @ingroup plugin
- * The JackDevice class.
  */
 
 #include "Audaspace.h"

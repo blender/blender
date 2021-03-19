@@ -2,7 +2,7 @@
 layout(std140) uniform common_block
 {
   mat4 pastViewProjectionMatrix;
-  vec2 mipRatio[10]; /* To correct mip level texel misalignment */
+  vec4 hizUvScale; /* To correct mip level texel misalignment */
   /* Ambient Occlusion */
   vec4 aoParameters[2];
   /* Volumetric */
@@ -37,15 +37,15 @@ layout(std140) uniform common_block
   int prbIrradianceVisSize;
   float prbIrradianceSmooth;
   float prbLodCubeMax;
-  float prbLodPlanarMax;
   /* Misc*/
-  int hizMipOffset;
   int rayType;
   float rayDepth;
   float alphaHashOffset;
   float alphaHashScale;
+  float pad6;
   float pad7;
   float pad8;
+  float pad9;
 };
 
 /* rayType (keep in sync with ray_type) */
@@ -70,8 +70,4 @@ layout(std140) uniform common_block
 #define ssrThickness ssrParameters.y
 #define ssrPixelSize ssrParameters.zw
 
-vec2 mip_ratio_interp(float mip)
-{
-  float low_mip = floor(mip);
-  return mix(mipRatio[int(low_mip)], mipRatio[int(low_mip + 1.0)], mip - low_mip);
-}
+#define ssrUvScale hizUvScale.zw

@@ -71,6 +71,128 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
   return 0;
 }
 
+using blender::float3;
+
+static float3 sh_node_vector_rotate_around_axis(const float3 vector,
+                                                const float3 center,
+                                                const float3 axis,
+                                                const float angle)
+{
+  float3 result = vector - center;
+  float mat[3][3];
+  axis_angle_to_mat3(mat, axis, angle);
+  mul_m3_v3(mat, result);
+  return result + center;
+}
+
+static float3 sh_node_vector_rotate_euler(const float3 vector,
+                                          const float3 center,
+                                          const float3 rotation,
+                                          const bool invert)
+{
+  float mat[3][3];
+  float3 result = vector - center;
+  eul_to_mat3(mat, rotation);
+  if (invert) {
+    invert_m3(mat);
+  }
+  mul_m3_v3(mat, result);
+  return result + center;
+}
+
+static const blender::fn::MultiFunction &get_multi_function(
+    blender::nodes::NodeMFNetworkBuilder &builder)
+{
+  bool invert = builder.bnode().custom2;
+  const int mode = builder.bnode().custom1;
+
+  switch (mode) {
+    case NODE_VECTOR_ROTATE_TYPE_AXIS: {
+      if (invert) {
+        static blender::fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float3, float, float3> fn{
+            "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
+              return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
+            }};
+        return fn;
+      }
+      static blender::fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float3, float, float3> fn{
+          "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
+            return sh_node_vector_rotate_around_axis(in, center, axis, angle);
+          }};
+      return fn;
+    }
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_X: {
+      float3 axis = float3(1.0f, 0.0f, 0.0f);
+      if (invert) {
+        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+            "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
+              return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
+            }};
+        return fn;
+      }
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+          "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
+            return sh_node_vector_rotate_around_axis(in, center, axis, angle);
+          }};
+      return fn;
+    }
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_Y: {
+      float3 axis = float3(0.0f, 1.0f, 0.0f);
+      if (invert) {
+        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+            "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
+              return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
+            }};
+        return fn;
+      }
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+          "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
+            return sh_node_vector_rotate_around_axis(in, center, axis, angle);
+          }};
+      return fn;
+    }
+    case NODE_VECTOR_ROTATE_TYPE_AXIS_Z: {
+      float3 axis = float3(0.0f, 0.0f, 1.0f);
+      if (invert) {
+        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+            "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
+              return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
+            }};
+        return fn;
+      }
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+          "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
+            return sh_node_vector_rotate_around_axis(in, center, axis, angle);
+          }};
+      return fn;
+    }
+    case NODE_VECTOR_ROTATE_TYPE_EULER_XYZ: {
+      if (invert) {
+        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+            "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
+              return sh_node_vector_rotate_euler(in, center, rotation, true);
+            }};
+        return fn;
+      }
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
+            return sh_node_vector_rotate_euler(in, center, rotation, false);
+          }};
+      return fn;
+    }
+    default:
+      BLI_assert(false);
+      return builder.get_not_implemented_fn();
+  }
+}
+
+static void sh_node_vector_rotate_expand_in_mf_network(
+    blender::nodes::NodeMFNetworkBuilder &builder)
+{
+  const blender::fn::MultiFunction &fn = get_multi_function(builder);
+  builder.set_matching_fn(fn);
+}
+
 static void node_shader_update_vector_rotate(bNodeTree *UNUSED(ntree), bNode *node)
 {
   bNodeSocket *sock_rotation = nodeFindSocket(node, SOCK_IN, "Rotation");
@@ -85,10 +207,11 @@ void register_node_type_sh_vector_rotate(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR, 0);
   node_type_socket_templates(&ntype, sh_node_vector_rotate_in, sh_node_vector_rotate_out);
   node_type_gpu(&ntype, gpu_shader_vector_rotate);
   node_type_update(&ntype, node_shader_update_vector_rotate);
+  ntype.expand_in_mf_network = sh_node_vector_rotate_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }

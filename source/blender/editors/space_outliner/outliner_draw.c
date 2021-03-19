@@ -21,7 +21,6 @@
  * \ingroup spoutliner
  */
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
@@ -45,7 +44,6 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -56,14 +54,11 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
 
@@ -138,13 +133,11 @@ static bool is_object_data_in_editmode(const ID *id, const Object *obact)
 
 /* ****************************************************** */
 
-static void restrictbutton_recursive_ebone(bContext *C,
+static void restrictbutton_recursive_ebone(bArmature *arm,
                                            EditBone *ebone_parent,
                                            int flag,
                                            bool set_flag)
 {
-  Object *obedit = CTX_data_edit_object(C);
-  bArmature *arm = obedit->data;
   EditBone *ebone;
 
   for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -203,8 +196,9 @@ static void restrictbutton_bone_select_fn(bContext *C, void *UNUSED(poin), void 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_select_fn(bContext *C, void *UNUSED(poin), void *poin2)
+static void restrictbutton_ebone_select_fn(bContext *C, void *poin, void *poin2)
 {
+  bArmature *arm = (bArmature *)poin;
   EditBone *ebone = (EditBone *)poin2;
 
   if (ebone->flag & BONE_UNSELECTABLE) {
@@ -213,21 +207,22 @@ static void restrictbutton_ebone_select_fn(bContext *C, void *UNUSED(poin), void
 
   if (CTX_wm_window(C)->eventstate->shift) {
     restrictbutton_recursive_ebone(
-        C, ebone, BONE_UNSELECTABLE, (ebone->flag & BONE_UNSELECTABLE) != 0);
+        arm, ebone, BONE_UNSELECTABLE, (ebone->flag & BONE_UNSELECTABLE) != 0);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 }
 
-static void restrictbutton_ebone_visibility_fn(bContext *C, void *UNUSED(poin), void *poin2)
+static void restrictbutton_ebone_visibility_fn(bContext *C, void *poin, void *poin2)
 {
+  bArmature *arm = (bArmature *)poin;
   EditBone *ebone = (EditBone *)poin2;
   if (ebone->flag & BONE_HIDDEN_A) {
     ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
   }
 
   if (CTX_wm_window(C)->eventstate->shift) {
-    restrictbutton_recursive_ebone(C, ebone, BONE_HIDDEN_A, (ebone->flag & BONE_HIDDEN_A) != 0);
+    restrictbutton_recursive_ebone(arm, ebone, BONE_HIDDEN_A, (ebone->flag & BONE_HIDDEN_A) != 0);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
@@ -668,7 +663,6 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  Object *obedit = CTX_data_edit_object(C);
   BLI_mempool *ts = space_outliner->treestore;
   TreeStoreElem *tselem = tsep;
 
@@ -745,7 +739,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             /* restore bone name */
             BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
             BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
-            ED_armature_bone_rename(bmain, obedit->data, oldname, newname);
+            ED_armature_bone_rename(bmain, arm, oldname, newname);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
           }
           break;
@@ -1352,6 +1346,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         }
       }
       else if (tselem->type == TSE_EBONE) {
+        bArmature *arm = (bArmature *)tselem->id;
         EditBone *ebone = (EditBone *)te->directdata;
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
@@ -1371,7 +1366,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 TIP_("Restrict visibility in the 3D View\n"
                                      "* Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_ebone_visibility_fn, NULL, ebone);
+          UI_but_func_set(bt, restrictbutton_ebone_visibility_fn, arm, ebone);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }
@@ -1393,7 +1388,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 0,
                                 TIP_("Restrict selection in the 3D View\n"
                                      "* Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_ebone_select_fn, NULL, ebone);
+          UI_but_func_set(bt, restrictbutton_ebone_select_fn, arm, ebone);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }

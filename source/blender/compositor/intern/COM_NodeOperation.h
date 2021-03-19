@@ -326,7 +326,7 @@ class NodeOperation : public SocketReader {
    */
   virtual CompositorPriority getRenderPriority() const
   {
-    return COM_PRIORITY_LOW;
+    return CompositorPriority::Low;
   }
 
   /**

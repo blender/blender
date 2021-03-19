@@ -55,9 +55,9 @@ else()
 endif()
 
 ExternalProject_Add(external_opencolorio
-  URL ${OPENCOLORIO_URI}
+  URL file://${PACKAGE_DIR}/${OPENCOLORIO_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${OPENCOLORIO_HASH}
+  URL_HASH ${OPENCOLORIO_HASH_TYPE}=${OPENCOLORIO_HASH}
   PREFIX ${BUILD_DIR}/opencolorio
   PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/opencolorio/src/external_opencolorio < ${PATCH_DIR}/opencolorio.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio ${DEFAULT_CMAKE_FLAGS} ${OPENCOLORIO_EXTRA_ARGS}

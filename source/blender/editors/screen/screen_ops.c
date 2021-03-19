@@ -5540,10 +5540,6 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
   /* Screen Editing ------------------------------------------------ */
   WM_keymap_ensure(keyconf, "Screen Editing", 0, 0);
 
-  /* Header Editing ------------------------------------------------ */
-  /* note: this is only used when the cursor is inside the header */
-  WM_keymap_ensure(keyconf, "Header", 0, 0);
-
   /* Screen General ------------------------------------------------ */
   WM_keymap_ensure(keyconf, "Screen", 0, 0);
 

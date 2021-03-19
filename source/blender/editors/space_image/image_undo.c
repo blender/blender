@@ -911,6 +911,8 @@ static void image_undosys_step_decode_redo_impl(ImageUndoStep *us)
 
 static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
 {
+  /* Walk forward over any applied steps of same type,
+   * then walk back in the next loop, un-applying them. */
   ImageUndoStep *us_iter = us;
   while (us_iter->step.next && (us_iter->step.next->type == us_iter->step.type)) {
     if (us_iter->step.next->is_applied == false) {
@@ -919,7 +921,7 @@ static void image_undosys_step_decode_undo(ImageUndoStep *us, bool is_final)
     us_iter = (ImageUndoStep *)us_iter->step.next;
   }
   while (us_iter != us || (!is_final && us_iter == us)) {
-
+    BLI_assert(us_iter->step.type == us->step.type); /* Previous loop ensures this. */
     image_undosys_step_decode_undo_impl(us_iter, is_final);
     if (us_iter == us) {
       break;
@@ -949,6 +951,7 @@ static void image_undosys_step_decode_redo(ImageUndoStep *us)
 static void image_undosys_step_decode(
     struct bContext *C, struct Main *bmain, UndoStep *us_p, const eUndoStepDir dir, bool is_final)
 {
+  /* NOTE: behavior for undo/redo closely matches sculpt undo. */
   BLI_assert(dir != STEP_INVALID);
 
   ImageUndoStep *us = (ImageUndoStep *)us_p;

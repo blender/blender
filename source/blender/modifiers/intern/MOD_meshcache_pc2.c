@@ -75,7 +75,7 @@ static bool meshcache_read_pc2_head(FILE *fp,
     *err_str = "Invalid frame total";
     return false;
   }
-  /* intentionally dont seek back */
+  /* Intentionally don't seek back. */
 
   return true;
 }

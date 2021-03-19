@@ -70,7 +70,7 @@ MFFunctionNode &MFNetwork::add_function(const MultiFunction &function)
     }
   }
 
-  MFFunctionNode &node = *allocator_.construct<MFFunctionNode>();
+  MFFunctionNode &node = *allocator_.construct<MFFunctionNode>().release();
   function_nodes_.add_new(&node);
 
   node.network_ = this;
@@ -129,7 +129,7 @@ MFDummyNode &MFNetwork::add_dummy(StringRef name,
   assert_same_size(input_types, input_names);
   assert_same_size(output_types, output_names);
 
-  MFDummyNode &node = *allocator_.construct<MFDummyNode>();
+  MFDummyNode &node = *allocator_.construct<MFDummyNode>().release();
   dummy_nodes_.add_new(&node);
 
   node.network_ = this;

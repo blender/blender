@@ -46,9 +46,9 @@ elseif(UNIX)
 endif()
 
 ExternalProject_Add(external_gmp
-  URL ${GMP_URI}
+  URL file://${PACKAGE_DIR}/${GMP_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${GMP_HASH}
+  URL_HASH ${GMP_HASH_TYPE}=${GMP_HASH}
   PREFIX ${BUILD_DIR}/gmp
   CONFIGURE_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/gmp ${GMP_OPTIONS} ${GMP_EXTRA_ARGS}
   BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/gmp/src/external_gmp/ && make -j${MAKE_THREADS}
@@ -84,9 +84,9 @@ if(WIN32)
   # given the C++ ABI between MSVC and mingw is not compatible, we need to build the bindings
   # with MSVC, while GMP can only be build with mingw.
   ExternalProject_Add(external_gmpxx
-    URL ${GMP_URI}
+    URL file://${PACKAGE_DIR}/${GMP_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH MD5=${GMP_HASH}
+    URL_HASH ${GMP_HASH_TYPE}=${GMP_HASH}
     PREFIX ${BUILD_DIR}/gmpxx
     PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_gmpxx.txt ${BUILD_DIR}/gmpxx/src/external_gmpxx/CMakeLists.txt &&
                           ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/config_gmpxx.h ${BUILD_DIR}/gmpxx/src/external_gmpxx/config.h

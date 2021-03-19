@@ -944,7 +944,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
   /* over alloc */
   sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * bm->totvertsel, "sv_array");
 
-  /* same loop for all loops, weak but we dont connect loops in this case */
+  /* Same loop for all loops, weak but we don't connect loops in this case. */
   loop_nr = 1;
 
   sv_table = MEM_mallocN(sizeof(*sv_table) * bm->totvert, __func__);

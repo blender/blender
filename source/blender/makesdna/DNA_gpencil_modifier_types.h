@@ -53,6 +53,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Time = 16,
   eGpencilModifierType_Multiply = 17,
   eGpencilModifierType_Texture = 18,
+  eGpencilModifierType_Lineart = 19,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -808,6 +809,75 @@ typedef enum eTextureGpencil_Mode {
   FILL = 1,
   STROKE_AND_FILL = 2,
 } eTextureGpencil_Mode;
+
+typedef enum eLineartGpencilModifierSource {
+  LRT_SOURCE_COLLECTION = 0,
+  LRT_SOURCE_OBJECT = 1,
+  LRT_SOURCE_SCENE = 2,
+} eLineartGpencilModifierSource;
+
+typedef enum eLineArtGPencilModifierFlags {
+  LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0),
+  LRT_GPENCIL_MATCH_OUTPUT_VGROUP = (1 << 1),
+  LRT_GPENCIL_SOFT_SELECTION = (1 << 2),
+  LRT_GPENCIL_IS_BAKED = (1 << 3),
+} eLineArtGPencilModifierFlags;
+
+typedef enum eLineartGpencilTransparencyFlags {
+  LRT_GPENCIL_TRANSPARENCY_ENABLE = (1 << 0),
+  /** Set to true means using "and" instead of "or" logic on mask bits. */
+  LRT_GPENCIL_TRANSPARENCY_MATCH = (1 << 1),
+} eLineartGpencilTransparencyFlags;
+
+typedef struct LineartGpencilModifierData {
+  GpencilModifierData modifier;
+
+  short edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
+
+  char source_type; /* Object or Collection, from eLineartGpencilModifierSource */
+
+  char use_multiple_levels;
+  short level_start;
+  short level_end;
+
+  struct Object *source_object;
+  struct Collection *source_collection;
+
+  struct Material *target_material;
+  char target_layer[64];
+
+  /** These two variables are to pass on vertex group information from mesh to strokes.
+   * vgname specifies which vertex groups our strokes from source_vertex_group will go to. */
+  char source_vertex_group[64];
+  char vgname[64];
+
+  float opacity;
+  short thickness;
+
+  unsigned char transparency_flags; /* eLineartGpencilTransparencyFlags */
+  unsigned char transparency_mask;
+
+  /** 0-1 range for cosine angle */
+  float crease_threshold;
+
+  /**  0-PI angle, for splitting strokes at sharp points */
+  float angle_splitting_threshold;
+
+  /* CPU mode */
+  float chaining_image_threshold;
+
+  float resample_length;
+
+  /* Ported from SceneLineArt flags. */
+  int calculation_flags;
+
+  /* Additional Switches. */
+  int flags;
+
+  /* Runtime only. */
+  void *render_buffer;
+
+} LineartGpencilModifierData;
 
 #ifdef __cplusplus
 }

@@ -42,23 +42,23 @@ shader node_light_path(output float IsCameraRay = 0.0,
 
   getattribute("path:ray_length", RayLength);
 
-  int ray_depth;
+  int ray_depth = 0;
   getattribute("path:ray_depth", ray_depth);
   RayDepth = (float)ray_depth;
 
-  int diffuse_depth;
+  int diffuse_depth = 0;
   getattribute("path:diffuse_depth", diffuse_depth);
   DiffuseDepth = (float)diffuse_depth;
 
-  int glossy_depth;
+  int glossy_depth = 0;
   getattribute("path:glossy_depth", glossy_depth);
   GlossyDepth = (float)glossy_depth;
 
-  int transparent_depth;
+  int transparent_depth = 0;
   getattribute("path:transparent_depth", transparent_depth);
   TransparentDepth = (float)transparent_depth;
 
-  int transmission_depth;
+  int transmission_depth = 0;
   getattribute("path:transmission_depth", transmission_depth);
   TransmissionDepth = (float)transmission_depth;
 }

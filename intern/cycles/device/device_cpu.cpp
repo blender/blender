@@ -396,8 +396,7 @@ class CPUDevice : public Device {
                 << string_human_readable_size(mem.memory_size()) << ")";
       }
 
-      if (mem.type == MEM_DEVICE_ONLY) {
-        assert(!mem.host_pointer);
+      if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
         size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES;
         void *data = util_aligned_malloc(mem.memory_size(), alignment);
         mem.device_pointer = (device_ptr)data;
@@ -459,7 +458,7 @@ class CPUDevice : public Device {
       tex_free((device_texture &)mem);
     }
     else if (mem.device_pointer) {
-      if (mem.type == MEM_DEVICE_ONLY) {
+      if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
         util_aligned_free((void *)mem.device_pointer);
       }
       mem.device_pointer = 0;

@@ -64,8 +64,8 @@ class ExecutionGroup;
  * \see NodeOperation base class for all operations in the system
  *
  * \section EM_Step3 Step3: add additional conversions to the operation system
- *   - Data type conversions: the system has 3 data types COM_DT_VALUE, COM_DT_VECTOR,
- * COM_DT_COLOR. The user can connect a Value socket to a color socket. As values are ordered
+ *   - Data type conversions: the system has 3 data types DataType::Value, DataType::Vector,
+ * DataType::Color. The user can connect a Value socket to a color socket. As values are ordered
  * differently than colors a conversion happens.
  *
  *   - Image size conversions: the system can automatically convert when resolutions do not match.

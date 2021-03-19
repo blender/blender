@@ -115,14 +115,27 @@ FrameAccessor::Key GetMaskForMarker(const Marker& marker,
       marker.clip, marker.frame, marker.track, &region, mask);
 }
 
+PredictDirection getPredictDirection(const TrackRegionOptions* track_options) {
+  switch (track_options->direction) {
+    case TrackRegionOptions::FORWARD: return PredictDirection::FORWARD;
+    case TrackRegionOptions::BACKWARD: return PredictDirection::BACKWARD;
+  }
+
+  LOG(FATAL) << "Unhandled tracking direction " << track_options->direction
+             << ", should never happen.";
+
+  return PredictDirection::AUTO;
+}
+
 }  // namespace
 
 bool AutoTrack::TrackMarker(Marker* tracked_marker,
                             TrackRegionResult* result,
                             const TrackRegionOptions* track_options) {
   // Try to predict the location of the second marker.
+  const PredictDirection predict_direction = getPredictDirection(track_options);
   bool predicted_position = false;
-  if (PredictMarkerPosition(tracks_, tracked_marker)) {
+  if (PredictMarkerPosition(tracks_, predict_direction, tracked_marker)) {
     LG << "Successfully predicted!";
     predicted_position = true;
   } else {

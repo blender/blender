@@ -384,7 +384,7 @@ class AddPresetFluid(AddPresetBase, Operator):
     """Add or remove a Fluid Preset"""
     bl_idname = "fluid.preset_add"
     bl_label = "Add Fluid Preset"
-    preset_menu = "FLUID_MT_presets"
+    preset_menu = "FLUID_PT_presets"
 
     preset_defines = [
         "fluid = bpy.context.fluid"

@@ -58,7 +58,7 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     if (BMO_vert_flag_test(bm, l_iter->v, VERT_INPUT) &&
-        /* ensure this vertex isnt part of a contiguous group */
+        /* Ensure this vertex isn't part of a contiguous group. */
         ((BMO_vert_flag_test(bm, l_iter->prev->v, VERT_INPUT) == 0) ||
          (BMO_vert_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0))) {
       if (!l_tag_prev) {

@@ -46,7 +46,7 @@ class TreeElementNLATrack final : public AbstractTreeElement {
 
 class TreeElementNLAAction final : public AbstractTreeElement {
  public:
-  TreeElementNLAAction(TreeElement &legacy_te);
+  TreeElementNLAAction(TreeElement &legacy_te, const bAction &action);
 };
 
 }  // namespace blender::ed::outliner

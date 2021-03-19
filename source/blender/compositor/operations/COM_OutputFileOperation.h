@@ -66,7 +66,7 @@ class OutputSingleLayerOperation : public NodeOperation {
   void deinitExecution();
   CompositorPriority getRenderPriority() const
   {
-    return COM_PRIORITY_LOW;
+    return CompositorPriority::Low;
   }
 
   bool isFileOutputOperation() const
@@ -125,7 +125,7 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
   void deinitExecution();
   CompositorPriority getRenderPriority() const
   {
-    return COM_PRIORITY_LOW;
+    return CompositorPriority::Low;
   }
 
   bool isFileOutputOperation() const

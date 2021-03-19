@@ -566,6 +566,16 @@ enum {
   /* RESET_AFTER_USE Used by undo system to tag unchanged IDs re-used from old Main (instead of
    * read from memfile). */
   LIB_TAG_UNDO_OLD_ID_REUSED = 1 << 19,
+
+  /* This ID is part of a temporary #Main which is expected to be freed in a short time-frame.
+   * Don't allow assigning this to non-temporary members (since it's likely to cause errors).
+   * When set #ID.session_uuid isn't initialized, since the data isn't part of the session. */
+  LIB_TAG_TEMP_MAIN = 1 << 20,
+
+  /**
+   * The data-block is a library override that needs re-sync to its linked reference.
+   */
+  LIB_TAG_LIB_OVERRIDE_NEED_RESYNC = 1 << 21,
 };
 
 /* Tag given ID for an update in all the dependency graphs. */

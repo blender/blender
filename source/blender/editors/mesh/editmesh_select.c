@@ -1524,7 +1524,13 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
     else {
       for (edindex = 0; edindex < totedgesel; edindex += 1) {
         eed = edarray[edindex];
-        walker_select(em, BMW_EDGELOOP, eed, true);
+        bool non_manifold = BM_edge_face_count_is_over(eed, 2);
+        if (non_manifold) {
+          walker_select(em, BMW_EDGELOOP_NONMANIFOLD, eed, true);
+        }
+        else {
+          walker_select(em, BMW_EDGELOOP, eed, true);
+        }
       }
       EDBM_selectmode_flush(em);
     }
@@ -1585,6 +1591,7 @@ static void mouse_mesh_loop_edge(
     BMEditMesh *em, BMEdge *eed, bool select, bool select_clear, bool select_cycle)
 {
   bool edge_boundary = false;
+  bool non_manifold = BM_edge_face_count_is_over(eed, 2);
 
   /* Cycle between BMW_EDGELOOP / BMW_EDGEBOUNDARY. */
   if (select_cycle && BM_edge_is_boundary(eed)) {
@@ -1609,6 +1616,9 @@ static void mouse_mesh_loop_edge(
 
   if (edge_boundary) {
     walker_select(em, BMW_EDGEBOUNDARY, eed, select);
+  }
+  else if (non_manifold) {
+    walker_select(em, BMW_EDGELOOP_NONMANIFOLD, eed, select);
   }
   else {
     walker_select(em, BMW_EDGELOOP, eed, select);

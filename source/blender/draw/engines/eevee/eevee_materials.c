@@ -128,7 +128,8 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
     DRW_shgroup_uniform_float_copy(
         shgrp, "refractionDepth", (refract_depth) ? *refract_depth : 0.0);
     if (use_ssrefraction) {
-      DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
+      DRW_shgroup_uniform_texture_ref(
+          shgrp, "refractColorBuffer", &vedata->txl->filtered_radiance);
     }
   }
   if (use_alpha_blend) {

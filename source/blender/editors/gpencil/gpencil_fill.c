@@ -1710,6 +1710,15 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
 
   tgpf->mat = ma;
 
+  /* Untag strokes to be sure nothing is pending due any canceled process. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &tgpf->gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        gps->flag &= ~GP_STROKE_TAG;
+      }
+    }
+  }
+
   /* check whether the material was newly added */
   if (totcol != tgpf->ob->totcol) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES, NULL);

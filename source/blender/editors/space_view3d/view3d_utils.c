@@ -228,7 +228,7 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 
   float viewdist = rv3d->dist;
 
-  /* special exception for ortho camera (viewdist isnt used for perspective cameras) */
+  /* Special exception for orthographic camera (`viewdist` isn't used for perspective cameras). */
   if (dist != 0.0f) {
     if (rv3d->persp == RV3D_CAMOB) {
       if (rv3d->is_persp == false) {

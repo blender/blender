@@ -2097,7 +2097,7 @@ static void ui_apply_but(
       }
     }
     if (data->select_others.elems_len == 0) {
-      /* dont check again */
+      /* Don't check again. */
       data->select_others.elems_len = -1;
     }
 #endif
@@ -4894,7 +4894,7 @@ static bool ui_numedit_but_NUM(uiButNumber *number_but,
     else {
       /* only scale large int buttons */
       non_linear_range_limit = 129.0f;
-      /* larger for ints, we dont need to fine tune them */
+      /* Larger for ints, we don't need to fine tune them. */
       non_linear_pixel_map = 250.0f;
 
       /* prevent large ranges from getting too out of control */
@@ -5246,8 +5246,8 @@ static bool ui_numedit_but_SLI(uiBut *but,
                      (but->softmax - but->softmin + but->a1);
   }
   else {
-    const float offs = (BLI_rctf_size_y(&but->rect) / 2.0f);
-    cursor_x_range = (BLI_rctf_size_x(&but->rect) - offs);
+    const float ofs = (BLI_rctf_size_y(&but->rect) / 2.0f);
+    cursor_x_range = (BLI_rctf_size_x(&but->rect) - ofs);
   }
 
   f = (mx_fl - data->dragstartx) / cursor_x_range + data->dragfstart;
@@ -7779,11 +7779,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
         else if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
           /* --> (BUTTON_MULTI_INIT_ENABLE) */
           const float margin_x = DRAG_MULTINUM_THRESHOLD_DRAG_X / sqrtf(block->aspect);
-          /* check if we're dont setting buttons */
+          /* Check if we're don't setting buttons. */
           if ((data->str &&
                ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING)) ||
               ((abs(data->multi_data.drag_lock_x - event->x) > margin_x) &&
-               /* just to be sure, check we're dragging more hoz then virt */
+               /* Just to be sure, check we're dragging more horizontally then vertically. */
                abs(event->prevx - event->x) > abs(event->prevy - event->y))) {
             if (data->multi_data.has_mbuts) {
               ui_multibut_states_create(but, data);
@@ -9332,8 +9332,8 @@ static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEve
   copy_v2_v2_int(keynav->event_xy, &event->x);
 }
 /**
- * Return true if keyinput isn't blocking mouse-motion,
- * or if the mouse-motion is enough to disable keyinput.
+ * Return true if key-input isn't blocking mouse-motion,
+ * or if the mouse-motion is enough to disable key-input.
  */
 static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEvent *event)
 {

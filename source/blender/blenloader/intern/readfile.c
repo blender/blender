@@ -555,6 +555,23 @@ static void read_file_version(FileData *fd, Main *main)
   }
 }
 
+static bool blo_bhead_is_id(const BHead *bhead)
+{
+  /* BHead codes are four bytes (like 'ENDB', 'TEST', etc.), but if the two most-significant bytes
+   * are zero, the values actually indicate an ID type. */
+  return bhead->code <= 0xFFFF;
+}
+
+static bool blo_bhead_is_id_valid_type(const BHead *bhead)
+{
+  if (!blo_bhead_is_id(bhead)) {
+    return false;
+  }
+
+  const short id_type_code = bhead->code & 0xFFFF;
+  return BKE_idtype_idcode_is_valid(id_type_code);
+}
+
 #ifdef USE_GHASH_BHEAD
 static void read_file_bhead_idname_map_create(FileData *fd)
 {
@@ -568,8 +585,9 @@ static void read_file_bhead_idname_map_create(FileData *fd)
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
-      is_link = BKE_idtype_idcode_is_valid(code_prev) ? BKE_idtype_idcode_is_linkable(code_prev) :
-                                                        false;
+      is_link = blo_bhead_is_id_valid_type(bhead) ?
+                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    false;
     }
 
     if (is_link) {
@@ -584,8 +602,9 @@ static void read_file_bhead_idname_map_create(FileData *fd)
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (code_prev != bhead->code) {
       code_prev = bhead->code;
-      is_link = BKE_idtype_idcode_is_valid(code_prev) ? BKE_idtype_idcode_is_linkable(code_prev) :
-                                                        false;
+      is_link = blo_bhead_is_id_valid_type(bhead) ?
+                    BKE_idtype_idcode_is_linkable((short)code_prev) :
+                    false;
     }
 
     if (is_link) {
@@ -967,15 +986,15 @@ static BHead *blo_bhead_read_full(FileData *fd, BHead *thisblock)
 /* Warning! Caller's responsibility to ensure given bhead **is** an ID one! */
 const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead)
 {
-  return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offs);
+  return (const char *)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_name_offset);
 }
 
 /* Warning! Caller's responsibility to ensure given bhead **is** an ID one! */
 AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead)
 {
-  BLI_assert(BKE_idtype_idcode_is_valid(bhead->code));
-  return (fd->id_asset_data_offs >= 0) ?
-             *(AssetMetaData **)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_asset_data_offs) :
+  BLI_assert(blo_bhead_is_id_valid_type(bhead));
+  return (fd->id_asset_data_offset >= 0) ?
+             *(AssetMetaData **)POINTER_OFFSET(bhead, sizeof(*bhead) + fd->id_asset_data_offset) :
              NULL;
 }
 
@@ -1054,9 +1073,9 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
         fd->reconstruct_info = DNA_reconstruct_info_create(
             fd->filesdna, fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
-        fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
-        BLI_assert(fd->id_name_offs != -1);
-        fd->id_asset_data_offs = DNA_elem_offset(
+        fd->id_name_offset = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
+        BLI_assert(fd->id_name_offset != -1);
+        fd->id_asset_data_offset = DNA_elem_offset(
             fd->filesdna, "ID", "AssetMetaData", "*asset_data");
 
         return true;
@@ -2424,7 +2443,9 @@ static void direct_link_id_common(
     id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
   }
 
-  BKE_lib_libblock_session_uuid_ensure(id);
+  if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
+    BKE_lib_libblock_session_uuid_ensure(id);
+  }
 
   id->lib = current_library;
   id->us = ID_FAKE_USERS(id);
@@ -2983,6 +3004,12 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           sclip->scopes.ok = 0;
         }
+        else if (sl->spacetype == SPACE_SPREADSHEET) {
+          SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+          sspreadsheet->pinned_id = restore_pointer_by_name(
+              id_map, sspreadsheet->pinned_id, USER_IGNORE);
+        }
       }
     }
   }
@@ -3168,7 +3195,9 @@ static ID *create_placeholder(Main *mainvar, const short idcode, const char *idn
   BLI_addtail(lb, ph_id);
   id_sort_by_name(lb, ph_id, NULL);
 
-  BKE_lib_libblock_session_uuid_ensure(ph_id);
+  if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
+    BKE_lib_libblock_session_uuid_ensure(ph_id);
+  }
 
   return ph_id;
 }
@@ -3701,7 +3730,7 @@ static BHead *read_libblock(FileData *fd,
 
 BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_asset_data)
 {
-  BLI_assert(BKE_idtype_idcode_is_valid(bhead->code));
+  BLI_assert(blo_bhead_is_id_valid_type(bhead));
 
   bhead = read_data_into_datamap(fd, bhead, "asset-data read");
 
@@ -3741,7 +3770,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
    * (not after loading file). */
   if (bfd->filename[0] == 0) {
     if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1)) {
-      if ((G.fileflags & G_FILE_RECOVER) == 0) {
+      if ((G.fileflags & G_FILE_RECOVER_READ) == 0) {
         BLI_strncpy(bfd->filename, BKE_main_blendfile_path(bfd->main), sizeof(bfd->filename));
       }
     }
@@ -3752,7 +3781,7 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
     }
   }
 
-  if (G.fileflags & G_FILE_RECOVER) {
+  if (G.fileflags & G_FILE_RECOVER_READ) {
     BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
   }
 
@@ -4208,6 +4237,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if (fd->memfile == NULL) {
       /* Do not apply in undo case! */
+      BKE_lib_override_library_main_validate(bfd->main, fd->reports);
       BKE_lib_override_library_main_update(bfd->main);
     }
 
@@ -4411,7 +4441,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (id == NULL) {
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, LIB_TAG_INDIRECT, false, NULL);
+      read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, NULL);
       /* commented because this can print way too much */
       // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
 
@@ -4466,7 +4496,12 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
     ID *id = is_yet_read(fd, mainvar, bhead);
     if (id == NULL) {
-      read_libblock(fd, mainvar, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, false, NULL);
+      read_libblock(fd,
+                    mainvar,
+                    bhead,
+                    fd->id_tag_extra | LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT,
+                    false,
+                    NULL);
     }
     else {
       /* Convert any previously read weak link to regular link
@@ -4847,7 +4882,7 @@ static ID *link_named_part(
     id = is_yet_read(fd, mainl, bhead);
     if (id == NULL) {
       /* not read yet */
-      const int tag = force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN;
+      const int tag = ((force_indirect ? LIB_TAG_INDIRECT : LIB_TAG_EXTERN) | fd->id_tag_extra);
       read_libblock(fd, mainl, bhead, tag | LIB_TAG_NEED_EXPAND, false, &id);
 
       if (id) {
@@ -4908,7 +4943,7 @@ int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_t
       break;
     }
 
-    if (BKE_idtype_idcode_is_valid(bhead->code) && BKE_idtype_idcode_is_linkable(bhead->code) &&
+    if (blo_bhead_is_id_valid_type(bhead) && BKE_idtype_idcode_is_linkable((short)bhead->code) &&
         (id_types_mask == 0 ||
          (BKE_idtype_idcode_to_idfilter((short)bhead->code) & id_types_mask) != 0)) {
       read_libblock(fd, mainl, bhead, LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT, false, &id);
@@ -4988,9 +5023,17 @@ static void library_link_clear_tag(Main *mainvar, const int flag)
   }
 }
 
-static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepath, const int flag)
+static Main *library_link_begin(
+    Main *mainvar, FileData **fd, const char *filepath, const int flag, const int id_tag_extra)
 {
   Main *mainl;
+
+  /* Only allow specific tags to be set as extra,
+   * otherwise this could conflict with library loading logic.
+   * Other flags can be added here, as long as they are safe. */
+  BLI_assert((id_tag_extra & ~LIB_TAG_TEMP_MAIN) == 0);
+
+  (*fd)->id_tag_extra = id_tag_extra;
 
   (*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 
@@ -5017,22 +5060,25 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
 
 void BLO_library_link_params_init(struct LibraryLink_Params *params,
                                   struct Main *bmain,
-                                  const int flag)
+                                  const int flag,
+                                  const int id_tag_extra)
 {
   memset(params, 0, sizeof(*params));
   params->bmain = bmain;
   params->flag = flag;
+  params->id_tag_extra = id_tag_extra;
 }
 
 void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
                                                struct Main *bmain,
                                                const int flag,
+                                               const int id_tag_extra,
                                                /* Context arguments. */
                                                struct Scene *scene,
                                                struct ViewLayer *view_layer,
                                                const struct View3D *v3d)
 {
-  BLO_library_link_params_init(params, bmain, flag);
+  BLO_library_link_params_init(params, bmain, flag, id_tag_extra);
   if (scene != NULL) {
     /* Tagging is needed for instancing. */
     params->flag |= BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
@@ -5057,7 +5103,7 @@ Main *BLO_library_link_begin(BlendHandle **bh,
                              const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return library_link_begin(params->bmain, &fd, filepath, params->flag);
+  return library_link_begin(params->bmain, &fd, filepath, params->flag, params->id_tag_extra);
 }
 
 static void split_main_newid(Main *mainptr, Main *main_newid)

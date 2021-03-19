@@ -83,7 +83,12 @@ void PluginManager::loadPlugins(const std::string& path)
 	while(dirent* entry = readdir(dir))
 	{
 		const std::string filename = entry->d_name;
+
+#ifdef __APPLE__
+		const std::string end = ".dylib";
+#else
 		const std::string end = ".so";
+#endif
 
 		if(filename.length() >= end.length() && filename.substr(filename.length() - end.length()) == end)
 		{

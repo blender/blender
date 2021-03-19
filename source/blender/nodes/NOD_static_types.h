@@ -220,7 +220,8 @@ DefNode(CompositorNode, CMP_NODE_PIXELATE,       0,                      "PIXELA
 DefNode(CompositorNode, CMP_NODE_PLANETRACKDEFORM,def_cmp_planetrackdeform,"PLANETRACKDEFORM",PlaneTrackDeform,"Plane Track Deform",""            )
 DefNode(CompositorNode, CMP_NODE_CORNERPIN,      0,                      "CORNERPIN",      CornerPin,        "Corner Pin",        ""              )
 DefNode(CompositorNode, CMP_NODE_SUNBEAMS,       def_cmp_sunbeams,       "SUNBEAMS",       SunBeams,         "Sun Beams",         ""              )
-DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE,    def_cmp_cryptomatte,    "CRYPTOMATTE",    Cryptomatte,      "Cryptomatte",       ""              )
+DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE,    def_cmp_cryptomatte,    "CRYPTOMATTE_V2", CryptomatteV2,    "Cryptomatte",       ""              )
+DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE_LEGACY, def_cmp_cryptomatte_legacy, "CRYPTOMATTE", Cryptomatte, "Cryptomatte (Legacy)", ""           )
 DefNode(CompositorNode, CMP_NODE_DENOISE,        def_cmp_denoise,        "DENOISE",        Denoise,          "Denoise",           ""              )
 DefNode(CompositorNode, CMP_NODE_EXPOSURE,       0,                      "EXPOSURE",       Exposure,         "Exposure",          ""              )
 
@@ -298,7 +299,17 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_PROXIMITY, def_geo_attribute_proximity,
 DefNode(GeometryNode, GEO_NODE_VOLUME_TO_MESH, def_geo_volume_to_mesh, "VOLUME_TO_MESH", VolumeToMesh, "Volume to Mesh", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_COMBINE_XYZ, def_geo_attribute_combine_xyz, "ATTRIBUTE_COMBINE_XYZ", AttributeCombineXYZ, "Attribute Combine XYZ", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SEPARATE_XYZ, def_geo_attribute_separate_xyz, "ATTRIBUTE_SEPARATE_XYZ", AttributeSeparateXYZ, "Attribute Separate XYZ", "")
-DefNode(GeometryNode, GEO_NODE_SUBDIVISION_SURFACE_SIMPLE, 0, "SUBDIVISION_SURFACE_SIMPLE", SubdivisionSurfaceSimple, "Simple Subdivision Surface", "")
+DefNode(GeometryNode, GEO_NODE_SUBDIVIDE, 0, "SUBDIVIDE", Subdivide, "Subdivide", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CONVERT, def_geo_attribute_convert, "ATTRIBUTE_CONVERT", AttributeConvert, "Attribute Convert", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CUBE, 0, "MESH_PRIMITIVE_CUBE", MeshCube, "Cube", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CIRCLE, def_geo_mesh_circle, "MESH_PRIMITIVE_CIRCLE", MeshCircle, "Circle", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_SPHERE", MeshUVSphere, "UV Sphere", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CYLINDER, def_geo_mesh_cylinder, "MESH_PRIMITIVE_CYLINDER", MeshCylinder, "Cylinder", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, 0, "MESH_PRIMITIVE_ICO_SPHERE", MeshIcoSphere, "Ico Sphere", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CONE, def_geo_mesh_cone, "MESH_PRIMITIVE_CONE", MeshCone, "Cone", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRIMITIVE_LINE", MeshLine, "Line", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_PLANE, 0, "MESH_PRIMITIVE_PLANE", MeshPlane, "Plane", "")
 
 /* undefine macros */
 #undef DefNode

@@ -27,9 +27,9 @@ void* PluginManager::openLibrary(const std::string& path)
 	return reinterpret_cast<void*>(LoadLibrary(path.c_str()));
 }
 
-void *PluginManager::lookupLibrary(void *handle, const std::string &name)
+void* PluginManager::lookupLibrary(void *handle, const std::string &name)
 {
-	return GetProcAddress(reinterpret_cast<HMODULE>(handle), name.c_str());
+	return reinterpret_cast<void*>(GetProcAddress(reinterpret_cast<HMODULE>(handle), name.c_str()));
 }
 
 void PluginManager::closeLibrary(void *handle)

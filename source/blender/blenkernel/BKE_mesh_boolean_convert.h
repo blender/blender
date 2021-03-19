@@ -29,8 +29,10 @@ extern "C" {
 
 Mesh *BKE_mesh_boolean(const Mesh **meshes,
                        const float (*obmats[])[4][4],
+                       const short **material_remaps,
                        const int meshes_len,
                        const bool use_self,
+                       const bool hole_tolerant,
                        const int boolean_mode);
 
 #ifdef __cplusplus

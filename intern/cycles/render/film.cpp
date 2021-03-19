@@ -96,7 +96,7 @@ NODE_DEFINE(Pass)
   return type;
 }
 
-Pass::Pass() : Node(node_type)
+Pass::Pass() : Node(get_node_type())
 {
 }
 
@@ -407,7 +407,7 @@ NODE_DEFINE(Film)
   return type;
 }
 
-Film::Film() : Node(node_type)
+Film::Film() : Node(get_node_type())
 {
   use_light_visibility = false;
   filter_table_offset = TABLE_OFFSET_INVALID;

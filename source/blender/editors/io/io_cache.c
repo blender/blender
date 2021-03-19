@@ -130,8 +130,8 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
-                                 FILE_SAVE,
-                                 WM_FILESEL_FILEPATH,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 }

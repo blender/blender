@@ -663,7 +663,7 @@ void MFNetworkEvaluationStorage::add_single_input_from_caller(const MFOutputSock
   BLI_assert(value_per_output_id_[socket.id()] == nullptr);
   BLI_assert(virtual_span.size() >= min_array_size_);
 
-  auto *value = allocator_.construct<InputSingleValue>(virtual_span);
+  auto *value = allocator_.construct<InputSingleValue>(virtual_span).release();
   value_per_output_id_[socket.id()] = value;
 }
 
@@ -673,7 +673,7 @@ void MFNetworkEvaluationStorage::add_vector_input_from_caller(const MFOutputSock
   BLI_assert(value_per_output_id_[socket.id()] == nullptr);
   BLI_assert(virtual_array_span.size() >= min_array_size_);
 
-  auto *value = allocator_.construct<InputVectorValue>(virtual_array_span);
+  auto *value = allocator_.construct<InputVectorValue>(virtual_array_span).release();
   value_per_output_id_[socket.id()] = value;
 }
 
@@ -683,7 +683,7 @@ void MFNetworkEvaluationStorage::add_single_output_from_caller(const MFOutputSoc
   BLI_assert(value_per_output_id_[socket.id()] == nullptr);
   BLI_assert(span.size() >= min_array_size_);
 
-  auto *value = allocator_.construct<OutputSingleValue>(span);
+  auto *value = allocator_.construct<OutputSingleValue>(span).release();
   value_per_output_id_[socket.id()] = value;
 }
 
@@ -693,7 +693,7 @@ void MFNetworkEvaluationStorage::add_vector_output_from_caller(const MFOutputSoc
   BLI_assert(value_per_output_id_[socket.id()] == nullptr);
   BLI_assert(vector_array.size() >= min_array_size_);
 
-  auto *value = allocator_.construct<OutputVectorValue>(vector_array);
+  auto *value = allocator_.construct<OutputVectorValue>(vector_array).release();
   value_per_output_id_[socket.id()] = value;
 }
 
@@ -705,7 +705,8 @@ GMutableSpan MFNetworkEvaluationStorage::get_single_output__full(const MFOutputS
     void *buffer = MEM_mallocN_aligned(min_array_size_ * type.size(), type.alignment(), AT);
     GMutableSpan span(type, buffer, min_array_size_);
 
-    auto *value = allocator_.construct<OwnSingleValue>(span, socket.targets().size(), false);
+    auto *value =
+        allocator_.construct<OwnSingleValue>(span, socket.targets().size(), false).release();
     value_per_output_id_[socket.id()] = value;
 
     return span;
@@ -723,7 +724,8 @@ GMutableSpan MFNetworkEvaluationStorage::get_single_output__single(const MFOutpu
     void *buffer = allocator_.allocate(type.size(), type.alignment());
     GMutableSpan span(type, buffer, 1);
 
-    auto *value = allocator_.construct<OwnSingleValue>(span, socket.targets().size(), true);
+    auto *value =
+        allocator_.construct<OwnSingleValue>(span, socket.targets().size(), true).release();
     value_per_output_id_[socket.id()] = value;
 
     return value->span;
@@ -742,7 +744,8 @@ GVectorArray &MFNetworkEvaluationStorage::get_vector_output__full(const MFOutput
     const CPPType &type = socket.data_type().vector_base_type();
     GVectorArray *vector_array = new GVectorArray(type, min_array_size_);
 
-    auto *value = allocator_.construct<OwnVectorValue>(*vector_array, socket.targets().size());
+    auto *value =
+        allocator_.construct<OwnVectorValue>(*vector_array, socket.targets().size()).release();
     value_per_output_id_[socket.id()] = value;
 
     return *value->vector_array;
@@ -759,7 +762,8 @@ GVectorArray &MFNetworkEvaluationStorage::get_vector_output__single(const MFOutp
     const CPPType &type = socket.data_type().vector_base_type();
     GVectorArray *vector_array = new GVectorArray(type, 1);
 
-    auto *value = allocator_.construct<OwnVectorValue>(*vector_array, socket.targets().size());
+    auto *value =
+        allocator_.construct<OwnVectorValue>(*vector_array, socket.targets().size()).release();
     value_per_output_id_[socket.id()] = value;
 
     return *value->vector_array;
@@ -806,8 +810,8 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
   GMutableSpan new_array_ref(type, new_buffer, min_array_size_);
   virtual_span.materialize_to_uninitialized(mask_, new_array_ref.data());
 
-  OwnSingleValue *new_value = allocator_.construct<OwnSingleValue>(
-      new_array_ref, to.targets().size(), false);
+  OwnSingleValue *new_value =
+      allocator_.construct<OwnSingleValue>(new_array_ref, to.targets().size(), false).release();
   value_per_output_id_[to.id()] = new_value;
   return new_array_ref;
 }
@@ -850,8 +854,8 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__single(const MFInpu
   type.copy_to_uninitialized(virtual_span.as_single_element(), new_buffer);
   GMutableSpan new_array_ref(type, new_buffer, 1);
 
-  OwnSingleValue *new_value = allocator_.construct<OwnSingleValue>(
-      new_array_ref, to.targets().size(), true);
+  OwnSingleValue *new_value =
+      allocator_.construct<OwnSingleValue>(new_array_ref, to.targets().size(), true).release();
   value_per_output_id_[to.id()] = new_value;
   return new_array_ref;
 }
@@ -891,8 +895,8 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__full(const MFInput
   GVectorArray *new_vector_array = new GVectorArray(base_type, min_array_size_);
   new_vector_array->extend(mask_, virtual_array_span);
 
-  OwnVectorValue *new_value = allocator_.construct<OwnVectorValue>(*new_vector_array,
-                                                                   to.targets().size());
+  OwnVectorValue *new_value =
+      allocator_.construct<OwnVectorValue>(*new_vector_array, to.targets().size()).release();
   value_per_output_id_[to.id()] = new_value;
 
   return *new_vector_array;
@@ -934,8 +938,8 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__single(const MFInp
   GVectorArray *new_vector_array = new GVectorArray(base_type, 1);
   new_vector_array->extend(0, virtual_array_span[0]);
 
-  OwnVectorValue *new_value = allocator_.construct<OwnVectorValue>(*new_vector_array,
-                                                                   to.targets().size());
+  OwnVectorValue *new_value =
+      allocator_.construct<OwnVectorValue>(*new_vector_array, to.targets().size()).release();
   value_per_output_id_[to.id()] = new_value;
   return *new_vector_array;
 }

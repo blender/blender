@@ -35,13 +35,25 @@ else(BUILD_MODE STREQUAL "Debug")
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
 endif()
 
-option(DOWNLOAD_DIR "Path for downloaded files" ${CMAKE_CURRENT_SOURCE_DIR}/downloads)
+set(DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/downloads" CACHE STRING "Path for downloaded files")
+# look in blenders source folder for packages directory, if that exists
+# it will our package folder, otherwise it will be in the build folder
+if(EXISTS "${CMAKE_SOURCE_DIR}/../../packages")
+  set(PACKAGE_DIR_DEFAULT "${CMAKE_SOURCE_DIR}/../../packages")
+else()
+  set(PACKAGE_DIR_DEFAULT "${CMAKE_CURRENT_BINARY_DIR}/packages")
+endif()
+set(PACKAGE_DIR ${PACKAGE_DIR_DEFAULT} CACHE STRING "Path for downloaded source files")
+option(PACKAGE_USE_UPSTREAM_SOURCES "Use soures upstream to download the package sources, when OFF the blender mirror will be used" ON)
+
 file(TO_CMAKE_PATH ${DOWNLOAD_DIR} DOWNLOAD_DIR)
+file(TO_CMAKE_PATH ${PACKAGE_DIR} PACKAGE_DIR)
 set(PATCH_DIR ${CMAKE_CURRENT_SOURCE_DIR}/patches)
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
 
 message("LIBDIR = ${LIBDIR}")
 message("DOWNLOAD_DIR = ${DOWNLOAD_DIR}")
+message("PACKAGE_DIR = ${PACKAGE_DIR}")
 message("PATCH_DIR = ${PATCH_DIR}")
 message("BUILD_DIR = ${BUILD_DIR}")
 

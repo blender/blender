@@ -229,6 +229,7 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
   Library *lib;
 
   const int flag = lapp_data->flag;
+  const int id_tag_extra = 0;
 
   LinkNode *liblink, *itemlink;
   int lib_idx, item_idx;
@@ -255,7 +256,7 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
     /* here appending/linking starts */
     struct LibraryLink_Params liblink_params;
     BLO_library_link_params_init_with_context(
-        &liblink_params, bmain, flag, scene, view_layer, v3d);
+        &liblink_params, bmain, flag, id_tag_extra, scene, view_layer, v3d);
 
     mainl = BLO_library_link_begin(&bh, libname, &liblink_params);
     lib = mainl->curlib;

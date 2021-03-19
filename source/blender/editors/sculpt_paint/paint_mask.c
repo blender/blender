@@ -131,8 +131,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
 
-  BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
     float prevmask = *vi.mask;
     mask_flood_fill_set_elem(vi.mask, mode, value);
     if (prevmask != *vi.mask) {
@@ -757,8 +756,7 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   bool any_updated = false;
 
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
       SCULPT_vertex_face_set_set(sgcontext->ss, vd.vertex, face_set_operation->new_face_set_id);
       any_updated = true;
@@ -832,8 +830,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
   bool any_masked = false;
   bool redraw = false;
 
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
       float prevmask = *vd.mask;
       if (!any_masked) {
@@ -1294,7 +1291,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, true, boolean_mode);
+    BM_mesh_boolean(
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, true, false, boolean_mode);
   }
 
   MEM_freeN(looptris);
@@ -1416,8 +1414,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
 
   SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
 
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
       continue;
     }

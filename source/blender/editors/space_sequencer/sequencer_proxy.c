@@ -49,98 +49,25 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-/*--------------------------------------------------------------------*/
-/** \name Proxy Job Manager
+/* -------------------------------------------------------------------- */
+/** \name Rebuild Proxy and Timecode Indices Operator
  * \{ */
-
-typedef struct ProxyBuildJob {
-  struct Main *main;
-  struct Depsgraph *depsgraph;
-  Scene *scene;
-  ListBase queue;
-  int stop;
-} ProxyJob;
-
-static void proxy_freejob(void *pjv)
-{
-  ProxyJob *pj = pjv;
-
-  BLI_freelistN(&pj->queue);
-
-  MEM_freeN(pj);
-}
-
-/* Only this runs inside thread. */
-static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
-{
-  ProxyJob *pj = pjv;
-  LinkData *link;
-
-  for (link = pj->queue.first; link; link = link->next) {
-    struct SeqIndexBuildContext *context = link->data;
-
-    SEQ_proxy_rebuild(context, stop, do_update, progress);
-
-    if (*stop) {
-      pj->stop = 1;
-      fprintf(stderr, "Canceling proxy rebuild on users request...\n");
-      break;
-    }
-  }
-}
-
-static void proxy_endjob(void *pjv)
-{
-  ProxyJob *pj = pjv;
-  Editing *ed = SEQ_editing_get(pj->scene, false);
-  LinkData *link;
-
-  for (link = pj->queue.first; link; link = link->next) {
-    SEQ_proxy_rebuild_finish(link->data, pj->stop);
-  }
-
-  SEQ_relations_free_imbuf(pj->scene, &ed->seqbase, false);
-
-  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
-}
 
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 {
-  wmJob *wm_job;
-  ProxyJob *pj;
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
   ScrArea *area = CTX_wm_area(C);
   Sequence *seq;
-  GSet *file_list;
 
   if (ed == NULL) {
     return;
   }
 
-  wm_job = WM_jobs_get(CTX_wm_manager(C),
-                       CTX_wm_window(C),
-                       scene,
-                       "Building Proxies",
-                       WM_JOB_PROGRESS,
-                       WM_JOB_TYPE_SEQ_BUILD_PROXY);
+  wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
+  ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
-  pj = WM_jobs_customdata_get(wm_job);
-
-  if (!pj) {
-    pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
-
-    pj->depsgraph = depsgraph;
-    pj->scene = scene;
-    pj->main = CTX_data_main(C);
-
-    WM_jobs_customdata_set(wm_job, pj, proxy_freejob);
-    WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
-    WM_jobs_callbacks(wm_job, proxy_startjob, NULL, NULL, proxy_endjob);
-  }
-
-  file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   bool selected = false; /* Check for no selected strips */
 
   SEQ_CURRENT_BEGIN (ed, seq) {
@@ -181,12 +108,6 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 
   ED_area_tag_redraw(area);
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Rebuild Proxy and Timecode Indices Operator
- * \{ */
 
 static int sequencer_rebuild_proxy_invoke(bContext *C,
                                           wmOperator *op,

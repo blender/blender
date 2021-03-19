@@ -58,7 +58,7 @@ typedef intptr_t offset_t;
  * typically we rely on the 'count' to avoid iterating past the end. */
 // #define USE_TERMINATE_PARANOID
 
-/* Currently totalloc isnt used. */
+/* Currently totalloc isn't used. */
 // #define USE_TOTALLOC
 
 /* pad must be power of two */

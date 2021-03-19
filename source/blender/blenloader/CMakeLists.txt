@@ -50,6 +50,7 @@ set(SRC
   intern/blend_validate.c
   intern/readblenentry.c
   intern/readfile.c
+  intern/readfile_tempload.c
   intern/undofile.c
   intern/versioning_250.c
   intern/versioning_260.c

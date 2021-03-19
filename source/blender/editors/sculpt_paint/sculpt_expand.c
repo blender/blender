@@ -1170,8 +1170,7 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
     PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-    {
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       copy_v4_v4(vd.col, expand_cache->original_colors[vd.index]);
     }
     BKE_pbvh_vertex_iter_end;
@@ -1188,8 +1187,7 @@ static void sculpt_expand_restore_mask_data(SculptSession *ss, ExpandCache *expa
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
     PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-    {
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       *vd.mask = expand_cache->original_mask[vd.index];
     }
     BKE_pbvh_vertex_iter_end;
@@ -1258,8 +1256,7 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
   bool any_changed = false;
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     const float initial_mask = *vd.mask;
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
 
@@ -1331,8 +1328,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
   bool any_changed = false;
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     float initial_color[4];
     copy_v4_v4(initial_color, vd.col);
 

@@ -2689,6 +2689,11 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   /* loop over data, doing box select */
   for (ale = anim_data.first; ale; ale = ale->next) {
     float ymin;
+    /* Skip grease pencil datablock. Only use grease pencil layers. */
+    if (ale->type == ANIMTYPE_GPDATABLOCK) {
+      continue;
+    }
+
     if (ac->datatype == ANIMCONT_NLA) {
       ymin = ymax - NLACHANNEL_STEP(snla);
     }

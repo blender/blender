@@ -77,6 +77,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/guardedalloc_alignment_test.cc
     tests/guardedalloc_overflow_test.cc
+    tests/guardedalloc_test_base.h
   )
   set(TEST_INC
     ../../source/blender/blenlib

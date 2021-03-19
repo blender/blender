@@ -16,6 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Ignore paths that have volume throughput below this value, to avoid unnecessary work
+ * and precision issues.
+ * todo: this value could be tweaked or turned into a probability to avoid unnecessary
+ * work in volumes and subsurface scattering. */
+#define VOLUME_THROUGHPUT_EPSILON 1e-6f
+
 /* Events for probalistic scattering */
 
 typedef enum VolumeIntegrateResult {
@@ -175,7 +181,8 @@ ccl_device_inline void kernel_volume_step_init(KernelGlobals *kg,
                                                const float object_step_size,
                                                float t,
                                                float *step_size,
-                                               float *step_offset)
+                                               float *step_shade_offset,
+                                               float *steps_offset)
 {
   const int max_steps = kernel_data.integrator.volume_max_steps;
   float step = min(object_step_size, t);
@@ -186,7 +193,14 @@ ccl_device_inline void kernel_volume_step_init(KernelGlobals *kg,
   }
 
   *step_size = step;
-  *step_offset = path_state_rng_1D_hash(kg, state, 0x1e31d8a4) * step;
+
+  /* Perform shading at this offset within a step, to integrate over
+   * over the entire step segment. */
+  *step_shade_offset = path_state_rng_1D_hash(kg, state, 0x1e31d8a4);
+
+  /* Shift starting point of all segment by this random amount to avoid
+   * banding artifacts from the volume bounding shape. */
+  *steps_offset = path_state_rng_1D_hash(kg, state, 0x3d22c7b3);
 }
 
 /* Volume Shadows
@@ -218,12 +232,16 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
                                                    const float object_step_size)
 {
   float3 tp = *throughput;
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
-  /* prepare for stepping */
+  /* Prepare for stepping.
+   * For shadows we do not offset all segments, since the starting point is
+   * already a random distance inside the volume. It also appears to create
+   * banding artifacts for unknown reasons. */
   int max_steps = kernel_data.integrator.volume_max_steps;
-  float step_offset, step_size;
-  kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
+  float step_size, step_shade_offset, unused;
+  kernel_volume_step_init(
+      kg, state, object_step_size, ray->t, &step_size, &step_shade_offset, &unused);
+  const float steps_offset = 1.0f;
 
   /* compute extinction at the start */
   float t = 0.0f;
@@ -232,28 +250,24 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
 
   for (int i = 0; i < max_steps; i++) {
     /* advance to new position */
-    float new_t = min(ray->t, (i + 1) * step_size);
+    float new_t = min(ray->t, (i + steps_offset) * step_size);
+    float dt = new_t - t;
 
-    /* use random position inside this segment to sample shader, adjust
-     * for last step that is shorter than other steps. */
-    if (new_t == ray->t) {
-      step_offset *= (new_t - t) / step_size;
-    }
-
-    float3 new_P = ray->P + ray->D * (t + step_offset);
+    float3 new_P = ray->P + ray->D * (t + dt * step_shade_offset);
     float3 sigma_t = zero_float3();
 
     /* compute attenuation over segment */
     if (volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
       /* Compute expf() only for every Nth step, to save some calculations
-       * because exp(a)*exp(b) = exp(a+b), also do a quick tp_eps check then. */
-
-      sum += (-sigma_t * (new_t - t));
+       * because exp(a)*exp(b) = exp(a+b), also do a quick VOLUME_THROUGHPUT_EPSILON
+       * check then. */
+      sum += (-sigma_t * dt);
       if ((i & 0x07) == 0) { /* ToDo: Other interval? */
         tp = *throughput * exp3(sum);
 
         /* stop if nearly all light is blocked */
-        if (tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
+        if (tp.x < VOLUME_THROUGHPUT_EPSILON && tp.y < VOLUME_THROUGHPUT_EPSILON &&
+            tp.z < VOLUME_THROUGHPUT_EPSILON)
           break;
       }
     }
@@ -565,12 +579,13 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
                                                const float object_step_size)
 {
   float3 tp = *throughput;
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
-  /* prepare for stepping */
+  /* Prepare for stepping.
+   * Using a different step offset for the first step avoids banding artifacts. */
   int max_steps = kernel_data.integrator.volume_max_steps;
-  float step_offset, step_size;
-  kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
+  float step_size, step_shade_offset, steps_offset;
+  kernel_volume_step_init(
+      kg, state, object_step_size, ray->t, &step_size, &step_shade_offset, &steps_offset);
 
   /* compute coefficients at the start */
   float t = 0.0f;
@@ -584,16 +599,10 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
 
   for (int i = 0; i < max_steps; i++) {
     /* advance to new position */
-    float new_t = min(ray->t, (i + 1) * step_size);
+    float new_t = min(ray->t, (i + steps_offset) * step_size);
     float dt = new_t - t;
 
-    /* use random position inside this segment to sample shader,
-     * for last shorter step we remap it to fit within the segment. */
-    if (new_t == ray->t) {
-      step_offset *= (new_t - t) / step_size;
-    }
-
-    float3 new_P = ray->P + ray->D * (t + step_offset);
+    float3 new_P = ray->P + ray->D * (t + dt * step_shade_offset);
     VolumeShaderCoefficients coeff ccl_optional_struct_init;
 
     /* compute segment */
@@ -666,7 +675,8 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
         tp = new_tp;
 
         /* stop if nearly all light blocked */
-        if (tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps) {
+        if (tp.x < VOLUME_THROUGHPUT_EPSILON && tp.y < VOLUME_THROUGHPUT_EPSILON &&
+            tp.z < VOLUME_THROUGHPUT_EPSILON) {
           tp = zero_float3();
           break;
         }
@@ -767,15 +777,14 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
                                                VolumeSegment *segment,
                                                const float object_step_size)
 {
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
-
   /* prepare for volume stepping */
   int max_steps;
-  float step_size, step_offset;
+  float step_size, step_shade_offset, steps_offset;
 
   if (object_step_size != FLT_MAX) {
     max_steps = kernel_data.integrator.volume_max_steps;
-    kernel_volume_step_init(kg, state, object_step_size, ray->t, &step_size, &step_offset);
+    kernel_volume_step_init(
+        kg, state, object_step_size, ray->t, &step_size, &step_shade_offset, &steps_offset);
 
 #      ifdef __KERNEL_CPU__
     /* NOTE: For the branched path tracing it's possible to have direct
@@ -802,7 +811,8 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
   else {
     max_steps = 1;
     step_size = ray->t;
-    step_offset = 0.0f;
+    step_shade_offset = 0.0f;
+    steps_offset = 1.0f;
     segment->steps = &segment->stack_step;
   }
 
@@ -821,16 +831,10 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
 
   for (int i = 0; i < max_steps; i++, step++) {
     /* advance to new position */
-    float new_t = min(ray->t, (i + 1) * step_size);
+    float new_t = min(ray->t, (i + steps_offset) * step_size);
     float dt = new_t - t;
 
-    /* use random position inside this segment to sample shader,
-     * for last shorter step we remap it to fit within the segment. */
-    if (new_t == ray->t) {
-      step_offset *= (new_t - t) / step_size;
-    }
-
-    float3 new_P = ray->P + ray->D * (t + step_offset);
+    float3 new_P = ray->P + ray->D * (t + dt * step_shade_offset);
     VolumeShaderCoefficients coeff ccl_optional_struct_init;
 
     /* compute segment */
@@ -888,7 +892,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
     step->accum_transmittance = accum_transmittance;
     step->cdf_distance = cdf_distance;
     step->t = new_t;
-    step->shade_t = t + step_offset;
+    step->shade_t = t + dt * step_shade_offset;
 
     /* stop if at the end of the volume */
     t = new_t;
@@ -896,8 +900,9 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
       break;
 
     /* stop if nearly all light blocked */
-    if (accum_transmittance.x < tp_eps && accum_transmittance.y < tp_eps &&
-        accum_transmittance.z < tp_eps)
+    if (accum_transmittance.x < VOLUME_THROUGHPUT_EPSILON &&
+        accum_transmittance.y < VOLUME_THROUGHPUT_EPSILON &&
+        accum_transmittance.z < VOLUME_THROUGHPUT_EPSILON)
       break;
   }
 

@@ -20,30 +20,31 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 
+#include "BKE_lib_override.h"
+
+#include "BLT_translation.h"
+
+#include "RNA_access.h"
+
 #include "../outliner_intern.h"
+#include "tree_display.h"
+#include "tree_element_id_library.hh"
+#include "tree_element_id_scene.hh"
 
 #include "tree_element_id.hh"
 
 namespace blender::ed::outliner {
 
-TreeElementID::TreeElementID(TreeElement &legacy_te, const ID &id) : AbstractTreeElement(legacy_te)
-{
-  BLI_assert(legacy_te_.store_elem->type == TSE_SOME_ID);
-  BLI_assert(TSE_IS_REAL_ID(legacy_te_.store_elem));
-
-  /* Default, some specific types override this. */
-  legacy_te_.name = id.name + 2;
-  legacy_te_.idcode = GS(id.name);
-}
-
-TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, const ID &id)
+TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
 {
   switch (ID_Type type = GS(id.name); type) {
     case ID_LI:
-      return new TreeElementIDLibrary(legacy_te, id);
+      return new TreeElementIDLibrary(legacy_te, (Library &)id);
     case ID_SCE:
+      return new TreeElementIDScene(legacy_te, (Scene &)id);
     case ID_OB:
     case ID_ME:
     case ID_CU:
@@ -91,10 +92,44 @@ TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, const ID &id)
   return nullptr;
 }
 
-TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, const ID &id)
-    : TreeElementID(legacy_te, id)
+/* -------------------------------------------------------------------- */
+/* ID Tree-Element Base Class (common/default logic) */
+
+TreeElementID::TreeElementID(TreeElement &legacy_te, ID &id)
+    : AbstractTreeElement(legacy_te), id_(id)
 {
-  legacy_te.name = ((Library &)id).filepath;
+  BLI_assert(legacy_te_.store_elem->type == TSE_SOME_ID);
+  BLI_assert(TSE_IS_REAL_ID(legacy_te_.store_elem));
+
+  /* Default, some specific types override this. */
+  legacy_te_.name = id.name + 2;
+  legacy_te_.idcode = GS(id.name);
+}
+
+void TreeElementID::postExpand(SpaceOutliner &space_outliner) const
+{
+  const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(&space_outliner) ||
+                                     ((space_outliner.filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
+
+  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY_REAL(&id_)) {
+    outliner_add_element(
+        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_LIBRARY_OVERRIDE_BASE, 0);
+  }
+}
+
+bool TreeElementID::expandPoll(const SpaceOutliner &space_outliner) const
+{
+  const TreeStoreElem *tsepar = legacy_te_.parent ? TREESTORE(legacy_te_.parent) : nullptr;
+  return (tsepar == nullptr || tsepar->type != TSE_ID_BASE || space_outliner.filter_id_type);
+}
+
+void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,
+                                          const AnimData *anim_data) const
+{
+  if (outliner_animdata_test(anim_data)) {
+    outliner_add_element(
+        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_ANIM_DATA, 0);
+  }
 }
 
 }  // namespace blender::ed::outliner

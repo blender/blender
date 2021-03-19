@@ -643,7 +643,8 @@ static void node_buts_image_user(uiLayout *layout,
                                  PointerRNA *ptr,
                                  PointerRNA *imaptr,
                                  PointerRNA *iuserptr,
-                                 bool compositor)
+                                 const bool show_layer_selection,
+                                 const bool show_color_management)
 {
   if (!imaptr->data) {
     return;
@@ -677,20 +678,22 @@ static void node_buts_image_user(uiLayout *layout,
     uiItemR(col, ptr, "use_auto_refresh", DEFAULT_FLAGS, NULL, ICON_NONE);
   }
 
-  if (compositor && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
+  if (show_layer_selection && RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
       RNA_boolean_get(ptr, "has_layers")) {
     col = uiLayoutColumn(layout, false);
     uiItemR(col, ptr, "layer", DEFAULT_FLAGS, NULL, ICON_NONE);
   }
 
-  uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
-  PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
-  uiItemL(split, IFACE_("Color Space"), ICON_NONE);
-  uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
+  if (show_color_management) {
+    uiLayout *split = uiLayoutSplit(layout, 0.5f, true);
+    PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
+    uiItemL(split, IFACE_("Color Space"), ICON_NONE);
+    uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
 
-  /* Avoid losing changes image is painted. */
-  if (BKE_image_is_dirty(imaptr->data)) {
-    uiLayoutSetEnabled(split, false);
+    /* Avoid losing changes image is painted. */
+    if (BKE_image_is_dirty(imaptr->data)) {
+      uiLayoutSetEnabled(split, false);
+    }
   }
 }
 
@@ -756,7 +759,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   /* note: image user properties used directly here, unlike compositor image node,
    * which redefines them in the node struct RNA to get proper updates.
    */
-  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
+  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
 static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -785,7 +788,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
   uiItemR(layout, ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   uiItemR(layout, ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
 
-  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
+  node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false, true);
 }
 
 static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1374,7 +1377,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
 
-  node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr, true);
+  node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr, true, true);
 
   node_buts_image_views(layout, C, ptr, &imaptr);
 }
@@ -2665,25 +2668,62 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
   uiItemR(layout, ptr, "ray_length", DEFAULT_FLAGS | UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
-static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
+                                                  bContext *UNUSED(C),
+                                                  PointerRNA *ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, true);
 
   uiItemL(col, IFACE_("Matte Objects:"), ICON_NONE);
 
   uiLayout *row = uiLayoutRow(col, true);
-  uiTemplateCryptoPicker(row, ptr, "add");
-  uiTemplateCryptoPicker(row, ptr, "remove");
+  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
 
   uiItemR(col, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
-static void node_composit_buts_cryptomatte_ex(uiLayout *layout,
-                                              bContext *UNUSED(C),
-                                              PointerRNA *UNUSED(ptr))
+static void node_composit_buts_cryptomatte_legacy_ex(uiLayout *layout,
+                                                     bContext *UNUSED(C),
+                                                     PointerRNA *UNUSED(ptr))
 {
   uiItemO(layout, IFACE_("Add Crypto Layer"), ICON_ADD, "NODE_OT_cryptomatte_layer_add");
   uiItemO(layout, IFACE_("Remove Crypto Layer"), ICON_REMOVE, "NODE_OT_cryptomatte_layer_remove");
+}
+
+static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode *node = ptr->data;
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiItemR(row, ptr, "source", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+  if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
+    uiTemplateID(col, C, ptr, "scene", NULL, NULL, NULL, UI_TEMPLATE_ID_FILTER_ALL, false, NULL);
+  }
+  else {
+    uiTemplateID(
+        col, C, ptr, "image", NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false, NULL);
+
+    NodeCryptomatte *crypto = (NodeCryptomatte *)node->storage;
+    PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+    PointerRNA iuserptr;
+    RNA_pointer_create((ID *)ptr->owner_id, &RNA_ImageUser, &crypto->iuser, &iuserptr);
+    uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+
+    node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
+    node_buts_image_views(col, C, ptr, &imaptr);
+  }
+
+  col = uiLayoutColumn(layout, true);
+  uiItemR(col, ptr, "layer_name", 0, "", ICON_NONE);
+  uiItemL(col, IFACE_("Matte ID:"), ICON_NONE);
+
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
+  uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
+  uiTemplateCryptoPicker(row, ptr, "remove", ICON_REMOVE);
 }
 
 static void node_composit_buts_brightcontrast(uiLayout *layout,
@@ -2938,7 +2978,10 @@ static void node_composit_set_butfunc(bNodeType *ntype)
       break;
     case CMP_NODE_CRYPTOMATTE:
       ntype->draw_buttons = node_composit_buts_cryptomatte;
-      ntype->draw_buttons_ex = node_composit_buts_cryptomatte_ex;
+      break;
+    case CMP_NODE_CRYPTOMATTE_LEGACY:
+      ntype->draw_buttons = node_composit_buts_cryptomatte_legacy;
+      ntype->draw_buttons_ex = node_composit_buts_cryptomatte_legacy_ex;
       break;
     case CMP_NODE_BRIGHTCONTRAST:
       ntype->draw_buttons = node_composit_buts_brightcontrast;
@@ -3385,7 +3428,12 @@ static void std_node_socket_draw(
         }
       }
       break;
-    case SOCK_RGBA:
+    case SOCK_RGBA: {
+      uiLayout *row = uiLayoutSplit(layout, 0.5f, false);
+      uiItemL(row, text, 0);
+      uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+      break;
+    }
     case SOCK_STRING: {
       uiLayout *row = uiLayoutSplit(layout, 0.5f, false);
       uiItemL(row, text, 0);
@@ -3588,6 +3636,13 @@ bool node_link_bezier_handles(const View2D *v2d,
   if (link->fromsock) {
     vec[0][0] = link->fromsock->locx;
     vec[0][1] = link->fromsock->locy;
+    if (link->fromsock->flag & SOCK_MULTI_INPUT) {
+      node_link_calculate_multi_input_position(link->fromsock->locx,
+                                               link->fromsock->locy,
+                                               link->fromsock->total_inputs - 1,
+                                               link->fromsock->total_inputs,
+                                               vec[0]);
+    }
     fromreroute = (link->fromnode && link->fromnode->type == NODE_REROUTE);
   }
   else {
@@ -3601,7 +3656,11 @@ bool node_link_bezier_handles(const View2D *v2d,
     vec[3][0] = link->tosock->locx;
     vec[3][1] = link->tosock->locy;
     if (!(link->tonode->flag & NODE_HIDDEN) && link->tosock->flag & SOCK_MULTI_INPUT) {
-      node_link_calculate_multi_input_position(link, vec[3]);
+      node_link_calculate_multi_input_position(link->tosock->locx,
+                                               link->tosock->locy,
+                                               link->multi_input_socket_index,
+                                               link->tosock->total_inputs,
+                                               vec[3]);
     }
     toreroute = (link->tonode && link->tonode->type == NODE_REROUTE);
   }
@@ -3692,17 +3751,21 @@ bool node_link_bezier_points(const View2D *v2d,
 #define LINK_WIDTH (2.5f * UI_DPI_FAC)
 #define ARROW_SIZE (7 * UI_DPI_FAC)
 
+/* Reroute arrow shape and mute bar. These are expanded here and shrunk in the glsl code.
+ * See: gpu_shader_2D_nodelink_vert.glsl */
 static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
+static float mute_verts[3][2] = {{0.7071f, 1.0f}, {0.7071f, 0.0f}, {0.7071f, -1.0f}};
+static float mute_expand_axis[3][2] = {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, -0.0f}};
 
 static struct {
   GPUBatch *batch;        /* for batching line together */
   GPUBatch *batch_single; /* for single line */
   GPUVertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
-  uint colid_id;
+  uint colid_id, muted_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
-  GPUVertBufRaw colid_step;
+  GPUVertBufRaw colid_step, muted_step;
   uint count;
   bool enabled;
 } g_batch_link = {0};
@@ -3715,6 +3778,8 @@ static void nodelink_batch_reset(void)
   GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p3_id, &g_batch_link.p3_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.colid_id, &g_batch_link.colid_step);
+  GPU_vertbuf_attr_get_raw_data(
+      g_batch_link.inst_vbo, g_batch_link.muted_id, &g_batch_link.muted_step);
   g_batch_link.count = 0;
 }
 
@@ -3742,6 +3807,8 @@ static void nodelink_batch_init(void)
   int vcount = LINK_RESOL * 2; /* curve */
   vcount += 2;                 /* restart strip */
   vcount += 3 * 2;             /* arrow */
+  vcount += 2;                 /* restart strip */
+  vcount += 3 * 2;             /* mute */
   vcount *= 2;                 /* shadow */
   vcount += 2;                 /* restart strip */
   GPU_vertbuf_data_alloc(vbo, vcount);
@@ -3785,6 +3852,25 @@ static void nodelink_batch_init(void)
     }
 
     /* restart */
+    set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+
+    uv[0] = 127;
+    uv[1] = 0;
+    copy_v2_v2(pos, mute_verts[0]);
+    copy_v2_v2(exp, mute_expand_axis[0]);
+    set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+    /* bar */
+    for (int i = 0; i < 3; ++i) {
+      uv[1] = 0;
+      copy_v2_v2(pos, mute_verts[i]);
+      copy_v2_v2(exp, mute_expand_axis[i]);
+      set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+
+      uv[1] = 255;
+      set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
+    }
+
+    /* restart */
     if (k == 0) {
       set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
     }
@@ -3808,6 +3894,8 @@ static void nodelink_batch_init(void)
       &format_inst, "P3", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   g_batch_link.colid_id = GPU_vertformat_attr_add(
       &format_inst, "colid_doarrow", GPU_COMP_U8, 4, GPU_FETCH_INT);
+  g_batch_link.muted_id = GPU_vertformat_attr_add(
+      &format_inst, "domuted", GPU_COMP_U8, 2, GPU_FETCH_INT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -3882,12 +3970,13 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
                                     int th_col1,
                                     int th_col2,
                                     int th_col3,
-                                    bool drawarrow)
+                                    bool drawarrow,
+                                    bool drawmuted)
 {
   /* Only allow these colors. If more is needed, you need to modify the shader accordingly. */
   BLI_assert(ELEM(th_col1, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
   BLI_assert(ELEM(th_col2, TH_WIRE_INNER, TH_WIRE, TH_ACTIVE, TH_EDGE_SELECT, TH_REDALERT));
-  BLI_assert(ELEM(th_col3, TH_WIRE, -1));
+  BLI_assert(ELEM(th_col3, TH_WIRE, TH_REDALERT, -1));
 
   g_batch_link.count++;
   copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p0_step), p0);
@@ -3899,6 +3988,8 @@ static void nodelink_batch_add_link(const SpaceNode *snode,
   colid[1] = nodelink_get_color_id(th_col2);
   colid[2] = nodelink_get_color_id(th_col3);
   colid[3] = drawarrow;
+  char *muted = GPU_vertbuf_raw_step(&g_batch_link.muted_step);
+  muted[0] = drawmuted;
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -3918,7 +4009,7 @@ void node_draw_link_bezier(const View2D *v2d,
   if (node_link_bezier_handles(v2d, snode, link, vec)) {
     int drawarrow = ((link->tonode && (link->tonode->type == NODE_REROUTE)) &&
                      (link->fromnode && (link->fromnode->type == NODE_REROUTE)));
-
+    int drawmuted = (link->flag & NODE_LINK_MUTED);
     if (g_batch_link.batch == NULL) {
       nodelink_batch_init();
     }
@@ -3926,7 +4017,7 @@ void node_draw_link_bezier(const View2D *v2d,
     if (g_batch_link.enabled && !highlighted) {
       /* Add link to batch. */
       nodelink_batch_add_link(
-          snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow);
+          snode, vec[0], vec[1], vec[2], vec[3], th_col1, th_col2, th_col3, drawarrow, drawmuted);
     }
     else {
       /* Draw single link. */
@@ -3950,6 +4041,7 @@ void node_draw_link_bezier(const View2D *v2d,
       GPU_batch_uniform_1f(batch, "expandSize", snode->runtime->aspect * LINK_WIDTH);
       GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
+      GPU_batch_uniform_1i(batch, "doMuted", drawmuted);
       GPU_batch_draw(batch);
     }
   }
@@ -3982,8 +4074,11 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       if (link->flag & NODE_LINKFLAG_HILITE) {
         th_col1 = th_col2 = TH_ACTIVE;
       }
+      else if (link->flag & NODE_LINK_MUTED) {
+        th_col1 = th_col2 = TH_REDALERT;
+      }
       else {
-        /* regular link */
+        /* Regular link, highlight if connected to selected node. */
         if (link->fromnode && link->fromnode->flag & SELECT) {
           th_col1 = TH_EDGE_SELECT;
         }
@@ -3993,7 +4088,8 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
       }
     }
     else {
-      th_col1 = th_col2 = TH_REDALERT;
+      /* Invalid link. */
+      th_col1 = th_col2 = th_col3 = TH_REDALERT;
       // th_col3 = -1; /* no shadow */
     }
   }

@@ -41,9 +41,9 @@ else()
 endif()
 
 ExternalProject_Add(external_openimagedenoise
-  URL ${OIDN_URI}
+  URL file://${PACKAGE_DIR}/${OIDN_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH MD5=${OIDN_HASH}
+  URL_HASH ${OIDN_HASH_TYPE}=${OIDN_HASH}
   PREFIX ${BUILD_DIR}/openimagedenoise
   PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise < ${PATCH_DIR}/oidn.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise ${DEFAULT_CMAKE_FLAGS} ${OIDN_EXTRA_ARGS}

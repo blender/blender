@@ -35,7 +35,7 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
                                                              bNodeTree &btree,
                                                              NodeTreeRefMap &node_tree_refs)
 {
-  DTreeContext &context = *allocator_.construct<DTreeContext>();
+  DTreeContext &context = *allocator_.construct<DTreeContext>().release();
   context.parent_context_ = parent_context;
   context.parent_node_ = parent_node;
   context.tree_ = &get_tree_ref_from_map(node_tree_refs, btree);
@@ -168,10 +168,15 @@ DInputSocket DOutputSocket::get_active_corresponding_group_output_socket() const
 /* Call the given callback for every "real" origin socket. "Real" means that reroutes, muted nodes
  * and node groups are handled by this function. Origin sockets are ones where a node gets its
  * inputs from. */
-void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback) const
+void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback,
+                                         const bool follow_only_first_incoming_link) const
 {
   BLI_assert(*this);
-  for (const OutputSocketRef *linked_socket : socket_ref_->as_input().linked_sockets()) {
+  Span<const OutputSocketRef *> linked_sockets_to_check = socket_ref_->as_input().linked_sockets();
+  if (follow_only_first_incoming_link) {
+    linked_sockets_to_check = linked_sockets_to_check.take_front(1);
+  }
+  for (const OutputSocketRef *linked_socket : linked_sockets_to_check) {
     const NodeRef &linked_node = linked_socket->node();
     DOutputSocket linked_dsocket{context_, linked_socket};
 
@@ -180,7 +185,7 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback) co
       for (const InternalLinkRef *internal_link : linked_node.internal_links()) {
         if (&internal_link->to() == linked_socket) {
           DInputSocket input_of_muted_node{context_, &internal_link->from()};
-          input_of_muted_node.foreach_origin_socket(callback);
+          input_of_muted_node.foreach_origin_socket(callback, true);
         }
       }
     }

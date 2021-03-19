@@ -3,261 +3,217 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
 
+/**
+ * Screen-Space Raytracing functions.
+ */
+
 uniform sampler2D maxzBuffer;
 uniform sampler2DArray planarDepth;
 
-#define MAX_STEP 256
+struct Ray {
+  vec3 origin;
+  /* Ray direction premultiplied by its maximum length. */
+  vec3 direction;
+};
 
-float sample_depth(vec2 uv, int index, float lod)
+/* Inputs expected to be in viewspace. */
+void raytrace_clip_ray_to_near_plane(inout Ray ray)
 {
-#ifdef PLANAR_PROBE_RAYTRACE
-  if (index > -1) {
-    return textureLod(planarDepth, vec3(uv, index), 0.0).r;
+  float near_dist = get_view_z_from_depth(0.0);
+  if ((ray.origin.z + ray.direction.z) > near_dist) {
+    ray.direction *= abs((near_dist - ray.origin.z) / ray.direction.z);
   }
-  else {
-#endif
-    lod = clamp(floor(lod), 0.0, 8.0);
-    /* Correct UVs for mipmaping mis-alignment */
-    uv *= mipRatio[int(lod) + hizMipOffset];
-    return textureLod(maxzBuffer, uv, lod).r;
-#ifdef PLANAR_PROBE_RAYTRACE
-  }
-#endif
 }
 
-vec4 sample_depth_grouped(vec4 uv1, vec4 uv2, int index, float lod)
+/* Screenspace ray ([0..1] "uv" range) where direction is normalize to be as small as one
+ * full-resolution pixel. The ray is also clipped to all frustum sides.
+ */
+struct ScreenSpaceRay {
+  vec4 origin;
+  vec4 direction;
+  float max_time;
+};
+
+void raytrace_screenspace_ray_finalize(inout ScreenSpaceRay ray)
 {
-  vec4 depths;
-#ifdef PLANAR_PROBE_RAYTRACE
-  if (index > -1) {
-    depths.x = textureLod(planarDepth, vec3(uv1.xy, index), 0.0).r;
-    depths.y = textureLod(planarDepth, vec3(uv1.zw, index), 0.0).r;
-    depths.z = textureLod(planarDepth, vec3(uv2.xy, index), 0.0).r;
-    depths.w = textureLod(planarDepth, vec3(uv2.zw, index), 0.0).r;
-  }
-  else {
-#endif
-    depths.x = textureLod(maxzBuffer, uv1.xy, lod).r;
-    depths.y = textureLod(maxzBuffer, uv1.zw, lod).r;
-    depths.z = textureLod(maxzBuffer, uv2.xy, lod).r;
-    depths.w = textureLod(maxzBuffer, uv2.zw, lod).r;
-#ifdef PLANAR_PROBE_RAYTRACE
-  }
-#endif
-  return depths;
-}
+  /* Constant bias (due to depth buffer precision). Helps with self intersection. */
+  /* Magic numbers for 24bits of precision.
+   * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
+  const float bias = -2.4e-7 * 2.0;
+  ray.origin.zw += bias;
+  ray.direction.zw += bias;
 
-float refine_isect(float prev_delta, float curr_delta)
-{
-  /**
-   * Simplification of 2D intersection :
-   * r0 = (0.0, prev_ss_ray.z);
-   * r1 = (1.0, curr_ss_ray.z);
-   * d0 = (0.0, prev_hit_depth_sample);
-   * d1 = (1.0, curr_hit_depth_sample);
-   * vec2 r = r1 - r0;
-   * vec2 d = d1 - d0;
-   * vec2 isect = ((d * cross(r1, r0)) - (r * cross(d1, d0))) / cross(r,d);
-   *
-   * We only want isect.x to know how much stride we need. So it simplifies :
-   *
-   * isect_x = (cross(r1, r0) - cross(d1, d0)) / cross(r,d);
-   * isect_x = (prev_ss_ray.z - prev_hit_depth_sample.z) / cross(r,d);
-   */
-  return saturate(prev_delta / (prev_delta - curr_delta));
-}
-
-void prepare_raycast(vec3 ray_origin,
-                     vec3 ray_dir,
-                     float thickness,
-                     int index,
-                     out vec4 ss_step,
-                     out vec4 ss_ray,
-                     out float max_time)
-{
-  /* Negate the ray direction if it goes towards the camera.
-   * This way we don't need to care if the projected point
-   * is behind the near plane. */
-  float z_sign = -sign(ray_dir.z);
-  vec3 ray_end = ray_origin + z_sign * ray_dir;
-
-  /* Project into screen space. */
-  vec4 ss_start, ss_end;
-  ss_start.xyz = project_point(ProjectionMatrix, ray_origin);
-  ss_end.xyz = project_point(ProjectionMatrix, ray_end);
-
-  /* We interpolate the ray Z + thickness values to check if depth is within threshold. */
-  ray_origin.z -= thickness;
-  ray_end.z -= thickness;
-  ss_start.w = project_point(ProjectionMatrix, ray_origin).z;
-  ss_end.w = project_point(ProjectionMatrix, ray_end).z;
-
-  /* XXX This is a hack. A better method is welcome! */
-  /* We take the delta between the offsetted depth and the depth and subtract it from the ray
-   * depth. This will change the world space thickness appearance a bit but we can have negative
-   * values without worries. We cannot do this in viewspace because of the perspective division. */
-  ss_start.w = 2.0 * ss_start.z - ss_start.w;
-  ss_end.w = 2.0 * ss_end.z - ss_end.w;
-
-  ss_step = ss_end - ss_start;
-  max_time = length(ss_step.xyz);
-  ss_step = z_sign * ss_step / length(ss_step.xyz);
-
+  ray.direction -= ray.origin;
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
-  if (dot(ss_step.xy, ss_step.xy) < 0.00001) {
-    ss_step.xy = vec2(0.0, 0.0001);
+  if (len_squared(ray.direction.xy) < 0.00001) {
+    ray.direction.xy = vec2(0.0, 0.00001);
   }
-
-  /* Make ss_step cover one pixel. */
-  ss_step /= max(abs(ss_step.x), abs(ss_step.y));
-  ss_step *= (abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y;
-
+  float ray_len_sqr = len_squared(ray.direction.xyz);
+  /* Make ray.direction cover one pixel. */
+  bool is_more_vertical = abs(ray.direction.x) < abs(ray.direction.y);
+  ray.direction /= (is_more_vertical) ? abs(ray.direction.y) : abs(ray.direction.x);
+  ray.direction *= (is_more_vertical) ? ssrPixelSize.y : ssrPixelSize.x;
   /* Clip to segment's end. */
-  max_time /= length(ss_step.xyz);
+  ray.max_time = sqrt(ray_len_sqr * safe_rcp(len_squared(ray.direction.xyz)));
   /* Clipping to frustum sides. */
-  max_time = min(max_time, line_unit_box_intersect_dist(ss_start.xyz, ss_step.xyz));
-  /* Avoid no iteration. */
-  max_time = max(max_time, 1.0);
-
-  /* Convert to texture coords. Z component included
-   * since this is how it's stored in the depth buffer.
-   * 4th component how far we are on the ray */
-#ifdef PLANAR_PROBE_RAYTRACE
-  /* Planar Reflections have X mirrored. */
-  vec2 m = (index > -1) ? vec2(-0.5, 0.5) : vec2(0.5);
-#else
-  const vec2 m = vec2(0.5);
-#endif
-  ss_ray = ss_start * m.xyyy + 0.5;
-  ss_step *= m.xyyy;
-
-  /* take the center of the texel. */
-  // ss_ray.xy += sign(ss_ray.xy) * m * ssrPixelSize * (1.0 + hizMipOffset);
+  float clip_dist = line_unit_box_intersect_dist_safe(ray.origin.xyz, ray.direction.xyz);
+  ray.max_time = min(ray.max_time, clip_dist);
+  /* Convert to texture coords [0..1] range. */
+  ray.origin = ray.origin * 0.5 + 0.5;
+  ray.direction *= 0.5;
 }
 
-/* See times_and_deltas. */
-#define curr_time times_and_deltas.x
-#define prev_time times_and_deltas.y
-#define curr_delta times_and_deltas.z
-#define prev_delta times_and_deltas.w
-
-// #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
-/* Return the hit position, and negate the z component (making it positive) if not hit occurred. */
-/* __ray_dir__ is the ray direction premultiplied by its maximum length */
-vec3 raycast(int index,
-             vec3 ray_origin,
-             vec3 ray_dir,
-             float thickness,
-             float ray_jitter,
-             float trace_quality,
-             float roughness,
-             const bool discard_backface)
+ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray)
 {
-  vec4 ss_step, ss_start;
-  float max_time;
-  prepare_raycast(ray_origin, ray_dir, thickness, index, ss_step, ss_start, max_time);
+  ScreenSpaceRay ssray;
+  ssray.origin.xyz = project_point(ProjectionMatrix, ray.origin);
+  ssray.direction.xyz = project_point(ProjectionMatrix, ray.origin + ray.direction);
 
-  float max_trace_time = max(0.01, max_time - 0.01);
+  raytrace_screenspace_ray_finalize(ssray);
+  return ssray;
+}
 
-#ifdef GROUPED_FETCHES
-  ray_jitter *= 0.25;
-#endif
+ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float thickness)
+{
+  ScreenSpaceRay ssray;
+  ssray.origin.xyz = project_point(ProjectionMatrix, ray.origin);
+  ssray.direction.xyz = project_point(ProjectionMatrix, ray.origin + ray.direction);
+  /* Interpolate thickness in screen space.
+   * Calculate thickness further away to avoid near plane clipping issues. */
+  ssray.origin.w = get_depth_from_view_z(ray.origin.z - thickness) * 2.0 - 1.0;
+  ssray.direction.w = get_depth_from_view_z(ray.origin.z + ray.direction.z - thickness) * 2.0 -
+                      1.0;
 
-  /* x : current_time, y: previous_time, z: current_delta, w: previous_delta */
-  vec4 times_and_deltas = vec4(0.0);
+  raytrace_screenspace_ray_finalize(ssray);
+  return ssray;
+}
 
-  float ray_time = 0.0;
-  float depth_sample = sample_depth(ss_start.xy, index, 0.0);
-  curr_delta = depth_sample - ss_start.z;
+struct RayTraceParameters {
+  /** ViewSpace thickness the objects  */
+  float thickness;
+  /** Jitter along the ray to avoid banding artifact when steps are too large. */
+  float jitter;
+  /** Determine how fast the sample steps are getting bigger. */
+  float trace_quality;
+  /** Determine how we can use lower depth mipmaps to make the tracing faster. */
+  float roughness;
+};
 
-  float lod_fac = saturate(fast_sqrt(roughness) * 2.0 - 0.4);
+/* Returns true on hit. */
+/* TODO fclem remove the backface check and do it the SSR resolve code. */
+bool raytrace(Ray ray,
+              RayTraceParameters params,
+              const bool discard_backface,
+              const bool allow_self_intersection,
+              out vec3 hit_position)
+{
+  /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
+  if (ProjectionMatrix[3][3] == 0.0) {
+    raytrace_clip_ray_to_near_plane(ray);
+  }
+
+  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, params.thickness);
+  /* Avoid no iteration. */
+  if (!allow_self_intersection && ssray.max_time < 1.1) {
+    hit_position = ssray.origin.xyz + ssray.direction.xyz;
+    return false;
+  }
+
+  ssray.max_time = max(1.1, ssray.max_time);
+
+  float prev_delta = 0.0, prev_time = 0.0;
+  float depth_sample = get_depth_from_view_z(ray.origin.z);
+  float delta = depth_sample - ssray.origin.z;
+
+  float lod_fac = saturate(fast_sqrt(params.roughness) * 2.0 - 0.4);
+
+  /* Cross at least one pixel. */
+  float t = 1.001, time = 1.001;
   bool hit = false;
-  float iter;
-  for (iter = 1.0; !hit && (ray_time < max_time) && (iter < MAX_STEP); iter++) {
-    /* Minimum stride of 2 because we are using half res minmax zbuffer. */
-    /* WORKAROUND: Factor is a bit higher than 2 to avoid some banding. To investigate. */
-    float stride = max(1.0, iter * trace_quality) * (2.0 + 0.05);
-    float lod = log2(stride * 0.5 * trace_quality) * lod_fac;
-    ray_time += stride;
+  const float max_steps = 255.0;
+  for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
+    float stride = 1.0 + iter * params.trace_quality;
+    float lod = log2(stride) * lod_fac;
 
-    /* Save previous values. */
-    times_and_deltas.xyzw = times_and_deltas.yxwz;
+    prev_time = time;
+    prev_delta = delta;
 
-#ifdef GROUPED_FETCHES
-    stride *= 4.0;
-    vec4 jit_stride = mix(vec4(2.0), vec4(stride), vec4(0.0, 0.25, 0.5, 0.75) + ray_jitter);
+    time = min(t + stride * params.jitter, ssray.max_time);
+    t += stride;
 
-    vec4 times = min(vec4(ray_time) + jit_stride, vec4(max_trace_time));
+    vec4 ss_p = ssray.origin + ssray.direction * time;
+    depth_sample = textureLod(maxzBuffer, ss_p.xy * hizUvScale.xy, floor(lod)).r;
 
-    vec4 uv1 = ss_start.xyxy + ss_step.xyxy * times.xxyy;
-    vec4 uv2 = ss_start.xyxy + ss_step.xyxy * times.zzww;
-
-    vec4 depth_samples = sample_depth_grouped(uv1, uv2, index, lod);
-
-    vec4 ray_z = ss_start.zzzz + ss_step.zzzz * times.xyzw;
-    vec4 ray_w = ss_start.wwww + ss_step.wwww * vec4(prev_time, times.xyz);
-
-    vec4 deltas = depth_samples - ray_z;
-    /* Same as component wise (curr_delta <= 0.0) && (prev_w <= depth_sample). */
-    bvec4 test = equal(step(deltas, vec4(0.0)) * step(ray_w, depth_samples), vec4(1.0));
-    hit = any(test);
-
-    if (hit) {
-      vec2 m = vec2(1.0, 0.0); /* Mask */
-
-      vec4 ret_times_and_deltas = times.wzzz * m.xxyy + deltas.wwwz * m.yyxx;
-      ret_times_and_deltas = (test.z) ? times.zyyy * m.xxyy + deltas.zzzy * m.yyxx :
-                                        ret_times_and_deltas;
-      ret_times_and_deltas = (test.y) ? times.yxxx * m.xxyy + deltas.yyyx * m.yyxx :
-                                        ret_times_and_deltas;
-      times_and_deltas = (test.x) ? times.xxxx * m.xyyy + deltas.xxxx * m.yyxy +
-                                        times_and_deltas.yyww * m.yxyx :
-                                    ret_times_and_deltas;
-
-      depth_sample = depth_samples.w;
-      depth_sample = (test.z) ? depth_samples.z : depth_sample;
-      depth_sample = (test.y) ? depth_samples.y : depth_sample;
-      depth_sample = (test.x) ? depth_samples.x : depth_sample;
-    }
-    else {
-      curr_time = times.w;
-      curr_delta = deltas.w;
-    }
-#else
-    float jit_stride = mix(2.0, stride, ray_jitter);
-
-    curr_time = min(ray_time + jit_stride, max_trace_time);
-    vec4 ss_ray = ss_start + ss_step * curr_time;
-
-    depth_sample = sample_depth(ss_ray.xy, index, lod);
-
-    float prev_w = ss_start.w + ss_step.w * prev_time;
-    curr_delta = depth_sample - ss_ray.z;
-    hit = (curr_delta <= 0.0) && (prev_w <= depth_sample);
-#endif
+    delta = depth_sample - ss_p.z;
+    /* Check if the ray is below the surface ... */
+    hit = (delta < 0.0);
+    /* ... and above it with the added thickness. */
+    hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
   }
-
-  /* Discard backface hits. Only do this if the ray traveled enough to avoid losing intricate
-   * contact reflections. This is only used for SSReflections. */
-  if (discard_backface && prev_delta < 0.0 && curr_time > 4.1) {
-    hit = false;
-  }
-
+  /* Discard backface hits. */
+  hit = hit && !(discard_backface && prev_delta < 0.0);
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
+  /* Refine hit using intersection between the sampled heightfield and the ray.
+   * This simplifies nicely to this single line. */
+  time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
-  curr_time = (hit) ? mix(prev_time, curr_time, refine_isect(prev_delta, curr_delta)) : curr_time;
-  ray_time = (hit) ? curr_time : ray_time;
+  hit_position = ssray.origin.xyz + ssray.direction.xyz * time;
 
-  /* Clip to frustum. */
-  ray_time = max(0.001, min(ray_time, max_time - 1.5));
+  return hit;
+}
 
-  vec4 ss_ray = ss_start + ss_step * ray_time;
+bool raytrace_planar(Ray ray, RayTraceParameters params, int planar_ref_id, out vec3 hit_position)
+{
+  /* Clip to near plane for perspective view where there is a singularity at the camera origin. */
+  if (ProjectionMatrix[3][3] == 0.0) {
+    raytrace_clip_ray_to_near_plane(ray);
+  }
 
-  /* Tag Z if ray failed. */
-  ss_ray.z *= (hit) ? 1.0 : -1.0;
-  return ss_ray.xyz;
+  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray);
+
+  /* Planar Reflections have X mirrored. */
+  ssray.origin.x = 1.0 - ssray.origin.x;
+  ssray.direction.x = -ssray.direction.x;
+
+  float prev_delta = 0.0, prev_time = 0.0;
+  float depth_sample = texture(planarDepth, vec3(ssray.origin.xy, planar_ref_id)).r;
+  float delta = depth_sample - ssray.origin.z;
+
+  float t = 0.0, time = 0.0;
+  /* On very sharp reflections, the ray can be perfectly aligned with the view direction
+   * making the tracing useless. Bypass tracing in this case. */
+  bool hit = false;
+  const float max_steps = 255.0;
+  for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
+    float stride = 1.0 + iter * params.trace_quality;
+
+    prev_time = time;
+    prev_delta = delta;
+
+    time = min(t + stride * params.jitter, ssray.max_time);
+    t += stride;
+
+    vec4 ss_ray = ssray.origin + ssray.direction * time;
+
+    depth_sample = texture(planarDepth, vec3(ss_ray.xy, planar_ref_id)).r;
+
+    delta = depth_sample - ss_ray.z;
+    /* Check if the ray is below the surface. */
+    hit = (delta < 0.0);
+  }
+  /* Reject hit if background. */
+  hit = hit && (depth_sample != 1.0);
+  /* Refine hit using intersection between the sampled heightfield and the ray.
+   * This simplifies nicely to this single line. */
+  time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
+
+  hit_position = ssray.origin.xyz + ssray.direction.xyz * time;
+  /* Planar Reflections have X mirrored. */
+  hit_position.x = 1.0 - hit_position.x;
+
+  return hit;
 }
 
 float screen_border_mask(vec2 hit_co)

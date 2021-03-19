@@ -62,26 +62,18 @@ class NodeOperationBuilder {
     }
   };
 
-  typedef std::vector<Link> Links;
-
-  typedef std::map<NodeOperationInput *, NodeInput *> InputSocketMap;
-  typedef std::map<NodeOutput *, NodeOperationOutput *> OutputSocketMap;
-
-  typedef std::vector<NodeOperationInput *> OpInputs;
-  typedef std::map<NodeInput *, OpInputs> OpInputInverseMap;
-
  private:
   const CompositorContext *m_context;
   NodeGraph m_graph;
 
   blender::Vector<NodeOperation *> m_operations;
-  Links m_links;
+  blender::Vector<Link> m_links;
   blender::Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
-  InputSocketMap m_input_map;
+  blender::Map<NodeOperationInput *, NodeInput *> m_input_map;
   /** Maps node outputs to operation outputs */
-  OutputSocketMap m_output_map;
+  blender::Map<NodeOutput *, NodeOperationOutput *> m_output_map;
 
   Node *m_current_node;
 
@@ -126,18 +118,12 @@ class NodeOperationBuilder {
   }
 
  protected:
-  static NodeInput *find_node_input(const InputSocketMap &map, NodeOperationInput *op_input);
-  static const OpInputs &find_operation_inputs(const OpInputInverseMap &map,
-                                               NodeInput *node_input);
-  static NodeOperationOutput *find_operation_output(const OutputSocketMap &map,
-                                                    NodeOutput *node_output);
-
   /** Add datatype conversion where needed */
   void add_datatype_conversions();
 
   /** Construct a constant value operation for every unconnected input */
   void add_operation_input_constants();
-  void add_input_constant_value(NodeOperationInput *input, NodeInput *node_input);
+  void add_input_constant_value(NodeOperationInput *input, const NodeInput *node_input);
 
   /** Replace proxy operations with direct links */
   void resolve_proxies();
@@ -146,7 +132,7 @@ class NodeOperationBuilder {
   void determineResolutions();
 
   /** Helper function to store connected inputs for replacement */
-  OpInputs cache_output_links(NodeOperationOutput *output) const;
+  blender::Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;
   /** Find a connected write buffer operation to an OpOutput */
   WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
   /** Add read/write buffer operations around complex operations */

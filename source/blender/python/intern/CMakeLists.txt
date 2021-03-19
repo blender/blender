@@ -75,6 +75,7 @@ set(SRC
   bpy_rna_anim.c
   bpy_rna_array.c
   bpy_rna_callback.c
+  bpy_rna_data.c
   bpy_rna_driver.c
   bpy_rna_gizmo.c
   bpy_rna_id_collection.c
@@ -113,6 +114,7 @@ set(SRC
   bpy_rna.h
   bpy_rna_anim.h
   bpy_rna_callback.h
+  bpy_rna_data.h
   bpy_rna_driver.h
   bpy_rna_gizmo.h
   bpy_rna_id_collection.h
@@ -278,8 +280,20 @@ if(WITH_JACK)
   add_definitions(-DWITH_JACK)
 endif()
 
+if(WITH_COREAUDIO)
+  add_definitions(-DWITH_COREAUDIO)
+endif()
+
 if(WITH_LIBMV)
   add_definitions(-DWITH_LIBMV)
+endif()
+
+if(WITH_PULSEAUDIO)
+  add_definitions(-DWITH_PULSEAUDIO)
+endif()
+
+if(WITH_WASAPI)
+  add_definitions(-DWITH_WASAPI)
 endif()
 
 if(WITH_MOD_OCEANSIM)

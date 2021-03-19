@@ -60,6 +60,8 @@ typedef struct bNodeLinkDrag {
 
   /** Temporarily stores the last picked link from multi input socket operator. */
   struct bNodeLink *last_picked_multi_input_socket_link;
+
+  struct bNode *last_node_hovered_while_dragging_a_link;
 } bNodeLinkDrag;
 
 typedef struct SpaceNode_Runtime {
@@ -86,7 +88,11 @@ void space_node_group_offset(struct SpaceNode *snode, float *x, float *y);
 
 /* node_draw.cc */
 float node_socket_calculate_height(const bNodeSocket *socket);
-void node_link_calculate_multi_input_position(const bNodeLink *link, float r[2]);
+void node_link_calculate_multi_input_position(const float socket_x,
+                                              const float socket_y,
+                                              const int index,
+                                              const int total_inputs,
+                                              float r[2]);
 
 int node_get_colorid(struct bNode *node);
 int node_get_resize_cursor(int directions);
@@ -202,6 +208,9 @@ bNode *node_add_node(
     const struct bContext *C, const char *idname, int type, float locx, float locy);
 void NODE_OT_add_reroute(struct wmOperatorType *ot);
 void NODE_OT_add_group(struct wmOperatorType *ot);
+void NODE_OT_add_object(struct wmOperatorType *ot);
+void NODE_OT_add_collection(struct wmOperatorType *ot);
+void NODE_OT_add_texture(struct wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 void NODE_OT_add_mask(struct wmOperatorType *ot);
 void NODE_OT_new_node_tree(struct wmOperatorType *ot);
@@ -215,12 +224,17 @@ void NODE_OT_group_separate(struct wmOperatorType *ot);
 void NODE_OT_group_edit(struct wmOperatorType *ot);
 
 /* node_relationships.c */
+void sort_multi_input_socket_links(struct SpaceNode *snode,
+                                   struct bNode *node,
+                                   struct bNodeLink *drag_link,
+                                   float cursor[2]);
 bool node_connected_to_output(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
 void NODE_OT_links_detach(struct wmOperatorType *ot);
+void NODE_OT_links_mute(struct wmOperatorType *ot);
 
 void NODE_OT_parent_set(struct wmOperatorType *ot);
 void NODE_OT_join(struct wmOperatorType *ot);

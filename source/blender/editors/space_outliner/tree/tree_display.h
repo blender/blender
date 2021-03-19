@@ -56,6 +56,10 @@ struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                          short type,
                                          short index);
 void outliner_make_object_parent_hierarchy(ListBase *lb);
+bool outliner_animdata_test(const struct AnimData *adt);
+TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
+                                               struct Collection *collection,
+                                               TreeElement *ten);
 
 const char *outliner_idcode_to_plural(short idcode);
 

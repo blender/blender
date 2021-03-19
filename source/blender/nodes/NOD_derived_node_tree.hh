@@ -132,7 +132,8 @@ class DInputSocket : public DSocket {
   DOutputSocket get_corresponding_group_node_output() const;
   Vector<DOutputSocket, 4> get_corresponding_group_input_sockets() const;
 
-  void foreach_origin_socket(FunctionRef<void(DSocket)> callback) const;
+  void foreach_origin_socket(FunctionRef<void(DSocket)> callback,
+                             const bool follow_only_first_incoming_link = false) const;
 };
 
 /* A (nullable) reference to an output socket and the context it is in. */

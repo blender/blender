@@ -53,7 +53,7 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
     sldata->shadow_ubo = GPU_uniformbuf_create_ex(shadow_ubo_size, NULL, "evShadow");
 
     for (int i = 0; i < 2; i++) {
-      sldata->shcasters_buffers[i].bbox = MEM_callocN(
+      sldata->shcasters_buffers[i].bbox = MEM_mallocN(
           sizeof(EEVEE_BoundBox) * SH_CASTER_ALLOC_CHUNK, __func__);
       sldata->shcasters_buffers[i].update = BLI_BITMAP_NEW(SH_CASTER_ALLOC_CHUNK, __func__);
       sldata->shcasters_buffers[i].alloc_count = SH_CASTER_ALLOC_CHUNK;
@@ -133,8 +133,9 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   int id = frontbuffer->count;
 
   /* Make sure shadow_casters is big enough. */
-  if (id + 1 >= frontbuffer->alloc_count) {
-    frontbuffer->alloc_count += SH_CASTER_ALLOC_CHUNK;
+  if (id >= frontbuffer->alloc_count) {
+    /* Double capacity to prevent exponential slowdown. */
+    frontbuffer->alloc_count *= 2;
     frontbuffer->bbox = MEM_reallocN(frontbuffer->bbox,
                                      sizeof(EEVEE_BoundBox) * frontbuffer->alloc_count);
     BLI_BITMAP_RESIZE(frontbuffer->update, frontbuffer->alloc_count);
@@ -173,6 +174,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   }
 
   EEVEE_BoundBox *aabb = &frontbuffer->bbox[id];
+  /* Note that `*aabb` has not been initialized yet. */
   add_v3_v3v3(aabb->center, min, max);
   mul_v3_fl(aabb->center, 0.5f);
   sub_v3_v3v3(aabb->halfdim, aabb->center, max);

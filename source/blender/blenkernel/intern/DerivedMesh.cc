@@ -359,7 +359,7 @@ void DM_init(DerivedMesh *dm,
   dm->needsFree = 1;
   dm->dirty = (DMDirtyFlag)0;
 
-  /* don't use CustomData_reset(...); because we dont want to touch customdata */
+  /* Don't use CustomData_reset(...); because we don't want to touch custom-data. */
   copy_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
   copy_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
   copy_vn_i(dm->faceData.typemap, CD_NUMTYPES, -1);

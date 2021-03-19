@@ -21,7 +21,7 @@
  * \ingroup modifiers
  */
 
-// #ifdef DEBUG_TIME
+// #define DEBUG_TIME
 
 #include <stdio.h>
 
@@ -424,7 +424,7 @@ static void BMD_mesh_intersection(BMesh *bm,
 
   if (use_exact) {
     BM_mesh_boolean(
-        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, bmd->operation);
+        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, false, bmd->operation);
   }
   else {
     BM_mesh_intersect(bm,
@@ -590,8 +590,16 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
   }
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_mesh_boolean(
-      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, false, bmd->operation);
+  BM_mesh_boolean(bm,
+                  looptris,
+                  tottri,
+                  bm_face_isect_nary,
+                  shape,
+                  num_shapes,
+                  true,
+                  false,
+                  false,
+                  bmd->operation);
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
   BM_mesh_free(bm);
@@ -610,6 +618,23 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
 }
 
 #ifdef WITH_GMP
+
+/* Get a mapping from material slot numbers in the src_ob to slot numbers in the dst_ob.
+ * If a material doesn't exist in the dst_ob, the mapping just goes to the same slot
+ * or to zero if there aren't enough slots in the destination.
+ * Caller must MEM_freeN the returned array. */
+static short *get_material_remap(Object *dest_ob, Object *src_ob)
+{
+  short *remap;
+  int n = dest_ob->totcol;
+  if (n <= 0) {
+    n = 1;
+  }
+  remap = MEM_mallocN(n * sizeof(short), __func__);
+  BKE_object_material_remap_calc(dest_ob, src_ob, remap);
+  return remap;
+}
+
 /* New method: bypass trip through BMesh. */
 static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
                                 const ModifierEvalContext *ctx,
@@ -617,25 +642,32 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 {
   Mesh *result;
   Mesh *mesh_operand;
+  short *remap;
   Mesh **meshes = NULL;
   const float(**obmats)[4][4] = NULL;
+  short **material_remaps = NULL;
   BLI_array_declare(meshes);
   BLI_array_declare(obmats);
+  BLI_array_declare(material_remaps);
 
 #  ifdef DEBUG_TIME
   TIMEIT_START(boolean_bmesh);
 #  endif
 
+  if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object == NULL) {
+    return mesh;
+  }
+
   BLI_array_append(meshes, mesh);
   BLI_array_append(obmats, &ctx->object->obmat);
+  BLI_array_append(material_remaps, NULL);
   if (bmd->flag & eBooleanModifierFlag_Object) {
-    if (bmd->object == NULL) {
-      return mesh;
-    }
     mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     BLI_array_append(meshes, mesh_operand);
     BLI_array_append(obmats, &bmd->object->obmat);
+    remap = get_material_remap(ctx->object, bmd->object);
+    BLI_array_append(material_remaps, remap);
   }
   else if (bmd->flag & eBooleanModifierFlag_Collection) {
     Collection *collection = bmd->collection;
@@ -647,6 +679,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           BLI_array_append(meshes, collection_mesh);
           BLI_array_append(obmats, &ob->obmat);
+          remap = get_material_remap(ctx->object, ob);
+          BLI_array_append(material_remaps, remap);
         }
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -654,14 +688,24 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   }
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+  const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
   result = BKE_mesh_boolean((const Mesh **)meshes,
                             (const float(**)[4][4])obmats,
+                            (const short **)material_remaps,
                             BLI_array_len(meshes),
                             use_self,
+                            hole_tolerant,
                             bmd->operation);
 
   BLI_array_free(meshes);
   BLI_array_free(obmats);
+  for (int i = 0; i < BLI_array_len(material_remaps); i++) {
+    remap = material_remaps[i];
+    if (remap) {
+      MEM_freeN(remap);
+    }
+  }
+  BLI_array_free(material_remaps);
 
 #  ifdef DEBUG_TIME
   TIMEIT_END(boolean_bmesh);
@@ -850,31 +894,44 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "collection", 0, NULL, ICON_NONE);
   }
 
-  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
-
   uiItemR(layout, ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-
-  if (use_exact) {
-    /* When operand is collection, we always use_self. */
-    if (operand_object) {
-      uiItemR(layout, ptr, "use_self", 0, NULL, ICON_NONE);
-    }
-  }
-  else {
-    uiItemR(layout, ptr, "double_threshold", 0, NULL, ICON_NONE);
-  }
-
-  if (G.debug) {
-    uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "debug_options", 0, NULL, ICON_NONE);
-  }
 
   modifier_panel_end(layout, ptr);
 }
 
+static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+
+  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
+  const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayout *col = uiLayoutColumn(layout, true);
+  if (use_exact) {
+    /* When operand is collection, we always use_self. */
+    if (operand_object) {
+      uiItemR(col, ptr, "use_self", 0, NULL, ICON_NONE);
+    }
+    uiItemR(col, ptr, "use_hole_tolerant", 0, NULL, ICON_NONE);
+  }
+  else {
+    uiItemR(col, ptr, "double_threshold", 0, NULL, ICON_NONE);
+  }
+
+  if (G.debug) {
+    uiItemR(col, ptr, "debug_options", 0, NULL, ICON_NONE);
+  }
+}
+
 static void panelRegister(ARegionType *region_type)
 {
-  modifier_panel_register(region_type, eModifierType_Boolean, panel_draw);
+  PanelType *panel = modifier_panel_register(region_type, eModifierType_Boolean, panel_draw);
+  modifier_subpanel_register(
+      region_type, "solver_options", "Solver Options", NULL, solver_options_panel_draw, panel);
 }
 
 ModifierTypeInfo modifierType_Boolean = {

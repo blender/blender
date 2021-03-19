@@ -183,8 +183,9 @@ static void library_foreach_ID_link(Main *bmain,
   BLI_assert(inherit_data == NULL || data.bmain == inherit_data->bmain);
 
   if (flag & IDWALK_RECURSE) {
-    /* For now, recursion implies read-only. */
+    /* For now, recursion implies read-only, and no internal pointers. */
     flag |= IDWALK_READONLY;
+    flag &= ~IDWALK_DO_INTERNAL_RUNTIME_POINTERS;
 
     data.ids_handled = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     BLI_LINKSTACK_INIT(data.ids_todo);
@@ -230,6 +231,7 @@ static void library_foreach_ID_link(Main *bmain,
     }
 
     if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY) &&
+        (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) == 0 &&
         (((bmain->relations->flag & MAINIDRELATIONS_INCLUDE_UI) == 0) ==
          ((data.flag & IDWALK_INCLUDE_UI) == 0))) {
       /* Note that this is minor optimization, even in worst cases (like id being an object with
@@ -249,6 +251,11 @@ static void library_foreach_ID_link(Main *bmain,
 
     /* Note: ID.lib pointer is purposefully fully ignored here...
      * We may want to add it at some point? */
+
+    if (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) {
+      CALLBACK_INVOKE_ID(id->newid, IDWALK_CB_INTERNAL);
+      CALLBACK_INVOKE_ID(id->orig_id, IDWALK_CB_INTERNAL);
+    }
 
     if (id->override_library != NULL) {
       CALLBACK_INVOKE_ID(id->override_library->reference,

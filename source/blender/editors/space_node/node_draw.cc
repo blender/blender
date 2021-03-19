@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -81,6 +82,7 @@
 #  include "COM_compositor.h"
 #endif
 
+using blender::Set;
 using blender::Span;
 using blender::Vector;
 
@@ -1746,10 +1748,11 @@ static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     LISTBASE_FOREACH (struct bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
+        Set<bNodeSocket *> visited_from_sockets;
         socket->total_inputs = 0;
         LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
           if (link->tosock == socket) {
-            socket->total_inputs++;
+            visited_from_sockets.add(link->fromsock);
           }
         }
         /* Count temporary links going into this socket. */
@@ -1757,10 +1760,11 @@ static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
           LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
             bNodeLink *link = (bNodeLink *)linkdata->data;
             if (link->tosock == socket) {
-              socket->total_inputs++;
+              visited_from_sockets.add(link->fromsock);
             }
           }
         }
+        socket->total_inputs = visited_from_sockets.size();
       }
     }
   }
@@ -1780,25 +1784,6 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree)
   }
 }
 
-static bool compare_link_by_angle_to_node(const bNodeLink *link_a, const bNodeLink *link_b)
-{
-  BLI_assert(link_a->tosock == link_b->tosock);
-  const float socket_location[2] = {link_a->tosock->locx, link_a->tosock->locy};
-  const float up_direction[2] = {0.0f, 1.0f};
-
-  float delta_a[2] = {link_a->fromsock->locx - socket_location[0],
-                      link_a->fromsock->locy - socket_location[1]};
-  normalize_v2(delta_a);
-  const float angle_a = angle_normalized_v2v2(up_direction, delta_a);
-
-  float delta_b[2] = {link_b->fromsock->locx - socket_location[0],
-                      link_b->fromsock->locy - socket_location[1]};
-  normalize_v2(delta_b);
-  const float angle_b = angle_normalized_v2v2(up_direction, delta_b);
-
-  return angle_a > angle_b;
-}
-
 static void node_draw(const bContext *C,
                       ARegion *region,
                       SpaceNode *snode,
@@ -1812,42 +1797,6 @@ static void node_draw(const bContext *C,
 }
 
 #define USE_DRAW_TOT_UPDATE
-
-/**
- * Automatically sort the input links to multi-input sockets to avoid crossing noodles.
- */
-static void sort_multi_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-      if (socket->flag & SOCK_MULTI_INPUT) {
-        /* The total is calculated in #node_update_nodetree, which runs before this draw step. */
-        const int total_inputs = socket->total_inputs;
-        Vector<bNodeLink *> input_links;
-        input_links.reserve(total_inputs);
-
-        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-          if (link->tosock == socket) {
-            input_links.append(link);
-          }
-        }
-        LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
-          LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
-            bNodeLink *link = (bNodeLink *)linkdata->data;
-            if (link->tosock == socket) {
-              input_links.append(link);
-            }
-          }
-        }
-
-        std::sort(input_links.begin(), input_links.end(), compare_link_by_angle_to_node);
-        for (const int i : input_links.index_range()) {
-          input_links[i]->multi_input_socket_index = i;
-        }
-      }
-    }
-  }
-}
 
 void node_draw_nodetree(const bContext *C,
                         ARegion *region,
@@ -1884,8 +1833,6 @@ void node_draw_nodetree(const bContext *C,
   /* Node lines. */
   GPU_blend(GPU_BLEND_ALPHA);
   nodelink_batch_start(snode);
-
-  sort_multi_input_socket_links(ntree, snode);
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (!nodeLinkIsHidden(link)) {

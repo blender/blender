@@ -1619,8 +1619,8 @@ void WM_main_playanim(int argc, const char **argv)
 
     AUD_initOnce();
 
-    if (!(audio_device = AUD_init("OpenAL", specs, 1024, "Blender"))) {
-      audio_device = AUD_init("Null", specs, 0, "Blender");
+    if (!(audio_device = AUD_init(NULL, specs, 1024, "Blender"))) {
+      audio_device = AUD_init("None", specs, 0, "Blender");
     }
   }
 #endif

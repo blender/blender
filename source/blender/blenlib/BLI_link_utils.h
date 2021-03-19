@@ -21,7 +21,7 @@
  * \brief Single link-list utility macros. (header only api).
  *
  * Use this api when the structure defines its own ``next`` pointer
- * and a double linked list such as #ListBase isnt needed.
+ * and a double linked list such as #ListBase isn't needed.
  */
 
 #define BLI_LINKS_PREPEND(list, link) \

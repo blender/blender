@@ -30,6 +30,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_dynstr.h"
@@ -50,10 +51,13 @@
 
 struct CryptomatteSession {
   blender::Map<std::string, blender::bke::cryptomatte::CryptomatteLayer> layers;
+  /* Layer names in order of creation. */
+  blender::Vector<std::string> layer_names;
 
   CryptomatteSession();
   CryptomatteSession(const Main *bmain);
   CryptomatteSession(StampData *stamp_data);
+  CryptomatteSession(const Scene *scene);
 
   blender::bke::cryptomatte::CryptomatteLayer &add_layer(std::string layer_name);
   std::optional<std::string> operator[](float encoded_hash) const;
@@ -99,8 +103,32 @@ CryptomatteSession::CryptomatteSession(StampData *stamp_data)
       false);
 }
 
+CryptomatteSession::CryptomatteSession(const Scene *scene)
+{
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    eViewLayerCryptomatteFlags cryptoflags = static_cast<eViewLayerCryptomatteFlags>(
+        view_layer->cryptomatte_flag & VIEW_LAYER_CRYPTOMATTE_ALL);
+    if (cryptoflags == 0) {
+      cryptoflags = static_cast<eViewLayerCryptomatteFlags>(VIEW_LAYER_CRYPTOMATTE_ALL);
+    }
+
+    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_OBJECT) {
+      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoObject");
+    }
+    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_ASSET) {
+      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoAsset");
+    }
+    if (cryptoflags & VIEW_LAYER_CRYPTOMATTE_MATERIAL) {
+      add_layer(blender::StringRefNull(view_layer->name) + ".CryptoMaterial");
+    }
+  }
+}
+
 blender::bke::cryptomatte::CryptomatteLayer &CryptomatteSession::add_layer(std::string layer_name)
 {
+  if (!layer_names.contains(layer_name)) {
+    layer_names.append(layer_name);
+  }
   return layers.lookup_or_add_default(layer_name);
 }
 
@@ -125,6 +153,12 @@ struct CryptomatteSession *BKE_cryptomatte_init_from_render_result(
     const struct RenderResult *render_result)
 {
   CryptomatteSession *session = new CryptomatteSession(render_result->stamp_data);
+  return session;
+}
+
+struct CryptomatteSession *BKE_cryptomatte_init_from_scene(const struct Scene *scene)
+{
+  CryptomatteSession *session = new CryptomatteSession(scene);
   return session;
 }
 
@@ -182,39 +216,57 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash)
   return blender::bke::cryptomatte::CryptomatteHash(cryptomatte_hash).float_encoded();
 }
 
+/* Find an ID in the given main that matches the given encoded float. */
+bool BKE_cryptomatte_find_name(const CryptomatteSession *session,
+                               const float encoded_hash,
+                               char *r_name,
+                               int name_len)
+{
+  std::optional<std::string> name = (*session)[encoded_hash];
+  if (!name) {
+    return false;
+  }
+
+  BLI_strncpy(r_name, name->c_str(), name_len);
+  return true;
+}
+
 char *BKE_cryptomatte_entries_to_matte_id(NodeCryptomatte *node_storage)
 {
-  std::stringstream ss;
-  ss.precision(9);
-
+  DynStr *matte_id = BLI_dynstr_new();
   bool first = true;
   LISTBASE_FOREACH (CryptomatteEntry *, entry, &node_storage->entries) {
     if (!first) {
-      ss << ',';
+      BLI_dynstr_append(matte_id, ",");
     }
-    blender::StringRef entry_name(entry->name, BLI_strnlen(entry->name, sizeof(entry->name)));
-    if (!entry_name.is_empty()) {
-      ss << entry_name;
+    if (BLI_strnlen(entry->name, sizeof(entry->name)) != 0) {
+      BLI_dynstr_nappend(matte_id, entry->name, sizeof(entry->name));
     }
     else {
-      ss << '<' << std::scientific << entry->encoded_hash << '>';
+      BLI_dynstr_appendf(matte_id, "<%.9g>", entry->encoded_hash);
     }
     first = false;
   }
-
-  /* Convert result to C string. */
-  const std::string result_string = ss.str();
-  const char *c_str = result_string.c_str();
-  size_t result_len = result_string.size() + 1;
-  char *result = static_cast<char *>(MEM_mallocN(sizeof(char) * result_len, __func__));
-  memcpy(result, c_str, result_len);
+  char *result = BLI_dynstr_get_cstring(matte_id);
+  BLI_dynstr_free(matte_id);
   return result;
 }
 
 void BKE_cryptomatte_matte_id_to_entries(NodeCryptomatte *node_storage, const char *matte_id)
 {
   BLI_freelistN(&node_storage->entries);
-  std::optional<CryptomatteSession> session = std::nullopt;
+
+  if (matte_id == nullptr) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    return;
+  }
+  /* Update the matte_id so the files can be opened in versions that don't
+   * use `CryptomatteEntry`. */
+  if (matte_id != node_storage->matte_id && node_storage->matte_id &&
+      STREQ(node_storage->matte_id, matte_id)) {
+    MEM_SAFE_FREE(node_storage->matte_id);
+    node_storage->matte_id = static_cast<char *>(MEM_dupallocN(matte_id));
+  }
 
   std::istringstream ss(matte_id);
   while (ss.good()) {
@@ -358,6 +410,9 @@ static bool from_manifest(CryptomatteLayer &layer, blender::StringRefNull manife
       ref = ref.drop_prefix(quoted_name_len);
       ref = skip_whitespaces_(ref);
 
+      if (ref.is_empty()) {
+        return false;
+      }
       char colon = ref.front();
       if (colon != ':') {
         return false;
@@ -365,7 +420,7 @@ static bool from_manifest(CryptomatteLayer &layer, blender::StringRefNull manife
       ref = ref.drop_prefix(1);
       ref = skip_whitespaces_(ref);
 
-      if (ref.front() != '\"') {
+      if (ref.is_empty() || ref.front() != '\"') {
         return false;
       }
 
@@ -595,6 +650,12 @@ void CryptomatteStampDataCallbackData::extract_layer_manifest(void *_data,
   blender::StringRef layer_name = data->hash_to_layer_name.lookup(layer_hash);
   blender::bke::cryptomatte::CryptomatteLayer &layer = data->session->add_layer(layer_name);
   blender::bke::cryptomatte::manifest::from_manifest(layer, propvalue);
+}
+
+const blender::Vector<std::string> &BKE_cryptomatte_layer_names_get(
+    const CryptomatteSession &session)
+{
+  return session.layer_names;
 }
 
 }  // namespace blender::bke::cryptomatte

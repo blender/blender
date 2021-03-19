@@ -53,6 +53,10 @@ void ED_space_image_auto_set(const struct bContext *C, struct SpaceImage *sima);
 struct Mask *ED_space_image_get_mask(struct SpaceImage *sima);
 void ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sima, struct Mask *mask);
 
+bool ED_space_image_get_position(struct SpaceImage *sima,
+                                 struct ARegion *region,
+                                 int mval[2],
+                                 float fpos[2]);
 bool ED_space_image_color_sample(
     struct SpaceImage *sima, struct ARegion *region, int mval[2], float r_col[3], bool *r_is_data);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);

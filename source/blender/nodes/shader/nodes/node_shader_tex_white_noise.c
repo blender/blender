@@ -71,8 +71,7 @@ void register_node_type_sh_tex_white_noise(void)
 {
   static bNodeType ntype;
 
-  sh_fn_node_type_base(
-      &ntype, SH_NODE_TEX_WHITE_NOISE, "White Noise Texture", NODE_CLASS_TEXTURE, 0);
+  sh_node_type_base(&ntype, SH_NODE_TEX_WHITE_NOISE, "White Noise Texture", NODE_CLASS_TEXTURE, 0);
   node_type_socket_templates(&ntype, sh_node_tex_white_noise_in, sh_node_tex_white_noise_out);
   node_type_init(&ntype, node_shader_init_tex_white_noise);
   node_type_gpu(&ntype, gpu_shader_tex_white_noise);

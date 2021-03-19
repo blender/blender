@@ -17,9 +17,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_nasm
-  URL ${NASM_URI}
+  URL file://${PACKAGE_DIR}/${NASM_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
-  URL_HASH SHA256=${NASM_HASH}
+  URL_HASH ${NASM_HASH_TYPE}=${NASM_HASH}
   PREFIX ${BUILD_DIR}/nasm
   PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/nasm/src/external_nasm < ${PATCH_DIR}/nasm.diff
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && ./autogen.sh && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm

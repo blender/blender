@@ -429,6 +429,20 @@ typedef struct TransCustomDataContainer {
 } TransCustomDataContainer;
 #define TRANS_CUSTOM_DATA_ELEM_MAX (sizeof(TransCustomDataContainer) / sizeof(TransCustomData))
 
+/**
+ * Container for Transform Data
+ *
+ * Used to implement multi-object modes, so each object can have it's
+ * own data array as well as object matrix, local center etc.
+ *
+ * Anything that can't be shared between all objects
+ * and doesn't make sense to store for every vertex (in the #TransDataContainer.data).
+ *
+ * \note at some point this could be used to store non object containers
+ * although this only makes sense if each container has it's own matrices,
+ * otherwise all elements may as well be stored in one array (#TransDataContainer.data),
+ * as is already done for curve-objects, f-curves. etc.
+ */
 typedef struct TransDataContainer {
   /** Transformed data (array). */
   TransData *data;

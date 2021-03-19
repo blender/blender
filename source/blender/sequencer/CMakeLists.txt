@@ -72,6 +72,7 @@ set(SRC
   intern/multiview.h
   intern/prefetch.c
   intern/prefetch.h
+  intern/proxy_job.c
   intern/proxy.c
   intern/proxy.h
   intern/render.c

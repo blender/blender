@@ -640,6 +640,12 @@ ccl_device_noinline
       /* If we hit the surface, we are done. */
       break;
     }
+    else if (throughput.x < VOLUME_THROUGHPUT_EPSILON &&
+             throughput.y < VOLUME_THROUGHPUT_EPSILON &&
+             throughput.z < VOLUME_THROUGHPUT_EPSILON) {
+      /* Avoid unnecessary work and precision issue when throughput gets really small. */
+      break;
+    }
   }
 
   kernel_assert(isfinite_safe(throughput.x) && isfinite_safe(throughput.y) &&

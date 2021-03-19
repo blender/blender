@@ -132,12 +132,11 @@ template<typename T> class Span {
   }
 
   /**
-   * Support implicit conversions like the ones below:
+   * Support implicit conversions like the one below:
    *   Span<T *> -> Span<const T *>
    */
-
   template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
-  constexpr Span(Span<U> array) : data_(static_cast<const T *>(array.data())), size_(array.size())
+  constexpr Span(Span<U> span) : data_(static_cast<const T *>(span.data())), size_(span.size())
   {
   }
 
@@ -418,6 +417,19 @@ template<typename T> class Span {
     return Span<NewT>(reinterpret_cast<const NewT *>(data_), new_size);
   }
 
+  friend bool operator==(const Span<T> a, const Span<T> b)
+  {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    return std::equal(a.begin(), a.end(), b.begin());
+  }
+
+  friend bool operator!=(const Span<T> a, const Span<T> b)
+  {
+    return !(a == b);
+  }
+
   /**
    * A debug utility to print the content of the Span. Every element will be printed on a
    * separate line using the given callback.
@@ -467,9 +479,25 @@ template<typename T> class MutableSpan {
   {
   }
 
+  /**
+   * Support implicit conversions like the one below:
+   *   MutableSpan<T *> -> MutableSpan<const T *>
+   */
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<U, T>> * = nullptr>
+  constexpr MutableSpan(MutableSpan<U> span)
+      : data_(static_cast<T *>(span.data())), size_(span.size())
+  {
+  }
+
   constexpr operator Span<T>() const
   {
     return Span<T>(data_, size_);
+  }
+
+  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  constexpr operator Span<U>() const
+  {
+    return Span<U>(static_cast<const U *>(data_), size_);
   }
 
   /**
@@ -653,12 +681,13 @@ template<typename T> class MutableSpan {
 
   /**
    * Returns a new span to the same underlying memory buffer. No conversions are done.
+   * The caller is responsible for making sure that the type cast is valid.
    */
   template<typename NewT> constexpr MutableSpan<NewT> cast() const
   {
     BLI_assert((size_ * sizeof(T)) % sizeof(NewT) == 0);
     int64_t new_size = size_ * sizeof(T) / sizeof(NewT);
-    return MutableSpan<NewT>(reinterpret_cast<NewT *>(data_), new_size);
+    return MutableSpan<NewT>((NewT *)data_, new_size);
   }
 };
 

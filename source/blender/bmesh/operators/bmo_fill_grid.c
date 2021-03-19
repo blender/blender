@@ -586,8 +586,8 @@ static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 
 static bool bm_edge_test_rail_cb(BMEdge *e, void *UNUSED(bm_v))
 {
-  /* normally operators dont check for hidden state
-   * but alternative would be to pass slot of rail edges */
+  /* Normally operators don't check for hidden state
+   * but alternative would be to pass slot of rail edges. */
   if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
     return false;
   }

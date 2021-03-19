@@ -1596,6 +1596,118 @@ static void *bmw_UVEdgeWalker_step(BMWalker *walker)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Non-manifold Edge Walker
+ * \{ */
+
+static void bmw_NonManifoldedgeWalker_begin(BMWalker *walker, void *data)
+{
+  BMwNonManifoldEdgeLoopWalker *lwalk;
+  BMEdge *e = data;
+
+  if (BLI_gset_haskey(walker->visit_set, e)) {
+    return;
+  }
+
+  lwalk = BMW_state_add(walker);
+  lwalk->start = e;
+  lwalk->cur = e;
+  lwalk->startv = e->v1;
+  lwalk->lastv = e->v1;
+  lwalk->face_count = BM_edge_face_count(e);
+  BLI_gset_insert(walker->visit_set, e);
+}
+
+static void *bmw_NonManifoldedgeWalker_yield(BMWalker *walker)
+{
+  BMwNonManifoldEdgeLoopWalker *lwalk = BMW_current_state(walker);
+
+  if (!lwalk) {
+    return NULL;
+  }
+  return lwalk->cur;
+}
+
+/**
+ * Walk over manifold loops around `v` until loop-edge is found with `face_count` users.
+ * or return NULL if not found.
+ * */
+static BMLoop *bmw_NonManifoldLoop_find_next_around_vertex(BMLoop *l, BMVert *v, int face_count)
+{
+  BLI_assert(!BM_loop_is_manifold(l));
+  do {
+    l = BM_loop_other_edge_loop(l, v);
+    if (BM_loop_is_manifold(l)) {
+      l = l->radial_next;
+    }
+    else if (BM_edge_face_count_is_equal(l->e, face_count)) {
+      return l;
+    }
+    else {
+      break;
+    }
+  } while (true);
+  return NULL;
+}
+
+static void *bmw_NonManifoldedgeWalker_step(BMWalker *walker)
+{
+  BMwNonManifoldEdgeLoopWalker *lwalk, owalk;
+  BMW_state_remove_r(walker, &owalk);
+  lwalk = &owalk;
+  BMLoop *l_cur = NULL;
+  const int face_count = lwalk->face_count;
+
+  BMVert *v = NULL;
+
+  /* Use the second pass is unlikely, only needed to walk back in the opposite direction. */
+  for (int pass = 0; pass < 2; pass++) {
+
+    BMEdge *e = lwalk->cur;
+    v = BM_edge_other_vert(e, lwalk->lastv);
+
+    /* If `lwalk.lastv` can't be walked along, start walking in the opposite direction
+     * on the initial edge, do this at most one time during this walk operation.  */
+    if (UNLIKELY(pass == 1)) {
+      e = lwalk->start;
+      v = lwalk->startv;
+    }
+
+    BMLoop *l = e->l;
+    do {
+      BMLoop *l_next = bmw_NonManifoldLoop_find_next_around_vertex(l, v, face_count);
+      if ((l_next != NULL) && !BLI_gset_haskey(walker->visit_set, l_next->e)) {
+        if (l_cur == NULL) {
+          l_cur = l_next;
+        }
+        else if (l_cur->e != l_next->e) {
+          /* If there are more than one possible edge to step onto (unlikely but possible),
+           * treat as a junction and stop walking as there is no correct answer in this case. */
+          l_cur = NULL;
+          break;
+        }
+      }
+    } while ((l = l->radial_next) != e->l);
+
+    if (l_cur != NULL) {
+      break;
+    }
+  }
+
+  if (l_cur != NULL) {
+    BLI_assert(!BLI_gset_haskey(walker->visit_set, l_cur->e));
+    BLI_assert(BM_edge_face_count(l_cur->e) == face_count);
+    lwalk = BMW_state_add(walker);
+    lwalk->lastv = v;
+    lwalk->cur = l_cur->e;
+    lwalk->face_count = face_count;
+    BLI_gset_insert(walker->visit_set, l_cur->e);
+  }
+  return owalk.cur;
+}
+
+/** \} */
+
 static BMWalker bmw_VertShellWalker_Type = {
     BM_VERT | BM_EDGE,
     bmw_VertShellWalker_begin,
@@ -1708,6 +1820,16 @@ static BMWalker bmw_EdgeboundaryWalker_Type = {
     0,
 };
 
+static BMWalker bmw_NonManifoldedgeWalker_type = {
+    BM_EDGE,
+    bmw_NonManifoldedgeWalker_begin,
+    bmw_NonManifoldedgeWalker_step,
+    bmw_NonManifoldedgeWalker_yield,
+    sizeof(BMwNonManifoldEdgeLoopWalker),
+    BMW_DEPTH_FIRST,
+    0,
+};
+
 static BMWalker bmw_UVEdgeWalker_Type = {
     BM_LOOP,
     bmw_UVEdgeWalker_begin,
@@ -1737,6 +1859,7 @@ BMWalker *bm_walker_types[] = {
     &bmw_FaceLoopWalker_Type,        /* #BMW_FACELOOP */
     &bmw_EdgeringWalker_Type,        /* #BMW_EDGERING */
     &bmw_EdgeboundaryWalker_Type,    /* #BMW_EDGEBOUNDARY */
+    &bmw_NonManifoldedgeWalker_type, /* #BMW_EDGELOOP_NONMANIFOLD */
     &bmw_UVEdgeWalker_Type,          /* #BMW_LOOPDATA_ISLAND */
     &bmw_IslandboundWalker_Type,     /* #BMW_ISLANDBOUND */
     &bmw_IslandWalker_Type,          /* #BMW_ISLAND */

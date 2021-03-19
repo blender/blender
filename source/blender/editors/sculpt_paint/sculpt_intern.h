@@ -812,6 +812,9 @@ typedef struct SculptThreadedTaskData {
   int face_set;
   int filter_undo_type;
 
+  int mask_init_mode;
+  int mask_init_seed;
+
   ThreadMutex mutex;
 
 } SculptThreadedTaskData;
@@ -1277,7 +1280,7 @@ typedef struct FilterCache {
   float *sharpen_factor;
   float (*detail_directions)[3];
 
-  /* Filter orientaiton. */
+  /* Filter orientation. */
   SculptFilterOrientation orientation;
   float obmat[4][4];
   float obmat_inv[4][4];
@@ -1388,10 +1391,14 @@ void SCULPT_OT_dirty_mask(struct wmOperatorType *ot);
 /* Mask and Face Sets Expand. */
 void SCULPT_OT_mask_expand(struct wmOperatorType *ot);
 
+/* Mask Init. */
+void SCULPT_OT_mask_init(struct wmOperatorType *ot);
+
 /* Detail size. */
 void SCULPT_OT_detail_flood_fill(struct wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(struct wmOperatorType *ot);
 void SCULPT_OT_set_detail_size(struct wmOperatorType *ot);
+void SCULPT_OT_dyntopo_detail_size_edit(struct wmOperatorType *ot);
 
 /* Dyntopo. */
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);

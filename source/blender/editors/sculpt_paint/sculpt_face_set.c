@@ -140,8 +140,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
       MeshElemMap *vert_map = &ss->pmap[vd.index];
       for (int j = 0; j < ss->pmap[vd.index].count; j++) {
@@ -243,8 +242,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -486,6 +484,7 @@ typedef enum eSculptFaceSetsInitMode {
   SCULPT_FACE_SETS_FROM_SHARP_EDGES = 5,
   SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT = 6,
   SCULPT_FACE_SETS_FROM_FACE_MAPS = 7,
+  SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES = 8,
 } eSculptFaceSetsInitMode;
 
 static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
@@ -545,6 +544,14 @@ static EnumPropertyItem prop_sculpt_face_sets_init_types[] = {
         "Face Sets from Face Maps",
         "Create a Face Set per Face Map",
     },
+    {
+        SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES,
+        "FACE_SET_BOUNDARIES",
+        0,
+        "Face Sets from Face Set Boundaries",
+        "Create a Face Set per isolated Face Set",
+    },
+
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -594,6 +601,14 @@ static bool sculpt_face_sets_init_sharp_edges_test(BMesh *UNUSED(bm),
                                                    const float UNUSED(threshold))
 {
   return BM_elem_flag_test(from_e, BM_ELEM_SMOOTH);
+}
+
+static bool sculpt_face_sets_init_face_set_boundary_test(
+    BMesh *bm, BMFace *from_f, BMEdge *UNUSED(from_e), BMFace *to_f, const float UNUSED(threshold))
+{
+  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+  return BM_ELEM_CD_GET_INT(from_f, cd_face_sets_offset) ==
+         BM_ELEM_CD_GET_INT(to_f, cd_face_sets_offset);
 }
 
 static void sculpt_face_sets_init_flood_fill(Object *ob,
@@ -765,6 +780,10 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
     case SCULPT_FACE_SETS_FROM_BEVEL_WEIGHT:
       sculpt_face_sets_init_flood_fill(ob, sculpt_face_sets_init_bevel_weight_test, threshold);
+      break;
+    case SCULPT_FACE_SETS_FROM_FACE_SET_BOUNDARIES:
+      sculpt_face_sets_init_flood_fill(
+          ob, sculpt_face_sets_init_face_set_boundary_test, threshold);
       break;
     case SCULPT_FACE_SETS_FROM_FACE_MAPS:
       sculpt_face_sets_init_loop(ob, SCULPT_FACE_SETS_FROM_FACE_MAPS);

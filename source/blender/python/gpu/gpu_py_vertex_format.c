@@ -85,7 +85,7 @@ PyDoc_STRVAR(
     "   :type id: str\n"
     "   :param comp_type: The data type that will be used store the value in memory.\n"
     "      Possible values are `I8`, `U8`, `I16`, `U16`, `I32`, `U32`, `F32` and `I10`.\n"
-    "   :type comp_type: `str`\n"
+    "   :type comp_type: str\n"
     "   :param len: How many individual values the attribute consists of\n"
     "      (e.g. 2 for uv coordinates).\n"
     "   :type len: int\n"
@@ -94,7 +94,7 @@ PyDoc_STRVAR(
     "      reduced precision. E.g. you can store a float in only 1 byte but it will be\n"
     "      converted to a normal 4 byte float when used.\n"
     "      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT` and `INT_TO_FLOAT`.\n"
-    "   :type fetch_mode: `str`\n");
+    "   :type fetch_mode: str\n");
 static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
   const char *id;

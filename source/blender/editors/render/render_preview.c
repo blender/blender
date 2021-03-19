@@ -1342,7 +1342,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
        * already there. Very expensive for large images. Need to find a way to
        * only get existing ibuf */
       ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
-      if (ibuf == NULL || ibuf->rect == NULL) {
+      if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
         BKE_image_release_ibuf(ima, ibuf, NULL);
         return;
       }

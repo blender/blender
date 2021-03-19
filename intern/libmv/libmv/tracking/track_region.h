@@ -30,6 +30,12 @@ namespace libmv {
 struct TrackRegionOptions {
   TrackRegionOptions();
 
+  enum Direction {
+    FORWARD,
+    BACKWARD,
+  };
+  Direction direction;
+
   enum Mode {
     TRANSLATION,
     TRANSLATION_ROTATION,
@@ -41,7 +47,7 @@ struct TrackRegionOptions {
   Mode mode;
 
   // Minimum normalized cross-correlation necessary between the final tracked
-  // positoin of the patch on the destination image and the reference patch
+  // position of the patch on the destination image and the reference patch
   // needed to declare tracking success. If the minimum correlation is not met,
   // then TrackResult::termination is INSUFFICIENT_CORRELATION.
   double minimum_correlation;
@@ -55,7 +61,7 @@ struct TrackRegionOptions {
 
   // If true, apply a brute-force translation-only search before attempting the
   // full search. This is not enabled if the destination image ("image2") is
-  // too small; in that case eithen the basin of attraction is close enough
+  // too small; in that case either the basin of attraction is close enough
   // that the nearby minima is correct, or the search area is too small.
   bool use_brute_initialization;
 

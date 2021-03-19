@@ -644,8 +644,8 @@ static int selectbuffer_ret_hits_12(uint *UNUSED(buffer), const int hits12)
 
 static int selectbuffer_ret_hits_5(uint *buffer, const int hits12, const int hits5)
 {
-  const int offs = 4 * hits12;
-  memcpy(buffer, buffer + offs, 4 * hits5 * sizeof(uint));
+  const int ofs = 4 * hits12;
+  memcpy(buffer, buffer + ofs, 4 * hits5 * sizeof(uint));
   return hits5;
 }
 
@@ -704,17 +704,12 @@ static EditBone *get_nearest_editbonepoint(
       goto cache_end;
     }
     else if (hits12 > 0) {
-      int offs;
+      int ofs;
 
-      offs = 4 * hits12;
+      ofs = 4 * hits12;
       BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-      const int hits5 = view3d_opengl_select_with_id_filter(vc,
-                                                            buffer + offs,
-                                                            MAXPICKBUF - offs,
-                                                            &rect,
-                                                            select_mode,
-                                                            select_filter,
-                                                            select_id_ignore);
+      const int hits5 = view3d_opengl_select_with_id_filter(
+          vc, buffer + ofs, MAXPICKBUF - ofs, &rect, select_mode, select_filter, select_id_ignore);
 
       if (hits5 == 1) {
         hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);

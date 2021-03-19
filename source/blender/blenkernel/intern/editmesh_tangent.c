@@ -341,7 +341,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
 
     /* map faces to quads */
     if (em->tottri != bm->totface) {
-      /* over alloc, since we dont know how many ngon or quads we have */
+      /* Over allocate, since we don't know how many ngon or quads we have. */
 
       /* map fake face index to looptri */
       face_as_quad_map = MEM_mallocN(sizeof(int) * totface, __func__);

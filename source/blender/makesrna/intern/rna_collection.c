@@ -22,6 +22,8 @@
 
 #include "DNA_collection_types.h"
 
+#include "DNA_lineart_types.h"
+
 #include "BLI_utildefines.h"
 
 #include "RNA_define.h"
@@ -516,6 +518,35 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, -1);
   RNA_def_property_ui_text(prop, "Disable in Renders", "Globally disable in renders");
   RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_Collection_flag_update");
+
+  static const EnumPropertyItem rna_collection_lineart_usage[] = {
+      {COLLECTION_LRT_INCLUDE,
+       "INCLUDE",
+       0,
+       "Include",
+       "Generate feature lines for this collection"},
+      {COLLECTION_LRT_OCCLUSION_ONLY,
+       "OCCLUSION_ONLY",
+       0,
+       "Occlusion Only",
+       "Only use the collection to produce occlusion"},
+      {COLLECTION_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this collection in line art"},
+      {COLLECTION_LRT_INTERSECTION_ONLY,
+       "INTERSECTION_ONLY",
+       0,
+       "Intersection Only",
+       "Only generate intersection lines for this collection"},
+      {COLLECTION_LRT_NO_INTERSECTION,
+       "NO_INTERSECTION",
+       0,
+       "No Intersection",
+       "Include this collection but do not generate intersection lines"},
+      {0, NULL, 0, NULL, NULL}};
+
+  prop = RNA_def_property(srna, "lineart_usage", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_collection_lineart_usage);
+  RNA_def_property_ui_text(prop, "Usage", "How to use this collection in line art");
+  RNA_def_property_update(prop, NC_SCENE, NULL);
 
   prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "color_tag");

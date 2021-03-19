@@ -32,8 +32,8 @@
 
 namespace blender::ed::outliner {
 
-TreeElementAnimData::TreeElementAnimData(TreeElement &legacy_te, ID &id)
-    : AbstractTreeElement(legacy_te), anim_data_(*reinterpret_cast<IdAdtTemplate &>(id).adt)
+TreeElementAnimData::TreeElementAnimData(TreeElement &legacy_te, AnimData &anim_data)
+    : AbstractTreeElement(legacy_te), anim_data_(anim_data)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_ANIM_DATA);
   /* this element's info */

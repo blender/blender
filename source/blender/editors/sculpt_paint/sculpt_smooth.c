@@ -236,9 +236,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
-
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -404,8 +402,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -584,8 +581,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
 
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -628,8 +624,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -700,8 +695,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float tot = 0.0f;
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!vd.col) {
       continue;
     }
@@ -732,7 +726,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
   mul_v3_fl(avg, tot);
 
   float exp = brush->vcol_boundary_exponent;
-  //detect bad value
+  // detect bad value
 
   if (exp == 0.0f) {
     exp = 1.0f;
@@ -740,8 +734,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
   //#define SHARPEN_VCOL_BOUNDARY
 
-  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-  {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       const float fade = bstrength * SCULPT_brush_strength_factor(
                                          ss,
@@ -786,7 +779,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
 
         w = powf(w, exp);
 
-        //w *= w;
+        // w *= w;
 
 #ifdef SHARPEN_VCOL_BOUNDARY
         float w2 = -1.0f;
@@ -812,7 +805,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
       }
 
 #ifdef SHARPEN_VCOL_BOUNDARY
-      float w2 = ntot*40.0f;
+      float w2 = ntot * 40.0f;
       madd_v4_v4fl(colavg, vd.col, w2);
       tot3 += w2;
 
@@ -820,19 +813,20 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
         mul_v4_fl(colavg, 1.0f / tot3);
       }
 
-      //clamp_v4(colavg, 0.0f, 1.0f);
-      //negative numbers are undesirable, but dunno if I should clip above 1.0 or not except for alpha
-      for (int i=0; i<4; i++) {
+      // clamp_v4(colavg, 0.0f, 1.0f);
+      // negative numbers are undesirable, but dunno if I should clip above 1.0 or not except for
+      // alpha
+      for (int i = 0; i < 4; i++) {
         colavg[i] = MAX2(colavg[i], 0.0f);
         colavg[i] = MIN2(colavg[i], 1.0f);
       }
-      //colavg[3] = MIN2(colavg[3], 1.0f);
+      // colavg[3] = MIN2(colavg[3], 1.0f);
 
-      interp_v4_v4v4(vd.col, vd.col, colavg, fade*0.25);
+      interp_v4_v4v4(vd.col, vd.col, colavg, fade * 0.25);
 #endif
 
-      //try to avoid perfectly colinear triangles, and the normal discontinuities they create,
-      //by blending slightly with unweighted smoothed position
+      // try to avoid perfectly colinear triangles, and the normal discontinuities they create,
+      // by blending slightly with unweighted smoothed position
       mul_v3_fl(avg2, 1.0f / tot2);
       interp_v3_v3v3(avg2, avg2, avg3, 0.025);
 

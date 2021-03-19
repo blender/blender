@@ -26,6 +26,8 @@
  * THE SOFTWARE.
  */
 
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 uniform sampler2D sourceBuffer; /* Buffer to filter */
 uniform vec2 sourceBufferTexelSize;
 
@@ -54,11 +56,6 @@ vec3 safe_color(vec3 c)
   return clamp(c, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
 }
 
-float brightness(vec3 c)
-{
-  return max(max(c.r, c.g), c.b);
-}
-
 /* 3-tap median filter */
 vec3 median(vec3 a, vec3 b, vec3 c)
 {
@@ -78,10 +75,10 @@ vec3 downsample_filter_high(sampler2D tex, vec2 uv, vec2 texelSize)
   vec3 s4 = textureLod(tex, uv + d.zw, 0.0).rgb;
 
   /* Karis's luma weighted average (using brightness instead of luma) */
-  float s1w = 1.0 / (brightness(s1) + 1.0);
-  float s2w = 1.0 / (brightness(s2) + 1.0);
-  float s3w = 1.0 / (brightness(s3) + 1.0);
-  float s4w = 1.0 / (brightness(s4) + 1.0);
+  float s1w = 1.0 / (max_v3(s1) + 1.0);
+  float s2w = 1.0 / (max_v3(s2) + 1.0);
+  float s3w = 1.0 / (max_v3(s3) + 1.0);
+  float s4w = 1.0 / (max_v3(s4) + 1.0);
   float one_div_wsum = 1.0 / (s1w + s2w + s3w + s4w);
 
   return (s1 * s1w + s2 * s2w + s3 * s3w + s4 * s4w) * one_div_wsum;
@@ -156,7 +153,7 @@ vec4 step_blit(void)
 #endif
 
   /* Pixel brightness */
-  float br = brightness(m);
+  float br = max_v3(m);
 
   /* Under-threshold part: quadratic curve */
   float rq = clamp(br - curveThreshold.x, 0, curveThreshold.y);
@@ -167,7 +164,7 @@ vec4 step_blit(void)
 
   /* Clamp pixel intensity if clamping enabled */
   if (clampIntensity > 0.0) {
-    br = max(1e-5, brightness(m));
+    br = max(1e-5, max_v3(m));
     m *= 1.0 - max(0.0, br - clampIntensity) / br;
   }
 

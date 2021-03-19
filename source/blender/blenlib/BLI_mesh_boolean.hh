@@ -59,6 +59,7 @@ IMesh boolean_mesh(IMesh &imesh,
                    int nshapes,
                    std::function<int(int)> shape_fn,
                    bool use_self,
+                   bool hole_tolerant,
                    IMesh *imesh_triangulated,
                    IMeshArena *arena);
 
@@ -72,6 +73,7 @@ IMesh boolean_trimesh(IMesh &tm_in,
                       int nshapes,
                       std::function<int(int)> shape_fn,
                       bool use_self,
+                      bool hole_tolerant,
                       IMeshArena *arena);
 
 }  // namespace blender::meshintersect

@@ -71,6 +71,12 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_validate_keymap
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_keymap_validate.py
+  -- --relaxed  # Disable minor things that should not cause tests to break.
+)
+
+add_blender_test(
   script_load_addons
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_load_addons.py
 )

@@ -637,7 +637,7 @@ typedef struct DecimateModifierData {
 
 enum {
   MOD_DECIM_FLAG_INVERT_VGROUP = (1 << 0),
-  /** for collapse only. dont convert tri pairs back to quads */
+  /** For collapse only. don't convert triangle pairs back to quads. */
   MOD_DECIM_FLAG_TRIANGULATE = (1 << 1),
   /** for dissolve only. collapse all verts between 2 faces */
   MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS = (1 << 2),
@@ -904,6 +904,7 @@ enum {
   eBooleanModifierFlag_Self = (1 << 0),
   eBooleanModifierFlag_Object = (1 << 1),
   eBooleanModifierFlag_Collection = (1 << 2),
+  eBooleanModifierFlag_HoleTolerant = (1 << 3),
 };
 
 /* bm_flag only used when G_DEBUG. */

@@ -492,6 +492,7 @@ typedef struct bTheme {
   ThemeSpace space_clip;
   ThemeSpace space_topbar;
   ThemeSpace space_statusbar;
+  ThemeSpace space_spreadsheet;
 
   /* 20 sets of bone colors for this theme */
   ThemeWireColor tarm[20];
@@ -507,7 +508,7 @@ typedef struct bTheme {
 #define UI_THEMESPACE_START(btheme) \
   (CHECK_TYPE_INLINE(btheme, bTheme *), &((btheme)->space_properties))
 #define UI_THEMESPACE_END(btheme) \
-  (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->space_statusbar) + 1))
+  (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->space_spreadsheet) + 1))
 
 typedef struct bAddon {
   struct bAddon *next, *prev;
@@ -634,6 +635,7 @@ typedef struct UserDef_FileSpaceData {
 typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
+  char no_override_auto_resync;
   char use_cycles_debug;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
@@ -644,7 +646,7 @@ typedef struct UserDef_Experimental {
   char use_switch_object_operator;
   char use_sculpt_tools_tilt;
   char use_asset_browser;
-  char _pad[7];
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -919,7 +921,7 @@ typedef struct UserDef {
   int sequencer_disk_cache_compression; /* eUserpref_DiskCacheCompression */
   int sequencer_disk_cache_size_limit;
   short sequencer_disk_cache_flag;
-  char _pad5[2];
+  short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
 
   float collection_instance_empty_size;
   char _pad10[3];
@@ -1383,6 +1385,11 @@ typedef enum eUserpref_DiskCacheCompression {
   USER_SEQ_DISK_CACHE_COMPRESSION_LOW = 1,
   USER_SEQ_DISK_CACHE_COMPRESSION_HIGH = 2,
 } eUserpref_DiskCacheCompression;
+
+typedef enum eUserpref_SeqProxySetup {
+  USER_SEQ_PROXY_SETUP_MANUAL = 0,
+  USER_SEQ_PROXY_SETUP_AUTOMATIC = 1,
+} eUserpref_SeqProxySetup;
 
 /* Locale Ids. Auto will try to get local from OS. Our default is English though. */
 /** #UserDef.language */

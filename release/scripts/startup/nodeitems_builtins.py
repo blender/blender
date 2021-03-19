@@ -94,6 +94,11 @@ def node_group_items(context):
 
     yield NodeItemCustom(draw=group_tools_draw)
 
+    yield NodeItem("NodeGroupInput", poll=group_input_output_item_poll)
+    yield NodeItem("NodeGroupOutput", poll=group_input_output_item_poll)
+
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+
     def contains_group(nodetree, group):
         if nodetree == group:
             return True
@@ -200,7 +205,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeUVMap"),
         NodeItem("ShaderNodeVertexColor"),
         NodeItem("ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll),
-        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
     ]),
     ShaderNodeCategory("SH_NEW_OUTPUT", "Output", items=[
         NodeItem("ShaderNodeOutputMaterial", poll=object_eevee_cycles_shader_nodes_poll),
@@ -208,7 +212,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeOutputAOV"),
         NodeItem("ShaderNodeOutputWorld", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeOutputLineStyle", poll=line_style_shader_nodes_poll),
-        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
     ]),
     ShaderNodeCategory("SH_NEW_SHADER", "Shader", items=[
         NodeItem("ShaderNodeMixShader", poll=eevee_cycles_shader_nodes_poll),
@@ -310,7 +313,6 @@ compositor_node_categories = [
         NodeItem("CompositorNodeBokehImage"),
         NodeItem("CompositorNodeTime"),
         NodeItem("CompositorNodeTrackPos"),
-        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
     ]),
     CompositorNodeCategory("CMP_OUTPUT", "Output", items=[
         NodeItem("CompositorNodeComposite"),
@@ -318,7 +320,6 @@ compositor_node_categories = [
         NodeItem("CompositorNodeSplitViewer"),
         NodeItem("CompositorNodeOutputFile"),
         NodeItem("CompositorNodeLevels"),
-        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
     ]),
     CompositorNodeCategory("CMP_OP_COLOR", "Color", items=[
         NodeItem("CompositorNodeMixRGB"),
@@ -389,6 +390,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodeColorMatte"),
         NodeItem("CompositorNodeDoubleEdgeMask"),
         NodeItem("CompositorNodeCryptomatte"),
+        NodeItem("CompositorNodeCryptomatteV2"),
     ]),
     CompositorNodeCategory("CMP_DISTORT", "Distort", items=[
         NodeItem("CompositorNodeScale"),
@@ -420,12 +422,10 @@ texture_node_categories = [
         NodeItem("TextureNodeCoordinates"),
         NodeItem("TextureNodeTexture"),
         NodeItem("TextureNodeImage"),
-        NodeItem("NodeGroupInput", poll=group_input_output_item_poll),
     ]),
     TextureNodeCategory("TEX_OUTPUT", "Output", items=[
         NodeItem("TextureNodeOutput"),
         NodeItem("TextureNodeViewer"),
-        NodeItem("NodeGroupOutput", poll=group_input_output_item_poll),
     ]),
     TextureNodeCategory("TEX_OP_COLOR", "Color", items=[
         NodeItem("TextureNodeMixRGB"),
@@ -485,6 +485,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeRandomize"),
         NodeItem("GeometryNodeAttributeMath"),
         NodeItem("GeometryNodeAttributeCompare"),
+        NodeItem("GeometryNodeAttributeConvert"),
         NodeItem("GeometryNodeAttributeFill"),
         NodeItem("GeometryNodeAttributeMix"),
         NodeItem("GeometryNodeAttributeProximity"),
@@ -493,6 +494,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeSampleTexture"),
         NodeItem("GeometryNodeAttributeCombineXYZ"),
         NodeItem("GeometryNodeAttributeSeparateXYZ"),
+        NodeItem("GeometryNodeAttributeRemove"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeValToRGB"),
@@ -517,7 +519,17 @@ geometry_node_categories = [
         NodeItem("GeometryNodeTriangulate"),
         NodeItem("GeometryNodeEdgeSplit"),
         NodeItem("GeometryNodeSubdivisionSurface"),
-        NodeItem("GeometryNodeSubdivisionSurfaceSimple"),
+        NodeItem("GeometryNodeSubdivide"),
+
+        # These should be in a sub-menu, but that requires a refactor to build the add menu manually.
+        NodeItem("GeometryNodeMeshCube"),
+        NodeItem("GeometryNodeMeshCircle"),
+        NodeItem("GeometryNodeMeshUVSphere"),
+        NodeItem("GeometryNodeMeshIcoSphere"),
+        NodeItem("GeometryNodeMeshCylinder"),
+        NodeItem("GeometryNodeMeshCone"),
+        NodeItem("GeometryNodeMeshLine"),
+        NodeItem("GeometryNodeMeshPlane"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
         NodeItem("GeometryNodePointDistribute"),
@@ -543,6 +555,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeSeparateXYZ"),
         NodeItem("ShaderNodeCombineXYZ"),
         NodeItem("ShaderNodeVectorMath"),
+        NodeItem("ShaderNodeVectorRotate"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),
     GeometryNodeCategory("GEO_LAYOUT", "Layout", items=[

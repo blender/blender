@@ -65,6 +65,11 @@ struct float2 {
     return len_squared_v2(*this);
   }
 
+  bool is_zero() const
+  {
+    return this->x == 0.0f && this->y == 0.0f;
+  }
+
   float2 &operator+=(const float2 &other)
   {
     x += other.x;

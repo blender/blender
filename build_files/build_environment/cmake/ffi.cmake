@@ -17,8 +17,8 @@
 # ***** END GPL LICENSE BLOCK *****
 
 ExternalProject_Add(external_ffi
-  URL ${FFI_URI}
-  URL_HASH SHA256=${FFI_HASH}
+  URL file://${PACKAGE_DIR}/${FFI_FILE}
+  URL_HASH ${FFI_HASH_TYPE}=${FFI_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/ffi
   CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/ffi

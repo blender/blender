@@ -40,16 +40,6 @@ struct Object;
 struct PointCloud;
 struct Volume;
 
-/* Each geometry component has a specific type. The type determines what kind of data the component
- * stores. Functions modifying a geometry will usually just modify a subset of the component types.
- */
-enum class GeometryComponentType {
-  Mesh = 0,
-  PointCloud = 1,
-  Instances = 2,
-  Volume = 3,
-};
-
 enum class GeometryOwnershipType {
   /* The geometry is owned. This implies that it can be changed. */
   Owned = 0,
@@ -58,16 +48,6 @@ enum class GeometryOwnershipType {
   /* The geometry cannot be changed and someone else is responsible for freeing it. */
   ReadOnly = 2,
 };
-
-/* Make it possible to use the component type as key in hash tables. */
-namespace blender {
-template<> struct DefaultHash<GeometryComponentType> {
-  uint64_t operator()(const GeometryComponentType &value) const
-  {
-    return (uint64_t)value;
-  }
-};
-}  // namespace blender
 
 namespace blender::bke {
 class ComponentAttributeProviders;
@@ -392,7 +372,7 @@ class MeshComponent : public GeometryComponent {
 
   bool is_empty() const final;
 
-  static constexpr inline GeometryComponentType static_type = GeometryComponentType::Mesh;
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_MESH;
 
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
@@ -422,7 +402,7 @@ class PointCloudComponent : public GeometryComponent {
 
   bool is_empty() const final;
 
-  static constexpr inline GeometryComponentType static_type = GeometryComponentType::PointCloud;
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
 
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
@@ -462,7 +442,7 @@ class InstancesComponent : public GeometryComponent {
 
   bool is_empty() const final;
 
-  static constexpr inline GeometryComponentType static_type = GeometryComponentType::Instances;
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_INSTANCES;
 };
 
 /** A geometry component that stores volume grids. */
@@ -484,5 +464,5 @@ class VolumeComponent : public GeometryComponent {
   const Volume *get_for_read() const;
   Volume *get_for_write();
 
-  static constexpr inline GeometryComponentType static_type = GeometryComponentType::Volume;
+  static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_VOLUME;
 };

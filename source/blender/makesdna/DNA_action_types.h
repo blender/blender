@@ -287,7 +287,10 @@ typedef struct bPoseChannel {
   short rotmode;
   char _pad[2];
 
-  /** Matrix result of loc/quat/size, and where we put deform in, see next line */
+  /**
+   * Matrix result of location/rotation/scale components & constraints.
+   * This is the dynamic component of `pose_mat` (without #Bone.arm_mat).
+   */
   float chan_mat[4][4];
   /**
    * Constraints accumulate here. in the end, `pose_mat = bone->arm_mat * chan_mat`

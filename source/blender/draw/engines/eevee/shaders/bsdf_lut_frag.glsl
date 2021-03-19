@@ -25,7 +25,8 @@ void main()
       vec3 Xi = (vec3(i, j, 0.0) + 0.5) / sampleCount;
       Xi.yz = vec2(cos(Xi.y * M_2PI), sin(Xi.y * M_2PI));
 
-      vec3 H = sample_ggx(Xi, a2); /* Microfacet normal */
+      /* Microfacet normal */
+      vec3 H = sample_ggx(Xi, a, V);
       vec3 L = -reflect(V, H);
       float NL = L.z;
 
@@ -33,9 +34,10 @@ void main()
         float NH = max(H.z, 0.0);
         float VH = max(dot(V, H), 0.0);
 
-        float G1_v = G1_Smith_GGX(NV, a2);
-        float G1_l = G1_Smith_GGX(NL, a2);
-        float G_smith = 4.0 * NV * NL / (G1_v * G1_l); /* See G1_Smith_GGX for explanations. */
+        float G1_v = G1_Smith_GGX_opti(NV, a2);
+        float G1_l = G1_Smith_GGX_opti(NL, a2);
+        /* See G1_Smith_GGX_opti for explanations. */
+        float G_smith = 4.0 * NV * NL / (G1_v * G1_l);
 
         float brdf = (G_smith * VH) / (NH * NV);
 

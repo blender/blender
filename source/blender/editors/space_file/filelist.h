@@ -128,6 +128,7 @@ unsigned int filelist_entry_select_get(struct FileList *filelist,
 unsigned int filelist_entry_select_index_get(struct FileList *filelist,
                                              const int index,
                                              FileCheckType check);
+bool filelist_entry_is_selected(struct FileList *filelist, const int index);
 void filelist_entry_parent_select_set(struct FileList *filelist,
                                       FileSelType select,
                                       unsigned int flag,

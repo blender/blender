@@ -923,12 +923,12 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
     hlstart = (lhlstart * pix_available) / ltexth;
     hlend = (lhlend * pix_available) / ltexth;
 
-    /* the scrollbar is non-linear sized */
+    /* The scrollbar is non-linear sized. */
     if (pix_bardiff > 0) {
       /* the start of the highlight is in the current viewport */
       if (st->runtime.viewlines && lhlstart >= st->top &&
           lhlstart <= st->top + st->runtime.viewlines) {
-        /* speed the progresion of the start of the highlight through the scrollbar */
+        /* Speed the progression of the start of the highlight through the scrollbar. */
         hlstart = (((pix_available - pix_bardiff) * lhlstart) / ltexth) +
                   (pix_bardiff * (lhlstart - st->top) / st->runtime.viewlines);
       }
@@ -949,7 +949,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
       /* the end of the highlight is in the current viewport */
       if (st->runtime.viewlines && lhlend >= st->top &&
           lhlend <= st->top + st->runtime.viewlines) {
-        /* speed the progresion of the end of the highlight through the scrollbar */
+        /* Speed the progression of the end of the highlight through the scrollbar. */
         hlend = (((pix_available - pix_bardiff) * lhlend) / ltexth) +
                 (pix_bardiff * (lhlend - st->top) / st->runtime.viewlines);
       }
@@ -1433,7 +1433,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   find = -b;
   stack = 0;
 
-  /* Don't highlight backets if syntax HL is off or bracket in string or comment. */
+  /* Don't highlight brackets if syntax HL is off or bracket in string or comment. */
   if (!linep->format || linep->format[fc] == FMT_TYPE_STRING ||
       linep->format[fc] == FMT_TYPE_COMMENT) {
     return;

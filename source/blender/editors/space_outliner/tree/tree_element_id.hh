@@ -16,6 +16,8 @@
 
 /** \file
  * \ingroup spoutliner
+ *
+ * Tree element classes for the tree elements directly representing an ID (#TSE_SOME_ID).
  */
 
 #pragma once
@@ -25,10 +27,16 @@
 namespace blender::ed::outliner {
 
 class TreeElementID : public AbstractTreeElement {
- public:
-  TreeElementID(TreeElement &legacy_te, const ID &id);
+ protected:
+  ID &id_;
 
-  static TreeElementID *createFromID(TreeElement &legacy_te, const ID &id);
+ public:
+  TreeElementID(TreeElement &legacy_te, ID &id);
+
+  static TreeElementID *createFromID(TreeElement &legacy_te, ID &id);
+
+  void postExpand(SpaceOutliner &) const override;
+  bool expandPoll(const SpaceOutliner &) const override;
 
   /**
    * Expanding not implemented for all types yet. Once it is, this can be set to true or
@@ -38,11 +46,10 @@ class TreeElementID : public AbstractTreeElement {
   {
     return false;
   }
-};
 
-class TreeElementIDLibrary final : public TreeElementID {
- public:
-  TreeElementIDLibrary(TreeElement &legacy_te, const ID &id);
+ protected:
+  /* ID types with animation data can use this. */
+  void expand_animation_data(SpaceOutliner &, const AnimData *) const;
 };
 
 }  // namespace blender::ed::outliner

@@ -256,6 +256,33 @@ static bool file_is_any_selected(struct FileList *files)
   return false;
 }
 
+static FileSelection file_current_selection_range_get(struct FileList *files)
+{
+  const int numfiles = filelist_files_ensure(files);
+  FileSelection selection = {-1, -1};
+
+  /* Iterate over the files once but in two loops, one to find the first selected file, and the
+   * other to find the last. */
+
+  int file_index;
+  for (file_index = 0; file_index < numfiles; file_index++) {
+    if (filelist_entry_is_selected(files, file_index)) {
+      /* First selected entry found. */
+      selection.first = file_index;
+      break;
+    }
+  }
+
+  for (; file_index < numfiles; file_index++) {
+    if (filelist_entry_is_selected(files, file_index)) {
+      selection.last = file_index;
+      /* Keep looping, we may find more selected files. */
+    }
+  }
+
+  return selection;
+}
+
 /**
  * If \a file is outside viewbounds, this adjusts view to make sure it's inside
  */
@@ -299,6 +326,24 @@ static void file_ensure_inside_viewbounds(ARegion *region, SpaceFile *sfile, con
   }
 }
 
+static void file_ensure_selection_inside_viewbounds(ARegion *region,
+                                                    SpaceFile *sfile,
+                                                    FileSelection *sel)
+{
+  const FileLayout *layout = ED_fileselect_get_layout(sfile, region);
+
+  if (((layout->flag & FILE_LAYOUT_HOR) && region->winx <= (1.2f * layout->tile_w)) &&
+      ((layout->flag & FILE_LAYOUT_VER) && region->winy <= (2.0f * layout->tile_h))) {
+    return;
+  }
+
+  /* Adjust view to display selection. Doing iterations for first and last
+   * selected item makes view showing as much of the selection possible.
+   * Not really useful if tiles are (almost) bigger than viewbounds though. */
+  file_ensure_inside_viewbounds(region, sfile, sel->last);
+  file_ensure_inside_viewbounds(region, sfile, sel->first);
+}
+
 static FileSelect file_select(
     bContext *C, const rcti *rect, FileSelType select, bool fill, bool do_diropen)
 {
@@ -330,16 +375,7 @@ static FileSelect file_select(
   }
   else if (sel.last >= 0) {
     ARegion *region = CTX_wm_region(C);
-    const FileLayout *layout = ED_fileselect_get_layout(sfile, region);
-
-    /* Adjust view to display selection. Doing iterations for first and last
-     * selected item makes view showing as much of the selection possible.
-     * Not really useful if tiles are (almost) bigger than viewbounds though. */
-    if (((layout->flag & FILE_LAYOUT_HOR) && region->winx > (1.2f * layout->tile_w)) ||
-        ((layout->flag & FILE_LAYOUT_VER) && region->winy > (2.0f * layout->tile_h))) {
-      file_ensure_inside_viewbounds(region, sfile, sel.last);
-      file_ensure_inside_viewbounds(region, sfile, sel.first);
-    }
+    file_ensure_selection_inside_viewbounds(region, sfile, &sel);
   }
 
   /* update operator for name change event */
@@ -416,7 +452,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
       for (idx = sel.last; idx >= 0; idx--) {
         const FileDirEntry *file = filelist_file(sfile->files, idx);
 
-        /* dont highlight readonly file (".." or ".") on box select */
+        /* Don't highlight read-only file (".." or ".") on box select. */
         if (FILENAME_IS_CURRPAR(file->relpath)) {
           filelist_entry_select_set(
               sfile->files, file, FILE_SEL_REMOVE, FILE_SEL_HIGHLIGHTED, CHECK_ALL);
@@ -921,6 +957,55 @@ void FILE_OT_select_all(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_select_all(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Selected Operator
+ * \{ */
+
+static int file_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  FileSelection sel = file_current_selection_range_get(sfile->files);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  if (sel.first == -1 && sel.last == -1 && params->active_file == -1) {
+    /* Nothing was selected. */
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Extend the selection area with the active file, as it may not be selected but still is
+   * important to have in view. */
+  if (sel.first == -1 || params->active_file < sel.first) {
+    sel.first = params->active_file;
+  }
+  if (sel.last == -1 || params->active_file > sel.last) {
+    sel.last = params->active_file;
+  }
+
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = CTX_wm_region(C);
+  file_ensure_selection_inside_viewbounds(region, sfile, &sel);
+
+  file_draw_check(C);
+  WM_event_add_mousemove(CTX_wm_window(C));
+  ED_area_tag_redraw(area);
+
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_view_selected(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Frame Selected";
+  ot->description = "Scroll the selected files into view";
+  ot->idname = "FILE_OT_view_selected";
+
+  /* api callbacks */
+  ot->exec = file_view_selected_exec;
+  ot->poll = ED_operator_file_active;
 }
 
 /** \} */

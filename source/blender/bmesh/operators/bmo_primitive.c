@@ -728,10 +728,10 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
   BMOpSlot *slot_verts_out = BMO_slot_get(op->slots_out, "verts.out");
 
   const float dia = BMO_slot_float_get(op->slots_in, "size");
-  const uint xtot = max_ii(2, BMO_slot_int_get(op->slots_in, "x_segments"));
-  const uint ytot = max_ii(2, BMO_slot_int_get(op->slots_in, "y_segments"));
-  const float xtot_inv2 = 2.0f / (xtot - 1);
-  const float ytot_inv2 = 2.0f / (ytot - 1);
+  const uint xtot = max_ii(1, BMO_slot_int_get(op->slots_in, "x_segments"));
+  const uint ytot = max_ii(1, BMO_slot_int_get(op->slots_in, "y_segments"));
+  const float xtot_inv2 = 2.0f / (xtot);
+  const float ytot_inv2 = 2.0f / (ytot);
 
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   const bool calc_uvs = (cd_loop_uv_offset != -1) && BMO_slot_bool_get(op->slots_in, "calc_uvs");
@@ -746,14 +746,14 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
-  BMO_slot_buffer_alloc(op, op->slots_out, "verts.out", xtot * ytot);
+  BMO_slot_buffer_alloc(op, op->slots_out, "verts.out", (xtot + 1) * (ytot + 1));
   varr = (BMVert **)slot_verts_out->data.buf;
 
   i = 0;
   vec[2] = 0.0f;
-  for (y = 0; y < ytot; y++) {
+  for (y = 0; y <= ytot; y++) {
     vec[1] = ((y * ytot_inv2) - 1.0f) * dia;
-    for (x = 0; x < xtot; x++) {
+    for (x = 0; x <= xtot; x++) {
       vec[0] = ((x * xtot_inv2) - 1.0f) * dia;
       mul_v3_m4v3(tvec, mat, vec);
       varr[i] = BM_vert_create(bm, tvec, NULL, BM_CREATE_NOP);
@@ -762,10 +762,10 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-#define XY(_x, _y) ((_x) + ((_y) * (xtot)))
+#define XY(_x, _y) ((_x) + ((_y) * (xtot + 1)))
 
-  for (y = 1; y < ytot; y++) {
-    for (x = 1; x < xtot; x++) {
+  for (y = 1; y <= ytot; y++) {
+    for (x = 1; x <= xtot; x++) {
       BMFace *f;
 
       vquad[0] = varr[XY(x - 1, y - 1)];
@@ -805,8 +805,8 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
   BMLoop *l;
   BMIter iter, liter;
 
-  const float dx = 1.0f / (float)(x_segments - 1);
-  const float dy = 1.0f / (float)(y_segments - 1);
+  const float dx = 1.0f / (float)(x_segments);
+  const float dy = 1.0f / (float)(y_segments);
   const float dx_wrap = 1.0 - (dx / 2.0f);
   float x = 0.0f;
   float y = dy;

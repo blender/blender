@@ -413,7 +413,7 @@ void BKE_sound_init(Main *bmain)
   }
 
   if (!(sound_device = AUD_init(device_name, specs, buffersize, "Blender"))) {
-    sound_device = AUD_init("Null", specs, buffersize, "Blender");
+    sound_device = AUD_init("None", specs, buffersize, "Blender");
   }
 
   BKE_sound_init_main(bmain);
@@ -994,7 +994,7 @@ int BKE_sound_scene_playing(Scene *scene)
     return -1;
   }
 
-  /* In case of a "Null" audio device, we have no playback information. */
+  /* In case of a "None" audio device, we have no playback information. */
   if (AUD_Device_getRate(sound_device) == AUD_RATE_INVALID) {
     return -1;
   }

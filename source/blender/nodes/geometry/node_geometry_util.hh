@@ -47,4 +47,17 @@ void update_attribute_input_socket_availabilities(bNode &node,
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
                                                   const AttributeDomain domain);
 
+void transform_mesh(Mesh *mesh,
+                    const float3 translation,
+                    const float3 rotation,
+                    const float3 scale);
+
+Mesh *create_cylinder_or_cone_mesh(const float3 location,
+                                   const float3 rotation,
+                                   const float radius_top,
+                                   const float radius_bottom,
+                                   const float depth,
+                                   const int verts_num,
+                                   const GeometryNodeMeshCircleFillType fill_type);
+
 }  // namespace blender::nodes

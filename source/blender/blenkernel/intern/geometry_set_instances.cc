@@ -230,6 +230,11 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
     }
   }
 
+  /* Don't create an empty mesh. */
+  if ((totverts + totloops + totedges + totpolys) == 0) {
+    return nullptr;
+  }
+
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
   /* Copy settings from the first input geometry set with a mesh. */
   for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -366,20 +371,25 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
 {
   Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups,
                                                              convert_points_to_vertices);
+  if (new_mesh == nullptr) {
+    return;
+  }
 
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
 
   Vector<GeometryComponentType> component_types;
-  component_types.append(GeometryComponentType::Mesh);
+  component_types.append(GEO_COMPONENT_TYPE_MESH);
   if (convert_points_to_vertices) {
-    component_types.append(GeometryComponentType::PointCloud);
+    component_types.append(GEO_COMPONENT_TYPE_POINT_CLOUD);
   }
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(
-      attributes, component_types, set_groups, {"position", "material_index", "vertex_normal"});
+  gather_attribute_info(attributes,
+                        component_types,
+                        set_groups,
+                        {"position", "material_index", "normal", "shade_smooth", "crease"});
   join_attributes(
       set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
 }
@@ -395,14 +405,17 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
       totpoint += component.attribute_domain_size(ATTR_DOMAIN_POINT);
     }
   }
+  if (totpoint == 0) {
+    return;
+  }
 
   PointCloudComponent &dst_component = result.get_component_for_write<PointCloudComponent>();
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(totpoint);
   dst_component.replace(pointcloud);
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(attributes, {GeometryComponentType::PointCloud}, set_groups, {});
+  gather_attribute_info(attributes, {GEO_COMPONENT_TYPE_POINT_CLOUD}, set_groups, {});
   join_attributes(set_groups,
-                  {GeometryComponentType::PointCloud},
+                  {GEO_COMPONENT_TYPE_POINT_CLOUD},
                   attributes,
                   static_cast<GeometryComponent &>(dst_component));
 }

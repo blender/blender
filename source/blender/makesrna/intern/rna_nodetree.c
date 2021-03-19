@@ -398,6 +398,19 @@ static const EnumPropertyItem prop_shader_output_target_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
+    {0, "CryptoObject", 0, "Object", "Use Object layer"},
+    {1, "CryptoMaterial", 0, "Material", "Use Material layer"},
+    {2, "CryptoAsset", 0, "Asset", "Use Asset layer"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
+    {GEO_NODE_MESH_CIRCLE_FILL_NONE, "NONE", 0, "None", ""},
+    {GEO_NODE_MESH_CIRCLE_FILL_NGON, "NGON", 0, "N-Gon", ""},
+    {GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN, "TRIANGLE_FAN", 0, "Triangles", ""},
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 
 #define ITEM_ATTRIBUTE \
@@ -1929,6 +1942,23 @@ static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
   rna_Node_socket_update(bmain, scene, ptr);
 }
 
+static bool attribute_convert_type_supported(const EnumPropertyItem *item)
+{
+  return ELEM(item->value,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT2,
+              CD_PROP_FLOAT3,
+              CD_PROP_COLOR,
+              CD_PROP_BOOL,
+              CD_PROP_INT32);
+}
+static const EnumPropertyItem *rna_GeometryNodeAttributeConvert_type_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_type_items, attribute_convert_type_supported);
+}
+
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(
@@ -3427,6 +3457,10 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
   Image *ima = (Image *)node->id;
   ImageUser *iuser = node->storage;
 
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+    return;
+  }
+
   BKE_image_multilayer_index(ima->rr, iuser);
   BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_SRC_CHANGE);
 
@@ -3473,6 +3507,10 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C),
   const EnumPropertyItem *item = NULL;
   RenderLayer *rl;
 
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+    return DummyRNA_NULL_items;
+  }
+
   if (ima == NULL || ima->rr == NULL) {
     *r_free = false;
     return DummyRNA_NULL_items;
@@ -3491,8 +3529,12 @@ static bool rna_Node_image_has_layers_get(PointerRNA *ptr)
   bNode *node = (bNode *)ptr->data;
   Image *ima = (Image *)node->id;
 
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+    return false;
+  }
+
   if (!ima || !(ima->rr)) {
-    return 0;
+    return false;
   }
 
   return RE_layers_have_name(ima->rr);
@@ -3503,8 +3545,12 @@ static bool rna_Node_image_has_views_get(PointerRNA *ptr)
   bNode *node = (bNode *)ptr->data;
   Image *ima = (Image *)node->id;
 
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+    return false;
+  }
+
   if (!ima || !(ima->rr)) {
-    return 0;
+    return false;
   }
 
   return BLI_listbase_count_at_most(&ima->rr->views, 2) > 1;
@@ -3548,6 +3594,10 @@ static const EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C),
   Image *ima = (Image *)node->id;
   const EnumPropertyItem *item = NULL;
   RenderView *rv;
+
+  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_CRYPTOMATTE_SRC_IMAGE) {
+    return DummyRNA_NULL_items;
+  }
 
   if (ima == NULL || ima->rr == NULL) {
     *r_free = false;
@@ -3705,6 +3755,115 @@ static void rna_NodeColorBalance_update_cdl(Main *bmain, Scene *scene, PointerRN
   rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_NodeCryptomatte_source_set(PointerRNA *ptr, int value)
+{
+  bNode *node = (bNode *)ptr->data;
+  if (node->id && node->custom1 != value) {
+    id_us_min((ID *)node->id);
+    node->id = NULL;
+  }
+  node->custom1 = value;
+}
+
+static int rna_NodeCryptomatte_layer_name_get(PointerRNA *ptr)
+{
+  int index = 0;
+  bNode *node = (bNode *)ptr->data;
+  NodeCryptomatte *storage = node->storage;
+  LISTBASE_FOREACH_INDEX (CryptomatteLayer *, layer, &storage->runtime.layers, index) {
+    if (STREQLEN(storage->layer_name, layer->name, sizeof(storage->layer_name))) {
+      return index;
+    }
+  }
+  return 0;
+}
+
+static void rna_NodeCryptomatte_layer_name_set(PointerRNA *ptr, int new_value)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeCryptomatte *storage = node->storage;
+
+  CryptomatteLayer *layer = BLI_findlink(&storage->runtime.layers, new_value);
+  if (layer) {
+    STRNCPY(storage->layer_name, layer->name);
+  }
+}
+
+static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext *UNUSED(C),
+                                                                    PointerRNA *ptr,
+                                                                    PropertyRNA *UNUSED(prop),
+                                                                    bool *r_free)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeCryptomatte *storage = node->storage;
+  EnumPropertyItem *item = NULL;
+  EnumPropertyItem template = {0, "", 0, "", ""};
+  int totitem = 0;
+
+  ntreeCompositCryptomatteUpdateLayerNames(node);
+  int layer_index;
+  LISTBASE_FOREACH_INDEX (CryptomatteLayer *, layer, &storage->runtime.layers, layer_index) {
+    template.value = layer_index;
+    template.identifier = layer->name;
+    template.name = layer->name;
+    RNA_enum_item_add(&item, &totitem, &template);
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
+static PointerRNA rna_NodeCryptomatte_scene_get(PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+
+  Scene *scene = (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) ? (Scene *)node->id : NULL;
+  return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene);
+}
+
+static void rna_NodeCryptomatte_scene_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *reports)
+{
+  bNode *node = (bNode *)ptr->data;
+
+  if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
+    rna_Node_scene_set(ptr, value, reports);
+  }
+}
+
+static PointerRNA rna_NodeCryptomatte_image_get(PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+
+  Image *image = (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) ? (Image *)node->id : NULL;
+  return rna_pointer_inherit_refine(ptr, &RNA_Image, image);
+}
+
+static void rna_NodeCryptomatte_image_set(PointerRNA *ptr,
+                                          PointerRNA value,
+                                          struct ReportList *UNUSED(reports))
+{
+  bNode *node = (bNode *)ptr->data;
+
+  if (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) {
+    if (node->id)
+      id_us_min((ID *)node->id);
+    if (value.data)
+      id_us_plus((ID *)value.data);
+
+    node->id = value.data;
+  }
+}
+
+static bool rna_NodeCryptomatte_image_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+{
+  Image *image = (Image *)value.owner_id;
+  return image->type == IMA_TYPE_MULTILAYER;
+}
+
 static void rna_NodeCryptomatte_matte_get(PointerRNA *ptr, char *value)
 {
   bNode *node = (bNode *)ptr->data;
@@ -3733,13 +3892,13 @@ static void rna_NodeCryptomatte_matte_set(PointerRNA *ptr, const char *value)
 
 static void rna_NodeCryptomatte_update_add(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  ntreeCompositCryptomatteSyncFromAdd((bNodeTree *)ptr->owner_id, ptr->data);
+  ntreeCompositCryptomatteSyncFromAdd(ptr->data);
   rna_Node_update(bmain, scene, ptr);
 }
 
 static void rna_NodeCryptomatte_update_remove(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  ntreeCompositCryptomatteSyncFromRemove((bNodeTree *)ptr->owner_id, ptr->data);
+  ntreeCompositCryptomatteSyncFromRemove(ptr->data);
   rna_Node_update(bmain, scene, ptr);
 }
 
@@ -8392,12 +8551,11 @@ static void def_cmp_cryptomatte_entry(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
 }
 
-static void def_cmp_cryptomatte(StructRNA *srna)
+static void def_cmp_cryptomatte_common(StructRNA *srna)
 {
   PropertyRNA *prop;
   static float default_1[3] = {1.0f, 1.0f, 1.0f};
 
-  RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
   prop = RNA_def_property(srna, "matte_id", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop,
                                 "rna_NodeCryptomatte_matte_get",
@@ -8408,6 +8566,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "add", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, NULL, "runtime.add");
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_text(
@@ -8415,6 +8574,7 @@ static void def_cmp_cryptomatte(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeCryptomatte_update_add");
 
   prop = RNA_def_property(srna, "remove", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, NULL, "runtime.remove");
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_text(
@@ -8422,6 +8582,73 @@ static void def_cmp_cryptomatte(StructRNA *srna)
       "Remove",
       "Remove object or material from matte, by picking a color from the Pick output");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeCryptomatte_update_remove");
+}
+
+static void def_cmp_cryptomatte_legacy(StructRNA *srna)
+{
+  RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
+  def_cmp_cryptomatte_common(srna);
+}
+
+static void def_cmp_cryptomatte(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem cryptomatte_source_items[] = {
+      {CMP_CRYPTOMATTE_SRC_RENDER, "RENDER", 0, "Render", "Use Cryptomatte passes from a render"},
+      {CMP_CRYPTOMATTE_SRC_IMAGE, "IMAGE", 0, "Image", "Use Cryptomatte passes from an image"},
+      {0, NULL, 0, NULL, NULL}};
+
+  prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, cryptomatte_source_items);
+  RNA_def_property_enum_funcs(prop, NULL, "rna_NodeCryptomatte_source_set", NULL);
+  RNA_def_property_ui_text(prop, "Source", "Where the Cryptomatte passes are loaded from");
+
+  prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_funcs(
+      prop, "rna_NodeCryptomatte_scene_get", "rna_NodeCryptomatte_scene_set", NULL, NULL);
+  RNA_def_property_struct_type(prop, "Scene");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_ui_text(prop, "Scene", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_NodeCryptomatte_image_get",
+                                 "rna_NodeCryptomatte_image_set",
+                                 NULL,
+                                 "rna_NodeCryptomatte_image_poll");
+  RNA_def_property_struct_type(prop, "Image");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Image", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
+  def_cmp_cryptomatte_common(srna);
+
+  prop = RNA_def_property(srna, "layer_name", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, node_cryptomatte_layer_name_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_NodeCryptomatte_layer_name_get",
+                              "rna_NodeCryptomatte_layer_name_set",
+                              "rna_NodeCryptomatte_layer_name_itemf");
+  RNA_def_property_ui_text(prop, "Cryptomatte Layer", "What Cryptomatte layer is used");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "entries", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, NULL, "entries", NULL);
+  RNA_def_property_struct_type(prop, "CryptomatteEntry");
+  RNA_def_property_ui_text(prop, "Mattes", "");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  /* Included here instead of defining image_user as a property of the node,
+   * see def_cmp_image for details.
+   * As mentioned in DNA_node_types.h, iuser is the first member of the Cryptomatte
+   * storage type, so we can cast node->storage to ImageUser.
+   * That is required since we can't define the properties from storage->iuser directly... */
+  RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
+  def_node_image_user(srna);
 }
 
 static void def_cmp_denoise(StructRNA *srna)
@@ -8645,6 +8872,35 @@ static void def_geo_attribute_fill(StructRNA *srna)
   def_geo_attribute_create_common(srna,
                                   "rna_GeometryNodeAttributeFill_type_itemf",
                                   "rna_GeometryNodeAttributeFill_domain_itemf");
+}
+
+static void def_geo_attribute_convert(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_enum_attribute_convert_domain_items[] = {
+      {ATTR_DOMAIN_AUTO, "AUTO", 0, "Auto", ""},
+      {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
+      {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
+      {ATTR_DOMAIN_CORNER, "CORNER", 0, "Corner", "Attribute on mesh polygon corner"},
+      {ATTR_DOMAIN_POLYGON, "POLYGON", 0, "Polygon", "Attribute on mesh polygons"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeAttributeConvert", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeConvert_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "The data type to save the result attribute with");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+
+  prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_convert_domain_items);
+  RNA_def_property_enum_default(prop, ATTR_DOMAIN_AUTO);
+  RNA_def_property_ui_text(prop, "Domain", "The geometry domain to save the result attribute in");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_geo_attribute_math(StructRNA *srna)
@@ -9185,6 +9441,87 @@ static void def_geo_attribute_separate_xyz(StructRNA *srna)
   prop = RNA_def_property(srna, "input_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
   RNA_def_property_ui_text(prop, "Input Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_mesh_circle(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCircle", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_cylinder(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCylinder", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_cone(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshCone", "storage");
+
+  prop = RNA_def_property(srna, "fill_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_mesh_circle_fill_type_items);
+  RNA_def_property_ui_text(prop, "Fill Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_mesh_line(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_LINE_MODE_OFFSET,
+       "OFFSET",
+       0,
+       "Offset",
+       "Specify the offset from one vertex to the next"},
+      {GEO_NODE_MESH_LINE_MODE_END_POINTS,
+       "END_POINTS",
+       0,
+       "End Points",
+       "Specify the line's start and end points"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static EnumPropertyItem count_mode_items[] = {
+      {GEO_NODE_MESH_LINE_COUNT_TOTAL,
+       "TOTAL",
+       0,
+       "Count",
+       "Specify the total number of vertices"},
+      {GEO_NODE_MESH_LINE_COUNT_RESOLUTION,
+       "RESOLUTION",
+       0,
+       "Resolution",
+       "Specify the distance between vertices"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMeshLine", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "count_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, count_mode_items);
+  RNA_def_property_ui_text(prop, "Count Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -10042,6 +10379,8 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
       brna, "NodeSocketFloatAngle", "NodeSocketInterfaceFloatAngle", PROP_ANGLE);
   rna_def_node_socket_float(
       brna, "NodeSocketFloatTime", "NodeSocketInterfaceFloatTime", PROP_TIME);
+  rna_def_node_socket_float(
+      brna, "NodeSocketFloatDistance", "NodeSocketInterfaceFloatDistance", PROP_DISTANCE);
 
   rna_def_node_socket_int(brna, "NodeSocketInt", "NodeSocketInterfaceInt", PROP_NONE);
   rna_def_node_socket_int(
@@ -10531,6 +10870,11 @@ static void rna_def_node_link(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_LINK_VALID);
   RNA_def_struct_ui_text(srna, "Valid", "Link is valid");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
+
+  prop = RNA_def_property(srna, "is_muted", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_LINK_MUTED);
+  RNA_def_struct_ui_text(srna, "Muted", "Link is muted and can be ignored");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "from_node", PROP_POINTER, PROP_NONE);

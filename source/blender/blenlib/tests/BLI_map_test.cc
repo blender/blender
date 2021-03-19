@@ -565,6 +565,28 @@ TEST(map, AddOrModifyExceptions)
   EXPECT_ANY_THROW({ map.add_or_modify(3, create_fn, modify_fn); });
 }
 
+namespace {
+enum class TestEnum {
+  A = 0,
+  B = 1,
+  C = 2,
+  D = 1,
+};
+}
+
+TEST(map, EnumKey)
+{
+  Map<TestEnum, int> map;
+  map.add(TestEnum::A, 4);
+  map.add(TestEnum::B, 6);
+  EXPECT_EQ(map.lookup(TestEnum::A), 4);
+  EXPECT_EQ(map.lookup(TestEnum::B), 6);
+  EXPECT_EQ(map.lookup(TestEnum::D), 6);
+  EXPECT_FALSE(map.contains(TestEnum::C));
+  map.lookup(TestEnum::D) = 10;
+  EXPECT_EQ(map.lookup(TestEnum::B), 10);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

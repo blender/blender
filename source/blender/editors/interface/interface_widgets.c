@@ -658,7 +658,7 @@ static int round_box_shadow_edges(
   const float maxx = rect->xmax + step;
   const float maxy = rect->ymax + step;
 
-  /* mult */
+  /* Multiply. */
   for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
     vec[a][0] = rad * cornervec[a][0];
     vec[a][1] = rad * cornervec[a][1];
@@ -1819,7 +1819,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
   but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
   but->ofs = 0;
 
-  /* First shorten num-buttons eg,
+  /* First shorten number-buttons eg,
    *   Translucency: 0.000
    * becomes
    *   Trans: 0.000
@@ -3667,16 +3667,16 @@ static void widget_progressbar(
 
   /* round corners */
   const float value = but_progressbar->progress;
-  const float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
+  const float ofs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
   float w = value * BLI_rcti_size_x(&rect_prog);
 
   /* Ensure minimum size. */
-  w = MAX2(w, offs);
+  w = MAX2(w, ofs);
 
   rect_bar.xmax = rect_bar.xmin + w;
 
-  round_box_edges(&wtb, roundboxalign, &rect_prog, offs);
-  round_box_edges(&wtb_bar, roundboxalign, &rect_bar, offs);
+  round_box_edges(&wtb, roundboxalign, &rect_prog, ofs);
+  round_box_edges(&wtb_bar, roundboxalign, &rect_bar, ofs);
 
   wtb.draw_outline = true;
   widgetbase_draw(&wtb, wcol);
@@ -3733,9 +3733,9 @@ static void widget_numslider(
   widget_init(&wtb1);
 
   /* Backdrop first. */
-  const float offs = wcol->roundness * BLI_rcti_size_y(rect);
-  const float toffs = offs * 0.75f;
-  round_box_edges(&wtb, roundboxalign, rect, offs);
+  const float ofs = wcol->roundness * BLI_rcti_size_y(rect);
+  const float toffs = ofs * 0.75f;
+  round_box_edges(&wtb, roundboxalign, rect, ofs);
 
   wtb.draw_outline = false;
   widgetbase_draw(&wtb, wcol);
@@ -3768,13 +3768,13 @@ static void widget_numslider(
     const float width = (float)BLI_rcti_size_x(rect);
     factor_ui = factor * width;
 
-    if (factor_ui <= offs) {
+    if (factor_ui <= ofs) {
       /* Left part only. */
       roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
-      rect1.xmax = rect1.xmin + offs;
-      factor_discard = factor_ui / offs;
+      rect1.xmax = rect1.xmin + ofs;
+      factor_discard = factor_ui / ofs;
     }
-    else if (factor_ui <= width - offs) {
+    else if (factor_ui <= width - ofs) {
       /* Left part + middle part. */
       roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
       rect1.xmax = rect1.xmin + factor_ui;
@@ -3784,7 +3784,7 @@ static void widget_numslider(
       factor_discard = factor;
     }
 
-    round_box_edges(&wtb1, roundboxalign_slider, &rect1, offs);
+    round_box_edges(&wtb1, roundboxalign_slider, &rect1, ofs);
     wtb1.draw_outline = false;
     widgetbase_set_uniform_discard_factor(&wtb1, factor_discard);
     widgetbase_draw(&wtb1, wcol);
@@ -3801,7 +3801,7 @@ static void widget_numslider(
   wtb.draw_inner = false;
   widgetbase_draw(&wtb, wcol);
 
-  /* Add space at either side of the button so text aligns with numbuttons
+  /* Add space at either side of the button so text aligns with number-buttons
    * (which have arrow icons). */
   if (!(state & UI_STATE_TEXT_INPUT)) {
     rect->xmax -= toffs;

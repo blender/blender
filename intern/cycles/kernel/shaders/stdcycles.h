@@ -84,67 +84,30 @@ closure color principled_hair(normal N,
 closure color henyey_greenstein(float g) BUILTIN;
 closure color absorption() BUILTIN;
 
-normal ensure_valid_reflection(normal Ng, vector I, normal N)
+normal ensure_valid_reflection(normal Ng, normal I, normal N)
 {
   /* The implementation here mirrors the one in kernel_montecarlo.h,
    * check there for an explanation of the algorithm. */
+  vector R;
+  float NI = dot(N, I);
+  float NgR, threshold;
 
-  float sqr(float x)
-  {
-    return x * x;
-  }
-
-  vector R = 2 * dot(N, I) * N - I;
-
-  float threshold = min(0.9 * dot(Ng, I), 0.01);
-  if (dot(Ng, R) >= threshold) {
-    return N;
-  }
-
-  float NdotNg = dot(N, Ng);
-  vector X = normalize(N - NdotNg * Ng);
-
-  float Ix = dot(I, X), Iz = dot(I, Ng);
-  float Ix2 = sqr(Ix), Iz2 = sqr(Iz);
-  float a = Ix2 + Iz2;
-
-  float b = sqrt(Ix2 * (a - sqr(threshold)));
-  float c = Iz * threshold + a;
-
-  float fac = 0.5 / a;
-  float N1_z2 = fac * (b + c), N2_z2 = fac * (-b + c);
-  int valid1 = (N1_z2 > 1e-5) && (N1_z2 <= (1.0 + 1e-5));
-  int valid2 = (N2_z2 > 1e-5) && (N2_z2 <= (1.0 + 1e-5));
-
-  float N_new_x, N_new_z;
-  if (valid1 && valid2) {
-    float N1_x = sqrt(1.0 - N1_z2), N1_z = sqrt(N1_z2);
-    float N2_x = sqrt(1.0 - N2_z2), N2_z = sqrt(N2_z2);
-
-    float R1 = 2 * (N1_x * Ix + N1_z * Iz) * N1_z - Iz;
-    float R2 = 2 * (N2_x * Ix + N2_z * Iz) * N2_z - Iz;
-
-    valid1 = (R1 >= 1e-5);
-    valid2 = (R2 >= 1e-5);
-    if (valid1 && valid2) {
-      N_new_x = (R1 < R2) ? N1_x : N2_x;
-      N_new_z = (R1 < R2) ? N1_z : N2_z;
+  if (NI > 0) {
+    R = (2 * NI) * N - I;
+    NgR = dot(Ng, R);
+    threshold = min(0.9 * dot(Ng, I), 0.01);
+    if (NgR >= threshold) {
+      return N;
     }
-    else {
-      N_new_x = (R1 > R2) ? N1_x : N2_x;
-      N_new_z = (R1 > R2) ? N1_z : N2_z;
-    }
-  }
-  else if (valid1 || valid2) {
-    float Nz2 = valid1 ? N1_z2 : N2_z2;
-    N_new_x = sqrt(1.0 - Nz2);
-    N_new_z = sqrt(Nz2);
   }
   else {
-    return Ng;
+    R = -I;
+    NgR = dot(Ng, R);
+    threshold = 0.01;
   }
 
-  return N_new_x * X + N_new_z * Ng;
+  R = R + Ng * (threshold - NgR);
+  return normalize(I * length(R) + R * length(I));
 }
 
 #endif /* CCL_STDOSL_H */

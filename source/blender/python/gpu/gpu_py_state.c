@@ -78,24 +78,27 @@ static const struct PyC_StringEnumItems pygpu_state_faceculling_items[] = {
 /** \name Manage Stack
  * \{ */
 
-PyDoc_STRVAR(pygpu_state_blend_set_doc,
-             ".. function:: blend_set(mode)\n"
-             "\n"
-             "   Defines the fixed pipeline blending equation.\n"
-             "\n"
-             "   :param mode: One of these modes: {\n"
-             "      `NONE`,\n"
-             "      `ALPHA`,\n"
-             "      `ALPHA_PREMULT`,\n"
-             "      `ADDITIVE`,\n"
-             "      `ADDITIVE_PREMULT`,\n"
-             "      `MULTIPLY`,\n"
-             "      `SUBTRACT`,\n"
-             "      `INVERT`,\n"
-             //"      `OIT`,\n"
-             //"      `BACKGROUND`,\n"
-             //"      `CUSTOM`,\n"
-             "   :type mode: `str`\n");
+PyDoc_STRVAR(
+    pygpu_state_blend_set_doc,
+    ".. function:: blend_set(mode)\n"
+    "\n"
+    "   Defines the fixed pipeline blending equation.\n"
+    "\n"
+    "   :param mode: The type of blend mode.\n"
+    "   * ``NONE`` No blending.\n"
+    "   * ``ALPHA`` The original color channels are interpolated according to the alpha value.\n"
+    "   * ``ALPHA_PREMULT`` The original color channels are interpolated according to the alpha "
+    "value with the new colors pre-multiplied by this value.\n"
+    "   * ``ADDITIVE`` The original color channels are added by the corresponding ones.\n"
+    "   * ``ADDITIVE_PREMULT`` The original color channels are added by the corresponding ones "
+    "that are pre-multiplied by the alpha value.\n"
+    "   * ``MULTIPLY`` The original color channels are multiplied by the corresponding ones.\n"
+    "   * ``SUBTRACT`` The original color channels are subtracted by the corresponding ones.\n"
+    "   * ``INVERT`` The original color channels are replaced by its complementary color.\n"
+    //"   * ``OIT``.\n"
+    //"   * ``BACKGROUND`` .\n"
+    //"   * ``CUSTOM`` .\n"
+    "   :type mode: str\n");
 static PyObject *pygpu_state_blend_set(PyObject *UNUSED(self), PyObject *value)
 {
   struct PyC_StringEnum pygpu_blend = {pygpu_state_blend_items};
@@ -122,15 +125,10 @@ PyDoc_STRVAR(pygpu_state_depth_test_set_doc,
              "\n"
              "   Defines the depth_test equation.\n"
              "\n"
-             "   :param mode: One of these modes: {\n"
-             "      `NONE`,\n"
-             "      `ALWAYS`,\n"
-             "      `LESS`,\n"
-             "      `LESS_EQUAL`,\n"
-             "      `EQUAL`,\n"
-             "      `GREATER`,\n"
-             "      `GREATER_EQUAL`,\n"
-             "   :type mode: `str`\n");
+             "   :param mode: The depth test equation name.\n"
+             "      Possible values are `NONE`, `ALWAYS`, `LESS`, `LESS_EQUAL`, `EQUAL`, "
+             "`GREATER` and `GREATER_EQUAL`.\n"
+             "   :type mode: str\n");
 static PyObject *pygpu_state_depth_test_set(PyObject *UNUSED(self), PyObject *value)
 {
   struct PyC_StringEnum pygpu_depth_test = {pygpu_state_depthtest_items};
@@ -158,7 +156,7 @@ PyDoc_STRVAR(pygpu_state_depth_mask_set_doc,
              "   Write to depth component.\n"
              "\n"
              "   :param value: True for writing to the depth component.\n"
-             "   :type near: `bool`\n");
+             "   :type near: bool\n");
 static PyObject *pygpu_state_depth_mask_set(PyObject *UNUSED(self), PyObject *value)
 {
   bool write_to_depth;
@@ -186,7 +184,7 @@ PyDoc_STRVAR(pygpu_state_viewport_set_doc,
              "\n"
              "   :param x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
              "   :param width, height: width and height of the viewport_set.\n"
-             "   :type x, y, xsize, ysize: `int`\n");
+             "   :type x, y, xsize, ysize: int\n");
 static PyObject *pygpu_state_viewport_set(PyObject *UNUSED(self), PyObject *args)
 {
   int x, y, xsize, ysize;
@@ -222,7 +220,7 @@ PyDoc_STRVAR(pygpu_state_line_width_set_doc,
              "   Specify the width of rasterized lines.\n"
              "\n"
              "   :param size: New width.\n"
-             "   :type mode: `float`\n");
+             "   :type mode: float\n");
 static PyObject *pygpu_state_line_width_set(PyObject *UNUSED(self), PyObject *value)
 {
   float width = (float)PyFloat_AsDouble(value);
@@ -250,7 +248,7 @@ PyDoc_STRVAR(pygpu_state_point_size_set_doc,
              "   Specify the diameter of rasterized points.\n"
              "\n"
              "   :param size: New diameter.\n"
-             "   :type mode: `float`\n");
+             "   :type mode: float\n");
 static PyObject *pygpu_state_point_size_set(PyObject *UNUSED(self), PyObject *value)
 {
   float size = (float)PyFloat_AsDouble(value);
@@ -268,7 +266,7 @@ PyDoc_STRVAR(pygpu_state_color_mask_set_doc,
              "   Enable or disable writing of frame buffer color components.\n"
              "\n"
              "   :param r, g, b, a: components red, green, blue, and alpha.\n"
-             "   :type r, g, b, a: `bool`\n");
+             "   :type r, g, b, a: bool\n");
 static PyObject *pygpu_state_color_mask_set(PyObject *UNUSED(self), PyObject *args)
 {
   int r, g, b, a;
@@ -285,11 +283,8 @@ PyDoc_STRVAR(pygpu_state_face_culling_set_doc,
              "\n"
              "   Specify whether none, front-facing or back-facing facets can be culled.\n"
              "\n"
-             "   :param mode: One of these modes: {\n"
-             "      `NONE`,\n"
-             "      `FRONT`,\n"
-             "      `BACK`,\n"
-             "   :type mode: `str`\n");
+             "   :param mode: `NONE`, `FRONT` or `BACK`.\n"
+             "   :type mode: str\n");
 static PyObject *pygpu_state_face_culling_set(PyObject *UNUSED(self), PyObject *value)
 {
   struct PyC_StringEnum pygpu_faceculling = {pygpu_state_faceculling_items};
@@ -307,7 +302,7 @@ PyDoc_STRVAR(pygpu_state_front_facing_set_doc,
              "   Specifies the orientation of front-facing polygons.\n"
              "\n"
              "   :param invert: True for clockwise polygons as front-facing.\n"
-             "   :type mode: `bool`\n");
+             "   :type mode: bool\n");
 static PyObject *pygpu_state_front_facing_set(PyObject *UNUSED(self), PyObject *value)
 {
   bool invert;
@@ -326,7 +321,7 @@ PyDoc_STRVAR(pygpu_state_program_point_size_set_doc,
              "shader builtin gl_PointSize.\n"
              "\n"
              "   :param enable: True for shader builtin gl_PointSize.\n"
-             "   :type enable: `bool`\n");
+             "   :type enable: bool\n");
 static PyObject *pygpu_state_program_point_size_set(PyObject *UNUSED(self), PyObject *value)
 {
   bool enable;

@@ -71,6 +71,13 @@ enum {
   IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE = (1 << 5),
 
   /**
+   * Indicates that this is an internal runtime ID pointer, like e.g. `ID.newid` or `ID.original`.
+   * \note Those should be ignored in most cases, and won't be processed/generated anyway unless
+   * `IDWALK_DO_INTERNAL_RUNTIME_POINTERS` option is enabled.
+   */
+  IDWALK_CB_INTERNAL = (1 << 6),
+
+  /**
    * This ID usage is fully refcounted.
    * Callback is responsible to deal accordingly with #ID.us if needed.
    */
@@ -126,6 +133,9 @@ enum {
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
 
   IDWALK_NO_INDIRECT_PROXY_DATA_USAGE = (1 << 8), /* Ugly special case :(((( */
+  /** Also process internal ID pointers like `ID.newid` or `ID.orig_id`.
+   *  WARNING: Dangerous, use with caution. */
+  IDWALK_DO_INTERNAL_RUNTIME_POINTERS = (1 << 9),
 };
 
 typedef struct LibraryForeachIDData LibraryForeachIDData;

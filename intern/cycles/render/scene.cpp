@@ -91,6 +91,7 @@ DeviceScene::DeviceScene(Device *device)
 
 Scene::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
+      bvh(NULL),
       default_surface(NULL),
       default_volume(NULL),
       default_light(NULL),
@@ -99,30 +100,12 @@ Scene::Scene(const SceneParams &params_, Device *device)
       device(device),
       dscene(device),
       params(params_),
-      update_stats(NULL)
+      update_stats(NULL),
+      kernels_loaded(false),
+      /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
+      max_closure_global(1)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
-
-  bvh = NULL;
-  camera = create_node<Camera>();
-  dicing_camera = create_node<Camera>();
-  lookup_tables = new LookupTables();
-  film = create_node<Film>();
-  background = create_node<Background>();
-  light_manager = new LightManager();
-  geometry_manager = new GeometryManager();
-  object_manager = new ObjectManager();
-  integrator = create_node<Integrator>();
-  image_manager = new ImageManager(device->info);
-  particle_system_manager = new ParticleSystemManager();
-  bake_manager = new BakeManager();
-  procedural_manager = new ProceduralManager();
-  kernels_loaded = false;
-
-  /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
-  max_closure_global = 1;
-
-  film->add_default(this);
 
   /* OSL only works on the CPU */
   if (device->info.has_osl)
@@ -130,6 +113,23 @@ Scene::Scene(const SceneParams &params_, Device *device)
   else
     shader_manager = ShaderManager::create(SHADINGSYSTEM_SVM);
 
+  light_manager = new LightManager();
+  geometry_manager = new GeometryManager();
+  object_manager = new ObjectManager();
+  image_manager = new ImageManager(device->info);
+  particle_system_manager = new ParticleSystemManager();
+  bake_manager = new BakeManager();
+  procedural_manager = new ProceduralManager();
+
+  /* Create nodes after managers, since create_node() can tag the managers. */
+  camera = create_node<Camera>();
+  dicing_camera = create_node<Camera>();
+  lookup_tables = new LookupTables();
+  film = create_node<Film>();
+  background = create_node<Background>();
+  integrator = create_node<Integrator>();
+
+  film->add_default(this);
   shader_manager->add_default(this);
 }
 
