@@ -167,6 +167,8 @@ class DerivedNodeTree {
   bool has_link_cycles() const;
   void foreach_node(FunctionRef<void(DNode)> callback) const;
 
+  std::string to_dot() const;
+
  private:
   DTreeContext &construct_context_recursively(DTreeContext *parent_context,
                                               const NodeRef *parent_node,

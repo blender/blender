@@ -16,6 +16,8 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "BLI_dot_export.hh"
+
 namespace blender::nodes {
 
 /* Construct a new derived node tree for a given root node tree. The generated derived node tree
@@ -248,6 +250,118 @@ void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> callba
       callback(linked_dsocket);
     }
   }
+}
+
+/* Each nested node group gets its own cluster. Just as node groups, clusters can be nested. */
+static dot::Cluster *get_dot_cluster_for_context(
+    dot::DirectedGraph &digraph,
+    const DTreeContext *context,
+    Map<const DTreeContext *, dot::Cluster *> &dot_clusters)
+{
+  return dot_clusters.lookup_or_add_cb(context, [&]() -> dot::Cluster * {
+    const DTreeContext *parent_context = context->parent_context();
+    if (parent_context == nullptr) {
+      return nullptr;
+    }
+    dot::Cluster *parent_cluster = get_dot_cluster_for_context(
+        digraph, parent_context, dot_clusters);
+    std::string cluster_name = context->tree().name() + " / " + context->parent_node()->name();
+    dot::Cluster &cluster = digraph.new_cluster(cluster_name);
+    cluster.set_parent_cluster(parent_cluster);
+    return &cluster;
+  });
+}
+
+/* Generates a graph in dot format. The generated graph has all node groups inlined. */
+std::string DerivedNodeTree::to_dot() const
+{
+  dot::DirectedGraph digraph;
+  digraph.set_rankdir(dot::Attr_rankdir::LeftToRight);
+
+  Map<const DTreeContext *, dot::Cluster *> dot_clusters;
+  Map<DInputSocket, dot::NodePort> dot_input_sockets;
+  Map<DOutputSocket, dot::NodePort> dot_output_sockets;
+
+  this->foreach_node([&](DNode node) {
+    /* Ignore nodes that should not show up in the final output. */
+    if (node->is_muted() || node->is_group_node() || node->is_reroute_node() || node->is_frame()) {
+      return;
+    }
+    if (!node.context()->is_root()) {
+      if (node->is_group_input_node() || node->is_group_output_node()) {
+        return;
+      }
+    }
+
+    dot::Cluster *cluster = get_dot_cluster_for_context(digraph, node.context(), dot_clusters);
+
+    dot::Node &dot_node = digraph.new_node("");
+    dot_node.set_parent_cluster(cluster);
+    dot_node.set_background_color("white");
+
+    Vector<std::string> input_names;
+    Vector<std::string> output_names;
+    for (const InputSocketRef *socket : node->inputs()) {
+      if (socket->is_available()) {
+        input_names.append(socket->name());
+      }
+    }
+    for (const OutputSocketRef *socket : node->outputs()) {
+      if (socket->is_available()) {
+        output_names.append(socket->name());
+      }
+    }
+
+    dot::NodeWithSocketsRef dot_node_with_sockets = dot::NodeWithSocketsRef(
+        dot_node, node->name(), input_names, output_names);
+
+    int input_index = 0;
+    for (const InputSocketRef *socket : node->inputs()) {
+      if (socket->is_available()) {
+        dot_input_sockets.add_new(DInputSocket{node.context(), socket},
+                                  dot_node_with_sockets.input(input_index));
+        input_index++;
+      }
+    }
+    int output_index = 0;
+    for (const OutputSocketRef *socket : node->outputs()) {
+      if (socket->is_available()) {
+        dot_output_sockets.add_new(DOutputSocket{node.context(), socket},
+                                   dot_node_with_sockets.output(output_index));
+        output_index++;
+      }
+    }
+  });
+
+  /* Floating inputs are used for example to visualize unlinked group node inputs. */
+  Map<DSocket, dot::Node *> dot_floating_inputs;
+
+  for (const auto &item : dot_input_sockets.items()) {
+    DInputSocket to_socket = item.key;
+    dot::NodePort dot_to_port = item.value;
+    to_socket.foreach_origin_socket([&](DSocket from_socket) {
+      if (from_socket->is_output()) {
+        dot::NodePort *dot_from_port = dot_output_sockets.lookup_ptr(DOutputSocket(from_socket));
+        if (dot_from_port != nullptr) {
+          digraph.new_edge(*dot_from_port, dot_to_port);
+          return;
+        }
+      }
+      dot::Node &dot_node = *dot_floating_inputs.lookup_or_add_cb(from_socket, [&]() {
+        dot::Node &dot_node = digraph.new_node(from_socket->name());
+        dot_node.set_background_color("white");
+        dot_node.set_shape(dot::Attr_shape::Ellipse);
+        dot_node.set_parent_cluster(
+            get_dot_cluster_for_context(digraph, from_socket.context(), dot_clusters));
+        return &dot_node;
+      });
+      digraph.new_edge(dot_node, dot_to_port);
+    });
+  }
+
+  digraph.set_random_cluster_bgcolors();
+
+  return digraph.to_dot_string();
 }
 
 }  // namespace blender::nodes
