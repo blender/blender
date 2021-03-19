@@ -177,6 +177,7 @@ class NodeRef : NonCopyable, NonMovable {
   bool is_group_input_node() const;
   bool is_group_output_node() const;
   bool is_muted() const;
+  bool is_frame() const;
 
   void *storage() const;
   template<typename T> T *storage() const;
@@ -242,6 +243,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   bool has_link_cycles() const;
 
   bNodeTree *btree() const;
+  StringRefNull name() const;
 
   std::string to_dot() const;
 
@@ -529,6 +531,11 @@ inline bool NodeRef::is_group_output_node() const
   return bnode_->type == NODE_GROUP_OUTPUT;
 }
 
+inline bool NodeRef::is_frame() const
+{
+  return bnode_->type == NODE_FRAME;
+}
+
 inline bool NodeRef::is_muted() const
 {
   return (bnode_->flag & NODE_MUTED) != 0;
@@ -630,6 +637,11 @@ inline Span<const LinkRef *> NodeTreeRef::links() const
 inline bNodeTree *NodeTreeRef::btree() const
 {
   return btree_;
+}
+
+inline StringRefNull NodeTreeRef::name() const
+{
+  return btree_->id.name + 2;
 }
 
 }  // namespace blender::nodes
