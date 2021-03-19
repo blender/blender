@@ -158,21 +158,21 @@ void NodeInput::setLink(NodeOutput *link)
   m_link = link;
 }
 
-float NodeInput::getEditorValueFloat()
+float NodeInput::getEditorValueFloat() const
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
   return RNA_float_get(&ptr, "default_value");
 }
 
-void NodeInput::getEditorValueColor(float *value)
+void NodeInput::getEditorValueColor(float *value) const
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
 
-void NodeInput::getEditorValueVector(float *value)
+void NodeInput::getEditorValueVector(float *value) const
 {
   PointerRNA ptr;
   RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);

@@ -294,7 +294,7 @@ void NodeOperationBuilder::add_operation_input_constants()
 }
 
 void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
-                                                    NodeInput *node_input)
+                                                    const NodeInput *node_input)
 {
   switch (input->getDataType()) {
     case COM_DT_VALUE: {
