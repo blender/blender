@@ -2932,6 +2932,16 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_TEXT_BOX);
   RNA_def_property_ui_text(prop, "Shadow", "Display colored box behind text");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "use_bold", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_TEXT_BOLD);
+  RNA_def_property_ui_text(prop, "Bold", "Display text as bold");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
+
+  prop = RNA_def_property(srna, "use_italic", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_TEXT_ITALIC);
+  RNA_def_property_ui_text(prop, "Italic", "Display text as italic");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 }
 
 static void rna_def_color_mix(StructRNA *srna)

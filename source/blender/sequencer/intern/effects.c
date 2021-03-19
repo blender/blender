@@ -3938,6 +3938,14 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
   }
 
+  BLF_disable(font, BLF_ITALIC | BLF_BOLD);
+  if (data->flag & SEQ_TEXT_BOLD) { 
+    BLF_enable(font, BLF_BOLD);
+  }
+  if (data->flag & SEQ_TEXT_ITALIC) { 
+    BLF_enable(font, BLF_ITALIC);
+  }
+
   /* set before return */
   BLF_size(font, proxy_size_comp * data->text_size, 72);
 

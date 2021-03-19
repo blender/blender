@@ -1271,7 +1271,13 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
         col = layout.column()
-        col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
+
+        row = col.row(align=True)
+        row.use_property_decorate = False
+        row.template_ID(strip, "font", open="font.open", unlink="font.unlink")
+        row.prop(strip, "use_bold", text="", icon="BOLD")
+        row.prop(strip, "use_italic", text="", icon="ITALIC")
+
         col.prop(strip, "font_size")
         col.prop(strip, "color")
 
@@ -1294,7 +1300,6 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         row.prop_decorator(strip, "box_color")
 
         row = layout.row(align=True, heading="Box Margin")
-        row.use_property_decorate = False
         sub = row.row(align=True)
         sub.prop(strip, "box_margin")
         sub.active = strip.use_box and (not strip.mute)
