@@ -34,10 +34,15 @@
 #include "COM_defines.h"
 
 #include "BLI_math.h"
+#include "BLI_rand.hh"
 #include "BLI_string.h"
+
 #include "BLT_translation.h"
+
 #include "MEM_guardedalloc.h"
+
 #include "PIL_time.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -178,6 +183,103 @@ void ExecutionGroup::determineNumberOfChunks()
   }
 }
 
+blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() const
+{
+  int index;
+  blender::Array<unsigned int> chunk_order(m_chunks_len);
+  for (int chunk_index = 0; chunk_index < this->m_chunks_len; chunk_index++) {
+    chunk_order[chunk_index] = chunk_index;
+  }
+
+  NodeOperation *operation = this->getOutputOperation();
+  float centerX = 0.5f;
+  float centerY = 0.5f;
+  OrderOfChunks order_type = COM_ORDER_OF_CHUNKS_DEFAULT;
+
+  if (operation->isViewerOperation()) {
+    ViewerOperation *viewer = (ViewerOperation *)operation;
+    centerX = viewer->getCenterX();
+    centerY = viewer->getCenterY();
+    order_type = viewer->getChunkOrder();
+  }
+
+  const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
+  const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+
+  switch (order_type) {
+    case COM_TO_RANDOM: {
+      static blender::RandomNumberGenerator rng;
+      blender::MutableSpan<unsigned int> span = chunk_order.as_mutable_span();
+      /* Shuffle twice to make it more random. */
+      rng.shuffle(span);
+      rng.shuffle(span);
+      break;
+    }
+    case COM_TO_CENTER_OUT: {
+      ChunkOrderHotspot hotspot(border_width * centerX, border_height * centerY, 0.0f);
+      blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
+      for (index = 0; index < this->m_chunks_len; index++) {
+        rcti rect;
+        determineChunkRect(&rect, index);
+        chunk_orders[index].index = index;
+        chunk_orders[index].x = rect.xmin - this->m_viewerBorder.xmin;
+        chunk_orders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].update_distance(&hotspot, 1);
+      }
+
+      std::sort(&chunk_orders[0], &chunk_orders[this->m_chunks_len - 1]);
+      for (index = 0; index < this->m_chunks_len; index++) {
+        chunk_order[index] = chunk_orders[index].index;
+      }
+
+      break;
+    }
+    case COM_TO_RULE_OF_THIRDS: {
+      unsigned int tx = border_width / 6;
+      unsigned int ty = border_height / 6;
+      unsigned int mx = border_width / 2;
+      unsigned int my = border_height / 2;
+      unsigned int bx = mx + 2 * tx;
+      unsigned int by = my + 2 * ty;
+      float addition = this->m_chunks_len / COM_RULE_OF_THIRDS_DIVIDER;
+
+      ChunkOrderHotspot hotspots[9]{
+          ChunkOrderHotspot(mx, my, addition * 0),
+          ChunkOrderHotspot(tx, my, addition * 1),
+          ChunkOrderHotspot(bx, my, addition * 2),
+          ChunkOrderHotspot(bx, by, addition * 3),
+          ChunkOrderHotspot(tx, ty, addition * 4),
+          ChunkOrderHotspot(bx, ty, addition * 5),
+          ChunkOrderHotspot(tx, by, addition * 6),
+          ChunkOrderHotspot(mx, ty, addition * 7),
+          ChunkOrderHotspot(mx, by, addition * 8),
+      };
+
+      blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
+      for (index = 0; index < this->m_chunks_len; index++) {
+        rcti rect;
+        determineChunkRect(&rect, index);
+        chunk_orders[index].index = index;
+        chunk_orders[index].x = rect.xmin - this->m_viewerBorder.xmin;
+        chunk_orders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].update_distance(hotspots, 9);
+      }
+
+      std::sort(&chunk_orders[0], &chunk_orders[this->m_chunks_len]);
+
+      for (index = 0; index < this->m_chunks_len; index++) {
+        chunk_order[index] = chunk_orders[index].index;
+      }
+
+      break;
+    }
+    case COM_TO_TOP_DOWN:
+    default:
+      break;
+  }
+  return chunk_order;
+}
+
 /**
  * this method is called for the top execution groups. containing the compositor node or the
  * preview node or the viewer node)
@@ -195,119 +297,15 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   if (this->m_chunks_len == 0) {
     return;
   } /** \note Early break out. */
-  unsigned int chunkNumber;
+  unsigned int chunk_index;
 
   this->m_executionStartTime = PIL_check_seconds_timer();
 
   this->m_chunks_finished = 0;
   this->m_bTree = bTree;
   unsigned int index;
-  unsigned int *chunkOrder = (unsigned int *)MEM_mallocN(sizeof(unsigned int) * this->m_chunks_len,
-                                                         __func__);
 
-  for (chunkNumber = 0; chunkNumber < this->m_chunks_len; chunkNumber++) {
-    chunkOrder[chunkNumber] = chunkNumber;
-  }
-  NodeOperation *operation = this->getOutputOperation();
-  float centerX = 0.5;
-  float centerY = 0.5;
-  OrderOfChunks chunkorder = COM_ORDER_OF_CHUNKS_DEFAULT;
-
-  if (operation->isViewerOperation()) {
-    ViewerOperation *viewer = (ViewerOperation *)operation;
-    centerX = viewer->getCenterX();
-    centerY = viewer->getCenterY();
-    chunkorder = viewer->getChunkOrder();
-  }
-
-  const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
-  const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
-
-  switch (chunkorder) {
-    case COM_TO_RANDOM:
-      for (index = 0; index < 2 * this->m_chunks_len; index++) {
-        int index1 = rand() % this->m_chunks_len;
-        int index2 = rand() % this->m_chunks_len;
-        int s = chunkOrder[index1];
-        chunkOrder[index1] = chunkOrder[index2];
-        chunkOrder[index2] = s;
-      }
-      break;
-    case COM_TO_CENTER_OUT: {
-      ChunkOrderHotspot *hotspots[1];
-      hotspots[0] = new ChunkOrderHotspot(border_width * centerX, border_height * centerY, 0.0f);
-      rcti rect;
-      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_chunks_len,
-                                                          __func__);
-      for (index = 0; index < this->m_chunks_len; index++) {
-        determineChunkRect(&rect, index);
-        chunkOrders[index].number = index;
-        chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
-        chunkOrders[index].y = rect.ymin - this->m_viewerBorder.ymin;
-        chunkOrders[index].update_distance(hotspots, 1);
-      }
-
-      std::sort(&chunkOrders[0], &chunkOrders[this->m_chunks_len - 1]);
-      for (index = 0; index < this->m_chunks_len; index++) {
-        chunkOrder[index] = chunkOrders[index].number;
-      }
-
-      delete hotspots[0];
-      MEM_freeN(chunkOrders);
-      break;
-    }
-    case COM_TO_RULE_OF_THIRDS: {
-      ChunkOrderHotspot *hotspots[9];
-      unsigned int tx = border_width / 6;
-      unsigned int ty = border_height / 6;
-      unsigned int mx = border_width / 2;
-      unsigned int my = border_height / 2;
-      unsigned int bx = mx + 2 * tx;
-      unsigned int by = my + 2 * ty;
-
-      float addition = this->m_chunks_len / COM_RULE_OF_THIRDS_DIVIDER;
-      hotspots[0] = new ChunkOrderHotspot(mx, my, addition * 0);
-      hotspots[1] = new ChunkOrderHotspot(tx, my, addition * 1);
-      hotspots[2] = new ChunkOrderHotspot(bx, my, addition * 2);
-      hotspots[3] = new ChunkOrderHotspot(bx, by, addition * 3);
-      hotspots[4] = new ChunkOrderHotspot(tx, ty, addition * 4);
-      hotspots[5] = new ChunkOrderHotspot(bx, ty, addition * 5);
-      hotspots[6] = new ChunkOrderHotspot(tx, by, addition * 6);
-      hotspots[7] = new ChunkOrderHotspot(mx, ty, addition * 7);
-      hotspots[8] = new ChunkOrderHotspot(mx, by, addition * 8);
-      rcti rect;
-      ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_chunks_len,
-                                                          __func__);
-      for (index = 0; index < this->m_chunks_len; index++) {
-        determineChunkRect(&rect, index);
-        chunkOrders[index].number = index;
-        chunkOrders[index].x = rect.xmin - this->m_viewerBorder.xmin;
-        chunkOrders[index].y = rect.ymin - this->m_viewerBorder.ymin;
-        chunkOrders[index].update_distance(hotspots, 9);
-      }
-
-      std::sort(&chunkOrders[0], &chunkOrders[this->m_chunks_len]);
-
-      for (index = 0; index < this->m_chunks_len; index++) {
-        chunkOrder[index] = chunkOrders[index].number;
-      }
-
-      delete hotspots[0];
-      delete hotspots[1];
-      delete hotspots[2];
-      delete hotspots[3];
-      delete hotspots[4];
-      delete hotspots[5];
-      delete hotspots[6];
-      delete hotspots[7];
-      delete hotspots[8];
-      MEM_freeN(chunkOrders);
-      break;
-    }
-    case COM_TO_TOP_DOWN:
-    default:
-      break;
-  }
+  blender::Array<unsigned int> chunk_order = determine_chunk_execution_order();
 
   DebugInfo::execution_group_started(this);
   DebugInfo::graphviz(graph);
@@ -324,10 +322,10 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
     for (index = startIndex; index < this->m_chunks_len && numberEvaluated < maxNumberEvaluated;
          index++) {
-      chunkNumber = chunkOrder[index];
-      int yChunk = chunkNumber / this->m_x_chunks_len;
-      int xChunk = chunkNumber - (yChunk * this->m_x_chunks_len);
-      switch (m_chunk_execution_states[chunkNumber]) {
+      chunk_index = chunk_order[index];
+      int yChunk = chunk_index / this->m_x_chunks_len;
+      int xChunk = chunk_index - (yChunk * this->m_x_chunks_len);
+      switch (m_chunk_execution_states[chunk_index]) {
         case eChunkExecutionState::NOT_SCHEDULED: {
           scheduleChunkWhenPossible(graph, xChunk, yChunk);
           finished = false;
@@ -361,8 +359,6 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   }
   DebugInfo::execution_group_finished(this);
   DebugInfo::graphviz(graph);
-
-  MEM_freeN(chunkOrder);
 }
 
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)

@@ -22,6 +22,7 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include "BLI_array.hh"
 #include "BLI_rect.h"
 #include "BLI_vector.hh"
 
@@ -247,6 +248,11 @@ class ExecutionGroup {
   void determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
+
+  /**
+   * Return the execution order of the user visible chunks.
+   */
+  blender::Array<unsigned int> determine_chunk_execution_order() const;
 
  public:
   // constructors
