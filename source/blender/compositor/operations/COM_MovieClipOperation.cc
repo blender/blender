@@ -116,12 +116,12 @@ void MovieClipBaseOperation::executePixelSampled(float output[4],
 
 MovieClipOperation::MovieClipOperation() : MovieClipBaseOperation()
 {
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
 }
 
 MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
 }
 
 void MovieClipAlphaOperation::executePixelSampled(float output[4],

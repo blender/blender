@@ -4694,7 +4694,7 @@ static void CurveProfile_tools_dofunc(bContext *C, void *profile_v, int event)
       BKE_curveprofile_update(profile, PROF_UPDATE_NONE);
       break;
     case UIPROFILE_FUNC_RESET_VIEW: /* reset view to clipping rect */
-      profile->view_rect = profile->clip_rect;
+      BKE_curveprofile_reset_view(profile);
       break;
   }
   ED_undo_push(C, "CurveProfile tools");

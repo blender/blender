@@ -297,7 +297,7 @@ float light_contact_shadows(LightData ld, vec3 P, vec3 vP, vec3 vNg, float rand_
 
       vec3 hit_position_unused;
 
-      if (raytrace(ray, params, false, hit_position_unused)) {
+      if (raytrace(ray, params, false, false, hit_position_unused)) {
         return 0.0;
       }
     }

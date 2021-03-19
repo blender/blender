@@ -28,10 +28,10 @@ static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 
 DenoiseOperation::DenoiseOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VECTOR);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Vector);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
 }
 void DenoiseOperation::initExecution()
@@ -60,7 +60,7 @@ MemoryBuffer *DenoiseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymin = 0;
   rect.xmax = getWidth();
   rect.ymax = getHeight();
-  MemoryBuffer *result = new MemoryBuffer(COM_DT_COLOR, &rect);
+  MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
   float *data = result->getBuffer();
   this->generateDenoise(data, tileColor, tileNormal, tileAlbedo, this->m_settings);
   return result;

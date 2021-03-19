@@ -53,7 +53,7 @@ vec4 screen_space_refraction(vec3 vP, vec3 N, vec3 V, float ior, float roughness
   params.roughness = roughnessSquared;
 
   vec3 hit_pos;
-  bool hit = raytrace(ray, params, false, hit_pos);
+  bool hit = raytrace(ray, params, false, true, hit_pos);
 
   if (hit && (F_eta(ior, dot(H, V)) < 1.0)) {
     hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);

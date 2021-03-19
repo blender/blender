@@ -22,41 +22,41 @@
  * \brief possible data types for sockets
  * \ingroup Model
  */
-typedef enum DataType {
+enum class DataType {
   /** \brief Value data type */
-  COM_DT_VALUE = 1,
+  Value = 0,
   /** \brief Vector data type */
-  COM_DT_VECTOR = 2,
+  Vector = 1,
   /** \brief Color data type */
-  COM_DT_COLOR = 4,
-} DataType;
+  Color = 2,
+};
 
 /**
  * \brief Possible quality settings
  * \see CompositorContext.quality
  * \ingroup Execution
  */
-typedef enum CompositorQuality {
+enum class CompositorQuality {
   /** \brief High quality setting */
-  COM_QUALITY_HIGH = 0,
+  High = 0,
   /** \brief Medium quality setting */
-  COM_QUALITY_MEDIUM = 1,
+  Medium = 1,
   /** \brief Low quality setting */
-  COM_QUALITY_LOW = 2,
-} CompositorQuality;
+  Low = 2,
+};
 
 /**
  * \brief Possible priority settings
  * \ingroup Execution
  */
-typedef enum CompositorPriority {
+enum class CompositorPriority {
   /** \brief High quality setting */
-  COM_PRIORITY_HIGH = 2,
+  High = 2,
   /** \brief Medium quality setting */
-  COM_PRIORITY_MEDIUM = 1,
+  Medium = 1,
   /** \brief Low quality setting */
-  COM_PRIORITY_LOW = 0,
-} CompositorPriority;
+  Low = 0,
+};
 
 // configurable items
 
@@ -87,18 +87,18 @@ typedef enum CompositorPriority {
  * \brief The order of chunks to be scheduled
  * \ingroup Execution
  */
-typedef enum OrderOfChunks {
+enum class ChunkOrdering {
   /** \brief order from a distance to centerX/centerY */
-  COM_TO_CENTER_OUT = 0,
+  CenterOut = 0,
   /** \brief order randomly */
-  COM_TO_RANDOM = 1,
+  Random = 1,
   /** \brief no ordering */
-  COM_TO_TOP_DOWN = 2,
+  TopDown = 2,
   /** \brief experimental ordering with 9 hot-spots. */
-  COM_TO_RULE_OF_THIRDS = 3,
-} OrderOfChunks;
+  RuleOfThirds = 3,
 
-#define COM_ORDER_OF_CHUNKS_DEFAULT COM_TO_CENTER_OUT
+  Default = ChunkOrdering::CenterOut,
+};
 
 #define COM_RULE_OF_THIRDS_DIVIDER 100.0f
 

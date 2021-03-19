@@ -44,9 +44,9 @@ ViewerOperation::ViewerOperation()
   this->m_displaySettings = nullptr;
   this->m_useAlphaInput = false;
 
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Value);
 
   this->m_imageInput = nullptr;
   this->m_alphaInput = nullptr;
@@ -197,8 +197,8 @@ void ViewerOperation::updateImage(rcti *rect)
 CompositorPriority ViewerOperation::getRenderPriority() const
 {
   if (this->isActiveViewerOutput()) {
-    return COM_PRIORITY_HIGH;
+    return CompositorPriority::High;
   }
 
-  return COM_PRIORITY_LOW;
+  return CompositorPriority::Low;
 }

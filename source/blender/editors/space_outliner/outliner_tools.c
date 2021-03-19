@@ -925,7 +925,7 @@ static void id_override_library_resync_fn(bContext *C,
     }
 
     BKE_lib_override_library_resync(
-        bmain, scene, CTX_data_view_layer(C), id_root, do_hierarchy_enforce);
+        bmain, scene, CTX_data_view_layer(C), id_root, NULL, do_hierarchy_enforce);
 
     WM_event_add_notifier(C, NC_WINDOW, NULL);
   }

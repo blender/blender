@@ -22,9 +22,9 @@
 
 ColorSpillOperation::ColorSpillOperation()
 {
-  addInputSocket(COM_DT_COLOR);
-  addInputSocket(COM_DT_VALUE);
-  addOutputSocket(COM_DT_COLOR);
+  addInputSocket(DataType::Color);
+  addInputSocket(DataType::Value);
+  addOutputSocket(DataType::Color);
 
   this->m_inputImageReader = nullptr;
   this->m_inputFacReader = nullptr;

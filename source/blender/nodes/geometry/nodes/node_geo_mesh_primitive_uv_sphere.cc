@@ -74,7 +74,7 @@ static Mesh *create_uv_sphere_mesh_bmesh(const float3 location,
                                          const int rings)
 {
   float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(radius));
+  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1.0f));
 
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {sphere_vert_total(segments, rings),

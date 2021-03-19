@@ -370,6 +370,11 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node_act = nodeGetActive(snode->edittree);
+
+  if (node_act == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
   bNode *node;
   bool changed = false;
   const bool extend = RNA_boolean_get(op->ptr, "extend");

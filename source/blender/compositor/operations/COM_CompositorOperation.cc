@@ -33,9 +33,9 @@
 
 CompositorOperation::CompositorOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Value);
 
   this->setRenderData(nullptr);
   this->m_outputBuffer = nullptr;

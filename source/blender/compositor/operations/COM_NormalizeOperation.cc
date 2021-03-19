@@ -20,8 +20,8 @@
 
 NormalizeOperation::NormalizeOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->m_imageReader = nullptr;
   this->m_cachedInstance = nullptr;
   this->setComplex(true);

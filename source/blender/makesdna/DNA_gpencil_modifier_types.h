@@ -864,7 +864,6 @@ typedef struct LineartGpencilModifierData {
   float angle_splitting_threshold;
 
   /* CPU mode */
-  float chaining_geometry_threshold;
   float chaining_image_threshold;
 
   float resample_length;
@@ -874,8 +873,6 @@ typedef struct LineartGpencilModifierData {
 
   /* Additional Switches. */
   int flags;
-
-  int _pad;
 
   /* Runtime only. */
   void *render_buffer;

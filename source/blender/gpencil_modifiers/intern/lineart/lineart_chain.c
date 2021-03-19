@@ -694,7 +694,6 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
                                                                 int occlusion,
                                                                 unsigned char transparency_mask,
                                                                 float dist,
-                                                                int do_geometry_space,
                                                                 float *result_new_len,
                                                                 LineartBoundingArea *caller_ba)
 {
@@ -739,8 +738,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
       }
     }
 
-    float new_len = do_geometry_space ? len_v3v3(cre->rlci->gpos, rlci->gpos) :
-                                        len_v2v2(cre->rlci->pos, rlci->pos);
+    float new_len = len_v2v2(cre->rlci->pos, rlci->pos);
     if (new_len < dist) {
       closest_cre = cre;
       dist = new_len;
@@ -758,23 +756,15 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
   if (dist_to < dist && dist_to > 0) { \
     LISTBASE_FOREACH (LinkData *, ld, list) { \
       LineartBoundingArea *sba = (LineartBoundingArea *)ld->data; \
-      adjacent_closest = lineart_chain_get_closest_cre(rb, \
-                                                       sba, \
-                                                       rlc, \
-                                                       rlci, \
-                                                       occlusion, \
-                                                       transparency_mask, \
-                                                       dist, \
-                                                       do_geometry_space, \
-                                                       &adjacent_new_len, \
-                                                       ba); \
+      adjacent_closest = lineart_chain_get_closest_cre( \
+          rb, sba, rlc, rlci, occlusion, transparency_mask, dist, &adjacent_new_len, ba); \
       if (adjacent_new_len < dist) { \
         dist = adjacent_new_len; \
         closest_cre = adjacent_closest; \
       } \
     } \
   }
-  if (!do_geometry_space && !caller_ba) {
+  if (!caller_ba) {
     LRT_TEST_ADJACENT_AREAS(rlci->pos[0] - ba->l, &ba->lp);
     LRT_TEST_ADJACENT_AREAS(ba->r - rlci->pos[0], &ba->rp);
     LRT_TEST_ADJACENT_AREAS(ba->u - rlci->pos[1], &ba->up);
@@ -789,20 +779,19 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
 /* This function only connects two different chains. It will not do any clean up or smart chaining.
  * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
  * implemented yet. */
-void MOD_lineart_chain_connect(LineartRenderBuffer *rb, const bool do_geometry_space)
+void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 {
   LineartLineChain *rlc;
   LineartLineChainItem *rlci_l, *rlci_r;
   LineartBoundingArea *ba_l, *ba_r;
   LineartChainRegisterEntry *closest_cre_l, *closest_cre_r, *closest_cre;
-  float dist = do_geometry_space ? rb->chaining_geometry_threshold : rb->chaining_image_threshold;
+  float dist = rb->chaining_image_threshold;
   float dist_l, dist_r;
   int occlusion, reverse_main;
   unsigned char transparency_mask;
   ListBase swap = {0};
 
-  if ((!do_geometry_space && rb->chaining_image_threshold < 0.0001) ||
-      (do_geometry_space && rb->chaining_geometry_threshold < 0.0001)) {
+  if (rb->chaining_image_threshold < 0.0001) {
     return;
   }
 
@@ -825,26 +814,10 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb, const bool do_geometry_s
     rlci_r = rlc->chain.last;
     while ((ba_l = lineart_bounding_area_get_end_point(rb, rlci_l)) &&
            (ba_r = lineart_bounding_area_get_end_point(rb, rlci_r))) {
-      closest_cre_l = lineart_chain_get_closest_cre(rb,
-                                                    ba_l,
-                                                    rlc,
-                                                    rlci_l,
-                                                    occlusion,
-                                                    transparency_mask,
-                                                    dist,
-                                                    do_geometry_space,
-                                                    &dist_l,
-                                                    NULL);
-      closest_cre_r = lineart_chain_get_closest_cre(rb,
-                                                    ba_r,
-                                                    rlc,
-                                                    rlci_r,
-                                                    occlusion,
-                                                    transparency_mask,
-                                                    dist,
-                                                    do_geometry_space,
-                                                    &dist_r,
-                                                    NULL);
+      closest_cre_l = lineart_chain_get_closest_cre(
+          rb, ba_l, rlc, rlci_l, occlusion, transparency_mask, dist, &dist_l, NULL);
+      closest_cre_r = lineart_chain_get_closest_cre(
+          rb, ba_r, rlc, rlci_r, occlusion, transparency_mask, dist, &dist_r, NULL);
       if (closest_cre_l && closest_cre_r) {
         if (dist_l < dist_r) {
           closest_cre = closest_cre_l;

@@ -47,7 +47,7 @@ void ViewerNode::convertToOperations(NodeConverter &converter,
   viewerOperation->setbNodeTree(context.getbNodeTree());
   viewerOperation->setImage(image);
   viewerOperation->setImageUser(imageUser);
-  viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
+  viewerOperation->setChunkOrder((ChunkOrdering)editorNode->custom1);
   viewerOperation->setCenterX(editorNode->custom3);
   viewerOperation->setCenterY(editorNode->custom4);
   /* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */

@@ -24,9 +24,9 @@
 
 BlurBaseOperation::BlurBaseOperation(DataType data_type)
 {
-  /* data_type is almost always COM_DT_COLOR except for alpha-blur */
+  /* data_type is almost always DataType::Color except for alpha-blur */
   this->addInputSocket(data_type);
-  this->addInputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
   this->addOutputSocket(data_type);
   this->setComplex(true);
   this->m_inputProgram = nullptr;

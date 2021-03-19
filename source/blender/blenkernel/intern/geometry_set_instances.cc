@@ -230,6 +230,11 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
     }
   }
 
+  /* Don't create an empty mesh. */
+  if ((totverts + totloops + totedges + totpolys) == 0) {
+    return nullptr;
+  }
+
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
   /* Copy settings from the first input geometry set with a mesh. */
   for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -366,6 +371,9 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
 {
   Mesh *new_mesh = join_mesh_topology_and_builtin_attributes(set_groups,
                                                              convert_points_to_vertices);
+  if (new_mesh == nullptr) {
+    return;
+  }
 
   MeshComponent &dst_component = result.get_component_for_write<MeshComponent>();
   dst_component.replace(new_mesh);
@@ -396,6 +404,9 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
       const PointCloudComponent &component = *set.get_component_for_read<PointCloudComponent>();
       totpoint += component.attribute_domain_size(ATTR_DOMAIN_POINT);
     }
+  }
+  if (totpoint == 0) {
+    return;
   }
 
   PointCloudComponent &dst_component = result.get_component_for_write<PointCloudComponent>();

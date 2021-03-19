@@ -1308,9 +1308,9 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 
 DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->m_inputInnerMask = nullptr;
   this->m_inputOuterMask = nullptr;
   this->m_adjacentOnly = false;

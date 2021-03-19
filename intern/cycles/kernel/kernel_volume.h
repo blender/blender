@@ -16,6 +16,12 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Ignore paths that have volume throughput below this value, to avoid unnecessary work
+ * and precision issues.
+ * todo: this value could be tweaked or turned into a probability to avoid unnecessary
+ * work in volumes and subsurface scattering. */
+#define VOLUME_THROUGHPUT_EPSILON 1e-6f
+
 /* Events for probalistic scattering */
 
 typedef enum VolumeIntegrateResult {
@@ -226,7 +232,6 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
                                                    const float object_step_size)
 {
   float3 tp = *throughput;
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
   /* Prepare for stepping.
    * For shadows we do not offset all segments, since the starting point is
@@ -254,13 +259,15 @@ ccl_device void kernel_volume_shadow_heterogeneous(KernelGlobals *kg,
     /* compute attenuation over segment */
     if (volume_shader_extinction_sample(kg, sd, state, new_P, &sigma_t)) {
       /* Compute expf() only for every Nth step, to save some calculations
-       * because exp(a)*exp(b) = exp(a+b), also do a quick tp_eps check then. */
+       * because exp(a)*exp(b) = exp(a+b), also do a quick VOLUME_THROUGHPUT_EPSILON
+       * check then. */
       sum += (-sigma_t * dt);
       if ((i & 0x07) == 0) { /* ToDo: Other interval? */
         tp = *throughput * exp3(sum);
 
         /* stop if nearly all light is blocked */
-        if (tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps)
+        if (tp.x < VOLUME_THROUGHPUT_EPSILON && tp.y < VOLUME_THROUGHPUT_EPSILON &&
+            tp.z < VOLUME_THROUGHPUT_EPSILON)
           break;
       }
     }
@@ -572,7 +579,6 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
                                                const float object_step_size)
 {
   float3 tp = *throughput;
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
 
   /* Prepare for stepping.
    * Using a different step offset for the first step avoids banding artifacts. */
@@ -669,7 +675,8 @@ kernel_volume_integrate_heterogeneous_distance(KernelGlobals *kg,
         tp = new_tp;
 
         /* stop if nearly all light blocked */
-        if (tp.x < tp_eps && tp.y < tp_eps && tp.z < tp_eps) {
+        if (tp.x < VOLUME_THROUGHPUT_EPSILON && tp.y < VOLUME_THROUGHPUT_EPSILON &&
+            tp.z < VOLUME_THROUGHPUT_EPSILON) {
           tp = zero_float3();
           break;
         }
@@ -770,8 +777,6 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
                                                VolumeSegment *segment,
                                                const float object_step_size)
 {
-  const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
-
   /* prepare for volume stepping */
   int max_steps;
   float step_size, step_shade_offset, steps_offset;
@@ -895,8 +900,9 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
       break;
 
     /* stop if nearly all light blocked */
-    if (accum_transmittance.x < tp_eps && accum_transmittance.y < tp_eps &&
-        accum_transmittance.z < tp_eps)
+    if (accum_transmittance.x < VOLUME_THROUGHPUT_EPSILON &&
+        accum_transmittance.y < VOLUME_THROUGHPUT_EPSILON &&
+        accum_transmittance.z < VOLUME_THROUGHPUT_EPSILON)
       break;
   }
 

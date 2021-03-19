@@ -2388,15 +2388,6 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
       prop, "Remove Doubles", "Remove doubles from the source geometry before generating stokes");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "chaining_geometry_threshold", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_ui_text(prop,
-                           "Geometry Threshold",
-                           "Segments with a geometric distance between them lower than this "
-                           "will be chained together");
-  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.001f, 3);
-  RNA_def_property_range(prop, 0.0f, 0.5f);
-  RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
-
   prop = RNA_def_property(srna, "chaining_image_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_ui_text(
       prop,

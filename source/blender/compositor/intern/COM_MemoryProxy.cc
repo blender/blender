@@ -33,7 +33,7 @@ void MemoryProxy::allocate(unsigned int width, unsigned int height)
   result.ymin = 0;
   result.ymax = height;
 
-  this->m_buffer = new MemoryBuffer(this, 1, &result);
+  this->m_buffer = new MemoryBuffer(this, result, MemoryBufferState::Default);
 }
 
 void MemoryProxy::free()

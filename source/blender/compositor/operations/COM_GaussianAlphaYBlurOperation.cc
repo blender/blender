@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(COM_DT_VALUE)
+GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(DataType::Value)
 {
   this->m_gausstab = nullptr;
   this->m_filtersize = 0;
@@ -85,15 +85,15 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 {
   const bool do_invert = this->m_do_subtract;
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
+  const rcti &input_rect = inputBuffer->get_rect();
   float *buffer = inputBuffer->getBuffer();
   int bufferwidth = inputBuffer->getWidth();
-  int bufferstartx = inputBuffer->getRect()->xmin;
-  int bufferstarty = inputBuffer->getRect()->ymin;
+  int bufferstartx = input_rect.xmin;
+  int bufferstarty = input_rect.ymin;
 
-  rcti &rect = *inputBuffer->getRect();
-  int xmin = max_ii(x, rect.xmin);
-  int ymin = max_ii(y - m_filtersize, rect.ymin);
-  int ymax = min_ii(y + m_filtersize + 1, rect.ymax);
+  int xmin = max_ii(x, input_rect.xmin);
+  int ymin = max_ii(y - m_filtersize, input_rect.ymin);
+  int ymax = min_ii(y + m_filtersize + 1, input_rect.ymax);
 
   /* *** this is the main part which is different to 'GaussianYBlurOperation'  *** */
   int step = getStep();

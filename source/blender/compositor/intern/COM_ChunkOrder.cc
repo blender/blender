@@ -17,22 +17,14 @@
  */
 
 #include "COM_ChunkOrder.h"
+
 #include "BLI_math.h"
 
-ChunkOrder::ChunkOrder()
+void ChunkOrder::update_distance(ChunkOrderHotspot *hotspots, unsigned int len_hotspots)
 {
-  distance = 0.0;
-  number = 0;
-  x = 0;
-  y = 0;
-}
-
-void ChunkOrder::update_distance(ChunkOrderHotspot **hotspots, unsigned int len_hotspots)
-{
-  double new_distance = FLT_MAX;
+  double new_distance = DBL_MAX;
   for (int index = 0; index < len_hotspots; index++) {
-    ChunkOrderHotspot *hotspot = hotspots[index];
-    double distance_to_hotspot = hotspot->calc_distance(x, y);
+    double distance_to_hotspot = hotspots[index].calc_distance(x, y);
     if (distance_to_hotspot < new_distance) {
       new_distance = distance_to_hotspot;
     }

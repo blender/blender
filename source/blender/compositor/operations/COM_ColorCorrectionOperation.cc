@@ -23,9 +23,9 @@
 
 ColorCorrectionOperation::ColorCorrectionOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Color);
   this->m_inputImage = nullptr;
   this->m_inputMask = nullptr;
   this->m_redChannelEnabled = true;

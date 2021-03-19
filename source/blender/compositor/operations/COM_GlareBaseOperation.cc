@@ -21,8 +21,8 @@
 
 GlareBaseOperation::GlareBaseOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
 }
 void GlareBaseOperation::initExecution()
@@ -45,7 +45,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymin = 0;
   rect.xmax = getWidth();
   rect.ymax = getHeight();
-  MemoryBuffer *result = new MemoryBuffer(COM_DT_COLOR, &rect);
+  MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
   float *data = result->getBuffer();
   this->generateGlare(data, tile, this->m_settings);
   return result;

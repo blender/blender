@@ -37,7 +37,7 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const ColorManagedDisplaySettings *displaySettings)
 
 {
-  this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
   this->m_preview = nullptr;
   this->m_outputBuffer = nullptr;
   this->m_input = nullptr;
@@ -157,5 +157,5 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
 
 CompositorPriority PreviewOperation::getRenderPriority() const
 {
-  return COM_PRIORITY_LOW;
+  return CompositorPriority::Low;
 }

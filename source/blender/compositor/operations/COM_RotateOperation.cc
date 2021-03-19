@@ -21,9 +21,9 @@
 
 RotateOperation::RotateOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_imageSocket = nullptr;
   this->m_degreeSocket = nullptr;

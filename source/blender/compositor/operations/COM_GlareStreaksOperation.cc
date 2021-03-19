@@ -33,9 +33,9 @@ void GlareStreaksOperation::generateGlare(float *data,
 
   bool breaked = false;
 
-  MemoryBuffer *tsrc = inputTile->duplicate();
-  MemoryBuffer *tdst = new MemoryBuffer(COM_DT_COLOR, inputTile->getRect());
-  tdst->clear();
+  MemoryBuffer tsrc(*inputTile);
+  MemoryBuffer tdst(DataType::Color, inputTile->get_rect());
+  tdst.clear();
   memset(data, 0, size4 * sizeof(float));
 
   for (a = 0.0f; a < DEG2RADF(360.0f) && (!breaked); a += ang) {
@@ -49,20 +49,20 @@ void GlareStreaksOperation::generateGlare(float *data,
                         (float)pow((double)settings->colmod,
                                    (double)n +
                                        1);  // colormodulation amount relative to current pass
-      float *tdstcol = tdst->getBuffer();
-      for (y = 0; y < tsrc->getHeight() && (!breaked); y++) {
-        for (x = 0; x < tsrc->getWidth(); x++, tdstcol += 4) {
+      float *tdstcol = tdst.getBuffer();
+      for (y = 0; y < tsrc.getHeight() && (!breaked); y++) {
+        for (x = 0; x < tsrc.getWidth(); x++, tdstcol += 4) {
           // first pass no offset, always same for every pass, exact copy,
           // otherwise results in uneven brightness, only need once
           if (n == 0) {
-            tsrc->read(c1, x, y);
+            tsrc.read(c1, x, y);
           }
           else {
             c1[0] = c1[1] = c1[2] = 0;
           }
-          tsrc->readBilinear(c2, x + vxp, y + vyp);
-          tsrc->readBilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
-          tsrc->readBilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);
+          tsrc.readBilinear(c2, x + vxp, y + vyp);
+          tsrc.readBilinear(c3, x + vxp * 2.0f, y + vyp * 2.0f);
+          tsrc.readBilinear(c4, x + vxp * 3.0f, y + vyp * 3.0f);
           // modulate color to look vaguely similar to a color spectrum
           c2[1] *= cmo;
           c2[2] *= cmo;
@@ -82,21 +82,18 @@ void GlareStreaksOperation::generateGlare(float *data,
           breaked = true;
         }
       }
-      memcpy(tsrc->getBuffer(), tdst->getBuffer(), sizeof(float) * size4);
+      memcpy(tsrc.getBuffer(), tdst.getBuffer(), sizeof(float) * size4);
     }
 
-    float *sourcebuffer = tsrc->getBuffer();
+    float *sourcebuffer = tsrc.getBuffer();
     float factor = 1.0f / (float)(6 - settings->iter);
     for (int i = 0; i < size4; i += 4) {
       madd_v3_v3fl(&data[i], &sourcebuffer[i], factor);
       data[i + 3] = 1.0f;
     }
 
-    tdst->clear();
-    memcpy(tsrc->getBuffer(), inputTile->getBuffer(), sizeof(float) * size4);
+    tdst.clear();
+    memcpy(tsrc.getBuffer(), inputTile->getBuffer(), sizeof(float) * size4);
     nump++;
   }
-
-  delete tsrc;
-  delete tdst;
 }

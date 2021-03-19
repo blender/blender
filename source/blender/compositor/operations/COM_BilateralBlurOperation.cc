@@ -23,9 +23,9 @@
 
 BilateralBlurOperation::BilateralBlurOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
 
   this->m_inputColorProgram = nullptr;

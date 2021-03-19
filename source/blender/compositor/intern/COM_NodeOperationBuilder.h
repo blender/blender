@@ -123,7 +123,7 @@ class NodeOperationBuilder {
 
   /** Construct a constant value operation for every unconnected input */
   void add_operation_input_constants();
-  void add_input_constant_value(NodeOperationInput *input, NodeInput *node_input);
+  void add_input_constant_value(NodeOperationInput *input, const NodeInput *node_input);
 
   /** Replace proxy operations with direct links */
   void resolve_proxies();

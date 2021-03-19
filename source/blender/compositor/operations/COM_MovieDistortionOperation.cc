@@ -25,8 +25,8 @@
 
 MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_movieClip = nullptr;

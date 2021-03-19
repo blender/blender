@@ -21,7 +21,7 @@
 
 SetVectorOperation::SetVectorOperation()
 {
-  this->addOutputSocket(COM_DT_VECTOR);
+  this->addOutputSocket(DataType::Vector);
 }
 
 void SetVectorOperation::executePixelSampled(float output[4],

@@ -30,7 +30,7 @@
 
 TrackPositionOperation::TrackPositionOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
   this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObjectName[0] = 0;

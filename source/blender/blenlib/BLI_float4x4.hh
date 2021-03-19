@@ -35,6 +35,16 @@ struct float4x4 {
   {
   }
 
+  /* Assumes an XYZ euler order. */
+  static float4x4 from_loc_eul_scale(const float3 location,
+                                     const float3 rotation,
+                                     const float3 scale)
+  {
+    float4x4 mat;
+    loc_eul_size_to_mat4(mat.values, location, rotation, scale);
+    return mat;
+  }
+
   operator float *()
   {
     return &values[0][0];

@@ -86,28 +86,28 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
     bool is_preview;
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED) &&
         STREQ(output->getbNodeSocket()->name, "Alpha")) {
-      operation = new RenderLayersAlphaProg(rpass->name, COM_DT_VALUE, rpass->channels);
+      operation = new RenderLayersAlphaProg(rpass->name, DataType::Value, rpass->channels);
       is_preview = false;
     }
     else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-      operation = new RenderLayersDepthProg(rpass->name, COM_DT_VALUE, rpass->channels);
+      operation = new RenderLayersDepthProg(rpass->name, DataType::Value, rpass->channels);
       is_preview = false;
     }
     else {
       DataType type;
       switch (rpass->channels) {
         case 4:
-          type = COM_DT_COLOR;
+          type = DataType::Color;
           break;
         case 3:
-          type = COM_DT_VECTOR;
+          type = DataType::Vector;
           break;
         case 1:
-          type = COM_DT_VALUE;
+          type = DataType::Value;
           break;
         default:
           BLI_assert(!"Unexpected number of channels for pass");
-          type = COM_DT_VALUE;
+          type = DataType::Value;
           break;
       }
       operation = new RenderLayersProg(rpass->name, type, rpass->channels);
@@ -121,21 +121,21 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *o
 {
   NodeOperation *operation;
   switch (output->getDataType()) {
-    case COM_DT_COLOR: {
+    case DataType::Color: {
       const float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
       SetColorOperation *color_operation = new SetColorOperation();
       color_operation->setChannels(color);
       operation = color_operation;
       break;
     }
-    case COM_DT_VECTOR: {
+    case DataType::Vector: {
       const float vector[3] = {0.0f, 0.0f, 0.0f};
       SetVectorOperation *vector_operation = new SetVectorOperation();
       vector_operation->setVector(vector);
       operation = vector_operation;
       break;
     }
-    case COM_DT_VALUE: {
+    case DataType::Value: {
       SetValueOperation *value_operation = new SetValueOperation();
       value_operation->setValue(0.0f);
       operation = value_operation;

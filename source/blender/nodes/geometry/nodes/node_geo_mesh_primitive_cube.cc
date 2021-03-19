@@ -40,7 +40,7 @@ namespace blender::nodes {
 static Mesh *create_cube_mesh(const float3 location, const float3 rotation, const float size)
 {
   float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(size));
+  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1));
 
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {8, 12, 24, 6};

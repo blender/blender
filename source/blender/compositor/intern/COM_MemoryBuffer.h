@@ -31,21 +31,19 @@ class MemoryBuffer;
  * \brief state of a memory buffer
  * \ingroup Memory
  */
-typedef enum MemoryBufferState {
+enum class MemoryBufferState {
   /** \brief memory has been allocated on creator device and CPU machine,
    * but kernel has not been executed */
-  COM_MB_ALLOCATED = 1,
-  /** \brief memory is available for use, content has been created */
-  COM_MB_AVAILABLE = 2,
+  Default = 0,
   /** \brief chunk is consolidated from other chunks. special state.*/
-  COM_MB_TEMPORARILY = 6,
-} MemoryBufferState;
+  Temporary = 6,
+};
 
-typedef enum MemoryBufferExtend {
-  COM_MB_CLIP,
-  COM_MB_EXTEND,
-  COM_MB_REPEAT,
-} MemoryBufferExtend;
+enum class MemoryBufferExtend {
+  Clip,
+  Extend,
+  Repeat,
+};
 
 class MemoryProxy;
 
@@ -60,7 +58,7 @@ class MemoryBuffer {
   MemoryProxy *m_memoryProxy;
 
   /**
-   * \brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
+   * \brief the type of buffer DataType::Value, DataType::Vector, DataType::Color
    */
   DataType m_datatype;
 
@@ -68,12 +66,6 @@ class MemoryBuffer {
    * \brief region of this buffer inside relative to the MemoryProxy
    */
   rcti m_rect;
-
-  /**
-   * brief refers to the chunk-number within the execution-group where related to the MemoryProxy
-   * \see memoryProxy
-   */
-  unsigned int m_chunkNumber;
 
   /**
    * \brief state of the buffer
@@ -89,41 +81,30 @@ class MemoryBuffer {
    * \brief the number of channels of a single value in the buffer.
    * For value buffers this is 1, vector 3 and color 4
    */
-  unsigned int m_num_channels;
-
-  int m_width;
-  int m_height;
+  uint8_t m_num_channels;
 
  public:
   /**
-   * \brief construct new MemoryBuffer for a chunk
+   * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
+  MemoryBuffer(DataType datatype, const rcti &rect);
 
   /**
-   * \brief construct new temporarily MemoryBuffer for an area
+   * Copy constructor
    */
-  MemoryBuffer(DataType datatype, rcti *rect);
+  MemoryBuffer(const MemoryBuffer &src);
 
   /**
    * \brief destructor
    */
   ~MemoryBuffer();
 
-  /**
-   * \brief read the ChunkNumber of this MemoryBuffer
-   */
-  unsigned int getChunkNumber()
-  {
-    return this->m_chunkNumber;
-  }
-
-  unsigned int get_num_channels()
+  uint8_t get_num_channels()
   {
     return this->m_num_channels;
   }
@@ -137,25 +118,17 @@ class MemoryBuffer {
     return this->m_buffer;
   }
 
-  /**
-   * \brief after execution the state will be set to available by calling this method
-   */
-  void setCreatedState()
-  {
-    this->m_state = COM_MB_AVAILABLE;
-  }
-
   inline void wrap_pixel(int &x, int &y, MemoryBufferExtend extend_x, MemoryBufferExtend extend_y)
   {
-    int w = this->m_width;
-    int h = this->m_height;
+    const int w = getWidth();
+    const int h = getHeight();
     x = x - m_rect.xmin;
     y = y - m_rect.ymin;
 
     switch (extend_x) {
-      case COM_MB_CLIP:
+      case MemoryBufferExtend::Clip:
         break;
-      case COM_MB_EXTEND:
+      case MemoryBufferExtend::Extend:
         if (x < 0) {
           x = 0;
         }
@@ -163,15 +136,15 @@ class MemoryBuffer {
           x = w;
         }
         break;
-      case COM_MB_REPEAT:
+      case MemoryBufferExtend::Repeat:
         x = (x >= 0.0f ? (x % w) : (x % w) + w);
         break;
     }
 
     switch (extend_y) {
-      case COM_MB_CLIP:
+      case MemoryBufferExtend::Clip:
         break;
-      case COM_MB_EXTEND:
+      case MemoryBufferExtend::Extend:
         if (y < 0) {
           y = 0;
         }
@@ -179,7 +152,7 @@ class MemoryBuffer {
           y = h;
         }
         break;
-      case COM_MB_REPEAT:
+      case MemoryBufferExtend::Repeat:
         y = (y >= 0.0f ? (y % h) : (y % h) + h);
         break;
     }
@@ -190,15 +163,15 @@ class MemoryBuffer {
                          MemoryBufferExtend extend_x,
                          MemoryBufferExtend extend_y)
   {
-    float w = (float)this->m_width;
-    float h = (float)this->m_height;
+    const float w = (float)getWidth();
+    const float h = (float)getHeight();
     x = x - m_rect.xmin;
     y = y - m_rect.ymin;
 
     switch (extend_x) {
-      case COM_MB_CLIP:
+      case MemoryBufferExtend::Clip:
         break;
-      case COM_MB_EXTEND:
+      case MemoryBufferExtend::Extend:
         if (x < 0) {
           x = 0.0f;
         }
@@ -206,15 +179,15 @@ class MemoryBuffer {
           x = w;
         }
         break;
-      case COM_MB_REPEAT:
+      case MemoryBufferExtend::Repeat:
         x = fmodf(x, w);
         break;
     }
 
     switch (extend_y) {
-      case COM_MB_CLIP:
+      case MemoryBufferExtend::Clip:
         break;
-      case COM_MB_EXTEND:
+      case MemoryBufferExtend::Extend:
         if (y < 0) {
           y = 0.0f;
         }
@@ -222,7 +195,7 @@ class MemoryBuffer {
           y = h;
         }
         break;
-      case COM_MB_REPEAT:
+      case MemoryBufferExtend::Repeat:
         y = fmodf(y, h);
         break;
     }
@@ -231,11 +204,11 @@ class MemoryBuffer {
   inline void read(float *result,
                    int x,
                    int y,
-                   MemoryBufferExtend extend_x = COM_MB_CLIP,
-                   MemoryBufferExtend extend_y = COM_MB_CLIP)
+                   MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
+                   MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
   {
-    bool clip_x = (extend_x == COM_MB_CLIP && (x < m_rect.xmin || x >= m_rect.xmax));
-    bool clip_y = (extend_y == COM_MB_CLIP && (y < m_rect.ymin || y >= m_rect.ymax));
+    bool clip_x = (extend_x == MemoryBufferExtend::Clip && (x < m_rect.xmin || x >= m_rect.xmax));
+    bool clip_y = (extend_y == MemoryBufferExtend::Clip && (y < m_rect.ymin || y >= m_rect.ymax));
     if (clip_x || clip_y) {
       /* clip result outside rect is zero */
       memset(result, 0, this->m_num_channels * sizeof(float));
@@ -244,7 +217,7 @@ class MemoryBuffer {
       int u = x;
       int v = y;
       this->wrap_pixel(u, v, extend_x, extend_y);
-      const int offset = (this->m_width * y + x) * this->m_num_channels;
+      const int offset = (getWidth() * y + x) * this->m_num_channels;
       float *buffer = &this->m_buffer[offset];
       memcpy(result, buffer, sizeof(float) * this->m_num_channels);
     }
@@ -253,19 +226,19 @@ class MemoryBuffer {
   inline void readNoCheck(float *result,
                           int x,
                           int y,
-                          MemoryBufferExtend extend_x = COM_MB_CLIP,
-                          MemoryBufferExtend extend_y = COM_MB_CLIP)
+                          MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
+                          MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
   {
     int u = x;
     int v = y;
 
     this->wrap_pixel(u, v, extend_x, extend_y);
-    const int offset = (this->m_width * v + u) * this->m_num_channels;
+    const int offset = (getWidth() * v + u) * this->m_num_channels;
 
     BLI_assert(offset >= 0);
-    BLI_assert(offset < this->determineBufferSize() * this->m_num_channels);
-    BLI_assert(!(extend_x == COM_MB_CLIP && (u < m_rect.xmin || u >= m_rect.xmax)) &&
-               !(extend_y == COM_MB_CLIP && (v < m_rect.ymin || v >= m_rect.ymax)));
+    BLI_assert(offset < this->buffer_len() * this->m_num_channels);
+    BLI_assert(!(extend_x == MemoryBufferExtend::Clip && (u < m_rect.xmin || u >= m_rect.xmax)) &&
+               !(extend_y == MemoryBufferExtend::Clip && (v < m_rect.ymin || v >= m_rect.ymax)));
     float *buffer = &this->m_buffer[offset];
     memcpy(result, buffer, sizeof(float) * this->m_num_channels);
   }
@@ -275,26 +248,26 @@ class MemoryBuffer {
   inline void readBilinear(float *result,
                            float x,
                            float y,
-                           MemoryBufferExtend extend_x = COM_MB_CLIP,
-                           MemoryBufferExtend extend_y = COM_MB_CLIP)
+                           MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
+                           MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
   {
     float u = x;
     float v = y;
     this->wrap_pixel(u, v, extend_x, extend_y);
-    if ((extend_x != COM_MB_REPEAT && (u < 0.0f || u >= this->m_width)) ||
-        (extend_y != COM_MB_REPEAT && (v < 0.0f || v >= this->m_height))) {
+    if ((extend_x != MemoryBufferExtend::Repeat && (u < 0.0f || u >= getWidth())) ||
+        (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= getHeight()))) {
       copy_vn_fl(result, this->m_num_channels, 0.0f);
       return;
     }
     BLI_bilinear_interpolation_wrap_fl(this->m_buffer,
                                        result,
-                                       this->m_width,
-                                       this->m_height,
+                                       getWidth(),
+                                       getHeight(),
                                        this->m_num_channels,
                                        u,
                                        v,
-                                       extend_x == COM_MB_REPEAT,
-                                       extend_y == COM_MB_REPEAT);
+                                       extend_x == MemoryBufferExtend::Repeat,
+                                       extend_y == MemoryBufferExtend::Repeat);
   }
 
   void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
@@ -304,7 +277,7 @@ class MemoryBuffer {
    */
   inline bool isTemporarily() const
   {
-    return this->m_state == COM_MB_TEMPORARILY;
+    return this->m_state == MemoryBufferState::Temporary;
   }
 
   /**
@@ -314,38 +287,45 @@ class MemoryBuffer {
    * \note take care when running this on a new buffer since it wont fill in
    *       uninitialized values in areas where the buffers don't overlap.
    */
-  void copyContentFrom(MemoryBuffer *otherBuffer);
+  void fill_from(const MemoryBuffer &src);
 
   /**
    * \brief get the rect of this MemoryBuffer
    */
-  rcti *getRect()
+  const rcti &get_rect() const
   {
-    return &this->m_rect;
+    return this->m_rect;
   }
 
   /**
    * \brief get the width of this MemoryBuffer
    */
-  int getWidth() const;
+  const int getWidth() const
+  {
+    return BLI_rcti_size_x(&m_rect);
+  }
 
   /**
    * \brief get the height of this MemoryBuffer
    */
-  int getHeight() const;
+  const int getHeight() const
+  {
+    return BLI_rcti_size_y(&m_rect);
+  }
 
   /**
    * \brief clear the buffer. Make all pixels black transparent.
    */
   void clear();
 
-  MemoryBuffer *duplicate();
-
-  float getMaximumValue();
-  float getMaximumValue(rcti *rect);
+  float get_max_value() const;
+  float get_max_value(const rcti &rect) const;
 
  private:
-  unsigned int determineBufferSize();
+  const int buffer_len() const
+  {
+    return getWidth() * getHeight();
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")

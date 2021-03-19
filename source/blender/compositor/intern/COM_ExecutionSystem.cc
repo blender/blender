@@ -177,10 +177,10 @@ void ExecutionSystem::execute()
 
   WorkScheduler::start(this->m_context);
 
-  execute_groups(COM_PRIORITY_HIGH);
+  execute_groups(CompositorPriority::High);
   if (!this->getContext().isFastCalculation()) {
-    execute_groups(COM_PRIORITY_MEDIUM);
-    execute_groups(COM_PRIORITY_LOW);
+    execute_groups(CompositorPriority::Medium);
+    execute_groups(CompositorPriority::Low);
   }
 
   WorkScheduler::finish();

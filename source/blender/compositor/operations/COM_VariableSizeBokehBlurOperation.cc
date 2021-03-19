@@ -24,14 +24,14 @@
 
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);  // do not resize the bokeh image.
-  this->addInputSocket(COM_DT_VALUE);                    // radius
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);  // do not resize the bokeh image.
+  this->addInputSocket(DataType::Value);                    // radius
 #ifdef COM_DEFOCUS_SEARCH
-  this->addInputSocket(COM_DT_COLOR,
+  this->addInputSocket(DataType::Color,
                        COM_SC_NO_RESIZE);  // inverse search radius optimization structure.
 #endif
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->setOpenCL(true);
 
@@ -77,7 +77,7 @@ void *VariableSizeBokehBlurOperation::initializeTileData(rcti *rect)
   const float max_dim = MAX2(m_width, m_height);
   const float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
-  data->maxBlurScalar = (int)(data->size->getMaximumValue(&rect2) * scalar);
+  data->maxBlurScalar = (int)(data->size->get_max_value(rect2) * scalar);
   CLAMP(data->maxBlurScalar, 1.0f, this->m_maxBlur);
   return data;
 }
@@ -200,7 +200,7 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
   const float max_dim = MAX2(m_width, m_height);
   cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
-  maxBlur = (cl_int)min_ff(sizeMemoryBuffer->getMaximumValue() * scalar, (float)this->m_maxBlur);
+  maxBlur = (cl_int)min_ff(sizeMemoryBuffer->get_max_value() * scalar, (float)this->m_maxBlur);
 
   device->COM_clAttachMemoryBufferToKernelParameter(
       defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
@@ -278,8 +278,8 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
 // InverseSearchRadiusOperation
 InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
-  this->addInputSocket(COM_DT_VALUE, COM_SC_NO_RESIZE);  // radius
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Value, COM_SC_NO_RESIZE);  // radius
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->m_inputRadius = nullptr;
 }
@@ -291,7 +291,7 @@ void InverseSearchRadiusOperation::initExecution()
 
 void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *data = new MemoryBuffer(COM_DT_COLOR, rect);
+  MemoryBuffer *data = new MemoryBuffer(DataType::Color, rect);
   float *buffer = data->getBuffer();
   int x, y;
   int width = this->m_inputRadius->getWidth();

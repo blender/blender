@@ -45,10 +45,10 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 /* VectorBlurOperation */
 VectorBlurOperation::VectorBlurOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);  // ZBUF
-  this->addInputSocket(COM_DT_COLOR);  // SPEED
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);  // ZBUF
+  this->addInputSocket(DataType::Color);  // SPEED
+  this->addOutputSocket(DataType::Color);
   this->m_settings = nullptr;
   this->m_cachedInstance = nullptr;
   this->m_inputImageProgram = nullptr;

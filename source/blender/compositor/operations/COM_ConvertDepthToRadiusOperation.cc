@@ -23,8 +23,8 @@
 
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->m_inputOperation = nullptr;
   this->m_fStop = 128.0f;
   this->m_cameraObject = nullptr;

@@ -23,7 +23,7 @@
 
 #include "RE_pipeline.h"
 
-GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
+GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_gausstab = nullptr;
 #ifdef BLI_HAVE_SSE2
@@ -81,15 +81,15 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
   float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float multiplier_accum = 0.0f;
   MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
+  const rcti &input_rect = inputBuffer->get_rect();
   float *buffer = inputBuffer->getBuffer();
   int bufferwidth = inputBuffer->getWidth();
-  int bufferstartx = inputBuffer->getRect()->xmin;
-  int bufferstarty = inputBuffer->getRect()->ymin;
+  int bufferstartx = input_rect.xmin;
+  int bufferstarty = input_rect.ymin;
 
-  rcti &rect = *inputBuffer->getRect();
-  int xmin = max_ii(x - m_filtersize, rect.xmin);
-  int xmax = min_ii(x + m_filtersize + 1, rect.xmax);
-  int ymin = max_ii(y, rect.ymin);
+  int xmin = max_ii(x - m_filtersize, input_rect.xmin);
+  int xmax = min_ii(x + m_filtersize + 1, input_rect.xmax);
+  int ymin = max_ii(y, input_rect.ymin);
 
   int step = getStep();
   int offsetadd = getOffsetAdd();

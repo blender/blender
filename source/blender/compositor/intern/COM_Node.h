@@ -281,9 +281,9 @@ class NodeInput {
     return m_link;
   }
 
-  float getEditorValueFloat();
-  void getEditorValueColor(float *value);
-  void getEditorValueVector(float *value);
+  float getEditorValueFloat() const;
+  void getEditorValueColor(float *value) const;
+  void getEditorValueVector(float *value) const;
 };
 
 /**

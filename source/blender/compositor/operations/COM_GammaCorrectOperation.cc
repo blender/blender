@@ -21,8 +21,8 @@
 
 GammaCorrectOperation::GammaCorrectOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_inputProgram = nullptr;
 }
 void GammaCorrectOperation::initExecution()
@@ -63,8 +63,8 @@ void GammaCorrectOperation::deinitExecution()
 
 GammaUncorrectOperation::GammaUncorrectOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_inputProgram = nullptr;
 }
 void GammaUncorrectOperation::initExecution()

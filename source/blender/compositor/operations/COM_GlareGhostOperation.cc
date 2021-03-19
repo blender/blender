@@ -41,41 +41,41 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
   float sc, isc, u, v, sm, s, t, ofs, scalef[64];
   const float cmo = 1.0f - settings->colmod;
 
-  MemoryBuffer *gbuf = inputTile->duplicate();
-  MemoryBuffer *tbuf1 = inputTile->duplicate();
+  MemoryBuffer gbuf(*inputTile);
+  MemoryBuffer tbuf1(*inputTile);
 
   bool breaked = false;
 
-  FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 0, 3);
+  FastGaussianBlurOperation::IIR_gauss(&tbuf1, s1, 0, 3);
   if (!breaked) {
-    FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 1, 3);
+    FastGaussianBlurOperation::IIR_gauss(&tbuf1, s1, 1, 3);
   }
   if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
-    FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 2, 3);
+    FastGaussianBlurOperation::IIR_gauss(&tbuf1, s1, 2, 3);
   }
 
-  MemoryBuffer *tbuf2 = tbuf1->duplicate();
+  MemoryBuffer tbuf2(tbuf1);
 
   if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
-    FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 0, 3);
+    FastGaussianBlurOperation::IIR_gauss(&tbuf2, s2, 0, 3);
   }
   if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
-    FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 1, 3);
+    FastGaussianBlurOperation::IIR_gauss(&tbuf2, s2, 1, 3);
   }
   if (isBraked()) {
     breaked = true;
   }
   if (!breaked) {
-    FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 2, 3);
+    FastGaussianBlurOperation::IIR_gauss(&tbuf2, s2, 2, 3);
   }
 
   ofs = (settings->iter & 1) ? 0.5f : 0.0f;
@@ -99,61 +99,57 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
   sc = 2.13;
   isc = -0.97;
-  for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
-    v = ((float)y + 0.5f) / (float)gbuf->getHeight();
-    for (x = 0; x < gbuf->getWidth(); x++) {
-      u = ((float)x + 0.5f) / (float)gbuf->getWidth();
+  for (y = 0; y < gbuf.getHeight() && (!breaked); y++) {
+    v = ((float)y + 0.5f) / (float)gbuf.getHeight();
+    for (x = 0; x < gbuf.getWidth(); x++) {
+      u = ((float)x + 0.5f) / (float)gbuf.getWidth();
       s = (u - 0.5f) * sc + 0.5f;
       t = (v - 0.5f) * sc + 0.5f;
-      tbuf1->readBilinear(c, s * gbuf->getWidth(), t * gbuf->getHeight());
+      tbuf1.readBilinear(c, s * gbuf.getWidth(), t * gbuf.getHeight());
       sm = smoothMask(s, t);
       mul_v3_fl(c, sm);
       s = (u - 0.5f) * isc + 0.5f;
       t = (v - 0.5f) * isc + 0.5f;
-      tbuf2->readBilinear(tc, s * gbuf->getWidth() - 0.5f, t * gbuf->getHeight() - 0.5f);
+      tbuf2.readBilinear(tc, s * gbuf.getWidth() - 0.5f, t * gbuf.getHeight() - 0.5f);
       sm = smoothMask(s, t);
       madd_v3_v3fl(c, tc, sm);
 
-      gbuf->writePixel(x, y, c);
+      gbuf.writePixel(x, y, c);
     }
     if (isBraked()) {
       breaked = true;
     }
   }
 
-  memset(tbuf1->getBuffer(),
+  memset(tbuf1.getBuffer(),
          0,
-         tbuf1->getWidth() * tbuf1->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
+         tbuf1.getWidth() * tbuf1.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
   for (n = 1; n < settings->iter && (!breaked); n++) {
-    for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
-      v = ((float)y + 0.5f) / (float)gbuf->getHeight();
-      for (x = 0; x < gbuf->getWidth(); x++) {
-        u = ((float)x + 0.5f) / (float)gbuf->getWidth();
+    for (y = 0; y < gbuf.getHeight() && (!breaked); y++) {
+      v = ((float)y + 0.5f) / (float)gbuf.getHeight();
+      for (x = 0; x < gbuf.getWidth(); x++) {
+        u = ((float)x + 0.5f) / (float)gbuf.getWidth();
         tc[0] = tc[1] = tc[2] = 0.0f;
         for (p = 0; p < 4; p++) {
           np = (n << 2) + p;
           s = (u - 0.5f) * scalef[np] + 0.5f;
           t = (v - 0.5f) * scalef[np] + 0.5f;
-          gbuf->readBilinear(c, s * gbuf->getWidth() - 0.5f, t * gbuf->getHeight() - 0.5f);
+          gbuf.readBilinear(c, s * gbuf.getWidth() - 0.5f, t * gbuf.getHeight() - 0.5f);
           mul_v3_v3(c, cm[np]);
           sm = smoothMask(s, t) * 0.25f;
           madd_v3_v3fl(tc, c, sm);
         }
-        tbuf1->addPixel(x, y, tc);
+        tbuf1.addPixel(x, y, tc);
       }
       if (isBraked()) {
         breaked = true;
       }
     }
-    memcpy(gbuf->getBuffer(),
-           tbuf1->getBuffer(),
-           tbuf1->getWidth() * tbuf1->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
+    memcpy(gbuf.getBuffer(),
+           tbuf1.getBuffer(),
+           tbuf1.getWidth() * tbuf1.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
   }
   memcpy(data,
-         gbuf->getBuffer(),
-         gbuf->getWidth() * gbuf->getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
-
-  delete gbuf;
-  delete tbuf1;
-  delete tbuf2;
+         gbuf.getBuffer(),
+         gbuf.getWidth() * gbuf.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 }

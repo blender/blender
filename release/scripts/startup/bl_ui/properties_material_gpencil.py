@@ -245,8 +245,8 @@ class MATERIAL_PT_gpencil_custom_props(GPMaterialButtonsPanel, PropertyPanel, Pa
     _property_type = bpy.types.Material
 
 
-class MATERIAL_PT_gpencil_options(GPMaterialButtonsPanel, Panel):
-    bl_label = "Options"
+class MATERIAL_PT_gpencil_settings(GPMaterialButtonsPanel, Panel):
+    bl_label = "Settings"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -275,7 +275,7 @@ classes = (
     MATERIAL_PT_gpencil_surface,
     MATERIAL_PT_gpencil_strokecolor,
     MATERIAL_PT_gpencil_fillcolor,
-    MATERIAL_PT_gpencil_options,
+    MATERIAL_PT_gpencil_settings,
     MATERIAL_PT_gpencil_custom_props,
 )
 

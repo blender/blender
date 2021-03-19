@@ -48,15 +48,15 @@ BaseImageOperation::BaseImageOperation()
 }
 ImageOperation::ImageOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
 }
 ImageAlphaOperation::ImageAlphaOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
 }
 ImageDepthOperation::ImageDepthOperation() : BaseImageOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
 }
 
 ImBuf *BaseImageOperation::getImBuf()
