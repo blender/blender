@@ -80,7 +80,7 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
   lockMutex();
   if (!this->m_iirgaus) {
     MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputProgram->initializeTileData(rect);
-    MemoryBuffer *copy = newBuf->duplicate();
+    MemoryBuffer *copy = new MemoryBuffer(*newBuf);
     updateSize();
 
     int c;
@@ -310,7 +310,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
   lockMutex();
   if (!this->m_iirgaus) {
     MemoryBuffer *newBuf = (MemoryBuffer *)this->m_inputprogram->initializeTileData(rect);
-    MemoryBuffer *copy = newBuf->duplicate();
+    MemoryBuffer *copy = new MemoryBuffer(*newBuf);
     FastGaussianBlurOperation::IIR_gauss(copy, this->m_sigma, 0, 3);
 
     if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {

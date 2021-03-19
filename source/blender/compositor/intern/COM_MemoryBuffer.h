@@ -111,6 +111,11 @@ class MemoryBuffer {
   MemoryBuffer(DataType datatype, const rcti &rect);
 
   /**
+   * Copy constructor
+   */
+  MemoryBuffer(const MemoryBuffer &src);
+
+  /**
    * \brief destructor
    */
   ~MemoryBuffer();
@@ -338,8 +343,6 @@ class MemoryBuffer {
    * \brief clear the buffer. Make all pixels black transparent.
    */
   void clear();
-
-  MemoryBuffer *duplicate();
 
   float getMaximumValue();
   float getMaximumValue(rcti *rect);

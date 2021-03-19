@@ -74,6 +74,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect)
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = memoryProxy->getDataType();
 }
+
 MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
 {
   m_rect = rect;
@@ -88,14 +89,17 @@ MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = dataType;
 }
-MemoryBuffer *MemoryBuffer::duplicate()
+
+MemoryBuffer::MemoryBuffer(const MemoryBuffer &src) : MemoryBuffer(src.m_memoryProxy, src.m_rect)
 {
-  MemoryBuffer *result = new MemoryBuffer(this->m_memoryProxy, this->m_rect);
-  memcpy(result->m_buffer,
-         this->m_buffer,
-         this->determineBufferSize() * this->m_num_channels * sizeof(float));
-  return result;
+  memcpy(m_buffer, src.m_buffer, determineBufferSize() * m_num_channels * sizeof(float));
 }
+
+// MemoryBuffer *MemoryBuffer::duplicate()
+// {
+//   return new MemoryBuffer(*this);
+// }
+
 void MemoryBuffer::clear()
 {
   memset(this->m_buffer, 0, this->determineBufferSize() * this->m_num_channels * sizeof(float));
