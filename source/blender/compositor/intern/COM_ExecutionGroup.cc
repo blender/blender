@@ -70,19 +70,19 @@ CompositorPriority ExecutionGroup::getRenderPriotrity()
   return this->getOutputOperation()->getRenderPriority();
 }
 
-bool ExecutionGroup::canContainOperation(NodeOperation *operation)
+bool ExecutionGroup::can_contain(NodeOperation &operation)
 {
   if (!this->m_initialized) {
     return true;
   }
 
-  if (operation->isReadBufferOperation()) {
+  if (operation.isReadBufferOperation()) {
     return true;
   }
-  if (operation->isWriteBufferOperation()) {
+  if (operation.isWriteBufferOperation()) {
     return false;
   }
-  if (operation->isSetOperation()) {
+  if (operation.isSetOperation()) {
     return true;
   }
 
@@ -92,7 +92,7 @@ bool ExecutionGroup::canContainOperation(NodeOperation *operation)
   }
   /* complex ops can't be added to other groups (except their own, which they initialize, see
    * above) */
-  if (operation->isComplex()) {
+  if (operation.isComplex()) {
     return false;
   }
 
@@ -101,7 +101,7 @@ bool ExecutionGroup::canContainOperation(NodeOperation *operation)
 
 bool ExecutionGroup::addOperation(NodeOperation *operation)
 {
-  if (!canContainOperation(operation)) {
+  if (!can_contain(*operation)) {
     return false;
   }
 

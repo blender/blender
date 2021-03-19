@@ -184,7 +184,7 @@ class ExecutionGroup {
    * \brief check whether parameter operation can be added to the execution group
    * \param operation: the operation to be added
    */
-  bool canContainOperation(NodeOperation *operation);
+  bool can_contain(NodeOperation &operation);
 
   /**
    * \brief calculate the actual chunk size of this execution group.
