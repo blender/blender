@@ -258,6 +258,8 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
   Mesh *mesh = create_cylinder_or_cone_mesh(
       location, rotation, radius_top, radius_bottom, depth, verts_num, fill_type);
 
+  BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
+
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 
