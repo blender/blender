@@ -22,14 +22,14 @@
  * \brief possible data types for sockets
  * \ingroup Model
  */
-typedef enum DataType {
+enum class DataType {
   /** \brief Value data type */
-  COM_DT_VALUE = 1,
+  Value = 0,
   /** \brief Vector data type */
-  COM_DT_VECTOR = 2,
+  Vector = 1,
   /** \brief Color data type */
-  COM_DT_COLOR = 4,
-} DataType;
+  Color = 2,
+};
 
 /**
  * \brief Possible quality settings

@@ -22,8 +22,8 @@
 
 ConvertColorProfileOperation::ConvertColorProfileOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_inputOperation = nullptr;
   this->m_predivided = false;
 }

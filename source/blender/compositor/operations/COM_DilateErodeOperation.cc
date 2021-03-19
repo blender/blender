@@ -25,8 +25,8 @@
 // DilateErode Distance Threshold
 DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->setComplex(true);
   this->m_inputProgram = nullptr;
   this->m_inset = 0.0f;
@@ -161,8 +161,8 @@ bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
 // Dilate Distance
 DilateDistanceOperation::DilateDistanceOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->setComplex(true);
   this->m_inputProgram = nullptr;
   this->m_distance = 0.0f;
@@ -319,8 +319,8 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
 // Dilate step
 DilateStepOperation::DilateStepOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->setComplex(true);
   this->m_inputProgram = nullptr;
 }

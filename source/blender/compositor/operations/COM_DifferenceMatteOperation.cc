@@ -21,9 +21,9 @@
 
 DifferenceMatteOperation::DifferenceMatteOperation()
 {
-  addInputSocket(COM_DT_COLOR);
-  addInputSocket(COM_DT_COLOR);
-  addOutputSocket(COM_DT_VALUE);
+  addInputSocket(DataType::Color);
+  addInputSocket(DataType::Color);
+  addOutputSocket(DataType::Value);
 
   this->m_inputImage1Program = nullptr;
   this->m_inputImage2Program = nullptr;

@@ -428,22 +428,22 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from, const Node
   const DataType src_data_type = from.getDataType();
   const DataType dst_data_type = to.getDataType();
 
-  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_COLOR) {
+  if (src_data_type == DataType::Value && dst_data_type == DataType::Color) {
     return new ConvertValueToColorOperation();
   }
-  if (src_data_type == COM_DT_VALUE && dst_data_type == COM_DT_VECTOR) {
+  if (src_data_type == DataType::Value && dst_data_type == DataType::Vector) {
     return new ConvertValueToVectorOperation();
   }
-  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VALUE) {
+  if (src_data_type == DataType::Color && dst_data_type == DataType::Value) {
     return new ConvertColorToValueOperation();
   }
-  if (src_data_type == COM_DT_COLOR && dst_data_type == COM_DT_VECTOR) {
+  if (src_data_type == DataType::Color && dst_data_type == DataType::Vector) {
     return new ConvertColorToVectorOperation();
   }
-  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_VALUE) {
+  if (src_data_type == DataType::Vector && dst_data_type == DataType::Value) {
     return new ConvertVectorToValueOperation();
   }
-  if (src_data_type == COM_DT_VECTOR && dst_data_type == COM_DT_COLOR) {
+  if (src_data_type == DataType::Vector && dst_data_type == DataType::Color) {
     return new ConvertVectorToColorOperation();
   }
 

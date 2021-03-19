@@ -24,14 +24,14 @@
 
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);  // do not resize the bokeh image.
-  this->addInputSocket(COM_DT_VALUE);                    // radius
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);  // do not resize the bokeh image.
+  this->addInputSocket(DataType::Value);                    // radius
 #ifdef COM_DEFOCUS_SEARCH
-  this->addInputSocket(COM_DT_COLOR,
+  this->addInputSocket(DataType::Color,
                        COM_SC_NO_RESIZE);  // inverse search radius optimization structure.
 #endif
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->setOpenCL(true);
 
@@ -278,8 +278,8 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
 // InverseSearchRadiusOperation
 InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
-  this->addInputSocket(COM_DT_VALUE, COM_SC_NO_RESIZE);  // radius
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Value, COM_SC_NO_RESIZE);  // radius
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->m_inputRadius = nullptr;
 }
@@ -291,7 +291,7 @@ void InverseSearchRadiusOperation::initExecution()
 
 void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 {
-  MemoryBuffer *data = new MemoryBuffer(COM_DT_COLOR, rect);
+  MemoryBuffer *data = new MemoryBuffer(DataType::Color, rect);
   float *buffer = data->getBuffer();
   int x, y;
   int width = this->m_inputRadius->getWidth();

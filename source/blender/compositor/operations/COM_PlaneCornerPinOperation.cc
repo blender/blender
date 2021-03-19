@@ -89,10 +89,10 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
 
 PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(false)
 {
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
 
   /* XXX this is stupid: we need to make this "complex",
    * so we can use the initializeTileData function
@@ -153,10 +153,10 @@ void PlaneCornerPinMaskOperation::determineResolution(unsigned int resolution[2]
 
 PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : m_corners_ready(false)
 {
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
-  addInputSocket(COM_DT_VECTOR);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
+  addInputSocket(DataType::Vector);
 }
 
 void PlaneCornerPinWarpImageOperation::initExecution()

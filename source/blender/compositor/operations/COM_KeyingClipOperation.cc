@@ -25,8 +25,8 @@
 
 KeyingClipOperation::KeyingClipOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
 
   this->m_kernelRadius = 3;
   this->m_kernelTolerance = 0.1f;

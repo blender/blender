@@ -33,9 +33,9 @@ inline float colorbalance_cdl(float in, float offset, float power, float slope)
 
 ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->m_inputValueOperation = nullptr;
   this->m_inputColorOperation = nullptr;
   this->setResolutionInputSocketIndex(1);

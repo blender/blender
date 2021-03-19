@@ -29,8 +29,8 @@
 // Inpaint (simple convolve using average of known pixels)
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->m_inputImageProgram = nullptr;
   this->m_pixelorder = nullptr;

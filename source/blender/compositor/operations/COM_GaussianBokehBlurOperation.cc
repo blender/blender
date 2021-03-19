@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
+GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_gausstab = nullptr;
 }
@@ -195,7 +195,8 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(
 }
 
 // reference image
-GaussianBlurReferenceOperation::GaussianBlurReferenceOperation() : BlurBaseOperation(COM_DT_COLOR)
+GaussianBlurReferenceOperation::GaussianBlurReferenceOperation()
+    : BlurBaseOperation(DataType::Color)
 {
   this->m_maintabs = nullptr;
 }

@@ -20,7 +20,7 @@
 
 SetValueOperation::SetValueOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
 }
 
 void SetValueOperation::executePixelSampled(float output[4],

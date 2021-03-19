@@ -20,7 +20,7 @@
 
 SetColorOperation::SetColorOperation()
 {
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
 }
 
 void SetColorOperation::executePixelSampled(float output[4],

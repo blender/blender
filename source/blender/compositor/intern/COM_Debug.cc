@@ -165,13 +165,13 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
       }
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<IN_%p>", socket);
       switch (socket->getDataType()) {
-        case COM_DT_VALUE:
+        case DataType::Value:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
           break;
-        case COM_DT_VECTOR:
+        case DataType::Vector:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
           break;
-        case COM_DT_COLOR:
+        case DataType::Color:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
       }
@@ -203,13 +203,13 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
       }
       len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<OUT_%p>", socket);
       switch (socket->getDataType()) {
-        case COM_DT_VALUE:
+        case DataType::Value:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Value");
           break;
-        case COM_DT_VECTOR:
+        case DataType::Vector:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Vector");
           break;
-        case COM_DT_COLOR:
+        case DataType::Color:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
       }
@@ -390,13 +390,13 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
       std::string color;
       switch (from->getDataType()) {
-        case COM_DT_VALUE:
+        case DataType::Value:
           color = "gray";
           break;
-        case COM_DT_VECTOR:
+        case DataType::Vector:
           color = "blue";
           break;
-        case COM_DT_COLOR:
+        case DataType::Color:
           color = "orange";
           break;
       }

@@ -23,11 +23,11 @@
 static unsigned int determine_num_channels(DataType datatype)
 {
   switch (datatype) {
-    case COM_DT_VALUE:
+    case DataType::Value:
       return COM_NUM_CHANNELS_VALUE;
-    case COM_DT_VECTOR:
+    case DataType::Vector:
       return COM_NUM_CHANNELS_VECTOR;
-    case COM_DT_COLOR:
+    case DataType::Color:
     default:
       return COM_NUM_CHANNELS_COLOR;
   }
@@ -204,7 +204,7 @@ static void read_ewa_pixel_sampled(void *userdata, int x, int y, float result[4]
 
 void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivatives[2][2])
 {
-  BLI_assert(this->m_datatype == COM_DT_COLOR);
+  BLI_assert(this->m_datatype == DataType::Color);
   float inv_width = 1.0f / (float)this->getWidth(), inv_height = 1.0f / (float)this->getHeight();
   /* TODO(sergey): Render pipeline uses normalized coordinates and derivatives,
    * but compositor uses pixel space. For now let's just divide the values and

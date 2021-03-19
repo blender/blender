@@ -22,8 +22,8 @@
 
 VectorCurveOperation::VectorCurveOperation()
 {
-  this->addInputSocket(COM_DT_VECTOR);
-  this->addOutputSocket(COM_DT_VECTOR);
+  this->addInputSocket(DataType::Vector);
+  this->addOutputSocket(DataType::Vector);
 
   this->m_inputProgram = nullptr;
 }

@@ -22,9 +22,9 @@
 
 ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
   this->m_inputProgram = nullptr;
   this->m_dispersionAvailable = false;

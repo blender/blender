@@ -24,11 +24,11 @@
 
 ColorCurveOperation::ColorCurveOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
 
   this->m_inputFacProgram = nullptr;
   this->m_inputImageProgram = nullptr;
@@ -100,9 +100,9 @@ void ColorCurveOperation::deinitExecution()
 
 ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Color);
 
   this->m_inputFacProgram = nullptr;
   this->m_inputImageProgram = nullptr;

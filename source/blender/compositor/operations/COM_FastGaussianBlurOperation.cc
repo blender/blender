@@ -22,7 +22,7 @@
 #include "COM_FastGaussianBlurOperation.h"
 #include "MEM_guardedalloc.h"
 
-FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
+FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_iirgaus = nullptr;
 }
@@ -258,8 +258,8 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
 ///
 FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->m_iirgaus = nullptr;
   this->m_inputprogram = nullptr;
   this->m_sigma = 1.0f;

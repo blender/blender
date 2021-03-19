@@ -42,7 +42,7 @@ class MultilayerColorOperation : public MultilayerBaseOperation {
   MultilayerColorOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
       : MultilayerBaseOperation(render_layer, render_pass, view)
   {
-    this->addOutputSocket(COM_DT_COLOR);
+    this->addOutputSocket(DataType::Color);
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   std::unique_ptr<MetaData> getMetaData() const override;
@@ -53,7 +53,7 @@ class MultilayerValueOperation : public MultilayerBaseOperation {
   MultilayerValueOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
       : MultilayerBaseOperation(render_layer, render_pass, view)
   {
-    this->addOutputSocket(COM_DT_VALUE);
+    this->addOutputSocket(DataType::Value);
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
@@ -63,7 +63,7 @@ class MultilayerVectorOperation : public MultilayerBaseOperation {
   MultilayerVectorOperation(RenderLayer *render_layer, RenderPass *render_pass, int view)
       : MultilayerBaseOperation(render_layer, render_pass, view)
   {
-    this->addOutputSocket(COM_DT_VECTOR);
+    this->addOutputSocket(DataType::Vector);
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };

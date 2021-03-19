@@ -45,12 +45,12 @@ Node::Node(bNode *editorNode, bool create_sockets)
   if (create_sockets) {
     bNodeSocket *input = (bNodeSocket *)editorNode->inputs.first;
     while (input != nullptr) {
-      DataType dt = COM_DT_VALUE;
+      DataType dt = DataType::Value;
       if (input->type == SOCK_RGBA) {
-        dt = COM_DT_COLOR;
+        dt = DataType::Color;
       }
       if (input->type == SOCK_VECTOR) {
-        dt = COM_DT_VECTOR;
+        dt = DataType::Vector;
       }
 
       this->addInputSocket(dt, input);
@@ -58,12 +58,12 @@ Node::Node(bNode *editorNode, bool create_sockets)
     }
     bNodeSocket *output = (bNodeSocket *)editorNode->outputs.first;
     while (output != nullptr) {
-      DataType dt = COM_DT_VALUE;
+      DataType dt = DataType::Value;
       if (output->type == SOCK_RGBA) {
-        dt = COM_DT_COLOR;
+        dt = DataType::Color;
       }
       if (output->type == SOCK_VECTOR) {
-        dt = COM_DT_VECTOR;
+        dt = DataType::Vector;
       }
 
       this->addOutputSocket(dt, output);

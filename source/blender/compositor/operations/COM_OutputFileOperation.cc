@@ -50,11 +50,11 @@ void add_exr_channels(void *exrhandle,
 {
   /* create channels */
   switch (datatype) {
-    case COM_DT_VALUE:
+    case DataType::Value:
       IMB_exr_add_channel(
           exrhandle, layerName, "V", viewName, 1, width, buf ? buf : nullptr, use_half_float);
       break;
-    case COM_DT_VECTOR:
+    case DataType::Vector:
       IMB_exr_add_channel(
           exrhandle, layerName, "X", viewName, 3, 3 * width, buf ? buf : nullptr, use_half_float);
       IMB_exr_add_channel(exrhandle,
@@ -74,7 +74,7 @@ void add_exr_channels(void *exrhandle,
                           buf ? buf + 2 : nullptr,
                           use_half_float);
       break;
-    case COM_DT_COLOR:
+    case DataType::Color:
       IMB_exr_add_channel(
           exrhandle, layerName, "R", viewName, 4, 4 * width, buf ? buf : nullptr, use_half_float);
       IMB_exr_add_channel(exrhandle,
@@ -124,13 +124,13 @@ void free_exr_channels(void *exrhandle,
 
     /* the pointer is stored in the first channel of each datatype */
     switch (datatype) {
-      case COM_DT_VALUE:
+      case DataType::Value:
         rect = IMB_exr_channel_rect(exrhandle, layerName, "V", srv->name);
         break;
-      case COM_DT_VECTOR:
+      case DataType::Vector:
         rect = IMB_exr_channel_rect(exrhandle, layerName, "X", srv->name);
         break;
-      case COM_DT_COLOR:
+      case DataType::Color:
         rect = IMB_exr_channel_rect(exrhandle, layerName, "R", srv->name);
         break;
       default:
@@ -145,11 +145,11 @@ void free_exr_channels(void *exrhandle,
 int get_datatype_size(DataType datatype)
 {
   switch (datatype) {
-    case COM_DT_VALUE:
+    case DataType::Value:
       return 1;
-    case COM_DT_VECTOR:
+    case DataType::Vector:
       return 3;
-    case COM_DT_COLOR:
+    case DataType::Color:
       return 4;
     default:
       return 0;

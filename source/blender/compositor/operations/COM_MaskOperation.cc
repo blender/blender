@@ -28,7 +28,7 @@
 
 MaskOperation::MaskOperation()
 {
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addOutputSocket(DataType::Value);
   this->m_mask = nullptr;
   this->m_maskWidth = 0;
   this->m_maskHeight = 0;

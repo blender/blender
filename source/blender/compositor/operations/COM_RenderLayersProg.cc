@@ -146,13 +146,13 @@ void RenderLayersProg::executePixelSampled(float output[4], float x, float y, Pi
     const DataType data_type = this->getOutputSocket()->getDataType();
     int actual_element_size = this->m_elementsize;
     int expected_element_size;
-    if (data_type == COM_DT_VALUE) {
+    if (data_type == DataType::Value) {
       expected_element_size = 1;
     }
-    else if (data_type == COM_DT_VECTOR) {
+    else if (data_type == DataType::Vector) {
       expected_element_size = 3;
     }
-    else if (data_type == COM_DT_COLOR) {
+    else if (data_type == DataType::Color) {
       expected_element_size = 4;
     }
     else {

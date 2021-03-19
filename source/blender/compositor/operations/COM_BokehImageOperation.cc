@@ -21,7 +21,7 @@
 
 BokehImageOperation::BokehImageOperation()
 {
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
   this->m_deleteData = false;
 }
 void BokehImageOperation::initExecution()

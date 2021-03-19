@@ -46,13 +46,13 @@ NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter,
   NodeOutput *outputSocket = this->getOutputSocket(outputsocketIndex);
   MultilayerBaseOperation *operation = nullptr;
   switch (datatype) {
-    case COM_DT_VALUE:
+    case DataType::Value:
       operation = new MultilayerValueOperation(render_layer, render_pass, view);
       break;
-    case COM_DT_VECTOR:
+    case DataType::Vector:
       operation = new MultilayerVectorOperation(render_layer, render_pass, view);
       break;
-    case COM_DT_COLOR:
+    case DataType::Color:
       operation = new MultilayerColorOperation(render_layer, render_pass, view);
       break;
     default:
@@ -137,7 +137,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
                                               framenumber,
                                               index,
                                               view,
-                                              COM_DT_VALUE);
+                                              DataType::Value);
                 break;
                 /* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
                 /* XXX any way to detect actual vector images? */
@@ -150,7 +150,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
                                               framenumber,
                                               index,
                                               view,
-                                              COM_DT_VECTOR);
+                                              DataType::Vector);
                 break;
               case 4:
                 operation = doMultilayerCheck(converter,
@@ -161,7 +161,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
                                               framenumber,
                                               index,
                                               view,
-                                              COM_DT_COLOR);
+                                              DataType::Color);
                 break;
               default:
                 /* dummy operation is added below */
@@ -263,13 +263,13 @@ void ImageNode::convertToOperations(NodeConverter &converter,
         NodeOutput *output = this->getOutputSocket(i);
         NodeOperation *operation = nullptr;
         switch (output->getDataType()) {
-          case COM_DT_VALUE: {
+          case DataType::Value: {
             SetValueOperation *valueoperation = new SetValueOperation();
             valueoperation->setValue(0.0f);
             operation = valueoperation;
             break;
           }
-          case COM_DT_VECTOR: {
+          case DataType::Vector: {
             SetVectorOperation *vectoroperation = new SetVectorOperation();
             vectoroperation->setX(0.0f);
             vectoroperation->setY(0.0f);
@@ -277,7 +277,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
             operation = vectoroperation;
             break;
           }
-          case COM_DT_COLOR: {
+          case DataType::Color: {
             SetColorOperation *coloroperation = new SetColorOperation();
             coloroperation->setChannel1(0.0f);
             coloroperation->setChannel2(0.0f);

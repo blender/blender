@@ -297,7 +297,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
                                                     const NodeInput *node_input)
 {
   switch (input->getDataType()) {
-    case COM_DT_VALUE: {
+    case DataType::Value: {
       float value;
       if (node_input && node_input->getbNodeSocket()) {
         value = node_input->getEditorValueFloat();
@@ -312,7 +312,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
       addLink(op->getOutputSocket(), input);
       break;
     }
-    case COM_DT_COLOR: {
+    case DataType::Color: {
       float value[4];
       if (node_input && node_input->getbNodeSocket()) {
         node_input->getEditorValueColor(value);
@@ -327,7 +327,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
       addLink(op->getOutputSocket(), input);
       break;
     }
-    case COM_DT_VECTOR: {
+    case DataType::Vector: {
       float value[3];
       if (node_input && node_input->getbNodeSocket()) {
         node_input->getEditorValueVector(value);

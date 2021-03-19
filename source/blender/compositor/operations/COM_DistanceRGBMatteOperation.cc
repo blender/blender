@@ -21,9 +21,9 @@
 
 DistanceRGBMatteOperation::DistanceRGBMatteOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_COLOR);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Color);
+  this->addOutputSocket(DataType::Value);
 
   this->m_inputImageProgram = nullptr;
   this->m_inputKeyProgram = nullptr;

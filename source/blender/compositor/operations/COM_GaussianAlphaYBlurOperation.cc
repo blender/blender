@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(COM_DT_VALUE)
+GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(DataType::Value)
 {
   this->m_gausstab = nullptr;
   this->m_filtersize = 0;

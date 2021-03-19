@@ -23,7 +23,7 @@
 
 #include "RE_pipeline.h"
 
-GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
+GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_gausstab = nullptr;
 #ifdef BLI_HAVE_SSE2

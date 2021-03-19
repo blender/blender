@@ -60,7 +60,7 @@ class MemoryBuffer {
   MemoryProxy *m_memoryProxy;
 
   /**
-   * \brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
+   * \brief the type of buffer DataType::Value, DataType::Vector, DataType::Color
    */
   DataType m_datatype;
 

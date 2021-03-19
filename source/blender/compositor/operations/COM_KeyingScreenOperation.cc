@@ -32,7 +32,7 @@
 
 KeyingScreenOperation::KeyingScreenOperation()
 {
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
   this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObject[0] = 0;

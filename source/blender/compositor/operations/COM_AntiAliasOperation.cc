@@ -114,8 +114,8 @@ static int extrapolate9(float *E0,
 
 AntiAliasOperation::AntiAliasOperation()
 {
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_VALUE);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Value);
   this->m_valueReader = nullptr;
   this->setComplex(true);
 }

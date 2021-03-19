@@ -46,8 +46,8 @@ BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], flo
 
 PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation()
 {
-  this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addOutputSocket(DataType::Color);
   this->m_pixelReader = nullptr;
   this->m_motion_blur_samples = 1;
   this->m_motion_blur_shutter = 0.5f;
@@ -147,7 +147,7 @@ bool PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
 
 PlaneDistortMaskOperation::PlaneDistortMaskOperation()
 {
-  addOutputSocket(COM_DT_VALUE);
+  addOutputSocket(DataType::Value);
 
   /* Currently hardcoded to 8 samples. */
   m_osa = 8;

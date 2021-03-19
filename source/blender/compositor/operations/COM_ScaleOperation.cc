@@ -37,10 +37,10 @@ BaseScaleOperation::BaseScaleOperation()
 
 ScaleOperation::ScaleOperation() : BaseScaleOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
@@ -112,10 +112,10 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input,
 // SCALE ABSOLUTE
 ScaleAbsoluteOperation::ScaleAbsoluteOperation() : BaseScaleOperation()
 {
-  this->addInputSocket(COM_DT_COLOR);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addInputSocket(COM_DT_VALUE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color);
+  this->addInputSocket(DataType::Value);
+  this->addInputSocket(DataType::Value);
+  this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_inputXOperation = nullptr;
@@ -203,8 +203,8 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
 // Absolute fixed size
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
-  this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
   this->m_is_offset = false;

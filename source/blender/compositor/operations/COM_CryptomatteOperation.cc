@@ -21,10 +21,10 @@
 CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
 {
   for (size_t i = 0; i < num_inputs; i++) {
-    this->addInputSocket(COM_DT_COLOR);
+    this->addInputSocket(DataType::Color);
   }
   inputs.resize(num_inputs);
-  this->addOutputSocket(COM_DT_COLOR);
+  this->addOutputSocket(DataType::Color);
   this->setComplex(true);
 }
 
