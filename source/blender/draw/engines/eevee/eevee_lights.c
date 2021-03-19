@@ -41,20 +41,16 @@ void eevee_light_matrix_get(const EEVEE_Light *evli, float r_mat[4][4])
   r_mat[3][3] = 1.0f;
 }
 
-static float light_attenuation_radius_get(const Light *la, float light_threshold)
+static float light_attenuation_radius_get(const Light *la,
+                                          float light_threshold,
+                                          float light_power)
 {
   if (la->mode & LA_CUSTOM_ATTENUATION) {
     return la->att_dist;
   }
-
-  /* Compute max light power. */
-  float power = max_fff(la->r, la->g, la->b);
-  power *= fabsf(la->energy / 100.0f);
-  power *= max_fff(la->diff_fac, la->spec_fac, la->volume_fac);
   /* Compute the distance (using the inverse square law)
    * at which the light power reaches the light_threshold. */
-  float distance = sqrtf(max_ff(1e-16, power / max_ff(1e-16, light_threshold)));
-  return distance;
+  return sqrtf(max_ff(1e-16, light_power / max_ff(1e-16, light_threshold)));
 }
 
 static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, const float scale[3])
@@ -138,7 +134,7 @@ static float light_shape_power_volume_get(const Light *la, float area_power)
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 {
   const Light *la = (Light *)ob->data;
-  float mat[4][4], scale[3], att_radius;
+  float mat[4][4], scale[3];
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const float light_threshold = draw_ctx->scene->eevee.light_threshold;
@@ -153,10 +149,16 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   evli->spec = la->spec_fac;
   evli->volume = la->volume_fac;
 
-  /* Influence Radius */
-  att_radius = light_attenuation_radius_get(la, light_threshold);
+  float max_power = max_fff(la->r, la->g, la->b) * fabsf(la->energy / 100.0f);
+  float surface_max_power = max_ff(evli->diff, evli->spec) * max_power;
+  float volume_max_power = evli->volume * max_power;
+
+  /* Influence Radii. */
+  float att_radius = light_attenuation_radius_get(la, light_threshold, surface_max_power);
+  float att_radius_volume = light_attenuation_radius_get(la, light_threshold, volume_max_power);
   /* Take the inverse square of this distance. */
-  evli->invsqrdist = 1.0 / max_ff(1e-4f, att_radius * att_radius);
+  evli->invsqrdist = 1.0f / max_ff(1e-4f, square_f(att_radius));
+  evli->invsqrdist_volume = 1.0f / max_ff(1e-4f, square_f(att_radius_volume));
 
   /* Vectors */
   normalize_m4_m4_ex(mat, ob->obmat, scale);

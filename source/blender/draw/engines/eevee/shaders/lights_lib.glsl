@@ -251,7 +251,11 @@ float light_attenuation(LightData ld, vec4 l_vector)
     vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
   }
   if (ld.l_type != SUN) {
+#ifdef VOLUME_LIGHTING
+    vis *= distance_attenuation(l_vector.w * l_vector.w, ld.l_influence_volume);
+#else
     vis *= distance_attenuation(l_vector.w * l_vector.w, ld.l_influence);
+#endif
   }
   return vis;
 }
