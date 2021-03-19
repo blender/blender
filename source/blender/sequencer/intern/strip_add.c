@@ -413,6 +413,32 @@ Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
 #endif  // WITH_AUDASPACE
 
 /**
+ * Add meta strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
+
+Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
+{
+  /* Allocate sequence. */
+  Sequence *seqm = SEQ_sequence_alloc(
+      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_META);
+
+  /* Set name. */
+  seq_add_set_name(seqm, load_data);
+
+  /* Set frames start and length. */
+  seqm->start = load_data->start_frame;
+  seqm->len = 1;
+  SEQ_time_update_sequence(scene, seqm);
+
+  return seqm;
+}
+
+/**
  * Add movie strip.
  *
  * \param main: Main reference
