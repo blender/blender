@@ -127,6 +127,20 @@ vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D volume_extinction)
 {
 #if defined(VOLUME_SHADOW)
+  /* If light is shadowed, use the shadow vector, if not, reuse the light vector. */
+  if (volUseSoftShadows && ld.l_shadowid >= 0.0) {
+    ShadowData sd = shadows_data[int(ld.l_shadowid)];
+
+    if (ld.l_type == SUN) {
+      l_vector.xyz = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec;
+      /* No need for length, it is recomputed later. */
+    }
+    else {
+      l_vector.xyz = shadows_cube_data[int(sd.sh_data_index)].position.xyz - ray_wpos;
+      l_vector.w = length(l_vector.xyz);
+    }
+  }
+
   /* Heterogeneous volume shadows */
   float dd = l_vector.w / volShadowSteps;
   vec3 L = l_vector.xyz / volShadowSteps;
