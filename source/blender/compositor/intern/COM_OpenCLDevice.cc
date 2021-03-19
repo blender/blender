@@ -67,7 +67,7 @@ void OpenCLDevice::execute(WorkPackage *work)
 
   executionGroup->determineChunkRect(&rect, chunkNumber);
   MemoryBuffer **inputBuffers = executionGroup->getInputBuffersOpenCL(chunkNumber);
-  MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(chunkNumber, &rect);
+  MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(rect);
 
   executionGroup->getOutputOperation()->executeOpenCLRegion(
       this, &rect, chunkNumber, inputBuffers, outputBuffer);

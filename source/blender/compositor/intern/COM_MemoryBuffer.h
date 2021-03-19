@@ -98,17 +98,17 @@ class MemoryBuffer {
   /**
    * \brief construct new MemoryBuffer for a chunk
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti &rect);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
+  MemoryBuffer(MemoryProxy *memoryProxy, rcti &rect);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(DataType datatype, rcti *rect);
+  MemoryBuffer(DataType datatype, rcti &rect);
 
   /**
    * \brief destructor

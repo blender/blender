@@ -45,7 +45,7 @@ MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2)
   rect.ymin = 0;
   rect.xmax = getWidth();
   rect.ymax = getHeight();
-  MemoryBuffer *result = new MemoryBuffer(DataType::Color, &rect);
+  MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
   float *data = result->getBuffer();
   this->generateGlare(data, tile, this->m_settings);
   return result;

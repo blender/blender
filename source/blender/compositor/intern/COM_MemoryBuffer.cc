@@ -47,9 +47,9 @@ int MemoryBuffer::getHeight() const
   return this->m_height;
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti &rect)
 {
-  BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+  m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
   this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_memoryProxy = memoryProxy;
@@ -61,9 +61,9 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
   this->m_datatype = memoryProxy->getDataType();
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
+MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti &rect)
 {
-  BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+  m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
   this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_memoryProxy = memoryProxy;
@@ -74,9 +74,9 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
   this->m_state = COM_MB_TEMPORARILY;
   this->m_datatype = memoryProxy->getDataType();
 }
-MemoryBuffer::MemoryBuffer(DataType dataType, rcti *rect)
+MemoryBuffer::MemoryBuffer(DataType dataType, rcti &rect)
 {
-  BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+  m_rect = rect;
   this->m_width = BLI_rcti_size_x(&this->m_rect);
   this->m_height = BLI_rcti_size_y(&this->m_rect);
   this->m_height = this->m_rect.ymax - this->m_rect.ymin;
@@ -90,7 +90,7 @@ MemoryBuffer::MemoryBuffer(DataType dataType, rcti *rect)
 }
 MemoryBuffer *MemoryBuffer::duplicate()
 {
-  MemoryBuffer *result = new MemoryBuffer(this->m_memoryProxy, &this->m_rect);
+  MemoryBuffer *result = new MemoryBuffer(this->m_memoryProxy, this->m_rect);
   memcpy(result->m_buffer,
          this->m_buffer,
          this->determineBufferSize() * this->m_num_channels * sizeof(float));
@@ -127,11 +127,9 @@ float MemoryBuffer::getMaximumValue(rcti *rect)
   BLI_rcti_isect(rect, &this->m_rect, &rect_clamp);
 
   if (!BLI_rcti_is_empty(&rect_clamp)) {
-    MemoryBuffer *temp = new MemoryBuffer(this->m_datatype, &rect_clamp);
-    temp->copyContentFrom(this);
-    float result = temp->getMaximumValue();
-    delete temp;
-    return result;
+    MemoryBuffer temp_buffer(this->m_datatype, rect_clamp);
+    temp_buffer.copyContentFrom(this);
+    return temp_buffer.getMaximumValue();
   }
 
   BLI_assert(0);

@@ -339,7 +339,7 @@ class ExecutionGroup {
    * \brief compose multiple chunks into a single chunk
    * \return Memorybuffer *consolidated chunk
    */
-  MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
+  MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy &memoryProxy, rcti &rect);
 
   /**
    * \brief initExecution is called just before the execution of the whole graph will be done.
@@ -369,7 +369,7 @@ class ExecutionGroup {
    * \param rect: the rect of that chunk
    * \see determineChunkRect
    */
-  MemoryBuffer *allocateOutputBuffer(int chunkNumber, rcti *rect);
+  MemoryBuffer *allocateOutputBuffer(rcti &rect);
 
   /**
    * \brief after a chunk is executed the needed resources can be freed or unlocked.

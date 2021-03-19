@@ -373,17 +373,17 @@ MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
     MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
     this->determineDependingAreaOfInterest(&rect, readOperation, &output);
     MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(
-        memoryProxy, &output);
+        *memoryProxy, output);
     memoryBuffers[readOperation->getOffset()] = memoryBuffer;
   }
   return memoryBuffers;
 }
 
-MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy,
-                                                                rcti *rect)
+MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy &memoryProxy,
+                                                                rcti &rect)
 {
-  MemoryBuffer *imageBuffer = memoryProxy->getBuffer();
-  MemoryBuffer *result = new MemoryBuffer(memoryProxy, rect);
+  MemoryBuffer *imageBuffer = memoryProxy.getBuffer();
+  MemoryBuffer *result = new MemoryBuffer(&memoryProxy, rect);
   result->copyContentFrom(imageBuffer);
   return result;
 }
@@ -454,7 +454,7 @@ void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumb
   determineChunkRect(rect, xChunk, yChunk);
 }
 
-MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int /*chunkNumber*/, rcti *rect)
+MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
 {
   // we assume that this method is only called from complex execution groups.
   NodeOperation *operation = this->getOutputOperation();
