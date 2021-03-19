@@ -279,18 +279,16 @@ void NodeOperationBuilder::add_operation_input_constants()
   /* Note: unconnected inputs cached first to avoid modifying
    *       m_operations while iterating over it
    */
-  using Inputs = std::vector<NodeOperationInput *>;
-  Inputs pending_inputs;
+  blender::Vector<NodeOperationInput *> pending_inputs;
   for (NodeOperation *op : m_operations) {
     for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
       if (!input->isConnected()) {
-        pending_inputs.push_back(input);
+        pending_inputs.append(input);
       }
     }
   }
-  for (Inputs::const_iterator it = pending_inputs.begin(); it != pending_inputs.end(); ++it) {
-    NodeOperationInput *input = *it;
+  for (NodeOperationInput *input : pending_inputs) {
     add_input_constant_value(input, m_input_map.lookup_default(input, nullptr));
   }
 }
