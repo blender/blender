@@ -243,11 +243,27 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
   linfo->num_light++;
 }
 
-void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(vedata))
+void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_LightsInfo *linfo = sldata->lights;
 
   sldata->common_data.la_num_light = linfo->num_light;
+
+  /* Clamp volume lights power. */
+  float upper_bound = vedata->stl->effects->volume_light_clamp;
+  for (int i = 0; i < linfo->num_light; i++) {
+    EEVEE_Light *evli = linfo->light_data + i;
+
+    float power = max_fff(UNPACK3(evli->color)) * evli->volume;
+    if (power > 0.0f && evli->light_type != LA_SUN) {
+      /* The limit of the power attenuation function when the distance to the light goes to 0 is
+       * 2 / r² where r is the light radius. We need to find the right radius that emits at most
+       * the volume light upper bound. Inverting the function we get: */
+      float min_radius = 1.0f / sqrtf(0.5f * upper_bound / power);
+      /* Square it here to avoid a multiplication inside the shader. */
+      evli->volume_radius = square_f(max_ff(min_radius, evli->radius));
+    }
+  }
 
   GPU_uniformbuf_update(sldata->light_ubo, &linfo->light_data);
 }

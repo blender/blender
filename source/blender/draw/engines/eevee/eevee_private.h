@@ -489,7 +489,7 @@ typedef struct EEVEE_Light {
   float rightvec[3], sizex;
   float upvec[3], sizey;
   float forwardvec[3], light_type;
-  float diff, spec, volume, _pad0[1];
+  float diff, spec, volume, volume_radius;
 } EEVEE_Light;
 
 /* Special type for elliptic area lights, matches lamps_lib.glsl */
@@ -717,6 +717,7 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *sss_stencil;
   /* Volumetrics */
   int volume_current_sample;
+  float volume_light_clamp;
   struct GPUTexture *volume_scatter;
   struct GPUTexture *volume_transmit;
   /* SSR */

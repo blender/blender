@@ -19,7 +19,7 @@ struct LightData {
   vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: area size X or spot scale X */
   vec4 upvec_sizey;            /* xyz: Normalized right vector, w: area size Y or spot scale Y */
   vec4 forwardvec_type;        /* xyz: Normalized forward vector, w: Light Type */
-  vec4 diff_spec_volume;       /* xyz: Diffuse/Spec/Volume power, w: unused. */
+  vec4 diff_spec_volume;       /* xyz: Diffuse/Spec/Volume power, w: radius for volumetric. */
 };
 
 /* convenience aliases */
@@ -27,6 +27,7 @@ struct LightData {
 #define l_diff diff_spec_volume.x
 #define l_spec diff_spec_volume.y
 #define l_volume diff_spec_volume.z
+#define l_volume_radius diff_spec_volume.w
 #define l_position position_influence.xyz
 #define l_influence position_influence.w
 #define l_influence_volume color_influence_volume.w
