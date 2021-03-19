@@ -72,7 +72,7 @@ static void light_shape_parameters_set(EEVEE_Light *evli, const Light *la, const
       evli->sizey = max_ff(0.003f, la->area_size * scale[1] * 0.5f);
     }
     /* For volume point lighting. */
-    evli->radius = max_ff(0.001f, hypotf(evli->sizex, evli->sizey));
+    evli->radius = max_ff(0.001f, hypotf(evli->sizex, evli->sizey) * 0.5f);
   }
   else if (la->type == LA_SUN) {
     evli->radius = max_ff(0.001f, tanf(min_ff(la->sun_angle, DEG2RADF(179.9f)) / 2.0f));
@@ -111,14 +111,22 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
   return power;
 }
 
-static float light_shape_power_volume_get(const Light *la, float area_power)
+static float light_shape_power_volume_get(const Light *la,
+                                          const EEVEE_Light *evli,
+                                          float area_power)
 {
   /* Volume light is evaluated as point lights. Remove the shape power. */
   float power = 1.0f / area_power;
-  /* Make illumination power constant */
+
   if (la->type == LA_AREA) {
     /* Match cycles. Empirical fit... must correspond to some constant. */
     power *= 0.0792f * M_PI;
+    /* This corrects for area light most representative point trick. The fit was found by
+     * reducing the average error compared to cycles. */
+    float area = evli->sizex * evli->sizey;
+    float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
+    /* Lerp between 1.0 and the limit (1 / pi). */
+    power *= tmp + (1.0f - tmp) * M_1_PI;
   }
   else if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
     /* Match cycles. Empirical fit... must correspond to some constant. */
@@ -191,7 +199,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   float shape_power = light_shape_power_get(la, evli);
   mul_v3_fl(evli->color, shape_power * la->energy);
 
-  evli->volume *= light_shape_power_volume_get(la, shape_power);
+  evli->volume *= light_shape_power_volume_get(la, evli, shape_power);
 
   /* No shadow by default */
   evli->shadow_id = -1.0f;

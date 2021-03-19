@@ -90,6 +90,23 @@ vec3 light_volume_light_vector(LightData ld, vec3 P)
   if (ld.l_type == SUN) {
     return -ld.l_forward;
   }
+  else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
+    vec3 L = P - ld.l_position;
+    vec2 closest_point = vec2(dot(ld.l_right, L), dot(ld.l_up, L));
+    vec2 max_pos = vec2(ld.l_sizex, ld.l_sizey);
+    closest_point /= max_pos;
+
+    if (ld.l_type == AREA_ELLIPSE) {
+      closest_point /= max(1.0, length(closest_point));
+    }
+    else {
+      closest_point = clamp(closest_point, -1.0, 1.0);
+    }
+    closest_point *= max_pos;
+
+    vec3 L_prime = ld.l_right * closest_point.x + ld.l_up * closest_point.y;
+    return L_prime - L;
+  }
   else {
     return ld.l_position - P;
   }
