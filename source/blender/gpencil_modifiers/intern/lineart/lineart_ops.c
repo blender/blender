@@ -29,6 +29,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -49,6 +50,24 @@
 #include "MOD_lineart.h"
 
 #include "lineart_intern.h"
+
+static bool lineart_mod_is_disabled(GpencilModifierData *md)
+{
+  BLI_assert(md->type == eGpencilModifierType_Lineart);
+
+  const GpencilModifierTypeInfo *info = BKE_gpencil_modifier_get_info(md->type);
+
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
+
+  /* Toggle on and off the baked flag as we are only interested in if something else is disabling
+   * it. We can assume that the guard function has already toggled this on for all modifiers that
+   * are sent here. */
+  lmd->flags &= (~LRT_GPENCIL_IS_BAKED);
+  bool disabled = info->isDisabled(md, 0);
+  lmd->flags |= LRT_GPENCIL_IS_BAKED;
+
+  return disabled;
+}
 
 static void clear_strokes(Object *ob, GpencilModifierData *md, int frame)
 {
@@ -74,6 +93,11 @@ static void clear_strokes(Object *ob, GpencilModifierData *md, int frame)
 
 static bool bake_strokes(Object *ob, Depsgraph *dg, GpencilModifierData *md, int frame)
 {
+  /* Modifier data sanity check. */
+  if (lineart_mod_is_disabled(md)) {
+    return false;
+  }
+
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
   bGPdata *gpd = ob->data;
 
@@ -148,11 +172,16 @@ static bool lineart_gpencil_bake_single_target(LineartBakeJob *bj, Object *ob, i
 
   if (bj->overwrite_frames) {
     LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
-      clear_strokes(ob, md, frame);
+      if (md->type == eGpencilModifierType_Lineart) {
+        clear_strokes(ob, md, frame);
+      }
     }
   }
 
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+    if (md->type != eGpencilModifierType_Lineart) {
+      continue;
+    }
     if (bake_strokes(ob, bj->dg, md, frame)) {
       touched = true;
     }
@@ -254,6 +283,7 @@ static int lineart_gpencil_bake_common(bContext *C,
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
           if (md->type == eGpencilModifierType_Lineart) {
             BLI_linklist_prepend(&bj->objects, ob);
+            break;
           }
         }
       }
