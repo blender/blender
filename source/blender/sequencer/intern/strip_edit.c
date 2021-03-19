@@ -43,9 +43,11 @@
 #include "SEQ_add.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 int SEQ_edit_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
@@ -100,6 +102,26 @@ int SEQ_edit_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_
   SWAP(int, seq_a->enddisp, seq_b->enddisp);
 
   return 1;
+}
+
+int SEQ_edit_move_strip_to_meta(Scene *scene, Sequence *src_seq, Sequence *dst_seqm)
+{
+  /* Find the appropriate seqbase */
+  Editing *ed = SEQ_editing_get(scene, false);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, src_seq);
+
+  /* Move to meta */
+  BLI_remlink(seqbase, src_seq);
+  BLI_addtail(&dst_seqm->seqbase, src_seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, src_seq);
+
+  /* Update meta */
+  SEQ_time_update_sequence(scene, dst_seqm);
+  if (SEQ_transform_test_overlap(&dst_seqm->seqbase, src_seq)) {
+    SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, src_seq, scene);
+  }
+
+  return 0;
 }
 
 static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)

@@ -81,6 +81,23 @@ static void rna_Sequence_swap_internal(Sequence *seq_self,
   }
 }
 
+static void rna_Sequences_move_strip_to_meta(ID *id,
+                                             Sequence *seq_self,
+                                             Main *bmain,
+                                             Sequence *meta_dst)
+{
+  Scene *scene = (Scene *)id;
+
+  /* Move strip to meta */
+  SEQ_edit_move_strip_to_meta(scene, seq_self, meta_dst);
+
+  /* Udate depsgraph */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 static Sequence *rna_Sequences_new_clip(ID *id,
                                         ListBase *seqbase,
                                         Main *bmain,
@@ -605,6 +622,11 @@ void RNA_api_sequence_strip(StructRNA *srna)
   func = RNA_def_function(srna, "swap", "rna_Sequence_swap_internal");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "other", "Sequence", "Other", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "move_to_meta", "rna_Sequences_move_strip_to_meta");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  parm = RNA_def_pointer(func, "meta_sequence", "Sequence", "Destination Meta Sequence", "Meta to move the strip into");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "invalidate_cache", "rna_Sequence_invalidate_cache_rnafunc");
