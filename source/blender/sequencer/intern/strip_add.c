@@ -327,6 +327,15 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   BLI_path_abs(file_path, BKE_main_blendfile_path(bmain));
   ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
   if (ibuf != NULL) {
+    /* Set image resolution. Assume that all images in sequence are same size. This fields are only
+     * informative. */
+    StripElem *strip_elem = strip->stripdata;
+    for (int i = 0; i < load_data->image.len; i++) {
+      strip_elem->orig_width = ibuf->x;
+      strip_elem->orig_height = ibuf->y;
+      strip_elem++;
+    }
+
     SEQ_set_scale_to_fit(
         seq, ibuf->x, ibuf->y, scene->r.xsch, scene->r.ysch, load_data->fit_method);
     IMB_freeImBuf(ibuf);
@@ -458,6 +467,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
   struct anim **anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
   int i;
+  float width;
+  float height;
 
   if (load_data->use_multiview && (load_data->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     char prefix[FILE_MAX];
@@ -528,8 +539,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
 
     /* Set initial scale based on load_data->fit_method. */
-    const float width = IMB_anim_get_image_width(anim_arr[0]);
-    const float height = IMB_anim_get_image_height(anim_arr[0]);
+    width = IMB_anim_get_image_width(anim_arr[0]);
+    height = IMB_anim_get_image_height(anim_arr[0]);
     SEQ_set_scale_to_fit(seq, width, height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
   }
 
@@ -542,6 +553,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   /* We only need 1 element for MOVIE strips. */
   StripElem *se;
   strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
+  strip->stripdata->orig_width = width;
+  strip->stripdata->orig_height = height;
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
   seq_add_set_name(seq, load_data);
