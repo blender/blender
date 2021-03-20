@@ -953,7 +953,7 @@
         frame_node="#9b9b9ba0"
         matte_node="#977474"
         distor_node="#749797"
-        noodle_curving="0"
+        noodle_curving="4"
         grid_levels="2"
         input_node="#cb3d4a"
         output_node="#cb3d4a"
