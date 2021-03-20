@@ -3024,6 +3024,11 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 
   seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
 
+  /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
+   * frame is static after end of strip). This is how most strips behave. This way transition
+   * effects that doesn't overlap or speed effect can't fail rendering outside of strip range. */
+  timeline_frame = clamp_i(timeline_frame, seq->startdisp, seq->enddisp - 1);
+
   if (seq->machine > 1) {
     i = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->machine - 1, seqbasep);
   }
