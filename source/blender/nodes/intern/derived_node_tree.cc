@@ -336,7 +336,7 @@ std::string DerivedNodeTree::to_dot() const
   /* Floating inputs are used for example to visualize unlinked group node inputs. */
   Map<DSocket, dot::Node *> dot_floating_inputs;
 
-  for (const auto &item : dot_input_sockets.items()) {
+  for (const auto item : dot_input_sockets.items()) {
     DInputSocket to_socket = item.key;
     dot::NodePort dot_to_port = item.value;
     to_socket.foreach_origin_socket([&](DSocket from_socket) {
