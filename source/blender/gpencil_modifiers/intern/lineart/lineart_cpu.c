@@ -1781,7 +1781,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
   /* Temp solution to speed up calculation in the modifier without cache. See the definition of
    * rb->_source_type for details. */
   if (_rb->_source_type == LRT_SOURCE_OBJECT) {
-    if (ob != _rb->_source_object) {
+    if (ob != _rb->_source_object && ob->id.orig_id != _rb->_source_object) {
       return OBJECT_LRT_OCCLUSION_ONLY;
     }
   }
