@@ -1425,36 +1425,36 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         return (strip.type == 'SCENE')
 
     def draw(self, context):
+        strip = act_strip(context)
+        scene = strip.scene
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-
-        strip = act_strip(context)
-
         layout.active = not strip.mute
 
-        layout.template_ID(strip, "scene")
-
-        scene = strip.scene
-        layout.prop(strip, "scene_input")
-
-        if scene:
-            layout.prop(scene, "audio_volume", text="Volume")
+        layout.template_ID(strip, "scene", text="Scene")
+        layout.prop(strip, "scene_input", text="Input")
 
         if strip.scene_input == 'CAMERA':
-            layout.alignment = 'RIGHT'
-            sub = layout.column(align=True)
-            split = sub.split(factor=0.5, align=True)
+            layout.template_ID(strip, "scene_camera", text="Camera")
+
+        if scene:
+            # Build a manual split layout as a hack to get proper alignment with the rest of the buttons.
+            sub = layout.row(align=True)
+            sub.use_property_decorate = True
+            split = sub.split(factor=0.4, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Camera")
-            split.template_ID(strip, "scene_camera")
+            split.label(text="Volume")
+            split.prop(scene, "audio_volume", text="")
+            sub.use_property_decorate = False
 
-            layout.prop(strip, "use_grease_pencil", text="Show Grease Pencil")
-
+        if strip.scene_input == 'CAMERA':
+            layout = layout.column(heading="Show")
+            layout.prop(strip, "use_grease_pencil", text="Grease Pencil")
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
-                # layout.label(text="Preview")
                 layout.prop(scene.render, "film_transparent")
 
 
