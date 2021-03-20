@@ -1723,7 +1723,7 @@ static bool _lineart_object_not_in_source_collection(Collection *source, Object 
 {
   CollectionChild *cc;
   Collection *c = source->id.orig_id ? (Collection *)source->id.orig_id : source;
-  if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+  if (BKE_collection_has_object_recursive_instanced(c, (Object *)(ob->id.orig_id))) {
     return false;
   }
   for (cc = source->children.first; cc; cc = cc->next) {
