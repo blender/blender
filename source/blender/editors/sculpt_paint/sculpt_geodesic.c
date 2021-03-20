@@ -281,14 +281,15 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   const int totvert = mesh->totvert;
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
-  int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
+  SculptVertRef first_affected = {SCULPT_GEODESIC_VERTEX_NONE};
+
   GSetIterator gs_iter;
   GSET_ITER (gs_iter, initial_vertices) {
-    first_affected = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    first_affected.i = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
     break;
   }
 
-  if (first_affected == SCULPT_GEODESIC_VERTEX_NONE) {
+  if (first_affected.i == SCULPT_GEODESIC_VERTEX_NONE) {
     for (int i = 0; i < totvert; i++) {
       dists[i] = FLT_MAX;
     }
@@ -297,7 +298,8 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
 
   const float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
   for (int i = 0; i < totvert; i++) {
-    dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, i));
+    dists[i] = len_v3v3(first_affected_co,
+                        SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i)));
   }
 
   return dists;
@@ -321,7 +323,7 @@ float *SCULPT_geodesic_distances_create(Object *ob,
 
 float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
                                             Object *ob,
-                                            const int vertex,
+                                            const SculptVertRef vertex,
                                             const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
@@ -330,7 +332,8 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      int v = -1;
+      SculptVertRef v = {-1};
+
       if (i == 0) {
         v = vertex;
       }
@@ -339,8 +342,8 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
         flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), i);
         v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
       }
-      if (v != -1) {
-        BLI_gset_add(initial_vertices, POINTER_FROM_INT(v));
+      if (v.i != -1) {
+        BLI_gset_add(initial_vertices, POINTER_FROM_INT(v.i));
       }
     }
   }
@@ -350,10 +353,12 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   return dists;
 }
 
-float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float limit_radius)
+float *SCULPT_geodesic_from_vertex(Object *ob,
+                                   const SculptVertRef vertex,
+                                   const float limit_radius)
 {
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
-  BLI_gset_add(initial_vertices, POINTER_FROM_INT(vertex));
+  BLI_gset_add(initial_vertices, POINTER_FROM_INT(vertex.i));
   float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius);
   BLI_gset_free(initial_vertices, NULL);
   return dists;

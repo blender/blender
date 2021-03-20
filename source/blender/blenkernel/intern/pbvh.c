@@ -30,6 +30,8 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_ccg.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
@@ -3660,3 +3662,20 @@ ProxyVertArray *BKE_pbvh_get_proxyarrays(PBVH *pbvh, PBVHNode *node)
 }
 
 #endif
+
+/* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
+   scene and ob are allowd to be NULL (in which case nothing is done).
+*/
+void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
+{
+  if (!scene || !ob || !ob->sculpt || !ob->sculpt->pbvh) {
+    return;
+  }
+
+  if (ob->sculpt->pbvh) {
+    bool flat_vcol_shading = ((scene->toolsettings->sculpt->flags &
+                               SCULPT_DYNTOPO_FLAT_VCOL_SHADING) != 0);
+
+    BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
+  }
+}

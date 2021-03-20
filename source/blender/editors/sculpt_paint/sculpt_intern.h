@@ -386,9 +386,11 @@ float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         const float limit_radius);
 float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,
-                                            const int vertex,
+                                            const SculptVertRef vertex,
                                             const float limit_radius);
-float *SCULPT_geodesic_from_vertex(Object *ob, const int vertex, const float limit_radius);
+float *SCULPT_geodesic_from_vertex(Object *ob,
+                                   const SculptVertRef vertex,
+                                   const float limit_radius);
 
 /* Filters. */
 void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, const int undo_type);
@@ -1407,7 +1409,6 @@ bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
                                      SculptUndoType type,
                                      int extraType);
 
-void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
 float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref);
 
 

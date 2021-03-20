@@ -115,7 +115,7 @@ static void mask_init_task_cb(void *__restrict userdata,
         *vd.mask = BLI_hash_int_01(vd.index + seed);
         break;
       case SCULPT_MASK_INIT_RANDOM_PER_FACE_SET: {
-        const int face_set = SCULPT_vertex_face_set_get(ss, vd.index);
+        const int face_set = SCULPT_vertex_face_set_get(ss, vd.vertex);
         *vd.mask = BLI_hash_int_01(face_set + seed);
         break;
       }

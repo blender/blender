@@ -1531,7 +1531,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
                           &((struct BMeshCreateParams){
                               .use_toolflags = true,
                           }));
-      BM_mesh_bm_from_me(bm,
+      BM_mesh_bm_from_me(ob, bm,
                          use_mesh,
                          &((struct BMeshFromMeshParams){
                              .calc_face_normal = true,

@@ -77,6 +77,10 @@
 
 #include "bmesh.h"
 
+//XXX todo: work our bad module cross ref
+void SCULPT_dynamic_topology_sync_layers(Object *ob,
+                                         Mesh *me);
+
 static void palette_init_data(ID *id)
 {
   Palette *palette = (Palette *)id;
@@ -2175,9 +2179,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   return pbvh;
 }
-
-// XXX hack
-extern SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {

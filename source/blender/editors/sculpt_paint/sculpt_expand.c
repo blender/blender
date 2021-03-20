@@ -414,9 +414,8 @@ static BLI_bitmap *sculpt_expand_boundary_from_enabled(SculptSession *ss,
  * Utility function to get the closet vertex after flipping an original vertex position based on
  * an symmetry pass iteration index.
  */
-static SculptVertRef sculpt_expand_get_vertex_index_for_symmetry_pass(Object *ob,
-                                                            const char symm_it,
-                                                            const SculptVertRef original_vertex)
+static SculptVertRef sculpt_expand_get_vertex_index_for_symmetry_pass(
+    Object *ob, const char symm_it, const SculptVertRef original_vertex)
 {
   SculptSession *ss = ob->sculpt;
   SculptVertRef symm_vertex = {SCULPT_EXPAND_VERTEX_NONE};
@@ -436,7 +435,7 @@ static SculptVertRef sculpt_expand_get_vertex_index_for_symmetry_pass(Object *ob
  * Geodesic: Initializes the falloff with geodesic distances from the given active vertex, taking
  * symmetry into account.
  */
-static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, const int v)
+static float *sculpt_expand_geodesic_falloff_create(Sculpt *sd, Object *ob, const SculptVertRef v)
 {
   return SCULPT_geodesic_from_vertex_and_symm(sd, ob, v, FLT_MAX);
 }
@@ -507,7 +506,7 @@ static bool mask_expand_normal_floodfill_cb(
     const float from_edge_factor = data->edge_factor[from_v_i];
     data->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) * from_edge_factor;
     data->dists[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
-                        powf(from_edge_factor, data->edge_sensitivity);
+                          powf(from_edge_factor, data->edge_sensitivity);
     CLAMP(data->dists[to_v_i], 0.0f, 1.0f);
   }
   else {
@@ -583,11 +582,14 @@ static float *sculpt_expand_spherical_falloff_create(Object *ob, const SculptVer
     if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
-    const int symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
-    if (symm_vertex != -1) {
+    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
+        ob, symm_it, v);
+    if (symm_vertex.i != -1) {
       const float *co = SCULPT_vertex_co_get(ss, symm_vertex);
       for (int i = 0; i < totvert; i++) {
-        dists[i] = min_ff(dists[i], len_v3v3(co, SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i))));
+        dists[i] = min_ff(
+            dists[i],
+            len_v3v3(co, SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i))));
       }
     }
   }
@@ -615,7 +617,8 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const S
       continue;
     }
 
-    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
+    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
+        ob, symm_it, v);
 
     SculptBoundary *boundary = SCULPT_boundary_data_init(ob, NULL, symm_vertex, FLT_MAX);
     if (!boundary) {
@@ -624,7 +627,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const S
 
     for (int i = 0; i < boundary->num_vertices; i++) {
       BLI_gsqueue_push(queue, &boundary->vertices[i]);
-      BLI_BITMAP_ENABLE(visited_vertices, boundary->vertices[i]);
+      BLI_BITMAP_ENABLE(visited_vertices, BKE_pbvh_vertex_index_to_table(ss->pbvh, boundary->vertices[i]));
     }
     SCULPT_boundary_data_free(boundary);
   }
@@ -686,10 +689,11 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
       continue;
     }
 
-    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(ob, symm_it, v);
+    const SculptVertRef symm_vertex = sculpt_expand_get_vertex_index_for_symmetry_pass(
+        ob, symm_it, v);
 
     BLI_gsqueue_push(queue, &symm_vertex);
-    BLI_BITMAP_ENABLE(visited_vertices, symm_vertex);
+    BLI_BITMAP_ENABLE(visited_vertices, BKE_pbvh_vertex_index_to_table(ss->pbvh, symm_vertex));
   }
 
   if (BLI_gsqueue_is_empty(queue)) {
@@ -712,7 +716,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
         if (BLI_BITMAP_TEST(visited_vertices, neighbor_v)) {
           continue;
         }
-        
+
         dists[neighbor_v] = dists[v_next_i] + 1.0f;
         BLI_BITMAP_ENABLE(visited_vertices, neighbor_v);
         BLI_gsqueue_push(queue, &neighbor_v);
@@ -1019,7 +1023,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
     ExpandCache *expand_cache,
     Sculpt *sd,
     Object *ob,
-    const int v,
+    const SculptVertRef v,
     eSculptExpandFalloffType falloff_type)
 {
   MEM_SAFE_FREE(expand_cache->vert_falloff);
@@ -1406,14 +1410,16 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
     expand_cache->original_mask = MEM_malloc_arrayN(totvert, sizeof(float), "initial mask");
     for (int i = 0; i < totvert; i++) {
-      expand_cache->original_mask[i] = SCULPT_vertex_mask_get(ss, i);
+      expand_cache->original_mask[i] = SCULPT_vertex_mask_get(
+          ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
     }
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
     expand_cache->original_colors = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
     for (int i = 0; i < totvert; i++) {
-      copy_v4_v4(expand_cache->original_colors[i], SCULPT_vertex_color_get(ss, i));
+      copy_v4_v4(expand_cache->original_colors[i],
+                 SCULPT_vertex_color_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i)));
     }
   }
 }
@@ -1488,8 +1494,8 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const Sculp
  * if the cursor is over the mesh.
  */
 static SculptVertRef sculpt_expand_target_vertex_update_and_get(bContext *C,
-                                                      Object *ob,
-                                                      const float mouse[2])
+                                                                Object *ob,
+                                                                const float mouse[2])
 {
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
@@ -1542,7 +1548,7 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
       continue;
     }
 
-    const float *vertex_co = SCULPT_vertex_co_get(ss, i);
+    const float *vertex_co = SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
 
     if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
       continue;
@@ -1597,9 +1603,8 @@ static void sculpt_expand_finish(bContext *C)
  * Finds and stores in the #ExpandCache the sculpt connected component index for each symmetry pass
  * needed for expand.
  */
-static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
-                                                                     ExpandCache *expand_cache,
-                                                                     const SculptVertRef initial_vertex)
+static void sculpt_expand_find_active_connected_components_from_vert(
+    Object *ob, ExpandCache *expand_cache, const SculptVertRef initial_vertex)
 {
   SculptSession *ss = ob->sculpt;
   for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
@@ -1707,7 +1712,7 @@ static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return expand_cache->original_face_sets[ss->active_face_index];
+      return expand_cache->original_face_sets[BKE_pbvh_vertex_index_to_table(ss->pbvh, ss->active_face_index)];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
@@ -1739,7 +1744,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   /* Update and get the active vertex (and face) from the cursor. */
   const float mouse[2] = {event->mval[0], event->mval[1]};
-  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
+  const SculptVertRef target_expand_vertex = sculpt_expand_target_vertex_update_and_get(
+      C, ob, mouse);
 
   /* Handle the modal keymap state changes. */
   ExpandCache *expand_cache = ss->expand_cache;

@@ -651,6 +651,8 @@ void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value);
 
 #define DYNTOPO_CD_INTERP
 
+void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif

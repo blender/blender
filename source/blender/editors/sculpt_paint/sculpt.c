@@ -1408,7 +1408,7 @@ void SCULPT_floodfill_add_initial_with_symmetry(Sculpt *sd,
                                                 Object *ob,
                                                 SculptSession *ss,
                                                 SculptFloodFill *flood,
-                                                SculptVertRef index,
+                                                SculptVertRef vertex,
                                                 float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
@@ -8703,22 +8703,6 @@ static bool sculpt_no_multires_poll(bContext *C)
   return false;
 }
 
-/* checks if pbvh needs to sync its flat vcol shading flag with scene tool settings
-   scene and ob are allowd to be NULL (in which case nothing is done).
-*/
-void SCULPT_update_flat_vcol_shading(Object *ob, Scene *scene)
-{
-  if (!scene || !ob || !ob->sculpt || !ob->sculpt->pbvh) {
-    return;
-  }
-
-  if (ob->sculpt->pbvh) {
-    bool flat_vcol_shading = ((scene->toolsettings->sculpt->flags &
-                               SCULPT_DYNTOPO_FLAT_VCOL_SHADING) != 0);
-
-    BKE_pbvh_set_flat_vcol_shading(ob->sculpt->pbvh, flat_vcol_shading);
-  }
-}
 static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);

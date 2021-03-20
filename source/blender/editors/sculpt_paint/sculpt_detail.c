@@ -569,14 +569,14 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession *ss = ob->sculpt;
-  const int active_vertex = SCULPT_active_vertex_get(ss);
+  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
 
   float len_accum = 0;
   int num_neighbors = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
     len_accum += len_v3v3(SCULPT_vertex_co_get(ss, active_vertex),
-                          SCULPT_vertex_co_get(ss, ni.index));
+                          SCULPT_vertex_co_get(ss, ni.vertex));
     num_neighbors++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
