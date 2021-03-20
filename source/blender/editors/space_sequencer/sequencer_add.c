@@ -235,8 +235,11 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   load_data->channel = RNA_int_get(op->ptr, "channel");
   load_data->image.end_frame = load_data->start_frame;
   load_data->image.len = 1;
-  load_data->fit_method = RNA_enum_get(op->ptr, "fit_method");
-  SEQ_tool_settings_fit_method_set(CTX_data_scene(C), load_data->fit_method);
+
+  if ((prop = RNA_struct_find_property(op->ptr, "fit_method"))) {
+    load_data->fit_method = RNA_enum_get(op->ptr, "fit_method");
+    SEQ_tool_settings_fit_method_set(CTX_data_scene(C), load_data->fit_method);
+  }
 
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     /* Full path, file is set by the caller. */
