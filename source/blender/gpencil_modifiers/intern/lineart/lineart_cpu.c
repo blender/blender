@@ -1400,7 +1400,7 @@ static char lineart_identify_feature_line(LineartRenderBuffer *rb,
   dot_1 = dot_v3v3_db(view_vector, rt1->gn);
   dot_2 = dot_v3v3_db(view_vector, rt2->gn);
 
-  if ((result = dot_1 * dot_2) < 0 && (dot_1 + dot_2)) {
+  if ((result = dot_1 * dot_2) <= 0 && (dot_1 + dot_2)) {
     return LRT_EDGE_FLAG_CONTOUR;
   }
 
