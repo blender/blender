@@ -82,11 +82,18 @@ class IndexRange {
   }
 
   class Iterator {
+   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = int64_t;
+    using pointer = const int64_t *;
+    using reference = const int64_t &;
+    using difference_type = std::ptrdiff_t;
+
    private:
     int64_t current_;
 
    public:
-    constexpr Iterator(int64_t current) : current_(current)
+    constexpr explicit Iterator(int64_t current) : current_(current)
     {
     }
 
@@ -96,9 +103,21 @@ class IndexRange {
       return *this;
     }
 
-    constexpr bool operator!=(const Iterator &iterator) const
+    constexpr Iterator operator++(int) const
     {
-      return current_ != iterator.current_;
+      Iterator copied_iterator = *this;
+      ++copied_iterator;
+      return copied_iterator;
+    }
+
+    constexpr friend bool operator!=(const Iterator &a, const Iterator &b)
+    {
+      return a.current_ != b.current_;
+    }
+
+    constexpr friend bool operator==(const Iterator &a, const Iterator &b)
+    {
+      return a.current_ == b.current_;
     }
 
     constexpr int64_t operator*() const
