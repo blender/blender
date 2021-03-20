@@ -226,8 +226,9 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (!load_data->effect.seq1) {
     seq->len = 1; /* Effect is generator, set non zero length. */
-    SEQ_transform_set_right_handle_frame(seq, load_data->image.end_frame);
+    SEQ_transform_set_right_handle_frame(seq, load_data->effect.end_frame);
   }
+
   SEQ_relations_update_changed_seq_and_deps(scene, seq, 1, 1); /* Runs SEQ_time_update_sequence. */
   seq_add_set_name(seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);

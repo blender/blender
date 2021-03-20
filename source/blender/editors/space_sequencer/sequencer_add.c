@@ -255,6 +255,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
 
   if ((prop = RNA_struct_find_property(op->ptr, "frame_end"))) {
     load_data->image.end_frame = RNA_property_int_get(op->ptr, prop);
+    load_data->effect.end_frame = load_data->image.end_frame;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "cache")) &&
