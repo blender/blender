@@ -352,8 +352,12 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_view:
             layout.prop(st, "show_region_hud")
 
+        layout.separator()
+
         if st.view_type == 'SEQUENCER':
             layout.prop(st, "show_backdrop", text="Preview as Backdrop")
+        if is_preview or st.show_backdrop:
+            layout.prop(st, "show_transform_preview", text="Preview During Transform")
 
         layout.separator()
 
@@ -723,6 +727,7 @@ class SEQUENCER_MT_strip_image_transform(Menu):
         layout.operator("sequencer.strip_transform_clear", text="Clear Scale").property = 'SCALE'
         layout.operator("sequencer.strip_transform_clear", text="Clear Rotation").property = 'ROTATION'
         layout.operator("sequencer.strip_transform_clear", text="Clear All").property = 'ALL'
+
 
 class SEQUENCER_MT_strip_transform(Menu):
     bl_label = "Transform"

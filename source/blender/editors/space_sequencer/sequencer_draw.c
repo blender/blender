@@ -1818,6 +1818,30 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
   return scope;
 }
 
+static bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
+{
+  Sequence *last_seq = SEQ_select_active_get(scene);
+
+  return (G.moving & G_TRANSFORM_SEQ) && (last_seq->flag & SELECT) &&
+         ((last_seq->flag & SEQ_LEFTSEL) || (last_seq->flag & SEQ_RIGHTSEL)) &&
+         (sseq->draw_flag & SEQ_DRAW_TRANSFORM_PREVIEW);
+}
+
+static int sequencer_draw_get_transform_preview_frame(Scene *scene)
+{
+  Sequence *last_seq = SEQ_select_active_get(scene);
+  int preview_frame;
+
+  if (last_seq->flag & SEQ_RIGHTSEL) {
+    preview_frame = last_seq->enddisp - 1;
+  }
+  else {
+    preview_frame = last_seq->startdisp;
+  }
+
+  return preview_frame;
+}
+
 void sequencer_draw_preview(const bContext *C,
                             Scene *scene,
                             ARegion *region,
@@ -1842,9 +1866,14 @@ void sequencer_draw_preview(const bContext *C,
     return;
   }
 
+  int preview_frame = timeline_frame;
+  if (sequencer_draw_get_transform_preview(sseq, scene)) {
+    preview_frame = sequencer_draw_get_transform_preview_frame(scene);
+  }
+
   /* Get image. */
   ibuf = sequencer_ibuf_get(
-      bmain, region, depsgraph, scene, sseq, timeline_frame, offset, names[sseq->multiview_eye]);
+      bmain, region, depsgraph, scene, sseq, preview_frame, offset, names[sseq->multiview_eye]);
 
   /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
@@ -2356,7 +2385,12 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   /* Only draw backdrop in timeline view. */
   if (sseq->view == SEQ_VIEW_SEQUENCE && sseq->draw_flag & SEQ_DRAW_BACKDROP) {
-    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, true);
+    int preview_frame = scene->r.cfra;
+    if (sequencer_draw_get_transform_preview(sseq, scene)) {
+      preview_frame = sequencer_draw_get_transform_preview_frame(scene);
+    }
+
+    sequencer_draw_preview(C, scene, region, sseq, preview_frame, 0, false, true);
     UI_view2d_view_ortho(v2d);
   }
 

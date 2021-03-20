@@ -5434,6 +5434,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_STRIP_DURATION);
   RNA_def_property_ui_text(prop, "Show Duration", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+  prop = RNA_def_property(srna, "show_transform_preview", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flag", SEQ_DRAW_TRANSFORM_PREVIEW);
+  RNA_def_property_ui_text(prop, "Transform Preview", "Show preview of the transformed frames");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
 static void rna_def_space_text(BlenderRNA *brna)
