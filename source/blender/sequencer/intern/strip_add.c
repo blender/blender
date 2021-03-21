@@ -468,8 +468,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
   struct anim **anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
   int i;
-  float width;
-  float height;
+  int orig_width = 0;
+  int orig_height = 0;
 
   if (load_data->use_multiview && (load_data->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     char prefix[FILE_MAX];
@@ -540,9 +540,10 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
 
     /* Set initial scale based on load_data->fit_method. */
-    width = IMB_anim_get_image_width(anim_arr[0]);
-    height = IMB_anim_get_image_height(anim_arr[0]);
-    SEQ_set_scale_to_fit(seq, width, height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
+    orig_width = IMB_anim_get_image_width(anim_arr[0]);
+    orig_height = IMB_anim_get_image_height(anim_arr[0]);
+    SEQ_set_scale_to_fit(
+        seq, orig_width, orig_height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
   }
 
   seq->len = MAX2(1, seq->len);
@@ -554,8 +555,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   /* We only need 1 element for MOVIE strips. */
   StripElem *se;
   strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
-  strip->stripdata->orig_width = width;
-  strip->stripdata->orig_height = height;
+  strip->stripdata->orig_width = orig_width;
+  strip->stripdata->orig_height = orig_height;
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
   seq_add_set_name(seq, load_data);

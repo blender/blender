@@ -55,6 +55,7 @@ typedef struct StripAnim {
 
 typedef struct StripElem {
   char name[256];
+  /** Ignore when zeroed. */
   int orig_width, orig_height;
 } StripElem;
 
