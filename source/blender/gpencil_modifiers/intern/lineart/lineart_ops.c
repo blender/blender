@@ -351,8 +351,6 @@ static int lineart_gpencil_bake_strokes_invoke(bContext *C,
 static int lineart_gpencil_bake_strokes_exec(bContext *C, wmOperator *op)
 {
   return lineart_gpencil_bake_common(C, op, false, false);
-
-  return OPERATOR_FINISHED;
 }
 static int lineart_gpencil_bake_strokes_commom_modal(bContext *C,
                                                      wmOperator *op,
