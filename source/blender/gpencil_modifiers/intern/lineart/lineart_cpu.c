@@ -257,7 +257,7 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
       irls = cut_start_before->prev ? cut_start_before->prev : NULL;
       ns->occlusion = irls ? irls->occlusion : 0;
       ns->transparency_mask = irls->transparency_mask;
-      BLI_insertlinkbefore(&e->segments, (void *)cut_start_before, (void *)ns);
+      BLI_insertlinkbefore(&e->segments, cut_start_before, ns);
     }
     /* Otherwise we already found a existing cutting point, no need to insert a new one. */
   }
@@ -275,7 +275,7 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
       irls = cut_end_before->prev ? cut_end_before->prev : NULL;
       ns2->occlusion = irls ? irls->occlusion : 0;
       ns2->transparency_mask = irls ? irls->transparency_mask : 0;
-      BLI_insertlinkbefore(&e->segments, (void *)cut_end_before, (void *)ns2);
+      BLI_insertlinkbefore(&e->segments, cut_end_before, ns2);
     }
   }
   else {
@@ -331,8 +331,8 @@ BLI_INLINE bool lineart_occlusion_is_adjacent_intersection(LineartEdge *e, Linea
 {
   LineartVertIntersection *v1 = (void *)e->v1;
   LineartVertIntersection *v2 = (void *)e->v2;
-  return ((v1->base.flag && v1->intersecting_with == (void *)rt) ||
-          (v2->base.flag && v2->intersecting_with == (void *)rt));
+  return ((v1->base.flag && v1->intersecting_with == rt) ||
+          (v2->base.flag && v2->intersecting_with == rt));
 }
 
 static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *e, int thread_id)
@@ -364,7 +364,7 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
       }
       rt->testing_e[thread_id] = e;
       if (lineart_triangle_edge_image_space_occlusion(&rb->lock_task,
-                                                      (void *)rt,
+                                                      (const LineartTriangle *)rt,
                                                       e,
                                                       rb->camera_pos,
                                                       rb->cam_is_persp,
@@ -431,23 +431,23 @@ static void lineart_occlusion_worker(TaskPool *__restrict UNUSED(pool), LineartR
 
   while (lineart_occlusion_make_task_info(rb, rti)) {
 
-    for (eip = (void *)rti->contour; eip && eip != rti->contour_end; eip = eip->next) {
+    for (eip = rti->contour; eip && eip != rti->contour_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->crease; eip && eip != rti->crease_end; eip = eip->next) {
+    for (eip = rti->crease; eip && eip != rti->crease_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->intersection; eip && eip != rti->intersection_end; eip = eip->next) {
+    for (eip = rti->intersection; eip && eip != rti->intersection_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->material; eip && eip != rti->material_end; eip = eip->next) {
+    for (eip = rti->material; eip && eip != rti->material_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->edge_mark; eip && eip != rti->edge_mark_end; eip = eip->next) {
+    for (eip = rti->edge_mark; eip && eip != rti->edge_mark_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
   }
