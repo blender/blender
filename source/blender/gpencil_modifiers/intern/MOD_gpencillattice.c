@@ -42,14 +42,11 @@
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_lattice.h"
-#include "BKE_layer.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

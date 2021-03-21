@@ -32,19 +32,12 @@
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_deform.h"
-#include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_screen.h"
-
-#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -53,7 +46,6 @@
 
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
-#include "MOD_gpencil_util.h"
 
 static void initData(GpencilModifierData *md)
 {

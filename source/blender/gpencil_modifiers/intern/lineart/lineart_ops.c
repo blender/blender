@@ -25,7 +25,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -44,12 +43,8 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 
-#include "UI_resources.h"
-
 #include "MOD_gpencil_lineart.h"
 #include "MOD_lineart.h"
-
-#include "lineart_intern.h"
 
 static bool lineart_mod_is_disabled(GpencilModifierData *md)
 {

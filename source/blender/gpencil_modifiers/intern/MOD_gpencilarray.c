@@ -27,7 +27,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_rand.h"
 
@@ -44,18 +43,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_collection.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
-#include "BKE_layer.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
 #include "BKE_screen.h"
 
 #include "UI_interface.h"

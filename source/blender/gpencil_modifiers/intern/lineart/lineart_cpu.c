@@ -23,18 +23,14 @@
 
 #include "MOD_lineart.h"
 
-#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_callbacks.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
@@ -44,34 +40,23 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_text.h"
 #include "DEG_depsgraph_query.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_lineart_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_text_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
 #include "BLI_math.h"
-#include "BLI_string_utils.h"
 
 #include "bmesh.h"
 #include "bmesh_class.h"
 #include "bmesh_tools.h"
-
-#include "MOD_gpencil_modifiertypes.h"
 
 #include "lineart_intern.h"
 

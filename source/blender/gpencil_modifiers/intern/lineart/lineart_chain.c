@@ -25,20 +25,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "BKE_customdata.h"
-#include "BKE_object.h"
-
-#include "DEG_depsgraph_query.h"
-
-#include "DNA_camera_types.h"
-#include "DNA_lineart_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
-
 #include "MOD_lineart.h"
-
-#include "bmesh.h"
 
 #include "lineart_intern.h"
 
