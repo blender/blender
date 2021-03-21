@@ -179,7 +179,7 @@ template<typename T> class VVectorArrayForGVVectorArray : public VVectorArray<T>
     return value;
   }
 
-  bool is_single_vector_impl() const
+  bool is_single_vector_impl() const override
   {
     return vector_array_.is_single_vector();
   }

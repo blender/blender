@@ -256,7 +256,7 @@ template<typename T> class VArrayForGVArray : public VArray<T> {
 
   Span<T> get_span_impl() const override
   {
-    return array_.get_span().typed<T>();
+    return array_.get_span().template typed<T>();
   }
 
   bool is_single_impl() const override
