@@ -105,7 +105,7 @@ static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *se
 
 static void seq_add_set_name(Sequence *seq, SeqLoadData *load_data)
 {
-  if (load_data->name != NULL && load_data->name[0] != '\0') {
+  if (load_data->name[0] != '\0') {
     BLI_strncpy(seq->name + 2, load_data->name, sizeof(seq->name) - 2);
   }
   else {
