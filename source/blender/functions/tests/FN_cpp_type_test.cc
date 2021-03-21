@@ -79,7 +79,7 @@ MAKE_CPP_TYPE(TestType, blender::fn::tests::TestType)
 
 namespace blender::fn::tests {
 
-const CPPType &CPPType_TestType = CPPType::get<TestType>();
+static const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
 TEST(cpp_type, Size)
 {

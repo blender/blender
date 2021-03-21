@@ -77,9 +77,9 @@
 #endif
 
 #ifdef WITH_GMP
-const bool bypass_bmesh = true;
+static const bool bypass_bmesh = true;
 #else
-const bool bypass_bmesh = false;
+static const bool bypass_bmesh = false;
 #endif
 
 static void initData(ModifierData *md)
@@ -729,6 +729,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return exact_boolean_mesh(bmd, ctx, mesh);
   }
 #else
+  UNUSED_VARS(bypass_bmesh);
   const bool use_exact = false;
 #endif
 
