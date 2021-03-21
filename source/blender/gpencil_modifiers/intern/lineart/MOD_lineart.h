@@ -532,8 +532,8 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
 int MOD_lineart_chain_count(const LineartLineChain *rlc);
 void MOD_lineart_chain_clear_picked_flag(struct LineartRenderBuffer *rb);
 
-int MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
-                                      struct LineartGpencilModifierData *lmd);
+bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
+                                       struct LineartGpencilModifierData *lmd);
 
 struct Scene;
 

@@ -71,9 +71,6 @@
 #include "bmesh_class.h"
 #include "bmesh_tools.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "MOD_gpencil_modifiertypes.h"
 
 #include "lineart_intern.h"
@@ -452,7 +449,7 @@ static void lineart_occlusion_worker(TaskPool *__restrict UNUSED(pool), LineartR
 
 /**
  * All internal functions starting with lineart_main_ is called inside
- * MOD_lineart_compute_feature_lines function.
+ * #MOD_lineart_compute_feature_lines function.
  * This function handles all occlusion calculation.
  */
 static void lineart_main_occlusion_begin(LineartRenderBuffer *rb)
@@ -3652,15 +3649,17 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
 
 /**
  * This is the entry point of all line art calculations.
+ *
+ * \return True when a change is made.
  */
-int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifierData *lmd)
+bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifierData *lmd)
 {
   LineartRenderBuffer *rb;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
 
   if (!scene->camera) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   rb = lineart_create_render_buffer(scene, lmd);
@@ -3685,7 +3684,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
 
   if (!rb->vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
-    return OPERATOR_FINISHED;
+    return true;
   }
 
   /* Initialize the bounding box acceleration structure, it's a lot like BVH in 3D. */
@@ -3754,7 +3753,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
     lineart_count_and_print_render_buffer_memory(rb);
   }
 
-  return OPERATOR_FINISHED;
+  return true;
 }
 
 static int lineart_rb_edge_types(LineartRenderBuffer *rb)
