@@ -3,6 +3,7 @@
 #include "testing/testing.h"
 
 #include "FN_cpp_type.hh"
+#include "FN_cpp_type_make.hh"
 
 namespace blender::fn::tests {
 

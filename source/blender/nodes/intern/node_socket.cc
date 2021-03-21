@@ -47,6 +47,8 @@
 #include "NOD_node_tree_multi_function.hh"
 #include "NOD_socket.h"
 
+#include "FN_cpp_type_make.hh"
+
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNode *node,
                                                   struct bNodeSocketTemplate *stemp,
