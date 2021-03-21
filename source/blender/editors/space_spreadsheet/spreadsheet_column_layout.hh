@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <variant>
+#include <optional>
 
 #include "spreadsheet_draw.hh"
 
@@ -39,12 +39,15 @@ struct CollectionCellValue {
  */
 class CellValue {
  public:
-  /* The implementation just uses a `std::variant` for simplicity. It can be encapsulated better,
-   * but it's not really worth the complexity for now. */
-  using VariantType =
-      std::variant<std::monostate, int, float, bool, ObjectCellValue, CollectionCellValue>;
+  /* The implementation just uses a bunch of `std::option` for now. Unfortunately, we cannot use
+   * `std::variant` yet, due to missing compiler support. This type can really be optimized more,
+   * but it does not really matter too much currently. */
 
-  VariantType value;
+  std::optional<int> value_int;
+  std::optional<float> value_float;
+  std::optional<bool> value_bool;
+  std::optional<ObjectCellValue> value_object;
+  std::optional<CollectionCellValue> value_collection;
 };
 
 /**

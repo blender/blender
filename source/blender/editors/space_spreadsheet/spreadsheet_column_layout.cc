@@ -118,8 +118,8 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
     CellValue cell_value;
     column.get_value(real_index, cell_value);
 
-    if (std::holds_alternative<int>(cell_value.value)) {
-      const int value = *std::get_if<int>(&cell_value.value);
+    if (cell_value.value_int.has_value()) {
+      const int value = *cell_value.value_int;
       const std::string value_str = std::to_string(value);
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
@@ -137,8 +137,8 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        nullptr);
     }
-    else if (std::holds_alternative<float>(cell_value.value)) {
-      const float value = *std::get_if<float>(&cell_value.value);
+    else if (cell_value.value_float.has_value()) {
+      const float value = *cell_value.value_float;
       std::stringstream ss;
       ss << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
@@ -158,8 +158,8 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        nullptr);
     }
-    else if (std::holds_alternative<bool>(cell_value.value)) {
-      const bool value = *std::get_if<bool>(&cell_value.value);
+    else if (cell_value.value_bool.has_value()) {
+      const bool value = *cell_value.value_bool;
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
@@ -177,8 +177,8 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        nullptr);
     }
-    else if (std::holds_alternative<ObjectCellValue>(cell_value.value)) {
-      const ObjectCellValue value = *std::get_if<ObjectCellValue>(&cell_value.value);
+    else if (cell_value.value_object.has_value()) {
+      const ObjectCellValue value = *cell_value.value_object;
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
                        0,
@@ -195,8 +195,8 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        nullptr);
     }
-    else if (std::holds_alternative<CollectionCellValue>(cell_value.value)) {
-      const CollectionCellValue value = *std::get_if<CollectionCellValue>(&cell_value.value);
+    else if (cell_value.value_collection.has_value()) {
+      const CollectionCellValue value = *cell_value.value_collection;
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
                        0,
