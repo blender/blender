@@ -23,15 +23,11 @@
 
 #pragma once
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math.h" /* Needed here for inline functions. */
 #include "BLI_threads.h"
 
-#include "DNA_lineart_types.h"
-
 #include <math.h>
-#include <string.h>
 
 typedef struct LineartStaticMemPoolNode {
   Link item;
@@ -568,7 +564,5 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   int modifier_flags);
 
 float MOD_lineart_chain_compute_length(LineartLineChain *rlc);
-
-struct wmOperatorType;
 
 void ED_operatortypes_lineart(void);

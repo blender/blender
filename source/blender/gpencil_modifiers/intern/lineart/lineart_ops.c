@@ -25,6 +25,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -33,8 +37,6 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.h"
-
-#include "BLI_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
