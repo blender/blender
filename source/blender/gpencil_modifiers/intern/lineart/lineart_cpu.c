@@ -159,11 +159,8 @@ static LineartLineSegment *lineart_give_segment(LineartRenderBuffer *rb)
 /**
  * Cuts the edge in image space and mark occlusion level for each segment.
  */
-static void lineart_edge_cut(LineartRenderBuffer *rb,
-                             LineartEdge *e,
-                             double start,
-                             double end,
-                             unsigned char transparency_mask)
+static void lineart_edge_cut(
+    LineartRenderBuffer *rb, LineartEdge *e, double start, double end, uchar transparency_mask)
 {
   LineartLineSegment *rls, *irls, *next_rls, *prev_rls;
   LineartLineSegment *cut_start_before = 0, *cut_end_before = 0;
@@ -706,9 +703,9 @@ static void lineart_triangle_post(LineartTriangle *rt, LineartTriangle *orig)
   rt->flags = LRT_CULL_GENERATED;
 }
 
-static void lineart_triangle_set_cull_flag(LineartTriangle *rt, unsigned char flag)
+static void lineart_triangle_set_cull_flag(LineartTriangle *rt, uchar flag)
 {
-  unsigned char intersection_only = (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY);
+  uchar intersection_only = (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY);
   rt->flags = flag;
   rt->flags |= intersection_only;
 }
@@ -761,9 +758,8 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
   rta = (void *)rt->intersecting_verts;
 
   LineartVert *rv = &((LineartVert *)v_eln->pointer)[v_count];
-  LineartTriangle *rt1 = (void *)(((unsigned char *)t_eln->pointer) + rb->triangle_size * t_count);
-  LineartTriangle *rt2 = (void *)(((unsigned char *)t_eln->pointer) +
-                                  rb->triangle_size * (t_count + 1));
+  LineartTriangle *rt1 = (void *)(((uchar *)t_eln->pointer) + rb->triangle_size * t_count);
+  LineartTriangle *rt2 = (void *)(((uchar *)t_eln->pointer) + rb->triangle_size * (t_count + 1));
 
   new_e = &((LineartEdge *)e_eln->pointer)[e_count];
   /* Init `rl` to the last `rl` entry. */
@@ -1281,7 +1277,7 @@ static void lineart_main_cull_triangles(LineartRenderBuffer *rb, bool clip_far)
     ob = reln->object_ref;
     for (i = 0; i < reln->element_count; i++) {
       /* Select the triangle in the array. */
-      rt = (void *)(((unsigned char *)reln->pointer) + rb->triangle_size * i);
+      rt = (void *)(((uchar *)reln->pointer) + rb->triangle_size * i);
 
       LRT_CULL_DECIDE_INSIDE
       LRT_CULL_ENSURE_MEMORY
@@ -1327,7 +1323,7 @@ static void lineart_main_free_adjacent_data(LineartRenderBuffer *rb)
       /* See definition of rt->intersecting_verts and the usage in
        * lineart_geometry_object_load() for detailed. */
       rt->intersecting_verts = NULL;
-      rt = (LineartTriangle *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (LineartTriangle *)(((uchar *)rt) + rb->triangle_size);
     }
   }
 }
@@ -1676,7 +1672,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       /* Re-use this field to refer to adjacent info, will be cleared after culling stage. */
       rt->intersecting_verts = (void *)&orta[i];
 
-      rt = (LineartTriangle *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (LineartTriangle *)(((uchar *)rt) + rb->triangle_size);
     }
 
     /* Use BM_ELEM_TAG in f->head.hflag to store needed faces in the first iteration. */
@@ -3374,7 +3370,7 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
     lim = reln->element_count;
     for (i = 0; i < lim; i++) {
       if ((rt->flags & LRT_CULL_USED) || (rt->flags & LRT_CULL_DISCARD)) {
-        rt = (void *)(((unsigned char *)rt) + rb->triangle_size);
+        rt = (void *)(((uchar *)rt) + rb->triangle_size);
         continue;
       }
       if (lineart_get_triangle_bounding_areas(rb, rt, &y1, &y2, &x1, &x2)) {
@@ -3390,7 +3386,7 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
           }
         }
       } /* Else throw away. */
-      rt = (void *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (void *)(((uchar *)rt) + rb->triangle_size);
     }
   }
 }
@@ -3784,8 +3780,8 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
                                      Object *source_object,
                                      Collection *source_collection,
                                      int types,
-                                     unsigned char transparency_flags,
-                                     unsigned char transparency_mask,
+                                     uchar transparency_flags,
+                                     uchar transparency_mask,
                                      short thickness,
                                      float opacity,
                                      float resample_length,
@@ -3957,8 +3953,8 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  unsigned char transparency_flags,
-                                  unsigned char transparency_mask,
+                                  uchar transparency_flags,
+                                  uchar transparency_mask,
                                   short thickness,
                                   float opacity,
                                   float resample_length,
