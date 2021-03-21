@@ -76,12 +76,9 @@ class ConcatVectorsFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    GVectorArrayRef<int> a = params.vector_mutable<int>(0);
-    VArraySpan<int> b = params.readonly_vector_input<int>(1);
-
-    for (int64_t i : mask) {
-      a.extend(i, b[i]);
-    }
+    GVectorArray &a = params.vector_mutable(0);
+    const GVVectorArray &b = params.readonly_vector_input(1);
+    a.extend(mask, b);
   }
 };
 
@@ -96,8 +93,8 @@ class AppendFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    GVectorArrayRef<int> vectors = params.vector_mutable<int>(0);
-    VSpan<int> values = params.readonly_single_input<int>(1);
+    GVectorArray_TypedMutableRef<int> vectors = params.vector_mutable<int>(0);
+    const VArray<int> &values = params.readonly_single_input<int>(1);
 
     for (int64_t i : mask) {
       vectors.append(i, values[i]);
@@ -116,14 +113,13 @@ class SumVectorFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VArraySpan<int> vectors = params.readonly_vector_input<int>(0);
+    const VVectorArray<int> &vectors = params.readonly_vector_input<int>(0);
     MutableSpan<int> sums = params.uninitialized_single_output<int>(1);
 
     for (int64_t i : mask) {
       int sum = 0;
-      VSpan<int> vector = vectors[i];
-      for (int j = 0; j < vector.size(); j++) {
-        sum += vector[j];
+      for (int j : IndexRange(vectors.get_vector_size(i))) {
+        sum += vectors.get_vector_element(i, j);
       }
       sums[i] = sum;
     }
@@ -141,8 +137,8 @@ class CreateRangeFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<int> sizes = params.readonly_single_input<int>(0, "Size");
-    GVectorArrayRef<int> ranges = params.vector_output<int>(1, "Range");
+    const VArray<int> &sizes = params.readonly_single_input<int>(0, "Size");
+    GVectorArray_TypedMutableRef<int> ranges = params.vector_output<int>(1, "Range");
 
     for (int64_t i : mask) {
       int size = sizes[i];
@@ -199,7 +195,8 @@ TEST(multi_function_network, Test2)
     Array<int> output_value_2(5, -1);
 
     MFParamsBuilder params(network_fn, 5);
-    params.add_readonly_vector_input(GVArraySpan(input_value_1.as_span(), 5));
+    GVVectorArrayForSingleGSpan inputs_1{input_value_1.as_span(), 5};
+    params.add_readonly_vector_input(inputs_1);
     params.add_readonly_single_input(&input_value_2);
     params.add_vector_output(output_value_1);
     params.add_uninitialized_single_output(output_value_2.as_mutable_span());
@@ -222,9 +219,9 @@ TEST(multi_function_network, Test2)
   }
   {
     GVectorArray input_value_1(CPPType::get<int32_t>(), 3);
-    GVectorArrayRef<int> input_value_ref_1 = input_value_1;
-    input_value_ref_1.extend(0, {3, 4, 5});
-    input_value_ref_1.extend(1, {1, 2});
+    GVectorArray_TypedMutableRef<int> input_value_1_ref{input_value_1};
+    input_value_1_ref.extend(0, {3, 4, 5});
+    input_value_1_ref.extend(1, {1, 2});
 
     Array<int> input_value_2 = {4, 2, 3};
 

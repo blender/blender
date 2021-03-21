@@ -38,7 +38,7 @@ namespace blender::fn {
  */
 template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunction {
  private:
-  using FunctionT = std::function<void(IndexMask, VSpan<In1>, MutableSpan<Out1>)>;
+  using FunctionT = std::function<void(IndexMask, const VArray<In1> &, MutableSpan<Out1>)>;
   FunctionT function_;
 
  public:
@@ -57,7 +57,7 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
 
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
-    return [=](IndexMask mask, VSpan<In1> in1, MutableSpan<Out1> out1) {
+    return [=](IndexMask mask, const VArray<In1> &in1, MutableSpan<Out1> out1) {
       mask.foreach_index(
           [&](int i) { new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i])); });
     };
@@ -65,7 +65,7 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<In1> in1 = params.readonly_single_input<In1>(0);
+    const VArray<In1> &in1 = params.readonly_single_input<In1>(0);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(1);
     function_(mask, in1, out1);
   }
@@ -80,7 +80,8 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
 template<typename In1, typename In2, typename Out1>
 class CustomMF_SI_SI_SO : public MultiFunction {
  private:
-  using FunctionT = std::function<void(IndexMask, VSpan<In1>, VSpan<In2>, MutableSpan<Out1>)>;
+  using FunctionT =
+      std::function<void(IndexMask, const VArray<In1> &, const VArray<In2> &, MutableSpan<Out1>)>;
   FunctionT function_;
 
  public:
@@ -100,7 +101,10 @@ class CustomMF_SI_SI_SO : public MultiFunction {
 
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
-    return [=](IndexMask mask, VSpan<In1> in1, VSpan<In2> in2, MutableSpan<Out1> out1) {
+    return [=](IndexMask mask,
+               const VArray<In1> &in1,
+               const VArray<In2> &in2,
+               MutableSpan<Out1> out1) {
       mask.foreach_index(
           [&](int i) { new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i])); });
     };
@@ -108,8 +112,8 @@ class CustomMF_SI_SI_SO : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<In1> in1 = params.readonly_single_input<In1>(0);
-    VSpan<In2> in2 = params.readonly_single_input<In2>(1);
+    const VArray<In1> &in1 = params.readonly_single_input<In1>(0);
+    const VArray<In2> &in2 = params.readonly_single_input<In2>(1);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(2);
     function_(mask, in1, in2, out1);
   }
@@ -125,8 +129,11 @@ class CustomMF_SI_SI_SO : public MultiFunction {
 template<typename In1, typename In2, typename In3, typename Out1>
 class CustomMF_SI_SI_SI_SO : public MultiFunction {
  private:
-  using FunctionT =
-      std::function<void(IndexMask, VSpan<In1>, VSpan<In2>, VSpan<In3>, MutableSpan<Out1>)>;
+  using FunctionT = std::function<void(IndexMask,
+                                       const VArray<In1> &,
+                                       const VArray<In2> &,
+                                       const VArray<In3> &,
+                                       MutableSpan<Out1>)>;
   FunctionT function_;
 
  public:
@@ -148,9 +155,9 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
     return [=](IndexMask mask,
-               VSpan<In1> in1,
-               VSpan<In2> in2,
-               VSpan<In3> in3,
+               const VArray<In1> &in1,
+               const VArray<In2> &in2,
+               const VArray<In3> &in3,
                MutableSpan<Out1> out1) {
       mask.foreach_index([&](int i) {
         new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i]));
@@ -160,9 +167,9 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<In1> in1 = params.readonly_single_input<In1>(0);
-    VSpan<In2> in2 = params.readonly_single_input<In2>(1);
-    VSpan<In3> in3 = params.readonly_single_input<In3>(2);
+    const VArray<In1> &in1 = params.readonly_single_input<In1>(0);
+    const VArray<In2> &in2 = params.readonly_single_input<In2>(1);
+    const VArray<In3> &in3 = params.readonly_single_input<In3>(2);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(3);
     function_(mask, in1, in2, in3, out1);
   }
@@ -179,8 +186,12 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
 template<typename In1, typename In2, typename In3, typename In4, typename Out1>
 class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
  private:
-  using FunctionT = std::function<void(
-      IndexMask, VSpan<In1>, VSpan<In2>, VSpan<In3>, VSpan<In4>, MutableSpan<Out1>)>;
+  using FunctionT = std::function<void(IndexMask,
+                                       const VArray<In1> &,
+                                       const VArray<In2> &,
+                                       const VArray<In3> &,
+                                       const VArray<In4> &,
+                                       MutableSpan<Out1>)>;
   FunctionT function_;
 
  public:
@@ -203,10 +214,10 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
     return [=](IndexMask mask,
-               VSpan<In1> in1,
-               VSpan<In2> in2,
-               VSpan<In3> in3,
-               VSpan<In4> in4,
+               const VArray<In1> &in1,
+               const VArray<In2> &in2,
+               const VArray<In3> &in3,
+               const VArray<In4> &in4,
                MutableSpan<Out1> out1) {
       mask.foreach_index([&](int i) {
         new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i], in4[i]));
@@ -216,10 +227,10 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<In1> in1 = params.readonly_single_input<In1>(0);
-    VSpan<In2> in2 = params.readonly_single_input<In2>(1);
-    VSpan<In3> in3 = params.readonly_single_input<In3>(2);
-    VSpan<In4> in4 = params.readonly_single_input<In4>(3);
+    const VArray<In1> &in1 = params.readonly_single_input<In1>(0);
+    const VArray<In2> &in2 = params.readonly_single_input<In2>(1);
+    const VArray<In3> &in3 = params.readonly_single_input<In3>(2);
+    const VArray<In4> &in4 = params.readonly_single_input<In4>(3);
     MutableSpan<Out1> out1 = params.uninitialized_single_output<Out1>(4);
     function_(mask, in1, in2, in3, in4, out1);
   }
@@ -276,7 +287,7 @@ template<typename From, typename To> class CustomMF_Convert : public MultiFuncti
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<From> inputs = params.readonly_single_input<From>(0);
+    const VArray<From> &inputs = params.readonly_single_input<From>(0);
     MutableSpan<To> outputs = params.uninitialized_single_output<To>(1);
 
     for (int64_t i : mask) {

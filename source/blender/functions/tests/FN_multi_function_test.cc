@@ -20,8 +20,8 @@ class AddFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<int> a = params.readonly_single_input<int>(0, "A");
-    VSpan<int> b = params.readonly_single_input<int>(1, "B");
+    const VArray<int> &a = params.readonly_single_input<int>(0, "A");
+    const VArray<int> &b = params.readonly_single_input<int>(1, "B");
     MutableSpan<int> result = params.uninitialized_single_output<int>(2, "Result");
 
     for (int64_t i : mask) {
@@ -63,7 +63,7 @@ class AddPrefixFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<std::string> prefixes = params.readonly_single_input<std::string>(0, "Prefix");
+    const VArray<std::string> &prefixes = params.readonly_single_input<std::string>(0, "Prefix");
     MutableSpan<std::string> strings = params.single_mutable<std::string>(1, "Strings");
 
     for (int64_t i : mask) {
@@ -110,13 +110,13 @@ class CreateRangeFunction : public MultiFunction {
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
-    VSpan<uint> sizes = params.readonly_single_input<uint>(0, "Size");
-    GVectorArrayRef<uint> ranges = params.vector_output<uint>(1, "Range");
+    const VArray<uint> &sizes = params.readonly_single_input<uint>(0, "Size");
+    GVectorArray &ranges = params.vector_output(1, "Range");
 
     for (int64_t i : mask) {
       uint size = sizes[i];
       for (uint j : IndexRange(size)) {
-        ranges.append(i, j);
+        ranges.append(i, &j);
       }
     }
   }
@@ -127,7 +127,7 @@ TEST(multi_function, CreateRangeFunction)
   CreateRangeFunction fn;
 
   GVectorArray ranges(CPPType::get<uint>(), 5);
-  GVectorArrayRef<uint> ranges_ref(ranges);
+  GVectorArray_TypedMutableRef<uint> ranges_ref{ranges};
   Array<uint> sizes = {3, 0, 6, 1, 4};
 
   MFParamsBuilder params(fn, ranges.size());
@@ -138,11 +138,11 @@ TEST(multi_function, CreateRangeFunction)
 
   fn.call({0, 1, 2, 3}, params, context);
 
-  EXPECT_EQ(ranges_ref[0].size(), 3);
-  EXPECT_EQ(ranges_ref[1].size(), 0);
-  EXPECT_EQ(ranges_ref[2].size(), 6);
-  EXPECT_EQ(ranges_ref[3].size(), 1);
-  EXPECT_EQ(ranges_ref[4].size(), 0);
+  EXPECT_EQ(ranges[0].size(), 3);
+  EXPECT_EQ(ranges[1].size(), 0);
+  EXPECT_EQ(ranges[2].size(), 6);
+  EXPECT_EQ(ranges[3].size(), 1);
+  EXPECT_EQ(ranges[4].size(), 0);
 
   EXPECT_EQ(ranges_ref[0][0], 0);
   EXPECT_EQ(ranges_ref[0][1], 1);
@@ -163,10 +163,13 @@ class GenericAppendFunction : public MultiFunction {
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
   {
     GVectorArray &vectors = params.vector_mutable(0, "Vector");
-    GVSpan values = params.readonly_single_input(1, "Value");
+    const GVArray &values = params.readonly_single_input(1, "Value");
 
     for (int64_t i : mask) {
-      vectors.append(i, values[i]);
+      BUFFER_FOR_CPP_TYPE_VALUE(values.type(), buffer);
+      values.get(i, buffer);
+      vectors.append(i, buffer);
+      values.type().destruct(buffer);
     }
   }
 };
@@ -176,7 +179,7 @@ TEST(multi_function, GenericAppendFunction)
   GenericAppendFunction fn(CPPType::get<int32_t>());
 
   GVectorArray vectors(CPPType::get<int32_t>(), 4);
-  GVectorArrayRef<int> vectors_ref(vectors);
+  GVectorArray_TypedMutableRef<int> vectors_ref{vectors};
   vectors_ref.append(0, 1);
   vectors_ref.append(0, 2);
   vectors_ref.append(2, 6);
@@ -190,10 +193,10 @@ TEST(multi_function, GenericAppendFunction)
 
   fn.call(IndexRange(vectors.size()), params, context);
 
-  EXPECT_EQ(vectors_ref[0].size(), 3);
-  EXPECT_EQ(vectors_ref[1].size(), 1);
-  EXPECT_EQ(vectors_ref[2].size(), 2);
-  EXPECT_EQ(vectors_ref[3].size(), 1);
+  EXPECT_EQ(vectors[0].size(), 3);
+  EXPECT_EQ(vectors[1].size(), 1);
+  EXPECT_EQ(vectors[2].size(), 2);
+  EXPECT_EQ(vectors[3].size(), 1);
 
   EXPECT_EQ(vectors_ref[0][0], 1);
   EXPECT_EQ(vectors_ref[0][1], 2);
@@ -342,11 +345,11 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   CustomMF_GenericConstantArray fn{GSpan(Span(values))};
   EXPECT_EQ(fn.param_name(0), "[3, 4, 5, 6, ]");
 
-  GVectorArray g_vector_array{CPPType::get<int32_t>(), 4};
-  GVectorArrayRef<int> vector_array = g_vector_array;
+  GVectorArray vector_array{CPPType::get<int32_t>(), 4};
+  GVectorArray_TypedMutableRef<int> vector_array_ref{vector_array};
 
-  MFParamsBuilder params(fn, g_vector_array.size());
-  params.add_vector_output(g_vector_array);
+  MFParamsBuilder params(fn, vector_array.size());
+  params.add_vector_output(vector_array);
 
   MFContextBuilder context;
 
@@ -357,10 +360,10 @@ TEST(multi_function, CustomMF_GenericConstantArray)
   EXPECT_EQ(vector_array[2].size(), 4);
   EXPECT_EQ(vector_array[3].size(), 4);
   for (int i = 1; i < 4; i++) {
-    EXPECT_EQ(vector_array[i][0], 3);
-    EXPECT_EQ(vector_array[i][1], 4);
-    EXPECT_EQ(vector_array[i][2], 5);
-    EXPECT_EQ(vector_array[i][3], 6);
+    EXPECT_EQ(vector_array_ref[i][0], 3);
+    EXPECT_EQ(vector_array_ref[i][1], 4);
+    EXPECT_EQ(vector_array_ref[i][2], 5);
+    EXPECT_EQ(vector_array_ref[i][3], 6);
   }
 }
 

@@ -19,7 +19,7 @@
 #include <mutex>
 
 #include "FN_cpp_type.hh"
-#include "FN_spans.hh"
+#include "FN_generic_span.hh"
 
 #include "BKE_attribute.h"
 

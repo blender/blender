@@ -42,7 +42,7 @@ class ObjectTransformsFunction : public blender::fn::MultiFunction {
             blender::fn::MFParams params,
             blender::fn::MFContext context) const override
   {
-    blender::fn::VSpan handles =
+    const blender::VArray<blender::bke::PersistentObjectHandle> &handles =
         params.readonly_single_input<blender::bke::PersistentObjectHandle>(0, "Object");
     blender::MutableSpan locations = params.uninitialized_single_output<blender::float3>(
         1, "Location");

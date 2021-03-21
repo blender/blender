@@ -142,7 +142,7 @@ class ColorBandFunction : public blender::fn::MultiFunction {
             blender::fn::MFParams params,
             blender::fn::MFContext UNUSED(context)) const override
   {
-    blender::fn::VSpan<float> values = params.readonly_single_input<float>(0, "Value");
+    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
     blender::MutableSpan<blender::Color4f> colors =
         params.uninitialized_single_output<blender::Color4f>(1, "Color");
     blender::MutableSpan<float> alphas = params.uninitialized_single_output<float>(2, "Alpha");

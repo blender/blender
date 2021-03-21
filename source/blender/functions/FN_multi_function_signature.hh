@@ -46,8 +46,8 @@ class MFSignatureBuilder {
  private:
   MFSignature &data_;
   int span_count_ = 0;
-  int virtual_span_count_ = 0;
-  int virtual_array_span_count_ = 0;
+  int virtual_array_count_ = 0;
+  int virtual_vector_array_count_ = 0;
   int vector_array_count_ = 0;
 
  public:
@@ -83,10 +83,10 @@ class MFSignatureBuilder {
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        data_.param_data_indices.append(virtual_span_count_++);
+        data_.param_data_indices.append(virtual_array_count_++);
         break;
       case MFDataType::Vector:
-        data_.param_data_indices.append(virtual_array_span_count_++);
+        data_.param_data_indices.append(virtual_vector_array_count_++);
         break;
     }
   }
