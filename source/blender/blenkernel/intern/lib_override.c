@@ -650,10 +650,10 @@ BLI_INLINE bool lib_override_library_create_post_process_object_is_instantiated(
     ViewLayer *view_layer, Object *object, const bool is_resync)
 {
   /* We cannot rely on check for object being actually instantiated in resync case, because often
-   * the overridden collection is 'excluded' from the current viewlayer.
+   * the overridden collection is 'excluded' from the current view-layer.
    *
-   * Fallback to a basic usercount check then, this is weak (since it could lead to some object not
-   * being instantiated at all), but it should work fine in most common cases. */
+   * Fallback to a basic user-count check then, this is weak (since it could lead to some object
+   * not being instantiated at all), but it should work fine in most common cases. */
   return ((is_resync && ID_REAL_USERS(object) >= 1) ||
           (!is_resync && BKE_view_layer_base_find(view_layer, object) != NULL));
 }

@@ -141,9 +141,9 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
   bGPdata *gpd = ob->data;
 
-  /* Guard early, don't trigger calculation when no gpencil frame is present. Probably should
-   * disable in the isModifierDisabled() function but we need addtional arg for depsgraph and
-   * gpd. */
+  /* Guard early, don't trigger calculation when no grease-pencil frame is present.
+   * Probably should disable in the #isModifierDisabled() function
+   * but we need additional argument for depsgraph and `gpd`. */
   bGPDlayer *gpl = BKE_gpencil_layer_get_by_name(gpd, lmd->target_layer, 1);
   if (gpl == NULL) {
     return;

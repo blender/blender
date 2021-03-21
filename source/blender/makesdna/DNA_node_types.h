@@ -1081,9 +1081,11 @@ typedef struct NodeCryptomatte_Runtime {
 } NodeCryptomatte_Runtime;
 
 typedef struct NodeCryptomatte {
-  /* iuser needs to be first element due to RNA limitations.
-   * When we define the ImageData properties, we can't define them from
-   * storage->iuser, so storage needs to be casted to ImageUser directly. */
+  /**
+   * `iuser` needs to be first element due to RNA limitations.
+   * When we define the #ImageData properties, we can't define them from
+   * `storage->iuser`, so storage needs to be cast to #ImageUser directly.
+   */
   ImageUser iuser;
 
   /* Contains `CryptomatteEntry`. */

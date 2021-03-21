@@ -277,7 +277,7 @@ static int lineart_gpencil_bake_common(bContext *C,
     BLI_linklist_prepend(&bj->objects, ob);
   }
   else {
-    /* CTX_DATA_BEGIN is not available for interating in objects while using the Job system. */
+    /* #CTX_DATA_BEGIN is not available for iterating in objects while using the job system. */
     CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
       if (ob->type == OB_GPENCIL) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {

@@ -539,7 +539,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   AVDictionary *codec_opts = NULL;
   /* High quality preset value. */
   av_dict_set_int(&codec_opts, "crf", crf, 0);
-  /* Prefer smaller filesize. */
+  /* Prefer smaller file-size. */
   av_dict_set(&codec_opts, "preset", "slow", 0);
   /* Thread count. */
   av_dict_set_int(&codec_opts, "threads", BLI_system_thread_count(), 0);

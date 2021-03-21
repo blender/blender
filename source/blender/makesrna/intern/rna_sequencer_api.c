@@ -88,10 +88,10 @@ static void rna_Sequences_move_strip_to_meta(ID *id,
 {
   Scene *scene = (Scene *)id;
 
-  /* Move strip to meta */
+  /* Move strip to meta. */
   SEQ_edit_move_strip_to_meta(scene, seq_self, meta_dst);
 
-  /* Udate depsgraph */
+  /* Update depsgraph. */
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 

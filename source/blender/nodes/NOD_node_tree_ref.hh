@@ -80,7 +80,7 @@ class SocketRef : NonCopyable, NonMovable {
   PointerRNA rna_;
   Vector<LinkRef *> directly_linked_links_;
 
-  /* These sockets are linked directly, i.e. with a single link inbetween. */
+  /* These sockets are linked directly, i.e. with a single link in between. */
   MutableSpan<SocketRef *> directly_linked_sockets_;
   /* These sockets are linked when reroutes, muted links and muted nodes have been taken into
    * account. */

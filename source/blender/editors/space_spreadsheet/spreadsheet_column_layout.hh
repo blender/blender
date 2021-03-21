@@ -40,7 +40,7 @@ struct CollectionCellValue {
 class CellValue {
  public:
   /* The implementation just uses a `std::variant` for simplicity. It can be encapsulated better,
-   * but it's not really worth the complixity for now. */
+   * but it's not really worth the complexity for now. */
   using VariantType =
       std::variant<std::monostate, int, float, bool, ObjectCellValue, CollectionCellValue>;
 

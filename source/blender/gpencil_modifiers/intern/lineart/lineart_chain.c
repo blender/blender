@@ -512,10 +512,12 @@ static LineartBoundingArea *lineart_bounding_area_get_end_point(LineartRenderBuf
   return lineart_bounding_area_get_rlci_recursive(rb, root, rlci);
 }
 
-/* Here we will try to connect geometry space chains together in image space. However we can't
+/**
+ * Here we will try to connect geometry space chains together in image space. However we can't
  * chain two chains together if their end and start points lie on the border between two bounding
  * areas, this happens either when 1) the geometry is way too dense, or 2) the chaining threshold
- * is too big that it covers multiple small bounding areas. */
+ * is too big that it covers multiple small bounding areas.
+ */
 static void lineart_bounding_area_link_point_recursive(LineartRenderBuffer *rb,
                                                        LineartBoundingArea *root,
                                                        LineartLineChain *rlc,
@@ -636,7 +638,9 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
   }
 }
 
-/* Note: segment type (crease/material/contour...) is ambiguous after this. */
+/**
+ * Note: segment type (crease/material/contour...) is ambiguous after this.
+ */
 static void lineart_chain_connect(LineartRenderBuffer *UNUSED(rb),
                                   LineartLineChain *onto,
                                   LineartLineChain *sub,
@@ -700,7 +704,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
 
   LineartChainRegisterEntry *closest_cre = NULL;
 
-  /* Keep using for loop because cre could be removed from the iteration before getting to the
+  /* Keep using for loop because `cre` could be removed from the iteration before getting to the
    * next one. */
   LISTBASE_FOREACH_MUTABLE (LineartChainRegisterEntry *, cre, &ba->linked_chains) {
     if (cre->rlc->object_ref != rlc->object_ref) {
@@ -729,7 +733,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
         if (rb->fuzzy_intersections) {
           if (!(cre->rlc->type == LRT_EDGE_FLAG_INTERSECTION ||
                 rlc->type == LRT_EDGE_FLAG_INTERSECTION)) {
-            continue; /* Fuzzy intersetions but no intersection line found. */
+            continue; /* Fuzzy intersections but no intersection line found. */
           }
         }
         else { /* Line type different but no fuzzy. */
@@ -776,9 +780,11 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
   return closest_cre;
 }
 
-/* This function only connects two different chains. It will not do any clean up or smart chaining.
+/**
+ * This function only connects two different chains. It will not do any clean up or smart chaining.
  * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
- * implemented yet. */
+ * implemented yet.
+ */
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 {
   LineartLineChain *rlc;
@@ -856,7 +862,9 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
   }
 }
 
-/* Length is in image space. */
+/**
+ * Length is in image space.
+ */
 float MOD_lineart_chain_compute_length(LineartLineChain *rlc)
 {
   LineartLineChainItem *rlci;
@@ -904,8 +912,10 @@ void MOD_lineart_chain_clear_picked_flag(LineartRenderBuffer *rb)
   }
 }
 
-/* This should always be the last stage!, see the end of
- * MOD_lineart_chain_split_for_fixed_occlusion().*/
+/**
+ * This should always be the last stage!, see the end of
+ * #MOD_lineart_chain_split_for_fixed_occlusion().
+ */
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad)
 {
   LineartLineChain *rlc, *new_rlc;

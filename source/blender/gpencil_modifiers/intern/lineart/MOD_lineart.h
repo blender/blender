@@ -57,22 +57,26 @@ typedef struct LineartTriangle {
 
   /* Material flag is removed to save space. */
   unsigned char transparency_mask;
-  unsigned char flags; /* eLineartTriangleFlags */
+  unsigned char flags; /* #eLineartTriangleFlags */
 
-  /* Only use single link list, because we don't need to go back in order.
+  /**
+   * Only use single link list, because we don't need to go back in order.
    * This variable is also reused to store the pointer to adjacent lines of this triangle before
-   * intersection statge */
+   * intersection stage.
+   */
   struct LinkNode *intersecting_verts;
 } LineartTriangle;
 
 typedef struct LineartTriangleThread {
   struct LineartTriangle base;
-  /* This variable is used to store per-thread triangle-line testing pair,
+  /**
+   * This variable is used to store per-thread triangle-line testing pair,
    * also re-used to store triangle-triangle pair for intersection testing stage.
-   * Do not directly use LineartTriangleThread.
-   * The size of LineartTriangle is dynamically allocated to contain set thread number of
+   * Do not directly use #LineartTriangleThread.
+   * The size of #LineartTriangle is dynamically allocated to contain set thread number of
    * "testing_e" field. Worker threads will test lines against the "base" triangle.
-   * At least one thread is present, thus we always have at least testing_e[0]. */
+   * At least one thread is present, thus we always have at least `testing_e[0]`.
+   */
   struct LineartEdge *testing_e[1];
 } LineartTriangleThread;
 
@@ -89,7 +93,7 @@ typedef struct LineartElementLinkNode {
   void *object_ref;
   eLineArtElementNodeFlag flags;
 
-  /* Per object value, always set, if not enabled by ObjectLineArt, then it's set to global. */
+  /** Per object value, always set, if not enabled by #ObjectLineArt, then it's set to global. */
   float crease_threshold;
 } LineartElementLinkNode;
 
@@ -100,10 +104,11 @@ typedef struct LineartLineSegment {
   /** Occlusion level after "at" point */
   unsigned char occlusion;
 
-  /** For determining lines beind a glass window material.
-   *  the size of this variable should also be dynamically decided, 1 byte to 8 byte,
-   *  allows 8 to 64 materials for "transparent mask". 1 byte (8 materials) should be
-   *  enought for most cases.
+  /**
+   * For determining lines behind a glass window material.
+   * the size of this variable should also be dynamically decided, 1 byte to 8 byte,
+   * allows 8 to 64 materials for "transparent mask". 1 byte (8 materials) should be
+   * enough for most cases.
    */
   unsigned char transparency_mask;
 } LineartLineSegment;
@@ -115,9 +120,10 @@ typedef struct LineartVert {
   /* Scene global index. */
   int index;
 
-  /** Intersection data flag is here, when LRT_VERT_HAS_INTERSECTION_DATA is set,
+  /**
+   * Intersection data flag is here, when LRT_VERT_HAS_INTERSECTION_DATA is set,
    * size of the struct is extended to include intersection data.
-   * See eLineArtVertFlags.
+   * See #eLineArtVertFlags.
    */
   char flag;
 
@@ -125,7 +131,7 @@ typedef struct LineartVert {
 
 typedef struct LineartVertIntersection {
   struct LineartVert base;
-  /* Use vert index because we only use this to check vertex equal. This way we save 8 Bytes. */
+  /** Use vert index because we only use this to check vertex equal. This way we save 8 Bytes. */
   int isec1, isec2;
   struct LineartTriangle *intersecting_with;
 } LineartVertIntersection;
@@ -136,20 +142,23 @@ typedef enum eLineArtVertFlags {
 } eLineArtVertFlags;
 
 typedef struct LineartEdge {
-  /* We only need link node kind of list here. */
+  /** We only need link node kind of list here. */
   struct LineartEdge *next;
   struct LineartVert *v1, *v2;
-  /* Local vertex index for two ends, not puting in RenderVert because all verts are loaded, so as
-   * long as fewer than half of the mesh edges are becoming a feature line, we save more memory. */
+  /**
+   * Local vertex index for two ends, not pouting in #RenderVert because all verts are loaded, so
+   * as long as fewer than half of the mesh edges are becoming a feature line, we save more memory.
+   */
   int v1_obindex, v2_obindex;
   struct LineartTriangle *t1, *t2;
   ListBase segments;
   char min_occ;
 
-  /**  Also for line type determination on chainning */
+  /** Also for line type determination on chaining. */
   unsigned char flags;
 
-  /**  Still need this entry because culled lines will not add to object reln node,
+  /**
+   * Still need this entry because culled lines will not add to object reln node,
    * TODO: If really need more savings, we can allocate this in a "extended" way too, but we need
    * another bit in flags to be able to show the difference.
    */
@@ -160,10 +169,10 @@ typedef struct LineartLineChain {
   struct LineartLineChain *next, *prev;
   ListBase chain;
 
-  /**  Calculated before draw cmd. */
+  /** Calculated before draw command. */
   float length;
 
-  /**  Used when re-connecting and gp stroke generation */
+  /** Used when re-connecting and gp stroke generation. */
   char picked;
   char level;
 
@@ -216,11 +225,11 @@ typedef struct LineartRenderBuffer {
   ListBase line_buffer_pointers;
   ListBase triangle_buffer_pointers;
 
-  /* This one's memory is not from main pool and is free()ed after culling stage. */
+  /** This one's memory is not from main pool and is free()ed after culling stage. */
   ListBase triangle_adjacent_pointers;
 
   ListBase intersecting_vertex_buffer;
-  /* Use the one comes with Line Art. */
+  /** Use the one comes with Line Art. */
   LineartStaticMemPool render_data_pool;
   ListBase wasted_cuts;
   SpinLock lock_cuts;
@@ -291,7 +300,7 @@ typedef struct LineartRenderBuffer {
   float chaining_image_threshold;
   float angle_splitting_threshold;
 
-  /* FIXME: (Yiming) Temporary solution for speeding up calculation by not including lines that
+  /* FIXME(Yiming): Temporary solution for speeding up calculation by not including lines that
    * are not in the selected source. This will not be needed after we have a proper scene-wise
    * cache running because multiple modifiers can then select results from that without further
    * calculation. */
@@ -342,22 +351,27 @@ typedef struct LineartRenderTaskInfo {
 
 } LineartRenderTaskInfo;
 
-/** Bounding area diagram:
- *
+/**
+ * Bounding area diagram:
+ * \code{.txt}
  * +----+ <----U (Upper edge Y value)
  * |    |
  * +----+ <----B (Bottom edge Y value)
  * ^    ^
  * L    R (Left/Right edge X value)
+ * \endcode
  *
  * Example structure when subdividing 1 bounding areas:
  * 1 area can be divided into 4 smaller children to
- * accomodate image areas with denser triangle distribution.
+ * accommodate image areas with denser triangle distribution.
+ * \code{.txt}
  * +--+--+-----+
  * +--+--+     |
  * +--+--+-----+
  * |     |     |
  * +-----+-----+
+ * \endcode
+ *
  * lp/rp/up/bp is the list for
  * storing pointers to adjacent bounding areas.
  */
@@ -378,7 +392,7 @@ typedef struct LineartBoundingArea {
   ListBase linked_triangles;
   ListBase linked_lines;
 
-  /** Reserved for image space reduction && multithread chainning */
+  /** Reserved for image space reduction && multi-thread chaining. */
   ListBase linked_chains;
 } LineartBoundingArea;
 

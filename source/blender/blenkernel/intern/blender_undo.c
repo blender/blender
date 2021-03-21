@@ -115,7 +115,7 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
 {
   MemFileUndoData *mfu = MEM_callocN(sizeof(MemFileUndoData), __func__);
 
-  /* Include recovery infomation since undo-data is written out as #BLENDER_QUIT_FILE. */
+  /* Include recovery information since undo-data is written out as #BLENDER_QUIT_FILE. */
   const int fileflags = G.fileflags | G_FILE_RECOVER_WRITE;
 
   /* disk save version */
