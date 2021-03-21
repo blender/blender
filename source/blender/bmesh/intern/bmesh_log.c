@@ -120,6 +120,7 @@ struct BMLog {
   int cd_origco_offset;
   int cd_origno_offset;
   int cd_origvcol_offset;
+  int cd_dyn_vert;
 };
 
 typedef struct {
@@ -578,7 +579,6 @@ static void bm_log_face_values_swap(BMLog *log, GHash *faces, BMLogEntry *entry)
       }
     }
 #endif
-
   }
 }
 
@@ -713,18 +713,18 @@ static void bm_log_id_ghash_release(BMLog *log, GHash *id_ghash)
 
 /***************************** Public API *****************************/
 
-void BM_log_set_cd_offsets(BMLog *log,
-                           int cd_origco_offset,
-                           int cd_origno_offset,
-                           int cd_origvol_offset)
+void BM_log_set_cd_offsets(
+    BMLog *log, int cd_origco_offset, int cd_origno_offset, int cd_origvol_offset, int cd_dyn_vert)
 {
   log->cd_origco_offset = cd_origco_offset;
   log->cd_origno_offset = cd_origno_offset;
   log->cd_origvcol_offset = cd_origvol_offset;
+  log->cd_dyn_vert = cd_dyn_vert;
 }
 
 /* Allocate, initialize, and assign a new BMLog */
-BMLog *BM_log_create(BMesh *bm, int cd_origco_offset, int cd_origno_offset, int cd_origvcol_offset)
+BMLog *BM_log_create(
+    BMesh *bm, int cd_origco_offset, int cd_origno_offset, int cd_origvcol_offset, int cd_dyn_vert)
 {
   BMLog *log = MEM_callocN(sizeof(*log), __func__);
   const uint reserve_num = (uint)(bm->totvert + bm->totface);
@@ -735,7 +735,7 @@ BMLog *BM_log_create(BMesh *bm, int cd_origco_offset, int cd_origno_offset, int 
   log->id_to_elem = BLI_ghash_new_ex(logkey_hash, logkey_cmp, __func__, reserve_num);
   log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, reserve_num);
 
-  BM_log_set_cd_offsets(log, cd_origco_offset, cd_origno_offset, cd_origvcol_offset);
+  BM_log_set_cd_offsets(log, cd_origco_offset, cd_origno_offset, cd_origvcol_offset, cd_dyn_vert);
 
   /* Assign IDs to all existing vertices and faces */
   bm_log_assign_ids(bm, log);
@@ -775,7 +775,7 @@ void BM_log_cleanup_entry(BMLogEntry *entry)
  */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
 {
-  BMLog *log = BM_log_create(bm, -1, -1, -1);
+  BMLog *log = BM_log_create(bm, -1, -1, -1, -1);
 
   if (entry->prev) {
     log->current_entry = entry;

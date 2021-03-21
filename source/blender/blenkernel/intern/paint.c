@@ -77,9 +77,8 @@
 
 #include "bmesh.h"
 
-//XXX todo: work our bad module cross ref
-void SCULPT_dynamic_topology_sync_layers(Object *ob,
-                                         Mesh *me);
+// XXX todo: work our bad module cross ref
+void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 
 static void palette_init_data(ID *id)
 {
@@ -2110,9 +2109,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->bm_log,
                        ob->sculpt->cd_vert_node_offset,
                        ob->sculpt->cd_face_node_offset,
-                       ob->sculpt->cd_origco_offset,
-                       ob->sculpt->cd_origno_offset,
-                       ob->sculpt->cd_origvcol_offset);
+                       ob->sculpt->cd_dyn_vert);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
 

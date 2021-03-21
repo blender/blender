@@ -495,6 +495,7 @@ typedef struct SculptSession {
 
   /* BMesh for dynamic topology sculpting */
   struct BMesh *bm;
+  int cd_dyn_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vcol_offset;
@@ -617,7 +618,7 @@ typedef struct SculptSession {
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
   char needs_flush_to_id;
-
+  char update_boundary_info_bmesh;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

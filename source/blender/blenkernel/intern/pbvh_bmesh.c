@@ -18,24 +18,24 @@
  * \ingroup bli
  */
 
- /*
- TODO:
+/*
+TODO:
 
- Convergence improvements:
- 1. DONE: Limit number of edges processed per run.
- 2. Scale split steps by ratio of long to short edges to
-    prevent runaway tesselation.
- 3. Detect and dissolve three and four valence vertices that are surrounded by
-    all tris.
- 4. Use different (coarser) brush spacing for applying dyntopo 
+Convergence improvements:
+1. DONE: Limit number of edges processed per run.
+2. Scale split steps by ratio of long to short edges to
+   prevent runaway tesselation.
+3. Detect and dissolve three and four valence vertices that are surrounded by
+   all tris.
+4. Use different (coarser) brush spacing for applying dyntopo
 
- Drawing improvements:
- 4. Build and cache vertex index buffers, to reduce GPU bandwidth
+Drawing improvements:
+4. Build and cache vertex index buffers, to reduce GPU bandwidth
 
- Topology rake:
- 5. Enable new curvature topology rake code and add to UI.
- 6. Add code to cache curvature data per vertex in a CD layer.
- 
+Topology rake:
+5. Enable new curvature topology rake code and add to UI.
+6. Add code to cache curvature data per vertex in a CD layer.
+
 */
 
 #include "MEM_guardedalloc.h"
@@ -114,6 +114,8 @@ static void check_heap()
 #endif
 
 // #define USE_VERIFY
+
+#define DYNTOPO_MASK(cd_mask_offset, v) BM_ELEM_CD_GET_FLOAT(v, cd_mask_offset)
 
 #ifdef USE_VERIFY
 static void pbvh_bmesh_verify(PBVH *pbvh);
@@ -606,6 +608,13 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
   BMVert *v = BM_vert_create(pbvh->bm, co, NULL, BM_CREATE_SKIP_CD);
   CustomData_bmesh_set_default(&pbvh->bm->vdata, &v->head.data);
 
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+
+  copy_v3_v3(mv->origco, co);
+  copy_v3_v3(mv->origno, no);
+  mv->origmask = 0.0f;
+  mv->flag = 0;
+
   /* This value is logged below */
   copy_v3_v3(v->no, no);
 
@@ -875,6 +884,7 @@ typedef struct {
   EdgeQueue *q;
   BLI_mempool *pool;
   BMesh *bm;
+  int cd_dyn_vert;
   int cd_vert_mask_offset;
   int cd_vert_node_offset;
   int cd_face_node_offset;
@@ -1232,7 +1242,7 @@ static bool edge_queue_vert_in_circle(const EdgeQueue *q, BMVert *v)
 /* Return true if the vertex mask is less than 1.0, false otherwise */
 static bool check_mask(EdgeQueueContext *eq_ctx, BMVert *v)
 {
-  return BM_ELEM_CD_GET_FLOAT(v, eq_ctx->cd_vert_mask_offset) < 1.0f;
+  return DYNTOPO_MASK(eq_ctx->cd_dyn_vert, v) < 1.0f;
 }
 
 static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e, float priority)
@@ -1808,9 +1818,10 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 #endif
 
   /* update paint mask */
-  if (eq_ctx->cd_vert_mask_offset != -1) {
-    float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, eq_ctx->cd_vert_mask_offset);
-    float mask_v2 = BM_ELEM_CD_GET_FLOAT(e->v2, eq_ctx->cd_vert_mask_offset);
+  if (eq_ctx->cd_dyn_vert != -1) {
+    float mask_v1 = DYNTOPO_MASK(eq_ctx->cd_dyn_vert, e->v1);
+    float mask_v2 = DYNTOPO_MASK(eq_ctx->cd_dyn_vert, e->v2);
+
     float mask_v_new = 0.5f * (mask_v1 + mask_v2);
 
     BM_ELEM_CD_SET_FLOAT(v_new, eq_ctx->cd_vert_mask_offset, mask_v_new);
@@ -2079,8 +2090,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 #endif
 
   /* one of the two vertices may be masked, select the correct one for deletion */
-  if (BM_ELEM_CD_GET_FLOAT(v1, eq_ctx->cd_vert_mask_offset) <
-      BM_ELEM_CD_GET_FLOAT(v2, eq_ctx->cd_vert_mask_offset)) {
+  if (DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v1) <
+      DYNTOPO_MASK(eq_ctx->cd_vert_mask_offset, v2)) {
     v_del = v1;
     v_conn = v2;
   }
@@ -2329,32 +2340,31 @@ void BKE_pbvh_bmesh_update_origvert(
 {
   float *co = NULL, *no = NULL;
 
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+
   BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset, r_color != NULL);
 
   if (r_co || r_no) {
-    co = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origco_offset);
-    no = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origno_offset);
 
-    copy_v3_v3(co, v->co);
-    copy_v3_v3(no, v->no);
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
 
     if (r_co) {
-      *r_co = co;
+      *r_co = mv->origco;
     }
 
     if (r_no) {
-      *r_no = no;
+      *r_no = mv->origno;
     }
   }
 
-  if (r_color && pbvh->cd_vcol_offset >= 0 && pbvh->cd_origvcol_offset >= 0) {
+  if (r_color && pbvh->cd_vcol_offset >= 0) {
     MPropCol *ml1 = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_vcol_offset);
-    MPropCol *ml2 = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origvcol_offset);
 
-    copy_v4_v4(ml2->color, ml1->color);
+    copy_v4_v4(mv->origcolor, ml1->color);
 
     if (r_color) {
-      *r_color = ml2->color;
+      *r_color = mv->origcolor;
     }
   }
   else if (r_color) {
@@ -2903,16 +2913,12 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           BMLog *log,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
-                          const int cd_origco_offset,
-                          const int cd_origno_offset,
-                          const int cd_origvcol_offset)
+                          const int cd_dyn_vert)
 {
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
-  pbvh->cd_origco_offset = cd_origco_offset;
-  pbvh->cd_origno_offset = cd_origno_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_origvcol_offset = cd_origvcol_offset;
+  pbvh->cd_dyn_vert = cd_dyn_vert;
 
   pbvh->bm = bm;
 
@@ -2929,23 +2935,26 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BMIter iter;
   BMVert *v;
 
-  int cd_vcol_offset = -1;
-  if (cd_origvcol_offset >= 0) {
-    cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
-  }
+  int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    float *co = BM_ELEM_CD_GET_VOID_P(v, cd_origco_offset);
-    float *no = BM_ELEM_CD_GET_VOID_P(v, cd_origno_offset);
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(cd_dyn_vert, v);
 
-    copy_v3_v3(co, v->co);
-    copy_v3_v3(no, v->no);
+    mv->flag = 0;
 
-    if (cd_origvcol_offset >= 0) {
+    if (BM_vert_is_boundary(v)) {
+      mv->flag |= DYNVERT_BOUNDARY;
+    }
+
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
+
+    if (cd_vcol_offset >= 0) {
       MPropCol *c1 = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-      MPropCol *c2 = BM_ELEM_CD_GET_VOID_P(v, cd_origvcol_offset);
-
-      copy_v4_v4(c2->color, c1->color);
+      copy_v4_v4(mv->origcolor, c1->color);
+    }
+    else {
+      zero_v4(mv->origcolor);
     }
   }
   if (smooth_shading) {
@@ -3077,6 +3086,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   const int cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   const int cd_vert_node_offset = pbvh->cd_vert_node_offset;
   const int cd_face_node_offset = pbvh->cd_face_node_offset;
+  const int cd_dyn_vert = pbvh->cd_dyn_vert;
 
   bool modified = false;
 
@@ -3091,6 +3101,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         &q,
         queue_pool,
         pbvh->bm,
+
+        cd_dyn_vert,
         cd_vert_mask_offset,
         cd_vert_node_offset,
         cd_face_node_offset,
@@ -3113,6 +3125,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         &q,
         queue_pool,
         pbvh->bm,
+        cd_dyn_vert,
         cd_vert_mask_offset,
         cd_vert_node_offset,
         cd_face_node_offset,
@@ -3869,17 +3882,12 @@ static void pbvh_bmesh_verify(PBVH *pbvh)
 void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
-                             const int cd_origco_offset,
-                             const int cd_origno_offset,
-                             const int cd_origvcol_offset)
+                             const int cd_dyn_vert)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
-  pbvh->cd_origco_offset = cd_origco_offset;
-  pbvh->cd_origno_offset = cd_origno_offset;
-  pbvh->cd_origvcol_offset = cd_origvcol_offset;
-  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_dyn_vert = cd_dyn_vert;
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)

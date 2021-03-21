@@ -1164,15 +1164,15 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert*)(vertex.i)));
+      return mv->flag & DYNVERT_BOUNDARY;
+    }
     case PBVH_FACES: {
       if (!SCULPT_vertex_all_face_sets_visible_get(ss, vertex)) {
         return true;
       }
       return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
-    }
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-      return BM_vert_is_boundary(v);
     }
 
     case PBVH_GRIDS: {
@@ -1639,13 +1639,15 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
 {
   if (orig_data->datatype == SCULPT_UNDO_COORDS) {
     if (orig_data->bm_log) {
-      orig_data->co = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origco_offset);
+      orig_data->co = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origco;
 
-      float *no = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origno_offset);
+      float *no = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origno;
       normal_float_to_short_v3(orig_data->_no, no);
       orig_data->no = orig_data->_no;
 
-      orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
+      orig_data->col = iter->cd_vcol_offset >= 0 ?
+                           BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origcolor :
+                           NULL;
     }
     else {
       orig_data->co = orig_data->coords[iter->i];
@@ -1654,7 +1656,7 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
   else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
     if (orig_data->bm_log) {
-      orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
+      orig_data->col = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origcolor;
     }
     else {
       orig_data->col = orig_data->colors[iter->i];
@@ -1662,7 +1664,8 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
   else if (orig_data->datatype == SCULPT_UNDO_MASK) {
     if (orig_data->bm_log) {
-      orig_data->mask = BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
+      orig_data->mask = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)
+                            ->origmask;  // BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
     }
     else {
       orig_data->mask = orig_data->vmasks[iter->i];
@@ -3234,8 +3237,9 @@ typedef struct {
   bool original;
 } SculptFindNearestToRayData;
 
-__attribute__((optnone)) static void do_topology_rake_bmesh_task_cb_ex(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict tls)
+static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
+                                              const int n,
+                                              const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -4410,9 +4414,8 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, do_grab_brush_task_cb_ex, &settings);
 }
 
-static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
-                                               const int n,
-                                               const TaskParallelTLS *__restrict UNUSED(tls))
+__attribute__((optnone)) static void do_elastic_deform_brush_task_cb_ex(
+    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -6217,8 +6220,10 @@ static void sculpt_topology_update(Sculpt *sd,
     symidx = 127;
   }
 
+  bool modified;
+
   /* do nodes under the brush cursor */
-  BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
+  modified = BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
                                        SCULPT_search_sphere_cb,
                                        topology_undopush_cb,
                                        &sdata,
@@ -6634,7 +6639,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
 
     if (use_orco) {
       if (ss->bm) {
-        float *co = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, ss->cd_origco_offset);
+        float *co = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, vd.bm_vert)->origco;
         copy_v3_v3(val, co);
         // copy_v3_v3(val, BM_log_original_vert_co(ss->bm_log, vd.bm_vert));
       }
@@ -8294,6 +8299,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
+    ss->update_boundary_info_bmesh = true;
 #if 0
     if (update_flags & SCULPT_UPDATE_COLOR) {
       PBVHNode **nodes;
@@ -9529,32 +9535,62 @@ void SCULPT_connected_components_ensure(Object *ob)
 void SCULPT_boundary_info_ensure(Object *object)
 {
   SculptSession *ss = object->sculpt;
-  if (ss->vertex_info.boundary) {
-    return;
-  }
 
-  Mesh *base_mesh = BKE_mesh_from_object(object);
-  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
-  int *adjacent_faces_edge_count = MEM_calloc_arrayN(
-      base_mesh->totedge, sizeof(int), "Adjacent face edge count");
+  if (ss->bm) {
+    if (!ss->update_boundary_info_bmesh) {
+      return;
+    }
 
-  for (int p = 0; p < base_mesh->totpoly; p++) {
-    MPoly *poly = &base_mesh->mpoly[p];
-    for (int l = 0; l < poly->totloop; l++) {
-      MLoop *loop = &base_mesh->mloop[l + poly->loopstart];
-      adjacent_faces_edge_count[loop->e]++;
+    ss->update_boundary_info_bmesh = 0;
+
+    BMVert *v;
+    BMIter iter;
+
+    MEM_SAFE_FREE(ss->vertex_info.boundary);
+
+    //return; //XXX
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+
+    BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+      SculptVertRef sv = {(uintptr_t)v};
+
+      if (BM_vert_is_boundary(v) || !SCULPT_vertex_all_face_sets_visible_get(ss, sv)) {
+        mv->flag |= DYNVERT_BOUNDARY;
+      }
+      else {
+        mv->flag &= ~DYNVERT_BOUNDARY;
+      }
     }
   }
-
-  for (int e = 0; e < base_mesh->totedge; e++) {
-    if (adjacent_faces_edge_count[e] < 2) {
-      MEdge *edge = &base_mesh->medge[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+  else {
+    if (ss->vertex_info.boundary) {
+      return;
     }
-  }
 
-  MEM_freeN(adjacent_faces_edge_count);
+    Mesh *base_mesh = BKE_mesh_from_object(object);
+    ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
+    int *adjacent_faces_edge_count = MEM_calloc_arrayN(
+        base_mesh->totedge, sizeof(int), "Adjacent face edge count");
+
+    for (int p = 0; p < base_mesh->totpoly; p++) {
+      MPoly *poly = &base_mesh->mpoly[p];
+      for (int l = 0; l < poly->totloop; l++) {
+        MLoop *loop = &base_mesh->mloop[l + poly->loopstart];
+        adjacent_faces_edge_count[loop->e]++;
+      }
+    }
+
+    for (int e = 0; e < base_mesh->totedge; e++) {
+      if (adjacent_faces_edge_count[e] < 2) {
+        MEdge *edge = &base_mesh->medge[e];
+        BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v1, true);
+        BLI_BITMAP_SET(ss->vertex_info.boundary, edge->v2, true);
+      }
+    }
+
+    MEM_freeN(adjacent_faces_edge_count);
+  }
 }
 
 void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)

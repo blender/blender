@@ -75,11 +75,11 @@ typedef struct CustomData {
    * MUST be >= CD_NUMTYPES, but we cant use a define here.
    * Correct size is ensured in CustomData_update_typemap assert().
    */
-  int typemap[51];
+  int typemap[52];
   /** Number of layers, size of layers array. */
   int totlayer, maxlayer;
   /** In editmode, total size of all data layers. */
-  int totsize;
+  int totsize, _pad;
   /** (BMesh Only): Memory pool for allocation of blocks. */
   struct BLI_mempool *pool;
   /** External file storing customdata layers. */
@@ -157,7 +157,8 @@ typedef enum CustomDataType {
 
   CD_PROP_BOOL = 50,
 
-  CD_NUMTYPES = 51,
+  CD_DYNTOPO_VERT = 51,
+  CD_NUMTYPES = 52,
 } CustomDataType;
 
 /* Bits for CustomDataMask */
@@ -210,6 +211,8 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_FLOAT3 (1ULL << CD_PROP_FLOAT3)
 #define CD_MASK_PROP_FLOAT2 (1ULL << CD_PROP_FLOAT2)
 #define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
+
+#define CD_MASK_DYNTOPO_VERT (1ULL <<  CD_DYNTOPO_VERT)
 
 /** Multires loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)

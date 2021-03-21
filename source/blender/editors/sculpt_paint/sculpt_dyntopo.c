@@ -117,11 +117,15 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    float *co = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origco_offset);
-    float *no = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origno_offset);
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-    copy_v3_v3(co, v->co);
-    copy_v3_v3(no, v->no);
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
+
+    if (ss->cd_vcol_offset >= 0) {
+      MPropCol *mp = (MPropCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
+      copy_v4_v4(mv->origcolor, mp->color);
+    }
   }
 }
 
@@ -149,6 +153,13 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
     if (cd_origvcol_index == -1) {
       BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_COLOR, origcolor_id);
     }
+  }
+
+  if (!CustomData_has_layer(&ss->bm->vdata, CD_DYNTOPO_VERT)) {
+    BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_DYNTOPO_VERT);
+
+    int cd_dyn_vert = CustomData_get_layer_index(&ss->bm->vdata, CD_DYNTOPO_VERT);
+    ss->bm->vdata.layers[cd_dyn_vert].flag |= CD_FLAG_TEMPORARY;
   }
 
   cd_origco_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origco_id);
@@ -192,6 +203,8 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   else {
     ss->cd_origvcol_offset = -1;
   }
+
+  ss->cd_dyn_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
 
   ss->cd_origco_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
@@ -314,12 +327,8 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
   if (modified) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
-    BKE_pbvh_update_offsets(ss->pbvh,
-                            ss->cd_vert_node_offset,
-                            ss->cd_face_node_offset,
-                            ss->cd_origco_offset,
-                            ss->cd_origno_offset,
-                            ss->cd_origvcol_offset);
+    BKE_pbvh_update_offsets(
+        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
   }
 }
 
@@ -360,21 +369,14 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   int cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    if (ss->cd_origco_offset >= 0) {
-      float *co = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origco_offset);
-      copy_v3_v3(co, v->co);
-    }
-    if (ss->cd_origno_offset >= 0) {
-      float *no = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origno_offset);
-      copy_v3_v3(no, v->no);
-    }
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
-    if (ss->cd_origvcol_offset >= 0) {
+    copy_v3_v3(mv->origco, v->co);
+    copy_v3_v3(mv->origno, v->no);
 
-      float *ocolor = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origvcol_offset);
-      float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-
-      copy_v4_v4(ocolor, color);
+    if (ss->cd_vcol_offset >= 0) {
+      MPropCol *color = (MPropCol *)BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
+      copy_v4_v4(mv->origcolor, color->color);
     }
   }
 
@@ -386,9 +388,11 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Enable dynamic topology. */
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
+  ss->update_boundary_info_bmesh = 1;
+
   /* Enable logging for undo/redo. */
   ss->bm_log = BM_log_create(
-      ss->bm, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
+      ss->bm, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */

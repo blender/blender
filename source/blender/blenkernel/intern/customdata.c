@@ -1503,6 +1503,67 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
+void layerDynTopoVert_copy(const void *source, void *dest, int count)
+{
+  const MDynTopoVert *mv = (MDynTopoVert *)dest;
+
+  memcpy(dest, source, count * sizeof(MDynTopoVert));
+}
+
+void layerDynTopoVert_interp(
+    const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
+{
+  float co[3], no[3], origmask, color[4];
+  MDynTopoVert *mv = (MDynTopoVert *)dest;
+  float totweight = 0.0f;
+
+  if (count == 0) {
+    memset(mv, 0, sizeof(*mv));
+    return;
+  }
+
+  zero_v3(co);
+  zero_v3(no);
+  origmask = 0.0f;
+  zero_v4(color);
+
+  for (int i = 0; i < count; i++) {
+    MDynTopoVert *mv2 = (MDynTopoVert *)sources[i];
+    float w;
+
+    if (i == 0) {  // copy flag from first source
+      mv->flag = mv2->flag;
+    }
+
+    if (sub_weights) {
+      w = sub_weights[i];
+    }
+    else {
+      w = 1.0f;
+    }
+
+    madd_v3_v3fl(co, mv2->origco, w);
+    madd_v3_v3fl(no, mv2->origno, w);
+    madd_v4_v4fl(color, mv2->origcolor, w);
+    origmask += mv2->origmask * w;
+
+    totweight += w;
+  }
+
+  float mul = 1.0f / totweight;
+
+  mul_v3_fl(co, mul);
+  mul_v3_fl(no, mul);
+  mul_v4_fl(color, mul);
+  origmask *= mul;
+
+  copy_v3_v3(mv->origco, co);
+  copy_v3_v3(mv->origno, no);
+  copy_v4_v4(mv->origcolor, color);
+
+  mv->origmask = origmask;
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 0: CD_MVERT */
     {sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1884,7 +1945,14 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,
      NULL,
      NULL},
-};
+    {sizeof(MDynTopoVert),
+     NULL,  // flag singleton layer
+     1,
+     N_("DynTopoVert"),
+      layerDynTopoVert_copy,
+      NULL,
+       layerDynTopoVert_interp
+    }};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
@@ -1940,7 +2008,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     "CDPropFloat3",
     "CDPropFloat2",
     "CDPropBoolean",
-};
+    "CDDyntopoVert"};
 
 const CustomData_MeshMasks CD_MASK_BAREMESH = {
     .vmask = CD_MASK_MVERT | CD_MASK_BWEIGHT,
@@ -1989,7 +2057,8 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     .vmask = (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-              CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR),
+              CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR |
+              CD_MASK_DYNTOPO_VERT),
     .emask = (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     .fmask = 0,
     .lmask = (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |

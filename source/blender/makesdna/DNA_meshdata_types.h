@@ -525,6 +525,21 @@ typedef struct MRecast {
 
 /** \} */
 
+typedef struct MDynTopoVert {
+  int flag;
+
+  /**original coordinates*/
+  float origco[3], origno[3];
+
+  /**original color*/
+  float origcolor[4];
+
+  float origmask;
+} MDynTopoVert;
+
+/*MDynTopoVert->flag*/
+enum { DYNVERT_BOUNDARY = (1 << 0) };
+
 #ifdef __cplusplus
 }
 #endif

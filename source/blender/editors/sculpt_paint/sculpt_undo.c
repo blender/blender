@@ -464,7 +464,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   /* Restore the BMLog using saved entries. */
   ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
   BM_log_set_cd_offsets(
-      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
+      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
 }
 
 static void sculpt_undo_bmesh_restore_begin(bContext *C,
@@ -599,7 +599,7 @@ static int sculpt_undo_bmesh_restore(bContext *C,
 {
   if (ss->bm_log) {
     BM_log_set_cd_offsets(
-        ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
+        ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
   }
 
   switch (unode->type) {

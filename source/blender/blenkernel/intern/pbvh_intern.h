@@ -174,13 +174,12 @@ struct PBVH {
   BMesh *bm;
   float bm_max_edge_len;
   float bm_min_edge_len;
+
+  int cd_dyn_vert;
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vert_mask_offset;
   int cd_vcol_offset;
-  int cd_origco_offset;
-  int cd_origno_offset;
-  int cd_origvcol_offset;
   int cd_faceset_offset;
 
   float planes[6][4];

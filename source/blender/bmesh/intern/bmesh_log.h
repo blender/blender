@@ -29,11 +29,13 @@ typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
 
 /* Allocate and initialize a new BMLog */
-BMLog *BM_log_create(BMesh *bm, int cd_origco_offset, int cd_origno_offset, int cd_origvol_offset);
+BMLog *BM_log_create(
+    BMesh *bm, int cd_origco_offset, int cd_origno_offset, int cd_origvol_offset, int cd_dyn_vert);
 void BM_log_set_cd_offsets(BMLog *log,
                            int cd_origco_offset,
                            int cd_origno_offset,
-                           int cd_origvcol_offset);
+                           int cd_origvcol_offset,
+                           int cd_dyn_vert);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);

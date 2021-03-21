@@ -1457,7 +1457,7 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
 {
   PBVHVertexIter vd;
 
-  if (!pbvh->bm || pbvh->cd_origvcol_offset < 0) {
+  if (!pbvh->bm || pbvh->cd_vcol_offset < 0) {
     return;
   }
 
@@ -1469,10 +1469,10 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
 
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
   {
-    float *c1 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_origvcol_offset);
-    float *c2 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, cd_vcol_offset);
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vd.bm_vert);
+    float *c2 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_vcol_offset);
 
-    copy_v4_v4(c1, c2);
+    copy_v4_v4(mv->origcolor, c2);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -1481,17 +1481,16 @@ void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node)
 {
   PBVHVertexIter vd;
 
-  if (!pbvh->bm || pbvh->cd_origco_offset < 0 || pbvh->cd_origno_offset < 0) {
+  if (!pbvh->bm || pbvh->cd_dyn_vert < 0) {
     return;
   }
 
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_ALL)
   {
-    float *no = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_origno_offset);
-    float *co = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_origco_offset);
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vd.bm_vert);
 
-    copy_v3_v3(co, vd.bm_vert->co);
-    copy_v3_v3(no, vd.bm_vert->no);
+    copy_v3_v3(mv->origco, vd.bm_vert->co);
+    copy_v3_v3(mv->origno, vd.bm_vert->no);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -3095,6 +3094,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_vdata = &pbvh->bm->vdata;
     vi->bm_vert = NULL;
 
+    vi->cd_dyn_vert = CustomData_get_offset(vi->bm_vdata, CD_DYNTOPO_VERT);
+
     // we ensure pbvh->cd_vcol_offset is up to date here too
     vi->cd_vcol_offset = pbvh->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
@@ -3175,12 +3176,13 @@ void BKE_pbvh_get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes)
   }
 }
 
+#include "BKE_global.h"
 void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode)
 {
   memset(settings, 0, sizeof(*settings));
-  settings->use_threading = use_threading && totnode > 1;
+  settings->use_threading = use_threading && totnode > 1 && G.debug_value != 890;
 }
 
 MVert *BKE_pbvh_get_verts(const PBVH *pbvh)

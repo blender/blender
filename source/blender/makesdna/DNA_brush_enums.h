@@ -525,6 +525,7 @@ typedef enum eBrushUVSculptTool {
 #define SCULPT_TOOL_HAS_TOPOLOGY_RAKE(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support topology rake. */ \
         SCULPT_TOOL_GRAB, \
+        SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_ROTATE, \
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_DRAW_SHARP, \
