@@ -609,7 +609,7 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
-        
+
         if st.mode != 'GPENCIL':
            layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
            layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")

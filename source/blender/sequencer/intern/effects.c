@@ -3946,10 +3946,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
 
   BLF_disable(font, BLF_ITALIC | BLF_BOLD);
-  if (data->flag & SEQ_TEXT_BOLD) { 
+  if (data->flag & SEQ_TEXT_BOLD) {
     BLF_enable(font, BLF_BOLD);
   }
-  if (data->flag & SEQ_TEXT_ITALIC) { 
+  if (data->flag & SEQ_TEXT_ITALIC) {
     BLF_enable(font, BLF_ITALIC);
   }
 
