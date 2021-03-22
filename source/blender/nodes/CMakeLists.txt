@@ -132,14 +132,10 @@ set(SRC
   composite/node_composite_util.c
 
   function/nodes/node_fn_boolean_math.cc
-  function/nodes/node_fn_combine_strings.cc
   function/nodes/node_fn_float_compare.cc
-  function/nodes/node_fn_group_instance_id.cc
   function/nodes/node_fn_input_string.cc
   function/nodes/node_fn_input_vector.cc
-  function/nodes/node_fn_object_transforms.cc
   function/nodes/node_fn_random_float.cc
-  function/nodes/node_fn_switch.cc
   function/node_function_util.cc
 
   geometry/nodes/node_geo_align_rotation_to_vector.cc

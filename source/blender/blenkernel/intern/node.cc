@@ -4947,14 +4947,10 @@ static void registerGeometryNodes()
 static void registerFunctionNodes()
 {
   register_node_type_fn_boolean_math();
-  register_node_type_fn_combine_strings();
   register_node_type_fn_float_compare();
-  register_node_type_fn_group_instance_id();
   register_node_type_fn_input_string();
   register_node_type_fn_input_vector();
-  register_node_type_fn_object_transforms();
   register_node_type_fn_random_float();
-  register_node_type_fn_switch();
 }
 
 void BKE_node_system_init(void)

@@ -91,20 +91,6 @@ static const EnumPropertyItem node_socket_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static const EnumPropertyItem node_socket_data_type_items[] = {
-    {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
-    {SOCK_INT, "INT", 0, "Int", ""},
-    {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
-    {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
-    {SOCK_STRING, "STRING", 0, "String", ""},
-    {SOCK_RGBA, "RGBA", 0, "Color", ""},
-    {SOCK_OBJECT, "OBJECT", 0, "Object", ""},
-    {SOCK_IMAGE, "IMAGE", 0, "Image", ""},
-    {SOCK_GEOMETRY, "GEOMETRY", 0, "Geometry", ""},
-    {SOCK_COLLECTION, "COLLECTION", 0, "Collection", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static const EnumPropertyItem node_quality_items[] = {
     {NTREE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
     {NTREE_QUALITY_MEDIUM, "MEDIUM", 0, "Medium", "Medium quality"},
@@ -4598,17 +4584,6 @@ static void def_float_compare(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_node_float_compare_items);
   RNA_def_property_ui_text(prop, "Operation", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
-}
-
-static void def_fn_switch(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
-  RNA_def_property_enum_items(prop, node_socket_data_type_items);
-  RNA_def_property_ui_text(prop, "Data Type", "Data type for inputs and outputs");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
