@@ -238,7 +238,7 @@ template<typename T> class VArrayForGVArray : public VArray<T> {
  public:
   VArrayForGVArray(const GVArray &array) : VArray<T>(array.size()), array_(array)
   {
-    BLI_assert(array_.type().is<T>());
+    BLI_assert(array_.type().template is<T>());
   }
 
  protected:
