@@ -154,7 +154,9 @@ typedef struct LineartEdge {
   unsigned char flags;
 
   /**
-   * Still need this entry because culled lines will not add to object reln node,
+   * Still need this entry because culled lines will not add to object
+   * #LineartElementLinkNode node (known as `reln` internally).
+   *
    * TODO: If really need more savings, we can allocate this in a "extended" way too, but we need
    * another bit in flags to be able to show the difference.
    */
@@ -168,7 +170,7 @@ typedef struct LineartLineChain {
   /** Calculated before draw command. */
   float length;
 
-  /** Used when re-connecting and gp stroke generation. */
+  /** Used when re-connecting and grease-pencil stroke generation. */
   char picked;
   char level;
 
@@ -238,7 +240,7 @@ typedef struct LineartRenderBuffer {
   unsigned int contour_count;
   unsigned int contour_processed;
   LineartEdge *contour_managed;
-  /* Now changed to linknodes. */
+  /** A single linked list (cast to #LinkNode). */
   LineartEdge *contours;
 
   unsigned int intersection_count;

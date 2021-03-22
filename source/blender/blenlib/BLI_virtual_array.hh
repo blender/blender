@@ -21,7 +21,7 @@
  *
  * A virtual array is a data structure that behaves similar to an array, but its elements are
  * accessed through virtual methods. This improves the decoupling of a function from its callers,
- * because it does not have to know exactly how the data is layed out in memory, or if it is stored
+ * because it does not have to know exactly how the data is laid out in memory, or if it is stored
  * in memory at all. It could just as well be computed on the fly.
  *
  * Taking a virtual array as parameter instead of a more specific non-virtual type has some
