@@ -115,16 +115,18 @@ class SEQUENCER_HT_tool_header(Header):
     def draw_tool_settings(self, context):
         pass
 
-        # Currently unused.
-        '''
         layout = self.layout
 
         # Active Tool
         # -----------
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        # Most callers assign the `tool` & `tool_mode`, currently the result is not used.
+        """
         tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
         tool_mode = context.mode if tool is None else tool.mode
-        '''
+        """
+        # Only draw the header.
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout)
 
 
 class SEQUENCER_HT_header(Header):
