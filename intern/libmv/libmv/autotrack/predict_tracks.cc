@@ -337,7 +337,7 @@ bool PredictMarkerPosition(const Tracks& tracks,
       previous_markers.push_back(boxed_markers[i]);
     }
     RunPrediction(previous_markers, marker);
-    return false;
+    return true;
   }
 }
 
