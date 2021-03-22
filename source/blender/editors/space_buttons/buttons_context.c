@@ -877,7 +877,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "scene")) {
-    /* Do not return one here if scene not found in path,
+    /* Do not return one here if scene is not found in path,
      * in this case we want to get default context scene! */
     return set_pointer_type(path, result, &RNA_Scene);
   }
@@ -886,8 +886,9 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "collection")) {
-    set_pointer_type(path, result, &RNA_Collection);
-    return CTX_RESULT_OK;
+    /* Do not return one here if collection is not found in path,
+     * in this case we want to get default context collection! */
+    return set_pointer_type(path, result, &RNA_Collection);
   }
   if (CTX_data_equals(member, "object")) {
     set_pointer_type(path, result, &RNA_Object);
