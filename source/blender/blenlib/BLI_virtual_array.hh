@@ -144,8 +144,11 @@ template<typename T> class VArray {
   }
 };
 
-/* A virtual array implementation for a span. */
-template<typename T> class VArrayForSpan : public VArray<T> {
+/**
+ * A virtual array implementation for a span. This class is final so that it can be devirtualized
+ * by the compiler in some cases (e.g. when #devirtualize_varray is used).
+ */
+template<typename T> class VArrayForSpan final : public VArray<T> {
  private:
   const T *data_;
 
@@ -171,8 +174,12 @@ template<typename T> class VArrayForSpan : public VArray<T> {
   }
 };
 
-/* A virtual array implementation that returns the same value for every index. */
-template<typename T> class VArrayForSingle : public VArray<T> {
+/**
+ * A virtual array implementation that returns the same value for every index. This class is final
+ * so that it can be devirtualized by the compiler in some cases (e.g. when #devirtualize_varray is
+ * used).
+ */
+template<typename T> class VArrayForSingle final : public VArray<T> {
  private:
   T value_;
 
@@ -207,5 +214,82 @@ template<typename T> class VArrayForSingle : public VArray<T> {
     return value_;
   }
 };
+
+/**
+ * Generate multiple versions of the given function optimized for different virtual arrays.
+ * One has to be careful with nesting multiple devirtualizations, because that results in an
+ * exponential number of function instantiations (increasing compile time and binary size).
+ *
+ * Generally, this function should only be used when the virtual method call overhead to get an
+ * element from a virtual array is signifant.
+ */
+template<typename T, typename Func>
+inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool enable = true)
+{
+  /* Support disabling the devirtualization to simplify benchmarking. */
+  if (enable) {
+    if (varray.is_single()) {
+      /* `VArrayForSingle` can be used for devirtualization, because it is declared `final`. */
+      const VArrayForSingle<T> varray_single{varray.get_single(), varray.size()};
+      func(varray_single);
+      return;
+    }
+    if (varray.is_span()) {
+      /* `VArrayForSpan` can be used for devirtualization, because it is declared `final`. */
+      const VArrayForSpan<T> varray_span{varray.get_span()};
+      func(varray_span);
+      return;
+    }
+  }
+  func(varray);
+}
+
+/**
+ * Same as `devirtualize_varray`, but devirtualizes two virtual arrays at the same time.
+ * This is better than nesting two calls to `devirtualize_varray`, because it instantiates fewer
+ * cases.
+ */
+template<typename T1, typename T2, typename Func>
+inline void devirtualize_varray2(const VArray<T1> &varray1,
+                                 const VArray<T2> &varray2,
+                                 const Func &func,
+                                 bool enable = true)
+{
+  /* Support disabling the devirtualization to simplify benchmarking. */
+  if (enable) {
+    const bool is_span1 = varray1.is_span();
+    const bool is_span2 = varray2.is_span();
+    const bool is_single1 = varray1.is_single();
+    const bool is_single2 = varray2.is_single();
+    if (is_span1 && is_span2) {
+      const VArrayForSpan<T1> varray1_span{varray1.get_span()};
+      const VArrayForSpan<T2> varray2_span{varray2.get_span()};
+      func(varray1_span, varray2_span);
+      return;
+    }
+    if (is_span1 && is_single2) {
+      const VArrayForSpan<T1> varray1_span{varray1.get_span()};
+      const VArrayForSingle<T2> varray2_single{varray2.get_single(), varray2.size()};
+      func(varray1_span, varray2_single);
+      return;
+    }
+    if (is_single1 && is_span2) {
+      const VArrayForSingle<T1> varray1_single{varray1.get_single(), varray1.size()};
+      const VArrayForSpan<T2> varray2_span{varray2.get_span()};
+      func(varray1_single, varray2_span);
+      return;
+    }
+    if (is_single1 && is_single2) {
+      const VArrayForSingle<T1> varray1_single{varray1.get_single(), varray1.size()};
+      const VArrayForSingle<T2> varray2_single{varray2.get_single(), varray2.size()};
+      func(varray1_single, varray2_single);
+      return;
+    }
+  }
+  /* This fallback is used even when one of the inputs could be optimized. It's probably not worth
+   * it to optimize just one of the inputs, because then the compiler still has to call into
+   * unknown code, which inhibits many compiler optimizations. */
+  func(varray1, varray2);
+}
 
 }  // namespace blender
