@@ -637,9 +637,16 @@ class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
  public:
   ObjectSocketMultiFunction(Object *object) : object_(object)
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Object Socket");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Object Socket"};
     signature.depends_on_context();
     signature.single_output<blender::bke::PersistentObjectHandle>("Object");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,

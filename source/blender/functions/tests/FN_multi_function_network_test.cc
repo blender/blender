@@ -69,9 +69,16 @@ class ConcatVectorsFunction : public MultiFunction {
  public:
   ConcatVectorsFunction()
   {
-    MFSignatureBuilder signature = this->get_builder("Concat Vectors");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Concat Vectors"};
     signature.vector_mutable<int>("A");
     signature.vector_input<int>("B");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -86,9 +93,16 @@ class AppendFunction : public MultiFunction {
  public:
   AppendFunction()
   {
-    MFSignatureBuilder signature = this->get_builder("Append");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Append"};
     signature.vector_mutable<int>("Vector");
     signature.single_input<int>("Value");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -106,9 +120,16 @@ class SumVectorFunction : public MultiFunction {
  public:
   SumVectorFunction()
   {
-    MFSignatureBuilder signature = this->get_builder("Sum Vector");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Sum Vectors"};
     signature.vector_input<int>("Vector");
     signature.single_output<int>("Sum");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -130,9 +151,16 @@ class CreateRangeFunction : public MultiFunction {
  public:
   CreateRangeFunction()
   {
-    MFSignatureBuilder builder = this->get_builder("Create Range");
-    builder.single_input<int>("Size");
-    builder.vector_output<int>("Range");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Create Range"};
+    signature.single_input<int>("Size");
+    signature.vector_output<int>("Range");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override

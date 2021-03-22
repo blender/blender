@@ -22,7 +22,14 @@ class DummyMultiFunction : public MultiFunction {
  public:
   DummyMultiFunction()
   {
-    this->get_builder("Dummy");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Dummy"};
+    return signature.build();
   }
 
   void call(IndexMask UNUSED(mask),

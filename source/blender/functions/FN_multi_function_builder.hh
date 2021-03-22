@@ -40,13 +40,16 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
  private:
   using FunctionT = std::function<void(IndexMask, const VArray<In1> &, MutableSpan<Out1>)>;
   FunctionT function_;
+  MFSignature signature_;
 
  public:
   CustomMF_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
-    MFSignatureBuilder signature = this->get_builder(name);
+    MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
     signature.single_output<Out1>("Out1");
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   template<typename ElementFuncT>
@@ -83,14 +86,17 @@ class CustomMF_SI_SI_SO : public MultiFunction {
   using FunctionT =
       std::function<void(IndexMask, const VArray<In1> &, const VArray<In2> &, MutableSpan<Out1>)>;
   FunctionT function_;
+  MFSignature signature_;
 
  public:
   CustomMF_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
-    MFSignatureBuilder signature = this->get_builder(name);
+    MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
     signature.single_input<In2>("In2");
     signature.single_output<Out1>("Out1");
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   template<typename ElementFuncT>
@@ -135,15 +141,18 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
                                        const VArray<In3> &,
                                        MutableSpan<Out1>)>;
   FunctionT function_;
+  MFSignature signature_;
 
  public:
   CustomMF_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
-    MFSignatureBuilder signature = this->get_builder(name);
+    MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
     signature.single_input<In2>("In2");
     signature.single_input<In3>("In3");
     signature.single_output<Out1>("Out1");
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   template<typename ElementFuncT>
@@ -193,16 +202,19 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
                                        const VArray<In4> &,
                                        MutableSpan<Out1>)>;
   FunctionT function_;
+  MFSignature signature_;
 
  public:
   CustomMF_SI_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
   {
-    MFSignatureBuilder signature = this->get_builder(name);
+    MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
     signature.single_input<In2>("In2");
     signature.single_input<In3>("In3");
     signature.single_input<In4>("In4");
     signature.single_output<Out1>("Out1");
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   template<typename ElementFuncT>
@@ -244,12 +256,15 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
  private:
   using FunctionT = std::function<void(IndexMask, MutableSpan<Mut1>)>;
   FunctionT function_;
+  MFSignature signature_;
 
  public:
   CustomMF_SM(StringRef name, FunctionT function) : function_(std::move(function))
   {
-    MFSignatureBuilder signature = this->get_builder(name);
+    MFSignatureBuilder signature{name};
     signature.single_mutable<Mut1>("Mut1");
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   template<typename ElementFuncT>
@@ -279,10 +294,17 @@ template<typename From, typename To> class CustomMF_Convert : public MultiFuncti
  public:
   CustomMF_Convert()
   {
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
     std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
-    MFSignatureBuilder signature = this->get_builder(std::move(name));
+    MFSignatureBuilder signature{std::move(name)};
     signature.single_input<From>("Input");
     signature.single_output<To>("Output");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -304,6 +326,7 @@ class CustomMF_GenericConstant : public MultiFunction {
  private:
   const CPPType &type_;
   const void *value_;
+  MFSignature signature_;
 
   template<typename T> friend class CustomMF_Constant;
 
@@ -321,6 +344,7 @@ class CustomMF_GenericConstant : public MultiFunction {
 class CustomMF_GenericConstantArray : public MultiFunction {
  private:
   GSpan array_;
+  MFSignature signature_;
 
  public:
   CustomMF_GenericConstantArray(GSpan array);
@@ -333,14 +357,17 @@ class CustomMF_GenericConstantArray : public MultiFunction {
 template<typename T> class CustomMF_Constant : public MultiFunction {
  private:
   T value_;
+  MFSignature signature_;
 
  public:
   template<typename U> CustomMF_Constant(U &&value) : value_(std::forward<U>(value))
   {
-    MFSignatureBuilder signature = this->get_builder("Constant");
+    MFSignatureBuilder signature{"Constant"};
     std::stringstream ss;
     ss << value_;
     signature.single_output<T>(ss.str());
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -375,6 +402,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
 class CustomMF_DefaultOutput : public MultiFunction {
  private:
   int output_amount_;
+  MFSignature signature_;
 
  public:
   CustomMF_DefaultOutput(StringRef name,

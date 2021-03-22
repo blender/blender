@@ -12,10 +12,17 @@ class AddFunction : public MultiFunction {
  public:
   AddFunction()
   {
-    MFSignatureBuilder builder = this->get_builder("Add");
-    builder.single_input<int>("A");
-    builder.single_input<int>("B");
-    builder.single_output<int>("Result");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature("Add");
+    signature.single_input<int>("A");
+    signature.single_input<int>("B");
+    signature.single_output<int>("Result");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -56,9 +63,16 @@ class AddPrefixFunction : public MultiFunction {
  public:
   AddPrefixFunction()
   {
-    MFSignatureBuilder builder = this->get_builder("Add Prefix");
-    builder.single_input<std::string>("Prefix");
-    builder.single_mutable<std::string>("Strings");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Add Prefix"};
+    signature.single_input<std::string>("Prefix");
+    signature.single_mutable<std::string>("Strings");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -103,9 +117,16 @@ class CreateRangeFunction : public MultiFunction {
  public:
   CreateRangeFunction()
   {
-    MFSignatureBuilder builder = this->get_builder("Create Range");
-    builder.single_input<uint>("Size");
-    builder.vector_output<uint>("Range");
+    static MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static MFSignature create_signature()
+  {
+    MFSignatureBuilder signature{"Create Range"};
+    signature.single_input<uint>("Size");
+    signature.vector_output<uint>("Range");
+    return signature.build();
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -152,12 +173,17 @@ TEST(multi_function, CreateRangeFunction)
 }
 
 class GenericAppendFunction : public MultiFunction {
+ private:
+  MFSignature signature_;
+
  public:
   GenericAppendFunction(const CPPType &type)
   {
-    MFSignatureBuilder builder = this->get_builder("Append");
-    builder.vector_mutable("Vector", type);
-    builder.single_input("Value", type);
+    MFSignatureBuilder signature{"Append"};
+    signature.vector_mutable("Vector", type);
+    signature.single_input("Value", type);
+    signature_ = signature.build();
+    this->set_signature(&signature_);
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override

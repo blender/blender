@@ -63,11 +63,18 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
  public:
   SeparateRGBFunction()
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Separate RGB");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Separate RGB"};
     signature.single_input<blender::Color4f>("Color");
     signature.single_output<float>("R");
     signature.single_output<float>("G");
     signature.single_output<float>("B");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,

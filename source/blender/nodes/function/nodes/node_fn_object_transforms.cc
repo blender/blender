@@ -32,10 +32,17 @@ class ObjectTransformsFunction : public blender::fn::MultiFunction {
  public:
   ObjectTransformsFunction()
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Object Transforms");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Object Transforms"};
     signature.depends_on_context();
     signature.single_input<blender::bke::PersistentObjectHandle>("Object");
     signature.single_output<blender::float3>("Location");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,

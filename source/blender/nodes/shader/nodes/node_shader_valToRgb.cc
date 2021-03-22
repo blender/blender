@@ -132,10 +132,17 @@ class ColorBandFunction : public blender::fn::MultiFunction {
  public:
   ColorBandFunction(const ColorBand &color_band) : color_band_(color_band)
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Color Band");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Color Band"};
     signature.single_input<float>("Value");
     signature.single_output<blender::Color4f>("Color");
     signature.single_output<float>("Alpha");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,
