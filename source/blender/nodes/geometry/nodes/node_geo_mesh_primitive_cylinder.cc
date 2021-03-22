@@ -28,8 +28,6 @@ static bNodeSocketTemplate geo_node_mesh_primitive_cylinder_in[] = {
     {SOCK_INT, N_("Vertices"), 32, 0.0f, 0.0f, 0.0f, 3, 4096},
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Depth"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -67,20 +65,16 @@ static void geo_node_mesh_primitive_cylinder_exec(GeoNodeExecParams params)
   const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
                                                        storage.fill_type;
 
+  const float radius = params.extract_input<float>("Radius");
+  const float depth = params.extract_input<float>("Depth");
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
 
-  const float radius = params.extract_input<float>("Radius");
-  const float depth = params.extract_input<float>("Depth");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
-
   /* The cylinder is a special case of the cone mesh where the top and bottom radius are equal. */
-  Mesh *mesh = create_cylinder_or_cone_mesh(
-      location, rotation, radius, radius, depth, verts_num, fill_type);
+  Mesh *mesh = create_cylinder_or_cone_mesh(radius, radius, depth, verts_num, fill_type);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

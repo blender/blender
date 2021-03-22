@@ -31,8 +31,6 @@ static bNodeSocketTemplate geo_node_mesh_primitive_plane_in[] = {
     {SOCK_FLOAT, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_INT, N_("Vertices X"), 10, 0.0f, 0.0f, 0.0f, 2, 1000},
     {SOCK_INT, N_("Vertices Y"), 10, 0.0f, 0.0f, 0.0f, 2, 1000},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -154,8 +152,6 @@ static void geo_node_mesh_primitive_plane_exec(GeoNodeExecParams params)
   const float size = params.extract_input<float>("Size");
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
   if (verts_x < 2 || verts_y < 2) {
     params.set_output("Geometry", GeometrySet());
     return;
@@ -163,8 +159,6 @@ static void geo_node_mesh_primitive_plane_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_plane_mesh(verts_x, verts_y, size);
   BLI_assert(BKE_mesh_is_valid(mesh));
-
-  transform_mesh(mesh, location, rotation, float3(1));
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

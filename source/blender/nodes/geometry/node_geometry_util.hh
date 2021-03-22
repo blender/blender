@@ -52,9 +52,7 @@ void transform_mesh(Mesh *mesh,
                     const float3 rotation,
                     const float3 scale);
 
-Mesh *create_cylinder_or_cone_mesh(const float3 location,
-                                   const float3 rotation,
-                                   const float radius_top,
+Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
                                    const int verts_num,

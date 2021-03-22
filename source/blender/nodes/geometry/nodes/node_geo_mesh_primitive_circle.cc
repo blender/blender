@@ -27,8 +27,6 @@
 static bNodeSocketTemplate geo_node_mesh_primitive_circle_in[] = {
     {SOCK_INT, N_("Vertices"), 32, 0.0f, 0.0f, 0.0f, 3, 4096},
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -207,21 +205,16 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
                                                        storage.fill_type;
 
+  const float radius = params.extract_input<float>("Radius");
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
 
-  const float radius = params.extract_input<float>("Radius");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
-
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill_type);
 
   BLI_assert(BKE_mesh_is_valid(mesh));
-
-  transform_mesh(mesh, location, rotation, float3(1));
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

@@ -26,8 +26,6 @@
 static bNodeSocketTemplate geo_node_mesh_primitive_ico_sphere_in[] = {
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_INT, N_("Subdivisions"), 1, 0, 0, 0, 0, 7},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -38,13 +36,9 @@ static bNodeSocketTemplate geo_node_mesh_primitive_ico_sphere_out[] = {
 
 namespace blender::nodes {
 
-static Mesh *create_ico_sphere_mesh(const float3 location,
-                                    const float3 rotation,
-                                    const int subdivisions,
-                                    const float radius)
+static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
 {
-  float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1.0f));
+  const float4x4 transform = float4x4::identity();
 
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {0, 0, 0, 0};
@@ -69,10 +63,8 @@ static void geo_node_mesh_primitive_ico_sphere_exec(GeoNodeExecParams params)
 {
   const int subdivisions = std::min(params.extract_input<int>("Subdivisions"), 10);
   const float radius = params.extract_input<float>("Radius");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
 
-  Mesh *mesh = create_ico_sphere_mesh(location, rotation, subdivisions, radius);
+  Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 
