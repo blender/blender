@@ -279,15 +279,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemPointerR(
       layout, ptr, "target_material", &obj_data_ptr, "materials", NULL, ICON_SHADING_TEXTURE);
 
-  uiItemR(layout, ptr, "remove_doubles", 0, NULL, ICON_NONE);
-  uiItemR(layout,
-          ptr,
-          "allow_overlapping_edges",
-          0,
-          IFACE_("Overlapping Edges As Contour"),
-          ICON_NONE);
-  uiItemR(layout, ptr, "allow_duplication", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "allow_clipping_boundaries", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_remove_doubles", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
+  uiItemR(layout, ptr, "use_object_instances", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_clip_plane_bias", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -381,14 +376,14 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Chain"));
-  uiItemR(col, ptr, "fuzzy_intersections", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "fuzzy_everything", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_fuzzy_intersections", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "chaining_image_threshold", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "resample_length", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
-  uiItemR(layout, ptr, "angle_splitting_threshold", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "split_angle", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
 static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -409,15 +404,15 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(row, ptr, "source_vertex_group", 0, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
   uiItemR(row, ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(col, ptr, "match_output_vertex_group", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_output_vertex_group_match_by_name", 0, NULL, ICON_NONE);
 
-  const bool match_output = RNA_boolean_get(ptr, "match_output_vertex_group");
+  const bool match_output = RNA_boolean_get(ptr, "use_output_vertex_group_match_by_name");
   if (!match_output) {
     uiItemPointerR(
         col, ptr, "vertex_group", &ob_ptr, "vertex_groups", IFACE_("Target"), ICON_NONE);
   }
 
-  uiItemR(col, ptr, "soft_selection", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_soft_selection", 0, NULL, ICON_NONE);
 }
 
 static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
