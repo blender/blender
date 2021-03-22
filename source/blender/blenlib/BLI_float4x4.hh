@@ -45,6 +45,13 @@ struct float4x4 {
     return mat;
   }
 
+  static float4x4 identity()
+  {
+    float4x4 mat;
+    unit_m4(mat.values);
+    return mat;
+  }
+
   operator float *()
   {
     return &values[0][0];
