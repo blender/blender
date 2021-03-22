@@ -885,6 +885,21 @@ static void layer_collection_sync(ViewLayer *view_layer,
     }
   }
 
+  /* Free potentially remaining unused layer collections in old list.
+   * NOTE: While this does not happen in typical situations, some corner cases (like remapping
+   * several different collections to a single one) can lead to this list having extra unused
+   * items. */
+  LISTBASE_FOREACH_MUTABLE (LayerCollection *, lc, lb_layer_collections) {
+    if (lc == view_layer->active_collection) {
+      view_layer->active_collection = NULL;
+    }
+
+    /* Free recursively. */
+    layer_collection_free(view_layer, lc);
+    BLI_freelinkN(lb_layer_collections, lc);
+  }
+  BLI_assert(BLI_listbase_is_empty(lb_layer_collections));
+
   /* Replace layer collection list with new one. */
   *lb_layer_collections = new_lb_layer;
   BLI_assert(BLI_listbase_count(lb_collections) == BLI_listbase_count(lb_layer_collections));
