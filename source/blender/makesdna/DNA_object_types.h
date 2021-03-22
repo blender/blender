@@ -214,7 +214,7 @@ typedef struct ObjectLineArt {
 } ObjectLineArt;
 
 enum ObjectFeatureLine_Usage {
-  OBJECT_LRT_INHERENT = 0,
+  OBJECT_LRT_INHERIT = 0,
   OBJECT_LRT_INCLUDE = (1 << 0),
   OBJECT_LRT_OCCLUSION_ONLY = (1 << 1),
   OBJECT_LRT_EXCLUDE = (1 << 2),

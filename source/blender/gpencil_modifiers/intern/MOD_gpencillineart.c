@@ -428,7 +428,7 @@ static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (is_baked) {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayoutSetPropSep(col, false);
-    uiItemL(col, IFACE_("Modifier has baked data."), ICON_NONE);
+    uiItemL(col, IFACE_("Modifier has baked data"), ICON_NONE);
     uiItemR(
         col, ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }

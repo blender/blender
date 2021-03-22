@@ -1711,7 +1711,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       LineartLineSegment *rls = lineart_mem_aquire(&rb->render_data_pool,
                                                    sizeof(LineartLineSegment));
       BLI_addtail(&la_e->segments, rls);
-      if (usage == OBJECT_LRT_INHERENT || usage == OBJECT_LRT_INCLUDE ||
+      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
           usage == OBJECT_LRT_NO_INTERSECTION) {
         lineart_add_edge_to_list(rb, la_e);
       }
@@ -1750,10 +1750,10 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
 {
 
   if (!c) {
-    return OBJECT_LRT_INHERENT;
+    return OBJECT_LRT_INHERIT;
   }
 
-  int object_has_special_usage = (ob->lineart.usage != OBJECT_LRT_INHERENT);
+  int object_has_special_usage = (ob->lineart.usage != OBJECT_LRT_INHERIT);
 
   if (object_has_special_usage) {
     return ob->lineart.usage;
@@ -1761,7 +1761,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
 
   if (c->children.first == NULL) {
     if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
-      if (ob->lineart.usage == OBJECT_LRT_INHERENT) {
+      if (ob->lineart.usage == OBJECT_LRT_INHERIT) {
         switch (c->lineart_usage) {
           case COLLECTION_LRT_OCCLUSION_ONLY:
             return OBJECT_LRT_OCCLUSION_ONLY;
@@ -1772,16 +1772,16 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
           case COLLECTION_LRT_NO_INTERSECTION:
             return OBJECT_LRT_NO_INTERSECTION;
         }
-        return OBJECT_LRT_INHERENT;
+        return OBJECT_LRT_INHERIT;
       }
       return ob->lineart.usage;
     }
-    return OBJECT_LRT_INHERENT;
+    return OBJECT_LRT_INHERIT;
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
     int result = lineart_usage_check(cc->collection, ob, _rb);
-    if (result > OBJECT_LRT_INHERENT) {
+    if (result > OBJECT_LRT_INHERIT) {
       return result;
     }
   }
@@ -1799,7 +1799,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
     }
   }
 
-  return OBJECT_LRT_INHERENT;
+  return OBJECT_LRT_INHERIT;
 }
 
 static void lineart_main_load_geometries(

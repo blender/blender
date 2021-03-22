@@ -2673,7 +2673,7 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static EnumPropertyItem prop_feature_line_usage_items[] = {
-      {OBJECT_LRT_INHERENT, "INHEREIT", 0, "Inhereit", "Use settings from the parent collection"},
+      {OBJECT_LRT_INHERIT, "INHERIT", 0, "Inherit", "Use settings from the parent collection"},
       {OBJECT_LRT_INCLUDE,
        "INCLUDE",
        0,

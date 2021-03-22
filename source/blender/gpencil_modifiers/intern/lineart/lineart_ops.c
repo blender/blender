@@ -407,7 +407,7 @@ static int lineart_gpencil_clear_strokes_all_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BKE_report(op->reports, RPT_INFO, "All line art objects are now cleared.");
+  BKE_report(op->reports, RPT_INFO, "All line art objects are now cleared");
 
   return OPERATOR_FINISHED;
 }
@@ -440,7 +440,7 @@ void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 void OBJECT_OT_lineart_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art";
-  ot->description = "Clear all strokes in current GPencil obejct";
+  ot->description = "Clear all strokes in current GPencil object";
   ot->idname = "OBJECT_OT_lineart_clear";
 
   ot->exec = lineart_gpencil_clear_strokes_exec;
