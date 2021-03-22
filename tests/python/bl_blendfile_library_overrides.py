@@ -60,7 +60,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert (len(local_id.override_library.properties) == 1)
         assert(len(local_id.override_library.properties) == 1)
         override_prop = local_id.override_library.properties[0]
-        assert(override_prop.rna_path, "location");
+        assert(override_prop.rna_path == "location");
         assert(len(override_prop.operations) == 1)
         override_operation = override_prop.operations[0]
         assert (override_operation.operation == 'REPLACE')
