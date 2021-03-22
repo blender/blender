@@ -357,18 +357,16 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, false);
   uiLayout *sub = uiLayoutRow(row, true);
-  uiItemR(sub, ptr, "transparency_mask_0", UI_ITEM_R_TOGGLE, IFACE_("0"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_1", UI_ITEM_R_TOGGLE, IFACE_("1"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_2", UI_ITEM_R_TOGGLE, IFACE_("2"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_3", UI_ITEM_R_TOGGLE, IFACE_("3"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_4", UI_ITEM_R_TOGGLE, IFACE_("4"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_5", UI_ITEM_R_TOGGLE, IFACE_("5"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_6", UI_ITEM_R_TOGGLE, IFACE_("6"), ICON_NONE);
-  uiItemR(sub, ptr, "transparency_mask_7", UI_ITEM_R_TOGGLE, IFACE_("7"), ICON_NONE);
+  char text[2] = "0";
+
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "use_transparency_mask");
+  for (int i = 0; i < 8; i++, text[0]++) {
+    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, text, ICON_NONE);
+  }
   uiItemL(row, "", ICON_BLANK1); /* Space for decorator. */
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "transparency_match", 0, IFACE_("Match All Masks"), ICON_NONE);
+  uiItemR(col, ptr, "use_transparency_match", 0, IFACE_("Match All Masks"), ICON_NONE);
 }
 
 static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)

@@ -695,52 +695,11 @@ static void rna_def_material_lineart(BlenderRNA *brna)
       prop, "Use Transparency", "Use transparency mask from this material in line art");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 
-  prop = RNA_def_property(srna, "transparency_mask_0", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_transparency_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 0);
-  RNA_def_property_ui_text(prop, "Mask 0", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_1", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 1);
-  RNA_def_property_ui_text(prop, "Mask 1", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_2", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 2);
-  RNA_def_property_ui_text(prop, "Mask 2", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_3", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 3);
-  RNA_def_property_ui_text(prop, "Mask 3", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_4", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 4);
-  RNA_def_property_ui_text(prop, "Mask 4", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_5", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 5);
-  RNA_def_property_ui_text(prop, "Mask 5", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_6", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 6);
-  RNA_def_property_ui_text(prop, "mask 6", "");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
-
-  prop = RNA_def_property(srna, "transparency_mask_7", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
-  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1 << 7);
-  RNA_def_property_ui_text(prop, "Mask 7", "");
+  RNA_def_property_boolean_sdna(prop, NULL, "transparency_mask", 1);
+  RNA_def_property_array(prop, 8);
+  RNA_def_property_ui_text(prop, "Mask", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 }
 
