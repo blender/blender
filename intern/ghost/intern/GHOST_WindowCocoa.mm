@@ -34,8 +34,6 @@
 
 #include <sys/sysctl.h>
 
-/* clang-format off */
-
 #pragma mark Cocoa window delegate object
 
 @interface CocoaWindowDelegate : NSObject <NSWindowDelegate>
@@ -287,8 +285,6 @@
 #undef COCOA_VIEW_BASE_CLASS
 
 #pragma mark initialization / finalization
-
-/* clang-format on */
 
 GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
                                      const char *title,

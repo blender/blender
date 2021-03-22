@@ -357,7 +357,6 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
   }
 }
 
-/* clang-format off */
 #pragma mark Cocoa objects
 
 /**
@@ -499,8 +498,6 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 @end
 
 #pragma mark initialization/finalization
-
-/* clang-format on */
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
