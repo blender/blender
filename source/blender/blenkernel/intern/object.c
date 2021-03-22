@@ -4885,7 +4885,7 @@ static bool object_deforms_in_time(Object *object)
   return object_moves_in_time(object);
 }
 
-static bool constructive_modifier_is_deform_modified(ModifierData *md)
+static bool constructive_modifier_is_deform_modified(Object *ob, ModifierData *md)
 {
   /* TODO(sergey): Consider generalizing this a bit so all modifier logic
    * is concentrated in MOD_{modifier}.c file,
@@ -4900,7 +4900,8 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
   }
   if (md->type == eModifierType_Mirror) {
     MirrorModifierData *mmd = (MirrorModifierData *)md;
-    return mmd->mirror_ob != NULL && object_moves_in_time(mmd->mirror_ob);
+    return mmd->mirror_ob != NULL &&
+           (object_moves_in_time(mmd->mirror_ob) || object_moves_in_time(ob));
   }
   if (md->type == eModifierType_Screw) {
     ScrewModifierData *smd = (ScrewModifierData *)md;
@@ -4984,7 +4985,7 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
     bool can_deform = mti->type == eModifierTypeType_OnlyDeform || is_modifier_animated;
 
     if (!can_deform) {
-      can_deform = constructive_modifier_is_deform_modified(md);
+      can_deform = constructive_modifier_is_deform_modified(ob, md);
     }
 
     if (can_deform) {
