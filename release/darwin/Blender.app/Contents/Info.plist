@@ -11,6 +11,8 @@
 			<array>
 				<string>blend</string>
 			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>Blender_Legacy_Document_Icon.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Blender File</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -62,6 +64,8 @@
 			</array>
 			<key>UTTypeIdentifier</key>
 			<string>org.blenderfoundation.blender.file</string>
+			<key>UTTypeDescription</key>
+			<string>Blender File</string>
 			<key>UTTypeIcons</key>
 			<dict>
 				<key>UTTypeIconName</key>
