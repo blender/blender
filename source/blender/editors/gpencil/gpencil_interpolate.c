@@ -1427,15 +1427,26 @@ static void gpencil_interpolate_seq_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "step", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "layers", 0, NULL, ICON_NONE);
+
+  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL) {
+    row = uiLayoutRow(layout, true);
+    uiItemR(row, &ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
+  }
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "flip", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "step", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "layers", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "flip", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "smooth_factor", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "smooth_steps", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "type", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "type", 0, NULL, ICON_NONE);
 
   if (type == GP_IPO_CURVEMAP) {
     /* Get an RNA pointer to ToolSettings to give to the custom curve. */
