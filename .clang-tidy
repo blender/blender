@@ -39,6 +39,7 @@ Checks:  >
   -modernize-use-nodiscard,
   -modernize-loop-convert,
   -modernize-pass-by-value,
+  -modernize-raw-string-literal
 
 WarningsAsErrors: '*'
 CheckOptions:
