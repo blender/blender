@@ -31,11 +31,8 @@ static bNodeSocketTemplate fn_node_random_float_out[] = {
 };
 
 class RandomFloatFunction : public blender::fn::MultiFunction {
- private:
-  uint32_t function_seed_;
-
  public:
-  RandomFloatFunction(uint32_t function_seed) : function_seed_(function_seed)
+  RandomFloatFunction()
   {
     static blender::fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
@@ -64,7 +61,7 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
       const float min_value = min_values[i];
       const float max_value = max_values[i];
       const int seed = seeds[i];
-      const float value = BLI_hash_int_01(static_cast<uint32_t>(seed) ^ function_seed_);
+      const float value = BLI_hash_int_01(static_cast<uint32_t>(seed));
       values[i] = value * (max_value - min_value) + min_value;
     }
   }
@@ -73,17 +70,7 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
 static void fn_node_random_float_expand_in_mf_network(
     blender::nodes::NodeMFNetworkBuilder &builder)
 {
-  uint32_t function_seed = 1746872341u;
-  blender::nodes::DNode node = builder.dnode();
-  const blender::DefaultHash<blender::StringRefNull> hasher;
-  function_seed = 33 * function_seed + hasher(node->name());
-  for (const blender::nodes::DTreeContext *context = node.context();
-       context->parent_node() != nullptr;
-       context = context->parent_context()) {
-    function_seed = 33 * function_seed + hasher(context->parent_node()->name());
-  }
-
-  builder.construct_and_set_matching_fn<RandomFloatFunction>(function_seed);
+  builder.construct_and_set_matching_fn<RandomFloatFunction>();
 }
 
 void register_node_type_fn_random_float()
