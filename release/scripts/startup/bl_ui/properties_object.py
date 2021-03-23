@@ -308,6 +308,29 @@ class OBJECT_PT_instancing_size(ObjectButtonsPanel, Panel):
         layout.prop(ob, "instance_faces_scale", text="Factor")
 
 
+class OBJECT_PT_lineart(ObjectButtonsPanel, Panel):
+    bl_label = "Line Art"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob.type in {'MESH', 'FONT', 'CURVE', 'SURFACE'})
+
+    def draw(self, context):
+        layout = self.layout
+        lineart = context.object.lineart
+
+        layout.use_property_split = True
+
+        layout.prop(lineart, "usage")
+        layout.use_property_split = True
+
+        row = layout.row(heading="Override Crease")
+        row.prop(lineart, "use_crease_override", text="")
+        row.prop(lineart, "crease_threshold", slider=True, text="")
+
+
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
@@ -393,6 +416,7 @@ classes = (
     OBJECT_PT_motion_paths_display,
     OBJECT_PT_display,
     OBJECT_PT_visibility,
+    OBJECT_PT_lineart,
     OBJECT_PT_custom_props,
 )
 
