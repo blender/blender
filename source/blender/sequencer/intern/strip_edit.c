@@ -204,7 +204,7 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
   }
 }
 
-bool seq_exists_in_seqbase(Sequence *seq, ListBase *seqbase)
+static bool seq_exists_in_seqbase(Sequence *seq, ListBase *seqbase)
 {
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
     if (seq_test->type == SEQ_TYPE_META && seq_exists_in_seqbase(seq, &seq_test->seqbase)) {
