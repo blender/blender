@@ -2361,7 +2361,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
       "Allow edges in the same location (i.e. from edge split) to show properly. May run slower");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "use_clip_plane_bias", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_clip_plane_boundaries", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_ALLOW_CLIPPING_BOUNDARIES);
   RNA_def_property_ui_text(prop,
                            "Clipping Boundaries",
