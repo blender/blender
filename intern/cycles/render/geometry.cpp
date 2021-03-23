@@ -90,6 +90,7 @@ void Geometry::clear(bool preserve_shaders)
   transform_applied = false;
   transform_negative_scaled = false;
   transform_normal = transform_identity();
+  tag_modified();
 }
 
 bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
