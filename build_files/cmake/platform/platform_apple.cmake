@@ -413,7 +413,7 @@ if(WITH_OPENMP)
     set(OpenMP_LINKER_FLAGS "-L'${LIBDIR}/openmp/lib' -lomp")
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
-    # `@executable_path/../Resources/lib/` is a default dylib search path.
+    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB`is added by the deps builder.
     # For single config generator datatoc, tests etc.
     execute_process(
       COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
