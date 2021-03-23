@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief base class of normalize, implementing the simple normalize
  * \ingroup operation
@@ -63,3 +65,5 @@ class NormalizeOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor

@@ -22,6 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 ConvolutionFilterOperation::ConvolutionFilterOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -124,3 +126,5 @@ bool ConvolutionFilterOperation::determineDependingAreaOfInterest(
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

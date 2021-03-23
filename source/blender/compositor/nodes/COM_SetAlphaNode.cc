@@ -21,6 +21,8 @@
 #include "COM_SetAlphaMultiplyOperation.h"
 #include "COM_SetAlphaReplaceOperation.h"
 
+namespace blender::compositor {
+
 void SetAlphaNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext & /*context*/) const
 {
@@ -46,3 +48,5 @@ void SetAlphaNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

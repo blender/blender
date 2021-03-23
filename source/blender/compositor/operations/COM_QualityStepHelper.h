@@ -20,6 +20,8 @@
 
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 typedef enum QualityHelper {
   COM_QH_INCREASE,
   COM_QH_MULTIPLY,
@@ -54,3 +56,5 @@ class QualityStepHelper {
     this->m_quality = quality;
   }
 };
+
+}  // namespace blender::compositor

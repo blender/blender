@@ -16,13 +16,14 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class MemoryProxy;
-
 #pragma once
 
-#include "COM_ExecutionGroup.h"
-#include "COM_MemoryBuffer.h"
+#include "COM_defines.h"
 
+namespace blender::compositor {
+
+/* Forward declarations. */
+class MemoryBuffer;
 class ExecutionGroup;
 class WriteBufferOperation;
 
@@ -119,3 +120,5 @@ class MemoryProxy {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryProxy")
 #endif
 };
+
+}  // namespace blender::compositor

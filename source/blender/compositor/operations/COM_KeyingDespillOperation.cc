@@ -23,6 +23,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 KeyingDespillOperation::KeyingDespillOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -79,3 +81,5 @@ void KeyingDespillOperation::executePixelSampled(float output[4],
     output[screen_primary_channel] = pixelColor[screen_primary_channel] - amount_despill;
   }
 }
+
+}  // namespace blender::compositor

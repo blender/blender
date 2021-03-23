@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class IDMaskOperation : public NodeOperation {
  private:
   float m_objectIndex;
@@ -35,3 +37,5 @@ class IDMaskOperation : public NodeOperation {
     this->m_objectIndex = objectIndex;
   }
 };
+
+}  // namespace blender::compositor

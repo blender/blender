@@ -26,6 +26,8 @@ static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 #endif
 #include <iostream>
 
+namespace blender::compositor {
+
 DenoiseOperation::DenoiseOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -164,3 +166,5 @@ void DenoiseOperation::generateDenoise(float *data,
            inputBufferColor,
            sizeof(float[4]) * inputTileColor->getWidth() * inputTileColor->getHeight());
 }
+
+}  // namespace blender::compositor

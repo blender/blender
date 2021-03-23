@@ -18,6 +18,8 @@
 
 #include "COM_CryptomatteOperation.h"
 
+namespace blender::compositor {
+
 CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
 {
   for (size_t i = 0; i < num_inputs; i++) {
@@ -68,3 +70,5 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
     }
   }
 }
+
+}  // namespace blender::compositor

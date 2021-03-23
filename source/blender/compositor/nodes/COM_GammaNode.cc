@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_GammaOperation.h"
 
+namespace blender::compositor {
+
 GammaNode::GammaNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -35,3 +37,5 @@ void GammaNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

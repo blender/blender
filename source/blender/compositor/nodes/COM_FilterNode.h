@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief FilterNode
  * \ingroup Node
@@ -30,3 +32,5 @@ class FilterNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

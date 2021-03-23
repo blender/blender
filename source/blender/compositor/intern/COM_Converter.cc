@@ -116,6 +116,8 @@
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
 
+namespace blender::compositor {
+
 bool COM_bnode_is_fast_node(const bNode &b_node)
 {
   return !ELEM(b_node.type,
@@ -567,3 +569,5 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     builder.addLink(translateOperation->getOutputSocket(), toSocket);
   }
 }
+
+}  // namespace blender::compositor

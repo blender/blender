@@ -19,6 +19,8 @@
 #include "COM_GammaCorrectOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 GammaCorrectOperation::GammaCorrectOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -102,3 +104,5 @@ void GammaUncorrectOperation::deinitExecution()
 {
   this->m_inputProgram = nullptr;
 }
+
+}  // namespace blender::compositor

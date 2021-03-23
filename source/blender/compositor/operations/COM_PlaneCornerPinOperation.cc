@@ -26,6 +26,8 @@
 
 #include "BKE_node.h"
 
+namespace blender::compositor {
+
 static bool check_corners(float corners[4][2])
 {
   int i, next, prev;
@@ -224,3 +226,5 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
       input, readOperation, output);
 #endif
 }
+
+}  // namespace blender::compositor

@@ -30,6 +30,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 KeyingScreenOperation::KeyingScreenOperation()
 {
   this->addOutputSocket(DataType::Color);
@@ -344,3 +346,5 @@ void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *da
     }
   }
 }
+
+}  // namespace blender::compositor

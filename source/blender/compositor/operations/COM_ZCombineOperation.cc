@@ -19,6 +19,8 @@
 #include "COM_ZCombineOperation.h"
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 ZCombineOperation::ZCombineOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -158,3 +160,5 @@ void ZCombineMaskOperation::deinitExecution()
   this->m_maskReader = nullptr;
   this->m_image2Reader = nullptr;
 }
+
+}  // namespace blender::compositor

@@ -24,6 +24,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" /* the ramp types */
 
+namespace blender::compositor {
+
 MixNode::MixNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -110,3 +112,5 @@ void MixNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(convertProg->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

@@ -27,6 +27,8 @@
 
 #include "intern/openexr/openexr_multi.h"
 
+namespace blender::compositor {
+
 /* Writes the image to a single-layer file. */
 class OutputSingleLayerOperation : public NodeOperation {
  protected:
@@ -146,3 +148,5 @@ void free_exr_channels(void *exrhandle,
                        const char *layerName,
                        const DataType datatype);
 int get_datatype_size(DataType datatype);
+
+}  // namespace blender::compositor

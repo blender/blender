@@ -20,6 +20,8 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 ColorCorrectionNode::ColorCorrectionNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -41,3 +43,5 @@ void ColorCorrectionNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

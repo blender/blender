@@ -22,6 +22,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+namespace blender::compositor {
+
 class NodeInput;
 class NodeOutput;
 
@@ -120,3 +122,5 @@ class NodeConverter {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompiler")
 #endif
 };
+
+}  // namespace blender::compositor

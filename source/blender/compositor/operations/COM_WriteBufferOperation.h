@@ -20,6 +20,12 @@
 
 #include "COM_MemoryProxy.h"
 #include "COM_NodeOperation.h"
+
+namespace blender::compositor {
+
+class OpenCLDevice;
+class MemoryProxy;
+
 /**
  * \brief NodeOperation to write to a tile
  * \ingroup Operation
@@ -62,3 +68,5 @@ class WriteBufferOperation : public NodeOperation {
     return m_input;
   }
 };
+
+}  // namespace blender::compositor

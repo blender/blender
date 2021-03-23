@@ -18,6 +18,8 @@
 
 #pragma once
 
+namespace blender::compositor {
+
 /**
  * \brief possible data types for sockets
  * \ingroup Model
@@ -89,3 +91,5 @@ enum class ChunkOrdering {
 #define COM_NUM_CHANNELS_COLOR 4
 
 #define COM_BLUR_BOKEH_PIXELS 512
+
+}  // namespace blender::compositor

@@ -26,6 +26,8 @@ extern "C" {
 #include "IMB_colormanagement.h"
 }
 
+namespace blender::compositor {
+
 /*
  * An implementation of Enhanced Subpixel Morphological Antialiasing (SMAA)
  *
@@ -283,7 +285,6 @@ void SMAAEdgeDetectionOperation::executePixel(float output[4], int x, int y, voi
       output[1] = 0.0f;
     }
   }
-
 }
 
 /*-----------------------------------------------------------------------------*/
@@ -863,3 +864,5 @@ bool SMAANeighborhoodBlendingOperation::determineDependingAreaOfInterest(
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

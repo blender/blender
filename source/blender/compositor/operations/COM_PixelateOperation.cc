@@ -18,6 +18,8 @@
 
 #include "COM_PixelateOperation.h"
 
+namespace blender::compositor {
+
 PixelateOperation::PixelateOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
@@ -45,3 +47,5 @@ void PixelateOperation::executePixelSampled(float output[4],
   float ny = round(y);
   this->m_inputOperation->readSampled(output, nx, ny, sampler);
 }
+
+}  // namespace blender::compositor

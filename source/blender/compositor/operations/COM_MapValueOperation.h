@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -62,3 +64,5 @@ class MapValueOperation : public NodeOperation {
     this->m_settings = settings;
   }
 };
+
+}  // namespace blender::compositor

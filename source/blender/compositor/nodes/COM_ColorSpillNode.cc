@@ -20,6 +20,8 @@
 #include "BKE_node.h"
 #include "COM_ColorSpillOperation.h"
 
+namespace blender::compositor {
+
 ColorSpillNode::ColorSpillNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -45,3 +47,5 @@ void ColorSpillNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocketFac, operation->getInputSocket(1));
   converter.mapOutputSocket(outputSocketImage, operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

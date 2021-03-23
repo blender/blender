@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -111,3 +113,5 @@ void ProjectorLensDistortionOperation::updateDispersion()
   }
   this->unlockMutex();
 }
+
+}  // namespace blender::compositor

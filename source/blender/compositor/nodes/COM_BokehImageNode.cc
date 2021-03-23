@@ -20,6 +20,8 @@
 #include "COM_BokehImageOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 BokehImageNode::BokehImageNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -36,3 +38,5 @@ void BokehImageNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

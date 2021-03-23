@@ -30,6 +30,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+namespace blender::compositor {
+
 DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -141,3 +143,5 @@ void DefocusNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

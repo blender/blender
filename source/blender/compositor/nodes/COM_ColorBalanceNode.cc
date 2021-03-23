@@ -23,6 +23,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MixOperation.h"
 
+namespace blender::compositor {
+
 ColorBalanceNode::ColorBalanceNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -71,3 +73,5 @@ void ColorBalanceNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputImageSocket, operation->getInputSocket(1));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

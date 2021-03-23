@@ -18,6 +18,8 @@
 
 #include "COM_SetAlphaReplaceOperation.h"
 
+namespace blender::compositor {
+
 SetAlphaReplaceOperation::SetAlphaReplaceOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -51,3 +53,5 @@ void SetAlphaReplaceOperation::deinitExecution()
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;
 }
+
+}  // namespace blender::compositor

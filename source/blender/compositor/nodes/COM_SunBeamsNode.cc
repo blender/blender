@@ -18,6 +18,8 @@
 #include "COM_SunBeamsNode.h"
 #include "COM_SunBeamsOperation.h"
 
+namespace blender::compositor {
+
 SunBeamsNode::SunBeamsNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -37,3 +39,5 @@ void SunBeamsNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

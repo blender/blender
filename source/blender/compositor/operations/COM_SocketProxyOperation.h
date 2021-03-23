@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SocketProxyOperation : public NodeOperation {
  public:
   SocketProxyOperation(DataType type, bool use_conversion);
@@ -46,3 +48,5 @@ class SocketProxyOperation : public NodeOperation {
  private:
   bool m_use_conversion;
 };
+
+}  // namespace blender::compositor

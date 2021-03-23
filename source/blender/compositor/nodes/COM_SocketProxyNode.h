@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief SocketProxyNode
  * \ingroup Node
@@ -53,3 +55,5 @@ class SocketBufferNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

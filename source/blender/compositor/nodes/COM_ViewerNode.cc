@@ -25,6 +25,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_ViewerOperation.h"
 
+namespace blender::compositor {
+
 ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -82,3 +84,5 @@ void ViewerNode::convertToOperations(NodeConverter &converter,
     converter.registerViewer(viewerOperation);
   }
 }
+
+}  // namespace blender::compositor

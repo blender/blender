@@ -18,6 +18,8 @@
 
 #include "COM_AlphaOverMixedOperation.h"
 
+namespace blender::compositor {
+
 AlphaOverMixedOperation::AlphaOverMixedOperation()
 {
   this->m_x = 0.0f;
@@ -53,3 +55,5 @@ void AlphaOverMixedOperation::executePixelSampled(float output[4],
     output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
   }
 }
+
+}  // namespace blender::compositor

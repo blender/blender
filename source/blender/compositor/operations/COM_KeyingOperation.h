@@ -24,6 +24,8 @@
 
 #include "BLI_listbase.h"
 
+namespace blender::compositor {
+
 /**
  * Class with implementation of keying node
  */
@@ -47,3 +49,5 @@ class KeyingOperation : public NodeOperation {
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

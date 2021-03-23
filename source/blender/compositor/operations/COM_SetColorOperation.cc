@@ -18,6 +18,8 @@
 
 #include "COM_SetColorOperation.h"
 
+namespace blender::compositor {
+
 SetColorOperation::SetColorOperation()
 {
   this->addOutputSocket(DataType::Color);
@@ -37,3 +39,5 @@ void SetColorOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
 }
+
+}  // namespace blender::compositor

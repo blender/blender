@@ -31,6 +31,8 @@ class ExecutionGroup;
 
 #include "BLI_vector.hh"
 
+namespace blender::compositor {
+
 /**
  * \page execution Execution model
  * In order to get to an efficient model for execution, several steps are being done. these steps
@@ -186,3 +188,5 @@ class ExecutionSystem {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
 #endif
 };
+
+}  // namespace blender::compositor

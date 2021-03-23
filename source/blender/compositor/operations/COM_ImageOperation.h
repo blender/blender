@@ -27,6 +27,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 /**
  * \brief Base class for all image operations
  */
@@ -102,3 +104,5 @@ class ImageDepthOperation : public BaseImageOperation {
   ImageDepthOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

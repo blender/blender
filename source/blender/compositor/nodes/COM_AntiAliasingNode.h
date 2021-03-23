@@ -23,6 +23,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * @brief AntiAliasingNode
  * @ingroup Node
@@ -32,7 +34,10 @@ class AntiAliasingNode : public Node {
   AntiAliasingNode(bNode *editorNode) : Node(editorNode)
   {
   }
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const override;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor
 
 #endif

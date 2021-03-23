@@ -19,6 +19,8 @@
 #include "COM_GlareBaseOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 GlareBaseOperation::GlareBaseOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -66,3 +68,5 @@ bool GlareBaseOperation::determineDependingAreaOfInterest(rcti * /*input*/,
   newInput.ymin = 0;
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

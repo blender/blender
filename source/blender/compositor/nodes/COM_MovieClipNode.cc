@@ -29,6 +29,8 @@
 
 #include "IMB_imbuf.h"
 
+namespace blender::compositor {
+
 MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -106,3 +108,5 @@ void MovieClipNode::convertToOperations(NodeConverter &converter,
     IMB_freeImBuf(ibuf);
   }
 }
+
+}  // namespace blender::compositor

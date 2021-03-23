@@ -21,6 +21,8 @@
 #include "COM_CurveBaseOperation.h"
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class VectorCurveOperation : public CurveBaseOperation {
  private:
   /**
@@ -46,3 +48,5 @@ class VectorCurveOperation : public CurveBaseOperation {
    */
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

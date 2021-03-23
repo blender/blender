@@ -25,6 +25,8 @@
 
 #include "BLI_path_util.h"
 
+namespace blender::compositor {
+
 OutputFileNode::OutputFileNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -151,3 +153,5 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

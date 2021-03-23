@@ -25,6 +25,8 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
+namespace blender::compositor {
+
 TextureBaseOperation::TextureBaseOperation()
 {
   this->addInputSocket(DataType::Vector);  // offset
@@ -155,3 +157,5 @@ void TextureBaseOperation::executePixelSampled(float output[4],
     output[0] = output[1] = output[2] = output[3];
   }
 }
+
+}  // namespace blender::compositor

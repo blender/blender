@@ -24,6 +24,8 @@
 
 #include "COM_NodeOperation.h" /* own include */
 
+namespace blender::compositor {
+
 /*******************
  **** NodeOperation ****
  *******************/
@@ -209,3 +211,5 @@ void NodeOperationOutput::determineResolution(unsigned int resolution[2],
     operation.setResolution(resolution);
   }
 }
+
+}  // namespace blender::compositor

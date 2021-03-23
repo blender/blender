@@ -25,6 +25,8 @@
 #include "COM_SplitOperation.h"
 #include "COM_ViewerOperation.h"
 
+namespace blender::compositor {
+
 SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -73,3 +75,5 @@ void SplitViewerNode::convertToOperations(NodeConverter &converter,
     converter.registerViewer(viewerOperation);
   }
 }
+
+}  // namespace blender::compositor

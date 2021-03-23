@@ -20,6 +20,8 @@
 
 #include "IMB_imbuf.h"
 
+namespace blender::compositor {
+
 ConvertColorProfileOperation::ConvertColorProfileOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -48,3 +50,5 @@ void ConvertColorProfileOperation::deinitExecution()
 {
   this->m_inputOperation = nullptr;
 }
+
+}  // namespace blender::compositor

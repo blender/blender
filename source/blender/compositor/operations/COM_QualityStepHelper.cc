@@ -18,6 +18,8 @@
 
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 QualityStepHelper::QualityStepHelper()
 {
   this->m_quality = CompositorQuality::High;
@@ -64,3 +66,5 @@ void QualityStepHelper::initExecution(QualityHelper helper)
       break;
   }
 }
+
+}  // namespace blender::compositor

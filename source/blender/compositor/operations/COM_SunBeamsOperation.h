@@ -19,6 +19,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SunBeamsOperation : public NodeOperation {
  public:
   SunBeamsOperation();
@@ -44,3 +46,5 @@ class SunBeamsOperation : public NodeOperation {
   float m_source_px[2];
   float m_ray_length_px;
 };
+
+}  // namespace blender::compositor

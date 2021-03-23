@@ -24,6 +24,8 @@
 #include "COM_WorkPackage.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 /** \brief the workscheduler
  * \ingroup execution
  */
@@ -93,3 +95,5 @@ struct WorkScheduler {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkScheduler")
 #endif
 };
+
+}  // namespace blender::compositor

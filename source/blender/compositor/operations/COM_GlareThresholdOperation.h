@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_light_types.h"
 
+namespace blender::compositor {
+
 class GlareThresholdOperation : public NodeOperation {
  private:
   /**
@@ -59,3 +61,5 @@ class GlareThresholdOperation : public NodeOperation {
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
 };
+
+}  // namespace blender::compositor

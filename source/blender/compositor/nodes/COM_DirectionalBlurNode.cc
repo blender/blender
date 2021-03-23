@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void DirectionalBlurNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

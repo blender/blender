@@ -24,6 +24,8 @@
 
 struct Scene;
 
+namespace blender::compositor {
+
 /**
  * \brief Compositor output operation
  */
@@ -124,3 +126,5 @@ class CompositorOperation : public NodeOperation {
     this->m_active = active;
   }
 };
+
+}  // namespace blender::compositor

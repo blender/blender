@@ -32,6 +32,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 /* ******** Render Layers Base Prog ******** */
 
 RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize)
@@ -306,3 +308,5 @@ void RenderLayersDepthProg::executePixelSampled(float output[4],
     output[0] = inputBuffer[offset];
   }
 }
+
+}  // namespace blender::compositor

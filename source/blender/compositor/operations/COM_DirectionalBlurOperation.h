@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
   SocketReader *m_inputProgram;
@@ -64,3 +66,5 @@ class DirectionalBlurOperation : public NodeOperation, public QualityStepHelper 
                      std::list<cl_mem> *clMemToCleanUp,
                      std::list<cl_kernel> *clKernelsToCleanUp) override;
 };
+
+}  // namespace blender::compositor

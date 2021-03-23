@@ -18,6 +18,8 @@
 
 #include "COM_ScaleOperation.h"
 
+namespace blender::compositor {
+
 #define USE_FORCE_BILINEAR
 /* XXX - ignore input and use default from old compositor,
  * could become an option like the transform node - campbell
@@ -308,3 +310,5 @@ void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = this->m_newWidth;
   resolution[1] = this->m_newHeight;
 }
+
+}  // namespace blender::compositor

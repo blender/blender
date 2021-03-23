@@ -18,6 +18,8 @@
 
 #include "COM_SingleThreadedOperation.h"
 
+namespace blender::compositor {
+
 SingleThreadedOperation::SingleThreadedOperation()
 {
   this->m_cachedInstance = nullptr;
@@ -56,3 +58,5 @@ void *SingleThreadedOperation::initializeTileData(rcti *rect)
   unlockMutex();
   return this->m_cachedInstance;
 }
+
+}  // namespace blender::compositor

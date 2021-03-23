@@ -18,6 +18,8 @@
 
 #include "COM_Debug.h"
 
+namespace blender::compositor {
+
 #ifdef COM_DEBUG
 
 #  include <map>
@@ -495,3 +497,5 @@ void DebugInfo::graphviz(const ExecutionSystem * /*system*/)
 }
 
 #endif
+
+}  // namespace blender::compositor

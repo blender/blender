@@ -20,6 +20,8 @@
 
 #include "BKE_colortools.h"
 
+namespace blender::compositor {
+
 VectorCurveOperation::VectorCurveOperation()
 {
   this->addInputSocket(DataType::Vector);
@@ -50,3 +52,5 @@ void VectorCurveOperation::deinitExecution()
   CurveBaseOperation::deinitExecution();
   this->m_inputProgram = nullptr;
 }
+
+}  // namespace blender::compositor

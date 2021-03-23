@@ -22,6 +22,8 @@
 
 #include "BLI_assert.h"
 
+namespace blender::compositor {
+
 CompositorContext::CompositorContext()
 {
   this->m_scene = nullptr;
@@ -38,3 +40,5 @@ int CompositorContext::getFramenumber() const
   BLI_assert(m_rd);
   return m_rd->cfra;
 }
+
+}  // namespace blender::compositor

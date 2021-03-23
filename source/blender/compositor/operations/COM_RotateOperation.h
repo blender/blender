@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class RotateOperation : public NodeOperation {
  private:
   SocketReader *m_imageSocket;
@@ -46,3 +48,5 @@ class RotateOperation : public NodeOperation {
 
   void ensureDegree();
 };
+
+}  // namespace blender::compositor

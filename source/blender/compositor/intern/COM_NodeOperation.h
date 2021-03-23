@@ -33,6 +33,8 @@
 
 #include "clew.h"
 
+namespace blender::compositor {
+
 class OpenCLDevice;
 class ReadBufferOperation;
 class WriteBufferOperation;
@@ -617,3 +619,5 @@ class NodeOperation {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
 #endif
 };
+
+}  // namespace blender::compositor

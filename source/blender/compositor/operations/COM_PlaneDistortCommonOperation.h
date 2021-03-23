@@ -28,6 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 #define PLANE_DISTORT_MAX_SAMPLES 64
 
 class PlaneDistortWarpImageOperation : public NodeOperation {
@@ -96,3 +98,5 @@ class PlaneDistortMaskOperation : public NodeOperation {
     this->m_motion_blur_shutter = shutter;
   }
 };
+
+}  // namespace blender::compositor

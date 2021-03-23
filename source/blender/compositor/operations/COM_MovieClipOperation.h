@@ -23,6 +23,8 @@
 #include "DNA_movieclip_types.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 /**
  * Base class for movie clip
  */
@@ -77,3 +79,5 @@ class MovieClipAlphaOperation : public MovieClipBaseOperation {
   MovieClipAlphaOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

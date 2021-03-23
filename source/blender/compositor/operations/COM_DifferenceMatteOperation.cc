@@ -19,6 +19,8 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 DifferenceMatteOperation::DifferenceMatteOperation()
 {
   addInputSocket(DataType::Color);
@@ -83,3 +85,5 @@ void DifferenceMatteOperation::executePixelSampled(float output[4],
     output[0] = inColor1[3];
   }
 }
+
+}  // namespace blender::compositor

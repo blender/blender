@@ -19,6 +19,8 @@
 #include "COM_ChunkOrderHotspot.h"
 #include <cmath>
 
+namespace blender::compositor {
+
 double ChunkOrderHotspot::calc_distance(int x, int y)
 {
   int dx = this->x - x;
@@ -27,3 +29,5 @@ double ChunkOrderHotspot::calc_distance(int x, int y)
   result += (double)this->addition;
   return result;
 }
+
+}  // namespace blender::compositor

@@ -21,6 +21,8 @@
 #include "COM_defines.h"
 #include <cstdio>
 
+namespace blender::compositor {
+
 WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
@@ -225,3 +227,5 @@ void WriteBufferOperation::readResolutionFromInputSocket()
   this->setWidth(inputOperation->getWidth());
   this->setHeight(inputOperation->getHeight());
 }
+
+}  // namespace blender::compositor

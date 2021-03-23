@@ -33,6 +33,8 @@
 
 #include "COM_NodeGraph.h" /* own include */
 
+namespace blender::compositor {
+
 /*******************
  **** NodeGraph ****
  *******************/
@@ -331,3 +333,5 @@ void NodeGraph::add_proxies_reroute(bNodeTree *b_ntree,
       b_node, (bNodeSocket *)b_node->inputs.first, (bNodeSocket *)b_node->outputs.first, false);
   add_node(proxy, b_ntree, key, is_active_group);
 }
+
+}  // namespace blender::compositor

@@ -19,6 +19,8 @@
 #include "COM_GlareFogGlowOperation.h"
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 /*
  *  2D Fast Hartley Transform, used for convolution
  */
@@ -442,3 +444,5 @@ void GlareFogGlowOperation::generateGlare(float *data,
   convolve(data, inputTile, ckrn);
   delete ckrn;
 }
+
+}  // namespace blender::compositor

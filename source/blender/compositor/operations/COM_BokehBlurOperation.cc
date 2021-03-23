@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -241,3 +243,5 @@ void BokehBlurOperation::determineResolution(unsigned int resolution[2],
     resolution[1] += 2 * this->m_size * max_dim / 100.0f;
   }
 }
+
+}  // namespace blender::compositor

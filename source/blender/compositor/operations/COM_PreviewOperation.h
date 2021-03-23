@@ -24,6 +24,8 @@
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 
+namespace blender::compositor {
+
 class PreviewOperation : public NodeOperation {
  protected:
   unsigned char *m_outputBuffer;
@@ -66,3 +68,5 @@ class PreviewOperation : public NodeOperation {
     return true;
   }
 };
+
+}  // namespace blender::compositor

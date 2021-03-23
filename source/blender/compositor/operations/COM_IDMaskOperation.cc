@@ -18,6 +18,8 @@
 
 #include "COM_IDMaskOperation.h"
 
+namespace blender::compositor {
+
 IDMaskOperation::IDMaskOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -39,3 +41,5 @@ void IDMaskOperation::executePixel(float output[4], int x, int y, void *data)
   int buffer_index = (y * buffer_width + x);
   output[0] = (roundf(buffer[buffer_index]) == this->m_objectIndex) ? 1.0f : 0.0f;
 }
+
+}  // namespace blender::compositor

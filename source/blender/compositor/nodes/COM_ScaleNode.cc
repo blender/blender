@@ -24,6 +24,8 @@
 #include "COM_SetSamplerOperation.h"
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -105,3 +107,5 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

@@ -21,6 +21,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 BilateralBlurOperation::BilateralBlurOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -112,3 +114,5 @@ bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

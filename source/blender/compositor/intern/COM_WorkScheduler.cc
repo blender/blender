@@ -37,6 +37,8 @@
 
 #include "BKE_global.h"
 
+namespace blender::compositor {
+
 enum class ThreadingModel {
   /** Everything is executed in the caller thread. easy for debugging. */
   SingleThreaded,
@@ -583,3 +585,5 @@ int WorkScheduler::current_thread_id()
 }
 
 /* \} */
+
+}  // namespace blender::compositor

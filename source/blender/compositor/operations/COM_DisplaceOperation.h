@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DisplaceOperation : public NodeOperation {
  private:
   /**
@@ -64,3 +66,5 @@ class DisplaceOperation : public NodeOperation {
   bool read_displacement(
       float x, float y, float xscale, float yscale, const float origin[2], float &r_u, float &r_v);
 };
+
+}  // namespace blender::compositor

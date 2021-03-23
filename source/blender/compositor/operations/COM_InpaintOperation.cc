@@ -23,6 +23,8 @@
 
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 #define ASSERT_XY_RANGE(x, y) \
   BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
 
@@ -282,3 +284,5 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

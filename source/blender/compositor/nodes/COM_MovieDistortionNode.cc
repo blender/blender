@@ -22,6 +22,8 @@
 #include "COM_MovieDistortionOperation.h"
 #include "DNA_movieclip_types.h"
 
+namespace blender::compositor {
+
 MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -44,3 +46,5 @@ void MovieDistortionNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

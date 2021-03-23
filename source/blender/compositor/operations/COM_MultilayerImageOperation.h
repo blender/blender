@@ -20,6 +20,8 @@
 
 #include "COM_ImageOperation.h"
 
+namespace blender::compositor {
+
 class MultilayerBaseOperation : public BaseImageOperation {
  private:
   int m_passId;
@@ -67,3 +69,5 @@ class MultilayerVectorOperation : public MultilayerBaseOperation {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

@@ -24,6 +24,8 @@
 
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 /* An implementation of the Scale3X edge-extrapolation algorithm.
  *
  * Code from GIMP plugin, based on code from Adam D. Moss <adam@gimp.org>
@@ -199,3 +201,5 @@ void *AntiAliasOperation::initializeTileData(rcti *rect)
 {
   return getInputOperation(0)->initializeTileData(rect);
 }
+
+}  // namespace blender::compositor

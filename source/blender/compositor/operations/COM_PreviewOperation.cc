@@ -33,6 +33,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const ColorManagedDisplaySettings *displaySettings,
                                    const unsigned int defaultWidth,
@@ -166,3 +168,5 @@ CompositorPriority PreviewOperation::getRenderPriority() const
 {
   return CompositorPriority::Low;
 }
+
+}  // namespace blender::compositor

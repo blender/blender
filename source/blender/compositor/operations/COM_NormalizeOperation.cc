@@ -18,6 +18,8 @@
 
 #include "COM_NormalizeOperation.h"
 
+namespace blender::compositor {
+
 NormalizeOperation::NormalizeOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -124,3 +126,5 @@ void NormalizeOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
 }
+
+}  // namespace blender::compositor

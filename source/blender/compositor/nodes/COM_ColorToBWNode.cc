@@ -21,6 +21,8 @@
 #include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 ColorToBWNode::ColorToBWNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void ColorToBWNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(colorSocket, convertProg->getInputSocket(0));
   converter.mapOutputSocket(valueSocket, convertProg->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ConvertBaseOperation : public NodeOperation {
  protected:
   SocketReader *m_inputOperation;
@@ -182,3 +184,5 @@ class CombineChannelsOperation : public NodeOperation {
   void initExecution() override;
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

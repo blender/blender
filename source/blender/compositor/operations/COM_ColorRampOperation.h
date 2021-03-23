@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
+namespace blender::compositor {
+
 class ColorRampOperation : public NodeOperation {
  private:
   /**
@@ -52,3 +54,5 @@ class ColorRampOperation : public NodeOperation {
     this->m_colorBand = colorBand;
   }
 };
+
+}  // namespace blender::compositor

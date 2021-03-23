@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class BrightnessOperation : public NodeOperation {
  private:
   /**
@@ -51,3 +53,5 @@ class BrightnessOperation : public NodeOperation {
 
   void setUsePremultiply(bool use_premultiply);
 };
+
+}  // namespace blender::compositor

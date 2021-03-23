@@ -21,6 +21,8 @@
 #include "BLI_math.h"
 #include "DNA_camera_types.h"
 
+namespace blender::compositor {
+
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -113,3 +115,5 @@ void ConvertDepthToRadiusOperation::deinitExecution()
 {
   this->m_inputOperation = nullptr;
 }
+
+}  // namespace blender::compositor

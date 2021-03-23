@@ -21,6 +21,8 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 DifferenceMatteNode::DifferenceMatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -52,3 +54,5 @@ void DifferenceMatteNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

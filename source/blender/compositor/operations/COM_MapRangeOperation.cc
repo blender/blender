@@ -18,6 +18,8 @@
 
 #include "COM_MapRangeOperation.h"
 
+namespace blender::compositor {
+
 MapRangeOperation::MapRangeOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -101,3 +103,5 @@ void MapRangeOperation::deinitExecution()
   this->m_destMinOperation = nullptr;
   this->m_destMaxOperation = nullptr;
 }
+
+}  // namespace blender::compositor

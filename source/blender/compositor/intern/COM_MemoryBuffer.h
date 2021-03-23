@@ -16,8 +16,6 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class MemoryBuffer;
-
 #pragma once
 
 #include "COM_ExecutionGroup.h"
@@ -25,6 +23,8 @@ class MemoryBuffer;
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+
+namespace blender::compositor {
 
 /**
  * \brief state of a memory buffer
@@ -330,3 +330,5 @@ class MemoryBuffer {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")
 #endif
 };
+
+}  // namespace blender::compositor

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class InpaintSimpleOperation : public NodeOperation {
  protected:
   /**
@@ -72,3 +74,5 @@ class InpaintSimpleOperation : public NodeOperation {
   bool next_pixel(int &x, int &y, int &curr, int iters);
   void pix_step(int x, int y);
 };
+
+}  // namespace blender::compositor

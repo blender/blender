@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
 
+namespace blender::compositor {
+
 class CurveBaseOperation : public NodeOperation {
  protected:
   /**
@@ -40,3 +42,5 @@ class CurveBaseOperation : public NodeOperation {
 
   void setCurveMapping(CurveMapping *mapping);
 };
+
+}  // namespace blender::compositor

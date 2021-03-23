@@ -29,6 +29,8 @@
 #include "BKE_node.h"
 #include "BKE_tracking.h"
 
+namespace blender::compositor {
+
 /* ******** PlaneDistort WarpImage ******** */
 
 BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], float deriv[2][2])
@@ -226,3 +228,5 @@ void PlaneDistortMaskOperation::executePixelSampled(float output[4],
     output[0] = (float)inside_counter / (this->m_osa * this->m_motion_blur_samples);
   }
 }
+
+}  // namespace blender::compositor

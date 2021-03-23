@@ -22,6 +22,8 @@
 #include "COM_MemoryProxy.h"
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ReadBufferOperation : public NodeOperation {
  private:
   MemoryProxy *m_memoryProxy;
@@ -73,3 +75,5 @@ class ReadBufferOperation : public NodeOperation {
   void readResolutionFromWriteBuffer();
   void updateMemoryBuffer();
 };
+
+}  // namespace blender::compositor

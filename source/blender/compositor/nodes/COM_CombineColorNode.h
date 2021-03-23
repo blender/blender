@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 class CombineColorNode : public Node {
  public:
   CombineColorNode(bNode *editorNode);
@@ -65,3 +67,5 @@ class CombineYUVANode : public CombineColorNode {
 
   NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

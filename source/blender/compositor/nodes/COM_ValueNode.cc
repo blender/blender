@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -35,3 +37,5 @@ void ValueNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(output, operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

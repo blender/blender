@@ -20,6 +20,8 @@
 
 #include "BKE_colortools.h"
 
+namespace blender::compositor {
+
 CurveBaseOperation::CurveBaseOperation()
 {
   this->m_curveMapping = nullptr;
@@ -53,3 +55,5 @@ void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)
   }
   this->m_curveMapping = BKE_curvemapping_copy(mapping);
 }
+
+}  // namespace blender::compositor

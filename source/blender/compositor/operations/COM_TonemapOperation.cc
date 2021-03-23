@@ -22,6 +22,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 TonemapOperation::TonemapOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);
@@ -150,3 +152,5 @@ void TonemapOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
 }
+
+}  // namespace blender::compositor

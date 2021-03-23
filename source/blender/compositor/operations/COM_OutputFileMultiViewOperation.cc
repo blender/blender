@@ -37,6 +37,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 /************************************ OpenEXR Singlelayer Multiview ******************************/
 
 OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOperation(
@@ -380,3 +382,5 @@ void OutputStereoOperation::deinitExecution()
     }
   }
 }
+
+}  // namespace blender::compositor

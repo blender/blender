@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * All this programs converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -194,3 +196,5 @@ class MixValueOperation : public MixBaseOperation {
   MixValueOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

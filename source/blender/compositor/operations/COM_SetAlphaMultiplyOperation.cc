@@ -18,6 +18,8 @@
 
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 SetAlphaMultiplyOperation::SetAlphaMultiplyOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -53,3 +55,5 @@ void SetAlphaMultiplyOperation::deinitExecution()
   this->m_inputColor = nullptr;
   this->m_inputAlpha = nullptr;
 }
+
+}  // namespace blender::compositor

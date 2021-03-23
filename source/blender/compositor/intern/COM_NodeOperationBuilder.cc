@@ -38,6 +38,8 @@
 
 #include "COM_NodeOperationBuilder.h" /* own include */
 
+namespace blender::compositor {
+
 NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree)
     : m_context(context), m_current_node(nullptr), m_active_viewer(nullptr)
 {
@@ -684,3 +686,5 @@ void NodeOperationBuilder::group_operations()
     }
   }
 }
+
+}  // namespace blender::compositor

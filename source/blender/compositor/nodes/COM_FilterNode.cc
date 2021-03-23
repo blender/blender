@@ -23,6 +23,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MixOperation.h"
 
+namespace blender::compositor {
+
 FilterNode::FilterNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -94,3 +96,5 @@ void FilterNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

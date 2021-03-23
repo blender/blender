@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class CropBaseOperation : public NodeOperation {
  protected:
   SocketReader *m_inputOperation;
@@ -64,3 +66,5 @@ class CropImageOperation : public CropBaseOperation {
                            unsigned int preferredResolution[2]) override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

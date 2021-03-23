@@ -18,6 +18,8 @@
 
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 SetValueOperation::SetValueOperation()
 {
   this->addOutputSocket(DataType::Value);
@@ -37,3 +39,5 @@ void SetValueOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
 }
+
+}  // namespace blender::compositor

@@ -28,6 +28,8 @@
 
 #include "intern/openexr/openexr_multi.h"
 
+namespace blender::compositor {
+
 class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOperation {
  private:
  public:
@@ -80,3 +82,5 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
   void *get_handle(const char *filename);
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

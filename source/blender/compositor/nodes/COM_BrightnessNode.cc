@@ -20,6 +20,8 @@
 #include "COM_BrightnessOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 BrightnessNode::BrightnessNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void BrightnessNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

@@ -23,6 +23,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 DirectionalBlurOperation::DirectionalBlurOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -144,3 +146,5 @@ bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

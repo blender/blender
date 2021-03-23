@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DespeckleOperation : public NodeOperation {
  private:
   float m_threshold;
@@ -51,3 +53,5 @@ class DespeckleOperation : public NodeOperation {
   void initExecution() override;
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

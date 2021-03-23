@@ -24,6 +24,8 @@
 
 #include "BKE_tracking.h"
 
+namespace blender::compositor {
+
 class MovieDistortionOperation : public NodeOperation {
  private:
   SocketReader *m_inputOperation;
@@ -57,3 +59,5 @@ class MovieDistortionOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor

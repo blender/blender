@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DisplaceSimpleOperation : public NodeOperation {
  private:
   /**
@@ -58,3 +60,5 @@ class DisplaceSimpleOperation : public NodeOperation {
    */
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

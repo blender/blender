@@ -22,6 +22,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
 
+namespace blender::compositor {
+
 class ColorCurveOperation : public CurveBaseOperation {
  private:
   /**
@@ -88,3 +90,5 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
     copy_v3_v3(this->m_white, white);
   }
 };
+
+}  // namespace blender::compositor

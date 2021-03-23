@@ -29,6 +29,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+namespace blender::compositor {
+
 class CompositorContext;
 class Node;
 class NodeInput;
@@ -121,3 +123,5 @@ class NodeGraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeGraph")
 #endif
 };
+
+}  // namespace blender::compositor

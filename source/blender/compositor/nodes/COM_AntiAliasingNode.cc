@@ -22,6 +22,8 @@
 #include "COM_SMAAOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 void AntiAliasingNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const
 {
@@ -54,3 +56,5 @@ void AntiAliasingNode::convertToOperations(NodeConverter &converter,
   converter.addLink(operation2->getOutputSocket(), operation3->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation3->getOutputSocket());
 }
+
+}  // namespace blender::compositor

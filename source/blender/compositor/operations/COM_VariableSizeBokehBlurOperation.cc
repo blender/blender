@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -381,3 +383,5 @@ bool InverseSearchRadiusOperation::determineDependingAreaOfInterest(
   return NodeOperation::determineDependingAreaOfInterest(&newRect, readOperation, output);
 }
 #endif
+
+}  // namespace blender::compositor

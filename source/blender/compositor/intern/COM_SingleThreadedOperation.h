@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SingleThreadedOperation : public NodeOperation {
  private:
   MemoryBuffer *m_cachedInstance;
@@ -57,3 +59,5 @@ class SingleThreadedOperation : public NodeOperation {
     return true;
   }
 };
+
+}  // namespace blender::compositor

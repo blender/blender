@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DilateErodeThresholdOperation : public NodeOperation {
  private:
   /**
@@ -180,3 +182,5 @@ class ErodeStepOperation : public DilateStepOperation {
 
   void *initializeTileData(rcti *rect) override;
 };
+
+}  // namespace blender::compositor

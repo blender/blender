@@ -37,6 +37,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+namespace blender::compositor {
+
 ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  Scene *scene,
                                  bNodeTree *editingtree,
@@ -219,3 +221,5 @@ void ExecutionSystem::execute_groups(CompositorPriority priority)
     }
   }
 }
+
+}  // namespace blender::compositor

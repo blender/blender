@@ -26,6 +26,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 /**
  * \brief ImageNode
  * \ingroup Node
@@ -47,3 +49,5 @@ class ImageNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

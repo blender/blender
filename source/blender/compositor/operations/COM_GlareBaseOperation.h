@@ -21,6 +21,8 @@
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /* utility functions used by glare, tonemap and lens distortion */
 /* soms macros for color handling */
 typedef float fRGB[4];
@@ -73,3 +75,5 @@ class GlareBaseOperation : public SingleThreadedOperation {
 
   MemoryBuffer *createMemoryBuffer(rcti *rect) override;
 };
+
+}  // namespace blender::compositor

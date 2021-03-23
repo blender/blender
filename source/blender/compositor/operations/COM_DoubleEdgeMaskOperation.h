@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DoubleEdgeMaskOperation : public NodeOperation {
  private:
   /**
@@ -65,3 +67,5 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     this->m_keepInside = keepInside;
   }
 };
+
+}  // namespace blender::compositor

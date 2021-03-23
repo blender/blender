@@ -40,6 +40,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 void add_exr_channels(void *exrhandle,
                       const char *layerName,
                       const DataType datatype,
@@ -441,3 +443,5 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
     BKE_stamp_data_free(stamp_data);
   }
 }
+
+}  // namespace blender::compositor

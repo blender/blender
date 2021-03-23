@@ -20,7 +20,10 @@
 
 #ifndef _COM_SMAAOperation_h
 #define _COM_SMAAOperation_h
+
 #include "COM_NodeOperation.h"
+
+namespace blender::compositor {
 
 /*-----------------------------------------------------------------------------*/
 /* Edge Detection (First Pass) */
@@ -143,5 +146,7 @@ class SMAANeighborhoodBlendingOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor
 
 #endif

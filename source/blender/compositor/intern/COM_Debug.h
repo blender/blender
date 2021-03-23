@@ -21,10 +21,12 @@
 #include <map>
 #include <string>
 
+#include "COM_NodeOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 class Node;
-class NodeOperation;
 class ExecutionSystem;
 class ExecutionGroup;
 
@@ -81,3 +83,5 @@ class DebugInfo {
   static GroupStateMap m_group_states;
 #endif
 };
+
+}  // namespace blender::compositor

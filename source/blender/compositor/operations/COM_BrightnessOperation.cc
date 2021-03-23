@@ -18,6 +18,8 @@
 
 #include "COM_BrightnessOperation.h"
 
+namespace blender::compositor {
+
 BrightnessOperation::BrightnessOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -89,3 +91,5 @@ void BrightnessOperation::deinitExecution()
   this->m_inputBrightnessProgram = nullptr;
   this->m_inputContrastProgram = nullptr;
 }
+
+}  // namespace blender::compositor

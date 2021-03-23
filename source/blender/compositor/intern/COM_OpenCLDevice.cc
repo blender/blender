@@ -19,6 +19,8 @@
 #include "COM_OpenCLDevice.h"
 #include "COM_WorkScheduler.h"
 
+namespace blender::compositor {
+
 enum COM_VendorID { NVIDIA = 0x10DE, AMD = 0x1002 };
 const cl_image_format IMAGE_FORMAT_COLOR = {
     CL_RGBA,
@@ -270,3 +272,5 @@ cl_kernel OpenCLDevice::COM_clCreateKernel(const char *kernelname,
   }
   return kernel;
 }
+
+}  // namespace blender::compositor

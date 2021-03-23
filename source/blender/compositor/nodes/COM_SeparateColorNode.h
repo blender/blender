@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 class SeparateColorNode : public Node {
  public:
   SeparateColorNode(bNode *editorNode);
@@ -65,3 +67,5 @@ class SeparateYUVANode : public SeparateColorNode {
 
   NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

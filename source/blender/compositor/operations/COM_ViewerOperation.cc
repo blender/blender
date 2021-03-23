@@ -32,6 +32,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 ViewerOperation::ViewerOperation()
 {
   this->setImage(nullptr);
@@ -213,3 +215,5 @@ CompositorPriority ViewerOperation::getRenderPriority() const
 
   return CompositorPriority::Low;
 }
+
+}  // namespace blender::compositor

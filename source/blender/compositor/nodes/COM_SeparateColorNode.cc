@@ -20,6 +20,8 @@
 
 #include "COM_ConvertOperation.h"
 
+namespace blender::compositor {
+
 SeparateColorNode::SeparateColorNode(bNode *editorNode) : Node(editorNode)
 {
 }
@@ -119,3 +121,5 @@ NodeOperation *SeparateYUVANode::getColorConverter(const CompositorContext & /*c
 {
   return new ConvertRGBToYUVOperation();
 }
+
+}  // namespace blender::compositor

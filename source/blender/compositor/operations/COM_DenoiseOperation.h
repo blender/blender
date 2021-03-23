@@ -21,6 +21,8 @@
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class DenoiseOperation : public SingleThreadedOperation {
  private:
   /**
@@ -64,3 +66,5 @@ class DenoiseOperation : public SingleThreadedOperation {
 
   MemoryBuffer *createMemoryBuffer(rcti *rect) override;
 };
+
+}  // namespace blender::compositor

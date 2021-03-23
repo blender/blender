@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(DataType::Value)
 {
   this->m_gausstab = nullptr;
@@ -189,3 +191,5 @@ bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(
     return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
   }
 }
+
+}  // namespace blender::compositor

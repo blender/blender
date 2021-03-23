@@ -26,6 +26,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 /**
  * Base class for all renderlayeroperations
  *
@@ -152,3 +154,5 @@ class RenderLayersDepthProg : public RenderLayersProg {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

@@ -22,6 +22,8 @@
 #include "COM_FastGaussianBlurOperation.h"
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_iirgaus = nullptr;
@@ -341,3 +343,5 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
   unlockMutex();
   return this->m_iirgaus;
 }
+
+}  // namespace blender::compositor

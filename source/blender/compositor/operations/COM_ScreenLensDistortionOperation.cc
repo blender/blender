@@ -24,6 +24,8 @@
 
 #include "PIL_time.h"
 
+namespace blender::compositor {
+
 ScreenLensDistortionOperation::ScreenLensDistortionOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -351,3 +353,5 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
 
   mul_v3_v3fl(m_k4, m_k, 4.0f);
 }
+
+}  // namespace blender::compositor

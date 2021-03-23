@@ -20,6 +20,8 @@
 
 #include "COM_PlaneCornerPinOperation.h"
 
+namespace blender::compositor {
+
 CornerPinNode::CornerPinNode(bNode *editorNode) : Node(editorNode)
 {
 }
@@ -53,3 +55,5 @@ void CornerPinNode::convertToOperations(NodeConverter &converter,
   converter.mapOutputSocket(output_warped_image, warp_image_operation->getOutputSocket());
   converter.mapOutputSocket(output_plane, plane_mask_operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MapValueOperation.h"
 
+namespace blender::compositor {
+
 MapValueNode::MapValueNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -41,3 +43,5 @@ void MapValueNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(colorSocket, convertProg->getInputSocket(0));
   converter.mapOutputSocket(valueSocket, convertProg->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

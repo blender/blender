@@ -19,6 +19,8 @@
 #include "COM_RotateOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 RotateOperation::RotateOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -105,3 +107,5 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

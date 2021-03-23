@@ -22,6 +22,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -59,3 +61,5 @@ void ViewLevelsNode::convertToOperations(NodeConverter &converter,
     converter.addOutputValue(getOutputSocket(1), 0.0f);
   }
 }
+
+}  // namespace blender::compositor

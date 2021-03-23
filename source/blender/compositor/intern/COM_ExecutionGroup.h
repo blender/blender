@@ -33,8 +33,11 @@
 #include "COM_NodeOperation.h"
 #include <vector>
 
+namespace blender::compositor {
+
 class ExecutionSystem;
 class MemoryProxy;
+class MemoryBuffer;
 class ReadBufferOperation;
 class Device;
 
@@ -441,3 +444,5 @@ class ExecutionGroup {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
 };
+
+}  // namespace blender::compositor

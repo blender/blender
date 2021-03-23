@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 BlurBaseOperation::BlurBaseOperation(DataType data_type)
 {
   /* data_type is almost always DataType::Color except for alpha-blur */
@@ -182,3 +184,5 @@ void BlurBaseOperation::determineResolution(unsigned int resolution[2],
     resolution[1] += 2 * this->m_size * m_data.sizey;
   }
 }
+
+}  // namespace blender::compositor

@@ -23,6 +23,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 KeyingBlurOperation::KeyingBlurOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -93,3 +95,5 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

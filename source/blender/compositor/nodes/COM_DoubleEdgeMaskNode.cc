@@ -20,6 +20,8 @@
 #include "COM_DoubleEdgeMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 DoubleEdgeMaskNode::DoubleEdgeMaskNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -40,3 +42,5 @@ void DoubleEdgeMaskNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

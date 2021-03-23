@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DotproductOperation : public NodeOperation {
  private:
   SocketReader *m_input1Operation;
@@ -32,3 +34,5 @@ class DotproductOperation : public NodeOperation {
   void initExecution() override;
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

@@ -22,6 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 // DilateErode Distance Threshold
 DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
@@ -568,3 +570,5 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
   return result;
 }
+
+}  // namespace blender::compositor

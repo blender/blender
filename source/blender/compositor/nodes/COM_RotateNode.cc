@@ -22,6 +22,8 @@
 #include "COM_RotateOperation.h"
 #include "COM_SetSamplerOperation.h"
 
+namespace blender::compositor {
+
 RotateNode::RotateNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -45,3 +47,5 @@ void RotateNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputDegreeSocket, operation->getInputSocket(1));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

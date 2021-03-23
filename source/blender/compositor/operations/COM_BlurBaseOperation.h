@@ -25,6 +25,8 @@
 
 #include "BLI_simd.h"
 
+namespace blender::compositor {
+
 class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
  private:
  protected:
@@ -76,3 +78,5 @@ class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
 };
+
+}  // namespace blender::compositor

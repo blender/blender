@@ -20,6 +20,8 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
@@ -131,3 +133,5 @@ void ReadBufferOperation::updateMemoryBuffer()
 {
   this->m_buffer = this->getMemoryProxy()->getBuffer();
 }
+
+}  // namespace blender::compositor

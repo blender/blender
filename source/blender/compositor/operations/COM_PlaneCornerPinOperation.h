@@ -27,6 +27,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 class PlaneCornerPinMaskOperation : public PlaneDistortMaskOperation {
  private:
   bool m_corners_ready;
@@ -59,3 +61,5 @@ class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor

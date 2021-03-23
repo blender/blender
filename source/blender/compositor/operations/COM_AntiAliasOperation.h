@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief AntiAlias operations
  * it only supports anti aliasing on BW buffers.
@@ -56,3 +58,5 @@ class AntiAliasOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor

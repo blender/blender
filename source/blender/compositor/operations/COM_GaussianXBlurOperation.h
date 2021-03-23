@@ -21,6 +21,8 @@
 #include "COM_BlurBaseOperation.h"
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class GaussianXBlurOperation : public BlurBaseOperation {
  private:
   float *m_gausstab;
@@ -65,3 +67,5 @@ class GaussianXBlurOperation : public BlurBaseOperation {
     this->setOpenCL(m_data.sizex >= 128);
   }
 };
+
+}  // namespace blender::compositor

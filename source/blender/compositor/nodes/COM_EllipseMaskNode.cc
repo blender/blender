@@ -23,6 +23,8 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 EllipseMaskNode::EllipseMaskNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -70,3 +72,5 @@ void EllipseMaskNode::convertToOperations(NodeConverter &converter,
 
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
 }
+
+}  // namespace blender::compositor

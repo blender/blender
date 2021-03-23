@@ -31,6 +31,8 @@
 
 #include "PIL_time.h"
 
+namespace blender::compositor {
+
 CompositorOperation::CompositorOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -242,3 +244,5 @@ void CompositorOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = width;
   resolution[1] = height;
 }
+
+}  // namespace blender::compositor

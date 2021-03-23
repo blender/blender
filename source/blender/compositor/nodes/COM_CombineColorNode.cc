@@ -20,6 +20,8 @@
 
 #include "COM_ConvertOperation.h"
 
+namespace blender::compositor {
+
 CombineColorNode::CombineColorNode(bNode *editorNode) : Node(editorNode)
 {
 }
@@ -87,3 +89,5 @@ NodeOperation *CombineYUVANode::getColorConverter(const CompositorContext & /*co
 {
   return new ConvertYUVToRGBOperation();
 }
+
+}  // namespace blender::compositor

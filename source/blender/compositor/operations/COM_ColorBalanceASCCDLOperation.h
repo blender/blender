@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -70,3 +72,5 @@ class ColorBalanceASCCDLOperation : public NodeOperation {
     copy_v3_v3(this->m_slope, slope);
   }
 };
+
+}  // namespace blender::compositor

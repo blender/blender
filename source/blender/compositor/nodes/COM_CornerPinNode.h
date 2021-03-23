@@ -21,6 +21,8 @@
 
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief CornerPinNode
  * \ingroup Node
@@ -31,3 +33,5 @@ class CornerPinNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

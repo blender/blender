@@ -24,6 +24,8 @@
 
 #include "COM_ChunkOrderHotspot.h"
 
+namespace blender::compositor {
+
 /** Helper to determine the order how chunks are prioritized during execution. */
 struct ChunkOrder {
   unsigned int index = 0;
@@ -39,3 +41,5 @@ struct ChunkOrder {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ChunkOrderHotspot")
 #endif
 };
+
+}  // namespace blender::compositor

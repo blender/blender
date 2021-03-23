@@ -22,6 +22,8 @@
 #include "COM_QualityStepHelper.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
   /**
@@ -72,3 +74,5 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
                           MemoryBuffer *inputSpeed,
                           MemoryBuffer *inputZ);
 };
+
+}  // namespace blender::compositor

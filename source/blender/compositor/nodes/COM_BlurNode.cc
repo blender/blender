@@ -29,6 +29,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -168,3 +170,5 @@ void BlurNode::convertToOperations(NodeConverter &converter,
     converter.addPreview(output_operation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

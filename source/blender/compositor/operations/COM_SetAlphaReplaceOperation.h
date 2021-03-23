@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -43,3 +45,5 @@ class SetAlphaReplaceOperation : public NodeOperation {
   void initExecution() override;
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

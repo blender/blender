@@ -24,6 +24,8 @@
 #include "COM_SetValueOperation.h"
 #include "COM_TranslateOperation.h"
 
+namespace blender::compositor {
+
 TransformNode::TransformNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -66,3 +68,5 @@ void TransformNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(getOutputSocket(), translateOperation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

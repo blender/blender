@@ -18,6 +18,12 @@
 
 #include "COM_MemoryProxy.h"
 
+#include "COM_MemoryBuffer.h"
+
+#include "BLI_rect.h"
+
+namespace blender::compositor {
+
 MemoryProxy::MemoryProxy(DataType datatype)
 {
   this->m_writeBufferOperation = nullptr;
@@ -43,3 +49,5 @@ void MemoryProxy::free()
     this->m_buffer = nullptr;
   }
 }
+
+}  // namespace blender::compositor

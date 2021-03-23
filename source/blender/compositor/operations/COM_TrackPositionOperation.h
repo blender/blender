@@ -28,6 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 /**
  * Class with implementation of green screen gradient rasterization
  */
@@ -97,3 +99,5 @@ class TrackPositionOperation : public NodeOperation {
     return true;
   }
 };
+
+}  // namespace blender::compositor

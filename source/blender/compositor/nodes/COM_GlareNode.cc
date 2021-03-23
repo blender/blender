@@ -27,6 +27,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 GlareNode::GlareNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -80,3 +82,5 @@ void GlareNode::convertToOperations(NodeConverter &converter,
   converter.addLink(glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));
   converter.mapOutputSocket(getOutputSocket(), mixoperation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

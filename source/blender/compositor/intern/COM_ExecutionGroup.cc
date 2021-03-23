@@ -46,6 +46,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+namespace blender::compositor {
+
 ExecutionGroup::ExecutionGroup()
 {
   this->m_is_output = false;
@@ -607,3 +609,5 @@ void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float y
     }
   }
 }
+
+}  // namespace blender::compositor

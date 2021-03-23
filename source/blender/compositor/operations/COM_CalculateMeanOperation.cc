@@ -22,6 +22,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 CalculateMeanOperation::CalculateMeanOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);
@@ -125,3 +127,5 @@ void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
   }
   this->m_result = sum / pixels;
 }
+
+}  // namespace blender::compositor

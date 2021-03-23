@@ -26,6 +26,8 @@
 
 #include "IMB_imbuf.h"
 
+namespace blender::compositor {
+
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
   this->m_movieClip = nullptr;
@@ -133,3 +135,5 @@ void MovieClipAlphaOperation::executePixelSampled(float output[4],
   MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
   output[0] = result[3];
 }
+
+}  // namespace blender::compositor
