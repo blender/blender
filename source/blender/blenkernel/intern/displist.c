@@ -1650,6 +1650,13 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                 }
 
                 radius_factor = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_factor);
+
+                if (cu->taper_radius_mode == CU_TAPER_RADIUS_MULTIPLY) {
+                  radius_factor *= bevp->radius;
+                }
+                else if (cu->taper_radius_mode == CU_TAPER_RADIUS_ADD) {
+                  radius_factor += bevp->radius;
+                }
               }
 
               if (bevp->split_tag) {
