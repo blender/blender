@@ -703,7 +703,6 @@ bool GeometryComponent::attribute_domain_supported(const AttributeDomain domain)
 
 int GeometryComponent::attribute_domain_size(const AttributeDomain UNUSED(domain)) const
 {
-  BLI_assert_unreachable();
   return 0;
 }
 
