@@ -905,7 +905,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
            * anymore. Check if there are some actual overrides from the user, otherwise assume
            * that we can get rid of this local override. */
           LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-            if (op->rna_prop_type != PROP_POINTER) {
+            if (!ELEM(op->rna_prop_type, PROP_POINTER, PROP_COLLECTION)) {
               id->override_library->reference->tag |= LIB_TAG_DOIT;
               break;
             }
