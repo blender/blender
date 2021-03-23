@@ -5446,29 +5446,33 @@ static int ed_editcurve_addvert(Curve *cu,
     /* nothing selected: create a new curve */
     Nurb *nu = BKE_curve_nurb_active_get(cu);
 
-    if (!nu || nu->type == CU_BEZIER) {
-      Nurb *nurb_new;
-      BezTriple *bezt_new;
+    Nurb *nurb_new;
+    if (!nu) {
+      /* Bezier as default. */
+      nurb_new = MEM_callocN(sizeof(Nurb), "BLI_editcurve_addvert new_bezt_nurb 2");
+      nurb_new->type = CU_BEZIER;
+      nurb_new->resolu = cu->resolu;
+      nurb_new->orderu = 4;
+      nurb_new->flag |= CU_SMOOTH;
+      BKE_nurb_bezierPoints_add(nurb_new, 1);
 
-      if (nu) {
-        nurb_new = BKE_nurb_copy(nu, 1, 1);
+      if ((cu->flag & CU_3D) == 0) {
+        nurb_new->flag |= CU_2D;
+      }
+    }
+    else {
+      /* Copy the active nurb settings. */
+      nurb_new = BKE_nurb_copy(nu, 1, 1);
+      if (nu->bezt) {
         memcpy(nurb_new->bezt, nu->bezt, sizeof(BezTriple));
       }
       else {
-        nurb_new = MEM_callocN(sizeof(Nurb), "BLI_editcurve_addvert new_bezt_nurb 2");
-        nurb_new->type = CU_BEZIER;
-        nurb_new->resolu = cu->resolu;
-        nurb_new->orderu = 4;
-        nurb_new->flag |= CU_SMOOTH;
-        BKE_nurb_bezierPoints_add(nurb_new, 1);
-
-        if ((cu->flag & CU_3D) == 0) {
-          nurb_new->flag |= CU_2D;
-        }
+        memcpy(nurb_new->bp, nu->bp, sizeof(BPoint));
       }
-      BLI_addtail(&editnurb->nurbs, nurb_new);
+    }
 
-      bezt_new = nurb_new->bezt;
+    if (nurb_new->type == CU_BEZIER) {
+      BezTriple *bezt_new = nurb_new->bezt;
 
       BEZT_SEL_ALL(bezt_new);
 
@@ -5480,40 +5484,21 @@ static int ed_editcurve_addvert(Curve *cu,
       temp[2] = 0.0f;
 
       copy_v3_v3(bezt_new->vec[1], location);
-      sub_v3_v3v3(bezt_new->vec[0], bezt_new->vec[1], temp);
-      add_v3_v3v3(bezt_new->vec[2], bezt_new->vec[1], temp);
-
-      changed = true;
+      sub_v3_v3v3(bezt_new->vec[0], location, temp);
+      add_v3_v3v3(bezt_new->vec[2], location, temp);
     }
     else {
-      Nurb *nurb_new;
-      BPoint *bp_new;
-
-      {
-        nurb_new = MEM_callocN(sizeof(Nurb), __func__);
-        nurb_new->type = CU_POLY;
-        nurb_new->resolu = cu->resolu;
-        nurb_new->flag |= CU_SMOOTH;
-        nurb_new->orderu = 4;
-        BKE_nurb_points_add(nurb_new, 1);
-
-        if ((cu->flag & CU_3D) == 0) {
-          nurb_new->flag |= CU_2D;
-        }
-      }
-      BLI_addtail(&editnurb->nurbs, nurb_new);
-
-      bp_new = nurb_new->bp;
+      BPoint *bp_new = nurb_new->bp;
 
       bp_new->f1 |= SELECT;
 
       copy_v3_v3(bp_new->vec, location);
-      bp_new->vec[3] = 1.0f;
 
       BKE_nurb_knot_calc_u(nurb_new);
-
-      changed = true;
     }
+
+    BLI_addtail(&editnurb->nurbs, nurb_new);
+    changed = true;
   }
 
   return changed;
