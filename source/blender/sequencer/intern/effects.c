@@ -3945,18 +3945,13 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
   }
 
-  BLF_disable(font, BLF_ITALIC | BLF_BOLD);
-  if (data->flag & SEQ_TEXT_BOLD) {
-    BLF_enable(font, BLF_BOLD);
-  }
-  if (data->flag & SEQ_TEXT_ITALIC) {
-    BLF_enable(font, BLF_ITALIC);
-  }
-
   /* set before return */
   BLF_size(font, proxy_size_comp * data->text_size, 72);
 
-  BLF_enable(font, BLF_WORD_WRAP);
+  const int font_flags = BLF_WORD_WRAP | /* Always allow wrapping. */
+                         ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
+                         ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : 0);
+  BLF_enable(font, font_flags);
 
   /* use max width to enable newlines only */
   BLF_wordwrap(font, (data->wrap_width != 0.0f) ? data->wrap_width * width : -1);
@@ -4027,7 +4022,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
 
   BLF_buffer(font, NULL, NULL, 0, 0, 0, NULL);
 
-  BLF_disable(font, BLF_WORD_WRAP);
+  BLF_disable(font, font_flags);
 
   return out;
 }
