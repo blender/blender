@@ -74,7 +74,7 @@ static struct {
 } g_work_scheduler;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-void *WorkScheduler::thread_execute_cpu(void *data)
+static void *thread_execute_cpu(void *data)
 {
   CPUDevice *device = (CPUDevice *)data;
   WorkPackage *work;
@@ -87,7 +87,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
   return nullptr;
 }
 
-void *WorkScheduler::thread_execute_gpu(void *data)
+static void *thread_execute_gpu(void *data)
 {
   Device *device = (Device *)data;
   WorkPackage *work;
