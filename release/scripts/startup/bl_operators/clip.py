@@ -960,7 +960,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             for ob in collection.objects:
                 ob.cycles.is_shadow_catcher = True
                 for child in collection.children:
-                    setup_shadow_catcher_collection(child)
+                    setup_shadow_catcher_objects(child)
 
         scene = context.scene
         fg_coll = bpy.data.collections["foreground", None]
