@@ -88,6 +88,13 @@ point wrap(point value, point max, point min)
                wrap(value[2], max[2], min[2]));
 }
 
+/* Built in OSL faceforward is `(dot(I, Nref) > 0) ? -N : N;` which is different to
+ * GLSL `dot(Nref, I) < 0 ? N : -N` for zero values. */
+point compatible_faceforward(point vec, point incident, point reference)
+{
+  return dot(reference, incident) < 0.0 ? vec : -vec;
+}
+
 matrix euler_to_mat(point euler)
 {
   float cx = cos(euler[0]);
