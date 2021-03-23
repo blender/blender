@@ -228,6 +228,10 @@ struct Material *BKE_gpencil_object_material_ensure_from_brush(struct Main *bmai
 int BKE_gpencil_object_material_ensure(struct Main *bmain,
                                        struct Object *ob,
                                        struct Material *material);
+struct Material *BKE_gpencil_object_material_ensure_by_name(struct Main *bmain,
+                                                            struct Object *ob,
+                                                            const char *name,
+                                                            int *r_index);
 
 struct Material *BKE_gpencil_object_material_new(struct Main *bmain,
                                                  struct Object *ob,
@@ -235,7 +239,7 @@ struct Material *BKE_gpencil_object_material_new(struct Main *bmain,
                                                  int *r_index);
 
 int BKE_gpencil_object_material_index_get(struct Object *ob, struct Material *ma);
-int BKE_gpencil_object_material_get_index_name(struct Object *ob, char *name);
+int BKE_gpencil_object_material_index_get_by_name(struct Object *ob, const char *name);
 
 struct Material *BKE_gpencil_object_material_from_brush_get(struct Object *ob,
                                                             struct Brush *brush);
