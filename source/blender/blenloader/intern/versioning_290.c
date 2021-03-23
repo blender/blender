@@ -103,7 +103,7 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   return render_size;
 }
 
-static bool can_use_proxy(Sequence *seq, int psize)
+static bool can_use_proxy(const Sequence *seq, int psize)
 {
   if (seq->strip->proxy == NULL) {
     return false;

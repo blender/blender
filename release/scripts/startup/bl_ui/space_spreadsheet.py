@@ -32,13 +32,13 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         used_id = pinned_id if pinned_id else context.active_object
 
         layout.prop(space, "object_eval_state", text="")
-        if space.object_eval_state != "ORIGINAL":
+        if space.object_eval_state != 'ORIGINAL':
             layout.prop(space, "geometry_component_type", text="")
         if space.geometry_component_type != 'INSTANCES':
             layout.prop(space, "attribute_domain", text="")
 
         if used_id:
-            layout.label(text=used_id.name, icon="OBJECT_DATA")
+            layout.label(text=used_id.name, icon='OBJECT_DATA')
 
         layout.operator("spreadsheet.toggle_pin", text="", icon='PINNED' if pinned_id else 'UNPINNED', emboss=False)
 
