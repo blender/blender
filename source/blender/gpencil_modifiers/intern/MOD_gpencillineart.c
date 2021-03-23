@@ -103,7 +103,6 @@ static void generate_strokes_actual(
       lmd->transparency_mask,
       lmd->thickness,
       lmd->opacity,
-      lmd->resample_length,
       lmd->source_vertex_group,
       lmd->vgname,
       lmd->flags);
@@ -380,8 +379,6 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "chaining_image_threshold", 0, NULL, ICON_NONE);
-
-  uiItemR(layout, ptr, "resample_length", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "split_angle", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }

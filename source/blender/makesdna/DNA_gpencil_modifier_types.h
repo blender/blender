@@ -868,7 +868,7 @@ typedef struct LineartGpencilModifierData {
   /* CPU mode */
   float chaining_image_threshold;
 
-  float resample_length;
+  int _pad;
 
   /* Ported from SceneLineArt flags. */
   int calculation_flags;

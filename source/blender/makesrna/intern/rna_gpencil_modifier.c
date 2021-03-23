@@ -2524,15 +2524,6 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "resample_length", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_ui_text(prop,
-                           "Resample Length",
-                           "Resample the strokes so that the stroke points have the specified "
-                           "length between them. Zero length disables the resampling");
-  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 2);
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
-
   prop = RNA_def_property(srna, "use_transparency", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "transparency_flags", LRT_GPENCIL_TRANSPARENCY_ENABLE);
   RNA_def_property_ui_text(
