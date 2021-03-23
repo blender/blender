@@ -179,7 +179,7 @@ int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
     case ATTR_DOMAIN_POLYGON:
       return mesh_->totpoly;
     default:
-      BLI_assert(false);
+      BLI_assert_unreachable();
       break;
   }
   return 0;

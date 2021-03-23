@@ -126,7 +126,7 @@ template<typename T> class VArray {
 
   virtual Span<T> get_span_impl() const
   {
-    BLI_assert(false);
+    BLI_assert_unreachable();
     return {};
   }
 
@@ -139,7 +139,7 @@ template<typename T> class VArray {
   {
     /* Provide a default implementation, so that subclasses don't have to provide it. This method
      * should never be called because `is_single_impl` returns false by default. */
-    BLI_assert(false);
+    BLI_assert_unreachable();
     return T();
   }
 };

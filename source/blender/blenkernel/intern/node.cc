@@ -438,7 +438,7 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
     case SOCK_CUSTOM:
     case SOCK_SHADER:
     case SOCK_GEOMETRY:
-      BLI_assert(false);
+      BLI_assert_unreachable();
       break;
   }
 }

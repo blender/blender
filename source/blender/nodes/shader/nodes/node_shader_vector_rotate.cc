@@ -181,7 +181,7 @@ static const blender::fn::MultiFunction &get_multi_function(
       return fn;
     }
     default:
-      BLI_assert(false);
+      BLI_assert_unreachable();
       return builder.get_not_implemented_fn();
   }
 }

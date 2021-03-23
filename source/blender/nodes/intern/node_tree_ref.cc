@@ -141,7 +141,7 @@ InputSocketRef &NodeTreeRef::find_input_socket(Map<bNode *, NodeRef *> &node_map
       return *socket;
     }
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return *node->inputs_[0];
 }
 
@@ -155,7 +155,7 @@ OutputSocketRef &NodeTreeRef::find_output_socket(Map<bNode *, NodeRef *> &node_m
       return *socket;
     }
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return *node->outputs_[0];
 }
 
