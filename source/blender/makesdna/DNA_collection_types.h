@@ -46,7 +46,10 @@ typedef struct CollectionChild {
   struct Collection *collection;
 } CollectionChild;
 
-enum CollectionFeatureLine_Usage {
+/**
+ * \warning while the values seem to be flags, they aren't treated as flags.
+ */
+enum eCollectionLineArt_Usage {
   COLLECTION_LRT_INCLUDE = 0,
   COLLECTION_LRT_OCCLUSION_ONLY = (1 << 0),
   COLLECTION_LRT_EXCLUDE = (1 << 1),
