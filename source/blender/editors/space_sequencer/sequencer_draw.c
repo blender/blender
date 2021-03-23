@@ -1821,6 +1821,9 @@ static ImBuf *sequencer_get_scope(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 static bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
 {
   Sequence *last_seq = SEQ_select_active_get(scene);
+  if (last_seq == NULL) {
+    return false;
+  }
 
   return (G.moving & G_TRANSFORM_SEQ) && (last_seq->flag & SELECT) &&
          ((last_seq->flag & SEQ_LEFTSEL) || (last_seq->flag & SEQ_RIGHTSEL)) &&
@@ -1830,6 +1833,8 @@ static bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
 static int sequencer_draw_get_transform_preview_frame(Scene *scene)
 {
   Sequence *last_seq = SEQ_select_active_get(scene);
+  /* #sequencer_draw_get_transform_preview must already have been called. */
+  BLI_assert(last_seq != NULL);
   int preview_frame;
 
   if (last_seq->flag & SEQ_RIGHTSEL) {
