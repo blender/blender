@@ -163,14 +163,16 @@ typedef enum {
   V3D_PROJ_RET_OK = 0,
   /** can't avoid this when in perspective mode, (can't avoid) */
   V3D_PROJ_RET_CLIP_NEAR = 1,
+  /** After clip_end. */
+  V3D_PROJ_RET_CLIP_FAR = 2,
   /** so close to zero we can't apply a perspective matrix usefully */
-  V3D_PROJ_RET_CLIP_ZERO = 2,
+  V3D_PROJ_RET_CLIP_ZERO = 3,
   /** bounding box clip - RV3D_CLIPPING */
-  V3D_PROJ_RET_CLIP_BB = 3,
+  V3D_PROJ_RET_CLIP_BB = 4,
   /** outside window bounds */
-  V3D_PROJ_RET_CLIP_WIN = 4,
+  V3D_PROJ_RET_CLIP_WIN = 5,
   /** outside range (mainly for short), (can't avoid) */
-  V3D_PROJ_RET_OVERFLOW = 5,
+  V3D_PROJ_RET_OVERFLOW = 6,
 } eV3DProjStatus;
 
 /* some clipping tests are optional */
@@ -179,14 +181,14 @@ typedef enum {
   V3D_PROJ_TEST_CLIP_BB = (1 << 0),
   V3D_PROJ_TEST_CLIP_WIN = (1 << 1),
   V3D_PROJ_TEST_CLIP_NEAR = (1 << 2),
-  V3D_PROJ_TEST_CLIP_ZERO = (1 << 3),
+  V3D_PROJ_TEST_CLIP_FAR = (1 << 3),
+  V3D_PROJ_TEST_CLIP_ZERO = (1 << 4),
 } eV3DProjTest;
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
 #define V3D_PROJ_TEST_ALL \
-  (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR | \
-   V3D_PROJ_TEST_CLIP_ZERO)
+  (V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_FAR | V3D_PROJ_TEST_CLIP_ZERO)
 
 /* view3d_iterators.c */
 

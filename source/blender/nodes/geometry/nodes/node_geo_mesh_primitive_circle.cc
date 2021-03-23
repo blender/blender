@@ -27,8 +27,6 @@
 static bNodeSocketTemplate geo_node_mesh_primitive_circle_in[] = {
     {SOCK_INT, N_("Vertices"), 32, 0.0f, 0.0f, 0.0f, 3, 4096},
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -67,7 +65,7 @@ static int circle_vert_total(const GeometryNodeMeshCircleFillType fill_type, con
     case GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN:
       return verts_num + 1;
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return 0;
 }
 
@@ -80,7 +78,7 @@ static int circle_edge_total(const GeometryNodeMeshCircleFillType fill_type, con
     case GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN:
       return verts_num * 2;
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return 0;
 }
 
@@ -94,7 +92,7 @@ static int circle_corner_total(const GeometryNodeMeshCircleFillType fill_type, c
     case GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN:
       return verts_num * 3;
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return 0;
 }
 
@@ -108,7 +106,7 @@ static int circle_face_total(const GeometryNodeMeshCircleFillType fill_type, con
     case GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN:
       return verts_num;
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return 0;
 }
 
@@ -207,21 +205,16 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   const GeometryNodeMeshCircleFillType fill_type = (const GeometryNodeMeshCircleFillType)
                                                        storage.fill_type;
 
+  const float radius = params.extract_input<float>("Radius");
   const int verts_num = params.extract_input<int>("Vertices");
   if (verts_num < 3) {
     params.set_output("Geometry", GeometrySet());
     return;
   }
 
-  const float radius = params.extract_input<float>("Radius");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
-
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill_type);
 
   BLI_assert(BKE_mesh_is_valid(mesh));
-
-  transform_mesh(mesh, location, rotation, float3(1));
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

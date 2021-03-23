@@ -176,12 +176,12 @@ typedef enum eImBufFlags {
 
 /** \} */
 typedef struct ImBuf {
-  struct ImBuf *next, *prev; /**< allow lists of ImBufs, for caches or flipbooks */
+  struct ImBuf *next, *prev; /** < allow lists of #ImBufs, for caches or flip-books. */
 
   /* dimensions */
   /** Width and Height of our image buffer.
    * Should be 'unsigned int' since most formats use this.
-   * but this is problematic with texture math in imagetexture.c
+   * but this is problematic with texture math in `imagetexture.c`
    * avoid problems and use int. - campbell */
   int x, y;
 

@@ -62,26 +62,8 @@ enum class CompositorPriority {
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-#define COM_OPENCL_ENABLED
 //#define COM_DEBUG
 
-// workscheduler threading models
-/**
- * COM_TM_QUEUE is a multi-threaded model, which uses the BLI_thread_queue pattern.
- * This is the default option.
- */
-#define COM_TM_QUEUE 1
-
-/**
- * COM_TM_NOTHREAD is a single threading model, everything is executed in the caller thread.
- * easy for debugging
- */
-#define COM_TM_NOTHREAD 0
-
-/**
- * COM_CURRENT_THREADING_MODEL can be one of the above, COM_TM_QUEUE is currently default.
- */
-#define COM_CURRENT_THREADING_MODEL COM_TM_QUEUE
 // chunk order
 /**
  * \brief The order of chunks to be scheduled

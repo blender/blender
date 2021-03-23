@@ -20,8 +20,6 @@
 
 #include "COM_ExecutionGroup.h"
 
-#include "BLI_threads.h"
-
 #include "COM_Device.h"
 #include "COM_WorkPackage.h"
 #include "COM_defines.h"
@@ -30,21 +28,6 @@
  * \ingroup execution
  */
 struct WorkScheduler {
-
-#if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-  /**
-   * \brief main thread loop for cpudevices
-   * inside this loop new work is queried and being executed
-   */
-  static void *thread_execute_cpu(void *data);
-
-  /**
-   * \brief main thread loop for gpudevices
-   * inside this loop new work is queried and being executed
-   */
-  static void *thread_execute_gpu(void *data);
-#endif
- public:
   /**
    * \brief schedule a chunk of a group to be calculated.
    * An execution group schedules a chunk in the WorkScheduler

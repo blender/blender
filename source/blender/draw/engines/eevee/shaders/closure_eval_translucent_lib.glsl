@@ -32,7 +32,7 @@ void closure_Translucent_light_eval(ClosureInputTranslucent cl_in,
                                     inout ClosureOutputTranslucent cl_out)
 {
   float radiance = light_diffuse(light.data, cl_in.N, cl_common.V, light.L);
-  cl_out.radiance += light.data.l_color * (light.vis * radiance);
+  cl_out.radiance += light.data.l_color * (light.data.l_diff * light.vis * radiance);
 }
 
 void closure_Translucent_grid_eval(ClosureInputTranslucent cl_in,

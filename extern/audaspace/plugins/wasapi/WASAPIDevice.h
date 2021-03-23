@@ -48,6 +48,11 @@ private:
 	 */
 	bool m_playing;
 
+	/**
+	 * Whether the current playback should stop.
+	 */
+	bool m_stop;
+
 	IMMDeviceEnumerator* m_imm_device_enumerator;
 	IMMDevice* m_imm_device;
 	IAudioClient* m_audio_client;

@@ -257,8 +257,7 @@ static void trace_start_job(void *customdata, short *stop, short *do_update, flo
       ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, iuser, &lock);
       if (ibuf) {
         /* Create frame. */
-        bGPDframe *gpf = BKE_gpencil_layer_frame_get(
-            trace_job->gpl, trace_job->frame_target + i, GP_GETFRAME_ADD_NEW);
+        bGPDframe *gpf = BKE_gpencil_layer_frame_get(trace_job->gpl, i, GP_GETFRAME_ADD_NEW);
         gpencil_trace_image(trace_job, ibuf, gpf);
 
         BKE_image_release_ibuf(trace_job->image, ibuf, lock);

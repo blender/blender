@@ -5526,7 +5526,7 @@ void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propn
                                  "UI_OT_eyedropper_color",
                                  WM_OP_INVOKE_DEFAULT,
                                  icon,
-                                 RNA_property_ui_name(prop),
+                                 "",
                                  0,
                                  0,
                                  UI_UNIT_X,

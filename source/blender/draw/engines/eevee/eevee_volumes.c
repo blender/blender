@@ -184,7 +184,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   float integration_start = scene_eval->eevee.volumetric_start;
   float integration_end = scene_eval->eevee.volumetric_end;
-  common_data->vol_light_clamp = scene_eval->eevee.volumetric_light_clamp;
+  effects->volume_light_clamp = scene_eval->eevee.volumetric_light_clamp;
   common_data->vol_shadow_steps = (float)scene_eval->eevee.volumetric_shadow_samples;
   if ((scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_SHADOWS) == 0) {
     common_data->vol_shadow_steps = 0;
@@ -216,11 +216,12 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   /* Disable clamp if equal to 0. */
-  if (common_data->vol_light_clamp == 0.0) {
-    common_data->vol_light_clamp = FLT_MAX;
+  if (effects->volume_light_clamp == 0.0) {
+    effects->volume_light_clamp = FLT_MAX;
   }
 
   common_data->vol_use_lights = (scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_LIGHTS) != 0;
+  common_data->vol_use_soft_shadows = (scene_eval->eevee.flag & SCE_EEVEE_SHADOW_SOFT) != 0;
 
   if (!e_data.dummy_scatter) {
     const float scatter[4] = {0.0f, 0.0f, 0.0f, 0.0f};

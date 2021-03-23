@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "FN_cpp_type_make.hh"
 #include "NOD_geometry_exec.hh"
 
 MAKE_CPP_TYPE(GeometrySet, GeometrySet);

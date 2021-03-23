@@ -205,6 +205,10 @@ const FloatMathOperationInfo *get_float3_math_operation_info(const int operation
       RETURN_OPERATION_INFO("Cosine", "vector_math_cosine");
     case NODE_VECTOR_MATH_TANGENT:
       RETURN_OPERATION_INFO("Tangent", "vector_math_tangent");
+    case NODE_VECTOR_MATH_REFRACT:
+      RETURN_OPERATION_INFO("Refract", "vector_math_refract");
+    case NODE_VECTOR_MATH_FACEFORWARD:
+      RETURN_OPERATION_INFO("Faceforward", "vector_math_faceforward");
   }
 
 #undef RETURN_OPERATION_INFO

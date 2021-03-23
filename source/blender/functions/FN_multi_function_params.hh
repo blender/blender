@@ -25,18 +25,22 @@
  * the function. `MFParams` is then used inside the called function to access the parameters.
  */
 
+#include "BLI_resource_collector.hh"
+
 #include "FN_generic_vector_array.hh"
+#include "FN_generic_virtual_vector_array.hh"
 #include "FN_multi_function_signature.hh"
 
 namespace blender::fn {
 
 class MFParamsBuilder {
  private:
+  ResourceCollector resources_;
   const MFSignature *signature_;
   int64_t min_array_size_;
-  Vector<GVSpan> virtual_spans_;
+  Vector<const GVArray *> virtual_arrays_;
   Vector<GMutableSpan> mutable_spans_;
-  Vector<GVArraySpan> virtual_array_spans_;
+  Vector<const GVVectorArray *> virtual_vector_arrays_;
   Vector<GVectorArray *> vector_arrays_;
 
   friend class MFParams;
@@ -51,21 +55,32 @@ class MFParamsBuilder {
 
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(GVSpan::FromSingle(CPPType::get<T>(), value, min_array_size_),
+    this->add_readonly_single_input(resources_.construct<GVArrayForSingleValueRef>(
+                                        __func__, CPPType::get<T>(), min_array_size_, value),
                                     expected_name);
   }
-  void add_readonly_single_input(GVSpan ref, StringRef expected_name = "")
+  void add_readonly_single_input(const GSpan span, StringRef expected_name = "")
+  {
+    this->add_readonly_single_input(resources_.construct<GVArrayForGSpan>(__func__, span),
+                                    expected_name);
+  }
+  void add_readonly_single_input(const GVArray &ref, StringRef expected_name = "")
   {
     this->assert_current_param_type(MFParamType::ForSingleInput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
-    virtual_spans_.append(ref);
+    virtual_arrays_.append(&ref);
   }
 
-  void add_readonly_vector_input(GVArraySpan ref, StringRef expected_name = "")
+  void add_readonly_vector_input(const GVectorArray &vector_array, StringRef expected_name = "")
+  {
+    this->add_readonly_vector_input(
+        resources_.construct<GVVectorArrayForGVectorArray>(__func__, vector_array), expected_name);
+  }
+  void add_readonly_vector_input(const GVVectorArray &ref, StringRef expected_name = "")
   {
     this->assert_current_param_type(MFParamType::ForVectorInput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
-    virtual_array_spans_.append(ref);
+    virtual_vector_arrays_.append(&ref);
   }
 
   template<typename T> void add_uninitialized_single_output(T *value, StringRef expected_name = "")
@@ -121,6 +136,11 @@ class MFParamsBuilder {
     return *vector_arrays_[data_index];
   }
 
+  ResourceCollector &resources()
+  {
+    return resources_;
+  }
+
  private:
   void assert_current_param_type(MFParamType param_type, StringRef expected_name = "")
   {
@@ -140,7 +160,7 @@ class MFParamsBuilder {
 
   int current_param_index() const
   {
-    return virtual_spans_.size() + mutable_spans_.size() + virtual_array_spans_.size() +
+    return virtual_arrays_.size() + mutable_spans_.size() + virtual_vector_arrays_.size() +
            vector_arrays_.size();
   }
 };
@@ -154,15 +174,16 @@ class MFParams {
   {
   }
 
-  template<typename T> VSpan<T> readonly_single_input(int param_index, StringRef name = "")
+  template<typename T> const VArray<T> &readonly_single_input(int param_index, StringRef name = "")
   {
-    return this->readonly_single_input(param_index, name).typed<T>();
+    const GVArray &array = this->readonly_single_input(param_index, name);
+    return builder_->resources_.construct<VArrayForGVArray<T>>(__func__, array);
   }
-  GVSpan readonly_single_input(int param_index, StringRef name = "")
+  const GVArray &readonly_single_input(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::SingleInput);
     int data_index = builder_->signature_->data_index(param_index);
-    return builder_->virtual_spans_[data_index];
+    return *builder_->virtual_arrays_[data_index];
   }
 
   template<typename T>
@@ -177,20 +198,23 @@ class MFParams {
     return builder_->mutable_spans_[data_index];
   }
 
-  template<typename T> VArraySpan<T> readonly_vector_input(int param_index, StringRef name = "")
+  template<typename T>
+  const VVectorArray<T> &readonly_vector_input(int param_index, StringRef name = "")
   {
-    return this->readonly_vector_input(param_index, name).typed<T>();
+    const GVVectorArray &vector_array = this->readonly_vector_input(param_index, name);
+    return builder_->resources_.construct<VVectorArrayForGVVectorArray<T>>(__func__, vector_array);
   }
-  GVArraySpan readonly_vector_input(int param_index, StringRef name = "")
+  const GVVectorArray &readonly_vector_input(int param_index, StringRef name = "")
   {
     this->assert_correct_param(param_index, name, MFParamType::VectorInput);
     int data_index = builder_->signature_->data_index(param_index);
-    return builder_->virtual_array_spans_[data_index];
+    return *builder_->virtual_vector_arrays_[data_index];
   }
 
-  template<typename T> GVectorArrayRef<T> vector_output(int param_index, StringRef name = "")
+  template<typename T>
+  GVectorArray_TypedMutableRef<T> vector_output(int param_index, StringRef name = "")
   {
-    return this->vector_output(param_index, name).typed<T>();
+    return {this->vector_output(param_index, name)};
   }
   GVectorArray &vector_output(int param_index, StringRef name = "")
   {
@@ -210,9 +234,10 @@ class MFParams {
     return builder_->mutable_spans_[data_index];
   }
 
-  template<typename T> GVectorArrayRef<T> vector_mutable(int param_index, StringRef name = "")
+  template<typename T>
+  GVectorArray_TypedMutableRef<T> vector_mutable(int param_index, StringRef name = "")
   {
-    return this->vector_mutable(param_index, name).typed<T>();
+    return {this->vector_mutable(param_index, name)};
   }
   GVectorArray &vector_mutable(int param_index, StringRef name = "")
   {

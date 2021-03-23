@@ -38,6 +38,9 @@
 namespace blender {
 
 template<typename Key, typename Value> class MultiValueMap {
+ public:
+  using size_type = int64_t;
+
  private:
   using MapType = Map<Key, Vector<Value>>;
   MapType map_;

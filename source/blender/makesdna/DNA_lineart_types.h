@@ -57,12 +57,12 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_CREASE = (1 << 2),
   LRT_EDGE_FLAG_MATERIAL = (1 << 3),
   LRT_EDGE_FLAG_INTERSECTION = (1 << 4),
-  /**  floating edge, unimplemented yet */
+  /** Floating edge, unimplemented yet. */
   LRT_EDGE_FLAG_FLOATING = (1 << 5),
-  /**  also used as discarded line mark */
+  /** Also used as discarded line mark. */
   LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 6),
   LRT_EDGE_FLAG_CLIPPED = (1 << 7),
-  /* Maxed out for 8 bits, DON'T ADD ANYMORE until improvements on the data structure. */
+  /** Limited to 8 bits, DON'T ADD ANYMORE until improvements on the data structure. */
 } eLineartEdgeFlag;
 
 #define LRT_EDGE_FLAG_ALL_TYPE 0x3f

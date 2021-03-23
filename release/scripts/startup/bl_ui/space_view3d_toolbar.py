@@ -1851,7 +1851,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_weight_falloff(GreasePencilBrushFallof
         ts = context.tool_settings
         settings = ts.gpencil_weight_paint
         brush = settings.brush
-        return (settings and settings.brush and settings.brush.curve)
+        return (brush and brush.curve)
 
 
 # Grease Pencil vertex painting tools
@@ -1943,7 +1943,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_vertex_color(View3DPanel, Panel):
         ts = context.tool_settings
         settings = ts.gpencil_vertex_paint
         brush = settings.brush
-        gp_settings = brush.gpencil_settings
 
         col = layout.column()
 

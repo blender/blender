@@ -90,6 +90,13 @@ void node_sock_label(bNodeSocket *sock, const char *name)
   BLI_strncpy(sock->label, name, MAX_NAME);
 }
 
+void node_sock_label_clear(bNodeSocket *sock)
+{
+  if (sock->label[0] != '\0') {
+    sock->label[0] = '\0';
+  }
+}
+
 void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   bNodeSocket *sock1 = BLI_findlink(&node->inputs, 0);
@@ -127,15 +134,9 @@ void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
                                  NODE_MATH_SMOOTH_MIN,
                                  NODE_MATH_SMOOTH_MAX));
 
-  if (sock1->label[0] != '\0') {
-    sock1->label[0] = '\0';
-  }
-  if (sock2->label[0] != '\0') {
-    sock2->label[0] = '\0';
-  }
-  if (sock3->label[0] != '\0') {
-    sock3->label[0] = '\0';
-  }
+  node_sock_label_clear(sock1);
+  node_sock_label_clear(sock2);
+  node_sock_label_clear(sock3);
 
   switch (node->custom1) {
     case NODE_MATH_WRAP:

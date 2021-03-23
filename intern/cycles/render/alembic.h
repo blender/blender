@@ -43,14 +43,14 @@ struct MatrixSamplesData {
   Alembic::AbcCoreAbstract::TimeSamplingPtr time_sampling;
 };
 
-/* Helpers to detect if some type is a ccl::array. */
+/* Helpers to detect if some type is a `ccl::array`. */
 template<typename> struct is_array : public std::false_type {
 };
 
 template<typename T> struct is_array<array<T>> : public std::true_type {
 };
 
-/* Holds the data for a cache lookup at a given time, as well as informations to
+/* Holds the data for a cache lookup at a given time, as well as information to
  * help disambiguate successes or failures to get data from the cache. */
 template<typename T> class CacheLookupResult {
   enum class State {

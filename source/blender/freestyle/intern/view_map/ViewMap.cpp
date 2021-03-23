@@ -332,8 +332,6 @@ static bool ViewEdgeComp(ViewVertex::directedViewEdge &dve1, ViewVertex::directe
   }
 
   return (v1.x() < v2.x());
-
-  return false;
 }
 
 void TVertex::setFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming)

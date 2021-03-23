@@ -67,7 +67,7 @@ struct BLI_mmap_file {
  * handler if one was configured and abort the process otherwise.
  */
 
-struct error_handler_data {
+static struct error_handler_data {
   ListBase open_mmaps;
   char configured;
   void (*next_handler)(int, siginfo_t *, void *);

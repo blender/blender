@@ -547,7 +547,8 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
   VirtualModifierData virtualModifierData;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
   float(*vert_coords)[3] = NULL;
-  int numVerts, editmode = (lt->editlatt != NULL);
+  int numVerts;
+  const bool is_editmode = (lt->editlatt != NULL);
   const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
   if (ob->runtime.curve_cache) {
@@ -566,7 +567,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
     if (!(md->mode & eModifierMode_Realtime)) {
       continue;
     }
-    if (editmode && !(md->mode & eModifierMode_Editmode)) {
+    if (is_editmode && !(md->mode & eModifierMode_Editmode)) {
       continue;
     }
     if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {

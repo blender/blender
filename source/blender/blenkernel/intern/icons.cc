@@ -86,7 +86,7 @@ static int gNextIconId = 1;
 /* Protected by gIconMutex. */
 static int gFirstIconId = 1;
 
-std::mutex gIconMutex;
+static std::mutex gIconMutex;
 
 /* Not mutex-protected! */
 static GHash *gCachedPreviews = nullptr;

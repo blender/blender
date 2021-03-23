@@ -171,7 +171,8 @@ void EEVEE_bloom_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ved
   psl->bloom_accum_ps = NULL;
 
   if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
-    /**  Bloom algorithm
+    /**
+     * Bloom Algorithm
      *
      * Overview:
      * - Down-sample the color buffer doing a small blur during each step.

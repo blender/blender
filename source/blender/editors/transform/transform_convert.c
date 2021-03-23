@@ -82,7 +82,7 @@ void transform_around_single_fallback_ex(TransInfo *t, int data_len_all)
   if (!transform_mode_use_local_origins(t)) {
     return;
   }
-  if (t->flag | T_OVERRIDE_CENTER) {
+  if (t->flag & T_OVERRIDE_CENTER) {
     return;
   }
 

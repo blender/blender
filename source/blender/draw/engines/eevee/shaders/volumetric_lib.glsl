@@ -64,38 +64,52 @@ float phase_function(vec3 v, vec3 l, float g)
 
 vec3 light_volume(LightData ld, vec4 l_vector)
 {
-  float power;
-  /* TODO : Area lighting ? */
-  /* XXX : Removing Area Power. */
-  /* TODO : put this out of the shader. */
-  /* See eevee_light_setup(). */
-  if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
-    power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
-    if (ld.l_type == AREA_ELLIPSE) {
-      power *= M_PI * 0.25;
+  float power = 1.0;
+  if (ld.l_type != SUN) {
+    /**
+     * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
+     * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
+     * http://www.cemyuksel.com/research/pointlightattenuation/
+     **/
+    float d = l_vector.w;
+    float d_sqr = sqr(d);
+    float r_sqr = ld.l_volume_radius;
+    /* Using reformulation that has better numerical percision. */
+    power = 2.0 / (d_sqr + r_sqr + d * sqrt(d_sqr + r_sqr));
+
+    if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
+      /* Modulate by light plane orientation / solid angle. */
+      power *= saturate(dot(-ld.l_forward, l_vector.xyz / l_vector.w));
     }
-    power *= 20.0 *
-             max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
   }
-  else if (ld.l_type == SUN) {
-    power = ld.l_radius * ld.l_radius * M_PI; /* Removing area light power*/
-    power /= 1.0f + (ld.l_radius * ld.l_radius * 0.5f);
-    power *= M_PI * 0.5; /* Matching cycles. */
+  return ld.l_color * ld.l_volume * power;
+}
+
+vec3 light_volume_light_vector(LightData ld, vec3 P)
+{
+  if (ld.l_type == SUN) {
+    return -ld.l_forward;
+  }
+  else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
+    vec3 L = P - ld.l_position;
+    vec2 closest_point = vec2(dot(ld.l_right, L), dot(ld.l_up, L));
+    vec2 max_pos = vec2(ld.l_sizex, ld.l_sizey);
+    closest_point /= max_pos;
+
+    if (ld.l_type == AREA_ELLIPSE) {
+      closest_point /= max(1.0, length(closest_point));
+    }
+    else {
+      closest_point = clamp(closest_point, -1.0, 1.0);
+    }
+    closest_point *= max_pos;
+
+    vec3 L_prime = ld.l_right * closest_point.x + ld.l_up * closest_point.y;
+    return L_prime - L;
   }
   else {
-    power = (4.0 * ld.l_radius * ld.l_radius) * (1.0 / 10.0);
-    power *= M_2PI; /* Matching cycles with point light. */
+    return ld.l_position - P;
   }
-
-  power /= (l_vector.w * l_vector.w);
-
-  /* OPTI: find a better way than calculating this on the fly */
-  float lum = dot(ld.l_color, vec3(0.3, 0.6, 0.1));       /* luminance approx. */
-  vec3 tint = (lum > 0.0) ? ld.l_color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
-
-  lum = min(lum * power, volLightClamp);
-
-  return tint * lum;
 }
 
 #define VOLUMETRIC_SHADOW_MAX_STEP 128.0
@@ -113,9 +127,36 @@ vec3 participating_media_extinction(vec3 wpos, sampler3D volume_extinction)
 vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D volume_extinction)
 {
 #if defined(VOLUME_SHADOW)
+  /* If light is shadowed, use the shadow vector, if not, reuse the light vector. */
+  if (volUseSoftShadows && ld.l_shadowid >= 0.0) {
+    ShadowData sd = shadows_data[int(ld.l_shadowid)];
+
+    if (ld.l_type == SUN) {
+      l_vector.xyz = shadows_cascade_data[int(sd.sh_data_index)].sh_shadow_vec;
+      /* No need for length, it is recomputed later. */
+    }
+    else {
+      l_vector.xyz = shadows_cube_data[int(sd.sh_data_index)].position.xyz - ray_wpos;
+      l_vector.w = length(l_vector.xyz);
+    }
+  }
+
   /* Heterogeneous volume shadows */
   float dd = l_vector.w / volShadowSteps;
   vec3 L = l_vector.xyz / volShadowSteps;
+
+  if (ld.l_type == SUN) {
+    /* For sun light we scan the whole frustum. So we need to get the correct endpoints. */
+    vec3 ndcP = project_point(ViewProjectionMatrix, ray_wpos);
+    vec3 ndcL = project_point(ViewProjectionMatrix, ray_wpos + l_vector.xyz) - ndcP;
+
+    vec3 frustum_isect = ndcP + ndcL * line_unit_box_intersect_dist_safe(ndcP, ndcL);
+
+    L = project_point(ViewProjectionMatrixInverse, frustum_isect) - ray_wpos;
+    L /= volShadowSteps;
+    dd = length(L);
+  }
+
   vec3 shadow = vec3(1.0);
   for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volShadowSteps; s += 1.0) {
     vec3 pos = ray_wpos + L * s;

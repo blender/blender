@@ -846,8 +846,10 @@ typedef struct LineartGpencilModifierData {
   struct Material *target_material;
   char target_layer[64];
 
-  /** These two variables are to pass on vertex group information from mesh to strokes.
-   * vgname specifies which vertex groups our strokes from source_vertex_group will go to. */
+  /**
+   * These two variables are to pass on vertex group information from mesh to strokes.
+   * `vgname` specifies which vertex groups our strokes from source_vertex_group will go to.
+   */
   char source_vertex_group[64];
   char vgname[64];
 
@@ -857,10 +859,10 @@ typedef struct LineartGpencilModifierData {
   unsigned char transparency_flags; /* eLineartGpencilTransparencyFlags */
   unsigned char transparency_mask;
 
-  /** 0-1 range for cosine angle */
+  /** `0..1` range for cosine angle */
   float crease_threshold;
 
-  /**  0-PI angle, for splitting strokes at sharp points */
+  /** `0..PI` angle, for splitting strokes at sharp points. */
   float angle_splitting_threshold;
 
   /* CPU mode */

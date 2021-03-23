@@ -2446,7 +2446,7 @@ int BKE_gpencil_object_material_index_get(Object *ob, Material *ma)
   return -1;
 }
 
-int BKE_gpencil_object_material_get_index_name(Object *ob, char *name)
+int BKE_gpencil_object_material_index_get_by_name(Object *ob, const char *name)
 {
   short *totcol = BKE_object_material_len_p(ob);
   Material *read_ma = NULL;
@@ -2459,6 +2459,19 @@ int BKE_gpencil_object_material_get_index_name(Object *ob, char *name)
   }
 
   return -1;
+}
+
+Material *BKE_gpencil_object_material_ensure_by_name(Main *bmain,
+                                                     Object *ob,
+                                                     const char *name,
+                                                     int *r_index)
+{
+  int index = BKE_gpencil_object_material_index_get_by_name(ob, name);
+  if (index != -1) {
+    *r_index = index;
+    return BKE_object_material_get(ob, index + 1);
+  }
+  return BKE_gpencil_object_material_new(bmain, ob, name, r_index);
 }
 
 /**

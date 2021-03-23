@@ -118,6 +118,17 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   updateImage(rect);
 }
 
+void ViewerOperation::determineResolution(unsigned int resolution[2],
+                                          unsigned int /*preferredResolution*/[2])
+{
+  const int sceneRenderWidth = this->m_rd->xsch * this->m_rd->size / 100;
+  const int sceneRenderHeight = this->m_rd->ysch * this->m_rd->size / 100;
+
+  unsigned int localPrefRes[2] = {static_cast<unsigned int>(sceneRenderWidth),
+                                  static_cast<unsigned int>(sceneRenderHeight)};
+  NodeOperation::determineResolution(resolution, localPrefRes);
+}
+
 void ViewerOperation::initImage()
 {
   Image *ima = this->m_image;

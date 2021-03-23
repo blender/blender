@@ -705,26 +705,34 @@ static char *rna_def_property_get_func(
 
         rna_print_data_get(f, dp);
 
-        if (!(prop->flag & PROP_NEVER_NULL)) {
+        if (dp->dnapointerlevel == 1) {
+          /* Handle allocated char pointer properties. */
           fprintf(f, "    if (data->%s == NULL) {\n", dp->dnaname);
           fprintf(f, "        *value = '\\0';\n");
           fprintf(f, "        return;\n");
           fprintf(f, "    }\n");
-        }
-
-        if (sprop->maxlength) {
           fprintf(f,
-                  "    %s(value, data->%s, %d);\n",
-                  string_copy_func,
-                  dp->dnaname,
-                  sprop->maxlength);
-        }
-        else {
-          fprintf(f,
-                  "    %s(value, data->%s, sizeof(data->%s));\n",
+                  "    %s(value, data->%s, strlen(data->%s) + 1);\n",
                   string_copy_func,
                   dp->dnaname,
                   dp->dnaname);
+        }
+        else {
+          /* Handle char array properties. */
+          if (sprop->maxlength) {
+            fprintf(f,
+                    "    %s(value, data->%s, %d);\n",
+                    string_copy_func,
+                    dp->dnaname,
+                    sprop->maxlength);
+          }
+          else {
+            fprintf(f,
+                    "    %s(value, data->%s, sizeof(data->%s));\n",
+                    string_copy_func,
+                    dp->dnaname,
+                    dp->dnaname);
+          }
         }
       }
       fprintf(f, "}\n\n");
@@ -1046,25 +1054,30 @@ static char *rna_def_property_set_func(
 
         rna_print_data_get(f, dp);
 
-        if (!(prop->flag & PROP_NEVER_NULL)) {
-          fprintf(f, "    if (data->%s == NULL) {\n", dp->dnaname);
-          fprintf(f, "        return;\n");
-          fprintf(f, "    }\n");
-        }
-
-        if (sprop->maxlength) {
-          fprintf(f,
-                  "    %s(data->%s, value, %d);\n",
-                  string_copy_func,
-                  dp->dnaname,
-                  sprop->maxlength);
+        if (dp->dnapointerlevel == 1) {
+          /* Handle allocated char pointer properties. */
+          fprintf(
+              f, "    if (data->%s != NULL) { MEM_freeN(data->%s); }\n", dp->dnaname, dp->dnaname);
+          fprintf(f, "    const int length = strlen(value);\n");
+          fprintf(f, "    data->%s = MEM_mallocN(length + 1, __func__);\n", dp->dnaname);
+          fprintf(f, "    %s(data->%s, value, length + 1);\n", string_copy_func, dp->dnaname);
         }
         else {
-          fprintf(f,
-                  "    %s(data->%s, value, sizeof(data->%s));\n",
-                  string_copy_func,
-                  dp->dnaname,
-                  dp->dnaname);
+          /* Handle char array properties. */
+          if (sprop->maxlength) {
+            fprintf(f,
+                    "    %s(data->%s, value, %d);\n",
+                    string_copy_func,
+                    dp->dnaname,
+                    sprop->maxlength);
+          }
+          else {
+            fprintf(f,
+                    "    %s(data->%s, value, sizeof(data->%s));\n",
+                    string_copy_func,
+                    dp->dnaname,
+                    dp->dnaname);
+          }
         }
       }
       fprintf(f, "}\n\n");
@@ -1285,10 +1298,17 @@ static char *rna_def_property_length_func(
     }
     else {
       rna_print_data_get(f, dp);
-      if (!(prop->flag & PROP_NEVER_NULL)) {
-        fprintf(f, "    if (data->%s == NULL) { return 0; }\n", dp->dnaname);
+      if (dp->dnapointerlevel == 1) {
+        /* Handle allocated char pointer properties. */
+        fprintf(f,
+                "    return (data->%s == NULL) ? 0 : strlen(data->%s);\n",
+                dp->dnaname,
+                dp->dnaname);
       }
-      fprintf(f, "    return strlen(data->%s);\n", dp->dnaname);
+      else {
+        /* Handle char array properties. */
+        fprintf(f, "    return strlen(data->%s);\n", dp->dnaname);
+      }
     }
     fprintf(f, "}\n\n");
   }

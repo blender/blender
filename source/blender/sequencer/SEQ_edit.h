@@ -33,6 +33,10 @@ struct Scene;
 struct Sequence;
 
 int SEQ_edit_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
+bool SEQ_edit_move_strip_to_meta(struct Scene *scene,
+                                 struct Sequence *src_seq,
+                                 struct Sequence *dst_seqm,
+                                 const char **error_str);
 void SEQ_edit_flag_for_removal(struct Scene *scene,
                                struct ListBase *seqbase,
                                struct Sequence *seq);

@@ -250,8 +250,8 @@ extern "C" {
  *
  * \subsection singlethread Single threaded
  * For debugging reasons the multi-threading can be disabled.
- * This is done by changing the COM_CURRENT_THREADING_MODEL
- * to COM_TM_NOTHREAD. When compiling the work-scheduler
+ * This is done by changing the `COM_threading_model`
+ * to `ThreadingModel::SingleThreaded`. When compiling the work-scheduler
  * will be changes to support no threading and run everything on the CPU.
  *
  * \section devices Devices

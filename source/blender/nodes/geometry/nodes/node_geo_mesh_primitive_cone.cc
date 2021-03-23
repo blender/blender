@@ -32,8 +32,6 @@ static bNodeSocketTemplate geo_node_mesh_primitive_cone_in[] = {
     {SOCK_FLOAT, N_("Radius Top"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Radius Bottom"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Depth"), 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -191,16 +189,13 @@ static int face_total(const GeometryNodeMeshCircleFillType fill_type,
   return face_total;
 }
 
-Mesh *create_cylinder_or_cone_mesh(const float3 location,
-                                   const float3 rotation,
-                                   const float radius_top,
+Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
                                    const int verts_num,
                                    const GeometryNodeMeshCircleFillType fill_type)
 {
-  float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1));
+  const float4x4 transform = float4x4::identity();
 
   const bool top_is_point = radius_top == 0.0f;
   const bool bottom_is_point = radius_bottom == 0.0f;
@@ -252,11 +247,9 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
   const float radius_top = params.extract_input<float>("Radius Top");
   const float radius_bottom = params.extract_input<float>("Radius Bottom");
   const float depth = params.extract_input<float>("Depth");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
 
   Mesh *mesh = create_cylinder_or_cone_mesh(
-      location, rotation, radius_top, radius_bottom, depth, verts_num, fill_type);
+      radius_top, radius_bottom, depth, verts_num, fill_type);
 
   BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
 

@@ -165,7 +165,6 @@ bool MeshComponent::is_empty() const
 
 int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
 {
-  BLI_assert(this->attribute_domain_supported(domain));
   if (mesh_ == nullptr) {
     return 0;
   }
@@ -179,7 +178,6 @@ int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
     case ATTR_DOMAIN_POLYGON:
       return mesh_->totpoly;
     default:
-      BLI_assert(false);
       break;
   }
   return 0;
@@ -665,7 +663,6 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
         case ATTR_DOMAIN_EDGE:
           return blender::bke::adapt_mesh_domain_corner_to_edge(*mesh_, std::move(attribute));
         default:
-          BLI_assert(false);
           break;
       }
       break;
@@ -679,7 +676,6 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
         case ATTR_DOMAIN_EDGE:
           return blender::bke::adapt_mesh_domain_point_to_edge(*mesh_, std::move(attribute));
         default:
-          BLI_assert(false);
           break;
       }
       break;
@@ -693,7 +689,6 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
         case ATTR_DOMAIN_EDGE:
           return blender::bke::adapt_mesh_domain_polygon_to_edge(*mesh_, std::move(attribute));
         default:
-          BLI_assert(false);
           break;
       }
       break;
@@ -707,13 +702,11 @@ ReadAttributePtr MeshComponent::attribute_try_adapt_domain(ReadAttributePtr attr
         case ATTR_DOMAIN_POLYGON:
           return blender::bke::adapt_mesh_domain_edge_to_polygon(*mesh_, std::move(attribute));
         default:
-          BLI_assert(false);
           break;
       }
       break;
     }
     default:
-      BLI_assert(false);
       break;
   }
 

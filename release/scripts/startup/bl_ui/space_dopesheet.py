@@ -609,7 +609,7 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
-        
+
         if st.mode != 'GPENCIL':
            layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
            layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
@@ -642,6 +642,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
+        # This menu is used from the graph editor too.
+        is_graph_editor = context.area.type == 'GRAPH_EDITOR'
+
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
@@ -655,7 +658,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
 
-        if bpy.ops.graph.extrapolation_type.poll(context.copy()):
+        if is_graph_editor:
             operator = "graph.extrapolation_type"
         else:
             operator = "action.extrapolation_type"

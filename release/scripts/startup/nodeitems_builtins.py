@@ -521,15 +521,6 @@ geometry_node_categories = [
         NodeItem("GeometryNodeSubdivisionSurface"),
         NodeItem("GeometryNodeSubdivide"),
 
-        # These should be in a sub-menu, but that requires a refactor to build the add menu manually.
-        NodeItem("GeometryNodeMeshCube"),
-        NodeItem("GeometryNodeMeshCircle"),
-        NodeItem("GeometryNodeMeshUVSphere"),
-        NodeItem("GeometryNodeMeshIcoSphere"),
-        NodeItem("GeometryNodeMeshCylinder"),
-        NodeItem("GeometryNodeMeshCone"),
-        NodeItem("GeometryNodeMeshLine"),
-        NodeItem("GeometryNodeMeshPlane"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
         NodeItem("GeometryNodePointDistribute"),
@@ -543,6 +534,16 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
         NodeItem("GeometryNodePointsToVolume"),
         NodeItem("GeometryNodeVolumeToMesh"),
+    ]),
+    GeometryNodeCategory("GEO_PRIMITIVES", "Mesh Primitives", items=[
+        NodeItem("GeometryNodeMeshCube"),
+        NodeItem("GeometryNodeMeshCircle"),
+        NodeItem("GeometryNodeMeshUVSphere"),
+        NodeItem("GeometryNodeMeshIcoSphere"),
+        NodeItem("GeometryNodeMeshCylinder"),
+        NodeItem("GeometryNodeMeshCone"),
+        NodeItem("GeometryNodeMeshLine"),
+        NodeItem("GeometryNodeMeshPlane"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),
@@ -562,8 +563,6 @@ geometry_node_categories = [
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
     ]),
-    # NodeItem("FunctionNodeCombineStrings"),
-    # NodeItem("FunctionNodeGroupInstanceID"),
 ]
 
 

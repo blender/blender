@@ -487,7 +487,7 @@ typedef struct TransDataContainer {
    */
   bool use_local_mat;
 
-  /**  Mirror option. */
+  /** Mirror option. */
   union {
     struct {
       uint use_mirror_axis_x : 1;

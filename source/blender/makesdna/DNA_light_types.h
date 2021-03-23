@@ -93,6 +93,7 @@ typedef struct Light {
   float contact_spread; /* DEPRECATED kept for compatibility. */
   float contact_thickness;
 
+  float diff_fac, volume_fac;
   float spec_fac, att_dist;
 
   /* preview */

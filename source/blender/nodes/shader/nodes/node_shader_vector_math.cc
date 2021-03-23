@@ -88,6 +88,10 @@ static const char *gpu_shader_get_name(int mode)
       return "vector_math_cosine";
     case NODE_VECTOR_MATH_TANGENT:
       return "vector_math_tangent";
+    case NODE_VECTOR_MATH_REFRACT:
+      return "vector_math_refract";
+    case NODE_VECTOR_MATH_FACEFORWARD:
+      return "vector_math_faceforward";
   }
 
   return nullptr;
@@ -128,8 +132,10 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
                                   NODE_VECTOR_MATH_ABSOLUTE,
                                   NODE_VECTOR_MATH_FRACTION,
                                   NODE_VECTOR_MATH_NORMALIZE));
-  nodeSetSocketAvailability(sockC, ELEM(node->custom1, NODE_VECTOR_MATH_WRAP));
-  nodeSetSocketAvailability(sockScale, node->custom1 == NODE_VECTOR_MATH_SCALE);
+  nodeSetSocketAvailability(
+      sockC, ELEM(node->custom1, NODE_VECTOR_MATH_WRAP, NODE_VECTOR_MATH_FACEFORWARD));
+  nodeSetSocketAvailability(sockScale,
+                            ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
   nodeSetSocketAvailability(sockVector,
                             !ELEM(node->custom1,
                                   NODE_VECTOR_MATH_LENGTH,
@@ -142,19 +148,26 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
                                  NODE_VECTOR_MATH_DOT_PRODUCT));
 
   /* Labels */
-  if (sockB->label[0] != '\0') {
-    sockB->label[0] = '\0';
-  }
-  if (sockC->label[0] != '\0') {
-    sockC->label[0] = '\0';
-  }
+  node_sock_label_clear(sockB);
+  node_sock_label_clear(sockC);
+  node_sock_label_clear(sockScale);
   switch (node->custom1) {
+    case NODE_VECTOR_MATH_FACEFORWARD:
+      node_sock_label(sockB, "Incident");
+      node_sock_label(sockC, "Reference");
+      break;
     case NODE_VECTOR_MATH_WRAP:
       node_sock_label(sockB, "Max");
       node_sock_label(sockC, "Min");
       break;
     case NODE_VECTOR_MATH_SNAP:
       node_sock_label(sockB, "Increment");
+      break;
+    case NODE_VECTOR_MATH_REFRACT:
+      node_sock_label(sockScale, "Ior");
+      break;
+    case NODE_VECTOR_MATH_SCALE:
+      node_sock_label(sockScale, "Scale");
       break;
   }
 }
@@ -186,7 +199,6 @@ static const blender::fn::MultiFunction &get_multi_function(
           "Divide", [](float3 a, float3 b) { return float3::safe_divide(a, b); }};
       return fn;
     }
-
     case NODE_VECTOR_MATH_CROSS_PRODUCT: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
           "Cross Product", float3::cross_high_precision};
@@ -205,7 +217,6 @@ static const blender::fn::MultiFunction &get_multi_function(
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{"Dot Product", float3::dot};
       return fn;
     }
-
     case NODE_VECTOR_MATH_DISTANCE: {
       static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{"Distance",
                                                                       float3::distance};
@@ -226,7 +237,17 @@ static const blender::fn::MultiFunction &get_multi_function(
           "Normalize", [](float3 a) { return a.normalized(); }};
       return fn;
     }
-
+    case NODE_VECTOR_MATH_REFRACT: {
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
+          "Refract",
+          [](float3 a, float3 b, float c) { return float3::refract(a, b.normalized(), c); }};
+      return fn;
+    }
+    case NODE_VECTOR_MATH_FACEFORWARD: {
+      static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+          "Faceforward", float3::faceforward};
+      return fn;
+    }
     case NODE_VECTOR_MATH_SNAP: {
       return builder.get_not_implemented_fn();
     }
@@ -263,9 +284,8 @@ static const blender::fn::MultiFunction &get_multi_function(
     case NODE_VECTOR_MATH_TANGENT: {
       return builder.get_not_implemented_fn();
     }
-
     default:
-      BLI_assert(false);
+      BLI_assert_unreachable();
       return builder.get_not_implemented_fn();
   };
 }

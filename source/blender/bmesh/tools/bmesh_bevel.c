@@ -7289,6 +7289,9 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
     kc = 0.0f;
     ec = NULL;
     /* Find an edge from c that has same face. */
+    if (eb->fnext == NULL) {
+      return no_collide_offset;
+    }
     BMLoop *lb = BM_face_edge_share_loop(eb->fnext, eb->e);
     if (!lb) {
       return no_collide_offset;

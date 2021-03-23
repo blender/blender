@@ -1289,7 +1289,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
                           node_connected_to_output(bmain, snode->edittree, link->tonode));
 
         snode_update(snode, link->tonode);
+        bNode *to_node = link->tonode;
         nodeRemLink(snode->edittree, link);
+        sort_multi_input_socket_links(snode, to_node, NULL, NULL);
       }
     }
 

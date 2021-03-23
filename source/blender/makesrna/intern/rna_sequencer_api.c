@@ -81,6 +81,24 @@ static void rna_Sequence_swap_internal(Sequence *seq_self,
   }
 }
 
+static void rna_Sequences_move_strip_to_meta(
+    ID *id, Sequence *seq_self, Main *bmain, ReportList *reports, Sequence *meta_dst)
+{
+  Scene *scene = (Scene *)id;
+  const char *error_msg;
+
+  /* Move strip to meta. */
+  if (!SEQ_edit_move_strip_to_meta(scene, seq_self, meta_dst, &error_msg)) {
+    BKE_report(reports, RPT_ERROR, error_msg);
+  }
+
+  /* Update depsgraph. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 static Sequence *rna_Sequences_new_clip(ID *id,
                                         ListBase *seqbase,
                                         Main *bmain,
@@ -365,6 +383,32 @@ static Sequence *rna_Sequences_meta_new_sound(ID *id,
       id, &seq->seqbase, bmain, reports, name, file, channel, frame_start);
 }
 
+/* Meta sequence
+ * Possibility to create an empty meta to avoid plenty of meta toggling
+ * Created meta have a length equal to 1, must be set through the API. */
+static Sequence *rna_Sequences_new_meta(
+    ID *id, ListBase *seqbase, const char *name, int channel, int frame_start)
+{
+  Scene *scene = (Scene *)id;
+  SeqLoadData load_data;
+  SEQ_add_load_data_init(&load_data, name, NULL, frame_start, channel);
+  Sequence *seqm = SEQ_add_meta_strip(scene, seqbase, &load_data);
+
+  return seqm;
+}
+
+static Sequence *rna_Sequences_editing_new_meta(
+    ID *id, Editing *ed, const char *name, int channel, int frame_start)
+{
+  return rna_Sequences_new_meta(id, &ed->seqbase, name, channel, frame_start);
+}
+
+static Sequence *rna_Sequences_meta_new_meta(
+    ID *id, Sequence *seq, const char *name, int channel, int frame_start)
+{
+  return rna_Sequences_new_meta(id, &seq->seqbase, name, channel, frame_start);
+}
+
 static Sequence *rna_Sequences_new_effect(ID *id,
                                           ListBase *seqbase,
                                           ReportList *reports,
@@ -607,6 +651,15 @@ void RNA_api_sequence_strip(StructRNA *srna)
   parm = RNA_def_pointer(func, "other", "Sequence", "Other", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
+  func = RNA_def_function(srna, "move_to_meta", "rna_Sequences_move_strip_to_meta");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  parm = RNA_def_pointer(func,
+                         "meta_sequence",
+                         "Sequence",
+                         "Destination Meta Sequence",
+                         "Meta to move the strip into");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
   func = RNA_def_function(srna, "invalidate_cache", "rna_Sequence_invalidate_cache_rnafunc");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func,
@@ -677,6 +730,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
   const char *new_image_func_name = "rna_Sequences_editing_new_image";
   const char *new_movie_func_name = "rna_Sequences_editing_new_movie";
   const char *new_sound_func_name = "rna_Sequences_editing_new_sound";
+  const char *new_meta_func_name = "rna_Sequences_editing_new_meta";
   const char *new_effect_func_name = "rna_Sequences_editing_new_effect";
   const char *remove_func_name = "rna_Sequences_editing_remove";
 
@@ -691,6 +745,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
     new_image_func_name = "rna_Sequences_meta_new_image";
     new_movie_func_name = "rna_Sequences_meta_new_movie";
     new_sound_func_name = "rna_Sequences_meta_new_sound";
+    new_meta_func_name = "rna_Sequences_meta_new_meta";
     new_effect_func_name = "rna_Sequences_meta_new_effect";
     remove_func_name = "rna_Sequences_meta_remove";
   }
@@ -828,6 +883,28 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
   parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to movie");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_int(
+      func, "channel", 0, 1, MAXSEQ, "Channel", "The channel for the new sequence", 1, MAXSEQ);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_int(func,
+                     "frame_start",
+                     0,
+                     -MAXFRAME,
+                     MAXFRAME,
+                     "",
+                     "The start frame for the new sequence",
+                     -MAXFRAME,
+                     MAXFRAME);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  /* return type */
+  parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "new_meta", new_meta_func_name);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_ui_description(func, "Add a new meta sequence");
+  parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_int(
       func, "channel", 0, 1, MAXSEQ, "Channel", "The channel for the new sequence", 1, MAXSEQ);

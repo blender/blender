@@ -16,11 +16,22 @@
 
 #pragma once
 
-#include <variant>
+#include <optional>
 
 #include "spreadsheet_draw.hh"
 
+struct Object;
+struct Collection;
+
 namespace blender::ed::spreadsheet {
+
+struct ObjectCellValue {
+  const Object *object;
+};
+
+struct CollectionCellValue {
+  const Collection *collection;
+};
 
 /**
  * This is a small type that can hold the value of a cell in a spreadsheet. This type allows us to
@@ -28,11 +39,15 @@ namespace blender::ed::spreadsheet {
  */
 class CellValue {
  public:
-  /* The implementation just uses a `std::variant` for simplicity. It can be encapsulated better,
-   * but it's not really worth the complixity for now. */
-  using VariantType = std::variant<std::monostate, int, float, bool>;
+  /* The implementation just uses a bunch of `std::option` for now. Unfortunately, we cannot use
+   * `std::variant` yet, due to missing compiler support. This type can really be optimized more,
+   * but it does not really matter too much currently. */
 
-  VariantType value;
+  std::optional<int> value_int;
+  std::optional<float> value_float;
+  std::optional<bool> value_bool;
+  std::optional<ObjectCellValue> value_object;
+  std::optional<CollectionCellValue> value_collection;
 };
 
 /**
@@ -56,6 +71,9 @@ class SpreadsheetColumn {
   {
     return name_;
   }
+
+  /* The default width of newly created columns, in UI units. */
+  float default_width = 0.0f;
 };
 
 /* Utility class for the function below. */

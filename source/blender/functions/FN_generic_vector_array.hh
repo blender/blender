@@ -19,75 +19,52 @@
 /** \file
  * \ingroup fn
  *
- * A `GVectorArray` is a container for a fixed amount of dynamically growing arrays with a generic
- * type. Its main use case is to store many small vectors with few separate allocations. Using this
- * structure is generally more efficient than allocating each small vector separately.
- *
- * `GVectorArrayRef<T>` is a typed reference to a GVectorArray and makes it easier and safer to
- * work with the class when the type is known at compile time.
+ * A`GVectorArray` is a container for a fixed amount of dynamically growing vectors with a generic
+ * data type. Its main use case is to store many small vectors with few separate allocations. Using
+ * this structure is generally more efficient than allocating each vector separately.
  */
-
-#include "FN_array_spans.hh"
-#include "FN_cpp_type.hh"
 
 #include "BLI_array.hh"
 #include "BLI_linear_allocator.hh"
-#include "BLI_utility_mixins.hh"
+
+#include "FN_generic_virtual_vector_array.hh"
 
 namespace blender::fn {
 
-template<typename T> class GVectorArrayRef;
-
+/* An array of vectors containing elements of a generic type. */
 class GVectorArray : NonCopyable, NonMovable {
  private:
-  const CPPType &type_;
-  int64_t element_size_;
-  Array<void *, 1> starts_;
-  Array<int64_t, 1> lengths_;
-  Array<int64_t, 1> capacities_;
-  LinearAllocator<> allocator_;
+  struct Item {
+    void *start = nullptr;
+    int64_t length = 0;
+    int64_t capacity = 0;
+  };
 
-  template<typename T> friend class GVectorArrayRef;
+  /* Use a linear allocator to pack many small vectors together. Currently, memory from reallocated
+   * vectors is not reused. This can be improved in the future. */
+  LinearAllocator<> allocator_;
+  /* The data type of individual elements. */
+  const CPPType &type_;
+  /* The size of an individual element. This is inlined from `type_.size()` for easier access. */
+  const int64_t element_size_;
+  /* The individual vectors. */
+  Array<Item> items_;
 
  public:
   GVectorArray() = delete;
 
-  GVectorArray(const CPPType &type, int64_t array_size)
-      : type_(type),
-        element_size_(type.size()),
-        starts_(array_size),
-        lengths_(array_size),
-        capacities_(array_size)
-  {
-    starts_.as_mutable_span().fill(nullptr);
-    lengths_.as_mutable_span().fill(0);
-    capacities_.as_mutable_span().fill(0);
-  }
+  GVectorArray(const CPPType &type, int64_t array_size);
 
-  ~GVectorArray()
-  {
-    if (type_.is_trivially_destructible()) {
-      return;
-    }
+  ~GVectorArray();
 
-    for (int64_t i : starts_.index_range()) {
-      type_.destruct_n(starts_[i], lengths_[i]);
-    }
-  }
-
-  operator GVArraySpan() const
+  int64_t size() const
   {
-    return GVArraySpan(type_, starts_, lengths_);
+    return items_.size();
   }
 
   bool is_empty() const
   {
-    return starts_.size() == 0;
-  }
-
-  int64_t size() const
-  {
-    return starts_.size();
+    return items_.is_empty();
   }
 
   const CPPType &type() const
@@ -95,99 +72,33 @@ class GVectorArray : NonCopyable, NonMovable {
     return type_;
   }
 
-  Span<const void *> starts() const
-  {
-    return starts_;
-  }
+  void append(int64_t index, const void *value);
 
-  Span<int64_t> lengths() const
-  {
-    return lengths_;
-  }
+  /* Add multiple elements to a single vector. */
+  void extend(int64_t index, const GVArray &values);
+  void extend(int64_t index, GSpan values);
 
-  void append(int64_t index, const void *src)
-  {
-    int64_t old_length = lengths_[index];
-    if (old_length == capacities_[index]) {
-      this->grow_at_least_one(index);
-    }
+  /* Add multiple elements to multiple vectors. */
+  void extend(IndexMask mask, const GVVectorArray &values);
+  void extend(IndexMask mask, const GVectorArray &values);
 
-    void *dst = POINTER_OFFSET(starts_[index], element_size_ * old_length);
-    type_.copy_to_uninitialized(src, dst);
-    lengths_[index]++;
-  }
-
-  void extend(int64_t index, GVSpan span)
-  {
-    BLI_assert(type_ == span.type());
-    for (int64_t i = 0; i < span.size(); i++) {
-      this->append(index, span[i]);
-    }
-  }
-
-  void extend(IndexMask mask, GVArraySpan array_span)
-  {
-    BLI_assert(type_ == array_span.type());
-    BLI_assert(mask.min_array_size() <= array_span.size());
-    for (int64_t i : mask) {
-      this->extend(i, array_span[i]);
-    }
-  }
-
-  GMutableSpan operator[](int64_t index)
-  {
-    BLI_assert(index < starts_.size());
-    return GMutableSpan(type_, starts_[index], lengths_[index]);
-  }
-  template<typename T> GVectorArrayRef<T> typed()
-  {
-    return GVectorArrayRef<T>(*this);
-  }
+  GMutableSpan operator[](int64_t index);
+  GSpan operator[](int64_t index) const;
 
  private:
-  void grow_at_least_one(int64_t index)
-  {
-    BLI_assert(lengths_[index] == capacities_[index]);
-    int64_t new_capacity = lengths_[index] * 2 + 1;
-
-    void *new_buffer = allocator_.allocate(element_size_ * new_capacity, type_.alignment());
-    type_.relocate_to_uninitialized_n(starts_[index], new_buffer, lengths_[index]);
-
-    starts_[index] = new_buffer;
-    capacities_[index] = new_capacity;
-  }
+  void realloc_to_at_least(Item &item, int64_t min_capacity);
 };
 
-template<typename T> class GVectorArrayRef {
+/* A non-owning typed mutable reference to an `GVectorArray`. It simplifies access when the type of
+ * the data is known at compile time. */
+template<typename T> class GVectorArray_TypedMutableRef {
  private:
   GVectorArray *vector_array_;
 
  public:
-  GVectorArrayRef(GVectorArray &vector_array) : vector_array_(&vector_array)
+  GVectorArray_TypedMutableRef(GVectorArray &vector_array) : vector_array_(&vector_array)
   {
-    BLI_assert(vector_array.type_.is<T>());
-  }
-
-  void append(int64_t index, const T &value)
-  {
-    vector_array_->append(index, &value);
-  }
-
-  void extend(int64_t index, Span<T> values)
-  {
-    vector_array_->extend(index, values);
-  }
-
-  void extend(int64_t index, VSpan<T> values)
-  {
-    vector_array_->extend(index, GVSpan(values));
-  }
-
-  MutableSpan<T> operator[](int64_t index)
-  {
-    BLI_assert(index < vector_array_->starts_.size());
-    return MutableSpan<T>(static_cast<T *>(vector_array_->starts_[index]),
-                          vector_array_->lengths_[index]);
+    BLI_assert(vector_array_->type().is<T>());
   }
 
   int64_t size() const
@@ -198,6 +109,52 @@ template<typename T> class GVectorArrayRef {
   bool is_empty() const
   {
     return vector_array_->is_empty();
+  }
+
+  void append(const int64_t index, const T &value)
+  {
+    vector_array_->append(index, &value);
+  }
+
+  void extend(const int64_t index, const Span<T> values)
+  {
+    vector_array_->extend(index, values);
+  }
+
+  void extend(const int64_t index, const VArray<T> &values)
+  {
+    GVArrayForVArray<T> array{values};
+    this->extend(index, array);
+  }
+
+  MutableSpan<T> operator[](const int64_t index)
+  {
+    return (*vector_array_)[index].typed<T>();
+  }
+};
+
+/* A generic virtual vector array implementation for a `GVectorArray`. */
+class GVVectorArrayForGVectorArray : public GVVectorArray {
+ private:
+  const GVectorArray &vector_array_;
+
+ public:
+  GVVectorArrayForGVectorArray(const GVectorArray &vector_array)
+      : GVVectorArray(vector_array.type(), vector_array.size()), vector_array_(vector_array)
+  {
+  }
+
+ protected:
+  int64_t get_vector_size_impl(const int64_t index) const override
+  {
+    return vector_array_[index].size();
+  }
+
+  void get_vector_element_impl(const int64_t index,
+                               const int64_t index_in_vector,
+                               void *r_value) const override
+  {
+    type_->copy_to_initialized(vector_array_[index][index_in_vector], r_value);
   }
 };
 

@@ -39,6 +39,9 @@ Checks:  >
   -modernize-use-nodiscard,
   -modernize-loop-convert,
   -modernize-pass-by-value,
+  # Cannot be enabled yet, because using raw string literals in tests breaks
+  # the windows compiler currently.
+  -modernize-raw-string-literal
 
 WarningsAsErrors: '*'
 CheckOptions:

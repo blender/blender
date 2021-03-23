@@ -132,8 +132,7 @@ class DInputSocket : public DSocket {
   DOutputSocket get_corresponding_group_node_output() const;
   Vector<DOutputSocket, 4> get_corresponding_group_input_sockets() const;
 
-  void foreach_origin_socket(FunctionRef<void(DSocket)> callback,
-                             const bool follow_only_first_incoming_link = false) const;
+  void foreach_origin_socket(FunctionRef<void(DSocket)> callback) const;
 };
 
 /* A (nullable) reference to an output socket and the context it is in. */
@@ -167,6 +166,8 @@ class DerivedNodeTree {
 
   bool has_link_cycles() const;
   void foreach_node(FunctionRef<void(DNode)> callback) const;
+
+  std::string to_dot() const;
 
  private:
   DTreeContext &construct_context_recursively(DTreeContext *parent_context,

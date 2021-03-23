@@ -24,9 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 /* #include <time.h> */
-#include "MEM_guardedalloc.h"
-#include "MOD_lineart.h"
+
 #include <math.h>
+
+#include "MEM_guardedalloc.h"
+
+#include "MOD_lineart.h"
+
+#include "BLI_math.h"
 
 #include "lineart_intern.h"
 
@@ -208,7 +213,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
     count_this++;
     sum_this += LRT_MEMORY_POOL_64MB;
   }
-  printf("LANPR Memory allocated %lu Standalone nodes, total %lu Bytes.\n", count_this, sum_this);
+  printf("LANPR Memory allocated %zu Standalone nodes, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
   sum_this = 0;
   count_this = 0;
@@ -217,7 +222,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
     count_this++;
     sum_this += reln->element_count * sizeof(LineartEdge);
   }
-  printf("             allocated %lu edge blocks, total %lu Bytes.\n", count_this, sum_this);
+  printf("             allocated %zu edge blocks, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
   sum_this = 0;
   count_this = 0;
@@ -226,7 +231,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
     count_this++;
     sum_this += reln->element_count * rb->triangle_size;
   }
-  printf("             allocated %lu triangle blocks, total %lu Bytes.\n", count_this, sum_this);
+  printf("             allocated %zu triangle blocks, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
   sum_this = 0;
   count_this = 0;

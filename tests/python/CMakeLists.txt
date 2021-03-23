@@ -154,6 +154,12 @@ add_blender_test(
   --output-dir ${TEST_OUT_DIR}/blendfile_io/
 )
 
+add_blender_test(
+  blendfile_library_overrides
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_library_overrides.py --
+  --output-dir ${TEST_OUT_DIR}/blendfile_io/
+)
+
 # ------------------------------------------------------------------------------
 # MODELING TESTS
 add_blender_test(

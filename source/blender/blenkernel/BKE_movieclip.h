@@ -102,8 +102,11 @@ float BKE_movieclip_remap_clip_to_scene_frame(const struct MovieClip *clip, floa
 void BKE_movieclip_filename_for_frame(struct MovieClip *clip,
                                       struct MovieClipUser *user,
                                       char *name);
-struct ImBuf *BKE_movieclip_anim_ibuf_for_frame(struct MovieClip *clip,
-                                                struct MovieClipUser *user);
+
+/* Read image buffer from the given movie clip without acquiring the `LOCK_MOVIECLIP` lock.
+ * Used by a prefetch job which takes care of creating a local copy of the clip. */
+struct ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(struct MovieClip *clip,
+                                                        struct MovieClipUser *user);
 
 bool BKE_movieclip_has_cached_frame(struct MovieClip *clip, struct MovieClipUser *user);
 bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip,

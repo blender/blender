@@ -115,16 +115,18 @@ class SEQUENCER_HT_tool_header(Header):
     def draw_tool_settings(self, context):
         pass
 
-        # Currently unused.
-        '''
         layout = self.layout
 
         # Active Tool
         # -----------
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        # Most callers assign the `tool` & `tool_mode`, currently the result is not used.
+        """
         tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
         tool_mode = context.mode if tool is None else tool.mode
-        '''
+        """
+        # Only draw the header.
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout)
 
 
 class SEQUENCER_HT_header(Header):
@@ -352,8 +354,12 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_view:
             layout.prop(st, "show_region_hud")
 
+        layout.separator()
+
         if st.view_type == 'SEQUENCER':
             layout.prop(st, "show_backdrop", text="Preview as Backdrop")
+        if is_preview or st.show_backdrop:
+            layout.prop(st, "show_transform_preview", text="Preview During Transform")
 
         layout.separator()
 
@@ -723,6 +729,7 @@ class SEQUENCER_MT_strip_image_transform(Menu):
         layout.operator("sequencer.strip_transform_clear", text="Clear Scale").property = 'SCALE'
         layout.operator("sequencer.strip_transform_clear", text="Clear Rotation").property = 'ROTATION'
         layout.operator("sequencer.strip_transform_clear", text="Clear All").property = 'ALL'
+
 
 class SEQUENCER_MT_strip_transform(Menu):
     bl_label = "Transform"
@@ -1271,7 +1278,13 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
         col = layout.column()
-        col.template_ID(strip, "font", open="font.open", unlink="font.unlink")
+
+        row = col.row(align=True)
+        row.use_property_decorate = False
+        row.template_ID(strip, "font", open="font.open", unlink="font.unlink")
+        row.prop(strip, "use_bold", text="", icon='BOLD')
+        row.prop(strip, "use_italic", text="", icon='ITALIC')
+
         col.prop(strip, "font_size")
         col.prop(strip, "color")
 
@@ -1294,7 +1307,6 @@ class SEQUENCER_PT_effect_text_style(SequencerButtonsPanel, Panel):
         row.prop_decorator(strip, "box_color")
 
         row = layout.row(align=True, heading="Box Margin")
-        row.use_property_decorate = False
         sub = row.row(align=True)
         sub.prop(strip, "box_margin")
         sub.active = strip.use_box and (not strip.mute)
@@ -1415,36 +1427,36 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         return (strip.type == 'SCENE')
 
     def draw(self, context):
+        strip = act_strip(context)
+        scene = strip.scene
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-
-        strip = act_strip(context)
-
         layout.active = not strip.mute
 
-        layout.template_ID(strip, "scene")
-
-        scene = strip.scene
-        layout.prop(strip, "scene_input")
-
-        if scene:
-            layout.prop(scene, "audio_volume", text="Volume")
+        layout.template_ID(strip, "scene", text="Scene")
+        layout.prop(strip, "scene_input", text="Input")
 
         if strip.scene_input == 'CAMERA':
-            layout.alignment = 'RIGHT'
-            sub = layout.column(align=True)
-            split = sub.split(factor=0.5, align=True)
+            layout.template_ID(strip, "scene_camera", text="Camera")
+
+        if scene:
+            # Build a manual split layout as a hack to get proper alignment with the rest of the buttons.
+            sub = layout.row(align=True)
+            sub.use_property_decorate = True
+            split = sub.split(factor=0.4, align=True)
             split.alignment = 'RIGHT'
-            split.label(text="Camera")
-            split.template_ID(strip, "scene_camera")
+            split.label(text="Volume")
+            split.prop(scene, "audio_volume", text="")
+            sub.use_property_decorate = False
 
-            layout.prop(strip, "use_grease_pencil", text="Show Grease Pencil")
-
+        if strip.scene_input == 'CAMERA':
+            layout = layout.column(heading="Show")
+            layout.prop(strip, "use_grease_pencil", text="Grease Pencil")
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
-                # layout.label(text="Preview")
                 layout.prop(scene.render, "film_transparent")
 
 
@@ -2003,8 +2015,8 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         col.prop(st, "proxy_render_size")
 
         col = layout.column()
-        prop = col.prop(st, "use_proxies")
-        if st.proxy_render_size in ('NONE', 'SCENE'):
+        col.prop(st, "use_proxies")
+        if st.proxy_render_size in {'NONE', 'SCENE'}:
             col.enabled = False
 
         col = layout.column()

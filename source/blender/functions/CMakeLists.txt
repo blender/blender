@@ -28,17 +28,23 @@ set(INC_SYS
 
 set(SRC
   intern/cpp_types.cc
+  intern/generic_vector_array.cc
+  intern/generic_virtual_array.cc
+  intern/generic_virtual_vector_array.cc
   intern/multi_function.cc
   intern/multi_function_builder.cc
   intern/multi_function_network.cc
   intern/multi_function_network_evaluation.cc
   intern/multi_function_network_optimization.cc
 
-  FN_array_spans.hh
   FN_cpp_type.hh
+  FN_cpp_type_make.hh
   FN_generic_pointer.hh
+  FN_generic_span.hh
   FN_generic_value_map.hh
   FN_generic_vector_array.hh
+  FN_generic_virtual_array.hh
+  FN_generic_virtual_vector_array.hh
   FN_multi_function.hh
   FN_multi_function_builder.hh
   FN_multi_function_context.hh
@@ -49,7 +55,6 @@ set(SRC
   FN_multi_function_param_type.hh
   FN_multi_function_params.hh
   FN_multi_function_signature.hh
-  FN_spans.hh
 )
 
 set(LIB
@@ -60,12 +65,11 @@ blender_add_lib(bf_functions "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
-    tests/FN_array_spans_test.cc
     tests/FN_cpp_type_test.cc
+    tests/FN_generic_span_test.cc
     tests/FN_generic_vector_array_test.cc
     tests/FN_multi_function_network_test.cc
     tests/FN_multi_function_test.cc
-    tests/FN_spans_test.cc
   )
   set(TEST_LIB
     bf_functions

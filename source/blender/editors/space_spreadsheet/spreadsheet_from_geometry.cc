@@ -21,6 +21,7 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 
+#include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_space_types.h"
@@ -37,6 +38,66 @@ namespace blender::ed::spreadsheet {
 
 using blender::bke::ReadAttribute;
 using blender::bke::ReadAttributePtr;
+
+static void add_columns_for_instances(const InstancesComponent &instances_component,
+                                      SpreadsheetColumnLayout &column_layout,
+                                      ResourceCollector &resources)
+{
+  Span<InstancedData> instance_data = instances_component.instanced_data();
+  Span<float4x4> transforms = instances_component.transforms();
+
+  Vector<std::unique_ptr<SpreadsheetColumn>> &columns =
+      resources.construct<Vector<std::unique_ptr<SpreadsheetColumn>>>("columns");
+
+  columns.append(spreadsheet_column_from_function(
+      "Name", [instance_data](int index, CellValue &r_cell_value) {
+        const InstancedData &data = instance_data[index];
+        if (data.type == INSTANCE_DATA_TYPE_OBJECT) {
+          if (data.data.object != nullptr) {
+            r_cell_value.value_object = ObjectCellValue{data.data.object};
+          }
+        }
+        else if (data.type == INSTANCE_DATA_TYPE_COLLECTION) {
+          if (data.data.collection != nullptr) {
+            r_cell_value.value_collection = CollectionCellValue{data.data.collection};
+          }
+        }
+      }));
+
+  columns.last()->default_width = 8.0f;
+
+  static std::array<char, 3> axis_char = {'X', 'Y', 'Z'};
+  for (const int i : {0, 1, 2}) {
+    std::string name = std::string("Position ") + axis_char[i];
+    columns.append(spreadsheet_column_from_function(
+        name, [transforms, i](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float = transforms[index].translation()[i];
+        }));
+  }
+
+  for (const int i : {0, 1, 2}) {
+    std::string name = std::string("Rotation ") + axis_char[i];
+    columns.append(spreadsheet_column_from_function(
+        name, [transforms, i](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float = transforms[index].to_euler()[i];
+        }));
+  }
+
+  for (const int i : {0, 1, 2}) {
+    std::string name = std::string("Scale ") + axis_char[i];
+    columns.append(spreadsheet_column_from_function(
+        name, [transforms, i](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float = transforms[index].scale()[i];
+        }));
+  }
+
+  for (std::unique_ptr<SpreadsheetColumn> &column : columns) {
+    column_layout.columns.append(column.get());
+  }
+
+  column_layout.row_indices = instance_data.index_range().as_span();
+  column_layout.tot_rows = instances_component.instances_amount();
+}
 
 static Vector<std::string> get_sorted_attribute_names_to_display(
     const GeometryComponent &component, const AttributeDomain domain)
@@ -68,7 +129,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
           attribute_name, [attribute](int index, CellValue &r_cell_value) {
             float value;
             attribute->get(index, &value);
-            r_cell_value.value = value;
+            r_cell_value.value_float = value;
           }));
       break;
     }
@@ -80,7 +141,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
             name, [attribute, i](int index, CellValue &r_cell_value) {
               float2 value;
               attribute->get(index, &value);
-              r_cell_value.value = value[i];
+              r_cell_value.value_float = value[i];
             }));
       }
       break;
@@ -93,7 +154,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
             name, [attribute, i](int index, CellValue &r_cell_value) {
               float3 value;
               attribute->get(index, &value);
-              r_cell_value.value = value[i];
+              r_cell_value.value_float = value[i];
             }));
       }
       break;
@@ -106,7 +167,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
             name, [attribute, i](int index, CellValue &r_cell_value) {
               Color4f value;
               attribute->get(index, &value);
-              r_cell_value.value = value[i];
+              r_cell_value.value_float = value[i];
             }));
       }
       break;
@@ -116,7 +177,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
           attribute_name, [attribute](int index, CellValue &r_cell_value) {
             int value;
             attribute->get(index, &value);
-            r_cell_value.value = value;
+            r_cell_value.value_int = value;
           }));
       break;
     }
@@ -125,7 +186,7 @@ static void add_columns_for_attribute(const ReadAttribute *attribute,
           attribute_name, [attribute](int index, CellValue &r_cell_value) {
             bool value;
             attribute->get(index, &value);
-            r_cell_value.value = value;
+            r_cell_value.value_bool = value;
           }));
       break;
     }
@@ -342,6 +403,12 @@ void spreadsheet_columns_from_geometry(const bContext *C,
   if (component == nullptr) {
     return;
   }
+  if (component_type == GEO_COMPONENT_TYPE_INSTANCES) {
+    add_columns_for_instances(
+        *static_cast<const InstancesComponent *>(component), column_layout, resources);
+    return;
+  }
+
   if (!component->attribute_domain_supported(domain)) {
     return;
   }
