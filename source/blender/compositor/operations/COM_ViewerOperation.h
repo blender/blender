@@ -51,6 +51,7 @@ class ViewerOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
   void executeRegion(rcti *rect, unsigned int tileNumber);
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
   bool isOutputOperation(bool /*rendering*/) const
   {
     if (G.background) {

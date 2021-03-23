@@ -34,13 +34,17 @@ class PreviewOperation : public NodeOperation {
   bNodePreview *m_preview;
   SocketReader *m_input;
   float m_divider;
+  unsigned int m_defaultWidth;
+  unsigned int m_defaultHeight;
 
   const ColorManagedViewSettings *m_viewSettings;
   const ColorManagedDisplaySettings *m_displaySettings;
 
  public:
   PreviewOperation(const ColorManagedViewSettings *viewSettings,
-                   const ColorManagedDisplaySettings *displaySettings);
+                   const ColorManagedDisplaySettings *displaySettings,
+                   unsigned int defaultWidth,
+                   unsigned int defaultHeight);
   void verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key);
 
   bool isOutputOperation(bool /*rendering*/) const
