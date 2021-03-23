@@ -73,8 +73,8 @@ static Mesh *create_plane_mesh(const int verts_x, const int verts_y, const float
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
   {
-    const float dx = size * 2.0f / edges_x;
-    const float dy = size * 2.0f / edges_y;
+    const float dx = size / edges_x;
+    const float dy = size / edges_y;
     float x = -size;
     for (const int x_index : IndexRange(verts_x)) {
       float y = -size;
