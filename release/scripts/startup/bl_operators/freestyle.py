@@ -20,6 +20,9 @@
 
 import bpy
 
+from bpy.types import (
+    Operator,
+)
 from bpy.props import (
     BoolProperty,
     EnumProperty,
@@ -27,7 +30,7 @@ from bpy.props import (
 )
 
 
-class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
+class SCENE_OT_freestyle_fill_range_by_selection(Operator):
     """Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object """
     """(either a user-specified object or the active camera)"""
     bl_idname = "scene.freestyle_fill_range_by_selection"
@@ -132,7 +135,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
+class SCENE_OT_freestyle_add_edge_marks_to_keying_set(Operator):
     '''Add the data paths to the Freestyle Edge Mark property of selected edges to the active keying set'''
     bl_idname = "scene.freestyle_add_edge_marks_to_keying_set"
     bl_label = "Add Edge Marks to Keying Set"
@@ -163,7 +166,7 @@ class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
+class SCENE_OT_freestyle_add_face_marks_to_keying_set(Operator):
     '''Add the data paths to the Freestyle Face Mark property of selected polygons to the active keying set'''
     bl_idname = "scene.freestyle_add_face_marks_to_keying_set"
     bl_label = "Add Face Marks to Keying Set"
@@ -194,7 +197,7 @@ class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SCENE_OT_freestyle_module_open(bpy.types.Operator):
+class SCENE_OT_freestyle_module_open(Operator):
     """Open a style module file"""
     bl_idname = "scene.freestyle_module_open"
     bl_label = "Open Style Module File"
