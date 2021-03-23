@@ -18,7 +18,6 @@
 
 from __future__ import annotations
 
-import bpy
 from bpy.types import Operator
 
 class SPREADSHEET_OT_toggle_pin(Operator):

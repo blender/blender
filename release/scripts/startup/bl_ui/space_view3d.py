@@ -3775,8 +3775,6 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.delete", text="Delete Vertices").type = 'VERT'
 
         if is_edge_mode:
-            render = context.scene.render
-
             col = row.column(align=True)
             col.label(text="Edge Context Menu", icon='EDGESEL')
             col.separator()
@@ -4004,8 +4002,6 @@ class VIEW3D_MT_edit_mesh_edges_data(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        render = context.scene.render
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 

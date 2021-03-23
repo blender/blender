@@ -2015,7 +2015,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         col.prop(st, "proxy_render_size")
 
         col = layout.column()
-        prop = col.prop(st, "use_proxies")
+        col.prop(st, "use_proxies")
         if st.proxy_render_size in {'NONE', 'SCENE'}:
             col.enabled = False
 
