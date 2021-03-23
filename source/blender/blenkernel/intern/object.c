@@ -2620,11 +2620,7 @@ Object *BKE_object_duplicate(Main *bmain,
 
   Material ***matarar;
 
-  Object *obn = (Object *)BKE_id_copy(bmain, &ob->id);
-  id_us_min(&obn->id);
-  if (is_subprocess) {
-    ID_NEW_SET(ob, obn);
-  }
+  Object *obn = (Object *)BKE_id_copy_for_duplicate(bmain, &ob->id, dupflag);
 
   /* 0 == full linked. */
   if (dupflag == 0) {
