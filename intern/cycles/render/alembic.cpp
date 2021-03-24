@@ -396,6 +396,10 @@ static void add_uvs(AlembicProcedural *proc,
 
   ccl::set<chrono_t> times = get_relevant_sample_times(proc, time_sampling, uvs.getNumSamples());
 
+  /* Keys used to determine if the UVs do actually change over time. */
+  ArraySample::Key previous_indices_key;
+  ArraySample::Key previous_values_key;
+
   foreach (chrono_t time, times) {
     if (progress.get_cancel()) {
       return;
@@ -422,21 +426,32 @@ static void add_uvs(AlembicProcedural *proc,
 
     float2 *data_float2 = reinterpret_cast<float2 *>(data.data());
 
-    const unsigned int *indices = uvsample.getIndices()->get();
-    const V2f *values = uvsample.getVals()->get();
+    const ArraySample::Key indices_key = uvsample.getIndices()->getKey();
+    const ArraySample::Key values_key = uvsample.getVals()->getKey();
 
-    for (const int3 &loop : *triangles_loops) {
-      unsigned int v0 = indices[loop.x];
-      unsigned int v1 = indices[loop.y];
-      unsigned int v2 = indices[loop.z];
+    if (indices_key == previous_indices_key && values_key == previous_values_key) {
+      attr.data.reuse_data_for_last_time(time);
+    }
+    else {
+      const unsigned int *indices = uvsample.getIndices()->get();
+      const V2f *values = uvsample.getVals()->get();
 
-      data_float2[0] = make_float2(values[v0][0], values[v0][1]);
-      data_float2[1] = make_float2(values[v1][0], values[v1][1]);
-      data_float2[2] = make_float2(values[v2][0], values[v2][1]);
-      data_float2 += 3;
+      for (const int3 &loop : *triangles_loops) {
+        unsigned int v0 = indices[loop.x];
+        unsigned int v1 = indices[loop.y];
+        unsigned int v2 = indices[loop.z];
+
+        data_float2[0] = make_float2(values[v0][0], values[v0][1]);
+        data_float2[1] = make_float2(values[v1][0], values[v1][1]);
+        data_float2[2] = make_float2(values[v2][0], values[v2][1]);
+        data_float2 += 3;
+      }
+
+      attr.data.add_data(data, time);
     }
 
-    attr.data.add_data(data, time);
+    previous_indices_key = indices_key;
+    previous_values_key = values_key;
   }
 }
 
@@ -736,6 +751,11 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
   ccl::set<chrono_t> times = get_relevant_sample_times(
       proc, *time_sampling, schema.getNumSamples());
 
+  /* Key used to determine if the triangles change over time, if the key is the same as the
+   * last one, we can avoid creating a new entry in the cache and simply point to the last
+   * frame. */
+  ArraySample::Key previous_key;
+
   /* read topology */
   foreach (chrono_t time, times) {
     if (progress.get_cancel()) {
@@ -747,22 +767,27 @@ void AlembicObject::load_all_data(AlembicProcedural *proc,
 
     add_positions(sample.getPositions(), time, cached_data);
 
-    /* Only copy triangles for other frames if the topology is changing over time as well.
-     *
-     * TODO(@kevindietrich): even for dynamic simulations, this is a waste of memory and
-     * processing time if only the positions are changing in a subsequence of frames but we
-     * cannot optimize in this current system if the attributes are changing over time as well,
-     * as we need valid data for each time point. This can be solved by using reference counting
-     * on the ccl::array and simply share the array across frames. */
+    /* Only copy triangles for other frames if the topology is changing over time as well. */
     if (schema.getTopologyVariance() != kHomogenousTopology || cached_data.triangles.size() == 0) {
-      /* start by reading the face sets (per face shader), as we directly split polygons to
-       * triangles
-       */
-      array<int> polygon_to_shader;
-      read_face_sets(schema, polygon_to_shader, iss);
+      const ArraySample::Key key = sample.getFaceIndices()->getKey();
 
-      add_triangles(
-          sample.getFaceCounts(), sample.getFaceIndices(), time, cached_data, polygon_to_shader);
+      if (key == previous_key) {
+        cached_data.triangles.reuse_data_for_last_time(time);
+        cached_data.triangles_loops.reuse_data_for_last_time(time);
+        cached_data.shader.reuse_data_for_last_time(time);
+      }
+      else {
+        /* start by reading the face sets (per face shader), as we directly split polygons to
+         * triangles
+         */
+        array<int> polygon_to_shader;
+        read_face_sets(schema, polygon_to_shader, iss);
+
+        add_triangles(
+            sample.getFaceCounts(), sample.getFaceIndices(), time, cached_data, polygon_to_shader);
+      }
+
+      previous_key = key;
     }
 
     if (normals.valid()) {
