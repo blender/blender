@@ -221,16 +221,7 @@ void Object::tag_update(Scene *scene)
 
   if (geometry) {
     if (tfm_is_modified()) {
-      /* tag the geometry as modified so the BVH is updated, but do not tag everything as modified
-       */
-      if (geometry->is_mesh() || geometry->is_volume()) {
-        Mesh *mesh = static_cast<Mesh *>(geometry);
-        mesh->tag_verts_modified();
-      }
-      else if (geometry->is_hair()) {
-        Hair *hair = static_cast<Hair *>(geometry);
-        hair->tag_curve_keys_modified();
-      }
+      flag |= ObjectManager::TRANSFORM_MODIFIED;
     }
 
     foreach (Node *node, geometry->get_used_shaders()) {
@@ -921,6 +912,10 @@ void ObjectManager::tag_update(Scene *scene, uint32_t flag)
      * added or removed, but the BVH still needs to updated. */
     if ((flag & (OBJECT_ADDED | OBJECT_REMOVED)) != 0) {
       geometry_flag |= (GeometryManager::GEOMETRY_ADDED | GeometryManager::GEOMETRY_REMOVED);
+    }
+
+    if ((flag & TRANSFORM_MODIFIED) != 0) {
+      geometry_flag |= GeometryManager::TRANSFORM_MODIFIED;
     }
 
     scene->geometry_manager->tag_update(scene, geometry_flag);

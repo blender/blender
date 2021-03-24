@@ -189,6 +189,8 @@ class GeometryManager {
     GEOMETRY_ADDED = MESH_ADDED | HAIR_ADDED,
     GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED,
 
+    TRANSFORM_MODIFIED = (1 << 10),
+
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,
 
