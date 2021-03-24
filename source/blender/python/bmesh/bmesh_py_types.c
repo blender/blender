@@ -3984,7 +3984,7 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
     case BM_LOOP:
       return BPy_BMLoop_CreatePyObject(bm, (BMLoop *)ele);
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       PyErr_SetString(PyExc_SystemError, "internal error");
       return NULL;
   }

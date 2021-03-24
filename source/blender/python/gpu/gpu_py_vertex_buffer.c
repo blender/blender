@@ -70,7 +70,8 @@
       break; \
     } \
     default: \
-      BLI_assert(0); \
+      BLI_assert_unreachable(); \
+      break; \
   } \
   ((void)0)
 

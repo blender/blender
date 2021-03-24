@@ -56,7 +56,7 @@ static CustomData *bpy_bm_customdata_get(BMesh *bm, char htype)
       return &bm->ldata;
   }
 
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return NULL;
 }
 
@@ -958,7 +958,7 @@ PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, const char htype)
       type = &BPy_BMLayerAccessLoop_Type;
       break;
     default: {
-      BLI_assert(0);
+      BLI_assert_unreachable();
       type = NULL;
       break;
     }

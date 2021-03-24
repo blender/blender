@@ -94,7 +94,7 @@ int ED_select_similar_compare_float(const float delta, const float thresh, const
     case SIM_CMP_LT:
       return ((delta - thresh) < FLT_EPSILON);
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return 0;
   }
 }
@@ -124,7 +124,7 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
       nearest_edge_length = FLT_MAX;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return false;
   }
 

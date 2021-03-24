@@ -1858,7 +1858,7 @@ bool BKE_object_data_is_in_editmode(const ID *id)
     case ID_AR:
       return ((const bArmature *)id)->edbo != NULL;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return false;
   }
 }
@@ -1905,7 +1905,7 @@ char *BKE_object_data_editmode_flush_ptr_get(struct ID *id)
       return &arm->needs_flush_to_id;
     }
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return NULL;
   }
   return NULL;

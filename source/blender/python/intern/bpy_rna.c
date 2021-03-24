@@ -1345,7 +1345,7 @@ BLI_bitmap *pyrna_set_to_enum_bitmap(const EnumPropertyItem *items,
         index = (int)ret_convert.as_unsigned;
       }
       else {
-        BLI_assert(0);
+        BLI_assert_unreachable();
       }
     }
     BLI_assert(index < bitmap_size);
@@ -5550,7 +5550,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
       case PROP_POINTER:
       case PROP_COLLECTION:
         /* Should never happen. */
-        BLI_assert(false);
+        BLI_assert_unreachable();
         break;
     }
 
@@ -5595,7 +5595,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
       case PROP_POINTER:
       case PROP_COLLECTION:
         /* Should never happen. */
-        BLI_assert(false);
+        BLI_assert_unreachable();
         break;
     }
 

@@ -656,7 +656,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.ob_mode = OB_MODE_WEIGHT_GPENCIL;
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 }
 

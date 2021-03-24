@@ -1691,7 +1691,7 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
             break;
 
           default:
-            BLI_assert(false);
+            BLI_assert_unreachable();
         }
       }
       /* If removing parent pose rotation: */
@@ -1723,7 +1723,7 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
             break;
 
           default:
-            BLI_assert(false);
+            BLI_assert_unreachable();
         }
       }
 
