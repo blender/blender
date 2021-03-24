@@ -27,5 +27,6 @@
 class ChromaMatteNode : public Node {
  public:
   ChromaMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

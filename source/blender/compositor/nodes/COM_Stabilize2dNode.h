@@ -28,5 +28,6 @@
 class Stabilize2dNode : public Node {
  public:
   Stabilize2dNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

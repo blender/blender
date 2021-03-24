@@ -29,5 +29,5 @@ class GlareStreaksOperation : public GlareBaseOperation {
   }
 
  protected:
-  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
+  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) override;
 };

@@ -31,7 +31,8 @@ struct Render;
 class RenderLayersNode : public Node {
  public:
   RenderLayersNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 
  private:
   void testSocketLink(NodeConverter &converter,

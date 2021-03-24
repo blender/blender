@@ -27,7 +27,7 @@
  */
 class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
  protected:
-  virtual float calculateDistance(float key[4], float image[4]);
+  float calculateDistance(float key[4], float image[4]) override;
 
  public:
   /**

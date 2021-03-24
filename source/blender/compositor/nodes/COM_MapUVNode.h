@@ -27,5 +27,6 @@
 class MapUVNode : public Node {
  public:
   MapUVNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

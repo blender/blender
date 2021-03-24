@@ -23,5 +23,5 @@
 class ConvolutionEdgeFilterOperation : public ConvolutionFilterOperation {
  public:
   ConvolutionEdgeFilterOperation();
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 };

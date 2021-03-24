@@ -36,7 +36,8 @@ class CryptomatteBaseNode : public Node {
   }
 
  public:
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 
  protected:
   virtual CryptomatteOperation *create_cryptomatte_operation(

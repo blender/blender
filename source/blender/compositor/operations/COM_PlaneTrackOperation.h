@@ -68,9 +68,10 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
   {
   }
 
-  void initExecution();
+  void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override
   {
     PlaneTrackCommon::determineResolution(resolution, preferredResolution);
 
@@ -86,9 +87,10 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
   {
   }
 
-  void initExecution();
+  void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override
   {
     PlaneTrackCommon::determineResolution(resolution, preferredResolution);
     unsigned int temp[2];

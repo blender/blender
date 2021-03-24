@@ -44,5 +44,6 @@ class ImageNode : public Node {
 
  public:
   ImageNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

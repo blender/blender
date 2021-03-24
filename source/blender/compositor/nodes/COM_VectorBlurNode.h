@@ -27,5 +27,6 @@
 class VectorBlurNode : public Node {
  public:
   VectorBlurNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

@@ -27,5 +27,6 @@
 class BrightnessNode : public Node {
  public:
   BrightnessNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

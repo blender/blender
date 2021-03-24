@@ -27,5 +27,6 @@
 class IDMaskNode : public Node {
  public:
   IDMaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

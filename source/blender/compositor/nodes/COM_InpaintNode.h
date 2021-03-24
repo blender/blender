@@ -27,5 +27,6 @@
 class InpaintNode : public Node {
  public:
   InpaintNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

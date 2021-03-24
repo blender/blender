@@ -28,5 +28,6 @@
 class OutputFileNode : public Node {
  public:
   OutputFileNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

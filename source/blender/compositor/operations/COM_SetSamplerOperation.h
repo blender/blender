@@ -43,7 +43,7 @@ class SetSamplerOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-  void initExecution();
-  void deinitExecution();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void initExecution() override;
+  void deinitExecution() override;
 };

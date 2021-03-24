@@ -57,19 +57,19 @@ class OutputSingleLayerOperation : public NodeOperation {
                              const char *viewName,
                              const bool saveAsRender);
 
-  void executeRegion(rcti *rect, unsigned int tileNumber);
-  bool isOutputOperation(bool /*rendering*/) const
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  bool isOutputOperation(bool /*rendering*/) const override
   {
     return true;
   }
-  void initExecution();
-  void deinitExecution();
-  CompositorPriority getRenderPriority() const
+  void initExecution() override;
+  void deinitExecution() override;
+  CompositorPriority getRenderPriority() const override
   {
     return CompositorPriority::Low;
   }
 
-  bool isFileOutputOperation() const
+  bool isFileOutputOperation() const override
   {
     return true;
   }
@@ -116,19 +116,19 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
 
   void add_layer(const char *name, DataType datatype, bool use_layer);
 
-  void executeRegion(rcti *rect, unsigned int tileNumber);
-  bool isOutputOperation(bool /*rendering*/) const
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  bool isOutputOperation(bool /*rendering*/) const override
   {
     return true;
   }
-  void initExecution();
-  void deinitExecution();
-  CompositorPriority getRenderPriority() const
+  void initExecution() override;
+  void deinitExecution() override;
+  CompositorPriority getRenderPriority() const override
   {
     return CompositorPriority::Low;
   }
 
-  bool isFileOutputOperation() const
+  bool isFileOutputOperation() const override
   {
     return true;
   }

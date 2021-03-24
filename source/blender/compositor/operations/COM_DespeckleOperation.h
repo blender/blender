@@ -36,8 +36,8 @@ class DespeckleOperation : public NodeOperation {
   DespeckleOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixel(float output[4], int x, int y, void *data);
+                                        rcti *output) override;
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   void setThreshold(float threshold)
   {
@@ -48,6 +48,6 @@ class DespeckleOperation : public NodeOperation {
     this->m_threshold_neighbor = threshold;
   }
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };

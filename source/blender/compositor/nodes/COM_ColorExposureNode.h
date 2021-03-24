@@ -27,5 +27,6 @@
 class ExposureNode : public Node {
  public:
   ExposureNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

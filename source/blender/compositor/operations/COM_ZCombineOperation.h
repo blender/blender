@@ -37,17 +37,17 @@ class ZCombineOperation : public NodeOperation {
    */
   ZCombineOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ZCombineAlphaOperation : public ZCombineOperation {
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ZCombineMaskOperation : public NodeOperation {
@@ -59,10 +59,10 @@ class ZCombineMaskOperation : public NodeOperation {
  public:
   ZCombineMaskOperation();
 
-  void initExecution();
-  void deinitExecution();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void initExecution() override;
+  void deinitExecution() override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class ZCombineMaskAlphaOperation : public ZCombineMaskOperation {
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
