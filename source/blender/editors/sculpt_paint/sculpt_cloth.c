@@ -1440,6 +1440,18 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eSculpClothFilterPinchOriginType {
+  CLOTH_FILTER_PINCH_ORIGIN_CURSOR,
+  CLOTH_FILTER_PINCH_ORIGIN_FACE_SET,
+} eSculptClothFilterPinchOriginType;
+
+static EnumPropertyItem prop_cloth_filter_pinch_origin_type[] = {
+    {CLOTH_FILTER_PINCH_ORIGIN_CURSOR, "CURSOR", 0, "Cursor", "Pinches to the location of the cursor"},
+    {CLOTH_FILTER_PINCH_ORIGIN_FACE_SET, "FACE_SET", 0, "Face Set", "Pinches to the average location of the Face Set"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+
 static EnumPropertyItem prop_cloth_filter_orientation_items[] = {
     {SCULPT_FILTER_ORIENTATION_LOCAL,
      "LOCAL",
@@ -1658,6 +1670,27 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
+
+static void sculpt_cloth_filter_face_set_pinch_origin_calculate(float r_pinch_origin[3], SculptSession *ss) {
+    const int totvert = SCULPT_vertex_count_get(ss);
+    const int active_face_set = SCULPT_active_face_set_get(ss);
+    float accum[3] = {0.0f};
+    int tot = 0;
+    for (int i = 0; i < totvert; i++) {
+      if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
+        continue;
+      }
+      add_v3_v3(accum, SCULPT_vertex_co_get(ss, i));
+      tot++;
+    }
+    if (tot > 0) {
+      mul_v3_v3fl(r_pinch_origin, accum, 1.0f/ tot);
+    }
+    else {
+      copy_v3_v3(r_pinch_origin, SCULPT_active_vertex_co_get(ss));
+    }
+}
+
 static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
@@ -1687,6 +1720,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const float cloth_mass = RNA_float_get(op->ptr, "cloth_mass");
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
+  const int pinch_origin = RNA_enum_get(op->ptr, "pinch_origin");
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
       ss,
       cloth_mass,
@@ -1695,7 +1729,15 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       use_collisions,
       cloth_filter_is_deformation_filter(filter_type));
 
-  copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
+  switch (pinch_origin)
+  {
+  case CLOTH_FILTER_PINCH_ORIGIN_CURSOR:
+    copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
+    break;
+  case CLOTH_FILTER_PINCH_ORIGIN_FACE_SET:
+    sculpt_cloth_filter_face_set_pinch_origin_calculate(ss->filter_cache->cloth_sim_pinch_point, ss);
+    break;
+  }
 
   SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);
 
@@ -1751,6 +1793,12 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                "Operation that is going to be applied to the mesh");
   RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
+  RNA_def_enum(ot->srna,
+               "pinch_origin",
+               prop_cloth_filter_pinch_origin_type,
+               CLOTH_FILTER_PINCH_ORIGIN_CURSOR,
+               "Pinch Origin",
+               "Location that is used to direct the pinch force");
   RNA_def_enum_flag(ot->srna,
                     "force_axis",
                     prop_cloth_filter_force_axis_items,

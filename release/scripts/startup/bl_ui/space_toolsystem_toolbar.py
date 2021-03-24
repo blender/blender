@@ -1505,6 +1505,8 @@ class _defs_sculpt:
             layout.prop(props, "strength")
             row = layout.row(align=True)
             row.prop(props, "force_axis")
+            if props.type == "PINCH":
+                layout.prop(props, "pinch_origin", expand=False)
             layout.prop(props, "orientation", expand=False)
             layout.prop(props, "cloth_mass")
             layout.prop(props, "cloth_damping")
