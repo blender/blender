@@ -1964,7 +1964,6 @@ void GeometryManager::device_update(Device *device,
         scene->update_stats->geometry.times.add_entry({"device_update (compute bounds)", time});
       }
     });
-    vector<Object *> volume_objects;
     foreach (Object *object, scene->objects) {
       object->compute_bounds(motion_blur);
     }
