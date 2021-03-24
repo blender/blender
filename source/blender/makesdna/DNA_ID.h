@@ -773,6 +773,7 @@ enum {
   INDEX_ID_IM,
   INDEX_ID_TE,
   INDEX_ID_MA,
+  INDEX_ID_SIM,
   INDEX_ID_VF,
   INDEX_ID_AR,
   INDEX_ID_CF,
@@ -801,10 +802,7 @@ enum {
   INDEX_ID_SCE,
   INDEX_ID_WS,
   INDEX_ID_WM,
-  /* TODO: This should probably be tweaked, #Mask and #Simulation are rather low-level types that
-   * should most likely be defined //before// #Object and geometry type indices? */
   INDEX_ID_MSK,
-  INDEX_ID_SIM,
   INDEX_ID_NULL,
   INDEX_ID_MAX,
 };
