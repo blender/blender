@@ -1012,7 +1012,8 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+  /* TODO: Default to topology. */
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && false) {
     sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
   }
   else {
