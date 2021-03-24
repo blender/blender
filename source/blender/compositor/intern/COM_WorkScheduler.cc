@@ -70,7 +70,7 @@ static struct {
     /** \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is
      * created
      */
-    blender::Vector<CPUDevice *> devices;
+    blender::Vector<CPUDevice> devices;
 
     /** \brief list of all thread for every CPUDevice in cpudevices a thread exists. */
     ListBase threads;
@@ -89,7 +89,7 @@ static struct {
     cl_program program;
     /** \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice
      * is created. */
-    blender::Vector<OpenCLDevice *> devices;
+    blender::Vector<OpenCLDevice> devices;
     /** \brief list of all thread for every GPUDevice in cpudevices a thread exists. */
     ListBase threads;
     /** \brief all scheduled work for the GPU. */
@@ -130,9 +130,8 @@ static void opencl_start(CompositorContext &context)
     BLI_threadpool_init(&g_work_scheduler.opencl.threads,
                         thread_execute_gpu,
                         g_work_scheduler.opencl.devices.size());
-    for (int index = 0; index < g_work_scheduler.opencl.devices.size(); index++) {
-      Device *device = g_work_scheduler.opencl.devices[index];
-      BLI_threadpool_insert(&g_work_scheduler.opencl.threads, device);
+    for (Device &device : g_work_scheduler.opencl.devices) {
+      BLI_threadpool_insert(&g_work_scheduler.opencl.threads, &device);
     }
     g_work_scheduler.opencl.active = true;
   }
@@ -263,12 +262,10 @@ static void opencl_initialize(const bool use_opencl)
             if (error2 != CL_SUCCESS) {
               printf("CLERROR[%d]: %s\n", error2, clewErrorString(error2));
             }
-            OpenCLDevice *clDevice = new OpenCLDevice(g_work_scheduler.opencl.context,
-                                                      device,
-                                                      g_work_scheduler.opencl.program,
-                                                      vendorID);
-            clDevice->initialize();
-            g_work_scheduler.opencl.devices.append(clDevice);
+            g_work_scheduler.opencl.devices.append(OpenCLDevice(g_work_scheduler.opencl.context,
+                                                                device,
+                                                                g_work_scheduler.opencl.program,
+                                                                vendorID));
           }
         }
         MEM_freeN(cldevices);
@@ -282,26 +279,19 @@ static void opencl_initialize(const bool use_opencl)
 
 static void opencl_deinitialize()
 {
-  /* Deinitialize OpenCL GPU's. */
-  if (g_work_scheduler.opencl.initialized) {
-    while (!g_work_scheduler.opencl.devices.is_empty()) {
-      Device *device = g_work_scheduler.opencl.devices.pop_last();
-      device->deinitialize();
-      delete device;
-    }
-    g_work_scheduler.opencl.devices.clear_and_make_inline();
+  g_work_scheduler.opencl.devices.clear_and_make_inline();
 
-    if (g_work_scheduler.opencl.program) {
-      clReleaseProgram(g_work_scheduler.opencl.program);
-      g_work_scheduler.opencl.program = nullptr;
-    }
-    if (g_work_scheduler.opencl.context) {
-      clReleaseContext(g_work_scheduler.opencl.context);
-      g_work_scheduler.opencl.context = nullptr;
-    }
-
-    g_work_scheduler.opencl.initialized = false;
+  if (g_work_scheduler.opencl.program) {
+    clReleaseProgram(g_work_scheduler.opencl.program);
+    g_work_scheduler.opencl.program = nullptr;
   }
+
+  if (g_work_scheduler.opencl.context) {
+    clReleaseContext(g_work_scheduler.opencl.context);
+    g_work_scheduler.opencl.context = nullptr;
+  }
+
+  g_work_scheduler.opencl.initialized = false;
 }
 
 /* \} */
@@ -347,9 +337,8 @@ static void threading_model_queue_start()
   BLI_threadpool_init(&g_work_scheduler.queue.threads,
                       threading_model_queue_execute,
                       g_work_scheduler.queue.devices.size());
-  for (int index = 0; index < g_work_scheduler.queue.devices.size(); index++) {
-    Device *device = g_work_scheduler.queue.devices[index];
-    BLI_threadpool_insert(&g_work_scheduler.queue.threads, device);
+  for (Device &device : g_work_scheduler.queue.devices) {
+    BLI_threadpool_insert(&g_work_scheduler.queue.threads, &device);
   }
 }
 
@@ -370,25 +359,17 @@ static void threading_model_queue_initialize(const int num_cpu_threads)
 {
   /* Reinitialize if number of threads doesn't match. */
   if (g_work_scheduler.queue.devices.size() != num_cpu_threads) {
-    Device *device;
-
-    while (!g_work_scheduler.queue.devices.is_empty()) {
-      device = g_work_scheduler.queue.devices.pop_last();
-      device->deinitialize();
-      delete device;
-    }
+    g_work_scheduler.queue.devices.clear();
     if (g_work_scheduler.queue.initialized) {
       BLI_thread_local_delete(g_thread_device);
+      g_work_scheduler.queue.initialized = false;
     }
-    g_work_scheduler.queue.initialized = false;
   }
 
   /* Initialize CPU threads. */
   if (!g_work_scheduler.queue.initialized) {
     for (int index = 0; index < num_cpu_threads; index++) {
-      CPUDevice *device = new CPUDevice(index);
-      device->initialize();
-      g_work_scheduler.queue.devices.append(device);
+      g_work_scheduler.queue.devices.append(CPUDevice(index));
     }
     BLI_thread_local_create(g_thread_device);
     g_work_scheduler.queue.initialized = true;
@@ -398,11 +379,6 @@ static void threading_model_queue_deinitialize()
 {
   /* deinitialize CPU threads */
   if (g_work_scheduler.queue.initialized) {
-    while (!g_work_scheduler.queue.devices.is_empty()) {
-      Device *device = g_work_scheduler.queue.devices.pop_last();
-      device->deinitialize();
-      delete device;
-    }
     g_work_scheduler.queue.devices.clear_and_make_inline();
 
     BLI_thread_local_delete(g_thread_device);
