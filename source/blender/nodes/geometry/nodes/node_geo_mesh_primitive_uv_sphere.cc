@@ -85,8 +85,10 @@ static Mesh *create_uv_sphere_mesh_bmesh(const float radius, const int segments,
                transform.values,
                true);
 
+  BMeshToMeshParams params{};
+  params.calc_object_remap = false;
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me_for_eval(bm, mesh, nullptr);
+  BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
   BM_mesh_free(bm);
 
   return mesh;
