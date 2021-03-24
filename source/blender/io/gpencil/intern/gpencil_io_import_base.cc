@@ -35,8 +35,6 @@
 
 #include "gpencil_io_import_base.h"
 
-#include "pugixml.hpp"
-
 namespace blender::io::gpencil {
 
 /* Constructor. */
