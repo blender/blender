@@ -1509,6 +1509,7 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
   Sculpt *sd = data->sd;
   SculptSession *ss = data->ob->sculpt;
   PBVHNode *node = data->nodes[i];
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
 
   SculptClothSimulation *cloth_sim = ss->filter_cache->cloth_sim;
 
@@ -1524,8 +1525,12 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
   }
   mul_v3_fl(sculpt_gravity, sd->gravity_factor * data->filter_strength);
 
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[i]);
+
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
     fade = 1.0f - fade;
@@ -1559,11 +1564,16 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
         cloth_sim->length_constraint_tweak[vd.index] += fade * data->filter_strength * 0.01f;
         zero_v3(force);
         break;
-      case CLOTH_FILTER_PINCH:
-        sub_v3_v3v3(force, ss->filter_cache->cloth_sim_pinch_point, vd.co);
+      case CLOTH_FILTER_PINCH: {
+        char symm_area = SCULPT_get_vertex_symm_area(orig_data.co);
+        float pinch_point[3];
+        copy_v3_v3(pinch_point, ss->filter_cache->cloth_sim_pinch_point);
+        SCULPT_flip_v3_by_symm_area(pinch_point, symm, symm_area, ss->filter_cache->cloth_sim_pinch_point);
+        sub_v3_v3v3(force, pinch_point, vd.co);
         normalize_v3(force);
         mul_v3_fl(force, fade * data->filter_strength);
         break;
+      }
       case CLOTH_FILTER_SCALE:
         unit_m3(transform);
         scale_m3_fl(transform, 1.0f + (fade * data->filter_strength));
