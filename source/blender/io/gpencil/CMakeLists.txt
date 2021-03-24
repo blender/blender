@@ -68,7 +68,7 @@ if(WITH_PUGIXML)
     intern/gpencil_io_export_svg.h
     intern/gpencil_io_export_svg.cc
   )
-  list(APPEND INC
+  list(APPEND INC_SYS
     ${PUGIXML_INCLUDE_DIR}
   )
   list(APPEND LIB
@@ -82,7 +82,7 @@ if(WITH_HARU)
     intern/gpencil_io_export_pdf.h
     intern/gpencil_io_export_pdf.cc
   )
-  list(APPEND INC
+  list(APPEND INC_SYS
     ${HARU_INCLUDE_DIRS}
   )
   list(APPEND LIB
