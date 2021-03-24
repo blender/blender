@@ -30,21 +30,21 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
 
  public:
   GaussianBokehBlurOperation();
-  void initExecution();
-  void *initializeTileData(rcti *rect);
+  void initExecution() override;
+  void *initializeTileData(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };
 
 class GaussianBlurReferenceOperation : public BlurBaseOperation {
@@ -59,19 +59,19 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
 
  public:
   GaussianBlurReferenceOperation();
-  void initExecution();
-  void *initializeTileData(rcti *rect);
+  void initExecution() override;
+  void *initializeTileData(rcti *rect) override;
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };

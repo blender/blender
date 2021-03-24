@@ -27,5 +27,6 @@
 class TimeNode : public Node {
  public:
   TimeNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

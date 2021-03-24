@@ -201,7 +201,7 @@ static PyObject *pygpu_matrix_stack_context_enter(BPyGPU_MatrixStackContext *sel
     self->level = GPU_matrix_stack_level_get_projection();
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
   Py_RETURN_NONE;
 }
@@ -234,7 +234,7 @@ static PyObject *pygpu_matrix_stack_context_exit(BPyGPU_MatrixStackContext *self
     }
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 finally:
   Py_RETURN_NONE;

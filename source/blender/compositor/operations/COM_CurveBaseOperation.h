@@ -35,8 +35,8 @@ class CurveBaseOperation : public NodeOperation {
   /**
    * Initialize the execution
    */
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setCurveMapping(CurveMapping *mapping);
 };

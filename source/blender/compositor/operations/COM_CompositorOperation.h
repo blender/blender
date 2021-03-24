@@ -86,7 +86,7 @@ class CompositorOperation : public NodeOperation {
   {
     return this->m_active;
   }
-  void executeRegion(rcti *rect, unsigned int tileNumber);
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
   void setScene(const struct Scene *scene)
   {
     m_scene = scene;
@@ -103,17 +103,18 @@ class CompositorOperation : public NodeOperation {
   {
     this->m_rd = rd;
   }
-  bool isOutputOperation(bool /*rendering*/) const
+  bool isOutputOperation(bool /*rendering*/) const override
   {
     return this->isActiveCompositorOutput();
   }
-  void initExecution();
-  void deinitExecution();
-  CompositorPriority getRenderPriority() const
+  void initExecution() override;
+  void deinitExecution() override;
+  CompositorPriority getRenderPriority() const override
   {
     return CompositorPriority::Medium;
   }
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
   void setUseAlphaInput(bool value)
   {
     this->m_useAlphaInput = value;

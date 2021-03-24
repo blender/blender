@@ -664,7 +664,7 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       return false;
 
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 
@@ -719,7 +719,7 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
       get_path_user_ex(path, sizeof(path), "scripts", subfolder, version, check_is_dir);
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 

@@ -2298,7 +2298,7 @@ static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatch
       return target.run(C, op);
     }
   }
-  BLI_assert(false);
+  BLI_assert_unreachable();
   return OPERATOR_CANCELLED;
 }
 

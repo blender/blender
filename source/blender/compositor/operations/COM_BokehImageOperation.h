@@ -110,23 +110,24 @@ class BokehImageOperation : public NodeOperation {
   /**
    * \brief The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * \brief Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * \brief Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   /**
    * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS,
    * COM_BLUR_BOKEH_PIXELS] \param resolution: \param preferredResolution:
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   /**
    * \brief set the node data

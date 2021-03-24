@@ -65,7 +65,7 @@ ExecutionGroup::ExecutionGroup()
   this->m_executionStartTime = 0;
 }
 
-CompositorPriority ExecutionGroup::getRenderPriotrity()
+CompositorPriority ExecutionGroup::getRenderPriority()
 {
   return this->getOutputOperation()->getRenderPriority();
 }
@@ -130,9 +130,7 @@ void ExecutionGroup::initExecution()
 
   if (this->m_chunks_len != 0) {
     m_chunk_execution_states.resize(this->m_chunks_len);
-    for (int index = 0; index < this->m_chunks_len; index++) {
-      m_chunk_execution_states[index] = eChunkExecutionState::NOT_SCHEDULED;
-    }
+    m_chunk_execution_states.fill(eChunkExecutionState::NOT_SCHEDULED);
   }
 
   unsigned int max_offset = 0;
@@ -185,7 +183,6 @@ void ExecutionGroup::determineNumberOfChunks()
 
 blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() const
 {
-  int index;
   blender::Array<unsigned int> chunk_order(m_chunks_len);
   for (int chunk_index = 0; chunk_index < this->m_chunks_len; chunk_index++) {
     chunk_order[chunk_index] = chunk_index;
@@ -205,7 +202,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
 
   const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
   const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
-
+  int index;
   switch (order_type) {
     case ChunkOrdering::Random: {
       static blender::RandomNumberGenerator rng;
@@ -303,7 +300,6 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
   this->m_chunks_finished = 0;
   this->m_bTree = bTree;
-  unsigned int index;
 
   blender::Array<unsigned int> chunk_order = determine_chunk_execution_order();
 
@@ -320,7 +316,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
     finished = true;
     int numberEvaluated = 0;
 
-    for (index = startIndex; index < this->m_chunks_len && numberEvaluated < maxNumberEvaluated;
+    for (int index = startIndex;
+         index < this->m_chunks_len && numberEvaluated < maxNumberEvaluated;
          index++) {
       chunk_index = chunk_order[index];
       int yChunk = chunk_index / this->m_x_chunks_len;

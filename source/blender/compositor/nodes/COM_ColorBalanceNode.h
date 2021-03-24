@@ -27,5 +27,6 @@
 class ColorBalanceNode : public Node {
  public:
   ColorBalanceNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

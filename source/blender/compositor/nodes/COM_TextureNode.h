@@ -28,5 +28,6 @@
 class TextureNode : public Node {
  public:
   TextureNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

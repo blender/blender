@@ -128,12 +128,25 @@ template<typename T> class CacheLookupResult {
  * The data is supposed to be stored in chronological order, and is looked up using the current
  * animation time in seconds using the TimeSampling from the Alembic property. */
 template<typename T> class DataStore {
-  struct DataTimePair {
+  /* Holds information to map a cache entry for a given time to an index into the data array. */
+  struct TimeIndexPair {
+    /* Frame time for this entry. */
     double time = 0;
-    T data{};
+    /* Frame time for the data pointed to by `index`. */
+    double source_time = 0;
+    /* Index into the data array. */
+    size_t index = 0;
   };
 
-  vector<DataTimePair> data{};
+  /* This is the actual data that is stored. We deduplicate data across frames to avoid storing
+   * values if they have not changed yet (e.g. the triangles for a building before fracturing, or a
+   * fluid simulation before a break or splash) */
+  vector<T> data{};
+
+  /* This is used to map they entry for a given time to an index into the data array, multiple
+   * frames can point to the same index. */
+  vector<TimeIndexPair> index_data_map{};
+
   Alembic::AbcCoreAbstract::TimeSampling time_sampling{};
 
   double last_loaded_time = std::numeric_limits<double>::max();
@@ -157,17 +170,21 @@ template<typename T> class DataStore {
       return CacheLookupResult<T>::no_data_found_for_time();
     }
 
-    std::pair<size_t, Alembic::Abc::chrono_t> index_pair;
-    index_pair = time_sampling.getNearIndex(time, data.size());
-    DataTimePair &data_pair = data[index_pair.first];
+    const TimeIndexPair &index = get_index_for_time(time);
 
-    if (last_loaded_time == data_pair.time) {
+    if (index.index == -1ul) {
+      return CacheLookupResult<T>::no_data_found_for_time();
+    }
+
+    if (last_loaded_time == index.time || last_loaded_time == index.source_time) {
       return CacheLookupResult<T>::already_loaded();
     }
 
-    last_loaded_time = data_pair.time;
+    last_loaded_time = index.source_time;
 
-    return CacheLookupResult<T>::new_data(&data_pair.data);
+    assert(index.index < data.size());
+
+    return CacheLookupResult<T>::new_data(&data[index.index]);
   }
 
   /* get the data for the specified time, but do not check if the data was already loaded for this
@@ -178,22 +195,34 @@ template<typename T> class DataStore {
       return CacheLookupResult<T>::no_data_found_for_time();
     }
 
-    std::pair<size_t, Alembic::Abc::chrono_t> index_pair;
-    index_pair = time_sampling.getNearIndex(time, data.size());
-    DataTimePair &data_pair = data[index_pair.first];
-    return CacheLookupResult<T>::new_data(&data_pair.data);
+    const TimeIndexPair &index = get_index_for_time(time);
+
+    if (index.index == -1ul) {
+      return CacheLookupResult<T>::no_data_found_for_time();
+    }
+
+    assert(index.index < data.size());
+
+    return CacheLookupResult<T>::new_data(&data[index.index]);
   }
 
   void add_data(T &data_, double time)
   {
+    index_data_map.push_back({time, time, data.size()});
+
     if constexpr (is_array<T>::value) {
       data.emplace_back();
-      data.back().data.steal_data(data_);
-      data.back().time = time;
+      data.back().steal_data(data_);
       return;
     }
 
-    data.push_back({time, data_});
+    data.push_back(data_);
+  }
+
+  void reuse_data_for_last_time(double time)
+  {
+    const TimeIndexPair &data_index = index_data_map.back();
+    index_data_map.push_back({time, data_index.source_time, data_index.index});
   }
 
   bool is_constant() const
@@ -231,6 +260,14 @@ template<typename T> class DataStore {
      * arrays to avoid reloading the data */
     T value = result.get_data();
     node->set(*socket, value);
+  }
+
+ private:
+  const TimeIndexPair &get_index_for_time(double time) const
+  {
+    std::pair<size_t, Alembic::Abc::chrono_t> index_pair;
+    index_pair = time_sampling.getNearIndex(time, index_data_map.size());
+    return index_data_map[index_pair.first];
   }
 };
 

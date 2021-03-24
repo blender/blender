@@ -49,7 +49,8 @@ class TrackPositionOperation : public NodeOperation {
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
  public:
   TrackPositionOperation();
@@ -87,11 +88,11 @@ class TrackPositionOperation : public NodeOperation {
     this->m_speed_output = speed_output;
   }
 
-  void initExecution();
+  void initExecution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  bool isSetOperation() const
+  bool isSetOperation() const override
   {
     return true;
   }

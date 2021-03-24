@@ -36,7 +36,7 @@ class CalculateStandardDeviationOperation : public CalculateMeanOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 };

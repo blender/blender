@@ -936,7 +936,7 @@ static void update_velocities(FluidEffectorSettings *fes,
     }
     else {
       /* Should never reach this block. */
-      BLI_assert(false);
+      BLI_assert_unreachable();
     }
   }
   else {

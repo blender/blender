@@ -21,6 +21,7 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h> /* printf */
 #include <stdlib.h>
 #include <string.h> /* memcpy */
 #include <sys/types.h>

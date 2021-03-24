@@ -27,5 +27,6 @@
 class ValueNode : public Node {
  public:
   ValueNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

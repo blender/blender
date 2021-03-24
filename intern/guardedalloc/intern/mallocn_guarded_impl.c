@@ -25,6 +25,7 @@
 
 #include <stdarg.h>
 #include <stddef.h> /* offsetof */
+#include <stdio.h>  /* printf */
 #include <stdlib.h>
 #include <string.h> /* memcpy */
 #include <sys/types.h>

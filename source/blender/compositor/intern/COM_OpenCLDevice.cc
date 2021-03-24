@@ -43,16 +43,12 @@ OpenCLDevice::OpenCLDevice(cl_context context,
   this->m_program = program;
   this->m_queue = nullptr;
   this->m_vendorID = vendorId;
-}
 
-bool OpenCLDevice::initialize()
-{
   cl_int error;
   this->m_queue = clCreateCommandQueue(this->m_context, this->m_device, 0, &error);
-  return false;
 }
 
-void OpenCLDevice::deinitialize()
+OpenCLDevice::~OpenCLDevice()
 {
   if (this->m_queue) {
     clReleaseCommandQueue(this->m_queue);

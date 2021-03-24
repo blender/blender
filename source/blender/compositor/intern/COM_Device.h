@@ -37,21 +37,6 @@ class Device {
   }
 
   /**
-   * \brief initialize the device
-   */
-  virtual bool initialize()
-  {
-    return true;
-  }
-
-  /**
-   * \brief deinitialize the device
-   */
-  virtual void deinitialize()
-  {
-  }
-
-  /**
    * \brief execute a WorkPackage
    * \param work: the WorkPackage to execute
    */

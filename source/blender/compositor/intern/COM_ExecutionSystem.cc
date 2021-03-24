@@ -71,7 +71,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     builder.convertToOperations(this);
   }
 
-  unsigned int index;
   unsigned int resolution[2];
 
   rctf *viewer_border = &editingtree->viewer_border;
@@ -81,10 +80,9 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
 
   editingtree->stats_draw(editingtree->sdh, TIP_("Compositing | Determining resolution"));
 
-  for (index = 0; index < this->m_groups.size(); index++) {
+  for (ExecutionGroup *executionGroup : m_groups) {
     resolution[0] = 0;
     resolution[1] = 0;
-    ExecutionGroup *executionGroup = this->m_groups[index];
     executionGroup->determineResolution(resolution);
 
     if (rendering) {
@@ -108,14 +106,12 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
 
 ExecutionSystem::~ExecutionSystem()
 {
-  unsigned int index;
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+  for (NodeOperation *operation : m_operations) {
     delete operation;
   }
   this->m_operations.clear();
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *group = this->m_groups[index];
+
+  for (ExecutionGroup *group : m_groups) {
     delete group;
   }
   this->m_groups.clear();
@@ -128,92 +124,98 @@ void ExecutionSystem::set_operations(const blender::Vector<NodeOperation *> &ope
   m_groups = groups;
 }
 
-void ExecutionSystem::execute()
+static void update_read_buffer_offset(blender::Vector<NodeOperation *> &operations)
 {
-  const bNodeTree *editingtree = this->m_context.getbNodeTree();
-  editingtree->stats_draw(editingtree->sdh, TIP_("Compositing | Initializing execution"));
-
-  DebugInfo::execute_started(this);
-
   unsigned int order = 0;
-  for (NodeOperation *operation : m_operations) {
+  for (NodeOperation *operation : operations) {
     if (operation->isReadBufferOperation()) {
       ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
       readOperation->setOffset(order);
       order++;
     }
   }
-  unsigned int index;
+}
 
-  // First allocale all write buffer
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+static void init_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+                                                const bNodeTree *bTree)
+{
+  for (NodeOperation *operation : operations) {
     if (operation->isWriteBufferOperation()) {
-      operation->setbNodeTree(this->m_context.getbNodeTree());
+      operation->setbNodeTree(bTree);
       operation->initExecution();
     }
   }
-  // Connect read buffers to their write buffers
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+}
+
+static void link_write_buffers(blender::Vector<NodeOperation *> &operations)
+{
+  for (NodeOperation *operation : operations) {
     if (operation->isReadBufferOperation()) {
-      ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
+      ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
       readOperation->updateMemoryBuffer();
     }
   }
-  // initialize other operations
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+}
+
+static void init_non_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+                                                    const bNodeTree *bTree)
+{
+  for (NodeOperation *operation : operations) {
     if (!operation->isWriteBufferOperation()) {
-      operation->setbNodeTree(this->m_context.getbNodeTree());
+      operation->setbNodeTree(bTree);
       operation->initExecution();
     }
   }
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *executionGroup = this->m_groups[index];
-    executionGroup->setChunksize(this->m_context.getChunksize());
-    executionGroup->initExecution();
+}
+
+static void init_execution_groups_for_execution(blender::Vector<ExecutionGroup *> &groups,
+                                                const int chunk_size)
+{
+  for (ExecutionGroup *execution_group : groups) {
+    execution_group->setChunksize(chunk_size);
+    execution_group->initExecution();
   }
+}
+
+void ExecutionSystem::execute()
+{
+  const bNodeTree *editingtree = this->m_context.getbNodeTree();
+  editingtree->stats_draw(editingtree->sdh, TIP_("Compositing | Initializing execution"));
+
+  DebugInfo::execute_started(this);
+  update_read_buffer_offset(m_operations);
+
+  init_write_operations_for_execution(m_operations, m_context.getbNodeTree());
+  link_write_buffers(m_operations);
+  init_non_write_operations_for_execution(m_operations, m_context.getbNodeTree());
+  init_execution_groups_for_execution(m_groups, m_context.getChunksize());
 
   WorkScheduler::start(this->m_context);
-
   execute_groups(CompositorPriority::High);
   if (!this->getContext().isFastCalculation()) {
     execute_groups(CompositorPriority::Medium);
     execute_groups(CompositorPriority::Low);
   }
-
   WorkScheduler::finish();
   WorkScheduler::stop();
 
   editingtree->stats_draw(editingtree->sdh, TIP_("Compositing | De-initializing execution"));
-  for (index = 0; index < this->m_operations.size(); index++) {
-    NodeOperation *operation = this->m_operations[index];
+
+  for (NodeOperation *operation : m_operations) {
     operation->deinitExecution();
   }
-  for (index = 0; index < this->m_groups.size(); index++) {
-    ExecutionGroup *executionGroup = this->m_groups[index];
-    executionGroup->deinitExecution();
+
+  for (ExecutionGroup *execution_group : m_groups) {
+    execution_group->deinitExecution();
   }
 }
 
 void ExecutionSystem::execute_groups(CompositorPriority priority)
 {
-  blender::Vector<ExecutionGroup *> execution_groups = find_output_execution_groups(priority);
-  for (ExecutionGroup *group : execution_groups) {
-    group->execute(this);
-  }
-}
-
-blender::Vector<ExecutionGroup *> ExecutionSystem::find_output_execution_groups(
-    CompositorPriority priority) const
-{
-  blender::Vector<ExecutionGroup *> result;
-
-  for (ExecutionGroup *group : m_groups) {
-    if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
-      result.append(group);
+  for (ExecutionGroup *execution_group : m_groups) {
+    if (execution_group->isOutputExecutionGroup() &&
+        execution_group->getRenderPriority() == priority) {
+      execution_group->execute(this);
     }
   }
-  return result;
 }

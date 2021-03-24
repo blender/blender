@@ -27,5 +27,6 @@
 class DenoiseNode : public Node {
  public:
   DenoiseNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

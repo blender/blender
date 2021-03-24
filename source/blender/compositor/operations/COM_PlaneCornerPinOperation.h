@@ -34,12 +34,13 @@ class PlaneCornerPinMaskOperation : public PlaneDistortMaskOperation {
  public:
   PlaneCornerPinMaskOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 };
 
 class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
@@ -49,12 +50,12 @@ class PlaneCornerPinWarpImageOperation : public PlaneDistortWarpImageOperation {
  public:
   PlaneCornerPinWarpImageOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };

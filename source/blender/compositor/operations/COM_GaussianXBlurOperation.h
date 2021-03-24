@@ -36,29 +36,29 @@ class GaussianXBlurOperation : public BlurBaseOperation {
   /**
    * \brief The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   void executeOpenCL(OpenCLDevice *device,
                      MemoryBuffer *outputMemoryBuffer,
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
                      std::list<cl_mem> *clMemToCleanUp,
-                     std::list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_kernel> *clKernelsToCleanUp) override;
 
   /**
    * \brief initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * \brief Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   void checkOpenCL()
   {

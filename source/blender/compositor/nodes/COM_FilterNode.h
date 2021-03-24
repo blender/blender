@@ -27,5 +27,6 @@
 class FilterNode : public Node {
  public:
   FilterNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

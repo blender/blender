@@ -38,24 +38,24 @@ class MapUVOperation : public NodeOperation {
    */
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void pixelTransform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setAlpha(float alpha)
   {

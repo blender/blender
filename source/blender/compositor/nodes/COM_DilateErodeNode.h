@@ -30,5 +30,6 @@ class DilateErodeNode : public Node {
 
  public:
   DilateErodeNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

@@ -763,19 +763,53 @@ typedef enum IDRecalcFlag {
  * See e.g. how #BKE_library_unused_linked_data_set_tag is doing this.
  */
 enum {
+  /* Special case: Library, should never ever depend on any other type. */
   INDEX_ID_LI = 0,
-  INDEX_ID_IP,
+
+  /* Animation types, might be used by almost all other types. */
+  INDEX_ID_IP, /* Deprecated. */
   INDEX_ID_AC,
-  INDEX_ID_KE,
-  INDEX_ID_PAL,
+
+  /* Grease Pencil, special case, should be with the other obdata, but it can also be used by many
+   * other ID types, including node trees e.g.
+   * So there is no proper place for those, for now keep close to the lower end of the processing
+   * hierarchy, but we may want to re-evaluate that at some point. */
   INDEX_ID_GD,
+
+  /* Node trees, abstraction for procedural data, potentially used by many other ID types.
+   *
+   * NOTE: While node trees can also use many other ID types, they should not /own/ any of those,
+   * while they are being owned by many other ID types. This is why they are placed here. */
   INDEX_ID_NT,
+
+  /* File-wrapper types, those usually 'embed' external files in Blender, with no dependencies to
+   * other ID types. */
+  INDEX_ID_VF,
+  INDEX_ID_TXT,
+  INDEX_ID_SO,
+
+  /* Image/movie types, can be used by shading ID types, but also directly by Objects, Scenes, etc.
+   */
+  INDEX_ID_MSK,
   INDEX_ID_IM,
+  INDEX_ID_MC,
+
+  /* Shading types. */
   INDEX_ID_TE,
   INDEX_ID_MA,
-  INDEX_ID_VF,
-  INDEX_ID_AR,
+  INDEX_ID_LS,
+  INDEX_ID_WO,
+
+  /* Simulation-related types. */
   INDEX_ID_CF,
+  INDEX_ID_SIM,
+  INDEX_ID_PA,
+
+  /* Shape Keys snow-flake, can be used by several obdata types. */
+  INDEX_ID_KE,
+
+  /* Object data types. */
+  INDEX_ID_AR,
   INDEX_ID_ME,
   INDEX_ID_CU,
   INDEX_ID_MB,
@@ -785,26 +819,28 @@ enum {
   INDEX_ID_LT,
   INDEX_ID_LA,
   INDEX_ID_CA,
-  INDEX_ID_TXT,
-  INDEX_ID_SO,
-  INDEX_ID_GR,
-  INDEX_ID_PC,
-  INDEX_ID_BR,
-  INDEX_ID_PA,
   INDEX_ID_SPK,
   INDEX_ID_LP,
-  INDEX_ID_WO,
-  INDEX_ID_MC,
-  INDEX_ID_SCR,
+
+  /* Collection and object types. */
   INDEX_ID_OB,
-  INDEX_ID_LS,
+  INDEX_ID_GR,
+
+  /* Preset-like, not-really-data types, can use many other ID types but should never be used by
+   * any actual data type (besides Scene, due to tool settings). */
+  INDEX_ID_PAL,
+  INDEX_ID_PC,
+  INDEX_ID_BR,
+
+  /* Scene, after preset-like ID types because of tool settings. */
   INDEX_ID_SCE,
+
+  /* UI-related types, should never be used by any other data type. */
+  INDEX_ID_SCR,
   INDEX_ID_WS,
   INDEX_ID_WM,
-  /* TODO: This should probably be tweaked, #Mask and #Simulation are rather low-level types that
-   * should most likely be defined //before// #Object and geometry type indices? */
-  INDEX_ID_MSK,
-  INDEX_ID_SIM,
+
+  /* Special values. */
   INDEX_ID_NULL,
   INDEX_ID_MAX,
 };

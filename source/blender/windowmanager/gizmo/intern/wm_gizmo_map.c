@@ -941,7 +941,7 @@ bool WM_gizmomap_select_all(bContext *C, wmGizmoMap *gzmap, const int action)
       changed = wm_gizmomap_deselect_all(gzmap);
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 

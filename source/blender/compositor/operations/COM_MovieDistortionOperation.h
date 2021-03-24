@@ -40,10 +40,10 @@ class MovieDistortionOperation : public NodeOperation {
 
  public:
   MovieDistortionOperation(bool distortion);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setMovieClip(MovieClip *clip)
   {
@@ -55,5 +55,5 @@ class MovieDistortionOperation : public NodeOperation {
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };

@@ -27,5 +27,6 @@
 class BoxMaskNode : public Node {
  public:
   BoxMaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

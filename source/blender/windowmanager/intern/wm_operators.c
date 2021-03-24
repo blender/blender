@@ -1229,7 +1229,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
       id = (ID *)BKE_image_load_exists_ex(bmain, path, &exists);
     }
     else {
-      BLI_assert(0);
+      BLI_assert_unreachable();
     }
 
     if (!id) {
@@ -1248,7 +1248,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
           BLI_path_rel(((Image *)id)->filepath, BKE_main_blendfile_path(bmain));
         }
         else {
-          BLI_assert(0);
+          BLI_assert_unreachable();
         }
       }
     }
@@ -1687,7 +1687,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
     UI_but_func_menu_search(but);
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);

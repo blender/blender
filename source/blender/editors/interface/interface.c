@@ -1816,6 +1816,29 @@ static void ui_but_validate(const uiBut *but)
 }
 #endif
 
+/**
+ * Check if the operator \a ot poll is successfull with the context given by \a but (optionally).
+ * \param but: The button that might store context. Can be NULL for convenience (e.g. if there is
+ *             no button to take context from, but we still want to poll the operator).
+ */
+bool ui_but_context_poll_operator(bContext *C, wmOperatorType *ot, const uiBut *but)
+{
+  bool result;
+  int opcontext = but ? but->opcontext : WM_OP_INVOKE_DEFAULT;
+
+  if (but && but->context) {
+    CTX_store_set(C, but->context);
+  }
+
+  result = WM_operator_poll_context(C, ot, opcontext);
+
+  if (but && but->context) {
+    CTX_store_set(C, NULL);
+  }
+
+  return result;
+}
+
 void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2])
 {
   wmWindow *window = CTX_wm_window(C);
@@ -1841,16 +1864,8 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
     if (but->optype) {
       wmOperatorType *ot = but->optype;
 
-      if (but->context) {
-        CTX_store_set((bContext *)C, but->context);
-      }
-
-      if (ot == NULL || WM_operator_poll_context((bContext *)C, ot, but->opcontext) == 0) {
+      if (ot == NULL || !ui_but_context_poll_operator((bContext *)C, ot, but)) {
         but->flag |= UI_BUT_DISABLED;
-      }
-
-      if (but->context) {
-        CTX_store_set((bContext *)C, NULL);
       }
     }
 

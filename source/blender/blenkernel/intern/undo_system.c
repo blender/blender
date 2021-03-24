@@ -20,6 +20,7 @@
  * Used by ED_undo.h, internal implementation.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include "CLG_log.h"

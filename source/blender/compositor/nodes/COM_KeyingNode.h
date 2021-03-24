@@ -55,5 +55,6 @@ class KeyingNode : public Node {
 
  public:
   KeyingNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

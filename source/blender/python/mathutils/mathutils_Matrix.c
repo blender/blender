@@ -1049,7 +1049,8 @@ static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const ushort 
       break;
     }
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -1159,7 +1160,7 @@ static void matrix_invert_safe_internal(const MatrixObject *self, float *r_mat)
         break;
       }
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
     }
   }
 

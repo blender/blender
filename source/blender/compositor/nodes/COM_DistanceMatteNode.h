@@ -27,5 +27,6 @@
 class DistanceMatteNode : public Node {
  public:
   DistanceMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

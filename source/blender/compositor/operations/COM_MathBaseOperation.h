@@ -45,24 +45,20 @@ class MathBaseOperation : public NodeOperation {
 
  public:
   /**
-   * The inner loop of this operation.
-   */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) = 0;
-
-  /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   /**
    * Determine resolution
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   void setUseClamp(bool value)
   {
@@ -75,49 +71,49 @@ class MathAddOperation : public MathBaseOperation {
   MathAddOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathSubtractOperation : public MathBaseOperation {
  public:
   MathSubtractOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathMultiplyOperation : public MathBaseOperation {
  public:
   MathMultiplyOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathDivideOperation : public MathBaseOperation {
  public:
   MathDivideOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathSineOperation : public MathBaseOperation {
  public:
   MathSineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathCosineOperation : public MathBaseOperation {
  public:
   MathCosineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathTangentOperation : public MathBaseOperation {
  public:
   MathTangentOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathHyperbolicSineOperation : public MathBaseOperation {
@@ -125,21 +121,21 @@ class MathHyperbolicSineOperation : public MathBaseOperation {
   MathHyperbolicSineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathHyperbolicCosineOperation : public MathBaseOperation {
  public:
   MathHyperbolicCosineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathHyperbolicTangentOperation : public MathBaseOperation {
  public:
   MathHyperbolicTangentOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathArcSineOperation : public MathBaseOperation {
@@ -147,70 +143,70 @@ class MathArcSineOperation : public MathBaseOperation {
   MathArcSineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathArcCosineOperation : public MathBaseOperation {
  public:
   MathArcCosineOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathArcTangentOperation : public MathBaseOperation {
  public:
   MathArcTangentOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathPowerOperation : public MathBaseOperation {
  public:
   MathPowerOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathLogarithmOperation : public MathBaseOperation {
  public:
   MathLogarithmOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathMinimumOperation : public MathBaseOperation {
  public:
   MathMinimumOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathMaximumOperation : public MathBaseOperation {
  public:
   MathMaximumOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathRoundOperation : public MathBaseOperation {
  public:
   MathRoundOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathLessThanOperation : public MathBaseOperation {
  public:
   MathLessThanOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 class MathGreaterThanOperation : public MathBaseOperation {
  public:
   MathGreaterThanOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathModuloOperation : public MathBaseOperation {
@@ -218,7 +214,7 @@ class MathModuloOperation : public MathBaseOperation {
   MathModuloOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathAbsoluteOperation : public MathBaseOperation {
@@ -226,7 +222,7 @@ class MathAbsoluteOperation : public MathBaseOperation {
   MathAbsoluteOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathRadiansOperation : public MathBaseOperation {
@@ -234,7 +230,7 @@ class MathRadiansOperation : public MathBaseOperation {
   MathRadiansOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathDegreesOperation : public MathBaseOperation {
@@ -242,7 +238,7 @@ class MathDegreesOperation : public MathBaseOperation {
   MathDegreesOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathArcTan2Operation : public MathBaseOperation {
@@ -250,7 +246,7 @@ class MathArcTan2Operation : public MathBaseOperation {
   MathArcTan2Operation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathFloorOperation : public MathBaseOperation {
@@ -258,7 +254,7 @@ class MathFloorOperation : public MathBaseOperation {
   MathFloorOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathCeilOperation : public MathBaseOperation {
@@ -266,7 +262,7 @@ class MathCeilOperation : public MathBaseOperation {
   MathCeilOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathFractOperation : public MathBaseOperation {
@@ -274,7 +270,7 @@ class MathFractOperation : public MathBaseOperation {
   MathFractOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathSqrtOperation : public MathBaseOperation {
@@ -282,7 +278,7 @@ class MathSqrtOperation : public MathBaseOperation {
   MathSqrtOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathInverseSqrtOperation : public MathBaseOperation {
@@ -290,7 +286,7 @@ class MathInverseSqrtOperation : public MathBaseOperation {
   MathInverseSqrtOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathSignOperation : public MathBaseOperation {
@@ -298,7 +294,7 @@ class MathSignOperation : public MathBaseOperation {
   MathSignOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathExponentOperation : public MathBaseOperation {
@@ -306,7 +302,7 @@ class MathExponentOperation : public MathBaseOperation {
   MathExponentOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathTruncOperation : public MathBaseOperation {
@@ -314,7 +310,7 @@ class MathTruncOperation : public MathBaseOperation {
   MathTruncOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathSnapOperation : public MathBaseOperation {
@@ -322,7 +318,7 @@ class MathSnapOperation : public MathBaseOperation {
   MathSnapOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathWrapOperation : public MathBaseOperation {
@@ -330,7 +326,7 @@ class MathWrapOperation : public MathBaseOperation {
   MathWrapOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathPingpongOperation : public MathBaseOperation {
@@ -338,7 +334,7 @@ class MathPingpongOperation : public MathBaseOperation {
   MathPingpongOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathCompareOperation : public MathBaseOperation {
@@ -346,7 +342,7 @@ class MathCompareOperation : public MathBaseOperation {
   MathCompareOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathMultiplyAddOperation : public MathBaseOperation {
@@ -354,7 +350,7 @@ class MathMultiplyAddOperation : public MathBaseOperation {
   MathMultiplyAddOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathSmoothMinOperation : public MathBaseOperation {
@@ -362,7 +358,7 @@ class MathSmoothMinOperation : public MathBaseOperation {
   MathSmoothMinOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MathSmoothMaxOperation : public MathBaseOperation {
@@ -370,5 +366,5 @@ class MathSmoothMaxOperation : public MathBaseOperation {
   MathSmoothMaxOperation() : MathBaseOperation()
   {
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };

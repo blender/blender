@@ -27,5 +27,6 @@
 class DisplaceNode : public Node {
  public:
   DisplaceNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };

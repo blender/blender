@@ -472,6 +472,8 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   snode_notify(C, snode);
   snode_dag_update(C, snode);
 
+  ED_node_tag_update_nodetree(bmain, ntree, object_node);
+
   return OPERATOR_FINISHED;
 }
 
@@ -496,7 +498,8 @@ static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 static bool node_add_object_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
+         !UI_but_active_drop_name(C);
 }
 
 void NODE_OT_add_object(wmOperatorType *ot)
@@ -568,6 +571,8 @@ static int node_add_texture_exec(bContext *C, wmOperator *op)
   snode_notify(C, snode);
   snode_dag_update(C, snode);
 
+  ED_node_tag_update_nodetree(bmain, ntree, texture_node);
+
   return OPERATOR_FINISHED;
 }
 
@@ -592,7 +597,8 @@ static int node_add_texture_invoke(bContext *C, wmOperator *op, const wmEvent *e
 static bool node_add_texture_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
+         !UI_but_active_drop_name(C);
 }
 
 void NODE_OT_add_texture(wmOperatorType *ot)
@@ -670,6 +676,8 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   snode_notify(C, snode);
   snode_dag_update(C, snode);
 
+  ED_node_tag_update_nodetree(bmain, ntree, collection_node);
+
   return OPERATOR_FINISHED;
 }
 
@@ -694,7 +702,8 @@ static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent
 static bool node_add_collection_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
+         !UI_but_active_drop_name(C);
 }
 
 void NODE_OT_add_collection(wmOperatorType *ot)

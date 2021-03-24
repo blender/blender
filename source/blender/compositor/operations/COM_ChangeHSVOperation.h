@@ -37,11 +37,11 @@ class ChangeHSVOperation : public NodeOperation {
    */
   ChangeHSVOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };

@@ -48,11 +48,12 @@ class ViewerOperation : public NodeOperation {
 
  public:
   ViewerOperation();
-  void initExecution();
-  void deinitExecution();
-  void executeRegion(rcti *rect, unsigned int tileNumber);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-  bool isOutputOperation(bool /*rendering*/) const
+  void initExecution() override;
+  void deinitExecution() override;
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
+  bool isOutputOperation(bool /*rendering*/) const override
   {
     if (G.background) {
       return false;
@@ -67,7 +68,7 @@ class ViewerOperation : public NodeOperation {
   {
     this->m_imageUser = imageUser;
   }
-  bool isActiveViewerOutput() const
+  bool isActiveViewerOutput() const override
   {
     return this->m_active;
   }
@@ -99,8 +100,8 @@ class ViewerOperation : public NodeOperation {
   {
     return this->m_chunkOrder;
   }
-  CompositorPriority getRenderPriority() const;
-  bool isViewerOperation() const
+  CompositorPriority getRenderPriority() const override;
+  bool isViewerOperation() const override
   {
     return true;
   }
