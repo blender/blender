@@ -135,12 +135,6 @@ class ExecutionSystem {
   blender::Vector<ExecutionGroup *> m_groups;
 
  private:  // methods
-  /**
-   * find all execution group with output nodes
-   */
-  blender::Vector<ExecutionGroup *> find_output_execution_groups(
-      CompositorPriority priority) const;
-
  public:
   /**
    * \brief Create a new ExecutionSystem and initialize it with the
