@@ -777,7 +777,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
  * \{ */
 
 /* Output a BMVert into a VertexBufferFormat array at v_index. */
-__attribute__((optnone)) static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
+static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           GPUVertBuf *vert_buf,
                                           int v_index,
                                           const float fno[3],

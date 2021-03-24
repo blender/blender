@@ -1078,7 +1078,7 @@ static bool pixel_bounds_uv(const float uv_quad[4][2],
 }
 #endif
 
-__attribute__((optnone)) static bool pixel_bounds_array(
+static bool pixel_bounds_array(
     float (*in_uv)[2], rcti *bounds_px, const int ibuf_x, const int ibuf_y, int tot)
 {
   /* UV bounds */

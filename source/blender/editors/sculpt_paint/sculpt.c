@@ -1039,6 +1039,16 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
 
+#if 1 //note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
+  BMEdge *e;
+  BM_ITER_ELEM (e, &liter, v, BM_EDGES_OF_VERT) {
+    BMVert *v_other = BM_edge_other_vert(e, v);
+
+    sculpt_vertex_neighbor_add(
+        iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
+  }
+#else
+
   BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
     const BMVert *adj_v[2] = {l->prev->v, l->next->v};
     for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
@@ -1050,6 +1060,7 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
       }
     }
   }
+#endif
 }
 
 static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
@@ -1165,7 +1176,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vert
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
-      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert*)(vertex.i)));
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, ((BMVert *)(vertex.i)));
       return mv->flag & DYNVERT_BOUNDARY;
     }
     case PBVH_FACES: {
@@ -4414,8 +4425,9 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   BLI_task_parallel_range(0, totnode, &data, do_grab_brush_task_cb_ex, &settings);
 }
 
-__attribute__((optnone)) static void do_elastic_deform_brush_task_cb_ex(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
+                                               const int n,
+                                               const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -6223,18 +6235,19 @@ static void sculpt_topology_update(Sculpt *sd,
   bool modified;
 
   /* do nodes under the brush cursor */
-  modified = BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
-                                       SCULPT_search_sphere_cb,
-                                       topology_undopush_cb,
-                                       &sdata,
-                                       mode,
-                                       ss->cache->location,
-                                       ss->cache->view_normal,
-                                       ss->cache->radius,
-                                       (brush->flag & BRUSH_FRONTFACE) != 0,
-                                       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
-                                       symidx,
-                                       brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
+  modified = BKE_pbvh_bmesh_update_topology_nodes(
+      ss->pbvh,
+      SCULPT_search_sphere_cb,
+      topology_undopush_cb,
+      &sdata,
+      mode,
+      ss->cache->location,
+      ss->cache->view_normal,
+      ss->cache->radius,
+      (brush->flag & BRUSH_FRONTFACE) != 0,
+      (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
+      symidx,
+      brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -9548,7 +9561,7 @@ void SCULPT_boundary_info_ensure(Object *object)
 
     MEM_SAFE_FREE(ss->vertex_info.boundary);
 
-    //return; //XXX
+    // return; //XXX
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {

@@ -2680,7 +2680,54 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
   return hit;
 }
 
+typedef struct UpdateNormalsTaskData {
+  PBVHNode **nodes;
+  int totnode;
+} UpdateNormalsTaskData;
+
+static void pbvh_update_normals_task_cb(void *__restrict userdata,
+                                        const int n,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  BMVert *v;
+  BMFace *f;
+  UpdateNormalsTaskData *data = (UpdateNormalsTaskData*) userdata;
+  PBVHNode *node = data->nodes[n];
+
+  TGSET_ITER (f, node->bm_faces) {
+    BM_face_normal_update(f);
+  }
+  TGSET_ITER_END
+
+  TGSET_ITER (v, node->bm_unique_verts) {
+    BM_vert_normal_update(v);
+  }
+  TGSET_ITER_END
+
+  node->flag &= ~PBVH_UpdateNormals;
+}
+
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
+{
+  TaskParallelSettings settings;
+  UpdateNormalsTaskData data = {nodes, totnode};
+
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_task_cb, &settings);
+
+#if 0 //in theory we shouldn't need to update normals in bm_other_verts.
+  for (int i=0; i<totnode; i++) {
+    PBVHNode *node = nodes[i];
+
+    TGSET_ITER (v, node->bm_other_verts) {
+      BM_vert_normal_update(v);
+    }
+    TGSET_ITER_END
+  }
+#endif
+}
+
+void pbvh_bmesh_normals_update_old(PBVHNode **nodes, int totnode)
 {
   for (int n = 0; n < totnode; n++) {
     PBVHNode *node = nodes[n];
