@@ -432,9 +432,11 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
 {
   using namespace blender;
 
+  const StringRef query_str = query;
+
   LinearAllocator<> allocator;
   Vector<StringRef, 64> query_words;
-  string_search::extract_normalized_words(query, allocator, query_words);
+  string_search::extract_normalized_words(query_str, allocator, query_words);
 
   /* Compute score of every result. */
   MultiValueMap<int, int> result_indices_by_score;
@@ -457,7 +459,7 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
   Vector<int> sorted_result_indices;
   for (const int score : found_scores) {
     MutableSpan<int> indices = result_indices_by_score.lookup(score);
-    if (score == found_scores[0]) {
+    if (score == found_scores[0] && !query_str.is_empty()) {
       /* Sort items with best score by length. Shorter items are more likely the ones you are
        * looking for. This also ensures that exact matches will be at the top, even if the query is
        * a substring of another item. */
