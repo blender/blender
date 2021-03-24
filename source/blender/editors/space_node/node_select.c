@@ -568,11 +568,19 @@ static int node_mouse_select(bContext *C,
       }
     }
     else if (deselect_all && node == NULL) {
-      /* Deselect in empty space. */
-      for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
-        nodeSetSelected(tnode, false);
+      /* Rather than deselecting others, users may want to drag to box-select (drag from empty
+       * space) or tweak-translate an already selected item. If these cases may apply, delay
+       * deselection. */
+      if (wait_to_deselect_others) {
+        ret_value = OPERATOR_RUNNING_MODAL;
       }
-      ret_value = OPERATOR_FINISHED;
+      else {
+        /* Deselect in empty space. */
+        for (tnode = snode->edittree->nodes.first; tnode; tnode = tnode->next) {
+          nodeSetSelected(tnode, false);
+        }
+        ret_value = OPERATOR_FINISHED;
+      }
     }
     else if (node != NULL) {
       /* When clicking on an already selected node, we want to wait to deselect
