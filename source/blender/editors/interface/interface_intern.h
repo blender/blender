@@ -647,6 +647,8 @@ extern bool ui_but_menu_draw_as_popover(const uiBut *but);
 void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
+bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
 extern bool ui_but_is_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
