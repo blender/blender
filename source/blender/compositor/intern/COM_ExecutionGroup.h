@@ -424,7 +424,7 @@ class ExecutionGroup {
    * \brief get the Render priority of this ExecutionGroup
    * \see ExecutionSystem.execute
    */
-  CompositorPriority getRenderPriotrity();
+  CompositorPriority getRenderPriority();
 
   /**
    * \brief set border for viewer operation

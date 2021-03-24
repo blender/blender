@@ -65,7 +65,7 @@ ExecutionGroup::ExecutionGroup()
   this->m_executionStartTime = 0;
 }
 
-CompositorPriority ExecutionGroup::getRenderPriotrity()
+CompositorPriority ExecutionGroup::getRenderPriority()
 {
   return this->getOutputOperation()->getRenderPriority();
 }
