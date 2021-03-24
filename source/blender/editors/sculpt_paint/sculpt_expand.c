@@ -705,9 +705,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const int v)
   return dists;
 }
 
-
 /**
- * Poly Loop: 
+ * Poly Loop:
  */
 static float *sculpt_expand_poly_loop_falloff_create(Object *ob, const int v)
 {
@@ -717,7 +716,7 @@ static float *sculpt_expand_poly_loop_falloff_create(Object *ob, const int v)
   BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(totvert, "visited vertices");
   GSQueue *queue = BLI_gsqueue_new(sizeof(int));
 
- printf("POLY LOOP FALLOFF\n");
+  printf("POLY LOOP FALLOFF\n");
 
   /* Search and initialize a boundary per symmetry pass, then mark those vertices as visited. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1808,19 +1807,19 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         break;
       }
       case SCULPT_EXPAND_MODAL_SNAP_ENABLE: {
-          expand_cache->snap = true;
-          if (!expand_cache->snap_enabled_face_sets) {
-            expand_cache->snap_enabled_face_sets = BLI_gset_int_new("snap face sets");
-          }
-          sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
+        expand_cache->snap = true;
+        if (!expand_cache->snap_enabled_face_sets) {
+          expand_cache->snap_enabled_face_sets = BLI_gset_int_new("snap face sets");
+        }
+        sculpt_expand_snap_initialize_from_enabled(ss, expand_cache);
       } break;
       case SCULPT_EXPAND_MODAL_SNAP_DISABLE: {
-          expand_cache->snap = false;
-          if (expand_cache->snap_enabled_face_sets) {
-            BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
-            expand_cache->snap_enabled_face_sets = NULL;
-          }
-      }break;
+        expand_cache->snap = false;
+        if (expand_cache->snap_enabled_face_sets) {
+          BLI_gset_free(expand_cache->snap_enabled_face_sets, NULL);
+          expand_cache->snap_enabled_face_sets = NULL;
+        }
+      } break;
       case SCULPT_EXPAND_MODAL_MOVE_TOGGLE: {
         if (expand_cache->move) {
           expand_cache->move = false;
@@ -2192,7 +2191,11 @@ void sculpt_expand_modal_keymap(wmKeyConfig *keyconf)
        ""},
       {SCULPT_EXPAND_MODAL_FALLOFF_SPHERICAL, "FALLOFF_SPHERICAL", 0, "Spherical Falloff", ""},
       {SCULPT_EXPAND_MODAL_SNAP_ENABLE, "SNAP_ENABLE", 0, "Snap expand to Face Sets", ""},
-      {SCULPT_EXPAND_MODAL_SNAP_DISABLE, "SNAP_DISABLE", 0, "Disable Snap expand to Face Sets", ""},
+      {SCULPT_EXPAND_MODAL_SNAP_DISABLE,
+       "SNAP_DISABLE",
+       0,
+       "Disable Snap expand to Face Sets",
+       ""},
       {SCULPT_EXPAND_MODAL_LOOP_COUNT_INCREASE,
        "LOOP_COUNT_INCREASE",
        0,

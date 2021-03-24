@@ -1446,11 +1446,18 @@ typedef enum eSculpClothFilterPinchOriginType {
 } eSculptClothFilterPinchOriginType;
 
 static EnumPropertyItem prop_cloth_filter_pinch_origin_type[] = {
-    {CLOTH_FILTER_PINCH_ORIGIN_CURSOR, "CURSOR", 0, "Cursor", "Pinches to the location of the cursor"},
-    {CLOTH_FILTER_PINCH_ORIGIN_FACE_SET, "FACE_SET", 0, "Face Set", "Pinches to the average location of the Face Set"},
+    {CLOTH_FILTER_PINCH_ORIGIN_CURSOR,
+     "CURSOR",
+     0,
+     "Cursor",
+     "Pinches to the location of the cursor"},
+    {CLOTH_FILTER_PINCH_ORIGIN_FACE_SET,
+     "FACE_SET",
+     0,
+     "Face Set",
+     "Pinches to the average location of the Face Set"},
     {0, NULL, 0, NULL, NULL},
 };
-
 
 static EnumPropertyItem prop_cloth_filter_orientation_items[] = {
     {SCULPT_FILTER_ORIENTATION_LOCAL,
@@ -1580,7 +1587,8 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
         char symm_area = SCULPT_get_vertex_symm_area(orig_data.co);
         float pinch_point[3];
         copy_v3_v3(pinch_point, ss->filter_cache->cloth_sim_pinch_point);
-        SCULPT_flip_v3_by_symm_area(pinch_point, symm, symm_area, ss->filter_cache->cloth_sim_pinch_point);
+        SCULPT_flip_v3_by_symm_area(
+            pinch_point, symm, symm_area, ss->filter_cache->cloth_sim_pinch_point);
         sub_v3_v3v3(force, pinch_point, vd.co);
         normalize_v3(force);
         mul_v3_fl(force, fade * data->filter_strength);
@@ -1670,25 +1678,26 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
-
-static void sculpt_cloth_filter_face_set_pinch_origin_calculate(float r_pinch_origin[3], SculptSession *ss) {
-    const int totvert = SCULPT_vertex_count_get(ss);
-    const int active_face_set = SCULPT_active_face_set_get(ss);
-    float accum[3] = {0.0f};
-    int tot = 0;
-    for (int i = 0; i < totvert; i++) {
-      if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
-        continue;
-      }
-      add_v3_v3(accum, SCULPT_vertex_co_get(ss, i));
-      tot++;
+static void sculpt_cloth_filter_face_set_pinch_origin_calculate(float r_pinch_origin[3],
+                                                                SculptSession *ss)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  const int active_face_set = SCULPT_active_face_set_get(ss);
+  float accum[3] = {0.0f};
+  int tot = 0;
+  for (int i = 0; i < totvert; i++) {
+    if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
+      continue;
     }
-    if (tot > 0) {
-      mul_v3_v3fl(r_pinch_origin, accum, 1.0f/ tot);
-    }
-    else {
-      copy_v3_v3(r_pinch_origin, SCULPT_active_vertex_co_get(ss));
-    }
+    add_v3_v3(accum, SCULPT_vertex_co_get(ss, i));
+    tot++;
+  }
+  if (tot > 0) {
+    mul_v3_v3fl(r_pinch_origin, accum, 1.0f / tot);
+  }
+  else {
+    copy_v3_v3(r_pinch_origin, SCULPT_active_vertex_co_get(ss));
+  }
 }
 
 static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1729,14 +1738,14 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       use_collisions,
       cloth_filter_is_deformation_filter(filter_type));
 
-  switch (pinch_origin)
-  {
-  case CLOTH_FILTER_PINCH_ORIGIN_CURSOR:
-    copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
-    break;
-  case CLOTH_FILTER_PINCH_ORIGIN_FACE_SET:
-    sculpt_cloth_filter_face_set_pinch_origin_calculate(ss->filter_cache->cloth_sim_pinch_point, ss);
-    break;
+  switch (pinch_origin) {
+    case CLOTH_FILTER_PINCH_ORIGIN_CURSOR:
+      copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
+      break;
+    case CLOTH_FILTER_PINCH_ORIGIN_FACE_SET:
+      sculpt_cloth_filter_face_set_pinch_origin_calculate(ss->filter_cache->cloth_sim_pinch_point,
+                                                          ss);
+      break;
   }
 
   SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);

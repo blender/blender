@@ -72,7 +72,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
+static void sculpt_poly_loop_topology_data_ensure(Object *ob)
+{
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
@@ -93,44 +94,52 @@ static void sculpt_poly_loop_topology_data_ensure(Object *ob) {
 }
 
 #define SCULPT_FACE_SET_LOOP_STEP_NONE -1
-static bool sculpt_poly_loop_step(SculptSession *ss, const int from_poly, const int edge, int *r_next_poly) {
-   if (!ss->epmap) {
-     return false;
-   }
+static bool sculpt_poly_loop_step(SculptSession *ss,
+                                  const int from_poly,
+                                  const int edge,
+                                  int *r_next_poly)
+{
+  if (!ss->epmap) {
+    return false;
+  }
 
-   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
-   for (int i = 0; i < ss->epmap[edge].count; i++) {
-     if (ss->epmap[edge].indices[i] != from_poly) {
-       next_poly = ss->epmap[edge].indices[i];
-     }
-   }
+  int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
+  for (int i = 0; i < ss->epmap[edge].count; i++) {
+    if (ss->epmap[edge].indices[i] != from_poly) {
+      next_poly = ss->epmap[edge].indices[i];
+    }
+  }
 
-   if (next_poly == SCULPT_FACE_SET_LOOP_STEP_NONE) {
-     return false;
-   }
+  if (next_poly == SCULPT_FACE_SET_LOOP_STEP_NONE) {
+    return false;
+  }
 
-   *r_next_poly = next_poly;
-   return true;
+  *r_next_poly = next_poly;
+  return true;
 }
 
-static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss, const int poly, const int edge) {
+static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss,
+                                                  const int poly,
+                                                  const int edge)
+{
   if (ss->mpoly[poly].totloop != 4) {
     return edge;
-  } 
-  
+  }
+
   int edge_index_in_poly = 0;
   for (int i = 0; i < ss->mpoly[poly].totloop; i++) {
-     if (edge == ss->mloop[ss->mpoly[poly].loopstart + i].e) {
-       edge_index_in_poly = i;
-       break;
-     }
+    if (edge == ss->mloop[ss->mpoly[poly].loopstart + i].e) {
+      edge_index_in_poly = i;
+      break;
+    }
   }
 
   const int next_edge_index_in_poly = (edge_index_in_poly + 2) % 4;
   return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
 }
 
-int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
+int sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
+{
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
 
@@ -147,17 +156,24 @@ int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
 
   int closest_vert = mesh->mloop[initial_poly->loopstart].v;
   for (int i = 0; i < initial_poly->totloop; i++) {
-    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, location) < len_squared_v3v3(mvert[closest_vert].co, location)) {
+    if (len_squared_v3v3(mvert[ss->mloop[initial_poly->loopstart + i].v].co, location) <
+        len_squared_v3v3(mvert[closest_vert].co, location)) {
       closest_vert = ss->mloop[initial_poly->loopstart + i].v;
     }
   }
 
   int initial_edge = ss->vemap[closest_vert].indices[0];
-  int closest_vert_on_initial_edge = mesh->medge[initial_edge].v1 == closest_vert ? mesh->medge[initial_edge].v2 : mesh->medge[initial_edge].v1;
+  int closest_vert_on_initial_edge = mesh->medge[initial_edge].v1 == closest_vert ?
+                                         mesh->medge[initial_edge].v2 :
+                                         mesh->medge[initial_edge].v1;
   for (int i = 0; i < ss->vemap[closest_vert].count; i++) {
     const int edge_index = ss->vemap[closest_vert].indices[i];
-    const int other_vert = mesh->medge[edge_index].v1 == closest_vert ? mesh->medge[edge_index].v2 : mesh->medge[edge_index].v1;
-    if (dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[other_vert].co) < dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[closest_vert_on_initial_edge].co)) {
+    const int other_vert = mesh->medge[edge_index].v1 == closest_vert ?
+                               mesh->medge[edge_index].v2 :
+                               mesh->medge[edge_index].v1;
+    if (dist_to_line_segment_v3(location, mvert[closest_vert].co, mvert[other_vert].co) <
+        dist_to_line_segment_v3(
+            location, mvert[closest_vert].co, mvert[closest_vert_on_initial_edge].co)) {
       initial_edge = edge_index;
       closest_vert_on_initial_edge = other_vert;
     }
@@ -165,7 +181,11 @@ int sculpt_poly_loop_initial_edge_from_cursor(Object *ob) {
   return initial_edge;
 }
 
-static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initial_poly, const int initial_edge, BLI_bitmap *poly_loop) {
+static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss,
+                                              const int initial_poly,
+                                              const int initial_edge,
+                                              BLI_bitmap *poly_loop)
+{
   int current_poly = initial_poly;
   int current_edge = initial_edge;
   int next_poly = SCULPT_FACE_SET_LOOP_STEP_NONE;
@@ -173,7 +193,7 @@ static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initi
 
   BLI_BITMAP_ENABLE(poly_loop, initial_poly);
 
-  while(max_steps && sculpt_poly_loop_step(ss, current_poly, current_edge, &next_poly)) {
+  while (max_steps && sculpt_poly_loop_step(ss, current_poly, current_edge, &next_poly)) {
     if (ss->face_sets[next_poly] == initial_poly) {
       break;
     }
@@ -191,7 +211,8 @@ static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss, const int initi
   }
 }
 
-BLI_bitmap * sculpt_poly_loop_from_cursor(Object *ob) {
+BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
+{
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   BLI_bitmap *poly_loop = BLI_BITMAP_NEW(mesh->totpoly, "poly loop");
@@ -199,7 +220,8 @@ BLI_bitmap * sculpt_poly_loop_from_cursor(Object *ob) {
   sculpt_poly_loop_topology_data_ensure(ob);
   const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
   const int initial_poly = ss->active_face_index;
-  const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(ss, initial_poly, initial_edge);
+  const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(
+      ss, initial_poly, initial_edge);
   sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge, poly_loop);
   sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge_opposite, poly_loop);
 

@@ -77,7 +77,6 @@ typedef enum eSculptFaceSetByTopologyMode {
   SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP = 1,
 };
 
-
 static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
     {
         SCULPT_FACE_SET_TOPOLOGY_LOOSE_PART,
@@ -96,11 +95,11 @@ static EnumPropertyItem prop_sculpt_face_set_by_topology[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-
-static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id) {
+static void sculpt_face_set_by_topology_poly_loop(Object *ob, const int next_face_set_id)
+{
   SculptSession *ss = ob->sculpt;
   BLI_bitmap *poly_loop = sculpt_poly_loop_from_cursor(ob);
-  for (int i = 0; i < ss->totfaces; i++)  {
+  for (int i = 0; i < ss->totfaces; i++) {
     if (BLI_BITMAP_TEST(poly_loop, i)) {
       ss->face_sets[i] = next_face_set_id;
     }
@@ -134,15 +133,14 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
   SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
 
-
   const int initial_poly = ss->active_face_index;
   const int initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
 
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   int new_face_set = SCULPT_FACE_SET_NONE;
 
-
-  if (repeat_previous && ss->face_set_last_created != SCULPT_FACE_SET_NONE && initial_poly != ss->face_set_last_poly && initial_edge != ss->face_set_last_edge) {
+  if (repeat_previous && ss->face_set_last_created != SCULPT_FACE_SET_NONE &&
+      initial_poly != ss->face_set_last_poly && initial_edge != ss->face_set_last_edge) {
     new_face_set = ss->face_set_last_created;
   }
   else {
@@ -157,11 +155,9 @@ static int sculpt_face_set_by_topology_invoke(bContext *C, wmOperator *op, const
       break;
   }
 
-
- ss->face_set_last_created = new_face_set;
- ss->face_set_last_edge = initial_edge;
- ss->face_set_last_poly = initial_poly;
-
+  ss->face_set_last_created = new_face_set;
+  ss->face_set_last_edge = initial_edge;
+  ss->face_set_last_poly = initial_poly;
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
@@ -197,9 +193,16 @@ void SCULPT_OT_face_set_by_topology(struct wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
-      ot->srna, "mode", prop_sculpt_face_set_by_topology, SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP, "Mode", "");
+  RNA_def_enum(ot->srna,
+               "mode",
+               prop_sculpt_face_set_by_topology,
+               SCULPT_FACE_SET_TOPOLOGY_POLY_LOOP,
+               "Mode",
+               "");
 
-  RNA_def_boolean(
-      ot->srna, "repeat_previous", true, "Repeat previous Face Set", "Repeat the latest created Face Set instead of a new one");
+  RNA_def_boolean(ot->srna,
+                  "repeat_previous",
+                  true,
+                  "Repeat previous Face Set",
+                  "Repeat the latest created Face Set instead of a new one");
 }
