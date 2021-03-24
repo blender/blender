@@ -284,12 +284,13 @@ static void opencl_deinitialize()
 {
   /* Deinitialize OpenCL GPU's. */
   if (g_work_scheduler.opencl.initialized) {
-    Device *device;
     while (!g_work_scheduler.opencl.devices.is_empty()) {
-      device = g_work_scheduler.opencl.devices.pop_last();
+      Device *device = g_work_scheduler.opencl.devices.pop_last();
       device->deinitialize();
       delete device;
     }
+    g_work_scheduler.opencl.devices.clear_and_make_inline();
+
     if (g_work_scheduler.opencl.program) {
       clReleaseProgram(g_work_scheduler.opencl.program);
       g_work_scheduler.opencl.program = nullptr;
@@ -397,12 +398,13 @@ static void threading_model_queue_deinitialize()
 {
   /* deinitialize CPU threads */
   if (g_work_scheduler.queue.initialized) {
-    Device *device;
     while (!g_work_scheduler.queue.devices.is_empty()) {
-      device = g_work_scheduler.queue.devices.pop_last();
+      Device *device = g_work_scheduler.queue.devices.pop_last();
       device->deinitialize();
       delete device;
     }
+    g_work_scheduler.queue.devices.clear_and_make_inline();
+
     BLI_thread_local_delete(g_thread_device);
     g_work_scheduler.queue.initialized = false;
   }
