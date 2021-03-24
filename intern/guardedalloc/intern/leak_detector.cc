@@ -19,6 +19,7 @@
  */
 
 #include <cstdlib>
+#include <stdio.h> /* Needed for `printf` on WIN32/APPLE. */
 
 #include "MEM_guardedalloc.h"
 #include "mallocn_intern.h"

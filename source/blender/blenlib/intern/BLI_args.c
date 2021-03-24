@@ -23,6 +23,7 @@
  */
 
 #include <ctype.h> /* for tolower */
+#include <stdio.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

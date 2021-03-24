@@ -49,8 +49,6 @@
 #ifndef __MEM_GUARDEDALLOC_H__
 #define __MEM_GUARDEDALLOC_H__
 
-#include <stdio.h> /* needed for FILE* */
-
 /* Needed for uintptr_t and attributes, exception, don't use BLI anywhere else in `MEM_*` */
 #include "../../source/blender/blenlib/BLI_compiler_attrs.h"
 #include "../../source/blender/blenlib/BLI_sys_types.h"
