@@ -1440,7 +1440,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static const EnumPropertyItem *object_gpencil_add_options(bContext *C,
+static const EnumPropertyItem *object_gpencil_add_options(bContext *UNUSED(C),
                                                           PointerRNA *UNUSED(ptr),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
@@ -1453,18 +1453,9 @@ static const EnumPropertyItem *object_gpencil_add_options(bContext *C,
 
   /* Default types. */
   for (i = 0; i < orig_count; i++) {
-    if (item_ref[i].value == GP_LRT_OBJECT || item_ref[i].value == GP_LRT_COLLECTION ||
-        item_ref[i].value == GP_LRT_SCENE) {
-      if (item_ref[i].value == GP_LRT_SCENE) {
-        /* separator before line art types */
-        RNA_enum_item_add_separator(&item, &totitem);
-      }
-      else if (item_ref[i].value == GP_LRT_OBJECT) {
-        Object *ob = CTX_data_active_object(C);
-        if (!ob || ob->type != OB_MESH) {
-          continue;
-        }
-      }
+    if (item_ref[i].value == GP_LRT_SCENE) {
+      /* separator before line art types */
+      RNA_enum_item_add_separator(&item, &totitem);
     }
     RNA_enum_item_add(&item, &totitem, &item_ref[i]);
   }
