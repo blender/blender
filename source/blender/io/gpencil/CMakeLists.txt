@@ -13,85 +13,87 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The Original Code is Copyright (C) 2006, Blender Foundation
+# All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-  ../include
+  .
+  ../common
   ../../blenkernel
   ../../blenlib
-  ../../blentranslation
+  ../../blenloader
   ../../bmesh
   ../../depsgraph
-  ../../io/alembic
-  ../../io/collada
-  ../../io/gpencil
-  ../../io/usd
+  ../../editors/include
   ../../makesdna
   ../../makesrna
   ../../windowmanager
+  ../../../../intern/clog
   ../../../../intern/guardedalloc
+  ../../../../intern/utfconv
 )
 
 set(INC_SYS
-
 )
 
 set(SRC
-  io_alembic.c
-  io_cache.c
-  io_collada.c
-  io_gpencil_import.c
-  io_gpencil_export.c
-  io_gpencil_utils.c
-  io_ops.c
-  io_usd.c
+ intern/gpencil_io_capi.cc
 
-  io_alembic.h
-  io_cache.h
-  io_collada.h
-  io_gpencil.h
-  io_ops.h
-  io_usd.h
+ # This line must be removed if NanoSVG is moved to extern
+ nanosvg/nanosvg.h
+
+ gpencil_io.h
+
+ intern/gpencil_io_base.h
+ intern/gpencil_io_base.cc
+
+ intern/gpencil_io_import_base.h
+ intern/gpencil_io_import_svg.h
+ intern/gpencil_io_import_base.cc
+ intern/gpencil_io_import_svg.cc
+
+ intern/gpencil_io_export_base.h
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_io_common
 )
 
-if(WITH_OPENCOLLADA)
-  list(APPEND LIB
-    bf_collada
-  )
-  add_definitions(-DWITH_COLLADA)
-endif()
-
-if(WITH_ALEMBIC)
-  list(APPEND LIB
-    bf_alembic
-  )
-  add_definitions(-DWITH_ALEMBIC)
-endif()
-
-if(WITH_USD)
-  list(APPEND LIB
-    bf_usd
-  )
-  add_definitions(-DWITH_USD)
-endif()
-
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_PUGIXML)
+  list(APPEND SRC
+    intern/gpencil_io_export_svg.h
+    intern/gpencil_io_export_svg.cc
+  )
+  list(APPEND INC
+    ${PUGIXML_INCLUDE_DIR}
+  )
+  list(APPEND LIB
+    ${PUGIXML_LIBRARIES}
+  )
   add_definitions(-DWITH_PUGIXML)
 endif()
 
 if(WITH_HARU)
+  list(APPEND SRC
+    intern/gpencil_io_export_pdf.h
+    intern/gpencil_io_export_pdf.cc
+  )
+  list(APPEND INC
+    ${HARU_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${HARU_LIBRARIES}
+  )
   add_definitions(-DWITH_HARU)
 endif()
 
-list(APPEND LIB bf_gpencil)
 
-blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+list(APPEND LIB
+  ${BOOST_LIBRARIES}
+)
+
+blender_add_lib(bf_gpencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
