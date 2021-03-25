@@ -437,6 +437,10 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
     }
     /* We only consider IDs from the same library. */
     ID *to_id = *to_id_entry->id_pointer.to;
+    if (!ID_IS_LINKED(to_id) && !ID_IS_OVERRIDE_LIBRARY(to_id)) {
+      /* Pure local data is a barrier of dependency in override cases. */
+      continue;
+    }
     if (to_id != NULL && to_id->lib == id->lib) {
       LibOverrideGroupTagData sub_data = *data;
       sub_data.id_root = to_id;
