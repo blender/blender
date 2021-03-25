@@ -788,6 +788,8 @@ class Set {
   template<typename ForwardKey>
   const Key &lookup_key_or_add__impl(ForwardKey &&key, const uint64_t hash)
   {
+    this->ensure_can_add();
+
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
         return *slot.key();
