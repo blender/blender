@@ -636,7 +636,8 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
     return;
   }
 
-  Vector<GeometryInstanceGroup> set_groups = bke::geometry_set_gather_instances(geometry_set);
+  Vector<GeometryInstanceGroup> set_groups;
+  geometry_set_gather_instances(geometry_set, set_groups);
   if (set_groups.is_empty()) {
     params.set_output("Geometry", GeometrySet());
     return;
