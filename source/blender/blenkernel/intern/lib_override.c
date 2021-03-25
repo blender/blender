@@ -812,6 +812,9 @@ bool BKE_lib_override_library_create(
   BKE_main_id_clear_newpoins(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
+  /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
+  BKE_lib_override_library_main_operations_create(bmain, true);
+
   return success;
 }
 
@@ -1094,6 +1097,9 @@ bool BKE_lib_override_library_resync(Main *bmain,
 
   BKE_main_id_clear_newpoins(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
+
+  /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
+  BKE_lib_override_library_main_operations_create(bmain, true);
 
   return success;
 }
