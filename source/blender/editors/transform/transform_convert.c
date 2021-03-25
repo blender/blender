@@ -1187,10 +1187,11 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
       return T_EDIT;
     case TC_MESH_UV:
       return T_EDIT | T_POINTS | T_2D_EDIT;
+    case TC_CURSOR_IMAGE:
+      return T_2D_EDIT;
     case TC_PARTICLE_VERTS:
       return T_POINTS;
     case TC_POSE:
-    case TC_CURSOR_IMAGE:
     case TC_CURSOR_VIEW3D:
     case TC_OBJECT:
     case TC_OBJECT_TEXSPACE:
