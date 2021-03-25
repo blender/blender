@@ -58,38 +58,6 @@ extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
-#include <thread>
-static void thread_cb(
-    GHOST_WIN32_WTInfo info, unsigned int a, unsigned int b, void *dest, int *status, int *ret)
-{
-  *ret = info(a, b, dest);
-  *status = 1;
-}
-
-static unsigned int call_wt_info(GHOST_WIN32_WTInfo info,
-                                 unsigned int a,
-                                 unsigned int b,
-                                 void *dest)
-{
-  static int status = 0;
-  static int ret = 0;
-
-  std::thread thread(thread_cb, info, a, b, dest, &status, &ret);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(750));
-
-  if (!status) {
-    fprintf(stderr, "failed to initialize wintab properly\n");
-    thread.detach();
-    return 0;
-  }
-  else {
-    thread.join();
-  }
-
-  return ret;
-}
-
 GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      const char *title,
                                      GHOST_TInt32 left,

@@ -912,7 +912,7 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
 
 void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata)
 {
-  GPU_vertformat_clear(&g_vbo_id);
+  GPU_vertformat_clear(&g_vbo_id.format);
 
   /* Initialize vertex buffer (match 'VertexBufferFormat'). */
   if (g_vbo_id.format.attr_len == 0) {

@@ -26,8 +26,6 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_listBase.h"
-#include "DNA_userdef_types.h"
-#include "BKE_lib_id.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,8 +71,8 @@ bool BKE_collection_delete(struct Main *bmain, struct Collection *collection, bo
 struct Collection *BKE_collection_duplicate(struct Main *bmain,
                                             struct Collection *parent,
                                             struct Collection *collection,
-                                            const eDupli_ID_Flags duplicate_flags,
-                                            const eLibIDDuplicateFlags duplicate_options);
+                                            const uint duplicate_flags,
+                                            const uint duplicate_options);
 
 /* Master Collection for Scene */
 
