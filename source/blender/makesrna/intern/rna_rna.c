@@ -20,6 +20,8 @@
 
 #include <stdlib.h>
 
+#include <CLG_log.h>
+
 #include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
@@ -131,6 +133,8 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 
 #  include "BKE_idprop.h"
 #  include "BKE_lib_override.h"
+
+static CLG_LogRef LOG_COMPARE_OVERRIDE = {"rna.rna_compare_override"};
 
 /* Struct */
 
@@ -1366,11 +1370,11 @@ static int rna_property_override_diff_propptr(Main *bmain,
               /* In case one of the owner of the checked property is tagged as needing resync, do
                * not change the 'match reference' status of its ID pointer properties overrides,
                * since many non-matching ones are likely due to missing resync. */
-              printf(
-                  "%s: Not checking matching ID pointer properties, since owner %s is tagged as "
-                  "needing resync.\n",
-                  __func__,
-                  id_a->name);
+              CLOG_INFO(&LOG_COMPARE_OVERRIDE,
+                        4,
+                        "Not checking matching ID pointer properties, since owner %s is tagged as "
+                        "needing resync.\n",
+                        id_a->name);
             }
             else if (id_a->override_library != NULL && id_a->override_library->reference == id_b) {
               opop->flag |= IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE;
