@@ -732,8 +732,6 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
     exp = 1.0f;
   }
 
-  //#define SHARPEN_VCOL_BOUNDARY
-
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (sculpt_brush_test_sq_fn(&test, vd.co)) {
       const float fade = bstrength * SCULPT_brush_strength_factor(
@@ -761,12 +759,6 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
       madd_v3_v3fl(avg2, vd.co, 0.5f);
       tot2 += 0.5f;
 
-#ifdef SHARPEN_VCOL_BOUNDARY
-      float ntot = 0.0f;
-      float colavg[4], tot3 = 0.0f;
-      zero_v4(colavg);
-#endif
-
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
         const float *col = SCULPT_vertex_color_get(ss, ni.vertex);
@@ -778,15 +770,6 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
         float w = (fabs(dv[0]) + fabs(dv[1]) + fabs(dv[2]) + fabs(dv[3])) / 4.0;
 
         w = powf(w, exp);
-
-        // w *= w;
-
-#ifdef SHARPEN_VCOL_BOUNDARY
-        float w2 = -1.0f;
-        madd_v4_v4fl(colavg, col, w2);
-        tot3 += w2;
-        ntot += 1.0f;
-#endif
 
         madd_v3_v3fl(avg3, co, 1.0f);
         tot4 += 1.0f;
@@ -804,29 +787,8 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
         mul_v3_fl(avg3, 1.0f / tot4);
       }
 
-#ifdef SHARPEN_VCOL_BOUNDARY
-      float w2 = ntot * 40.0f;
-      madd_v4_v4fl(colavg, vd.col, w2);
-      tot3 += w2;
-
-      if (tot3 > 0.0f) {
-        mul_v4_fl(colavg, 1.0f / tot3);
-      }
-
-      // clamp_v4(colavg, 0.0f, 1.0f);
-      // negative numbers are undesirable, but dunno if I should clip above 1.0 or not except for
-      // alpha
-      for (int i = 0; i < 4; i++) {
-        colavg[i] = MAX2(colavg[i], 0.0f);
-        colavg[i] = MIN2(colavg[i], 1.0f);
-      }
-      // colavg[3] = MIN2(colavg[3], 1.0f);
-
-      interp_v4_v4v4(vd.col, vd.col, colavg, fade * 0.25);
-#endif
-
-      // try to avoid perfectly colinear triangles, and the normal discontinuities they create,
-      // by blending slightly with unweighted smoothed position
+      /* try to avoid perfectly colinear triangles, and the normal discontinuities they create,
+         by blending slightly with unweighted smoothed position */
       mul_v3_fl(avg2, 1.0f / tot2);
       interp_v3_v3v3(avg2, avg2, avg3, 0.025);
 
