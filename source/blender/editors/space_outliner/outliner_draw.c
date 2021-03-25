@@ -63,6 +63,7 @@
 #include "ED_screen.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 
 #include "GPU_immediate.h"
@@ -663,6 +664,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   BLI_mempool *ts = space_outliner->treestore;
   TreeStoreElem *tselem = tsep;
 
@@ -671,6 +673,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
     if (tselem->type == TSE_SOME_ID) {
       BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
+
+      WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
 
       switch (GS(tselem->id->name)) {
         case ID_MA:
@@ -724,12 +728,19 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
     }
     else {
       switch (tselem->type) {
-        case TSE_DEFGROUP:
-          BKE_object_defgroup_unique_name(te->directdata, (Object *)tselem->id); /* id = object. */
+        case TSE_DEFGROUP: {
+          Object *ob = (Object *)tselem->id;
+          bDeformGroup *vg = te->directdata;
+          BKE_object_defgroup_unique_name(vg, ob);
+          WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
           break;
-        case TSE_NLA_ACTION:
-          BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
+        }
+        case TSE_NLA_ACTION: {
+          bAction *act = (bAction *)tselem->id;
+          BLI_libblock_ensure_unique_name(bmain, act->id.name);
+          WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
           break;
+        }
         case TSE_EBONE: {
           bArmature *arm = (bArmature *)tselem->id;
           if (arm->edbo) {
@@ -740,6 +751,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
             BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
             ED_armature_bone_rename(bmain, arm, oldname, newname);
+            WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
           }
           break;
@@ -760,6 +772,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_strncpy(newname, bone->name, sizeof(bone->name));
           BLI_strncpy(bone->name, oldname, sizeof(bone->name));
           ED_armature_bone_rename(bmain, arm, oldname, newname);
+          WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
           break;
         }
@@ -768,6 +781,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           outliner_viewcontext_init(C, &tvc);
 
           Object *ob = (Object *)tselem->id;
+          bArmature *arm = (bArmature *)ob->data;
           bPoseChannel *pchan = te->directdata;
           char newname[sizeof(pchan->name)];
 
@@ -780,6 +794,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_strncpy(newname, pchan->name, sizeof(pchan->name));
           BLI_strncpy(pchan->name, oldname, sizeof(pchan->name));
           ED_armature_bone_rename(bmain, ob->data, oldname, newname);
+          WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
           break;
         }
@@ -793,6 +808,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
                          '.',
                          offsetof(bActionGroup, name),
                          sizeof(grp->name));
+          WM_msg_publish_rna_prop(mbus, &ob->id, grp, ActionGroup, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
           break;
         }
@@ -807,6 +823,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_uniquename(
               &gpd->layers, gpl, "GP Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 
+          WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, GPencilLayer, info);
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           break;
@@ -822,11 +839,15 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
           /* Rename, preserving animation and compositing data. */
           BKE_view_layer_rename(bmain, scene, view_layer, newname);
+          WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL);
           break;
         }
         case TSE_LAYER_COLLECTION: {
-          BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
+          /* The ID is a #Collection, not a #LayerCollection */
+          Collection *collection = (Collection *)tselem->id;
+          BLI_libblock_ensure_unique_name(bmain, collection->id.name);
+          WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL);
           break;
         }
