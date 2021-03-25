@@ -310,10 +310,10 @@ BLI_NOINLINE static void interpolate_attribute_corner(const Mesh &mesh,
 }
 
 template<typename T>
-BLI_NOINLINE static void interpolate_attribute_polygon(const Mesh &mesh,
-                                                       const Span<int> looptri_indices,
-                                                       const Span<T> data_in,
-                                                       MutableSpan<T> data_out)
+BLI_NOINLINE static void interpolate_attribute_face(const Mesh &mesh,
+                                                    const Span<int> looptri_indices,
+                                                    const Span<T> data_in,
+                                                    MutableSpan<T> data_out)
 {
   BLI_assert(data_in.size() == mesh.totpoly);
   Span<MLoopTri> looptris = get_mesh_looptris(mesh);
@@ -344,8 +344,8 @@ BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
           mesh, bary_coords, looptri_indices, source_span, output_span);
       break;
     }
-    case ATTR_DOMAIN_POLYGON: {
-      interpolate_attribute_polygon<T>(mesh, looptri_indices, source_span, output_span);
+    case ATTR_DOMAIN_FACE: {
+      interpolate_attribute_face<T>(mesh, looptri_indices, source_span, output_span);
       break;
     }
     default: {

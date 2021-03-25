@@ -275,9 +275,9 @@ static void get_selected_corner_indices(const Mesh &mesh,
   }
 }
 
-static void get_selected_polygon_indices(const Mesh &mesh,
-                                         const IsVertexSelectedFn is_vertex_selected_fn,
-                                         Vector<int64_t> &r_polygon_indices)
+static void get_selected_face_indices(const Mesh &mesh,
+                                      const IsVertexSelectedFn is_vertex_selected_fn,
+                                      Vector<int64_t> &r_face_indices)
 {
   for (const int poly_index : IndexRange(mesh.totpoly)) {
     const MPoly &poly = mesh.mpoly[poly_index];
@@ -290,7 +290,7 @@ static void get_selected_polygon_indices(const Mesh &mesh,
       }
     }
     if (is_selected) {
-      r_polygon_indices.append(poly_index);
+      r_face_indices.append(poly_index);
     }
   }
 }
@@ -315,8 +315,8 @@ static void get_selected_indices_on_domain(const Mesh &mesh,
   switch (domain) {
     case ATTR_DOMAIN_POINT:
       return get_selected_vertex_indices(mesh, is_vertex_selected_fn, r_indices);
-    case ATTR_DOMAIN_POLYGON:
-      return get_selected_polygon_indices(mesh, is_vertex_selected_fn, r_indices);
+    case ATTR_DOMAIN_FACE:
+      return get_selected_face_indices(mesh, is_vertex_selected_fn, r_indices);
     case ATTR_DOMAIN_CORNER:
       return get_selected_corner_indices(mesh, is_vertex_selected_fn, r_indices);
     case ATTR_DOMAIN_EDGE:

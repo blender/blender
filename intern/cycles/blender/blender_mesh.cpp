@@ -375,7 +375,7 @@ static void attr_create_generic(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool
       case BL::Attribute::domain_POINT:
         element = ATTR_ELEMENT_VERTEX;
         break;
-      case BL::Attribute::domain_POLYGON:
+      case BL::Attribute::domain_FACE:
         element = ATTR_ELEMENT_FACE;
         break;
       default:

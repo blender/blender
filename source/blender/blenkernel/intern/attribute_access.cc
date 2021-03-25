@@ -331,7 +331,7 @@ static int attribute_domain_priority(const AttributeDomain domain)
     case ATTR_DOMAIN_CURVE:
       return 0;
 #endif
-    case ATTR_DOMAIN_POLYGON:
+    case ATTR_DOMAIN_FACE:
       return 1;
     case ATTR_DOMAIN_EDGE:
       return 2;
