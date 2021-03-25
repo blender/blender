@@ -300,8 +300,8 @@ BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
     const int initial_edge_opposite = sculpt_poly_loop_opposite_edge_in_quad(
       ss, initial_poly_symm, initial_edge_symm);
 
-    sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge, poly_loop);
-    sculpt_poly_loop_iterate_and_fill(ss, initial_poly, initial_edge_opposite, poly_loop);
+    sculpt_poly_loop_iterate_and_fill(ss, initial_poly_symm, initial_edge_symm, poly_loop);
+    sculpt_poly_loop_iterate_and_fill(ss, initial_poly_symm, initial_edge_opposite, poly_loop);
 
   }
 
