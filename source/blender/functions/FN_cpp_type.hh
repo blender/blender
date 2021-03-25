@@ -661,7 +661,7 @@ class CPPType : NonCopyable, NonMovable {
 
   uint64_t hash() const
   {
-    return DefaultHash<const CPPType *>{}(this);
+    return get_default_hash(this);
   }
 
   template<typename T> bool is() const

@@ -173,7 +173,7 @@ mpq3 mpq3::cross_poly(Span<mpq3> poly)
 uint64_t hash_mpq_class(const mpq_class &value)
 {
   /* TODO: better/faster implementation of this. */
-  return DefaultHash<float>{}(static_cast<float>(value.get_d()));
+  return get_default_hash(static_cast<float>(value.get_d()));
 }
 
 uint64_t mpq2::hash() const
