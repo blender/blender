@@ -99,6 +99,7 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
     cache_file->handle_readers = NULL;
 
     BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
+    BKE_id_blend_write(writer, &cache_file->id);
 
     if (cache_file->adt) {
       BKE_animdata_blend_write(writer, cache_file->adt);
