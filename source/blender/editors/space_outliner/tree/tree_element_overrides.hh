@@ -39,7 +39,7 @@ class TreeElementOverridesBase final : public AbstractTreeElement {
 };
 
 class TreeElementOverridesProperty final : public AbstractTreeElement {
-  [[maybe_unused]] ID &id_;
+  ID &id_;
   IDOverrideLibraryProperty &override_prop_;
 
  public:
