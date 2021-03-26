@@ -3801,7 +3801,6 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
   int enabled_types = lineart_rb_edge_types(rb);
   bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
   bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
-  bool preserve_weight = modifier_flags & LRT_GPENCIL_SOFT_SELECTION;
 
   LISTBASE_FOREACH (LineartLineChain *, rlc, &rb->chains) {
 
@@ -3885,18 +3884,13 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
                   }
                   MDeformWeight *mdw = BKE_defvert_ensure_index(&me->dvert[vindex], dindex);
                   MDeformWeight *gdw = BKE_defvert_ensure_index(&gps->dvert[sindex], gpdg);
-                  if (preserve_weight) {
-                    float use_weight = mdw->weight;
-                    if (invert_input) {
-                      use_weight = 1 - use_weight;
-                    }
-                    gdw->weight = MAX2(use_weight, gdw->weight);
+
+                  float use_weight = mdw->weight;
+                  if (invert_input) {
+                    use_weight = 1 - use_weight;
                   }
-                  else {
-                    if (mdw->weight > 0.999f) {
-                      gdw->weight = 1.0f;
-                    }
-                  }
+                  gdw->weight = MAX2(use_weight, gdw->weight);
+
                   sindex++;
                 }
               }

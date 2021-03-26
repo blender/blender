@@ -408,8 +408,6 @@ static void vgroup_panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemPointerR(
         col, ptr, "vertex_group", &ob_ptr, "vertex_groups", IFACE_("Target"), ICON_NONE);
   }
-
-  uiItemR(col, ptr, "use_soft_selection", 0, NULL, ICON_NONE);
 }
 
 static void baking_panel_draw(const bContext *UNUSED(C), Panel *panel)
