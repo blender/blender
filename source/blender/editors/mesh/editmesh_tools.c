@@ -6886,8 +6886,8 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
        "SELECTED",
        0,
        "Selected",
-       "Move all selected elements in first places, preserving their relative order "
-       "(WARNING: this will affect unselected elements' indices as well!)"},
+       "Move all selected elements in first places, preserving their relative order.\n"
+       "Warning: This will affect unselected elements' indices as well"},
       {SRT_RANDOMIZE, "RANDOMIZE", 0, "Randomize", "Randomize order of selected elements"},
       {SRT_REVERSE, "REVERSE", 0, "Reverse", "Reverse current order of selected elements"},
       {0, NULL, 0, NULL, NULL},

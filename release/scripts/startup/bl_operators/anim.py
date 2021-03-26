@@ -355,7 +355,8 @@ class UpdateAnimatedTransformConstraint(Operator):
 
     use_convert_to_radians: BoolProperty(
         name="Convert to Radians",
-        description="Convert fcurves/drivers affecting rotations to radians (Warning: use this only once!)",
+        description="Convert f-curves/drivers affecting rotations to radians.\n"
+                    "Warning: Use this only once",
         default=True,
     )
 

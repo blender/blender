@@ -593,8 +593,8 @@ void POSE_OT_flip_names(wmOperatorType *ot)
                   "do_strip_numbers",
                   false,
                   "Strip Numbers",
-                  "Try to remove right-most dot-number from flipped names "
-                  "(WARNING: may result in incoherent naming in some cases)");
+                  "Try to remove right-most dot-number from flipped names.\n"
+                  "Warning: May result in incoherent naming in some cases");
 }
 
 /* ------------------ */
