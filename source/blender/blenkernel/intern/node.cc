@@ -4903,6 +4903,7 @@ static void registerGeometryNodes()
   register_node_type_geo_group();
 
   register_node_type_geo_align_rotation_to_vector();
+  register_node_type_geo_attribute_clamp();
   register_node_type_geo_attribute_color_ramp();
   register_node_type_geo_attribute_combine_xyz();
   register_node_type_geo_attribute_compare();

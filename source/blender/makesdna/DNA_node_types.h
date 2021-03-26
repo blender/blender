@@ -1108,6 +1108,14 @@ typedef struct NodeDenoise {
   char hdr;
 } NodeDenoise;
 
+typedef struct NodeAttributeClamp {
+  /* CustomDataType. */
+  uint8_t data_type;
+
+  /* NodeClampOperation. */
+  uint8_t operation;
+} NodeAttributeClamp;
+
 typedef struct NodeAttributeCompare {
   /* FloatCompareOperation. */
   uint8_t operation;
