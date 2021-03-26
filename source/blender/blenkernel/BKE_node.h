@@ -1394,6 +1394,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_MESH_PRIMITIVE_CONE 1037
 #define GEO_NODE_MESH_PRIMITIVE_LINE 1038
 #define GEO_NODE_MESH_PRIMITIVE_PLANE 1039
+#define GEO_NODE_ATTRIBUTE_MAP_RANGE 1040
 
 /** \} */
 

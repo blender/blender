@@ -1119,6 +1119,14 @@ typedef struct NodeAttributeCompare {
   char _pad[5];
 } NodeAttributeCompare;
 
+typedef struct NodeAttributeMapRange {
+  /* GeometryNodeAttributeDataType */
+  uint8_t data_type;
+
+  /* NodeMapRangeType. */
+  uint8_t interpolation_type;
+} NodeAttributeMapRange;
+
 typedef struct NodeAttributeMath {
   /* NodeMathOperation. */
   uint8_t operation;
