@@ -245,6 +245,14 @@ bool BKE_fcurve_calc_bounds(struct FCurve *fcu,
                             const bool do_sel_only,
                             const bool include_handles);
 
+float *BKE_fcurves_calc_keyed_frames_ex(struct FCurve **fcurve_array,
+                                        const int fcurve_array_len,
+                                        const float interval,
+                                        int *r_frames_len);
+float *BKE_fcurves_calc_keyed_frames(struct FCurve **fcurve_array,
+                                     const int fcurve_array_len,
+                                     int *r_frames_len);
+
 void BKE_fcurve_active_keyframe_set(struct FCurve *fcu, const struct BezTriple *active_bezt);
 int BKE_fcurve_active_keyframe_index(const struct FCurve *fcu);
 
