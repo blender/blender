@@ -1054,6 +1054,15 @@ elseif(APPLE)
     )
     unset(_py_inc_suffix)
   endif()
+  if(WITH_PYTHON_MODULE)
+    install(
+      TARGETS blender
+      LIBRARY DESTINATION ${PYTHON_LIBPATH}/site-packages
+    )
+    install_dir(
+      ${CMAKE_INSTALL_PREFIX}/${TARGETDIR_VER}
+      ${PYTHON_LIBPATH}/Resources)
+  endif()
 
   if(WITH_DRACO)
     install(
