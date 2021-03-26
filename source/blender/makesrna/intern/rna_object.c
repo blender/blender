@@ -2798,6 +2798,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
   RNA_def_property_ui_text(
       prop,
