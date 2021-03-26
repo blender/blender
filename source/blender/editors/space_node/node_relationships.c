@@ -245,18 +245,8 @@ static void pick_input_link_by_link_intersect(const bContext *C,
   bNodeSocket *socket;
   node_find_indicated_socket(snode, &node, &socket, drag_start, SOCK_IN);
 
-  const float trigger_drag_distance = 25.0f;
-  const float cursor_link_touch_distance = 25.0f;
-
-  const float socket_height = node_socket_calculate_height(socket);
-
-  float cursor_to_socket_relative[2];
-  float socket_position[2] = {socket->locx, socket->locy};
-  sub_v2_v2v2(cursor_to_socket_relative, cursor, socket_position);
-  float distance_from_socket_v2[2] = {
-      max_ff(0, fabs(cursor_to_socket_relative[0]) - NODE_SOCKSIZE * 0.5),
-      max_ff(0, fabs(cursor_to_socket_relative[1]) - socket_height)};
-  const float distance_from_socket = len_v2(distance_from_socket_v2);
+  /* Distance to test overlapping of cursor on link. */
+  const float cursor_link_touch_distance = 12.5f * UI_DPI_FAC;
 
   const int resolution = NODE_LINK_RESOL;
 
@@ -301,7 +291,7 @@ static void pick_input_link_by_link_intersect(const bContext *C,
     link_to_pick->flag |= NODE_LINK_TEMP_HIGHLIGHT;
     ED_area_tag_redraw(CTX_wm_area(C));
 
-    if (distance_from_socket > trigger_drag_distance) {
+    if (!node_find_indicated_socket(snode, &node, &socket, cursor, SOCK_IN)) {
       pick_link(C, op, nldrag, snode, node, link_to_pick);
     }
   }
