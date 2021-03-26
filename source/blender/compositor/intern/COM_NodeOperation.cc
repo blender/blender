@@ -63,7 +63,7 @@ NodeOperationInput *NodeOperation::getInputSocket(unsigned int index) const
   return m_inputs[index];
 }
 
-void NodeOperation::addInputSocket(DataType datatype, InputResizeMode resize_mode)
+void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
 {
   NodeOperationInput *socket = new NodeOperationInput(this, datatype, resize_mode);
   m_inputs.push_back(socket);
@@ -195,9 +195,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
  **** OpInput ****
  *****************/
 
-NodeOperationInput::NodeOperationInput(NodeOperation *op,
-                                       DataType datatype,
-                                       InputResizeMode resizeMode)
+NodeOperationInput::NodeOperationInput(NodeOperation *op, DataType datatype, ResizeMode resizeMode)
     : m_operation(op), m_datatype(datatype), m_resizeMode(resizeMode), m_link(nullptr)
 {
 }

@@ -25,7 +25,7 @@
 BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);

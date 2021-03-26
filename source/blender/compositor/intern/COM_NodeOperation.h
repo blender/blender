@@ -48,24 +48,24 @@ typedef NodeOperation SocketReader;
  * How are the input and working resolutions matched
  * \ingroup Model
  */
-typedef enum InputResizeMode {
+enum class ResizeMode {
   /** \brief Center the input image to the center of the working area of the node, no resizing
    * occurs */
-  COM_SC_CENTER = NS_CR_CENTER,
+  Center = NS_CR_CENTER,
   /** \brief The bottom left of the input image is the bottom left of the working area of the node,
    * no resizing occurs */
-  COM_SC_NO_RESIZE = NS_CR_NONE,
+  None = NS_CR_NONE,
   /** \brief Fit the width of the input image to the width of the working area of the node */
-  COM_SC_FIT_WIDTH = NS_CR_FIT_WIDTH,
+  FitWidth = NS_CR_FIT_WIDTH,
   /** \brief Fit the height of the input image to the height of the working area of the node */
-  COM_SC_FIT_HEIGHT = NS_CR_FIT_HEIGHT,
+  FitHeight = NS_CR_FIT_HEIGHT,
   /** \brief Fit the width or the height of the input image to the width or height of the working
    * area of the node, image will be larger than the working area */
-  COM_SC_FIT = NS_CR_FIT,
+  FitAny = NS_CR_FIT,
   /** \brief Fit the width and the height of the input image to the width and height of the working
    * area of the node, image will be equally larger than the working area */
-  COM_SC_STRETCH = NS_CR_STRETCH,
-} InputResizeMode;
+  Stretch = NS_CR_STRETCH,
+};
 
 enum class PixelSampler {
   Nearest = 0,
@@ -444,7 +444,7 @@ class NodeOperation {
  protected:
   NodeOperation();
 
-  void addInputSocket(DataType datatype, InputResizeMode resize_mode = COM_SC_CENTER);
+  void addInputSocket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
   void addOutputSocket(DataType datatype);
 
   void setWidth(unsigned int width)
@@ -546,7 +546,7 @@ class NodeOperationInput {
   DataType m_datatype;
 
   /** Resize mode of this socket */
-  InputResizeMode m_resizeMode;
+  ResizeMode m_resizeMode;
 
   /** Connected output */
   NodeOperationOutput *m_link;
@@ -554,7 +554,7 @@ class NodeOperationInput {
  public:
   NodeOperationInput(NodeOperation *op,
                      DataType datatype,
-                     InputResizeMode resizeMode = COM_SC_CENTER);
+                     ResizeMode resizeMode = ResizeMode::Center);
 
   NodeOperation &getOperation() const
   {
@@ -578,11 +578,11 @@ class NodeOperationInput {
     return m_link;
   }
 
-  void setResizeMode(InputResizeMode resizeMode)
+  void setResizeMode(ResizeMode resizeMode)
   {
     this->m_resizeMode = resizeMode;
   }
-  InputResizeMode getResizeMode() const
+  ResizeMode getResizeMode() const
   {
     return this->m_resizeMode;
   }

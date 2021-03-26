@@ -21,7 +21,7 @@
 
 MapUVOperation::MapUVOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;

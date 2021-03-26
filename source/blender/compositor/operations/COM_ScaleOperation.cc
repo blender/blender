@@ -203,7 +203,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
 // Absolute fixed size
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;

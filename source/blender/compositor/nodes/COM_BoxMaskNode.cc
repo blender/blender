@@ -60,7 +60,7 @@ void BoxMaskNode::convertToOperations(NodeConverter &converter,
     scaleOperation->setOffset(0.0f, 0.0f);
     scaleOperation->setNewWidth(rd->xsch * render_size_factor);
     scaleOperation->setNewHeight(rd->ysch * render_size_factor);
-    scaleOperation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
+    scaleOperation->getInputSocket(0)->setResizeMode(ResizeMode::None);
     converter.addOperation(scaleOperation);
 
     converter.addLink(valueOperation->getOutputSocket(0), scaleOperation->getInputSocket(0));

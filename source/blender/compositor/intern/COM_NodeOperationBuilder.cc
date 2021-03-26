@@ -399,7 +399,7 @@ void NodeOperationBuilder::determineResolutions()
   {
     blender::Vector<Link> convert_links;
     for (const Link &link : m_links) {
-      if (link.to()->getResizeMode() != COM_SC_NO_RESIZE) {
+      if (link.to()->getResizeMode() != ResizeMode::None) {
         NodeOperation &from_op = link.from()->getOperation();
         NodeOperation &to_op = link.to()->getOperation();
         if (from_op.getWidth() != to_op.getWidth() || from_op.getHeight() != to_op.getHeight()) {
