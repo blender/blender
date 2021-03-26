@@ -4546,7 +4546,10 @@ void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)
   }
 }
 
-void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool topology_from_uvs)
+void param_construct_end(ParamHandle *handle,
+                         ParamBool fill,
+                         ParamBool topology_from_uvs,
+                         int *count_fail)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart = phandle->construction_chart;
@@ -4574,6 +4577,9 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool topology
 
     if (!topology_from_uvs && nboundaries == 0) {
       p_chart_delete(chart);
+      if (count_fail != NULL) {
+        *count_fail += 1;
+      }
       continue;
     }
 
@@ -4611,12 +4617,11 @@ void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf)
   }
 }
 
-void param_lscm_solve(ParamHandle *handle)
+void param_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
   int i;
-  PBool result;
 
   param_assert(phandle->state == PHANDLE_STATE_LSCM);
 
@@ -4624,7 +4629,7 @@ void param_lscm_solve(ParamHandle *handle)
     chart = phandle->charts[i];
 
     if (chart->u.lscm.context) {
-      result = p_chart_lscm_solve(phandle, chart);
+      const PBool result = p_chart_lscm_solve(phandle, chart);
 
       if (result && !(chart->flag & PCHART_HAS_PINS)) {
         p_chart_rotate_minimum_area(chart);
@@ -4636,6 +4641,17 @@ void param_lscm_solve(ParamHandle *handle)
 
       if (!result || !(chart->flag & PCHART_HAS_PINS)) {
         p_chart_lscm_end(chart);
+      }
+
+      if (result) {
+        if (count_changed != NULL) {
+          *count_changed += 1;
+        }
+      }
+      else {
+        if (count_failed != NULL) {
+          *count_failed += 1;
+        }
       }
     }
   }
