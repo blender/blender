@@ -24,7 +24,8 @@
 
 #pragma once
 
-/*
+/**
+ * \code{.py}
  * import bpy
  * import textwrap
  *
@@ -42,6 +43,7 @@
  *     print("%d,%d," % (w, h))
  *     text = ", ".join(["0x%x" % p for p in pixels])
  *     print(textwrap.fill(text, width=120), end=",\n")
+ * \endcode
  */
 
 /**
