@@ -62,8 +62,10 @@ void NodeOperation::addOutputSocket(DataType datatype)
 void NodeOperation::determineResolution(unsigned int resolution[2],
                                         unsigned int preferredResolution[2])
 {
-  NodeOperationInput &input = m_inputs[m_resolutionInputSocketIndex];
-  input.determineResolution(resolution, preferredResolution);
+  if (m_resolutionInputSocketIndex < m_inputs.size()) {
+    NodeOperationInput &input = m_inputs[m_resolutionInputSocketIndex];
+    input.determineResolution(resolution, preferredResolution);
+  }
   unsigned int temp2[2] = {resolution[0], resolution[1]};
 
   unsigned int temp[2];
