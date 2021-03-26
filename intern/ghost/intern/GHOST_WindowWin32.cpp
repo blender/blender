@@ -533,7 +533,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       wp.showCmd = SW_SHOWMAXIMIZED;
       wp.ptMaxPosition.x = 0;
       wp.ptMaxPosition.y = 0;
-      style &= ~WS_CAPTION;
+      style &= ~(WS_CAPTION | WS_MAXIMIZE);
       break;
     case GHOST_kWindowStateNormal:
     default:
