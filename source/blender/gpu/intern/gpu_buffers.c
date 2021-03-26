@@ -979,14 +979,24 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata)
   }
 }
 
-static int gpu_pbvh_bmesh_make_vcol_offs(BMesh *bm, int r_cd_vcols[MAX_MCOL])
+static int gpu_pbvh_bmesh_make_vcol_offs(BMesh *bm, int r_cd_vcols[MAX_MCOL], bool active_only)
 {
+  if (active_only) {
+    int idx = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+    if (idx >= 0) {
+      r_cd_vcols[0] = idx;
+      return 1;
+    }
+
+    return 0;
+  }
+
   int count = 0;
   int tot = CustomData_number_of_layers(&bm->vdata, CD_PROP_COLOR);
 
   for (int i = 0; i < tot; i++) {
     int idx = CustomData_get_layer_index_n(&bm->vdata, CD_PROP_COLOR, i);
-    //idx = CustomData_get_active_layer_index(&bm->vdata, CD_PROP_COLOR);
+    // idx = CustomData_get_active_layer_index(&bm->vdata, CD_PROP_COLOR);
 
     if (idx < 0) {
       printf("eek, corruption in customdata!\n");
@@ -996,7 +1006,7 @@ static int gpu_pbvh_bmesh_make_vcol_offs(BMesh *bm, int r_cd_vcols[MAX_MCOL])
     CustomDataLayer *cl = bm->vdata.layers + idx;
 
     if (cl->flag & CD_FLAG_TEMPORARY) {
-      continue; //ignore original color layer
+      continue;  // ignore original color layer
     }
 
     r_cd_vcols[count++] = CustomData_get_n_offset(&bm->vdata, CD_PROP_COLOR, i);
@@ -1047,7 +1057,8 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
                                                     const int update_flags,
                                                     const int cd_vert_node_offset,
                                                     int face_sets_color_seed,
-                                                    int face_sets_color_default)
+                                                    int face_sets_color_default,
+                                                    bool active_vcol_only)
 {
   const bool have_uv = CustomData_has_layer(&bm->ldata, CD_MLOOPUV);
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
@@ -1062,7 +1073,7 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
   int cd_fset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
   int cd_vcols[MAX_MCOL];
-  const int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(bm, cd_vcols);
+  const int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(bm, cd_vcols, active_vcol_only);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces) * 6;
@@ -1222,7 +1233,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    const int cd_vert_node_offset,
                                    int face_sets_color_seed,
                                    int face_sets_color_default,
-                                   bool flat_vcol)
+                                   bool flat_vcol,
+                                   bool active_vcol_only)
 {
 
   if (flat_vcol && CustomData_has_layer(&bm->vdata, CD_PROP_COLOR)) {
@@ -1234,7 +1246,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                             update_flags,
                                             cd_vert_node_offset,
                                             face_sets_color_seed,
-                                            face_sets_color_default);
+                                            face_sets_color_default,
+                                            active_vcol_only);
     return;
   }
 
@@ -1251,7 +1264,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   int cd_fset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
   int cd_vcols[MAX_MCOL];
-  int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(bm, cd_vcols);
+  int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(bm, cd_vcols, active_vcol_only);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);

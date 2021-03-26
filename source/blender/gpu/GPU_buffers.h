@@ -97,7 +97,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    const int cd_vert_node_offset,
                                    int face_sets_color_seed,
                                    int face_sets_color_default,
-                                   bool flat_vcol);
+                                   bool flat_vcol,
+                                   bool active_vcol_only);
 
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,

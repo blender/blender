@@ -308,7 +308,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
-                      void *user_data);
+                      void *user_data,
+                      bool active_vcol_only);
 
 void BKE_pbvh_draw_debug_cb(
     PBVH *pbvh,
