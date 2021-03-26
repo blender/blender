@@ -69,6 +69,7 @@ set(SRC
   intern/CCGSubSurf_util.c
   intern/DerivedMesh.cc
   intern/action.c
+  intern/action_mirror.c
   intern/addon.c
   intern/anim_data.c
   intern/anim_path.c
