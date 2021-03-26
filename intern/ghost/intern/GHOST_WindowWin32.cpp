@@ -537,7 +537,14 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       break;
     case GHOST_kWindowStateNormal:
     default:
-      wp.showCmd = SW_SHOWNORMAL;
+      if (curstate == GHOST_kWindowStateFullScreen &&
+          m_normal_state == GHOST_kWindowStateMaximized) {
+        wp.showCmd = SW_SHOWMAXIMIZED;
+        m_normal_state = GHOST_kWindowStateNormal;
+      }
+      else {
+        wp.showCmd = SW_SHOWNORMAL;
+      }
       break;
   }
   ::SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
