@@ -51,8 +51,8 @@ static void calculate_uvs(Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, cons
 
   for (const int i : loops.index_range()) {
     const float3 &co = verts[loops[i].v].co;
-    uvs[i].x = (co.x + size) / (size * 2.0f);
-    uvs[i].y = (co.y + size) / (size * 2.0f);
+    uvs[i].x = (co.x + (size * 0.5)) / size;
+    uvs[i].y = (co.y + (size * 0.5)) / size;
   }
 
   uv_attribute.apply_span_and_save();
@@ -75,9 +75,9 @@ static Mesh *create_plane_mesh(const int verts_x, const int verts_y, const float
   {
     const float dx = size / edges_x;
     const float dy = size / edges_y;
-    float x = -size;
+    float x = -size * 0.5;
     for (const int x_index : IndexRange(verts_x)) {
-      float y = -size;
+      float y = -size * 0.5;
       for (const int y_index : IndexRange(verts_y)) {
         const int vert_index = x_index * verts_y + y_index;
         verts[vert_index].co[0] = x;
