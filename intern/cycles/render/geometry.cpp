@@ -1584,7 +1584,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_patch.tag_realloc();
-      dscene->tri_vnormal.tag_realloc();
       dscene->tri_patch_uv.tag_realloc();
       dscene->tri_shader.tag_realloc();
       dscene->patches.tag_realloc();
