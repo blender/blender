@@ -62,27 +62,18 @@ void NodeOperation::addOutputSocket(DataType datatype)
 void NodeOperation::determineResolution(unsigned int resolution[2],
                                         unsigned int preferredResolution[2])
 {
-  unsigned int temp[2];
-  unsigned int temp2[2];
+  NodeOperationInput &input = m_inputs[m_resolutionInputSocketIndex];
+  input.determineResolution(resolution, preferredResolution);
+  unsigned int temp2[2] = {resolution[0], resolution[1]};
 
-  // TODO(jbakker): Replace for loops with direct array access.
+  unsigned int temp[2];
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    NodeOperationInput &input = m_inputs[index];
-    if (input.isConnected()) {
-      if (index == this->m_resolutionInputSocketIndex) {
-        input.determineResolution(resolution, preferredResolution);
-        temp2[0] = resolution[0];
-        temp2[1] = resolution[1];
-        break;
-      }
+    if (index == this->m_resolutionInputSocketIndex) {
+      continue;
     }
-  }
-  for (unsigned int index = 0; index < m_inputs.size(); index++) {
     NodeOperationInput &input = m_inputs[index];
     if (input.isConnected()) {
-      if (index != this->m_resolutionInputSocketIndex) {
-        input.determineResolution(temp, temp2);
-      }
+      input.determineResolution(temp, temp2);
     }
   }
 }

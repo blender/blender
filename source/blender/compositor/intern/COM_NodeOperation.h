@@ -238,11 +238,7 @@ class NodeOperation {
   {
     return m_outputs.size();
   }
-  NodeOperationOutput *getOutputSocket(unsigned int index);
-  NodeOperationOutput *getOutputSocket()
-  {
-    return getOutputSocket(0);
-  }
+  NodeOperationOutput *getOutputSocket(unsigned int index = 0);
   NodeOperationInput *getInputSocket(unsigned int index);
 
   /** Check if this is an input operation
