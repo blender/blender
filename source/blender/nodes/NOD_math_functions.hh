@@ -379,7 +379,8 @@ inline bool try_dispatch_float_math_fl3_fl3_fl_to_fl3(const NodeVectorMathOperat
 
   switch (operation) {
     case NODE_VECTOR_MATH_REFRACT:
-      return dispatch([](float3 a, float3 b, float c) { return float3::refract(a, b.normalized(), c); });
+      return dispatch(
+          [](float3 a, float3 b, float c) { return float3::refract(a, b.normalized(), c); });
     default:
       return false;
   }

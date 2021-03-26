@@ -1102,7 +1102,6 @@ bool BKE_lib_override_library_resync(Main *bmain,
   BKE_main_id_clear_newpoins(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
 
-
   return success;
 }
 

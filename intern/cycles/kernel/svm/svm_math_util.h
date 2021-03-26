@@ -242,12 +242,15 @@ ccl_device float3 svm_math_blackbody_color(float t)
     return make_float3(4.70366907f, 0.0f, 0.0f);
   }
 
+  /* Manually align for readability. */
+  /* clang-format off */
   int i = (t >= 6365.0f) ? 5 :
           (t >= 3315.0f) ? 4 :
           (t >= 1902.0f) ? 3 :
           (t >= 1449.0f) ? 2 :
           (t >= 1167.0f) ? 1 :
                            0;
+  /* clang-format on */
 
   ccl_constant float *r = blackbody_table_r[i];
   ccl_constant float *g = blackbody_table_g[i];
