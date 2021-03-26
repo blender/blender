@@ -1416,6 +1416,9 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       /* Only created one layer and one material. */
       strcpy(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);
       md->target_material = BKE_gpencil_material(ob, 1);
+      if (md->target_material) {
+        id_us_plus(&md->target_material->id);
+      }
 
       /* Stroke object is drawn in front of meshes by default. */
       ob->dtx |= OB_DRAW_IN_FRONT;
