@@ -21,7 +21,7 @@
  * \ingroup bgpencil
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 

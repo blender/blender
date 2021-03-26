@@ -448,7 +448,7 @@ void GpencilExporterSVG::add_text(pugi::xml_node node,
 }
 
 /** Convert a color to Hex value (#FFFFFF). */
-std::string GpencilExporterSVG::rgb_to_hexstr(float color[3])
+std::string GpencilExporterSVG::rgb_to_hexstr(const float color[3])
 {
   uint8_t r = color[0] * 255.0f;
   uint8_t g = color[1] * 255.0f;
