@@ -28,8 +28,8 @@
 
 #include "COM_MemoryBuffer.h"
 #include "COM_MemoryProxy.h"
+#include "COM_MetaData.h"
 #include "COM_Node.h"
-#include "COM_SocketReader.h"
 
 #include "clew.h"
 
@@ -39,6 +39,9 @@ class WriteBufferOperation;
 
 class NodeOperationInput;
 class NodeOperationOutput;
+
+class NodeOperation;
+typedef NodeOperation SocketReader;
 
 /**
  * \brief Resize modes of inputsockets
@@ -64,13 +67,19 @@ typedef enum InputResizeMode {
   COM_SC_STRETCH = NS_CR_STRETCH,
 } InputResizeMode;
 
+enum class PixelSampler {
+  Nearest = 0,
+  Bilinear = 1,
+  Bicubic = 2,
+};
+
 /**
  * \brief NodeOperation contains calculation logic
  *
  * Subclasses needs to implement the execution method (defined in SocketReader) to implement logic.
  * \ingroup Model
  */
-class NodeOperation : public SocketReader {
+class NodeOperation {
  public:
   typedef std::vector<NodeOperationInput *> Inputs;
   typedef std::vector<NodeOperationOutput *> Outputs;
@@ -118,6 +127,17 @@ class NodeOperation : public SocketReader {
    * \brief set to truth when resolution for this operation is set
    */
   bool m_isResolutionSet;
+
+ protected:
+  /**
+   * Width of the output of this operation.
+   */
+  unsigned int m_width;
+
+  /**
+   * Height of the output of this operation.
+   */
+  unsigned int m_height;
 
  public:
   virtual ~NodeOperation();
@@ -373,6 +393,54 @@ class NodeOperation : public SocketReader {
     }
   }
 
+  unsigned int getWidth() const
+  {
+    return m_width;
+  }
+
+  unsigned int getHeight() const
+  {
+    return m_height;
+  }
+
+  inline void readSampled(float result[4], float x, float y, PixelSampler sampler)
+  {
+    executePixelSampled(result, x, y, sampler);
+  }
+
+  inline void readFiltered(float result[4], float x, float y, float dx[2], float dy[2])
+  {
+    executePixelFiltered(result, x, y, dx, dy);
+  }
+
+  inline void read(float result[4], int x, int y, void *chunkData)
+  {
+    executePixel(result, x, y, chunkData);
+  }
+
+  virtual void *initializeTileData(rcti * /*rect*/)
+  {
+    return 0;
+  }
+
+  virtual void deinitializeTileData(rcti * /*rect*/, void * /*data*/)
+  {
+  }
+
+  virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer ** /*memoryBuffers*/)
+  {
+    return 0;
+  }
+
+  /**
+   * Return the meta data associated with this branch.
+   *
+   * The return parameter holds an instance or is an nullptr. */
+  virtual std::unique_ptr<MetaData> getMetaData() const
+  {
+    return std::unique_ptr<MetaData>();
+  }
+
  protected:
   NodeOperation();
 
@@ -414,6 +482,50 @@ class NodeOperation : public SocketReader {
   void setOpenCL(bool openCL)
   {
     this->m_openCL = openCL;
+  }
+
+  /**
+   * \brief calculate a single pixel
+   * \note this method is called for non-complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   */
+  virtual void executePixelSampled(float /*output*/[4],
+                                   float /*x*/,
+                                   float /*y*/,
+                                   PixelSampler /*sampler*/)
+  {
+  }
+
+  /**
+   * \brief calculate a single pixel
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   * \param chunkData: chunk specific data a during execution time.
+   */
+  virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/)
+  {
+    executePixelSampled(output, x, y, PixelSampler::Nearest);
+  }
+
+  /**
+   * \brief calculate a single pixel using an EWA filter
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param dx:
+   * \param dy:
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   */
+  virtual void executePixelFiltered(
+      float /*output*/[4], float /*x*/, float /*y*/, float /*dx*/[2], float /*dy*/[2])
+  {
   }
 
   /* allow the DebugInfo class to look at internals */

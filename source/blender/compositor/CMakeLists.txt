@@ -87,8 +87,6 @@ set(SRC
   intern/COM_OpenCLDevice.h
   intern/COM_SingleThreadedOperation.cc
   intern/COM_SingleThreadedOperation.h
-  intern/COM_SocketReader.cc
-  intern/COM_SocketReader.h
   intern/COM_WorkPackage.cc
   intern/COM_WorkPackage.h
   intern/COM_WorkScheduler.cc
