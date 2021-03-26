@@ -46,3 +46,6 @@ Desktop.ini
 
 # smoke simulation noise tile (generated)
 waveletNoiseTile.bin
+
+# testing environment
+/Testing
