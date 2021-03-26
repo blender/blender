@@ -893,7 +893,7 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
     return {};
   }
 
-  if (attribute->domain() != domain) {
+  if (domain != ATTR_DOMAIN_AUTO && attribute->domain() != domain) {
     attribute = this->attribute_try_adapt_domain(std::move(attribute), domain);
     if (!attribute) {
       return {};
