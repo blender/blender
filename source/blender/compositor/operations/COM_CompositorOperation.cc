@@ -196,14 +196,14 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     for (x = x1; x < x2 && (!breaked); x++) {
       int input_x = x + dx, input_y = y + dy;
 
-      this->m_imageInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
+      this->m_imageInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
       if (this->m_useAlphaInput) {
-        this->m_alphaInput->readSampled(&(color[3]), input_x, input_y, COM_PS_NEAREST);
+        this->m_alphaInput->readSampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
       }
 
       copy_v4_v4(buffer + offset4, color);
 
-      this->m_depthInput->readSampled(color, input_x, input_y, COM_PS_NEAREST);
+      this->m_depthInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
       zbuffer[offset] = color[0];
       offset4 += COM_NUM_CHANNELS_COLOR;
       offset++;

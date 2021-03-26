@@ -48,7 +48,7 @@ inline void RotateOperation::ensureDegree()
 {
   if (!this->m_isDegreeSet) {
     float degree[4];
-    this->m_degreeSocket->readSampled(degree, 0, 0, COM_PS_NEAREST);
+    this->m_degreeSocket->readSampled(degree, 0, 0, PixelSampler::Nearest);
     double rad;
     if (this->m_doDegree2RadConversion) {
       rad = DEG2RAD((double)degree[0]);

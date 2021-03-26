@@ -54,9 +54,9 @@ class TranslateOperation : public NodeOperation {
   {
     if (!this->m_isDeltaSet) {
       float tempDelta[4];
-      this->m_inputXOperation->readSampled(tempDelta, 0, 0, COM_PS_NEAREST);
+      this->m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
       this->m_deltaX = tempDelta[0];
-      this->m_inputYOperation->readSampled(tempDelta, 0, 0, COM_PS_NEAREST);
+      this->m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
       this->m_deltaY = tempDelta[0];
       this->m_isDeltaSet = true;
     }

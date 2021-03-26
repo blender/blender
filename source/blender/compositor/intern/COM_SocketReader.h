@@ -29,11 +29,11 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
-typedef enum PixelSampler {
-  COM_PS_NEAREST = 0,
-  COM_PS_BILINEAR = 1,
-  COM_PS_BICUBIC = 2,
-} PixelSampler;
+enum class PixelSampler {
+  Nearest = 0,
+  Bilinear = 1,
+  Bicubic = 2,
+};
 
 class MemoryBuffer;
 
@@ -81,7 +81,7 @@ class SocketReader {
    */
   virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/)
   {
-    executePixelSampled(output, x, y, COM_PS_NEAREST);
+    executePixelSampled(output, x, y, PixelSampler::Nearest);
   }
 
   /**

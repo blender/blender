@@ -319,7 +319,7 @@ void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 
   //          for (int x2 = 0 ; x2 < DIVIDER ; x2 ++) {
   //              for (int y2 = 0 ; y2 < DIVIDER ; y2 ++) {
-  //                  this->m_inputRadius->read(temp, rx+x2, ry+y2, COM_PS_NEAREST);
+  //                  this->m_inputRadius->read(temp, rx+x2, ry+y2, PixelSampler::Nearest);
   //                  if (radius < temp[0]) {
   //                      radius = temp[0];
   //                      maxx = x2;

@@ -56,7 +56,7 @@ void TranslateOperation::executePixelSampled(float output[4],
   float originalXPos = x - this->getDeltaX();
   float originalYPos = y - this->getDeltaY();
 
-  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, COM_PS_BILINEAR);
+  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,

@@ -98,12 +98,12 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
   for (y = y1; y < y2 && (!breaked); y++) {
     for (x = x1; x < x2; x++) {
-      this->m_imageInput->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
+      this->m_imageInput->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
       if (this->m_useAlphaInput) {
-        this->m_alphaInput->readSampled(alpha, x, y, COM_PS_NEAREST);
+        this->m_alphaInput->readSampled(alpha, x, y, PixelSampler::Nearest);
         buffer[offset4 + 3] = alpha[0];
       }
-      this->m_depthInput->readSampled(depth, x, y, COM_PS_NEAREST);
+      this->m_depthInput->readSampled(depth, x, y, PixelSampler::Nearest);
       depthbuffer[offset] = depth[0];
 
       offset++;

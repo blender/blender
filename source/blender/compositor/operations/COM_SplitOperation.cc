@@ -58,10 +58,10 @@ void SplitOperation::executePixelSampled(float output[4],
                               this->m_splitPercentage * this->getHeight() / 100.0f;
   bool image1 = this->m_xSplit ? x > perc : y > perc;
   if (image1) {
-    this->m_image1Input->readSampled(output, x, y, COM_PS_NEAREST);
+    this->m_image1Input->readSampled(output, x, y, PixelSampler::Nearest);
   }
   else {
-    this->m_image2Input->readSampled(output, x, y, COM_PS_NEAREST);
+    this->m_image2Input->readSampled(output, x, y, PixelSampler::Nearest);
   }
 }
 
