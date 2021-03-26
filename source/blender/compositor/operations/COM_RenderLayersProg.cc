@@ -216,7 +216,7 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2],
   }
 }
 
-std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
+std::unique_ptr<MetaData> RenderLayersProg::getMetaData()
 {
   Scene *scene = this->getScene();
   Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;

@@ -25,7 +25,7 @@ SocketProxyOperation::SocketProxyOperation(DataType type, bool use_conversion)
   this->addOutputSocket(type);
 }
 
-std::unique_ptr<MetaData> SocketProxyOperation::getMetaData() const
+std::unique_ptr<MetaData> SocketProxyOperation::getMetaData()
 {
   return this->getInputSocket(0)->getReader()->getMetaData();
 }

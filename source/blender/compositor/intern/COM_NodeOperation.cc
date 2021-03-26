@@ -39,38 +39,24 @@ NodeOperation::NodeOperation()
   this->m_btree = nullptr;
 }
 
-NodeOperation::~NodeOperation()
+NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index)
 {
-  while (!this->m_outputs.is_empty()) {
-    delete (this->m_outputs.pop_last());
-  }
-  while (!this->m_inputs.is_empty()) {
-    delete (this->m_inputs.pop_last());
-  }
+  return &m_outputs[index];
 }
 
-NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index) const
+NodeOperationInput *NodeOperation::getInputSocket(unsigned int index)
 {
-  BLI_assert(index < m_outputs.size());
-  return m_outputs[index];
-}
-
-NodeOperationInput *NodeOperation::getInputSocket(unsigned int index) const
-{
-  BLI_assert(index < m_inputs.size());
-  return m_inputs[index];
+  return &m_inputs[index];
 }
 
 void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
 {
-  NodeOperationInput *socket = new NodeOperationInput(this, datatype, resize_mode);
-  m_inputs.append(socket);
+  m_inputs.append(NodeOperationInput(this, datatype, resize_mode));
 }
 
 void NodeOperation::addOutputSocket(DataType datatype)
 {
-  NodeOperationOutput *socket = new NodeOperationOutput(this, datatype);
-  m_outputs.append(socket);
+  m_outputs.append(NodeOperationOutput(this, datatype));
 }
 
 void NodeOperation::determineResolution(unsigned int resolution[2],
@@ -79,11 +65,12 @@ void NodeOperation::determineResolution(unsigned int resolution[2],
   unsigned int temp[2];
   unsigned int temp2[2];
 
+  // TODO(jbakker): Replace for loops with direct array access.
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    NodeOperationInput *input = m_inputs[index];
-    if (input->isConnected()) {
+    NodeOperationInput &input = m_inputs[index];
+    if (input.isConnected()) {
       if (index == this->m_resolutionInputSocketIndex) {
-        input->determineResolution(resolution, preferredResolution);
+        input.determineResolution(resolution, preferredResolution);
         temp2[0] = resolution[0];
         temp2[1] = resolution[1];
         break;
@@ -91,14 +78,15 @@ void NodeOperation::determineResolution(unsigned int resolution[2],
     }
   }
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    NodeOperationInput *input = m_inputs[index];
-    if (input->isConnected()) {
+    NodeOperationInput &input = m_inputs[index];
+    if (input.isConnected()) {
       if (index != this->m_resolutionInputSocketIndex) {
-        input->determineResolution(temp, temp2);
+        input.determineResolution(temp, temp2);
       }
     }
   }
 }
+
 void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 {
   this->m_resolutionInputSocketIndex = index;

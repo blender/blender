@@ -37,9 +37,6 @@ class OpenCLDevice;
 class ReadBufferOperation;
 class WriteBufferOperation;
 
-class NodeOperationInput;
-class NodeOperationOutput;
-
 class NodeOperation;
 typedef NodeOperation SocketReader;
 
@@ -73,6 +70,99 @@ enum class PixelSampler {
   Bicubic = 2,
 };
 
+class NodeOperationInput {
+ private:
+  NodeOperation *m_operation;
+
+  /** Datatype of this socket. Is used for automatically data transformation.
+   * \section data-conversion
+   */
+  DataType m_datatype;
+
+  /** Resize mode of this socket */
+  ResizeMode m_resizeMode;
+
+  /** Connected output */
+  NodeOperationOutput *m_link;
+
+ public:
+  NodeOperationInput(NodeOperation *op,
+                     DataType datatype,
+                     ResizeMode resizeMode = ResizeMode::Center);
+
+  NodeOperation &getOperation() const
+  {
+    return *m_operation;
+  }
+  DataType getDataType() const
+  {
+    return m_datatype;
+  }
+
+  void setLink(NodeOperationOutput *link)
+  {
+    m_link = link;
+  }
+  NodeOperationOutput *getLink() const
+  {
+    return m_link;
+  }
+  bool isConnected() const
+  {
+    return m_link;
+  }
+
+  void setResizeMode(ResizeMode resizeMode)
+  {
+    this->m_resizeMode = resizeMode;
+  }
+  ResizeMode getResizeMode() const
+  {
+    return this->m_resizeMode;
+  }
+
+  SocketReader *getReader();
+
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
+
+class NodeOperationOutput {
+ private:
+  NodeOperation *m_operation;
+
+  /** Datatype of this socket. Is used for automatically data transformation.
+   * \section data-conversion
+   */
+  DataType m_datatype;
+
+ public:
+  NodeOperationOutput(NodeOperation *op, DataType datatype);
+
+  NodeOperation &getOperation() const
+  {
+    return *m_operation;
+  }
+  DataType getDataType() const
+  {
+    return m_datatype;
+  }
+
+  /**
+   * \brief determine the resolution of this data going through this socket
+   * \param resolution: the result of this operation
+   * \param preferredResolution: the preferable resolution as no resolution could be determined
+   */
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
+
 /**
  * \brief NodeOperation contains calculation logic
  *
@@ -81,8 +171,8 @@ enum class PixelSampler {
  */
 class NodeOperation {
  private:
-  blender::Vector<NodeOperationInput *> m_inputs;
-  blender::Vector<NodeOperationOutput *> m_outputs;
+  blender::Vector<NodeOperationInput> m_inputs;
+  blender::Vector<NodeOperationOutput> m_outputs;
 
   /**
    * \brief the index of the input socket that will be used to determine the resolution
@@ -136,7 +226,9 @@ class NodeOperation {
   unsigned int m_height;
 
  public:
-  virtual ~NodeOperation();
+  virtual ~NodeOperation()
+  {
+  }
 
   unsigned int getNumberOfInputSockets() const
   {
@@ -146,12 +238,12 @@ class NodeOperation {
   {
     return m_outputs.size();
   }
-  NodeOperationOutput *getOutputSocket(unsigned int index) const;
-  NodeOperationOutput *getOutputSocket() const
+  NodeOperationOutput *getOutputSocket(unsigned int index);
+  NodeOperationOutput *getOutputSocket()
   {
     return getOutputSocket(0);
   }
-  NodeOperationInput *getInputSocket(unsigned int index) const;
+  NodeOperationInput *getInputSocket(unsigned int index);
 
   /** Check if this is an input operation
    * An input operation is an operation that only has output sockets and no input sockets
@@ -430,7 +522,7 @@ class NodeOperation {
    * Return the meta data associated with this branch.
    *
    * The return parameter holds an instance or is an nullptr. */
-  virtual std::unique_ptr<MetaData> getMetaData() const
+  virtual std::unique_ptr<MetaData> getMetaData()
   {
     return std::unique_ptr<MetaData>();
   }
@@ -524,99 +616,6 @@ class NodeOperation {
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
-#endif
-};
-
-class NodeOperationInput {
- private:
-  NodeOperation *m_operation;
-
-  /** Datatype of this socket. Is used for automatically data transformation.
-   * \section data-conversion
-   */
-  DataType m_datatype;
-
-  /** Resize mode of this socket */
-  ResizeMode m_resizeMode;
-
-  /** Connected output */
-  NodeOperationOutput *m_link;
-
- public:
-  NodeOperationInput(NodeOperation *op,
-                     DataType datatype,
-                     ResizeMode resizeMode = ResizeMode::Center);
-
-  NodeOperation &getOperation() const
-  {
-    return *m_operation;
-  }
-  DataType getDataType() const
-  {
-    return m_datatype;
-  }
-
-  void setLink(NodeOperationOutput *link)
-  {
-    m_link = link;
-  }
-  NodeOperationOutput *getLink() const
-  {
-    return m_link;
-  }
-  bool isConnected() const
-  {
-    return m_link;
-  }
-
-  void setResizeMode(ResizeMode resizeMode)
-  {
-    this->m_resizeMode = resizeMode;
-  }
-  ResizeMode getResizeMode() const
-  {
-    return this->m_resizeMode;
-  }
-
-  SocketReader *getReader();
-
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
-#endif
-};
-
-class NodeOperationOutput {
- private:
-  NodeOperation *m_operation;
-
-  /** Datatype of this socket. Is used for automatically data transformation.
-   * \section data-conversion
-   */
-  DataType m_datatype;
-
- public:
-  NodeOperationOutput(NodeOperation *op, DataType datatype);
-
-  NodeOperation &getOperation() const
-  {
-    return *m_operation;
-  }
-  DataType getDataType() const
-  {
-    return m_datatype;
-  }
-
-  /**
-   * \brief determine the resolution of this data going through this socket
-   * \param resolution: the result of this operation
-   * \param preferredResolution: the preferable resolution as no resolution could be determined
-   */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")

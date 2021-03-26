@@ -49,7 +49,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
   return nullptr;
 }
 
-std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData() const
+std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
 {
   BLI_assert(this->m_buffer);
   MetaDataExtractCallbackData callback_data = {nullptr};

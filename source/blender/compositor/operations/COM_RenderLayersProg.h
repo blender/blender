@@ -123,7 +123,7 @@ class RenderLayersProg : public NodeOperation {
   void deinitExecution() override;
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  std::unique_ptr<MetaData> getMetaData() const override;
+  std::unique_ptr<MetaData> getMetaData() override;
 };
 
 class RenderLayersAOOperation : public RenderLayersProg {

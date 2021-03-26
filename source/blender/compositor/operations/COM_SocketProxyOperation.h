@@ -41,7 +41,7 @@ class SocketProxyOperation : public NodeOperation {
   {
     m_use_conversion = use_conversion;
   }
-  std::unique_ptr<MetaData> getMetaData() const override;
+  std::unique_ptr<MetaData> getMetaData() override;
 
  private:
   bool m_use_conversion;
