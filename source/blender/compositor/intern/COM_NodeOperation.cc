@@ -41,13 +41,11 @@ NodeOperation::NodeOperation()
 
 NodeOperation::~NodeOperation()
 {
-  while (!this->m_outputs.empty()) {
-    delete (this->m_outputs.back());
-    this->m_outputs.pop_back();
+  while (!this->m_outputs.is_empty()) {
+    delete (this->m_outputs.pop_last());
   }
-  while (!this->m_inputs.empty()) {
-    delete (this->m_inputs.back());
-    this->m_inputs.pop_back();
+  while (!this->m_inputs.is_empty()) {
+    delete (this->m_inputs.pop_last());
   }
 }
 
@@ -66,13 +64,13 @@ NodeOperationInput *NodeOperation::getInputSocket(unsigned int index) const
 void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
 {
   NodeOperationInput *socket = new NodeOperationInput(this, datatype, resize_mode);
-  m_inputs.push_back(socket);
+  m_inputs.append(socket);
 }
 
 void NodeOperation::addOutputSocket(DataType datatype)
 {
   NodeOperationOutput *socket = new NodeOperationOutput(this, datatype);
-  m_outputs.push_back(socket);
+  m_outputs.append(socket);
 }
 
 void NodeOperation::determineResolution(unsigned int resolution[2],
@@ -147,15 +145,6 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
   }
 
   return nullptr;
-}
-
-void NodeOperation::getConnectedInputSockets(Inputs *sockets)
-{
-  for (NodeOperationInput *input : m_inputs) {
-    if (input->isConnected()) {
-      sockets->push_back(input);
-    }
-  }
 }
 
 bool NodeOperation::determineDependingAreaOfInterest(rcti *input,

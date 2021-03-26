@@ -80,13 +80,9 @@ enum class PixelSampler {
  * \ingroup Model
  */
 class NodeOperation {
- public:
-  typedef std::vector<NodeOperationInput *> Inputs;
-  typedef std::vector<NodeOperationOutput *> Outputs;
-
  private:
-  Inputs m_inputs;
-  Outputs m_outputs;
+  blender::Vector<NodeOperationInput *> m_inputs;
+  blender::Vector<NodeOperationOutput *> m_outputs;
 
   /**
    * \brief the index of the input socket that will be used to determine the resolution
@@ -162,7 +158,7 @@ class NodeOperation {
    */
   bool isInputOperation() const
   {
-    return m_inputs.empty();
+    return m_inputs.is_empty();
   }
 
   /**
@@ -278,8 +274,6 @@ class NodeOperation {
       this->m_isResolutionSet = true;
     }
   }
-
-  void getConnectedInputSockets(Inputs *sockets);
 
   /**
    * \brief is this operation complex
