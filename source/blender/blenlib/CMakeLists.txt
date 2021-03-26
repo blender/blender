@@ -263,6 +263,7 @@ set(SRC
   BLI_session_uuid.h
   BLI_set.hh
   BLI_set_slots.hh
+  BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
   BLI_sort_utils.h

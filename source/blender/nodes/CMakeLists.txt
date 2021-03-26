@@ -148,10 +148,10 @@ set(SRC
   geometry/nodes/node_geo_attribute_mix.cc
   geometry/nodes/node_geo_attribute_proximity.cc
   geometry/nodes/node_geo_attribute_randomize.cc
+  geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_attribute_sample_texture.cc
   geometry/nodes/node_geo_attribute_separate_xyz.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
-  geometry/nodes/node_geo_attribute_remove.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc

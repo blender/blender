@@ -17,9 +17,9 @@
 
 set(INC
   ../include
+  ../../blenfont
   ../../blenkernel
   ../../blenlib
-  ../../blenfont
   ../../bmesh
   ../../depsgraph
   ../../functions
@@ -38,8 +38,8 @@ set(SRC
   spreadsheet_from_geometry.cc
   spreadsheet_ops.cc
 
-  spreadsheet_draw.hh
   spreadsheet_column_layout.hh
+  spreadsheet_draw.hh
   spreadsheet_from_geometry.hh
   spreadsheet_intern.hh
 )
