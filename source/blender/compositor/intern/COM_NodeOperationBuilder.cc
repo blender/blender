@@ -53,9 +53,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
   /* interface handle for nodes */
   NodeConverter converter(this);
 
-  for (int index = 0; index < m_graph.nodes().size(); index++) {
-    Node *node = (Node *)m_graph.nodes()[index];
-
+  for (Node *node : m_graph.nodes()) {
     m_current_node = node;
 
     DebugInfo::node_to_operations(node);
