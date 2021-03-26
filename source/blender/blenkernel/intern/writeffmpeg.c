@@ -567,9 +567,6 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   /* Set up the codec context */
 
   c = st->codec;
-  c->thread_count = BLI_system_thread_count();
-  c->thread_type = FF_THREAD_SLICE;
-
   c->codec_id = codec_id;
   c->codec_type = AVMEDIA_TYPE_VIDEO;
 
@@ -726,6 +723,20 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   st->avg_frame_rate = av_inv_q(c->time_base);
 
   set_ffmpeg_properties(rd, c, "video", &opts);
+
+  if (codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+    c->thread_count = 0;
+  }
+  else {
+    c->thread_count = BLI_system_thread_count();
+  }
+
+  if (codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    c->thread_type = FF_THREAD_FRAME;
+  }
+  else if (codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    c->thread_type = FF_THREAD_SLICE;
+  }
 
   if (avcodec_open2(c, codec, &opts) < 0) {
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);

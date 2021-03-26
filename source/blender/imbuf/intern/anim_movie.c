@@ -574,8 +574,19 @@ static int startffmpeg(struct anim *anim)
 
   pCodecCtx->workaround_bugs = 1;
 
-  pCodecCtx->thread_count = BLI_system_thread_count();
-  pCodecCtx->thread_type = FF_THREAD_SLICE;
+  if (pCodec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+    pCodecCtx->thread_count = 0;
+  }
+  else {
+    pCodecCtx->thread_count = BLI_system_thread_count();
+  }
+
+  if (pCodec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    pCodecCtx->thread_type = FF_THREAD_FRAME;
+  }
+  else if (pCodec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    pCodecCtx->thread_type = FF_THREAD_SLICE;
+  }
 
   if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
     avformat_close_input(&pFormatCtx);
