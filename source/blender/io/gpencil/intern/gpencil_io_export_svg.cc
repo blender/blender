@@ -396,7 +396,7 @@ void GpencilExporterSVG::color_string_set(bGPDlayer *gpl,
  * \param node: Parent node
  * \param x: X location
  * \param y: Y location
- * \param width: width of the recntagle
+ * \param width: width of the rectangle
  * \param height: Height of the rectangle
  * \param thickness: Thickness of the line
  * \param hexcolor: Color of the line
@@ -427,7 +427,7 @@ void GpencilExporterSVG::add_rect(pugi::xml_node node,
  * \param x: X location
  * \param y: Y location
  * \param text: Text to include
- * \param size: Size of th etext
+ * \param size: Size of the text
  * \param hexcolor: Color of the text
  */
 void GpencilExporterSVG::add_text(pugi::xml_node node,

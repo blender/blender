@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-14 Mikko Mononen memon@inside.org
+ * Copyright (c) 2013-14 `Mikko Mononen <memon@inside.org>`
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -459,9 +459,9 @@ typedef struct NSVGparser {
   float dpi;
   char pathFlag;
   char defsFlag;
-  /** Blender breadscrum for layers. */
+  /** Blender breadcrumb for layers. */
   char breadcrumb[NSVG_MAX_BREADCRUMB][64];
-  /** Blender number of elements in breadscrum. */
+  /** Blender number of elements in breadcrumb. */
   int breadcrumb_len;
 } NSVGparser;
 

@@ -196,10 +196,10 @@ void GpencilImporterSVG::create_stroke(bGPdata *gpd,
       pt->strength = shape->opacity;
       pt->pressure = 1.0f;
       pt->z = 0.0f;
-      /* TODO: (antoniov) Can be improved loading curve data instead of loading strokes. */
+      /* TODO(antoniov): Can be improved loading curve data instead of loading strokes. */
       interp_v2_v2v2v2v2_cubic(&pt->x, &p[0], &p[2], &p[4], &p[6], a);
 
-      /* Scale from milimeters. */
+      /* Scale from millimeters. */
       mul_v3_fl(&pt->x, 0.001f);
       mul_m4_v3(matrix, &pt->x);
 
