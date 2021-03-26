@@ -2903,10 +2903,19 @@ static void *extract_vcol_init(const MeshRenderData *mr, struct MeshBatchCache *
 
   /* Sculpt Vertex Colors */
   if (U.experimental.use_sculpt_vertex_colors) {
+    const int totlayers = CustomData_number_of_layers(cd_vdata, CD_PROP_COLOR);
+
     for (int i = 0; i < 8; i++) {
       if (svcol_layers & (1 << i)) {
+        if (i >= totlayers) {
+          svcol_layers &= ~(1 << i);
+          cache->cd_used.sculpt_vcol = svcol_layers;
+          break;
+        }
+
         char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
         const char *layer_name = CustomData_get_layer_name(cd_vdata, CD_PROP_COLOR, i);
+
         GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
         BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);

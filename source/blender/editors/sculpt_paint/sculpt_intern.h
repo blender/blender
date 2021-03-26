@@ -344,6 +344,7 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 
 void SCULPT_dynamic_topology_triangulate(struct BMesh *bm);
 void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
+void SCULPT_dyntopo_save_origverts(struct SculptSession *ss);
 
 enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 

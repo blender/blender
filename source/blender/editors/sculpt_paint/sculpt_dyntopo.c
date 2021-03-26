@@ -234,8 +234,6 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY;
   ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
-
-  SCULPT_dyntopo_save_origverts(ss);
 }
 
 /**
@@ -266,6 +264,7 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
     CustomData *data2 = cd2[i];
 
     if (!data1->layers) {
+      modified |= data2->layers != NULL;
       continue;
     }
 
@@ -275,6 +274,15 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
       if ((1 << cl1->type) & badmask) {
         continue;
       }
+
+      modified = modified || CustomData_get_active_layer_index(data1, cl1->type) !=
+                                 CustomData_get_active_layer_index(data2, cl1->type);
+      modified = modified || CustomData_get_render_layer_index(data1, cl1->type) !=
+                                 CustomData_get_render_layer_index(data2, cl1->type);
+      modified = modified || CustomData_get_stencil_layer_index(data1, cl1->type) !=
+                                 CustomData_get_stencil_layer_index(data2, cl1->type);
+      modified = modified || CustomData_get_clone_layer_index(data1, cl1->type) !=
+                                 CustomData_get_clone_layer_index(data2, cl1->type);
 
       int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       if (idx < 0) {
@@ -362,7 +370,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                      }));
   SCULPT_dynamic_topology_triangulate(ss->bm);
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+
   SCULPT_dyntopo_node_layers_add(ss);
+  SCULPT_dyntopo_save_origverts(ss);
 
   BMIter iter;
   BMVert *v;

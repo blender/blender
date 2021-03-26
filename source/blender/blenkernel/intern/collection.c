@@ -688,10 +688,11 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     eDupli_ID_Flags duplicate_flags,
-                                     eLibIDDuplicateFlags duplicate_options)
+                                     const uint duplicate_flags_in, //it's not const!! - joeedh
+                                     const uint duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+  uint duplicate_flags = duplicate_flags_in; 
 
   if (!is_subprocess) {
     BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);

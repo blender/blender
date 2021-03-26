@@ -459,6 +459,9 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
                           }));
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
   SCULPT_dyntopo_node_layers_add(ss);
+  SCULPT_dyntopo_save_origverts(ss);
+
+
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
