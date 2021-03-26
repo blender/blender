@@ -1873,7 +1873,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY_ENFORCE:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY:
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id) && !ID_IS_LINKED(tselem->id)) {
         return true;
       }
       return false;
