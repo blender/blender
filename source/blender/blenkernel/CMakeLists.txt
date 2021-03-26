@@ -126,6 +126,7 @@ set(SRC
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
+  intern/fcurve_cache.c
   intern/fcurve_driver.c
   intern/fluid.c
   intern/fmodifier.c

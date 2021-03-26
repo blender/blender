@@ -232,6 +232,19 @@ int BKE_fcurve_bezt_binarysearch_index(struct BezTriple array[],
                                        int arraylen,
                                        bool *r_replace);
 
+/* fcurve_cache.c */
+/* Cached f-curve look-ups, use when this needs to be done many times. */
+struct FCurvePathCache;
+struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list);
+void BKE_fcurve_pathcache_destroy(struct FCurvePathCache *fcache);
+struct FCurve *BKE_fcurve_pathcache_find(struct FCurvePathCache *fcache,
+                                         const char rna_path[],
+                                         const int array_index);
+int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
+                                    const char *rna_path,
+                                    struct FCurve **fcurve_result,
+                                    int fcurve_result_len);
+
 /* get the time extents for F-Curve */
 bool BKE_fcurve_calc_range(
     struct FCurve *fcu, float *min, float *max, const bool do_sel_only, const bool do_min_length);
