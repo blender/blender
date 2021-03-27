@@ -456,8 +456,8 @@ TEST(set, LookupKeyPtr)
 TEST(set, LookupKeyOrAdd)
 {
   Set<MyKeyType> set;
-  set.add({1, 10});
-  set.add({2, 20});
+  set.lookup_key_or_add({1, 10});
+  set.lookup_key_or_add({2, 20});
   EXPECT_EQ(set.size(), 2);
   EXPECT_EQ(set.lookup_key_or_add({2, 40}).attached_data, 20);
   EXPECT_EQ(set.size(), 2);

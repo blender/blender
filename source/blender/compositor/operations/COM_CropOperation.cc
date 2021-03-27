@@ -21,7 +21,7 @@
 
 CropBaseOperation::CropBaseOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->m_inputOperation = nullptr;
   this->m_settings = nullptr;

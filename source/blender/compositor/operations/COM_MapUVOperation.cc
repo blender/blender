@@ -21,7 +21,7 @@
 
 MapUVOperation::MapUVOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;
@@ -89,7 +89,7 @@ bool MapUVOperation::read_uv(float x, float y, float &r_u, float &r_v, float &r_
   }
 
   float vector[3];
-  m_inputUVProgram->readSampled(vector, x, y, COM_PS_BILINEAR);
+  m_inputUVProgram->readSampled(vector, x, y, PixelSampler::Bilinear);
   r_u = vector[0] * m_inputColorProgram->getWidth();
   r_v = vector[1] * m_inputColorProgram->getHeight();
   r_alpha = vector[2];

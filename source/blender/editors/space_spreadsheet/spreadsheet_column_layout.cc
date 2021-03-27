@@ -41,7 +41,7 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
 
     const int fontid = UI_style_get()->widget.uifont_id;
     /* Use a consistent font size for the width calculation. */
-    BLF_size(fontid, 11 * U.pixelsize, U.dpi);
+    BLF_size(fontid, UI_style_get_dpi()->widget.points * U.pixelsize, U.dpi);
 
     /* The width of the index column depends on the maximum row index. */
     left_column_width = std::to_string(std::max(0, column_layout_.tot_rows - 1)).size() *

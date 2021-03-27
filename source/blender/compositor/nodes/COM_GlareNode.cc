@@ -65,7 +65,7 @@ void GlareNode::convertToOperations(NodeConverter &converter,
 
   MixGlareOperation *mixoperation = new MixGlareOperation();
   mixoperation->setResolutionInputSocketIndex(1);
-  mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
+  mixoperation->getInputSocket(2)->setResizeMode(ResizeMode::FitAny);
 
   converter.addOperation(glareoperation);
   converter.addOperation(thresholdOperation);

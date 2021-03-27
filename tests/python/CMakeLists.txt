@@ -713,6 +713,33 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   endif()
 endif()
 
+if(WITH_COMPOSITOR)
+  set(compositor_tests
+    color
+    converter
+    distort
+    filter
+    input
+    matte
+    output
+    vector
+
+    multiple_node_setups
+  )
+
+  foreach(comp_test ${compositor_tests})
+    add_python_test(
+      compositor_${comp_test}_test
+      ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
+      -blender "${TEST_BLENDER_EXE}"
+      -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
+      -idiff "${OPENIMAGEIO_IDIFF}"
+      -outdir "${TEST_OUT_DIR}/compositor"
+    )
+  endforeach()
+
+endif()
+
 if(WITH_OPENGL_DRAW_TESTS)
   if(NOT OPENIMAGEIO_IDIFF)
     MESSAGE(STATUS "Disabling OpenGL draw tests because OIIO idiff does not exist")

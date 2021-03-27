@@ -5920,8 +5920,9 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Keep Normals",
-      "Try to preserve custom normals (WARNING: depending on chosen triangulation method, "
-      "shading may not be fully preserved, 'Fixed' method usually gives the best result here)");
+      "Try to preserve custom normals.\n"
+      "Warning: Depending on chosen triangulation method, "
+      "shading may not be fully preserved, \"Fixed\" method usually gives the best result here");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   RNA_define_lib_overridable(false);

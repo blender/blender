@@ -244,6 +244,70 @@ static bool image_not_packed_poll(bContext *C)
   return (ima && BLI_listbase_is_empty(&ima->packedfiles));
 }
 
+static void image_view_all(struct SpaceImage *sima, struct ARegion *region, struct wmOperator *op)
+{
+  float aspx, aspy, zoomx, zoomy, w, h;
+  int width, height;
+  const bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
+
+  ED_space_image_get_size(sima, &width, &height);
+  ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+  w = width * aspx;
+  h = height * aspy;
+
+  float xof = 0.0f, yof = 0.0f;
+  if ((sima->image == NULL) || (sima->image->source == IMA_SRC_TILED)) {
+    /* Extend the shown area to cover all UDIM tiles. */
+    int x_tiles, y_tiles;
+    if (sima->image == NULL) {
+      x_tiles = sima->tile_grid_shape[0];
+      y_tiles = sima->tile_grid_shape[1];
+    }
+    else {
+      x_tiles = y_tiles = 1;
+      LISTBASE_FOREACH (ImageTile *, tile, &sima->image->tiles) {
+        int tile_x = (tile->tile_number - 1001) % 10;
+        int tile_y = (tile->tile_number - 1001) / 10;
+        x_tiles = max_ii(x_tiles, tile_x + 1);
+        y_tiles = max_ii(y_tiles, tile_y + 1);
+      }
+    }
+    xof = 0.5f * (x_tiles - 1.0f) * w;
+    yof = 0.5f * (y_tiles - 1.0f) * h;
+    w *= x_tiles;
+    h *= y_tiles;
+  }
+
+  /* check if the image will fit in the image with (zoom == 1) */
+  width = BLI_rcti_size_x(&region->winrct) + 1;
+  height = BLI_rcti_size_y(&region->winrct) + 1;
+
+  if (fit_view) {
+    const int margin = 5; /* margin from border */
+
+    zoomx = (float)width / (w + 2 * margin);
+    zoomy = (float)height / (h + 2 * margin);
+
+    sima_zoom_set(sima, region, min_ff(zoomx, zoomy), NULL, false);
+  }
+  else {
+    if ((w >= width || h >= height) && (width > 0 && height > 0)) {
+      zoomx = (float)width / w;
+      zoomy = (float)height / h;
+
+      /* find the zoom value that will fit the image in the image space */
+      sima_zoom_set(sima, region, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL, false);
+    }
+    else {
+      sima_zoom_set(sima, region, 1.0f, NULL, false);
+    }
+  }
+
+  sima->xof = xof;
+  sima->yof = yof;
+}
+
 bool space_image_main_region_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -736,70 +800,12 @@ static int image_view_all_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima;
   ARegion *region;
-  float aspx, aspy, zoomx, zoomy, w, h;
-  int width, height;
-  const bool fit_view = RNA_boolean_get(op->ptr, "fit_view");
 
   /* retrieve state */
   sima = CTX_wm_space_image(C);
   region = CTX_wm_region(C);
 
-  ED_space_image_get_size(sima, &width, &height);
-  ED_space_image_get_aspect(sima, &aspx, &aspy);
-
-  w = width * aspx;
-  h = height * aspy;
-
-  float xof = 0.0f, yof = 0.0f;
-  if ((sima->image == NULL) || (sima->image->source == IMA_SRC_TILED)) {
-    /* Extend the shown area to cover all UDIM tiles. */
-    int x_tiles, y_tiles;
-    if (sima->image == NULL) {
-      x_tiles = sima->tile_grid_shape[0];
-      y_tiles = sima->tile_grid_shape[1];
-    }
-    else {
-      x_tiles = y_tiles = 1;
-      LISTBASE_FOREACH (ImageTile *, tile, &sima->image->tiles) {
-        int tile_x = (tile->tile_number - 1001) % 10;
-        int tile_y = (tile->tile_number - 1001) / 10;
-        x_tiles = max_ii(x_tiles, tile_x + 1);
-        y_tiles = max_ii(y_tiles, tile_y + 1);
-      }
-    }
-    xof = 0.5f * (x_tiles - 1.0f) * w;
-    yof = 0.5f * (y_tiles - 1.0f) * h;
-    w *= x_tiles;
-    h *= y_tiles;
-  }
-
-  /* check if the image will fit in the image with (zoom == 1) */
-  width = BLI_rcti_size_x(&region->winrct) + 1;
-  height = BLI_rcti_size_y(&region->winrct) + 1;
-
-  if (fit_view) {
-    const int margin = 5; /* margin from border */
-
-    zoomx = (float)width / (w + 2 * margin);
-    zoomy = (float)height / (h + 2 * margin);
-
-    sima_zoom_set(sima, region, min_ff(zoomx, zoomy), NULL, false);
-  }
-  else {
-    if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-      zoomx = (float)width / w;
-      zoomy = (float)height / h;
-
-      /* find the zoom value that will fit the image in the image space */
-      sima_zoom_set(sima, region, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL, false);
-    }
-    else {
-      sima_zoom_set(sima, region, 1.0f, NULL, false);
-    }
-  }
-
-  sima->xof = xof;
-  sima->yof = yof;
+  image_view_all(sima, region, op);
 
   ED_region_tag_redraw(region);
 
@@ -821,6 +827,49 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
+
+  /* properties */
+  prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cursor To Center View Operator
+ * \{ */
+
+static int view_cursor_center_exec(bContext *C, wmOperator *op)
+{
+  SpaceImage *sima;
+  ARegion *region;
+
+  sima = CTX_wm_space_image(C);
+  region = CTX_wm_region(C);
+
+  image_view_all(sima, region, op);
+
+  sima->cursor[0] = 0.5f;
+  sima->cursor[1] = 0.5f;
+
+  /* Needed for updating the cursor. */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Cursor To Center View";
+  ot->description = "Set 2D Cursor To Center View location";
+  ot->idname = "IMAGE_OT_view_cursor_center";
+
+  /* api callbacks */
+  ot->exec = view_cursor_center_exec;
+  ot->poll = ED_space_image_cursor_poll;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");

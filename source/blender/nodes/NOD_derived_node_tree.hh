@@ -261,7 +261,7 @@ inline const NodeRef *DNode::operator->() const
 
 inline uint64_t DNode::hash() const
 {
-  return DefaultHash<const DTreeContext *>{}(context_) ^ DefaultHash<const NodeRef *>{}(node_ref_);
+  return get_default_hash_2(context_, node_ref_);
 }
 
 /* --------------------------------------------------------------------
@@ -316,8 +316,7 @@ inline const SocketRef *DSocket::operator->() const
 
 inline uint64_t DSocket::hash() const
 {
-  return DefaultHash<const DTreeContext *>{}(context_) ^
-         DefaultHash<const SocketRef *>{}(socket_ref_);
+  return get_default_hash_2(context_, socket_ref_);
 }
 
 /* --------------------------------------------------------------------

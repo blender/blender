@@ -69,6 +69,7 @@ set(SRC
   intern/CCGSubSurf_util.c
   intern/DerivedMesh.cc
   intern/action.c
+  intern/action_mirror.c
   intern/addon.c
   intern/anim_data.c
   intern/anim_path.c
@@ -126,6 +127,7 @@ set(SRC
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
+  intern/fcurve_cache.c
   intern/fcurve_driver.c
   intern/fluid.c
   intern/fmodifier.c
@@ -385,6 +387,7 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
+  BKE_node_ui_storage.hh
   BKE_object.h
   BKE_object_deform.h
   BKE_object_facemap.h
@@ -434,10 +437,10 @@ set(SRC
   nla_private.h
   particle_private.h
   tracking_private.h
-  intern/attribute_access_intern.hh
   intern/CCGSubSurf.h
   intern/CCGSubSurf_inline.h
   intern/CCGSubSurf_intern.h
+  intern/attribute_access_intern.hh
   intern/data_transfer_intern.h
   intern/lib_intern.h
   intern/multires_inline.h
@@ -742,7 +745,7 @@ if(WITH_GMP)
   list(APPEND INC_SYS
     ${GMP_INCLUDE_DIRS}
   )
- endif()
+endif()
 
 # # Warnings as errors, this is too strict!
 # if(MSVC)

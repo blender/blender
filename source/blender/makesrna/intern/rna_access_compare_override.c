@@ -1098,6 +1098,10 @@ static void rna_property_override_check_resync(Main *bmain,
   ID *id_dst = rna_property_override_property_real_id_owner(bmain, ptr_item_dst, NULL, NULL);
 
   BLI_assert(id_src == NULL || ID_IS_OVERRIDE_LIBRARY_REAL(id_src));
+  /* Work around file corruption on writing, see T86853. */
+  if (id_src != NULL && !ID_IS_OVERRIDE_LIBRARY_REAL(id_src)) {
+    return;
+  }
 
   if (/* We might be in a case where id_dst has already been processed and its usages
        * remapped to its new local override. In that case overrides and linked data

@@ -56,6 +56,13 @@ void createTransCursor_image(TransInfo *t)
   }
 
   td->flag = TD_SELECTED;
+
+  /* UV coords are scaled by aspects (see UVsToTransData). This also applies for the Cursor in the
+   * UV Editor which also means that for display and when the cursor coords are flushed
+   * (recalcData_cursor_image), these are converted each time. */
+  cursor_location[0] = cursor_location[0] * t->aspect[0];
+  cursor_location[1] = cursor_location[1] * t->aspect[1];
+
   copy_v3_v3(td->center, cursor_location);
   td->ob = NULL;
 

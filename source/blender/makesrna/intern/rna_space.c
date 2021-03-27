@@ -3080,7 +3080,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
                 ATTR_DOMAIN_CORNER,
                 ATTR_DOMAIN_EDGE,
                 ATTR_DOMAIN_POINT,
-                ATTR_DOMAIN_POLYGON)) {
+                ATTR_DOMAIN_FACE)) {
         continue;
       }
     }
@@ -7319,7 +7319,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        "MESH",
        ICON_MESH_DATA,
        "Mesh",
-       "Mesh component containing point, corner, edge and polygon data"},
+       "Mesh component containing point, corner, edge and face data"},
       {GEO_COMPONENT_TYPE_POINT_CLOUD,
        "POINTCLOUD",
        ICON_POINTCLOUD_DATA,

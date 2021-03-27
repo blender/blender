@@ -198,7 +198,7 @@ void node_buttons_register(ARegionType *art)
   {
     PanelType *pt = MEM_callocN(sizeof(PanelType), __func__);
     strcpy(pt->idname, "NODE_PT_node_tree_interface_inputs");
-    strcpy(pt->category, N_("Node"));
+    strcpy(pt->category, N_("Group"));
     strcpy(pt->label, N_("Inputs"));
     strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
     pt->draw = node_tree_interface_inputs_panel;
@@ -208,7 +208,7 @@ void node_buttons_register(ARegionType *art)
   {
     PanelType *pt = MEM_callocN(sizeof(PanelType), __func__);
     strcpy(pt->idname, "NODE_PT_node_tree_interface_outputs");
-    strcpy(pt->category, N_("Node"));
+    strcpy(pt->category, N_("Group"));
     strcpy(pt->label, N_("Outputs"));
     strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
     pt->draw = node_tree_interface_outputs_panel;

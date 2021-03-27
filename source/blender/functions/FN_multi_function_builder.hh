@@ -384,7 +384,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
 
   uint64_t hash() const override
   {
-    return DefaultHash<T>{}(value_);
+    return get_default_hash(value_);
   }
 
   bool equals(const MultiFunction &other) const override

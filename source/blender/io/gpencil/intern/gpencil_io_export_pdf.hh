@@ -21,18 +21,47 @@
 /** \file
  * \ingroup bgpencil
  */
-#include "gpencil_io_base.h"
+
+#include "gpencil_io_export_base.hh"
+#include "hpdf.h"
+
+struct GpencilIOParams;
+struct bGPDlayer;
+struct bGPDstroke;
+
+#define PDF_EXPORTER_NAME "PDF Exporter for Grease Pencil"
+#define PDF_EXPORTER_VERSION "v1.0"
 
 namespace blender::io::gpencil {
 
-class GpencilExporter : public GpencilIO {
+class GpencilExporterPDF : public GpencilExporter {
 
  public:
-  GpencilExporter(const struct GpencilIOParams *iparams) : GpencilIO(iparams){};
-  virtual bool write() = 0;
+  GpencilExporterPDF(const char *filename, const struct GpencilIOParams *iparams);
+  bool new_document();
+  bool add_newpage();
+  bool add_body();
+  bool write();
 
  protected:
  private:
+  /* PDF document. */
+  HPDF_Doc pdf_;
+  /* PDF page. */
+  HPDF_Page page_;
+  /* State. */
+  HPDF_ExtGState gstate_;
+
+  bool create_document();
+  bool add_page();
+  void export_gpencil_layers();
+
+  void export_stroke_to_polyline(bGPDlayer *gpl,
+                                 bGPDstroke *gps,
+                                 const bool is_stroke,
+                                 const bool do_fill,
+                                 const bool normalize);
+  void color_set(bGPDlayer *gpl, const bool do_fill);
 };
 
 }  // namespace blender::io::gpencil

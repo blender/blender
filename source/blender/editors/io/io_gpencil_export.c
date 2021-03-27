@@ -50,6 +50,7 @@
 
 #include "gpencil_io.h"
 
+#if defined(WITH_PUGIXML) || defined(WITH_HARU)
 /* Definition of enum elements to export. */
 /* Common props for exporting. */
 static void gpencil_export_common_props_definition(wmOperatorType *ot)
@@ -102,6 +103,7 @@ static void set_export_filepath(bContext *C, wmOperator *op, const char *extensi
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 }
+#endif
 
 /* <-------- SVG single frame export. --------> */
 #ifdef WITH_PUGIXML

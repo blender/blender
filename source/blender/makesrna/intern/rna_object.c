@@ -2798,6 +2798,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
   RNA_def_property_ui_text(
       prop,
@@ -2968,12 +2969,11 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_float_funcs(
       prop, "rna_Object_dimensions_get", "rna_Object_dimensions_set", NULL);
   RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
-  RNA_def_property_ui_text(
-      prop,
-      "Dimensions",
-      "Absolute bounding box dimensions of the object (WARNING: assigning to it or "
-      "its members multiple consecutive times will not work correctly, "
-      "as this needs up-to-date evaluated data)");
+  RNA_def_property_ui_text(prop,
+                           "Dimensions",
+                           "Absolute bounding box dimensions of the object.\n"
+                           "Warning: Assigning to it or its members multiple consecutive times "
+                           "will not work correctly, as this needs up-to-date evaluated data");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
   /* delta transforms */
@@ -3076,8 +3076,8 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Local Matrix",
-      "Parent relative transformation matrix - "
-      "WARNING: Only takes into account 'Object' parenting, so e.g. in case of bone parenting "
+      "Parent relative transformation matrix.\n"
+      "Warning: Only takes into account object parenting, so e.g. in case of bone parenting "
       "you get a matrix relative to the Armature object, not to the actual parent bone");
   RNA_def_property_float_funcs(
       prop, "rna_Object_matrix_local_get", "rna_Object_matrix_local_set", NULL);

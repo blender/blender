@@ -3663,7 +3663,7 @@ static int generate_perimeter_cap(const float point[4],
 
 /**
  * Calculate the perimeter (outline) of a stroke as list of tPerimeterPoint.
- * \param subdivisions: Number of subdivions for the start and end caps
+ * \param subdivisions: Number of subdivisions for the start and end caps
  * \return: list of tPerimeterPoint
  */
 static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
@@ -3710,7 +3710,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
   copy_v3_v3(first_next_pt, &first_next->x);
   copy_v3_v3(last_prev_pt, &last_prev->x);
 
-  /* edgecase if single point */
+  /* Edge-case if single point. */
   if (gps->totpoints == 1) {
     first_next_pt[0] += 1.0f;
     last_prev_pt[0] -= 1.0f;
@@ -3784,7 +3784,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
     negate_v2(vec_miter_right);
 
     float angle = dot_v2v2(vec_next, nvec_prev);
-    /* add two points if angle is close to beeing straight */
+    /* Add two points if angle is close to being straight. */
     if (fabsf(angle) < 0.0001f) {
       normalize_v2_length(nvec_prev, radius);
       normalize_v2_length(nvec_next, radius);
@@ -3910,7 +3910,7 @@ static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
 /**
  * Calculates the perimeter of a stroke projected from the view and
  * returns it as a new stroke.
- * \param subdivisions: Number of subdivions for the start and end caps
+ * \param subdivisions: Number of subdivisions for the start and end caps
  * \return: bGPDstroke pointer to stroke perimeter
  */
 bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,

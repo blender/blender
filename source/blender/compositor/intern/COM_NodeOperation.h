@@ -28,8 +28,8 @@
 
 #include "COM_MemoryBuffer.h"
 #include "COM_MemoryProxy.h"
+#include "COM_MetaData.h"
 #include "COM_Node.h"
-#include "COM_SocketReader.h"
 
 #include "clew.h"
 
@@ -37,32 +37,131 @@ class OpenCLDevice;
 class ReadBufferOperation;
 class WriteBufferOperation;
 
-class NodeOperationInput;
-class NodeOperationOutput;
+class NodeOperation;
+typedef NodeOperation SocketReader;
 
 /**
  * \brief Resize modes of inputsockets
  * How are the input and working resolutions matched
  * \ingroup Model
  */
-typedef enum InputResizeMode {
+enum class ResizeMode {
   /** \brief Center the input image to the center of the working area of the node, no resizing
    * occurs */
-  COM_SC_CENTER = NS_CR_CENTER,
+  Center = NS_CR_CENTER,
   /** \brief The bottom left of the input image is the bottom left of the working area of the node,
    * no resizing occurs */
-  COM_SC_NO_RESIZE = NS_CR_NONE,
+  None = NS_CR_NONE,
   /** \brief Fit the width of the input image to the width of the working area of the node */
-  COM_SC_FIT_WIDTH = NS_CR_FIT_WIDTH,
+  FitWidth = NS_CR_FIT_WIDTH,
   /** \brief Fit the height of the input image to the height of the working area of the node */
-  COM_SC_FIT_HEIGHT = NS_CR_FIT_HEIGHT,
+  FitHeight = NS_CR_FIT_HEIGHT,
   /** \brief Fit the width or the height of the input image to the width or height of the working
    * area of the node, image will be larger than the working area */
-  COM_SC_FIT = NS_CR_FIT,
+  FitAny = NS_CR_FIT,
   /** \brief Fit the width and the height of the input image to the width and height of the working
    * area of the node, image will be equally larger than the working area */
-  COM_SC_STRETCH = NS_CR_STRETCH,
-} InputResizeMode;
+  Stretch = NS_CR_STRETCH,
+};
+
+enum class PixelSampler {
+  Nearest = 0,
+  Bilinear = 1,
+  Bicubic = 2,
+};
+
+class NodeOperationInput {
+ private:
+  NodeOperation *m_operation;
+
+  /** Datatype of this socket. Is used for automatically data transformation.
+   * \section data-conversion
+   */
+  DataType m_datatype;
+
+  /** Resize mode of this socket */
+  ResizeMode m_resizeMode;
+
+  /** Connected output */
+  NodeOperationOutput *m_link;
+
+ public:
+  NodeOperationInput(NodeOperation *op,
+                     DataType datatype,
+                     ResizeMode resizeMode = ResizeMode::Center);
+
+  NodeOperation &getOperation() const
+  {
+    return *m_operation;
+  }
+  DataType getDataType() const
+  {
+    return m_datatype;
+  }
+
+  void setLink(NodeOperationOutput *link)
+  {
+    m_link = link;
+  }
+  NodeOperationOutput *getLink() const
+  {
+    return m_link;
+  }
+  bool isConnected() const
+  {
+    return m_link;
+  }
+
+  void setResizeMode(ResizeMode resizeMode)
+  {
+    this->m_resizeMode = resizeMode;
+  }
+  ResizeMode getResizeMode() const
+  {
+    return this->m_resizeMode;
+  }
+
+  SocketReader *getReader();
+
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
+
+class NodeOperationOutput {
+ private:
+  NodeOperation *m_operation;
+
+  /** Datatype of this socket. Is used for automatically data transformation.
+   * \section data-conversion
+   */
+  DataType m_datatype;
+
+ public:
+  NodeOperationOutput(NodeOperation *op, DataType datatype);
+
+  NodeOperation &getOperation() const
+  {
+    return *m_operation;
+  }
+  DataType getDataType() const
+  {
+    return m_datatype;
+  }
+
+  /**
+   * \brief determine the resolution of this data going through this socket
+   * \param resolution: the result of this operation
+   * \param preferredResolution: the preferable resolution as no resolution could be determined
+   */
+  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
+#endif
+};
 
 /**
  * \brief NodeOperation contains calculation logic
@@ -70,14 +169,10 @@ typedef enum InputResizeMode {
  * Subclasses needs to implement the execution method (defined in SocketReader) to implement logic.
  * \ingroup Model
  */
-class NodeOperation : public SocketReader {
- public:
-  typedef std::vector<NodeOperationInput *> Inputs;
-  typedef std::vector<NodeOperationOutput *> Outputs;
-
+class NodeOperation {
  private:
-  Inputs m_inputs;
-  Outputs m_outputs;
+  blender::Vector<NodeOperationInput> m_inputs;
+  blender::Vector<NodeOperationOutput> m_outputs;
 
   /**
    * \brief the index of the input socket that will be used to determine the resolution
@@ -119,8 +214,21 @@ class NodeOperation : public SocketReader {
    */
   bool m_isResolutionSet;
 
+ protected:
+  /**
+   * Width of the output of this operation.
+   */
+  unsigned int m_width;
+
+  /**
+   * Height of the output of this operation.
+   */
+  unsigned int m_height;
+
  public:
-  virtual ~NodeOperation();
+  virtual ~NodeOperation()
+  {
+  }
 
   unsigned int getNumberOfInputSockets() const
   {
@@ -130,19 +238,15 @@ class NodeOperation : public SocketReader {
   {
     return m_outputs.size();
   }
-  NodeOperationOutput *getOutputSocket(unsigned int index) const;
-  NodeOperationOutput *getOutputSocket() const
-  {
-    return getOutputSocket(0);
-  }
-  NodeOperationInput *getInputSocket(unsigned int index) const;
+  NodeOperationOutput *getOutputSocket(unsigned int index = 0);
+  NodeOperationInput *getInputSocket(unsigned int index);
 
   /** Check if this is an input operation
    * An input operation is an operation that only has output sockets and no input sockets
    */
   bool isInputOperation() const
   {
-    return m_inputs.empty();
+    return m_inputs.is_empty();
   }
 
   /**
@@ -259,8 +363,6 @@ class NodeOperation : public SocketReader {
     }
   }
 
-  void getConnectedInputSockets(Inputs *sockets);
-
   /**
    * \brief is this operation complex
    *
@@ -373,10 +475,58 @@ class NodeOperation : public SocketReader {
     }
   }
 
+  unsigned int getWidth() const
+  {
+    return m_width;
+  }
+
+  unsigned int getHeight() const
+  {
+    return m_height;
+  }
+
+  inline void readSampled(float result[4], float x, float y, PixelSampler sampler)
+  {
+    executePixelSampled(result, x, y, sampler);
+  }
+
+  inline void readFiltered(float result[4], float x, float y, float dx[2], float dy[2])
+  {
+    executePixelFiltered(result, x, y, dx, dy);
+  }
+
+  inline void read(float result[4], int x, int y, void *chunkData)
+  {
+    executePixel(result, x, y, chunkData);
+  }
+
+  virtual void *initializeTileData(rcti * /*rect*/)
+  {
+    return 0;
+  }
+
+  virtual void deinitializeTileData(rcti * /*rect*/, void * /*data*/)
+  {
+  }
+
+  virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer ** /*memoryBuffers*/)
+  {
+    return 0;
+  }
+
+  /**
+   * Return the meta data associated with this branch.
+   *
+   * The return parameter holds an instance or is an nullptr. */
+  virtual std::unique_ptr<MetaData> getMetaData()
+  {
+    return std::unique_ptr<MetaData>();
+  }
+
  protected:
   NodeOperation();
 
-  void addInputSocket(DataType datatype, InputResizeMode resize_mode = COM_SC_CENTER);
+  void addInputSocket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
   void addOutputSocket(DataType datatype);
 
   void setWidth(unsigned int width)
@@ -416,101 +566,52 @@ class NodeOperation : public SocketReader {
     this->m_openCL = openCL;
   }
 
-  /* allow the DebugInfo class to look at internals */
-  friend class DebugInfo;
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
-#endif
-};
-
-class NodeOperationInput {
- private:
-  NodeOperation *m_operation;
-
-  /** Datatype of this socket. Is used for automatically data transformation.
-   * \section data-conversion
+  /**
+   * \brief calculate a single pixel
+   * \note this method is called for non-complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
    */
-  DataType m_datatype;
-
-  /** Resize mode of this socket */
-  InputResizeMode m_resizeMode;
-
-  /** Connected output */
-  NodeOperationOutput *m_link;
-
- public:
-  NodeOperationInput(NodeOperation *op,
-                     DataType datatype,
-                     InputResizeMode resizeMode = COM_SC_CENTER);
-
-  NodeOperation &getOperation() const
+  virtual void executePixelSampled(float /*output*/[4],
+                                   float /*x*/,
+                                   float /*y*/,
+                                   PixelSampler /*sampler*/)
   {
-    return *m_operation;
-  }
-  DataType getDataType() const
-  {
-    return m_datatype;
-  }
-
-  void setLink(NodeOperationOutput *link)
-  {
-    m_link = link;
-  }
-  NodeOperationOutput *getLink() const
-  {
-    return m_link;
-  }
-  bool isConnected() const
-  {
-    return m_link;
-  }
-
-  void setResizeMode(InputResizeMode resizeMode)
-  {
-    this->m_resizeMode = resizeMode;
-  }
-  InputResizeMode getResizeMode() const
-  {
-    return this->m_resizeMode;
-  }
-
-  SocketReader *getReader();
-
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
-#endif
-};
-
-class NodeOperationOutput {
- private:
-  NodeOperation *m_operation;
-
-  /** Datatype of this socket. Is used for automatically data transformation.
-   * \section data-conversion
-   */
-  DataType m_datatype;
-
- public:
-  NodeOperationOutput(NodeOperation *op, DataType datatype);
-
-  NodeOperation &getOperation() const
-  {
-    return *m_operation;
-  }
-  DataType getDataType() const
-  {
-    return m_datatype;
   }
 
   /**
-   * \brief determine the resolution of this data going through this socket
-   * \param resolution: the result of this operation
-   * \param preferredResolution: the preferable resolution as no resolution could be determined
+   * \brief calculate a single pixel
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   * \param chunkData: chunk specific data a during execution time.
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  virtual void executePixel(float output[4], int x, int y, void * /*chunkData*/)
+  {
+    executePixelSampled(output, x, y, PixelSampler::Nearest);
+  }
+
+  /**
+   * \brief calculate a single pixel using an EWA filter
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param dx:
+   * \param dy:
+   * \param inputBuffers: chunks that can be read by their ReadBufferOperation.
+   */
+  virtual void executePixelFiltered(
+      float /*output*/[4], float /*x*/, float /*y*/, float /*dx*/[2], float /*dy*/[2])
+  {
+  }
+
+  /* allow the DebugInfo class to look at internals */
+  friend class DebugInfo;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")

@@ -21,47 +21,36 @@
 /** \file
  * \ingroup bgpencil
  */
-
-#include "gpencil_io_export_base.h"
-#include "hpdf.h"
+#include "gpencil_io_import_base.hh"
 
 struct GpencilIOParams;
-struct bGPDlayer;
-struct bGPDstroke;
+struct NSVGshape;
+struct NSVGpath;
+struct bGPdata;
+struct bGPDframe;
 
-#define PDF_EXPORTER_NAME "PDF Exporter for Grease Pencil"
-#define PDF_EXPORTER_VERSION "v1.0"
+#define SVG_IMPORTER_NAME "SVG Import for Grease Pencil"
+#define SVG_IMPORTER_VERSION "v1.0"
 
 namespace blender::io::gpencil {
 
-class GpencilExporterPDF : public GpencilExporter {
+class GpencilImporterSVG : public GpencilImporter {
 
  public:
-  GpencilExporterPDF(const char *filename, const struct GpencilIOParams *iparams);
-  bool new_document();
-  bool add_newpage();
-  bool add_body();
-  bool write();
+  GpencilImporterSVG(const char *filename, const struct GpencilIOParams *iparams);
+
+  bool read();
 
  protected:
  private:
-  /* PDF document. */
-  HPDF_Doc pdf_;
-  /* PDF page. */
-  HPDF_Page page_;
-  /* State. */
-  HPDF_ExtGState gstate_;
+  void create_stroke(struct bGPdata *gpd_,
+                     struct bGPDframe *gpf,
+                     struct NSVGshape *shape,
+                     struct NSVGpath *path,
+                     const int32_t mat_index,
+                     const float matrix[4][4]);
 
-  bool create_document();
-  bool add_page();
-  void export_gpencil_layers();
-
-  void export_stroke_to_polyline(bGPDlayer *gpl,
-                                 bGPDstroke *gps,
-                                 const bool is_stroke,
-                                 const bool do_fill,
-                                 const bool normalize);
-  void color_set(bGPDlayer *gpl, const bool do_fill);
+  void convert_color(const int32_t color, float r_linear_rgba[4]);
 };
 
 }  // namespace blender::io::gpencil

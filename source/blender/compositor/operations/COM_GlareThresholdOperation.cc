@@ -23,7 +23,7 @@
 
 GlareThresholdOperation::GlareThresholdOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_FIT);
+  this->addInputSocket(DataType::Color, ResizeMode::FitAny);
   this->addOutputSocket(DataType::Color);
   this->m_inputProgram = nullptr;
 }

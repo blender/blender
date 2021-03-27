@@ -684,7 +684,8 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
       false,
       "Auto Transform",
       "Automatically compute transformation to get the best possible match between source and "
-      "destination meshes (WARNING: results will never be as good as manual matching of objects)");
+      "destination meshes.\n"
+      "Warning: Results will never be as good as manual matching of objects");
   RNA_def_boolean(ot->srna,
                   "use_object_transform",
                   true,

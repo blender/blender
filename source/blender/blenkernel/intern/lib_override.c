@@ -437,6 +437,10 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
     }
     /* We only consider IDs from the same library. */
     ID *to_id = *to_id_entry->id_pointer.to;
+    if (!ID_IS_LINKED(to_id) && !ID_IS_OVERRIDE_LIBRARY(to_id)) {
+      /* Pure local data is a barrier of dependency in override cases. */
+      continue;
+    }
     if (to_id != NULL && to_id->lib == id->lib) {
       LibOverrideGroupTagData sub_data = *data;
       sub_data.id_root = to_id;
@@ -811,6 +815,9 @@ bool BKE_lib_override_library_create(
   /* Cleanup. */
   BKE_main_id_clear_newpoins(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
+  BKE_lib_override_library_main_operations_create(bmain, true);
 
   return success;
 }

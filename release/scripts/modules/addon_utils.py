@@ -349,6 +349,10 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         # 1) try import
         try:
             mod = __import__(module_name)
+            if mod.__file__ is None:
+                # This can happen when the addon has been removed but there are
+                # residual `.pyc` files left behind.
+                raise ImportError(name=module_name)
             mod.__time__ = os.path.getmtime(mod.__file__)
             mod.__addon_enabled__ = False
         except Exception as ex:

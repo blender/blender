@@ -1694,6 +1694,7 @@ def km_image(params):
         ("image.view_all", {"type": 'HOME', "value": 'PRESS', "shift": True},
          {"properties": [("fit_view", True)]}),
         ("image.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
+        ("image.view_cursor_center", {"type": 'C', "value": 'PRESS', "shift": True}, None),
         ("image.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("image.view_pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
         ("image.view_pan", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),

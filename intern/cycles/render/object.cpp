@@ -153,10 +153,6 @@ void Object::update_motion()
 
 void Object::compute_bounds(bool motion_blur)
 {
-  if (!is_modified() && !geometry->is_modified()) {
-    return;
-  }
-
   BoundBox mbounds = geometry->bounds;
 
   if (motion_blur && use_motion()) {

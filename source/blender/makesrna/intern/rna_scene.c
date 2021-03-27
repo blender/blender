@@ -2855,7 +2855,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
   RNA_def_property_ui_text(prop,
-                           "WPaint Auto-Normalize",
+                           "Weight Paint Auto-Normalize",
                            "Ensure all bone-deforming vertex groups add up "
                            "to 1.0 while weight painting");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
@@ -2864,7 +2864,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "wpaint_lock_relative", 1);
   RNA_def_property_ui_text(prop,
-                           "WPaint Lock-Relative",
+                           "Weight Paint Lock-Relative",
                            "Display bone-deforming groups as if all locked deform groups "
                            "were deleted, and the remaining ones were re-normalized");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
@@ -2873,7 +2873,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
   RNA_def_property_ui_text(prop,
-                           "WPaint Multi-Paint",
+                           "Weight Paint Multi-Paint",
                            "Paint across the weights of all selected bones, "
                            "maintaining their relative influence");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");

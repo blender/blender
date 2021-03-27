@@ -1005,6 +1005,24 @@ elseif(APPLE)
       FILES ${LIBDIR}/openmp/lib/libomp.dylib
       DESTINATION Blender.app/Contents/Resources/lib
     )
+    if(WITH_PYTHON_MODULE)
+      # Move the dylib in a Blender version folder to keep the corresponding OpenMP version.
+      # Also for easy copying of a single folder, `TARGETDIR_VER` to site-packages
+      # during installation.
+      install(
+        DIRECTORY   ${CMAKE_BINARY_DIR}/Resources/lib
+        DESTINATION ${TARGETDIR_VER}
+      )
+      add_custom_command(TARGET blender POST_BUILD
+        # The old `LC_LOAD_DYLIB` is the `LC_ID_DYLIB` of the LIBDIR OpenMP dylib.
+        # Change it to support multiple rpaths.
+        COMMAND xcrun install_name_tool -change "@executable_path/../Resources/lib/libomp.dylib" "@rpath/libomp.dylib" "$<TARGET_FILE:blender>"
+        # For installation into site-packages.
+        COMMAND xcrun install_name_tool -add_rpath "@loader_path/../Resources/${TARGETDIR_VER}/lib" "$<TARGET_FILE:blender>"
+        # For in-build-folder experiments.
+        COMMAND xcrun install_name_tool -add_rpath "@loader_path/${TARGETDIR_VER}/lib" "$<TARGET_FILE:blender>"
+      )
+    endif()
   endif()
 
   if(WITH_LLVM AND NOT LLVM_STATIC)
@@ -1035,6 +1053,15 @@ elseif(APPLE)
       DESTINATION ${TARGETDIR_VER}/python/include/${_py_inc_suffix}
     )
     unset(_py_inc_suffix)
+  endif()
+  if(WITH_PYTHON_MODULE)
+    install(
+      TARGETS blender
+      LIBRARY DESTINATION ${PYTHON_LIBPATH}/site-packages
+    )
+    install_dir(
+      ${CMAKE_INSTALL_PREFIX}/${TARGETDIR_VER}
+      ${PYTHON_LIBPATH}/Resources)
   endif()
 
   if(WITH_DRACO)

@@ -39,68 +39,47 @@ NodeOperation::NodeOperation()
   this->m_btree = nullptr;
 }
 
-NodeOperation::~NodeOperation()
+NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index)
 {
-  while (!this->m_outputs.empty()) {
-    delete (this->m_outputs.back());
-    this->m_outputs.pop_back();
-  }
-  while (!this->m_inputs.empty()) {
-    delete (this->m_inputs.back());
-    this->m_inputs.pop_back();
-  }
+  return &m_outputs[index];
 }
 
-NodeOperationOutput *NodeOperation::getOutputSocket(unsigned int index) const
+NodeOperationInput *NodeOperation::getInputSocket(unsigned int index)
 {
-  BLI_assert(index < m_outputs.size());
-  return m_outputs[index];
+  return &m_inputs[index];
 }
 
-NodeOperationInput *NodeOperation::getInputSocket(unsigned int index) const
+void NodeOperation::addInputSocket(DataType datatype, ResizeMode resize_mode)
 {
-  BLI_assert(index < m_inputs.size());
-  return m_inputs[index];
-}
-
-void NodeOperation::addInputSocket(DataType datatype, InputResizeMode resize_mode)
-{
-  NodeOperationInput *socket = new NodeOperationInput(this, datatype, resize_mode);
-  m_inputs.push_back(socket);
+  m_inputs.append(NodeOperationInput(this, datatype, resize_mode));
 }
 
 void NodeOperation::addOutputSocket(DataType datatype)
 {
-  NodeOperationOutput *socket = new NodeOperationOutput(this, datatype);
-  m_outputs.push_back(socket);
+  m_outputs.append(NodeOperationOutput(this, datatype));
 }
 
 void NodeOperation::determineResolution(unsigned int resolution[2],
                                         unsigned int preferredResolution[2])
 {
-  unsigned int temp[2];
-  unsigned int temp2[2];
-
-  for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    NodeOperationInput *input = m_inputs[index];
-    if (input->isConnected()) {
-      if (index == this->m_resolutionInputSocketIndex) {
-        input->determineResolution(resolution, preferredResolution);
-        temp2[0] = resolution[0];
-        temp2[1] = resolution[1];
-        break;
-      }
-    }
+  if (m_resolutionInputSocketIndex < m_inputs.size()) {
+    NodeOperationInput &input = m_inputs[m_resolutionInputSocketIndex];
+    input.determineResolution(resolution, preferredResolution);
   }
+  unsigned int temp2[2] = {resolution[0], resolution[1]};
+
+  unsigned int temp[2];
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    NodeOperationInput *input = m_inputs[index];
-    if (input->isConnected()) {
-      if (index != this->m_resolutionInputSocketIndex) {
-        input->determineResolution(temp, temp2);
-      }
+    if (index == this->m_resolutionInputSocketIndex) {
+      continue;
+    }
+    NodeOperationInput &input = m_inputs[index];
+    if (input.isConnected()) {
+      input.determineResolution(temp, temp2);
     }
   }
 }
+
 void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 {
   this->m_resolutionInputSocketIndex = index;
@@ -149,15 +128,6 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
   return nullptr;
 }
 
-void NodeOperation::getConnectedInputSockets(Inputs *sockets)
-{
-  for (NodeOperationInput *input : m_inputs) {
-    if (input->isConnected()) {
-      sockets->push_back(input);
-    }
-  }
-}
-
 bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
                                                      ReadBufferOperation *readOperation,
                                                      rcti *output)
@@ -195,9 +165,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
  **** OpInput ****
  *****************/
 
-NodeOperationInput::NodeOperationInput(NodeOperation *op,
-                                       DataType datatype,
-                                       InputResizeMode resizeMode)
+NodeOperationInput::NodeOperationInput(NodeOperation *op, DataType datatype, ResizeMode resizeMode)
     : m_operation(op), m_datatype(datatype), m_resizeMode(resizeMode), m_link(nullptr)
 {
 }

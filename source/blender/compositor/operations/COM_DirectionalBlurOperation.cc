@@ -66,7 +66,7 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
   const int iterations = pow(2.0f, this->m_data->iter);
   float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float col2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  this->m_inputProgram->readSampled(col2, x, y, COM_PS_BILINEAR);
+  this->m_inputProgram->readSampled(col2, x, y, PixelSampler::Bilinear);
   float ltx = this->m_tx;
   float lty = this->m_ty;
   float lsc = this->m_sc;
@@ -82,7 +82,7 @@ void DirectionalBlurOperation::executePixel(float output[4], int x, int y, void 
     this->m_inputProgram->readSampled(col,
                                       cs * u + ss * v + this->m_center_x_pix,
                                       cs * v - ss * u + this->m_center_y_pix,
-                                      COM_PS_BILINEAR);
+                                      PixelSampler::Bilinear);
 
     add_v4_v4(col2, col);
 

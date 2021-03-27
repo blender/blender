@@ -49,7 +49,7 @@ ImBuf *MultilayerBaseOperation::getImBuf()
   return nullptr;
 }
 
-std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData() const
+std::unique_ptr<MetaData> MultilayerColorOperation::getMetaData()
 {
   BLI_assert(this->m_buffer);
   MetaDataExtractCallbackData callback_data = {nullptr};
@@ -86,13 +86,13 @@ void MultilayerColorOperation::executePixelSampled(float output[4],
   else {
     if (this->m_numberOfChannels == 4) {
       switch (sampler) {
-        case COM_PS_NEAREST:
+        case PixelSampler::Nearest:
           nearest_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
-        case COM_PS_BILINEAR:
+        case PixelSampler::Bilinear:
           bilinear_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
-        case COM_PS_BICUBIC:
+        case PixelSampler::Bicubic:
           bicubic_interpolation_color(this->m_buffer, nullptr, output, x, y);
           break;
       }

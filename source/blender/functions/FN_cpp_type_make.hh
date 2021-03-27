@@ -220,7 +220,7 @@ template<typename T> bool is_equal_cb(const void *a, const void *b)
 template<typename T> uint64_t hash_cb(const void *value)
 {
   const T &value_ = *static_cast<const T *>(value);
-  return DefaultHash<T>{}(value_);
+  return get_default_hash(value_);
 }
 
 }  // namespace blender::fn::cpp_type_util

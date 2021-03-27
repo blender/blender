@@ -27,14 +27,14 @@
 
 #include "node_geometry_util.hh"
 
-static bNodeSocketTemplate geo_node_mesh_primitive_plane_in[] = {
+static bNodeSocketTemplate geo_node_mesh_primitive_grid_in[] = {
     {SOCK_FLOAT, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_INT, N_("Vertices X"), 10, 0.0f, 0.0f, 0.0f, 2, 1000},
     {SOCK_INT, N_("Vertices Y"), 10, 0.0f, 0.0f, 0.0f, 2, 1000},
     {-1, ""},
 };
 
-static bNodeSocketTemplate geo_node_mesh_primitive_plane_out[] = {
+static bNodeSocketTemplate geo_node_mesh_primitive_grid_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
@@ -51,14 +51,14 @@ static void calculate_uvs(Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, cons
 
   for (const int i : loops.index_range()) {
     const float3 &co = verts[loops[i].v].co;
-    uvs[i].x = (co.x + size) / (size * 2.0f);
-    uvs[i].y = (co.y + size) / (size * 2.0f);
+    uvs[i].x = (co.x + (size * 0.5)) / size;
+    uvs[i].y = (co.y + (size * 0.5)) / size;
   }
 
   uv_attribute.apply_span_and_save();
 }
 
-static Mesh *create_plane_mesh(const int verts_x, const int verts_y, const float size)
+static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float size)
 {
   const int edges_x = verts_x - 1;
   const int edges_y = verts_y - 1;
@@ -75,9 +75,9 @@ static Mesh *create_plane_mesh(const int verts_x, const int verts_y, const float
   {
     const float dx = size / edges_x;
     const float dy = size / edges_y;
-    float x = -size;
+    float x = -size * 0.5;
     for (const int x_index : IndexRange(verts_x)) {
-      float y = -size;
+      float y = -size * 0.5;
       for (const int y_index : IndexRange(verts_y)) {
         const int vert_index = x_index * verts_y + y_index;
         verts[vert_index].co[0] = x;
@@ -147,7 +147,7 @@ static Mesh *create_plane_mesh(const int verts_x, const int verts_y, const float
   return mesh;
 }
 
-static void geo_node_mesh_primitive_plane_exec(GeoNodeExecParams params)
+static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
 {
   const float size = params.extract_input<float>("Size");
   const int verts_x = params.extract_input<int>("Vertices X");
@@ -157,7 +157,7 @@ static void geo_node_mesh_primitive_plane_exec(GeoNodeExecParams params)
     return;
   }
 
-  Mesh *mesh = create_plane_mesh(verts_x, verts_y, size);
+  Mesh *mesh = create_grid_mesh(verts_x, verts_y, size);
   BLI_assert(BKE_mesh_is_valid(mesh));
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
@@ -165,13 +165,13 @@ static void geo_node_mesh_primitive_plane_exec(GeoNodeExecParams params)
 
 }  // namespace blender::nodes
 
-void register_node_type_geo_mesh_primitive_plane()
+void register_node_type_geo_mesh_primitive_grid()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_PLANE, "Plane", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_GRID, "Grid", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(
-      &ntype, geo_node_mesh_primitive_plane_in, geo_node_mesh_primitive_plane_out);
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_plane_exec;
+      &ntype, geo_node_mesh_primitive_grid_in, geo_node_mesh_primitive_grid_out);
+  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_grid_exec;
   nodeRegisterType(&ntype);
 }

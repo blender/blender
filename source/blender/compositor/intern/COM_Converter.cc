@@ -454,7 +454,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
                             NodeOperationOutput *fromSocket,
                             NodeOperationInput *toSocket)
 {
-  InputResizeMode mode = toSocket->getResizeMode();
+  ResizeMode mode = toSocket->getResizeMode();
 
   NodeOperation *toOperation = &toSocket->getOperation();
   const float toWidth = toOperation->getWidth();
@@ -470,22 +470,22 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
   float scaleY = 0;
 
   switch (mode) {
-    case COM_SC_NO_RESIZE:
+    case ResizeMode::None:
       break;
-    case COM_SC_CENTER:
+    case ResizeMode::Center:
       doCenter = true;
       break;
-    case COM_SC_FIT_WIDTH:
+    case ResizeMode::FitWidth:
       doCenter = true;
       doScale = true;
       scaleX = scaleY = toWidth / fromWidth;
       break;
-    case COM_SC_FIT_HEIGHT:
+    case ResizeMode::FitHeight:
       doCenter = true;
       doScale = true;
       scaleX = scaleY = toHeight / fromHeight;
       break;
-    case COM_SC_FIT:
+    case ResizeMode::FitAny:
       doCenter = true;
       doScale = true;
       scaleX = toWidth / fromWidth;
@@ -497,7 +497,7 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
         scaleY = scaleX;
       }
       break;
-    case COM_SC_STRETCH:
+    case ResizeMode::Stretch:
       doCenter = true;
       doScale = true;
       scaleX = toWidth / fromWidth;
@@ -510,8 +510,8 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     ScaleOperation *scaleOperation = nullptr;
     if (doScale) {
       scaleOperation = new ScaleOperation();
-      scaleOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
-      scaleOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
+      scaleOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
+      scaleOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
       first = scaleOperation;
       SetValueOperation *sxop = new SetValueOperation();
       sxop->setValue(scaleX);
@@ -530,8 +530,8 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     }
 
     TranslateOperation *translateOperation = new TranslateOperation();
-    translateOperation->getInputSocket(1)->setResizeMode(COM_SC_NO_RESIZE);
-    translateOperation->getInputSocket(2)->setResizeMode(COM_SC_NO_RESIZE);
+    translateOperation->getInputSocket(1)->setResizeMode(ResizeMode::None);
+    translateOperation->getInputSocket(2)->setResizeMode(ResizeMode::None);
     if (!first) {
       first = translateOperation;
     }
@@ -551,14 +551,14 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     builder.addOperation(translateOperation);
 
     if (doScale) {
-      translateOperation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
+      translateOperation->getInputSocket(0)->setResizeMode(ResizeMode::None);
       builder.addLink(scaleOperation->getOutputSocket(), translateOperation->getInputSocket(0));
     }
 
     /* remove previous link and replace */
     builder.removeInputLink(toSocket);
-    first->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
-    toSocket->setResizeMode(COM_SC_NO_RESIZE);
+    first->getInputSocket(0)->setResizeMode(ResizeMode::None);
+    toSocket->setResizeMode(ResizeMode::None);
     builder.addLink(fromSocket, first->getInputSocket(0));
     builder.addLink(translateOperation->getOutputSocket(), toSocket);
   }

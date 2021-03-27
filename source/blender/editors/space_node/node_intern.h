@@ -260,7 +260,7 @@ int node_render_changed_exec(bContext *, struct wmOperator *);
 int node_find_indicated_socket(struct SpaceNode *snode,
                                struct bNode **nodep,
                                struct bNodeSocket **sockp,
-                               float cursor[2],
+                               const float cursor[2],
                                int in_out);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);

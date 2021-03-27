@@ -78,7 +78,7 @@ typedef enum eGpencilExportSelect {
   GP_EXPORT_VISIBLE = 2,
 } eGpencilExportSelect;
 
-/* Framerange to be exported. */
+/** Frame-range to be exported. */
 typedef enum eGpencilExportFrame {
   GP_EXPORT_FRAME_ACTIVE = 0,
   GP_EXPORT_FRAME_SELECTED = 1,

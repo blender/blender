@@ -60,7 +60,7 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
 {
   for (int i = 0; i < 4; i++) {
     float result[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    readers[i]->readSampled(result, rect->xmin, rect->ymin, COM_PS_NEAREST);
+    readers[i]->readSampled(result, rect->xmin, rect->ymin, PixelSampler::Nearest);
     corners[i][0] = result[0];
     corners[i][1] = result[1];
   }

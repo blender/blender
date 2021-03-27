@@ -107,10 +107,10 @@ void MovieDistortionOperation::executePixelSampled(float output[4],
     float u = out[0] * aspx /* + 0.5 * overscan * w */,
           v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
 
-    this->m_inputOperation->readSampled(output, u, v, COM_PS_BILINEAR);
+    this->m_inputOperation->readSampled(output, u, v, PixelSampler::Bilinear);
   }
   else {
-    this->m_inputOperation->readSampled(output, x, y, COM_PS_BILINEAR);
+    this->m_inputOperation->readSampled(output, x, y, PixelSampler::Bilinear);
   }
 }
 

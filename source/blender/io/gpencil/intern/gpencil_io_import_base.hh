@@ -21,36 +21,21 @@
 /** \file
  * \ingroup bgpencil
  */
-#include "gpencil_io_import_base.h"
-
-struct GpencilIOParams;
-struct NSVGshape;
-struct NSVGpath;
-struct bGPdata;
-struct bGPDframe;
-
-#define SVG_IMPORTER_NAME "SVG Import for Grease Pencil"
-#define SVG_IMPORTER_VERSION "v1.0"
+#include "gpencil_io_base.hh"
 
 namespace blender::io::gpencil {
 
-class GpencilImporterSVG : public GpencilImporter {
+class GpencilImporter : public GpencilIO {
 
  public:
-  GpencilImporterSVG(const char *filename, const struct GpencilIOParams *iparams);
-
-  bool read();
+  GpencilImporter(const struct GpencilIOParams *iparams);
+  virtual bool read() = 0;
 
  protected:
- private:
-  void create_stroke(struct bGPdata *gpd_,
-                     struct bGPDframe *gpf,
-                     struct NSVGshape *shape,
-                     struct NSVGpath *path,
-                     const int32_t mat_index,
-                     const float matrix[4][4]);
+  struct Object *create_object();
+  int32_t create_material(const char *name, const bool stroke, const bool fill);
 
-  void convert_color(const int32_t color, float r_linear_rgba[4]);
+ private:
 };
 
 }  // namespace blender::io::gpencil

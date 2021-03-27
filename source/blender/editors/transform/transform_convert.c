@@ -1187,10 +1187,11 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
       return T_EDIT;
     case TC_MESH_UV:
       return T_EDIT | T_POINTS | T_2D_EDIT;
+    case TC_CURSOR_IMAGE:
+      return T_2D_EDIT;
     case TC_PARTICLE_VERTS:
       return T_POINTS;
     case TC_POSE:
-    case TC_CURSOR_IMAGE:
     case TC_CURSOR_VIEW3D:
     case TC_OBJECT:
     case TC_OBJECT_TEXSPACE:
@@ -1643,6 +1644,21 @@ void animrecord_check_state(TransInfo *t, struct Object *ob)
   }
 }
 
+static void recalcData_cursor_image(TransInfo *t)
+{
+  TransDataContainer *tc = t->data_container;
+  TransData *td = tc->data;
+  float aspect_inv[2];
+
+  aspect_inv[0] = 1.0f / t->aspect[0];
+  aspect_inv[1] = 1.0f / t->aspect[1];
+
+  td->loc[0] = td->loc[0] * aspect_inv[0];
+  td->loc[1] = td->loc[1] * aspect_inv[1];
+
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+}
+
 static void recalcData_cursor(TransInfo *t)
 {
   DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
@@ -1677,6 +1693,8 @@ void recalcData(TransInfo *t)
       recalcData_curve(t);
       break;
     case TC_CURSOR_IMAGE:
+      recalcData_cursor_image(t);
+      break;
     case TC_CURSOR_VIEW3D:
       recalcData_cursor(t);
       break;

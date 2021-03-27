@@ -24,7 +24,7 @@
 
 TonemapOperation::TonemapOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->m_imageReader = nullptr;
   this->m_data = nullptr;

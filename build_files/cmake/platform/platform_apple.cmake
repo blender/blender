@@ -146,7 +146,7 @@ if(WITH_PYTHON)
 
     set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
     set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}")
+    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/")
     # set(PYTHON_LIBRARY python${PYTHON_VERSION})
     # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 

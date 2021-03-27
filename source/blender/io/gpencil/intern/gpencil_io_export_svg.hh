@@ -23,7 +23,7 @@
  */
 #include "BLI_path_util.h"
 
-#include "gpencil_io_export_base.h"
+#include "gpencil_io_export_base.hh"
 #include "pugixml.hpp"
 
 struct GpencilIOParams;
@@ -70,20 +70,20 @@ class GpencilExporterSVG : public GpencilExporter {
   void export_stroke_to_path(struct bGPDlayer *gpl,
                              struct bGPDstroke *gps,
                              pugi::xml_node node_gpl,
-                             const bool is_fill);
+                             const bool do_fill);
 
   void export_stroke_to_polyline(struct bGPDlayer *gpl,
                                  struct bGPDstroke *gps,
                                  pugi::xml_node node_gpl,
                                  const bool is_stroke,
-                                 const bool is_fill);
+                                 const bool do_fill);
 
   void color_string_set(struct bGPDlayer *gpl,
                         struct bGPDstroke *gps,
                         pugi::xml_node node_gps,
-                        const bool is_fill);
+                        const bool do_fill);
 
-  std::string rgb_to_hexstr(float color[3]);
+  std::string rgb_to_hexstr(const float color[3]);
 };
 
 }  // namespace blender::io::gpencil

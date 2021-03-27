@@ -70,17 +70,17 @@ class ExecutionGroup;
  *
  *   - Image size conversions: the system can automatically convert when resolutions do not match.
  *     An NodeInput has a resize mode. This can be any of the following settings.
- *     - [@ref InputSocketResizeMode.COM_SC_CENTER]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::Center]:
  *       The center of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT_WIDTH]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitWidth]:
  *       The width of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT_HEIGHT]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitHeight]:
  *       The height of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitAny]:
  *       The width, or the height of both images are aligned to make sure that it fits.
- *     - [@ref InputSocketResizeMode.COM_SC_STRETCH]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::Stretch]:
  *       The width and the height of both images are aligned.
- *     - [@ref InputSocketResizeMode.COM_SC_NO_RESIZE]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::None]:
  *       Bottom left of the images are aligned.
  *
  * \see COM_convert_data_type Datatype conversions

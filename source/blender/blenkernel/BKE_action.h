@@ -227,6 +227,9 @@ void BKE_pose_blend_read_data(struct BlendDataReader *reader, struct bPose *pose
 void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose);
 void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose);
 
+/* action_mirror.c */
+void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm);
+
 #ifdef __cplusplus
 };
 #endif
