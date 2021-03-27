@@ -202,7 +202,7 @@ static const blender::fn::MultiFunction &get_multi_function(
   if (multi_fn != nullptr) {
     return *multi_fn;
   }
-  
+
   blender::nodes::try_dispatch_float_math_fl3_fl3_fl_to_fl3(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
         static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
@@ -212,7 +212,7 @@ static const blender::fn::MultiFunction &get_multi_function(
   if (multi_fn != nullptr) {
     return *multi_fn;
   }
-  
+
   blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl(
       operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
         static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{info.title_case_name,
