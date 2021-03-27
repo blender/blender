@@ -6519,6 +6519,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_DIRECTIONAL) {
         SCULPT_do_directional_smooth_brush(sd, ob, nodes, totnode);
       }
+      else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS) {
+        SCULPT_do_uniform_weights_smooth_brush(sd, ob, nodes, totnode);
+      }
       break;
     case SCULPT_TOOL_CREASE:
       do_crease_brush(sd, ob, nodes, totnode);

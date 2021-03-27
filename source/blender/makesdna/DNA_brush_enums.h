@@ -235,6 +235,7 @@ typedef enum eBrushSmoothDeformType {
   BRUSH_SMOOTH_DEFORM_LAPLACIAN = 0,
   BRUSH_SMOOTH_DEFORM_SURFACE = 1,
   BRUSH_SMOOTH_DEFORM_DIRECTIONAL = 2,
+  BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS = 3,
 } eBrushSmoothDeformType;
 
 typedef enum eBrushClothForceFalloffType {

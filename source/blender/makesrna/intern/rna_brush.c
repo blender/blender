@@ -2191,6 +2191,11 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Directional",
        "Smooths the surface taking into account the direction of the stroke"},
+      {BRUSH_SMOOTH_DEFORM_UNIFORM_WEIGHTS,
+       "UNIFORM_WEIGHTS",
+       0,
+       "Uniform Weights",
+       "Smooths the surface considering that all edges have the same length"},
       {0, NULL, 0, NULL, NULL},
   };
 

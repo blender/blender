@@ -649,3 +649,103 @@ void SCULPT_do_directional_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
     BLI_task_parallel_range(0, totnode, &data, SCULPT_do_directional_smooth_task_cb_ex, &settings);
   }
 }
+
+static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdata,
+                                                    const int n,
+                                                    const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  const float bstrength = ss->cache->bstrength;
+
+  PBVHVertexIter vd;
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                sqrtf(test.dist),
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+
+
+
+    float len_accum = 0;
+    int tot_neighbors = 0;
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      len_accum += len_v3v3(SCULPT_vertex_co_get(ss, vd.index), SCULPT_vertex_co_get(ss, ni.index));
+      tot_neighbors++;
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    /* Avoid division by 0 when there are no neighbors. */
+    if (tot_neighbors == 0) {
+      continue;
+    }
+
+    const float len_avg = bstrength * len_accum / tot_neighbors;
+
+
+    float co_accum[3] = {0.0f};
+
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      const float neighbor_co[3];
+      const float neighbor_disp[3];
+      sub_v3_v3v3(neighbor_disp, SCULPT_vertex_co_get(ss, ni.index), SCULPT_vertex_co_get(ss, vd.index));
+      normalize_v3(neighbor_disp);
+      mul_v3_fl(neighbor_disp, len_avg);
+      add_v3_v3v3(neighbor_co, SCULPT_vertex_co_get(ss, vd.index), neighbor_disp);
+      add_v3_v3(co_accum, neighbor_co);
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    float smooth_co[3];
+    mul_v3_v3fl(smooth_co, co_accum, 1.0f / tot_neighbors);
+
+    float final_disp[3];
+    sub_v3_v3v3(final_disp, smooth_co, vd.co);
+    madd_v3_v3v3fl(final_disp, vd.co, final_disp, fade);
+    SCULPT_clip(data->sd, ss, vd.co, final_disp);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+    BKE_pbvh_vertex_iter_end;
+  }
+}
+
+
+
+void SCULPT_do_uniform_weights_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  /* Threaded loop over nodes. */
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  for (int i = 0; i < brush->surface_smooth_iterations; i++) {
+    BLI_task_parallel_range(0, totnode, &data, SCULPT_do_uniform_weigths_smooth_task_cb_ex, &settings);
+  }
+}
