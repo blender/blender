@@ -49,7 +49,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "gpencil_io_base.h"
+#include "gpencil_io_base.hh"
 
 using blender::Span;
 

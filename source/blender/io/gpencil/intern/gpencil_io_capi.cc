@@ -40,14 +40,14 @@
 #include "../gpencil_io.h"
 
 #ifdef WITH_HARU
-#  include "gpencil_io_export_pdf.h"
+#  include "gpencil_io_export_pdf.hh"
 #endif
 
 #ifdef WITH_PUGIXML
-#  include "gpencil_io_export_svg.h"
+#  include "gpencil_io_export_svg.hh"
 #endif
 
-#include "gpencil_io_import_svg.h"
+#include "gpencil_io_import_svg.hh"
 
 #ifdef WITH_HARU
 using blender::io::gpencil::GpencilExporterPDF;

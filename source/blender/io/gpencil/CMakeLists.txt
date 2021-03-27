@@ -48,10 +48,10 @@ set(SRC
   nanosvg/nanosvg.h
 
   gpencil_io.h
-  intern/gpencil_io_base.h
-  intern/gpencil_io_export_base.h
-  intern/gpencil_io_import_base.h
-  intern/gpencil_io_import_svg.h
+  intern/gpencil_io_base.hh
+  intern/gpencil_io_export_base.hh
+  intern/gpencil_io_import_base.hh
+  intern/gpencil_io_import_svg.hh
 )
 
 set(LIB
@@ -64,7 +64,7 @@ if(WITH_PUGIXML)
   list(APPEND SRC
     intern/gpencil_io_export_svg.cc
 
-    intern/gpencil_io_export_svg.h
+    intern/gpencil_io_export_svg.hh
   )
   list(APPEND INC_SYS
     ${PUGIXML_INCLUDE_DIR}
@@ -79,7 +79,7 @@ if(WITH_HARU)
   list(APPEND SRC
     intern/gpencil_io_export_pdf.cc
 
-    intern/gpencil_io_export_pdf.h
+    intern/gpencil_io_export_pdf.hh
   )
   list(APPEND INC_SYS
     ${HARU_INCLUDE_DIRS}

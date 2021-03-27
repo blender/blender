@@ -23,7 +23,7 @@
  */
 #include "BLI_path_util.h"
 
-#include "gpencil_io_export_base.h"
+#include "gpencil_io_export_base.hh"
 #include "pugixml.hpp"
 
 struct GpencilIOParams;

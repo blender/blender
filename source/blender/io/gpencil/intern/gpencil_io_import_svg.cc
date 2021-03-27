@@ -36,7 +36,7 @@
 #include "ED_gpencil.h"
 
 #include "gpencil_io.h"
-#include "gpencil_io_import_svg.h"
+#include "gpencil_io_import_svg.hh"
 
 /* Custom flags for NanoSVG. */
 #define NANOSVG_ALL_COLOR_KEYWORDS

@@ -49,7 +49,7 @@
 #include "UI_view2d.h"
 
 #include "gpencil_io.h"
-#include "gpencil_io_export_pdf.h"
+#include "gpencil_io_export_pdf.hh"
 
 namespace blender ::io ::gpencil {
 

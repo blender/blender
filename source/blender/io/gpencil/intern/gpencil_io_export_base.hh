@@ -21,20 +21,17 @@
 /** \file
  * \ingroup bgpencil
  */
-#include "gpencil_io_base.h"
+#include "gpencil_io_base.hh"
 
 namespace blender::io::gpencil {
 
-class GpencilImporter : public GpencilIO {
+class GpencilExporter : public GpencilIO {
 
  public:
-  GpencilImporter(const struct GpencilIOParams *iparams);
-  virtual bool read() = 0;
+  GpencilExporter(const struct GpencilIOParams *iparams) : GpencilIO(iparams){};
+  virtual bool write() = 0;
 
  protected:
-  struct Object *create_object();
-  int32_t create_material(const char *name, const bool stroke, const bool fill);
-
  private:
 };
 
