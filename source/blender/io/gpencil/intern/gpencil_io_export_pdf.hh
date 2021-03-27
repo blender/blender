@@ -22,7 +22,7 @@
  * \ingroup bgpencil
  */
 
-#include "gpencil_io_export_base.h"
+#include "gpencil_io_export_base.hh"
 #include "hpdf.h"
 
 struct GpencilIOParams;
