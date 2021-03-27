@@ -1194,7 +1194,10 @@ static void reconstruct_struct(const DNA_ReconstructInfo *reconstruct_info,
                             new_block + step->data.substruct.new_offset);
         break;
       case RECONSTRUCT_STEP_INIT_ZERO:
-        /* Do nothing, because the memory block has been calloced. */
+        /* Do nothing, because the memory block are zeroed (from #MEM_callocN).
+         *
+         * Note that the struct could be initialized with the default struct,
+         * however this complicates versioning, especially with flags, see: D4500. */
         break;
     }
   }
