@@ -1914,6 +1914,16 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
   BKE_scene_collections_object_remove(bmain, scene, ob, true);
 }
 
+/**
+ * Remove base from a specific scene.
+ * `ob` must not be indirectly used.
+ */
+void ED_object_base_free_and_unlink_no_indirect_check(Main *bmain, Scene *scene, Object *ob)
+{
+  DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_BASE_FLAGS);
+  BKE_scene_collections_object_remove(bmain, scene, ob, true);
+}
+
 static int object_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1921,10 +1931,13 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool use_global = RNA_boolean_get(op->ptr, "use_global");
   uint changed_count = 0;
+  uint tagged_count = 0;
 
   if (CTX_data_edit_object(C)) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     const bool is_indirectly_used = BKE_library_ID_is_indirectly_used(bmain, ob);
@@ -1952,18 +1965,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
 
-    /* This is sort of a quick hack to address T51243 -
-     * Proper thing to do here would be to nuke most of all this custom scene/object/base handling,
-     * and use generic lib remap/query for that.
-     * But this is for later (aka 2.8, once layers & co are settled and working).
-     */
-    if (use_global && ob->id.lib == NULL) {
-      /* We want to nuke the object, let's nuke it the easy way (not for linked data though)... */
-      BKE_id_delete(bmain, &ob->id);
-      changed_count += 1;
-      continue;
-    }
-
     /* remove from Grease Pencil parent */
     /* XXX This is likely not correct?
      *     Will also remove parent from grease pencil from other scenes,
@@ -1978,36 +1979,28 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       }
     }
 
-    /* remove from current scene only */
-    ED_object_base_free_and_unlink(bmain, scene, ob);
-    changed_count += 1;
-
-    if (use_global) {
-      Scene *scene_iter;
-      for (scene_iter = bmain->scenes.first; scene_iter; scene_iter = scene_iter->id.next) {
-        if (scene_iter != scene && !ID_IS_LINKED(scene_iter)) {
-          if (is_indirectly_used && ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0) {
-            BKE_reportf(op->reports,
-                        RPT_WARNING,
-                        "Cannot delete object '%s' from scene '%s', indirectly used objects need "
-                        "at least one user",
-                        ob->id.name + 2,
-                        scene_iter->id.name + 2);
-            break;
-          }
-          ED_object_base_free_and_unlink(bmain, scene_iter, ob);
-        }
-      }
+    /* Use multi tagged delete if `use_global=True`, or the object is used only in one scene. */
+    if (use_global || ID_REAL_USERS(ob) <= 1) {
+      ob->id.tag |= LIB_TAG_DOIT;
+      tagged_count += 1;
     }
-    /* end global */
+    else {
+      /* Object is used in multiple scenes. Delete the object from the current scene only. */
+      ED_object_base_free_and_unlink_no_indirect_check(bmain, scene, ob);
+      changed_count += 1;
+    }
   }
   CTX_DATA_END;
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", changed_count);
-
-  if (changed_count == 0) {
+  if ((changed_count + tagged_count) == 0) {
     return OPERATOR_CANCELLED;
   }
+
+  if (tagged_count > 0) {
+    BKE_id_multi_tagged_delete(bmain);
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
 
   /* delete has to handle all open scenes */
   BKE_main_id_tag_listbase(&bmain->scenes, LIB_TAG_DOIT, true);
