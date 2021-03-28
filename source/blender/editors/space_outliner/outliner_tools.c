@@ -699,8 +699,8 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
           reports, RPT_WARNING, "Cannot delete indirectly linked object '%s'", ob->id.name + 2);
       return;
     }
-    if (BKE_library_ID_is_indirectly_used(bmain, ob) && ID_REAL_USERS(ob) <= 1 &&
-        ID_EXTRA_USERS(ob) == 0) {
+    if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
+        BKE_library_ID_is_indirectly_used(bmain, ob)) {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete object '%s' from scene '%s', indirectly used objects need at "
@@ -1422,8 +1422,8 @@ static Base *outline_batch_delete_hierarchy(
                 base->object->id.name + 2);
     return base_next;
   }
-  if (BKE_library_ID_is_indirectly_used(bmain, object) && ID_REAL_USERS(object) <= 1 &&
-      ID_EXTRA_USERS(object) == 0) {
+  if (ID_REAL_USERS(object) <= 1 && ID_EXTRA_USERS(object) == 0 &&
+      BKE_library_ID_is_indirectly_used(bmain, object)) {
     BKE_reportf(reports,
                 RPT_WARNING,
                 "Cannot delete object '%s' from scene '%s', indirectly used objects need at least "
