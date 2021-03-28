@@ -729,6 +729,27 @@ static const Mesh *get_mesh_from_component_for_read(const GeometryComponent &com
 
 namespace blender::bke {
 
+template<typename StructT,
+         typename ElemT,
+         ElemT (*GetFunc)(const StructT &),
+         AttributeDomain Domain>
+static ReadAttributePtr make_derived_read_attribute(const void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayReadAttribute<StructT, ElemT, GetFunc>>(
+      Domain, Span<StructT>((const StructT *)data, domain_size));
+}
+
+template<typename StructT,
+         typename ElemT,
+         ElemT (*GetFunc)(const StructT &),
+         void (*SetFunc)(StructT &, const ElemT &),
+         AttributeDomain Domain>
+static WriteAttributePtr make_derived_write_attribute(void *data, const int domain_size)
+{
+  return std::make_unique<DerivedArrayWriteAttribute<StructT, ElemT, GetFunc, SetFunc>>(
+      Domain, MutableSpan<StructT>((StructT *)data, domain_size));
+}
+
 static float3 get_vertex_position(const MVert &vert)
 {
   return float3(vert.co);
@@ -737,20 +758,6 @@ static float3 get_vertex_position(const MVert &vert)
 static void set_vertex_position(MVert &vert, const float3 &position)
 {
   copy_v3_v3(vert.co, position);
-}
-
-static ReadAttributePtr make_vertex_position_read_attribute(const void *data,
-                                                            const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MVert, float3, get_vertex_position>>(
-      ATTR_DOMAIN_POINT, Span<MVert>((const MVert *)data, domain_size));
-}
-
-static WriteAttributePtr make_vertex_position_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<
-      DerivedArrayWriteAttribute<MVert, float3, get_vertex_position, set_vertex_position>>(
-      ATTR_DOMAIN_POINT, MutableSpan<MVert>((MVert *)data, domain_size));
 }
 
 static void tag_normals_dirty_when_writing_position(GeometryComponent &component)
@@ -771,19 +778,6 @@ static void set_material_index(MPoly &mpoly, const int &index)
   mpoly.mat_nr = static_cast<short>(std::clamp(index, 0, SHRT_MAX));
 }
 
-static ReadAttributePtr make_material_index_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MPoly, int, get_material_index>>(
-      ATTR_DOMAIN_FACE, Span<MPoly>((const MPoly *)data, domain_size));
-}
-
-static WriteAttributePtr make_material_index_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<
-      DerivedArrayWriteAttribute<MPoly, int, get_material_index, set_material_index>>(
-      ATTR_DOMAIN_FACE, MutableSpan<MPoly>((MPoly *)data, domain_size));
-}
-
 static bool get_shade_smooth(const MPoly &mpoly)
 {
   return mpoly.flag & ME_SMOOTH;
@@ -794,19 +788,6 @@ static void set_shade_smooth(MPoly &mpoly, const bool &value)
   SET_FLAG_FROM_TEST(mpoly.flag, value, ME_SMOOTH);
 }
 
-static ReadAttributePtr make_shade_smooth_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MPoly, bool, get_shade_smooth>>(
-      ATTR_DOMAIN_FACE, Span<MPoly>((const MPoly *)data, domain_size));
-}
-
-static WriteAttributePtr make_shade_smooth_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<
-      DerivedArrayWriteAttribute<MPoly, bool, get_shade_smooth, set_shade_smooth>>(
-      ATTR_DOMAIN_FACE, MutableSpan<MPoly>((MPoly *)data, domain_size));
-}
-
 static float2 get_loop_uv(const MLoopUV &uv)
 {
   return float2(uv.uv);
@@ -815,18 +796,6 @@ static float2 get_loop_uv(const MLoopUV &uv)
 static void set_loop_uv(MLoopUV &uv, const float2 &co)
 {
   copy_v2_v2(uv.uv, co);
-}
-
-static ReadAttributePtr make_uvs_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MLoopUV, float2, get_loop_uv>>(
-      ATTR_DOMAIN_CORNER, Span((const MLoopUV *)data, domain_size));
-}
-
-static WriteAttributePtr make_uvs_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayWriteAttribute<MLoopUV, float2, get_loop_uv, set_loop_uv>>(
-      ATTR_DOMAIN_CORNER, MutableSpan((MLoopUV *)data, domain_size));
 }
 
 static Color4f get_loop_color(const MLoopCol &col)
@@ -841,19 +810,6 @@ static void set_loop_color(MLoopCol &col, const Color4f &value)
   rgba_float_to_uchar(&col.r, value);
 }
 
-static ReadAttributePtr make_vertex_color_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MLoopCol, Color4f, get_loop_color>>(
-      ATTR_DOMAIN_CORNER, Span((const MLoopCol *)data, domain_size));
-}
-
-static WriteAttributePtr make_vertex_color_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<
-      DerivedArrayWriteAttribute<MLoopCol, Color4f, get_loop_color, set_loop_color>>(
-      ATTR_DOMAIN_CORNER, MutableSpan((MLoopCol *)data, domain_size));
-}
-
 static float get_crease(const MEdge &edge)
 {
   return edge.crease / 255.0f;
@@ -862,18 +818,6 @@ static float get_crease(const MEdge &edge)
 static void set_crease(MEdge &edge, const float &value)
 {
   edge.crease = round_fl_to_uchar_clamp(value * 255.0f);
-}
-
-static ReadAttributePtr make_crease_read_attribute(const void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayReadAttribute<MEdge, float, get_crease>>(
-      ATTR_DOMAIN_EDGE, Span((const MEdge *)data, domain_size));
-}
-
-static WriteAttributePtr make_crease_write_attribute(void *data, const int domain_size)
-{
-  return std::make_unique<DerivedArrayWriteAttribute<MEdge, float, get_crease, set_crease>>(
-      ATTR_DOMAIN_EDGE, MutableSpan((MEdge *)data, domain_size));
 }
 
 class VertexWeightWriteAttribute final : public WriteAttribute {
@@ -1136,69 +1080,91 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER
 
-  static BuiltinCustomDataLayerProvider position("position",
-                                                 ATTR_DOMAIN_POINT,
-                                                 CD_PROP_FLOAT3,
-                                                 CD_MVERT,
-                                                 BuiltinAttributeProvider::NonCreatable,
-                                                 BuiltinAttributeProvider::Writable,
-                                                 BuiltinAttributeProvider::NonDeletable,
-                                                 point_access,
-                                                 make_vertex_position_read_attribute,
-                                                 make_vertex_position_write_attribute,
-                                                 tag_normals_dirty_when_writing_position);
+  static BuiltinCustomDataLayerProvider position(
+      "position",
+      ATTR_DOMAIN_POINT,
+      CD_PROP_FLOAT3,
+      CD_MVERT,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonDeletable,
+      point_access,
+      make_derived_read_attribute<MVert, float3, get_vertex_position, ATTR_DOMAIN_POINT>,
+      make_derived_write_attribute<MVert,
+                                   float3,
+                                   get_vertex_position,
+                                   set_vertex_position,
+                                   ATTR_DOMAIN_POINT>,
+      tag_normals_dirty_when_writing_position);
 
   static NormalAttributeProvider normal;
 
-  static BuiltinCustomDataLayerProvider material_index("material_index",
-                                                       ATTR_DOMAIN_FACE,
-                                                       CD_PROP_INT32,
-                                                       CD_MPOLY,
-                                                       BuiltinAttributeProvider::NonCreatable,
-                                                       BuiltinAttributeProvider::Writable,
-                                                       BuiltinAttributeProvider::NonDeletable,
-                                                       face_access,
-                                                       make_material_index_read_attribute,
-                                                       make_material_index_write_attribute,
-                                                       nullptr);
+  static BuiltinCustomDataLayerProvider material_index(
+      "material_index",
+      ATTR_DOMAIN_FACE,
+      CD_PROP_INT32,
+      CD_MPOLY,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonDeletable,
+      face_access,
+      make_derived_read_attribute<MPoly, int, get_material_index, ATTR_DOMAIN_FACE>,
+      make_derived_write_attribute<MPoly,
+                                   int,
+                                   get_material_index,
+                                   set_material_index,
+                                   ATTR_DOMAIN_FACE>,
+      nullptr);
 
-  static BuiltinCustomDataLayerProvider shade_smooth("shade_smooth",
-                                                     ATTR_DOMAIN_FACE,
-                                                     CD_PROP_BOOL,
-                                                     CD_MPOLY,
-                                                     BuiltinAttributeProvider::NonCreatable,
-                                                     BuiltinAttributeProvider::Writable,
-                                                     BuiltinAttributeProvider::NonDeletable,
-                                                     face_access,
-                                                     make_shade_smooth_read_attribute,
-                                                     make_shade_smooth_write_attribute,
-                                                     nullptr);
+  static BuiltinCustomDataLayerProvider shade_smooth(
+      "shade_smooth",
+      ATTR_DOMAIN_FACE,
+      CD_PROP_BOOL,
+      CD_MPOLY,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonDeletable,
+      face_access,
+      make_derived_read_attribute<MPoly, bool, get_shade_smooth, ATTR_DOMAIN_FACE>,
+      make_derived_write_attribute<MPoly,
+                                   bool,
+                                   get_shade_smooth,
+                                   set_shade_smooth,
+                                   ATTR_DOMAIN_FACE>,
+      nullptr);
 
-  static BuiltinCustomDataLayerProvider crease("crease",
-                                               ATTR_DOMAIN_EDGE,
-                                               CD_PROP_FLOAT,
-                                               CD_MEDGE,
-                                               BuiltinAttributeProvider::NonCreatable,
-                                               BuiltinAttributeProvider::Writable,
-                                               BuiltinAttributeProvider::NonDeletable,
-                                               edge_access,
-                                               make_crease_read_attribute,
-                                               make_crease_write_attribute,
-                                               nullptr);
+  static BuiltinCustomDataLayerProvider crease(
+      "crease",
+      ATTR_DOMAIN_EDGE,
+      CD_PROP_FLOAT,
+      CD_MEDGE,
+      BuiltinAttributeProvider::NonCreatable,
+      BuiltinAttributeProvider::Writable,
+      BuiltinAttributeProvider::NonDeletable,
+      edge_access,
+      make_derived_read_attribute<MEdge, float, get_crease, ATTR_DOMAIN_EDGE>,
+      make_derived_write_attribute<MEdge, float, get_crease, set_crease, ATTR_DOMAIN_EDGE>,
+      nullptr);
 
-  static NamedLegacyCustomDataProvider uvs(ATTR_DOMAIN_CORNER,
-                                           CD_PROP_FLOAT2,
-                                           CD_MLOOPUV,
-                                           corner_access,
-                                           make_uvs_read_attribute,
-                                           make_uvs_write_attribute);
+  static NamedLegacyCustomDataProvider uvs(
+      ATTR_DOMAIN_CORNER,
+      CD_PROP_FLOAT2,
+      CD_MLOOPUV,
+      corner_access,
+      make_derived_read_attribute<MLoopUV, float2, get_loop_uv, ATTR_DOMAIN_CORNER>,
+      make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv, ATTR_DOMAIN_CORNER>);
 
-  static NamedLegacyCustomDataProvider vertex_colors(ATTR_DOMAIN_CORNER,
-                                                     CD_PROP_COLOR,
-                                                     CD_MLOOPCOL,
-                                                     corner_access,
-                                                     make_vertex_color_read_attribute,
-                                                     make_vertex_color_write_attribute);
+  static NamedLegacyCustomDataProvider vertex_colors(
+      ATTR_DOMAIN_CORNER,
+      CD_PROP_COLOR,
+      CD_MLOOPCOL,
+      corner_access,
+      make_derived_read_attribute<MLoopCol, Color4f, get_loop_color, ATTR_DOMAIN_CORNER>,
+      make_derived_write_attribute<MLoopCol,
+                                   Color4f,
+                                   get_loop_color,
+                                   set_loop_color,
+                                   ATTR_DOMAIN_CORNER>);
 
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
