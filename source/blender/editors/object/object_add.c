@@ -1997,7 +1997,15 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   }
 
   if (tagged_count > 0) {
+#if 0 /* Temporary workaround for bug in tagged delete, see: T86992 */
     BKE_id_multi_tagged_delete(bmain);
+#else
+    LISTBASE_FOREACH_MUTABLE (Object *, ob, &bmain->objects) {
+      if (ob->id.tag & LIB_TAG_DOIT) {
+        BKE_id_delete(bmain, &ob->id);
+      }
+    }
+#endif
   }
 
   BKE_reportf(op->reports, RPT_INFO, "Deleted %u object(s)", (changed_count + tagged_count));
