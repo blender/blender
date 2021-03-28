@@ -545,6 +545,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
                                    int x,
                                    int y,
                                    float zoom,
+                                   const ePaintMode mode,
                                    bool col,
                                    bool primary)
 {
@@ -555,6 +556,13 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
   bool valid = ((primary) ? (brush->overlay_flags & BRUSH_OVERLAY_PRIMARY) != 0 :
                             (brush->overlay_flags & BRUSH_OVERLAY_SECONDARY) != 0);
   int overlay_alpha = (primary) ? brush->texture_overlay_alpha : brush->mask_overlay_alpha;
+
+  if (mode == PAINT_MODE_TEXTURE_3D) {
+    if (primary && brush->imagepaint_tool == PAINT_TOOL_DRAW) {
+      /* All non-draw tools don't use the primary texture (clone, smear, soften.. etc). */
+      return false;
+    }
+  }
 
   if (!(mtex->tex) ||
       !((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) ||
@@ -785,10 +793,11 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   /* Colored overlay should be drawn separately. */
   if (col) {
     if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY)) {
-      alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, true, true);
+      alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, mode, true, true);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_SECONDARY)) {
-      alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, false);
+      alpha_overlay_active = paint_draw_tex_overlay(
+          ups, brush, vc, x, y, zoom, mode, false, false);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
       alpha_overlay_active = paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
@@ -796,7 +805,7 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   }
   else {
     if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PAINT_MODE_WEIGHT)) {
-      alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, false, true);
+      alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, mode, false, true);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
       alpha_overlay_active = paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
