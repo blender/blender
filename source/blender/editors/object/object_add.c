@@ -1965,20 +1965,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
 
-    /* remove from Grease Pencil parent */
-    /* XXX This is likely not correct?
-     *     Will also remove parent from grease pencil from other scenes,
-     *     even when use_global is false... */
-    for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
-      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        if (gpl->parent != NULL) {
-          if (gpl->parent == ob) {
-            gpl->parent = NULL;
-          }
-        }
-      }
-    }
-
     /* Use multi tagged delete if `use_global=True`, or the object is used only in one scene. */
     if (use_global || ID_REAL_USERS(ob) <= 1) {
       ob->id.tag |= LIB_TAG_DOIT;
@@ -1988,6 +1974,18 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       /* Object is used in multiple scenes. Delete the object from the current scene only. */
       ED_object_base_free_and_unlink_no_indirect_check(bmain, scene, ob);
       changed_count += 1;
+
+      /* FIXME: this will also remove parent from grease pencil from other scenes. */
+      /* Remove from Grease Pencil parent */
+      for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+          if (gpl->parent != NULL) {
+            if (gpl->parent == ob) {
+              gpl->parent = NULL;
+            }
+          }
+        }
+      }
     }
   }
   CTX_DATA_END;
