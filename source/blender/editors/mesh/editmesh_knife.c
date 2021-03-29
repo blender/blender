@@ -146,6 +146,8 @@ typedef struct KnifePosData {
   KnifeVert *vert;
   KnifeEdge *edge;
   BMFace *bmface;
+
+  /** When true, the cursor isn't over a face. */
   bool is_space;
 
   float mval[2]; /* mouse screen position (may be non-integral if snapped to something) */
@@ -2218,7 +2220,15 @@ static bool knife_snap_angle(KnifeTool_OpData *kcd)
   return true;
 }
 
-static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[2])
+/**
+ * \return true when `kcd->curr.co` & `kcd->curr.cage` are set.
+ *
+ * In this case `is_space` is nearly always false.
+ * There are some situations when vertex or edge can be snapped to, when `is_space` is true.
+ * In this case the selection-buffer is used to select the face,
+ * then the closest `vert` or `edge` is set, and those will enable `is_co_set`.
+ */
+static bool knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[2])
 {
   knife_pos_data_clear(&kcd->curr);
   copy_v2_v2(kcd->curr.mval, mval);
@@ -2236,29 +2246,39 @@ static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[
   kcd->curr.bmface = knife_find_closest_face(
       kcd, kcd->curr.co, kcd->curr.cage, &kcd->curr.is_space);
 
+  bool is_co_set = false;
+
   if (kcd->curr.bmface) {
+    if (kcd->curr.is_space == false) {
+      is_co_set = true;
+    }
     kcd->curr.vert = knife_find_closest_vert_of_face(
         kcd, kcd->curr.bmface, kcd->curr.co, kcd->curr.cage);
-
-    if (!kcd->curr.vert &&
-        /* no edge snapping while dragging (edges are too sticky when cuts are immediate) */
-        !kcd->is_drag_hold) {
-      kcd->curr.edge = knife_find_closest_edge_of_face(
-          kcd, kcd->curr.bmface, kcd->curr.co, kcd->curr.cage);
+    if (kcd->curr.vert) {
+      is_co_set = true;
+    }
+    else {
+      /* No edge snapping while dragging (edges are too sticky when cuts are immediate). */
+      if (!kcd->is_drag_hold) {
+        kcd->curr.edge = knife_find_closest_edge_of_face(
+            kcd, kcd->curr.bmface, kcd->curr.co, kcd->curr.cage);
+        if (kcd->curr.edge) {
+          is_co_set = true;
+        }
+      }
     }
   }
+  return is_co_set;
 }
 
 /* update active knife edge/vert pointers */
 static int knife_update_active(KnifeTool_OpData *kcd)
 {
-  knife_snap_update_from_mval(kcd, kcd->mval);
-
   /* if no hits are found this would normally default to (0, 0, 0) so instead
    * get a point at the mouse ray closest to the previous point.
    * Note that drawing lines in `free-space` isn't properly supported
    * but there's no guarantee (0, 0, 0) has any geometry either - campbell */
-  if (kcd->curr.vert == NULL && kcd->curr.edge == NULL && kcd->curr.bmface == NULL) {
+  if (!knife_snap_update_from_mval(kcd, kcd->mval)) {
     float origin[3];
     float origin_ofs[3];
 
