@@ -4353,8 +4353,6 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
     BKE_object_handle_data_update(depsgraph, scene, ob);
   }
 
-  ob->id.recalc &= ID_RECALC_ALL;
-
   object_handle_update_proxy(depsgraph, scene, ob, do_proxy_update);
 }
 
