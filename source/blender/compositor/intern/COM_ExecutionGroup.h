@@ -61,6 +61,7 @@ enum class eChunkExecutionState {
 };
 
 struct ExecutionGroupFlags {
+  bool initialized : 1;
   /**
    * Is this ExecutionGroup an output ExecutionGroup
    * An OutputExecution group are groups containing a
@@ -82,6 +83,7 @@ struct ExecutionGroupFlags {
 
   ExecutionGroupFlags()
   {
+    initialized = false;
     is_output = false;
     complex = false;
     open_cl = false;
@@ -167,18 +169,6 @@ class ExecutionGroup {
    *   - eChunkExecutionState::EXECUTED: executed
    */
   blender::Vector<eChunkExecutionState> m_chunk_execution_states;
-
-  /**
-   * \brief indicator when this ExecutionGroup has valid Operations in its vector for Execution
-   * \note When building the ExecutionGroup Operations are added via recursion.
-   * First a WriteBufferOperations is added, then the.
-   * \note Operation containing the settings that is important for the ExecutiongGroup is added,
-   * \note When this occurs, these settings are copied over from the node to the ExecutionGroup
-   * \note and the Initialized flag is set to true.
-   * \see complex
-   * \see openCL
-   */
-  bool m_initialized;
 
   /**
    * \brief denotes boundary for border compositing

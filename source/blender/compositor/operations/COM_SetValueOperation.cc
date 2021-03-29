@@ -23,6 +23,7 @@ namespace blender::compositor {
 SetValueOperation::SetValueOperation()
 {
   this->addOutputSocket(DataType::Value);
+  flags.is_set_operation = true;
 }
 
 void SetValueOperation::executePixelSampled(float output[4],

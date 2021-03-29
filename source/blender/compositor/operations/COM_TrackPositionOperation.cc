@@ -41,6 +41,7 @@ TrackPositionOperation::TrackPositionOperation()
   this->m_position = CMP_TRACKPOS_ABSOLUTE;
   this->m_relativeFrame = 0;
   this->m_speed_output = false;
+  flags.is_set_operation = true;
 }
 
 void TrackPositionOperation::initExecution()

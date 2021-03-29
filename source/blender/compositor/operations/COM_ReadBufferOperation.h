@@ -53,10 +53,6 @@ class ReadBufferOperation : public NodeOperation {
                           MemoryBufferExtend extend_x,
                           MemoryBufferExtend extend_y);
   void executePixelFiltered(float output[4], float x, float y, float dx[2], float dy[2]) override;
-  bool isReadBufferOperation() const override
-  {
-    return true;
-  }
   void setOffset(unsigned int offset)
   {
     this->m_offset = offset;

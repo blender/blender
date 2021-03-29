@@ -43,10 +43,6 @@ class WriteBufferOperation : public NodeOperation {
     return this->m_memoryProxy;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  bool isWriteBufferOperation() const override
-  {
-    return true;
-  }
   bool isSingleValue() const
   {
     return m_single_value;

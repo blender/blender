@@ -24,6 +24,7 @@ namespace blender::compositor {
 SetVectorOperation::SetVectorOperation()
 {
   this->addOutputSocket(DataType::Vector);
+  flags.is_set_operation = true;
 }
 
 void SetVectorOperation::executePixelSampled(float output[4],

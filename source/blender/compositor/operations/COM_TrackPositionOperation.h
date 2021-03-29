@@ -93,11 +93,6 @@ class TrackPositionOperation : public NodeOperation {
   void initExecution() override;
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  bool isSetOperation() const override
-  {
-    return true;
-  }
 };
 
 }  // namespace blender::compositor

@@ -57,7 +57,6 @@ ExecutionGroup::ExecutionGroup()
   this->m_x_chunks_len = 0;
   this->m_y_chunks_len = 0;
   this->m_chunks_len = 0;
-  this->m_initialized = false;
   this->m_chunks_finished = 0;
   BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
   this->m_executionStartTime = 0;
@@ -70,17 +69,17 @@ CompositorPriority ExecutionGroup::getRenderPriority()
 
 bool ExecutionGroup::can_contain(NodeOperation &operation)
 {
-  if (!this->m_initialized) {
+  if (!m_flags.initialized) {
     return true;
   }
 
-  if (operation.isReadBufferOperation()) {
+  if (operation.get_flags().is_read_buffer_operation) {
     return true;
   }
-  if (operation.isWriteBufferOperation()) {
+  if (operation.get_flags().is_write_buffer_operation) {
     return false;
   }
-  if (operation.isSetOperation()) {
+  if (operation.get_flags().is_set_operation) {
     return true;
   }
 
@@ -103,11 +102,12 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
     return false;
   }
 
-  if (!operation->isReadBufferOperation() && !operation->isWriteBufferOperation()) {
+  if (!operation->get_flags().is_read_buffer_operation &&
+      !operation->get_flags().is_write_buffer_operation) {
     m_flags.complex = operation->get_flags().complex;
     m_flags.open_cl = operation->get_flags().open_cl;
     m_flags.single_threaded = operation->isSingleThreaded();
-    m_initialized = true;
+    m_flags.initialized = true;
   }
 
   m_operations.append(operation);
@@ -134,7 +134,7 @@ void ExecutionGroup::initExecution()
   unsigned int max_offset = 0;
 
   for (NodeOperation *operation : m_operations) {
-    if (operation->isReadBufferOperation()) {
+    if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
       this->m_read_operations.append(readOperation);
       max_offset = MAX2(max_offset, readOperation->getOffset());
@@ -453,7 +453,7 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
 {
   // we assume that this method is only called from complex execution groups.
   NodeOperation *operation = this->getOutputOperation();
-  if (operation->isWriteBufferOperation()) {
+  if (operation->get_flags().is_write_buffer_operation) {
     WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation;
     MemoryBuffer *buffer = new MemoryBuffer(
         writeOperation->getMemoryProxy(), rect, MemoryBufferState::Temporary);

@@ -433,7 +433,7 @@ WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation
   for (const Link &link : m_links) {
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
-      if (op.isWriteBufferOperation()) {
+      if (op.get_flags().is_write_buffer_operation) {
         return (WriteBufferOperation *)(&op);
       }
     }
@@ -449,7 +449,7 @@ void NodeOperationBuilder::add_input_buffers(NodeOperation * /*operation*/,
   }
 
   NodeOperationOutput *output = input->getLink();
-  if (output->getOperation().isReadBufferOperation()) {
+  if (output->getOperation().get_flags().is_read_buffer_operation) {
     /* input is already buffered, no need to add another */
     return;
   }
@@ -491,7 +491,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   WriteBufferOperation *writeOperation = nullptr;
   for (NodeOperationInput *target : targets) {
     /* try to find existing write buffer operation */
-    if (target->getOperation().isWriteBufferOperation()) {
+    if (target->getOperation().get_flags().is_write_buffer_operation) {
       BLI_assert(writeOperation == nullptr); /* there should only be one write op connected */
       writeOperation = (WriteBufferOperation *)(&target->getOperation());
     }
@@ -571,7 +571,7 @@ static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *
   }
 
   /* associated write-buffer operations are executed as well */
-  if (op->isReadBufferOperation()) {
+  if (op->get_flags().is_read_buffer_operation) {
     ReadBufferOperation *read_op = (ReadBufferOperation *)op;
     MemoryProxy *memproxy = read_op->getMemoryProxy();
     find_reachable_operations_recursive(reachable, memproxy->getWriteBufferOperation());
@@ -675,7 +675,7 @@ void NodeOperationBuilder::group_operations()
     }
 
     /* add new groups for associated memory proxies where needed */
-    if (op->isReadBufferOperation()) {
+    if (op->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read_op = (ReadBufferOperation *)op;
       MemoryProxy *memproxy = read_op->getMemoryProxy();
 

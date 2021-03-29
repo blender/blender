@@ -204,6 +204,13 @@ struct NodeOperationFlags {
    */
   bool is_resolution_set : 1;
 
+  /**
+   * Is this a set operation (value, color, vector).
+   */
+  bool is_set_operation : 1;
+  bool is_write_buffer_operation : 1;
+  bool is_read_buffer_operation : 1;
+
   NodeOperationFlags()
   {
     complex = false;
@@ -211,6 +218,9 @@ struct NodeOperationFlags {
     use_render_border = false;
     use_viewer_border = false;
     is_resolution_set = false;
+    is_set_operation = false;
+    is_read_buffer_operation = false;
+    is_write_buffer_operation = false;
   }
 };
 
@@ -301,11 +311,11 @@ class NodeOperation {
                                    unsigned int preferredResolution[2]);
 
   /**
-   * \brief isOutputOperation determines whether this operation is an output of the ExecutionSystem
-   * during rendering or editing.
+   * \brief isOutputOperation determines whether this operation is an output of the
+   * ExecutionSystem during rendering or editing.
    *
-   * Default behavior if not overridden, this operation will not be evaluated as being an output of
-   * the ExecutionSystem.
+   * Default behavior if not overridden, this operation will not be evaluated as being an output
+   * of the ExecutionSystem.
    *
    * \see ExecutionSystem
    * \ingroup check
@@ -400,31 +410,6 @@ class NodeOperation {
     }
   }
 
-  virtual bool isSetOperation() const
-  {
-    return false;
-  }
-
-  /**
-   * \brief is this operation of type ReadBufferOperation
-   * \return [true:false]
-   * \see ReadBufferOperation
-   */
-  virtual bool isReadBufferOperation() const
-  {
-    return false;
-  }
-
-  /**
-   * \brief is this operation of type WriteBufferOperation
-   * \return [true:false]
-   * \see WriteBufferOperation
-   */
-  virtual bool isWriteBufferOperation() const
-  {
-    return false;
-  }
-
   /**
    * \brief is this operation the active viewer output
    * user can select an ViewerNode to be active
@@ -442,8 +427,8 @@ class NodeOperation {
                                                 rcti *output);
 
   /**
-   * \brief set the index of the input socket that will determine the resolution of this operation
-   * \param index: the index to set
+   * \brief set the index of the input socket that will determine the resolution of this
+   * operation \param index: the index to set
    */
   void setResolutionInputSocketIndex(unsigned int index);
 

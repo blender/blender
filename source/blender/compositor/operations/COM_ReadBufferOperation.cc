@@ -28,6 +28,7 @@ ReadBufferOperation::ReadBufferOperation(DataType datatype)
   this->m_single_value = false;
   this->m_offset = 0;
   this->m_buffer = nullptr;
+  flags.is_read_buffer_operation = true;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
