@@ -51,5 +51,10 @@ if(WITH_BLENDER AND WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
   add_subdirectory(python)
 endif()
 
+# Blender as python module tests.
+if(WITH_PYTHON_MODULE)
+  add_subdirectory(blender_as_python_module)
+endif()
+
 # GTest
 add_subdirectory(gtests)
