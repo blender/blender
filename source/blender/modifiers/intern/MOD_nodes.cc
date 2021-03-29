@@ -414,7 +414,9 @@ class GeometryNodesEvaluator {
   {
     const bNode &bnode = params.node();
 
-    this->store_ui_hints(node, params);
+    if (DEG_is_active(depsgraph_)) {
+      this->store_ui_hints(node, params);
+    }
 
     /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
@@ -1197,7 +1199,9 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
+  if (DEG_is_active(ctx->depsgraph)) {
+    reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
+  }
 
   geometry_set = compute_geometry(
       tree, group_inputs, *group_outputs[0], std::move(geometry_set), nmd, ctx);
