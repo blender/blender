@@ -65,13 +65,13 @@ void transform_mesh(Mesh *mesh,
   /* Use only translation if rotation and scale are zero. */
   if (use_translate(rotation, scale)) {
     if (!translation.is_zero()) {
-      BKE_mesh_translate(mesh, translation, true);
+      BKE_mesh_translate(mesh, translation, false);
     }
   }
   else {
     float mat[4][4];
     loc_eul_size_to_mat4(mat, translation, rotation, scale);
-    BKE_mesh_transform(mesh, mat, true);
+    BKE_mesh_transform(mesh, mat, false);
     BKE_mesh_calc_normals(mesh);
   }
 }
