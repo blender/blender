@@ -46,6 +46,7 @@ set(INC
 
 set(SRC
   composite/nodes/node_composite_alphaOver.c
+  composite/nodes/node_composite_antialiasing.c
   composite/nodes/node_composite_bilateralblur.c
   composite/nodes/node_composite_blur.c
   composite/nodes/node_composite_bokehblur.c

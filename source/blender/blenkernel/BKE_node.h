@@ -1190,6 +1190,7 @@ void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
 #define CMP_NODE_TRACKPOS 271
 #define CMP_NODE_INPAINT 272
 #define CMP_NODE_DESPECKLE 273
+#define CMP_NODE_ANTIALIASING 274
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302

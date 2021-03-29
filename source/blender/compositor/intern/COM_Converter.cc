@@ -26,6 +26,7 @@
 #include "COM_NodeOperationBuilder.h"
 
 #include "COM_AlphaOverNode.h"
+#include "COM_AntiAliasingNode.h"
 #include "COM_BilateralBlurNode.h"
 #include "COM_BlurNode.h"
 #include "COM_BokehBlurNode.h"
@@ -417,6 +418,9 @@ Node *COM_convert_bnode(bNode *b_node)
       break;
     case CMP_NODE_EXPOSURE:
       node = new ExposureNode(b_node);
+      break;
+    case CMP_NODE_ANTIALIASING:
+      node = new AntiAliasingNode(b_node);
       break;
   }
   return node;

@@ -224,6 +224,7 @@ DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE,    def_cmp_cryptomatte,    "CRYPTO
 DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE_LEGACY, def_cmp_cryptomatte_legacy, "CRYPTOMATTE", Cryptomatte, "Cryptomatte (Legacy)", ""           )
 DefNode(CompositorNode, CMP_NODE_DENOISE,        def_cmp_denoise,        "DENOISE",        Denoise,          "Denoise",           ""              )
 DefNode(CompositorNode, CMP_NODE_EXPOSURE,       0,                      "EXPOSURE",       Exposure,         "Exposure",          ""              )
+DefNode(CompositorNode, CMP_NODE_ANTIALIASING,   def_cmp_antialiasing,   "ANTIALIASING",   AntiAliasing,     "Anti-Aliasing",     ""              )
 
 DefNode(TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode(TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )
