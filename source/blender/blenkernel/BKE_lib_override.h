@@ -74,6 +74,7 @@ bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct ViewLayer *view_layer,
                                      struct ID *id_root,
                                      struct ID *id_reference);
+bool BKE_lib_override_library_template_create(struct ID *id);
 bool BKE_lib_override_library_proxy_convert(struct Main *bmain,
                                             struct Scene *scene,
                                             struct ViewLayer *view_layer,

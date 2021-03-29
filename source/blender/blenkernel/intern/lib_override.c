@@ -823,6 +823,22 @@ bool BKE_lib_override_library_create(
 }
 
 /**
+ * Create a library override template.
+ */
+bool BKE_lib_override_library_template_create(struct ID *id)
+{
+  if (ID_IS_LINKED(id)) {
+    return false;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    return false;
+  }
+
+  BKE_lib_override_library_init(id, NULL);
+  return true;
+}
+
+/**
  * Convert a given proxy object into a library override.
  *
  * \note This is a thin wrapper around \a BKE_lib_override_library_create, only extra work is to
