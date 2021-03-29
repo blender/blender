@@ -32,7 +32,7 @@ class AntiAliasingNode : public Node {
   AntiAliasingNode(bNode *editorNode) : Node(editorNode)
   {
   }
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const override;
 };
 
 #endif
