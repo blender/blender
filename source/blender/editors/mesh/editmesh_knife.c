@@ -74,7 +74,7 @@
 /* detect isolated holes and fill them */
 #define USE_NET_ISLAND_CONNECT
 
-#define KMAXDIST 10 /* max mouse distance from edge before not detecting it */
+#define KMAXDIST (10 * U.dpi_fac) /* max mouse distance from edge before not detecting it */
 
 /* WARNING: knife float precision is fragile:
  * be careful before making changes here see: (T43229, T42864, T42459, T41164).
@@ -1083,7 +1083,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
 
   if (kcd->prev.vert) {
     immUniformColor3ubv(kcd->colors.point);
-    GPU_point_size(11);
+    GPU_point_size(11 * UI_DPI_FAC);
 
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex3fv(pos, kcd->prev.cage);
@@ -1092,7 +1092,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
 
   if (kcd->prev.bmface) {
     immUniformColor3ubv(kcd->colors.curpoint);
-    GPU_point_size(9);
+    GPU_point_size(9 * UI_DPI_FAC);
 
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex3fv(pos, kcd->prev.cage);
@@ -1110,7 +1110,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
   }
   else if (kcd->curr.vert) {
     immUniformColor3ubv(kcd->colors.point);
-    GPU_point_size(11);
+    GPU_point_size(11 * UI_DPI_FAC);
 
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex3fv(pos, kcd->curr.cage);
@@ -1119,7 +1119,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
 
   if (kcd->curr.bmface) {
     immUniformColor3ubv(kcd->colors.curpoint);
-    GPU_point_size(9);
+    GPU_point_size(9 * UI_DPI_FAC);
 
     immBegin(GPU_PRIM_POINTS, 1);
     immVertex3fv(pos, kcd->curr.cage);
@@ -1152,7 +1152,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
     /* draw any snapped verts first */
     rgba_uchar_to_float(fcol, kcd->colors.point_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
-    GPU_point_size(11);
+    GPU_point_size(11 * UI_DPI_FAC);
     if (snapped_verts_count > 0) {
       GPU_batch_draw_range(batch, 0, snapped_verts_count);
     }
@@ -1160,7 +1160,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
     /* now draw the rest */
     rgba_uchar_to_float(fcol, kcd->colors.curpoint_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
-    GPU_point_size(7);
+    GPU_point_size(7 * UI_DPI_FAC);
     if (other_verts_count > 0) {
       GPU_batch_draw_range(batch, snapped_verts_count, other_verts_count);
     }
@@ -1200,7 +1200,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
     KnifeVert *kfv;
 
     immUniformColor3ubv(kcd->colors.point);
-    GPU_point_size(5.0);
+    GPU_point_size(5.0 * UI_DPI_FAC);
 
     GPUBatch *batch = immBeginBatchAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
