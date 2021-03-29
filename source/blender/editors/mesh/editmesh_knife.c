@@ -1931,64 +1931,68 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
 /**
  * Find the 2d screen space density of vertices within a radius.
  * Used to scale snapping distance for picking edges/verts.
+ *
+ * Arguments `f` and `cageco` should be the result of a call to #knife_find_closest_face.
  */
-static int knife_sample_screen_density(KnifeTool_OpData *kcd, const float radius)
+static int knife_sample_screen_density_from_closest_face(KnifeTool_OpData *kcd,
+                                                         const float radius,
+                                                         BMFace *f,
+                                                         const float cageco[3])
 {
-  BMFace *f;
-  bool is_space;
-  float co[3], cageco[3], sco[2];
+  const float radius_sq = radius * radius;
+  ListBase *list;
+  Ref *ref;
+  float sco[2];
+  float dis_sq;
+  int c = 0;
 
-  BLI_assert(kcd->is_interactive == true);
+  knife_project_v2(kcd, cageco, sco);
 
-  f = knife_find_closest_face(kcd, co, cageco, &is_space);
+  list = knife_get_face_kedges(kcd, f);
+  for (ref = list->first; ref; ref = ref->next) {
+    KnifeEdge *kfe = ref->ref;
+    int i;
 
-  if (f && !is_space) {
-    const float radius_sq = radius * radius;
-    ListBase *list;
-    Ref *ref;
-    float dis_sq;
-    int c = 0;
+    for (i = 0; i < 2; i++) {
+      KnifeVert *kfv = i ? kfe->v2 : kfe->v1;
+      float kfv_sco[2];
 
-    knife_project_v2(kcd, cageco, sco);
+      knife_project_v2(kcd, kfv->cageco, kfv_sco);
 
-    list = knife_get_face_kedges(kcd, f);
-    for (ref = list->first; ref; ref = ref->next) {
-      KnifeEdge *kfe = ref->ref;
-      int i;
-
-      for (i = 0; i < 2; i++) {
-        KnifeVert *kfv = i ? kfe->v2 : kfe->v1;
-        float kfv_sco[2];
-
-        knife_project_v2(kcd, kfv->cageco, kfv_sco);
-
-        dis_sq = len_squared_v2v2(kfv_sco, sco);
-        if (dis_sq < radius_sq) {
-          if (RV3D_CLIPPING_ENABLED(kcd->vc.v3d, kcd->vc.rv3d)) {
-            if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, true) == 0) {
-              c++;
-            }
-          }
-          else {
+      dis_sq = len_squared_v2v2(kfv_sco, sco);
+      if (dis_sq < radius_sq) {
+        if (RV3D_CLIPPING_ENABLED(kcd->vc.v3d, kcd->vc.rv3d)) {
+          if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, true) == 0) {
             c++;
           }
         }
+        else {
+          c++;
+        }
       }
     }
-
-    return c;
   }
 
-  return 0;
+  return c;
 }
 
-/* returns snapping distance for edges/verts, scaled by the density of the
- * surrounding mesh (in screen space)*/
+/**
+ * \return the snapping distance for edges/verts, scaled by the density of the
+ * surrounding mesh (in screen space).
+ *
+ * \note Face values in `kcd->curr` must be up to date.
+ */
 static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 {
-  float density = (float)knife_sample_screen_density(kcd, maxsize * 2.0f);
+  BLI_assert(kcd->is_interactive == true);
+  int density = 0;
 
-  return min_ff(maxsize / (density * 0.5f), maxsize);
+  if (!kcd->curr.is_space) {
+    density = (float)knife_sample_screen_density_from_closest_face(
+        kcd, maxsize * 2.0f, kcd->curr.bmface, kcd->curr.cage);
+  }
+
+  return density ? min_ff(maxsize / ((float)density * 0.5f), maxsize) : maxsize;
 }
 
 /* p is closest point on edge to the mouse cursor */
