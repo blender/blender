@@ -38,7 +38,6 @@
 
 #include "IMB_metadata.h"
 
-#define METADATA_MAX_VALUE_LENGTH 1024
 
 void IMB_metadata_ensure(struct IDProperty **metadata)
 {
@@ -99,11 +98,11 @@ void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const 
   }
 
   if (prop == NULL) {
-    prop = IDP_NewString(value, key, METADATA_MAX_VALUE_LENGTH);
+    prop = IDP_NewString(value, key, 0);
     IDP_AddToGroup(metadata, prop);
   }
 
-  IDP_AssignString(prop, value, METADATA_MAX_VALUE_LENGTH);
+  IDP_AssignString(prop, value, 0);
 }
 
 void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata)
