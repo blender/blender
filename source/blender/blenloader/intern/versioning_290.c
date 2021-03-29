@@ -1908,7 +1908,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 14)) {
-    if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "diff_fac")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "diff_fac")) {
       LISTBASE_FOREACH (Light *, light, &bmain->lights) {
         light->diff_fac = 1.0f;
         light->volume_fac = 1.0f;
