@@ -34,7 +34,7 @@ class SkyLoader : public ImageLoader {
             float ozone_density);
   ~SkyLoader();
 
-  bool load_metadata(ImageMetaData &metadata) override;
+  bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
 
   bool load_pixels(const ImageMetaData &metadata,
                    void *pixels,

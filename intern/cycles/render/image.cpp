@@ -303,7 +303,8 @@ ImageManager::ImageManager(const DeviceInfo &info)
   animation_frame = 0;
 
   /* Set image limits */
-  has_half_images = info.has_half_images;
+  features.has_half_float = info.has_half_images;
+  features.has_nanovdb = info.has_nanovdb;
 }
 
 ImageManager::~ImageManager()
@@ -347,7 +348,7 @@ void ImageManager::load_image_metadata(Image *img)
   metadata = ImageMetaData();
   metadata.colorspace = img->params.colorspace;
 
-  if (img->loader->load_metadata(metadata)) {
+  if (img->loader->load_metadata(features, metadata)) {
     assert(metadata.type != IMAGE_DATA_NUM_TYPES);
   }
   else {
@@ -356,15 +357,10 @@ void ImageManager::load_image_metadata(Image *img)
 
   metadata.detect_colorspace();
 
-  /* No half textures on OpenCL, use full float instead. */
-  if (!has_half_images) {
-    if (metadata.type == IMAGE_DATA_TYPE_HALF4) {
-      metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-    }
-    else if (metadata.type == IMAGE_DATA_TYPE_HALF) {
-      metadata.type = IMAGE_DATA_TYPE_FLOAT;
-    }
-  }
+  assert(features.has_half_float ||
+         (metadata.type != IMAGE_DATA_TYPE_HALF4 && metadata.type != IMAGE_DATA_TYPE_HALF));
+  assert(features.has_nanovdb || (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
+                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3));
 
   img->need_metadata = false;
 }

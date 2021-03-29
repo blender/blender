@@ -1654,6 +1654,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
   info.has_adaptive_stop_per_sample = true;
   info.has_osl = true;
   info.has_half_images = true;
+  info.has_nanovdb = true;
   info.has_profiling = true;
   info.denoisers = DENOISER_NLM;
   if (openimagedenoise_supported()) {

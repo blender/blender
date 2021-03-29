@@ -33,7 +33,8 @@ class VDBImageLoader : public ImageLoader {
   VDBImageLoader(const string &grid_name);
   ~VDBImageLoader();
 
-  virtual bool load_metadata(ImageMetaData &metadata) override;
+  virtual bool load_metadata(const ImageDeviceFeatures &features,
+                             ImageMetaData &metadata) override;
 
   virtual bool load_pixels(const ImageMetaData &metadata,
                            void *pixels,

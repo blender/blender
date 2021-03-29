@@ -41,7 +41,7 @@ class BlenderSmokeLoader : public ImageLoader {
     mesh_texture_space(b_mesh, texspace_loc, texspace_size);
   }
 
-  bool load_metadata(ImageMetaData &metadata) override
+  bool load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata) override
   {
     if (!b_domain) {
       return false;
