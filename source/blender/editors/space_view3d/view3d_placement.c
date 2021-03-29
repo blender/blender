@@ -1058,9 +1058,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
                                    ipd->region,
                                    ipd->v3d,
                                    G_MAIN->wm.first,
-                                   mval_fl,
-                                   NULL,
-                                   NULL);
+                                   mval_fl);
     }
   }
 
@@ -1507,9 +1505,8 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                                          ipd->region,
                                          ipd->v3d,
                                          G_MAIN->wm.first,
-                                         mval_fl,
-                                         ipd->snap_co,
-                                         NULL)) {
+                                         mval_fl)) {
+          ED_gizmotypes_snap_3d_data_get(ipd->snap_gizmo, ipd->snap_co, NULL, NULL, NULL);
           ipd->is_snap_found = true;
         }
         ED_gizmotypes_snap_3d_toggle_clear(ipd->snap_gizmo);

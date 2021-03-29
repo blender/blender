@@ -319,9 +319,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    const ARegion *region,
                                    const View3D *v3d,
                                    const wmWindowManager *wm,
-                                   const float mval_fl[2],
-                                   float r_loc[3],
-                                   float r_nor[3])
+                                   const float mval_fl[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   snap_gizmo->is_enabled = false;
@@ -410,15 +408,25 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
   copy_v3_v3(snap_gizmo->nor, no);
   copy_v3_v3_int(snap_gizmo->elem_index, snap_elem_index);
 
-  if (r_loc) {
-    copy_v3_v3(r_loc, co);
-  }
-
-  if (r_nor) {
-    copy_v3_v3(r_nor, no);
-  }
-
   return snap_elem;
+}
+
+void ED_gizmotypes_snap_3d_data_get(
+    wmGizmo *gz, float r_loc[3], float r_nor[3], int r_elem_index[3], int *r_snap_elem)
+{
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (r_loc) {
+    copy_v3_v3(r_loc, snap_gizmo->loc);
+  }
+  if (r_nor) {
+    copy_v3_v3(r_nor, snap_gizmo->nor);
+  }
+  if (r_elem_index) {
+    copy_v3_v3_int(r_elem_index, snap_gizmo->elem_index);
+  }
+  if (r_snap_elem) {
+    *r_snap_elem = snap_gizmo->snap_elem;
+  }
 }
 
 /** \} */
@@ -608,7 +616,7 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   View3D *v3d = CTX_wm_view3d(C);
   const float mval_fl[2] = {UNPACK2(mval)};
   short snap_elem = ED_gizmotypes_snap_3d_update(
-      gz, CTX_data_ensure_evaluated_depsgraph(C), region, v3d, wm, mval_fl, NULL, NULL);
+      gz, CTX_data_ensure_evaluated_depsgraph(C), region, v3d, wm, mval_fl);
 
   if (snap_elem) {
     ED_region_tag_redraw_editor_overlays(region);

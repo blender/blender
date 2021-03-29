@@ -271,9 +271,9 @@ short ED_gizmotypes_snap_3d_update(struct wmGizmo *gz,
                                    const struct ARegion *region,
                                    const struct View3D *v3d,
                                    const struct wmWindowManager *wm,
-                                   const float mval_fl[2],
-                                   float r_loc[3],
-                                   float r_nor[3]);
+                                   const float mval_fl[2]);
+void ED_gizmotypes_snap_3d_data_get(
+    struct wmGizmo *gz, float r_loc[3], float r_nor[3], int r_elem_index[3], int *r_snap_elem);
 
 #ifdef __cplusplus
 }
