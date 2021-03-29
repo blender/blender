@@ -1316,30 +1316,6 @@ void BKE_pose_tag_update_constraint_flags(bPose *pose)
   pose->flag |= POSE_CONSTRAINTS_NEED_UPDATE_FLAGS;
 }
 
-/* Clears all BONE_UNKEYED flags for every pose channel in every pose
- * This should only be called on frame changing, when it is acceptable to
- * do this. Otherwise, these flags should not get cleared as poses may get lost.
- */
-void framechange_poses_clear_unkeyed(Main *bmain)
-{
-  Object *ob;
-  bPose *pose;
-  bPoseChannel *pchan;
-
-  /* This needs to be done for each object that has a pose */
-  /* TODO: proxies may/may not be correctly handled here... (this needs checking) */
-  for (ob = bmain->objects.first; ob; ob = ob->id.next) {
-    /* we only need to do this on objects with a pose */
-    if ((pose = ob->pose)) {
-      for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-        if (pchan->bone) {
-          pchan->bone->flag &= ~BONE_UNKEYED;
-        }
-      }
-    }
-  }
-}
-
 /* ************************** Bone Groups ************************** */
 
 /* Adds a new bone-group (name may be NULL) */

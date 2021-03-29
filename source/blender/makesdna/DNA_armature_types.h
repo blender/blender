@@ -230,8 +230,10 @@ typedef enum eBone_Flag {
   BONE_MULT_VG_ENV = (1 << 11),
   /** bone doesn't deform geometry */
   BONE_NO_DEFORM = (1 << 12),
+#ifdef DNA_DEPRECATED_ALLOW
   /** set to prevent destruction of its unkeyframed pose (after transform) */
   BONE_UNKEYED = (1 << 13),
+#endif
   /** set to prevent hinge child bones from influencing the transform center */
   BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
 #ifdef DNA_DEPRECATED_ALLOW
