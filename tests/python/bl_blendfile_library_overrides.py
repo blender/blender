@@ -104,8 +104,9 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
 
         local_id.location.y = 1.0
         local_id.scale.x = 0.5
-        # XXX(jbakker): This change should not applied. But it is as the library
-        #     overrides aren't updated yet. We should expect 1.0
+        # `scale.x` will apply, but will be reverted when the library overrides
+        # are updated. This is by design so python scripts can still alter the
+        # properties locally what is a typical usecase in productions.
         assert(local_id.scale.x == 0.5)
         assert(local_id.location.y == 1.0)
 
