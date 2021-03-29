@@ -26,7 +26,7 @@ NormalizeOperation::NormalizeOperation()
   this->addOutputSocket(DataType::Value);
   this->m_imageReader = nullptr;
   this->m_cachedInstance = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void NormalizeOperation::initExecution()
 {

@@ -28,7 +28,7 @@ BilateralBlurOperation::BilateralBlurOperation()
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 
   this->m_inputColorProgram = nullptr;
   this->m_inputDeterminatorProgram = nullptr;

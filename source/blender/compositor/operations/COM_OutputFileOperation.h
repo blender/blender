@@ -70,11 +70,6 @@ class OutputSingleLayerOperation : public NodeOperation {
   {
     return CompositorPriority::Low;
   }
-
-  bool isFileOutputOperation() const override
-  {
-    return true;
-  }
 };
 
 /* extra info for OpenEXR layers */
@@ -128,11 +123,6 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
   CompositorPriority getRenderPriority() const override
   {
     return CompositorPriority::Low;
-  }
-
-  bool isFileOutputOperation() const override
-  {
-    return true;
   }
 };
 

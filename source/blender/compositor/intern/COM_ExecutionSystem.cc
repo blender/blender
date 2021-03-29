@@ -215,7 +215,7 @@ void ExecutionSystem::execute()
 void ExecutionSystem::execute_groups(CompositorPriority priority)
 {
   for (ExecutionGroup *execution_group : m_groups) {
-    if (execution_group->isOutputExecutionGroup() &&
+    if (execution_group->get_flags().is_output &&
         execution_group->getRenderPriority() == priority) {
       execution_group->execute(this);
     }

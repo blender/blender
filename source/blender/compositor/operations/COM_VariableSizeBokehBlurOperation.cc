@@ -34,8 +34,8 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
                        ResizeMode::None);  // inverse search radius optimization structure.
 #endif
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
-  this->setOpenCL(true);
+  flags.complex = true;
+  flags.open_cl = true;
 
   this->m_inputProgram = nullptr;
   this->m_inputBokehProgram = nullptr;
@@ -282,7 +282,7 @@ InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
   this->addInputSocket(DataType::Value, ResizeMode::None);  // radius
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_inputRadius = nullptr;
 }
 

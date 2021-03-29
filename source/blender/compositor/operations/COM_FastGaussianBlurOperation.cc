@@ -266,7 +266,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
   this->m_inputprogram = nullptr;
   this->m_sigma = 1.0f;
   this->m_overlay = 0;
-  setComplex(true);
+  flags.complex = true;
 }
 
 void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y, void *data)

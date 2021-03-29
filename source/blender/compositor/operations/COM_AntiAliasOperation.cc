@@ -119,7 +119,7 @@ AntiAliasOperation::AntiAliasOperation()
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
   this->m_valueReader = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void AntiAliasOperation::initExecution()

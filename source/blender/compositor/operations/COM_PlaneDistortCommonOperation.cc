@@ -53,7 +53,7 @@ PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation()
   this->m_pixelReader = nullptr;
   this->m_motion_blur_samples = 1;
   this->m_motion_blur_shutter = 0.5f;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void PlaneDistortWarpImageOperation::calculateCorners(const float corners[4][2],

@@ -27,7 +27,7 @@ SunBeamsOperation::SunBeamsOperation()
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void SunBeamsOperation::initExecution()

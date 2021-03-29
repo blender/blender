@@ -37,7 +37,7 @@ TextureBaseOperation::TextureBaseOperation()
   this->m_rd = nullptr;
   this->m_pool = nullptr;
   this->m_sceneColorManage = false;
-  setComplex(true);
+  flags.complex = true;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {

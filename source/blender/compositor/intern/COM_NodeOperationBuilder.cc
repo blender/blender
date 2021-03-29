@@ -536,7 +536,7 @@ void NodeOperationBuilder::add_complex_operation_buffers()
    */
   blender::Vector<NodeOperation *> complex_ops;
   for (NodeOperation *operation : m_operations) {
-    if (operation->isComplex()) {
+    if (operation->get_flags().complex) {
       complex_ops.append(operation);
     }
   }

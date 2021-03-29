@@ -52,6 +52,8 @@ CompositorOperation::CompositorOperation()
   this->m_scene = nullptr;
   this->m_sceneName[0] = '\0';
   this->m_viewName = nullptr;
+
+  flags.use_render_border = true;
 }
 
 void CompositorOperation::initExecution()

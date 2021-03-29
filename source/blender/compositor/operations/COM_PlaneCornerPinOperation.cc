@@ -100,7 +100,7 @@ PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(fal
    * so we can use the initializeTileData function
    * to read corners from input sockets ...
    */
-  setComplex(true);
+  flags.complex = true;
 }
 
 void PlaneCornerPinMaskOperation::initExecution()

@@ -163,7 +163,7 @@ SMAAEdgeDetectionOperation::SMAAEdgeDetectionOperation()
   this->addInputSocket(DataType::Color); /* image */
   this->addInputSocket(DataType::Value); /* depth, material ID, etc. */
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_imageReader = nullptr;
   this->m_valueReader = nullptr;
   this->m_threshold = 0.1f;
@@ -295,7 +295,7 @@ SMAABlendingWeightCalculationOperation::SMAABlendingWeightCalculationOperation()
 {
   this->addInputSocket(DataType::Color); /* edges */
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_imageReader = nullptr;
   this->m_corner_rounding = 25;
 }
@@ -782,7 +782,7 @@ SMAANeighborhoodBlendingOperation::SMAANeighborhoodBlendingOperation()
   this->addInputSocket(DataType::Color); /* image */
   this->addInputSocket(DataType::Color); /* blend */
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_image1Reader = nullptr;
   this->m_image2Reader = nullptr;
 }

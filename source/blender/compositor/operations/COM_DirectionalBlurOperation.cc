@@ -29,9 +29,8 @@ DirectionalBlurOperation::DirectionalBlurOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
-
-  this->setOpenCL(true);
+  flags.complex = true;
+  flags.open_cl = true;
   this->m_inputProgram = nullptr;
 }
 

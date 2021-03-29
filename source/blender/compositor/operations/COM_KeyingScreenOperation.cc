@@ -38,7 +38,7 @@ KeyingScreenOperation::KeyingScreenOperation()
   this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObject[0] = 0;
-  setComplex(true);
+  flags.complex = true;
 }
 
 void KeyingScreenOperation::initExecution()

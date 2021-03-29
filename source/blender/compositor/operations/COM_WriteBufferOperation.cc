@@ -63,7 +63,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/
   MemoryBuffer *memoryBuffer = this->m_memoryProxy->getBuffer();
   float *buffer = memoryBuffer->getBuffer();
   const uint8_t num_channels = memoryBuffer->get_num_channels();
-  if (this->m_input->isComplex()) {
+  if (this->m_input->get_flags().complex) {
     void *data = this->m_input->initializeTileData(rect);
     int x1 = rect->xmin;
     int y1 = rect->ymin;

@@ -33,11 +33,8 @@ namespace blender::compositor {
 NodeOperation::NodeOperation()
 {
   this->m_resolutionInputSocketIndex = 0;
-  this->m_complex = false;
   this->m_width = 0;
   this->m_height = 0;
-  this->m_isResolutionSet = false;
-  this->m_openCL = false;
   this->m_btree = nullptr;
 }
 
@@ -202,7 +199,7 @@ void NodeOperationOutput::determineResolution(unsigned int resolution[2],
                                               unsigned int preferredResolution[2])
 {
   NodeOperation &operation = getOperation();
-  if (operation.isResolutionSet()) {
+  if (operation.get_flags().is_resolution_set) {
     resolution[0] = operation.getWidth();
     resolution[1] = operation.getHeight();
   }

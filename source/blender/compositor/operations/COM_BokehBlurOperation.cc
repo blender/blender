@@ -31,8 +31,9 @@ BokehBlurOperation::BokehBlurOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
-  this->setOpenCL(true);
+
+  flags.complex = true;
+  flags.open_cl = true;
 
   this->m_size = 1.0f;
   this->m_sizeavailable = false;

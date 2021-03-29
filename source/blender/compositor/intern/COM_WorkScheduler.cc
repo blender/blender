@@ -144,7 +144,7 @@ static void opencl_start(CompositorContext &context)
 
 static bool opencl_schedule(WorkPackage *package)
 {
-  if (package->execution_group->isOpenCL() && g_work_scheduler.opencl.active) {
+  if (package->execution_group->get_flags().open_cl && g_work_scheduler.opencl.active) {
     BLI_thread_queue_push(g_work_scheduler.opencl.queue, package);
     return true;
   }

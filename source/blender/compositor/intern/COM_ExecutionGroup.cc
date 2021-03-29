@@ -50,8 +50,6 @@ namespace blender::compositor {
 
 ExecutionGroup::ExecutionGroup()
 {
-  this->m_is_output = false;
-  this->m_complex = false;
   this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
@@ -60,8 +58,6 @@ ExecutionGroup::ExecutionGroup()
   this->m_y_chunks_len = 0;
   this->m_chunks_len = 0;
   this->m_initialized = false;
-  this->m_openCL = false;
-  this->m_singleThreaded = false;
   this->m_chunks_finished = 0;
   BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
   this->m_executionStartTime = 0;
@@ -89,12 +85,12 @@ bool ExecutionGroup::can_contain(NodeOperation &operation)
   }
 
   /* complex groups don't allow further ops (except read buffer and values, see above) */
-  if (m_complex) {
+  if (m_flags.complex) {
     return false;
   }
   /* complex ops can't be added to other groups (except their own, which they initialize, see
    * above) */
-  if (operation.isComplex()) {
+  if (operation.get_flags().complex) {
     return false;
   }
 
@@ -108,9 +104,9 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
   }
 
   if (!operation->isReadBufferOperation() && !operation->isWriteBufferOperation()) {
-    m_complex = operation->isComplex();
-    m_openCL = operation->isOpenCL();
-    m_singleThreaded = operation->isSingleThreaded();
+    m_flags.complex = operation->get_flags().complex;
+    m_flags.open_cl = operation->get_flags().open_cl;
+    m_flags.single_threaded = operation->isSingleThreaded();
     m_initialized = true;
   }
 
@@ -168,7 +164,7 @@ void ExecutionGroup::determineResolution(unsigned int resolution[2])
 
 void ExecutionGroup::determineNumberOfChunks()
 {
-  if (this->m_singleThreaded) {
+  if (this->m_flags.single_threaded) {
     this->m_x_chunks_len = 1;
     this->m_y_chunks_len = 1;
     this->m_chunks_len = 1;
@@ -429,7 +425,7 @@ inline void ExecutionGroup::determineChunkRect(rcti *rect,
   const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
   const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
 
-  if (this->m_singleThreaded) {
+  if (this->m_flags.single_threaded) {
     BLI_rcti_init(
         rect, this->m_viewerBorder.xmin, border_width, this->m_viewerBorder.ymin, border_height);
   }
@@ -468,7 +464,7 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
 
 bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area)
 {
-  if (this->m_singleThreaded) {
+  if (this->m_flags.single_threaded) {
     return scheduleChunkWhenPossible(graph, 0, 0);
   }
   // find all chunks inside the rect
@@ -560,16 +556,10 @@ void ExecutionGroup::determineDependingAreaOfInterest(rcti *input,
   this->getOutputOperation()->determineDependingAreaOfInterest(input, readOperation, output);
 }
 
-bool ExecutionGroup::isOpenCL()
-{
-  return this->m_openCL;
-}
-
 void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float ymax)
 {
-  NodeOperation *operation = this->getOutputOperation();
-
-  if (operation->isViewerOperation() || operation->isPreviewOperation()) {
+  const NodeOperation &operation = *this->getOutputOperation();
+  if (operation.get_flags().use_viewer_border) {
     BLI_rcti_init(&this->m_viewerBorder,
                   xmin * this->m_width,
                   xmax * this->m_width,
@@ -580,33 +570,13 @@ void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float y
 
 void ExecutionGroup::setRenderBorder(float xmin, float xmax, float ymin, float ymax)
 {
-  NodeOperation *operation = this->getOutputOperation();
-
-  if (operation->isOutputOperation(true)) {
-    /* Basically, setting border need to happen for only operations
-     * which operates in render resolution buffers (like compositor
-     * output nodes).
-     *
-     * In this cases adding border will lead to mapping coordinates
-     * from output buffer space to input buffer spaces when executing
-     * operation.
-     *
-     * But nodes like viewer and file output just shall display or
-     * safe the same exact buffer which goes to their input, no need
-     * in any kind of coordinates mapping.
-     */
-
-    bool operationNeedsBorder = !(operation->isViewerOperation() ||
-                                  operation->isPreviewOperation() ||
-                                  operation->isFileOutputOperation());
-
-    if (operationNeedsBorder) {
-      BLI_rcti_init(&this->m_viewerBorder,
-                    xmin * this->m_width,
-                    xmax * this->m_width,
-                    ymin * this->m_height,
-                    ymax * this->m_height);
-    }
+  const NodeOperation &operation = *this->getOutputOperation();
+  if (operation.isOutputOperation(true) && operation.get_flags().use_render_border) {
+    BLI_rcti_init(&this->m_viewerBorder,
+                  xmin * this->m_width,
+                  xmax * this->m_width,
+                  ymin * this->m_height,
+                  ymax * this->m_height);
   }
 }
 

@@ -60,6 +60,35 @@ enum class eChunkExecutionState {
   EXECUTED = 2,
 };
 
+struct ExecutionGroupFlags {
+  /**
+   * Is this ExecutionGroup an output ExecutionGroup
+   * An OutputExecution group are groups containing a
+   * ViewerOperation, CompositeOperation, PreviewOperation.
+   */
+  bool is_output : 1;
+  bool complex : 1;
+
+  /**
+   * Can this ExecutionGroup be scheduled on an OpenCLDevice.
+   */
+  bool open_cl : 1;
+
+  /**
+   * Schedule this execution group as a single chunk. This
+   * chunk will be executed by a single thread.
+   */
+  bool single_threaded : 1;
+
+  ExecutionGroupFlags()
+  {
+    is_output = false;
+    complex = false;
+    open_cl = false;
+    single_threaded = false;
+  }
+};
+
 /**
  * \brief Class ExecutionGroup is a group of Operations that are executed as one.
  * This grouping is used to combine Operations that can be executed as one whole when
@@ -75,12 +104,7 @@ class ExecutionGroup {
    */
   blender::Vector<NodeOperation *> m_operations;
 
-  /**
-   * \brief is this ExecutionGroup an input ExecutionGroup
-   * an input execution group is a group that is at the end of the calculation
-   * (the output is important for the user).
-   */
-  bool m_is_output;
+  ExecutionGroupFlags m_flags;
 
   /**
    * \brief Width of the output
@@ -112,21 +136,6 @@ class ExecutionGroup {
    * \brief total number of chunks
    */
   unsigned int m_chunks_len;
-
-  /**
-   * \brief contains this ExecutionGroup a complex NodeOperation.
-   */
-  bool m_complex;
-
-  /**
-   * \brief can this ExecutionGroup be scheduled on an OpenCLDevice
-   */
-  bool m_openCL;
-
-  /**
-   * \brief Is this Execution group SingleThreaded
-   */
-  bool m_singleThreaded;
 
   /**
    * \brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
@@ -261,6 +270,11 @@ class ExecutionGroup {
   // constructors
   ExecutionGroup();
 
+  const ExecutionGroupFlags get_flags() const
+  {
+    return m_flags;
+  }
+
   // methods
   /**
    * \brief add an operation to this ExecutionGroup
@@ -273,23 +287,12 @@ class ExecutionGroup {
   bool addOperation(NodeOperation *operation);
 
   /**
-   * \brief is this ExecutionGroup an output ExecutionGroup
-   * \note An OutputExecution group are groups containing a
-   * \note ViewerOperation, CompositeOperation, PreviewOperation.
-   * \see NodeOperation.isOutputOperation
-   */
-  bool isOutputExecutionGroup() const
-  {
-    return this->m_is_output;
-  }
-
-  /**
    * \brief set whether this ExecutionGroup is an output
    * \param isOutput:
    */
   void setOutputExecutionGroup(bool is_output)
   {
-    this->m_is_output = is_output;
+    this->m_flags.is_output = is_output;
   }
 
   /**
@@ -322,14 +325,6 @@ class ExecutionGroup {
   unsigned int getHeight() const
   {
     return m_height;
-  }
-
-  /**
-   * \brief does this ExecutionGroup contains a complex NodeOperation
-   */
-  bool isComplex() const
-  {
-    return m_complex;
   }
 
   /**
@@ -411,12 +406,6 @@ class ExecutionGroup {
    * \see determineChunkSize()
    */
   void determineChunkRect(rcti *rect, const unsigned int chunkNumber) const;
-
-  /**
-   * \brief can this ExecutionGroup be scheduled on an OpenCLDevice
-   * \see WorkScheduler.schedule
-   */
-  bool isOpenCL();
 
   void setChunksize(int chunksize)
   {

@@ -33,7 +33,7 @@ InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_inputImageProgram = nullptr;
   this->m_pixelorder = nullptr;
   this->m_manhattan_distance = nullptr;

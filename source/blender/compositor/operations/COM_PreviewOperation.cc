@@ -50,6 +50,7 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
   this->m_displaySettings = displaySettings;
   this->m_defaultWidth = defaultWidth;
   this->m_defaultHeight = defaultHeight;
+  flags.use_viewer_border = true;
 }
 
 void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key)

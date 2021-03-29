@@ -33,7 +33,7 @@ KeyingBlurOperation::KeyingBlurOperation()
   this->m_size = 0;
   this->m_axis = BLUR_AXIS_X;
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void *KeyingBlurOperation::initializeTileData(rcti *rect)

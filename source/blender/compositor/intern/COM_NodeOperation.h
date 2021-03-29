@@ -165,6 +165,55 @@ class NodeOperationOutput {
 #endif
 };
 
+struct NodeOperationFlags {
+  /**
+   * Is this an complex operation.
+   *
+   * The input and output buffers of Complex operations are stored in buffers. It allows
+   * sequential and read/write.
+   *
+   * Complex operations are typically doing many reads to calculate the output of a single pixel.
+   * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
+   */
+  bool complex : 1;
+
+  /**
+   * Does this operation support OpenCL.
+   */
+  bool open_cl : 1;
+
+  /**
+   * Does the operation needs a viewer border.
+   * Basically, setting border need to happen for only operations
+   * which operates in render resolution buffers (like compositor
+   * output nodes).
+   *
+   * In this cases adding border will lead to mapping coordinates
+   * from output buffer space to input buffer spaces when executing
+   * operation.
+   *
+   * But nodes like viewer and file output just shall display or
+   * safe the same exact buffer which goes to their input, no need
+   * in any kind of coordinates mapping.
+   */
+  bool use_render_border : 1;
+  bool use_viewer_border : 1;
+
+  /**
+   * Is the resolution of the operation set.
+   */
+  bool is_resolution_set : 1;
+
+  NodeOperationFlags()
+  {
+    complex = false;
+    open_cl = false;
+    use_render_border = false;
+    use_viewer_border = false;
+    is_resolution_set = false;
+  }
+};
+
 /**
  * \brief NodeOperation contains calculation logic
  *
@@ -182,20 +231,6 @@ class NodeOperation {
   unsigned int m_resolutionInputSocketIndex;
 
   /**
-   * \brief is this operation a complex one.
-   *
-   * Complex operations are typically doing many reads to calculate the output of a single pixel.
-   * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
-   */
-  bool m_complex;
-
-  /**
-   * \brief can this operation be scheduled on an OpenCL device.
-   * \note Only applicable if complex is True
-   */
-  bool m_openCL;
-
-  /**
    * \brief mutex reference for very special node initializations
    * \note only use when you really know what you are doing.
    * this mutex is used to share data among chunks in the same operation
@@ -211,11 +246,6 @@ class NodeOperation {
    */
   const bNodeTree *m_btree;
 
-  /**
-   * \brief set to truth when resolution for this operation is set
-   */
-  bool m_isResolutionSet;
-
  protected:
   /**
    * Width of the output of this operation.
@@ -227,9 +257,19 @@ class NodeOperation {
    */
   unsigned int m_height;
 
+  /**
+   * Flags how to evaluate this operation.
+   */
+  NodeOperationFlags flags;
+
  public:
   virtual ~NodeOperation()
   {
+  }
+
+  const NodeOperationFlags get_flags() const
+  {
+    return flags;
   }
 
   unsigned int getNumberOfInputSockets() const
@@ -347,33 +387,17 @@ class NodeOperation {
   }
   virtual void deinitExecution();
 
-  bool isResolutionSet()
-  {
-    return this->m_isResolutionSet;
-  }
-
   /**
    * \brief set the resolution
    * \param resolution: the resolution to set
    */
   void setResolution(unsigned int resolution[2])
   {
-    if (!isResolutionSet()) {
+    if (!this->flags.is_resolution_set) {
       this->m_width = resolution[0];
       this->m_height = resolution[1];
-      this->m_isResolutionSet = true;
+      this->flags.is_resolution_set = true;
     }
-  }
-
-  /**
-   * \brief is this operation complex
-   *
-   * Complex operations are typically doing many reads to calculate the output of a single pixel.
-   * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
-   */
-  bool isComplex() const
-  {
-    return this->m_complex;
   }
 
   virtual bool isSetOperation() const
@@ -433,25 +457,11 @@ class NodeOperation {
     return CompositorPriority::Low;
   }
 
-  /**
-   * \brief can this NodeOperation be scheduled on an OpenCLDevice
-   * \see WorkScheduler.schedule
-   * \see ExecutionGroup.addOperation
-   */
-  bool isOpenCL() const
-  {
-    return this->m_openCL;
-  }
-
   virtual bool isViewerOperation() const
   {
     return false;
   }
   virtual bool isPreviewOperation() const
-  {
-    return false;
-  }
-  virtual bool isFileOutputOperation() const
   {
     return false;
   }
@@ -534,12 +544,12 @@ class NodeOperation {
   void setWidth(unsigned int width)
   {
     this->m_width = width;
-    this->m_isResolutionSet = true;
+    this->flags.is_resolution_set = true;
   }
   void setHeight(unsigned int height)
   {
     this->m_height = height;
-    this->m_isResolutionSet = true;
+    this->flags.is_resolution_set = true;
   }
   SocketReader *getInputSocketReader(unsigned int inputSocketindex);
   NodeOperation *getInputOperation(unsigned int inputSocketindex);
@@ -557,15 +567,7 @@ class NodeOperation {
    */
   void setComplex(bool complex)
   {
-    this->m_complex = complex;
-  }
-
-  /**
-   * \brief set if this NodeOperation can be scheduled on a OpenCLDevice
-   */
-  void setOpenCL(bool openCL)
-  {
-    this->m_openCL = openCL;
+    this->flags.complex = complex;
   }
 
   /**

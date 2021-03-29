@@ -27,7 +27,7 @@ CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
   }
   inputs.resize(num_inputs);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void CryptomatteOperation::initExecution()

@@ -31,7 +31,7 @@ TonemapOperation::TonemapOperation()
   this->m_imageReader = nullptr;
   this->m_data = nullptr;
   this->m_cachedInstance = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void TonemapOperation::initExecution()
 {

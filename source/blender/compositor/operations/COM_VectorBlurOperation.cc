@@ -56,7 +56,7 @@ VectorBlurOperation::VectorBlurOperation()
   this->m_inputImageProgram = nullptr;
   this->m_inputSpeedProgram = nullptr;
   this->m_inputZProgram = nullptr;
-  setComplex(true);
+  flags.complex = true;
 }
 void VectorBlurOperation::initExecution()
 {

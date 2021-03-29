@@ -33,7 +33,7 @@ struct WorkScheduler {
   /**
    * \brief schedule a chunk of a group to be calculated.
    * An execution group schedules a chunk in the WorkScheduler
-   * when ExecutionGroup.isOpenCL is set the work will be handled by a OpenCLDevice
+   * when ExecutionGroup.get_flags().open_cl is set the work will be handled by a OpenCLDevice
    * otherwise the work is scheduled for an CPUDevice
    * \see ExecutionGroup.execute
    * \param group: the execution group

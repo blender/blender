@@ -1317,7 +1317,7 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->m_inputOuterMask = nullptr;
   this->m_adjacentOnly = false;
   this->m_keepInside = false;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti * /*input*/,

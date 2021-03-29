@@ -29,7 +29,7 @@ DisplaceOperation::DisplaceOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 
   this->m_inputColorProgram = nullptr;
   this->m_inputVectorProgram = nullptr;

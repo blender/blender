@@ -38,7 +38,7 @@ KeyingClipOperation::KeyingClipOperation()
 
   this->m_isEdgeMatte = false;
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void *KeyingClipOperation::initializeTileData(rcti *rect)

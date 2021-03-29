@@ -27,7 +27,7 @@ MapUVOperation::MapUVOperation()
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;
-  this->setComplex(true);
+  this->flags.complex = true;
   setResolutionInputSocketIndex(1);
 
   this->m_inputUVProgram = nullptr;

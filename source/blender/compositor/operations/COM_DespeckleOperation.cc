@@ -31,7 +31,7 @@ DespeckleOperation::DespeckleOperation()
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void DespeckleOperation::initExecution()
 {

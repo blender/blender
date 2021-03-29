@@ -32,7 +32,7 @@ ScreenLensDistortionOperation::ScreenLensDistortionOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_inputProgram = nullptr;
   this->m_distortion = 0.0f;
   this->m_dispersion = 0.0f;

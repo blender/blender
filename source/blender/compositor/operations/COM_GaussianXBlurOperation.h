@@ -64,7 +64,7 @@ class GaussianXBlurOperation : public BlurBaseOperation {
 
   void checkOpenCL()
   {
-    this->setOpenCL(m_data.sizex >= 128);
+    flags.open_cl = (m_data.sizex >= 128);
   }
 };
 
