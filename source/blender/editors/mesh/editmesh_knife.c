@@ -1922,6 +1922,8 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
        * of a true coordinate on the face.
        * This just puts a point 1.0f in front of the view. */
       add_v3_v3v3(co, origin, ray);
+      /* Use this value for the cage location too as it's used to find near edges/vertices. */
+      copy_v3_v3(cageco, co);
     }
   }
 
