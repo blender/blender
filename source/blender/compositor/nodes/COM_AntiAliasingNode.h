@@ -18,8 +18,7 @@
  * Contributor: IRIE Shinsuke
  */
 
-#ifndef _COM_AntiAliasingNode_h_
-#define _COM_AntiAliasingNode_h_
+#pragma once
 
 #include "COM_Node.h"
 
@@ -39,5 +38,3 @@ class AntiAliasingNode : public Node {
 };
 
 }  // namespace blender::compositor
-
-#endif

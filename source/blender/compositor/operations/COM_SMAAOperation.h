@@ -18,8 +18,7 @@
  * Contributor: IRIE Shinsuke
  */
 
-#ifndef _COM_SMAAOperation_h
-#define _COM_SMAAOperation_h
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -148,5 +147,3 @@ class SMAANeighborhoodBlendingOperation : public NodeOperation {
 };
 
 }  // namespace blender::compositor
-
-#endif
