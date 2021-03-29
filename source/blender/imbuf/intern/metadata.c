@@ -38,7 +38,6 @@
 
 #include "IMB_metadata.h"
 
-
 void IMB_metadata_ensure(struct IDProperty **metadata)
 {
   if (*metadata != NULL) {
