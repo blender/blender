@@ -146,7 +146,7 @@ if(WITH_PYTHON)
 
     set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
     set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/")
+    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}")
     # set(PYTHON_LIBRARY python${PYTHON_VERSION})
     # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 
@@ -413,7 +413,7 @@ if(WITH_OPENMP)
     set(OpenMP_LINKER_FLAGS "-L'${LIBDIR}/openmp/lib' -lomp")
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
-    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB`is added by the deps builder.
+    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB` is added by the deps builder.
     # For single config generator datatoc, tests etc.
     execute_process(
       COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
