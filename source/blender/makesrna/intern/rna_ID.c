@@ -596,7 +596,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
 static void rna_ID_override_template_create(ID *id, ReportList *reports)
 {
   if (!U.experimental.use_override_templates) {
-    BKE_report(reports, RPT_WARNING, "Override template experimental feature is disabled");
+    BKE_report(reports, RPT_ERROR, "Override template experimental feature is disabled");
     return;
   }
   if (ID_IS_LINKED(id)) {
