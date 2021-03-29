@@ -540,23 +540,18 @@ void BKE_lattice_vert_coords_apply(Lattice *lt, const float (*vert_coords)[3])
 
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  BKE_object_free_derived_caches(ob);
+  if (ob->runtime.curve_cache == NULL) {
+    ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for lattice");
+  }
+
   Lattice *lt = ob->data;
-  /* Get vertex coordinates from the original copy;
-   * otherwise we get already-modified coordinates. */
-  Object *ob_orig = DEG_get_original_object(ob);
   VirtualModifierData virtualModifierData;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
   float(*vert_coords)[3] = NULL;
   int numVerts;
   const bool is_editmode = (lt->editlatt != NULL);
   const ModifierEvalContext mectx = {depsgraph, ob, 0};
-
-  if (ob->runtime.curve_cache) {
-    BKE_displist_free(&ob->runtime.curve_cache->disp);
-  }
-  else {
-    ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for lattice");
-  }
 
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
@@ -577,49 +572,33 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
       continue;
     }
 
-    if (!vert_coords) {
-      Lattice *lt_orig = ob_orig->data;
-      if (lt_orig->editlatt) {
-        lt_orig = lt_orig->editlatt->latt;
-      }
-      vert_coords = BKE_lattice_vert_coords_alloc(lt_orig, &numVerts);
+    if (vert_coords == NULL) {
+      /* Get either the edit-mode or regular lattice, whichever is in use now. */
+      const Lattice *effective_lattice = BKE_object_get_lattice(ob);
+      vert_coords = BKE_lattice_vert_coords_alloc(effective_lattice, &numVerts);
     }
+
     mti->deformVerts(md, &mectx, NULL, vert_coords, numVerts);
   }
 
-  if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-    if (vert_coords) {
-      BKE_lattice_vert_coords_apply(ob->data, vert_coords);
-      MEM_freeN(vert_coords);
-    }
+  if (vert_coords == NULL) {
+    return;
   }
-  else {
-    /* Displist won't do anything; this is just for posterity's sake until we remove it. */
-    if (!vert_coords) {
-      Lattice *lt_orig = ob_orig->data;
-      if (lt_orig->editlatt) {
-        lt_orig = lt_orig->editlatt->latt;
-      }
-      vert_coords = BKE_lattice_vert_coords_alloc(lt_orig, &numVerts);
-    }
 
-    DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
-    dl->type = DL_VERTS;
-    dl->parts = 1;
-    dl->nr = numVerts;
-    dl->verts = (float *)vert_coords;
-
-    BLI_addtail(&ob->runtime.curve_cache->disp, dl);
+  Lattice *lt_eval = BKE_object_get_evaluated_lattice(ob);
+  if (lt_eval == NULL) {
+    BKE_id_copy_ex(NULL, &lt->id, (ID **)&lt_eval, LIB_ID_COPY_LOCALIZE);
+    BKE_object_eval_assign_data(ob, &lt_eval->id, true);
   }
+
+  BKE_lattice_vert_coords_apply(lt_eval, vert_coords);
+  MEM_freeN(vert_coords);
 }
 
 struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *oblatt)
 {
-  Lattice *lt = (Lattice *)oblatt->data;
   BLI_assert(oblatt->type == OB_LATTICE);
-  if (lt->editlatt) {
-    lt = lt->editlatt->latt;
-  }
+  Lattice *lt = BKE_object_get_lattice(oblatt);
   return lt->dvert;
 }
 

@@ -336,6 +336,12 @@ struct Mesh *BKE_object_get_evaluated_mesh(struct Object *object);
 struct Mesh *BKE_object_get_pre_modified_mesh(struct Object *object);
 struct Mesh *BKE_object_get_original_mesh(struct Object *object);
 
+/* Lattice accessors.
+ * These functions return either the regular lattice, or the edit-mode lattice,
+ * whichever is currently in use. */
+struct Lattice *BKE_object_get_lattice(const struct Object *object);
+struct Lattice *BKE_object_get_evaluated_lattice(const struct Object *object);
+
 int BKE_object_insert_ptcache(struct Object *ob);
 void BKE_object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *BKE_object_shapekey_insert(struct Main *bmain,

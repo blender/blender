@@ -4474,6 +4474,37 @@ Mesh *BKE_object_get_original_mesh(Object *object)
   return result;
 }
 
+Lattice *BKE_object_get_lattice(const Object *object)
+{
+  ID *data = object->data;
+  if (data == NULL || GS(data->name) != ID_LT) {
+    return NULL;
+  }
+
+  Lattice *lt = (Lattice *)data;
+  if (lt->editlatt) {
+    return lt->editlatt->latt;
+  }
+
+  return lt;
+}
+
+Lattice *BKE_object_get_evaluated_lattice(const Object *object)
+{
+  ID *data_eval = object->runtime.data_eval;
+
+  if (data_eval == NULL || GS(data_eval->name) != ID_LT) {
+    return NULL;
+  }
+
+  Lattice *lt_eval = (Lattice *)data_eval;
+  if (lt_eval->editlatt) {
+    return lt_eval->editlatt->latt;
+  }
+
+  return lt_eval;
+}
+
 static int pc_cmp(const void *a, const void *b)
 {
   const LinkData *ad = a, *bd = b;
