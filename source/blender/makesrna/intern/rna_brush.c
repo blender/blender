@@ -342,6 +342,34 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
     {GP_BRUSH_ICON_VERTEX_REPLACE, "REPLACE", ICON_BRUSH_MIX, "Replace", ""},
     {0, NULL, 0, NULL, NULL},
 };
+
+static EnumPropertyItem rna_enum_brush_dyntopo_mode[] = {
+    {DYNTOPO_DETAIL_RELATIVE, "RELATIVE", ICON_NONE, "Relative", ""},
+    {DYNTOPO_DETAIL_CONSTANT, "CONSTANT", ICON_NONE, "Constant", ""},
+    {DYNTOPO_DETAIL_MANUAL, "MANUAL", ICON_NONE, "Manual", ""},
+    {DYNTOPO_DETAIL_BRUSH, "BRUSH", ICON_NONE, "Brush", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem rna_enum_brush_dyntopo_flag[] = {
+    {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
+    {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
+    {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
+    {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
+    {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
+    {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
+    {DYNTOPO_INHERIT_ALL, "ALL", ICON_NONE, "All", "Inherit All"},
+    {DYNTOPO_INHERIT_DETAIL_RANGE, "RANGE", ICON_NONE, "All", ""},
+    {DYNTOPO_INHERIT_DETAIL_PERCENT, "PERCENT", ICON_NONE, "Percent", ""},
+    {DYNTOPO_INHERIT_MODE, "MODE", ICON_NONE, "Mode", ""},
+    {DYNTOPO_INHERIT_CONSTANT_DETAIL, "CONSTANT_DETAIL", ICON_NONE, "Constant Detail", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #endif
 
 #ifdef RNA_RUNTIME
@@ -1132,6 +1160,45 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
   TEXTURE_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
   TEXTURE_CAPABILITY(has_random_texture_angle, "Has Random Texture Angle");
   TEXTURE_CAPABILITY(has_texture_angle, "Has Texture Angle Source");
+}
+
+static void rna_def_dyntopo_settings(BlenderRNA *brna) {
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "DynTopoSettings", NULL);
+  RNA_def_struct_sdna(srna, "DynTopoSettings");
+  RNA_def_struct_ui_text(srna,
+                         "Dyntopo Settings",
+                         "");
+
+  prop = RNA_def_property(srna, "subdivide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_SUBDIVIDE);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(prop, "Subdivide", "Enable Dyntopo Subdivision");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_DISABLED);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(prop, "Disable", "Disable Dyntopo for this brush");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "collapse", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_COLLAPSE);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(prop, "Collapse", "Enable Dyntopo Decimation");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "inherit", PROP_ENUM, 0);
+  RNA_def_property_enum_sdna(prop, NULL, "inherit");
+  RNA_def_property_enum_items(prop, rna_enum_brush_dyntopo_inherit);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_ui_text(prop, "Inherit", "Which default dyntopo settings to use");
 }
 
 static void rna_def_sculpt_capabilities(BlenderRNA *brna)
@@ -3517,6 +3584,12 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "gpencil_settings");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Gpencil Settings", "");
+
+  prop = RNA_def_property(srna, "dyntopo", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "DynTopoSettings");
+  RNA_def_property_pointer_sdna(prop, NULL, "dyntopo");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Dyntopo Settings", "");
 }
 
 /**
@@ -3596,6 +3669,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 
 void RNA_def_brush(BlenderRNA *brna)
 {
+  rna_def_dyntopo_settings(brna);
   rna_def_brush(brna);
   rna_def_brush_capabilities(brna);
   rna_def_sculpt_capabilities(brna);

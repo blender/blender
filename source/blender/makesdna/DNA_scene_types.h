@@ -983,6 +983,7 @@ typedef struct Sculpt {
 
   /* Maximum edge length for dynamic topology sculpting (in pixels) */
   float detail_size;
+  float detail_range;
 
   /* Direction used for SCULPT_OT_symmetrize operator */
   int symmetrize_direction;
@@ -994,6 +995,7 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
+  int _pad[1];
 
   struct Object *gravity_object;
 } Sculpt;

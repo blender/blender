@@ -111,6 +111,7 @@
  \
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
+    .dyntopo = {0.4f, 25.0f, 3.0f, DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE, DYNTOPO_DETAIL_RELATIVE, DYNTOPO_INHERIT_ALL}\
   }
 
 /** \} */

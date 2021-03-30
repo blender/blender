@@ -518,7 +518,6 @@ typedef enum eBrushUVSculptTool {
 \
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
-        SCULPT_TOOL_SMOOTH, \
         SCULPT_TOOL_VCOL_BOUNDARY, \
         SCULPT_TOOL_MASK) == 0)
 
@@ -617,6 +616,31 @@ typedef enum eBlurKernelType {
 enum {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
+};
+
+//dyntopo flags
+//synced with PBVHTopologyUpdateMode
+enum {
+  DYNTOPO_SUBDIVIDE = 1<<0,
+  DYNTOPO_COLLAPSE = 1<<1,
+  DYNTOPO_DISABLED = 1<<2
+};
+
+//dyntopo override flags, copies all flags from dyntopo flags
+enum {
+  DYNTOPO_INHERIT_ALL = 1<<10,
+  DYNTOPO_INHERIT_DETAIL_RANGE = 1<<11,
+  DYNTOPO_INHERIT_DETAIL_PERCENT = 1<<12,
+  DYNTOPO_INHERIT_MODE = 1<<13,
+  DYNTOPO_INHERIT_CONSTANT_DETAIL = 1<<14
+};
+
+//dyntopo mode
+enum {
+  DYNTOPO_DETAIL_RELATIVE = 0,
+  DYNTOPO_DETAIL_MANUAL = 1,
+  DYNTOPO_DETAIL_BRUSH = 2,
+  DYNTOPO_DETAIL_CONSTANT = 3
 };
 
 #define MAX_BRUSH_PIXEL_RADIUS 500

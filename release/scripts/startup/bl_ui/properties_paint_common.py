@@ -574,7 +574,8 @@ def brush_settings(layout, context, brush, popover=False):
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
             layout.prop(brush, "topology_rake_factor", slider=True)
-
+            layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo");
+            
         # normal_weight
         if capabilities.has_normal_weight:
             layout.prop(brush, "normal_weight", slider=True)

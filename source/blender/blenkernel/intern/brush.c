@@ -478,6 +478,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(stencil_dimension);
   FROM_DEFAULT(mtex);
   FROM_DEFAULT(mask_mtex);
+  FROM_DEFAULT(dyntopo);
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
@@ -1691,6 +1692,8 @@ void BKE_brush_sculpt_reset(Brush *br)
    * assign this so logic below can remain the same. */
   br->alpha = 0.5f;
 
+  bool disable_dyntopo = false;
+
   /* Brush settings */
   switch (br->sculpt_tool) {
     case SCULPT_TOOL_DRAW_SHARP:
@@ -1702,11 +1705,16 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       br->spacing = 10;
       br->alpha = 1.0f;
+
+      disable_dyntopo = true;
+
       break;
     case SCULPT_TOOL_SLIDE_RELAX:
       br->spacing = 10;
       br->alpha = 1.0f;
       br->slide_deform_type = BRUSH_SLIDE_DEFORM_DRAG;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_CLAY:
       br->flag |= BRUSH_SIZE_PRESSURE;
@@ -1754,6 +1762,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_ROTATE:
       br->alpha = 1.0;
+      disable_dyntopo = true;
+
       break;
     case SCULPT_TOOL_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1762,6 +1772,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->surface_smooth_shape_preservation = 0.5f;
       br->surface_smooth_current_vertex = 0.5f;
       br->surface_smooth_iterations = 4;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
@@ -1779,6 +1791,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_POSE:
       br->pose_smooth_iterations = 4;
@@ -1787,18 +1801,24 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_BOUNDARY:
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_CONSTANT;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       br->alpha = 0.5f;
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_GRAB:
       br->alpha = 0.4f;
@@ -1806,6 +1826,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_CLOTH:
       br->cloth_mass = 1.0f;
@@ -1814,6 +1836,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->cloth_sim_falloff = 0.75f;
       br->cloth_deform_type = BRUSH_CLOTH_DEFORM_DRAG;
       br->flag &= ~(BRUSH_ALPHA_PRESSURE | BRUSH_SIZE_PRESSURE);
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_LAYER:
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1831,6 +1855,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       zero_v3(br->rgb);
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_SMEAR:
       br->alpha = 1.0f;
@@ -1838,6 +1864,8 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
+
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_VCOL_BOUNDARY:
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1846,6 +1874,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->surface_smooth_shape_preservation = 0.5f;
       br->surface_smooth_current_vertex = 0.5f;
       br->surface_smooth_iterations = 4;
+
+      disable_dyntopo = true;
+      break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       br->alpha = 1.0f;
       br->spacing = 5;
@@ -1853,9 +1884,15 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
+      disable_dyntopo = true;
       break;
     default:
       break;
+  }
+
+  if (disable_dyntopo) {
+    //disabled flag is never inherited
+    br->dyntopo.flag |= DYNTOPO_DISABLED;
   }
 
   /* Cursor colors */
@@ -2550,3 +2587,59 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool
 
   return im;
 }
+
+void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
+{
+  *out = brush->dyntopo;
+
+  int inherit = out->inherit;
+
+  if (out->inherit & DYNTOPO_INHERIT_ALL) {
+    inherit = 0x7FFF;
+  }
+
+  if (inherit & DYNTOPO_INHERIT_MODE) {
+    if (sd->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
+      out->mode = DYNTOPO_DETAIL_CONSTANT;
+    }
+    else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+      out->mode = DYNTOPO_DETAIL_BRUSH;
+    }
+    else if (sd->flags & SCULPT_DYNTOPO_DETAIL_MANUAL) {
+      out->mode = DYNTOPO_DETAIL_MANUAL;
+    }
+    else {
+      out->mode = DYNTOPO_DETAIL_RELATIVE;
+    }
+  }
+
+  if (inherit & DYNTOPO_INHERIT_DETAIL_RANGE) {
+    out->detail_range = sd->detail_range;
+  }
+
+  if (inherit & DYNTOPO_INHERIT_DETAIL_PERCENT) {
+    out->detail_percent = sd->detail_percent;
+  }
+
+  if (inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL) {
+    out->constant_detail = sd->constant_detail;
+  }
+
+  if (inherit & DYNTOPO_SUBDIVIDE) {
+    if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+      out->flag |= DYNTOPO_SUBDIVIDE;
+    }
+    else {
+      out->flag &= ~DYNTOPO_SUBDIVIDE;
+    }
+  }
+
+  if (inherit & DYNTOPO_COLLAPSE) {
+    if (sd->flags & SCULPT_DYNTOPO_COLLAPSE) {
+      out->flag |= DYNTOPO_COLLAPSE;
+    }
+    else {
+      out->flag &= ~DYNTOPO_COLLAPSE;
+    }
+  }
+};

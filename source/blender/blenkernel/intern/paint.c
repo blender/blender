@@ -1907,6 +1907,9 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
   if (!sd->detail_size) {
     sd->detail_size = 12;
   }
+  if (!sd->detail_range) {
+    sd->detail_range = 0.4f;
+  }
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }

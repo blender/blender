@@ -150,6 +150,14 @@ typedef struct BrushGpencilSettings {
   struct Material *material;
 } BrushGpencilSettings;
 
+typedef struct DynTopoSettings {
+  float detail_range;
+  float detail_percent;
+  float constant_detail;
+  short flag, mode;
+  int inherit, _pad[1];
+} DynTopoSettings;
+
 typedef struct Brush {
   ID id;
 
@@ -374,6 +382,8 @@ typedef struct Brush {
 
   float concave_mask_factor;
   struct BrushGpencilSettings *gpencil_settings;
+
+  DynTopoSettings dyntopo, cached_dyntopo;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

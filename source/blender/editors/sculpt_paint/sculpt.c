@@ -1039,7 +1039,7 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
 
-#if 1 //note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
+#if 1  // note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
   BMEdge *e;
   BM_ITER_ELEM (e, &liter, v, BM_EDGES_OF_VERT) {
     BMVert *v_other = BM_edge_other_vert(e, v);
@@ -1807,7 +1807,8 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-
+          (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE)) &&
+          !(brush->cached_dyntopo.flag & DYNTOPO_DISABLED) &&
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
@@ -8395,21 +8396,30 @@ static void sculpt_stroke_update_step(bContext *C,
   SculptSession *ss = ob->sculpt;
   const Brush *brush = BKE_paint_brush(&sd->paint);
 
+  BKE_brush_get_dyntopo(brush, sd, &brush->cached_dyntopo);
+
   SCULPT_stroke_modifiers_check(C, ob, brush);
   sculpt_update_cache_variants(C, sd, ob, itemptr);
   sculpt_restore_mesh(sd, ob);
 
-  if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
+  if (brush->cached_dyntopo.mode == DYNTOPO_DETAIL_CONSTANT ||
+      brush->cached_dyntopo.mode == DYNTOPO_DETAIL_MANUAL) {
+    float object_space_constant_detail = 1.0f / (brush->cached_dyntopo.constant_detail *
+                                                 mat4_to_scale(ob->obmat));
+    BKE_pbvh_bmesh_detail_size_set(
+        ss->pbvh, object_space_constant_detail, brush->cached_dyntopo.detail_range);
   }
-  else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
-    BKE_pbvh_bmesh_detail_size_set(ss->pbvh, ss->cache->radius * sd->detail_percent / 100.0f);
+  else if (brush->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
+    BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
+                                   ss->cache->radius * brush->cached_dyntopo.detail_percent /
+                                       100.0f,
+                                   brush->cached_dyntopo.detail_range);
   }
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
                                    (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (sd->detail_size * U.pixelsize) / 0.4f);
+                                       (sd->detail_size * U.pixelsize) / 0.4f,
+                                   brush->cached_dyntopo.detail_range);
   }
 
   if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {

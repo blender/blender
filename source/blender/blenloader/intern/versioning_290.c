@@ -48,6 +48,7 @@
 #include "DNA_space_types.h"
 #include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_defaults.h"
 
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -61,6 +62,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
+#include "BKE_brush.h"
 
 #include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"
@@ -1910,6 +1912,24 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             STRNCPY(node->idname, "GeometryNodeSubdivisionSurface");
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 14)) {
+    LISTBASE_FOREACH(Scene*, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts && ts->sculpt) {
+        ts->sculpt->detail_range = 0.4f;
+      }
+    }
+
+    LISTBASE_FOREACH(Brush *, brush, &bmain->brushes) {
+      if (brush->dyntopo.detail_range == 0.0f) {
+        Brush defbrush = *brush;
+
+        BKE_brush_sculpt_reset(&defbrush);
+        brush->dyntopo = defbrush.dyntopo;
       }
     }
   }

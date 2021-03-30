@@ -36,6 +36,8 @@ struct Main;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
+struct DynTopoSettings;
+struct Sculpt;
 
 // enum eCurveMappingPreset;
 
@@ -150,6 +152,8 @@ void BKE_brush_scale_size(int *r_brush_size,
 
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
+
+void BKE_brush_get_dyntopo(struct Brush *brush, struct Sculpt *sd, struct DynTopoSettings *out);
 
 #ifdef __cplusplus
 }

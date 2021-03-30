@@ -2957,7 +2957,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->bm = bm;
 
-  BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75);
+  BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75f, 0.4f);
 
   pbvh->type = PBVH_BMESH;
   pbvh->bm_log = log;
@@ -3664,10 +3664,10 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
   BKE_pbvh_update_bounds(pbvh, (PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw));
 }
 
-void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size)
+void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
   pbvh->bm_max_edge_len = detail_size;
-  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * 0.4f;
+  pbvh->bm_min_edge_len = pbvh->bm_max_edge_len * detail_range;
 }
 
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node)

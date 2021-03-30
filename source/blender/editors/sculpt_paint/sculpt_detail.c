@@ -110,7 +110,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (sd->constant_detail * mat4_to_scale(ob->obmat));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
+  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, sd->detail_range);
 
   SCULPT_undo_push_begin(ob, "Dynamic topology flood fill");
   SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_COORDS);
