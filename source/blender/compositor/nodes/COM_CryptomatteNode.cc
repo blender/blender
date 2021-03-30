@@ -178,7 +178,12 @@ void CryptomatteNode::input_operations_from_image_source(
     }
 
     const std::string prefix = prefix_from_node(node);
-    LISTBASE_FOREACH (RenderLayer *, render_layer, &image->rr->layers) {
+    int layer_index;
+    LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
+      if (!blender::StringRef(prefix).startswith(blender::StringRef(
+              render_layer->name, BLI_strnlen(render_layer->name, sizeof(render_layer->name))))) {
+        continue;
+      }
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         const std::string combined_name = combined_layer_pass_name(render_layer, render_pass);
         if (blender::StringRef(combined_name).startswith(prefix)) {
@@ -186,10 +191,12 @@ void CryptomatteNode::input_operations_from_image_source(
               render_layer, render_pass, view);
           op->setImage(image);
           op->setImageUser(iuser);
+          iuser->layer = layer_index;
           op->setFramenumber(context.getFramenumber());
           r_input_operations.append(op);
         }
       }
+      break;
     }
   }
   BKE_image_release_ibuf(image, ibuf, nullptr);
