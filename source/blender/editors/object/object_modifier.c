@@ -1131,13 +1131,15 @@ bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
   }
 
   PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
-  if ((panel_ptr == NULL || RNA_pointer_is_null(panel_ptr))) {
+  if (panel_ptr == NULL || RNA_pointer_is_null(panel_ptr)) {
     *r_retval = OPERATOR_CANCELLED;
     return false;
   }
 
   if (!RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
-    /* Work around multiple operators using the same shortcut. */
+    /* Work around multiple operators using the same shortcut. The operators for the other
+     * stacks in the property editor use the same key, and will not run after these return
+     * OPERATOR_CANCELLED. */
     *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
     return false;
   }
