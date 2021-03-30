@@ -73,7 +73,6 @@ class NodeGraph {
  protected:
   typedef std::pair<blender::Vector<Node *>::iterator, blender::Vector<Node *>::iterator>
       NodeRange;
-  typedef std::vector<NodeInput *> NodeInputs;
 
   static bNodeSocket *find_b_node_input(bNode *b_node, const char *identifier);
   static bNodeSocket *find_b_node_output(bNode *b_node, const char *identifier);
@@ -92,7 +91,6 @@ class NodeGraph {
                  bNodeInstanceKey key,
                  bool is_active_group);
 
-  NodeInputs find_inputs(const NodeRange &node_range, bNodeSocket *b_socket);
   NodeOutput *find_output(const NodeRange &node_range, bNodeSocket *b_socket);
   void add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink);
 

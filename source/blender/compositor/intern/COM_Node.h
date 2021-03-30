@@ -18,10 +18,12 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
 #include "DNA_node_types.h"
+
 #include <algorithm>
 #include <string>
-#include <vector>
 
 /* common node includes
  * added here so node files don't have to include themselves
@@ -38,10 +40,6 @@ class NodeConverter;
  * My node documentation.
  */
 class Node {
- public:
-  typedef std::vector<NodeInput *> Inputs;
-  typedef std::vector<NodeOutput *> Outputs;
-
  private:
   /**
    * \brief stores the reference to the SDNA bNode struct
@@ -52,16 +50,6 @@ class Node {
    * \brief stores the reference to the SDNA bNode struct
    */
   bNode *m_editorNode;
-
-  /**
-   * \brief the list of actual inputsockets \see NodeInput
-   */
-  Inputs m_inputsockets;
-
-  /**
-   * \brief the list of actual outputsockets \see NodeOutput
-   */
-  Outputs m_outputsockets;
 
   /**
    * \brief Is this node part of the active group
@@ -75,20 +63,14 @@ class Node {
 
  protected:
   /**
-   * \brief get access to the vector of input sockets
+   * \brief the list of actual inputsockets \see NodeInput
    */
-  const Inputs &getInputSockets() const
-  {
-    return this->m_inputsockets;
-  }
+  blender::Vector<NodeInput *> inputs;
 
   /**
-   * \brief get access to the vector of input sockets
+   * \brief the list of actual outputsockets \see NodeOutput
    */
-  const Outputs &getOutputSockets() const
-  {
-    return this->m_outputsockets;
-  }
+  blender::Vector<NodeOutput *> outputs;
 
  public:
   Node(bNode *editorNode, bool create_sockets = true);
@@ -131,19 +113,19 @@ class Node {
   }
 
   /**
-   * \brief Return the number of input sockets of this node.
+   * \brief get access to the vector of input sockets
    */
-  unsigned int getNumberOfInputSockets() const
+  const blender::Vector<NodeInput *> &getInputSockets() const
   {
-    return this->m_inputsockets.size();
+    return this->inputs;
   }
 
   /**
-   * \brief Return the number of output sockets of this node.
+   * \brief get access to the vector of input sockets
    */
-  unsigned int getNumberOfOutputSockets() const
+  const blender::Vector<NodeOutput *> &getOutputSockets() const
   {
-    return this->m_outputsockets.size();
+    return this->outputs;
   }
 
   /**
@@ -151,17 +133,7 @@ class Node {
    * \param index:
    * the index of the needed outputsocket
    */
-  NodeOutput *getOutputSocket(const unsigned int index) const;
-
-  /**
-   * get the reference to the first outputsocket
-   * \param index:
-   * the index of the needed outputsocket
-   */
-  inline NodeOutput *getOutputSocket() const
-  {
-    return getOutputSocket(0);
-  }
+  NodeOutput *getOutputSocket(const unsigned int index = 0) const;
 
   /**
    * get the reference to a certain inputsocket
@@ -169,14 +141,6 @@ class Node {
    * the index of the needed inputsocket
    */
   NodeInput *getInputSocket(const unsigned int index) const;
-
-  /** Check if this is an input node
-   * An input node is a node that only has output sockets and no input sockets
-   */
-  bool isInputNode() const
-  {
-    return m_inputsockets.empty();
-  }
 
   /**
    * \brief Is this node in the active group (the group that is being edited)

@@ -24,10 +24,10 @@ namespace blender::compositor {
 
 class CryptomatteOperation : public NodeOperation {
  private:
-  std::vector<float> m_objectIndex;
+  blender::Vector<float> m_objectIndex;
 
  public:
-  std::vector<SocketReader *> inputs;
+  blender::Vector<SocketReader *> inputs;
 
   CryptomatteOperation(size_t num_inputs = 6);
 

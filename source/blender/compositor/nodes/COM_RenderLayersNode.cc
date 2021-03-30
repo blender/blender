@@ -74,9 +74,8 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
     missingRenderLink(converter);
     return;
   }
-  const int num_outputs = this->getNumberOfOutputSockets();
-  for (int i = 0; i < num_outputs; i++) {
-    NodeOutput *output = this->getOutputSocket(i);
+
+  for (NodeOutput *output : getOutputSockets()) {
     NodeImageLayer *storage = (NodeImageLayer *)output->getbNodeSocket()->storage;
     RenderPass *rpass = (RenderPass *)BLI_findstring(
         &rl->passes, storage->pass_name, offsetof(RenderPass, name));
@@ -155,9 +154,7 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter, NodeOutput *o
 
 void RenderLayersNode::missingRenderLink(NodeConverter &converter) const
 {
-  const int num_outputs = this->getNumberOfOutputSockets();
-  for (int i = 0; i < num_outputs; i++) {
-    NodeOutput *output = this->getOutputSocket(i);
+  for (NodeOutput *output : outputs) {
     missingSocketLink(converter, output);
   }
 }

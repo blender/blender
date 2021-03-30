@@ -71,17 +71,16 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
     }
     converter.addOperation(outputOperation);
 
-    int num_inputs = getNumberOfInputSockets();
     bool previewAdded = false;
-    for (int i = 0; i < num_inputs; i++) {
-      NodeInput *input = getInputSocket(i);
+    int index = 0;
+    for (NodeInput *input : inputs) {
       NodeImageMultiFileSocket *sockdata =
           (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
 
       /* note: layer becomes an empty placeholder if the input is not linked */
       outputOperation->add_layer(sockdata->layer, input->getDataType(), input->isLinked());
 
-      converter.mapInputSocket(input, outputOperation->getInputSocket(i));
+      converter.mapInputSocket(input, outputOperation->getInputSocket(index++));
 
       if (!previewAdded) {
         converter.addNodeInputPreview(input);
@@ -90,10 +89,8 @@ void OutputFileNode::convertToOperations(NodeConverter &converter,
     }
   }
   else { /* single layer format */
-    int num_inputs = getNumberOfInputSockets();
     bool previewAdded = false;
-    for (int i = 0; i < num_inputs; i++) {
-      NodeInput *input = getInputSocket(i);
+    for (NodeInput *input : inputs) {
       if (input->isLinked()) {
         NodeImageMultiFileSocket *sockdata =
             (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
