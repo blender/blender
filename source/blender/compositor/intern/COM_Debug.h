@@ -57,7 +57,7 @@ class DebugInfo {
 #ifdef COM_DEBUG
  protected:
   static int graphviz_operation(const ExecutionSystem *system,
-                                const NodeOperation *operation,
+                                NodeOperation *operation,
                                 const ExecutionGroup *group,
                                 char *str,
                                 int maxlen);

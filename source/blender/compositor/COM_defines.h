@@ -64,7 +64,7 @@ enum class CompositorPriority {
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-//#define COM_DEBUG
+// #define COM_DEBUG
 
 // chunk order
 /**
