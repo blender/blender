@@ -1149,10 +1149,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim, int64_t requested_p
     /* Read first video stream packet. */
     AVPacket read_packet = {0};
     while (av_read_frame(anim->pFormatCtx, &read_packet) >= 0) {
-      if (anim->next_packet.stream_index != anim->videoStream) {
-        continue;
-      }
-      else {
+      if (anim->next_packet.stream_index == anim->videoStream) {
         break;
       }
     }
