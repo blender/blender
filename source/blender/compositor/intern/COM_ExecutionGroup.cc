@@ -106,7 +106,7 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
       !operation->get_flags().is_write_buffer_operation) {
     m_flags.complex = operation->get_flags().complex;
     m_flags.open_cl = operation->get_flags().open_cl;
-    m_flags.single_threaded = operation->isSingleThreaded();
+    m_flags.single_threaded = operation->get_flags().single_threaded;
     m_flags.initialized = true;
   }
 
@@ -191,7 +191,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
   float centerY = 0.5f;
   ChunkOrdering order_type = ChunkOrdering::Default;
 
-  if (operation->isViewerOperation()) {
+  if (operation->get_flags().is_viewer_operation) {
     ViewerOperation *viewer = (ViewerOperation *)operation;
     centerX = viewer->getCenterX();
     centerY = viewer->getCenterY();

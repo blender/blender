@@ -256,7 +256,8 @@ void NodeOperationBuilder::add_datatype_conversions()
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
     NodeOperation *to_op = &link.to()->getOperation();
-    if (!(from_op->useDatatypeConversion() || to_op->useDatatypeConversion())) {
+    if (!(from_op->get_flags().use_datatype_conversion ||
+          to_op->get_flags().use_datatype_conversion)) {
       continue;
     }
 
@@ -352,8 +353,8 @@ void NodeOperationBuilder::resolve_proxies()
   blender::Vector<Link> proxy_links;
   for (const Link &link : m_links) {
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
-    if (link.from()->getOperation().isProxyOperation() &&
-        !link.to()->getOperation().isProxyOperation()) {
+    if (link.from()->getOperation().get_flags().is_proxy_operation &&
+        !link.to()->getOperation().get_flags().is_proxy_operation) {
       proxy_links.append(link);
     }
   }
@@ -364,7 +365,7 @@ void NodeOperationBuilder::resolve_proxies()
     do {
       /* walk upstream bypassing the proxy operation */
       from = from->getOperation().getInputSocket(0)->getLink();
-    } while (from && from->getOperation().isProxyOperation());
+    } while (from && from->getOperation().get_flags().is_proxy_operation);
 
     removeInputLink(to);
     /* we may not have a final proxy input link,
@@ -380,7 +381,7 @@ void NodeOperationBuilder::determineResolutions()
 {
   /* determine all resolutions of the operations (Width/Height) */
   for (NodeOperation *op : m_operations) {
-    if (op->isOutputOperation(m_context->isRendering()) && !op->isPreviewOperation()) {
+    if (op->isOutputOperation(m_context->isRendering()) && !op->get_flags().is_preview_operation) {
       unsigned int resolution[2] = {0, 0};
       unsigned int preferredResolution[2] = {0, 0};
       op->determineResolution(resolution, preferredResolution);
@@ -389,7 +390,7 @@ void NodeOperationBuilder::determineResolutions()
   }
 
   for (NodeOperation *op : m_operations) {
-    if (op->isOutputOperation(m_context->isRendering()) && op->isPreviewOperation()) {
+    if (op->isOutputOperation(m_context->isRendering()) && op->get_flags().is_preview_operation) {
       unsigned int resolution[2] = {0, 0};
       unsigned int preferredResolution[2] = {0, 0};
       op->determineResolution(resolution, preferredResolution);

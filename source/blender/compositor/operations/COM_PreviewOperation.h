@@ -63,10 +63,6 @@ class PreviewOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
-  bool isPreviewOperation() const override
-  {
-    return true;
-  }
 };
 
 }  // namespace blender::compositor

@@ -103,10 +103,6 @@ class ViewerOperation : public NodeOperation {
     return this->m_chunkOrder;
   }
   CompositorPriority getRenderPriority() const override;
-  bool isViewerOperation() const override
-  {
-    return true;
-  }
   void setUseAlphaInput(bool value)
   {
     this->m_useAlphaInput = value;

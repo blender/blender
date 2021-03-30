@@ -24,6 +24,7 @@ SingleThreadedOperation::SingleThreadedOperation()
 {
   this->m_cachedInstance = nullptr;
   flags.complex = true;
+  flags.single_threaded = true;
 }
 
 void SingleThreadedOperation::initExecution()
