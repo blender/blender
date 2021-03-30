@@ -86,11 +86,18 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
 
         col = layout.column(heading="Show")
         col.prop(arm, "show_names", text="Names")
-        col.prop(arm, "show_axes", text="Axes")
         col.prop(arm, "show_bone_custom_shapes", text="Shapes")
         col.prop(arm, "show_group_colors", text="Group Colors")
+
         if ob:
             col.prop(ob, "show_in_front", text="In Front")
+
+        col = layout.column(align=False, heading="Axes")
+        row = col.row(align=True)
+        row.prop(arm, "show_axes", text="")
+        sub = row.row(align=True)
+        sub.active = arm.show_axes
+        sub.prop(arm, "axes_position", text="Position")
 
 
 class DATA_MT_bone_group_context_menu(Menu):

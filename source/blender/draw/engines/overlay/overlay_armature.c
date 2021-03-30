@@ -1293,11 +1293,15 @@ static void draw_axes(ArmatureDrawContext *ctx,
     float length = pchan->bone->length;
     copy_m4_m4(axis_mat, pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat);
     rescale_m4(axis_mat, (float[3]){length, length, length});
+    translate_m4(axis_mat, 0.0, arm->axes_position - 1.0, 0.0);
 
     drw_shgroup_bone_axes(ctx, axis_mat, final_col);
   }
   else {
-    drw_shgroup_bone_axes(ctx, BONE_VAR(eBone, pchan, disp_mat), final_col);
+    float disp_mat[4][4];
+    copy_m4_m4(disp_mat, BONE_VAR(eBone, pchan, disp_mat));
+    translate_m4(disp_mat, 0.0, arm->axes_position - 1.0, 0.0);
+    drw_shgroup_bone_axes(ctx, disp_mat, final_col);
   }
 }
 
