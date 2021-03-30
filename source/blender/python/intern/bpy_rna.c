@@ -2546,7 +2546,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *sel
     if (lib == NULL) {
       if (err_not_found) {
         PyErr_Format(PyExc_KeyError,
-                     "%s: lib name '%.240s' "
+                     "%s: lib filepath '%.1024s' "
                      "does not reference a valid library",
                      err_prefix,
                      keylib_str);
