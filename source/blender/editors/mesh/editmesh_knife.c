@@ -2022,9 +2022,7 @@ static bool knife_snap_edge_in_angle(KnifeTool_OpData *kcd,
     *r_lambda = lambda;
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* p is closest point on edge to the mouse cursor */
