@@ -131,7 +131,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
                                                      ReadBufferOperation *readOperation,
                                                      rcti *output)
 {
-  if (isInputOperation()) {
+  if (m_inputs.size() == 0) {
     BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
     return false;
   }

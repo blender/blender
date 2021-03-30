@@ -311,14 +311,6 @@ class NodeOperation {
   NodeOperationOutput *getOutputSocket(unsigned int index = 0);
   NodeOperationInput *getInputSocket(unsigned int index);
 
-  /** Check if this is an input operation
-   * An input operation is an operation that only has output sockets and no input sockets
-   */
-  bool isInputOperation() const
-  {
-    return m_inputs.is_empty();
-  }
-
   /**
    * \brief determine the resolution of this node
    * \note this method will not set the resolution, this is the responsibility of the caller
