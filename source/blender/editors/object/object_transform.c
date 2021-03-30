@@ -1782,12 +1782,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
   vc.v3d->flag2 |= V3D_HIDE_OVERLAYS;
 #endif
 
-  ED_view3d_autodist_init(vc.depsgraph, vc.region, vc.v3d, 0);
-
-  if (vc.rv3d->depths != NULL) {
-    vc.rv3d->depths->damaged = true;
-  }
-  ED_view3d_depth_update(vc.region);
+  ED_view3d_depth_override(vc.depsgraph, vc.region, vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, true);
 
 #ifdef USE_RENDER_OVERRIDE
   vc.v3d->flag2 = flag2_prev;

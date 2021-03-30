@@ -660,10 +660,14 @@ static short annotation_stroke_addpoint(tGPsdata *p,
         View3D *v3d = p->area->spacedata.first;
 
         view3d_region_operator_needs_opengl(p->win, p->region);
-        ED_view3d_autodist_init(p->depsgraph,
-                                p->region,
-                                v3d,
-                                (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+        ED_view3d_depth_override(p->depsgraph,
+                                 p->region,
+                                 v3d,
+                                 NULL,
+                                 (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
+                                     V3D_DEPTH_GPENCIL_ONLY :
+                                     V3D_DEPTH_NO_GPENCIL,
+                                 false);
       }
 
       /* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -1222,7 +1226,7 @@ static void annotation_stroke_doeraser(tGPsdata *p)
     if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
       View3D *v3d = p->area->spacedata.first;
       view3d_region_operator_needs_opengl(p->win, p->region);
-      ED_view3d_autodist_init(p->depsgraph, p->region, v3d, 0);
+      ED_view3d_depth_override(p->depsgraph, p->region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
     }
   }
 
@@ -1695,8 +1699,14 @@ static void annotation_paint_strokeend(tGPsdata *p)
 
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(p->win, p->region);
-    ED_view3d_autodist_init(
-        p->depsgraph, p->region, v3d, (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+    ED_view3d_depth_override(p->depsgraph,
+                             p->region,
+                             v3d,
+                             NULL,
+                             (ts->annotate_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
+                                 V3D_DEPTH_GPENCIL_ONLY :
+                                 V3D_DEPTH_NO_GPENCIL,
+                             false);
   }
 
   /* check if doing eraser or not */

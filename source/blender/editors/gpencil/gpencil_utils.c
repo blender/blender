@@ -648,7 +648,7 @@ void gpencil_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
     view3d_operator_needs_opengl(C);
 
     view3d_region_operator_needs_opengl(win, region);
-    ED_view3d_autodist_init(depsgraph, region, v3d, 0);
+    ED_view3d_depth_override(depsgraph, region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
 
     /* for camera view set the subrect */
     if (rv3d->persp == RV3D_CAMOB) {
