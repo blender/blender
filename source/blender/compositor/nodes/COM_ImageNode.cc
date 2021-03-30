@@ -88,11 +88,10 @@ void ImageNode::convertToOperations(NodeConverter &converter,
     if (image->rr) {
       RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
       if (rl) {
-        int index;
-
         is_multilayer_ok = true;
 
-        for (NodeOutput *socket : getOutputSockets()) {
+        for (int64_t index = 0; index < outputs.size(); index++) {
+          NodeOutput *socket = outputs[index];
           NodeOperation *operation = nullptr;
           bNodeSocket *bnodeSocket = socket->getbNodeSocket();
           NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;
