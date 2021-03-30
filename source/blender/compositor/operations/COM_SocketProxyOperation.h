@@ -27,7 +27,6 @@ class SocketProxyOperation : public NodeOperation {
   SocketProxyOperation(DataType type, bool use_conversion);
 
   std::unique_ptr<MetaData> getMetaData() override;
-
 };
 
 }  // namespace blender::compositor

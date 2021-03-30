@@ -22,7 +22,6 @@
 
 namespace blender::compositor {
 
-
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state)
 {
   m_rect = rect;
