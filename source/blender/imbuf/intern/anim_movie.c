@@ -1124,6 +1124,49 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
   }
 }
 
+/* Wrapper over av_seek_frame(), for formats that doesn't have it's own read_seek() or read_seek2()
+ * functions defined. When seeking in these formats, rule to seek to last necessary I-frame is not
+ * honored. It is not even guaranteed that I-frame, that must be decoded will be read. See
+ * https://trac.ffmpeg.org/ticket/1607 and https://developer.blender.org/T86944. */
+static int ffmpeg_generic_seek_workaround(struct anim *anim, int64_t requested_pos)
+{
+  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  double frame_rate = av_q2d(av_guess_frame_rate(anim->pFormatCtx, v_st, NULL));
+  int64_t current_pos = requested_pos;
+
+  /* This time offset maximum limit is arbitrary. If some files fails to decode it may be
+   * increased. Seek performance will be negatively affected. Small initial offset is necessary
+   * because encoder can re-arrange frames as it needs but within it's delay, which is usually
+   * small. */
+  for (int offset = 5; offset < 25; offset++) {
+    current_pos = requested_pos - ((int64_t)(offset)*AV_TIME_BASE / frame_rate);
+
+    /* Seek to timestamp. */
+    if (av_seek_frame(anim->pFormatCtx, -1, current_pos, AVSEEK_FLAG_BACKWARD) < 0) {
+      break;
+    }
+
+    /* Read first video stream packet. */
+    AVPacket read_packet = {0};
+    while (av_read_frame(anim->pFormatCtx, &read_packet) >= 0) {
+      if (anim->next_packet.stream_index != anim->videoStream) {
+        continue;
+      }
+      else {
+        break;
+      }
+    }
+
+    /* If this packet contains I-frame, exit loop. This should be the frame that we need. */
+    if (read_packet.flags & AV_PKT_FLAG_KEY) {
+      break;
+    }
+  }
+
+  /* Re-seek to timestamp that gave I-frame, so it can be read by decode function. */
+  return av_seek_frame(anim->pFormatCtx, -1, current_pos, AVSEEK_FLAG_BACKWARD);
+}
+
 /* Seek to last necessary I-frame and scan-decode until requested frame is found. */
 static void ffmpeg_seek_and_decode(struct anim *anim, int position, struct anim_index *tc_index)
 {
@@ -1176,7 +1219,15 @@ static void ffmpeg_seek_and_decode(struct anim *anim, int position, struct anim_
 
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "NO INDEX final seek pos = %" PRId64 "\n", pos);
 
-    ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
+    AVFormatContext *format_ctx = anim->pFormatCtx;
+
+    /* Condition based on av_seek_frame() code. */
+    if (format_ctx->iformat->read_seek2 && !format_ctx->iformat->read_seek) {
+      ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
+    }
+    else {
+      ret = ffmpeg_generic_seek_workaround(anim, pos);
+    }
   }
 
   if (ret < 0) {
