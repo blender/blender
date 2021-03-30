@@ -205,6 +205,12 @@ uint64_t GeometrySet::hash() const
   return reinterpret_cast<uint64_t>(this);
 }
 
+/* Remove all geometry components from the geometry set. */
+void GeometrySet::clear()
+{
+  components_.clear();
+}
+
 /* Returns a read-only mesh or null. */
 const Mesh *GeometrySet::get_mesh_for_read() const
 {
