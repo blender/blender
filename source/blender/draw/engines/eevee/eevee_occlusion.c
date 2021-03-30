@@ -158,9 +158,10 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
-    /**  Occlusion algorithm overview
+    /**
+     * Occlusion Algorithm Overview:
      *
-     *  We separate the computation into 2 steps.
+     * We separate the computation into 2 steps.
      *
      * - First we scan the neighborhood pixels to find the maximum horizon angle.
      *   We save this angle in a RG8 array texture.

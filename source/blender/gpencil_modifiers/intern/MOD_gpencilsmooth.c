@@ -50,8 +50,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "RNA_access.h"
-
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"

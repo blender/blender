@@ -363,4 +363,12 @@ if(WITH_POTRACE)
   add_definitions(-DWITH_POTRACE)
 endif()
 
+if(WITH_PUGIXML)
+  add_definitions(-DWITH_PUGIXML)
+endif()
+
+if(WITH_HARU)
+  add_definitions(-DWITH_HARU)
+endif()
+
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

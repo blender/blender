@@ -26,6 +26,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" /* the ramp types */
 
+namespace blender::compositor {
+
 void AlphaOverNode::convertToOperations(NodeConverter &converter,
                                         const CompositorContext & /*context*/) const
 {
@@ -64,3 +66,5 @@ void AlphaOverNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(2), convertProg->getInputSocket(2));
   converter.mapOutputSocket(getOutputSocket(0), convertProg->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

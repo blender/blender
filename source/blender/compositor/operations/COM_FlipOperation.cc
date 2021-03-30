@@ -18,6 +18,8 @@
 
 #include "COM_FlipOperation.h"
 
+namespace blender::compositor {
+
 FlipOperation::FlipOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -72,3 +74,5 @@ bool FlipOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

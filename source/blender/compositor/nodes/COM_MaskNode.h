@@ -21,6 +21,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief MaskNode
  * \ingroup Node
@@ -28,5 +30,8 @@
 class MaskNode : public Node {
  public:
   MaskNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

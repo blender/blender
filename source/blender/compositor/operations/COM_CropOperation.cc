@@ -19,9 +19,11 @@
 #include "COM_CropOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 CropBaseOperation::CropBaseOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->m_inputOperation = nullptr;
   this->m_settings = nullptr;
@@ -133,3 +135,5 @@ void CropImageOperation::executePixelSampled(float output[4],
     zero_v4(output);
   }
 }
+
+}  // namespace blender::compositor

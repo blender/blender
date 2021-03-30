@@ -25,16 +25,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_collection.h"
+#include "BLI_linklist.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.h"
-
-#include "BLI_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -43,12 +45,26 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 
-#include "UI_resources.h"
-
 #include "MOD_gpencil_lineart.h"
 #include "MOD_lineart.h"
 
-#include "lineart_intern.h"
+static bool lineart_mod_is_disabled(GpencilModifierData *md)
+{
+  BLI_assert(md->type == eGpencilModifierType_Lineart);
+
+  const GpencilModifierTypeInfo *info = BKE_gpencil_modifier_get_info(md->type);
+
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
+
+  /* Toggle on and off the baked flag as we are only interested in if something else is disabling
+   * it. We can assume that the guard function has already toggled this on for all modifiers that
+   * are sent here. */
+  lmd->flags &= (~LRT_GPENCIL_IS_BAKED);
+  bool disabled = info->isDisabled(md, 0);
+  lmd->flags |= LRT_GPENCIL_IS_BAKED;
+
+  return disabled;
+}
 
 static void clear_strokes(Object *ob, GpencilModifierData *md, int frame)
 {
@@ -74,6 +90,11 @@ static void clear_strokes(Object *ob, GpencilModifierData *md, int frame)
 
 static bool bake_strokes(Object *ob, Depsgraph *dg, GpencilModifierData *md, int frame)
 {
+  /* Modifier data sanity check. */
+  if (lineart_mod_is_disabled(md)) {
+    return false;
+  }
+
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
   bGPdata *gpd = ob->data;
 
@@ -148,11 +169,16 @@ static bool lineart_gpencil_bake_single_target(LineartBakeJob *bj, Object *ob, i
 
   if (bj->overwrite_frames) {
     LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
-      clear_strokes(ob, md, frame);
+      if (md->type == eGpencilModifierType_Lineart) {
+        clear_strokes(ob, md, frame);
+      }
     }
   }
 
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+    if (md->type != eGpencilModifierType_Lineart) {
+      continue;
+    }
     if (bake_strokes(ob, bj->dg, md, frame)) {
       touched = true;
     }
@@ -248,12 +274,13 @@ static int lineart_gpencil_bake_common(bContext *C,
     BLI_linklist_prepend(&bj->objects, ob);
   }
   else {
-    /* CTX_DATA_BEGIN is not available for interating in objects while using the Job system. */
+    /* #CTX_DATA_BEGIN is not available for iterating in objects while using the job system. */
     CTX_DATA_BEGIN (C, Object *, ob, visible_objects) {
       if (ob->type == OB_GPENCIL) {
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
           if (md->type == eGpencilModifierType_Lineart) {
             BLI_linklist_prepend(&bj->objects, ob);
+            break;
           }
         }
       }
@@ -321,8 +348,6 @@ static int lineart_gpencil_bake_strokes_invoke(bContext *C,
 static int lineart_gpencil_bake_strokes_exec(bContext *C, wmOperator *op)
 {
   return lineart_gpencil_bake_common(C, op, false, false);
-
-  return OPERATOR_FINISHED;
 }
 static int lineart_gpencil_bake_strokes_commom_modal(bContext *C,
                                                      wmOperator *op,
@@ -382,7 +407,7 @@ static int lineart_gpencil_clear_strokes_all_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  BKE_report(op->reports, RPT_INFO, "All line art objects are now cleared.");
+  BKE_report(op->reports, RPT_INFO, "All line art objects are now cleared");
 
   return OPERATOR_FINISHED;
 }
@@ -415,7 +440,7 @@ void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 void OBJECT_OT_lineart_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Baked Line Art";
-  ot->description = "Clear all strokes in current GPencil obejct";
+  ot->description = "Clear all strokes in current GPencil object";
   ot->idname = "OBJECT_OT_lineart_clear";
 
   ot->exec = lineart_gpencil_clear_strokes_exec;

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -73,13 +75,10 @@ class SetVectorOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-  bool isSetOperation() const
-  {
-    return true;
-  }
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   void setVector(const float vector[3])
   {
@@ -88,3 +87,5 @@ class SetVectorOperation : public NodeOperation {
     setZ(vector[2]);
   }
 };
+
+}  // namespace blender::compositor

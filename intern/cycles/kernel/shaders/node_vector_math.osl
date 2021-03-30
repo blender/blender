@@ -46,6 +46,12 @@ shader node_vector_math(string math_type = "add",
   else if (math_type == "reflect") {
     Vector = reflect(Vector1, normalize(Vector2));
   }
+  else if (math_type == "refract") {
+    Vector = refract(Vector1, normalize(Vector2), Scale);
+  }
+  else if (math_type == "faceforward") {
+    Vector = compatible_faceforward(Vector1, Vector2, Vector3);
+  }
   else if (math_type == "dot_product") {
     Value = dot(Vector1, Vector2);
   }

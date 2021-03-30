@@ -269,7 +269,12 @@ typedef struct Curve {
   char overflow;
   char spacemode, align_y;
   char bevel_mode;
-  char _pad[2];
+  /**
+   * Determine how the effective radius of the bevel point is computed when a taper object is
+   * specified. The effective radius is a function of the bevel point radius and the taper radius.
+   */
+  char taper_radius_mode;
+  char _pad;
 
   /* font part */
   short lines;
@@ -398,6 +403,16 @@ enum {
   CU_BEV_MODE_ROUND = 0,
   CU_BEV_MODE_OBJECT = 1,
   CU_BEV_MODE_CURVE_PROFILE = 2,
+};
+
+/** #Curve.taper_radius_mode */
+enum {
+  /** Override the radius of the bevel point with the taper radius. */
+  CU_TAPER_RADIUS_OVERRIDE = 0,
+  /** Multiply the radius of the bevel point by the taper radius. */
+  CU_TAPER_RADIUS_MULTIPLY = 1,
+  /** Add the radius of the bevel point to the taper radius. */
+  CU_TAPER_RADIUS_ADD = 2,
 };
 
 /* Curve.overflow. */

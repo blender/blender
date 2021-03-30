@@ -21,6 +21,8 @@
 class ExecutionGroup;
 #include "COM_ExecutionGroup.h"
 
+namespace blender::compositor {
+
 /**
  * \brief contains data about work that can be scheduled
  * \see WorkScheduler
@@ -47,3 +49,5 @@ struct WorkPackage {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkPackage")
 #endif
 };
+
+}  // namespace blender::compositor

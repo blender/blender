@@ -22,7 +22,7 @@ ccl_device void svm_vector_math(float *value,
                                 float3 a,
                                 float3 b,
                                 float3 c,
-                                float scale)
+                                float param1)
 {
   switch (type) {
     case NODE_VECTOR_MATH_ADD:
@@ -46,6 +46,12 @@ ccl_device void svm_vector_math(float *value,
     case NODE_VECTOR_MATH_REFLECT:
       *vector = reflect(a, b);
       break;
+    case NODE_VECTOR_MATH_REFRACT:
+      *vector = refract(a, normalize(b), param1);
+      break;
+    case NODE_VECTOR_MATH_FACEFORWARD:
+      *vector = faceforward(a, b, c);
+      break;
     case NODE_VECTOR_MATH_DOT_PRODUCT:
       *value = dot(a, b);
       break;
@@ -56,7 +62,7 @@ ccl_device void svm_vector_math(float *value,
       *value = len(a);
       break;
     case NODE_VECTOR_MATH_SCALE:
-      *vector = a * scale;
+      *vector = a * param1;
       break;
     case NODE_VECTOR_MATH_NORMALIZE:
       *vector = safe_normalize(a);
@@ -98,7 +104,7 @@ ccl_device void svm_vector_math(float *value,
       *vector = make_float3(tanf(a.x), tanf(a.y), tanf(a.z));
       break;
     default:
-      *vector = make_float3(0.0f, 0.0f, 0.0f);
+      *vector = zero_float3();
       *value = 0.0f;
   }
 }
@@ -236,10 +242,15 @@ ccl_device float3 svm_math_blackbody_color(float t)
     return make_float3(4.70366907f, 0.0f, 0.0f);
   }
 
-  int i = (t >= 6365.0f) ?
-              5 :
-              (t >= 3315.0f) ? 4 :
-                               (t >= 1902.0f) ? 3 : (t >= 1449.0f) ? 2 : (t >= 1167.0f) ? 1 : 0;
+  /* Manually align for readability. */
+  /* clang-format off */
+  int i = (t >= 6365.0f) ? 5 :
+          (t >= 3315.0f) ? 4 :
+          (t >= 1902.0f) ? 3 :
+          (t >= 1449.0f) ? 2 :
+          (t >= 1167.0f) ? 1 :
+                           0;
+  /* clang-format on */
 
   ccl_constant float *r = blackbody_table_r[i];
   ccl_constant float *g = blackbody_table_g[i];

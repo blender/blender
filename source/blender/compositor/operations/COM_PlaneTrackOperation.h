@@ -28,6 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 class PlaneTrackCommon {
  protected:
   MovieClip *m_movieClip;
@@ -68,9 +70,10 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
   {
   }
 
-  void initExecution();
+  void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override
   {
     PlaneTrackCommon::determineResolution(resolution, preferredResolution);
 
@@ -86,12 +89,15 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
   {
   }
 
-  void initExecution();
+  void initExecution() override;
 
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override
   {
     PlaneTrackCommon::determineResolution(resolution, preferredResolution);
     unsigned int temp[2];
     NodeOperation::determineResolution(temp, resolution);
   }
 };
+
+}  // namespace blender::compositor

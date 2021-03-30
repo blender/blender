@@ -32,6 +32,8 @@
 
 #include "COM_Node.h" /* own include */
 
+namespace blender::compositor {
+
 /**************
  **** Node ****
  **************/
@@ -208,3 +210,5 @@ void NodeOutput::getEditorValueVector(float *value)
   RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
+
+}  // namespace blender::compositor

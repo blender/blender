@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class TranslateOperation : public NodeOperation {
  private:
   SocketReader *m_inputOperation;
@@ -35,11 +37,11 @@ class TranslateOperation : public NodeOperation {
   TranslateOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   float getDeltaX()
   {
@@ -54,9 +56,9 @@ class TranslateOperation : public NodeOperation {
   {
     if (!this->m_isDeltaSet) {
       float tempDelta[4];
-      this->m_inputXOperation->readSampled(tempDelta, 0, 0, COM_PS_NEAREST);
+      this->m_inputXOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
       this->m_deltaX = tempDelta[0];
-      this->m_inputYOperation->readSampled(tempDelta, 0, 0, COM_PS_NEAREST);
+      this->m_inputYOperation->readSampled(tempDelta, 0, 0, PixelSampler::Nearest);
       this->m_deltaY = tempDelta[0];
       this->m_isDeltaSet = true;
     }
@@ -64,3 +66,5 @@ class TranslateOperation : public NodeOperation {
 
   void setFactorXY(float factorX, float factorY);
 };
+
+}  // namespace blender::compositor

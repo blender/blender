@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief DifferenceMatteNode
  * \ingroup Node
@@ -27,5 +29,8 @@
 class DifferenceMatteNode : public Node {
  public:
   DifferenceMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

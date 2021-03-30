@@ -825,6 +825,7 @@ const bTheme U_theme_default = {
     .vertex_size = 3,
     .outline_width = 1,
     .facedot_size = 4,
+    .noodle_curving = 4,
     .grid_levels = 2,
     .syntaxl = RGBA(0x565656ff),
     .syntaxs = RGBA(0x975b5bff),

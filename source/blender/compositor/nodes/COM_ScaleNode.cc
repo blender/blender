@@ -24,6 +24,8 @@
 #include "COM_SetSamplerOperation.h"
 #include "COM_SetValueOperation.h"
 
+namespace blender::compositor {
+
 ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -79,7 +81,7 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
       operation->setOffset(bnode->custom3, bnode->custom4);
       operation->setNewWidth(rd->xsch * render_size_factor);
       operation->setNewHeight(rd->ysch * render_size_factor);
-      operation->getInputSocket(0)->setResizeMode(COM_SC_NO_RESIZE);
+      operation->getInputSocket(0)->setResizeMode(ResizeMode::None);
       converter.addOperation(operation);
 
       converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
@@ -105,3 +107,5 @@ void ScaleNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

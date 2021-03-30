@@ -32,6 +32,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 ViewerOperation::ViewerOperation()
 {
   this->setImage(nullptr);
@@ -53,6 +55,7 @@ ViewerOperation::ViewerOperation()
   this->m_depthInput = nullptr;
   this->m_rd = nullptr;
   this->m_viewName = nullptr;
+  flags.use_viewer_border = true;
 }
 
 void ViewerOperation::initExecution()
@@ -98,12 +101,12 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
   for (y = y1; y < y2 && (!breaked); y++) {
     for (x = x1; x < x2; x++) {
-      this->m_imageInput->readSampled(&(buffer[offset4]), x, y, COM_PS_NEAREST);
+      this->m_imageInput->readSampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
       if (this->m_useAlphaInput) {
-        this->m_alphaInput->readSampled(alpha, x, y, COM_PS_NEAREST);
+        this->m_alphaInput->readSampled(alpha, x, y, PixelSampler::Nearest);
         buffer[offset4 + 3] = alpha[0];
       }
-      this->m_depthInput->readSampled(depth, x, y, COM_PS_NEAREST);
+      this->m_depthInput->readSampled(depth, x, y, PixelSampler::Nearest);
       depthbuffer[offset] = depth[0];
 
       offset++;
@@ -116,6 +119,17 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
     offset4 += offsetadd4;
   }
   updateImage(rect);
+}
+
+void ViewerOperation::determineResolution(unsigned int resolution[2],
+                                          unsigned int /*preferredResolution*/[2])
+{
+  const int sceneRenderWidth = this->m_rd->xsch * this->m_rd->size / 100;
+  const int sceneRenderHeight = this->m_rd->ysch * this->m_rd->size / 100;
+
+  unsigned int localPrefRes[2] = {static_cast<unsigned int>(sceneRenderWidth),
+                                  static_cast<unsigned int>(sceneRenderHeight)};
+  NodeOperation::determineResolution(resolution, localPrefRes);
 }
 
 void ViewerOperation::initImage()
@@ -202,3 +216,5 @@ CompositorPriority ViewerOperation::getRenderPriority() const
 
   return CompositorPriority::Low;
 }
+
+}  // namespace blender::compositor

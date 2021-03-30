@@ -23,6 +23,8 @@
 #include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -96,3 +98,5 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter,
     converter.addPreview(operationAlpha->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

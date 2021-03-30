@@ -16,13 +16,14 @@
  * Copyright 2011, Blender Foundation.
  */
 
-class MemoryProxy;
-
 #pragma once
 
-#include "COM_ExecutionGroup.h"
-#include "COM_MemoryBuffer.h"
+#include "COM_defines.h"
 
+namespace blender::compositor {
+
+/* Forward declarations. */
+class MemoryBuffer;
 class ExecutionGroup;
 class WriteBufferOperation;
 
@@ -43,16 +44,6 @@ class MemoryProxy {
    * \brief reference to the executor. the Execution group that can fill a chunk
    */
   ExecutionGroup *m_executor;
-
-  /**
-   * \brief datatype of this MemoryProxy
-   */
-  /* DataType m_datatype; */ /* UNUSED */
-
-  /**
-   * \brief channel information of this buffer
-   */
-  /* ChannelInfo m_channelInfo[COM_NUMBER_OF_CHANNELS]; */ /* UNUSED */
 
   /**
    * \brief the allocated memory
@@ -129,3 +120,5 @@ class MemoryProxy {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryProxy")
 #endif
 };
+
+}  // namespace blender::compositor

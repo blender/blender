@@ -40,6 +40,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 void add_exr_channels(void *exrhandle,
                       const char *layerName,
                       const DataType datatype,
@@ -191,7 +193,7 @@ static void write_buffer_rect(rcti *rect,
 
   for (y = y1; y < y2 && (!breaked); y++) {
     for (x = x1; x < x2 && (!breaked); x++) {
-      reader->readSampled(color, x, y, COM_PS_NEAREST);
+      reader->readSampled(color, x, y, PixelSampler::Nearest);
 
       for (i = 0; i < size; i++) {
         buffer[offset + i] = color[i];
@@ -441,3 +443,5 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
     BKE_stamp_data_free(stamp_data);
   }
 }
+
+}  // namespace blender::compositor

@@ -85,6 +85,15 @@ namespace blender {
  * modified.
  */
 template<typename T> class Span {
+ public:
+  using value_type = T;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using iterator = const T *;
+  using size_type = int64_t;
+
  private:
   const T *data_ = nullptr;
   int64_t size_ = 0;
@@ -459,6 +468,15 @@ template<typename T> class Span {
  * MutableSpan.
  */
 template<typename T> class MutableSpan {
+ public:
+  using value_type = T;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using iterator = T *;
+  using size_type = int64_t;
+
  private:
   T *data_;
   int64_t size_;

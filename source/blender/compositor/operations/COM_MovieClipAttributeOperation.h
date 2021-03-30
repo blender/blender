@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
 
+namespace blender::compositor {
+
 typedef enum MovieClipAttribute {
   MCA_SCALE,
   MCA_X,
@@ -45,13 +47,14 @@ class MovieClipAttributeOperation : public NodeOperation {
    */
   MovieClipAttributeOperation();
 
-  void initExecution();
+  void initExecution() override;
 
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   void setMovieClip(MovieClip *clip)
   {
@@ -70,3 +73,5 @@ class MovieClipAttributeOperation : public NodeOperation {
     this->m_invert = invert;
   }
 };
+
+}  // namespace blender::compositor

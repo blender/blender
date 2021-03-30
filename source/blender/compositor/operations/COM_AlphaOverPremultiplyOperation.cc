@@ -18,6 +18,8 @@
 
 #include "COM_AlphaOverPremultiplyOperation.h"
 
+namespace blender::compositor {
+
 AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation()
 {
   /* pass */
@@ -52,3 +54,5 @@ void AlphaOverPremultiplyOperation::executePixelSampled(float output[4],
     output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
   }
 }
+
+}  // namespace blender::compositor

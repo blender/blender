@@ -20,6 +20,8 @@
 
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 MathBaseOperation::MathBaseOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -748,3 +750,5 @@ void MathSmoothMaxOperation::executePixelSampled(float output[4],
 
   clampIfNeeded(output);
 }
+
+}  // namespace blender::compositor

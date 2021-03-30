@@ -28,6 +28,8 @@
 
 #include "DNA_material_types.h" /* the ramp types */
 
+namespace blender::compositor {
+
 void ZCombineNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
@@ -99,3 +101,5 @@ void ZCombineNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(1), zoperation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

@@ -1958,14 +1958,12 @@ void BKE_movieclip_filename_for_frame(MovieClip *clip, MovieClipUser *user, char
   }
 }
 
-ImBuf *BKE_movieclip_anim_ibuf_for_frame(MovieClip *clip, MovieClipUser *user)
+ImBuf *BKE_movieclip_anim_ibuf_for_frame_no_lock(MovieClip *clip, MovieClipUser *user)
 {
   ImBuf *ibuf = NULL;
 
   if (clip->source == MCLIP_SRC_MOVIE) {
-    BLI_thread_lock(LOCK_MOVIECLIP);
     ibuf = movieclip_load_movie_file(clip, user, user->framenr, clip->flag);
-    BLI_thread_unlock(LOCK_MOVIECLIP);
   }
 
   return ibuf;

@@ -22,6 +22,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
 
+namespace blender::compositor {
+
 class ColorCurveOperation : public CurveBaseOperation {
  private:
   /**
@@ -38,17 +40,17 @@ class ColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 };
 
 class ConstantLevelColorCurveOperation : public CurveBaseOperation {
@@ -67,17 +69,17 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setBlackLevel(float black[3])
   {
@@ -88,3 +90,5 @@ class ConstantLevelColorCurveOperation : public CurveBaseOperation {
     copy_v3_v3(this->m_white, white);
   }
 };
+
+}  // namespace blender::compositor

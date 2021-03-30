@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief base class of CalculateMean, implementing the simple CalculateMean
  * \ingroup operation
@@ -42,23 +44,23 @@ class CalculateMeanOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
   void setSetting(int setting)
   {
     this->m_setting = setting;
@@ -67,3 +69,5 @@ class CalculateMeanOperation : public NodeOperation {
  protected:
   void calculateMean(MemoryBuffer *tile);
 };
+
+}  // namespace blender::compositor

@@ -22,6 +22,8 @@
 #include "COM_ExecutionSystem.h"
 #include "DNA_scene_types.h"
 
+namespace blender::compositor {
+
 DespeckleNode::DespeckleNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -46,3 +48,5 @@ void DespeckleNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

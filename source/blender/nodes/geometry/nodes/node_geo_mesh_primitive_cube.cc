@@ -25,8 +25,6 @@
 
 static bNodeSocketTemplate geo_node_mesh_primitive_cube_in[] = {
     {SOCK_FLOAT, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -37,10 +35,9 @@ static bNodeSocketTemplate geo_node_mesh_primitive_cube_out[] = {
 
 namespace blender::nodes {
 
-static Mesh *create_cube_mesh(const float3 location, const float3 rotation, const float size)
+static Mesh *create_cube_mesh(const float size)
 {
-  float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1));
+  const float4x4 transform = float4x4::identity();
 
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {8, 12, 24, 6};
@@ -53,8 +50,10 @@ static Mesh *create_cube_mesh(const float3 location, const float3 rotation, cons
                size,
                true);
 
+  BMeshToMeshParams params{};
+  params.calc_object_remap = false;
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me_for_eval(bm, mesh, nullptr);
+  BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
   BM_mesh_free(bm);
 
   return mesh;
@@ -63,10 +62,8 @@ static Mesh *create_cube_mesh(const float3 location, const float3 rotation, cons
 static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
 {
   const float size = params.extract_input<float>("Size");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
 
-  Mesh *mesh = create_cube_mesh(location, rotation, size);
+  Mesh *mesh = create_cube_mesh(size);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 

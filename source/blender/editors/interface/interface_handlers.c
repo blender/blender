@@ -1594,7 +1594,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
 
   if (done) {
     wmWindow *win = CTX_wm_window(C);
-    ARegion *region = CTX_wm_region(C);
+    const ARegion *region = CTX_wm_region(C);
     uiBut *but = ui_but_find_mouse_over_ex(
         region, drag_info->xy_init[0], drag_info->xy_init[1], true);
 

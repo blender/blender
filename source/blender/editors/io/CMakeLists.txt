@@ -24,6 +24,7 @@ set(INC
   ../../depsgraph
   ../../io/alembic
   ../../io/collada
+  ../../io/gpencil
   ../../io/usd
   ../../makesdna
   ../../makesrna
@@ -39,12 +40,16 @@ set(SRC
   io_alembic.c
   io_cache.c
   io_collada.c
+  io_gpencil_export.c
+  io_gpencil_import.c
+  io_gpencil_utils.c
   io_ops.c
   io_usd.c
 
   io_alembic.h
   io_cache.h
   io_collada.h
+  io_gpencil.h
   io_ops.h
   io_usd.h
 )
@@ -78,5 +83,15 @@ endif()
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()
+
+if(WITH_PUGIXML)
+  add_definitions(-DWITH_PUGIXML)
+endif()
+
+if(WITH_HARU)
+  add_definitions(-DWITH_HARU)
+endif()
+
+list(APPEND LIB bf_gpencil)
 
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

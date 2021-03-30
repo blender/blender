@@ -21,6 +21,9 @@
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_object_types.h"
+
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -51,17 +54,17 @@ class ConvertDepthToRadiusOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setfStop(float fStop)
   {
@@ -81,3 +84,5 @@ class ConvertDepthToRadiusOperation : public NodeOperation {
     this->m_blurPostOperation = operation;
   }
 };
+
+}  // namespace blender::compositor

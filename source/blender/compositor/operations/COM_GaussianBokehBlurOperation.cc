@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_gausstab = nullptr;
@@ -360,3 +362,5 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(
   newInput.ymin = input->ymin - addy;
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

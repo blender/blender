@@ -1023,8 +1023,6 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   /* Try to get a proxy image. */
   ibuf = seq_proxy_fetch(context, seq, timeline_frame);
   if (ibuf != NULL) {
-    s_elem->orig_width = ibuf->x;
-    s_elem->orig_height = ibuf->y;
     *r_is_proxy_image = true;
     return ibuf;
   }
@@ -1231,8 +1229,10 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
     return NULL;
   }
 
-  seq->strip->stripdata->orig_width = ibuf->x;
-  seq->strip->stripdata->orig_height = ibuf->y;
+  if (*r_is_proxy_image == false) {
+    seq->strip->stripdata->orig_width = ibuf->x;
+    seq->strip->stripdata->orig_height = ibuf->y;
+  }
 
   return ibuf;
 }

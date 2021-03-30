@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class BaseScaleOperation : public NodeOperation {
  public:
   void setSampler(PixelSampler sampler)
@@ -55,11 +57,11 @@ class ScaleOperation : public BaseScaleOperation {
   ScaleOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };
 
 class ScaleAbsoluteOperation : public BaseScaleOperation {
@@ -73,11 +75,11 @@ class ScaleAbsoluteOperation : public BaseScaleOperation {
   ScaleAbsoluteOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };
 
 class ScaleFixedSizeOperation : public BaseScaleOperation {
@@ -100,12 +102,13 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   ScaleFixedSizeOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
   void setNewWidth(int width)
   {
     this->m_newWidth = width;
@@ -128,3 +131,5 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
     this->m_offsetY = y;
   }
 };
+
+}  // namespace blender::compositor

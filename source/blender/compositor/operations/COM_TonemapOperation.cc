@@ -22,14 +22,16 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 TonemapOperation::TonemapOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->m_imageReader = nullptr;
   this->m_data = nullptr;
   this->m_cachedInstance = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void TonemapOperation::initExecution()
 {
@@ -150,3 +152,5 @@ void TonemapOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
 }
+
+}  // namespace blender::compositor

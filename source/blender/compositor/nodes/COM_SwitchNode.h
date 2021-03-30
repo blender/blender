@@ -21,6 +21,9 @@
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
+
+namespace blender::compositor {
+
 /**
  * \brief SwitchNode
  * \ingroup Node
@@ -28,5 +31,8 @@
 class SwitchNode : public Node {
  public:
   SwitchNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

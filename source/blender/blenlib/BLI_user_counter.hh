@@ -125,7 +125,7 @@ template<typename T> class UserCounter {
 
   uint64_t hash() const
   {
-    return DefaultHash<T *>{}(data_);
+    return get_default_hash(data_);
   }
 
   friend bool operator==(const UserCounter &a, const UserCounter &b)

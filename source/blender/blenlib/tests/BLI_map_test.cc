@@ -587,6 +587,23 @@ TEST(map, EnumKey)
   EXPECT_EQ(map.lookup(TestEnum::B), 10);
 }
 
+TEST(map, GenericAlgorithms)
+{
+  Map<int, int> map;
+  map.add(5, 2);
+  map.add(1, 4);
+  map.add(2, 2);
+  map.add(7, 1);
+  map.add(8, 6);
+  EXPECT_TRUE(std::any_of(map.keys().begin(), map.keys().end(), [](int v) { return v == 1; }));
+  EXPECT_TRUE(std::any_of(map.values().begin(), map.values().end(), [](int v) { return v == 1; }));
+  EXPECT_TRUE(std::any_of(
+      map.items().begin(), map.items().end(), [](auto item) { return item.value == 1; }));
+  EXPECT_EQ(std::count(map.values().begin(), map.values().end(), 2), 2);
+  EXPECT_EQ(std::count(map.values().begin(), map.values().end(), 4), 1);
+  EXPECT_EQ(std::count(map.keys().begin(), map.keys().end(), 7), 1);
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

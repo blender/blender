@@ -58,15 +58,13 @@ class NodeTreeEvaluationContext {
 
   uint64_t hash() const
   {
-    const uint64_t hash1 = blender::DefaultHash<std::string>{}(object_name_);
-    const uint64_t hash2 = BLI_session_uuid_hash_uint64(&modifier_session_uuid_);
-    return hash1 ^ (hash2 * 33); /* Copied from DefaultHash for std::pair. */
+    return blender::get_default_hash_2(object_name_, modifier_session_uuid_);
   }
 
-  bool operator==(const NodeTreeEvaluationContext &other) const
+  friend bool operator==(const NodeTreeEvaluationContext &a, const NodeTreeEvaluationContext &b)
   {
-    return other.object_name_ == object_name_ &&
-           BLI_session_uuid_is_equal(&other.modifier_session_uuid_, &modifier_session_uuid_);
+    return a.object_name_ == b.object_name_ &&
+           BLI_session_uuid_is_equal(&a.modifier_session_uuid_, &b.modifier_session_uuid_);
   }
 };
 

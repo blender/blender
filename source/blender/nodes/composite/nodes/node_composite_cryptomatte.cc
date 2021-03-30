@@ -287,6 +287,7 @@ void register_node_type_cmp_cryptomatte(void)
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE, 0);
   node_type_socket_templates(&ntype, cmp_node_cryptomatte_in, cmp_node_cryptomatte_out);
+  node_type_size(&ntype, 240, 100, 700);
   node_type_init(&ntype, node_init_cryptomatte);
   ntype.initfunc_api = node_init_api_cryptomatte;
   ntype.poll = node_poll_cryptomatte;

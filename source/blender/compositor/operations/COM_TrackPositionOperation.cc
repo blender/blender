@@ -28,6 +28,8 @@
 #include "BKE_node.h"
 #include "BKE_tracking.h"
 
+namespace blender::compositor {
+
 TrackPositionOperation::TrackPositionOperation()
 {
   this->addOutputSocket(DataType::Value);
@@ -39,6 +41,7 @@ TrackPositionOperation::TrackPositionOperation()
   this->m_position = CMP_TRACKPOS_ABSOLUTE;
   this->m_relativeFrame = 0;
   this->m_speed_output = false;
+  flags.is_set_operation = true;
 }
 
 void TrackPositionOperation::initExecution()
@@ -134,3 +137,5 @@ void TrackPositionOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
 }
+
+}  // namespace blender::compositor

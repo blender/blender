@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief DirectionalBlurNode
  * \ingroup Node
@@ -27,5 +29,8 @@
 class DirectionalBlurNode : public Node {
  public:
   DirectionalBlurNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

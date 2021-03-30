@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief DistanceMatteNode
  * \ingroup Node
@@ -27,5 +29,8 @@
 class DistanceMatteNode : public Node {
  public:
   DistanceMatteNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

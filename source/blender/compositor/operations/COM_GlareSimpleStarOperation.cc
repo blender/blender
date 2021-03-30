@@ -18,6 +18,8 @@
 
 #include "COM_GlareSimpleStarOperation.h"
 
+namespace blender::compositor {
+
 void GlareSimpleStarOperation::generateGlare(float *data,
                                              MemoryBuffer *inputTile,
                                              NodeGlare *settings)
@@ -97,3 +99,5 @@ void GlareSimpleStarOperation::generateGlare(float *data,
     data[i] = tbuf1.getBuffer()[i] + tbuf2.getBuffer()[i];
   }
 }
+
+}  // namespace blender::compositor

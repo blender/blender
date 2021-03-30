@@ -21,6 +21,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief MovieClipNode
  * \ingroup Node
@@ -28,5 +30,8 @@
 class MovieClipNode : public Node {
  public:
   MovieClipNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

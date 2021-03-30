@@ -27,7 +27,7 @@
 static PyTypeObject BlenderAppBuildOptionsType;
 
 static PyStructSequence_Field app_builtopts_info_fields[] = {
-    /* names mostly follow CMake options, lowercase, after WITH_ */
+    /* names mostly follow CMake options, lowercase, after `WITH_` */
     {"bullet", NULL},
     {"codec_avi", NULL},
     {"codec_ffmpeg", NULL},
@@ -65,6 +65,9 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"fluid", NULL},
     {"xr_openxr", NULL},
     {"potrace", NULL},
+    {"pugixml", NULL},
+    {"haru", NULL},
+    /* Sentinel (this line prevents `clang-format` wrapping into columns). */
     {NULL},
 };
 
@@ -305,6 +308,18 @@ static PyObject *make_builtopts_info(void)
 #endif
 
 #ifdef WITH_POTRACE
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_PUGIXML
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_HARU
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

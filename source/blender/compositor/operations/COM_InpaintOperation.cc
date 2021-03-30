@@ -23,6 +23,8 @@
 
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 #define ASSERT_XY_RANGE(x, y) \
   BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
 
@@ -31,7 +33,7 @@ InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
   this->m_inputImageProgram = nullptr;
   this->m_pixelorder = nullptr;
   this->m_manhattan_distance = nullptr;
@@ -282,3 +284,5 @@ bool InpaintSimpleOperation::determineDependingAreaOfInterest(rcti * /*input*/,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

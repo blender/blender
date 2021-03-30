@@ -18,6 +18,8 @@
 
 #include "COM_Debug.h"
 
+namespace blender::compositor {
+
 #ifdef COM_DEBUG
 
 #  include <map>
@@ -133,13 +135,13 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   else if (operation->isOutputOperation(system->getContext().isRendering())) {
     fillcolor = "dodgerblue1";
   }
-  else if (operation->isSetOperation()) {
+  else if (operation->get_flags().is_set_operation()) {
     fillcolor = "khaki1";
   }
-  else if (operation->isReadBufferOperation()) {
+  else if (operation->get_flags().is_read_buffer_operation) {
     fillcolor = "darkolivegreen3";
   }
-  else if (operation->isWriteBufferOperation()) {
+  else if (operation->get_flags().is_write_buffer_operation) {
     fillcolor = "darkorange";
   }
 
@@ -360,7 +362,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   }
 
   for (NodeOperation *operation : system->m_operations) {
-    if (operation->isReadBufferOperation()) {
+    if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read = (ReadBufferOperation *)operation;
       WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
       std::vector<std::string> &read_groups = op_groups[read];
@@ -495,3 +497,5 @@ void DebugInfo::graphviz(const ExecutionSystem * /*system*/)
 }
 
 #endif
+
+}  // namespace blender::compositor

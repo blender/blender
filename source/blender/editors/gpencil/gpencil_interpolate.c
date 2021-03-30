@@ -84,7 +84,8 @@ typedef struct tGPDinterpolate_layer {
   /** interpolate factor */
   float factor;
 
-  /* Hash tablets to create temp relationship between strokes. */
+  /* List of strokes and Hash tablets to create temp relationship between strokes. */
+  struct ListBase selected_strokes;
   struct GHash *used_strokes;
   struct GHash *pair_strokes;
 
@@ -282,6 +283,7 @@ static void gpencil_stroke_pair_table(bContext *C,
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* Create hash tablets with relationship between strokes. */
+  BLI_listbase_clear(&tgpil->selected_strokes);
   tgpil->used_strokes = BLI_ghash_ptr_new(__func__);
   tgpil->pair_strokes = BLI_ghash_ptr_new(__func__);
 
@@ -315,7 +317,8 @@ static void gpencil_stroke_pair_table(bContext *C,
     if (ELEM(NULL, gps_from, gps_to)) {
       continue;
     }
-    /* Insert the pair entry in the hash table. */
+    /* Insert the pair entry in the hash table and the list of strokes to keep order. */
+    BLI_addtail(&tgpil->selected_strokes, BLI_genericNodeN(gps_from));
     BLI_ghash_insert(tgpil->pair_strokes, gps_from, gps_to);
   }
 }
@@ -405,10 +408,13 @@ static void gpencil_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgp
     /* Clear previous interpolations. */
     gpencil_interpolate_free_tagged_strokes(tgpil->interFrame);
 
-    GHashIterator gh_iter;
-    GHASH_ITER (gh_iter, tgpil->pair_strokes) {
-      bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
+    LISTBASE_FOREACH (LinkData *, link, &tgpil->selected_strokes) {
+      bGPDstroke *gps_from = link->data;
+      if (!BLI_ghash_haskey(tgpil->pair_strokes, gps_from)) {
+        continue;
+      }
+      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(tgpil->pair_strokes, gps_from);
+
       /* Create new stroke. */
       bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps_from, true, true);
       new_stroke->flag |= GP_STROKE_TAG;
@@ -527,10 +533,12 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     gpencil_stroke_pair_table(C, tgpi, tgpil);
 
     /* Create new strokes data with interpolated points reading original stroke. */
-    GHashIterator gh_iter;
-    GHASH_ITER (gh_iter, tgpil->pair_strokes) {
-      bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
+    LISTBASE_FOREACH (LinkData *, link, &tgpil->selected_strokes) {
+      bGPDstroke *gps_from = link->data;
+      if (!BLI_ghash_haskey(tgpil->pair_strokes, gps_from)) {
+        continue;
+      }
+      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(tgpil->pair_strokes, gps_from);
 
       /* If destination stroke is smaller, resize new_stroke to size of gps_to stroke. */
       if (gps_from->totpoints > gps_to->totpoints) {
@@ -657,6 +665,9 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
       MEM_SAFE_FREE(tgpil->prevFrame);
       MEM_SAFE_FREE(tgpil->nextFrame);
       MEM_SAFE_FREE(tgpil->interFrame);
+
+      /* Free list of strokes. */
+      BLI_freelistN(&tgpil->selected_strokes);
 
       /* Free Hash tablets. */
       if (tgpil->used_strokes != NULL) {
@@ -1292,9 +1303,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     bGPDframe *nextFrame = BKE_gpencil_frame_duplicate(gpf_next, true);
 
     /* Create a table with source and target pair of strokes. */
+    ListBase selected_strokes = {NULL};
     GHash *used_strokes = BLI_ghash_ptr_new(__func__);
     GHash *pair_strokes = BLI_ghash_ptr_new(__func__);
-
     LISTBASE_FOREACH (bGPDstroke *, gps_from, &prevFrame->strokes) {
       bGPDstroke *gps_to = NULL;
       /* Only selected. */
@@ -1342,7 +1353,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         }
       }
 
-      /* Insert the pair entry in the hash table. */
+      /* Insert the pair entry in the hash table and in the list of strokes to keep same order.
+       */
+      BLI_addtail(&selected_strokes, BLI_genericNodeN(gps_from));
       BLI_ghash_insert(pair_strokes, gps_from, gps_to);
     }
 
@@ -1369,11 +1382,12 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       }
 
       /* Apply the factor to all pair of strokes. */
-      GHashIterator gh_iter;
-      GHASH_ITER (gh_iter, pair_strokes) {
-        bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-        bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
-
+      LISTBASE_FOREACH (LinkData *, link, &selected_strokes) {
+        bGPDstroke *gps_from = link->data;
+        if (!BLI_ghash_haskey(pair_strokes, gps_from)) {
+          continue;
+        }
+        bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(pair_strokes, gps_from);
         /* Create new stroke. */
         bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps_from, true, true);
         new_stroke->flag |= GP_STROKE_TAG;
@@ -1393,6 +1407,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         BLI_addtail(&interFrame->strokes, new_stroke);
       }
     }
+
+    BLI_freelistN(&selected_strokes);
 
     /* Free Hash tablets. */
     if (used_strokes != NULL) {
@@ -1427,15 +1443,26 @@ static void gpencil_interpolate_seq_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "step", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "layers", 0, NULL, ICON_NONE);
+
+  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL) {
+    row = uiLayoutRow(layout, true);
+    uiItemR(row, &ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
+  }
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "flip", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "step", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "layers", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "flip", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "smooth_factor", 0, NULL, ICON_NONE);
   uiItemR(col, &ptr, "smooth_steps", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "type", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(layout, true);
+  uiItemR(row, &ptr, "type", 0, NULL, ICON_NONE);
 
   if (type == GP_IPO_CURVEMAP) {
     /* Get an RNA pointer to ToolSettings to give to the custom curve. */

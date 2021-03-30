@@ -20,6 +20,8 @@
 
 #include "COM_MixOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -39,13 +41,15 @@ class ColorMatteOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setSettings(NodeChroma *nodeChroma)
   {
     this->m_settings = nodeChroma;
   }
 };
+
+}  // namespace blender::compositor

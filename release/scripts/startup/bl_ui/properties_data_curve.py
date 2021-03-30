@@ -175,6 +175,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         sub.prop(curve, "extrude")
 
         col.prop(curve, "taper_object")
+        col.prop(curve, "taper_radius_mode")
 
         if type(curve) is not TextCurve:
             # This setting makes no sense for texts, since we have no control over start/end of the bevel object curve.

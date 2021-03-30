@@ -18,6 +18,8 @@
 
 #include "COM_SwitchNode.h"
 
+namespace blender::compositor {
+
 SwitchNode::SwitchNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void SwitchNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(getOutputSocket(0), result);
 }
+
+}  // namespace blender::compositor

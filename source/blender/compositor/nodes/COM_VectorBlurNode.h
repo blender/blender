@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief VectorBlurNode
  * \ingroup Node
@@ -27,5 +29,8 @@
 class VectorBlurNode : public Node {
  public:
   VectorBlurNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

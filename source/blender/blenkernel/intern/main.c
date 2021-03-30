@@ -182,7 +182,7 @@ void BKE_main_free(Main *mainvar)
           BKE_id_free_ex(mainvar, id, free_flag, false);
           break;
         default:
-          BLI_assert(0);
+          BLI_assert_unreachable();
           break;
       }
 #endif

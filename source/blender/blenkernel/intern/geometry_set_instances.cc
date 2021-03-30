@@ -153,16 +153,13 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
  *
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
-Vector<GeometryInstanceGroup> geometry_set_gather_instances(const GeometrySet &geometry_set)
+void geometry_set_gather_instances(const GeometrySet &geometry_set,
+                                   Vector<GeometryInstanceGroup> &r_instance_groups)
 {
-  Vector<GeometryInstanceGroup> result_vector;
-
   float4x4 unit_transform;
   unit_m4(unit_transform.values);
 
-  geometry_set_collect_recursive(geometry_set, unit_transform, result_vector);
-
-  return result_vector;
+  geometry_set_collect_recursive(geometry_set, unit_transform, r_instance_groups);
 }
 
 void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
@@ -436,7 +433,8 @@ GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_s
   }
 
   GeometrySet new_geometry_set = geometry_set;
-  Vector<GeometryInstanceGroup> set_groups = geometry_set_gather_instances(geometry_set);
+  Vector<GeometryInstanceGroup> set_groups;
+  geometry_set_gather_instances(geometry_set, set_groups);
   join_instance_groups_mesh(set_groups, true, new_geometry_set);
   /* Remove all instances, even though some might contain other non-mesh data. We can't really
    * keep only non-mesh instances in general. */
@@ -454,7 +452,8 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
 
   GeometrySet new_geometry_set;
 
-  Vector<GeometryInstanceGroup> set_groups = geometry_set_gather_instances(geometry_set);
+  Vector<GeometryInstanceGroup> set_groups;
+  geometry_set_gather_instances(geometry_set, set_groups);
   join_instance_groups_mesh(set_groups, false, new_geometry_set);
   join_instance_groups_pointcloud(set_groups, new_geometry_set);
   join_instance_groups_volume(set_groups, new_geometry_set);

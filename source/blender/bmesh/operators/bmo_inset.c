@@ -531,7 +531,7 @@ static float bm_edge_info_average_length(BMVert *v, SplitEdgeInfo *edge_info)
   return -1.0f;
 }
 
-/**.
+/**
  * Fill in any vertices that are in the inset region but not connected to an edge being inset.
  *
  *

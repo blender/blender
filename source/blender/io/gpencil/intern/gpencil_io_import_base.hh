@@ -13,7 +13,29 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2011, Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation
+ * All rights reserved.
  */
+#pragma once
 
-#include "COM_SocketReader.h"
+/** \file
+ * \ingroup bgpencil
+ */
+#include "gpencil_io_base.hh"
+
+namespace blender::io::gpencil {
+
+class GpencilImporter : public GpencilIO {
+
+ public:
+  GpencilImporter(const struct GpencilIOParams *iparams);
+  virtual bool read() = 0;
+
+ protected:
+  struct Object *create_object();
+  int32_t create_material(const char *name, const bool stroke, const bool fill);
+
+ private:
+};
+
+}  // namespace blender::io::gpencil

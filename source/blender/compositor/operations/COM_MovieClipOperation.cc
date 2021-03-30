@@ -26,6 +26,8 @@
 
 #include "IMB_imbuf.h"
 
+namespace blender::compositor {
+
 MovieClipBaseOperation::MovieClipBaseOperation()
 {
   this->m_movieClip = nullptr;
@@ -101,13 +103,13 @@ void MovieClipBaseOperation::executePixelSampled(float output[4],
   }
   else {
     switch (sampler) {
-      case COM_PS_NEAREST:
+      case PixelSampler::Nearest:
         nearest_interpolation_color(ibuf, nullptr, output, x, y);
         break;
-      case COM_PS_BILINEAR:
+      case PixelSampler::Bilinear:
         bilinear_interpolation_color(ibuf, nullptr, output, x, y);
         break;
-      case COM_PS_BICUBIC:
+      case PixelSampler::Bicubic:
         bicubic_interpolation_color(ibuf, nullptr, output, x, y);
         break;
     }
@@ -133,3 +135,5 @@ void MovieClipAlphaOperation::executePixelSampled(float output[4],
   MovieClipBaseOperation::executePixelSampled(result, x, y, sampler);
   output[0] = result[3];
 }
+
+}  // namespace blender::compositor

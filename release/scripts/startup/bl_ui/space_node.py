@@ -163,7 +163,7 @@ class NODE_HT_header(Header):
                 row.template_ID(snode, "node_tree", new="node.new_geometry_node_group_assign")
             elif ob:
                 active_modifier = ob.modifiers.active
-                if active_modifier and active_modifier.type == "NODES":
+                if active_modifier and active_modifier.type == 'NODES':
                     if active_modifier.node_group:
                         row.template_ID(active_modifier, "node_group", new="node.copy_geometry_node_group_assign")
                     else:
@@ -481,7 +481,7 @@ class NODE_MT_context_menu(Menu):
 class NODE_PT_active_node_generic(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Item"
+    bl_category = "Node"
     bl_label = "Node"
 
     @classmethod
@@ -499,7 +499,7 @@ class NODE_PT_active_node_generic(Panel):
 class NODE_PT_active_node_color(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Item"
+    bl_category = "Node"
     bl_label = "Color"
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = 'NODE_PT_active_node_generic'
@@ -529,7 +529,7 @@ class NODE_PT_active_node_color(Panel):
 class NODE_PT_active_node_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Item"
+    bl_category = "Node"
     bl_label = "Properties"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -570,7 +570,7 @@ class NODE_PT_active_node_properties(Panel):
 class NODE_PT_texture_mapping(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_category = "Item"
+    bl_category = "Node"
     bl_label = "Texture Mapping"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}

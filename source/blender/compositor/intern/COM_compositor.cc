@@ -92,12 +92,12 @@ void COM_execute(RenderData *render_data,
 
   /* Initialize workscheduler. */
   const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
-  WorkScheduler::initialize(use_opencl, BKE_render_num_threads(render_data));
+  blender::compositor::WorkScheduler::initialize(use_opencl, BKE_render_num_threads(render_data));
 
   /* Execute. */
   const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
   if (twopass) {
-    ExecutionSystem fast_pass(
+    blender::compositor::ExecutionSystem fast_pass(
         render_data, scene, node_tree, rendering, true, viewSettings, displaySettings, viewName);
     fast_pass.execute();
 
@@ -107,7 +107,7 @@ void COM_execute(RenderData *render_data,
     }
   }
 
-  ExecutionSystem system(
+  blender::compositor::ExecutionSystem system(
       render_data, scene, node_tree, rendering, false, viewSettings, displaySettings, viewName);
   system.execute();
 
@@ -118,7 +118,7 @@ void COM_deinitialize()
 {
   if (g_compositor.is_initialized) {
     BLI_mutex_lock(&g_compositor.mutex);
-    WorkScheduler::deinitialize();
+    blender::compositor::WorkScheduler::deinitialize();
     g_compositor.is_initialized = false;
     BLI_mutex_unlock(&g_compositor.mutex);
     BLI_mutex_end(&g_compositor.mutex);

@@ -123,7 +123,7 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
     IMB_scaleImBuf(self->ibuf, UNPACK2(size));
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
   Py_RETURN_NONE;
 }

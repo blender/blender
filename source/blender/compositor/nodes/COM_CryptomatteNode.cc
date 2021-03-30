@@ -31,6 +31,8 @@
 #include <iterator>
 #include <string>
 
+namespace blender::compositor {
+
 /** \name Cryptomatte base
  * \{ */
 
@@ -261,3 +263,5 @@ CryptomatteOperation *CryptomatteLegacyNode::create_cryptomatte_operation(
 }
 
 /* \} */
+
+}  // namespace blender::compositor

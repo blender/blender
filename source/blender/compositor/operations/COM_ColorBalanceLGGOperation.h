@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -45,17 +47,17 @@ class ColorBalanceLGGOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setGain(const float gain[3])
   {
@@ -70,3 +72,5 @@ class ColorBalanceLGGOperation : public NodeOperation {
     copy_v3_v3(this->m_gamma_inv, gamma_inv);
   }
 };
+
+}  // namespace blender::compositor

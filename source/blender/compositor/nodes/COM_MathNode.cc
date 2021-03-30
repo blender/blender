@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MathBaseOperation.h"
 
+namespace blender::compositor {
+
 void MathNode::convertToOperations(NodeConverter &converter,
                                    const CompositorContext & /*context*/) const
 {
@@ -159,3 +161,5 @@ void MathNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

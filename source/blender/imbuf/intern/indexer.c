@@ -539,10 +539,22 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   AVDictionary *codec_opts = NULL;
   /* High quality preset value. */
   av_dict_set_int(&codec_opts, "crf", crf, 0);
-  /* Prefer smaller filesize. */
+  /* Prefer smaller file-size. */
   av_dict_set(&codec_opts, "preset", "slow", 0);
-  /* Thread count. */
-  av_dict_set_int(&codec_opts, "threads", BLI_system_thread_count(), 0);
+
+  if (rv->codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+    rv->c->thread_count = 0;
+  }
+  else {
+    rv->c->thread_count = BLI_system_thread_count();
+  }
+
+  if (rv->codec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    rv->c->thread_type = FF_THREAD_FRAME;
+  }
+  else if (rv->codec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    rv->c->thread_type = FF_THREAD_SLICE;
+  }
 
   if (rv->of->flags & AVFMT_GLOBALHEADER) {
     rv->c->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -794,11 +806,21 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim,
 
   context->iCodecCtx->workaround_bugs = 1;
 
-  AVDictionary *codec_opts = NULL;
-  /* Thread count. */
-  av_dict_set_int(&codec_opts, "threads", BLI_system_thread_count(), 0);
+  if (context->iCodec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
+    context->iCodecCtx->thread_count = 0;
+  }
+  else {
+    context->iCodecCtx->thread_count = BLI_system_thread_count();
+  }
 
-  if (avcodec_open2(context->iCodecCtx, context->iCodec, &codec_opts) < 0) {
+  if (context->iCodec->capabilities & AV_CODEC_CAP_FRAME_THREADS) {
+    context->iCodecCtx->thread_type = FF_THREAD_FRAME;
+  }
+  else if (context->iCodec->capabilities & AV_CODEC_CAP_SLICE_THREADS) {
+    context->iCodecCtx->thread_type = FF_THREAD_SLICE;
+  }
+
+  if (avcodec_open2(context->iCodecCtx, context->iCodec, NULL) < 0) {
     avformat_close_input(&context->iFormatCtx);
     MEM_freeN(context);
     return NULL;

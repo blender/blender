@@ -25,6 +25,8 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_TranslateOperation.h"
 
+namespace blender::compositor {
+
 RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -174,3 +176,5 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter,
     missingRenderLink(converter);
   }
 }
+
+}  // namespace blender::compositor

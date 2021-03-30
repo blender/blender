@@ -22,13 +22,14 @@
 
 #include <map>
 #include <set>
-#include <vector>
 
 #include "DNA_node_types.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
+
+namespace blender::compositor {
 
 class CompositorContext;
 class Node;
@@ -50,18 +51,15 @@ class NodeGraph {
     }
   };
 
-  typedef std::vector<Node *> Nodes;
-  typedef Nodes::iterator NodeIterator;
-
  private:
-  Nodes m_nodes;
+  blender::Vector<Node *> m_nodes;
   blender::Vector<Link> m_links;
 
  public:
   NodeGraph();
   ~NodeGraph();
 
-  const Nodes &nodes() const
+  const blender::Vector<Node *> &nodes() const
   {
     return m_nodes;
   }
@@ -73,7 +71,8 @@ class NodeGraph {
   void from_bNodeTree(const CompositorContext &context, bNodeTree *tree);
 
  protected:
-  typedef std::pair<NodeIterator, NodeIterator> NodeRange;
+  typedef std::pair<blender::Vector<Node *>::iterator, blender::Vector<Node *>::iterator>
+      NodeRange;
   typedef std::vector<NodeInput *> NodeInputs;
 
   static bNodeSocket *find_b_node_input(bNode *b_node, const char *identifier);
@@ -124,3 +123,5 @@ class NodeGraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeGraph")
 #endif
 };
+
+}  // namespace blender::compositor

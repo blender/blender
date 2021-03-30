@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 
-import bpy
 from bpy.types import Header, Menu, Panel
 from bl_ui.space_dopesheet import (
     DopesheetFilterPopoverBase,
@@ -120,10 +119,6 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
-
-        if bpy.app.version < (2, 93):
-            layout.operator("anim.show_group_colors_deprecated", icon='CHECKBOX_HLT')
-
         layout.prop(st, "use_auto_merge_keyframes")
 
         if st.mode != 'DRIVERS':
@@ -136,7 +131,7 @@ class GRAPH_MT_view(Menu):
         layout.separator()
 
         layout.prop(st, "show_extrapolation")
-        
+
         layout.prop(st, "show_handles")
 
         layout.prop(st, "use_only_selected_curves_handles")

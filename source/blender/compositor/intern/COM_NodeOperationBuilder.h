@@ -24,6 +24,8 @@
 
 #include "COM_NodeGraph.h"
 
+namespace blender::compositor {
+
 class CompositorContext;
 
 class Node;
@@ -157,3 +159,5 @@ class NodeOperationBuilder {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
 #endif
 };
+
+}  // namespace blender::compositor

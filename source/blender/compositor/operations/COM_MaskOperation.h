@@ -23,6 +23,11 @@
 #include "DNA_mask_types.h"
 #include "IMB_imbuf_types.h"
 
+/* Forward declarations. */
+struct MaskRasterHandle;
+
+namespace blender::compositor {
+
 /**
  * Class with implementation of mask rasterization
  */
@@ -49,13 +54,14 @@ class MaskOperation : public NodeOperation {
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
  public:
   MaskOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setMask(Mask *mask)
   {
@@ -91,5 +97,7 @@ class MaskOperation : public NodeOperation {
     this->m_frame_shutter = shutter;
   }
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

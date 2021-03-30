@@ -31,6 +31,8 @@ class ExecutionGroup;
 
 #include "BLI_vector.hh"
 
+namespace blender::compositor {
+
 /**
  * \page execution Execution model
  * In order to get to an efficient model for execution, several steps are being done. these steps
@@ -70,17 +72,17 @@ class ExecutionGroup;
  *
  *   - Image size conversions: the system can automatically convert when resolutions do not match.
  *     An NodeInput has a resize mode. This can be any of the following settings.
- *     - [@ref InputSocketResizeMode.COM_SC_CENTER]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::Center]:
  *       The center of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT_WIDTH]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitWidth]:
  *       The width of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT_HEIGHT]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitHeight]:
  *       The height of both images are aligned
- *     - [@ref InputSocketResizeMode.COM_SC_FIT]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::FitAny]:
  *       The width, or the height of both images are aligned to make sure that it fits.
- *     - [@ref InputSocketResizeMode.COM_SC_STRETCH]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::Stretch]:
  *       The width and the height of both images are aligned.
- *     - [@ref InputSocketResizeMode.COM_SC_NO_RESIZE]:
+ *     - [@ref InputSocketResizeMode.ResizeMode::None]:
  *       Bottom left of the images are aligned.
  *
  * \see COM_convert_data_type Datatype conversions
@@ -135,12 +137,6 @@ class ExecutionSystem {
   blender::Vector<ExecutionGroup *> m_groups;
 
  private:  // methods
-  /**
-   * find all execution group with output nodes
-   */
-  blender::Vector<ExecutionGroup *> find_output_execution_groups(
-      CompositorPriority priority) const;
-
  public:
   /**
    * \brief Create a new ExecutionSystem and initialize it with the
@@ -192,3 +188,5 @@ class ExecutionSystem {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
 #endif
 };
+
+}  // namespace blender::compositor

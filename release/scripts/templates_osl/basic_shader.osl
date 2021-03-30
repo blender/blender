@@ -1,0 +1,10 @@
+shader basic_shader(
+    float in_float = 1.0,
+    color in_color = color(1.0, 1.0, 1.0),
+    output float out_float = 0.0,
+    output color out_color = color(0.0, 0.0, 0.0)
+    )
+{
+    out_float = in_float * 2.0;
+    out_color = in_color * 2.0;
+}

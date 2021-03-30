@@ -41,7 +41,7 @@ extern "C" {
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNode *node,
                                                   struct bNodeSocketTemplate *stemp,
-                                                  int in_out);
+                                                  eNodeSocketInOut in_out);
 
 void node_verify_socket_templates(struct bNodeTree *ntree, struct bNode *node);
 

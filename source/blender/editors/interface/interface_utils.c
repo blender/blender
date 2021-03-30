@@ -62,10 +62,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                      int index,
                      const char *name,
                      int icon,
-                     int x1,
-                     int y1,
-                     int x2,
-                     int y2)
+                     int x,
+                     int y,
+                     int width,
+                     int height)
 {
   uiBut *but = NULL;
 
@@ -80,10 +80,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                  UI_BTYPE_ICON_TOGGLE,
                                  0,
                                  icon,
-                                 x1,
-                                 y1,
-                                 x2,
-                                 y2,
+                                 x,
+                                 y,
+                                 width,
+                                 height,
                                  ptr,
                                  prop,
                                  index,
@@ -99,10 +99,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      icon,
                                      name,
-                                     x1,
-                                     y1,
-                                     x2,
-                                     y2,
+                                     x,
+                                     y,
+                                     width,
+                                     height,
                                      ptr,
                                      prop,
                                      index,
@@ -117,10 +117,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              UI_BTYPE_CHECKBOX,
                              0,
                              name,
-                             x1,
-                             y1,
-                             x2,
-                             y2,
+                             x,
+                             y,
+                             width,
+                             height,
                              ptr,
                              prop,
                              index,
@@ -136,8 +136,22 @@ uiBut *uiDefAutoButR(uiBlock *block,
     case PROP_FLOAT: {
       if (RNA_property_array_check(prop) && index == -1) {
         if (ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA)) {
-          but = uiDefButR_prop(
-              block, UI_BTYPE_COLOR, 0, name, x1, y1, x2, y2, ptr, prop, -1, 0, 0, 0, 0, NULL);
+          but = uiDefButR_prop(block,
+                               UI_BTYPE_COLOR,
+                               0,
+                               name,
+                               x,
+                               y,
+                               width,
+                               height,
+                               ptr,
+                               prop,
+                               -1,
+                               0,
+                               0,
+                               0,
+                               0,
+                               NULL);
         }
         else {
           return NULL;
@@ -149,10 +163,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              UI_BTYPE_NUM_SLIDER,
                              0,
                              name,
-                             x1,
-                             y1,
-                             x2,
-                             y2,
+                             x,
+                             y,
+                             width,
+                             height,
                              ptr,
                              prop,
                              index,
@@ -164,7 +178,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       }
       else {
         but = uiDefButR_prop(
-            block, UI_BTYPE_NUM, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, 0, 0, NULL);
+            block, UI_BTYPE_NUM, 0, name, x, y, width, height, ptr, prop, index, 0, 0, 0, 0, NULL);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -174,8 +188,22 @@ uiBut *uiDefAutoButR(uiBlock *block,
     }
     case PROP_ENUM:
       if (icon && name && name[0] == '\0') {
-        but = uiDefIconButR_prop(
-            block, UI_BTYPE_MENU, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+        but = uiDefIconButR_prop(block,
+                                 UI_BTYPE_MENU,
+                                 0,
+                                 icon,
+                                 x,
+                                 y,
+                                 width,
+                                 height,
+                                 ptr,
+                                 prop,
+                                 index,
+                                 0,
+                                 0,
+                                 -1,
+                                 -1,
+                                 NULL);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
@@ -183,10 +211,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      icon,
                                      NULL,
-                                     x1,
-                                     y1,
-                                     x2,
-                                     y2,
+                                     x,
+                                     y,
+                                     width,
+                                     height,
                                      ptr,
                                      prop,
                                      index,
@@ -197,14 +225,42 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      NULL);
       }
       else {
-        but = uiDefButR_prop(
-            block, UI_BTYPE_MENU, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+        but = uiDefButR_prop(block,
+                             UI_BTYPE_MENU,
+                             0,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             -1,
+                             -1,
+                             NULL);
       }
       break;
     case PROP_STRING:
       if (icon && name && name[0] == '\0') {
-        but = uiDefIconButR_prop(
-            block, UI_BTYPE_TEXT, 0, icon, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+        but = uiDefIconButR_prop(block,
+                                 UI_BTYPE_TEXT,
+                                 0,
+                                 icon,
+                                 x,
+                                 y,
+                                 width,
+                                 height,
+                                 ptr,
+                                 prop,
+                                 index,
+                                 0,
+                                 0,
+                                 -1,
+                                 -1,
+                                 NULL);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
@@ -212,10 +268,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      icon,
                                      name,
-                                     x1,
-                                     y1,
-                                     x2,
-                                     y2,
+                                     x,
+                                     y,
+                                     width,
+                                     height,
                                      ptr,
                                      prop,
                                      index,
@@ -226,8 +282,22 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      NULL);
       }
       else {
-        but = uiDefButR_prop(
-            block, UI_BTYPE_TEXT, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+        but = uiDefButR_prop(block,
+                             UI_BTYPE_TEXT,
+                             0,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             -1,
+                             -1,
+                             NULL);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -250,10 +320,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    0,
                                    icon,
                                    name,
-                                   x1,
-                                   y1,
-                                   x2,
-                                   y2,
+                                   x,
+                                   y,
+                                   width,
+                                   height,
                                    ptr,
                                    prop,
                                    index,
@@ -268,7 +338,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       char text[256];
       BLI_snprintf(
           text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
-      but = uiDefBut(block, UI_BTYPE_LABEL, 0, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, NULL);
+      but = uiDefBut(block, UI_BTYPE_LABEL, 0, text, x, y, width, height, NULL, 0, 0, 0, 0, NULL);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
       break;
     }

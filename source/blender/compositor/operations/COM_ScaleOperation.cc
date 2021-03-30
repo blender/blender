@@ -18,6 +18,8 @@
 
 #include "COM_ScaleOperation.h"
 
+namespace blender::compositor {
+
 #define USE_FORCE_BILINEAR
 /* XXX - ignore input and use default from old compositor,
  * could become an option like the transform node - campbell
@@ -28,7 +30,7 @@
 BaseScaleOperation::BaseScaleOperation()
 {
 #ifdef USE_FORCE_BILINEAR
-  m_sampler = (int)COM_PS_BILINEAR;
+  m_sampler = (int)PixelSampler::Bilinear;
 #else
   m_sampler = -1;
 #endif
@@ -89,8 +91,8 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input,
     float scaleX[4];
     float scaleY[4];
 
-    this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
-    this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
+    this->m_inputXOperation->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
+    this->m_inputYOperation->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
 
     const float scx = scaleX[0];
     const float scy = scaleY[0];
@@ -174,8 +176,8 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
     float scaleX[4];
     float scaleY[4];
 
-    this->m_inputXOperation->readSampled(scaleX, 0, 0, COM_PS_NEAREST);
-    this->m_inputYOperation->readSampled(scaleY, 0, 0, COM_PS_NEAREST);
+    this->m_inputXOperation->readSampled(scaleX, 0, 0, PixelSampler::Nearest);
+    this->m_inputYOperation->readSampled(scaleY, 0, 0, PixelSampler::Nearest);
 
     const float scx = scaleX[0];
     const float scy = scaleY[0];
@@ -203,7 +205,7 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input,
 // Absolute fixed size
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
-  this->addInputSocket(DataType::Color, COM_SC_NO_RESIZE);
+  this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
@@ -308,3 +310,5 @@ void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = this->m_newWidth;
   resolution[1] = this->m_newHeight;
 }
+
+}  // namespace blender::compositor

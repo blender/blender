@@ -25,6 +25,8 @@
 
 #include "COM_VectorBlurOperation.h"
 
+namespace blender::compositor {
+
 /* Defined */
 #define PASS_VECTOR_MAX 10000.0f
 
@@ -54,7 +56,7 @@ VectorBlurOperation::VectorBlurOperation()
   this->m_inputImageProgram = nullptr;
   this->m_inputSpeedProgram = nullptr;
   this->m_inputZProgram = nullptr;
-  setComplex(true);
+  flags.complex = true;
 }
 void VectorBlurOperation::initExecution()
 {
@@ -897,3 +899,5 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   }
   zbuf_free_span(&zspan);
 }
+
+}  // namespace blender::compositor

@@ -53,8 +53,8 @@ set(SRC
   intern/MOD_gpencilbuild.c
   intern/MOD_gpencilcolor.c
   intern/MOD_gpencilhook.c
-  intern/MOD_gpencillineart.c
   intern/MOD_gpencillattice.c
+  intern/MOD_gpencillineart.c
   intern/MOD_gpencilmirror.c
   intern/MOD_gpencilmultiply.c
   intern/MOD_gpencilnoise.c
@@ -68,18 +68,19 @@ set(SRC
   intern/MOD_gpenciltime.c
   intern/MOD_gpenciltint.c
 
+  MOD_gpencil_lineart.h
   MOD_gpencil_modifiertypes.h
   intern/MOD_gpencil_ui_common.h
   intern/MOD_gpencil_util.h
 
   # Lineart code
-  intern/lineart/lineart_ops.c
-  intern/lineart/lineart_cpu.c
   intern/lineart/lineart_chain.c
+  intern/lineart/lineart_cpu.c
+  intern/lineart/lineart_ops.c
   intern/lineart/lineart_util.c
 
-  intern/lineart/lineart_intern.h
   intern/lineart/MOD_lineart.h
+  intern/lineart/lineart_intern.h
 
 )
 

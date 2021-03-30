@@ -488,7 +488,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
   }
   else {
     /* sequence type not handled in duplicate! Expect a crash now... */
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 
   /* When using SEQ_DUPE_UNIQUE_NAME, it is mandatory to add new sequences in relevant container

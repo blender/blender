@@ -21,6 +21,8 @@
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class DenoiseOperation : public SingleThreadedOperation {
  private:
   /**
@@ -40,12 +42,12 @@ class DenoiseOperation : public SingleThreadedOperation {
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setDenoiseSettings(NodeDenoise *settings)
   {
@@ -53,7 +55,7 @@ class DenoiseOperation : public SingleThreadedOperation {
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
  protected:
   void generateDenoise(float *data,
@@ -62,5 +64,7 @@ class DenoiseOperation : public SingleThreadedOperation {
                        MemoryBuffer *inputTileAlbedo,
                        NodeDenoise *settings);
 
-  MemoryBuffer *createMemoryBuffer(rcti *rect);
+  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
 };
+
+}  // namespace blender::compositor

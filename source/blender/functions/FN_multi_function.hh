@@ -53,7 +53,7 @@ namespace blender::fn {
 
 class MultiFunction {
  private:
-  MFSignature signature_;
+  const MFSignature *signature_ref_ = nullptr;
 
  public:
   virtual ~MultiFunction()
@@ -64,7 +64,7 @@ class MultiFunction {
 
   virtual uint64_t hash() const
   {
-    return DefaultHash<const MultiFunction *>{}(this);
+    return get_default_hash(this);
   }
 
   virtual bool equals(const MultiFunction &UNUSED(other)) const
@@ -74,44 +74,50 @@ class MultiFunction {
 
   int param_amount() const
   {
-    return signature_.param_types.size();
+    return signature_ref_->param_types.size();
   }
 
   IndexRange param_indices() const
   {
-    return signature_.param_types.index_range();
+    return signature_ref_->param_types.index_range();
   }
 
   MFParamType param_type(int param_index) const
   {
-    return signature_.param_types[param_index];
+    return signature_ref_->param_types[param_index];
   }
 
   StringRefNull param_name(int param_index) const
   {
-    return signature_.param_names[param_index];
+    return signature_ref_->param_names[param_index];
   }
 
   StringRefNull name() const
   {
-    return signature_.function_name;
+    return signature_ref_->function_name;
   }
 
   bool depends_on_context() const
   {
-    return signature_.depends_on_context;
+    return signature_ref_->depends_on_context;
   }
 
   const MFSignature &signature() const
   {
-    return signature_;
+    BLI_assert(signature_ref_ != nullptr);
+    return *signature_ref_;
   }
 
  protected:
-  MFSignatureBuilder get_builder(std::string function_name)
+  /* Make the function use the given signature. This should be called once in the constructor of
+   * child classes. No copy of the signature is made, so the caller has to make sure that the
+   * signature lives as long as the multi function. It is ok to embed the signature into the child
+   * class. */
+  void set_signature(const MFSignature *signature)
   {
-    signature_.function_name = std::move(function_name);
-    return MFSignatureBuilder(signature_);
+    /* Take a pointer as argument, so that it is more obvious that no copy is created. */
+    BLI_assert(signature != nullptr);
+    signature_ref_ = signature;
   }
 };
 

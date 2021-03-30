@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 DisplaceOperation::DisplaceOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -27,7 +29,7 @@ DisplaceOperation::DisplaceOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 
   this->m_inputColorProgram = nullptr;
   this->m_inputVectorProgram = nullptr;
@@ -56,7 +58,7 @@ void DisplaceOperation::executePixelSampled(float output[4],
 
   pixelTransform(xy, uv, deriv);
   if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
-    this->m_inputColorProgram->readSampled(output, uv[0], uv[1], COM_PS_BILINEAR);
+    this->m_inputColorProgram->readSampled(output, uv[0], uv[1], PixelSampler::Bilinear);
   }
   else {
     /* EWA filtering (without nearest it gets blurry with NO distortion) */
@@ -76,7 +78,7 @@ bool DisplaceOperation::read_displacement(
   }
 
   float col[4];
-  m_inputVectorProgram->readSampled(col, x, y, COM_PS_BILINEAR);
+  m_inputVectorProgram->readSampled(col, x, y, PixelSampler::Bilinear);
   r_u = origin[0] - col[0] * xscale;
   r_v = origin[1] - col[1] * yscale;
   return true;
@@ -88,9 +90,9 @@ void DisplaceOperation::pixelTransform(const float xy[2], float r_uv[2], float r
   float uv[2]; /* temporary variables for derivative estimation */
   int num;
 
-  m_inputScaleXProgram->readSampled(col, xy[0], xy[1], COM_PS_NEAREST);
+  m_inputScaleXProgram->readSampled(col, xy[0], xy[1], PixelSampler::Nearest);
   float xs = col[0];
-  m_inputScaleYProgram->readSampled(col, xy[0], xy[1], COM_PS_NEAREST);
+  m_inputScaleYProgram->readSampled(col, xy[0], xy[1], PixelSampler::Nearest);
   float ys = col[0];
   /* clamp x and y displacement to triple image resolution -
    * to prevent hangs from huge values mistakenly plugged in eg. z buffers */
@@ -192,3 +194,5 @@ bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input,
 
   return false;
 }
+
+}  // namespace blender::compositor

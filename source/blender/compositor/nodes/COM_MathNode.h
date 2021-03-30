@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief MathNode
  * \ingroup Node
@@ -29,5 +31,8 @@ class MathNode : public Node {
   MathNode(bNode *editorNode) : Node(editorNode)
   {
   }
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

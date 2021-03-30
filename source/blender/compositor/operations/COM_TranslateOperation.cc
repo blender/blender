@@ -18,6 +18,8 @@
 
 #include "COM_TranslateOperation.h"
 
+namespace blender::compositor {
+
 TranslateOperation::TranslateOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -56,7 +58,7 @@ void TranslateOperation::executePixelSampled(float output[4],
   float originalXPos = x - this->getDeltaX();
   float originalYPos = y - this->getDeltaY();
 
-  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, COM_PS_BILINEAR);
+  this->m_inputOperation->readSampled(output, originalXPos, originalYPos, PixelSampler::Bilinear);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input,
@@ -80,3 +82,5 @@ void TranslateOperation::setFactorXY(float factorX, float factorY)
   m_factorX = factorX;
   m_factorY = factorY;
 }
+
+}  // namespace blender::compositor

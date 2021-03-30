@@ -19,19 +19,21 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SunBeamsOperation : public NodeOperation {
  public:
   SunBeamsOperation();
 
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   void setData(const NodeSunBeams &data)
   {
@@ -44,3 +46,5 @@ class SunBeamsOperation : public NodeOperation {
   float m_source_px[2];
   float m_ray_length_px;
 };
+
+}  // namespace blender::compositor

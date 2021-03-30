@@ -20,12 +20,15 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
   this->m_single_value = false;
   this->m_offset = 0;
   this->m_buffer = nullptr;
+  flags.is_read_buffer_operation = true;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
@@ -60,14 +63,14 @@ void ReadBufferOperation::executePixelSampled(float output[4],
   }
   else {
     switch (sampler) {
-      case COM_PS_NEAREST:
+      case PixelSampler::Nearest:
         m_buffer->read(output, x, y);
         break;
-      case COM_PS_BILINEAR:
+      case PixelSampler::Bilinear:
       default:
         m_buffer->readBilinear(output, x, y);
         break;
-      case COM_PS_BICUBIC:
+      case PixelSampler::Bicubic:
         m_buffer->readBilinear(output, x, y);
         break;
     }
@@ -85,7 +88,7 @@ void ReadBufferOperation::executePixelExtend(float output[4],
     /* write buffer has a single value stored at (0,0) */
     m_buffer->read(output, 0, 0);
   }
-  else if (sampler == COM_PS_NEAREST) {
+  else if (sampler == PixelSampler::Nearest) {
     m_buffer->read(output, x, y, extend_x, extend_y);
   }
   else {
@@ -131,3 +134,5 @@ void ReadBufferOperation::updateMemoryBuffer()
 {
   this->m_buffer = this->getMemoryProxy()->getBuffer();
 }
+
+}  // namespace blender::compositor

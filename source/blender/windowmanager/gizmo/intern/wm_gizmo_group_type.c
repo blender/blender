@@ -18,6 +18,8 @@
  * \ingroup wm
  */
 
+#include <stdio.h>
+
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 

@@ -23,6 +23,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 KeyingBlurOperation::KeyingBlurOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -31,7 +33,7 @@ KeyingBlurOperation::KeyingBlurOperation()
   this->m_size = 0;
   this->m_axis = BLUR_AXIS_X;
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void *KeyingBlurOperation::initializeTileData(rcti *rect)
@@ -93,3 +95,5 @@ bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

@@ -20,6 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 static unsigned int determine_num_channels(DataType datatype)
 {
   switch (datatype) {
@@ -183,3 +185,5 @@ void MemoryBuffer::readEWA(float *result, const float uv[2], const float derivat
                  this,
                  result);
 }
+
+}  // namespace blender::compositor

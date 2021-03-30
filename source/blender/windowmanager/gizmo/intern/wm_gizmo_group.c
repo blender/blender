@@ -324,7 +324,7 @@ bool wm_gizmogroup_is_visible_in_drawstep(const wmGizmoGroup *gzgroup,
     case WM_GIZMOMAP_DRAWSTEP_3D:
       return (gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D);
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return false;
   }
 }
@@ -393,7 +393,7 @@ static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     return OPERATOR_FINISHED;
   }
 
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 }
 
@@ -498,7 +498,7 @@ static int gizmo_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
   bool clear_modal = true;
 
   if (gz == NULL) {
-    BLI_assert(0);
+    BLI_assert_unreachable();
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
@@ -585,7 +585,7 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (!gz) {
     /* wm_handlers_do_intern shouldn't let this happen */
-    BLI_assert(0);
+    BLI_assert_unreachable();
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 

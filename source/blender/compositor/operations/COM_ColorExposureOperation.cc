@@ -18,6 +18,8 @@
 
 #include "COM_ColorExposureOperation.h"
 
+namespace blender::compositor {
+
 ExposureOperation::ExposureOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -55,3 +57,5 @@ void ExposureOperation::deinitExecution()
   this->m_inputProgram = nullptr;
   this->m_inputExposureProgram = nullptr;
 }
+
+}  // namespace blender::compositor

@@ -32,6 +32,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 /* ******** Render Layers Base Prog ******** */
 
 RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize)
@@ -92,7 +94,7 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
   }
 
   switch (sampler) {
-    case COM_PS_NEAREST: {
+    case PixelSampler::Nearest: {
       offset = (iy * width + ix) * this->m_elementsize;
 
       if (this->m_elementsize == 1) {
@@ -107,12 +109,12 @@ void RenderLayersProg::doInterpolation(float output[4], float x, float y, PixelS
       break;
     }
 
-    case COM_PS_BILINEAR:
+    case PixelSampler::Bilinear:
       BLI_bilinear_interpolation_fl(
           this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
       break;
 
-    case COM_PS_BICUBIC:
+    case PixelSampler::Bicubic:
       BLI_bicubic_interpolation_fl(
           this->m_inputBuffer, output, width, height, this->m_elementsize, x, y);
       break;
@@ -216,7 +218,7 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2],
   }
 }
 
-std::unique_ptr<MetaData> RenderLayersProg::getMetaData() const
+std::unique_ptr<MetaData> RenderLayersProg::getMetaData()
 {
   Scene *scene = this->getScene();
   Render *re = (scene) ? RE_GetSceneRender(scene) : nullptr;
@@ -306,3 +308,5 @@ void RenderLayersDepthProg::executePixelSampled(float output[4],
     output[0] = inputBuffer[offset];
   }
 }
+
+}  // namespace blender::compositor

@@ -22,6 +22,8 @@
 #include "COM_LuminanceMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -51,3 +53,5 @@ void LuminanceMatteNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

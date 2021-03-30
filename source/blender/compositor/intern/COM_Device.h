@@ -20,6 +20,8 @@
 
 #include "COM_WorkPackage.h"
 
+namespace blender::compositor {
+
 /**
  * \brief Abstract class for device implementations to be used by the Compositor.
  * devices are queried, initialized and used by the WorkScheduler.
@@ -37,21 +39,6 @@ class Device {
   }
 
   /**
-   * \brief initialize the device
-   */
-  virtual bool initialize()
-  {
-    return true;
-  }
-
-  /**
-   * \brief deinitialize the device
-   */
-  virtual void deinitialize()
-  {
-  }
-
-  /**
    * \brief execute a WorkPackage
    * \param work: the WorkPackage to execute
    */
@@ -61,3 +48,5 @@ class Device {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:Device")
 #endif
 };
+
+}  // namespace blender::compositor

@@ -105,7 +105,7 @@ static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *se
 
 static void seq_add_set_name(Sequence *seq, SeqLoadData *load_data)
 {
-  if (load_data->name != NULL) {
+  if (load_data->name[0] != '\0') {
     BLI_strncpy(seq->name + 2, load_data->name, sizeof(seq->name) - 2);
   }
   else {
@@ -226,8 +226,9 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (!load_data->effect.seq1) {
     seq->len = 1; /* Effect is generator, set non zero length. */
-    SEQ_transform_set_right_handle_frame(seq, load_data->image.end_frame);
+    SEQ_transform_set_right_handle_frame(seq, load_data->effect.end_frame);
   }
+
   SEQ_relations_update_changed_seq_and_deps(scene, seq, 1, 1); /* Runs SEQ_time_update_sequence. */
   seq_add_set_name(seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
@@ -323,10 +324,19 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   /* Set initial scale based on load_data->fit_method. */
   char file_path[FILE_MAX];
-  BLI_join_dirfile(file_path, sizeof(file_path), load_data->path, load_data->name);
+  BLI_strncpy(file_path, load_data->path, sizeof(file_path));
   BLI_path_abs(file_path, BKE_main_blendfile_path(bmain));
   ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
   if (ibuf != NULL) {
+    /* Set image resolution. Assume that all images in sequence are same size. This fields are only
+     * informative. */
+    StripElem *strip_elem = strip->stripdata;
+    for (int i = 0; i < load_data->image.len; i++) {
+      strip_elem->orig_width = ibuf->x;
+      strip_elem->orig_height = ibuf->y;
+      strip_elem++;
+    }
+
     SEQ_set_scale_to_fit(
         seq, ibuf->x, ibuf->y, scene->r.xsch, scene->r.ysch, load_data->fit_method);
     IMB_freeImBuf(ibuf);
@@ -413,6 +423,32 @@ Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
 #endif  // WITH_AUDASPACE
 
 /**
+ * Add meta strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
+
+Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
+{
+  /* Allocate sequence. */
+  Sequence *seqm = SEQ_sequence_alloc(
+      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_META);
+
+  /* Set name. */
+  seq_add_set_name(seqm, load_data);
+
+  /* Set frames start and length. */
+  seqm->start = load_data->start_frame;
+  seqm->len = 1;
+  SEQ_time_update_sequence(scene, seqm);
+
+  return seqm;
+}
+
+/**
  * Add movie strip.
  *
  * \param main: Main reference
@@ -432,6 +468,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
   struct anim **anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
   int i;
+  int orig_width = 0;
+  int orig_height = 0;
 
   if (load_data->use_multiview && (load_data->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     char prefix[FILE_MAX];
@@ -502,9 +540,10 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
 
     /* Set initial scale based on load_data->fit_method. */
-    const float width = IMB_anim_get_image_width(anim_arr[0]);
-    const float height = IMB_anim_get_image_height(anim_arr[0]);
-    SEQ_set_scale_to_fit(seq, width, height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
+    orig_width = IMB_anim_get_image_width(anim_arr[0]);
+    orig_height = IMB_anim_get_image_height(anim_arr[0]);
+    SEQ_set_scale_to_fit(
+        seq, orig_width, orig_height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
   }
 
   seq->len = MAX2(1, seq->len);
@@ -516,6 +555,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   /* We only need 1 element for MOVIE strips. */
   StripElem *se;
   strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
+  strip->stripdata->orig_width = orig_width;
+  strip->stripdata->orig_height = orig_height;
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
   seq_add_set_name(seq, load_data);

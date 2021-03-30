@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class DoubleEdgeMaskOperation : public NodeOperation {
  private:
   /**
@@ -38,23 +40,23 @@ class DoubleEdgeMaskOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   void setAdjecentOnly(bool adjacentOnly)
   {
@@ -65,3 +67,5 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     this->m_keepInside = keepInside;
   }
 };
+
+}  // namespace blender::compositor

@@ -20,6 +20,8 @@
 
 #include "COM_ReadBufferOperation.h"
 
+namespace blender::compositor {
+
 class WrapOperation : public ReadBufferOperation {
  private:
   int m_wrappingType;
@@ -28,8 +30,8 @@ class WrapOperation : public ReadBufferOperation {
   WrapOperation(DataType datatype);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void setWrapping(int wrapping_type);
   float getWrappedOriginalXPos(float x);
@@ -37,3 +39,5 @@ class WrapOperation : public ReadBufferOperation {
 
   void setFactorXY(float factorX, float factorY);
 };
+
+}  // namespace blender::compositor

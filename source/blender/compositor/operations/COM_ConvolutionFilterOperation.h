@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ConvolutionFilterOperation : public NodeOperation {
  private:
   int m_filterWidth;
@@ -36,9 +38,11 @@ class ConvolutionFilterOperation : public NodeOperation {
       float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixel(float output[4], int x, int y, void *data);
+                                        rcti *output) override;
+  void executePixel(float output[4], int x, int y, void *data) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

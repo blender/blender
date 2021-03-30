@@ -20,6 +20,8 @@
 
 #include "COM_ImageOperation.h"
 
+namespace blender::compositor {
+
 class MultilayerBaseOperation : public BaseImageOperation {
  private:
   int m_passId;
@@ -45,7 +47,7 @@ class MultilayerColorOperation : public MultilayerBaseOperation {
     this->addOutputSocket(DataType::Color);
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  std::unique_ptr<MetaData> getMetaData() const override;
+  std::unique_ptr<MetaData> getMetaData() override;
 };
 
 class MultilayerValueOperation : public MultilayerBaseOperation {
@@ -67,3 +69,5 @@ class MultilayerVectorOperation : public MultilayerBaseOperation {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

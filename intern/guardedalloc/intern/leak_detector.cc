@@ -18,6 +18,7 @@
  * \ingroup MEM
  */
 
+#include <cstdio> /* Needed for `printf` on WIN32/APPLE. */
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"

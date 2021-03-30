@@ -21,6 +21,7 @@
  * Accessed via the #WM_OT_search_menu operator.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

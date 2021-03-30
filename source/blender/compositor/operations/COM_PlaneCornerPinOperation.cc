@@ -26,6 +26,8 @@
 
 #include "BKE_node.h"
 
+namespace blender::compositor {
+
 static bool check_corners(float corners[4][2])
 {
   int i, next, prev;
@@ -60,7 +62,7 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
 {
   for (int i = 0; i < 4; i++) {
     float result[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    readers[i]->readSampled(result, rect->xmin, rect->ymin, COM_PS_NEAREST);
+    readers[i]->readSampled(result, rect->xmin, rect->ymin, PixelSampler::Nearest);
     corners[i][0] = result[0];
     corners[i][1] = result[1];
   }
@@ -98,7 +100,7 @@ PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(fal
    * so we can use the initializeTileData function
    * to read corners from input sockets ...
    */
-  setComplex(true);
+  flags.complex = true;
 }
 
 void PlaneCornerPinMaskOperation::initExecution()
@@ -224,3 +226,5 @@ bool PlaneCornerPinWarpImageOperation::determineDependingAreaOfInterest(
       input, readOperation, output);
 #endif
 }
+
+}  // namespace blender::compositor

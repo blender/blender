@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class CropBaseOperation : public NodeOperation {
  protected:
   SocketReader *m_inputOperation;
@@ -34,8 +36,8 @@ class CropBaseOperation : public NodeOperation {
 
  public:
   CropBaseOperation();
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
   void setCropSettings(NodeTwoXYs *settings)
   {
     this->m_settings = settings;
@@ -50,7 +52,7 @@ class CropOperation : public CropBaseOperation {
  private:
  public:
   CropOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class CropImageOperation : public CropBaseOperation {
@@ -59,7 +61,10 @@ class CropImageOperation : public CropBaseOperation {
   CropImageOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

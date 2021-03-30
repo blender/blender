@@ -206,7 +206,7 @@ int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
     context_tabs_array[length] = -1;
     length++;
   }
-  if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {
+  if (sbuts->pathflag & (1 << BCONTEXT_COLLECTION)) {
     context_tabs_array[length] = BCONTEXT_COLLECTION;
     length++;
   }

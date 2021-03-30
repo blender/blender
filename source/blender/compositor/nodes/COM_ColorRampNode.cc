@@ -23,6 +23,8 @@
 #include "COM_ExecutionSystem.h"
 #include "DNA_texture_types.h"
 
+namespace blender::compositor {
+
 ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -50,3 +52,5 @@ void ColorRampNode::convertToOperations(NodeConverter &converter,
   converter.addLink(operation->getOutputSocket(), operation2->getInputSocket(0));
   converter.mapOutputSocket(outputSocketAlpha, operation2->getOutputSocket());
 }
+
+}  // namespace blender::compositor

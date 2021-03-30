@@ -21,6 +21,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief TextureNode
  * \ingroup Node
@@ -28,5 +30,8 @@
 class TextureNode : public Node {
  public:
   TextureNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

@@ -18,9 +18,12 @@
 
 #include "COM_SetColorOperation.h"
 
+namespace blender::compositor {
+
 SetColorOperation::SetColorOperation()
 {
   this->addOutputSocket(DataType::Color);
+  flags.is_set_operation = true;
 }
 
 void SetColorOperation::executePixelSampled(float output[4],
@@ -37,3 +40,5 @@ void SetColorOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
 }
+
+}  // namespace blender::compositor

@@ -110,7 +110,7 @@ class MFDataType {
 
   uint64_t hash() const
   {
-    return DefaultHash<CPPType>{}(*type_) + static_cast<uint64_t>(category_);
+    return get_default_hash_2(*type_, category_);
   }
 };
 

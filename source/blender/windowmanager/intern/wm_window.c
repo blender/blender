@@ -2174,7 +2174,7 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
         screen_rect.ymin += height;
         break;
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
         break;
     }
   }

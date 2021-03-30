@@ -20,6 +20,8 @@
 #include "COM_CompositorOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 CompositorNode::CompositorNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -59,3 +61,5 @@ void CompositorNode::convertToOperations(NodeConverter &converter,
 
   converter.addNodeInputPreview(imageSocket);
 }
+
+}  // namespace blender::compositor

@@ -750,7 +750,7 @@ static void lib_relocate_do_remap(Main *bmain,
     /* In some cases, new_id might become direct link, remove parent of library in this case. */
     if (new_id->lib->parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
       if (do_reload) {
-        BLI_assert(0); /* Should not happen in 'pure' reload case... */
+        BLI_assert_unreachable(); /* Should not happen in 'pure' reload case... */
       }
       new_id->lib->parent = NULL;
     }

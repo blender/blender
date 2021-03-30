@@ -48,19 +48,26 @@ class MF_SeparateXYZ : public blender::fn::MultiFunction {
  public:
   MF_SeparateXYZ()
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Separate XYZ");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Separate XYZ"};
     signature.single_input<blender::float3>("XYZ");
     signature.single_output<float>("X");
     signature.single_output<float>("Y");
     signature.single_output<float>("Z");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,
             blender::fn::MFParams params,
             blender::fn::MFContext UNUSED(context)) const override
   {
-    blender::fn::VSpan<blender::float3> vectors = params.readonly_single_input<blender::float3>(
-        0, "XYZ");
+    const blender::VArray<blender::float3> &vectors =
+        params.readonly_single_input<blender::float3>(0, "XYZ");
     blender::MutableSpan<float> xs = params.uninitialized_single_output<float>(1, "X");
     blender::MutableSpan<float> ys = params.uninitialized_single_output<float>(2, "Y");
     blender::MutableSpan<float> zs = params.uninitialized_single_output<float>(3, "Z");

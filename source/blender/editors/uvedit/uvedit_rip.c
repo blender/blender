@@ -169,7 +169,7 @@ static BMLoop *bm_loop_find_other_fan_loop_with_visible_face(BMLoop *l_src,
       l_other = l_other->prev;
     }
     else {
-      BLI_assert(0);
+      BLI_assert_unreachable();
     }
   }
   return l_other;
@@ -189,7 +189,7 @@ static BMLoop *bm_vert_step_fan_loop_uv(BMLoop *l, BMEdge **e_step, const int cd
     l_next = l;
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
     return NULL;
   }
 

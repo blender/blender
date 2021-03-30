@@ -49,7 +49,7 @@ void convert_to_static_type(const CustomDataType data_type, const Func &func)
       func(Color4f());
       break;
     default:
-      BLI_assert(false);
+      BLI_assert_unreachable();
       break;
   }
 }

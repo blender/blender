@@ -26,6 +26,8 @@
 #include <string>
 #include <vector>
 
+namespace blender::compositor {
+
 /**
  * \brief Overall context of the compositor
  */
@@ -277,3 +279,5 @@ class CompositorContext {
     return m_rd->size * 0.01f;
   }
 };
+
+}  // namespace blender::compositor

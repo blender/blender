@@ -24,6 +24,8 @@
 
 #include <string_view>
 
+namespace blender::compositor {
+
 void MetaData::add(const blender::StringRef key, const blender::StringRef value)
 {
   entries_.add(key, value);
@@ -104,3 +106,5 @@ void MetaDataExtractCallbackData::extract_cryptomatte_meta_data(void *_data,
     data->addMetaData(META_DATA_KEY_CRYPTOMATTE_MANIFEST, propvalue);
   }
 }
+
+}  // namespace blender::compositor

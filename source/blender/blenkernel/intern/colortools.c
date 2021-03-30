@@ -1374,7 +1374,7 @@ void BKE_histogram_update_sample_line(Histogram *hist,
             rgba[3] = 1.0f;
             break;
           default:
-            BLI_assert(0);
+            BLI_assert_unreachable();
         }
 
         hist->data_luma[i] = IMB_colormanagement_get_luminance(rgba);
@@ -1476,7 +1476,7 @@ static void scopes_update_cb(void *__restrict userdata,
           rgba[3] = 1.0f;
           break;
         default:
-          BLI_assert(0);
+          BLI_assert_unreachable();
       }
     }
     else {

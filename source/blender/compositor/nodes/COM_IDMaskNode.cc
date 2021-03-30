@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_IDMaskOperation.h"
 
+namespace blender::compositor {
+
 IDMaskNode::IDMaskNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -47,3 +49,5 @@ void IDMaskNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), antiAliasOperation->getOutputSocket(0));
   }
 }
+
+}  // namespace blender::compositor

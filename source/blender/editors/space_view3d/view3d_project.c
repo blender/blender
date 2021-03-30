@@ -38,7 +38,6 @@
 
 #include "ED_view3d.h" /* own include */
 
-#define BL_NEAR_CLIP 0.001
 #define BL_ZERO_CLIP 0.001
 
 /* Non Clipping Projection Functions
@@ -139,37 +138,31 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
   copy_v3_v3(vec4, co);
   vec4[3] = 1.0;
   mul_m4_v4(perspmat, vec4);
+  const float w = fabsf(vec4[3]);
 
-  if (((flag & V3D_PROJ_TEST_CLIP_ZERO) == 0) || (fabsf(vec4[3]) > (float)BL_ZERO_CLIP)) {
-    if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) || (vec4[3] > (float)BL_NEAR_CLIP)) {
-      const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]) : 0.0f;
-      const float fx = ((float)region->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
-      if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)region->winx)) {
-        const float fy = ((float)region->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
-        if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)region->winy)) {
-          r_co[0] = fx;
-          r_co[1] = fy;
-
-          /* check if the point is behind the view, we need to flip in this case */
-          if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
-            negate_v2(r_co);
-          }
-        }
-        else {
-          return V3D_PROJ_RET_CLIP_WIN;
-        }
-      }
-      else {
-        return V3D_PROJ_RET_CLIP_WIN;
-      }
-    }
-    else {
-      return V3D_PROJ_RET_CLIP_NEAR;
-    }
-  }
-  else {
+  if ((flag & V3D_PROJ_TEST_CLIP_ZERO) && (w <= (float)BL_ZERO_CLIP)) {
     return V3D_PROJ_RET_CLIP_ZERO;
   }
+
+  if ((flag & V3D_PROJ_TEST_CLIP_NEAR) && (vec4[2] <= -w)) {
+    return V3D_PROJ_RET_CLIP_NEAR;
+  }
+
+  if ((flag & V3D_PROJ_TEST_CLIP_FAR) && (vec4[2] >= w)) {
+    return V3D_PROJ_RET_CLIP_FAR;
+  }
+
+  const float scalar = (w != 0.0f) ? (1.0f / w) : 0.0f;
+  const float fx = ((float)region->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
+  const float fy = ((float)region->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
+
+  if ((flag & V3D_PROJ_TEST_CLIP_WIN) &&
+      (fx <= 0.0f || fy <= 0.0f || fx >= (float)region->winx || fy >= (float)region->winy)) {
+    return V3D_PROJ_RET_CLIP_WIN;
+  }
+
+  r_co[0] = fx;
+  r_co[1] = fy;
 
   return V3D_PROJ_RET_OK;
 }

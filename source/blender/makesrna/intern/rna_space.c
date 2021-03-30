@@ -3080,7 +3080,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
                 ATTR_DOMAIN_CORNER,
                 ATTR_DOMAIN_EDGE,
                 ATTR_DOMAIN_POINT,
-                ATTR_DOMAIN_POLYGON)) {
+                ATTR_DOMAIN_FACE)) {
         continue;
       }
     }
@@ -5434,6 +5434,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_STRIP_DURATION);
   RNA_def_property_ui_text(prop, "Show Duration", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+  prop = RNA_def_property(srna, "show_transform_preview", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flag", SEQ_DRAW_TRANSFORM_PREVIEW);
+  RNA_def_property_ui_text(prop, "Transform Preview", "Show preview of the transformed frames");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
 static void rna_def_space_text(BlenderRNA *brna)
@@ -7314,12 +7319,17 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        "MESH",
        ICON_MESH_DATA,
        "Mesh",
-       "Mesh component containing point, corner, edge and polygon data"},
+       "Mesh component containing point, corner, edge and face data"},
       {GEO_COMPONENT_TYPE_POINT_CLOUD,
        "POINTCLOUD",
        ICON_POINTCLOUD_DATA,
        "Point Cloud",
        "Point cloud component containing only point data"},
+      {GEO_COMPONENT_TYPE_INSTANCES,
+       "INSTANCES",
+       ICON_EMPTY_AXIS,
+       "Instances",
+       "Instances of objects or collections"},
       {0, NULL, 0, NULL, NULL},
   };
 

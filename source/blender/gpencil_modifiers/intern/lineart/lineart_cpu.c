@@ -23,18 +23,14 @@
 
 #include "MOD_lineart.h"
 
-#include "BLI_alloca.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_callbacks.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
-#include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
@@ -44,37 +40,23 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
-#include "BKE_text.h"
 #include "DEG_depsgraph_query.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_lineart_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_text_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
 #include "BLI_math.h"
-#include "BLI_string_utils.h"
 
 #include "bmesh.h"
 #include "bmesh_class.h"
 #include "bmesh_tools.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "MOD_gpencil_modifiertypes.h"
 
 #include "lineart_intern.h"
 
@@ -131,8 +113,8 @@ static void lineart_discard_segment(LineartRenderBuffer *rb, LineartLineSegment 
 
   memset(rls, 0, sizeof(LineartLineSegment));
 
-  /* Storing the node for potentially reuse the memory for new segment data. Line Art data is not
-   * freed after all calulations are done. */
+  /* Storing the node for potentially reuse the memory for new segment data.
+   * Line Art data is not freed after all calculations are done. */
   BLI_addtail(&rb->wasted_cuts, rls);
 
   BLI_spin_unlock(&rb->lock_cuts);
@@ -156,12 +138,11 @@ static LineartLineSegment *lineart_give_segment(LineartRenderBuffer *rb)
                                                          sizeof(LineartLineSegment));
 }
 
-/* Cuts the edge in image space and mark occlusion level for each segment. */
-static void lineart_edge_cut(LineartRenderBuffer *rb,
-                             LineartEdge *e,
-                             double start,
-                             double end,
-                             unsigned char transparency_mask)
+/**
+ * Cuts the edge in image space and mark occlusion level for each segment.
+ */
+static void lineart_edge_cut(
+    LineartRenderBuffer *rb, LineartEdge *e, double start, double end, uchar transparency_mask)
 {
   LineartLineSegment *rls, *irls, *next_rls, *prev_rls;
   LineartLineSegment *cut_start_before = 0, *cut_end_before = 0;
@@ -219,7 +200,7 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
       ns2 = cut_end_before;
       break;
     }
-    /*  This check is to prevent rls->at == 1.0 (where we don't need to cut because we are at the
+    /* This check is to prevent `rls->at == 1.0` (where we don't need to cut because we are at the
      * end point). */
     if (!rls->next && LRT_DOUBLE_CLOSE_ENOUGH(1, end)) {
       cut_end_before = rls;
@@ -255,7 +236,7 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
       irls = cut_start_before->prev ? cut_start_before->prev : NULL;
       ns->occlusion = irls ? irls->occlusion : 0;
       ns->transparency_mask = irls->transparency_mask;
-      BLI_insertlinkbefore(&e->segments, (void *)cut_start_before, (void *)ns);
+      BLI_insertlinkbefore(&e->segments, cut_start_before, ns);
     }
     /* Otherwise we already found a existing cutting point, no need to insert a new one. */
   }
@@ -273,7 +254,7 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
       irls = cut_end_before->prev ? cut_end_before->prev : NULL;
       ns2->occlusion = irls ? irls->occlusion : 0;
       ns2->transparency_mask = irls ? irls->transparency_mask : 0;
-      BLI_insertlinkbefore(&e->segments, (void *)cut_end_before, (void *)ns2);
+      BLI_insertlinkbefore(&e->segments, cut_end_before, ns2);
     }
   }
   else {
@@ -283,8 +264,8 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
     BLI_addtail(&e->segments, ns2);
   }
 
-  /* If we touched the cut list, we assign the new cut position based on new cut position, this way
-   * we accomomdate precision lost due to multiple cut inserts. */
+  /* If we touched the cut list, we assign the new cut position based on new cut position,
+   * this way we accommodate precision lost due to multiple cut inserts. */
   ns->at = start;
   if (!untouched) {
     ns2->at = end;
@@ -322,13 +303,15 @@ static void lineart_edge_cut(LineartRenderBuffer *rb,
   e->min_occ = min_occ;
 }
 
-/* To see if given line is connected to an adjacent intersection line. */
+/**
+ * To see if given line is connected to an adjacent intersection line.
+ */
 BLI_INLINE bool lineart_occlusion_is_adjacent_intersection(LineartEdge *e, LineartTriangle *rt)
 {
   LineartVertIntersection *v1 = (void *)e->v1;
   LineartVertIntersection *v2 = (void *)e->v2;
-  return ((v1->base.flag && v1->intersecting_with == (void *)rt) ||
-          (v2->base.flag && v2->intersecting_with == (void *)rt));
+  return ((v1->base.flag && v1->intersecting_with == rt) ||
+          (v2->base.flag && v2->intersecting_with == rt));
 }
 
 static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *e, int thread_id)
@@ -360,7 +343,7 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
       }
       rt->testing_e[thread_id] = e;
       if (lineart_triangle_edge_image_space_occlusion(&rb->lock_task,
-                                                      (void *)rt,
+                                                      (const LineartTriangle *)rt,
                                                       e,
                                                       rb->camera_pos,
                                                       rb->cam_is_persp,
@@ -373,13 +356,13 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
                                                       &r)) {
         lineart_edge_cut(rb, e, l, r, rt->base.transparency_mask);
         if (e->min_occ > rb->max_occlusion_level) {
-          /* No need to caluclate any longer on this line because no level more than set value is
+          /* No need to calculate any longer on this line because no level more than set value is
            * going to show up in the rendered result. */
           return;
         }
       }
     }
-    /* Marching along e->v1 to e->v2, searching each possible bounding areas it may touch. */
+    /* Marching along `e->v1` to `e->v2`, searching each possible bounding areas it may touch. */
     nba = lineart_bounding_area_next(nba, e, x, y, k, positive_x, positive_y, &x, &y);
   }
 }
@@ -427,31 +410,33 @@ static void lineart_occlusion_worker(TaskPool *__restrict UNUSED(pool), LineartR
 
   while (lineart_occlusion_make_task_info(rb, rti)) {
 
-    for (eip = (void *)rti->contour; eip && eip != rti->contour_end; eip = eip->next) {
+    for (eip = rti->contour; eip && eip != rti->contour_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->crease; eip && eip != rti->crease_end; eip = eip->next) {
+    for (eip = rti->crease; eip && eip != rti->crease_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->intersection; eip && eip != rti->intersection_end; eip = eip->next) {
+    for (eip = rti->intersection; eip && eip != rti->intersection_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->material; eip && eip != rti->material_end; eip = eip->next) {
+    for (eip = rti->material; eip && eip != rti->material_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
 
-    for (eip = (void *)rti->edge_mark; eip && eip != rti->edge_mark_end; eip = eip->next) {
+    for (eip = rti->edge_mark; eip && eip != rti->edge_mark_end; eip = eip->next) {
       lineart_occlusion_single_line(rb, eip, rti->thread_id);
     }
   }
 }
 
-/* All internal functions starting with lineart_main_ is called inside
- * MOD_lineart_compute_feature_lines function.
- * This function handles all occlusion calculation. */
+/**
+ * All internal functions starting with lineart_main_ is called inside
+ * #MOD_lineart_compute_feature_lines function.
+ * This function handles all occlusion calculation.
+ */
 static void lineart_main_occlusion_begin(LineartRenderBuffer *rb)
 {
   int thread_count = rb->thread_count;
@@ -478,10 +463,12 @@ static void lineart_main_occlusion_begin(LineartRenderBuffer *rb)
   MEM_freeN(rti);
 }
 
-/* Test if v lies with in the triangle formed by v0, v1, and v2. Returns false when v is exactly on
- * the edge.
+/**
+ * Test if v lies with in the triangle formed by v0, v1, and v2.
+ * Returns false when v is exactly on the edge.
+ *
  * For v to be inside the triangle, it needs to be at the same side of v0->v1, v1->v2, and
- * v2->v0, where the "side" is determined by checking the sign of cross(v1-v0, v1-v) and so on.
+ * `v2->v0`, where the "side" is determined by checking the sign of `cross(v1-v0, v1-v)` and so on.
  */
 static bool lineart_point_inside_triangle(const double v[2],
                                           const double v0[2],
@@ -517,7 +504,7 @@ static bool lineart_point_inside_triangle(const double v[2],
 
 static int lineart_point_on_line_segment(double v[2], double v0[2], double v1[2])
 {
-  /* c1!=c2 by default. */
+  /* `c1 != c2` by default. */
   double c1 = 1, c2 = 0;
   double l0[2], l1[2];
 
@@ -551,8 +538,10 @@ static int lineart_point_on_line_segment(double v[2], double v0[2], double v1[2]
   return 0;
 }
 
-/* Same algorithm as lineart_point_inside_triangle(), but returns differently:
- * 0-outside 1-on the edge 2-inside. */
+/**
+ * Same algorithm as lineart_point_inside_triangle(), but returns differently:
+ * 0-outside 1-on the edge 2-inside.
+ */
 static int lineart_point_triangle_relation(double v[2], double v0[2], double v1[2], double v2[2])
 {
   double cl, c;
@@ -591,8 +580,10 @@ static int lineart_point_triangle_relation(double v[2], double v0[2], double v1[
   return 2;
 }
 
-/* Similar with lineart_point_inside_triangle, but in 3d.
- * Returns false when not co-plannar. */
+/**
+ * Similar with #lineart_point_inside_triangle, but in 3d.
+ * Returns false when not co-planar.
+ */
 static bool lineart_point_inside_triangle3d(double v[3], double v0[3], double v1[3], double v2[3])
 {
   double l[3], r[3];
@@ -630,8 +621,10 @@ static bool lineart_point_inside_triangle3d(double v[3], double v0[3], double v1
   return true;
 }
 
-/* The following lineart_memory_get_XXX_space functions are for allocating new memory for some
- * modified geometries in the culling stage. */
+/**
+ * The following `lineart_memory_get_XXX_space` functions are for allocating new memory for some
+ * modified geometries in the culling stage.
+ */
 static LineartElementLinkNode *lineart_memory_get_triangle_space(LineartRenderBuffer *rb)
 {
   LineartElementLinkNode *reln;
@@ -692,9 +685,9 @@ static void lineart_triangle_post(LineartTriangle *rt, LineartTriangle *orig)
   rt->flags = LRT_CULL_GENERATED;
 }
 
-static void lineart_triangle_set_cull_flag(LineartTriangle *rt, unsigned char flag)
+static void lineart_triangle_set_cull_flag(LineartTriangle *rt, uchar flag)
 {
-  unsigned char intersection_only = (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY);
+  uchar intersection_only = (rt->flags & LRT_TRIANGLE_INTERSECTION_ONLY);
   rt->flags = flag;
   rt->flags |= intersection_only;
 }
@@ -705,8 +698,10 @@ static bool lineart_edge_match(LineartTriangle *rt, LineartEdge *e, int v1, int 
           (rt->v[v2] == e->v1 && rt->v[v1] == e->v2));
 }
 
-/* Does near-plane cut on 1 triangle only. When cutting with far-plane, the camera vectors gets
- * reversed by the caller so don't need to implement one in a different direction. */
+/**
+ * Does near-plane cut on 1 triangle only. When cutting with far-plane, the camera vectors gets
+ * reversed by the caller so don't need to implement one in a different direction.
+ */
 static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
                                          LineartTriangle *rt,
                                          int in0,
@@ -745,12 +740,11 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
   rta = (void *)rt->intersecting_verts;
 
   LineartVert *rv = &((LineartVert *)v_eln->pointer)[v_count];
-  LineartTriangle *rt1 = (void *)(((unsigned char *)t_eln->pointer) + rb->triangle_size * t_count);
-  LineartTriangle *rt2 = (void *)(((unsigned char *)t_eln->pointer) +
-                                  rb->triangle_size * (t_count + 1));
+  LineartTriangle *rt1 = (void *)(((uchar *)t_eln->pointer) + rb->triangle_size * t_count);
+  LineartTriangle *rt2 = (void *)(((uchar *)t_eln->pointer) + rb->triangle_size * (t_count + 1));
 
   new_e = &((LineartEdge *)e_eln->pointer)[e_count];
-  /* Init rl to the last rl entry. */
+  /* Init `rl` to the last `rl` entry. */
   e = new_e;
 
 #define INCREASE_RL \
@@ -811,8 +805,11 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
        * generate 2 new points, 3 lines and 1 triangle. */
       lineart_triangle_set_cull_flag(rt, LRT_CULL_USED);
 
-      /* (!in0) means "when point 0 is visible".
-       * conditons for point 1, 2 are the same idea.
+      /**
+       * (!in0) means "when point 0 is visible".
+       * conditions for point 1, 2 are the same idea.
+       *
+       * \code{.txt}
        * 1-----|-------0
        * |     |   ---
        * |     |---
@@ -826,6 +823,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
        *       |
        *       |
        *     (near)---------->(far)
+       * \endcode
        */
       if (!in0) {
 
@@ -857,14 +855,13 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
           e->flags = LRT_EDGE_FLAG_CONTOUR;
           lineart_prepend_edge_direct(&rb->contours, e);
         }
-        /* Note: inverting e->v1/v2 (left/right point) doesn't matter as long as
-         * rt->rl and rt->v has the same sequence. and the winding direction
-         * can be either CW or CCW but needs to be consistent throughout the calculation.
-         */
+        /* NOTE: inverting `e->v1/v2` (left/right point) doesn't matter as long as
+         * `rt->rl` and `rt->v` has the same sequence. and the winding direction
+         * can be either CW or CCW but needs to be consistent throughout the calculation. */
         e->v1 = &rv[1];
         e->v2 = &rv[0];
         /* Only one adjacent triangle, because the other side is the near plane. */
-        /* Use tl or tr doesn't matter. */
+        /* Use `tl` or `tr` doesn't matter. */
         e->t1 = rt1;
         e->object_ref = ob;
 
@@ -971,8 +968,10 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
        * generate 2 new points, 4 lines and 2 triangles. */
       lineart_triangle_set_cull_flag(rt, LRT_CULL_USED);
 
-      /* (in0) means "when point 0 is invisible".
-       * conditons for point 1, 2 are the same idea.
+      /**
+       * (in0) means "when point 0 is invisible".
+       * conditions for point 1, 2 are the same idea.
+       * \code{.txt}
        * 0------|----------1
        *   --   |          |
        *     ---|          |
@@ -990,6 +989,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
        *        |     ***  |
        *        |        **2
        *      (near)---------->(far)
+       * \endcode
        */
       if (in0) {
         /* Cut point for line 0---|------1. */
@@ -1009,7 +1009,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
         dot1 = dot_v3v3_db(vv1, view_dir);
         dot2 = dot_v3v3_db(vv2, view_dir);
         a = dot2 / (dot1 + dot2);
-        /* Assign to aother new point. */
+        /* Assign to other new point. */
         interp_v3_v3v3_db(rv[1].gloc, rt->v[0]->gloc, rt->v[2]->gloc, a);
         mul_v4_m4v3_db(rv[1].fbcoord, vp, rv[1].gloc);
         rv[1].index = rt->v[0]->index;
@@ -1026,8 +1026,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
         e->object_ref = ob;
 
         /* New line connects new point 0 and old point 1,
-         * this is a border line.
-         */
+         * this is a border line. */
 
         SELECT_RL(0, rt->v[1], &rv[0], rt1)
         SELECT_RL(2, rt->v[2], &rv[1], rt2)
@@ -1156,7 +1155,8 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
 #undef REMOVE_TRIANGLE_RL
 }
 
-/* This function cuts triangles with near- or far-plane. Setting clip_far = true for cutting with
+/**
+ * This function cuts triangles with near- or far-plane. Setting clip_far = true for cutting with
  * far-plane. For triangles that's crossing the plane, it will generate new 1 or 2 triangles with
  * new topology that represents the trimmed triangle. (which then became a triangle or a square
  * formed by two triangles)
@@ -1259,7 +1259,7 @@ static void lineart_main_cull_triangles(LineartRenderBuffer *rb, bool clip_far)
     ob = reln->object_ref;
     for (i = 0; i < reln->element_count; i++) {
       /* Select the triangle in the array. */
-      rt = (void *)(((unsigned char *)reln->pointer) + rb->triangle_size * i);
+      rt = (void *)(((uchar *)reln->pointer) + rb->triangle_size * i);
 
       LRT_CULL_DECIDE_INSIDE
       LRT_CULL_ENSURE_MEMORY
@@ -1288,8 +1288,10 @@ static void lineart_main_cull_triangles(LineartRenderBuffer *rb, bool clip_far)
 #undef LRT_CULL_DECIDE_INSIDE
 }
 
-/* Adjacent data is only used during the initial stages of computing. So we can free it using this
- * function when it is not needed anymore. */
+/**
+ * Adjacent data is only used during the initial stages of computing.
+ * So we can free it using this function when it is not needed anymore.
+ */
 static void lineart_main_free_adjacent_data(LineartRenderBuffer *rb)
 {
   LinkData *ld;
@@ -1301,9 +1303,9 @@ static void lineart_main_free_adjacent_data(LineartRenderBuffer *rb)
     int i;
     for (i = 0; i < reln->element_count; i++) {
       /* See definition of rt->intersecting_verts and the usage in
-       * lineart_geometry_object_load() for detailes. */
+       * lineart_geometry_object_load() for detailed. */
       rt->intersecting_verts = NULL;
-      rt = (LineartTriangle *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (LineartTriangle *)(((uchar *)rt) + rb->triangle_size);
     }
   }
 }
@@ -1327,14 +1329,16 @@ static void lineart_main_perspective_division(LineartRenderBuffer *rb)
        * at the moment.
        * The algorithm currently doesn't need Z for operation, we use W instead. If Z is needed in
        * the future, the line below correctly transforms it to view space coordinates. */
-      /* rv[i].fbcoord[2] = -2 * rv[i].fbcoord[2] / (far - near) - (far + near) / (far - near);. */
+      // `rv[i].fbcoord[2] = -2 * rv[i].fbcoord[2] / (far - near) - (far + near) / (far - near);
       rv[i].fbcoord[0] -= rb->shift_x * 2;
       rv[i].fbcoord[1] -= rb->shift_y * 2;
     }
   }
 }
 
-/* Transform a single vert to it's viewing position. */
+/**
+ * Transform a single vert to it's viewing position.
+ */
 static void lineart_vert_transform(
     BMVert *v, int index, LineartVert *RvBuf, double (*mv_mat)[4], double (*mvp_mat)[4])
 {
@@ -1345,8 +1349,10 @@ static void lineart_vert_transform(
   mul_v4_m4v3_db(rv->fbcoord, mvp_mat, co);
 }
 
-/* Because we have a variable size for LineartTriangle, we need an access helper. See
- * LineartTriangleThread for more info.  */
+/**
+ * Because we have a variable size for #LineartTriangle, we need an access helper.
+ * See #LineartTriangleThread for more info.
+ */
 static LineartTriangle *lineart_triangle_from_index(LineartRenderBuffer *rb,
                                                     LineartTriangle *rt_array,
                                                     int index)
@@ -1400,7 +1406,7 @@ static char lineart_identify_feature_line(LineartRenderBuffer *rb,
   dot_1 = dot_v3v3_db(view_vector, rt1->gn);
   dot_2 = dot_v3v3_db(view_vector, rt2->gn);
 
-  if ((result = dot_1 * dot_2) < 0 && (dot_1 + dot_2)) {
+  if ((result = dot_1 * dot_2) <= 0 && (dot_1 + dot_2)) {
     return LRT_EDGE_FLAG_CONTOUR;
   }
 
@@ -1588,7 +1594,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       use_crease = rb->crease_threshold;
     }
 
-    /* FIXME Yiming: Hack for getting clean 3D text, the seam that extruded text object creates
+    /* FIXME(Yiming): Hack for getting clean 3D text, the seam that extruded text object creates
      * erroneous detection on creases. Future configuration should allow options. */
     if (ob->type == OB_FONT) {
       reln->flags |= LRT_ELEMENT_BORDER_ONLY;
@@ -1610,8 +1616,8 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       lineart_vert_transform(v, i, orv, new_mv, new_mvp);
       orv[i].index = i + global_i;
     }
-    /* Register a global index increment. See lineart_triangle_share_edge() and
-     * lineart_main_load_geometries() for detailes. It's okay that global_vindex might eventually
+    /* Register a global index increment. See #lineart_triangle_share_edge() and
+     * #lineart_main_load_geometries() for detailed. It's okay that global_vindex might eventually
      * overflow, in such large scene it's virtually impossible for two vertex of the same numeric
      * index to come close together. */
     (*global_vindex) += bm->totvert;
@@ -1648,7 +1654,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       /* Re-use this field to refer to adjacent info, will be cleared after culling stage. */
       rt->intersecting_verts = (void *)&orta[i];
 
-      rt = (LineartTriangle *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (LineartTriangle *)(((uchar *)rt) + rb->triangle_size);
     }
 
     /* Use BM_ELEM_TAG in f->head.hflag to store needed faces in the first iteration. */
@@ -1705,7 +1711,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       LineartLineSegment *rls = lineart_mem_aquire(&rb->render_data_pool,
                                                    sizeof(LineartLineSegment));
       BLI_addtail(&la_e->segments, rls);
-      if (usage == OBJECT_LRT_INHERENT || usage == OBJECT_LRT_INCLUDE ||
+      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
           usage == OBJECT_LRT_NO_INTERSECTION) {
         lineart_add_edge_to_list(rb, la_e);
       }
@@ -1723,7 +1729,7 @@ static bool _lineart_object_not_in_source_collection(Collection *source, Object 
 {
   CollectionChild *cc;
   Collection *c = source->id.orig_id ? (Collection *)source->id.orig_id : source;
-  if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
+  if (BKE_collection_has_object_recursive_instanced(c, (Object *)(ob->id.orig_id))) {
     return false;
   }
   for (cc = source->children.first; cc; cc = cc->next) {
@@ -1734,18 +1740,20 @@ static bool _lineart_object_not_in_source_collection(Collection *source, Object 
   return true;
 }
 
-/* See if this object in such collection is used for generating line art,
- * Disabling a collection for line art will diable all objects inside.
- * "_rb" is used to provide source selection info. See the definition of rb->_source_type for
- * details. */
+/**
+ * See if this object in such collection is used for generating line art,
+ * Disabling a collection for line art will doable all objects inside.
+ * `_rb` is used to provide source selection info.
+ * See the definition of `rb->_source_type` for details.
+ */
 static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_rb)
 {
 
   if (!c) {
-    return OBJECT_LRT_INHERENT;
+    return OBJECT_LRT_INHERIT;
   }
 
-  int object_has_special_usage = (ob->lineart.usage != OBJECT_LRT_INHERENT);
+  int object_has_special_usage = (ob->lineart.usage != OBJECT_LRT_INHERIT);
 
   if (object_has_special_usage) {
     return ob->lineart.usage;
@@ -1753,7 +1761,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
 
   if (c->children.first == NULL) {
     if (BKE_collection_has_object(c, (Object *)(ob->id.orig_id))) {
-      if (ob->lineart.usage == OBJECT_LRT_INHERENT) {
+      if (ob->lineart.usage == OBJECT_LRT_INHERIT) {
         switch (c->lineart_usage) {
           case COLLECTION_LRT_OCCLUSION_ONLY:
             return OBJECT_LRT_OCCLUSION_ONLY;
@@ -1764,16 +1772,16 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
           case COLLECTION_LRT_NO_INTERSECTION:
             return OBJECT_LRT_NO_INTERSECTION;
         }
-        return OBJECT_LRT_INHERENT;
+        return OBJECT_LRT_INHERIT;
       }
       return ob->lineart.usage;
     }
-    return OBJECT_LRT_INHERENT;
+    return OBJECT_LRT_INHERIT;
   }
 
   LISTBASE_FOREACH (CollectionChild *, cc, &c->children) {
     int result = lineart_usage_check(cc->collection, ob, _rb);
-    if (result > OBJECT_LRT_INHERENT) {
+    if (result > OBJECT_LRT_INHERIT) {
       return result;
     }
   }
@@ -1781,7 +1789,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
   /* Temp solution to speed up calculation in the modifier without cache. See the definition of
    * rb->_source_type for details. */
   if (_rb->_source_type == LRT_SOURCE_OBJECT) {
-    if (ob != _rb->_source_object) {
+    if (ob != _rb->_source_object && ob->id.orig_id != (ID *)_rb->_source_object) {
       return OBJECT_LRT_OCCLUSION_ONLY;
     }
   }
@@ -1791,7 +1799,7 @@ static int lineart_usage_check(Collection *c, Object *ob, LineartRenderBuffer *_
     }
   }
 
-  return OBJECT_LRT_INHERENT;
+  return OBJECT_LRT_INHERIT;
 }
 
 static void lineart_main_load_geometries(
@@ -1850,8 +1858,10 @@ static void lineart_main_load_geometries(
   DEG_OBJECT_ITER_END;
 }
 
-/* Returns the two other verts of the triangle given a vertex. Returns false if the given vertex
- * doesn't belong to this triangle. */
+/**
+ * Returns the two other verts of the triangle given a vertex. Returns false if the given vertex
+ * doesn't belong to this triangle.
+ */
 static bool lineart_triangle_get_other_verts(const LineartTriangle *rt,
                                              const LineartVert *rv,
                                              LineartVert **l,
@@ -1915,7 +1925,7 @@ static bool lineart_edge_from_triangle(const LineartTriangle *rt,
     lst[2] = LRT_MAX3_INDEX(ia, ib, ic); \
   }
 
-/*  ia ib ic are ordered. */
+/* `ia ib ic` are ordered. */
 #define INTERSECT_JUST_GREATER(is, order, num, index) \
   { \
     index = (num < is[order[0]] ? \
@@ -1923,7 +1933,7 @@ static bool lineart_edge_from_triangle(const LineartTriangle *rt,
                  (num < is[order[1]] ? order[1] : (num < is[order[2]] ? order[2] : order[2]))); \
   }
 
-/*  ia ib ic are ordered. */
+/* `ia ib ic` are ordered. */
 #define INTERSECT_JUST_SMALLER(is, order, num, index) \
   { \
     index = (num > is[order[2]] ? \
@@ -1931,10 +1941,11 @@ static bool lineart_edge_from_triangle(const LineartTriangle *rt,
                  (num > is[order[1]] ? order[1] : (num > is[order[0]] ? order[0] : order[0]))); \
   }
 
-/* This is the main function to calculate
+/**
+ * This is the main function to calculate
  * the occlusion status between 1(one) triangle and 1(one) line.
- * if returns true, then from/to will carry the occludded segments
- * in ratio from e->v1 to e->v2. The line is later cut with these two values.
+ * if returns true, then from/to will carry the occluded segments
+ * in ratio from `e->v1` to `e->v2`. The line is later cut with these two values.
  */
 static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
                                                         const LineartTriangle *rt,
@@ -1976,7 +1987,7 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
     return false;
   }
 
-  /* If the the line is one of the edge in the triangle, then it's not occludded. */
+  /* If the the line is one of the edge in the triangle, then it's not occluded. */
   if (lineart_edge_from_triangle(rt, e, allow_overlapping_edges)) {
     return false;
   }
@@ -2015,7 +2026,7 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
   if (!a && !b && !c) {
     if (!(st_l = lineart_point_triangle_relation(LFBC, FBC0, FBC1, FBC2)) &&
         !(st_r = lineart_point_triangle_relation(RFBC, FBC0, FBC1, FBC2))) {
-      return 0; /*  Intersection point is not inside triangle. */
+      return 0; /* Intersection point is not inside triangle. */
     }
   }
 
@@ -2057,7 +2068,7 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
   trans[0] -= cam_shift_x * 2;
   trans[1] -= cam_shift_y * 2;
 
-  /* To accomodate k=0 and k=inf (vertical) lines. here the cut is in image space. */
+  /* To accommodate `k=0` and `k=inf` (vertical) lines. here the cut is in image space. */
   if (fabs(e->v1->fbcoord[0] - e->v2->fbcoord[0]) > fabs(e->v1->fbcoord[1] - e->v2->fbcoord[1])) {
     cut = ratiod(e->v1->fbcoord[0], e->v2->fbcoord[0], trans[0]);
   }
@@ -2164,8 +2175,10 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
 #undef INTERSECT_JUST_GREATER
 #undef INTERSECT_JUST_SMALLER
 
-/* At this stage of the computation we don't have triangle adjacent info anymore, so we can only
- * compare the global vert index. */
+/**
+ * At this stage of the computation we don't have triangle adjacent info anymore,
+ * so we can only compare the global vert index.
+ */
 static bool lineart_triangle_share_edge(const LineartTriangle *l, const LineartTriangle *r)
 {
   if (l->v[0]->index == r->v[0]->index) {
@@ -2242,7 +2255,9 @@ static LineartVert *lineart_triangle_share_point(const LineartTriangle *l,
   return NULL;
 }
 
-/* To save time and prevent overlapping lines when computing intersection lines. */
+/**
+ * To save time and prevent overlapping lines when computing intersection lines.
+ */
 static bool lineart_vert_already_intersected_2v(LineartVertIntersection *rv,
                                                 LineartVertIntersection *v1,
                                                 LineartVertIntersection *v2)
@@ -2258,9 +2273,10 @@ static void lineart_vert_set_intersection_2v(LineartVert *rv, LineartVert *v1, L
   irv->isec2 = v2->index;
 }
 
-/* This tests a triangle against a virtual line represented by v1---v2. The vertices returned
- * after
- * repeated calls to this function is then used to create a triangle/triangle intersection line.
+/**
+ * This tests a triangle against a virtual line represented by `v1---v2`.
+ * The vertices returned after repeated calls to this function
+ * is then used to create a triangle/triangle intersection line.
  */
 static LineartVert *lineart_triangle_2v_intersection_test(LineartRenderBuffer *rb,
                                                           LineartVert *v1,
@@ -2327,7 +2343,9 @@ static LineartVert *lineart_triangle_2v_intersection_test(LineartRenderBuffer *r
   return result;
 }
 
-/* Test if two triangles intersect. Generates one intersection line if the check succeeds */
+/**
+ * Test if two triangles intersect. Generates one intersection line if the check succeeds.
+ */
 static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
                                                LineartTriangle *rt,
                                                LineartTriangle *testing)
@@ -2351,8 +2369,8 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
   LineartVert *share = lineart_triangle_share_point(testing, rt);
 
   if (share) {
-    /* If triangles have sharing points like (abc) and (acd), then we only need to detect bc
-     * against acd or cd against abc.*/
+    /* If triangles have sharing points like `abc` and `acd`, then we only need to detect `bc`
+     * against `acd` or `cd` against `abc`. */
 
     LineartVert *new_share;
     lineart_triangle_get_other_verts(rt, share, &sv1, &sv2);
@@ -2448,8 +2466,8 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
 
   /* This z transformation is not the same as the rest of the part, because the data don't go
    * through normal perspective division calls in the pipeline, but this way the 3D result and
-   * occlution on the generated line is correct, and we don't really use 2D for viewport stroke
-   * generation anyway.*/
+   * occlusion on the generated line is correct, and we don't really use 2D for viewport stroke
+   * generation anyway. */
   v1->fbcoord[2] = ZMin * ZMax / (ZMax - fabs(v1->fbcoord[2]) * (ZMax - ZMin));
   v2->fbcoord[2] = ZMin * ZMax / (ZMax - fabs(v2->fbcoord[2]) * (ZMax - ZMin));
 
@@ -2539,7 +2557,9 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
   }
 }
 
-/* The calculated view vector will point towards the far-plane from the camera position. */
+/**
+ * The calculated view vector will point towards the far-plane from the camera position.
+ */
 static void lineart_main_get_view_vector(LineartRenderBuffer *rb)
 {
   float direction[3] = {0, 0, 1};
@@ -2626,7 +2646,7 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   double clipping_offset = 0;
 
   if (lmd->calculation_flags & LRT_ALLOW_CLIPPING_BOUNDARIES) {
-    /* This way the clipped lines are "stablely visible" by prevents depth buffer artefacts. */
+    /* This way the clipped lines are "stably visible" by prevents depth buffer artifacts. */
     clipping_offset = 0.0001;
   }
 
@@ -2740,7 +2760,9 @@ static void lineart_main_bounding_area_make_initial(LineartRenderBuffer *rb)
   }
 }
 
-/* Re-link adjacent tiles after one gets subdivided. */
+/**
+ * Re-link adjacent tiles after one gets subdivided.
+ */
 static void lineart_bounding_areas_connect_new(LineartRenderBuffer *rb, LineartBoundingArea *root)
 {
   LineartBoundingArea *ba = root->child, *tba;
@@ -2874,14 +2896,16 @@ static void lineart_bounding_areas_connect_new(LineartRenderBuffer *rb, LineartB
     }
   }
 
-  /* Finally clear parent'scene adjacent list. */
+  /* Finally clear parent's adjacent list. */
   BLI_listbase_clear(&root->lp);
   BLI_listbase_clear(&root->rp);
   BLI_listbase_clear(&root->up);
   BLI_listbase_clear(&root->bp);
 }
 
-/* Subdivide a tile after one tile contains too many triangles. */
+/**
+ * Subdivide a tile after one tile contains too many triangles.
+ */
 static void lineart_bounding_area_split(LineartRenderBuffer *rb,
                                         LineartBoundingArea *root,
                                         int recursive_level)
@@ -3028,8 +3052,10 @@ static bool lineart_bounding_area_triangle_intersect(LineartRenderBuffer *fb,
   return false;
 }
 
-/* 1) Link triangles with bounding areas for later occlusion test.
- * 2) Test triangles with existing(added previously) triangles for intersection lines. */
+/**
+ * 1) Link triangles with bounding areas for later occlusion test.
+ * 2) Test triangles with existing(added previously) triangles for intersection lines.
+ */
 static void lineart_bounding_area_link_triangle(LineartRenderBuffer *rb,
                                                 LineartBoundingArea *root_ba,
                                                 LineartTriangle *rt,
@@ -3045,9 +3071,9 @@ static void lineart_bounding_area_link_triangle(LineartRenderBuffer *rb,
     lineart_list_append_pointer_pool(&root_ba->linked_triangles, &rb->render_data_pool, rt);
     root_ba->triangle_count++;
     /* If splitting doesn't improve triangle separation, then shouldn't allow splitting anymore.
-     * Here we use recursive limit. This is espetially useful in ortho render, where a lot of
-     * faces could easily line up perfectly in image space, which can not be separated by simply
-     * slicing the image tile. */
+     * Here we use recursive limit. This is especially useful in orthographic render,
+     * where a lot of faces could easily line up perfectly in image space,
+     * which can not be separated by simply slicing the image tile. */
     if (root_ba->triangle_count > 200 && recursive && recursive_level < 10) {
       lineart_bounding_area_split(rb, root_ba, recursive_level);
     }
@@ -3112,7 +3138,9 @@ static void lineart_bounding_area_link_line(LineartRenderBuffer *rb,
   }
 }
 
-/* Link lines to their respective bounding areas. */
+/**
+ * Link lines to their respective bounding areas.
+ */
 static void lineart_main_link_lines(LineartRenderBuffer *rb)
 {
   LRT_ITER_ALL_LINES_BEGIN
@@ -3206,8 +3234,7 @@ static bool lineart_get_edge_bounding_areas(LineartRenderBuffer *rb,
   (*rowend) = rb->tile_count_y - (int)((b[2] + 1.0) / sp_h) - 1;
   (*rowbegin) = rb->tile_count_y - (int)((b[3] + 1.0) / sp_h) - 1;
 
-  /* It'scene possible that the line stretches too much out to the side, resulting negative value
- . */
+  /* It's possible that the line stretches too much out to the side, resulting negative value. */
   if ((*rowend) < (*rowbegin)) {
     (*rowend) = rb->tile_count_y - 1;
   }
@@ -3224,7 +3251,9 @@ static bool lineart_get_edge_bounding_areas(LineartRenderBuffer *rb,
   return true;
 }
 
-/* This only gets initial "biggest" tile. */
+/**
+ * This only gets initial "biggest" tile.
+ */
 LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *rb,
                                                           double x,
                                                           double y)
@@ -3296,7 +3325,9 @@ static LineartBoundingArea *lineart_get_bounding_area(LineartRenderBuffer *rb, d
   return iba;
 }
 
-/* Wrapper for more convenience. */
+/**
+ * Wrapper for more convenience.
+ */
 LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y)
 {
   LineartBoundingArea *ba;
@@ -3306,7 +3337,9 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, doub
   return NULL;
 }
 
-/* Sequentially add triangles into render buffer. This also does intersection along the way. */
+/**
+ * Sequentially add triangles into render buffer. This also does intersection along the way.
+ */
 static void lineart_main_add_triangles(LineartRenderBuffer *rb)
 {
   LineartTriangle *rt;
@@ -3319,7 +3352,7 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
     lim = reln->element_count;
     for (i = 0; i < lim; i++) {
       if ((rt->flags & LRT_CULL_USED) || (rt->flags & LRT_CULL_DISCARD)) {
-        rt = (void *)(((unsigned char *)rt) + rb->triangle_size);
+        rt = (void *)(((uchar *)rt) + rb->triangle_size);
         continue;
       }
       if (lineart_get_triangle_bounding_areas(rb, rt, &y1, &y2, &x1, &x2)) {
@@ -3335,13 +3368,15 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
           }
         }
       } /* Else throw away. */
-      rt = (void *)(((unsigned char *)rt) + rb->triangle_size);
+      rt = (void *)(((uchar *)rt) + rb->triangle_size);
     }
   }
 }
 
-/* This function gets the tile for the point e->v1, and later use lineart_bounding_area_next() to
- * get next along the way. */
+/**
+ * This function gets the tile for the point `e->v1`, and later use #lineart_bounding_area_next()
+ * to get next along the way.
+ */
 static LineartBoundingArea *lineart_edge_first_bounding_area(LineartRenderBuffer *rb,
                                                              LineartEdge *e)
 {
@@ -3374,8 +3409,10 @@ static LineartBoundingArea *lineart_edge_first_bounding_area(LineartRenderBuffer
   return lineart_get_bounding_area(rb, data[0], data[1]);
 }
 
-/* This march along one render line in image space and
- * get the next bounding area the line is crossing. */
+/**
+ * This march along one render line in image space and
+ * get the next bounding area the line is crossing.
+ */
 static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this,
                                                        LineartEdge *e,
                                                        double x,
@@ -3458,7 +3495,7 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
         }
       }
     }
-    /* If the line is compeletely horizontal, in which Y diffence == 0. */
+    /* If the line is completely horizontal, in which Y difference == 0. */
     else {
       r1 = ratiod(e->v1->fbcoord[0], e->v2->fbcoord[0], this->r);
       if (r1 > 1) {
@@ -3588,22 +3625,26 @@ static LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *this
       }
     }
     else {
-      /* egment has no length. */
+      /* Segment has no length. */
       return 0;
     }
   }
   return 0;
 }
 
-/* This is the entry point of all line art calculations. */
-int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifierData *lmd)
+/**
+ * This is the entry point of all line art calculations.
+ *
+ * \return True when a change is made.
+ */
+bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifierData *lmd)
 {
   LineartRenderBuffer *rb;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
 
   if (!scene->camera) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   rb = lineart_create_render_buffer(scene, lmd);
@@ -3616,7 +3657,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
    * occlusion levels will get ignored. */
   rb->max_occlusion_level = MAX2(lmd->level_start, lmd->level_end);
 
-  /* FIXME: (Yiming) See definition of int LineartRenderBuffer::_source_type for detailes. */
+  /* FIXME(Yiming): See definition of int #LineartRenderBuffer::_source_type for detailed. */
   rb->_source_type = lmd->source_type;
   rb->_source_collection = lmd->source_collection;
   rb->_source_object = lmd->source_object;
@@ -3628,7 +3669,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
 
   if (!rb->vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
-    return OPERATOR_FINISHED;
+    return true;
   }
 
   /* Initialize the bounding box acceleration structure, it's a lot like BVH in 3D. */
@@ -3638,7 +3679,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
    * correct coordinates of those clipped lines. Done in two steps,
    * setting clip_far==false for near plane. */
   lineart_main_cull_triangles(rb, false);
-  /* clip_far==true for far plane. */
+  /* `clip_far == true` for far plane. */
   lineart_main_cull_triangles(rb, true);
 
   /* At this point triangle adjacent info pointers is no longer needed, free them. */
@@ -3676,7 +3717,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
     MOD_lineart_chain_split_for_fixed_occlusion(rb);
 
     /* Then we connect chains based on the _proximity_ of their end points in image space, here's
-     * the place threashold value gets involved. */
+     * the place threshold value gets involved. */
 
     /* do_geometry_space = true. */
     MOD_lineart_chain_connect(rb);
@@ -3697,7 +3738,7 @@ int MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModifi
     lineart_count_and_print_render_buffer_memory(rb);
   }
 
-  return OPERATOR_FINISHED;
+  return true;
 }
 
 static int lineart_rb_edge_types(LineartRenderBuffer *rb)
@@ -3723,8 +3764,8 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
                                      Object *source_object,
                                      Collection *source_collection,
                                      int types,
-                                     unsigned char transparency_flags,
-                                     unsigned char transparency_mask,
+                                     uchar transparency_flags,
+                                     uchar transparency_mask,
                                      short thickness,
                                      float opacity,
                                      float resample_length,
@@ -3795,8 +3836,8 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
       }
     }
 
-    /* Preserved: If we ever do async generation, this picked flag should be set here. */
-    /* rlc->picked = 1;. */
+    /* Preserved: If we ever do asynchronous generation, this picked flag should be set here. */
+    // rlc->picked = 1;
 
     int array_idx = 0;
     int count = MOD_lineart_chain_count(rlc);
@@ -3810,8 +3851,8 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
       stroke_data[array_idx + 1] = rlci->gpos[1];
       stroke_data[array_idx + 2] = rlci->gpos[2];
       mul_m4_v3(gp_obmat_inverse, &stroke_data[array_idx]);
-      stroke_data[array_idx + 3] = 1;       /*  thickness. */
-      stroke_data[array_idx + 4] = opacity; /*  hardness?. */
+      stroke_data[array_idx + 3] = 1;       /* thickness. */
+      stroke_data[array_idx + 4] = opacity; /* hardness?. */
       array_idx += 5;
     }
 
@@ -3882,7 +3923,9 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
   }
 }
 
-/* Wrapper for external calls. */
+/**
+ * Wrapper for external calls.
+ */
 void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   Depsgraph *depsgraph,
                                   Object *ob,
@@ -3894,8 +3937,8 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   int level_end,
                                   int mat_nr,
                                   short edge_types,
-                                  unsigned char transparency_flags,
-                                  unsigned char transparency_mask,
+                                  uchar transparency_flags,
+                                  uchar transparency_mask,
                                   short thickness,
                                   float opacity,
                                   float resample_length,

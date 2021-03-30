@@ -19,7 +19,10 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Operator
+from bpy.types import (
+    Operator,
+    OperatorFileListElement,
+)
 from bpy.props import (
     BoolProperty,
     CollectionProperty,
@@ -38,7 +41,7 @@ class WM_OT_previews_batch_generate(Operator):
     # -----------
     # File props.
     files: CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
+        type=OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'},
     )
 
@@ -148,7 +151,7 @@ class WM_OT_previews_batch_clear(Operator):
     # -----------
     # File props.
     files: CollectionProperty(
-        type=bpy.types.OperatorFileListElement,
+        type=OperatorFileListElement,
         options={'HIDDEN', 'SKIP_SAVE'},
     )
 

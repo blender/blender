@@ -22,6 +22,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 CalculateStandardDeviationOperation::CalculateStandardDeviationOperation()
 {
   /* pass */
@@ -98,3 +100,5 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect)
   unlockMutex();
   return nullptr;
 }
+
+}  // namespace blender::compositor

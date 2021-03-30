@@ -69,7 +69,7 @@ void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder)
     builder.set_constant_value(type, buffer);
   }
   else {
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
 }
 

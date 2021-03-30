@@ -31,6 +31,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 BaseImageOperation::BaseImageOperation()
 {
   this->m_image = nullptr;
@@ -123,13 +125,13 @@ static void sampleImageAtLocation(
 {
   if (ibuf->rect_float) {
     switch (sampler) {
-      case COM_PS_NEAREST:
+      case PixelSampler::Nearest:
         nearest_interpolation_color(ibuf, nullptr, color, x, y);
         break;
-      case COM_PS_BILINEAR:
+      case PixelSampler::Bilinear:
         bilinear_interpolation_color(ibuf, nullptr, color, x, y);
         break;
-      case COM_PS_BICUBIC:
+      case PixelSampler::Bicubic:
         bicubic_interpolation_color(ibuf, nullptr, color, x, y);
         break;
     }
@@ -137,13 +139,13 @@ static void sampleImageAtLocation(
   else {
     unsigned char byte_color[4];
     switch (sampler) {
-      case COM_PS_NEAREST:
+      case PixelSampler::Nearest:
         nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);
         break;
-      case COM_PS_BILINEAR:
+      case PixelSampler::Bilinear:
         bilinear_interpolation_color(ibuf, byte_color, nullptr, x, y);
         break;
-      case COM_PS_BICUBIC:
+      case PixelSampler::Bicubic:
         bicubic_interpolation_color(ibuf, byte_color, nullptr, x, y);
         break;
     }
@@ -203,3 +205,5 @@ void ImageDepthOperation::executePixelSampled(float output[4],
     }
   }
 }
+
+}  // namespace blender::compositor

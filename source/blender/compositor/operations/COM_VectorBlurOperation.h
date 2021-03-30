@@ -22,6 +22,8 @@
 #include "COM_QualityStepHelper.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
   /**
@@ -44,19 +46,19 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   void setVectorBlurSettings(NodeBlurData *settings)
   {
@@ -64,7 +66,7 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
  protected:
   void generateVectorBlur(float *data,
@@ -72,3 +74,5 @@ class VectorBlurOperation : public NodeOperation, public QualityStepHelper {
                           MemoryBuffer *inputSpeed,
                           MemoryBuffer *inputZ);
 };
+
+}  // namespace blender::compositor

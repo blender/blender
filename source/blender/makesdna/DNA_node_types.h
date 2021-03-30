@@ -715,6 +715,12 @@ typedef struct NodeBilateralBlurData {
   char _pad[2];
 } NodeBilateralBlurData;
 
+typedef struct NodeAntiAliasingData {
+  float threshold;
+  float contrast_limit;
+  float corner_rounding;
+} NodeAntiAliasingData;
+
 /* NOTE: Only for do-version code. */
 typedef struct NodeHueSat {
   float hue, sat, val;
@@ -1081,9 +1087,11 @@ typedef struct NodeCryptomatte_Runtime {
 } NodeCryptomatte_Runtime;
 
 typedef struct NodeCryptomatte {
-  /* iuser needs to be first element due to RNA limitations.
-   * When we define the ImageData properties, we can't define them from
-   * storage->iuser, so storage needs to be casted to ImageUser directly. */
+  /**
+   * `iuser` needs to be first element due to RNA limitations.
+   * When we define the #ImageData properties, we can't define them from
+   * `storage->iuser`, so storage needs to be cast to #ImageUser directly.
+   */
   ImageUser iuser;
 
   /* Contains `CryptomatteEntry`. */
@@ -1106,6 +1114,14 @@ typedef struct NodeDenoise {
   char hdr;
 } NodeDenoise;
 
+typedef struct NodeAttributeClamp {
+  /* CustomDataType. */
+  uint8_t data_type;
+
+  /* NodeClampOperation. */
+  uint8_t operation;
+} NodeAttributeClamp;
+
 typedef struct NodeAttributeCompare {
   /* FloatCompareOperation. */
   uint8_t operation;
@@ -1116,6 +1132,14 @@ typedef struct NodeAttributeCompare {
 
   char _pad[5];
 } NodeAttributeCompare;
+
+typedef struct NodeAttributeMapRange {
+  /* GeometryNodeAttributeDataType */
+  uint8_t data_type;
+
+  /* NodeMapRangeType. */
+  uint8_t interpolation_type;
+} NodeAttributeMapRange;
 
 typedef struct NodeAttributeMath {
   /* NodeMathOperation. */
@@ -1548,6 +1572,8 @@ typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_SINE = 21,
   NODE_VECTOR_MATH_COSINE = 22,
   NODE_VECTOR_MATH_TANGENT = 23,
+  NODE_VECTOR_MATH_REFRACT = 24,
+  NODE_VECTOR_MATH_FACEFORWARD = 25,
 } NodeVectorMathOperation;
 
 /* Boolean math node operations. */

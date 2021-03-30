@@ -60,127 +60,133 @@ void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
                                          const bool calc_island_axismtx,
                                          struct TransIslandData *r_island_data)
 {
+  struct TransIslandData data = {NULL};
+
   BMesh *bm = em->bm;
   char htype;
   char itype;
   int i;
 
   /* group vars */
-  float(*center)[3] = NULL;
-  float(*axismtx)[3][3] = NULL;
-  int *groups_array;
-  int(*group_index)[2];
-  int group_tot;
-  void **ele_array;
+  int *groups_array = NULL;
+  int(*group_index)[2] = NULL;
 
-  int *vert_map;
-
-  if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
-    groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totedgesel, __func__);
-    group_tot = BM_mesh_calc_edge_groups(
-        bm, groups_array, &group_index, NULL, NULL, BM_ELEM_SELECT);
-
-    htype = BM_EDGE;
-    itype = BM_VERTS_OF_EDGE;
-  }
-  else { /* (bm->selectmode & SCE_SELECT_FACE) */
-    groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__);
-    group_tot = BM_mesh_calc_face_groups(
-        bm, groups_array, &group_index, NULL, NULL, NULL, BM_ELEM_SELECT, BM_VERT);
-
-    htype = BM_FACE;
-    itype = BM_VERTS_OF_FACE;
+  bool has_only_single_islands = bm->totedgesel == 0 && bm->totfacesel == 0;
+  if (has_only_single_islands && !calc_single_islands) {
+    return;
   }
 
-  if (calc_island_center) {
-    center = MEM_mallocN(sizeof(*center) * group_tot, __func__);
-  }
-
-  if (calc_island_axismtx) {
-    axismtx = MEM_mallocN(sizeof(*axismtx) * group_tot, __func__);
-  }
-
-  vert_map = MEM_mallocN(sizeof(*vert_map) * bm->totvert, __func__);
+  data.island_vert_map = MEM_mallocN(sizeof(*data.island_vert_map) * bm->totvert, __func__);
   /* we shouldn't need this, but with incorrect selection flushing
    * its possible we have a selected vertex that's not in a face,
    * for now best not crash in that case. */
-  copy_vn_i(vert_map, bm->totvert, -1);
+  copy_vn_i(data.island_vert_map, bm->totvert, -1);
 
-  BM_mesh_elem_table_ensure(bm, htype);
-  ele_array = (htype == BM_FACE) ? (void **)bm->ftable : (void **)bm->etable;
+  if (!has_only_single_islands) {
+    if (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totedgesel, __func__);
+      data.island_tot = BM_mesh_calc_edge_groups(
+          bm, groups_array, &group_index, NULL, NULL, BM_ELEM_SELECT);
 
-  BM_mesh_elem_index_ensure(bm, BM_VERT);
+      htype = BM_EDGE;
+      itype = BM_VERTS_OF_EDGE;
+    }
+    else { /* (bm->selectmode & SCE_SELECT_FACE) */
+      groups_array = MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__);
+      data.island_tot = BM_mesh_calc_face_groups(
+          bm, groups_array, &group_index, NULL, NULL, NULL, BM_ELEM_SELECT, BM_VERT);
 
-  /* may be an edge OR a face array */
-  for (i = 0; i < group_tot; i++) {
-    BMEditSelection ese = {NULL};
+      htype = BM_FACE;
+      itype = BM_VERTS_OF_FACE;
+    }
 
-    const int fg_sta = group_index[i][0];
-    const int fg_len = group_index[i][1];
-    float co[3], no[3], tangent[3];
-    int j;
+    BLI_assert(data.island_tot);
+    if (calc_island_center) {
+      data.center = MEM_mallocN(sizeof(*data.center) * data.island_tot, __func__);
+    }
 
-    zero_v3(co);
-    zero_v3(no);
-    zero_v3(tangent);
+    if (calc_island_axismtx) {
+      data.axismtx = MEM_mallocN(sizeof(*data.axismtx) * data.island_tot, __func__);
+    }
 
-    ese.htype = htype;
+    BM_mesh_elem_table_ensure(bm, htype);
 
-    /* loop on each face or edge in this group:
-     * - assign r_vert_map
-     * - calculate (co, no)
-     */
-    for (j = 0; j < fg_len; j++) {
-      ese.ele = ele_array[groups_array[fg_sta + j]];
+    void **ele_array;
+    ele_array = (htype == BM_FACE) ? (void **)bm->ftable : (void **)bm->etable;
 
-      if (center) {
-        float tmp_co[3];
-        BM_editselection_center(&ese, tmp_co);
-        add_v3_v3(co, tmp_co);
-      }
+    BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-      if (axismtx) {
-        float tmp_no[3], tmp_tangent[3];
-        BM_editselection_normal(&ese, tmp_no);
-        BM_editselection_plane(&ese, tmp_tangent);
-        add_v3_v3(no, tmp_no);
-        add_v3_v3(tangent, tmp_tangent);
-      }
+    /* may be an edge OR a face array */
+    for (i = 0; i < data.island_tot; i++) {
+      BMEditSelection ese = {NULL};
 
-      {
-        /* setup vertex map */
-        BMIter iter;
-        BMVert *v;
+      const int fg_sta = group_index[i][0];
+      const int fg_len = group_index[i][1];
+      float co[3], no[3], tangent[3];
+      int j;
 
-        /* connected edge-verts */
-        BM_ITER_ELEM (v, &iter, ese.ele, itype) {
-          vert_map[BM_elem_index_get(v)] = i;
+      zero_v3(co);
+      zero_v3(no);
+      zero_v3(tangent);
+
+      ese.htype = htype;
+
+      /* loop on each face or edge in this group:
+       * - assign r_vert_map
+       * - calculate (co, no)
+       */
+      for (j = 0; j < fg_len; j++) {
+        ese.ele = ele_array[groups_array[fg_sta + j]];
+
+        if (data.center) {
+          float tmp_co[3];
+          BM_editselection_center(&ese, tmp_co);
+          add_v3_v3(co, tmp_co);
+        }
+
+        if (data.axismtx) {
+          float tmp_no[3], tmp_tangent[3];
+          BM_editselection_normal(&ese, tmp_no);
+          BM_editselection_plane(&ese, tmp_tangent);
+          add_v3_v3(no, tmp_no);
+          add_v3_v3(tangent, tmp_tangent);
+        }
+
+        {
+          /* setup vertex map */
+          BMIter iter;
+          BMVert *v;
+
+          /* connected edge-verts */
+          BM_ITER_ELEM (v, &iter, ese.ele, itype) {
+            data.island_vert_map[BM_elem_index_get(v)] = i;
+          }
         }
       }
-    }
 
-    if (center) {
-      mul_v3_v3fl(center[i], co, 1.0f / (float)fg_len);
-    }
-
-    if (axismtx) {
-      if (createSpaceNormalTangent(axismtx[i], no, tangent)) {
-        /* pass */
+      if (data.center) {
+        mul_v3_v3fl(data.center[i], co, 1.0f / (float)fg_len);
       }
-      else {
-        if (normalize_v3(no) != 0.0f) {
-          axis_dominant_v3_to_m3(axismtx[i], no);
-          invert_m3(axismtx[i]);
+
+      if (data.axismtx) {
+        if (createSpaceNormalTangent(data.axismtx[i], no, tangent)) {
+          /* pass */
         }
         else {
-          unit_m3(axismtx[i]);
+          if (normalize_v3(no) != 0.0f) {
+            axis_dominant_v3_to_m3(data.axismtx[i], no);
+            invert_m3(data.axismtx[i]);
+          }
+          else {
+            unit_m3(data.axismtx[i]);
+          }
         }
       }
     }
-  }
 
-  MEM_freeN(groups_array);
-  MEM_freeN(group_index);
+    MEM_freeN(groups_array);
+    MEM_freeN(group_index);
+  }
 
   /* for PET we need islands of 1 so connected vertices can use it with V3D_AROUND_LOCAL_ORIGINS */
   if (calc_single_islands) {
@@ -189,45 +195,44 @@ void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
     int group_tot_single = 0;
 
     BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-      if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (vert_map[i] == -1)) {
+      if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (data.island_vert_map[i] == -1)) {
         group_tot_single += 1;
       }
     }
 
     if (group_tot_single != 0) {
-      if (center) {
-        center = MEM_reallocN(center, sizeof(*center) * (group_tot + group_tot_single));
+      if (calc_island_center) {
+        data.center = MEM_reallocN(data.center,
+                                   sizeof(*data.center) * (data.island_tot + group_tot_single));
       }
-      if (axismtx) {
-        axismtx = MEM_reallocN(axismtx, sizeof(*axismtx) * (group_tot + group_tot_single));
+      if (calc_island_axismtx) {
+        data.axismtx = MEM_reallocN(data.axismtx,
+                                    sizeof(*data.axismtx) * (data.island_tot + group_tot_single));
       }
 
       BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-        if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (vert_map[i] == -1)) {
-          vert_map[i] = group_tot;
-          if (center) {
-            copy_v3_v3(center[group_tot], v->co);
+        if (BM_elem_flag_test(v, BM_ELEM_SELECT) && (data.island_vert_map[i] == -1)) {
+          data.island_vert_map[i] = data.island_tot;
+          if (data.center) {
+            copy_v3_v3(data.center[data.island_tot], v->co);
           }
-          if (axismtx) {
-            if (is_zero_v3(v->no) != 0.0f) {
-              axis_dominant_v3_to_m3(axismtx[group_tot], v->no);
-              invert_m3(axismtx[group_tot]);
+          if (data.axismtx) {
+            if (is_zero_v3(v->no) == false) {
+              axis_dominant_v3_to_m3(data.axismtx[data.island_tot], v->no);
+              invert_m3(data.axismtx[data.island_tot]);
             }
             else {
-              unit_m3(axismtx[group_tot]);
+              unit_m3(data.axismtx[data.island_tot]);
             }
           }
 
-          group_tot += 1;
+          data.island_tot += 1;
         }
       }
     }
   }
 
-  r_island_data->axismtx = axismtx;
-  r_island_data->center = center;
-  r_island_data->island_tot = group_tot;
-  r_island_data->island_vert_map = vert_map;
+  *r_island_data = data;
 }
 
 void transform_convert_mesh_islanddata_free(struct TransIslandData *island_data)

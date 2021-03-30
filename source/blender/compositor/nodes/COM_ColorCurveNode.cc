@@ -20,6 +20,8 @@
 #include "COM_ColorCurveOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 ColorCurveNode::ColorCurveNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -55,3 +57,5 @@ void ColorCurveNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

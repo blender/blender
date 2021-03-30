@@ -43,9 +43,11 @@
 #include "SEQ_add.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
+#include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
+#include "SEQ_utils.h"
 
 int SEQ_edit_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
@@ -200,6 +202,72 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       SEQ_sequence_free(scene, seq, true);
     }
   }
+}
+
+static bool seq_exists_in_seqbase(Sequence *seq, ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->type == SEQ_TYPE_META && seq_exists_in_seqbase(seq, &seq_test->seqbase)) {
+      return true;
+    }
+    if (seq_test == seq) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool SEQ_edit_move_strip_to_meta(Scene *scene,
+                                 Sequence *src_seq,
+                                 Sequence *dst_seqm,
+                                 const char **error_str)
+{
+  /* Find the appropriate seqbase */
+  Editing *ed = SEQ_editing_get(scene, false);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, src_seq);
+
+  if (dst_seqm->type != SEQ_TYPE_META) {
+    *error_str = N_("Can not move strip to non-meta strip");
+    return false;
+  }
+
+  if (src_seq == dst_seqm) {
+    *error_str = N_("Strip can not be moved into itself");
+    return false;
+  }
+
+  if (seqbase == &dst_seqm->seqbase) {
+    *error_str = N_("Moved strip is already inside provided meta strip");
+    return false;
+  }
+
+  if (src_seq->type == SEQ_TYPE_META && seq_exists_in_seqbase(dst_seqm, &src_seq->seqbase)) {
+    *error_str = N_("Moved strip is parent of provided meta strip");
+    return false;
+  }
+
+  if (!seq_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
+    *error_str = N_("Can not move strip to different scene");
+    return false;
+  }
+
+  /* Remove users of src_seq. Ideally these could be moved into meta as well, but this would be
+   * best to do with generalized iterator as described in D10337. */
+  sequencer_flag_users_for_removal(scene, seqbase, src_seq);
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+
+  /* Move to meta. */
+  BLI_remlink(seqbase, src_seq);
+  BLI_addtail(&dst_seqm->seqbase, src_seq);
+  SEQ_relations_invalidate_cache_preprocessed(scene, src_seq);
+
+  /* Update meta. */
+  SEQ_time_update_sequence(scene, dst_seqm);
+  if (SEQ_transform_test_overlap(&dst_seqm->seqbase, src_seq)) {
+    SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, src_seq, scene);
+  }
+
+  return true;
 }
 
 static void seq_split_set_left_hold_offset(Sequence *seq, int timeline_frame)

@@ -2213,7 +2213,7 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
     flush = uv_select_edgering(sima, scene, obedit, &hit, extend);
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {

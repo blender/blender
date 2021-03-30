@@ -3,6 +3,7 @@
 #include "testing/testing.h"
 
 #include "FN_cpp_type.hh"
+#include "FN_cpp_type_make.hh"
 
 namespace blender::fn::tests {
 
@@ -79,7 +80,7 @@ MAKE_CPP_TYPE(TestType, blender::fn::tests::TestType)
 
 namespace blender::fn::tests {
 
-const CPPType &CPPType_TestType = CPPType::get<TestType>();
+static const CPPType &CPPType_TestType = CPPType::get<TestType>();
 
 TEST(cpp_type, Size)
 {

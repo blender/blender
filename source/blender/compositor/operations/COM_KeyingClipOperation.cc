@@ -23,6 +23,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 KeyingClipOperation::KeyingClipOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -36,7 +38,7 @@ KeyingClipOperation::KeyingClipOperation()
 
   this->m_isEdgeMatte = false;
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void *KeyingClipOperation::initializeTileData(rcti *rect)
@@ -127,3 +129,5 @@ bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

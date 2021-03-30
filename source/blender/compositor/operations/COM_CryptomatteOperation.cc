@@ -18,6 +18,8 @@
 
 #include "COM_CryptomatteOperation.h"
 
+namespace blender::compositor {
+
 CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
 {
   for (size_t i = 0; i < num_inputs; i++) {
@@ -25,7 +27,7 @@ CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
   }
   inputs.resize(num_inputs);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void CryptomatteOperation::initExecution()
@@ -68,3 +70,5 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
     }
   }
 }
+
+}  // namespace blender::compositor

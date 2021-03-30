@@ -28,6 +28,8 @@
 
 #include "DNA_movieclip_types.h"
 
+namespace blender::compositor {
+
 Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -111,3 +113,5 @@ void Stabilize2dNode::convertToOperations(NodeConverter &converter,
     converter.addLink(translateOperation->getOutputSocket(), psoperation->getInputSocket(0));
   }
 }
+
+}  // namespace blender::compositor

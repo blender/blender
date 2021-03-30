@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_TextureOperation.h"
 
+namespace blender::compositor {
+
 TextureNode::TextureNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -54,3 +56,5 @@ void TextureNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), alphaOperation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), alphaOperation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

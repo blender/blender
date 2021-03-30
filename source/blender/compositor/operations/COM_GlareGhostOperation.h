@@ -22,6 +22,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class GlareGhostOperation : public GlareBaseOperation {
  public:
   GlareGhostOperation() : GlareBaseOperation()
@@ -29,5 +31,7 @@ class GlareGhostOperation : public GlareBaseOperation {
   }
 
  protected:
-  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings);
+  void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) override;
 };
+
+}  // namespace blender::compositor

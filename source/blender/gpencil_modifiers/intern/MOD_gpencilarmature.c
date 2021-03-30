@@ -30,11 +30,9 @@
 
 #include "BLT_translation.h"
 
-#include "DNA_armature_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -60,7 +58,6 @@
 
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
-#include "MOD_gpencil_util.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

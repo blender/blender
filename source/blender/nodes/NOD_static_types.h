@@ -224,6 +224,7 @@ DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE,    def_cmp_cryptomatte,    "CRYPTO
 DefNode(CompositorNode, CMP_NODE_CRYPTOMATTE_LEGACY, def_cmp_cryptomatte_legacy, "CRYPTOMATTE", Cryptomatte, "Cryptomatte (Legacy)", ""           )
 DefNode(CompositorNode, CMP_NODE_DENOISE,        def_cmp_denoise,        "DENOISE",        Denoise,          "Denoise",           ""              )
 DefNode(CompositorNode, CMP_NODE_EXPOSURE,       0,                      "EXPOSURE",       Exposure,         "Exposure",          ""              )
+DefNode(CompositorNode, CMP_NODE_ANTIALIASING,   def_cmp_antialiasing,   "ANTIALIASING",   AntiAliasing,     "Anti-Aliasing",     ""              )
 
 DefNode(TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode(TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )
@@ -262,10 +263,6 @@ DefNode(TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DI
 
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
 DefNode(FunctionNode, FN_NODE_FLOAT_COMPARE, def_float_compare, "FLOAT_COMPARE", FloatCompare, "Float Compare", "")
-DefNode(FunctionNode, FN_NODE_SWITCH,        def_fn_switch,     "SWITCH",        Switch,       "Switch", "")
-DefNode(FunctionNode, FN_NODE_GROUP_INSTANCE_ID, 0,             "GROUP_INSTANCE_ID", GroupInstanceID,  "Group Instance ID", "")
-DefNode(FunctionNode, FN_NODE_COMBINE_STRINGS, 0,               "COMBINE_STRINGS", CombineStrings, "Combine Strings", "")
-DefNode(FunctionNode, FN_NODE_OBJECT_TRANSFORMS, 0,             "OBJECT_TRANSFORMS", ObjectTransforms, "Object Transforms", "")
 DefNode(FunctionNode, FN_NODE_RANDOM_FLOAT, 0,                  "RANDOM_FLOAT", RandomFloat, "Random Float", "")
 DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR", InputVector, "Vector", "")
 DefNode(FunctionNode, FN_NODE_INPUT_STRING, def_fn_input_string, "INPUT_STRING", InputString, "String", "")
@@ -309,7 +306,9 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CYLINDER, def_geo_mesh_cylinder, "
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE, 0, "MESH_PRIMITIVE_ICO_SPHERE", MeshIcoSphere, "Ico Sphere", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_CONE, def_geo_mesh_cone, "MESH_PRIMITIVE_CONE", MeshCone, "Cone", "")
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRIMITIVE_LINE", MeshLine, "Line", "")
-DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_PLANE, 0, "MESH_PRIMITIVE_PLANE", MeshPlane, "Plane", "")
+DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_GRID, 0, "MESH_PRIMITIVE_GRID", MeshGrid, "Grid", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_MAP_RANGE, def_geo_attribute_map_range, "ATTRIBUTE_MAP_RANGE", AttributeMapRange, "Attribute Map Range", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "ATTRIBUTE_CLAMP", AttributeClamp, "Attribute Clamp", "")
 
 /* undefine macros */
 #undef DefNode

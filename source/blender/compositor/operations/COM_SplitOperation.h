@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SplitOperation : public NodeOperation {
  private:
   SocketReader *m_image1Input;
@@ -30,10 +32,11 @@ class SplitOperation : public NodeOperation {
 
  public:
   SplitOperation();
-  void initExecution();
-  void deinitExecution();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void initExecution() override;
+  void deinitExecution() override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
   void setSplitPercentage(float splitPercentage)
   {
     this->m_splitPercentage = splitPercentage;
@@ -43,3 +46,5 @@ class SplitOperation : public NodeOperation {
     this->m_xSplit = xsplit;
   }
 };
+
+}  // namespace blender::compositor

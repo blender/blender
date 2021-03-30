@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class InpaintSimpleOperation : public NodeOperation {
  protected:
   /**
@@ -42,18 +44,18 @@ class InpaintSimpleOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setIterations(int iterations)
   {
@@ -62,7 +64,7 @@ class InpaintSimpleOperation : public NodeOperation {
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
  private:
   void calc_manhattan_distance();
@@ -72,3 +74,5 @@ class InpaintSimpleOperation : public NodeOperation {
   bool next_pixel(int &x, int &y, int &curr, int iters);
   void pix_step(int x, int y);
 };
+
+}  // namespace blender::compositor

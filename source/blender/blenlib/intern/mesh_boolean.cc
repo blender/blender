@@ -97,10 +97,7 @@ class Edge {
 
   uint64_t hash() const
   {
-    constexpr uint64_t h1 = 33;
-    uint64_t v0hash = DefaultHash<int>{}(v_[0]->id);
-    uint64_t v1hash = DefaultHash<int>{}(v_[1]->id);
-    return v0hash ^ (v1hash * h1);
+    return get_default_hash_2(v_[0]->id, v_[1]->id);
   }
 };
 

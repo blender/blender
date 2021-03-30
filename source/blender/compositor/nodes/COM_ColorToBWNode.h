@@ -20,6 +20,9 @@
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
+
+namespace blender::compositor {
+
 /**
  * \brief ColorToBWNode
  * \ingroup Node
@@ -27,5 +30,8 @@
 class ColorToBWNode : public Node {
  public:
   ColorToBWNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

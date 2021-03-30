@@ -19,6 +19,8 @@
 #include "COM_ColorBalanceASCCDLOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 inline float colorbalance_cdl(float in, float offset, float power, float slope)
 {
   float x = in * slope + offset;
@@ -79,3 +81,5 @@ void ColorBalanceASCCDLOperation::deinitExecution()
   this->m_inputValueOperation = nullptr;
   this->m_inputColorOperation = nullptr;
 }
+
+}  // namespace blender::compositor

@@ -20,7 +20,12 @@
 
 #include "COM_MemoryProxy.h"
 #include "COM_NodeOperation.h"
-#include "COM_SocketReader.h"
+
+namespace blender::compositor {
+
+class OpenCLDevice;
+class MemoryProxy;
+
 /**
  * \brief NodeOperation to write to a tile
  * \ingroup Operation
@@ -37,28 +42,27 @@ class WriteBufferOperation : public NodeOperation {
   {
     return this->m_memoryProxy;
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-  bool isWriteBufferOperation() const
-  {
-    return true;
-  }
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
   bool isSingleValue() const
   {
     return m_single_value;
   }
 
-  void executeRegion(rcti *rect, unsigned int tileNumber);
-  void initExecution();
-  void deinitExecution();
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  void initExecution() override;
+  void deinitExecution() override;
   void executeOpenCLRegion(OpenCLDevice *device,
                            rcti *rect,
                            unsigned int chunkNumber,
                            MemoryBuffer **memoryBuffers,
-                           MemoryBuffer *outputBuffer);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+                           MemoryBuffer *outputBuffer) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
   void readResolutionFromInputSocket();
   inline NodeOperation *getInput()
   {
     return m_input;
   }
 };
+
+}  // namespace blender::compositor

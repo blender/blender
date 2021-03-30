@@ -28,6 +28,7 @@ class MFNetworkEvaluationStorage;
 
 class MFNetworkEvaluator : public MultiFunction {
  private:
+  MFSignature signature_;
   Vector<const MFOutputSocket *> inputs_;
   Vector<const MFInputSocket *> outputs_;
 

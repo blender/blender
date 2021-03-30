@@ -23,6 +23,8 @@
 #include "DNA_movieclip_types.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 /**
  * Base class for movie clip
  */
@@ -39,13 +41,14 @@ class MovieClipBaseOperation : public NodeOperation {
   /**
    * Determine the output resolution. The resolution is retrieved from the Renderer
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
  public:
   MovieClipBaseOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
   void setMovieClip(MovieClip *image)
   {
     this->m_movieClip = image;
@@ -63,7 +66,7 @@ class MovieClipBaseOperation : public NodeOperation {
   {
     this->m_framenumber = framenumber;
   }
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MovieClipOperation : public MovieClipBaseOperation {
@@ -74,5 +77,7 @@ class MovieClipOperation : public MovieClipBaseOperation {
 class MovieClipAlphaOperation : public MovieClipBaseOperation {
  public:
   MovieClipAlphaOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

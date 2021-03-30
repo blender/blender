@@ -24,6 +24,8 @@
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
+namespace blender::compositor {
+
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
   /* initialize node data */
@@ -147,3 +149,5 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

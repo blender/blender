@@ -47,10 +47,12 @@
 #include "NOD_node_tree_multi_function.hh"
 #include "NOD_socket.h"
 
+#include "FN_cpp_type_make.hh"
+
 struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
                                                   struct bNode *node,
                                                   struct bNodeSocketTemplate *stemp,
-                                                  int in_out)
+                                                  eNodeSocketInOut in_out)
 {
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);
@@ -100,8 +102,11 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
   return sock;
 }
 
-static bNodeSocket *verify_socket_template(
-    bNodeTree *ntree, bNode *node, int in_out, ListBase *socklist, bNodeSocketTemplate *stemp)
+static bNodeSocket *verify_socket_template(bNodeTree *ntree,
+                                           bNode *node,
+                                           eNodeSocketInOut in_out,
+                                           ListBase *socklist,
+                                           bNodeSocketTemplate *stemp)
 {
   bNodeSocket *sock;
 
@@ -130,7 +135,7 @@ static bNodeSocket *verify_socket_template(
 
 static void verify_socket_template_list(bNodeTree *ntree,
                                         bNode *node,
-                                        int in_out,
+                                        eNodeSocketInOut in_out,
                                         ListBase *socklist,
                                         bNodeSocketTemplate *stemp_first)
 {
@@ -635,9 +640,16 @@ class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
  public:
   ObjectSocketMultiFunction(Object *object) : object_(object)
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Object Socket");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Object Socket"};
     signature.depends_on_context();
     signature.single_output<blender::bke::PersistentObjectHandle>("Object");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,

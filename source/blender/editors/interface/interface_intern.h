@@ -647,6 +647,8 @@ extern bool ui_but_menu_draw_as_popover(const uiBut *but);
 void ui_but_range_set_hard(uiBut *but);
 void ui_but_range_set_soft(uiBut *but);
 
+bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot, const uiBut *but);
+
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
 extern bool ui_but_is_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -1108,11 +1110,11 @@ bool ui_but_contains_point_px(const uiBut *but, const struct ARegion *region, in
 uiBut *ui_list_find_mouse_over(struct ARegion *region,
                                const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 
-uiBut *ui_but_find_mouse_over_ex(struct ARegion *region,
+uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
                                  const int x,
                                  const int y,
                                  const bool labeledit) ATTR_WARN_UNUSED_RESULT;
-uiBut *ui_but_find_mouse_over(struct ARegion *region,
+uiBut *ui_but_find_mouse_over(const struct ARegion *region,
                               const struct wmEvent *event) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_but_find_rect_over(const struct ARegion *region,
                              const rcti *rect_px) ATTR_WARN_UNUSED_RESULT;

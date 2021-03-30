@@ -619,6 +619,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.num = 0;
 
   info.has_half_images = true;
+  info.has_nanovdb = true;
   info.has_volume_decoupled = true;
   info.has_branched_path = true;
   info.has_adaptive_stop_per_sample = true;
@@ -665,6 +666,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
     /* Accumulate device info. */
     info.has_half_images &= device.has_half_images;
+    info.has_nanovdb &= device.has_nanovdb;
     info.has_volume_decoupled &= device.has_volume_decoupled;
     info.has_branched_path &= device.has_branched_path;
     info.has_adaptive_stop_per_sample &= device.has_adaptive_stop_per_sample;

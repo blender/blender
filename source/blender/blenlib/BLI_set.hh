@@ -119,6 +119,16 @@ template<
      */
     typename Allocator = GuardedAllocator>
 class Set {
+ public:
+  class Iterator;
+  using value_type = Key;
+  using pointer = Key *;
+  using const_pointer = const Key *;
+  using reference = Key &;
+  using const_reference = const Key &;
+  using iterator = Iterator;
+  using size_type = int64_t;
+
  private:
   /**
    * Slots are either empty, occupied or removed. The number of occupied slots can be computed by
@@ -401,6 +411,13 @@ class Set {
    * also change their hash.
    */
   class Iterator {
+   public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Key;
+    using pointer = const Key *;
+    using reference = const Key &;
+    using difference_type = std::ptrdiff_t;
+
    private:
     const Slot *slots_;
     int64_t total_slots_;
@@ -422,9 +439,21 @@ class Set {
       return *this;
     }
 
+    Iterator operator++(int) const
+    {
+      Iterator copied_iterator = *this;
+      ++copied_iterator;
+      return copied_iterator;
+    }
+
     const Key &operator*() const
     {
       return *slots_[current_slot_].key();
+    }
+
+    const Key *operator->() const
+    {
+      return slots_[current_slot_].key();
     }
 
     friend bool operator!=(const Iterator &a, const Iterator &b)
@@ -432,6 +461,11 @@ class Set {
       BLI_assert(a.slots_ == b.slots_);
       BLI_assert(a.total_slots_ == b.total_slots_);
       return a.current_slot_ != b.current_slot_;
+    }
+
+    friend bool operator==(const Iterator &a, const Iterator &b)
+    {
+      return !(a != b);
     }
   };
 
@@ -754,6 +788,8 @@ class Set {
   template<typename ForwardKey>
   const Key &lookup_key_or_add__impl(ForwardKey &&key, const uint64_t hash)
   {
+    this->ensure_can_add();
+
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
         return *slot.key();

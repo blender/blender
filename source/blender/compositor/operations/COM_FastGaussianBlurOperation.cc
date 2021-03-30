@@ -22,6 +22,8 @@
 #include "COM_FastGaussianBlurOperation.h"
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_iirgaus = nullptr;
@@ -264,7 +266,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
   this->m_inputprogram = nullptr;
   this->m_sigma = 1.0f;
   this->m_overlay = 0;
-  setComplex(true);
+  flags.complex = true;
 }
 
 void FastGaussianBlurValueOperation::executePixel(float output[4], int x, int y, void *data)
@@ -341,3 +343,5 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
   unlockMutex();
   return this->m_iirgaus;
 }
+
+}  // namespace blender::compositor

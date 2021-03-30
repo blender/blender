@@ -206,19 +206,38 @@ template<typename T> struct DefaultHash<T *> {
   }
 };
 
+template<typename T> uint64_t get_default_hash(const T &v)
+{
+  return DefaultHash<T>{}(v);
+}
+
+template<typename T1, typename T2> uint64_t get_default_hash_2(const T1 &v1, const T2 &v2)
+{
+  const uint64_t h1 = get_default_hash(v1);
+  const uint64_t h2 = get_default_hash(v2);
+  return h1 ^ (h2 * 19349669);
+}
+
+template<typename T1, typename T2, typename T3>
+uint64_t get_default_hash_3(const T1 &v1, const T2 &v2, const T3 &v3)
+{
+  const uint64_t h1 = get_default_hash(v1);
+  const uint64_t h2 = get_default_hash(v2);
+  const uint64_t h3 = get_default_hash(v3);
+  return h1 ^ (h2 * 19349669) ^ (h3 * 83492791);
+}
+
 template<typename T> struct DefaultHash<std::unique_ptr<T>> {
   uint64_t operator()(const std::unique_ptr<T> &value) const
   {
-    return DefaultHash<T *>{}(value.get());
+    return get_default_hash(value.get());
   }
 };
 
 template<typename T1, typename T2> struct DefaultHash<std::pair<T1, T2>> {
   uint64_t operator()(const std::pair<T1, T2> &value) const
   {
-    uint64_t hash1 = DefaultHash<T1>{}(value.first);
-    uint64_t hash2 = DefaultHash<T2>{}(value.second);
-    return hash1 ^ (hash2 * 33);
+    return get_default_hash_2(value.first, value.second);
   }
 };
 

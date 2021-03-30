@@ -414,7 +414,9 @@ class GeometryNodesEvaluator {
   {
     const bNode &bnode = params.node();
 
-    this->store_ui_hints(node, params);
+    if (DEG_is_active(depsgraph_)) {
+      this->store_ui_hints(node, params);
+    }
 
     /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
@@ -586,12 +588,12 @@ class GeometryNodesEvaluator {
     void *buffer = allocator_.allocate(type.size(), type.alignment());
 
     if (bsocket->type == SOCK_OBJECT) {
-      Object *object = ((bNodeSocketValueObject *)bsocket->default_value)->value;
+      Object *object = socket->default_value<bNodeSocketValueObject>()->value;
       PersistentObjectHandle object_handle = handle_map_.lookup(object);
       new (buffer) PersistentObjectHandle(object_handle);
     }
     else if (bsocket->type == SOCK_COLLECTION) {
-      Collection *collection = ((bNodeSocketValueCollection *)bsocket->default_value)->value;
+      Collection *collection = socket->default_value<bNodeSocketValueCollection>()->value;
       PersistentCollectionHandle collection_handle = handle_map_.lookup(collection);
       new (buffer) PersistentCollectionHandle(collection_handle);
     }
@@ -610,7 +612,7 @@ class GeometryNodesEvaluator {
       return {required_type, converted_buffer};
     }
     void *default_buffer = allocator_.allocate(required_type.size(), required_type.alignment());
-    type.copy_to_uninitialized(type.default_value(), default_buffer);
+    required_type.copy_to_uninitialized(required_type.default_value(), default_buffer);
     return {required_type, default_buffer};
   }
 };
@@ -720,10 +722,17 @@ static const SocketPropertyType *get_socket_property_type(const bNodeSocket &bso
           [](const bNodeSocket &socket) {
             return (PropertyType)((bNodeSocketValueFloat *)socket.default_value)->subtype;
           },
-          [](const IDProperty &property) { return property.type == IDP_FLOAT; },
+          [](const IDProperty &property) { return ELEM(property.type, IDP_FLOAT, IDP_DOUBLE); },
           [](const IDProperty &property,
              const PersistentDataHandleMap &UNUSED(handles),
-             void *r_value) { *(float *)r_value = IDP_Float(&property); },
+             void *r_value) {
+            if (property.type == IDP_FLOAT) {
+              *(float *)r_value = IDP_Float(&property);
+            }
+            else if (property.type == IDP_DOUBLE) {
+              *(float *)r_value = (float)IDP_Double(&property);
+            }
+          },
       };
       return &float_type;
     }
@@ -1197,7 +1206,9 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
+  if (DEG_is_active(ctx->depsgraph)) {
+    reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
+  }
 
   geometry_set = compute_geometry(
       tree, group_inputs, *group_outputs[0], std::move(geometry_set), nmd, ctx);

@@ -2054,11 +2054,9 @@ static bool ed_object_select_pick(bContext *C,
       while (base) {
         if (BASE_SELECTABLE(v3d, base)) {
           float screen_co[2];
-          if (ED_view3d_project_float_global(region,
-                                             base->object->obmat[3],
-                                             screen_co,
-                                             V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
-                                                 V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
+          if (ED_view3d_project_float_global(
+                  region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+              V3D_PROJ_RET_OK) {
             float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
             if (base == oldbasact) {
               dist_temp += 10.0f;
@@ -4054,11 +4052,9 @@ static bool object_circle_select(ViewContext *vc,
   for (base = FIRSTBASE(view_layer); base; base = base->next) {
     if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
       float screen_co[2];
-      if (ED_view3d_project_float_global(vc->region,
-                                         base->object->obmat[3],
-                                         screen_co,
-                                         V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
-                                             V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
+      if (ED_view3d_project_float_global(
+              vc->region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+          V3D_PROJ_RET_OK) {
         if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
           ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
           changed = true;

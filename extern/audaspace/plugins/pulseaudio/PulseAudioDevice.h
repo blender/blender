@@ -26,7 +26,7 @@
  * The PulseAudioDevice class.
  */
 
-#include "devices/SoftwareDevice.h"
+#include "devices/ThreadedDevice.h"
 
 #include <pulse/pulseaudio.h>
 
@@ -35,15 +35,10 @@ AUD_NAMESPACE_BEGIN
 /**
  * This device plays back through PulseAudio, the simple direct media layer.
  */
-class AUD_PLUGIN_API PulseAudioDevice : public SoftwareDevice
+class AUD_PLUGIN_API PulseAudioDevice : public ThreadedDevice
 {
 private:
-	/**
-	 * Whether there is currently playback.
-	 */
-	volatile bool m_playback;
-
-	pa_threaded_mainloop* m_mainloop;
+	pa_mainloop* m_mainloop;
 	pa_context* m_context;
 	pa_stream* m_stream;
 	pa_context_state_t m_state;
@@ -74,12 +69,14 @@ private:
 	 */
 	AUD_LOCAL static void PulseAudio_underflow(pa_stream* stream, void* data);
 
+	/**
+	 * Streaming thread main function.
+	 */
+	AUD_LOCAL void runMixingThread();
+
 	// delete copy constructor and operator=
 	PulseAudioDevice(const PulseAudioDevice&) = delete;
 	PulseAudioDevice& operator=(const PulseAudioDevice&) = delete;
-
-protected:
-	virtual void playing(bool playing);
 
 public:
 	/**

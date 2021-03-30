@@ -95,24 +95,31 @@ class MapRangeFunction : public blender::fn::MultiFunction {
  public:
   MapRangeFunction(bool clamp) : clamp_(clamp)
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Map Range");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Map Range"};
     signature.single_input<float>("Value");
     signature.single_input<float>("From Min");
     signature.single_input<float>("From Max");
     signature.single_input<float>("To Min");
     signature.single_input<float>("To Max");
     signature.single_output<float>("Result");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,
             blender::fn::MFParams params,
             blender::fn::MFContext UNUSED(context)) const override
   {
-    blender::fn::VSpan<float> values = params.readonly_single_input<float>(0, "Value");
-    blender::fn::VSpan<float> from_min = params.readonly_single_input<float>(1, "From Min");
-    blender::fn::VSpan<float> from_max = params.readonly_single_input<float>(2, "From Max");
-    blender::fn::VSpan<float> to_min = params.readonly_single_input<float>(3, "To Min");
-    blender::fn::VSpan<float> to_max = params.readonly_single_input<float>(4, "To Max");
+    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
     blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
 
     for (int64_t i : mask) {

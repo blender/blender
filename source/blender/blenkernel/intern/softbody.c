@@ -3181,9 +3181,11 @@ void sbFree(Object *ob)
     return;
   }
 
+  const bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
+
   free_softbody_intern(sb);
 
-  if ((ob->id.tag & LIB_TAG_NO_MAIN) == 0) {
+  if (is_orig) {
     /* Only free shared data on non-CoW copies */
     BKE_ptcache_free_list(&sb->shared->ptcaches);
     sb->shared->pointcache = NULL;

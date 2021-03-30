@@ -63,19 +63,26 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
  public:
   SeparateRGBFunction()
   {
-    blender::fn::MFSignatureBuilder signature = this->get_builder("Separate RGB");
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Separate RGB"};
     signature.single_input<blender::Color4f>("Color");
     signature.single_output<float>("R");
     signature.single_output<float>("G");
     signature.single_output<float>("B");
+    return signature.build();
   }
 
   void call(blender::IndexMask mask,
             blender::fn::MFParams params,
             blender::fn::MFContext UNUSED(context)) const override
   {
-    blender::fn::VSpan<blender::Color4f> colors = params.readonly_single_input<blender::Color4f>(
-        0, "Color");
+    const blender::VArray<blender::Color4f> &colors =
+        params.readonly_single_input<blender::Color4f>(0, "Color");
     blender::MutableSpan<float> rs = params.uninitialized_single_output<float>(1, "R");
     blender::MutableSpan<float> gs = params.uninitialized_single_output<float>(2, "G");
     blender::MutableSpan<float> bs = params.uninitialized_single_output<float>(3, "B");

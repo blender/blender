@@ -35,7 +35,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_easing.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_sort_utils.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -289,6 +291,12 @@ FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_i
 
   return NULL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Iteration
+ * \{ */
 
 /* Quick way to loop over all fcurves of a given 'path'. */
 FCurve *BKE_fcurve_iter_step(FCurve *fcu_iter, const char rna_path[])
@@ -827,6 +835,56 @@ bool BKE_fcurve_calc_range(
   *end = max;
 
   return foundvert;
+}
+
+/**
+ * Return an array of keyed frames, rounded to `interval`.
+ *
+ * \param interval: Set to 1.0 to round to whole keyframes, 0.5 for in-between key-frames, etc.
+ *
+ * \note An interval of zero could be supported (this implies no rounding at all),
+ * however this risks very small differences in float values being treated as separate keyframes.
+ */
+float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
+                                        int fcurve_array_len,
+                                        const float interval,
+                                        int *r_frames_len)
+{
+  /* Use `1e-3f` as the smallest possible value since these are converted to integers
+   * and we can be sure `MAXFRAME / 1e-3f < INT_MAX` as it's around half the size. */
+  const double interval_db = max_ff(interval, 1e-3f);
+  GSet *frames_unique = BLI_gset_int_new(__func__);
+  for (int fcurve_index = 0; fcurve_index < fcurve_array_len; fcurve_index++) {
+    const FCurve *fcu = fcurve_array[fcurve_index];
+    for (int i = 0; i < fcu->totvert; i++) {
+      const BezTriple *bezt = &fcu->bezt[i];
+      const double value = round((double)bezt->vec[1][0] / interval_db);
+      BLI_assert(value > INT_MIN && value < INT_MAX);
+      BLI_gset_add(frames_unique, POINTER_FROM_INT((int)value));
+    }
+  }
+
+  const size_t frames_len = BLI_gset_len(frames_unique);
+  float *frames = MEM_mallocN(sizeof(*frames) * frames_len, __func__);
+
+  GSetIterator gs_iter;
+  int i = 0;
+  GSET_ITER_INDEX (gs_iter, frames_unique, i) {
+    const int value = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    frames[i] = (double)value * interval_db;
+  }
+  BLI_gset_free(frames_unique, NULL);
+
+  qsort(frames, frames_len, sizeof(*frames), BLI_sortutil_cmp_float);
+  *r_frames_len = frames_len;
+  return frames;
+}
+
+float *BKE_fcurves_calc_keyed_frames(FCurve **fcurve_array,
+                                     int fcurve_array_len,
+                                     int *r_frames_len)
+{
+  return BKE_fcurves_calc_keyed_frames_ex(fcurve_array, fcurve_array_len, 1.0f, r_frames_len);
 }
 
 /** \} */

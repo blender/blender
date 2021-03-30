@@ -505,11 +505,10 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "DepsgraphObjectInstance", NULL);
-  RNA_def_struct_ui_text(
-      srna,
-      "Dependency Graph Object Instance",
-      "Extended information about dependency graph object iterator "
-      "(WARNING: all data here is *evaluated* one, not original .blend IDs...)");
+  RNA_def_struct_ui_text(srna,
+                         "Dependency Graph Object Instance",
+                         "Extended information about dependency graph object iterator "
+                         "(Warning: All data here is 'evaluated' one, not original .blend IDs)");
 
   prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
@@ -773,7 +772,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Object Instances",
                            "All object instances to display or render "
-                           "(WARNING: only use this as an iterator, never as a sequence, "
+                           "(Warning: Only use this as an iterator, never as a sequence, "
                            "and do not keep any references to its items)");
 
   prop = RNA_def_property(srna, "updates", PROP_COLLECTION, PROP_NONE);

@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #include "COM_FastGaussianBlurOperation.h"
 
+namespace blender::compositor {
+
 static float smoothMask(float x, float y)
 {
   float t;
@@ -153,3 +155,5 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
          gbuf.getBuffer(),
          gbuf.getWidth() * gbuf.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
 }
+
+}  // namespace blender::compositor

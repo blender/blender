@@ -100,6 +100,16 @@ template<
      */
     typename Allocator = GuardedAllocator>
 class VectorSet {
+ public:
+  using value_type = Key;
+  using pointer = Key *;
+  using const_pointer = const Key *;
+  using reference = Key &;
+  using const_reference = const Key &;
+  using iterator = Key *;
+  using const_iterator = const Key *;
+  using size_type = int64_t;
+
  private:
   /**
    * Slots are either empty, occupied or removed. The number of occupied slots can be computed by

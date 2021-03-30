@@ -1413,8 +1413,8 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     screen = screen_state_to_nonnormal(C, win, toggle_area, state);
   }
 
-  /* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
-  CTX_wm_area_set(C, screen->areabase.first);
+  BLI_assert(CTX_wm_screen(C) == screen);
+  BLI_assert(CTX_wm_area(C) == NULL); /* May have been freed. */
 
   return screen->areabase.first;
 }

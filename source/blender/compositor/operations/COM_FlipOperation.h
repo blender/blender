@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class FlipOperation : public NodeOperation {
  private:
   SocketReader *m_inputOperation;
@@ -30,11 +32,11 @@ class FlipOperation : public NodeOperation {
   FlipOperation();
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+                                        rcti *output) override;
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
   void setFlipX(bool flipX)
   {
     this->m_flipX = flipX;
@@ -44,3 +46,5 @@ class FlipOperation : public NodeOperation {
     this->m_flipY = flipY;
   }
 };
+
+}  // namespace blender::compositor

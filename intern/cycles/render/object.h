@@ -133,6 +133,7 @@ class ObjectManager {
     OBJECT_REMOVED = (1 << 4),
     OBJECT_MODIFIED = (1 << 5),
     HOLDOUT_MODIFIED = (1 << 6),
+    TRANSFORM_MODIFIED = (1 << 7),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,

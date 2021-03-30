@@ -21,6 +21,8 @@
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ScreenLensDistortionOperation.h"
 
+namespace blender::compositor {
+
 LensDistortionNode::LensDistortionNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -59,3 +61,5 @@ void LensDistortionNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
   }
 }
+
+}  // namespace blender::compositor

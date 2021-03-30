@@ -40,6 +40,7 @@ static bNodeSocketTemplate geo_node_attribute_vector_math_in[] = {
     {SOCK_FLOAT, N_("B"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
     {SOCK_STRING, N_("C")},
     {SOCK_VECTOR, N_("C"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
+    {SOCK_FLOAT, N_("C"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
     {SOCK_STRING, N_("Result")},
     {-1, ""},
 };
@@ -65,7 +66,8 @@ static bool operation_use_input_b(const NodeVectorMathOperation operation)
 
 static bool operation_use_input_c(const NodeVectorMathOperation operation)
 {
-  return operation == NODE_VECTOR_MATH_WRAP;
+  return ELEM(
+      operation, NODE_VECTOR_MATH_WRAP, NODE_VECTOR_MATH_REFRACT, NODE_VECTOR_MATH_FACEFORWARD);
 }
 
 static void geo_node_attribute_vector_math_layout(uiLayout *layout,
@@ -92,6 +94,14 @@ static void geo_node_attribute_vector_math_layout(uiLayout *layout,
 static CustomDataType operation_get_read_type_b(const NodeVectorMathOperation operation)
 {
   if (operation == NODE_VECTOR_MATH_SCALE) {
+    return CD_PROP_FLOAT;
+  }
+  return CD_PROP_FLOAT3;
+}
+
+static CustomDataType operation_get_read_type_c(const NodeVectorMathOperation operation)
+{
+  if (operation == NODE_VECTOR_MATH_REFRACT) {
     return CD_PROP_FLOAT;
   }
   return CD_PROP_FLOAT3;
@@ -132,6 +142,8 @@ static CustomDataType operation_get_result_type(const NodeVectorMathOperation op
     case NODE_VECTOR_MATH_SINE:
     case NODE_VECTOR_MATH_COSINE:
     case NODE_VECTOR_MATH_TANGENT:
+    case NODE_VECTOR_MATH_REFRACT:
+    case NODE_VECTOR_MATH_FACEFORWARD:
       return CD_PROP_FLOAT3;
     case NODE_VECTOR_MATH_DOT_PRODUCT:
     case NODE_VECTOR_MATH_DISTANCE:
@@ -211,6 +223,37 @@ static void do_math_operation_fl3_fl3_fl3_to_fl3(const Float3ReadAttribute &inpu
           const float3 a = span_a[i];
           const float3 b = span_b[i];
           const float3 c = span_c[i];
+          const float3 out = math_function(a, b, c);
+          span_result[i] = out;
+        }
+      });
+
+  result.apply_span();
+
+  /* The operation is not supported by this node currently. */
+  BLI_assert(success);
+  UNUSED_VARS_NDEBUG(success);
+}
+
+static void do_math_operation_fl3_fl3_fl_to_fl3(const Float3ReadAttribute &input_a,
+                                                const Float3ReadAttribute &input_b,
+                                                const FloatReadAttribute &input_c,
+                                                Float3WriteAttribute result,
+                                                const NodeVectorMathOperation operation)
+{
+  const int size = input_a.size();
+
+  Span<float3> span_a = input_a.get_span();
+  Span<float3> span_b = input_b.get_span();
+  Span<float> span_c = input_c.get_span();
+  MutableSpan<float3> span_result = result.get_span_for_write_only();
+
+  bool success = try_dispatch_float_math_fl3_fl3_fl_to_fl3(
+      operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
+        for (const int i : IndexRange(size)) {
+          const float3 a = span_a[i];
+          const float3 b = span_b[i];
+          const float c = span_c[i];
           const float3 out = math_function(a, b, c);
           span_result[i] = out;
         }
@@ -364,7 +407,7 @@ static void attribute_vector_math_calc(GeometryComponent &component,
   const bool use_input_b = operation_use_input_b(operation);
   const CustomDataType read_type_b = operation_get_read_type_b(operation);
   const bool use_input_c = operation_use_input_c(operation);
-  const CustomDataType read_type_c = CD_PROP_FLOAT3;
+  const CustomDataType read_type_c = operation_get_read_type_c(operation);
 
   /* The result domain is always point for now. */
   const CustomDataType result_type = operation_get_result_type(operation);
@@ -433,7 +476,12 @@ static void attribute_vector_math_calc(GeometryComponent &component,
       do_math_operation_fl3_to_fl3(*attribute_a, *attribute_result, operation);
       break;
     case NODE_VECTOR_MATH_WRAP:
+    case NODE_VECTOR_MATH_FACEFORWARD:
       do_math_operation_fl3_fl3_fl3_to_fl3(
+          *attribute_a, *attribute_b, *attribute_c, *attribute_result, operation);
+      break;
+    case NODE_VECTOR_MATH_REFRACT:
+      do_math_operation_fl3_fl3_fl_to_fl3(
           *attribute_a, *attribute_b, *attribute_c, *attribute_result, operation);
       break;
   }

@@ -715,14 +715,27 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
   uint base_index = 0;
 
   if (!XRAY_FLAG_ENABLED(vc->v3d)) {
-    float dist_test = 0.0f;
+    float dist_test;
     uint index;
     BMFace *efa;
 
     {
+      uint dist_px = 0;
+      if (*r_dist != 0.0f) {
+        dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region, *r_dist);
+      }
+
       DRW_select_buffer_context_create(bases, bases_len, SCE_SELECT_FACE);
 
-      index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);
+      if (dist_px == 0) {
+        index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);
+        dist_test = 0.0f;
+      }
+      else {
+        index = DRW_select_buffer_find_nearest_to_point(
+            vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px);
+        dist_test = dist_px;
+      }
 
       if (index) {
         efa = (BMFace *)edbm_select_id_bm_elem_get(bases, index, &base_index);
@@ -875,6 +888,13 @@ static bool unified_findnearest(ViewContext *vc,
   /* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
 
   if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_FACE)) {
+
+    /* Force zero distance, this is a historic exception for faces
+     * as this function didn't originally support using a margin.
+     * Only pick faces directly under the cursor to prevent unexpected changes in behavior.
+     * While this could be changed, take care this isn't causing issues from a user perspective. */
+    dist = 0.0f;
+
     float dist_center = 0.0f;
     float *dist_center_p = (em->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_VERTEX)) ?
                                &dist_center :
@@ -885,6 +905,9 @@ static bool unified_findnearest(ViewContext *vc,
     BMFace *efa_test = EDBM_face_find_nearest_ex(
         vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf, bases, bases_len, &base_index);
 
+    if (efa_test == NULL) {
+      dist = dist_init;
+    }
     if (efa_test && dist_center_p) {
       dist = min_ff(dist_margin, dist_center);
     }

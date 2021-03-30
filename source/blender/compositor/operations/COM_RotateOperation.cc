@@ -19,6 +19,8 @@
 #include "COM_RotateOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 RotateOperation::RotateOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -48,7 +50,7 @@ inline void RotateOperation::ensureDegree()
 {
   if (!this->m_isDegreeSet) {
     float degree[4];
-    this->m_degreeSocket->readSampled(degree, 0, 0, COM_PS_NEAREST);
+    this->m_degreeSocket->readSampled(degree, 0, 0, PixelSampler::Nearest);
     double rad;
     if (this->m_doDegree2RadConversion) {
       rad = DEG2RAD((double)degree[0]);
@@ -105,3 +107,5 @@ bool RotateOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

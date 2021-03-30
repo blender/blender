@@ -28,6 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 #define PLANE_DISTORT_MAX_SAMPLES 64
 
 class PlaneDistortWarpImageOperation : public NodeOperation {
@@ -46,14 +48,14 @@ class PlaneDistortWarpImageOperation : public NodeOperation {
 
   void calculateCorners(const float corners[4][2], bool normalized, int sample);
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   void setMotionBlurSamples(int samples)
   {
@@ -82,9 +84,9 @@ class PlaneDistortMaskOperation : public NodeOperation {
 
   void calculateCorners(const float corners[4][2], bool normalized, int sample);
 
-  void initExecution();
+  void initExecution() override;
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void setMotionBlurSamples(int samples)
   {
@@ -96,3 +98,5 @@ class PlaneDistortMaskOperation : public NodeOperation {
     this->m_motion_blur_shutter = shutter;
   }
 };
+
+}  // namespace blender::compositor

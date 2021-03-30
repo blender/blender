@@ -79,6 +79,9 @@ struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data);
+struct Sequence *SEQ_add_meta_strip(struct Scene *scene,
+                                    struct ListBase *seqbase,
+                                    struct SeqLoadData *load_data);
 struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,

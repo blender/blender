@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief temporarily storage during execution of Tone-map
  * \ingroup operation
@@ -60,20 +62,20 @@ class TonemapOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
-  void deinitializeTileData(rcti *rect, void *data);
+  void *initializeTileData(rcti *rect) override;
+  void deinitializeTileData(rcti *rect, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setData(NodeTonemap *data)
   {
@@ -82,7 +84,7 @@ class TonemapOperation : public NodeOperation {
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };
 
 /**
@@ -96,5 +98,7 @@ class PhotoreceptorTonemapOperation : public TonemapOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 };
+
+}  // namespace blender::compositor

@@ -28,6 +28,8 @@
 
 #include "intern/openexr/openexr_multi.h"
 
+namespace blender::compositor {
+
 class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOperation {
  private:
  public:
@@ -42,7 +44,7 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
                                              const bool saveAsRender);
 
   void *get_handle(const char *filename);
-  void deinitExecution();
+  void deinitExecution() override;
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
@@ -58,7 +60,7 @@ class OutputOpenExrMultiLayerMultiViewOperation : public OutputOpenExrMultiLayer
                                             const char *viewName);
 
   void *get_handle(const char *filename);
-  void deinitExecution();
+  void deinitExecution() override;
 };
 
 class OutputStereoOperation : public OutputSingleLayerOperation {
@@ -78,5 +80,7 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
                         const char *viewName,
                         const bool saveAsRender);
   void *get_handle(const char *filename);
-  void deinitExecution();
+  void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

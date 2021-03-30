@@ -40,18 +40,25 @@ void main()
 
 #ifdef VOLUME_LIGHTING /* Lights */
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
-
     LightData ld = lights_data[i];
 
+    if (ld.l_volume == 0.0) {
+      continue;
+    }
+
     vec4 l_vector;
-    l_vector.xyz = (ld.l_type == SUN) ? -ld.l_forward : ld.l_position - P;
+    l_vector.xyz = light_volume_light_vector(ld, P);
     l_vector.w = length(l_vector.xyz);
 
-    float Vis = light_visibility(ld, P, l_vector);
+    float vis = light_visibility(ld, P, l_vector);
+
+    if (vis < 1e-4) {
+      continue;
+    }
 
     vec3 Li = light_volume(ld, l_vector) * light_volume_shadow(ld, P, l_vector, volumeExtinction);
 
-    outScattering.rgb += Li * Vis * s_scattering *
+    outScattering.rgb += Li * vis * s_scattering *
                          phase_function(-V, l_vector.xyz / l_vector.w, s_anisotropy);
   }
 #endif

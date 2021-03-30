@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -400,6 +401,11 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, const 
 
 /**
  * Find the first un-escaped quote in the string (to find the end of the string).
+ *
+ * \param str: Typically this is the first character in a quoted string.
+ * Where the character before `*str` would be `"`.
+
+ * \return The pointer to the first un-escaped quote.
  */
 const char *BLI_str_escape_find_quote(const char *str)
 {
@@ -436,11 +442,11 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
     /* get the end point (i.e. where the next occurrence of " is after the starting point) */
     end_match = BLI_str_escape_find_quote(start_match);
     if (end_match) {
-      const size_t unescaped_len = (size_t)(end_match - start_match);
-      char *result = MEM_mallocN(sizeof(char) * (unescaped_len + 1), __func__);
-      const size_t escaped_len = BLI_str_unescape(result, start_match, unescaped_len);
-      if (escaped_len != unescaped_len) {
-        result = MEM_reallocN(result, sizeof(char) * (escaped_len + 1));
+      const size_t escaped_len = (size_t)(end_match - start_match);
+      char *result = MEM_mallocN(sizeof(char) * (escaped_len + 1), __func__);
+      const size_t unescaped_len = BLI_str_unescape(result, start_match, escaped_len);
+      if (unescaped_len != escaped_len) {
+        result = MEM_reallocN(result, sizeof(char) * (unescaped_len + 1));
       }
       return result;
     }

@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief AntiAlias operations
  * it only supports anti aliasing on BW buffers.
@@ -39,20 +41,22 @@ class AntiAliasOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 };
+
+}  // namespace blender::compositor

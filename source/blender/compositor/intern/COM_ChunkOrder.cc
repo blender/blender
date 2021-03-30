@@ -20,6 +20,8 @@
 
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 void ChunkOrder::update_distance(ChunkOrderHotspot *hotspots, unsigned int len_hotspots)
 {
   double new_distance = DBL_MAX;
@@ -36,3 +38,5 @@ bool operator<(const ChunkOrder &a, const ChunkOrder &b)
 {
   return a.distance < b.distance;
 }
+
+}  // namespace blender::compositor

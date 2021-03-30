@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class IDMaskOperation : public NodeOperation {
  private:
   float m_objectIndex;
@@ -27,11 +29,13 @@ class IDMaskOperation : public NodeOperation {
  public:
   IDMaskOperation();
 
-  void *initializeTileData(rcti *rect);
-  void executePixel(float output[4], int x, int y, void *data);
+  void *initializeTileData(rcti *rect) override;
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   void setObjectIndex(float objectIndex)
   {
     this->m_objectIndex = objectIndex;
   }
 };
+
+}  // namespace blender::compositor

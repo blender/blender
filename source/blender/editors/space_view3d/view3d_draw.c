@@ -2146,8 +2146,15 @@ static bool view3d_clipping_test(const float co[3], const float clip[6][4])
   return true;
 }
 
-/* For 'local' ED_view3d_clipping_local must run first
- * then all comparisons can be done in localspace. */
+/**
+ * Return true when `co` is hidden by the 3D views clipping planes.
+ *
+ * \param local: When true use local (object-space) #ED_view3d_clipping_local must run first,
+ * then all comparisons can be done in local-space.
+ * \return True when `co` is outside all clipping planes.
+ *
+ * \note Callers should check #RV3D_CLIPPING_ENABLED first.
+ */
 bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const bool is_local)
 {
   return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);

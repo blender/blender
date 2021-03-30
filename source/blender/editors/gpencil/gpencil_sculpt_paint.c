@@ -1012,7 +1012,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 
       bGPDlayer *gpl = NULL;
       /* Try to use original layer. */
-      if (gps->runtime.tmp_layerinfo != NULL) {
+      if (gps->runtime.tmp_layerinfo[0] != '\0') {
         gpl = BKE_gpencil_layer_named_get(gpd, gps->runtime.tmp_layerinfo);
       }
 

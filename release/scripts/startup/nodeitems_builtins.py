@@ -368,6 +368,7 @@ compositor_node_categories = [
         NodeItem("CompositorNodePixelate"),
         NodeItem("CompositorNodeSunBeams"),
         NodeItem("CompositorNodeDenoise"),
+        NodeItem("CompositorNodeAntiAliasing"),
     ]),
     CompositorNodeCategory("CMP_OP_VECTOR", "Vector", items=[
         NodeItem("CompositorNodeNormal"),
@@ -484,6 +485,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_ATTRIBUTE", "Attribute", items=[
         NodeItem("GeometryNodeAttributeRandomize"),
         NodeItem("GeometryNodeAttributeMath"),
+        NodeItem("GeometryNodeAttributeClamp"),
         NodeItem("GeometryNodeAttributeCompare"),
         NodeItem("GeometryNodeAttributeConvert"),
         NodeItem("GeometryNodeAttributeFill"),
@@ -495,6 +497,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeCombineXYZ"),
         NodeItem("GeometryNodeAttributeSeparateXYZ"),
         NodeItem("GeometryNodeAttributeRemove"),
+        NodeItem("GeometryNodeAttributeMapRange"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeValToRGB"),
@@ -520,16 +523,16 @@ geometry_node_categories = [
         NodeItem("GeometryNodeEdgeSplit"),
         NodeItem("GeometryNodeSubdivisionSurface"),
         NodeItem("GeometryNodeSubdivide"),
-
-        # These should be in a sub-menu, but that requires a refactor to build the add menu manually.
-        NodeItem("GeometryNodeMeshCube"),
+    ]),
+    GeometryNodeCategory("GEO_PRIMITIVES", "Mesh Primitives", items=[
         NodeItem("GeometryNodeMeshCircle"),
-        NodeItem("GeometryNodeMeshUVSphere"),
-        NodeItem("GeometryNodeMeshIcoSphere"),
-        NodeItem("GeometryNodeMeshCylinder"),
         NodeItem("GeometryNodeMeshCone"),
+        NodeItem("GeometryNodeMeshCube"),
+        NodeItem("GeometryNodeMeshCylinder"),
+        NodeItem("GeometryNodeMeshGrid"),
+        NodeItem("GeometryNodeMeshIcoSphere"),
         NodeItem("GeometryNodeMeshLine"),
-        NodeItem("GeometryNodeMeshPlane"),
+        NodeItem("GeometryNodeMeshUVSphere"),
     ]),
     GeometryNodeCategory("GEO_POINT", "Point", items=[
         NodeItem("GeometryNodePointDistribute"),
@@ -539,10 +542,6 @@ geometry_node_categories = [
         NodeItem("GeometryNodePointTranslate"),
         NodeItem("GeometryNodeRotatePoints"),
         NodeItem("GeometryNodeAlignRotationToVector"),
-    ]),
-    GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
-        NodeItem("GeometryNodePointsToVolume"),
-        NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("ShaderNodeMapRange"),
@@ -557,13 +556,15 @@ geometry_node_categories = [
         NodeItem("ShaderNodeVectorMath"),
         NodeItem("ShaderNodeVectorRotate"),
     ]),
+    GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
+        NodeItem("GeometryNodePointsToVolume"),
+        NodeItem("GeometryNodeVolumeToMesh"),
+    ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),
     GeometryNodeCategory("GEO_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),
         NodeItem("NodeReroute"),
     ]),
-    # NodeItem("FunctionNodeCombineStrings"),
-    # NodeItem("FunctionNodeGroupInstanceID"),
 ]
 
 

@@ -351,6 +351,36 @@ inline bool try_dispatch_float_math_fl3_fl3_fl3_to_fl3(const NodeVectorMathOpera
       return dispatch([](float3 a, float3 b, float3 c) {
         return float3(wrapf(a.x, b.x, c.x), wrapf(a.y, b.y, c.y), wrapf(a.z, b.z, c.z));
       });
+    case NODE_VECTOR_MATH_FACEFORWARD:
+      return dispatch([](float3 a, float3 b, float3 c) { return float3::faceforward(a, b, c); });
+    default:
+      return false;
+  }
+  return false;
+}
+
+/**
+ * This is similar to try_dispatch_float_math_fl_to_fl, just with a different callback signature.
+ */
+template<typename Callback>
+inline bool try_dispatch_float_math_fl3_fl3_fl_to_fl3(const NodeVectorMathOperation operation,
+                                                      Callback &&callback)
+{
+  const FloatMathOperationInfo *info = get_float3_math_operation_info(operation);
+  if (info == nullptr) {
+    return false;
+  }
+
+  /* This is just a utility function to keep the individual cases smaller. */
+  auto dispatch = [&](auto math_function) -> bool {
+    callback(math_function, *info);
+    return true;
+  };
+
+  switch (operation) {
+    case NODE_VECTOR_MATH_REFRACT:
+      return dispatch(
+          [](float3 a, float3 b, float c) { return float3::refract(a, b.normalized(), c); });
     default:
       return false;
   }

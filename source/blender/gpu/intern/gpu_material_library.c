@@ -23,6 +23,7 @@
  * GPU material library parsing and code generation.
  */
 
+#include <stdio.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

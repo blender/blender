@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MapRangeOperation.h"
 
+namespace blender::compositor {
+
 MapRangeNode::MapRangeNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -47,3 +49,5 @@ void MapRangeNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(destMaxSocket, operation->getInputSocket(4));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

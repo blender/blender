@@ -23,6 +23,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 static float get_pixel_saturation(const float pixelColor[4],
                                   float screen_balance,
                                   int primary_channel)
@@ -107,3 +109,5 @@ void KeyingOperation::executePixelSampled(float output[4], float x, float y, Pix
     }
   }
 }
+
+}  // namespace blender::compositor

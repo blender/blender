@@ -115,9 +115,10 @@ bool PointCloudComponent::is_empty() const
 
 int PointCloudComponent::attribute_domain_size(const AttributeDomain domain) const
 {
-  BLI_assert(domain == ATTR_DOMAIN_POINT);
-  UNUSED_VARS_NDEBUG(domain);
   if (pointcloud_ == nullptr) {
+    return 0;
+  }
+  if (domain != ATTR_DOMAIN_POINT) {
     return 0;
   }
   return pointcloud_->totpoint;

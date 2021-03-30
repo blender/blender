@@ -37,6 +37,8 @@
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
+namespace blender::compositor {
+
 KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -348,3 +350,5 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(outputEdges, edgesMatte);
   }
 }
+
+}  // namespace blender::compositor

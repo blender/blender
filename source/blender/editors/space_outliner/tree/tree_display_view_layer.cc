@@ -148,6 +148,14 @@ void TreeDisplayViewLayer::add_layer_collections_recursive(ListBase &tree,
     if (!exclude && show_objects_) {
       add_layer_collection_objects(ten->subtree, *lc, *ten);
     }
+
+    const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(&space_outliner_) ||
+                                       ((space_outliner_.filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
+
+    if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY_REAL(&lc->collection->id)) {
+      outliner_add_element(
+          &space_outliner_, &ten->subtree, &lc->collection->id, ten, TSE_LIBRARY_OVERRIDE_BASE, 0);
+    }
   }
 }
 

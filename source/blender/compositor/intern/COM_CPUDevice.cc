@@ -18,6 +18,8 @@
 
 #include "COM_CPUDevice.h"
 
+namespace blender::compositor {
+
 CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
 {
 }
@@ -34,3 +36,5 @@ void CPUDevice::execute(WorkPackage *work)
 
   executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
 }
+
+}  // namespace blender::compositor

@@ -3251,6 +3251,11 @@ static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
     end_frame = max_ii(end_frame, track->markers[track->markersnr - 1].framenr);
   }
 
+  if (start_frame > end_frame) {
+    /* There are no markers at all, nothing to calculate coverage from. */
+    return;
+  }
+
   frames = end_frame - start_frame + 1;
 
   /* this is a per-frame counter of markers (how many markers belongs to the same frame) */

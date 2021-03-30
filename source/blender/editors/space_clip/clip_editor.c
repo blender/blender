@@ -67,6 +67,8 @@
 
 #include "clip_intern.h" /* own include */
 
+#include "PIL_time.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Operator Poll Functions
  * \{ */
@@ -651,7 +653,16 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
  * \{ */
 
 typedef struct PrefetchJob {
+  /* Clip into which cache the frames will be prefetched into. */
   MovieClip *clip;
+
+  /* Local copy of the clip which is used to decouple reading in a way which does not require
+   * threading lock which might "conflict" with the main thread,
+   *
+   * Used, for example, for animation prefetching (`clip->anim` can not be used from multiple
+   * threads and main thread might need it). */
+  MovieClip *clip_local;
+
   int start_frame, current_frame, end_frame;
   short render_size, render_flag;
 } PrefetchJob;
@@ -903,11 +914,15 @@ static void start_prefetch_threads(MovieClip *clip,
   BLI_spin_end(&queue.spin);
 }
 
-static bool prefetch_movie_frame(
-    MovieClip *clip, int frame, short render_size, short render_flag, short *stop)
+/* NOTE: Reading happens from `clip_local` into `clip->cache`. */
+static bool prefetch_movie_frame(MovieClip *clip,
+                                 MovieClip *clip_local,
+                                 int frame,
+                                 short render_size,
+                                 short render_flag,
+                                 short *stop)
 {
   MovieClipUser user = {0};
-  ImBuf *ibuf;
 
   if (check_prefetch_break() || *stop) {
     return false;
@@ -918,7 +933,7 @@ static bool prefetch_movie_frame(
   user.render_flag = render_flag;
 
   if (!BKE_movieclip_has_cached_frame(clip, &user)) {
-    ibuf = BKE_movieclip_anim_ibuf_for_frame(clip, &user);
+    ImBuf *ibuf = BKE_movieclip_anim_ibuf_for_frame_no_lock(clip_local, &user);
 
     if (ibuf) {
       int result;
@@ -942,6 +957,7 @@ static bool prefetch_movie_frame(
 }
 
 static void do_prefetch_movie(MovieClip *clip,
+                              MovieClip *clip_local,
                               int start_frame,
                               int current_frame,
                               int end_frame,
@@ -956,7 +972,7 @@ static void do_prefetch_movie(MovieClip *clip,
 
   /* read frames starting from current frame up to scene end frame */
   for (frame = current_frame; frame <= end_frame; frame++) {
-    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop)) {
+    if (!prefetch_movie_frame(clip, clip_local, frame, render_size, render_flag, stop)) {
       return;
     }
 
@@ -968,7 +984,7 @@ static void do_prefetch_movie(MovieClip *clip,
 
   /* read frames starting from current frame up to scene start frame */
   for (frame = current_frame; frame >= start_frame; frame--) {
-    if (!prefetch_movie_frame(clip, frame, render_size, render_flag, stop)) {
+    if (!prefetch_movie_frame(clip, clip_local, frame, render_size, render_flag, stop)) {
       return;
     }
 
@@ -998,6 +1014,7 @@ static void prefetch_startjob(void *pjv, short *stop, short *do_update, float *p
   else if (pj->clip->source == MCLIP_SRC_MOVIE) {
     /* read movie in a single thread */
     do_prefetch_movie(pj->clip,
+                      pj->clip_local,
                       pj->start_frame,
                       pj->current_frame,
                       pj->end_frame,
@@ -1015,6 +1032,13 @@ static void prefetch_startjob(void *pjv, short *stop, short *do_update, float *p
 static void prefetch_freejob(void *pjv)
 {
   PrefetchJob *pj = pjv;
+
+  MovieClip *clip_local = pj->clip_local;
+  if (clip_local != NULL) {
+    BKE_libblock_free_datablock(&clip_local->id, 0);
+    BKE_libblock_free_data(&clip_local->id, false);
+    MEM_freeN(clip_local);
+  }
 
   MEM_freeN(pj);
 }
@@ -1102,6 +1126,12 @@ void clip_start_prefetch_job(const bContext *C)
   pj->end_frame = prefetch_get_final_frame(C);
   pj->render_size = sc->user.render_size;
   pj->render_flag = sc->user.render_flag;
+
+  /* Create a local copy of the clip, so that video file (clip->anim) access can happen without
+   * acquiring the lock which will interfere with the main thread. */
+  if (pj->clip->source == MCLIP_SRC_MOVIE) {
+    BKE_id_copy_ex(NULL, (ID *)&pj->clip->id, (ID **)&pj->clip_local, LIB_ID_COPY_LOCALIZE);
+  }
 
   WM_jobs_customdata_set(wm_job, pj, prefetch_freejob);
   WM_jobs_timer(wm_job, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);

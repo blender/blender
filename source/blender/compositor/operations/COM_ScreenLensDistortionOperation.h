@@ -21,6 +21,10 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+struct RNG;
+
+namespace blender::compositor {
+
 class ScreenLensDistortionOperation : public NodeOperation {
  private:
   /**
@@ -49,18 +53,18 @@ class ScreenLensDistortionOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setFit(bool fit)
   {
@@ -78,7 +82,7 @@ class ScreenLensDistortionOperation : public NodeOperation {
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
  private:
   void determineUV(float result[6], float x, float y) const;
@@ -96,3 +100,5 @@ class ScreenLensDistortionOperation : public NodeOperation {
                   float sum[4],
                   int count[3]) const;
 };
+
+}  // namespace blender::compositor

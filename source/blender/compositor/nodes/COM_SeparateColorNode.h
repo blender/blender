@@ -20,10 +20,13 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 class SeparateColorNode : public Node {
  public:
   SeparateColorNode(bNode *editorNode);
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 
  protected:
   virtual NodeOperation *getColorConverter(const CompositorContext &context) const = 0;
@@ -35,7 +38,7 @@ class SeparateRGBANode : public SeparateColorNode {
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const;
+  NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
 
 class SeparateHSVANode : public SeparateColorNode {
@@ -44,7 +47,7 @@ class SeparateHSVANode : public SeparateColorNode {
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const;
+  NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
 
 class SeparateYCCANode : public SeparateColorNode {
@@ -53,7 +56,7 @@ class SeparateYCCANode : public SeparateColorNode {
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const;
+  NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
 
 class SeparateYUVANode : public SeparateColorNode {
@@ -62,5 +65,7 @@ class SeparateYUVANode : public SeparateColorNode {
   {
   }
 
-  NodeOperation *getColorConverter(const CompositorContext &context) const;
+  NodeOperation *getColorConverter(const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

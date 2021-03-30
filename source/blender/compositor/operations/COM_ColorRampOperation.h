@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
+namespace blender::compositor {
+
 class ColorRampOperation : public NodeOperation {
  private:
   /**
@@ -35,20 +37,22 @@ class ColorRampOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setColorBand(ColorBand *colorBand)
   {
     this->m_colorBand = colorBand;
   }
 };
+
+}  // namespace blender::compositor

@@ -21,6 +21,8 @@
 #include "COM_SingleThreadedOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /* utility functions used by glare, tonemap and lens distortion */
 /* soms macros for color handling */
 typedef float fRGB[4];
@@ -51,12 +53,12 @@ class GlareBaseOperation : public SingleThreadedOperation {
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   void setGlareSettings(NodeGlare *settings)
   {
@@ -64,12 +66,14 @@ class GlareBaseOperation : public SingleThreadedOperation {
   }
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
  protected:
   GlareBaseOperation();
 
   virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
 
-  MemoryBuffer *createMemoryBuffer(rcti *rect);
+  MemoryBuffer *createMemoryBuffer(rcti *rect) override;
 };
+
+}  // namespace blender::compositor

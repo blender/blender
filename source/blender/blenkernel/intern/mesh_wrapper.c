@@ -148,7 +148,7 @@ bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
     case ME_WRAPPER_TYPE_MDATA:
       return BKE_mesh_minmax(me, min, max);
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return false;
 }
 
@@ -189,7 +189,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
       return;
     }
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
 }
 
 void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
@@ -226,7 +226,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
       return;
     }
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
 }
 
 /** \} */
@@ -243,7 +243,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *me)
     case ME_WRAPPER_TYPE_MDATA:
       return me->totvert;
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return -1;
 }
 
@@ -255,7 +255,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *me)
     case ME_WRAPPER_TYPE_MDATA:
       return me->totedge;
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return -1;
 }
 
@@ -267,7 +267,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *me)
     case ME_WRAPPER_TYPE_MDATA:
       return me->totloop;
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return -1;
 }
 
@@ -279,7 +279,7 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
     case ME_WRAPPER_TYPE_MDATA:
       return me->totpoly;
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return -1;
 }
 

@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 //#define COM_DEFOCUS_SEARCH
 
 class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
@@ -41,25 +43,25 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
-  void deinitializeTileData(rcti *rect, void *data);
+  void deinitializeTileData(rcti *rect, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
+                                        rcti *output) override;
 
   void setMaxBlur(int maxRadius)
   {
@@ -81,7 +83,7 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
                      cl_mem clOutputBuffer,
                      MemoryBuffer **inputMemoryBuffers,
                      std::list<cl_mem> *clMemToCleanUp,
-                     std::list<cl_kernel> *clKernelsToCleanUp);
+                     std::list<cl_kernel> *clKernelsToCleanUp) override;
 };
 
 #ifdef COM_DEFOCUS_SEARCH
@@ -103,19 +105,20 @@ class InverseSearchRadiusOperation : public NodeOperation {
   /**
    * Initialize the execution
    */
-  void initExecution();
-  void *initializeTileData(rcti *rect);
-  void deinitializeTileData(rcti *rect, void *data);
+  void initExecution() override;
+  void *initializeTileData(rcti *rect) override;
+  void deinitializeTileData(rcti *rect, void *data) override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+                                        rcti *output) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   void setMaxBlur(int maxRadius)
   {
@@ -123,3 +126,5 @@ class InverseSearchRadiusOperation : public NodeOperation {
   }
 };
 #endif
+
+}  // namespace blender::compositor

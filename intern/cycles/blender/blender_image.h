@@ -27,7 +27,7 @@ class BlenderImageLoader : public ImageLoader {
  public:
   BlenderImageLoader(BL::Image b_image, int frame);
 
-  bool load_metadata(ImageMetaData &metadata) override;
+  bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
   bool load_pixels(const ImageMetaData &metadata,
                    void *pixels,
                    const size_t pixels_size,
@@ -44,7 +44,7 @@ class BlenderPointDensityLoader : public ImageLoader {
  public:
   BlenderPointDensityLoader(BL::Depsgraph depsgraph, BL::ShaderNodeTexPointDensity b_node);
 
-  bool load_metadata(ImageMetaData &metadata) override;
+  bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
   bool load_pixels(const ImageMetaData &metadata,
                    void *pixels,
                    const size_t pixels_size,

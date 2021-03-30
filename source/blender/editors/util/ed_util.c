@@ -146,7 +146,7 @@ void ED_editors_init(bContext *C)
             ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
           }
           else {
-            BLI_assert(0);
+            BLI_assert_unreachable();
           }
         }
         else {

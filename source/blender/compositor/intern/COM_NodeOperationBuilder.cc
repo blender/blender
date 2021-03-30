@@ -38,6 +38,8 @@
 
 #include "COM_NodeOperationBuilder.h" /* own include */
 
+namespace blender::compositor {
+
 NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree)
     : m_context(context), m_current_node(nullptr), m_active_viewer(nullptr)
 {
@@ -53,9 +55,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
   /* interface handle for nodes */
   NodeConverter converter(this);
 
-  for (int index = 0; index < m_graph.nodes().size(); index++) {
-    Node *node = (Node *)m_graph.nodes()[index];
-
+  for (Node *node : m_graph.nodes()) {
     m_current_node = node;
 
     DebugInfo::node_to_operations(node);
@@ -195,7 +195,9 @@ PreviewOperation *NodeOperationBuilder::make_preview_operation() const
   bNodeInstanceHash *previews = m_context->getPreviewHash();
   if (previews) {
     PreviewOperation *operation = new PreviewOperation(m_context->getViewSettings(),
-                                                       m_context->getDisplaySettings());
+                                                       m_context->getDisplaySettings(),
+                                                       m_current_node->getbNode()->preview_xsize,
+                                                       m_current_node->getbNode()->preview_ysize);
     operation->setbNodeTree(m_context->getbNodeTree());
     operation->verifyPreview(previews, m_current_node->getInstanceKey());
     return operation;
@@ -399,7 +401,7 @@ void NodeOperationBuilder::determineResolutions()
   {
     blender::Vector<Link> convert_links;
     for (const Link &link : m_links) {
-      if (link.to()->getResizeMode() != COM_SC_NO_RESIZE) {
+      if (link.to()->getResizeMode() != ResizeMode::None) {
         NodeOperation &from_op = link.from()->getOperation();
         NodeOperation &to_op = link.to()->getOperation();
         if (from_op.getWidth() != to_op.getWidth() || from_op.getHeight() != to_op.getHeight()) {
@@ -431,7 +433,7 @@ WriteBufferOperation *NodeOperationBuilder::find_attached_write_buffer_operation
   for (const Link &link : m_links) {
     if (link.from() == output) {
       NodeOperation &op = link.to()->getOperation();
-      if (op.isWriteBufferOperation()) {
+      if (op.get_flags().is_write_buffer_operation) {
         return (WriteBufferOperation *)(&op);
       }
     }
@@ -447,7 +449,7 @@ void NodeOperationBuilder::add_input_buffers(NodeOperation * /*operation*/,
   }
 
   NodeOperationOutput *output = input->getLink();
-  if (output->getOperation().isReadBufferOperation()) {
+  if (output->getOperation().get_flags().is_read_buffer_operation) {
     /* input is already buffered, no need to add another */
     return;
   }
@@ -489,7 +491,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
   WriteBufferOperation *writeOperation = nullptr;
   for (NodeOperationInput *target : targets) {
     /* try to find existing write buffer operation */
-    if (target->getOperation().isWriteBufferOperation()) {
+    if (target->getOperation().get_flags().is_write_buffer_operation) {
       BLI_assert(writeOperation == nullptr); /* there should only be one write op connected */
       writeOperation = (WriteBufferOperation *)(&target->getOperation());
     }
@@ -534,7 +536,7 @@ void NodeOperationBuilder::add_complex_operation_buffers()
    */
   blender::Vector<NodeOperation *> complex_ops;
   for (NodeOperation *operation : m_operations) {
-    if (operation->isComplex()) {
+    if (operation->get_flags().complex) {
       complex_ops.append(operation);
     }
   }
@@ -569,7 +571,7 @@ static void find_reachable_operations_recursive(Tags &reachable, NodeOperation *
   }
 
   /* associated write-buffer operations are executed as well */
-  if (op->isReadBufferOperation()) {
+  if (op->get_flags().is_read_buffer_operation) {
     ReadBufferOperation *read_op = (ReadBufferOperation *)op;
     MemoryProxy *memproxy = read_op->getMemoryProxy();
     find_reachable_operations_recursive(reachable, memproxy->getWriteBufferOperation());
@@ -673,7 +675,7 @@ void NodeOperationBuilder::group_operations()
     }
 
     /* add new groups for associated memory proxies where needed */
-    if (op->isReadBufferOperation()) {
+    if (op->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *read_op = (ReadBufferOperation *)op;
       MemoryProxy *memproxy = read_op->getMemoryProxy();
 
@@ -684,3 +686,5 @@ void NodeOperationBuilder::group_operations()
     }
   }
 }
+
+}  // namespace blender::compositor

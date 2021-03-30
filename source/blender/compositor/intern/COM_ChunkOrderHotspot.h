@@ -22,6 +22,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+namespace blender::compositor {
+
 struct ChunkOrderHotspot {
   int x;
   int y;
@@ -37,3 +39,5 @@ struct ChunkOrderHotspot {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ChunkOrderHotspot")
 #endif
 };
+
+}  // namespace blender::compositor

@@ -277,6 +277,7 @@ class MATERIAL_PT_viewport(MaterialButtonsPanel, Panel):
 class MATERIAL_PT_lineart(MaterialButtonsPanel, Panel):
     bl_label = "Line Art"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 10
 
     @classmethod
     def poll(cls, context):
@@ -296,14 +297,8 @@ class MATERIAL_PT_lineart(MaterialButtonsPanel, Panel):
             layout.label(text="Transparency Masks:")
 
             row = layout.row(align=True)
-            row.prop(lineart, "transparency_mask_0", text="0", toggle=True)
-            row.prop(lineart, "transparency_mask_1", text="1", toggle=True)
-            row.prop(lineart, "transparency_mask_2", text="2", toggle=True)
-            row.prop(lineart, "transparency_mask_3", text="3", toggle=True)
-            row.prop(lineart, "transparency_mask_4", text="4", toggle=True)
-            row.prop(lineart, "transparency_mask_5", text="5", toggle=True)
-            row.prop(lineart, "transparency_mask_6", text="6", toggle=True)
-            row.prop(lineart, "transparency_mask_7", text="7", toggle=True)
+            for i in range(8):
+                row.prop(lineart, "use_transparency_mask", text=str(i), index=i, toggle=True)
 
 
 classes = (

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output Sampler.
  * it assumes we are in sRGB color space.
@@ -43,7 +45,9 @@ class SetSamplerOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
-  void initExecution();
-  void deinitExecution();
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
+  void initExecution() override;
+  void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

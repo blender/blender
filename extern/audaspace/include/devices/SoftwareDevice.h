@@ -255,6 +255,7 @@ protected:
 	/**
 	 * This function tells the device, to start or pause playback.
 	 * \param playing True if device should playback.
+	 * \note This method is only called when the device is locked.
 	 */
 	virtual void playing(bool playing)=0;
 

@@ -59,7 +59,10 @@ void param_face_add(ParamHandle *handle,
 
 void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys);
 
-void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool topology_from_uvs);
+void param_construct_end(ParamHandle *handle,
+                         ParamBool fill,
+                         ParamBool topology_from_uvs,
+                         int *count_fail);
 void param_delete(ParamHandle *handle);
 
 /* Least Squares Conformal Maps:
@@ -74,7 +77,7 @@ void param_delete(ParamHandle *handle);
  */
 
 void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf);
-void param_lscm_solve(ParamHandle *handle);
+void param_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed);
 void param_lscm_end(ParamHandle *handle);
 
 /* Stretch */

@@ -646,6 +646,9 @@ static BMElem *edbm_elem_find_nearest(ViewContext *vc, const char htype)
     return (BMElem *)EDBM_edge_find_nearest(vc, &dist);
   }
   if ((em->selectmode & SCE_SELECT_FACE) && (htype == BM_FACE)) {
+    /* Only pick faces directly under the cursor.
+     * We could look into changing this, for now it matches regular face selection. */
+    dist = 0.0f;
     return (BMElem *)EDBM_face_find_nearest(vc, &dist);
   }
 
@@ -669,18 +672,17 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     return edbm_shortest_path_pick_exec(C, op);
   }
 
-  Base *basact = NULL;
   BMVert *eve = NULL;
   BMEdge *eed = NULL;
   BMFace *efa = NULL;
 
   ViewContext vc;
-  BMEditMesh *em;
   bool track_active = true;
 
   em_setup_viewcontext(C, &vc);
   copy_v2_v2_int(vc.mval, event->mval);
-  em = vc.em;
+  Base *basact = BASACT(vc.view_layer);
+  BMEditMesh *em = vc.em;
 
   view3d_operator_needs_opengl(C);
 

@@ -90,6 +90,7 @@ void Geometry::clear(bool preserve_shaders)
   transform_applied = false;
   transform_negative_scaled = false;
   transform_normal = transform_identity();
+  tag_modified();
 }
 
 bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
@@ -1583,7 +1584,6 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->tri_vnormal.tag_realloc();
       dscene->tri_vindex.tag_realloc();
       dscene->tri_patch.tag_realloc();
-      dscene->tri_vnormal.tag_realloc();
       dscene->tri_patch_uv.tag_realloc();
       dscene->tri_shader.tag_realloc();
       dscene->patches.tag_realloc();
@@ -1916,9 +1916,12 @@ void GeometryManager::device_update(Device *device,
     }
   }
 
-  /* update the bvh even when there is no geometry so the kernel bvh data is still valid,
-   * especially when removing all of the objects during interactive renders */
-  bool need_update_scene_bvh = (scene->bvh == nullptr);
+  /* Update the BVH even when there is no geometry so the kernel's BVH data is still valid,
+   * especially when removing all of the objects during interactive renders.
+   * Also update the BVH if the transformations change, we cannot rely on tagging the Geometry
+   * as modified in this case, as we may accumulate displacement if the vertices do not also
+   * change. */
+  bool need_update_scene_bvh = (scene->bvh == nullptr || (update_flags & TRANSFORM_MODIFIED) != 0);
   {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -1960,7 +1963,6 @@ void GeometryManager::device_update(Device *device,
         scene->update_stats->geometry.times.add_entry({"device_update (compute bounds)", time});
       }
     });
-    vector<Object *> volume_objects;
     foreach (Object *object, scene->objects) {
       object->compute_bounds(motion_blur);
     }

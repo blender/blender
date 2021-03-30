@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * \brief The BokehImageOperation class is an operation that creates an image useful to mimic the
  *internals of a camera.
@@ -110,23 +112,24 @@ class BokehImageOperation : public NodeOperation {
   /**
    * \brief The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /**
    * \brief Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * \brief Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
   /**
    * \brief determine the resolution of this operation. currently fixed at [COM_BLUR_BOKEH_PIXELS,
    * COM_BLUR_BOKEH_PIXELS] \param resolution: \param preferredResolution:
    */
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
 
   /**
    * \brief set the node data
@@ -149,3 +152,5 @@ class BokehImageOperation : public NodeOperation {
     this->m_deleteData = true;
   }
 };
+
+}  // namespace blender::compositor

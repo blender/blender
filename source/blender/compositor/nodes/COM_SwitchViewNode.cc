@@ -19,6 +19,8 @@
 #include "COM_SwitchViewNode.h"
 #include "BLI_listbase.h"
 
+namespace blender::compositor {
+
 SwitchViewNode::SwitchViewNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void SwitchViewNode::convertToOperations(NodeConverter &converter,
   result = converter.addInputProxy(getInputSocket(nr), false);
   converter.mapOutputSocket(getOutputSocket(0), result);
 }
+
+}  // namespace blender::compositor

@@ -24,6 +24,8 @@
 #include "COM_CryptomatteOperation.h"
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief CryptomatteNode
  * \ingroup Node
@@ -36,7 +38,8 @@ class CryptomatteBaseNode : public Node {
   }
 
  public:
-  void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
+  void convertToOperations(NodeConverter &converter,
+                           const CompositorContext &context) const override;
 
  protected:
   virtual CryptomatteOperation *create_cryptomatte_operation(
@@ -87,3 +90,5 @@ class CryptomatteLegacyNode : public CryptomatteBaseNode {
       const bNode &node,
       const NodeCryptomatte *cryptomatte_settings) const override;
 };
+
+}  // namespace blender::compositor

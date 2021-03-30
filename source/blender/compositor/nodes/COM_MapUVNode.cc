@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_MapUVOperation.h"
 
+namespace blender::compositor {
+
 MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -39,3 +41,5 @@ void MapUVNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(1), operation->getInputSocket(1));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

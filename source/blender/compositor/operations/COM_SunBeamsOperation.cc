@@ -19,13 +19,15 @@
 
 #include "COM_SunBeamsOperation.h"
 
+namespace blender::compositor {
+
 SunBeamsOperation::SunBeamsOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void SunBeamsOperation::initExecution()
@@ -353,3 +355,5 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
 }
+
+}  // namespace blender::compositor

@@ -19,9 +19,12 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 SetVectorOperation::SetVectorOperation()
 {
   this->addOutputSocket(DataType::Vector);
+  flags.is_set_operation = true;
 }
 
 void SetVectorOperation::executePixelSampled(float output[4],
@@ -40,3 +43,5 @@ void SetVectorOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = preferredResolution[0];
   resolution[1] = preferredResolution[1];
 }
+
+}  // namespace blender::compositor

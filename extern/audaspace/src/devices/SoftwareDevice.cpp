@@ -737,7 +737,7 @@ void SoftwareDevice::mix(data_t* buffer, int length)
 {
 	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(m_specs));
 
-	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	std::lock_guard<ILockable> lock(*this);
 
 	{
 		std::shared_ptr<SoftwareDevice::SoftwareHandle> sound;
@@ -880,7 +880,7 @@ std::shared_ptr<IHandle> SoftwareDevice::play(std::shared_ptr<IReader> reader, b
 	// play sound
 	std::shared_ptr<SoftwareDevice::SoftwareHandle> sound = std::shared_ptr<SoftwareDevice::SoftwareHandle>(new SoftwareDevice::SoftwareHandle(this, reader, pitch, resampler, mapper, keep));
 
-	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	std::lock_guard<ILockable> lock(*this);
 
 	m_playingSounds.push_back(sound);
 
@@ -897,7 +897,7 @@ std::shared_ptr<IHandle> SoftwareDevice::play(std::shared_ptr<ISound> sound, boo
 
 void SoftwareDevice::stopAll()
 {
-	std::lock_guard<std::recursive_mutex> lock(m_mutex);
+	std::lock_guard<ILockable> lock(*this);
 
 	while(!m_playingSounds.empty())
 		m_playingSounds.front()->stop();

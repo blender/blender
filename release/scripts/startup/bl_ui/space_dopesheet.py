@@ -348,8 +348,6 @@ class DOPESHEET_MT_view(Menu):
         col.active = context.space_data.mode != 'SHAPEKEY'
         col.prop(st, "show_sliders")
 
-        if bpy.app.version < (2, 93):
-            layout.operator("anim.show_group_colors_deprecated", icon='CHECKBOX_HLT')
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
         layout.prop(st, "use_auto_merge_keyframes")
@@ -609,7 +607,7 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.separator()
 
         layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
-        
+
         if st.mode != 'GPENCIL':
            layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
            layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
@@ -642,6 +640,9 @@ class DOPESHEET_MT_channel_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
+        # This menu is used from the graph editor too.
+        is_graph_editor = context.area.type == 'GRAPH_EDITOR'
+
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
@@ -655,7 +656,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
 
-        if bpy.ops.graph.extrapolation_type.poll(context.copy()):
+        if is_graph_editor:
             operator = "graph.extrapolation_type"
         else:
             operator = "action.extrapolation_type"

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SingleThreadedOperation : public NodeOperation {
  private:
   MemoryBuffer *m_cachedInstance;
@@ -36,24 +38,26 @@ class SingleThreadedOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixel(float output[4], int x, int y, void *data);
+  void executePixel(float output[4], int x, int y, void *data) override;
 
   /**
    * Initialize the execution
    */
-  void initExecution();
+  void initExecution() override;
 
   /**
    * Deinitialize the execution
    */
-  void deinitExecution();
+  void deinitExecution() override;
 
-  void *initializeTileData(rcti *rect);
+  void *initializeTileData(rcti *rect) override;
 
   virtual MemoryBuffer *createMemoryBuffer(rcti *rect) = 0;
 
-  int isSingleThreaded()
+  int isSingleThreaded() override
   {
     return true;
   }
 };
+
+}  // namespace blender::compositor

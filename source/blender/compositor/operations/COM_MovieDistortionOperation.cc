@@ -23,6 +23,8 @@
 
 #include "BLI_linklist.h"
 
+namespace blender::compositor {
+
 MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
   this->addInputSocket(DataType::Color);
@@ -107,10 +109,10 @@ void MovieDistortionOperation::executePixelSampled(float output[4],
     float u = out[0] * aspx /* + 0.5 * overscan * w */,
           v = (out[1] * aspy /* + 0.5 * overscan * h */) * pixel_aspect;
 
-    this->m_inputOperation->readSampled(output, u, v, COM_PS_BILINEAR);
+    this->m_inputOperation->readSampled(output, u, v, PixelSampler::Bilinear);
   }
   else {
-    this->m_inputOperation->readSampled(output, x, y, COM_PS_BILINEAR);
+    this->m_inputOperation->readSampled(output, x, y, PixelSampler::Bilinear);
   }
 }
 
@@ -125,3 +127,5 @@ bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymax = input->ymax + m_margin[1];
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

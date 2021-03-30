@@ -18,10 +18,10 @@
 set(INC
   ../include
   ../space_sequencer
+  ../../blenfont
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
-  ../../blenfont
   ../../bmesh
   ../../depsgraph
   ../../gpu

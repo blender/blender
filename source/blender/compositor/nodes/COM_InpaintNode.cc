@@ -22,6 +22,8 @@
 #include "COM_InpaintOperation.h"
 #include "DNA_scene_types.h"
 
+namespace blender::compositor {
+
 InpaintNode::InpaintNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -43,3 +45,5 @@ void InpaintNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
   }
 }
+
+}  // namespace blender::compositor

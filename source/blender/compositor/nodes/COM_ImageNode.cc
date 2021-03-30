@@ -29,6 +29,8 @@
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 
+namespace blender::compositor {
+
 ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -297,3 +299,5 @@ void ImageNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

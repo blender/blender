@@ -24,6 +24,8 @@
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 
+namespace blender::compositor {
+
 class PreviewOperation : public NodeOperation {
  protected:
   unsigned char *m_outputBuffer;
@@ -34,30 +36,37 @@ class PreviewOperation : public NodeOperation {
   bNodePreview *m_preview;
   SocketReader *m_input;
   float m_divider;
+  unsigned int m_defaultWidth;
+  unsigned int m_defaultHeight;
 
   const ColorManagedViewSettings *m_viewSettings;
   const ColorManagedDisplaySettings *m_displaySettings;
 
  public:
   PreviewOperation(const ColorManagedViewSettings *viewSettings,
-                   const ColorManagedDisplaySettings *displaySettings);
+                   const ColorManagedDisplaySettings *displaySettings,
+                   unsigned int defaultWidth,
+                   unsigned int defaultHeight);
   void verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key);
 
-  bool isOutputOperation(bool /*rendering*/) const
+  bool isOutputOperation(bool /*rendering*/) const override
   {
     return !G.background;
   }
-  void initExecution();
-  void deinitExecution();
-  CompositorPriority getRenderPriority() const;
+  void initExecution() override;
+  void deinitExecution() override;
+  CompositorPriority getRenderPriority() const override;
 
-  void executeRegion(rcti *rect, unsigned int tileNumber);
-  void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+  void executeRegion(rcti *rect, unsigned int tileNumber) override;
+  void determineResolution(unsigned int resolution[2],
+                           unsigned int preferredResolution[2]) override;
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
-                                        rcti *output);
-  bool isPreviewOperation() const
+                                        rcti *output) override;
+  bool isPreviewOperation() const override
   {
     return true;
   }
 };
+
+}  // namespace blender::compositor

@@ -31,8 +31,6 @@ static bNodeSocketTemplate geo_node_mesh_primitive_uv_sphere_in[] = {
     {SOCK_INT, N_("Segments"), 32, 0.0f, 0.0f, 0.0f, 3, 1024},
     {SOCK_INT, N_("Rings"), 16, 0.0f, 0.0f, 0.0f, 3, 1024},
     {SOCK_FLOAT, N_("Radius"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
-    {SOCK_VECTOR, N_("Location"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_TRANSLATION},
-    {SOCK_VECTOR, N_("Rotation"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_EULER},
     {-1, ""},
 };
 
@@ -67,14 +65,9 @@ static int sphere_face_total(const int segments, const int rings)
   return quads + triangles;
 }
 
-static Mesh *create_uv_sphere_mesh_bmesh(const float3 location,
-                                         const float3 rotation,
-                                         const float radius,
-                                         const int segments,
-                                         const int rings)
+static Mesh *create_uv_sphere_mesh_bmesh(const float radius, const int segments, const int rings)
 {
-  float4x4 transform;
-  loc_eul_size_to_mat4(transform.values, location, rotation, float3(1.0f));
+  const float4x4 transform = float4x4::identity();
 
   const BMeshCreateParams bmcp = {true};
   const BMAllocTemplate allocsize = {sphere_vert_total(segments, rings),
@@ -92,8 +85,10 @@ static Mesh *create_uv_sphere_mesh_bmesh(const float3 location,
                transform.values,
                true);
 
+  BMeshToMeshParams params{};
+  params.calc_object_remap = false;
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me_for_eval(bm, mesh, nullptr);
+  BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
   BM_mesh_free(bm);
 
   return mesh;
@@ -109,10 +104,8 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   }
 
   const float radius = params.extract_input<float>("Radius");
-  const float3 location = params.extract_input<float3>("Location");
-  const float3 rotation = params.extract_input<float3>("Rotation");
 
-  Mesh *mesh = create_uv_sphere_mesh_bmesh(location, rotation, radius, segments_num, rings_num);
+  Mesh *mesh = create_uv_sphere_mesh_bmesh(radius, segments_num, rings_num);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 

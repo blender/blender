@@ -18,6 +18,8 @@
 
 #include "COM_SocketProxyOperation.h"
 
+namespace blender::compositor {
+
 SocketProxyOperation::SocketProxyOperation(DataType type, bool use_conversion)
     : m_use_conversion(use_conversion)
 {
@@ -25,7 +27,9 @@ SocketProxyOperation::SocketProxyOperation(DataType type, bool use_conversion)
   this->addOutputSocket(type);
 }
 
-std::unique_ptr<MetaData> SocketProxyOperation::getMetaData() const
+std::unique_ptr<MetaData> SocketProxyOperation::getMetaData()
 {
   return this->getInputSocket(0)->getReader()->getMetaData();
 }
+
+}  // namespace blender::compositor

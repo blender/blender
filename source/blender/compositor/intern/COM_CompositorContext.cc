@@ -20,6 +20,10 @@
 #include "COM_defines.h"
 #include <cstdio>
 
+#include "BLI_assert.h"
+
+namespace blender::compositor {
+
 CompositorContext::CompositorContext()
 {
   this->m_scene = nullptr;
@@ -33,9 +37,8 @@ CompositorContext::CompositorContext()
 
 int CompositorContext::getFramenumber() const
 {
-  if (this->m_rd) {
-    return this->m_rd->cfra;
-  }
-
-  return -1; /* this should never happen */
+  BLI_assert(m_rd);
+  return m_rd->cfra;
 }
+
+}  // namespace blender::compositor

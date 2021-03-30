@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -44,10 +46,10 @@ class ColorSpillOperation : public NodeOperation {
   /**
    * The inner loop of this operation.
    */
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setSettings(NodeColorspill *nodeColorSpill)
   {
@@ -64,3 +66,5 @@ class ColorSpillOperation : public NodeOperation {
 
   float calculateMapValue(float fac, float *input);
 };
+
+}  // namespace blender::compositor

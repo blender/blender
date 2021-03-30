@@ -533,14 +533,23 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
       wp.showCmd = SW_SHOWMAXIMIZED;
       wp.ptMaxPosition.x = 0;
       wp.ptMaxPosition.y = 0;
-      style &= ~WS_CAPTION;
+      style &= ~(WS_CAPTION | WS_MAXIMIZE);
       break;
     case GHOST_kWindowStateNormal:
     default:
-      wp.showCmd = SW_SHOWNORMAL;
+      if (curstate == GHOST_kWindowStateFullScreen &&
+          m_normal_state == GHOST_kWindowStateMaximized) {
+        wp.showCmd = SW_SHOWMAXIMIZED;
+        m_normal_state = GHOST_kWindowStateNormal;
+      }
+      else {
+        wp.showCmd = SW_SHOWNORMAL;
+      }
       break;
   }
   ::SetWindowLongPtr(m_hWnd, GWL_STYLE, style);
+  /* SetWindowLongPtr Docs: frame changes not visible until SetWindowPos with SWP_FRAMECHANGED. */
+  ::SetWindowPos(m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
   return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 

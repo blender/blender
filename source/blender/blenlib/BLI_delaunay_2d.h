@@ -178,7 +178,7 @@ typedef enum CDT_output_type {
   CDT_FULL,
   /** All triangles fully enclosed by constraint edges or faces. */
   CDT_INSIDE,
-  /**  Only point, edge, and face constraints, and their intersections. */
+  /** Only point, edge, and face constraints, and their intersections. */
   CDT_CONSTRAINTS,
   /**
    * Like CDT_CONSTRAINTS, but keep enough

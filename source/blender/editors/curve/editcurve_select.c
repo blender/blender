@@ -578,8 +578,8 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
         changed = ED_curve_deselect_all(cu->editnurb);
         break;
       case SEL_INVERT:
-        changed = ED_curve_select_swap(cu->editnurb,
-                                       v3d->overlay.handle_display == CURVE_HANDLE_NONE);
+        changed = ED_curve_select_swap(
+            cu->editnurb, (v3d && (v3d->overlay.handle_display == CURVE_HANDLE_NONE)));
         break;
     }
 

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ConvertBaseOperation : public NodeOperation {
  protected:
   SocketReader *m_inputOperation;
@@ -27,57 +29,57 @@ class ConvertBaseOperation : public NodeOperation {
  public:
   ConvertBaseOperation();
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };
 
 class ConvertValueToColorOperation : public ConvertBaseOperation {
  public:
   ConvertValueToColorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertColorToValueOperation : public ConvertBaseOperation {
  public:
   ConvertColorToValueOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertColorToBWOperation : public ConvertBaseOperation {
  public:
   ConvertColorToBWOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertColorToVectorOperation : public ConvertBaseOperation {
  public:
   ConvertColorToVectorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertValueToVectorOperation : public ConvertBaseOperation {
  public:
   ConvertValueToVectorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertVectorToColorOperation : public ConvertBaseOperation {
  public:
   ConvertVectorToColorOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertVectorToValueOperation : public ConvertBaseOperation {
  public:
   ConvertVectorToValueOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertRGBToYCCOperation : public ConvertBaseOperation {
@@ -88,7 +90,7 @@ class ConvertRGBToYCCOperation : public ConvertBaseOperation {
  public:
   ConvertRGBToYCCOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /** Set the YCC mode */
   void setMode(int mode);
@@ -102,7 +104,7 @@ class ConvertYCCToRGBOperation : public ConvertBaseOperation {
  public:
   ConvertYCCToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   /** Set the YCC mode */
   void setMode(int mode);
@@ -112,42 +114,42 @@ class ConvertRGBToYUVOperation : public ConvertBaseOperation {
  public:
   ConvertRGBToYUVOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertYUVToRGBOperation : public ConvertBaseOperation {
  public:
   ConvertYUVToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertRGBToHSVOperation : public ConvertBaseOperation {
  public:
   ConvertRGBToHSVOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertHSVToRGBOperation : public ConvertBaseOperation {
  public:
   ConvertHSVToRGBOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertPremulToStraightOperation : public ConvertBaseOperation {
  public:
   ConvertPremulToStraightOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class ConvertStraightToPremulOperation : public ConvertBaseOperation {
  public:
   ConvertStraightToPremulOperation();
 
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class SeparateChannelOperation : public NodeOperation {
@@ -157,10 +159,10 @@ class SeparateChannelOperation : public NodeOperation {
 
  public:
   SeparateChannelOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 
   void setChannel(int channel)
   {
@@ -177,8 +179,10 @@ class CombineChannelsOperation : public NodeOperation {
 
  public:
   CombineChannelsOperation();
-  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void initExecution();
-  void deinitExecution();
+  void initExecution() override;
+  void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

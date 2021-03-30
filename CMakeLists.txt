@@ -522,10 +522,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
   mark_as_advanced(WITH_LINKER_LLD)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  option(WITH_COMPILER_ASAN "Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)." OFF)
-  mark_as_advanced(WITH_COMPILER_ASAN)
+option(WITH_COMPILER_ASAN "Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)." OFF)
+mark_as_advanced(WITH_COMPILER_ASAN)
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(WITH_COMPILER_ASAN)
     set(_asan_defaults "\
 -fsanitize=address \
@@ -1235,6 +1235,7 @@ if(WITH_OPENMP)
       string(APPEND CMAKE_C_FLAGS " ${OpenMP_C_FLAGS}")
       string(APPEND CMAKE_CXX_FLAGS " ${OpenMP_CXX_FLAGS}")
       string(APPEND CMAKE_EXE_LINKER_FLAGS " ${OpenMP_LINKER_FLAGS}")
+      string(APPEND CMAKE_MODULE_LINKER_FLAGS " ${OpenMP_LINKER_FLAGS}")
     else()
       # Typically avoid adding flags as defines but we can't
       # pass OpenMP flags to the linker for static builds, meaning
@@ -1955,10 +1956,10 @@ if(FIRST_RUN)
   info_cfg_option(WITH_JACK)
   info_cfg_option(WITH_JACK_DYNLOAD)
   info_cfg_option(WITH_OPENAL)
-  info_cfg_option(WITH_SDL)
-  info_cfg_option(WITH_SDL_DYNLOAD)
   info_cfg_option(WITH_PULSEAUDIO)
   info_cfg_option(WITH_PULSEAUDIO_DYNLOAD)
+  info_cfg_option(WITH_SDL)
+  info_cfg_option(WITH_SDL_DYNLOAD)
   info_cfg_option(WITH_WASAPI)
 
   info_cfg_text("Compression:")

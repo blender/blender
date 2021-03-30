@@ -19,6 +19,8 @@
 #include "COM_DistanceRGBMatteOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 DistanceRGBMatteOperation::DistanceRGBMatteOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -90,3 +92,5 @@ void DistanceRGBMatteOperation::executePixelSampled(float output[4],
     output[0] = inImage[3];
   }
 }
+
+}  // namespace blender::compositor
