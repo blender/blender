@@ -95,6 +95,28 @@ def context_path_validate(context, data_path):
     return value
 
 
+def context_path_description(context, data_path):
+    from bl_rna_utils.data_path import property_definition_from_data_path
+    rna_prop = property_definition_from_data_path(context, "." + data_path)
+    if rna_prop is not None:
+        description = rna_prop.description
+        if description:
+            return description
+    return None
+
+
+def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
+    if context_path_validate(base, data_path) is Ellipsis:
+        return None
+    description = context_path_description(base, data_path)
+    if description:
+        description = "%s: %s" % (prefix, description)
+        if value != Ellipsis:
+            description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
+        return description
+    return None
+
+
 def operator_value_is_undo(value):
     if value in {None, Ellipsis}:
         return False
@@ -168,6 +190,10 @@ class WM_OT_context_set_boolean(Operator):
         default=True,
     )
 
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+
     execute = execute_context_assign
 
 
@@ -185,6 +211,10 @@ class WM_OT_context_set_int(Operator):  # same as enum
     )
     relative: rna_relative_prop
 
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+
     execute = execute_context_assign
 
 
@@ -200,6 +230,10 @@ class WM_OT_context_scale_float(Operator):
         description="Assign value",
         default=1.0,
     )
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Scale"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -234,6 +268,10 @@ class WM_OT_context_scale_int(Operator):
         default=True,
         options={'SKIP_SAVE'},
     )
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Scale"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -274,6 +312,10 @@ class WM_OT_context_set_float(Operator):  # same as enum
     )
     relative: rna_relative_prop
 
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix="Assign", value=props.value)
+
     execute = execute_context_assign
 
 
@@ -289,6 +331,10 @@ class WM_OT_context_set_string(Operator):  # same as enum
         description="Assign value",
         maxlen=1024,
     )
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     execute = execute_context_assign
 
@@ -306,6 +352,10 @@ class WM_OT_context_set_enum(Operator):
         maxlen=1024,
     )
 
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
+
     execute = execute_context_assign
 
 
@@ -321,6 +371,10 @@ class WM_OT_context_set_value(Operator):
         description="Assignment value (as a string)",
         maxlen=1024,
     )
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Assign"), value=props.value)
 
     def execute(self, context):
         data_path = self.data_path
@@ -338,6 +392,13 @@ class WM_OT_context_toggle(Operator):
 
     data_path: rna_path_prop
     module: rna_module_prop
+
+    @classmethod
+    def description(cls, context, props):
+        # Currently unsupported, it might be possible to extract this.
+        if props.module:
+            return None
+        return description_from_data_path(context, props.data_path, prefix=iface_("Toggle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -375,6 +436,11 @@ class WM_OT_context_toggle_enum(Operator):
         maxlen=1024,
     )
 
+    @classmethod
+    def description(cls, context, props):
+        value = "(%r, %r)" % (props.value_1, props.value_2)
+        return description_from_data_path(context, props.data_path, prefix=iface_("Toggle"), value=value)
+
     def execute(self, context):
         data_path = self.data_path
 
@@ -405,6 +471,10 @@ class WM_OT_context_cycle_int(Operator):
     data_path: rna_path_prop
     reverse: rna_reverse_prop
     wrap: rna_wrap_prop
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -441,6 +511,10 @@ class WM_OT_context_cycle_enum(Operator):
     data_path: rna_path_prop
     reverse: rna_reverse_prop
     wrap: rna_wrap_prop
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -498,6 +572,10 @@ class WM_OT_context_cycle_array(Operator):
     data_path: rna_path_prop
     reverse: rna_reverse_prop
 
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Cycle"))
+
     def execute(self, context):
         data_path = self.data_path
         value = context_path_validate(context, data_path)
@@ -522,6 +600,10 @@ class WM_OT_context_menu_enum(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path: rna_path_prop
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Menu"))
 
     def execute(self, context):
         data_path = self.data_path
@@ -549,6 +631,10 @@ class WM_OT_context_pie_enum(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path: rna_path_prop
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Pie Menu"))
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -586,6 +672,10 @@ class WM_OT_operator_pie_enum(Operator):
         description="Property name (as a string)",
         maxlen=1024,
     )
+
+    @classmethod
+    def description(cls, context, props):
+        return description_from_data_path(context, props.data_path, prefix=iface_("Pie Menu"))
 
     def invoke(self, context, event):
         wm = context.window_manager
