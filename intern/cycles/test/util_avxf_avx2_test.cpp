@@ -18,6 +18,7 @@
 
 #define TEST_CATEGORY_NAME util_avx2
 
-#if defined(i386) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
+#if (defined(i386) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)) && \
+    defined(__AVX2__)
 #  include "util_avxf_test.h"
 #endif
