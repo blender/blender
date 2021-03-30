@@ -324,7 +324,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   /* Set initial scale based on load_data->fit_method. */
   char file_path[FILE_MAX];
-  BLI_join_dirfile(file_path, sizeof(file_path), load_data->path, load_data->name);
+  BLI_strncpy(file_path, load_data->path, sizeof(file_path));
   BLI_path_abs(file_path, BKE_main_blendfile_path(bmain));
   ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
   if (ibuf != NULL) {

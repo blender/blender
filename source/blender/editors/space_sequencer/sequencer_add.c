@@ -228,7 +228,6 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   PropertyRNA *prop;
   const bool relative = (prop = RNA_struct_find_property(op->ptr, "relative_path")) &&
                         RNA_property_boolean_get(op->ptr, prop);
-  int is_file = -1;
   memset(load_data, 0, sizeof(SeqLoadData));
 
   load_data->start_frame = RNA_int_get(op->ptr, "frame_start");
@@ -242,17 +241,26 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
-    /* Full path, file is set by the caller. */
     RNA_property_string_get(op->ptr, prop, load_data->path);
-    is_file = 1;
+    BLI_strncpy(load_data->name, BLI_path_basename(load_data->path), sizeof(load_data->name));
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    /* Full path, file is set by the caller. */
-    RNA_property_string_get(op->ptr, prop, load_data->path);
-    is_file = 0;
+    char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+
+    if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
+      RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
+        char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+        BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
+        BLI_snprintf(load_data->path, sizeof(load_data->path), "%s%s", directory, filename);
+        MEM_freeN(filename);
+        break;
+      }
+      RNA_PROP_END;
+    }
+    MEM_freeN(directory);
   }
 
-  if ((is_file != -1) && relative) {
+  if (relative) {
     BLI_path_rel(load_data->path, BKE_main_blendfile_path(bmain));
   }
 
@@ -274,19 +282,6 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   if ((prop = RNA_struct_find_property(op->ptr, "use_framerate")) &&
       RNA_property_boolean_get(op->ptr, prop)) {
     load_data->flags |= SEQ_LOAD_MOVIE_SYNC_FPS;
-  }
-
-  if (is_file == 1) {
-    BLI_strncpy(load_data->name, BLI_path_basename(load_data->path), sizeof(load_data->name));
-  }
-  else if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
-    RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-      char *name = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
-      BLI_strncpy(load_data->name, name, sizeof(load_data->name));
-      MEM_freeN(name);
-      break;
-    }
-    RNA_PROP_END;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_multiview")) &&
@@ -990,8 +985,10 @@ static void sequencer_add_image_strip_load_files(
     wmOperator *op, Sequence *seq, SeqLoadData *load_data, const int minframe, const int numdigits)
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-
-  SEQ_add_image_set_directory(seq, load_data->path);
+  /* size of Strip->dir. */
+  char directory[768];
+  BLI_split_dir_part(load_data->path, directory, sizeof(directory));
+  SEQ_add_image_set_directory(seq, directory);
 
   if (use_placeholders) {
     sequencer_image_seq_reserve_frames(
