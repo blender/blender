@@ -18,7 +18,7 @@
 #  include <openvdb/openvdb.h>
 #endif
 
-#include "BLI_math_matrix.h"
+#include "BLI_float4x4.hh"
 
 #include "DNA_pointcloud_types.h"
 #include "DNA_volume_types.h"
@@ -69,9 +69,8 @@ void transform_mesh(Mesh *mesh,
     }
   }
   else {
-    float mat[4][4];
-    loc_eul_size_to_mat4(mat, translation, rotation, scale);
-    BKE_mesh_transform(mesh, mat, false);
+    const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+    BKE_mesh_transform(mesh, matrix.values, false);
     BKE_mesh_calc_normals(mesh);
   }
 }
@@ -83,15 +82,15 @@ static void transform_pointcloud(PointCloud *pointcloud,
 {
   /* Use only translation if rotation and scale don't apply. */
   if (use_translate(rotation, scale)) {
-    for (int i = 0; i < pointcloud->totpoint; i++) {
+    for (const int i : IndexRange(pointcloud->totpoint)) {
       add_v3_v3(pointcloud->co[i], translation);
     }
   }
   else {
-    float mat[4][4];
-    loc_eul_size_to_mat4(mat, translation, rotation, scale);
-    for (int i = 0; i < pointcloud->totpoint; i++) {
-      mul_m4_v3(mat, pointcloud->co[i]);
+    const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+    for (const int i : IndexRange(pointcloud->totpoint)) {
+      float3 &co = *(float3 *)pointcloud->co[i];
+      co = matrix * co;
     }
   }
 }
@@ -110,11 +109,9 @@ static void transform_instances(InstancesComponent &instances,
     }
   }
   else {
-    float mat[4][4];
-
-    loc_eul_size_to_mat4(mat, translation, rotation, scale);
+    const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     for (float4x4 &transform : transforms) {
-      mul_m4_m4_pre(transform.ptr(), mat);
+      transform = transform * matrix;
     }
   }
 }
@@ -136,8 +133,7 @@ static void transform_volume(Volume *volume,
   Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
-  float matrix[4][4];
-  loc_eul_size_to_mat4(matrix, translation, rotation, limited_scale);
+  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
 
   openvdb::Mat4s vdb_matrix;
   memcpy(vdb_matrix.asPointer(), matrix, sizeof(float[4][4]));
