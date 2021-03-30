@@ -46,12 +46,12 @@ static void compositor_init_node_previews(const RenderData *render_data, bNodeTr
                            1.0f;
   int preview_width, preview_height;
   if (aspect < 1.0f) {
-    preview_width = COM_PREVIEW_SIZE;
-    preview_height = (int)(COM_PREVIEW_SIZE * aspect);
+    preview_width = blender::compositor::COM_PREVIEW_SIZE;
+    preview_height = (int)(blender::compositor::COM_PREVIEW_SIZE * aspect);
   }
   else {
-    preview_width = (int)(COM_PREVIEW_SIZE / aspect);
-    preview_height = COM_PREVIEW_SIZE;
+    preview_width = (int)(blender::compositor::COM_PREVIEW_SIZE / aspect);
+    preview_height = blender::compositor::COM_PREVIEW_SIZE;
   }
   BKE_node_preview_init_tree(node_tree, preview_width, preview_height, false);
 }

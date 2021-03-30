@@ -125,7 +125,8 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
   memset(tbuf1.getBuffer(),
          0,
-         tbuf1.getWidth() * tbuf1.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
+         tbuf1.getWidth() * tbuf1.getHeight() * COM_data_type_num_channels(DataType::Color) *
+             sizeof(float));
   for (n = 1; n < settings->iter && (!breaked); n++) {
     for (y = 0; y < gbuf.getHeight() && (!breaked); y++) {
       v = ((float)y + 0.5f) / (float)gbuf.getHeight();
@@ -149,11 +150,13 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
     }
     memcpy(gbuf.getBuffer(),
            tbuf1.getBuffer(),
-           tbuf1.getWidth() * tbuf1.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
+           tbuf1.getWidth() * tbuf1.getHeight() * COM_data_type_num_channels(DataType::Color) *
+               sizeof(float));
   }
   memcpy(data,
          gbuf.getBuffer(),
-         gbuf.getWidth() * gbuf.getHeight() * COM_NUM_CHANNELS_COLOR * sizeof(float));
+         gbuf.getWidth() * gbuf.getHeight() * COM_data_type_num_channels(DataType::Color) *
+             sizeof(float));
 }
 
 }  // namespace blender::compositor

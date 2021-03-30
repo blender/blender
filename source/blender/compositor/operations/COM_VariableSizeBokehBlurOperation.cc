@@ -137,14 +137,14 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
 
     const int addXStepValue = QualityStepHelper::getStep();
     const int addYStepValue = addXStepValue;
-    const int addXStepColor = addXStepValue * COM_NUM_CHANNELS_COLOR;
+    const int addXStepColor = addXStepValue * COM_data_type_num_channels(DataType::Color);
 
     if (size_center > this->m_threshold) {
       for (int ny = miny; ny < maxy; ny += addYStepValue) {
         float dy = ny - y;
         int offsetValueNy = ny * inputSizeBuffer->getWidth();
         int offsetValueNxNy = offsetValueNy + (minx);
-        int offsetColorNxNy = offsetValueNxNy * COM_NUM_CHANNELS_COLOR;
+        int offsetColorNxNy = offsetValueNxNy * COM_data_type_num_channels(DataType::Color);
         for (int nx = minx; nx < maxx; nx += addXStepValue) {
           if (nx != x || ny != y) {
             float size = MIN2(inputSizeFloatBuffer[offsetValueNxNy] * scalar, size_center);

@@ -78,7 +78,8 @@ float *InpaintSimpleOperation::get_pixel(int x, int y)
 
   ASSERT_XY_RANGE(x, y);
 
-  return &this->m_cached_buffer[y * width * COM_NUM_CHANNELS_COLOR + x * COM_NUM_CHANNELS_COLOR];
+  return &this->m_cached_buffer[y * width * COM_data_type_num_channels(DataType::Color) +
+                                x * COM_data_type_num_channels(DataType::Color)];
 }
 
 int InpaintSimpleOperation::mdist(int x, int y)
