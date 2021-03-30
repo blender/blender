@@ -9,14 +9,10 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 
 if "%WITH_CLANG%"=="1" (
 	set CLANG_CMAKE_ARGS=-T"llvm"
-	if "%WITH_ASAN%"=="1" (
+)
+
+if "%WITH_ASAN%"=="1" (
 		set ASAN_CMAKE_ARGS=-DWITH_COMPILER_ASAN=On
-	)
-) else (
-	if "%WITH_ASAN%"=="1" (
-		echo ASAN is only supported with clang.
-		exit /b 1 
-	)
 )
 
 if "%WITH_PYDEBUG%"=="1" (

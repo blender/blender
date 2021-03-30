@@ -46,16 +46,10 @@ set LLVM_DIR=
 		set CFLAGS=-m64 -fmsc-version=1914
 		set CXXFLAGS=-m64 -fmsc-version=1914
 	)
-	if "%WITH_ASAN%"=="1" (
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_COMPILER_ASAN=On
-	)	
 )
 
 if "%WITH_ASAN%"=="1" (
-	if "%WITH_CLANG%" == "" (
-		echo ASAN is only supported with clang.
-		exit /b 1 
-	)
+	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_COMPILER_ASAN=On
 )
 
 if NOT "%verbose%" == "" (

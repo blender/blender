@@ -693,6 +693,26 @@ elseif(WIN32)
           DESTINATION "."
     )
   endif()
+  if(MSVC_ASAN)
+    # The asan dll's can be found in the same folder as the compiler, this is the easiest way to find these.
+    string(REPLACE "cl.exe" "clang_rt.asan_dynamic-x86_64.dll" ASAN_DLL ${CMAKE_C_COMPILER})
+    string(REPLACE "cl.exe" "clang_rt.asan_dbg_dynamic-x86_64.dll" ASAN_DEBUG_DLL ${CMAKE_C_COMPILER})
+    if(NOT EXISTS "${ASAN_DLL}")
+      message(FATAL_ERROR "Asan is enabled, but the ASAN runtime is not detected, this is an optional component during the MSVC install, please install it")
+    endif()
+    install(
+          FILES ${ASAN_DLL}
+          DESTINATION "."
+          CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+    )
+    install(
+          FILES ${ASAN_DEBUG_DLL}
+          DESTINATION "."
+          CONFIGURATIONS Debug
+    )
+    unset(ASAN_DLL)
+    unset(ASAN_DEBUG_DLL)
+  endif()
 
   if(WITH_GMP)
     install(

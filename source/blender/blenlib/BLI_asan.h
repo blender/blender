@@ -21,7 +21,7 @@
 #  define __has_feature(x) 0
 #endif
 
-#if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && !defined(_MSC_VER)
 #  include "sanitizer/asan_interface.h"
 #else
 /* Ensure return value is used. Just using UNUSED_VARS results in a warning. */

@@ -149,11 +149,6 @@ add_definitions(-D_WIN32_WINNT=0x601)
 include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
 remove_cc_flag("/MDd" "/MD" "/Zi")
 
-if(WITH_WINDOWS_PDB)
-  set(PDB_INFO_OVERRIDE_FLAGS "/Z7")
-  set(PDB_INFO_OVERRIDE_LINKER_FLAGS "/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO")
-endif()
-
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
   string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
   set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
@@ -161,6 +156,21 @@ else()
   string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
   set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP /bigobj")
 endif()
+
+# X64 ASAN is available and usable on MSVC 16.9 preview 4 and up)
+if(WITH_COMPILER_ASAN AND MSVC AND NOT MSVC_CLANG)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.28.29828)
+    #set a flag so we don't have to do this comparison all the time
+    SET(MSVC_ASAN On)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address")
+    set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /fsanitize=address")
+    string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /INCREMENTAL:NO")
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /INCREMENTAL:NO")
+  else()
+    message("-- ASAN not supported on MSVC ${CMAKE_CXX_COMPILER_VERSION}")
+  endif()
+endif()
+
 
 # C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
 if(MSVC_VERSION GREATER 1911 AND NOT MSVC_CLANG)
@@ -174,14 +184,41 @@ if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
     set(WITH_WINDOWS_SCCACHE Off)
 endif()
 
+# Debug Symbol format
+# sccache # MSVC_ASAN # format # why
+# On      # On        # Z7     # sccache will only play nice with Z7
+# On      # Off       # Z7     # sccache will only play nice with Z7
+# Off     # On        # Zi     # Asan will not play nice with Edit and Continue
+# Off     # Off       # ZI     # Neither asan nor sscache is enabled Edit and Continue is available
+
+# Release Symbol format
+# sccache # MSVC_ASAN # format # why
+# On      # On        # Z7     # sccache will only play nice with Z7
+# On      # Off       # Z7     # sccache will only play nice with Z7
+# Off     # On        # Zi     # Asan will not play nice with Edit and Continue
+# Off     # Off       # Zi     # Edit and Continue disables some optimizations
+
+
 if(WITH_WINDOWS_SCCACHE)
     set(CMAKE_C_COMPILER_LAUNCHER sccache)
     set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
     set(SYMBOL_FORMAT /Z7)
+    set(SYMBOL_FORMAT_RELEASE /Z7)
 else()
     unset(CMAKE_C_COMPILER_LAUNCHER)
     unset(CMAKE_CXX_COMPILER_LAUNCHER)
-    set(SYMBOL_FORMAT /ZI)
+    if(MSVC_ASAN)
+      set(SYMBOL_FORMAT /Z7)
+      set(SYMBOL_FORMAT_RELEASE /Z7)
+    else()
+      set(SYMBOL_FORMAT /ZI)
+      set(SYMBOL_FORMAT_RELEASE /Zi)
+    endif()
+endif()
+
+if(WITH_WINDOWS_PDB)
+	set(PDB_INFO_OVERRIDE_FLAGS "${SYMBOL_FORMAT_RELEASE}")
+	set(PDB_INFO_OVERRIDE_LINKER_FLAGS "/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO")
 endif()
 
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " /MDd ${SYMBOL_FORMAT}")
@@ -190,9 +227,11 @@ string(APPEND CMAKE_CXX_FLAGS_RELEASE " /MD ${PDB_INFO_OVERRIDE_FLAGS}")
 string(APPEND CMAKE_C_FLAGS_RELEASE " /MD ${PDB_INFO_OVERRIDE_FLAGS}")
 string(APPEND CMAKE_CXX_FLAGS_MINSIZEREL " /MD ${PDB_INFO_OVERRIDE_FLAGS}")
 string(APPEND CMAKE_C_FLAGS_MINSIZEREL " /MD ${PDB_INFO_OVERRIDE_FLAGS}")
-string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /MD ${SYMBOL_FORMAT}")
-string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " /MD ${SYMBOL_FORMAT}")
+string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /MD ${SYMBOL_FORMAT_RELEASE}")
+string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " /MD ${SYMBOL_FORMAT_RELEASE}")
 unset(SYMBOL_FORMAT)
+unset(SYMBOL_FORMAT_RELEASE)
+
 # JMC is available on msvc 15.8 (1915) and up
 if(MSVC_VERSION GREATER 1914 AND NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS_DEBUG " /JMC")

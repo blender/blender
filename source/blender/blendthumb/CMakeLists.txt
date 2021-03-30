@@ -31,6 +31,7 @@ set(SRC
 string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /nodefaultlib:MSVCRT.lib")
 
 add_library(BlendThumb SHARED ${SRC})
+setup_platform_linker_flags(BlendThumb)
 target_link_libraries(BlendThumb ${ZLIB_LIBRARIES})
 
 install(
