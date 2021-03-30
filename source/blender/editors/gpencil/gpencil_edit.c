@@ -4979,17 +4979,27 @@ static int gpencil_cutter_lasso_select(bContext *C,
   /* init space conversion stuff */
   gpencil_point_conversion_init(C, &gsc);
 
-  /* deselect all strokes first */
-  CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-    int i;
-    for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-      pt->flag &= ~GP_SPOINT_SELECT;
-    }
+  /* Deselect all strokes. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        if (gps->flag & GP_STROKE_SELECT) {
+          int i;
+          for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+            pt->flag &= ~GP_SPOINT_SELECT;
+          }
 
-    gps->flag &= ~GP_STROKE_SELECT;
-    BKE_gpencil_stroke_select_index_reset(gps);
+          gps->flag &= ~GP_STROKE_SELECT;
+          BKE_gpencil_stroke_select_index_reset(gps);
+        }
+      }
+      /* if not multiedit, exit loop. */
+      if (!is_multiedit) {
+        break;
+      }
+    }
   }
-  CTX_DATA_END;
 
   /* Select points */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
