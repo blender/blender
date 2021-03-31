@@ -239,6 +239,7 @@ template<typename T> class DataStore {
   {
     invalidate_last_loaded_time();
     data.clear();
+    index_data_map.clear();
   }
 
   void invalidate_last_loaded_time()
