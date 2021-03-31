@@ -3951,7 +3951,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
           }
           if (smooth_thickness) {
             /* thickness need to repeat process several times */
-            for (int r2 = 0; r2 < r * 20; r2++) {
+            for (int r2 = 0; r2 < 20; r2++) {
               BKE_gpencil_stroke_smooth_thickness(gps, i, factor);
             }
           }
