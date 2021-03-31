@@ -660,6 +660,9 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   BLI_array_append(material_remaps, NULL);
   if (bmd->flag & eBooleanModifierFlag_Object) {
     mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
+    if (!mesh_operand) {
+      return mesh;
+    }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     BLI_array_append(meshes, mesh_operand);
     BLI_array_append(obmats, &bmd->object->obmat);
@@ -673,6 +676,9 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
         if (ob->type == OB_MESH && ob != ctx->object) {
           Mesh *collection_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
+          if (!collection_mesh) {
+            continue;
+          }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           BLI_array_append(meshes, collection_mesh);
           BLI_array_append(obmats, &ob->obmat);
