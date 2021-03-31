@@ -230,7 +230,6 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = scene->ed;
   Sequence *seq = SEQ_select_active_get(scene);
-  Sequence *seq_iter;
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!seq || !seq->modifiers.first) {

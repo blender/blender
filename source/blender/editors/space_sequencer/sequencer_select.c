@@ -548,11 +548,12 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
     const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
 
-    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-      if (((x < CFRA) && (seq->enddisp <= CFRA)) || ((x >= CFRA) && (seq->startdisp >= CFRA))) {
+    LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
+      if (((x < CFRA) && (seq_iter->enddisp <= CFRA)) ||
+          ((x >= CFRA) && (seq_iter->startdisp >= CFRA))) {
         /* Select left or right. */
-        seq->flag |= SELECT;
-        recurs_sel_seq(seq);
+        seq_iter->flag |= SELECT;
+        recurs_sel_seq(seq_iter);
       }
     }
 
@@ -1623,7 +1624,6 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 
 static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq = NULL;
   bool changed = false;
   const bool is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
   int startdisp = actseq->startdisp;
@@ -1637,6 +1637,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 
   actseq->tmp = POINTER_FROM_INT(true);
 
+  Sequence *seq = NULL;
   for (SEQ_iterator_begin(ed, &iter, true); iter.valid; SEQ_iterator_next(&iter)) {
     seq = iter.seq;
 
