@@ -111,7 +111,7 @@ static void transform_instances(InstancesComponent &instances,
   else {
     const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     for (float4x4 &transform : transforms) {
-      transform = transform * matrix;
+      transform = matrix * transform;
     }
   }
 }
