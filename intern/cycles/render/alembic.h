@@ -484,7 +484,14 @@ class AlembicProcedural : public Procedural {
   /* Tag for an update only if something was modified. */
   void tag_update(Scene *scene);
 
-  /* Returns a pointer to an existing or a newly created AlembicObject for the given path. */
+  /* This should be called by scene exporters to request the rendering of an object located
+   * in the Alembic archive at the given path.
+   *
+   * Since we lazily load object, the function does not validate the existence of the object
+   * in the archive. If no objects with such path if found in the archive during the next call
+   * to `generate`, it will be ignored.
+   *
+   * Returns a pointer to an existing or a newly created AlembicObject for the given path. */
   AlembicObject *get_or_create_object(const ustring &path);
 
  private:
