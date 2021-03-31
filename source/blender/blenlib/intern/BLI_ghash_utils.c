@@ -316,7 +316,6 @@ TableGSet *BLI_table_gset_new_ex(const char *info, int size)
 void BLI_table_gset_free(TableGSet *ts, GHashKeyFreeFP freefp)
 {
   if (!ts->ptr_to_idx) {
-    printf("double call to BLI_table_gset_free!\n");
     return;
   }
 

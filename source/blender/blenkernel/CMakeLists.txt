@@ -275,6 +275,7 @@ set(SRC
   intern/workspace.c
   intern/world.c
   intern/writeavi.c
+  intern/closest_point_tri_sse.cc
 
   BKE_DerivedMesh.h
   BKE_action.h

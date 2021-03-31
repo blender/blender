@@ -55,7 +55,7 @@ static Mesh *create_ico_sphere_mesh(const int subdivisions, const float radius)
   BMeshToMeshParams params{};
   params.calc_object_remap = false;
   Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
+  BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, &params);
   BM_mesh_free(bm);
 
   return mesh;

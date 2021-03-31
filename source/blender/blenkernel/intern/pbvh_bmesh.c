@@ -1023,17 +1023,153 @@ off fort;
 fdis := (sqrt(dis)/nz)**2 + planedis**2;
 */
 
-static float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3], float n[3])
+/*
+static inline float dot_v3v3(const float a[3], const float b[3])
+{
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+static inline void sub_v3_v3v3(float r[3], const float a[3], const float b[3])
+{
+  r[0] = a[0] - b[0];
+  r[1] = a[1] - b[1];
+  r[2] = a[2] - b[2];
+}
+
+
+static inline void add_v3_v3v3(float r[3], const float a[3], const float b[3])
+{
+  r[0] = a[0] + b[0];
+  r[1] = a[1] + b[1];
+  r[2] = a[2] + b[2];
+}
+
+static inline void add_v3_v3(float r[3], const float a[3])
+{
+  r[0] += a[0];
+  r[1] += a[1];
+  r[2] += a[2];
+}
+
+static inline void mul_v3_fl(float r[3], float f)
+{
+  r[0] *= f;
+  r[1] *= f;
+  r[2] *= f;
+}
+
+
+static inline float len_squared_v3v3(const float a[3], const float b[3])
+{
+  float d[3];
+
+  sub_v3_v3v3(d, b, a);
+  return dot_v3v3(d, d);
+}
+*/
+
+static float dist_to_tri_sphere_simple(
+    float p[3], float v1[3], float v2[3], float v3[3], float n[3])
+{
+  float co[3];
+
+  float dis = len_squared_v3v3(p, v1);
+  dis = fmin(dis, len_squared_v3v3(p, v2));
+  dis = fmin(dis, len_squared_v3v3(p, v3));
+
+  add_v3_v3v3(co, v1, v2);
+  mul_v3_fl(co, 0.5f);
+  dis = fmin(dis, len_squared_v3v3(p, co));
+
+  add_v3_v3v3(co, v2, v3);
+  mul_v3_fl(co, 0.5f);
+  dis = fmin(dis, len_squared_v3v3(p, co));
+
+  add_v3_v3v3(co, v3, v1);
+  mul_v3_fl(co, 0.5f);
+  dis = fmin(dis, len_squared_v3v3(p, co));
+
+  add_v3_v3v3(co, v1, v2);
+  add_v3_v3(co, v3);
+  mul_v3_fl(co, 1.0f / 3.0f);
+  dis = fmin(dis, len_squared_v3v3(p, co));
+
+  return dis;
+}
+
+//#include <cmath>
+
+//  int mask = (nx < ny) | ((nx < nz) << 1) | ((ny < nz) << 2) | ((nx < nz) << 3);
+
+/*
+let axis1, axis2, axis3;
+
+let tabx = new Array(8);
+let taby = new Array(8);
+let tabz = new Array(8);
+
+let b1 = 1;//nx > ny;
+let b2 = 2;//nx > nz;
+let b3 = 4;//ny > nz;
+
+m1 = 1 | 2;
+m2 = 4;
+
+tabx[m1] = 1;
+taby[m1] = 2;
+tabz[m1] = 0;
+
+tabx[m2] = 0;
+taby[m2] = 2;
+tabz[m2] = 1;
+
+for (let i=0; i<tabx.length; i++) {
+  if (tabx[i] === undefined) {
+    tabx[i] = 0;
+    taby[i] = 1;
+    tabz[i] = 2;
+  }
+}
+
+function format(tab) {
+  let s = '';
+  for (let i=0; i<tab.length; i++) {
+    if (i > 0) {
+      s += ', '
+    }
+
+    s += tab[i];
+  }
+
+  return s;
+}
+
+let buf = `
+  static int tritablex[${tabx.length}] = {${format(tabx)}};
+  static int tritabley[${taby.length}] = {${format(taby)}};
+  static int tritablez[${tabz.length}] = {${format(tabz)}};
+`;
+console.log(buf);
+*/
+
+static int tritablex[8] = {0, 0, 0, 1, 0, 0, 0, 0};
+static int tritabley[8] = {1, 1, 1, 2, 2, 1, 1, 1};
+static int tritablez[8] = {2, 2, 2, 0, 1, 2, 2, 2};
+
+float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3], float n[3])
 {
 
   // find projection axis;
   int axis1, axis2, axis3;
-  double nx = n[0] < 0.0 ? -n[0] : n[0];
-  double ny = n[1] < 0.0 ? -n[1] : n[1];
-  double nz = n[2] < 0.0 ? -n[2] : n[2];
+
+  // clang optimizes fabsf better
+  double nx = fabsf(n[0]);  // n[0] < 0.0 ? -n[0] : n[0];
+  double ny = fabsf(n[1]);  // n[1] < 0.0 ? -n[1] : n[1];
+  double nz = fabsf(n[2]);  // n[2] < 0.0 ? -n[2] : n[2];
 
   const double feps = 0.000001;
 
+#if 0
   if (nx > ny && nx > nz) {
     axis1 = 1;
     axis2 = 2;
@@ -1049,7 +1185,24 @@ static float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3
     axis2 = 1;
     axis3 = 2;
   }
+#else
+  int mask = 0;
 
+  //
+  // let b1 = 1;  // nx > ny;
+  // let b2 = 2;  // nx > nz;
+  // let b3 = 4;  // ny > nz;
+
+  mask = mask | (nx > ny);
+  mask = mask | ((nx > nz) << 1);
+  mask = mask | ((ny > nz) << 2);
+
+  axis1 = tritablex[mask];
+  axis2 = tritabley[mask];
+  axis3 = tritablez[mask];
+#endif
+
+#if 1
   double planedis = (p[0] - v1[0]) * n[0] + (p[1] - v1[1]) * n[1] + (p[2] - v1[2]) * n[2];
   planedis = planedis < 0.0 ? -planedis : planedis;
 
@@ -1067,7 +1220,7 @@ static float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3
 
   int side = 0;
 
-  int mask = s1 | (s2 << 1) | (s3 << 2);
+  mask = s1 | (s2 << 1) | (s3 << 2);
   if (mask == 0.0) {
     return planedis * planedis;
   }
@@ -1138,6 +1291,9 @@ static float dist_to_tri_sphere(float p[3], float v1[3], float v2[3], float v3[3
   nz = n[axis3] < 0.0 ? -n[axis3] : n[axis3];
 
   return (float)(dis + nz * nz * planedis * planedis) / (nz * nz);
+#else
+  return (float)axis1 + (float)axis2 + (float)axis3;
+#endif
 }
 
 static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
@@ -1149,7 +1305,8 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
   BMLoop *l = f->l_first;
 
   /* Check if triangle intersects the sphere */
-  float dis = dist_to_tri_sphere(q->center, l->v->co, l->next->v->co, l->prev->v->co, f->no);
+  float dis = dist_to_tri_sphere_simple(
+      q->center, l->v->co, l->next->v->co, l->prev->v->co, f->no);
 
   // closest_on_tri_to_point_v3(c, co, v1, v2, v3);
 
@@ -1885,7 +2042,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
 
-    //customdata interpolation
+    // customdata interpolation
     BMLoop *lfirst = f_adj->l_first;
     while (lfirst->v != v1) {
       lfirst = lfirst->next;
@@ -1927,7 +2084,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
 
-    //customdata interpolation
+    // customdata interpolation
     lsrcs[0] = lfirst->head.data;
     lsrcs[1] = lfirst->next->head.data;
     lws[0] = lws[1] = 0.5f;
@@ -2062,7 +2219,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 {
   BMVert *v_del, *v_conn;
 
-  //customdata interpolation
+  // customdata interpolation
   if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
     for (int step = 0; step < 2; step++) {
       int count = 0;
@@ -2679,7 +2836,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 {
   BMVert *v;
   BMFace *f;
-  UpdateNormalsTaskData *data = (UpdateNormalsTaskData*) userdata;
+  UpdateNormalsTaskData *data = (UpdateNormalsTaskData *)userdata;
   PBVHNode *node = data->nodes[n];
 
   TGSET_ITER (f, node->bm_faces) {
@@ -2703,7 +2860,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_task_cb, &settings);
 
-#if 0 //in theory we shouldn't need to update normals in bm_other_verts.
+#if 0  // in theory we shouldn't need to update normals in bm_other_verts.
   for (int i=0; i<totnode; i++) {
     PBVHNode *node = nodes[i];
 

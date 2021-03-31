@@ -31,6 +31,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_defaults.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -49,11 +50,11 @@
 #include "DNA_space_types.h"
 #include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
-#include "DNA_defaults.h"
 
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_attribute.h"
+#include "BKE_brush.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_cryptomatte.h"
@@ -64,7 +65,6 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_node.h"
-#include "BKE_brush.h"
 
 #include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"
@@ -1401,7 +1401,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
-  
+
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 5)) {
     /* Initialize the opacity of the overlay wireframe */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "wireframe_opacity")) {
@@ -1919,33 +1919,35 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 14)) {
-    LISTBASE_FOREACH(Scene*, scene, &bmain->scenes) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
       if (ts && ts->sculpt) {
         ts->sculpt->detail_range = 0.4f;
       }
     }
 
-    LISTBASE_FOREACH(Brush *, brush, &bmain->brushes) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->dyntopo.detail_range == 0.0f) {
         Brush defbrush = *brush;
 
         BKE_brush_sculpt_reset(&defbrush);
         brush->dyntopo = defbrush.dyntopo;
-    }
-
-    if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "diff_fac")) {
-      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-        light->diff_fac = 1.0f;
-        light->volume_fac = 1.0f;
       }
 
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_ATTRIBUTE_FILL) {
-            node->custom2 = ATTR_DOMAIN_AUTO;
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        if (ntree->type == NTREE_GEOMETRY) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == GEO_NODE_ATTRIBUTE_FILL) {
+              node->custom2 = ATTR_DOMAIN_AUTO;
+            }
           }
+        }
+      }
+
+      if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "diff_fac")) {
+        LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+          light->diff_fac = 1.0f;
+          light->volume_fac = 1.0f;
         }
       }
     }
