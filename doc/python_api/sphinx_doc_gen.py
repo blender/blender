@@ -1408,7 +1408,8 @@ def pyrna2sphinx(basepath):
             else:
                 fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
-                fw("      %s\n\n" % prop.description)
+                write_indented_lines("      ", fw, prop.description, False)
+                fw("\n")
 
             # special exception, can't use generic code here for enums
             if prop.type == "enum":
