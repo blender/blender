@@ -20,10 +20,15 @@
 
 __all__ = (
     "property_definition_from_data_path",
+    "decompose_data_path",
 )
 
 class _TokenizeDataPath:
-    """Class to split up tokens of a data-path."""
+    """
+    Class to split up tokens of a data-path.
+
+    Note that almost all access generates new objects with additional paths,
+    with the exception of iteration which is the intended way to access the resulting data."""
     __slots__ = (
         "data_path",
     )
@@ -49,6 +54,14 @@ class _TokenizeDataPath:
         return iter(self.data_path)
 
 
+def decompose_data_path(data_path):
+    """
+    Return the components of a data path split into a list.
+    """
+    ns = {"base": _TokenizeDataPath(())}
+    return list(eval("base" + data_path, ns, ns))
+
+
 def property_definition_from_data_path(base, data_path):
     """
     Return an RNA property definition from an object and a data path.
@@ -56,9 +69,7 @@ def property_definition_from_data_path(base, data_path):
     In Blender this is often used with ``context`` as the base and a
     path that it references, for example ``.space_data.lock_camera``.
     """
-    base_tokenize = _TokenizeDataPath(())
-    data = list(eval("base_tokenize" + data_path))
-    del base_tokenize
+    data = decompose_data_path(data_path)
     while data and (not data[-1].startswith(".")):
         data.pop()
 
