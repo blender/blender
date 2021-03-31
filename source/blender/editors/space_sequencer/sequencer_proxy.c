@@ -58,7 +58,6 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
   ScrArea *area = CTX_wm_area(C);
-  Sequence *seq;
 
   if (ed == NULL) {
     return;
@@ -70,7 +69,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   bool selected = false; /* Check for no selected strips */
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
       continue;
     }
@@ -92,7 +91,6 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
     }
   }
-  SEQ_CURRENT_END;
 
   BLI_gset_free(file_list, MEM_freeN);
 
@@ -124,7 +122,6 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
   struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *seq;
   GSet *file_list;
 
   if (ed == NULL) {
@@ -133,7 +130,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if ((seq->flag & SELECT)) {
       ListBase queue = {NULL, NULL};
       LinkData *link;
@@ -150,7 +147,6 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
       SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
     }
   }
-  SEQ_CURRENT_END;
 
   BLI_gset_free(file_list, MEM_freeN);
 
@@ -189,7 +185,6 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *seq;
   bool proxy_25 = RNA_boolean_get(op->ptr, "proxy_25");
   bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");
   bool proxy_75 = RNA_boolean_get(op->ptr, "proxy_75");
@@ -201,7 +196,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
     turnon = false;
   }
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if ((seq->flag & SELECT)) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
@@ -246,7 +241,6 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
       }
     }
   }
-  SEQ_CURRENT_END;
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

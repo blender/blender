@@ -237,7 +237,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SEQ_CURRENT_BEGIN (ed, seq_iter) {
+  LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
     if (seq_iter->flag & SELECT) {
       if (seq_iter == seq) {
         continue;
@@ -259,7 +259,6 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
       SEQ_modifier_list_copy(seq_iter, seq);
     }
   }
-  SEQ_CURRENT_END;
 
   SEQ_relations_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

@@ -51,15 +51,6 @@ typedef struct SeqIterator {
   } \
   ((void)0)
 
-#define SEQ_CURRENT_BEGIN(_ed, _seq) \
-  { \
-    SeqIterator iter_macro; \
-    for (SEQ_iterator_begin(_ed, &iter_macro, true); iter_macro.valid; \
-         SEQ_iterator_next(&iter_macro)) { \
-      _seq = iter_macro.seq;
-
-#define SEQ_CURRENT_END SEQ_ALL_END
-
 void SEQ_iterator_begin(struct Editing *ed, SeqIterator *iter, const bool use_current_sequences);
 void SEQ_iterator_next(SeqIterator *iter);
 void SEQ_iterator_end(SeqIterator *iter);
