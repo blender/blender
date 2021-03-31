@@ -168,17 +168,7 @@ class ExecutionGroup {
   bool can_contain(NodeOperation &operation);
 
   /**
-   * \brief calculate the actual chunk size of this execution group.
-   * \note A chunk size is an unsigned int that is both the height and width of a chunk.
-   * \note The chunk size will not be stored in the chunkSize field. This needs to be done
-   * \note by the calling method.
-   */
-  unsigned int determineChunkSize();
-
-  /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
-   * \note Only gives useful results after the determination of the chunksize
-   * \see determineChunkSize()
    */
   void determineChunkRect(rcti *r_rect,
                           const unsigned int xChunk,
@@ -373,8 +363,6 @@ class ExecutionGroup {
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
-   * \note Only gives useful results after the determination of the chunksize
-   * \see determineChunkSize()
    */
   void determineChunkRect(rcti *r_rect, const unsigned int chunkNumber) const;
 
