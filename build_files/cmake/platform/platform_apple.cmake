@@ -66,7 +66,7 @@ if(WITH_JACK)
     NAMES jackmp
   )
   if(NOT JACK_FRAMEWORK)
-    message(WARNING "JACK not found, disabling WITH_JACK")
+    message(STATUS "JACK not found, disabling WITH_JACK")
     set(WITH_JACK OFF)
   else()
     set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
