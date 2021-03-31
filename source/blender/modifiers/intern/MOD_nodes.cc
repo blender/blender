@@ -1370,6 +1370,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   /* We don't know what the node tree will need. If there are vertex groups, it is likely that the
    * node tree wants to access them. */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
+  r_cddata_masks->vmask |= CD_MASK_PROP_ALL;
 }
 
 ModifierTypeInfo modifierType_Nodes = {
