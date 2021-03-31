@@ -36,10 +36,8 @@ struct WorkScheduler {
    * when ExecutionGroup.get_flags().open_cl is set the work will be handled by a OpenCLDevice
    * otherwise the work is scheduled for an CPUDevice
    * \see ExecutionGroup.execute
-   * \param group: the execution group
-   * \param chunkNumber: the number of the chunk in the group to be executed
    */
-  static void schedule(ExecutionGroup *group, int chunkNumber);
+  static void schedule(WorkPackage *package);
 
   /**
    * \brief initialize the WorkScheduler

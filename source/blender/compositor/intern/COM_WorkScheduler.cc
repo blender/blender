@@ -119,7 +119,6 @@ static void *thread_execute_gpu(void *data)
 
   while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.opencl.queue))) {
     device->execute(work);
-    delete work;
   }
 
   return nullptr;
@@ -306,7 +305,6 @@ static void threading_model_single_thread_execute(WorkPackage *package)
 {
   CPUDevice device(0);
   device.execute(package);
-  delete package;
 }
 
 /* \} */
@@ -322,7 +320,6 @@ static void *threading_model_queue_execute(void *data)
   BLI_thread_local_set(g_thread_device, device);
   while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.queue.queue))) {
     device->execute(work);
-    delete work;
   }
 
   return nullptr;
@@ -433,10 +430,8 @@ static void threading_model_task_stop()
 /** \name Public API
  * \{ */
 
-void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
+void WorkScheduler::schedule(WorkPackage *package)
 {
-  WorkPackage *package = new WorkPackage(group, chunkNumber);
-
   if (COM_is_opencl_enabled()) {
     if (opencl_schedule(package)) {
       return;

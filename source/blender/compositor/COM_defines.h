@@ -79,6 +79,25 @@ enum class CompositorPriority {
   Low = 0,
 };
 
+/**
+ * \brief the execution state of a chunk in an ExecutionGroup
+ * \ingroup Execution
+ */
+enum class eChunkExecutionState {
+  /**
+   * \brief chunk is not yet scheduled
+   */
+  NotScheduled = 0,
+  /**
+   * \brief chunk is scheduled, but not yet executed
+   */
+  Scheduled = 1,
+  /**
+   * \brief chunk is executed.
+   */
+  Executed = 2,
+};
+
 // configurable items
 
 // chunk size determination

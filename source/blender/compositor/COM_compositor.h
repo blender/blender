@@ -113,11 +113,11 @@ extern "C" {
  *
  * When the chunk-order is determined, the first few chunks will be checked if they can be scheduled.
  * Chunks can have three states:
- *  - [@ref eChunkExecutionState.NOT_SCHEDULED]:
+ *  - [@ref eChunkExecutionState.NotScheduled]:
  *    Chunk is not yet scheduled, or dependencies are not met.
- *  - [@ref eChunkExecutionState.SCHEDULED]:
+ *  - [@ref eChunkExecutionState.Scheduled]:
  *    All dependencies are met, chunk is scheduled, but not finished.
- *  - [@ref eChunkExecutionState.EXECUTED]:
+ *  - [@ref eChunkExecutionState.Executed]:
  *    Chunk is finished.
  *
  * \see ExecutionGroup.execute

@@ -57,18 +57,16 @@ OpenCLDevice::~OpenCLDevice()
   }
 }
 
-void OpenCLDevice::execute(WorkPackage *work)
+void OpenCLDevice::execute(WorkPackage *work_package)
 {
-  const unsigned int chunkNumber = work->chunk_number;
-  ExecutionGroup *executionGroup = work->execution_group;
-  rcti rect;
+  const unsigned int chunkNumber = work_package->chunk_number;
+  ExecutionGroup *executionGroup = work_package->execution_group;
 
-  executionGroup->determineChunkRect(&rect, chunkNumber);
   MemoryBuffer **inputBuffers = executionGroup->getInputBuffersOpenCL(chunkNumber);
-  MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(rect);
+  MemoryBuffer *outputBuffer = executionGroup->allocateOutputBuffer(work_package->rect);
 
   executionGroup->getOutputOperation()->executeOpenCLRegion(
-      this, &rect, chunkNumber, inputBuffers, outputBuffer);
+      this, &work_package->rect, chunkNumber, inputBuffers, outputBuffer);
 
   delete outputBuffer;
 

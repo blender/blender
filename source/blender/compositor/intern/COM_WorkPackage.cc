@@ -20,10 +20,4 @@
 
 namespace blender::compositor {
 
-WorkPackage::WorkPackage(ExecutionGroup *execution_group, unsigned int chunk_number)
-{
-  this->execution_group = execution_group;
-  this->chunk_number = chunk_number;
-}
-
 }  // namespace blender::compositor
