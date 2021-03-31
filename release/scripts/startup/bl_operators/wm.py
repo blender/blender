@@ -95,21 +95,69 @@ def context_path_validate(context, data_path):
     return value
 
 
-def context_path_description(context, data_path):
+def context_path_to_rna_property(context, data_path):
     from bl_rna_utils.data_path import property_definition_from_data_path
     rna_prop = property_definition_from_data_path(context, "." + data_path)
     if rna_prop is not None:
-        description = rna_prop.description
-        if description:
-            return description
+        return rna_prop
     return None
+
+
+def context_path_decompose(data_path):
+    # Decompose a data_path into 3 components:
+    # base_path, prop_attr, prop_item, where:
+    # `"foo.bar["baz"].fiz().bob.buz[10][2]"`, returns...
+    # `("foo.bar["baz"].fiz().bob", "buz", "[10][2]")`
+    #
+    # This is useful as we often want the base and the property, ignoring any item access.
+    # Note that item access includes function calls since these aren't properties.
+    #
+    # Note that the `.` is removed from the start of the first and second values,
+    # this is done because `.attr` isn't convenient to use as an argument,
+    # also the convention is not to include this within the data paths or the operator logic for `bpy.ops.wm.*`.
+    from bl_rna_utils.data_path import decompose_data_path
+    path_split = decompose_data_path("." + data_path)
+
+    # Find the last property that isn't a function call.
+    value_prev = ""
+    i = len(path_split)
+    while (i := i - 1) >= 0:
+        value = path_split[i]
+        if value.startswith("."):
+            if not value_prev.startswith("("):
+                break
+        value_prev = value
+
+    if i != -1:
+        base_path = "".join(path_split[:i])
+        prop_attr = path_split[i]
+        prop_item = "".join(path_split[i + 1:])
+
+        if base_path:
+            assert(base_path.startswith("."))
+            base_path= base_path[1:]
+        if prop_attr:
+            assert(prop_attr.startswith("."))
+            prop_attr = prop_attr[1:]
+    else:
+        # If there are no properties, everything is an item.
+        # Note that should not happen in practice with values which are added onto `context`,
+        # include since it's correct to account for this case and not doing so will create a confusing exception.
+        base_path = ""
+        prop_attr = ""
+        prop_item = "".join(path_split)
+
+    return (base_path, prop_attr, prop_item)
 
 
 def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
     if context_path_validate(base, data_path) is Ellipsis:
         return None
-    description = context_path_description(base, data_path)
-    if description:
+
+    if (
+            (rna_prop := context_path_to_rna_property(base, data_path)) and
+            (description := rna_prop.description)
+    ):
         description = "%s: %s" % (prefix, description)
         if value != Ellipsis:
             description = "%s\n%s: %s" % (description, iface_("Value"), str(value))
@@ -142,12 +190,9 @@ def operator_value_is_undo(value):
 
 
 def operator_path_is_undo(context, data_path):
-    # note that if we have data paths that use strings this could fail
-    # luckily we don't do this!
-    #
-    # When we can't find the data owner assume no undo is needed.
-    data_path_head = data_path.rpartition(".")[0]
+    data_path_head, _, _ = context_path_decompose(data_path)
 
+    # When we can't find the data owner assume no undo is needed.
     if not data_path_head:
         return False
 
@@ -524,22 +569,11 @@ class WM_OT_context_cycle_enum(Operator):
 
         orig_value = value
 
-        # Have to get rna enum values
-        rna_struct_str, rna_prop_str = data_path.rsplit('.', 1)
-        i = rna_prop_str.find('[')
-
-        # just in case we get "context.foo.bar[0]"
-        if i != -1:
-            rna_prop_str = rna_prop_str[0:i]
-
-        rna_struct = eval("context.%s.rna_type" % rna_struct_str)
-
-        rna_prop = rna_struct.properties[rna_prop_str]
-
+        rna_prop = context_path_to_rna_property(context, data_path)
         if type(rna_prop) != bpy.types.EnumProperty:
             raise Exception("expected an enum property")
 
-        enums = rna_struct.properties[rna_prop_str].enum_items.keys()
+        enums = rna_prop.enum_items.keys()
         orig_index = enums.index(orig_value)
 
         # Have the info we need, advance to the next item.
@@ -612,15 +646,15 @@ class WM_OT_context_menu_enum(Operator):
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
-        base_path, prop_string = data_path.rsplit(".", 1)
+        base_path, prop_attr, _ = context_path_decompose(data_path)
         value_base = context_path_validate(context, base_path)
-        prop = value_base.bl_rna.properties[prop_string]
+        rna_prop = context_path_to_rna_property(context, data_path)
 
         def draw_cb(self, context):
             layout = self.layout
-            layout.prop(value_base, prop_string, expand=True)
+            layout.prop(value_base, prop_attr, expand=True)
 
-        context.window_manager.popup_menu(draw_func=draw_cb, title=prop.name, icon=prop.icon)
+        context.window_manager.popup_menu(draw_func=draw_cb, title=rna_prop.name, icon=rna_prop.icon)
 
         return {'FINISHED'}
 
@@ -644,15 +678,15 @@ class WM_OT_context_pie_enum(Operator):
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
-        base_path, prop_string = data_path.rsplit(".", 1)
+        base_path, prop_attr, _ = context_path_decompose(data_path)
         value_base = context_path_validate(context, base_path)
-        prop = value_base.bl_rna.properties[prop_string]
+        rna_prop = context_path_to_rna_property(context, data_path)
 
         def draw_cb(self, context):
             layout = self.layout
-            layout.prop(value_base, prop_string, expand=True)
+            layout.prop(value_base, prop_attr, expand=True)
 
-        wm.popup_menu_pie(draw_func=draw_cb, title=prop.name, icon=prop.icon, event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=rna_prop.name, icon=rna_prop.icon, event=event)
 
         return {'FINISHED'}
 
@@ -681,7 +715,7 @@ class WM_OT_operator_pie_enum(Operator):
         wm = context.window_manager
 
         data_path = self.data_path
-        prop_string = self.prop_string
+        prop_attr = self.prop_string
 
         # same as eval("bpy.ops." + data_path)
         op_mod_str, ob_id_str = data_path.split(".", 1)
@@ -697,7 +731,7 @@ class WM_OT_operator_pie_enum(Operator):
         def draw_cb(self, context):
             layout = self.layout
             pie = layout.menu_pie()
-            pie.operator_enum(data_path, prop_string)
+            pie.operator_enum(data_path, prop_attr)
 
         wm.popup_menu_pie(draw_func=draw_cb, title=op_rna.name, event=event)
 
@@ -721,17 +755,17 @@ class WM_OT_context_set_id(Operator):
         value = self.value
         data_path = self.data_path
 
-        # match the pointer type from the target property to bpy.data.*
+        # Match the pointer type from the target property to `bpy.data.*`
         # so we lookup the correct list.
-        data_path_base, data_path_prop = data_path.rsplit(".", 1)
-        data_prop_rna = eval("context.%s" % data_path_base).rna_type.properties[data_path_prop]
-        data_prop_rna_type = data_prop_rna.fixed_type
+
+        rna_prop = context_path_to_rna_property(context, data_path)
+        rna_prop_fixed_type = rna_prop.fixed_type
 
         id_iter = None
 
         for prop in bpy.data.rna_type.properties:
             if prop.rna_type.identifier == "CollectionProperty":
-                if prop.fixed_type == data_prop_rna_type:
+                if prop.fixed_type == rna_prop_fixed_type:
                     id_iter = prop.identifier
                     break
 
