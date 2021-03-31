@@ -2756,7 +2756,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
         bevp->tilt = bp->tilt;
         bevp->radius = bp->radius;
         bevp->weight = bp->weight;
-        bevp->split_tag = true;
         bp++;
         if (seglen != NULL && len != 0) {
           *seglen = len_v3v3(bevp->vec, bp->vec);
@@ -2828,7 +2827,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
           bevp->tilt = prevbezt->tilt;
           bevp->radius = prevbezt->radius;
           bevp->weight = prevbezt->weight;
-          bevp->split_tag = true;
           bevp->dupe_tag = false;
           bevp++;
           bl->nr++;
@@ -2877,21 +2875,6 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
                                           bevp->tan,
                                           resolu,
                                           sizeof(BevPoint));
-          }
-
-          /* indicate with handlecodes double points */
-          if (prevbezt->h1 == prevbezt->h2) {
-            if (ELEM(prevbezt->h1, 0, HD_VECT)) {
-              bevp->split_tag = true;
-            }
-          }
-          else {
-            if (ELEM(prevbezt->h1, 0, HD_VECT)) {
-              bevp->split_tag = true;
-            }
-            else if (ELEM(prevbezt->h2, 0, HD_VECT)) {
-              bevp->split_tag = true;
-            }
           }
 
           /* seglen */

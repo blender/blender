@@ -74,9 +74,6 @@ void BKE_displist_elem_free(DispList *dl)
     if (dl->index) {
       MEM_freeN(dl->index);
     }
-    if (dl->bevel_split) {
-      MEM_freeN(dl->bevel_split);
-    }
     MEM_freeN(dl);
   }
 }
@@ -137,10 +134,6 @@ void BKE_displist_copy(ListBase *lbn, ListBase *lb)
     dln->verts = MEM_dupallocN(dl->verts);
     dln->nors = MEM_dupallocN(dl->nors);
     dln->index = MEM_dupallocN(dl->index);
-
-    if (dl->bevel_split) {
-      dln->bevel_split = MEM_dupallocN(dl->bevel_split);
-    }
   }
 }
 
@@ -1609,8 +1602,6 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
             /* CU_2D conflicts with R_NOPUNOFLIP */
             dl->rt = nu->flag & ~CU_2D;
 
-            dl->bevel_split = BLI_BITMAP_NEW(steps, "bevel_split");
-
             /* for each point of poly make a bevel piece */
             BevPoint *bevp_first = bl->bevpoints;
             BevPoint *bevp_last = &bl->bevpoints[bl->nr - 1];
@@ -1657,10 +1648,6 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                 else if (cu->taper_radius_mode == CU_TAPER_RADIUS_ADD) {
                   radius_factor += bevp->radius;
                 }
-              }
-
-              if (bevp->split_tag) {
-                BLI_BITMAP_ENABLE(dl->bevel_split, a);
               }
 
               /* rotate bevel piece and write in data */

@@ -75,8 +75,6 @@ typedef struct DispList {
   int *index;
   int charidx;
   int totindex; /* indexed array drawing surfaces */
-
-  unsigned int *bevel_split; /* BLI_bitmap */
 } DispList;
 
 void BKE_displist_copy(struct ListBase *lbn, struct ListBase *lb);

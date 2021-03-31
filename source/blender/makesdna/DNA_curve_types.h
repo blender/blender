@@ -72,7 +72,7 @@ typedef struct BevPoint {
   float sina, cosa;
   /** 3D Only. */
   float dir[3], tan[3], quat[4];
-  short split_tag, dupe_tag;
+  short dupe_tag;
 } BevPoint;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
