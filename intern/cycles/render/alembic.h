@@ -481,9 +481,6 @@ class AlembicProcedural : public Procedural {
    * invocation, and updates the data on subsequent invocations if the frame changed. */
   void generate(Scene *scene, Progress &progress);
 
-  /* Add an object to our list of objects, and tag the socket as modified. */
-  void add_object(AlembicObject *object);
-
   /* Tag for an update only if something was modified. */
   void tag_update(Scene *scene);
 
@@ -491,6 +488,9 @@ class AlembicProcedural : public Procedural {
   AlembicObject *get_or_create_object(const ustring &path);
 
  private:
+  /* Add an object to our list of objects, and tag the socket as modified. */
+  void add_object(AlembicObject *object);
+
   /* Load the data for all the objects whose data has not yet been loaded. */
   void load_objects(Progress &progress);
 
