@@ -702,9 +702,17 @@ static void findnearestface__doClosest(void *userData,
   }
 }
 
+/**
+ * \param use_zbuf_single_px: Special case, when using the back-buffer selection,
+ * only use the pixel at `vc->mval` instead of using `r_dist` to search over a larger region.
+ * This is needed because historically selection worked this way for a long time,
+ * however it's reasonable that some callers might want to expand the region too.
+ * So add an argument to do this,
+ */
 BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
                                   float *r_dist,
                                   float *r_dist_center,
+                                  const bool use_zbuf_single_px,
                                   const bool use_select_bias,
                                   bool use_cycle,
                                   BMFace **r_efa_zbuf,
@@ -721,7 +729,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
 
     {
       uint dist_px = 0;
-      if (*r_dist != 0.0f) {
+      if (*r_dist != 0.0f && (use_zbuf_single_px == false)) {
         dist_px = (uint)ED_view3d_backbuf_sample_size_clamp(vc->region, *r_dist);
       }
 
@@ -842,7 +850,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
 BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
   Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
-  return EDBM_face_find_nearest_ex(vc, r_dist, NULL, false, false, NULL, &base, 1, NULL);
+  return EDBM_face_find_nearest_ex(vc, r_dist, NULL, false, false, false, NULL, &base, 1, NULL);
 }
 
 #undef FIND_NEAR_SELECT_BIAS
@@ -888,13 +896,6 @@ static bool unified_findnearest(ViewContext *vc,
   /* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
 
   if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_FACE)) {
-
-    /* Force zero distance, this is a historic exception for faces
-     * as this function didn't originally support using a margin.
-     * Only pick faces directly under the cursor to prevent unexpected changes in behavior.
-     * While this could be changed, take care this isn't causing issues from a user perspective. */
-    dist = 0.0f;
-
     float dist_center = 0.0f;
     float *dist_center_p = (em->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_VERTEX)) ?
                                &dist_center :
@@ -903,11 +904,8 @@ static bool unified_findnearest(ViewContext *vc,
     uint base_index = 0;
     BMFace *efa_zbuf = NULL;
     BMFace *efa_test = EDBM_face_find_nearest_ex(
-        vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf, bases, bases_len, &base_index);
+        vc, &dist, dist_center_p, true, true, use_cycle, &efa_zbuf, bases, bases_len, &base_index);
 
-    if (efa_test == NULL) {
-      dist = dist_init;
-    }
     if (efa_test && dist_center_p) {
       dist = min_ff(dist_margin, dist_center);
     }

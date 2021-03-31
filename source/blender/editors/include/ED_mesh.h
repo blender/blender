@@ -186,6 +186,7 @@ struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, float *r_dist);
 struct BMFace *EDBM_face_find_nearest_ex(struct ViewContext *vc,
                                          float *r_dist,
                                          float *r_dist_center,
+                                         const bool use_zbuf_single_px,
                                          const bool use_select_bias,
                                          bool use_cycle,
                                          struct BMFace **r_efa_zbuf,
