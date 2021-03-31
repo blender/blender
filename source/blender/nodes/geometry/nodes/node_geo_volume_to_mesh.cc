@@ -36,7 +36,7 @@
 
 static bNodeSocketTemplate geo_node_volume_to_mesh_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_STRING, N_("Grid")},
+    {SOCK_STRING, N_("Density")},
     {SOCK_FLOAT, N_("Voxel Size"), 0.3f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX},
     {SOCK_FLOAT, N_("Voxel Amount"), 64.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
     {SOCK_FLOAT, N_("Threshold"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
@@ -64,7 +64,7 @@ static void geo_node_volume_to_mesh_init(bNodeTree *UNUSED(ntree), bNode *node)
       sizeof(NodeGeometryVolumeToMesh), __func__);
   data->resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_GRID;
 
-  bNodeSocket *grid_socket = nodeFindSocket(node, SOCK_IN, "Grid");
+  bNodeSocket *grid_socket = nodeFindSocket(node, SOCK_IN, "Density");
   bNodeSocketValueString *grid_socket_value = (bNodeSocketValueString *)grid_socket->default_value;
   STRNCPY(grid_socket_value->value, "density");
 
@@ -120,7 +120,7 @@ static void create_mesh_from_volume(GeometrySet &geometry_set_in,
   Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(const_cast<Volume *>(volume), bmain);
 
-  const std::string grid_name = params.get_input<std::string>("Grid");
+  const std::string grid_name = params.get_input<std::string>("Density");
   VolumeGrid *volume_grid = BKE_volume_grid_find(volume, grid_name.c_str());
   if (volume_grid == nullptr) {
     return;

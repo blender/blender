@@ -1950,6 +1950,13 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   {
     /* Keep this block, even when empty. */
 
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_VOLUME_TO_MESH, "Grid", "Density");
+      }
+    }
+    FOREACH_NODETREE_END;
+
     if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "float", "axes_position")) {
       /* Convert the axes draw position to its old default (tip of bone). */
       LISTBASE_FOREACH (struct bArmature *, arm, &bmain->armatures) {
