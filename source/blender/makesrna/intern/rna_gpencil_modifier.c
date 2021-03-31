@@ -194,6 +194,7 @@ static const EnumPropertyItem gpencil_tint_type_items[] = {
 
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
+#  include "DNA_material_types.h"
 #  include "DNA_particle_types.h"
 
 #  include "BKE_cachefile.h"
@@ -434,6 +435,195 @@ static void rna_GpencilModifier_opacity_update(Main *bmain, Scene *scene, Pointe
   rna_GpencilModifier_update(bmain, scene, ptr);
 }
 
+bool rna_GpencilModifier_material_poll(PointerRNA *ptr, PointerRNA value)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  Material *ma = (Material *)value.owner_id;
+
+  return BKE_gpencil_object_material_index_get(ob, ma) != -1;
+}
+
+static void rna_GpencilModifier_material_set(PointerRNA *ptr,
+                                             PointerRNA value,
+                                             Material **ma_target,
+                                             struct ReportList *reports)
+{
+  Object *ob = (Object *)ptr->owner_id;
+  Material *ma = (Material *)value.owner_id;
+
+  if (ma == NULL || BKE_gpencil_object_material_index_get(ob, ma) != -1) {
+    id_lib_extern((ID *)ob);
+    *ma_target = ma;
+  }
+  else {
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Cannot assign material '%s', it has to be used by the grease pencil object already",
+        ma->id.name);
+  }
+}
+
+static void rna_LineartGpencilModifier_material_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *reports)
+{
+  LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)ptr->data;
+  Material **ma_target = &lmd->target_material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_NoiseGpencilModifier_material_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  struct ReportList *reports)
+{
+  NoiseGpencilModifierData *nmd = (NoiseGpencilModifierData *)ptr->data;
+  Material **ma_target = &nmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_SmoothGpencilModifier_material_set(PointerRNA *ptr,
+                                                   PointerRNA value,
+                                                   struct ReportList *reports)
+{
+  SmoothGpencilModifierData *smd = (SmoothGpencilModifierData *)ptr->data;
+  Material **ma_target = &smd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_SubdivGpencilModifier_material_set(PointerRNA *ptr,
+                                                   PointerRNA value,
+                                                   struct ReportList *reports)
+{
+  SubdivGpencilModifierData *smd = (SubdivGpencilModifierData *)ptr->data;
+  Material **ma_target = &smd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_SimplifyGpencilModifier_material_set(PointerRNA *ptr,
+                                                     PointerRNA value,
+                                                     struct ReportList *reports)
+{
+  SimplifyGpencilModifierData *smd = (SimplifyGpencilModifierData *)ptr->data;
+  Material **ma_target = &smd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_ThickGpencilModifier_material_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  struct ReportList *reports)
+{
+  ThickGpencilModifierData *tmd = (ThickGpencilModifierData *)ptr->data;
+  Material **ma_target = &tmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_OffsetGpencilModifier_material_set(PointerRNA *ptr,
+                                                   PointerRNA value,
+                                                   struct ReportList *reports)
+{
+  OffsetGpencilModifierData *omd = (OffsetGpencilModifierData *)ptr->data;
+  Material **ma_target = &omd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_TintGpencilModifier_material_set(PointerRNA *ptr,
+                                                 PointerRNA value,
+                                                 struct ReportList *reports)
+{
+  TintGpencilModifierData *tmd = (TintGpencilModifierData *)ptr->data;
+  Material **ma_target = &tmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_ColorGpencilModifier_material_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  struct ReportList *reports)
+{
+  ColorGpencilModifierData *cmd = (ColorGpencilModifierData *)ptr->data;
+  Material **ma_target = &cmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_ArrayGpencilModifier_material_set(PointerRNA *ptr,
+                                                  PointerRNA value,
+                                                  struct ReportList *reports)
+{
+  ArrayGpencilModifierData *amd = (ArrayGpencilModifierData *)ptr->data;
+  Material **ma_target = &amd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_OpacityGpencilModifier_material_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *reports)
+{
+  OpacityGpencilModifierData *omd = (OpacityGpencilModifierData *)ptr->data;
+  Material **ma_target = &omd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_LatticeGpencilModifier_material_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *reports)
+{
+  LatticeGpencilModifierData *lmd = (LatticeGpencilModifierData *)ptr->data;
+  Material **ma_target = &lmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_MirrorGpencilModifier_material_set(PointerRNA *ptr,
+                                                   PointerRNA value,
+                                                   struct ReportList *reports)
+{
+  MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)ptr->data;
+  Material **ma_target = &mmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_HookGpencilModifier_material_set(PointerRNA *ptr,
+                                                 PointerRNA value,
+                                                 struct ReportList *reports)
+{
+  HookGpencilModifierData *hmd = (HookGpencilModifierData *)ptr->data;
+  Material **ma_target = &hmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_MultiplyGpencilModifier_material_set(PointerRNA *ptr,
+                                                     PointerRNA value,
+                                                     struct ReportList *reports)
+{
+  MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)ptr->data;
+  Material **ma_target = &mmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
+static void rna_TextureGpencilModifier_material_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *reports)
+{
+  TextureGpencilModifierData *tmd = (TextureGpencilModifierData *)ptr->data;
+  Material **ma_target = &tmd->material;
+
+  rna_GpencilModifier_material_set(ptr, value, ma_target, reports);
+}
+
 #else
 
 static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
@@ -454,6 +644,11 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_NoiseGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -587,6 +782,11 @@ static void rna_def_modifier_gpencilsmooth(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_SmoothGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -700,6 +900,11 @@ static void rna_def_modifier_gpencilsubdiv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_SubdivGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -790,6 +995,11 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_SimplifyGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -879,6 +1089,11 @@ static void rna_def_modifier_gpencilthick(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_ThickGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -973,6 +1188,11 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_OffsetGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1071,6 +1291,11 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_TintGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1275,6 +1500,11 @@ static void rna_def_modifier_gpencilcolor(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_ColorGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1366,6 +1596,11 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_OpacityGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1462,6 +1697,11 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_ArrayGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1761,6 +2001,11 @@ static void rna_def_modifier_gpencillattice(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_LatticeGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1840,6 +2085,11 @@ static void rna_def_modifier_gpencilmirror(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_MirrorGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -1938,6 +2188,11 @@ static void rna_def_modifier_gpencilhook(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_HookGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2095,6 +2350,11 @@ static void rna_def_modifier_gpencilmultiply(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_MultiplyGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2218,6 +2478,11 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_TextureGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material used for filtering effect");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -2469,6 +2734,11 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_pointer_funcs(prop,
+                                 NULL,
+                                 "rna_LineartGpencilModifier_material_set",
+                                 NULL,
+                                 "rna_GpencilModifier_material_poll");
   RNA_def_property_ui_text(
       prop, "Target Material", "Grease Pencil material assigned to the generated strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
