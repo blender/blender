@@ -108,7 +108,7 @@ void BKE_curve_transform(struct Curve *cu,
                          const bool do_props);
 void BKE_curve_translate(struct Curve *cu, const float offset[3], const bool do_keys);
 void BKE_curve_material_index_remove(struct Curve *cu, int index);
-bool BKE_curve_material_index_used(struct Curve *cu, int index);
+bool BKE_curve_material_index_used(const struct Curve *cu, int index);
 void BKE_curve_material_index_clear(struct Curve *cu);
 bool BKE_curve_material_index_validate(struct Curve *cu);
 void BKE_curve_material_remap(struct Curve *cu, const unsigned int *remap, unsigned int remap_len);
@@ -125,8 +125,10 @@ void BKE_curve_nurb_vert_active_set(struct Curve *cu, const struct Nurb *nu, con
 bool BKE_curve_nurb_vert_active_get(struct Curve *cu, struct Nurb **r_nu, void **r_vert);
 void BKE_curve_nurb_vert_active_validate(struct Curve *cu);
 
-float (*BKE_curve_nurbs_vert_coords_alloc(struct ListBase *lb, int *r_vert_len))[3];
-void BKE_curve_nurbs_vert_coords_get(struct ListBase *lb, float (*vert_coords)[3], int vert_len);
+float (*BKE_curve_nurbs_vert_coords_alloc(const struct ListBase *lb, int *r_vert_len))[3];
+void BKE_curve_nurbs_vert_coords_get(const struct ListBase *lb,
+                                     float (*vert_coords)[3],
+                                     int vert_len);
 
 void BKE_curve_nurbs_vert_coords_apply_with_mat4(struct ListBase *lb,
                                                  const float (*vert_coords)[3],
@@ -137,7 +139,7 @@ void BKE_curve_nurbs_vert_coords_apply(struct ListBase *lb,
                                        const float (*vert_coords)[3],
                                        const bool constrain_2d);
 
-float (*BKE_curve_nurbs_key_vert_coords_alloc(struct ListBase *lb,
+float (*BKE_curve_nurbs_key_vert_coords_alloc(const struct ListBase *lb,
                                               float *key,
                                               int *r_vert_len))[3];
 void BKE_curve_nurbs_key_vert_tilts_apply(struct ListBase *lb, const float *key);
@@ -166,8 +168,8 @@ void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], cons
 
 bool BKE_nurbList_index_get_co(struct ListBase *editnurb, const int index, float r_co[3]);
 
-int BKE_nurbList_verts_count(struct ListBase *nurb);
-int BKE_nurbList_verts_count_without_handles(struct ListBase *nurb);
+int BKE_nurbList_verts_count(const struct ListBase *nurb);
+int BKE_nurbList_verts_count_without_handles(const struct ListBase *nurb);
 
 void BKE_nurbList_free(struct ListBase *lb);
 void BKE_nurbList_duplicate(struct ListBase *lb1, const struct ListBase *lb2);
@@ -185,7 +187,7 @@ struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);
 struct Nurb *BKE_nurb_copy(struct Nurb *src, int pntsu, int pntsv);
 
 void BKE_nurb_test_2d(struct Nurb *nu);
-void BKE_nurb_minmax(struct Nurb *nu, bool use_radius, float min[3], float max[3]);
+void BKE_nurb_minmax(const struct Nurb *nu, bool use_radius, float min[3], float max[3]);
 float BKE_nurb_calc_length(const struct Nurb *nu, int resolution);
 
 void BKE_nurb_makeFaces(

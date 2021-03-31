@@ -596,11 +596,11 @@ bool BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
   return false;
 }
 
-int BKE_nurbList_verts_count(ListBase *nurb)
+int BKE_nurbList_verts_count(const ListBase *nurb)
 {
   int tot = 0;
 
-  LISTBASE_FOREACH (Nurb *, nu, nurb) {
+  LISTBASE_FOREACH (const Nurb *, nu, nurb) {
     if (nu->bezt) {
       tot += 3 * nu->pntsu;
     }
@@ -612,7 +612,7 @@ int BKE_nurbList_verts_count(ListBase *nurb)
   return tot;
 }
 
-int BKE_nurbList_verts_count_without_handles(ListBase *nurb)
+int BKE_nurbList_verts_count_without_handles(const ListBase *nurb)
 {
   int tot = 0;
 
@@ -779,7 +779,7 @@ void BKE_nurb_test_2d(Nurb *nu)
  * if use_radius is truth, minmax will take points' radius into account,
  * which will make boundbox closer to beveled curve.
  */
-void BKE_nurb_minmax(Nurb *nu, bool use_radius, float min[3], float max[3])
+void BKE_nurb_minmax(const Nurb *nu, bool use_radius, float min[3], float max[3])
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -1928,7 +1928,7 @@ static int cu_isectLL(const float v1[3],
   return 0;
 }
 
-static bool bevelinside(BevList *bl1, BevList *bl2)
+static bool bevelinside(const BevList *bl1, const BevList *bl2)
 {
   /* is bl2 INSIDE bl1 ? with left-right method and "lambda's" */
   /* returns '1' if correct hole  */
@@ -2052,8 +2052,8 @@ static void calc_bevel_sin_cos(
   *r_cosa = x3 / t02;
 }
 
-static void tilt_bezpart(BezTriple *prevbezt,
-                         BezTriple *bezt,
+static void tilt_bezpart(const BezTriple *prevbezt,
+                         const BezTriple *bezt,
                          Nurb *nu,
                          float *tilt_array,
                          float *radius_array,
@@ -2061,7 +2061,7 @@ static void tilt_bezpart(BezTriple *prevbezt,
                          int resolu,
                          int stride)
 {
-  BezTriple *pprev, *next, *last;
+  const BezTriple *pprev, *next, *last;
   float fac, dfac, t[4];
   int a;
 
@@ -4664,12 +4664,12 @@ void BKE_nurb_direction_switch(Nurb *nu)
   }
 }
 
-void BKE_curve_nurbs_vert_coords_get(ListBase *lb, float (*vert_coords)[3], int vert_len)
+void BKE_curve_nurbs_vert_coords_get(const ListBase *lb, float (*vert_coords)[3], int vert_len)
 {
   float *co = vert_coords[0];
-  LISTBASE_FOREACH (Nurb *, nu, lb) {
+  LISTBASE_FOREACH (const Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
-      BezTriple *bezt = nu->bezt;
+      const BezTriple *bezt = nu->bezt;
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
         copy_v3_v3(co, bezt->vec[0]);
         co += 3;
@@ -4680,7 +4680,7 @@ void BKE_curve_nurbs_vert_coords_get(ListBase *lb, float (*vert_coords)[3], int 
       }
     }
     else {
-      BPoint *bp = nu->bp;
+      const BPoint *bp = nu->bp;
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
         copy_v3_v3(co, bp->vec);
         co += 3;
@@ -4691,7 +4691,7 @@ void BKE_curve_nurbs_vert_coords_get(ListBase *lb, float (*vert_coords)[3], int 
   UNUSED_VARS_NDEBUG(vert_len);
 }
 
-float (*BKE_curve_nurbs_vert_coords_alloc(ListBase *lb, int *r_vert_len))[3]
+float (*BKE_curve_nurbs_vert_coords_alloc(const ListBase *lb, int *r_vert_len))[3]
 {
   const int vert_len = BKE_nurbList_verts_count(lb);
   float(*vert_coords)[3] = MEM_malloc_arrayN(vert_len, sizeof(*vert_coords), __func__);
@@ -4777,15 +4777,15 @@ void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
   }
 }
 
-float (*BKE_curve_nurbs_key_vert_coords_alloc(ListBase *lb, float *key, int *r_vert_len))[3]
+float (*BKE_curve_nurbs_key_vert_coords_alloc(const ListBase *lb, float *key, int *r_vert_len))[3]
 {
   int vert_len = BKE_nurbList_verts_count(lb);
   float(*cos)[3] = MEM_malloc_arrayN(vert_len, sizeof(*cos), __func__);
 
   float *co = cos[0];
-  LISTBASE_FOREACH (Nurb *, nu, lb) {
+  LISTBASE_FOREACH (const Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
-      BezTriple *bezt = nu->bezt;
+      const BezTriple *bezt = nu->bezt;
 
       for (int i = 0; i < nu->pntsu; i++, bezt++) {
         copy_v3_v3(co, &key[0]);
@@ -4798,7 +4798,7 @@ float (*BKE_curve_nurbs_key_vert_coords_alloc(ListBase *lb, float *key, int *r_v
       }
     }
     else {
-      BPoint *bp = nu->bp;
+      const BPoint *bp = nu->bp;
 
       for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
         copy_v3_v3(co, key);
@@ -5216,7 +5216,7 @@ bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
     use_radius = false;
   }
   /* Do bounding box based on splines. */
-  LISTBASE_FOREACH (Nurb *, nu, nurb_lb) {
+  LISTBASE_FOREACH (const Nurb *, nu, nurb_lb) {
     BKE_nurb_minmax(nu, use_radius, min, max);
   }
   const bool result = (BLI_listbase_is_empty(nurb_lb) == false);
@@ -5412,12 +5412,12 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
   }
 }
 
-bool BKE_curve_material_index_used(Curve *cu, int index)
+bool BKE_curve_material_index_used(const Curve *cu, int index)
 {
   const int curvetype = BKE_curve_type_get(cu);
 
   if (curvetype == OB_FONT) {
-    struct CharInfo *info = cu->strinfo;
+    const struct CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr == index) {
         return true;
@@ -5425,7 +5425,7 @@ bool BKE_curve_material_index_used(Curve *cu, int index)
     }
   }
   else {
-    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+    LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
       if (nu->mat_nr == index) {
         return true;
       }
