@@ -129,11 +129,9 @@ void ExecutionGroup::initExecution()
   if (this->m_chunks_len != 0) {
     m_work_packages.resize(this->m_chunks_len);
     for (unsigned int index = 0; index < m_chunks_len; index++) {
-      m_work_packages[index] = {
-          .state = eChunkExecutionState::NotScheduled,
-          .execution_group = this,
-          .chunk_number = index,
-      };
+      m_work_packages[index].state = eChunkExecutionState::NotScheduled;
+      m_work_packages[index].execution_group = this;
+      m_work_packages[index].chunk_number = index;
       determineChunkRect(&m_work_packages[index].rect, index);
     }
   }
