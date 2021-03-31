@@ -96,11 +96,9 @@ PyDoc_STRVAR(
     "      * ``MULTIPLY`` The original color channels are multiplied by the corresponding ones.\n"
     "      * ``SUBTRACT`` The original color channels are subtracted by the corresponding ones.\n"
     "      * ``INVERT`` The original color channels are replaced by its complementary color.\n"
-#if 0
-    "      * ``OIT``.\n"
-    "      * ``BACKGROUND`` .\n"
-    "      * ``CUSTOM`` .\n"
-#endif
+    //"      * ``OIT``.\n"
+    //"      * ``BACKGROUND`` .\n"
+    //"      * ``CUSTOM`` .\n"
     "   :type mode: str\n");
 static PyObject *pygpu_state_blend_set(PyObject *UNUSED(self), PyObject *value)
 {
