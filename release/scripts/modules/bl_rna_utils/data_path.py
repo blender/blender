@@ -40,8 +40,8 @@ class _TokenizeDataPath:
     def __call__(self, *args, **kw):
         value_str = ", ".join([
             val for val in (
-                repr(args)[1:-1],
-                ", ".join(["%s=%r" % (key, value) for key, value in kw.items()])
+                ", ".join(repr(value) for value in args),
+                ", ".join(["%s=%r" % (key, value) for key, value in kw.items()]),
             ) if val])
         return _TokenizeDataPath(self.data_path + ('(%s)' % value_str, ))
 
