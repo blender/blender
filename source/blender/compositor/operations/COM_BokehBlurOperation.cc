@@ -109,13 +109,12 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
     maxx = MIN2(maxx, input_rect.xmax);
 
     int step = getStep();
-    int offsetadd = getOffsetAdd() * COM_data_type_num_channels(DataType::Color);
+    int offsetadd = getOffsetAdd() * COM_DATA_TYPE_COLOR_CHANNELS;
 
     float m = this->m_bokehDimension / pixelSize;
     for (int ny = miny; ny < maxy; ny += step) {
-      int bufferindex = ((minx - bufferstartx) * COM_data_type_num_channels(DataType::Color)) +
-                        ((ny - bufferstarty) * COM_data_type_num_channels(DataType::Color) *
-                         bufferwidth);
+      int bufferindex = ((minx - bufferstartx) * COM_DATA_TYPE_COLOR_CHANNELS) +
+                        ((ny - bufferstarty) * COM_DATA_TYPE_COLOR_CHANNELS * bufferwidth);
       for (int nx = minx; nx < maxx; nx += step) {
         float u = this->m_bokehMidX - (nx - x) * m;
         float v = this->m_bokehMidY - (ny - y) * m;

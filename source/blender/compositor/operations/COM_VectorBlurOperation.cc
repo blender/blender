@@ -71,7 +71,7 @@ void VectorBlurOperation::initExecution()
 void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
   float *buffer = (float *)data;
-  int index = (y * this->getWidth() + x) * COM_data_type_num_channels(DataType::Color);
+  int index = (y * this->getWidth() + x) * COM_DATA_TYPE_COLOR_CHANNELS;
   copy_v4_v4(output, &buffer[index]);
 }
 

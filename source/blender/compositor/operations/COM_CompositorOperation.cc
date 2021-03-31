@@ -151,7 +151,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   int y2 = rect->ymax;
   int offset = (y1 * this->getWidth() + x1);
   int add = (this->getWidth() - (x2 - x1));
-  int offset4 = offset * COM_data_type_num_channels(DataType::Color);
+  int offset4 = offset * COM_DATA_TYPE_COLOR_CHANNELS;
   int x;
   int y;
   bool breaked = false;
@@ -209,14 +209,14 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
       this->m_depthInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
       zbuffer[offset] = color[0];
-      offset4 += COM_data_type_num_channels(DataType::Color);
+      offset4 += COM_DATA_TYPE_COLOR_CHANNELS;
       offset++;
       if (isBraked()) {
         breaked = true;
       }
     }
     offset += add;
-    offset4 += add * COM_data_type_num_channels(DataType::Color);
+    offset4 += add * COM_DATA_TYPE_COLOR_CHANNELS;
   }
 }
 

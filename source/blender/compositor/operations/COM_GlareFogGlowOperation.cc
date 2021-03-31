@@ -273,8 +273,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   MemoryBuffer *rdst = new MemoryBuffer(DataType::Color, in1->get_rect());
   memset(rdst->getBuffer(),
          0,
-         rdst->getWidth() * rdst->getHeight() * COM_data_type_num_channels(DataType::Color) *
-             sizeof(float));
+         rdst->getWidth() * rdst->getHeight() * COM_DATA_TYPE_COLOR_CHANNELS * sizeof(float));
 
   // convolution result width & height
   w2 = 2 * kernelWidth - 1;
@@ -290,7 +289,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   // normalize convolutor
   wt[0] = wt[1] = wt[2] = 0.0f;
   for (y = 0; y < kernelHeight; y++) {
-    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_data_type_num_channels(DataType::Color)];
+    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
     for (x = 0; x < kernelWidth; x++) {
       add_v3_v3(wt, colp[x]);
     }
@@ -305,7 +304,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
     wt[2] = 1.0f / wt[2];
   }
   for (y = 0; y < kernelHeight; y++) {
-    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_data_type_num_channels(DataType::Color)];
+    colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
     for (x = 0; x < kernelWidth; x++) {
       mul_v3_v3(colp[x], wt);
     }
@@ -339,8 +338,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
           // in2, channel ch -> data1
           for (y = 0; y < kernelHeight; y++) {
             fp = &data1ch[y * w2];
-            colp = (fRGB *)&kernelBuffer[y * kernelWidth *
-                                         COM_data_type_num_channels(DataType::Color)];
+            colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_DATA_TYPE_COLOR_CHANNELS];
             for (x = 0; x < kernelWidth; x++) {
               fp[x] = colp[x][ch];
             }
@@ -355,8 +353,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
             continue;
           }
           fp = &data2[y * w2];
-          colp =
-              (fRGB *)&imageBuffer[yy * imageWidth * COM_data_type_num_channels(DataType::Color)];
+          colp = (fRGB *)&imageBuffer[yy * imageWidth * COM_DATA_TYPE_COLOR_CHANNELS];
           for (x = 0; x < xbsz; x++) {
             int xx = xbl * xbsz + x;
             if (xx >= imageWidth) {
@@ -386,8 +383,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
             continue;
           }
           fp = &data2[y * w2];
-          colp = (fRGB *)&rdst
-                     ->getBuffer()[yy * imageWidth * COM_data_type_num_channels(DataType::Color)];
+          colp = (fRGB *)&rdst->getBuffer()[yy * imageWidth * COM_DATA_TYPE_COLOR_CHANNELS];
           for (x = 0; x < (int)w2; x++) {
             const int xx = xbl * xbsz + x - hw;
             if ((xx < 0) || (xx >= imageWidth)) {
@@ -405,7 +401,7 @@ static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
   MEM_freeN(data1);
   memcpy(dst,
          rdst->getBuffer(),
-         sizeof(float) * imageWidth * imageHeight * COM_data_type_num_channels(DataType::Color));
+         sizeof(float) * imageWidth * imageHeight * COM_DATA_TYPE_COLOR_CHANNELS);
   delete (rdst);
 }
 
