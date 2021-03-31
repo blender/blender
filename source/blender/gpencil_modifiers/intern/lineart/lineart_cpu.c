@@ -3858,7 +3858,7 @@ static void lineart_gpencil_generate(LineartRenderBuffer *rb,
 
     BKE_gpencil_stroke_add_points(gps, stroke_data, count, mat);
     BKE_gpencil_dvert_ensure(gps);
-    gps->mat_nr = material_nr;
+    gps->mat_nr = max_ii(material_nr, 0);
 
     MEM_freeN(stroke_data);
 
