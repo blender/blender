@@ -129,7 +129,10 @@ Utilities
      Create a compressed archive of the source code.
 
    * update:
-     updates git and all submodules
+     Updates git and all submodules and svn.
+
+   * update_code:
+     Updates git and all submodules but not svn.
 
    * format:
      Format source code using clang (uses PATHS if passed in). For example::
@@ -521,6 +524,9 @@ icons_geom: .FORCE
 
 update: .FORCE
 	$(PYTHON) ./build_files/utils/make_update.py
+
+update_code: .FORCE
+	$(PYTHON) ./build_files/utils/make_update.py --no-libraries
 
 format: .FORCE
 	PATH="../lib/${OS_NCASE}_${CPU}/llvm/bin/:../lib/${OS_NCASE}_centos7_${CPU}/llvm/bin/:../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
