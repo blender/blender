@@ -143,10 +143,12 @@ struct NavigateWidgetGroup {
   struct {
     rcti rect_visible;
     struct {
+      int flag2;
+    } v3d;
+    struct {
       char is_persp;
-      char is_camera;
+      bool is_camera;
       char viewlock;
-      char cameralock;
     } rv3d;
   } state;
   int region_size[2];
@@ -227,11 +229,13 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   /* Click only buttons (not modal). */
   {
-    int gz_ids[] = {GZ_INDEX_PERSP,
-                    GZ_INDEX_ORTHO,
-                    GZ_INDEX_CAMERA,
-                    GZ_INDEX_CAMERA_LOCK,
-                    GZ_INDEX_CAMERA_UNLOCK};
+    int gz_ids[] = {
+        GZ_INDEX_PERSP,
+        GZ_INDEX_ORTHO,
+        GZ_INDEX_CAMERA,
+        GZ_INDEX_CAMERA_LOCK,
+        GZ_INDEX_CAMERA_UNLOCK,
+    };
     for (int i = 0; i < ARRAY_SIZE(gz_ids); i++) {
       wmGizmo *gz = navgroup->gz_array[gz_ids[i]];
       RNA_boolean_set(gz->ptr, "show_drag", false);
@@ -280,6 +284,7 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
   ARegion *region = CTX_wm_region(C);
   const RegionView3D *rv3d = region->regiondata;
   View3D *v3d = CTX_wm_view3d(C);
+  const int v3d_flag2_test = V3D_LOCK_CAMERA;
 
   for (int i = 0; i < 3; i++) {
     copy_v3_v3(navgroup->gz_array[GZ_INDEX_ROTATE]->matrix_offset[i], rv3d->viewmat[i]);
@@ -287,20 +292,24 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
 
   const rcti *rect_visible = ED_region_visible_rect(region);
 
+  /* Ensure types match so bits are never lost on assignment. */
+  CHECK_TYPE_PAIR(navgroup->state.v3d.flag2, v3d->flag2);
+  CHECK_TYPE_PAIR(navgroup->state.rv3d.viewlock, rv3d->viewlock);
+
   if ((navgroup->state.rect_visible.xmax == rect_visible->xmax) &&
       (navgroup->state.rect_visible.ymax == rect_visible->ymax) &&
+      (navgroup->state.v3d.flag2 == (v3d->flag2 & v3d_flag2_test)) &&
       (navgroup->state.rv3d.is_persp == rv3d->is_persp) &&
-      (navgroup->state.rv3d.cameralock == (v3d->flag2 & V3D_LOCK_CAMERA)) &&
       (navgroup->state.rv3d.is_camera == (rv3d->persp == RV3D_CAMOB)) &&
       (navgroup->state.rv3d.viewlock == RV3D_LOCK_FLAGS(rv3d))) {
     return;
   }
 
   navgroup->state.rect_visible = *rect_visible;
+  navgroup->state.v3d.flag2 = v3d->flag2 & v3d_flag2_test;
   navgroup->state.rv3d.is_persp = rv3d->is_persp;
   navgroup->state.rv3d.is_camera = (rv3d->persp == RV3D_CAMOB);
   navgroup->state.rv3d.viewlock = RV3D_LOCK_FLAGS(rv3d);
-  navgroup->state.rv3d.cameralock = v3d->flag2 & V3D_LOCK_CAMERA;
 
   const bool show_navigate = (U.uiflag & USER_SHOW_GIZMO_NAVIGATE) != 0;
   const bool show_rotate_gizmo = (U.mini_axis_type == USER_MINI_AXIS_TYPE_GIZMO);
