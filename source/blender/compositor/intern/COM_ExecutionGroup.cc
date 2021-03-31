@@ -121,11 +121,9 @@ NodeOperation *ExecutionGroup::getOutputOperation() const
       ->m_operations[0]; /* the first operation of the group is always the output operation. */
 }
 
-void ExecutionGroup::initExecution()
+void ExecutionGroup::init_work_packages()
 {
   m_work_packages.clear();
-  determineNumberOfChunks();
-
   if (this->m_chunks_len != 0) {
     m_work_packages.resize(this->m_chunks_len);
     for (unsigned int index = 0; index < m_chunks_len; index++) {
@@ -135,9 +133,11 @@ void ExecutionGroup::initExecution()
       determineChunkRect(&m_work_packages[index].rect, index);
     }
   }
+}
 
+void ExecutionGroup::init_read_buffer_operations()
+{
   unsigned int max_offset = 0;
-
   for (NodeOperation *operation : m_operations) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
@@ -149,6 +149,13 @@ void ExecutionGroup::initExecution()
   this->m_max_read_buffer_offset = max_offset;
 }
 
+void ExecutionGroup::initExecution()
+{
+  init_number_of_chunks();
+  init_work_packages();
+  init_read_buffer_operations();
+}
+
 void ExecutionGroup::deinitExecution()
 {
   m_work_packages.clear();
@@ -158,6 +165,7 @@ void ExecutionGroup::deinitExecution()
   this->m_read_operations.clear();
   this->m_bTree = nullptr;
 }
+
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
 {
   NodeOperation *operation = this->getOutputOperation();
@@ -167,7 +175,7 @@ void ExecutionGroup::determineResolution(unsigned int resolution[2])
   BLI_rcti_init(&this->m_viewerBorder, 0, this->m_width, 0, this->m_height);
 }
 
-void ExecutionGroup::determineNumberOfChunks()
+void ExecutionGroup::init_number_of_chunks()
 {
   if (this->m_flags.single_threaded) {
     this->m_x_chunks_len = 1;

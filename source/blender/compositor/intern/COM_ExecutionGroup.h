@@ -178,7 +178,7 @@ class ExecutionGroup {
    * \brief determine the number of chunks, based on the chunkSize, width and height.
    * \note The result are stored in the fields numberOfChunks, numberOfXChunks, numberOfYChunks
    */
-  void determineNumberOfChunks();
+  void init_number_of_chunks();
 
   /**
    * \brief try to schedule a specific chunk.
@@ -226,6 +226,9 @@ class ExecutionGroup {
    * Return the execution order of the user visible chunks.
    */
   blender::Array<unsigned int> determine_chunk_execution_order() const;
+
+  void init_read_buffer_operations();
+  void init_work_packages();
 
  public:
   // constructors
