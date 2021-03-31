@@ -192,7 +192,7 @@ void ExecutionGroup::init_number_of_chunks()
   }
 }
 
-blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() const
+blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
 {
   blender::Array<unsigned int> chunk_order(m_chunks_len);
   for (int chunk_index = 0; chunk_index < this->m_chunks_len; chunk_index++) {
@@ -310,7 +310,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   this->m_chunks_finished = 0;
   this->m_bTree = bTree;
 
-  blender::Array<unsigned int> chunk_order = determine_chunk_execution_order();
+  blender::Array<unsigned int> chunk_order = get_execution_order();
 
   DebugInfo::execution_group_started(this);
   DebugInfo::graphviz(graph);

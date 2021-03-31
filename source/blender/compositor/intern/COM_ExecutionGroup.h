@@ -225,7 +225,7 @@ class ExecutionGroup {
   /**
    * Return the execution order of the user visible chunks.
    */
-  blender::Array<unsigned int> determine_chunk_execution_order() const;
+  blender::Array<unsigned int> get_execution_order() const;
 
   void init_read_buffer_operations();
   void init_work_packages();
