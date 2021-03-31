@@ -1407,6 +1407,15 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
       need_data_updates = true;
     }
 
+    /* Check if the shaders were modified. */
+    if (object->used_shaders_is_modified() && object->get_object() &&
+        object->get_object()->get_geometry()) {
+      Geometry *geometry = object->get_object()->get_geometry();
+      array<Node *> used_shaders = object->get_used_shaders();
+      geometry->set_used_shaders(used_shaders);
+      need_shader_updates = true;
+    }
+
     /* Check for changes in shaders (e.g. newly requested attributes). */
     foreach (Node *shader_node, object->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(shader_node);
@@ -1586,6 +1595,11 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
 
   Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
 
+  /* Make sure shader ids are also updated. */
+  if (mesh->used_shaders_is_modified()) {
+    mesh->tag_shader_modified();
+  }
+
   cached_data.vertices.copy_to_socket(frame_time, mesh, mesh->get_verts_socket());
 
   cached_data.shader.copy_to_socket(frame_time, mesh, mesh->get_shader_socket());
@@ -1652,6 +1666,11 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
   }
 
   Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
+
+  /* Make sure shader ids are also updated. */
+  if (mesh->used_shaders_is_modified()) {
+    mesh->tag_shader_modified();
+  }
 
   /* Cycles overwrites the original triangles when computing displacement, so we always have to
    * repass the data if something is animated (vertices most likely) to avoid buffer overflows. */
@@ -1742,6 +1761,11 @@ void AlembicProcedural::read_curves(AlembicObject *abc_object, Abc::chrono_t fra
   }
 
   Hair *hair = static_cast<Hair *>(object->get_geometry());
+
+  /* Make sure shader ids are also updated. */
+  if (hair->used_shaders_is_modified()) {
+    hair->tag_curve_shader_modified();
+  }
 
   cached_data.curve_keys.copy_to_socket(frame_time, hair, hair->get_curve_keys_socket());
 
