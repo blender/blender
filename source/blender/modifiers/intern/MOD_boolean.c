@@ -76,12 +76,6 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-#ifdef WITH_GMP
-static const bool bypass_bmesh = true;
-#else
-static const bool bypass_bmesh = false;
-#endif
-
 static void initData(ModifierData *md)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
@@ -280,27 +274,6 @@ static BMesh *BMD_mesh_bm_create(
   return bm;
 }
 
-/* Snap entries that are near 0 or 1 or -1 to those values. */
-static void clean_obmat(float cleaned[4][4], const float mat[4][4])
-{
-  const float fuzz = 1e-6f;
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      float f = mat[i][j];
-      if (fabsf(f) <= fuzz) {
-        f = 0.0f;
-      }
-      else if (fabsf(f - 1.0f) <= fuzz) {
-        f = 1.0f;
-      }
-      else if (fabsf(f + 1.0f) <= fuzz) {
-        f = -1.0f;
-      }
-      cleaned[i][j] = f;
-    }
-  }
-}
-
 static void BMD_mesh_intersection(BMesh *bm,
                                   ModifierData *md,
                                   const ModifierEvalContext *ctx,
@@ -315,17 +288,7 @@ static void BMD_mesh_intersection(BMesh *bm,
   /* create tessface & intersect */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   int tottri;
-  BMLoop *(*looptris)[3];
-
-#ifdef WITH_GMP
-  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
-  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
-#else
-  const bool use_exact = false;
-  const bool use_self = false;
-#endif
-
-  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+  BMLoop *(*looptris)[3] = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
 
   BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
 
@@ -339,23 +302,8 @@ static void BMD_mesh_intersection(BMesh *bm,
 
     float imat[4][4];
     float omat[4][4];
-
-    if (use_exact) {
-      /* The user-expected coplanar faces will actually be coplanar more
-       * often if use an object matrix that doesn't multiply by values
-       * other than 0, -1, or 1 in the scaling part of the matrix.
-       */
-      float cleaned_object_obmat[4][4];
-      float cleaned_operand_obmat[4][4];
-      clean_obmat(cleaned_object_obmat, object->obmat);
-      invert_m4_m4(imat, cleaned_object_obmat);
-      clean_obmat(cleaned_operand_obmat, operand_ob->obmat);
-      mul_m4_m4m4(omat, imat, cleaned_operand_obmat);
-    }
-    else {
-      invert_m4_m4(imat, object->obmat);
-      mul_m4_m4m4(omat, imat, operand_ob->obmat);
-    }
+    invert_m4_m4(imat, object->obmat);
+    mul_m4_m4m4(omat, imat, operand_ob->obmat);
 
     BMVert *eve;
     i = 0;
@@ -368,39 +316,37 @@ static void BMD_mesh_intersection(BMesh *bm,
 
     /* we need face normals because of 'BM_face_split_edgenet'
      * we could calculate on the fly too (before calling split). */
-    {
-      float nmat[3][3];
-      copy_m3_m4(nmat, omat);
-      invert_m3(nmat);
+    float nmat[3][3];
+    copy_m3_m4(nmat, omat);
+    invert_m3(nmat);
 
-      if (UNLIKELY(is_flip)) {
-        negate_m3(nmat);
+    if (UNLIKELY(is_flip)) {
+      negate_m3(nmat);
+    }
+
+    const short ob_src_totcol = operand_ob->totcol;
+    short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
+
+    /* Using original (not evaluated) object here since we are writing to it. */
+    /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
+    BKE_object_material_remap_calc(ctx->object, operand_ob, material_remap);
+
+    BMFace *efa;
+    i = 0;
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      mul_transposed_m3_v3(nmat, efa->no);
+      normalize_v3(efa->no);
+
+      /* Temp tag to test which side split faces are from. */
+      BM_elem_flag_enable(efa, BM_FACE_TAG);
+
+      /* remap material */
+      if (LIKELY(efa->mat_nr < ob_src_totcol)) {
+        efa->mat_nr = material_remap[efa->mat_nr];
       }
 
-      const short ob_src_totcol = operand_ob->totcol;
-      short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
-
-      /* Using original (not evaluated) object here since we are writing to it. */
-      /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
-      BKE_object_material_remap_calc(ctx->object, operand_ob, material_remap);
-
-      BMFace *efa;
-      i = 0;
-      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-        mul_transposed_m3_v3(nmat, efa->no);
-        normalize_v3(efa->no);
-
-        /* Temp tag to test which side split faces are from. */
-        BM_elem_flag_enable(efa, BM_FACE_TAG);
-
-        /* remap material */
-        if (LIKELY(efa->mat_nr < ob_src_totcol)) {
-          efa->mat_nr = material_remap[efa->mat_nr];
-        }
-
-        if (++i == i_faces_end) {
-          break;
-        }
+      if (++i == i_faces_end) {
+        break;
       }
     }
   }
@@ -420,198 +366,21 @@ static void BMD_mesh_intersection(BMesh *bm,
     use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) == 0;
   }
 
-  if (use_exact) {
-    BM_mesh_boolean(
-        bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, false, false, bmd->operation);
-  }
-  else {
-    BM_mesh_intersect(bm,
-                      looptris,
-                      tottri,
-                      bm_face_isect_pair,
-                      NULL,
-                      false,
-                      use_separate,
-                      use_dissolve,
-                      use_island_connect,
-                      false,
-                      false,
-                      bmd->operation,
-                      bmd->double_threshold);
-  }
+  BM_mesh_intersect(bm,
+                    looptris,
+                    tottri,
+                    bm_face_isect_pair,
+                    NULL,
+                    false,
+                    use_separate,
+                    use_dissolve,
+                    use_island_connect,
+                    false,
+                    false,
+                    bmd->operation,
+                    bmd->double_threshold);
+
   MEM_freeN(looptris);
-}
-
-static int bm_face_isect_nary(BMFace *f, void *user_data)
-{
-  int *shape = (int *)user_data;
-  return shape[BM_elem_index_get(f)];
-}
-
-/* The Exact solver can do all operands of a collection at once. */
-static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
-                                      const ModifierEvalContext *ctx,
-                                      Mesh *mesh)
-{
-  int i;
-  Mesh *result = mesh;
-  Collection *col = bmd->collection;
-  int num_shapes = 1;
-  Mesh **meshes = NULL;
-  Object **objects = NULL;
-  BLI_array_declare(meshes);
-  BLI_array_declare(objects);
-  BMAllocTemplate bat;
-  bat.totvert = mesh->totvert;
-  bat.totedge = mesh->totedge;
-  bat.totloop = mesh->totloop;
-  bat.totface = mesh->totpoly;
-  BLI_array_append(meshes, mesh);
-  BLI_array_append(objects, ctx->object);
-  Mesh *col_mesh;
-  /* Allow col to be empty: then target mesh will just remove self-intersections. */
-  if (col) {
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, ob) {
-      if (ob->type == OB_MESH && ob != ctx->object) {
-        col_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
-        /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-         * But for 2.90 better not try to be smart here. */
-        BKE_mesh_wrapper_ensure_mdata(col_mesh);
-        BLI_array_append(meshes, col_mesh);
-        BLI_array_append(objects, ob);
-        bat.totvert += col_mesh->totvert;
-        bat.totedge += col_mesh->totedge;
-        bat.totloop += col_mesh->totloop;
-        bat.totface += col_mesh->totpoly;
-        ++num_shapes;
-      }
-    }
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-  }
-  int *shape_face_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
-  int *shape_vert_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
-  bool is_neg_mat0 = is_negative_m4(ctx->object->obmat);
-  BMesh *bm = BM_mesh_create(&bat,
-                             &((struct BMeshCreateParams){
-                                 .use_toolflags = false,
-                             }));
-  for (i = 0; i < num_shapes; i++) {
-    Mesh *me = meshes[i];
-    Object *ob = objects[i];
-    /* Need normals for triangulation. */
-    BM_mesh_bm_from_me(bm,
-                       me,
-                       &((struct BMeshFromMeshParams){
-                           .calc_face_normal = true,
-                       }));
-    shape_face_end[i] = me->totpoly + (i == 0 ? 0 : shape_face_end[i - 1]);
-    shape_vert_end[i] = me->totvert + (i == 0 ? 0 : shape_vert_end[i - 1]);
-    if (i > 0) {
-      bool is_flip = (is_neg_mat0 != is_negative_m4(ob->obmat));
-      if (UNLIKELY(is_flip)) {
-        const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-        BMIter iter;
-        BMFace *efa;
-        BM_mesh_elem_index_ensure(bm, BM_FACE);
-        BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-          if (BM_elem_index_get(efa) >= shape_face_end[i - 1]) {
-            BM_face_normal_flip_ex(bm, efa, cd_loop_mdisp_offset, true);
-          }
-        }
-      }
-    }
-  }
-
-  /* Triangulate the mesh. */
-  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  int tottri;
-  BMLoop *(*looptris)[3];
-  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
-  BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
-
-  /* Move the vertices of all but the first shape into transformation space of first mesh.
-   * Do this after tesselation so don't need to recalculate normals.
-   * The Exact solver doesn't need normals on the input faces. */
-  float imat[4][4];
-  float omat[4][4];
-  float cleaned_object_obmat[4][4];
-  clean_obmat(cleaned_object_obmat, ctx->object->obmat);
-  invert_m4_m4(imat, cleaned_object_obmat);
-  int curshape = 0;
-  int curshape_vert_end = shape_vert_end[0];
-  BMVert *eve;
-  BMIter iter;
-  i = 0;
-  BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-    if (i == curshape_vert_end) {
-      curshape++;
-      curshape_vert_end = shape_vert_end[curshape];
-      clean_obmat(cleaned_object_obmat, objects[curshape]->obmat);
-      mul_m4_m4m4(omat, imat, cleaned_object_obmat);
-    }
-    if (curshape > 0) {
-      mul_m4_v3(omat, eve->co);
-    }
-    i++;
-  }
-
-  /* Remap the materials. Fill a shape array for test function. Calculate normals. */
-  int *shape = MEM_mallocN(bm->totface * sizeof(int), __func__);
-  curshape = 0;
-  int curshape_face_end = shape_face_end[0];
-  int curshape_ncol = ctx->object->totcol;
-  short *material_remap = NULL;
-  BMFace *efa;
-  i = 0;
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    if (i == curshape_face_end) {
-      curshape++;
-      curshape_face_end = shape_face_end[curshape];
-      if (material_remap != NULL) {
-        MEM_freeN(material_remap);
-      }
-      curshape_ncol = objects[curshape]->totcol;
-      material_remap = MEM_mallocN(curshape_ncol ? curshape_ncol : 1, __func__);
-      BKE_object_material_remap_calc(ctx->object, objects[curshape], material_remap);
-    }
-    shape[i] = curshape;
-    if (curshape > 0) {
-      /* Normals for other shapes changed because vertex positions changed.
-       * Boolean doesn't need these, but post-boolean code (interpolation) does. */
-      BM_face_normal_update(efa);
-      if (LIKELY(efa->mat_nr < curshape_ncol)) {
-        efa->mat_nr = material_remap[efa->mat_nr];
-      }
-    }
-    i++;
-  }
-
-  BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_mesh_boolean(bm,
-                  looptris,
-                  tottri,
-                  bm_face_isect_nary,
-                  shape,
-                  num_shapes,
-                  true,
-                  false,
-                  false,
-                  bmd->operation);
-
-  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-  BM_mesh_free(bm);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-
-  MEM_freeN(shape);
-  MEM_freeN(shape_face_end);
-  MEM_freeN(shape_vert_end);
-  MEM_freeN(looptris);
-  if (material_remap != NULL) {
-    MEM_freeN(material_remap);
-  }
-  BLI_array_free(meshes);
-  BLI_array_free(objects);
-  return result;
 }
 
 #ifdef WITH_GMP
@@ -731,13 +500,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   bool is_flip = false;
   const bool confirm_return = true;
 #ifdef WITH_GMP
-  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
-  if (use_exact && bypass_bmesh) {
+  if (bmd->solver == eBooleanModifierSolver_Exact) {
     return exact_boolean_mesh(bmd, ctx, mesh);
   }
-#else
-  UNUSED_VARS(bypass_bmesh);
-  const bool use_exact = false;
 #endif
 
 #ifdef DEBUG_TIME
@@ -813,9 +578,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
     }
   }
-
   else {
-    if (collection == NULL && !use_exact) {
+    if (collection == NULL) {
       return result;
     }
 
@@ -824,41 +588,35 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       return result;
     }
 
-    if (use_exact) {
-      result = collection_boolean_exact(bmd, ctx, mesh);
-    }
-    else {
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, operand_ob) {
-        if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, operand_ob) {
+      if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
 
-          mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,
-                                                                                  false);
+        mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob, false);
 
-          if (mesh_operand_ob) {
-            /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-             * But for 2.90 better not try to be smart here. */
-            BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
+        if (mesh_operand_ob) {
+          /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+           * But for 2.90 better not try to be smart here. */
+          BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
 
-            bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+          bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
 
-            BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+          BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
-            /* Needed for multiple objects to work. */
-            BM_mesh_bm_to_me(NULL,
-                             bm,
-                             mesh,
-                             (&(struct BMeshToMeshParams){
-                                 .calc_object_remap = false,
-                             }));
+          /* Needed for multiple objects to work. */
+          BM_mesh_bm_to_me(NULL,
+                           bm,
+                           mesh,
+                           (&(struct BMeshToMeshParams){
+                               .calc_object_remap = false,
+                           }));
 
-            result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-            BM_mesh_free(bm);
-            result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-          }
+          result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+          BM_mesh_free(bm);
+          result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
         }
       }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
 
 #ifdef DEBUG_TIME
@@ -888,10 +646,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "operand_type", 0, NULL, ICON_NONE);
-
-  const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
-
-  if (operand_object) {
+  if (RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object) {
     uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
   }
   else {
@@ -910,14 +665,13 @@ static void solver_options_panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
-  const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayout *col = uiLayoutColumn(layout, true);
   if (use_exact) {
     /* When operand is collection, we always use_self. */
-    if (operand_object) {
+    if (RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object) {
       uiItemR(col, ptr, "use_self", 0, NULL, ICON_NONE);
     }
     uiItemR(col, ptr, "use_hole_tolerant", 0, NULL, ICON_NONE);
