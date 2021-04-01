@@ -1092,6 +1092,9 @@ typedef struct StrokeCache {
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
 
+  float stroke_distance; //copy of PaintStroke->stroke_distance
+  float stroke_distance_t;
+  float last_dyntopo_t;
 } StrokeCache;
 
 /* Sculpt Filters */

@@ -807,6 +807,8 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 
+        col.prop(sculpt, "dyntopo_spacing")
+
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)

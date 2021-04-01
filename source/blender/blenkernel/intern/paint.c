@@ -1913,6 +1913,11 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }
+
+  if (!sd->dyntopo_spacing) {
+    sd->dyntopo_spacing = 25;
+  }
+
   if (sd->constant_detail == 0.0f) {
     sd->constant_detail = 3.0f;
   }

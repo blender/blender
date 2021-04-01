@@ -67,77 +67,6 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-typedef struct PaintSample {
-  float mouse[2];
-  float pressure;
-} PaintSample;
-
-typedef struct PaintStroke {
-  void *mode_data;
-  void *stroke_cursor;
-  wmTimer *timer;
-  struct RNG *rng;
-
-  /* Cached values */
-  ViewContext vc;
-  Brush *brush;
-  UnifiedPaintSettings *ups;
-
-  /* used for lines and curves */
-  ListBase line;
-
-  /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
-   * to smooth the stroke */
-  PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
-  int num_samples;
-  int cur_sample;
-  int tot_samples;
-
-  float last_mouse_position[2];
-  float last_world_space_position[3];
-  bool stroke_over_mesh;
-  /* space distance covered so far */
-  float stroke_distance;
-
-  /* Set whether any stroke step has yet occurred
-   * e.g. in sculpt mode, stroke doesn't start until cursor
-   * passes over the mesh */
-  bool stroke_started;
-  /* Set when enough motion was found for rake rotation */
-  bool rake_started;
-  /* event that started stroke, for modal() return */
-  int event_type;
-  /* check if stroke variables have been initialized */
-  bool stroke_init;
-  /* check if various brush mapping variables have been initialized */
-  bool brush_init;
-  float initial_mouse[2];
-  /* cached_pressure stores initial pressure for size pressure influence mainly */
-  float cached_size_pressure;
-  /* last pressure will store last pressure value for use in interpolation for space strokes */
-  float last_pressure;
-  int stroke_mode;
-
-  float last_tablet_event_pressure;
-
-  float zoom_2d;
-  int pen_flip;
-
-  /* Tilt, as read from the event. */
-  float x_tilt;
-  float y_tilt;
-
-  /* line constraint */
-  bool constrain_line;
-  float constrained_pos[2];
-
-  StrokeGetLocation get_location;
-  StrokeTestStart test_start;
-  StrokeUpdateStep update_step;
-  StrokeRedraw redraw;
-  StrokeDone done;
-} PaintStroke;
-
 /*** Cursors ***/
 static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata)
 {
@@ -430,11 +359,13 @@ static bool paint_brush_update(bContext *C,
       ups->anchored_size /= 2.0f;
       ups->pixel_radius /= 2.0f;
       stroke->stroke_distance = ups->pixel_radius;
+      stroke->stroke_distance_t = 1.0f;
     }
     else {
       copy_v2_v2(ups->anchored_initial_mouse, stroke->initial_mouse);
       copy_v2_v2(mouse, stroke->initial_mouse);
       stroke->stroke_distance = ups->pixel_radius;
+      stroke->stroke_distance_t = 1.0f;
     }
     ups->pixel_radius /= stroke->zoom_2d;
     ups->draw_anchored = true;
@@ -868,6 +799,8 @@ static int paint_space_stroke(bContext *C,
                                                            spacing / no_pressure_spacing);
 
       stroke->stroke_distance += spacing / stroke->zoom_2d;
+      stroke->stroke_distance_t += (spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
+
       paint_brush_stroke_add_step(C, op, mouse, pressure);
 
       length -= spacing;
@@ -1204,6 +1137,8 @@ static void paint_line_strokes_spacing(bContext *C,
     length += *length_residue;
     *length_residue = 0.0;
 
+    stroke->spacing = spacing;
+
     if (length >= spacing) {
       mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing_final;
       mouse[1] = stroke->last_mouse_position[1] + dmouse[1] * spacing_final;
@@ -1211,6 +1146,8 @@ static void paint_line_strokes_spacing(bContext *C,
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush, 1.0);
 
       stroke->stroke_distance += spacing / stroke->zoom_2d;
+      stroke->stroke_distance_t += (spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
+
       paint_brush_stroke_add_step(C, op, mouse, 1.0);
 
       length -= spacing;
@@ -1426,6 +1363,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* one time stroke initialization */
   if (!stroke->stroke_started) {
     stroke->last_pressure = sample_average.pressure;
+
     copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
     if (paint_stroke_use_scene_spacing(br, mode)) {
       stroke->stroke_over_mesh = SCULPT_stroke_get_location(
@@ -1512,6 +1450,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
           float dmouse[2];
           sub_v2_v2v2(dmouse, mouse, stroke->last_mouse_position);
           stroke->stroke_distance += len_v2(dmouse);
+          stroke->stroke_distance_t += len_v2(dmouse) / stroke->ups->pixel_radius;
+
           paint_brush_stroke_add_step(C, op, mouse, pressure);
           redraw = true;
         }

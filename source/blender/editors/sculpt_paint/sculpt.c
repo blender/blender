@@ -6204,6 +6204,16 @@ static void sculpt_topology_update(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
 
+  if (paint_space_stroke_enabled(brush, PAINT_MODE_SCULPT)) {
+    float spacing = (float) brush->cached_dyntopo.spacing / 100.0f;
+
+    if (ss->cache->stroke_distance_t < ss->cache->last_dyntopo_t + spacing) {
+      return;
+    }
+
+    ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
+  }
+
   int n, totnode;
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
@@ -8398,7 +8408,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 }
 
 static void sculpt_stroke_update_step(bContext *C,
-                                      struct PaintStroke *UNUSED(stroke),
+                                      struct PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
@@ -8406,6 +8416,9 @@ static void sculpt_stroke_update_step(bContext *C,
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   const Brush *brush = BKE_paint_brush(&sd->paint);
+
+  ss->cache->stroke_distance = stroke->stroke_distance;
+  ss->cache->stroke_distance_t = stroke->stroke_distance_t;
 
   BKE_brush_get_dyntopo(brush, sd, &brush->cached_dyntopo);
 

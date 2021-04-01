@@ -2595,7 +2595,7 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
   int inherit = out->inherit;
 
   if (out->inherit & DYNTOPO_INHERIT_ALL) {
-    inherit = 0x7FFF;
+    inherit = 0x7FFFFFF;
   }
 
   if (inherit & DYNTOPO_INHERIT_MODE) {
@@ -2619,6 +2619,10 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
 
   if (inherit & DYNTOPO_INHERIT_DETAIL_PERCENT) {
     out->detail_percent = sd->detail_percent;
+  }
+
+  if (inherit & DYNTOPO_INHERIT_SPACING) {
+    out->spacing = sd->dyntopo_spacing;
   }
 
   if (inherit & DYNTOPO_INHERIT_CONSTANT_DETAIL) {

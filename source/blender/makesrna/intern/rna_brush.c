@@ -1172,6 +1172,14 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
                          "Dyntopo Settings",
                          "");
 
+  prop = RNA_def_property(srna, "spacing", PROP_INT, PROP_PERCENTAGE);
+  RNA_def_property_int_sdna(prop, NULL, "spacing");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "subdivide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_SUBDIVIDE);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);

@@ -155,7 +155,8 @@ typedef struct DynTopoSettings {
   float detail_percent;
   float constant_detail;
   short flag, mode;
-  int inherit, _pad[1];
+  int inherit;
+  int spacing;
 } DynTopoSettings;
 
 typedef struct Brush {

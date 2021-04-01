@@ -51,6 +51,10 @@ typedef struct CoNo {
   float no[3];
 } CoNo;
 
+#include "ED_view3d.h"
+#include "DNA_listBase.h"
+#include "DNA_scene_types.h"
+
 /* paint_stroke.c */
 typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
 typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
@@ -59,6 +63,81 @@ typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
+
+
+typedef struct PaintSample {
+  float mouse[2];
+  float pressure;
+} PaintSample;
+
+typedef struct PaintStroke {
+  void *mode_data;
+  void *stroke_cursor;
+  struct wmTimer *timer;
+  struct RNG *rng;
+
+  /* Cached values */
+  struct ViewContext vc;
+  struct Brush *brush;
+  struct UnifiedPaintSettings *ups;
+
+  /* used for lines and curves */
+  ListBase line;
+
+  /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
+   * to smooth the stroke */
+  PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
+  int num_samples;
+  int cur_sample;
+  int tot_samples;
+
+  float last_mouse_position[2];
+  float last_world_space_position[3];
+  bool stroke_over_mesh;
+  /* space distance covered so far */
+  float stroke_distance;
+  float stroke_distance_t; //divided by brush radius
+
+  /* Set whether any stroke step has yet occurred
+   * e.g. in sculpt mode, stroke doesn't start until cursor
+   * passes over the mesh */
+  bool stroke_started;
+  /* Set when enough motion was found for rake rotation */
+  bool rake_started;
+  /* event that started stroke, for modal() return */
+  int event_type;
+  /* check if stroke variables have been initialized */
+  bool stroke_init;
+  /* check if various brush mapping variables have been initialized */
+  bool brush_init;
+  float initial_mouse[2];
+  /* cached_pressure stores initial pressure for size pressure influence mainly */
+  float cached_size_pressure;
+  /* last pressure will store last pressure value for use in interpolation for space strokes */
+  float last_pressure;
+  int stroke_mode;
+
+  float last_tablet_event_pressure;
+
+  float zoom_2d;
+  int pen_flip;
+
+  /* Tilt, as read from the event. */
+  float x_tilt;
+  float y_tilt;
+
+  /* line constraint */
+  bool constrain_line;
+  float constrained_pos[2];
+
+  StrokeGetLocation get_location;
+  StrokeTestStart test_start;
+  StrokeUpdateStep update_step;
+  StrokeRedraw redraw;
+  StrokeDone done;
+
+  float spacing;
+} PaintStroke;
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      struct wmOperator *op,

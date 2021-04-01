@@ -803,6 +803,14 @@ static void rna_def_sculpt(BlenderRNA *brna)
       "Maximum edge length for dynamic topology sculpting (in brush percenage)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "dyntopo_spacing", PROP_INT, PROP_PERCENTAGE);
+  RNA_def_property_int_sdna(prop, NULL, "dyntopo_spacing");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "DynTopo Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   prop = RNA_def_property(srna, "constant_detail_resolution", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "constant_detail");
   RNA_def_property_range(prop, 0.0001, FLT_MAX);

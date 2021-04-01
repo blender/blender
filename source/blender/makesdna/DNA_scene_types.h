@@ -995,7 +995,7 @@ typedef struct Sculpt {
   /** Constant detail resolution (Blender unit / constant_detail). */
   float constant_detail;
   float detail_percent;
-  int _pad[1];
+  int dyntopo_spacing;
 
   struct Object *gravity_object;
 } Sculpt;
