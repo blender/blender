@@ -1409,15 +1409,15 @@ class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
         panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface')
 
 
-class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
-    bl_label = "Spot Shape"
+class CYCLES_LIGHT_PT_beam_shape(CyclesButtonsPanel, Panel):
+    bl_label = "Beam Shape"
     bl_parent_id = "CYCLES_LIGHT_PT_light"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        light = context.light
-        return (light and light.type == 'SPOT') and CyclesButtonsPanel.poll(context)
+        if context.light.type in {'SPOT', 'AREA'}:
+            return context.light and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -1425,9 +1425,12 @@ class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         col = layout.column()
-        col.prop(light, "spot_size", text="Size")
-        col.prop(light, "spot_blend", text="Blend", slider=True)
-        col.prop(light, "show_cone")
+        if light.type == 'SPOT':
+            col.prop(light, "spot_size", text="Spot Size")
+            col.prop(light, "spot_blend", text="Blend", slider=True)
+            col.prop(light, "show_cone")
+        elif light.type == 'AREA':
+            col.prop(light, "spread", text="Spread")
 
 
 class CYCLES_WORLD_PT_preview(CyclesButtonsPanel, Panel):
@@ -2284,7 +2287,7 @@ classes = (
     CYCLES_LIGHT_PT_preview,
     CYCLES_LIGHT_PT_light,
     CYCLES_LIGHT_PT_nodes,
-    CYCLES_LIGHT_PT_spot,
+    CYCLES_LIGHT_PT_beam_shape,
     CYCLES_WORLD_PT_preview,
     CYCLES_WORLD_PT_surface,
     CYCLES_WORLD_PT_volume,
@@ -2314,7 +2317,7 @@ classes = (
     node_panel(CYCLES_WORLD_PT_settings_surface),
     node_panel(CYCLES_WORLD_PT_settings_volume),
     node_panel(CYCLES_LIGHT_PT_light),
-    node_panel(CYCLES_LIGHT_PT_spot),
+    node_panel(CYCLES_LIGHT_PT_beam_shape)
 )
 
 

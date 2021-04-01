@@ -147,6 +147,13 @@ ccl_device_inline bool lamp_light_sample(
       ls->D = normalize_len(ls->P - P, &ls->t);
 
       ls->eval_fac = 0.25f * invarea;
+
+      if (klight->area.tan_spread > 0.0f) {
+        /* Area Light spread angle attenuation */
+        ls->eval_fac *= light_spread_attenuation(
+            ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+      }
+
       if (is_round) {
         ls->pdf *= lamp_light_pdf(kg, D, -ls->D, ls->t);
       }
@@ -286,6 +293,15 @@ ccl_device bool lamp_light_eval(
       ls->pdf = rect_light_sample(P, &light_P, axisu, axisv, 0, 0, false);
     }
     ls->eval_fac = 0.25f * invarea;
+
+    if (klight->area.tan_spread > 0.0f) {
+      /* Area Light spread angle attenuation */
+      ls->eval_fac *= light_spread_attenuation(
+          ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+      if (ls->eval_fac == 0.0f) {
+        return false;
+      }
+    }
   }
   else {
     return false;

@@ -146,6 +146,17 @@ ccl_device float spot_light_attenuation(float3 dir, float spot_angle, float spot
   return attenuation;
 }
 
+ccl_device float light_spread_attenuation(const float3 D,
+                                          const float3 Ng,
+                                          const float tan_spread,
+                                          const float normalize_spread)
+{
+  const float cos_a = -dot(D, Ng);
+  const float sin_a = safe_sqrtf(1.0f - sqr(cos_a));
+  const float tan_a = sin_a / cos_a;
+  return max((1.0f - (tan_spread * tan_a)) * normalize_spread, 0.0f);
+}
+
 ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
 {
   float cos_pi = dot(Ng, I);
