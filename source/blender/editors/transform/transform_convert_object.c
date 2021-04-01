@@ -282,9 +282,17 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
      */
     BKE_object_to_mat3(ob, obmtx);
     copy_m3_m4(totmat, ob->obmat);
-    invert_m3_m3(obinv, totmat);
+
+    /* If the object scale is zero on any axis, this might result in a zero matrix.
+     * In this case, the transformation would not do anything, see: T50103. */
+    orthogonalize_m3_zero_axes(obmtx, 1.0f);
+    orthogonalize_m3_zero_axes(totmat, 1.0f);
+
+    /* Use safe invert even though the input matrices have had zero axes set to unit length,
+     * in the unlikely case of failure (float precision for eg) this uses unit matrix fallback. */
+    invert_m3_m3_safe_ortho(obinv, totmat);
     mul_m3_m3m3(td->smtx, obmtx, obinv);
-    invert_m3_m3(td->mtx, td->smtx);
+    invert_m3_m3_safe_ortho(td->mtx, td->smtx);
   }
   else {
     /* no conversion to/from dataspace */
