@@ -1823,7 +1823,7 @@ BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
 void BKE_pbvh_node_mark_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
-                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir;
 }
 
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
@@ -1839,12 +1839,13 @@ void BKE_pbvh_node_mark_update_color(PBVHNode *node)
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateVisibility | PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers |
-                PBVH_UpdateRedraw;
+                PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir;
 }
 
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node)
 {
-  node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+  node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw |
+                PBVH_UpdateCurvatureDir;
 }
 
 void BKE_pbvh_node_mark_redraw(PBVHNode *node)
@@ -1854,7 +1855,23 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
 
 void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
 {
-  node->flag |= PBVH_UpdateNormals;
+  node->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
+}
+
+void BKE_pbvh_node_mark_curvature_update(PBVHNode *node) {
+  node->flag |= PBVH_UpdateCurvatureDir;
+}
+
+void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state) {
+  if (state) {
+    node->flag |= PBVH_UpdateCurvatureDir;
+  } else {
+    node->flag &= ~PBVH_UpdateCurvatureDir;
+  }
+}
+
+bool BKE_pbvh_curvature_update_get(PBVHNode *node) {
+  return node->flag & PBVH_UpdateCurvatureDir;
 }
 
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden)

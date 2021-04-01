@@ -3257,6 +3257,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
+  PBVHNode *node = data->nodes[n];
 
   float direction[3];
   copy_v3_v3(direction, ss->cache->grab_delta_symmetry);
@@ -3279,8 +3280,14 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  const bool use_curvature = ss->cache->brush->flag2 & BRUSH_CURVATURE_RAKE;
+  //const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
+  const bool update_curvature = BKE_pbvh_curvature_update_get(node);
+
+  SCULPT_curvature_begin(ss, node);
+
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -3294,10 +3301,14 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     float avg[3], val[3];
 
-    // SculptCurvatureData cdata;
-    // SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
-    // copy_v3_v3(direction2, cdata.principle[0]);
-    copy_v3_v3(direction2, direction);
+    if (use_curvature) {
+      SCULPT_curvature_dir_get(ss, vd.vertex, direction2);
+      //SculptCurvatureData cdata;
+      //SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
+      //copy_v3_v3(direction2, cdata.principle[0]);
+    } else {
+      copy_v3_v3(direction2, direction);
+    }
 
     SCULPT_bmesh_four_neighbor_average(avg, direction2, vd.bm_vert);
 

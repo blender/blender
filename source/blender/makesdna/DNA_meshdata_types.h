@@ -535,6 +535,7 @@ typedef struct MDynTopoVert {
   float origcolor[4];
 
   float origmask;
+  float curvature_dir[3];
 } MDynTopoVert;
 
 /*MDynTopoVert->flag*/

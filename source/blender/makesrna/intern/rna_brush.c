@@ -3156,6 +3156,12 @@ static void rna_def_brush(BlenderRNA *brna)
       prop, "Grab Silhouette", "Grabs trying to automask the silhouette of the object");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "use_curvature_rake", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_CURVATURE_RAKE);
+  RNA_def_property_ui_text(
+      prop, "Curvature Rake", "Topology rake follows curvature instead of brush direction");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "sampling_flag", BRUSH_PAINT_ANTIALIASING);
   RNA_def_property_ui_text(prop, "Anti-Aliasing", "Smooths the edges of the strokes");

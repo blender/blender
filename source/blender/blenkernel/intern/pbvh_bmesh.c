@@ -310,7 +310,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   BKE_pbvh_node_mark_rebuild_draw(n);
 
   BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-  n->flag |= PBVH_UpdateNormals | PBVH_UpdateTopology;
+  n->flag |= PBVH_UpdateNormals | PBVH_UpdateTopology | PBVH_UpdateCurvatureDir;
 
   if (add_orco) {
     BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, n);
@@ -2839,6 +2839,8 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   UpdateNormalsTaskData *data = (UpdateNormalsTaskData *)userdata;
   PBVHNode *node = data->nodes[n];
 
+  node->flag |= PBVH_UpdateCurvatureDir;
+
   TGSET_ITER (f, node->bm_faces) {
     BM_face_normal_update(f);
   }
@@ -3092,7 +3094,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
     BKE_pbvh_node_mark_rebuild_draw(n);
 
     BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-    n->flag |= PBVH_UpdateNormals;
+    n->flag |= PBVH_UpdateNormals|PBVH_UpdateCurvatureDir;
   }
 }
 
@@ -3232,6 +3234,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
     }
 
     if (node->flag & PBVH_Leaf) {
+      node->flag |= PBVH_UpdateCurvatureDir;
       undopush(node, searchdata);
 
       BKE_pbvh_node_mark_topology_update(pbvh->nodes + i);

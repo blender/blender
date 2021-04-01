@@ -409,6 +409,7 @@ typedef enum eBrushFlags2 {
   BRUSH_CLOTH_USE_COLLISION = (1 << 6),
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
+  BRUSH_CURVATURE_RAKE = (1 << 9)
 } eBrushFlags2;
 
 typedef enum {

@@ -1422,3 +1422,5 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
                                       SculptVertRef vertex,
                                       SculptCurvatureData *out);
 
+void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node);
+void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3]);

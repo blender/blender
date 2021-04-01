@@ -160,7 +160,7 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (true || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
-    //do simple power solve in one direction
+    // do simple power solve in one direction
 
     float t[3];
     float t2[3];
@@ -190,4 +190,45 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   }
 
   return true;
+}
+
+void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3])
+{
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    SculptCurvatureData curv;
+    SCULPT_calc_principle_curvatures(ss, v, &curv);
+
+    copy_v3_v3(dir, curv.principle[0]);
+    return;
+  }
+
+  BMVert *bv = (BMVert *)v.i;
+  MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, bv);
+
+  copy_v3_v3(dir, mv->curvature_dir);
+}
+
+void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node)
+{
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    // caching only happens for bmesh for now
+    return;
+  }
+
+  if (BKE_pbvh_curvature_update_get(node)) {
+    PBVHVertexIter vi;
+
+    BKE_pbvh_curvature_update_set(node, false);
+
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+      BMVert *v = (BMVert *)vi.vertex.i;
+      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
+
+      SculptCurvatureData curv;
+      SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv);
+
+      copy_v3_v3(mv->curvature_dir, curv.principle[0]);
+    }
+    BKE_pbvh_vertex_iter_end;
+  }
 }
