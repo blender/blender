@@ -266,6 +266,9 @@ void orthogonalize_m4(float R[4][4], int axis);
 void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize);
 void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize);
 
+bool orthogonalize_m3_zero_axes(float R[3][3], const float unit_length);
+bool orthogonalize_m4_zero_axes(float R[4][4], const float unit_length);
+
 bool is_orthogonal_m3(const float mat[3][3]);
 bool is_orthogonal_m4(const float mat[4][4]);
 bool is_orthonormal_m3(const float mat[3][3]);

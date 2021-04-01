@@ -1700,6 +1700,89 @@ void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Orthogonalize Matrix Zeroed Axes
+ *
+ * Set any zeroed axes to an orthogonal vector in relation to the other axes.
+ *
+ * Typically used so matrix inversion can be performed.
+ *
+ * \note If an object has a zero scaled axis, this function can be used to "clean" the matrix
+ * to behave as if the scale on that axis was `unit_length`. So it can be inverted
+ * or used in matrix multiply without creating degenerate matrices, see: T50103
+ * \{ */
+
+/**
+ * \return true if any axis needed to be modified.
+ */
+static bool orthogonalize_m3_zero_axes_impl(float *mat[3], const float unit_length)
+{
+  enum { X = 1 << 0, Y = 1 << 1, Z = 1 << 2 };
+  int flag = 0;
+  for (int i = 0; i < 3; i++) {
+    flag |= (len_squared_v3(mat[i]) == 0.0f) ? (1 << i) : 0;
+  }
+
+  /* Either all or none are zero, either way we can't properly resolve this
+   * since we need to fill invalid axes from valid ones. */
+  if (ELEM(flag, 0, X | Y | Z)) {
+    return false;
+  }
+
+  switch (flag) {
+    case X | Y: {
+      ortho_v3_v3(mat[1], mat[2]);
+      ATTR_FALLTHROUGH;
+    }
+    case X: {
+      cross_v3_v3v3(mat[0], mat[1], mat[2]);
+      break;
+    }
+
+    case Y | Z: {
+      ortho_v3_v3(mat[2], mat[0]);
+      ATTR_FALLTHROUGH;
+    }
+    case Y: {
+      cross_v3_v3v3(mat[1], mat[0], mat[2]);
+      break;
+    }
+
+    case Z | X: {
+      ortho_v3_v3(mat[0], mat[1]);
+      ATTR_FALLTHROUGH;
+    }
+    case Z: {
+      cross_v3_v3v3(mat[2], mat[0], mat[1]);
+      break;
+    }
+    default: {
+      BLI_assert(0); /* Unreachable! */
+    }
+  }
+
+  for (int i = 0; i < 3; i++) {
+    if (flag & (1 << i)) {
+      if (UNLIKELY(normalize_v3_length(mat[i], unit_length) == 0.0f)) {
+        mat[i][i] = unit_length;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool orthogonalize_m3_zero_axes(float m[3][3], const float unit_length)
+{
+  return orthogonalize_m3_zero_axes_impl((float *[3]){UNPACK3(m)}, unit_length);
+}
+bool orthogonalize_m4_zero_axes(float m[4][4], const float unit_length)
+{
+  return orthogonalize_m3_zero_axes_impl((float *[3]){UNPACK3(m)}, unit_length);
+}
+
+/** \} */
+
 bool is_orthogonal_m3(const float m[3][3])
 {
   int i, j;
@@ -3196,68 +3279,6 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
  * \{ */
 
 /**
- * Return true if invert should be attempted again.
- *
- * \note Takes an array of points to be usable from 3x3 and 4x4 matrices.
- */
-static bool invert_m3_m3_safe_ortho_prepare(float *mat[3])
-{
-  enum { X = 1 << 0, Y = 1 << 1, Z = 1 << 2 };
-  int flag = 0;
-  for (int i = 0; i < 3; i++) {
-    flag |= (len_squared_v3(mat[i]) == 0.0f) ? (1 << i) : 0;
-  }
-
-  /* Either all or none are zero, either way we can't properly resolve this
-   * since we need to fill invalid axes from valid ones. */
-  if (ELEM(flag, 0, X | Y | Z)) {
-    return false;
-  }
-
-  switch (flag) {
-    case X | Y: {
-      ortho_v3_v3(mat[1], mat[2]);
-      ATTR_FALLTHROUGH;
-    }
-    case X: {
-      cross_v3_v3v3(mat[0], mat[1], mat[2]);
-      break;
-    }
-
-    case Y | Z: {
-      ortho_v3_v3(mat[2], mat[0]);
-      ATTR_FALLTHROUGH;
-    }
-    case Y: {
-      cross_v3_v3v3(mat[1], mat[0], mat[2]);
-      break;
-    }
-
-    case Z | X: {
-      ortho_v3_v3(mat[0], mat[1]);
-      ATTR_FALLTHROUGH;
-    }
-    case Z: {
-      cross_v3_v3v3(mat[2], mat[0], mat[1]);
-      break;
-    }
-    default: {
-      BLI_assert(0); /* Unreachable! */
-    }
-  }
-
-  for (int i = 0; i < 3; i++) {
-    if (flag & (1 << i)) {
-      if (UNLIKELY(normalize_v3(mat[i]) == 0.0f)) {
-        mat[i][i] = 1.0f;
-      }
-    }
-  }
-
-  return true;
-}
-
-/**
  * A safe version of invert that uses valid axes, calculating the zero'd axis
  * based on the non-zero ones.
  *
@@ -3268,8 +3289,7 @@ void invert_m4_m4_safe_ortho(float Ainv[4][4], const float A[4][4])
   if (UNLIKELY(!invert_m4_m4(Ainv, A))) {
     float Atemp[4][4];
     copy_m4_m4(Atemp, A);
-    if (UNLIKELY(!(invert_m3_m3_safe_ortho_prepare((float *[3]){UNPACK3(Atemp)}) &&
-                   invert_m4_m4(Ainv, Atemp)))) {
+    if (UNLIKELY(!(orthogonalize_m4_zero_axes(Atemp, 1.0f) && invert_m4_m4(Ainv, Atemp)))) {
       unit_m4(Ainv);
     }
   }
@@ -3280,8 +3300,7 @@ void invert_m3_m3_safe_ortho(float Ainv[3][3], const float A[3][3])
   if (UNLIKELY(!invert_m3_m3(Ainv, A))) {
     float Atemp[3][3];
     copy_m3_m3(Atemp, A);
-    if (UNLIKELY(!(invert_m3_m3_safe_ortho_prepare((float *[3]){UNPACK3(Atemp)}) &&
-                   invert_m3_m3(Ainv, Atemp)))) {
+    if (UNLIKELY(!(orthogonalize_m3_zero_axes(Atemp, 1.0f) && invert_m3_m3(Ainv, Atemp)))) {
       unit_m3(Ainv);
     }
   }
