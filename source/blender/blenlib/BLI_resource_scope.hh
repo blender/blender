@@ -19,12 +19,24 @@
 /** \file
  * \ingroup bli
  *
- * A ResourceCollector holds an arbitrary set of resources, that will be destructed and/or freed
- * when the ResourceCollector is destructed. This is useful when some object has to take ownership
- * of other objects, but it does not know the type of those other objects.
+ * A `ResourceScope` takes ownership of arbitrary data/resources. Those resources will be
+ * destructed and/or freed when the `ResourceScope` is destructed. Destruction happens in reverse
+ * order. That allows resources do depend on other resources that have been added before.
  *
- * Resources owned by the ResourceCollector will be freed in reverse order. That allows resources
- * that are added later to depend on resources that have been added before.
+ * A `ResourceScope` can also be thought of as a dynamic/runtime version of normal scopes in C++
+ * that are surrounded by braces.
+ *
+ * The main purpose of a `ResourceScope` is to allow functions to inject data into the scope of the
+ * caller. Traditionally, that can only be done by returning a value that owns everything it needs.
+ * This is fine until one has to deal with optional ownership. There are many ways to have a type
+ * optionally own something else, all of which are fairly annoying. A `ResourceScope` can be used
+ * to avoid having to deal with optional ownership. If some value would be owned, it can just be
+ * added to the resource scope, otherwise not.
+ *
+ * When a function takes a `ResourceScope` as parameter, it usually means that its return value
+ * will live at least as long as the passed in resources scope. However, it might also live longer.
+ * That can happen when the function returns a reference to statically allocated data or
+ * dynamically allocated data depending on some condition.
  */
 
 #include "BLI_linear_allocator.hh"
@@ -33,7 +45,7 @@
 
 namespace blender {
 
-class ResourceCollector : NonCopyable, NonMovable {
+class ResourceScope : NonCopyable, NonMovable {
  private:
   struct ResourceData {
     void *data;
@@ -45,9 +57,9 @@ class ResourceCollector : NonCopyable, NonMovable {
   Vector<ResourceData> m_resources;
 
  public:
-  ResourceCollector() = default;
+  ResourceScope() = default;
 
-  ~ResourceCollector()
+  ~ResourceScope()
   {
     /* Free in reversed order. */
     for (int64_t i = m_resources.size(); i--;) {
@@ -57,7 +69,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Pass ownership of the resource to the ResourceCollector. It will be destructed and freed when
+   * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
    * the collector is destructed.
    */
   template<typename T> void add(std::unique_ptr<T> resource, const char *name)
@@ -73,7 +85,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Pass ownership of the resource to the ResourceCollector. It will be destructed when the
+   * Pass ownership of the resource to the ResourceScope. It will be destructed when the
    * collector is destructed.
    */
   template<typename T> void add(destruct_ptr<T> resource, const char *name)
@@ -95,7 +107,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Pass ownership of some resource to the ResourceCollector. The given free function will be
+   * Pass ownership of some resource to the ResourceScope. The given free function will be
    * called when the collector is destructed.
    */
   void add(void *userdata, void (*free)(void *), const char *name)
@@ -108,7 +120,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Construct an object with the same value in the ResourceCollector and return a reference to the
+   * Construct an object with the same value in the ResourceScope and return a reference to the
    * new value.
    */
   template<typename T> T &add_value(T &&value, const char *name)
@@ -126,7 +138,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Utility method to construct an instance of type T that will be owned by the ResourceCollector.
+   * Utility method to construct an instance of type T that will be owned by the ResourceScope.
    */
   template<typename T, typename... Args> T &construct(const char *name, Args &&... args)
   {
@@ -137,7 +149,7 @@ class ResourceCollector : NonCopyable, NonMovable {
   }
 
   /**
-   * Print the names of all the resources that are owned by this ResourceCollector. This can be
+   * Print the names of all the resources that are owned by this ResourceScope. This can be
    * useful for debugging.
    */
   void print(StringRef name) const

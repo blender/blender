@@ -17,7 +17,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_resource_collector.hh"
+#include "BLI_resource_scope.hh"
 
 #include "BKE_screen.h"
 
@@ -138,7 +138,7 @@ class FallbackSpreadsheetDrawer : public SpreadsheetDrawer {
 
 static void gather_spreadsheet_columns(const bContext *C,
                                        SpreadsheetColumnLayout &column_layout,
-                                       blender::ResourceCollector &resources)
+                                       blender::ResourceScope &scope)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ID *used_id = get_used_id(C);
@@ -158,16 +158,16 @@ static void gather_spreadsheet_columns(const bContext *C,
     return;
   }
 
-  return spreadsheet_columns_from_geometry(C, object_eval, column_layout, resources);
+  return spreadsheet_columns_from_geometry(C, object_eval, column_layout, scope);
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
 
-  blender::ResourceCollector resources;
+  blender::ResourceScope scope;
   SpreadsheetColumnLayout column_layout;
-  gather_spreadsheet_columns(C, column_layout, resources);
+  gather_spreadsheet_columns(C, column_layout, scope);
 
   sspreadsheet->runtime->visible_rows = column_layout.row_indices.size();
   sspreadsheet->runtime->tot_columns = column_layout.columns.size();

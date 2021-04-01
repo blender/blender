@@ -18,7 +18,7 @@
 
 #include "BKE_geometry_set.hh"
 
-#include "BLI_resource_collector.hh"
+#include "BLI_resource_scope.hh"
 
 #include "spreadsheet_column_layout.hh"
 
@@ -29,6 +29,6 @@ namespace blender::ed::spreadsheet {
 void spreadsheet_columns_from_geometry(const bContext *C,
                                        Object *object_eval,
                                        SpreadsheetColumnLayout &column_layout,
-                                       ResourceCollector &resources);
+                                       ResourceScope &scope);
 
 }  // namespace blender::ed::spreadsheet

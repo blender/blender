@@ -1100,9 +1100,9 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
                                     NodesModifierData *nmd,
                                     const ModifierEvalContext *ctx)
 {
-  blender::ResourceCollector resources;
-  blender::LinearAllocator<> &allocator = resources.linear_allocator();
-  blender::nodes::MultiFunctionByNode mf_by_node = get_multi_function_per_node(tree, resources);
+  blender::ResourceScope scope;
+  blender::LinearAllocator<> &allocator = scope.linear_allocator();
+  blender::nodes::MultiFunctionByNode mf_by_node = get_multi_function_per_node(tree, scope);
 
   PersistentDataHandleMap handle_map;
   fill_data_handle_map(nmd->settings, tree, handle_map);
