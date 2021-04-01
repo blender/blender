@@ -4825,15 +4825,8 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
   float axis_mat[3][3];
 
   /* 3D view variables may be NULL, (no need to check in poll function). */
-  ED_transform_calc_orientation_from_type_ex(C,
-                                             axis_mat,
-                                             scene,
-                                             CTX_wm_region_view3d(C),
-                                             obedit,
-                                             obedit,
-                                             orientation,
-                                             0,
-                                             V3D_AROUND_ACTIVE);
+  ED_transform_calc_orientation_from_type_ex(
+      C, axis_mat, scene, CTX_wm_region_view3d(C), obedit, obedit, orientation, V3D_AROUND_ACTIVE);
 
   const float *axis_vector = axis_mat[axis];
 
