@@ -1219,8 +1219,7 @@ static void ffmpeg_seek_and_decode(struct anim *anim, int position, struct anim_
 
     AVFormatContext *format_ctx = anim->pFormatCtx;
 
-    /* Condition based on av_seek_frame() code. */
-    if (format_ctx->iformat->read_seek2 && !format_ctx->iformat->read_seek) {
+    if (format_ctx->iformat->read_seek2 || format_ctx->iformat->read_seek) {
       ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
     }
     else {
