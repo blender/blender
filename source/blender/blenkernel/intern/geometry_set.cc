@@ -330,19 +330,4 @@ bool BKE_geometry_set_has_instances(const GeometrySet *geometry_set)
   return geometry_set->get_component_for_read<InstancesComponent>() != nullptr;
 }
 
-int BKE_geometry_set_instances(const GeometrySet *geometry_set,
-                               float (**r_transforms)[4][4],
-                               const int **r_almost_unique_ids,
-                               InstancedData **r_instanced_data)
-{
-  const InstancesComponent *component = geometry_set->get_component_for_read<InstancesComponent>();
-  if (component == nullptr) {
-    return 0;
-  }
-  *r_transforms = (float(*)[4][4])component->transforms().data();
-  *r_instanced_data = (InstancedData *)component->instanced_data().data();
-  *r_almost_unique_ids = (const int *)component->almost_unique_ids().data();
-  return component->instances_amount();
-}
-
 /** \} */

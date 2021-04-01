@@ -31,8 +31,10 @@
 #include "BLI_string_utf8.h"
 
 #include "BLI_alloca.h"
+#include "BLI_float4x4.hh"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+#include "BLI_span.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -48,6 +50,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_font.h"
 #include "BKE_geometry_set.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
@@ -64,6 +67,9 @@
 
 #include "BLI_hash.h"
 #include "BLI_strict_flags.h"
+
+using blender::float4x4;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Duplicate Context
@@ -808,39 +814,40 @@ static const DupliGenerator gen_dupli_verts_pointcloud = {
 
 static void make_duplis_instances_component(const DupliContext *ctx)
 {
-  float(*instance_offset_matrices)[4][4];
-  InstancedData *instanced_data;
-  const int *almost_unique_ids;
-  const int amount = BKE_geometry_set_instances(ctx->object->runtime.geometry_set_eval,
-                                                &instance_offset_matrices,
-                                                &almost_unique_ids,
-                                                &instanced_data);
+  const InstancesComponent *component =
+      ctx->object->runtime.geometry_set_eval->get_component_for_read<InstancesComponent>();
+  if (component == nullptr) {
+    return;
+  }
 
-  for (int i = 0; i < amount; i++) {
-    InstancedData *data = &instanced_data[i];
+  Span<float4x4> instance_offset_matrices = component->transforms();
+  Span<int> almost_unique_ids = component->almost_unique_ids();
+  Span<InstancedData> instanced_data = component->instanced_data();
 
+  for (int i = 0; i < component->instances_amount(); i++) {
+    const InstancedData &data = instanced_data[i];
     const int id = almost_unique_ids[i];
 
-    if (data->type == INSTANCE_DATA_TYPE_OBJECT) {
-      Object *object = data->data.object;
+    if (data.type == INSTANCE_DATA_TYPE_OBJECT) {
+      Object *object = data.data.object;
       if (object != nullptr) {
         float matrix[4][4];
-        mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrices[i]);
+        mul_m4_m4m4(matrix, ctx->object->obmat, instance_offset_matrices[i].values);
         make_dupli(ctx, object, matrix, id);
 
         float space_matrix[4][4];
-        mul_m4_m4m4(space_matrix, instance_offset_matrices[i], object->imat);
+        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].values, object->imat);
         mul_m4_m4_pre(space_matrix, ctx->object->obmat);
         make_recursive_duplis(ctx, object, space_matrix, id);
       }
     }
-    else if (data->type == INSTANCE_DATA_TYPE_COLLECTION) {
-      Collection *collection = data->data.collection;
+    else if (data.type == INSTANCE_DATA_TYPE_COLLECTION) {
+      Collection *collection = data.data.collection;
       if (collection != nullptr) {
         float collection_matrix[4][4];
         unit_m4(collection_matrix);
         sub_v3_v3(collection_matrix[3], collection->instance_offset);
-        mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i]);
+        mul_m4_m4_pre(collection_matrix, instance_offset_matrices[i].values);
         mul_m4_m4_pre(collection_matrix, ctx->object->obmat);
 
         eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
