@@ -85,8 +85,8 @@ class SocketRef : NonCopyable, NonMovable {
   /* These sockets are linked when reroutes, muted links and muted nodes have been taken into
    * account. */
   MutableSpan<const SocketRef *> logically_linked_sockets_;
-  /* These are the sockets that have been skipped when searching for logicaly linked sockets. That
-   * includes for example the input and output socket of an intermediate reroute node. */
+  /* These are the sockets that have been skipped when searching for logically linked sockets.
+   * That includes for example the input and output socket of an intermediate reroute node. */
   MutableSpan<const SocketRef *> logically_linked_skipped_sockets_;
 
   friend NodeTreeRef;

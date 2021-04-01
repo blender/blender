@@ -151,8 +151,8 @@ ccl_device float light_spread_attenuation(const float3 D,
                                           const float tan_spread,
                                           const float normalize_spread)
 {
-  /* Model a softbox grid, computing the ratio of light not hidden by the
-   * slats of the grid at a given angle. (seee D10594). */
+  /* Model a soft-box grid, computing the ratio of light not hidden by the
+   * slats of the grid at a given angle. (see D10594). */
   const float cos_a = -dot(D, lightNg);
   const float sin_a = safe_sqrtf(1.0f - sqr(cos_a));
   const float tan_a = sin_a / cos_a;

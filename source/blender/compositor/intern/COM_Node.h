@@ -63,12 +63,12 @@ class Node {
 
  protected:
   /**
-   * \brief the list of actual inputsockets \see NodeInput
+   * \brief the list of actual input-sockets \see NodeInput
    */
   blender::Vector<NodeInput *> inputs;
 
   /**
-   * \brief the list of actual outputsockets \see NodeOutput
+   * \brief the list of actual output-sockets \see NodeOutput
    */
   blender::Vector<NodeOutput *> outputs;
 
@@ -184,7 +184,7 @@ class Node {
 
  protected:
   /**
-   * \brief add an NodeInput to the collection of inputsockets
+   * \brief add an NodeInput to the collection of input-sockets
    * \note may only be called in an constructor
    * \param socket: the NodeInput to add
    */
@@ -192,7 +192,7 @@ class Node {
   void addInputSocket(DataType datatype, bNodeSocket *socket);
 
   /**
-   * \brief add an NodeOutput to the collection of outputsockets
+   * \brief add an NodeOutput to the collection of output-sockets
    * \note may only be called in an constructor
    * \param socket: the NodeOutput to add
    */
