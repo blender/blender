@@ -55,7 +55,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
   /* Make a backup of base flags. */
   base_flag = object->base_flag;
   base_local_view_bits = object->base_local_view_bits;
-  /* Backup tuntime data of all modifiers. */
+  /* Backup runtime data of all modifiers. */
   backup_modifier_runtime_data(object);
   /* Backup runtime data of all pose channels. */
   backup_pose_channel_runtime_data(object);
