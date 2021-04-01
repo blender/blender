@@ -78,6 +78,8 @@ __m128 my_mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
       ret.v[i] = fa.v[i];
     }
   }
+
+  return ret.m128;
 }
 #  define _mm_blendv_ps my_mm_blendv_ps
 #endif

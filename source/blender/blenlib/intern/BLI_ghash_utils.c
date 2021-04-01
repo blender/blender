@@ -288,7 +288,6 @@ GSet *BLI_gset_int_new(const char *info)
   return BLI_gset_int_new_ex(info, 0);
 }
 
-
 TableGSet *BLI_table_gset_new(const char *info)
 {
   TableGSet *ts = MEM_callocN(sizeof(TableGSet), info);
@@ -302,9 +301,9 @@ TableGSet *BLI_table_gset_new_ex(const char *info, int size)
 {
   TableGSet *ts = MEM_callocN(sizeof(TableGSet), info);
 
-  ts->ptr_to_idx = BLI_ghash_ptr_new_ex(info, size);
+  ts->ptr_to_idx = BLI_ghash_ptr_new_ex(info, (uint)size);
   if (size) {
-    ts->elems = MEM_callocN(sizeof(void*)*size, info);
+    ts->elems = MEM_callocN(sizeof(void *) * (uint)size, info);
     ts->size = size;
     ts->length = 0;
     ts->cur = 0;
@@ -342,7 +341,7 @@ bool BLI_table_gset_add(TableGSet *ts, void *elem)
 void BLI_table_gset_insert(TableGSet *ts, void *elem)
 {
   if (ts->cur >= ts->size) {
-    int newsize = (ts->cur + 1);
+    uint newsize = (uint)(ts->cur + 1);
     newsize = (newsize << 1) - (newsize >> 1);
     newsize = MAX2(newsize, 8);
 
@@ -366,7 +365,7 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
       }
     }
 
-    ts->size = newsize;
+    ts->size = (int)newsize;
     ts->cur = j;
   }
 
@@ -381,7 +380,7 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
     return;
   }
 
-  int *idx = (int*)BLI_ghash_lookup_p(ts->ptr_to_idx, elem);
+  int *idx = (int *)BLI_ghash_lookup_p(ts->ptr_to_idx, elem);
   if (!idx) {
     return;
   }
