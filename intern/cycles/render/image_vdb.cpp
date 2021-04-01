@@ -179,9 +179,13 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
   metadata.transform_3d = transform_inverse(index_to_object * texture_to_index);
   metadata.use_transform_3d = true;
 
+#  ifndef WITH_NANOVDB
+  (void)features;
+#  endif
   return true;
 #else
   (void)metadata;
+  (void)features;
   return false;
 #endif
 }
