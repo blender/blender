@@ -89,6 +89,7 @@ using blender::bke::PersistentCollectionHandle;
 using blender::bke::PersistentDataHandleMap;
 using blender::bke::PersistentObjectHandle;
 using blender::fn::GMutablePointer;
+using blender::fn::GPointer;
 using blender::fn::GValueMap;
 using blender::nodes::GeoNodeExecParams;
 using namespace blender::fn::multi_function_types;
@@ -253,6 +254,9 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 }
 
 class GeometryNodesEvaluator {
+ public:
+  using LogSocketValueFn = std::function<void(DSocket, Span<GPointer>)>;
+
  private:
   blender::LinearAllocator<> allocator_;
   Map<std::pair<DInputSocket, DOutputSocket>, GMutablePointer> value_by_input_;
@@ -263,6 +267,7 @@ class GeometryNodesEvaluator {
   const Object *self_object_;
   const ModifierData *modifier_;
   Depsgraph *depsgraph_;
+  LogSocketValueFn log_socket_value_fn_;
 
  public:
   GeometryNodesEvaluator(const Map<DOutputSocket, GMutablePointer> &group_input_data,
@@ -271,16 +276,19 @@ class GeometryNodesEvaluator {
                          const PersistentDataHandleMap &handle_map,
                          const Object *self_object,
                          const ModifierData *modifier,
-                         Depsgraph *depsgraph)
+                         Depsgraph *depsgraph,
+                         LogSocketValueFn log_socket_value_fn)
       : group_outputs_(std::move(group_outputs)),
         mf_by_node_(mf_by_node),
         conversions_(blender::nodes::get_implicit_type_conversions()),
         handle_map_(handle_map),
         self_object_(self_object),
         modifier_(modifier),
-        depsgraph_(depsgraph)
+        depsgraph_(depsgraph),
+        log_socket_value_fn_(std::move(log_socket_value_fn))
   {
     for (auto item : group_input_data.items()) {
+      this->log_socket_value(item.key, item.value);
       this->forward_to_inputs(item.key, item.value);
     }
   }
@@ -290,6 +298,7 @@ class GeometryNodesEvaluator {
     Vector<GMutablePointer> results;
     for (const DInputSocket &group_output : group_outputs_) {
       Vector<GMutablePointer> result = this->get_input_values(group_output);
+      this->log_socket_value(group_output, result);
       results.append(result[0]);
     }
     for (GMutablePointer value : value_by_input_.values()) {
@@ -384,7 +393,9 @@ class GeometryNodesEvaluator {
     GValueMap<StringRef> node_inputs_map{allocator_};
     for (const InputSocketRef *input_socket : node->inputs()) {
       if (input_socket->is_available()) {
-        Vector<GMutablePointer> values = this->get_input_values({node.context(), input_socket});
+        DInputSocket dsocket{node.context(), input_socket};
+        Vector<GMutablePointer> values = this->get_input_values(dsocket);
+        this->log_socket_value(dsocket, values);
         for (int i = 0; i < values.size(); ++i) {
           /* Values from Multi Input Sockets are stored in input map with the format
            * <identifier>[<index>]. */
@@ -404,10 +415,29 @@ class GeometryNodesEvaluator {
     /* Forward computed outputs to linked input sockets. */
     for (const OutputSocketRef *output_socket : node->outputs()) {
       if (output_socket->is_available()) {
+        const DOutputSocket dsocket{node.context(), output_socket};
         GMutablePointer value = node_outputs_map.extract(output_socket->identifier());
-        this->forward_to_inputs({node.context(), output_socket}, value);
+        this->log_socket_value(dsocket, value);
+        this->forward_to_inputs(dsocket, value);
       }
     }
+  }
+
+  void log_socket_value(const DSocket socket, Span<GPointer> values)
+  {
+    if (log_socket_value_fn_) {
+      log_socket_value_fn_(socket, values);
+    }
+  }
+
+  void log_socket_value(const DSocket socket, Span<GMutablePointer> values)
+  {
+    this->log_socket_value(socket, values.cast<GPointer>());
+  }
+
+  void log_socket_value(const DSocket socket, GPointer value)
+  {
+    this->log_socket_value(socket, Span<GPointer>(&value, 1));
   }
 
   void execute_node(const DNode node, GeoNodeExecParams params)
@@ -523,8 +553,15 @@ class GeometryNodesEvaluator {
   {
     /* For all sockets that are linked with the from_socket push the value to their node. */
     Vector<DInputSocket> to_sockets_all;
-    from_socket.foreach_target_socket(
-        [&](DInputSocket to_socket) { to_sockets_all.append_non_duplicates(to_socket); });
+
+    auto handle_target_socket_fn = [&](DInputSocket to_socket) {
+      to_sockets_all.append_non_duplicates(to_socket);
+    };
+    auto handle_skipped_socket_fn = [&, this](DSocket socket) {
+      this->log_socket_value(socket, value_to_forward);
+    };
+
+    from_socket.foreach_target_socket(handle_target_socket_fn, handle_skipped_socket_fn);
 
     const CPPType &from_type = *value_to_forward.type();
     Vector<DInputSocket> to_sockets_same_type;
@@ -1112,7 +1149,8 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
                                    handle_map,
                                    ctx->object,
                                    (ModifierData *)nmd,
-                                   ctx->depsgraph};
+                                   ctx->depsgraph,
+                                   {}};
 
   Vector<GMutablePointer> results = evaluator.execute();
   BLI_assert(results.size() == 1);
