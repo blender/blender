@@ -74,7 +74,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
     copy_v2_v2(path->view_center, ntree->view_center);
 
     if (id) {
-      BLI_strncpy(path->node_name, id->name + 2, sizeof(path->node_name));
+      BLI_strncpy(path->display_name, id->name + 2, sizeof(path->display_name));
     }
 
     BLI_addtail(&snode->treepath, path);
@@ -111,6 +111,7 @@ void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
     }
 
     BLI_strncpy(path->node_name, gnode->name, sizeof(path->node_name));
+    BLI_strncpy(path->display_name, gnode->name, sizeof(path->display_name));
   }
   else {
     path->parent_key = NODE_INSTANCE_KEY_BASE;
@@ -175,7 +176,7 @@ int ED_node_tree_path_length(SpaceNode *snode)
   int length = 0;
   int i = 0;
   LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
-    length += strlen(path->node_name);
+    length += strlen(path->display_name);
     if (i > 0) {
       length += 1; /* for separator char */
     }
@@ -190,12 +191,12 @@ void ED_node_tree_path_get(SpaceNode *snode, char *value)
   value[0] = '\0';
   LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
     if (i == 0) {
-      strcpy(value, path->node_name);
-      value += strlen(path->node_name);
+      strcpy(value, path->display_name);
+      value += strlen(path->display_name);
     }
     else {
-      sprintf(value, "/%s", path->node_name);
-      value += strlen(path->node_name) + 1;
+      sprintf(value, "/%s", path->display_name);
+      value += strlen(path->display_name) + 1;
     }
   }
 }
@@ -208,10 +209,10 @@ void ED_node_tree_path_get_fixedbuf(SpaceNode *snode, char *value, int max_lengt
   int i = 0;
   LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
     if (i == 0) {
-      size = BLI_strncpy_rlen(value, path->node_name, max_length);
+      size = BLI_strncpy_rlen(value, path->display_name, max_length);
     }
     else {
-      size = BLI_snprintf_rlen(value, max_length, "/%s", path->node_name);
+      size = BLI_snprintf_rlen(value, max_length, "/%s", path->display_name);
     }
     max_length -= size;
     if (max_length <= 0) {

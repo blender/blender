@@ -1959,8 +1959,8 @@ void node_draw_space(const bContext *C, ARegion *region)
     ID *name_id = (path->nodetree && path->nodetree != snode->nodetree) ? &path->nodetree->id :
                                                                           snode->id;
 
-    if (name_id && UNLIKELY(!STREQ(path->node_name, name_id->name + 2))) {
-      BLI_strncpy(path->node_name, name_id->name + 2, sizeof(path->node_name));
+    if (name_id && UNLIKELY(!STREQ(path->display_name, name_id->name + 2))) {
+      BLI_strncpy(path->display_name, name_id->name + 2, sizeof(path->display_name));
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */
