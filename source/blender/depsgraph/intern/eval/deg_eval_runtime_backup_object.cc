@@ -98,7 +98,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   object->runtime = runtime;
   object->runtime.data_orig = data_orig;
   object->runtime.bb = bb;
-  if (object->type == OB_MESH && data_eval != nullptr) {
+  if (ELEM(object->type, OB_MESH, OB_LATTICE) && data_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of
        * evaluated mesh are not valid anymore. In this case we can not
