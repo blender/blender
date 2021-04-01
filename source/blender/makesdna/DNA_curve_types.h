@@ -425,7 +425,6 @@ enum {
 /* Nurb.flag */
 enum {
   CU_SMOOTH = 1 << 0,
-  CU_2D = 1 << 3, /* moved from type since 2.4x */
 };
 
 /* Nurb.type */

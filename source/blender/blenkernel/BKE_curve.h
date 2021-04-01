@@ -69,16 +69,16 @@ typedef struct CVKeyIndex {
 #define SEGMENTSU(nu) (((nu)->flagu & CU_NURB_CYCLIC) ? (nu)->pntsu : (nu)->pntsu - 1)
 #define SEGMENTSV(nu) (((nu)->flagv & CU_NURB_CYCLIC) ? (nu)->pntsv : (nu)->pntsv - 1)
 
-#define CU_DO_TILT(cu, nu) ((((nu)->flag & CU_2D) && ((cu)->flag & CU_3D) == 0) ? 0 : 1)
 #define CU_DO_RADIUS(cu, nu) \
-  ((CU_DO_TILT(cu, nu) || ((cu)->flag & CU_PATH_RADIUS) || (cu)->bevobj || (cu)->ext1 != 0.0f || \
+  ((((cu)->flag & (CU_PATH_RADIUS | CU_3D)) || (cu)->bevobj || (cu)->ext1 != 0.0f || \
     (cu)->ext2 != 0.0f) ? \
        1 : \
        0)
 
+#define CU_IS_2D(cu) (((cu)->flag & CU_3D) == 0)
+
 /* not 3d and not unfilled */
-#define CU_DO_2DFILL(cu) \
-  ((((cu)->flag & CU_3D) == 0) && (((cu)->flag & (CU_FRONT | CU_BACK)) != 0))
+#define CU_DO_2DFILL(cu) (CU_IS_2D(cu) && (((cu)->flag & (CU_FRONT | CU_BACK)) != 0))
 
 /* ** Curve ** */
 void BKE_curve_editfont_free(struct Curve *cu);
@@ -86,7 +86,7 @@ void BKE_curve_init(struct Curve *cu, const short curve_type);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
 short BKE_curve_type_get(const struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
-void BKE_curve_curve_dimension_update(struct Curve *cu);
+void BKE_curve_dimension_update(struct Curve *cu);
 
 struct BoundBox *BKE_curve_boundbox_get(struct Object *ob);
 
@@ -186,7 +186,7 @@ void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);
 struct Nurb *BKE_nurb_copy(struct Nurb *src, int pntsu, int pntsv);
 
-void BKE_nurb_test_2d(struct Nurb *nu);
+void BKE_nurb_project_2d(struct Nurb *nu);
 void BKE_nurb_minmax(const struct Nurb *nu, bool use_radius, float min[3], float max[3]);
 float BKE_nurb_calc_length(const struct Nurb *nu, int resolution);
 

@@ -57,6 +57,7 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_cryptomatte.h"
+#include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
@@ -1981,6 +1982,26 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+
+    /* The CU_2D flag has been removed. */
+    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
+#define CU_2D (1 << 3)
+      ListBase *nurbs = BKE_curve_nurbs_get(cu);
+      bool is_2d = true;
+
+      LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+        if (nu->flag & CU_2D) {
+          nu->flag &= ~CU_2D;
+        }
+        else {
+          is_2d = false;
+        }
+      }
+#undef CU_2D
+      if (!is_2d && CU_IS_2D(cu)) {
+        cu->flag |= CU_3D;
       }
     }
   }

@@ -1185,7 +1185,7 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
 
       /* dl->rt will be used as flag for render face and */
       /* CU_2D conflicts with R_NOPUNOFLIP */
-      dl->rt = nu->flag & ~CU_2D;
+      dl->rt = nu->flag;
 
       data = dl->verts;
       if (nu->flagu & CU_NURB_CYCLIC) {
@@ -1209,7 +1209,7 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
 
       /* dl->rt will be used as flag for render face and */
       /* CU_2D conflicts with R_NOPUNOFLIP */
-      dl->rt = nu->flag & ~CU_2D;
+      dl->rt = nu->flag;
 
       data = dl->verts;
       dl->type = DL_SURF;
@@ -1320,7 +1320,7 @@ static void fillBevelCap(const Nurb *nu,
 
   /* dl->rt will be used as flag for render face and */
   /* CU_2D conflicts with R_NOPUNOFLIP */
-  dl->rt = nu->flag & ~CU_2D;
+  dl->rt = nu->flag;
 
   BLI_addtail(dispbase, dl);
 }
@@ -1551,7 +1551,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
 
           /* dl->rt will be used as flag for render face and */
           /* CU_2D conflicts with R_NOPUNOFLIP */
-          dl->rt = nu->flag & ~CU_2D;
+          dl->rt = nu->flag;
 
           int a = dl->nr;
           BevPoint *bevp = bl->bevpoints;
@@ -1606,7 +1606,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
 
             /* dl->rt will be used as flag for render face and */
             /* CU_2D conflicts with R_NOPUNOFLIP */
-            dl->rt = nu->flag & ~CU_2D;
+            dl->rt = nu->flag;
 
             /* for each point of poly make a bevel piece */
             BevPoint *bevp_first = bl->bevpoints;

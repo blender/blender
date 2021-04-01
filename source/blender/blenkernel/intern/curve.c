@@ -462,24 +462,19 @@ short BKE_curve_type_get(const Curve *cu)
   return type;
 }
 
-void BKE_curve_curve_dimension_update(Curve *cu)
+void BKE_curve_dimension_update(Curve *cu)
 {
   ListBase *nurbs = BKE_curve_nurbs_get(cu);
+  bool is_2d = CU_IS_2D(cu);
 
-  if (cu->flag & CU_3D) {
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      nu->flag &= ~CU_2D;
+  LISTBASE_FOREACH (Nurb *, nu, nurbs) {
+    if (is_2d) {
+      BKE_nurb_project_2d(nu);
     }
-  }
-  else {
-    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
-      nu->flag |= CU_2D;
-      BKE_nurb_test_2d(nu);
 
-      /* since the handles are moved they need to be auto-located again */
-      if (nu->type == CU_BEZIER) {
-        BKE_nurb_handles_calc(nu);
-      }
+    /* since the handles are moved they need to be auto-located again */
+    if (nu->type == CU_BEZIER) {
+      BKE_nurb_handles_calc(nu);
     }
   }
 }
@@ -489,7 +484,10 @@ void BKE_curve_type_test(Object *ob)
   ob->type = BKE_curve_type_get(ob->data);
 
   if (ob->type == OB_CURVE) {
-    BKE_curve_curve_dimension_update((Curve *)ob->data);
+    Curve *cu = ob->data;
+    if (CU_IS_2D(cu)) {
+      BKE_curve_dimension_update(cu);
+    }
   }
 }
 
@@ -745,15 +743,11 @@ void BKE_nurbList_duplicate(ListBase *lb1, const ListBase *lb2)
   }
 }
 
-void BKE_nurb_test_2d(Nurb *nu)
+void BKE_nurb_project_2d(Nurb *nu)
 {
   BezTriple *bezt;
   BPoint *bp;
   int a;
-
-  if ((nu->flag & CU_2D) == 0) {
-    return;
-  }
 
   if (nu->type == CU_BEZIER) {
     a = nu->pntsu;
@@ -2712,8 +2706,9 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
       continue;
     }
 
-    /* check if we will calculate tilt data */
-    do_tilt = CU_DO_TILT(cu, nu);
+    /* Tilt, as the rotation angle of curve control points, is only calculated for 3D curves,
+     * (since this transformation affects the 3D space). */
+    do_tilt = (cu->flag & CU_3D) != 0;
 
     /* Normal display uses the radius, better just to calculate them. */
     do_radius = CU_DO_RADIUS(cu, nu);
@@ -3125,7 +3120,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
     }
 
     /* turning direction */
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       sd = sortdata;
       for (a = 0; a < poly; a++, sd++) {
         if (sd->bl->hole == sd->dir) {
@@ -3145,7 +3140,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
   }
 
   /* STEP 4: 2D-COSINES or 3D ORIENTATION */
-  if ((cu->flag & CU_3D) == 0) {
+  if (CU_IS_2D(cu)) {
     /* 2D Curves */
     LISTBASE_FOREACH (BevList *, bl, bev) {
       if (bl->nr < 2) {
@@ -4730,9 +4725,7 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
     }
 
     if (constrain_2d) {
-      if (nu->flag & CU_2D) {
-        BKE_nurb_test_2d(nu);
-      }
+      BKE_nurb_project_2d(nu);
     }
 
     calchandlesNurb_intern(nu, SELECT, true);
@@ -4768,9 +4761,7 @@ void BKE_curve_nurbs_vert_coords_apply(ListBase *lb,
     }
 
     if (constrain_2d) {
-      if (nu->flag & CU_2D) {
-        BKE_nurb_test_2d(nu);
-      }
+      BKE_nurb_project_2d(nu);
     }
 
     calchandlesNurb_intern(nu, SELECT, true);

@@ -1072,7 +1072,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     const float *plane_no = NULL;
     const float *plane_co = NULL;
 
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       /* 2D overrides other options */
       plane_co = obedit->obmat[3];
       plane_no = obedit->obmat[2];

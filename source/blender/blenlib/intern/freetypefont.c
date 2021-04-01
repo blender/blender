@@ -135,7 +135,6 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
       nu->type = CU_BEZIER;
       nu->pntsu = onpoints[j];
       nu->resolu = 8;
-      nu->flag = CU_2D;
       nu->flagu = CU_NURB_CYCLIC;
       nu->bezt = bezt;
 

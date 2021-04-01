@@ -357,9 +357,8 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
   }
   else {
     cu->flag &= ~CU_3D;
+    BKE_curve_dimension_update(cu);
   }
-
-  BKE_curve_curve_dimension_update(cu);
 }
 
 static const EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C),
@@ -720,10 +719,6 @@ static Nurb *rna_Curve_spline_new(Curve *cu, int type)
   nu->resolu = cu->resolu;
   nu->resolv = cu->resolv;
   nu->flag = CU_SMOOTH;
-
-  if ((cu->flag & CU_3D) == 0) {
-    nu->flag |= CU_2D;
-  }
 
   BLI_addtail(BKE_curve_nurbs_get(cu), nu);
 
