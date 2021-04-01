@@ -212,7 +212,7 @@ set(SRC
   intern/node_ui_storage.cc
   intern/object.c
   intern/object_deform.c
-  intern/object_dupli.c
+  intern/object_dupli.cc
   intern/object_facemap.c
   intern/object_update.c
   intern/ocean.c
