@@ -1104,7 +1104,7 @@ static bool collection_drop_init(bContext *C,
                                  const wmEvent *event,
                                  CollectionDrop *data)
 {
-/* Get collection to drop into. */
+  /* Get collection to drop into. */
   TreeElementInsertType insert_type;
   TreeElement *te = outliner_drop_insert_collection_find(C, event, &insert_type);
   if (!te) {

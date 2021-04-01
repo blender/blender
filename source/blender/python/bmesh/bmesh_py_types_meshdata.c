@@ -48,7 +48,8 @@
 #define BPy_BMLoopUV_Check(v) (Py_TYPE(v) == &BPy_BMLoopUV_Type)
 
 typedef struct BPy_BMLoopUV {
-  PyObject_VAR_HEAD MLoopUV *data;
+  PyObject_VAR_HEAD
+  MLoopUV *data;
 } BPy_BMLoopUV;
 
 PyDoc_STRVAR(bpy_bmloopuv_uv_doc,
@@ -155,7 +156,8 @@ PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 #define BPy_BMVertSkin_Check(v) (Py_TYPE(v) == &BPy_BMVertSkin_Type)
 
 typedef struct BPy_BMVertSkin {
-  PyObject_VAR_HEAD MVertSkin *data;
+  PyObject_VAR_HEAD
+  MVertSkin *data;
 } BPy_BMVertSkin;
 
 PyDoc_STRVAR(bpy_bmvertskin_radius_doc,
@@ -392,7 +394,8 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol)
 #define BPy_BMDeformVert_Check(v) (Py_TYPE(v) == &BPy_BMDeformVert_Type)
 
 typedef struct BPy_BMDeformVert {
-  PyObject_VAR_HEAD MDeformVert *data;
+  PyObject_VAR_HEAD
+  MDeformVert *data;
 } BPy_BMDeformVert;
 
 /* Mapping Protocols
