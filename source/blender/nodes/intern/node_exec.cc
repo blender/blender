@@ -304,7 +304,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 
 void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 {
-  nts->used = 0;
+  nts->used = false;
 }
 
 bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
