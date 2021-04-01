@@ -226,7 +226,7 @@ typedef struct KnifeTool_OpData {
 
   float clipsta, clipend;
 
-  enum { MODE_INVOKING, MODE_IDLE, MODE_DRAGGING, MODE_CONNECT, MODE_PANNING } mode;
+  enum { MODE_IDLE, MODE_DRAGGING, MODE_CONNECT, MODE_PANNING } mode;
   bool is_drag_hold;
 
   int prevmode;
@@ -2652,7 +2652,6 @@ static void knifetool_init(bContext *C,
   kcd->is_interactive = is_interactive;
   kcd->cut_through = cut_through;
   kcd->only_select = only_select;
-  kcd->mode = MODE_INVOKING;
 
   knifetool_init_bmbvh(kcd);
 
