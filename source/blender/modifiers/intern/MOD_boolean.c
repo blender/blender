@@ -694,6 +694,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
   result = BKE_mesh_boolean((const Mesh **)meshes,
                             (const float(**)[4][4])obmats,
+                            &ctx->object->obmat,
                             (const short **)material_remaps,
                             BLI_array_len(meshes),
                             use_self,

@@ -8785,7 +8785,7 @@ static void def_geo_boolean(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_boolean_method_items);
   RNA_def_property_enum_default(prop, GEO_NODE_BOOLEAN_INTERSECT);
   RNA_def_property_ui_text(prop, "Operation", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
 static void def_geo_triangulate(StructRNA *srna)
