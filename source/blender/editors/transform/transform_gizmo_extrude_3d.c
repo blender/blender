@@ -25,6 +25,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_scene.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -88,7 +89,7 @@ typedef struct GizmoExtrudeGroup {
 
   struct {
     float normal_mat3[3][3]; /* use Z axis for normal. */
-    int orientation_type;
+    int orientation_index;
   } data;
 
   wmOperatorType *ot_extrude;
@@ -254,8 +255,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     axis_type = RNA_property_enum_get(&ptr, ggd->gzgt_axis_type_prop);
   }
 
-  ggd->data.orientation_type = scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
-  const bool use_normal = ((ggd->data.orientation_type != V3D_ORIENT_NORMAL) ||
+  ggd->data.orientation_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
+  const bool use_normal = ((ggd->data.orientation_index != V3D_ORIENT_NORMAL) ||
                            (axis_type == EXTRUDE_AXIS_NORMAL));
   const int axis_len_used = use_normal ? 4 : 3;
 
@@ -265,7 +266,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     struct TransformBounds tbounds_normal;
     if (!ED_transform_calc_gizmo_stats(C,
                                        &(struct TransformCalcParams){
-                                           .orientation_type = V3D_ORIENT_NORMAL + 1,
+                                           .orientation_index = V3D_ORIENT_NORMAL + 1,
                                        },
                                        &tbounds_normal)) {
       unit_m3(tbounds_normal.axis);
@@ -276,7 +277,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   /* TODO(campbell): run second since this modifies the 3D view, it should not. */
   if (!ED_transform_calc_gizmo_stats(C,
                                      &(struct TransformCalcParams){
-                                         .orientation_type = ggd->data.orientation_type + 1,
+                                         .orientation_index = ggd->data.orientation_index + 1,
                                      },
                                      &tbounds)) {
     return;
@@ -391,7 +392,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   GizmoExtrudeGroup *ggd = gzgroup->customdata;
-  switch (ggd->data.orientation_type) {
+  switch (ggd->data.orientation_index) {
     case V3D_ORIENT_VIEW: {
       RegionView3D *rv3d = CTX_wm_region_view3d(C);
       float mat[3][3];
@@ -451,7 +452,7 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C),
     if (i == 3) {
       use_normal_matrix = true;
     }
-    else if (ggd->data.orientation_type == V3D_ORIENT_NORMAL) {
+    else if (ggd->data.orientation_index == V3D_ORIENT_NORMAL) {
       use_normal_matrix = true;
     }
     if (use_normal_matrix) {

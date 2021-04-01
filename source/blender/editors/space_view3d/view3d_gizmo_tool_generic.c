@@ -143,7 +143,7 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     const bool hide = ED_transform_calc_gizmo_stats(C,
                                                     &(struct TransformCalcParams){
                                                         .use_only_center = true,
-                                                        .orientation_type = orientation + 1,
+                                                        .orientation_index = orientation + 1,
                                                     },
                                                     &tbounds) == 0;
 
