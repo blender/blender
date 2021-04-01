@@ -133,6 +133,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   template<typename T> MutableSpan<T> construct_array_copy(Span<T> src)
   {
+    if (src.is_empty()) {
+      return {};
+    }
     MutableSpan<T> dst = this->allocate_array<T>(src.size());
     uninitialized_copy_n(src.data(), src.size(), dst.data());
     return dst;
