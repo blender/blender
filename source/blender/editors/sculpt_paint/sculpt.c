@@ -3281,7 +3281,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   const bool use_curvature = ss->cache->brush->flag2 & BRUSH_CURVATURE_RAKE;
-  //const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
+  // const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
   const bool update_curvature = BKE_pbvh_curvature_update_get(node);
 
   SCULPT_curvature_begin(ss, node);
@@ -3303,10 +3303,11 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     if (use_curvature) {
       SCULPT_curvature_dir_get(ss, vd.vertex, direction2);
-      //SculptCurvatureData cdata;
-      //SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
-      //copy_v3_v3(direction2, cdata.principle[0]);
-    } else {
+      // SculptCurvatureData cdata;
+      // SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
+      // copy_v3_v3(direction2, cdata.principle[0]);
+    }
+    else {
       copy_v3_v3(direction2, direction);
     }
 
@@ -6204,16 +6205,6 @@ static void sculpt_topology_update(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
 
-  if (paint_space_stroke_enabled(brush, PAINT_MODE_SCULPT)) {
-    float spacing = (float) brush->cached_dyntopo.spacing / 100.0f;
-
-    if (ss->cache->stroke_distance_t < ss->cache->last_dyntopo_t + spacing) {
-      return;
-    }
-
-    ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
-  }
-
   int n, totnode;
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
@@ -8408,8 +8399,8 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 }
 
 static void sculpt_stroke_update_step(bContext *C,
-                                      struct PaintStroke *stroke,
-                                      PointerRNA *itemptr)
+                                                               struct PaintStroke *stroke,
+                                                               PointerRNA *itemptr)
 {
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -8447,7 +8438,22 @@ static void sculpt_stroke_update_step(bContext *C,
   }
 
   if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
-    do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+    bool do_dyntopo = true;
+
+    if (paint_space_stroke_enabled(brush, PAINT_MODE_SCULPT)) {
+      float spacing = (float)brush->cached_dyntopo.spacing / 100.0f;
+
+      if (ss->cache->stroke_distance_t < ss->cache->last_dyntopo_t + spacing) {
+        do_dyntopo = false;
+      }
+      else {
+        ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
+      }
+    }
+
+    if (do_dyntopo) {
+      do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
+    }
   }
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups);
