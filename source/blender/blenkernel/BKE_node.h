@@ -1067,7 +1067,6 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree,
 
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
 void ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
-bool ntreeShaderExecTree(struct bNodeTree *ntree, int thread);
 struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
 
 void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
