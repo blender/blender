@@ -167,21 +167,22 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
     else if (cell_value.value_bool.has_value()) {
       const bool value = *cell_value.value_bool;
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       icon,
-                       "",
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    icon,
+                                    "",
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
     else if (cell_value.value_object.has_value()) {
       const ObjectCellValue value = *cell_value.value_object;
