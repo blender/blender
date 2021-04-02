@@ -1003,7 +1003,7 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const MVert *mvert)
 {
   const int coords_len = mpoly->totloop;
-  float(*coords)[3] = BLI_array_alloca(coords, (size_t)coords_len);
+  float(*coords)[3] = (float(*)[3])BLI_array_alloca(coords, (size_t)coords_len);
 
   const MLoop *ml = mloopstart;
   for (int i = 0; i < coords_len; i++, ml++) {
@@ -1026,7 +1026,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
                                              const float (*vert_coords)[3])
 {
   const int coords_len = f->len;
-  float(*coords)[3] = BLI_array_alloca(coords, (size_t)coords_len);
+  float(*coords)[3] = (float(*)[3])BLI_array_alloca(coords, (size_t)coords_len);
 
   BMLoop *l_first, *l_iter;
   int i = 0;
