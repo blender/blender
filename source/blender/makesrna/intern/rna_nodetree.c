@@ -453,6 +453,12 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_vecto
     ITEM_VECTOR,
     {0, NULL, 0, NULL, NULL},
 };
+static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float_vector[] = {
+    ITEM_ATTRIBUTE,
+    ITEM_FLOAT,
+    ITEM_VECTOR,
+    {0, NULL, 0, NULL, NULL},
+};
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float[] = {
     ITEM_ATTRIBUTE,
     ITEM_FLOAT,
@@ -9277,7 +9283,7 @@ static void def_geo_point_scale(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeGeometryPointScale", "storage");
 
   prop = RNA_def_property(srna, "input_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float_vector);
   RNA_def_property_ui_text(prop, "Input Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
