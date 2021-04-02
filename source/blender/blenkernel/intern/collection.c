@@ -1007,7 +1007,7 @@ Collection *BKE_collection_object_find(Main *bmain,
   return NULL;
 }
 
-bool BKE_collection_is_empty(Collection *collection)
+bool BKE_collection_is_empty(const Collection *collection)
 {
   return BLI_listbase_is_empty(&collection->gobject) &&
          BLI_listbase_is_empty(&collection->children);
