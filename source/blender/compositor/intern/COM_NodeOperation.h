@@ -26,6 +26,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
+#include "COM_Enums.h"
 #include "COM_MemoryBuffer.h"
 #include "COM_MemoryProxy.h"
 #include "COM_MetaData.h"

@@ -52,52 +52,6 @@ constexpr int COM_data_type_num_channels(const DataType datatype)
 constexpr int COM_DATA_TYPE_VALUE_CHANNELS = COM_data_type_num_channels(DataType::Value);
 constexpr int COM_DATA_TYPE_COLOR_CHANNELS = COM_data_type_num_channels(DataType::Color);
 
-/**
- * \brief Possible quality settings
- * \see CompositorContext.quality
- * \ingroup Execution
- */
-enum class CompositorQuality {
-  /** \brief High quality setting */
-  High = 0,
-  /** \brief Medium quality setting */
-  Medium = 1,
-  /** \brief Low quality setting */
-  Low = 2,
-};
-
-/**
- * \brief Possible priority settings
- * \ingroup Execution
- */
-enum class CompositorPriority {
-  /** \brief High quality setting */
-  High = 2,
-  /** \brief Medium quality setting */
-  Medium = 1,
-  /** \brief Low quality setting */
-  Low = 0,
-};
-
-/**
- * \brief the execution state of a chunk in an ExecutionGroup
- * \ingroup Execution
- */
-enum class eChunkExecutionState {
-  /**
-   * \brief chunk is not yet scheduled
-   */
-  NotScheduled = 0,
-  /**
-   * \brief chunk is scheduled, but not yet executed
-   */
-  Scheduled = 1,
-  /**
-   * \brief chunk is executed.
-   */
-  Executed = 2,
-};
-
 // configurable items
 
 // chunk size determination

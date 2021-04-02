@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "COM_defines.h"
+#include "COM_Enums.h"
 
 namespace blender::compositor {
 

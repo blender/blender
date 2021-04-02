@@ -18,9 +18,11 @@
 
 #pragma once
 
-#include "COM_defines.h"
+#include "COM_Enums.h"
 
 #include "BLI_rect.h"
+
+#include <ostream>
 
 namespace blender::compositor {
 // Forward Declarations.
@@ -52,5 +54,7 @@ struct WorkPackage {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkPackage")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const WorkPackage &WorkPackage);
 
 }  // namespace blender::compositor
