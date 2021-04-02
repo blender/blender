@@ -73,9 +73,9 @@ class NodeOperationBuilder {
   Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
-  blender::Map<NodeOperationInput *, NodeInput *> m_input_map;
+  Map<NodeOperationInput *, NodeInput *> m_input_map;
   /** Maps node outputs to operation outputs */
-  blender::Map<NodeOutput *, NodeOperationOutput *> m_output_map;
+  Map<NodeOutput *, NodeOperationOutput *> m_output_map;
 
   Node *m_current_node;
 

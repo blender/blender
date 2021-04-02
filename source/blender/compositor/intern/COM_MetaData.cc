@@ -66,7 +66,7 @@ void MetaData::replaceHashNeutralCryptomatteKeys(const blender::StringRef layer_
 
 void MetaData::addToRenderResult(RenderResult *render_result) const
 {
-  for (blender::Map<std::string, std::string>::Item entry : entries_.items()) {
+  for (Map<std::string, std::string>::Item entry : entries_.items()) {
     BKE_render_result_stamp_data(render_result, entry.key.c_str(), entry.value.c_str());
   }
 }
