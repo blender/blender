@@ -68,9 +68,9 @@ class NodeOperationBuilder {
   const CompositorContext *m_context;
   NodeGraph m_graph;
 
-  blender::Vector<NodeOperation *> m_operations;
-  blender::Vector<Link> m_links;
-  blender::Vector<ExecutionGroup *> m_groups;
+  Vector<NodeOperation *> m_operations;
+  Vector<Link> m_links;
+  Vector<ExecutionGroup *> m_groups;
 
   /** Maps operation inputs to node inputs */
   blender::Map<NodeOperationInput *, NodeInput *> m_input_map;
@@ -134,7 +134,7 @@ class NodeOperationBuilder {
   void determineResolutions();
 
   /** Helper function to store connected inputs for replacement */
-  blender::Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;
+  Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;
   /** Find a connected write buffer operation to an OpOutput */
   WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
   /** Add read/write buffer operations around complex operations */

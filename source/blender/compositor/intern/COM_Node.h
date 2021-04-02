@@ -65,12 +65,12 @@ class Node {
   /**
    * \brief the list of actual input-sockets \see NodeInput
    */
-  blender::Vector<NodeInput *> inputs;
+  Vector<NodeInput *> inputs;
 
   /**
    * \brief the list of actual output-sockets \see NodeOutput
    */
-  blender::Vector<NodeOutput *> outputs;
+  Vector<NodeOutput *> outputs;
 
  public:
   Node(bNode *editorNode, bool create_sockets = true);
@@ -115,7 +115,7 @@ class Node {
   /**
    * \brief get access to the vector of input sockets
    */
-  const blender::Vector<NodeInput *> &getInputSockets() const
+  const Vector<NodeInput *> &getInputSockets() const
   {
     return this->inputs;
   }
@@ -123,7 +123,7 @@ class Node {
   /**
    * \brief get access to the vector of input sockets
    */
-  const blender::Vector<NodeOutput *> &getOutputSockets() const
+  const Vector<NodeOutput *> &getOutputSockets() const
   {
     return this->outputs;
   }

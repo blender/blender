@@ -129,12 +129,12 @@ class ExecutionSystem {
   /**
    * \brief vector of operations
    */
-  blender::Vector<NodeOperation *> m_operations;
+  Vector<NodeOperation *> m_operations;
 
   /**
    * \brief vector of groups
    */
-  blender::Vector<ExecutionGroup *> m_groups;
+  Vector<ExecutionGroup *> m_groups;
 
  private:  // methods
  public:
@@ -159,8 +159,8 @@ class ExecutionSystem {
    */
   ~ExecutionSystem();
 
-  void set_operations(const blender::Vector<NodeOperation *> &operations,
-                      const blender::Vector<ExecutionGroup *> &groups);
+  void set_operations(const Vector<NodeOperation *> &operations,
+                      const Vector<ExecutionGroup *> &groups);
 
   /**
    * \brief execute this system

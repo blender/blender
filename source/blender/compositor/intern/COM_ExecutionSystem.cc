@@ -119,14 +119,14 @@ ExecutionSystem::~ExecutionSystem()
   this->m_groups.clear();
 }
 
-void ExecutionSystem::set_operations(const blender::Vector<NodeOperation *> &operations,
-                                     const blender::Vector<ExecutionGroup *> &groups)
+void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
+                                     const Vector<ExecutionGroup *> &groups)
 {
   m_operations = operations;
   m_groups = groups;
 }
 
-static void update_read_buffer_offset(blender::Vector<NodeOperation *> &operations)
+static void update_read_buffer_offset(Vector<NodeOperation *> &operations)
 {
   unsigned int order = 0;
   for (NodeOperation *operation : operations) {
@@ -138,7 +138,7 @@ static void update_read_buffer_offset(blender::Vector<NodeOperation *> &operatio
   }
 }
 
-static void init_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+static void init_write_operations_for_execution(Vector<NodeOperation *> &operations,
                                                 const bNodeTree *bTree)
 {
   for (NodeOperation *operation : operations) {
@@ -149,7 +149,7 @@ static void init_write_operations_for_execution(blender::Vector<NodeOperation *>
   }
 }
 
-static void link_write_buffers(blender::Vector<NodeOperation *> &operations)
+static void link_write_buffers(Vector<NodeOperation *> &operations)
 {
   for (NodeOperation *operation : operations) {
     if (operation->get_flags().is_read_buffer_operation) {
@@ -159,7 +159,7 @@ static void link_write_buffers(blender::Vector<NodeOperation *> &operations)
   }
 }
 
-static void init_non_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+static void init_non_write_operations_for_execution(Vector<NodeOperation *> &operations,
                                                     const bNodeTree *bTree)
 {
   for (NodeOperation *operation : operations) {
@@ -170,7 +170,7 @@ static void init_non_write_operations_for_execution(blender::Vector<NodeOperatio
   }
 }
 
-static void init_execution_groups_for_execution(blender::Vector<ExecutionGroup *> &groups,
+static void init_execution_groups_for_execution(Vector<ExecutionGroup *> &groups,
                                                 const int chunk_size)
 {
   for (ExecutionGroup *execution_group : groups) {

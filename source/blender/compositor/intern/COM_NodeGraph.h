@@ -52,18 +52,18 @@ class NodeGraph {
   };
 
  private:
-  blender::Vector<Node *> m_nodes;
-  blender::Vector<Link> m_links;
+  Vector<Node *> m_nodes;
+  Vector<Link> m_links;
 
  public:
   NodeGraph();
   ~NodeGraph();
 
-  const blender::Vector<Node *> &nodes() const
+  const Vector<Node *> &nodes() const
   {
     return m_nodes;
   }
-  const blender::Vector<Link> &links() const
+  const Vector<Link> &links() const
   {
     return m_links;
   }
@@ -71,8 +71,7 @@ class NodeGraph {
   void from_bNodeTree(const CompositorContext &context, bNodeTree *tree);
 
  protected:
-  typedef std::pair<blender::Vector<Node *>::iterator, blender::Vector<Node *>::iterator>
-      NodeRange;
+  typedef std::pair<Vector<Node *>::iterator, Vector<Node *>::iterator> NodeRange;
 
   static bNodeSocket *find_b_node_input(bNode *b_node, const char *identifier);
   static bNodeSocket *find_b_node_output(bNode *b_node, const char *identifier);

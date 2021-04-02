@@ -95,7 +95,7 @@ class OutputOpenExrMultiLayerOperation : public NodeOperation {
   char m_path[FILE_MAX];
   char m_exr_codec;
   bool m_exr_half_float;
-  blender::Vector<OutputOpenExrLayer> m_layers;
+  Vector<OutputOpenExrLayer> m_layers;
   const char *m_viewName;
 
   StampData *createStampData() const;

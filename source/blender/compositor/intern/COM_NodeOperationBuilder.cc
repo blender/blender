@@ -254,7 +254,7 @@ void NodeOperationBuilder::registerViewer(ViewerOperation *viewer)
 
 void NodeOperationBuilder::add_datatype_conversions()
 {
-  blender::Vector<Link> convert_links;
+  Vector<Link> convert_links;
   for (const Link &link : m_links) {
     /* proxy operations can skip data type conversion */
     NodeOperation *from_op = &link.from()->getOperation();
@@ -285,7 +285,7 @@ void NodeOperationBuilder::add_operation_input_constants()
   /* Note: unconnected inputs cached first to avoid modifying
    *       m_operations while iterating over it
    */
-  blender::Vector<NodeOperationInput *> pending_inputs;
+  Vector<NodeOperationInput *> pending_inputs;
   for (NodeOperation *op : m_operations) {
     for (int k = 0; k < op->getNumberOfInputSockets(); ++k) {
       NodeOperationInput *input = op->getInputSocket(k);
@@ -353,7 +353,7 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
 
 void NodeOperationBuilder::resolve_proxies()
 {
-  blender::Vector<Link> proxy_links;
+  Vector<Link> proxy_links;
   for (const Link &link : m_links) {
     /* don't replace links from proxy to proxy, since we may need them for replacing others! */
     if (link.from()->getOperation().get_flags().is_proxy_operation &&
@@ -403,7 +403,7 @@ void NodeOperationBuilder::determineResolutions()
 
   /* add convert resolution operations when needed */
   {
-    blender::Vector<Link> convert_links;
+    Vector<Link> convert_links;
     for (const Link &link : m_links) {
       if (link.to()->getResizeMode() != ResizeMode::None) {
         NodeOperation &from_op = link.from()->getOperation();
@@ -419,10 +419,10 @@ void NodeOperationBuilder::determineResolutions()
   }
 }
 
-blender::Vector<NodeOperationInput *> NodeOperationBuilder::cache_output_links(
+Vector<NodeOperationInput *> NodeOperationBuilder::cache_output_links(
     NodeOperationOutput *output) const
 {
-  blender::Vector<NodeOperationInput *> inputs;
+  Vector<NodeOperationInput *> inputs;
   for (const Link &link : m_links) {
     if (link.from() == output) {
       inputs.append(link.to());
@@ -487,7 +487,7 @@ void NodeOperationBuilder::add_output_buffers(NodeOperation *operation,
                                               NodeOperationOutput *output)
 {
   /* cache connected sockets, so we can safely remove links first before replacing them */
-  blender::Vector<NodeOperationInput *> targets = cache_output_links(output);
+  Vector<NodeOperationInput *> targets = cache_output_links(output);
   if (targets.is_empty()) {
     return;
   }
@@ -538,7 +538,7 @@ void NodeOperationBuilder::add_complex_operation_buffers()
   /* note: complex ops and get cached here first, since adding operations
    * will invalidate iterators over the main m_operations
    */
-  blender::Vector<NodeOperation *> complex_ops;
+  Vector<NodeOperation *> complex_ops;
   for (NodeOperation *operation : m_operations) {
     if (operation->get_flags().complex) {
       complex_ops.append(operation);
@@ -593,7 +593,7 @@ void NodeOperationBuilder::prune_operations()
   }
 
   /* delete unreachable operations */
-  blender::Vector<NodeOperation *> reachable_ops;
+  Vector<NodeOperation *> reachable_ops;
   for (NodeOperation *op : m_operations) {
     if (reachable.find(op) != reachable.end()) {
       reachable_ops.append(op);
@@ -607,7 +607,7 @@ void NodeOperationBuilder::prune_operations()
 }
 
 /* topological (depth-first) sorting of operations */
-static void sort_operations_recursive(blender::Vector<NodeOperation *> &sorted,
+static void sort_operations_recursive(Vector<NodeOperation *> &sorted,
                                       Tags &visited,
                                       NodeOperation *op)
 {
@@ -628,7 +628,7 @@ static void sort_operations_recursive(blender::Vector<NodeOperation *> &sorted,
 
 void NodeOperationBuilder::sort_operations()
 {
-  blender::Vector<NodeOperation *> sorted;
+  Vector<NodeOperation *> sorted;
   sorted.reserve(m_operations.size());
   Tags visited;
 

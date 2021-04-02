@@ -252,8 +252,8 @@ struct NodeOperationFlags {
 class NodeOperation {
  private:
   std::string m_name;
-  blender::Vector<NodeOperationInput> m_inputs;
-  blender::Vector<NodeOperationOutput> m_outputs;
+  Vector<NodeOperationInput> m_inputs;
+  Vector<NodeOperationOutput> m_outputs;
 
   /**
    * \brief the index of the input socket that will be used to determine the resolution

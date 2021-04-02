@@ -103,7 +103,7 @@ static std::string combined_layer_pass_name(RenderLayer *render_layer, RenderPas
 void CryptomatteNode::input_operations_from_render_source(
     const CompositorContext &context,
     const bNode &node,
-    blender::Vector<NodeOperation *> &r_input_operations)
+    Vector<NodeOperation *> &r_input_operations)
 {
   Scene *scene = (Scene *)node.id;
   if (!scene) {
@@ -143,7 +143,7 @@ void CryptomatteNode::input_operations_from_render_source(
 void CryptomatteNode::input_operations_from_image_source(
     const CompositorContext &context,
     const bNode &node,
-    blender::Vector<NodeOperation *> &r_input_operations)
+    Vector<NodeOperation *> &r_input_operations)
 {
   NodeCryptomatte *cryptomatte_settings = (NodeCryptomatte *)node.storage;
   Image *image = (Image *)node.id;
@@ -202,10 +202,10 @@ void CryptomatteNode::input_operations_from_image_source(
   BKE_image_release_ibuf(image, ibuf, nullptr);
 }
 
-blender::Vector<NodeOperation *> CryptomatteNode::create_input_operations(
-    const CompositorContext &context, const bNode &node)
+Vector<NodeOperation *> CryptomatteNode::create_input_operations(const CompositorContext &context,
+                                                                 const bNode &node)
 {
-  blender::Vector<NodeOperation *> input_operations;
+  Vector<NodeOperation *> input_operations;
   switch (node.custom1) {
     case CMP_CRYPTOMATTE_SRC_RENDER:
       input_operations_from_render_source(context, node, input_operations);
@@ -231,7 +231,7 @@ CryptomatteOperation *CryptomatteNode::create_cryptomatte_operation(
     const bNode &node,
     const NodeCryptomatte *cryptomatte_settings) const
 {
-  blender::Vector<NodeOperation *> input_operations = create_input_operations(context, node);
+  Vector<NodeOperation *> input_operations = create_input_operations(context, node);
   CryptomatteOperation *operation = new CryptomatteOperation(input_operations.size());
   LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &cryptomatte_settings->entries) {
     operation->addObjectIndex(cryptomatte_entry->encoded_hash);
