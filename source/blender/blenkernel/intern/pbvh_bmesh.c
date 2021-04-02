@@ -3590,6 +3590,10 @@ static void BKE_pbvh_bmesh_corect_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *par
 
 static void pbvh_bmesh_join_nodes(PBVH *bvh)
 {
+  if (bvh->totnode < 2) {
+    return;
+  }
+
   pbvh_count_subtree_verts(bvh, bvh->nodes);
   BKE_pbvh_bmesh_corect_tree(bvh, bvh->nodes, NULL);
 
@@ -3692,6 +3696,11 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   j = 0;
   for (int i = 0; i < bvh->totnode; i++) {
     if (!(bvh->nodes[i].flag & PBVH_Delete)) {
+      if (bvh->nodes[i].children_offset >= bvh->totnode-1) {
+        printf("error %i %i\n", i, bvh->nodes[i].children_offset);
+        continue;
+      }
+
       int i1 = map[bvh->nodes[i].children_offset];
       int i2 = map[bvh->nodes[i].children_offset + 1];
 

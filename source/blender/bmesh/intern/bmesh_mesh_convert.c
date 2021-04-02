@@ -223,6 +223,7 @@ void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMes
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
   MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
+
   if (mmd) {
     bm->multires = *mmd;
     bm->haveMultiResSettings = true;

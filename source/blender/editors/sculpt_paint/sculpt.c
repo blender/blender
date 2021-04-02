@@ -8398,15 +8398,13 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
   return false;
 }
 
-static void sculpt_stroke_update_step(bContext *C,
-                                                               struct PaintStroke *stroke,
-                                                               PointerRNA *itemptr)
+static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  const Brush *brush = BKE_paint_brush(&sd->paint);
+  Brush *brush = BKE_paint_brush(&sd->paint);
 
   ss->cache->stroke_distance = stroke->stroke_distance;
   ss->cache->stroke_distance_t = stroke->stroke_distance_t;
@@ -8960,10 +8958,12 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       /* Needed because we may be entering this mode before the undo system loads. */
       wmWindowManager *wm = bmain->wm.first;
       bool has_undo = wm->undo_stack != NULL;
+
       /* Undo push is needed to prevent memory leak. */
       if (has_undo) {
         SCULPT_undo_push_begin(ob, "Dynamic topology enable");
       }
+
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
       if (has_undo) {
         SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
@@ -9443,8 +9443,6 @@ static void do_fake_neighbor_search_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   NearestVertexFakeNeighborTLSData *nvtd = tls->userdata_chunk;
   PBVHVertexIter vd;
-
-  bool has_bmesh = false;
 
   SCULPT_vertex_random_access_ensure(ss);
 
