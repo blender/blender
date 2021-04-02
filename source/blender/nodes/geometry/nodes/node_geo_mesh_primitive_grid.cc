@@ -104,6 +104,7 @@ static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float 
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + 1;
+      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
     }
   }
 
@@ -115,6 +116,7 @@ static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float 
       MEdge &edge = edges[edge_index++];
       edge.v1 = vert_index;
       edge.v2 = vert_index + verts_y;
+      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
     }
   }
 
