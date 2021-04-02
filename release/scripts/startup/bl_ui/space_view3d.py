@@ -161,9 +161,9 @@ class VIEW3D_HT_tool_header(Header):
         elif mode_string in {'EDIT_MESH', 'PAINT_WEIGHT', 'SCULPT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             # Mesh Modes, Use Mesh Symmetry
             row, sub = row_for_mirror()
-            sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
-            sub.prop(context.object.data, "use_mirror_y", text="Y", toggle=True)
-            sub.prop(context.object.data, "use_mirror_z", text="Z", toggle=True)
+            sub.prop(context.object, "use_mesh_mirror_x", text="X", toggle=True)
+            sub.prop(context.object, "use_mesh_mirror_y", text="Y", toggle=True)
+            sub.prop(context.object, "use_mesh_mirror_z", text="Z", toggle=True)
             if mode_string == 'EDIT_MESH':
                 tool_settings = context.tool_settings
                 layout.prop(tool_settings, "use_mesh_automerge", text="")

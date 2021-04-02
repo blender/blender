@@ -1751,7 +1751,7 @@ static bool *vgroup_selected_get(Object *ob)
     /* Mirror the selection if X Mirror is enabled. */
     Mesh *me = BKE_mesh_from_object(ob);
 
-    if (me && (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) != 0) {
+    if (me && ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
       BKE_object_defgroup_mirror_selection(ob, defbase_tot, mask, mask, &sel_count);
     }
   }

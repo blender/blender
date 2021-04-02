@@ -123,13 +123,15 @@ class View3DPanel:
 # **************** standard tool clusters ******************
 
 # Used by vertex & weight paint
-def draw_vpaint_symmetry(layout, vpaint, mesh):
+def draw_vpaint_symmetry(layout, vpaint, obj):
     col = layout.column()
     row = col.row(heading="Mirror", align=True)
-    row.prop(mesh, "use_mirror_x", text="X", toggle=True)
-    row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
-    row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
+    row.prop(obj, "use_mesh_mirror_x", text="X", toggle=True)
+    row.prop(obj, "use_mesh_mirror_y", text="Y", toggle=True)
+    row.prop(obj, "use_mesh_mirror_z", text="Z", toggle=True)
 
+    col = layout.column()
+    col.active = not obj.data.use_mirror_vertex_groups
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 
@@ -977,12 +979,12 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         wpaint = tool_settings.weight_paint
         mesh = context.object.data
 
-        draw_vpaint_symmetry(layout, wpaint, mesh)
+        layout.prop(mesh, 'use_mirror_vertex_groups')
 
-        col = layout.column(align=True)
-        col.prop(mesh, 'use_mirror_vertex_group_x', text="Vertex Group X")
-        row = col.row()
-        row.active = mesh.use_mirror_vertex_group_x
+        draw_vpaint_symmetry(layout, wpaint, context.object)
+
+        row = layout.row()
+        row.active = mesh.use_mirror_vertex_groups
         row.prop(mesh, "use_mirror_topology")
 
 
@@ -1057,7 +1059,7 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
         tool_settings = context.tool_settings
         vpaint = tool_settings.vertex_paint
 
-        draw_vpaint_symmetry(layout, vpaint, context.object.data)
+        draw_vpaint_symmetry(layout, vpaint, context.object)
 
 
 class VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar(Panel):

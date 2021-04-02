@@ -235,7 +235,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
             vc.obact, defbase_tot, &defbase_tot_sel);
 
         if (defbase_tot_sel > 1) {
-          if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
+          if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
             BKE_object_defgroup_mirror_selection(
                 vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
           }
@@ -461,7 +461,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
   vgroup_active = ob->actdef - 1;
 
   /* if mirror painting, find the other group */
-  if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
+  if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
     vgroup_mirror = ED_wpaint_mirror_vgroup_ensure(ob, vgroup_active);
   }
 
@@ -489,7 +489,8 @@ static bool weight_paint_set(Object *ob, float paintweight)
           dw_prev->weight = dw->weight; /* set the undo weight */
           dw->weight = paintweight;
 
-          if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) { /* x mirror painting */
+          if (me->symmetry & ME_SYMMETRY_X) {
+            /* x mirror painting */
             int j = mesh_get_x_mirror_vert(ob, NULL, vidx, topology);
             if (j >= 0) {
               /* copy, not paint again */
