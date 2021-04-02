@@ -125,6 +125,9 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 void NodeOperationBuilder::addOperation(NodeOperation *operation)
 {
   m_operations.append(operation);
+  if (m_current_node) {
+    operation->set_name(m_current_node->getbNode()->name);
+  }
 }
 
 void NodeOperationBuilder::mapInputSocket(NodeInput *node_socket,
@@ -658,7 +661,7 @@ static void add_group_operations_recursive(Tags &visited, NodeOperation *op, Exe
 
 ExecutionGroup *NodeOperationBuilder::make_group(NodeOperation *op)
 {
-  ExecutionGroup *group = new ExecutionGroup();
+  ExecutionGroup *group = new ExecutionGroup(this->m_groups.size());
   m_groups.append(group);
 
   Tags visited;

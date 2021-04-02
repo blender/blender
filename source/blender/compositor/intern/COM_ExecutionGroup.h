@@ -73,6 +73,8 @@ struct ExecutionGroupFlags {
   }
 };
 
+std::ostream &operator<<(std::ostream &os, const ExecutionGroupFlags &flags);
+
 /**
  * \brief Class ExecutionGroup is a group of Operations that are executed as one.
  * This grouping is used to combine Operations that can be executed as one whole when
@@ -82,6 +84,10 @@ struct ExecutionGroupFlags {
 class ExecutionGroup {
  private:
   // fields
+  /**
+   * Id of the execution group. For debugging purposes.
+   */
+  int m_id;
 
   /**
    * \brief list of operations in this ExecutionGroup
@@ -232,7 +238,12 @@ class ExecutionGroup {
 
  public:
   // constructors
-  ExecutionGroup();
+  ExecutionGroup(int id);
+
+  int get_id() const
+  {
+    return m_id;
+  }
 
   const ExecutionGroupFlags get_flags() const
   {
@@ -395,5 +406,7 @@ class ExecutionGroup {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const ExecutionGroup &execution_group);
 
 }  // namespace blender::compositor

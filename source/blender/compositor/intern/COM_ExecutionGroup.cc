@@ -48,8 +48,29 @@
 
 namespace blender::compositor {
 
-ExecutionGroup::ExecutionGroup()
+std::ostream &operator<<(std::ostream &os, const ExecutionGroupFlags &flags)
 {
+  if (flags.initialized) {
+    os << "init,";
+  }
+  if (flags.is_output) {
+    os << "output,";
+  }
+  if (flags.complex) {
+    os << "complex,";
+  }
+  if (flags.open_cl) {
+    os << "open_cl,";
+  }
+  if (flags.single_threaded) {
+    os << "single_threaded,";
+  }
+  return os;
+}
+
+ExecutionGroup::ExecutionGroup(int id)
+{
+  m_id = id;
   this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
@@ -60,6 +81,15 @@ ExecutionGroup::ExecutionGroup()
   this->m_chunks_finished = 0;
   BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
   this->m_executionStartTime = 0;
+}
+
+std::ostream &operator<<(std::ostream &os, const ExecutionGroup &execution_group)
+{
+  os << "ExecutionGroup(id=" << execution_group.get_id();
+  os << ",flags={" << execution_group.get_flags() << "}";
+  os << ",operation=" << *execution_group.getOutputOperation() << "";
+  os << ")";
+  return os;
 }
 
 CompositorPriority ExecutionGroup::getRenderPriority()
