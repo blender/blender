@@ -179,7 +179,7 @@ class ExecutionSystem {
   }
 
  private:
-  void execute_groups(CompositorPriority priority);
+  void execute_groups(eCompositorPriority priority);
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;

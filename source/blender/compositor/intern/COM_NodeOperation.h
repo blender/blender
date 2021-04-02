@@ -452,11 +452,11 @@ class NodeOperation {
   /**
    * \brief get the render priority of this node.
    * \note only applicable for output operations like ViewerOperation
-   * \return CompositorPriority
+   * \return eCompositorPriority
    */
-  virtual CompositorPriority getRenderPriority() const
+  virtual eCompositorPriority getRenderPriority() const
   {
-    return CompositorPriority::Low;
+    return eCompositorPriority::Low;
   }
 
   inline bool isBraked() const

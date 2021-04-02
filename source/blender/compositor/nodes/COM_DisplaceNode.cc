@@ -32,7 +32,7 @@ void DisplaceNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
   NodeOperation *operation;
-  if (context.getQuality() == CompositorQuality::Low) {
+  if (context.getQuality() == eCompositorQuality::Low) {
     operation = new DisplaceSimpleOperation();
   }
   else {

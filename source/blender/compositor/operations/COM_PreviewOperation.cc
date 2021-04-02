@@ -166,9 +166,9 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
   resolution[1] = height;
 }
 
-CompositorPriority PreviewOperation::getRenderPriority() const
+eCompositorPriority PreviewOperation::getRenderPriority() const
 {
-  return CompositorPriority::Low;
+  return eCompositorPriority::Low;
 }
 
 }  // namespace blender::compositor

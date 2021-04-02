@@ -55,10 +55,10 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   this->m_context.setFastCalculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    this->m_context.setQuality((CompositorQuality)editingtree->render_quality);
+    this->m_context.setQuality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    this->m_context.setQuality((CompositorQuality)editingtree->edit_quality);
+    this->m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
   }
   this->m_context.setRendering(rendering);
   this->m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
@@ -193,10 +193,10 @@ void ExecutionSystem::execute()
   init_execution_groups_for_execution(m_groups, m_context.getChunksize());
 
   WorkScheduler::start(this->m_context);
-  execute_groups(CompositorPriority::High);
+  execute_groups(eCompositorPriority::High);
   if (!this->getContext().isFastCalculation()) {
-    execute_groups(CompositorPriority::Medium);
-    execute_groups(CompositorPriority::Low);
+    execute_groups(eCompositorPriority::Medium);
+    execute_groups(eCompositorPriority::Low);
   }
   WorkScheduler::finish();
   WorkScheduler::stop();
@@ -212,7 +212,7 @@ void ExecutionSystem::execute()
   }
 }
 
-void ExecutionSystem::execute_groups(CompositorPriority priority)
+void ExecutionSystem::execute_groups(eCompositorPriority priority)
 {
   for (ExecutionGroup *execution_group : m_groups) {
     if (execution_group->get_flags().is_output &&

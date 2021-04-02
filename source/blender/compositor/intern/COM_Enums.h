@@ -29,7 +29,7 @@ namespace blender::compositor {
  * \see CompositorContext.quality
  * \ingroup Execution
  */
-enum class CompositorQuality {
+enum class eCompositorQuality {
   /** \brief High quality setting */
   High = 0,
   /** \brief Medium quality setting */
@@ -42,7 +42,7 @@ enum class CompositorQuality {
  * \brief Possible priority settings
  * \ingroup Execution
  */
-enum class CompositorPriority {
+enum class eCompositorPriority {
   /** \brief High quality setting */
   High = 2,
   /** \brief Medium quality setting */
@@ -70,7 +70,7 @@ enum class eWorkPackageState {
   Executed = 2,
 };
 
-std::ostream &operator<<(std::ostream &os, const CompositorPriority &priority);
+std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority);
 std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state);
 
 }  // namespace blender::compositor

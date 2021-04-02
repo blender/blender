@@ -144,7 +144,7 @@ NodeOperationOutput *KeyingNode::setupFeather(NodeConverter &converter,
                                               int distance) const
 {
   /* this uses a modified gaussian blur function otherwise its far too slow */
-  CompositorQuality quality = context.getQuality();
+  eCompositorQuality quality = context.getQuality();
 
   /* initialize node data */
   NodeBlurData data;

@@ -20,18 +20,18 @@
 
 namespace blender::compositor {
 
-std::ostream &operator<<(std::ostream &os, const CompositorPriority &priority)
+std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority)
 {
   switch (priority) {
-    case CompositorPriority::High: {
+    case eCompositorPriority::High: {
       os << "Priority::High";
       break;
     }
-    case CompositorPriority::Medium: {
+    case eCompositorPriority::Medium: {
       os << "Priority::Medium";
       break;
     }
-    case CompositorPriority::Low: {
+    case eCompositorPriority::Low: {
       os << "Priority::Low";
       break;
     }

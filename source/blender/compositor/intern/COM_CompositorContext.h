@@ -48,7 +48,7 @@ class CompositorContext {
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    * \see ExecutionSystem
    */
-  CompositorQuality m_quality;
+  eCompositorQuality m_quality;
 
   Scene *m_scene;
 
@@ -205,7 +205,7 @@ class CompositorContext {
   /**
    * \brief set the quality
    */
-  void setQuality(CompositorQuality quality)
+  void setQuality(eCompositorQuality quality)
   {
     this->m_quality = quality;
   }
@@ -213,7 +213,7 @@ class CompositorContext {
   /**
    * \brief get the quality
    */
-  CompositorQuality getQuality() const
+  eCompositorQuality getQuality() const
   {
     return this->m_quality;
   }

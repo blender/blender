@@ -209,13 +209,13 @@ void ViewerOperation::updateImage(rcti *rect)
   this->updateDraw();
 }
 
-CompositorPriority ViewerOperation::getRenderPriority() const
+eCompositorPriority ViewerOperation::getRenderPriority() const
 {
   if (this->isActiveViewerOutput()) {
-    return CompositorPriority::High;
+    return eCompositorPriority::High;
   }
 
-  return CompositorPriority::Low;
+  return eCompositorPriority::Low;
 }
 
 }  // namespace blender::compositor

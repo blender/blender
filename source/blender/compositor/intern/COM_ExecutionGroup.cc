@@ -92,7 +92,7 @@ std::ostream &operator<<(std::ostream &os, const ExecutionGroup &execution_group
   return os;
 }
 
-CompositorPriority ExecutionGroup::getRenderPriority()
+eCompositorPriority ExecutionGroup::getRenderPriority()
 {
   return this->getOutputOperation()->getRenderPriority();
 }
