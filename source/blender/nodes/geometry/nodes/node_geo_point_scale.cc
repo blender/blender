@@ -86,7 +86,7 @@ static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
       sizeof(NodeGeometryPointScale), __func__);
 
-  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
   node->storage = data;
 }
 

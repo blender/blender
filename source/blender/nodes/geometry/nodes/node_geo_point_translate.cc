@@ -85,7 +85,7 @@ static void geo_node_point_translate_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryPointTranslate *data = (NodeGeometryPointTranslate *)MEM_callocN(
       sizeof(NodeGeometryPointTranslate), __func__);
 
-  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
   node->storage = data;
 }
 
