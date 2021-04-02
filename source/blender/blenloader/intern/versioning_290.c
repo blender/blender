@@ -379,6 +379,37 @@ static void seq_update_meta_disp_range(Editing *ed)
   }
 }
 
+static void version_node_socket_duplicate(bNodeTree *ntree,
+                                          const int node_type,
+                                          const char *old_name,
+                                          const char *new_name)
+{
+  /* Duplicate a link going into the original socket. */
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+    if (link->tonode->type == node_type) {
+      bNode *node = link->tonode;
+      bNodeSocket *dest_socket = nodeFindSocket(node, SOCK_IN, new_name);
+      BLI_assert(dest_socket);
+      if (STREQ(link->tosock->name, old_name)) {
+        nodeAddLink(ntree, link->fromnode, link->fromsock, node, dest_socket);
+      }
+    }
+  }
+
+  /* Duplicate the default value from the old socket and assign it to the new socket. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      bNodeSocket *source_socket = nodeFindSocket(node, SOCK_IN, old_name);
+      bNodeSocket *dest_socket = nodeFindSocket(node, SOCK_IN, new_name);
+      BLI_assert(source_socket && dest_socket);
+      if (dest_socket->default_value) {
+        MEM_freeN(dest_socket->default_value);
+      }
+      dest_socket->default_value = MEM_dupallocN(source_socket->default_value);
+    }
+  }
+}
+
 void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 1)) {
@@ -641,6 +672,20 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 16)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      seq_update_meta_disp_range(SEQ_editing_get(scene, false));
+    }
+
+    /* Add a separate socket for Grid node X and Y size. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_duplicate(ntree, GEO_NODE_MESH_PRIMITIVE_GRID, "Size X", "Size Y");
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -653,10 +698,6 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
-
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      seq_update_meta_disp_range(SEQ_editing_get(scene, false));
-    }
   }
 }
 
@@ -1936,6 +1977,15 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 16)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_MESH_PRIMITIVE_GRID, "Size", "Size X");
+      }
+      FOREACH_NODETREE_END;
     }
   }
 

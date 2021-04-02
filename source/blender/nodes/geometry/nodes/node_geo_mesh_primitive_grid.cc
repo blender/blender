@@ -28,7 +28,8 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_mesh_primitive_grid_in[] = {
-    {SOCK_FLOAT, N_("Size"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
+    {SOCK_FLOAT, N_("Size X"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
+    {SOCK_FLOAT, N_("Size Y"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX, PROP_DISTANCE},
     {SOCK_INT, N_("Vertices X"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
     {SOCK_INT, N_("Vertices Y"), 3, 0.0f, 0.0f, 0.0f, 2, 1000},
     {-1, ""},
@@ -41,7 +42,8 @@ static bNodeSocketTemplate geo_node_mesh_primitive_grid_out[] = {
 
 namespace blender::nodes {
 
-static void calculate_uvs(Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size)
+static void calculate_uvs(
+    Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, const float size_x, const float size_y)
 {
   MeshComponent mesh_component;
   mesh_component.replace(mesh, GeometryOwnershipType::Editable);
@@ -49,17 +51,23 @@ static void calculate_uvs(Mesh *mesh, Span<MVert> verts, Span<MLoop> loops, cons
       "uv", ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2, nullptr);
   MutableSpan<float2> uvs = uv_attribute->get_span_for_write_only<float2>();
 
+  const float dx = (size_x == 0.0f) ? 0.0f : 1.0f / size_x;
+  const float dy = (size_y == 0.0f) ? 0.0f : 1.0f / size_y;
   for (const int i : loops.index_range()) {
     const float3 &co = verts[loops[i].v].co;
-    uvs[i].x = (co.x + (size * 0.5)) / size;
-    uvs[i].y = (co.y + (size * 0.5)) / size;
+    uvs[i].x = (co.x + size_x * 0.5f) * dx;
+    uvs[i].y = (co.y + size_y * 0.5f) * dy;
   }
 
   uv_attribute.apply_span_and_save();
 }
 
-static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float size)
+static Mesh *create_grid_mesh(const int verts_x,
+                              const int verts_y,
+                              const float size_x,
+                              const float size_y)
 {
+  BLI_assert(verts_x > 1 && verts_y > 1);
   const int edges_x = verts_x - 1;
   const int edges_y = verts_y - 1;
   Mesh *mesh = BKE_mesh_new_nomain(verts_x * verts_y,
@@ -73,11 +81,11 @@ static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float 
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
   {
-    const float dx = size / edges_x;
-    const float dy = size / edges_y;
-    float x = -size * 0.5;
+    const float dx = size_x / edges_x;
+    const float dy = size_y / edges_y;
+    float x = -size_x * 0.5;
     for (const int x_index : IndexRange(verts_x)) {
-      float y = -size * 0.5;
+      float y = -size_y * 0.5;
       for (const int y_index : IndexRange(verts_y)) {
         const int vert_index = x_index * verts_y + y_index;
         verts[vert_index].co[0] = x;
@@ -144,14 +152,15 @@ static Mesh *create_grid_mesh(const int verts_x, const int verts_y, const float 
     }
   }
 
-  calculate_uvs(mesh, verts, loops, size);
+  calculate_uvs(mesh, verts, loops, size_x, size_y);
 
   return mesh;
 }
 
 static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
 {
-  const float size = params.extract_input<float>("Size");
+  const float size_x = params.extract_input<float>("Size X");
+  const float size_y = params.extract_input<float>("Size Y");
   const int verts_x = params.extract_input<int>("Vertices X");
   const int verts_y = params.extract_input<int>("Vertices Y");
   if (verts_x < 2 || verts_y < 2) {
@@ -159,7 +168,7 @@ static void geo_node_mesh_primitive_grid_exec(GeoNodeExecParams params)
     return;
   }
 
-  Mesh *mesh = create_grid_mesh(verts_x, verts_y, size);
+  Mesh *mesh = create_grid_mesh(verts_x, verts_y, size_x, size_y);
   BLI_assert(BKE_mesh_is_valid(mesh));
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
