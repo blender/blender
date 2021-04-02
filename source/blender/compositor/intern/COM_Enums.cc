@@ -39,18 +39,18 @@ std::ostream &operator<<(std::ostream &os, const CompositorPriority &priority)
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const eChunkExecutionState &execution_state)
+std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state)
 {
   switch (execution_state) {
-    case eChunkExecutionState::NotScheduled: {
+    case eWorkPackageState::NotScheduled: {
       os << "ExecutionState::NotScheduled";
       break;
     }
-    case eChunkExecutionState::Scheduled: {
+    case eWorkPackageState::Scheduled: {
       os << "ExecutionState::Scheduled";
       break;
     }
-    case eChunkExecutionState::Executed: {
+    case eWorkPackageState::Executed: {
       os << "ExecutionState::Executed";
       break;
     }

@@ -33,7 +33,7 @@ class ExecutionGroup;
  * \see WorkScheduler
  */
 struct WorkPackage {
-  eChunkExecutionState state = eChunkExecutionState::NotScheduled;
+  eWorkPackageState state = eWorkPackageState::NotScheduled;
 
   /**
    * \brief executionGroup with the operations-setup to be evaluated

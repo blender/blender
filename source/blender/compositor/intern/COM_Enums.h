@@ -55,7 +55,7 @@ enum class CompositorPriority {
  * \brief the execution state of a chunk in an ExecutionGroup
  * \ingroup Execution
  */
-enum class eChunkExecutionState {
+enum class eWorkPackageState {
   /**
    * \brief chunk is not yet scheduled
    */
@@ -71,6 +71,6 @@ enum class eChunkExecutionState {
 };
 
 std::ostream &operator<<(std::ostream &os, const CompositorPriority &priority);
-std::ostream &operator<<(std::ostream &os, const eChunkExecutionState &execution_state);
+std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state);
 
 }  // namespace blender::compositor
