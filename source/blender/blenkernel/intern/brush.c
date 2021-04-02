@@ -2592,9 +2592,28 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
 {
   *out = brush->dyntopo;
 
+  // detect unconverted file data
+  if (!out->inherit && !out->detail_range) {
+    //reload default dyntopo settings
+    Brush brush2 = *brush;
+
+    //don't copy heap allocd data
+    brush2.curve = NULL;
+    brush2.icon_imbuf = NULL;
+    brush2.gpencil_settings = NULL;
+    brush2.gradient = NULL;
+    brush2.preview = NULL;
+
+    BKE_brush_sculpt_reset(&brush2);
+
+    brush->dyntopo = *out = brush2.dyntopo;
+
+    brush_free_data((ID*)&brush2);
+  }
+
   int inherit = out->inherit;
 
-  if (out->inherit & DYNTOPO_INHERIT_ALL) {
+  if (inherit & DYNTOPO_INHERIT_ALL) {
     inherit = 0x7FFFFFF;
   }
 
