@@ -93,19 +93,24 @@ typedef struct SnapGizmo3D {
   bool is_enabled;
 } SnapGizmo3D;
 
+static bool eventstate_cmp(SnapGizmo3D *snap_gizmo, const wmEvent *event)
+{
+  if ((event->x == snap_gizmo->last_eventstate.x) && (event->y == snap_gizmo->last_eventstate.y) &&
+      (event->ctrl == snap_gizmo->last_eventstate.ctrl) &&
+      (event->shift == snap_gizmo->last_eventstate.shift) &&
+      (event->alt == snap_gizmo->last_eventstate.alt) &&
+      (event->oskey == snap_gizmo->last_eventstate.oskey)) {
+    return true;
+  }
+  return false;
+}
+
 /* Checks if the current event is different from the one captured in the last update. */
 static bool eventstate_has_changed(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
 {
   if (wm && wm->winactive) {
     const wmEvent *event = wm->winactive->eventstate;
-    if ((event->x != snap_gizmo->last_eventstate.x) ||
-        (event->y != snap_gizmo->last_eventstate.y) ||
-        (event->ctrl != snap_gizmo->last_eventstate.ctrl) ||
-        (event->shift != snap_gizmo->last_eventstate.shift) ||
-        (event->alt != snap_gizmo->last_eventstate.alt) ||
-        (event->oskey != snap_gizmo->last_eventstate.oskey)) {
-      return true;
-    }
+    return eventstate_cmp(snap_gizmo, event) == false;
   }
   return false;
 }
@@ -132,10 +137,7 @@ static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
   }
 
   const wmEvent *event = wm->winactive->eventstate;
-  if ((event->ctrl == snap_gizmo->last_eventstate.ctrl) &&
-      (event->shift == snap_gizmo->last_eventstate.shift) &&
-      (event->alt == snap_gizmo->last_eventstate.alt) &&
-      (event->oskey == snap_gizmo->last_eventstate.oskey)) {
+  if (eventstate_cmp(snap_gizmo, event)) {
     /* Nothing has changed. */
     return snap_gizmo->invert_snap;
   }
