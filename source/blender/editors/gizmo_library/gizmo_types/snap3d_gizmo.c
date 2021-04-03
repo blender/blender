@@ -412,6 +412,7 @@ void ED_gizmotypes_snap_3d_data_get(
     wmGizmo *gz, float r_loc[3], float r_nor[3], int r_elem_index[3], int *r_snap_elem)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  BLI_assert(snap_gizmo->is_enabled);
   if (r_loc) {
     copy_v3_v3(r_loc, snap_gizmo->loc);
   }
