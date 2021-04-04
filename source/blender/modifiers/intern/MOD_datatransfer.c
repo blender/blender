@@ -369,6 +369,20 @@ static void face_corner_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "loop_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
+static void vert_propcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_PROPCOL);
+
+  uiItemR(layout, ptr, "layers_propcol_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_propcol_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+}
+
 static void face_corner_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -448,6 +462,9 @@ static void panelRegister(ARegionType *region_type)
       region_type, "vertex", "", vertex_panel_draw_header, vertex_panel_draw, panel_type);
   modifier_subpanel_register(
       region_type, "vertex_vgroup", "Vertex Groups", NULL, vertex_vgroup_panel_draw, vertex_panel);
+
+  modifier_subpanel_register(
+      region_type, "vert_propcol", "Sculpt Colors", NULL, vert_propcol_panel_draw, vertex_panel);
 
   modifier_subpanel_register(
       region_type, "edge", "", edge_panel_draw_header, edge_panel_draw, panel_type);

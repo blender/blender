@@ -38,6 +38,8 @@ struct PBVHNode {
   /* Opaque handle for drawing code */
   struct GPU_PBVH_Buffers *draw_buffers;
 
+  int id;
+
   /* Voxel bounds */
   BB vb;
   BB orig_vb;
@@ -124,6 +126,8 @@ typedef struct PBVHBMeshLog PBVHBMeshLog;
 struct PBVH {
   PBVHType type;
   PBVHFlags flags;
+
+  int idgen;
 
   PBVHNode *nodes;
   int node_mem_count, totnode;

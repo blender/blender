@@ -1327,7 +1327,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_MASK:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           float *dummy;
           BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
           // BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
@@ -1339,7 +1339,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
         BMFace *f;
 
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
           // BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
         }
@@ -1354,7 +1354,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
       case SCULPT_UNDO_COLOR: {
 #if 1
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           float *dummy;
           BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, NULL, NULL, &dummy);
         }
@@ -1409,7 +1409,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType);
   }
 
-  int n = BKE_pbvh_get_node_index(ss->pbvh, node);
+  int n = BKE_pbvh_get_node_id(ss->pbvh, node);
 
   if (unode->nodemap_size <= n) {
     int newsize = (n + 1) * 2;

@@ -175,7 +175,7 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_Delete = 1 << 15,
-  PBVH_UpdateCurvatureDir = 1<<16
+  PBVH_UpdateCurvatureDir = 1 << 16
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -648,6 +648,7 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
+int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value);
 
 #define DYNTOPO_CD_INTERP

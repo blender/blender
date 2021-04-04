@@ -249,6 +249,14 @@ void pbvh_grow_nodes(PBVH *pbvh, int totnode)
   }
 
   pbvh->totnode = totnode;
+
+  for (int i=0; i<pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!node->id) {
+      node->id = ++pbvh->idgen;
+    }
+  }
 }
 
 /* Add a vertex to the map, with a positive value for unique vertices and
@@ -1472,7 +1480,7 @@ void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node)
     return;
   }
 
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
+  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vd.bm_vert);
     float *c2 = BM_ELEM_CD_GET_VOID_P(vd.bm_vert, pbvh->cd_vcol_offset);
 
@@ -1489,7 +1497,7 @@ void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node)
     return;
   }
 
-  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
+  BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_UNIQUE) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, vd.bm_vert);
 
     copy_v3_v3(mv->origco, vd.bm_vert->co);
@@ -2997,7 +3005,7 @@ void BKE_pbvh_node_free_proxies(PBVHNode *node)
     node->proxies[p].co = NULL;
   }
 
-  MEM_freeN(node->proxies);
+  MEM_SAFE_FREE(node->proxies);
   node->proxies = NULL;
 
   node->proxy_count = 0;
@@ -3230,6 +3238,11 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node)
 {
   return (int)(node - pbvh->nodes);
+}
+
+int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node)
+{
+  return node->id;
 }
 
 void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode)

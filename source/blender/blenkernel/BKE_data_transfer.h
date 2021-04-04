@@ -54,9 +54,11 @@ enum {
   DT_TYPE_UV = 1 << 24,
   DT_TYPE_SHARP_FACE = 1 << 25,
   DT_TYPE_FREESTYLE_FACE = 1 << 26,
-#define DT_TYPE_MAX 27
+  DT_TYPE_PROPCOL = 1 << 27,
+#define DT_TYPE_MAX 28
 
-  DT_TYPE_VERT_ALL = DT_TYPE_MDEFORMVERT | DT_TYPE_SHAPEKEY | DT_TYPE_SKIN | DT_TYPE_BWEIGHT_VERT,
+  DT_TYPE_VERT_ALL = DT_TYPE_MDEFORMVERT | DT_TYPE_SHAPEKEY | DT_TYPE_SKIN | DT_TYPE_BWEIGHT_VERT |
+                     DT_TYPE_PROPCOL,
   DT_TYPE_EDGE_ALL = DT_TYPE_SHARP_EDGE | DT_TYPE_SEAM | DT_TYPE_CREASE | DT_TYPE_BWEIGHT_EDGE |
                      DT_TYPE_FREESTYLE_EDGE,
   DT_TYPE_LOOP_ALL = DT_TYPE_VCOL | DT_TYPE_LNOR | DT_TYPE_UV,
@@ -74,7 +76,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type);
 int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type);
 
 #define DT_DATATYPE_IS_VERT(_dt) \
-  ELEM(_dt, DT_TYPE_MDEFORMVERT, DT_TYPE_SHAPEKEY, DT_TYPE_SKIN, DT_TYPE_BWEIGHT_VERT)
+  ELEM(_dt, DT_TYPE_MDEFORMVERT, DT_TYPE_SHAPEKEY, DT_TYPE_SKIN, DT_TYPE_BWEIGHT_VERT, DT_TYPE_PROPCOL)
 #define DT_DATATYPE_IS_EDGE(_dt) \
   ELEM(_dt, \
        DT_TYPE_CREASE, \
@@ -94,7 +96,8 @@ enum {
   DT_MULTILAYER_INDEX_SHAPEKEY = 1,
   DT_MULTILAYER_INDEX_VCOL = 2,
   DT_MULTILAYER_INDEX_UV = 3,
-  DT_MULTILAYER_INDEX_MAX = 4,
+  DT_MULTILAYER_INDEX_PROPCOL = 4,
+  DT_MULTILAYER_INDEX_MAX = 5,
 };
 
 /* Below we keep positive values for real layers idx (generated dynamically). */

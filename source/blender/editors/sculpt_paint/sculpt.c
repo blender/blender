@@ -6409,9 +6409,25 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         BKE_pbvh_node_mark_update(nodes[i]);
       }
     }
+    else if (brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) {
+      PBVHNode **nodes2;
+      int totnode2 = 0;
+
+      BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes2, &totnode2);
+
+      for (int i = 0; i < totnode2; i++) {
+        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes2[i], SCULPT_UNDO_COORDS, -1)) {
+          BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes2[i]);
+          BKE_pbvh_node_free_proxies(nodes2[i]);
+        }
+        BKE_pbvh_node_mark_update(nodes2[i]);
+      }
+    }
     else {
       for (int i = 0; i < totnode; i++) {
-        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
+        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1)) {
+          // BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes[i]);
+        }
         BKE_pbvh_node_mark_update(nodes[i]);
       }
     }
