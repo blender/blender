@@ -59,6 +59,7 @@ set(SRC
   intern/COM_CompositorContext.h
   intern/COM_Converter.cc
   intern/COM_Converter.h
+  intern/COM_Enums.cc
   intern/COM_Debug.cc
   intern/COM_Debug.h
   intern/COM_Device.cc

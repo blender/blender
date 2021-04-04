@@ -330,7 +330,7 @@ void OutputOpenExrMultiLayerOperation::add_layer(const char *name,
                                                  bool use_layer)
 {
   this->addInputSocket(datatype);
-  this->m_layers.push_back(OutputOpenExrLayer(name, datatype, use_layer));
+  this->m_layers.append(OutputOpenExrLayer(name, datatype, use_layer));
 }
 
 StampData *OutputOpenExrMultiLayerOperation::createStampData() const
@@ -340,17 +340,16 @@ StampData *OutputOpenExrMultiLayerOperation::createStampData() const
   RenderResult render_result;
   StampData *stamp_data = BKE_stamp_info_from_scene_static(m_scene);
   render_result.stamp_data = stamp_data;
-  for (int i = 0; i < this->m_layers.size(); i++) {
-    const OutputOpenExrLayer *layer = &this->m_layers[i];
+  for (const OutputOpenExrLayer &layer : m_layers) {
     /* Skip unconnected sockets. */
-    if (layer->imageInput == nullptr) {
+    if (layer.imageInput == nullptr) {
       continue;
     }
-    std::unique_ptr<MetaData> meta_data = layer->imageInput->getMetaData();
+    std::unique_ptr<MetaData> meta_data = layer.imageInput->getMetaData();
     if (meta_data) {
       blender::StringRef layer_name =
           blender::bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
-              blender::StringRef(layer->name, BLI_strnlen(layer->name, sizeof(layer->name))));
+              blender::StringRef(layer.name, BLI_strnlen(layer.name, sizeof(layer.name))));
       meta_data->replaceHashNeutralCryptomatteKeys(layer_name);
       meta_data->addToRenderResult(&render_result);
     }

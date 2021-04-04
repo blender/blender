@@ -1024,6 +1024,7 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.
+ * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
  *
  * \param mval: Input screen-space pixel location.
  * \param mouse_worldloc: Output world-space location.
@@ -1034,7 +1035,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        const bool alphaoverride,
+                        const bool UNUSED(alphaoverride),
                         const float fallback_depth_pt[3])
 {
   float depth_close;
@@ -1042,7 +1043,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   bool depth_ok = false;
 
   /* Get Z Depths, needed for perspective, nice for ortho */
-  ED_view3d_draw_depth(depsgraph, region, v3d, alphaoverride);
+  ED_view3d_depth_override(depsgraph, region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
 
   /* Attempt with low margin's first */
   int i = 0;
@@ -1067,22 +1068,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   return false;
 }
 
-void ED_view3d_autodist_init(Depsgraph *depsgraph, ARegion *region, View3D *v3d, int mode)
-{
-  /* Get Z Depths, needed for perspective, nice for ortho */
-  switch (mode) {
-    case 0:
-      ED_view3d_draw_depth(depsgraph, region, v3d, true);
-      break;
-    case 1: {
-      Scene *scene = DEG_get_evaluated_scene(depsgraph);
-      ED_view3d_draw_depth_gpencil(depsgraph, scene, region, v3d);
-      break;
-    }
-  }
-}
-
-/* no 4x4 sampling, run #ED_view3d_autodist_init first */
+/* no 4x4 sampling, run #ED_view3d_depth_override first */
 bool ED_view3d_autodist_simple(ARegion *region,
                                const int mval[2],
                                float mouse_worldloc[3],

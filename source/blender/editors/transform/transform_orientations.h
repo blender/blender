@@ -27,7 +27,7 @@ struct TransInfo;
 
 short transform_orientation_matrix_get(struct bContext *C,
                                        struct TransInfo *t,
-                                       short orientation,
+                                       short orient_index,
                                        const float custom[3][3],
                                        float r_spacemtx[3][3]);
 const char *transform_orientations_spacename_get(struct TransInfo *t, const short orient_type);

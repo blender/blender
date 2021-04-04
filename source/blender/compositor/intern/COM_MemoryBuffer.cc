@@ -22,24 +22,11 @@
 
 namespace blender::compositor {
 
-static unsigned int determine_num_channels(DataType datatype)
-{
-  switch (datatype) {
-    case DataType::Value:
-      return COM_NUM_CHANNELS_VALUE;
-    case DataType::Vector:
-      return COM_NUM_CHANNELS_VECTOR;
-    case DataType::Color:
-    default:
-      return COM_NUM_CHANNELS_COLOR;
-  }
-}
-
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, const rcti &rect, MemoryBufferState state)
 {
   m_rect = rect;
   this->m_memoryProxy = memoryProxy;
-  this->m_num_channels = determine_num_channels(memoryProxy->getDataType());
+  this->m_num_channels = COM_data_type_num_channels(memoryProxy->getDataType());
   this->m_buffer = (float *)MEM_mallocN_aligned(
       sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
   this->m_state = state;
@@ -50,7 +37,7 @@ MemoryBuffer::MemoryBuffer(DataType dataType, const rcti &rect)
 {
   m_rect = rect;
   this->m_memoryProxy = nullptr;
-  this->m_num_channels = determine_num_channels(dataType);
+  this->m_num_channels = COM_data_type_num_channels(dataType);
   this->m_buffer = (float *)MEM_mallocN_aligned(
       sizeof(float) * buffer_len() * this->m_num_channels, 16, "COM_MemoryBuffer");
   this->m_state = MemoryBufferState::Temporary;

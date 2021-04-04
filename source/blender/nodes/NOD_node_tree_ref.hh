@@ -81,15 +81,19 @@ class SocketRef : NonCopyable, NonMovable {
   Vector<LinkRef *> directly_linked_links_;
 
   /* These sockets are linked directly, i.e. with a single link in between. */
-  MutableSpan<SocketRef *> directly_linked_sockets_;
+  MutableSpan<const SocketRef *> directly_linked_sockets_;
   /* These sockets are linked when reroutes, muted links and muted nodes have been taken into
    * account. */
-  MutableSpan<SocketRef *> logically_linked_sockets_;
+  MutableSpan<const SocketRef *> logically_linked_sockets_;
+  /* These are the sockets that have been skipped when searching for logically linked sockets.
+   * That includes for example the input and output socket of an intermediate reroute node. */
+  MutableSpan<const SocketRef *> logically_linked_skipped_sockets_;
 
   friend NodeTreeRef;
 
  public:
   Span<const SocketRef *> logically_linked_sockets() const;
+  Span<const SocketRef *> logically_linked_skipped_sockets() const;
   Span<const SocketRef *> directly_linked_sockets() const;
   Span<const LinkRef *> directly_linked_links() const;
 
@@ -132,12 +136,19 @@ class InputSocketRef final : public SocketRef {
   Span<const OutputSocketRef *> directly_linked_sockets() const;
 
   bool is_multi_input_socket() const;
+
+  void foreach_logical_origin(FunctionRef<void(const OutputSocketRef &)> origin_fn,
+                              FunctionRef<void(const SocketRef &)> skipped_fn,
+                              bool only_follow_first_input_link = false) const;
 };
 
 class OutputSocketRef final : public SocketRef {
  public:
   Span<const InputSocketRef *> logically_linked_sockets() const;
   Span<const InputSocketRef *> directly_linked_sockets() const;
+
+  void foreach_logical_target(FunctionRef<void(const InputSocketRef &)> target_fn,
+                              FunctionRef<void(const SocketRef &)> skipped_fn) const;
 };
 
 class NodeRef : NonCopyable, NonMovable {
@@ -257,12 +268,6 @@ class NodeTreeRef : NonCopyable, NonMovable {
                                       bNodeSocket *bsocket);
 
   void create_linked_socket_caches();
-
-  void foreach_logical_origin(InputSocketRef &socket,
-                              FunctionRef<void(OutputSocketRef &)> callback,
-                              bool only_follow_first_input_link = false);
-  void foreach_logical_target(OutputSocketRef &socket,
-                              FunctionRef<void(InputSocketRef &)> callback);
 };
 
 using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
@@ -285,6 +290,11 @@ using nodes::SocketRef;
 inline Span<const SocketRef *> SocketRef::logically_linked_sockets() const
 {
   return logically_linked_sockets_;
+}
+
+inline Span<const SocketRef *> SocketRef::logically_linked_skipped_sockets() const
+{
+  return logically_linked_skipped_sockets_;
 }
 
 inline Span<const SocketRef *> SocketRef::directly_linked_sockets() const

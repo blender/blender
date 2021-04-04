@@ -1314,7 +1314,6 @@ void ED_curve_editnurb_make(Object *obedit)
 
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       Nurb *newnu = BKE_nurb_duplicate(nu);
-      BKE_nurb_test_2d(newnu); /* after join, or any other creation of curve */
       BLI_addtail(&editnurb->nurbs, newnu);
     }
 
@@ -1706,7 +1705,7 @@ static void rotateflagNurb(ListBase *editnurb,
   }
 }
 
-void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3])
+void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3], bool is_2d)
 {
   /* all verts with ('flag' & flag) translate */
   BezTriple *bezt;
@@ -1741,7 +1740,9 @@ void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float ve
       }
     }
 
-    BKE_nurb_test_2d(nu);
+    if (is_2d) {
+      BKE_nurb_project_2d(nu);
+    }
   }
 }
 
@@ -5401,7 +5402,7 @@ static int ed_editcurve_addvert(Curve *cu,
     mul_v3_fl(center, 1.0f / (float)verts_len);
     sub_v3_v3v3(ofs, location_init, center);
 
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       ofs[2] = 0.0f;
     }
 
@@ -5439,7 +5440,7 @@ static int ed_editcurve_addvert(Curve *cu,
 
     copy_v3_v3(location, location_init);
 
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       location[2] = 0.0f;
     }
 
@@ -5455,10 +5456,6 @@ static int ed_editcurve_addvert(Curve *cu,
       nurb_new->orderu = 4;
       nurb_new->flag |= CU_SMOOTH;
       BKE_nurb_bezierPoints_add(nurb_new, 1);
-
-      if ((cu->flag & CU_3D) == 0) {
-        nurb_new->flag |= CU_2D;
-      }
     }
     else {
       /* Copy the active nurb settings. */
@@ -5590,7 +5587,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       ED_transform_snap_object_context_destroy(snap_context);
     }
 
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       const float eps = 1e-6f;
 
       /* get the view vector to 'location' */
@@ -6922,9 +6919,9 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
   cu = ob_active->data;
   BLI_movelisttolist(&cu->nurb, &tempbase);
 
-  if (ob_active->type == OB_CURVE) {
+  if (ob_active->type == OB_CURVE && CU_IS_2D(cu)) {
     /* Account for mixed 2D/3D curves when joining */
-    BKE_curve_curve_dimension_update(cu);
+    BKE_curve_dimension_update(cu);
   }
 
   DEG_relations_tag_update(bmain); /* because we removed object(s), call before editmode! */

@@ -79,7 +79,6 @@ void ImageNode::convertToOperations(NodeConverter &converter,
   Image *image = (Image *)editorNode->id;
   ImageUser *imageuser = (ImageUser *)editorNode->storage;
   int framenumber = context.getFramenumber();
-  int numberOfOutputs = this->getNumberOfOutputSockets();
   bool outputStraightAlpha = (editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT) != 0;
   BKE_image_user_frame_calc(image, imageuser, context.getFramenumber());
   /* force a load, we assume iuser index will be set OK anyway */
@@ -89,14 +88,11 @@ void ImageNode::convertToOperations(NodeConverter &converter,
     if (image->rr) {
       RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
       if (rl) {
-        NodeOutput *socket;
-        int index;
-
         is_multilayer_ok = true;
 
-        for (index = 0; index < numberOfOutputs; index++) {
+        for (int64_t index = 0; index < outputs.size(); index++) {
+          NodeOutput *socket = outputs[index];
           NodeOperation *operation = nullptr;
-          socket = this->getOutputSocket(index);
           bNodeSocket *bnodeSocket = socket->getbNodeSocket();
           NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;
           RenderPass *rpass = (RenderPass *)BLI_findstring(
@@ -173,8 +169,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
               converter.addPreview(operation->getOutputSocket());
             }
             if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
-              for (int alphaIndex = 0; alphaIndex < numberOfOutputs; alphaIndex++) {
-                NodeOutput *alphaSocket = this->getOutputSocket(alphaIndex);
+              for (NodeOutput *alphaSocket : getOutputSockets()) {
                 bNodeSocket *bnodeAlphaSocket = alphaSocket->getbNodeSocket();
                 if (!STREQ(bnodeAlphaSocket->name, "Alpha")) {
                   continue;
@@ -206,12 +201,13 @@ void ImageNode::convertToOperations(NodeConverter &converter,
 
     /* without this, multilayer that fail to load will crash blender T32490. */
     if (is_multilayer_ok == false) {
-      for (int i = 0; i < getNumberOfOutputSockets(); i++) {
-        converter.setInvalidOutput(getOutputSocket(i));
+      for (NodeOutput *output : getOutputSockets()) {
+        converter.setInvalidOutput(output);
       }
     }
   }
   else {
+    const int64_t numberOfOutputs = getOutputSockets().size();
     if (numberOfOutputs > 0) {
       ImageOperation *operation = new ImageOperation();
       operation->setImage(image);
@@ -298,6 +294,6 @@ void ImageNode::convertToOperations(NodeConverter &converter,
       }
     }
   }
-}
+}  // namespace blender::compositor
 
 }  // namespace blender::compositor

@@ -17,13 +17,13 @@
 /** \file
  * \ingroup bli
  *
- * Common implementation of linked-list a non-recursive mergesort.
+ * Common implementation of linked-list a non-recursive merge-sort.
  *
- * Originally from Mono's eglib, adapted for portable inclusion.
+ * Originally from Mono's `eglib`, adapted for portable inclusion.
  * This file is to be directly included in C-source,
  * with defines to control its use.
  *
- * This code requires a typedef named `SORT_IMPL_LINKTYPE` for the list node.
+ * This code requires a `typedef` named `SORT_IMPL_LINKTYPE` for the list node.
  * It is assumed that the list type is the type of a pointer to a list
  * node, and that the node has a field named 'next' that implements to
  * the linked list.  No additional invariant is maintained

@@ -1140,6 +1140,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim, int64_t requested_p
    * small. */
   for (int offset = 5; offset < 25; offset++) {
     current_pos = requested_pos - ((int64_t)(offset)*AV_TIME_BASE / frame_rate);
+    current_pos = max_ii(current_pos, 0);
 
     /* Seek to timestamp. */
     if (av_seek_frame(anim->pFormatCtx, -1, current_pos, AVSEEK_FLAG_BACKWARD) < 0) {
@@ -1218,8 +1219,7 @@ static void ffmpeg_seek_and_decode(struct anim *anim, int position, struct anim_
 
     AVFormatContext *format_ctx = anim->pFormatCtx;
 
-    /* Condition based on av_seek_frame() code. */
-    if (format_ctx->iformat->read_seek2 && !format_ctx->iformat->read_seek) {
+    if (format_ctx->iformat->read_seek2 || format_ctx->iformat->read_seek) {
       ret = av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
     }
     else {

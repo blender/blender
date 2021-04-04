@@ -18,12 +18,12 @@
 
 #include "FN_multi_function_network.hh"
 
-#include "BLI_resource_collector.hh"
+#include "BLI_resource_scope.hh"
 
 namespace blender::fn::mf_network_optimization {
 
 void dead_node_removal(MFNetwork &network);
-void constant_folding(MFNetwork &network, ResourceCollector &resources);
+void constant_folding(MFNetwork &network, ResourceScope &scope);
 void common_subnetwork_elimination(MFNetwork &network);
 
 }  // namespace blender::fn::mf_network_optimization

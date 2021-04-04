@@ -380,10 +380,10 @@ Nurb *ED_curve_add_nurbs_primitive(
 
         mul_mat3_m4_v3(mat, vec);
 
-        ed_editnurb_translate_flag(editnurb, SELECT, vec);
+        ed_editnurb_translate_flag(editnurb, SELECT, vec, CU_IS_2D(cu));
         ed_editnurb_extrude_flag(cu->editnurb, SELECT);
         mul_v3_fl(vec, -2.0f);
-        ed_editnurb_translate_flag(editnurb, SELECT, vec);
+        ed_editnurb_translate_flag(editnurb, SELECT, vec, CU_IS_2D(cu));
 
         BLI_remlink(editnurb, nu);
 
@@ -492,15 +492,13 @@ Nurb *ED_curve_add_nurbs_primitive(
   BLI_assert(nu != NULL);
 
   if (nu) { /* should always be set */
-    if ((obedit->type != OB_SURF) && ((cu->flag & CU_3D) == 0)) {
-      nu->flag |= CU_2D;
-    }
-
     nu->flag |= CU_SMOOTH;
     cu->actnu = BLI_listbase_count(editnurb);
     cu->actvert = CU_ACT_NONE;
 
-    BKE_nurb_test_2d(nu);
+    if (CU_IS_2D(cu)) {
+      BKE_nurb_project_2d(nu);
+    }
   }
 
   return nu;

@@ -548,14 +548,14 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
     const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
 
-    SEQ_CURRENT_BEGIN (ed, seq) {
-      if (((x < CFRA) && (seq->enddisp <= CFRA)) || ((x >= CFRA) && (seq->startdisp >= CFRA))) {
+    LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
+      if (((x < CFRA) && (seq_iter->enddisp <= CFRA)) ||
+          ((x >= CFRA) && (seq_iter->startdisp >= CFRA))) {
         /* Select left or right. */
-        seq->flag |= SELECT;
-        recurs_sel_seq(seq);
+        seq_iter->flag |= SELECT;
+        recurs_sel_seq(seq_iter);
       }
     }
-    SEQ_CURRENT_END;
 
     {
       SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -1170,7 +1170,6 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
   Editing *ed = SEQ_editing_get(scene, false);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int side = RNA_enum_get(op->ptr, "side");
-  Sequence *seq;
 
   if (ed == NULL) {
     return OPERATOR_CANCELLED;
@@ -1179,7 +1178,7 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
     ED_sequencer_deselect_all(scene);
   }
   const int timeline_frame = CFRA;
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     bool test = false;
     switch (side) {
       case -1:
@@ -1198,7 +1197,6 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
       recurs_sel_seq(seq);
     }
   }
-  SEQ_CURRENT_END;
 
   ED_outliner_select_sync_from_sequence_tag(C);
 
@@ -1483,58 +1481,51 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 static bool select_grouped_type(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq;
   bool changed = false;
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == actseq->type) {
       seq->flag |= SELECT;
       changed = true;
     }
   }
-  SEQ_CURRENT_END;
 
   return changed;
 }
 
 static bool select_grouped_type_basic(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq;
   bool changed = false;
   const bool is_sound = SEQ_IS_SOUND(actseq);
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq))) {
       seq->flag |= SELECT;
       changed = true;
     }
   }
-  SEQ_CURRENT_END;
 
   return changed;
 }
 
 static bool select_grouped_type_effect(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq;
   bool changed = false;
   const bool is_effect = SEQ_IS_EFFECT(actseq);
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (SEQ_CHANNEL_CHECK(seq, channel) &&
         (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq))) {
       seq->flag |= SELECT;
       changed = true;
     }
   }
-  SEQ_CURRENT_END;
 
   return changed;
 }
 
 static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq;
   bool changed = false;
   const char *dir = actseq->strip ? actseq->strip->dir : NULL;
 
@@ -1543,45 +1534,41 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
   }
 
   if (SEQ_HAS_PATH(actseq) && dir) {
-    SEQ_CURRENT_BEGIN (ed, seq) {
+    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip &&
           STREQ(seq->strip->dir, dir)) {
         seq->flag |= SELECT;
         changed = true;
       }
     }
-    SEQ_CURRENT_END;
   }
   else if (actseq->type == SEQ_TYPE_SCENE) {
     Scene *sce = actseq->scene;
-    SEQ_CURRENT_BEGIN (ed, seq) {
+    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
         seq->flag |= SELECT;
         changed = true;
       }
     }
-    SEQ_CURRENT_END;
   }
   else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
-    SEQ_CURRENT_BEGIN (ed, seq) {
+    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MOVIECLIP &&
           seq->clip == clip) {
         seq->flag |= SELECT;
         changed = true;
       }
     }
-    SEQ_CURRENT_END;
   }
   else if (actseq->type == SEQ_TYPE_MASK) {
     struct Mask *mask = actseq->mask;
-    SEQ_CURRENT_BEGIN (ed, seq) {
+    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
         seq->flag |= SELECT;
         changed = true;
       }
     }
-    SEQ_CURRENT_END;
   }
 
   return changed;
@@ -1589,7 +1576,6 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
 
 static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq;
   bool changed = false;
   bool effects[SEQ_TYPE_MAX + 1];
 
@@ -1597,15 +1583,14 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
     effects[i] = false;
   }
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
         ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
       effects[seq->type] = true;
     }
   }
-  SEQ_CURRENT_END;
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
       if (seq->seq1) {
         seq->seq1->flag |= SELECT;
@@ -1619,30 +1604,26 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
       changed = true;
     }
   }
-  SEQ_CURRENT_END;
 
   return changed;
 }
 
 static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 {
-  Sequence *seq;
   bool changed = false;
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->startdisp < actseq->enddisp && seq->enddisp > actseq->startdisp) {
       seq->flag |= SELECT;
       changed = true;
     }
   }
-  SEQ_CURRENT_END;
 
   return changed;
 }
 
 static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int channel)
 {
-  Sequence *seq = NULL;
   bool changed = false;
   const bool is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
   int startdisp = actseq->startdisp;
@@ -1650,13 +1631,13 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
   int machine = actseq->machine;
   SeqIterator iter;
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     seq->tmp = NULL;
   }
-  SEQ_CURRENT_END;
 
   actseq->tmp = POINTER_FROM_INT(true);
 
+  Sequence *seq = NULL;
   for (SEQ_iterator_begin(ed, &iter, true); iter.valid; SEQ_iterator_next(&iter)) {
     seq = iter.seq;
 
@@ -1711,7 +1692,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *seq, *actseq = SEQ_select_active_get(scene);
+  Sequence *actseq = SEQ_select_active_get(scene);
 
   if (actseq == NULL) {
     BKE_report(op->reports, RPT_ERROR, "No active sequence!");
@@ -1725,11 +1706,10 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   if (!extend) {
-    SEQ_CURRENT_BEGIN (ed, seq) {
+    LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
       seq->flag &= ~SELECT;
       changed = true;
     }
-    SEQ_CURRENT_END;
   }
 
   switch (type) {

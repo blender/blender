@@ -105,8 +105,6 @@
  * it messes up transform. */
 #undef SEQ_ALL_BEGIN
 #undef SEQ_ALL_END
-#undef SEQ_CURRENT_BEGIN
-#undef SEQ_CURRENT_END
 
 static Sequence *special_seq_update = NULL;
 

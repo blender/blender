@@ -94,6 +94,7 @@ static void lattice_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
   }
 
   lattice_dst->editlatt = NULL;
+  lattice_dst->batch_cache = NULL;
 }
 
 static void lattice_free_data(ID *id)

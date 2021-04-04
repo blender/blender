@@ -312,8 +312,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
     }
   }
 
-  /* Test for effects and overlap.
-   * Don't use SEQ_CURRENT_BEGIN since that would be recursive. */
+  /* Test for effects and overlap. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT && !(seq->depth == 0 && seq->flag & SEQ_LOCK)) {
       seq->flag &= ~SEQ_OVERLAP;
@@ -1411,28 +1410,25 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
   }
 
   if (changed) { /* Got new strips? */
-    Sequence *seq;
     if (ignore_selection) {
       if (use_cursor_position) {
-        SEQ_CURRENT_BEGIN (ed, seq) {
+        LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
           if (seq->enddisp == split_frame && seq->machine == split_channel) {
             seq_selected = seq->flag & SEQ_ALLSEL;
           }
         }
-        SEQ_CURRENT_END;
         if (!seq_selected) {
-          SEQ_CURRENT_BEGIN (ed, seq) {
+          LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
             if (seq->startdisp == split_frame && seq->machine == split_channel) {
               seq->flag &= ~SEQ_ALLSEL;
             }
           }
-          SEQ_CURRENT_END;
         }
       }
     }
     else {
       if (split_side != SEQ_SIDE_BOTH) {
-        SEQ_CURRENT_BEGIN (ed, seq) {
+        LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
           if (split_side == SEQ_SIDE_LEFT) {
             if (seq->startdisp >= split_frame) {
               seq->flag &= ~SEQ_ALLSEL;
@@ -1444,7 +1440,6 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
             }
           }
         }
-        SEQ_CURRENT_END;
       }
     }
 
@@ -1652,16 +1647,14 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *seq;
 
   SEQ_prefetch_stop(scene);
 
-  SEQ_CURRENT_BEGIN (scene->ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
       SEQ_edit_flag_for_removal(scene, ed->seqbasep, seq);
     }
   }
-  SEQ_CURRENT_END;
   SEQ_edit_remove_flagged_sequences(scene, ed->seqbasep);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -2418,17 +2411,15 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 
 void ED_sequencer_deselect_all(Scene *scene)
 {
-  Sequence *seq;
   Editing *ed = SEQ_editing_get(scene, false);
 
   if (ed == NULL) {
     return;
   }
 
-  SEQ_CURRENT_BEGIN (ed, seq) {
+  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     seq->flag &= ~SEQ_ALLSEL;
   }
-  SEQ_CURRENT_END;
 }
 
 static int sequencer_paste_exec(bContext *C, wmOperator *op)

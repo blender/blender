@@ -161,6 +161,7 @@ static Mesh *create_circle_mesh(const float radius,
       MEdge &edge = edges[verts_num + i];
       edge.v1 = verts_num;
       edge.v2 = i;
+      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
     }
   }
 

@@ -25,6 +25,7 @@ static bNodeSocketTemplate geo_node_point_scale_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Factor")},
     {SOCK_VECTOR, N_("Factor"), 1.0f, 1.0f, 1.0f, 1.0f, -FLT_MAX, FLT_MAX, PROP_XYZ},
+    {SOCK_FLOAT, N_("Factor"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
     {-1, ""},
 };
 
@@ -44,22 +45,42 @@ namespace blender::nodes {
 
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)
 {
+  /* Note that scale doesn't necessarily need to be created with a vector type-- it could also use
+   * the highest complexity of the existing attribute's type (if it exists) and the data type used
+   * for the factor. But for it's simpler to simply always use float3, since that is usually
+   * expected anyway. */
   static const float3 scale_default = float3(1.0f);
   OutputAttributePtr scale_attribute = component.attribute_try_get_for_output(
       "scale", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, &scale_default);
   if (!scale_attribute) {
     return;
   }
+
+  const bNode &node = params.node();
+  const NodeGeometryPointScale &node_storage = *(const NodeGeometryPointScale *)node.storage;
+  const GeometryNodeAttributeInputMode input_type = (GeometryNodeAttributeInputMode)
+                                                        node_storage.input_type;
+  const CustomDataType data_type = (input_type == GEO_NODE_ATTRIBUTE_INPUT_FLOAT) ? CD_PROP_FLOAT :
+                                                                                    CD_PROP_FLOAT3;
+
   ReadAttributePtr attribute = params.get_input_attribute(
-      "Factor", component, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, nullptr);
+      "Factor", component, ATTR_DOMAIN_POINT, data_type, nullptr);
   if (!attribute) {
     return;
   }
 
-  Span<float3> data = attribute->get_span<float3>();
   MutableSpan<float3> scale_span = scale_attribute->get_span<float3>();
-  for (const int i : scale_span.index_range()) {
-    scale_span[i] = scale_span[i] * data[i];
+  if (data_type == CD_PROP_FLOAT) {
+    Span<float> factors = attribute->get_span<float>();
+    for (const int i : scale_span.index_range()) {
+      scale_span[i] = scale_span[i] * factors[i];
+    }
+  }
+  else if (data_type == CD_PROP_FLOAT3) {
+    Span<float3> factors = attribute->get_span<float3>();
+    for (const int i : scale_span.index_range()) {
+      scale_span[i] = scale_span[i] * factors[i];
+    }
   }
 
   scale_attribute.apply_span_and_save();
@@ -86,7 +107,7 @@ static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
   NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
       sizeof(NodeGeometryPointScale), __func__);
 
-  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
   node->storage = data;
 }
 

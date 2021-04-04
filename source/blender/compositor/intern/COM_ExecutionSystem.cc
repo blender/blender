@@ -55,10 +55,10 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
   this->m_context.setFastCalculation(fastcalculation);
   /* initialize the CompositorContext */
   if (rendering) {
-    this->m_context.setQuality((CompositorQuality)editingtree->render_quality);
+    this->m_context.setQuality((eCompositorQuality)editingtree->render_quality);
   }
   else {
-    this->m_context.setQuality((CompositorQuality)editingtree->edit_quality);
+    this->m_context.setQuality((eCompositorQuality)editingtree->edit_quality);
   }
   this->m_context.setRendering(rendering);
   this->m_context.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
@@ -119,14 +119,14 @@ ExecutionSystem::~ExecutionSystem()
   this->m_groups.clear();
 }
 
-void ExecutionSystem::set_operations(const blender::Vector<NodeOperation *> &operations,
-                                     const blender::Vector<ExecutionGroup *> &groups)
+void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
+                                     const Vector<ExecutionGroup *> &groups)
 {
   m_operations = operations;
   m_groups = groups;
 }
 
-static void update_read_buffer_offset(blender::Vector<NodeOperation *> &operations)
+static void update_read_buffer_offset(Vector<NodeOperation *> &operations)
 {
   unsigned int order = 0;
   for (NodeOperation *operation : operations) {
@@ -138,7 +138,7 @@ static void update_read_buffer_offset(blender::Vector<NodeOperation *> &operatio
   }
 }
 
-static void init_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+static void init_write_operations_for_execution(Vector<NodeOperation *> &operations,
                                                 const bNodeTree *bTree)
 {
   for (NodeOperation *operation : operations) {
@@ -149,7 +149,7 @@ static void init_write_operations_for_execution(blender::Vector<NodeOperation *>
   }
 }
 
-static void link_write_buffers(blender::Vector<NodeOperation *> &operations)
+static void link_write_buffers(Vector<NodeOperation *> &operations)
 {
   for (NodeOperation *operation : operations) {
     if (operation->get_flags().is_read_buffer_operation) {
@@ -159,7 +159,7 @@ static void link_write_buffers(blender::Vector<NodeOperation *> &operations)
   }
 }
 
-static void init_non_write_operations_for_execution(blender::Vector<NodeOperation *> &operations,
+static void init_non_write_operations_for_execution(Vector<NodeOperation *> &operations,
                                                     const bNodeTree *bTree)
 {
   for (NodeOperation *operation : operations) {
@@ -170,7 +170,7 @@ static void init_non_write_operations_for_execution(blender::Vector<NodeOperatio
   }
 }
 
-static void init_execution_groups_for_execution(blender::Vector<ExecutionGroup *> &groups,
+static void init_execution_groups_for_execution(Vector<ExecutionGroup *> &groups,
                                                 const int chunk_size)
 {
   for (ExecutionGroup *execution_group : groups) {
@@ -193,10 +193,10 @@ void ExecutionSystem::execute()
   init_execution_groups_for_execution(m_groups, m_context.getChunksize());
 
   WorkScheduler::start(this->m_context);
-  execute_groups(CompositorPriority::High);
+  execute_groups(eCompositorPriority::High);
   if (!this->getContext().isFastCalculation()) {
-    execute_groups(CompositorPriority::Medium);
-    execute_groups(CompositorPriority::Low);
+    execute_groups(eCompositorPriority::Medium);
+    execute_groups(eCompositorPriority::Low);
   }
   WorkScheduler::finish();
   WorkScheduler::stop();
@@ -212,7 +212,7 @@ void ExecutionSystem::execute()
   }
 }
 
-void ExecutionSystem::execute_groups(CompositorPriority priority)
+void ExecutionSystem::execute_groups(eCompositorPriority priority)
 {
   for (ExecutionGroup *execution_group : m_groups) {
     if (execution_group->get_flags().is_output &&

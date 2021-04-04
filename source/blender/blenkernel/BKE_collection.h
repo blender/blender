@@ -88,7 +88,7 @@ struct Collection *BKE_collection_object_find(struct Main *bmain,
                                               struct Scene *scene,
                                               struct Collection *collection,
                                               struct Object *ob);
-bool BKE_collection_is_empty(struct Collection *collection);
+bool BKE_collection_is_empty(const struct Collection *collection);
 
 bool BKE_collection_object_add(struct Main *bmain,
                                struct Collection *collection,

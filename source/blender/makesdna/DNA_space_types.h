@@ -1520,6 +1520,7 @@ typedef struct bNodeTreePath {
 
   /** MAX_NAME. */
   char node_name[64];
+  char display_name[64];
 } bNodeTreePath;
 
 typedef struct SpaceNode {

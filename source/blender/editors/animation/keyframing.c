@@ -3034,17 +3034,7 @@ bool ED_autokeyframe_pchan(
     ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
     BLI_freelistN(&dsources);
 
-    /* clear any unkeyed tags */
-    if (pchan->bone) {
-      pchan->bone->flag &= ~BONE_UNKEYED;
-    }
-
     return true;
-  }
-
-  /* add unkeyed tags */
-  if (pchan->bone) {
-    pchan->bone->flag |= BONE_UNKEYED;
   }
 
   return false;

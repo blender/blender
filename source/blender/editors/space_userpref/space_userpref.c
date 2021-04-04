@@ -79,7 +79,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for userpref");
@@ -251,6 +251,7 @@ void ED_spacetype_userpref(void)
   /* regions: execution window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
   art->regionid = RGN_TYPE_EXECUTE;
+  art->prefsizey = HEADERY;
   art->init = userpref_execute_region_init;
   art->layout = ED_region_panels_layout;
   art->draw = ED_region_panels_draw;

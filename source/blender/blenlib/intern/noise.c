@@ -1121,7 +1121,7 @@ static float voronoi_CrS(float x, float y, float z)
 /** \name Cell-Noise Implementation
  * \{ */
 
-/* returns unsigned cellnoise */
+/** Returns unsigned cell-noise. */
 static float BLI_cellNoiseU(float x, float y, float z)
 {
   /* avoid precision issues on unit coordinates */
@@ -1166,7 +1166,9 @@ void BLI_noise_cell_v3(float x, float y, float z, float ca[3])
 /** \name Public API's
  * \{ */
 
-/* newnoise: generic noise function for use with different noisebases */
+/**
+ * newnoise: generic noise function for use with different `noisebasis`.
+ */
 float BLI_noise_generic_noise(
     float noisesize, float x, float y, float z, bool hard, int noisebasis)
 {

@@ -75,33 +75,31 @@ typedef struct DispList {
   int *index;
   int charidx;
   int totindex; /* indexed array drawing surfaces */
-
-  unsigned int *bevel_split; /* BLI_bitmap */
 } DispList;
 
-void BKE_displist_copy(struct ListBase *lbn, struct ListBase *lb);
+void BKE_displist_copy(struct ListBase *lbn, const struct ListBase *lb);
 void BKE_displist_elem_free(DispList *dl);
 DispList *BKE_displist_find_or_create(struct ListBase *lb, int type);
 DispList *BKE_displist_find(struct ListBase *lb, int type);
 void BKE_displist_normals_add(struct ListBase *lb);
-void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface, int *tottri);
+void BKE_displist_count(const struct ListBase *lb, int *totvert, int *totface, int *tottri);
 void BKE_displist_free(struct ListBase *lb);
-bool BKE_displist_has_faces(struct ListBase *lb);
+bool BKE_displist_has_faces(const struct ListBase *lb);
 
 void BKE_displist_make_surf(struct Depsgraph *depsgraph,
-                            struct Scene *scene,
+                            const struct Scene *scene,
                             struct Object *ob,
                             struct ListBase *dispbase,
                             struct Mesh **r_final,
                             const bool for_render,
                             const bool for_orco);
 void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
-                                  struct Scene *scene,
+                                  const struct Scene *scene,
                                   struct Object *ob,
                                   const bool for_render,
                                   const bool for_orco);
 void BKE_displist_make_curveTypes_forRender(struct Depsgraph *depsgraph,
-                                            struct Scene *scene,
+                                            const struct Scene *scene,
                                             struct Object *ob,
                                             struct ListBase *dispbase,
                                             struct Mesh **r_final,
@@ -113,22 +111,26 @@ void BKE_displist_make_mball_forRender(struct Depsgraph *depsgraph,
                                        struct ListBase *dispbase);
 
 bool BKE_curve_calc_modifiers_pre(struct Depsgraph *depsgraph,
-                                  struct Scene *scene,
+                                  const struct Scene *scene,
                                   struct Object *ob,
                                   struct ListBase *source_nurb,
                                   struct ListBase *target_nurb,
                                   const bool for_render);
+bool BKE_displist_surfindex_get(
+    const struct DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 
-bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void BKE_displist_fill(const struct ListBase *dispbase,
                        struct ListBase *to,
                        const float normal_proj[3],
                        const bool flip_normal);
 
-float BKE_displist_calc_taper(
-    struct Depsgraph *depsgraph, struct Scene *scene, struct Object *taperobj, int cur, int tot);
+float BKE_displist_calc_taper(struct Depsgraph *depsgraph,
+                              const struct Scene *scene,
+                              struct Object *taperobj,
+                              int cur,
+                              int tot);
 
-void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
+void BKE_displist_minmax(const struct ListBase *dispbase, float min[3], float max[3]);
 
 #ifdef __cplusplus
 }

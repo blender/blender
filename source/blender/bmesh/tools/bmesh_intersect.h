@@ -20,6 +20,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 bool BM_mesh_intersect(BMesh *bm,
                        struct BMLoop *(*looptris)[3],
                        const int looptris_tot,
@@ -41,3 +45,7 @@ enum {
   BMESH_ISECT_BOOLEAN_UNION = 1,
   BMESH_ISECT_BOOLEAN_DIFFERENCE = 2,
 };
+
+#ifdef __cplusplus
+}
+#endif

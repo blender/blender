@@ -43,7 +43,7 @@ constexpr blender::StringRef META_DATA_KEY_CRYPTOMATTE_NAME("cryptomatte/{hash}/
 
 class MetaData {
  private:
-  blender::Map<std::string, std::string> entries_;
+  Map<std::string, std::string> entries_;
   void addCryptomatteEntry(const blender::StringRef layer_name,
                            const blender::StringRefNull key,
                            const blender::StringRef value);

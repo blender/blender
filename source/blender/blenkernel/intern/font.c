@@ -447,7 +447,6 @@ static void build_underline(Curve *cu,
   nu2->resolu = cu->resolu;
   nu2->bezt = NULL;
   nu2->knotsu = nu2->knotsv = NULL;
-  nu2->flag = CU_2D;
   nu2->charidx = charidx + 1000;
   if (mat_nr > 0) {
     nu2->mat_nr = mat_nr - 1;

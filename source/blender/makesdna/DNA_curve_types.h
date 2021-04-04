@@ -72,7 +72,7 @@ typedef struct BevPoint {
   float sina, cosa;
   /** 3D Only. */
   float dir[3], tan[3], quat[4];
-  short split_tag, dupe_tag;
+  short dupe_tag;
 } BevPoint;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
@@ -425,7 +425,6 @@ enum {
 /* Nurb.flag */
 enum {
   CU_SMOOTH = 1 << 0,
-  CU_2D = 1 << 3, /* moved from type since 2.4x */
 };
 
 /* Nurb.type */

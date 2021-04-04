@@ -3289,10 +3289,12 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-  prop = RNA_def_property(srna, "use_mirror_vertex_group_x", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERTEX_GROUPS_X_SYMMETRY);
-  RNA_def_property_ui_text(
-      prop, "Vertex Groups X Symmetry", "Mirror the left/right vertex groups when painting");
+  prop = RNA_def_property(srna, "use_mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_VERTEX_GROUPS);
+  RNA_def_property_ui_text(prop,
+                           "Mirror Vertex Groups",
+                           "Mirror the left/right vertex groups when painting. The symmetry axis "
+                           "is determined by the symmetry settings");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
   /* End Symmetry */
 

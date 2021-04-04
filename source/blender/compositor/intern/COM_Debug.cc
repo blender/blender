@@ -18,32 +18,31 @@
 
 #include "COM_Debug.h"
 
+#include <map>
+#include <typeinfo>
+#include <vector>
+
+extern "C" {
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_sys_types.h"
+
+#include "BKE_appdir.h"
+#include "BKE_node.h"
+#include "DNA_node_types.h"
+}
+
+#include "COM_ExecutionSystem.h"
+#include "COM_Node.h"
+
+#include "COM_ReadBufferOperation.h"
+#include "COM_ViewerOperation.h"
+#include "COM_WriteBufferOperation.h"
+
 namespace blender::compositor {
 
 #ifdef COM_DEBUG
-
-#  include <map>
-#  include <typeinfo>
-#  include <vector>
-
-extern "C" {
-#  include "BLI_fileops.h"
-#  include "BLI_path_util.h"
-#  include "BLI_string.h"
-#  include "BLI_sys_types.h"
-
-#  include "BKE_appdir.h"
-#  include "BKE_node.h"
-#  include "DNA_node_types.h"
-}
-
-#  include "COM_ExecutionGroup.h"
-#  include "COM_ExecutionSystem.h"
-#  include "COM_Node.h"
-
-#  include "COM_ReadBufferOperation.h"
-#  include "COM_ViewerOperation.h"
-#  include "COM_WriteBufferOperation.h"
 
 int DebugInfo::m_file_index = 0;
 DebugInfo::NodeNameMap DebugInfo::m_node_names;
@@ -115,7 +114,7 @@ void DebugInfo::execution_group_finished(const ExecutionGroup *group)
 }
 
 int DebugInfo::graphviz_operation(const ExecutionSystem *system,
-                                  const NodeOperation *operation,
+                                  NodeOperation *operation,
                                   const ExecutionGroup *group,
                                   char *str,
                                   int maxlen)
@@ -123,7 +122,7 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   int len = 0;
 
   std::string fillcolor = "gainsboro";
-  if (operation->isViewerOperation()) {
+  if (operation->get_flags().is_viewer_operation) {
     const ViewerOperation *viewer = (const ViewerOperation *)operation;
     if (viewer->isActiveViewerOutput()) {
       fillcolor = "lightskyblue1";
@@ -135,7 +134,7 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   else if (operation->isOutputOperation(system->getContext().isRendering())) {
     fillcolor = "dodgerblue1";
   }
-  else if (operation->get_flags().is_set_operation()) {
+  else if (operation->get_flags().is_set_operation) {
     fillcolor = "khaki1";
   }
   else if (operation->get_flags().is_read_buffer_operation) {
@@ -383,8 +382,8 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   }
 
   for (NodeOperation *op : system->m_operations) {
-    for (NodeOperationInput *to : op->m_inputs) {
-      NodeOperationOutput *from = to->getLink();
+    for (NodeOperationInput &to : op->m_inputs) {
+      NodeOperationOutput *from = to.getLink();
 
       if (!from) {
         continue;
@@ -403,7 +402,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           break;
       }
 
-      NodeOperation *to_op = &to->getOperation();
+      NodeOperation *to_op = &to.getOperation();
       NodeOperation *from_op = &from->getOperation();
       std::vector<std::string> &from_groups = op_groups[from_op];
       std::vector<std::string> &to_groups = op_groups[to_op];
@@ -414,7 +413,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
                       from_op,
                       from,
                       to_op,
-                      to);
+                      &to);
       for (int k = 0; k < from_groups.size(); k++) {
         for (int l = 0; l < to_groups.size(); l++) {
           len += snprintf(str + len,
@@ -425,7 +424,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
                           from,
                           to_op,
                           to_groups[l].c_str(),
-                          to);
+                          &to);
           len += snprintf(
               str + len, maxlen > len ? maxlen - len : 0, " [color=%s]", color.c_str());
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\r\n");

@@ -32,12 +32,6 @@ import bpy
 IS_TESTING = False
 
 
-def drepr(string):
-    # is there a less crappy way to do this in python?, re.escape also escapes
-    # single quotes strings so can't use it.
-    return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'", "'")
-
-
 def classes_recursive(base_type, clss=None):
     if clss is None:
         clss = [base_type]
@@ -66,7 +60,7 @@ class DataPathBuilder:
         if type(key) is int:
             str_value = '[%d]' % key
         elif type(key) is str:
-            str_value = '[%s]' % drepr(key)
+            str_value = '["%s"]' % bpy.utils.escape_identifier(key)
         else:
             raise Exception("unsupported accessor %r of type %r (internal error)" % (key, type(key)))
         return DataPathBuilder(self.data_path + (str_value, ))

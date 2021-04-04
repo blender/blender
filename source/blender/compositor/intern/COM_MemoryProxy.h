@@ -70,7 +70,7 @@ class MemoryProxy {
   /**
    * \brief get the ExecutionGroup that can be scheduled to calculate a certain chunk.
    */
-  ExecutionGroup *getExecutor()
+  ExecutionGroup *getExecutor() const
   {
     return this->m_executor;
   }
@@ -88,7 +88,7 @@ class MemoryProxy {
    * \brief get the WriteBufferOperation that is responsible for writing to this MemoryProxy
    * \return WriteBufferOperation
    */
-  WriteBufferOperation *getWriteBufferOperation()
+  WriteBufferOperation *getWriteBufferOperation() const
   {
     return this->m_writeBufferOperation;
   }

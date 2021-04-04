@@ -28,8 +28,8 @@ extern PyTypeObject BPyGPUVertBuf_Type;
 
 typedef struct BPyGPUVertBuf {
   PyObject_VAR_HEAD
-      /* The buf is owned, we may support thin wrapped batches later. */
-      struct GPUVertBuf *buf;
+  /* The buf is owned, we may support thin wrapped batches later. */
+  struct GPUVertBuf *buf;
 } BPyGPUVertBuf;
 
 PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *buf) ATTR_NONNULL(1);

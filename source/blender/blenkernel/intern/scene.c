@@ -2517,6 +2517,18 @@ int BKE_scene_orientation_slot_get_index(const TransformOrientationSlot *orient_
              orient_slot->type;
 }
 
+int BKE_scene_orientation_get_index(Scene *scene, int slot_index)
+{
+  TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene, slot_index);
+  return BKE_scene_orientation_slot_get_index(orient_slot);
+}
+
+int BKE_scene_orientation_get_index_from_flag(Scene *scene, int flag)
+{
+  TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(scene, flag);
+  return BKE_scene_orientation_slot_get_index(orient_slot);
+}
+
 /** \} */
 
 static bool check_rendered_viewport_visible(Main *bmain)

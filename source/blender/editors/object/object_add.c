@@ -2897,7 +2897,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       cu->flag &= ~CU_3D;
-      BKE_curve_curve_dimension_update(cu);
+      BKE_curve_dimension_update(cu);
 
       if (target == OB_MESH) {
         /* No assumption should be made that the resulting objects is a mesh, as conversion can

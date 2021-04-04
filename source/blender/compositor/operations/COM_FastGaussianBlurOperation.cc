@@ -90,18 +90,18 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect)
     this->m_sy = this->m_data.sizey * this->m_size / 2.0f;
 
     if ((this->m_sx == this->m_sy) && (this->m_sx > 0.0f)) {
-      for (c = 0; c < COM_NUM_CHANNELS_COLOR; c++) {
+      for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
         IIR_gauss(copy, this->m_sx, c, 3);
       }
     }
     else {
       if (this->m_sx > 0.0f) {
-        for (c = 0; c < COM_NUM_CHANNELS_COLOR; c++) {
+        for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
           IIR_gauss(copy, this->m_sx, c, 1);
         }
       }
       if (this->m_sy > 0.0f) {
-        for (c = 0; c < COM_NUM_CHANNELS_COLOR; c++) {
+        for (c = 0; c < COM_DATA_TYPE_COLOR_CHANNELS; c++) {
           IIR_gauss(copy, this->m_sy, c, 2);
         }
       }
@@ -319,7 +319,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
       float *src = newBuf->getBuffer();
       float *dst = copy->getBuffer();
       for (int i = copy->getWidth() * copy->getHeight(); i != 0;
-           i--, src += COM_NUM_CHANNELS_VALUE, dst += COM_NUM_CHANNELS_VALUE) {
+           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS) {
         if (*src < *dst) {
           *dst = *src;
         }
@@ -329,7 +329,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
       float *src = newBuf->getBuffer();
       float *dst = copy->getBuffer();
       for (int i = copy->getWidth() * copy->getHeight(); i != 0;
-           i--, src += COM_NUM_CHANNELS_VALUE, dst += COM_NUM_CHANNELS_VALUE) {
+           i--, src += COM_DATA_TYPE_VALUE_CHANNELS, dst += COM_DATA_TYPE_VALUE_CHANNELS) {
         if (*src > *dst) {
           *dst = *src;
         }

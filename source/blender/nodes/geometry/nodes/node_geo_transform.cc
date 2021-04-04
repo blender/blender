@@ -111,7 +111,7 @@ static void transform_instances(InstancesComponent &instances,
   else {
     const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     for (float4x4 &transform : transforms) {
-      transform = transform * matrix;
+      transform = matrix * transform;
     }
   }
 }
@@ -133,7 +133,7 @@ static void transform_volume(Volume *volume,
   Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
-  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+  const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, limited_scale);
 
   openvdb::Mat4s vdb_matrix;
   memcpy(vdb_matrix.asPointer(), matrix, sizeof(float[4][4]));

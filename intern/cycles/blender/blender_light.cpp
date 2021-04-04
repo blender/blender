@@ -82,6 +82,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
       light->set_axisu(transform_get_column(&tfm, 0));
       light->set_axisv(transform_get_column(&tfm, 1));
       light->set_sizeu(b_area_light.size());
+      light->set_spread(b_area_light.spread());
       switch (b_area_light.shape()) {
         case BL::AreaLight::shape_SQUARE:
           light->set_sizev(light->get_sizeu());

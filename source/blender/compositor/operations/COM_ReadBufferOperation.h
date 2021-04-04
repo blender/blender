@@ -37,10 +37,12 @@ class ReadBufferOperation : public NodeOperation {
   {
     this->m_memoryProxy = memoryProxy;
   }
-  MemoryProxy *getMemoryProxy()
+
+  MemoryProxy *getMemoryProxy() const
   {
     return this->m_memoryProxy;
   }
+
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
 

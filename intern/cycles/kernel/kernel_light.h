@@ -119,11 +119,11 @@ ccl_device_inline bool lamp_light_sample(
           klight->area.axisu[0], klight->area.axisu[1], klight->area.axisu[2]);
       float3 axisv = make_float3(
           klight->area.axisv[0], klight->area.axisv[1], klight->area.axisv[2]);
-      float3 D = make_float3(klight->area.dir[0], klight->area.dir[1], klight->area.dir[2]);
+      float3 Ng = make_float3(klight->area.dir[0], klight->area.dir[1], klight->area.dir[2]);
       float invarea = fabsf(klight->area.invarea);
       bool is_round = (klight->area.invarea < 0.0f);
 
-      if (dot(ls->P - P, D) > 0.0f) {
+      if (dot(ls->P - P, Ng) > 0.0f) {
         return false;
       }
 
@@ -135,20 +135,37 @@ ccl_device_inline bool lamp_light_sample(
         ls->pdf = invarea;
       }
       else {
+        float3 sample_axisu = axisu;
+        float3 sample_axisv = axisv;
+
+        if (klight->area.tan_spread > 0.0f) {
+          if (!light_spread_clamp_area_light(
+                  P, Ng, &ls->P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
+            return false;
+          }
+        }
+
         inplane = ls->P;
-        ls->pdf = rect_light_sample(P, &ls->P, axisu, axisv, randu, randv, true);
+        ls->pdf = rect_light_sample(P, &ls->P, sample_axisu, sample_axisv, randu, randv, true);
         inplane = ls->P - inplane;
       }
 
       ls->u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu)) + 0.5f;
       ls->v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv)) + 0.5f;
 
-      ls->Ng = D;
+      ls->Ng = Ng;
       ls->D = normalize_len(ls->P - P, &ls->t);
 
       ls->eval_fac = 0.25f * invarea;
+
+      if (klight->area.tan_spread > 0.0f) {
+        /* Area Light spread angle attenuation */
+        ls->eval_fac *= light_spread_attenuation(
+            ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+      }
+
       if (is_round) {
-        ls->pdf *= lamp_light_pdf(kg, D, -ls->D, ls->t);
+        ls->pdf *= lamp_light_pdf(kg, Ng, -ls->D, ls->t);
       }
     }
   }
@@ -283,9 +300,28 @@ ccl_device bool lamp_light_eval(
       ls->pdf = invarea * lamp_light_pdf(kg, Ng, -D, ls->t);
     }
     else {
-      ls->pdf = rect_light_sample(P, &light_P, axisu, axisv, 0, 0, false);
+      float3 sample_axisu = axisu;
+      float3 sample_axisv = axisv;
+
+      if (klight->area.tan_spread > 0.0f) {
+        if (!light_spread_clamp_area_light(
+                P, Ng, &light_P, &sample_axisu, &sample_axisv, klight->area.tan_spread)) {
+          return false;
+        }
+      }
+
+      ls->pdf = rect_light_sample(P, &light_P, sample_axisu, sample_axisv, 0, 0, false);
     }
     ls->eval_fac = 0.25f * invarea;
+
+    if (klight->area.tan_spread > 0.0f) {
+      /* Area Light spread angle attenuation */
+      ls->eval_fac *= light_spread_attenuation(
+          ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+      if (ls->eval_fac == 0.0f) {
+        return false;
+      }
+    }
   }
   else {
     return false;

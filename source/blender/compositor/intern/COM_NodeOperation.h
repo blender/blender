@@ -26,6 +26,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
+#include "COM_Enums.h"
 #include "COM_MemoryBuffer.h"
 #include "COM_MemoryProxy.h"
 #include "COM_MetaData.h"
@@ -182,6 +183,8 @@ struct NodeOperationFlags {
    */
   bool open_cl : 1;
 
+  bool single_threaded : 1;
+
   /**
    * Does the operation needs a viewer border.
    * Basically, setting border need to happen for only operations
@@ -210,10 +213,22 @@ struct NodeOperationFlags {
   bool is_set_operation : 1;
   bool is_write_buffer_operation : 1;
   bool is_read_buffer_operation : 1;
+  bool is_proxy_operation : 1;
+  bool is_viewer_operation : 1;
+  bool is_preview_operation : 1;
+
+  /**
+   * When set additional data conversion operations are added to
+   * convert the data. SocketProxyOperation don't always need to do data conversions.
+   *
+   * By default data conversions are enabled.
+   */
+  bool use_datatype_conversion : 1;
 
   NodeOperationFlags()
   {
     complex = false;
+    single_threaded = false;
     open_cl = false;
     use_render_border = false;
     use_viewer_border = false;
@@ -221,6 +236,10 @@ struct NodeOperationFlags {
     is_set_operation = false;
     is_read_buffer_operation = false;
     is_write_buffer_operation = false;
+    is_proxy_operation = false;
+    is_viewer_operation = false;
+    is_preview_operation = false;
+    use_datatype_conversion = true;
   }
 };
 
@@ -232,8 +251,9 @@ struct NodeOperationFlags {
  */
 class NodeOperation {
  private:
-  blender::Vector<NodeOperationInput> m_inputs;
-  blender::Vector<NodeOperationOutput> m_outputs;
+  std::string m_name;
+  Vector<NodeOperationInput> m_inputs;
+  Vector<NodeOperationOutput> m_outputs;
 
   /**
    * \brief the index of the input socket that will be used to determine the resolution
@@ -277,6 +297,16 @@ class NodeOperation {
   {
   }
 
+  void set_name(const std::string name)
+  {
+    m_name = name;
+  }
+
+  const std::string get_name() const
+  {
+    return m_name;
+  }
+
   const NodeOperationFlags get_flags() const
   {
     return flags;
@@ -292,14 +322,6 @@ class NodeOperation {
   }
   NodeOperationOutput *getOutputSocket(unsigned int index = 0);
   NodeOperationInput *getInputSocket(unsigned int index);
-
-  /** Check if this is an input operation
-   * An input operation is an operation that only has output sockets and no input sockets
-   */
-  bool isInputOperation() const
-  {
-    return m_inputs.is_empty();
-  }
 
   /**
    * \brief determine the resolution of this node
@@ -326,11 +348,6 @@ class NodeOperation {
    * \return bool the result of this method
    */
   virtual bool isOutputOperation(bool /*rendering*/) const
-  {
-    return false;
-  }
-
-  virtual int isSingleThreaded()
   {
     return false;
   }
@@ -435,29 +452,11 @@ class NodeOperation {
   /**
    * \brief get the render priority of this node.
    * \note only applicable for output operations like ViewerOperation
-   * \return CompositorPriority
+   * \return eCompositorPriority
    */
-  virtual CompositorPriority getRenderPriority() const
+  virtual eCompositorPriority getRenderPriority() const
   {
-    return CompositorPriority::Low;
-  }
-
-  virtual bool isViewerOperation() const
-  {
-    return false;
-  }
-  virtual bool isPreviewOperation() const
-  {
-    return false;
-  }
-  virtual bool isProxyOperation() const
-  {
-    return false;
-  }
-
-  virtual bool useDatatypeConversion() const
-  {
-    return true;
+    return eCompositorPriority::Low;
   }
 
   inline bool isBraked() const
@@ -606,5 +605,8 @@ class NodeOperation {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeOperation")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const NodeOperationFlags &node_operation_flags);
+std::ostream &operator<<(std::ostream &os, const NodeOperation &node_operation);
 
 }  // namespace blender::compositor

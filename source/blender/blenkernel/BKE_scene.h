@@ -140,6 +140,8 @@ struct TransformOrientationSlot *BKE_scene_orientation_slot_get(struct Scene *sc
 void BKE_scene_orientation_slot_set_index(struct TransformOrientationSlot *orient_slot,
                                           int orientation);
 int BKE_scene_orientation_slot_get_index(const struct TransformOrientationSlot *orient_slot);
+int BKE_scene_orientation_get_index(struct Scene *scene, int slot_index);
+int BKE_scene_orientation_get_index_from_flag(struct Scene *scene, int flag);
 
 /* **  Scene evaluation ** */
 

@@ -172,9 +172,6 @@ static void applyarmature_transfer_properties(EditBone *curbone,
   unit_qt(pchan->quat);
   unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
   pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
-
-  /* Set anim lock. */
-  curbone->flag |= BONE_UNKEYED;
 }
 
 /* Adjust the current edit position of the bone using the pose space matrix. */
@@ -1200,10 +1197,6 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
       /* do auto-keyframing as appropriate */
       if (autokeyframe_cfra_can_key(scene, &ob_iter->id)) {
-        /* clear any unkeyed tags */
-        if (pchan->bone) {
-          pchan->bone->flag &= ~BONE_UNKEYED;
-        }
         /* tag for autokeying later */
         ANIM_relative_keyingset_add_source(&dsources, &ob_iter->id, &RNA_PoseBone, pchan);
 
@@ -1211,12 +1204,6 @@ static int pose_clear_transform_generic_exec(bContext *C,
         bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
         clear_func(ob_iter->pose, pchan_eval);
 #endif
-      }
-      else {
-        /* add unkeyed tags */
-        if (pchan->bone) {
-          pchan->bone->flag |= BONE_UNKEYED;
-        }
       }
     }
     FOREACH_PCHAN_SELECTED_IN_OBJECT_END;

@@ -58,6 +58,7 @@ class Light : public Node {
   NODE_SOCKET_API(float3, axisv)
   NODE_SOCKET_API(float, sizev)
   NODE_SOCKET_API(bool, round)
+  NODE_SOCKET_API(float, spread)
 
   NODE_SOCKET_API(Transform, tfm)
 

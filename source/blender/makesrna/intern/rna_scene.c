@@ -2685,6 +2685,7 @@ static void rna_def_view3d_cursor(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_View3DCursor_path");
   RNA_def_struct_ui_text(srna, "3D Cursor", "");
   RNA_def_struct_ui_icon(srna, ICON_CURSOR);
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ_LENGTH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

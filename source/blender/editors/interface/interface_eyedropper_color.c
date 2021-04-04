@@ -116,13 +116,10 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 
   float col[4];
   RNA_property_float_get_array(&eye->ptr, eye->prop, col);
-  if (ELEM(eye->ptr.type, &RNA_CompositorNodeCryptomatteV2, &RNA_CompositorNodeCryptomatte)) {
+  if (eye->ptr.type == &RNA_CompositorNodeCryptomatteV2) {
     eye->crypto_node = (bNode *)eye->ptr.data;
     eye->cryptomatte_session = ntreeCompositCryptomatteSession(eye->crypto_node);
     eye->draw_handle_sample_text = WM_draw_cb_activate(CTX_wm_window(C), eyedropper_draw_cb, eye);
-  }
-  else {
-    eye->crypto_node = NULL;
   }
 
   if (prop_subtype != PROP_COLOR) {

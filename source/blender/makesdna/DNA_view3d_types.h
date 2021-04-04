@@ -367,7 +367,7 @@ typedef struct View3D {
 #define V3D_LOCAL_COLLECTIONS (1 << 0)
 #define V3D_FLAG_UNUSED_1 (1 << 1) /* cleared */
 #define V3D_HIDE_HELPLINES (1 << 2)
-#define V3D_INVALID_BACKBUF (1 << 3)
+#define V3D_FLAG_UNUSED_2 (1 << 3) /* cleared */
 #define V3D_XR_SESSION_MIRROR (1 << 4)
 
 #define V3D_FLAG_UNUSED_10 (1 << 10) /* cleared */
@@ -380,6 +380,8 @@ typedef struct View3D {
 enum {
   /** The 3D view which the XR session was created in is flagged with this. */
   V3D_RUNTIME_XR_SESSION_ROOT = (1 << 0),
+  /** Some operators override the depth buffer for dedicated occlusion operations. */
+  V3D_RUNTIME_DEPTHBUF_OVERRIDDEN = (1 << 1),
 };
 
 /** #RegionView3D.persp */

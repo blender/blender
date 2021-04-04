@@ -130,6 +130,14 @@ void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 
 void Background::tag_update(Scene *scene)
 {
+  Shader *bg_shader = get_shader(scene);
+  if (bg_shader && bg_shader->is_modified()) {
+    /* Tag as modified to update the KernelBackground visibility information.
+     * We only tag the use_shader socket as modified as it is related to the shader
+     * and to avoid doing unnecessary updates anywhere else. */
+    tag_use_shader_modified();
+  }
+
   if (ao_factor_is_modified() || use_ao_is_modified()) {
     scene->integrator->tag_update(scene, Integrator::BACKGROUND_AO_MODIFIED);
   }

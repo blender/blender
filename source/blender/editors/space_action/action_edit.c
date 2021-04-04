@@ -648,6 +648,19 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static char *actkeys_paste_description(bContext *UNUSED(C),
+                                       wmOperatorType *UNUSED(op),
+                                       PointerRNA *ptr)
+{
+  /* Custom description if the 'flipped' option is used. */
+  if (RNA_boolean_get(ptr, "flipped")) {
+    return BLI_strdup("Paste keyframes from mirrored bones if they exist");
+  }
+
+  /* Use the default description in the other cases. */
+  return NULL;
+}
+
 void ACTION_OT_paste(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -660,6 +673,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
 
   /* api callbacks */
   //  ot->invoke = WM_operator_props_popup; // better wait for action redo panel
+  ot->get_description = actkeys_paste_description;
   ot->exec = actkeys_paste_exec;
   ot->poll = ED_operator_action_active;
 

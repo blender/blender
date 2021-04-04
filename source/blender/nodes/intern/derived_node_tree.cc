@@ -40,6 +40,7 @@ DTreeContext &DerivedNodeTree::construct_context_recursively(DTreeContext *paren
   DTreeContext &context = *allocator_.construct<DTreeContext>().release();
   context.parent_context_ = parent_context;
   context.parent_node_ = parent_node;
+  context.derived_tree_ = this;
   context.tree_ = &get_tree_ref_from_map(node_tree_refs, btree);
   used_node_tree_refs_.add(context.tree_);
 
@@ -167,10 +168,10 @@ DInputSocket DOutputSocket::get_active_corresponding_group_output_socket() const
   return {};
 }
 
-/* Call the given callback for every "real" origin socket. "Real" means that reroutes, muted nodes
+/* Call `origin_fn` for every "real" origin socket. "Real" means that reroutes, muted nodes
  * and node groups are handled by this function. Origin sockets are ones where a node gets its
  * inputs from. */
-void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback) const
+void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> origin_fn) const
 {
   BLI_assert(*this);
   for (const OutputSocketRef *linked_socket : socket_ref_->as_input().logically_linked_sockets()) {
@@ -180,18 +181,18 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback) co
     if (linked_node.is_group_input_node()) {
       if (context_->is_root()) {
         /* This is a group input in the root node group. */
-        callback(linked_dsocket);
+        origin_fn(linked_dsocket);
       }
       else {
         DInputSocket socket_in_parent_group = linked_dsocket.get_corresponding_group_node_input();
         if (socket_in_parent_group->is_logically_linked()) {
           /* Follow the links coming into the corresponding socket on the parent group node. */
-          socket_in_parent_group.foreach_origin_socket(callback);
+          socket_in_parent_group.foreach_origin_socket(origin_fn);
         }
         else {
           /* The corresponding input on the parent group node is not connected. Therefore, we use
            * the value of that input socket directly. */
-          callback(socket_in_parent_group);
+          origin_fn(socket_in_parent_group);
         }
       }
     }
@@ -200,27 +201,32 @@ void DInputSocket::foreach_origin_socket(FunctionRef<void(DSocket)> callback) co
       if (socket_in_group) {
         if (socket_in_group->is_logically_linked()) {
           /* Follow the links coming into the group output node of the child node group. */
-          socket_in_group.foreach_origin_socket(callback);
+          socket_in_group.foreach_origin_socket(origin_fn);
         }
         else {
           /* The output of the child node group is not connected, so we have to get the value from
            * that socket. */
-          callback(socket_in_group);
+          origin_fn(socket_in_group);
         }
       }
     }
     else {
       /* The normal case: just use the value of a linked output socket. */
-      callback(linked_dsocket);
+      origin_fn(linked_dsocket);
     }
   }
 }
 
-/* Calls the given callback for every "real" target socket. "Real" means that reroutes, muted nodes
+/* Calls `target_fn` for every "real" target socket. "Real" means that reroutes, muted nodes
  * and node groups are handled by this function. Target sockets are on the nodes that use the value
- * from this socket.   */
-void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> callback) const
+ * from this socket. The `skipped_fn` function is called for sockets that have been skipped during
+ * the search for target sockets (e.g. reroutes).  */
+void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> target_fn,
+                                          FunctionRef<void(DSocket)> skipped_fn) const
 {
+  for (const SocketRef *skipped_socket : socket_ref_->logically_linked_skipped_sockets()) {
+    skipped_fn.call_safe({context_, skipped_socket});
+  }
   for (const InputSocketRef *linked_socket : socket_ref_->as_output().logically_linked_sockets()) {
     const NodeRef &linked_node = linked_socket->node();
     DInputSocket linked_dsocket{context_, linked_socket};
@@ -228,26 +234,30 @@ void DOutputSocket::foreach_target_socket(FunctionRef<void(DInputSocket)> callba
     if (linked_node.is_group_output_node()) {
       if (context_->is_root()) {
         /* This is a group output in the root node group. */
-        callback(linked_dsocket);
+        target_fn(linked_dsocket);
       }
       else {
         /* Follow the links going out of the group node in the parent node group. */
         DOutputSocket socket_in_parent_group =
             linked_dsocket.get_corresponding_group_node_output();
-        socket_in_parent_group.foreach_target_socket(callback);
+        skipped_fn.call_safe(linked_dsocket);
+        skipped_fn.call_safe(socket_in_parent_group);
+        socket_in_parent_group.foreach_target_socket(target_fn, skipped_fn);
       }
     }
     else if (linked_node.is_group_node()) {
       /* Follow the links within the nested node group. */
       Vector<DOutputSocket> sockets_in_group =
           linked_dsocket.get_corresponding_group_input_sockets();
+      skipped_fn.call_safe(linked_dsocket);
       for (DOutputSocket socket_in_group : sockets_in_group) {
-        socket_in_group.foreach_target_socket(callback);
+        skipped_fn.call_safe(socket_in_group);
+        socket_in_group.foreach_target_socket(target_fn, skipped_fn);
       }
     }
     else {
       /* The normal case: just use the linked input socket as target. */
-      callback(linked_dsocket);
+      target_fn(linked_dsocket);
     }
   }
 }

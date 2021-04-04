@@ -48,8 +48,29 @@
 
 namespace blender::compositor {
 
-ExecutionGroup::ExecutionGroup()
+std::ostream &operator<<(std::ostream &os, const ExecutionGroupFlags &flags)
 {
+  if (flags.initialized) {
+    os << "init,";
+  }
+  if (flags.is_output) {
+    os << "output,";
+  }
+  if (flags.complex) {
+    os << "complex,";
+  }
+  if (flags.open_cl) {
+    os << "open_cl,";
+  }
+  if (flags.single_threaded) {
+    os << "single_threaded,";
+  }
+  return os;
+}
+
+ExecutionGroup::ExecutionGroup(int id)
+{
+  m_id = id;
   this->m_bTree = nullptr;
   this->m_height = 0;
   this->m_width = 0;
@@ -62,7 +83,16 @@ ExecutionGroup::ExecutionGroup()
   this->m_executionStartTime = 0;
 }
 
-CompositorPriority ExecutionGroup::getRenderPriority()
+std::ostream &operator<<(std::ostream &os, const ExecutionGroup &execution_group)
+{
+  os << "ExecutionGroup(id=" << execution_group.get_id();
+  os << ",flags={" << execution_group.get_flags() << "}";
+  os << ",operation=" << *execution_group.getOutputOperation() << "";
+  os << ")";
+  return os;
+}
+
+eCompositorPriority ExecutionGroup::getRenderPriority()
 {
   return this->getOutputOperation()->getRenderPriority();
 }
@@ -106,7 +136,7 @@ bool ExecutionGroup::addOperation(NodeOperation *operation)
       !operation->get_flags().is_write_buffer_operation) {
     m_flags.complex = operation->get_flags().complex;
     m_flags.open_cl = operation->get_flags().open_cl;
-    m_flags.single_threaded = operation->isSingleThreaded();
+    m_flags.single_threaded = operation->get_flags().single_threaded;
     m_flags.initialized = true;
   }
 
@@ -121,18 +151,23 @@ NodeOperation *ExecutionGroup::getOutputOperation() const
       ->m_operations[0]; /* the first operation of the group is always the output operation. */
 }
 
-void ExecutionGroup::initExecution()
+void ExecutionGroup::init_work_packages()
 {
-  m_chunk_execution_states.clear();
-  determineNumberOfChunks();
-
+  m_work_packages.clear();
   if (this->m_chunks_len != 0) {
-    m_chunk_execution_states.resize(this->m_chunks_len);
-    m_chunk_execution_states.fill(eChunkExecutionState::NOT_SCHEDULED);
+    m_work_packages.resize(this->m_chunks_len);
+    for (unsigned int index = 0; index < m_chunks_len; index++) {
+      m_work_packages[index].state = eWorkPackageState::NotScheduled;
+      m_work_packages[index].execution_group = this;
+      m_work_packages[index].chunk_number = index;
+      determineChunkRect(&m_work_packages[index].rect, index);
+    }
   }
+}
 
+void ExecutionGroup::init_read_buffer_operations()
+{
   unsigned int max_offset = 0;
-
   for (NodeOperation *operation : m_operations) {
     if (operation->get_flags().is_read_buffer_operation) {
       ReadBufferOperation *readOperation = static_cast<ReadBufferOperation *>(operation);
@@ -144,15 +179,23 @@ void ExecutionGroup::initExecution()
   this->m_max_read_buffer_offset = max_offset;
 }
 
+void ExecutionGroup::initExecution()
+{
+  init_number_of_chunks();
+  init_work_packages();
+  init_read_buffer_operations();
+}
+
 void ExecutionGroup::deinitExecution()
 {
-  m_chunk_execution_states.clear();
+  m_work_packages.clear();
   this->m_chunks_len = 0;
   this->m_x_chunks_len = 0;
   this->m_y_chunks_len = 0;
   this->m_read_operations.clear();
   this->m_bTree = nullptr;
 }
+
 void ExecutionGroup::determineResolution(unsigned int resolution[2])
 {
   NodeOperation *operation = this->getOutputOperation();
@@ -162,7 +205,7 @@ void ExecutionGroup::determineResolution(unsigned int resolution[2])
   BLI_rcti_init(&this->m_viewerBorder, 0, this->m_width, 0, this->m_height);
 }
 
-void ExecutionGroup::determineNumberOfChunks()
+void ExecutionGroup::init_number_of_chunks()
 {
   if (this->m_flags.single_threaded) {
     this->m_x_chunks_len = 1;
@@ -179,7 +222,7 @@ void ExecutionGroup::determineNumberOfChunks()
   }
 }
 
-blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() const
+blender::Array<unsigned int> ExecutionGroup::get_execution_order() const
 {
   blender::Array<unsigned int> chunk_order(m_chunks_len);
   for (int chunk_index = 0; chunk_index < this->m_chunks_len; chunk_index++) {
@@ -191,7 +234,7 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
   float centerY = 0.5f;
   ChunkOrdering order_type = ChunkOrdering::Default;
 
-  if (operation->isViewerOperation()) {
+  if (operation->get_flags().is_viewer_operation) {
     ViewerOperation *viewer = (ViewerOperation *)operation;
     centerX = viewer->getCenterX();
     centerY = viewer->getCenterY();
@@ -214,11 +257,10 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
       ChunkOrderHotspot hotspot(border_width * centerX, border_height * centerY, 0.0f);
       blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
       for (index = 0; index < this->m_chunks_len; index++) {
-        rcti rect;
-        determineChunkRect(&rect, index);
+        const WorkPackage &work_package = m_work_packages[index];
         chunk_orders[index].index = index;
-        chunk_orders[index].x = rect.xmin - this->m_viewerBorder.xmin;
-        chunk_orders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].x = work_package.rect.xmin - this->m_viewerBorder.xmin;
+        chunk_orders[index].y = work_package.rect.ymin - this->m_viewerBorder.ymin;
         chunk_orders[index].update_distance(&hotspot, 1);
       }
 
@@ -252,11 +294,10 @@ blender::Array<unsigned int> ExecutionGroup::determine_chunk_execution_order() c
 
       blender::Array<ChunkOrder> chunk_orders(m_chunks_len);
       for (index = 0; index < this->m_chunks_len; index++) {
-        rcti rect;
-        determineChunkRect(&rect, index);
+        const WorkPackage &work_package = m_work_packages[index];
         chunk_orders[index].index = index;
-        chunk_orders[index].x = rect.xmin - this->m_viewerBorder.xmin;
-        chunk_orders[index].y = rect.ymin - this->m_viewerBorder.ymin;
+        chunk_orders[index].x = work_package.rect.xmin - this->m_viewerBorder.xmin;
+        chunk_orders[index].y = work_package.rect.ymin - this->m_viewerBorder.ymin;
         chunk_orders[index].update_distance(hotspots, 9);
       }
 
@@ -299,7 +340,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   this->m_chunks_finished = 0;
   this->m_bTree = bTree;
 
-  blender::Array<unsigned int> chunk_order = determine_chunk_execution_order();
+  blender::Array<unsigned int> chunk_order = get_execution_order();
 
   DebugInfo::execution_group_started(this);
   DebugInfo::graphviz(graph);
@@ -320,8 +361,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
       chunk_index = chunk_order[index];
       int yChunk = chunk_index / this->m_x_chunks_len;
       int xChunk = chunk_index - (yChunk * this->m_x_chunks_len);
-      switch (m_chunk_execution_states[chunk_index]) {
-        case eChunkExecutionState::NOT_SCHEDULED: {
+      const WorkPackage &work_package = m_work_packages[chunk_index];
+      switch (work_package.state) {
+        case eWorkPackageState::NotScheduled: {
           scheduleChunkWhenPossible(graph, xChunk, yChunk);
           finished = false;
           startEvaluated = true;
@@ -332,13 +374,13 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
           }
           break;
         }
-        case eChunkExecutionState::SCHEDULED: {
+        case eWorkPackageState::Scheduled: {
           finished = false;
           startEvaluated = true;
           numberEvaluated++;
           break;
         }
-        case eChunkExecutionState::EXECUTED: {
+        case eWorkPackageState::Executed: {
           if (!startEvaluated) {
             startIndex = index + 1;
           }
@@ -358,15 +400,14 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 
 MemoryBuffer **ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
-  rcti rect;
-  determineChunkRect(&rect, chunkNumber);
+  WorkPackage &work_package = m_work_packages[chunkNumber];
 
   MemoryBuffer **memoryBuffers = (MemoryBuffer **)MEM_callocN(
       sizeof(MemoryBuffer *) * this->m_max_read_buffer_offset, __func__);
   rcti output;
   for (ReadBufferOperation *readOperation : m_read_operations) {
     MemoryProxy *memoryProxy = readOperation->getMemoryProxy();
-    this->determineDependingAreaOfInterest(&rect, readOperation, &output);
+    this->determineDependingAreaOfInterest(&work_package.rect, readOperation, &output);
     MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(
         *memoryProxy, output);
     memoryBuffers[readOperation->getOffset()] = memoryBuffer;
@@ -385,8 +426,9 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy &mem
 
 void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memoryBuffers)
 {
-  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::SCHEDULED) {
-    this->m_chunk_execution_states[chunkNumber] = eChunkExecutionState::EXECUTED;
+  WorkPackage &work_package = m_work_packages[chunkNumber];
+  if (work_package.state == eWorkPackageState::Scheduled) {
+    work_package.state = eWorkPackageState::Executed;
   }
 
   atomic_add_and_fetch_u(&this->m_chunks_finished, 1);
@@ -418,7 +460,7 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
   }
 }
 
-inline void ExecutionGroup::determineChunkRect(rcti *rect,
+inline void ExecutionGroup::determineChunkRect(rcti *r_rect,
                                                const unsigned int xChunk,
                                                const unsigned int yChunk) const
 {
@@ -427,14 +469,14 @@ inline void ExecutionGroup::determineChunkRect(rcti *rect,
 
   if (this->m_flags.single_threaded) {
     BLI_rcti_init(
-        rect, this->m_viewerBorder.xmin, border_width, this->m_viewerBorder.ymin, border_height);
+        r_rect, this->m_viewerBorder.xmin, border_width, this->m_viewerBorder.ymin, border_height);
   }
   else {
     const unsigned int minx = xChunk * this->m_chunkSize + this->m_viewerBorder.xmin;
     const unsigned int miny = yChunk * this->m_chunkSize + this->m_viewerBorder.ymin;
     const unsigned int width = MIN2((unsigned int)this->m_viewerBorder.xmax, this->m_width);
     const unsigned int height = MIN2((unsigned int)this->m_viewerBorder.ymax, this->m_height);
-    BLI_rcti_init(rect,
+    BLI_rcti_init(r_rect,
                   MIN2(minx, this->m_width),
                   MIN2(minx + this->m_chunkSize, width),
                   MIN2(miny, this->m_height),
@@ -442,11 +484,11 @@ inline void ExecutionGroup::determineChunkRect(rcti *rect,
   }
 }
 
-void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumber) const
+void ExecutionGroup::determineChunkRect(rcti *r_rect, const unsigned int chunkNumber) const
 {
   const unsigned int yChunk = chunkNumber / this->m_x_chunks_len;
   const unsigned int xChunk = chunkNumber - (yChunk * this->m_x_chunks_len);
-  determineChunkRect(rect, xChunk, yChunk);
+  determineChunkRect(r_rect, xChunk, yChunk);
 }
 
 MemoryBuffer *ExecutionGroup::allocateOutputBuffer(rcti &rect)
@@ -498,9 +540,10 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 
 bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
 {
-  if (this->m_chunk_execution_states[chunkNumber] == eChunkExecutionState::NOT_SCHEDULED) {
-    this->m_chunk_execution_states[chunkNumber] = eChunkExecutionState::SCHEDULED;
-    WorkScheduler::schedule(this, chunkNumber);
+  WorkPackage &work_package = m_work_packages[chunkNumber];
+  if (work_package.state == eWorkPackageState::NotScheduled) {
+    work_package.state = eWorkPackageState::Scheduled;
+    WorkScheduler::schedule(&work_package);
     return true;
   }
   return false;
@@ -519,22 +562,21 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem *graph,
 
   // Check if chunk is already executed or scheduled and not yet executed.
   const int chunk_index = chunk_y * this->m_x_chunks_len + chunk_x;
-  if (this->m_chunk_execution_states[chunk_index] == eChunkExecutionState::EXECUTED) {
+  WorkPackage &work_package = m_work_packages[chunk_index];
+  if (work_package.state == eWorkPackageState::Executed) {
     return true;
   }
-  if (this->m_chunk_execution_states[chunk_index] == eChunkExecutionState::SCHEDULED) {
+  if (work_package.state == eWorkPackageState::Scheduled) {
     return false;
   }
 
-  rcti rect;
-  determineChunkRect(&rect, chunk_x, chunk_y);
   bool can_be_executed = true;
   rcti area;
 
   for (ReadBufferOperation *read_operation : m_read_operations) {
     BLI_rcti_init(&area, 0, 0, 0, 0);
     MemoryProxy *memory_proxy = read_operation->getMemoryProxy();
-    determineDependingAreaOfInterest(&rect, read_operation, &area);
+    determineDependingAreaOfInterest(&work_package.rect, read_operation, &area);
     ExecutionGroup *group = memory_proxy->getExecutor();
 
     if (!group->scheduleAreaWhenPossible(graph, &area)) {

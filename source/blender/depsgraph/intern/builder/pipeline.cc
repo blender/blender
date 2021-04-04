@@ -98,7 +98,7 @@ void AbstractBuilderPipeline::build_step_finalize()
   if (G.debug_value == 799) {
     deg_graph_transitive_reduction(deg_graph_);
   }
-  /* Store pointers to commonly used valuated datablocks. */
+  /* Store pointers to commonly used evaluated datablocks. */
   deg_graph_->scene_cow = (Scene *)deg_graph_->get_cow_id(&deg_graph_->scene->id);
   /* Flush visibility layer and re-schedule nodes for update. */
   deg_graph_build_finalize(bmain_, deg_graph_);

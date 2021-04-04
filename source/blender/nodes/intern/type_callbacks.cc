@@ -64,7 +64,8 @@ void socket_expand_in_mf_network(SocketMFNetworkBuilder &builder)
   }
   else if (socket.typeinfo->get_cpp_value != nullptr) {
     const CPPType &type = *socket_cpp_type_get(*socket.typeinfo);
-    void *buffer = builder.resources().linear_allocator().allocate(type.size(), type.alignment());
+    void *buffer = builder.resource_scope().linear_allocator().allocate(type.size(),
+                                                                        type.alignment());
     socket.typeinfo->get_cpp_value(socket, buffer);
     builder.set_constant_value(type, buffer);
   }
