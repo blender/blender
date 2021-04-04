@@ -358,7 +358,7 @@ void BlenderSync::sync_integrator()
 
   integrator->set_adaptive_min_samples(adaptive_min_samples);
 
-  if (b_scene.render().use_simplify()) {
+  if (get_boolean(cscene, "use_fast_gi")) {
     if (preview) {
       integrator->set_ao_bounces(get_int(cscene, "ao_bounces"));
     }
