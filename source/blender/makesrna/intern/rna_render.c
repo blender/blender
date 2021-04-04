@@ -298,13 +298,13 @@ static void rna_RenderEngine_unregister(Main *bmain, StructRNA *type)
     return;
   }
 
+  /* Stop all renders in case we were using this one. */
+  ED_render_engine_changed(bmain, false);
   RE_FreeAllPersistentData();
+
   RNA_struct_free_extension(type, &et->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
   BLI_freelinkN(&R_engines, et);
-
-  /* Stop all renders in case we were using this one. */
-  ED_render_engine_changed(bmain, false);
 }
 
 static StructRNA *rna_RenderEngine_register(Main *bmain,

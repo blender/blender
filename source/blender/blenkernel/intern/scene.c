@@ -2660,7 +2660,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
           bmain, &scene->id, depsgraph, BKE_CB_EVT_DEPSGRAPH_UPDATE_POST);
 
       /* It is possible that the custom callback modified scene and removed some IDs from the main
-       * database. In this case DEG_ids_clear_recalc() will crash because it iterates over all IDs
+       * database. In this case DEG_editors_update() will crash because it iterates over all IDs
        * which depsgraph was built for.
        *
        * The solution is to update relations prior to this call, avoiding access to freed IDs.
@@ -2673,9 +2673,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
       DEG_graph_relations_update(depsgraph);
     }
     /* Inform editors about possible changes. */
-    DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
-    /* Clear recalc flags. */
-    DEG_ids_clear_recalc(bmain, depsgraph);
+    DEG_editors_update(bmain, depsgraph, scene, view_layer, false);
 
     /* If user callback did not tag anything for update we can skip second iteration.
      * Otherwise we update scene once again, but without running callbacks to bring
@@ -2736,14 +2734,12 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
       BKE_callback_exec_id_depsgraph(bmain, &scene->id, depsgraph, BKE_CB_EVT_FRAME_CHANGE_POST);
 
       /* NOTE: Similar to this case in scene_graph_update_tagged(). Need to ensure that
-       * DEG_ids_clear_recalc() doesn't access freed memory of possibly removed ID. */
+       * DEG_editors_update() doesn't access freed memory of possibly removed ID. */
       DEG_graph_relations_update(depsgraph);
     }
 
     /* Inform editors about possible changes. */
-    DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
-    /* clear recalc flags */
-    DEG_ids_clear_recalc(bmain, depsgraph);
+    DEG_editors_update(bmain, depsgraph, scene, view_layer, true);
 
     /* If user callback did not tag anything for update we can skip second iteration.
      * Otherwise we update scene once again, but without running callbacks to bring
@@ -3461,6 +3457,9 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
   char name[1024];
   BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
   DEG_debug_name_set(*depsgraph_ptr, name);
+
+  /* These viewport depsgraphs communicate changes to the editors. */
+  DEG_enable_editors_update(*depsgraph_ptr);
 
   return depsgraph_ptr;
 }

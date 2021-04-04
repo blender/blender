@@ -1896,10 +1896,10 @@ static void rna_Scene_use_persistent_data_update(Main *UNUSED(bmain),
                                                  Scene *UNUSED(scene),
                                                  PointerRNA *ptr)
 {
-  Scene *sce = (Scene *)ptr->owner_id;
+  Scene *scene = (Scene *)ptr->owner_id;
 
-  if (!(sce->r.mode & R_PERSISTENT_DATA)) {
-    RE_FreePersistentData();
+  if (!(scene->r.mode & R_PERSISTENT_DATA)) {
+    RE_FreePersistentData(scene);
   }
 }
 
@@ -6606,8 +6606,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   /* persistent data */
   prop = RNA_def_property(srna, "use_persistent_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "mode", R_PERSISTENT_DATA);
-  RNA_def_property_ui_text(
-      prop, "Persistent Data", "Keep render data around for faster re-renders");
+  RNA_def_property_ui_text(prop,
+                           "Persistent Data",
+                           "Keep render data around for faster re-renders and animation renders, "
+                           "at the cost of increased memory usage");
   RNA_def_property_update(prop, 0, "rna_Scene_use_persistent_data_update");
 
   /* Freestyle line thickness options */

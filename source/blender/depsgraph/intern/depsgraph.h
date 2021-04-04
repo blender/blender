@@ -161,6 +161,9 @@ struct Depsgraph {
    * does not need any bases. */
   bool is_render_pipeline_depsgraph;
 
+  /* Notify editors about changes to IDs in this depsgrpah. */
+  bool use_editors_update;
+
   /* Cached list of colliders/effectors for collections and the scene
    * created along with relations, for fast lookup during evaluation. */
   Map<const ID *, ListBase *> *physics_relations[DEG_PHYSICS_RELATIONS_NUM];

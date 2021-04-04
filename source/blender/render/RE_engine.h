@@ -224,6 +224,8 @@ void RE_engine_register_pass(struct RenderEngine *engine,
                              const char *chanid,
                              eNodeSocketDatatype type);
 
+bool RE_engine_use_persistent_data(struct RenderEngine *engine);
+
 /* Engine Types */
 
 void RE_engines_init(void);
