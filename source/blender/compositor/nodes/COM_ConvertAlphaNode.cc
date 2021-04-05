@@ -20,6 +20,8 @@
 #include "COM_ConvertOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 void ConvertAlphaNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const
 {
@@ -39,3 +41,5 @@ void ConvertAlphaNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

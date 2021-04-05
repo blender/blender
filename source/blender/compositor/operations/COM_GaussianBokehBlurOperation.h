@@ -22,6 +22,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 class GaussianBokehBlurOperation : public BlurBaseOperation {
  private:
   float *m_gausstab;
@@ -75,3 +77,5 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
 };
+
+}  // namespace blender::compositor

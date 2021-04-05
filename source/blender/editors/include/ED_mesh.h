@@ -164,16 +164,16 @@ void EDBM_select_mirrored(struct BMEditMesh *em,
                           int *r_totfail);
 
 struct BMVert *EDBM_vert_find_nearest_ex(struct ViewContext *vc,
-                                         float *r_dist,
+                                         float *dist_px_manhattan_p,
                                          const bool use_select_bias,
                                          bool use_cycle,
                                          struct Base **bases,
                                          uint bases_len,
                                          uint *r_base_index);
-struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, float *r_dist);
+struct BMVert *EDBM_vert_find_nearest(struct ViewContext *vc, float *dist_px_manhattan_p);
 
 struct BMEdge *EDBM_edge_find_nearest_ex(struct ViewContext *vc,
-                                         float *r_dist,
+                                         float *dist_px_manhattan,
                                          float *r_dist_center,
                                          const bool use_select_bias,
                                          bool use_cycle,
@@ -181,18 +181,19 @@ struct BMEdge *EDBM_edge_find_nearest_ex(struct ViewContext *vc,
                                          struct Base **bases,
                                          uint bases_len,
                                          uint *r_base_index);
-struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, float *r_dist);
+struct BMEdge *EDBM_edge_find_nearest(struct ViewContext *vc, float *dist_px_manhattan_p);
 
 struct BMFace *EDBM_face_find_nearest_ex(struct ViewContext *vc,
-                                         float *r_dist,
+                                         float *dist_px_manhattan,
                                          float *r_dist_center,
+                                         const bool use_zbuf_single_px,
                                          const bool use_select_bias,
                                          bool use_cycle,
                                          struct BMFace **r_efa_zbuf,
                                          struct Base **bases,
                                          uint bases_len,
                                          uint *r_base_index);
-struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, float *r_dist);
+struct BMFace *EDBM_face_find_nearest(struct ViewContext *vc, float *dist_px_manhattan_p);
 
 bool EDBM_unified_findnearest(struct ViewContext *vc,
                               struct Base **bases,

@@ -37,7 +37,7 @@
 
 #include "FN_multi_function_network_evaluation.hh"
 
-#include "BLI_resource_collector.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_stack.hh"
 
 namespace blender::fn {
@@ -70,13 +70,10 @@ class MFNetworkEvaluationStorage {
   void add_vector_output_from_caller(const MFOutputSocket &socket, GVectorArray &vector_array);
 
   /* Get input buffers for function node evaluations. */
-  const GVArray &get_single_input__full(const MFInputSocket &socket, ResourceCollector &resources);
-  const GVArray &get_single_input__single(const MFInputSocket &socket,
-                                          ResourceCollector &resources);
-  const GVVectorArray &get_vector_input__full(const MFInputSocket &socket,
-                                              ResourceCollector &resources);
-  const GVVectorArray &get_vector_input__single(const MFInputSocket &socket,
-                                                ResourceCollector &resources);
+  const GVArray &get_single_input__full(const MFInputSocket &socket, ResourceScope &scope);
+  const GVArray &get_single_input__single(const MFInputSocket &socket, ResourceScope &scope);
+  const GVVectorArray &get_vector_input__full(const MFInputSocket &socket, ResourceScope &scope);
+  const GVVectorArray &get_vector_input__single(const MFInputSocket &socket, ResourceScope &scope);
 
   /* Get output buffers for function node evaluations. */
   GMutableSpan get_single_output__full(const MFOutputSocket &socket);
@@ -87,16 +84,16 @@ class MFNetworkEvaluationStorage {
   /* Get mutable buffers for function node evaluations. */
   GMutableSpan get_mutable_single__full(const MFInputSocket &input,
                                         const MFOutputSocket &output,
-                                        ResourceCollector &resources);
+                                        ResourceScope &scope);
   GMutableSpan get_mutable_single__single(const MFInputSocket &input,
                                           const MFOutputSocket &output,
-                                          ResourceCollector &resources);
+                                          ResourceScope &scope);
   GVectorArray &get_mutable_vector__full(const MFInputSocket &input,
                                          const MFOutputSocket &output,
-                                         ResourceCollector &resources);
+                                         ResourceScope &scope);
   GVectorArray &get_mutable_vector__single(const MFInputSocket &input,
                                            const MFOutputSocket &output,
-                                           ResourceCollector &resources);
+                                           ResourceScope &scope);
 
   /* Mark a node as being done with evaluation. This might free temporary buffers that are no
    * longer needed. */
@@ -277,20 +274,20 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
     /* The function output would be the same for all elements. Therefore, it is enough to call the
      * function only on a single element. This can avoid many duplicate computations. */
     MFParamsBuilder params{function, 1};
-    ResourceCollector &resources = params.resources();
+    ResourceScope &scope = params.resource_scope();
 
     for (int param_index : function.param_indices()) {
       MFParamType param_type = function.param_type(param_index);
       switch (param_type.category()) {
         case MFParamType::SingleInput: {
           const MFInputSocket &socket = function_node.input_for_param(param_index);
-          const GVArray &values = storage.get_single_input__single(socket, resources);
+          const GVArray &values = storage.get_single_input__single(socket, scope);
           params.add_readonly_single_input(values);
           break;
         }
         case MFParamType::VectorInput: {
           const MFInputSocket &socket = function_node.input_for_param(param_index);
-          const GVVectorArray &values = storage.get_vector_input__single(socket, resources);
+          const GVVectorArray &values = storage.get_vector_input__single(socket, scope);
           params.add_readonly_vector_input(values);
           break;
         }
@@ -309,14 +306,14 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
         case MFParamType::SingleMutable: {
           const MFInputSocket &input = function_node.input_for_param(param_index);
           const MFOutputSocket &output = function_node.output_for_param(param_index);
-          GMutableSpan values = storage.get_mutable_single__single(input, output, resources);
+          GMutableSpan values = storage.get_mutable_single__single(input, output, scope);
           params.add_single_mutable(values);
           break;
         }
         case MFParamType::VectorMutable: {
           const MFInputSocket &input = function_node.input_for_param(param_index);
           const MFOutputSocket &output = function_node.output_for_param(param_index);
-          GVectorArray &values = storage.get_mutable_vector__single(input, output, resources);
+          GVectorArray &values = storage.get_mutable_vector__single(input, output, scope);
           params.add_vector_mutable(values);
           break;
         }
@@ -327,20 +324,20 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
   }
   else {
     MFParamsBuilder params{function, storage.mask().min_array_size()};
-    ResourceCollector &resources = params.resources();
+    ResourceScope &scope = params.resource_scope();
 
     for (int param_index : function.param_indices()) {
       MFParamType param_type = function.param_type(param_index);
       switch (param_type.category()) {
         case MFParamType::SingleInput: {
           const MFInputSocket &socket = function_node.input_for_param(param_index);
-          const GVArray &values = storage.get_single_input__full(socket, resources);
+          const GVArray &values = storage.get_single_input__full(socket, scope);
           params.add_readonly_single_input(values);
           break;
         }
         case MFParamType::VectorInput: {
           const MFInputSocket &socket = function_node.input_for_param(param_index);
-          const GVVectorArray &values = storage.get_vector_input__full(socket, resources);
+          const GVVectorArray &values = storage.get_vector_input__full(socket, scope);
           params.add_readonly_vector_input(values);
           break;
         }
@@ -359,14 +356,14 @@ BLI_NOINLINE void MFNetworkEvaluator::evaluate_function(MFContext &global_contex
         case MFParamType::SingleMutable: {
           const MFInputSocket &input = function_node.input_for_param(param_index);
           const MFOutputSocket &output = function_node.output_for_param(param_index);
-          GMutableSpan values = storage.get_mutable_single__full(input, output, resources);
+          GMutableSpan values = storage.get_mutable_single__full(input, output, scope);
           params.add_single_mutable(values);
           break;
         }
         case MFParamType::VectorMutable: {
           const MFInputSocket &input = function_node.input_for_param(param_index);
           const MFOutputSocket &output = function_node.output_for_param(param_index);
-          GVectorArray &values = storage.get_mutable_vector__full(input, output, resources);
+          GVectorArray &values = storage.get_mutable_vector__full(input, output, scope);
           params.add_vector_mutable(values);
           break;
         }
@@ -400,19 +397,19 @@ bool MFNetworkEvaluator::can_do_single_value_evaluation(const MFFunctionNode &fu
 BLI_NOINLINE void MFNetworkEvaluator::initialize_remaining_outputs(
     MFParams params, Storage &storage, Span<const MFInputSocket *> remaining_outputs) const
 {
-  ResourceCollector resources;
+  ResourceScope scope;
   for (const MFInputSocket *socket : remaining_outputs) {
     int param_index = inputs_.size() + outputs_.first_index_of(socket);
 
     switch (socket->data_type().category()) {
       case MFDataType::Single: {
-        const GVArray &values = storage.get_single_input__full(*socket, resources);
+        const GVArray &values = storage.get_single_input__full(*socket, scope);
         GMutableSpan output_values = params.uninitialized_single_output(param_index);
         values.materialize_to_uninitialized(storage.mask(), output_values.data());
         break;
       }
       case MFDataType::Vector: {
-        const GVVectorArray &values = storage.get_vector_input__full(*socket, resources);
+        const GVVectorArray &values = storage.get_vector_input__full(*socket, scope);
         GVectorArray &output_values = params.vector_output(param_index);
         output_values.extend(storage.mask(), values);
         break;
@@ -796,7 +793,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_vector_output__single(const MFOutp
 
 GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputSocket &input,
                                                                   const MFOutputSocket &output,
-                                                                  ResourceCollector &resources)
+                                                                  ResourceScope &scope)
 {
   const MFOutputSocket &from = *input.origin();
   const MFOutputSocket &to = output;
@@ -810,7 +807,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
   if (to_any_value != nullptr) {
     BLI_assert(to_any_value->type == ValueType::OutputSingle);
     GMutableSpan span = static_cast<OutputSingleValue *>(to_any_value)->span;
-    const GVArray &virtual_array = this->get_single_input__full(input, resources);
+    const GVArray &virtual_array = this->get_single_input__full(input, scope);
     virtual_array.materialize_to_uninitialized(mask_, span.data());
     return span;
   }
@@ -825,7 +822,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
     }
   }
 
-  const GVArray &virtual_array = this->get_single_input__full(input, resources);
+  const GVArray &virtual_array = this->get_single_input__full(input, scope);
   void *new_buffer = MEM_mallocN_aligned(min_array_size_ * type.size(), type.alignment(), AT);
   GMutableSpan new_array_ref(type, new_buffer, min_array_size_);
   virtual_array.materialize_to_uninitialized(mask_, new_array_ref.data());
@@ -838,7 +835,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__full(const MFInputS
 
 GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__single(const MFInputSocket &input,
                                                                     const MFOutputSocket &output,
-                                                                    ResourceCollector &resources)
+                                                                    ResourceScope &scope)
 {
   const MFOutputSocket &from = *input.origin();
   const MFOutputSocket &to = output;
@@ -853,7 +850,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__single(const MFInpu
     BLI_assert(to_any_value->type == ValueType::OutputSingle);
     GMutableSpan span = static_cast<OutputSingleValue *>(to_any_value)->span;
     BLI_assert(span.size() == 1);
-    const GVArray &virtual_array = this->get_single_input__single(input, resources);
+    const GVArray &virtual_array = this->get_single_input__single(input, scope);
     virtual_array.get_single_to_uninitialized(span[0]);
     return span;
   }
@@ -869,7 +866,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__single(const MFInpu
     }
   }
 
-  const GVArray &virtual_array = this->get_single_input__single(input, resources);
+  const GVArray &virtual_array = this->get_single_input__single(input, scope);
 
   void *new_buffer = allocator_.allocate(type.size(), type.alignment());
   virtual_array.get_single_to_uninitialized(new_buffer);
@@ -883,7 +880,7 @@ GMutableSpan MFNetworkEvaluationStorage::get_mutable_single__single(const MFInpu
 
 GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__full(const MFInputSocket &input,
                                                                    const MFOutputSocket &output,
-                                                                   ResourceCollector &resources)
+                                                                   ResourceScope &scope)
 {
   const MFOutputSocket &from = *input.origin();
   const MFOutputSocket &to = output;
@@ -897,7 +894,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__full(const MFInput
   if (to_any_value != nullptr) {
     BLI_assert(to_any_value->type == ValueType::OutputVector);
     GVectorArray &vector_array = *static_cast<OutputVectorValue *>(to_any_value)->vector_array;
-    const GVVectorArray &virtual_vector_array = this->get_vector_input__full(input, resources);
+    const GVVectorArray &virtual_vector_array = this->get_vector_input__full(input, scope);
     vector_array.extend(mask_, virtual_vector_array);
     return vector_array;
   }
@@ -912,7 +909,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__full(const MFInput
     }
   }
 
-  const GVVectorArray &virtual_vector_array = this->get_vector_input__full(input, resources);
+  const GVVectorArray &virtual_vector_array = this->get_vector_input__full(input, scope);
 
   GVectorArray *new_vector_array = new GVectorArray(base_type, min_array_size_);
   new_vector_array->extend(mask_, virtual_vector_array);
@@ -926,7 +923,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__full(const MFInput
 
 GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__single(const MFInputSocket &input,
                                                                      const MFOutputSocket &output,
-                                                                     ResourceCollector &resources)
+                                                                     ResourceScope &scope)
 {
   const MFOutputSocket &from = *input.origin();
   const MFOutputSocket &to = output;
@@ -941,7 +938,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__single(const MFInp
     BLI_assert(to_any_value->type == ValueType::OutputVector);
     GVectorArray &vector_array = *static_cast<OutputVectorValue *>(to_any_value)->vector_array;
     BLI_assert(vector_array.size() == 1);
-    const GVVectorArray &virtual_vector_array = this->get_vector_input__single(input, resources);
+    const GVVectorArray &virtual_vector_array = this->get_vector_input__single(input, scope);
     vector_array.extend({0}, virtual_vector_array);
     return vector_array;
   }
@@ -956,7 +953,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__single(const MFInp
     }
   }
 
-  const GVVectorArray &virtual_vector_array = this->get_vector_input__single(input, resources);
+  const GVVectorArray &virtual_vector_array = this->get_vector_input__single(input, scope);
 
   GVectorArray *new_vector_array = new GVectorArray(base_type, 1);
   new_vector_array->extend({0}, virtual_vector_array);
@@ -968,7 +965,7 @@ GVectorArray &MFNetworkEvaluationStorage::get_mutable_vector__single(const MFInp
 }
 
 const GVArray &MFNetworkEvaluationStorage::get_single_input__full(const MFInputSocket &socket,
-                                                                  ResourceCollector &resources)
+                                                                  ResourceScope &scope)
 {
   const MFOutputSocket &origin = *socket.origin();
   Value *any_value = value_per_output_id_[origin.id()];
@@ -977,11 +974,11 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__full(const MFInputS
   if (any_value->type == ValueType::OwnSingle) {
     OwnSingleValue *value = static_cast<OwnSingleValue *>(any_value);
     if (value->is_single_allocated) {
-      return resources.construct<GVArrayForSingleValueRef>(
+      return scope.construct<GVArrayForSingleValueRef>(
           __func__, value->span.type(), min_array_size_, value->span.data());
     }
 
-    return resources.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArrayForGSpan>(__func__, value->span);
   }
   if (any_value->type == ValueType::InputSingle) {
     InputSingleValue *value = static_cast<InputSingleValue *>(any_value);
@@ -990,15 +987,15 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__full(const MFInputS
   if (any_value->type == ValueType::OutputSingle) {
     OutputSingleValue *value = static_cast<OutputSingleValue *>(any_value);
     BLI_assert(value->is_computed);
-    return resources.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArrayForGSpan>(__func__, value->span);
   }
 
   BLI_assert(false);
-  return resources.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
+  return scope.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
 }
 
 const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInputSocket &socket,
-                                                                    ResourceCollector &resources)
+                                                                    ResourceScope &scope)
 {
   const MFOutputSocket &origin = *socket.origin();
   Value *any_value = value_per_output_id_[origin.id()];
@@ -1007,7 +1004,7 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInpu
   if (any_value->type == ValueType::OwnSingle) {
     OwnSingleValue *value = static_cast<OwnSingleValue *>(any_value);
     BLI_assert(value->span.size() == 1);
-    return resources.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArrayForGSpan>(__func__, value->span);
   }
   if (any_value->type == ValueType::InputSingle) {
     InputSingleValue *value = static_cast<InputSingleValue *>(any_value);
@@ -1018,15 +1015,15 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInpu
     OutputSingleValue *value = static_cast<OutputSingleValue *>(any_value);
     BLI_assert(value->is_computed);
     BLI_assert(value->span.size() == 1);
-    return resources.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArrayForGSpan>(__func__, value->span);
   }
 
   BLI_assert(false);
-  return resources.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
+  return scope.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
 }
 
 const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
-    const MFInputSocket &socket, ResourceCollector &resources)
+    const MFInputSocket &socket, ResourceScope &scope)
 {
   const MFOutputSocket &origin = *socket.origin();
   Value *any_value = value_per_output_id_[origin.id()];
@@ -1036,10 +1033,10 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
     OwnVectorValue *value = static_cast<OwnVectorValue *>(any_value);
     if (value->vector_array->size() == 1) {
       GSpan span = (*value->vector_array)[0];
-      return resources.construct<GVVectorArrayForSingleGSpan>(__func__, span, min_array_size_);
+      return scope.construct<GVVectorArrayForSingleGSpan>(__func__, span, min_array_size_);
     }
 
-    return resources.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
   }
   if (any_value->type == ValueType::InputVector) {
     InputVectorValue *value = static_cast<InputVectorValue *>(any_value);
@@ -1047,16 +1044,15 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
   }
   if (any_value->type == ValueType::OutputVector) {
     OutputVectorValue *value = static_cast<OutputVectorValue *>(any_value);
-    return resources.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
   }
 
   BLI_assert(false);
-  return resources.construct<GVVectorArrayForSingleGSpan>(
-      __func__, GSpan(CPPType::get<float>()), 0);
+  return scope.construct<GVVectorArrayForSingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
 }
 
 const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
-    const MFInputSocket &socket, ResourceCollector &resources)
+    const MFInputSocket &socket, ResourceScope &scope)
 {
   const MFOutputSocket &origin = *socket.origin();
   Value *any_value = value_per_output_id_[origin.id()];
@@ -1065,7 +1061,7 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
   if (any_value->type == ValueType::OwnVector) {
     OwnVectorValue *value = static_cast<OwnVectorValue *>(any_value);
     BLI_assert(value->vector_array->size() == 1);
-    return resources.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
   }
   if (any_value->type == ValueType::InputVector) {
     InputVectorValue *value = static_cast<InputVectorValue *>(any_value);
@@ -1075,12 +1071,11 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
   if (any_value->type == ValueType::OutputVector) {
     OutputVectorValue *value = static_cast<OutputVectorValue *>(any_value);
     BLI_assert(value->vector_array->size() == 1);
-    return resources.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
   }
 
   BLI_assert(false);
-  return resources.construct<GVVectorArrayForSingleGSpan>(
-      __func__, GSpan(CPPType::get<float>()), 0);
+  return scope.construct<GVVectorArrayForSingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
 }
 
 /** \} */

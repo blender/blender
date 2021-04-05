@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -1024,6 +1025,7 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.
+ * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
  *
  * \param mval: Input screen-space pixel location.
  * \param mouse_worldloc: Output world-space location.
@@ -1034,7 +1036,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        const bool alphaoverride,
+                        const bool UNUSED(alphaoverride),
                         const float fallback_depth_pt[3])
 {
   float depth_close;
@@ -1042,7 +1044,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   bool depth_ok = false;
 
   /* Get Z Depths, needed for perspective, nice for ortho */
-  ED_view3d_draw_depth(depsgraph, region, v3d, alphaoverride);
+  ED_view3d_depth_override(depsgraph, region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
 
   /* Attempt with low margin's first */
   int i = 0;
@@ -1067,22 +1069,7 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   return false;
 }
 
-void ED_view3d_autodist_init(Depsgraph *depsgraph, ARegion *region, View3D *v3d, int mode)
-{
-  /* Get Z Depths, needed for perspective, nice for ortho */
-  switch (mode) {
-    case 0:
-      ED_view3d_draw_depth(depsgraph, region, v3d, true);
-      break;
-    case 1: {
-      Scene *scene = DEG_get_evaluated_scene(depsgraph);
-      ED_view3d_draw_depth_gpencil(depsgraph, scene, region, v3d);
-      break;
-    }
-  }
-}
-
-/* no 4x4 sampling, run #ED_view3d_autodist_init first */
+/* no 4x4 sampling, run #ED_view3d_depth_override first */
 bool ED_view3d_autodist_simple(ARegion *region,
                                const int mval[2],
                                float mouse_worldloc[3],
@@ -1643,19 +1630,48 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
 /** \name Depth Buffer Utilities
  * \{ */
 
-float ED_view3d_depth_read_cached(const ViewContext *vc, const int mval[2])
+static bool depth_read_test_fn(const void *value, void *userdata)
 {
-  ViewDepths *vd = vc->rv3d->depths;
+  float *r_depth = userdata;
+  float depth = *(float *)value;
+  if (depth < *r_depth) {
+    *r_depth = depth;
+  }
+  return false;
+}
+
+bool ED_view3d_depth_read_cached(const ViewDepths *vd,
+                                 const int mval[2],
+                                 int margin,
+                                 float *r_depth)
+{
+  if (!vd || !vd->depths) {
+    return false;
+  }
 
   int x = mval[0];
   int y = mval[1];
+  if (x < 0 || y < 0 || x >= vd->w || y >= vd->h) {
+    return false;
+  }
 
-  if (vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h) {
-    return vd->depths[y * vd->w + x];
+  float depth = 1.0f;
+  if (margin) {
+    /* TODO: No need to go spiral. */
+    int shape[2] = {vd->w, vd->h};
+    BLI_array_iter_spiral_square(vd->depths, shape, mval, depth_read_test_fn, &depth);
+  }
+  else {
+    depth = vd->depths[y * vd->w + x];
   }
 
   BLI_assert(1.0 <= vd->depth_range[1]);
-  return 1.0f;
+  if (depth != 1.0f) {
+    *r_depth = depth;
+    return true;
+  }
+
+  return false;
 }
 
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
@@ -1676,7 +1692,9 @@ bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
     for (int y = 0; y < 2; y++) {
       const int mval_ofs[2] = {mval[0] + (x - 1), mval[1] + (y - 1)};
 
-      const double depth = (double)ED_view3d_depth_read_cached(vc, mval_ofs);
+      float depth_fl = 1.0f;
+      ED_view3d_depth_read_cached(depths, mval_ofs, 0, &depth_fl);
+      const double depth = (double)depth_fl;
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject(region, mval_ofs, depth, coords[i])) {
           depths_valid[i] = true;

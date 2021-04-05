@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class SplitOperation : public NodeOperation {
  private:
   SocketReader *m_image1Input;
@@ -44,3 +46,5 @@ class SplitOperation : public NodeOperation {
     this->m_xSplit = xsplit;
   }
 };
+
+}  // namespace blender::compositor

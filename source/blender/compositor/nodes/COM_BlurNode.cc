@@ -29,6 +29,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -45,7 +47,7 @@ void BlurNode::convertToOperations(NodeConverter &converter,
   const float size = this->getInputSocket(1)->getEditorValueFloat();
   const bool extend_bounds = (editorNode->custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS) != 0;
 
-  CompositorQuality quality = context.getQuality();
+  eCompositorQuality quality = context.getQuality();
   NodeOperation *input_operation = nullptr, *output_operation = nullptr;
 
   if (data->filtertype == R_FILTER_FAST_GAUSS) {
@@ -168,3 +170,5 @@ void BlurNode::convertToOperations(NodeConverter &converter,
     converter.addPreview(output_operation->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

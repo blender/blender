@@ -492,12 +492,11 @@ void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3
   Object *obedit = CTX_data_edit_object(C);
   RegionView3D *rv3d = region->regiondata;
   Object *ob = OBACT(view_layer);
-  const short orientation_type = scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
-  const short orientation_index_custom = scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
+  const short orient_index = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
   const int pivot_point = scene->toolsettings->transform_pivot_point;
 
   ED_transform_calc_orientation_from_type_ex(
-      C, r_mat, scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
+      C, r_mat, scene, rv3d, ob, obedit, orient_index, pivot_point);
 }
 
 /**
@@ -516,11 +515,10 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
                                                  RegionView3D *rv3d,
                                                  Object *ob,
                                                  Object *obedit,
-                                                 const short orientation_type,
-                                                 int orientation_index_custom,
+                                                 const short orientation_index,
                                                  const int pivot_point)
 {
-  switch (orientation_type) {
+  switch (orientation_index) {
     case V3D_ORIENT_GIMBAL: {
       if (ob && gimbal_axis(ob, r_mat)) {
         break;
@@ -577,24 +575,28 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
     }
     case V3D_ORIENT_CUSTOM:
     default: {
-      BLI_assert(orientation_type >= V3D_ORIENT_CUSTOM);
+      BLI_assert(orientation_index >= V3D_ORIENT_CUSTOM);
+      int orientation_index_custom = orientation_index - V3D_ORIENT_CUSTOM;
       TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
           scene, orientation_index_custom);
       applyTransformOrientation(custom_orientation, r_mat, NULL);
-      return V3D_ORIENT_CUSTOM + orientation_index_custom;
+      break;
     }
   }
 
-  return orientation_type;
+  return orientation_index;
 }
 
 /* Sets the matrix of the specified space orientation.
  * If the matrix cannot be obtained, an orientation different from the one
  * informed is returned */
-short transform_orientation_matrix_get(
-    bContext *C, TransInfo *t, short orientation, const float custom[3][3], float r_spacemtx[3][3])
+short transform_orientation_matrix_get(bContext *C,
+                                       TransInfo *t,
+                                       short orient_index,
+                                       const float custom[3][3],
+                                       float r_spacemtx[3][3])
 {
-  if (orientation == V3D_ORIENT_CUSTOM_MATRIX) {
+  if (orient_index == V3D_ORIENT_CUSTOM_MATRIX) {
     copy_m3_m3(r_spacemtx, custom);
     return V3D_ORIENT_CUSTOM_MATRIX;
   }
@@ -603,24 +605,20 @@ short transform_orientation_matrix_get(
   Object *obedit = CTX_data_edit_object(C);
   Scene *scene = t->scene;
   RegionView3D *rv3d = NULL;
-  int orientation_index_custom = 0;
-
-  if (orientation >= V3D_ORIENT_CUSTOM) {
-    orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
-    orientation = V3D_ORIENT_CUSTOM;
-  }
-  else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
-    Object *ob_armature = transform_object_deform_pose_armature_get(t, ob);
-    if (ob_armature) {
-      ob = ob_armature;
-    }
-  }
 
   if ((t->spacetype == SPACE_VIEW3D) && t->region && (t->region->regiontype == RGN_TYPE_WINDOW)) {
     rv3d = t->region->regiondata;
+
+    if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
+      Object *ob_armature = transform_object_deform_pose_armature_get(t, ob);
+      if (ob_armature) {
+        /* The armature matrix is used for GIMBAL, NORMAL and LOCAL orientations. */
+        ob = ob_armature;
+      }
+    }
   }
 
-  short orient_type = ED_transform_calc_orientation_from_type_ex(
+  short r_orient_index = ED_transform_calc_orientation_from_type_ex(
       C,
       r_spacemtx,
       /* extra args (can be accessed from context) */
@@ -628,13 +626,12 @@ short transform_orientation_matrix_get(
       rv3d,
       ob,
       obedit,
-      orientation,
-      orientation_index_custom,
+      orient_index,
       t->around);
 
   if (rv3d && (t->options & CTX_PAINT_CURVE)) {
     /* Screen space in the 3d region. */
-    if (orient_type == V3D_ORIENT_VIEW) {
+    if (r_orient_index == V3D_ORIENT_VIEW) {
       unit_m3(r_spacemtx);
     }
     else {
@@ -643,7 +640,7 @@ short transform_orientation_matrix_get(
     }
   }
 
-  return orient_type;
+  return r_orient_index;
 }
 
 const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type)

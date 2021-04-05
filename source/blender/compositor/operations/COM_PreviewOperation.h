@@ -24,6 +24,8 @@
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 
+namespace blender::compositor {
+
 class PreviewOperation : public NodeOperation {
  protected:
   unsigned char *m_outputBuffer;
@@ -53,7 +55,7 @@ class PreviewOperation : public NodeOperation {
   }
   void initExecution() override;
   void deinitExecution() override;
-  CompositorPriority getRenderPriority() const override;
+  eCompositorPriority getRenderPriority() const override;
 
   void executeRegion(rcti *rect, unsigned int tileNumber) override;
   void determineResolution(unsigned int resolution[2],
@@ -61,8 +63,6 @@ class PreviewOperation : public NodeOperation {
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output) override;
-  bool isPreviewOperation() const override
-  {
-    return true;
-  }
 };
+
+}  // namespace blender::compositor

@@ -25,6 +25,8 @@ class OpenCLDevice;
 #include "COM_WorkScheduler.h"
 #include "clew.h"
 
+namespace blender::compositor {
+
 /**
  * \brief device representing an GPU OpenCL device.
  * an instance of this class represents a single cl_device
@@ -117,3 +119,5 @@ class OpenCLDevice : public Device {
                           NodeOperation *operation);
   cl_kernel COM_clCreateKernel(const char *kernelname, std::list<cl_kernel> *clKernelsToCleanUp);
 };
+
+}  // namespace blender::compositor

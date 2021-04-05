@@ -26,6 +26,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 /**
  * Base class for all renderlayeroperations
  *
@@ -80,3 +82,5 @@ class TextureAlphaOperation : public TextureBaseOperation {
   TextureAlphaOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

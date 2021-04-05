@@ -26,6 +26,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 HueSaturationValueCorrectNode::HueSaturationValueCorrectNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -62,3 +64,5 @@ void HueSaturationValueCorrectNode::convertToOperations(
   converter.mapInputSocket(valueSocket, blend->getInputSocket(0));
   converter.mapOutputSocket(outputSocket, blend->getOutputSocket());
 }
+
+}  // namespace blender::compositor

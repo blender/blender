@@ -270,11 +270,13 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
   ImBuf *ibuf = NULL;
   uchar dirty_flag = 0;
 
-  if (size < HEADER_SIZE) {
+  if (!imb_is_a_iris(mem, size)) {
     return NULL;
   }
 
-  if (!imb_is_a_iris(mem, size)) {
+  /* Could pe part of the magic check above,
+   * by convention this check only requests the size needed to read it's magic though. */
+  if (size < HEADER_SIZE) {
     return NULL;
   }
 

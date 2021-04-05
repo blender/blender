@@ -1363,7 +1363,8 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
   if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) {
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(tgpf->win, tgpf->region);
-    ED_view3d_autodist_init(tgpf->depsgraph, tgpf->region, tgpf->v3d, 0);
+    ED_view3d_depth_override(
+        tgpf->depsgraph, tgpf->region, tgpf->v3d, NULL, V3D_DEPTH_NO_GPENCIL, false);
 
     /* Since strokes are so fine, when using their depth we need a margin
      * otherwise they might get missed. */

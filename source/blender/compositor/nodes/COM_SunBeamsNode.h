@@ -19,6 +19,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief SunBeamsNode
  * \ingroup Node
@@ -29,3 +31,5 @@ class SunBeamsNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

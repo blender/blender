@@ -34,7 +34,7 @@ VDBImageLoader::~VDBImageLoader()
 {
 }
 
-bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
+bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
 {
 #ifdef WITH_OPENVDB
   if (!grid) {
@@ -56,55 +56,71 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
   if (grid->isType<openvdb::FloatGrid>()) {
     metadata.channels = 1;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(*openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(*openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::Vec3fGrid>()) {
     metadata.channels = 3;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(*openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(*openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::BoolGrid>()) {
     metadata.channels = 1;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::BoolGrid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::BoolGrid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::DoubleGrid>()) {
     metadata.channels = 1;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::DoubleGrid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::DoubleGrid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::Int32Grid>()) {
     metadata.channels = 1;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::Int32Grid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::Int32Grid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::Int64Grid>()) {
     metadata.channels = 1;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::Int64Grid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::FloatGrid(*openvdb::gridConstPtrCast<openvdb::Int64Grid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::Vec3IGrid>()) {
     metadata.channels = 3;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::Vec3fGrid(*openvdb::gridConstPtrCast<openvdb::Vec3IGrid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::Vec3fGrid(*openvdb::gridConstPtrCast<openvdb::Vec3IGrid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::Vec3dGrid>()) {
     metadata.channels = 3;
 #  ifdef WITH_NANOVDB
-    nanogrid = nanovdb::openToNanoVDB(
-        openvdb::Vec3fGrid(*openvdb::gridConstPtrCast<openvdb::Vec3dGrid>(grid)));
+    if (features.has_nanovdb) {
+      nanogrid = nanovdb::openToNanoVDB(
+          openvdb::Vec3fGrid(*openvdb::gridConstPtrCast<openvdb::Vec3dGrid>(grid)));
+    }
 #  endif
   }
   else if (grid->isType<openvdb::MaskGrid>()) {
@@ -118,21 +134,25 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
   }
 
 #  ifdef WITH_NANOVDB
-  metadata.byte_size = nanogrid.size();
-  if (metadata.channels == 1) {
-    metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT;
+  if (nanogrid) {
+    metadata.byte_size = nanogrid.size();
+    if (metadata.channels == 1) {
+      metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT;
+    }
+    else {
+      metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT3;
+    }
   }
-  else {
-    metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT3;
-  }
-#  else
-  if (metadata.channels == 1) {
-    metadata.type = IMAGE_DATA_TYPE_FLOAT;
-  }
-  else {
-    metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-  }
+  else
 #  endif
+  {
+    if (metadata.channels == 1) {
+      metadata.type = IMAGE_DATA_TYPE_FLOAT;
+    }
+    else {
+      metadata.type = IMAGE_DATA_TYPE_FLOAT4;
+    }
+  }
 
   /* Set transform from object space to voxel index. */
   openvdb::math::Mat4f grid_matrix = grid->transform().baseMap()->getAffineMap()->getMat4();
@@ -143,20 +163,29 @@ bool VDBImageLoader::load_metadata(ImageMetaData &metadata)
     }
   }
 
+  Transform texture_to_index;
 #  ifdef WITH_NANOVDB
-  Transform texture_to_index = transform_identity();
-#  else
-  openvdb::Coord min = bbox.min();
-  Transform texture_to_index = transform_translate(min.x(), min.y(), min.z()) *
-                               transform_scale(dim.x(), dim.y(), dim.z());
+  if (nanogrid) {
+    texture_to_index = transform_identity();
+  }
+  else
 #  endif
+  {
+    openvdb::Coord min = bbox.min();
+    texture_to_index = transform_translate(min.x(), min.y(), min.z()) *
+                       transform_scale(dim.x(), dim.y(), dim.z());
+  }
 
   metadata.transform_3d = transform_inverse(index_to_object * texture_to_index);
   metadata.use_transform_3d = true;
 
+#  ifndef WITH_NANOVDB
+  (void)features;
+#  endif
   return true;
 #else
   (void)metadata;
+  (void)features;
   return false;
 #endif
 }
@@ -165,48 +194,52 @@ bool VDBImageLoader::load_pixels(const ImageMetaData &, void *pixels, const size
 {
 #ifdef WITH_OPENVDB
 #  ifdef WITH_NANOVDB
-  memcpy(pixels, nanogrid.data(), nanogrid.size());
-#  else
-  if (grid->isType<openvdb::FloatGrid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid), dense);
+  if (nanogrid) {
+    memcpy(pixels, nanogrid.data(), nanogrid.size());
   }
-  else if (grid->isType<openvdb::Vec3fGrid>()) {
-    openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-        bbox, (openvdb::Vec3f *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::BoolGrid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::BoolGrid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::DoubleGrid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::DoubleGrid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::Int32Grid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int32Grid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::Int64Grid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int64Grid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::Vec3IGrid>()) {
-    openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-        bbox, (openvdb::Vec3f *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3IGrid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::Vec3dGrid>()) {
-    openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-        bbox, (openvdb::Vec3f *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3dGrid>(grid), dense);
-  }
-  else if (grid->isType<openvdb::MaskGrid>()) {
-    openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
-    openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::MaskGrid>(grid), dense);
-  }
+  else
 #  endif
+  {
+    if (grid->isType<openvdb::FloatGrid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::Vec3fGrid>()) {
+      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
+          bbox, (openvdb::Vec3f *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::BoolGrid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::BoolGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::DoubleGrid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::DoubleGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::Int32Grid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int32Grid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::Int64Grid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int64Grid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::Vec3IGrid>()) {
+      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
+          bbox, (openvdb::Vec3f *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3IGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::Vec3dGrid>()) {
+      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
+          bbox, (openvdb::Vec3f *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3dGrid>(grid), dense);
+    }
+    else if (grid->isType<openvdb::MaskGrid>()) {
+      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, (float *)pixels);
+      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::MaskGrid>(grid), dense);
+    }
+  }
   return true;
 #else
   (void)pixels;

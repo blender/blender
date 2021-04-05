@@ -211,9 +211,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
   }
 
-  BlenderViewportParameters new_viewport_parameters(b_v3d);
-  if (viewport_parameters.modified(new_viewport_parameters)) {
-    world_recalc = true;
+  if (b_v3d) {
+    BlenderViewportParameters new_viewport_parameters(b_v3d);
+    if (viewport_parameters.modified(new_viewport_parameters)) {
+      world_recalc = true;
+    }
   }
 }
 
@@ -358,7 +360,7 @@ void BlenderSync::sync_integrator()
 
   integrator->set_adaptive_min_samples(adaptive_min_samples);
 
-  if (b_scene.render().use_simplify()) {
+  if (get_boolean(cscene, "use_fast_gi")) {
     if (preview) {
       integrator->set_ao_bounces(get_int(cscene, "ao_bounces"));
     }
@@ -757,7 +759,6 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
 
 SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
 {
-  BL::RenderSettings r = b_scene.render();
   SceneParams params;
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   const bool shadingsystem = RNA_boolean_get(&cscene, "shading_system");
@@ -780,11 +781,6 @@ SceneParams BlenderSync::get_scene_params(BL::Scene &b_scene, bool background)
   params.hair_subdivisions = get_int(csscene, "subdivisions");
   params.hair_shape = (CurveShapeType)get_enum(
       csscene, "shape", CURVE_NUM_SHAPE_TYPES, CURVE_THICK);
-
-  if (background && params.shadingsystem != SHADINGSYSTEM_OSL)
-    params.persistent_data = r.use_persistent_data();
-  else
-    params.persistent_data = false;
 
   int texture_limit;
   if (background) {

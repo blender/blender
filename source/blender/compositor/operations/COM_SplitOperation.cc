@@ -27,6 +27,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 SplitOperation::SplitOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -76,3 +78,5 @@ void SplitOperation::determineResolution(unsigned int resolution[2],
 
   NodeOperation::determineResolution(resolution, preferredResolution);
 }
+
+}  // namespace blender::compositor

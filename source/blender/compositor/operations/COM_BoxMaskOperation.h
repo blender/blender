@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class BoxMaskOperation : public NodeOperation {
  private:
   /**
@@ -63,3 +65,5 @@ class BoxMaskOperation : public NodeOperation {
     this->m_maskType = maskType;
   }
 };
+
+}  // namespace blender::compositor

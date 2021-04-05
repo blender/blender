@@ -23,13 +23,14 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 DirectionalBlurOperation::DirectionalBlurOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
-
-  this->setOpenCL(true);
+  flags.complex = true;
+  flags.open_cl = true;
   this->m_inputProgram = nullptr;
 }
 
@@ -144,3 +145,5 @@ bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti * /*input*/
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

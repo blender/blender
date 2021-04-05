@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_PixelateOperation.h"
 
+namespace blender::compositor {
+
 PixelateNode::PixelateNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -44,3 +46,5 @@ void PixelateNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

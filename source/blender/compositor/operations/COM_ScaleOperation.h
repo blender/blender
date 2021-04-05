@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class BaseScaleOperation : public NodeOperation {
  public:
   void setSampler(PixelSampler sampler)
@@ -129,3 +131,5 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
     this->m_offsetY = y;
   }
 };
+
+}  // namespace blender::compositor

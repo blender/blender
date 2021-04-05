@@ -18,8 +18,20 @@
 
 #include "COM_WorkPackage.h"
 
-WorkPackage::WorkPackage(ExecutionGroup *execution_group, unsigned int chunk_number)
+#include "COM_Enums.h"
+#include "COM_ExecutionGroup.h"
+
+namespace blender::compositor {
+
+std::ostream &operator<<(std::ostream &os, const WorkPackage &work_package)
 {
-  this->execution_group = execution_group;
-  this->chunk_number = chunk_number;
+  os << "WorkPackage(execution_group=" << *work_package.execution_group;
+  os << ",chunk=" << work_package.chunk_number;
+  os << ",state=" << work_package.state;
+  os << ",rect=(" << work_package.rect.xmin << "," << work_package.rect.ymin << ")-("
+     << work_package.rect.xmax << "," << work_package.rect.ymax << ")";
+  os << ")";
+  return os;
 }
+
+}  // namespace blender::compositor

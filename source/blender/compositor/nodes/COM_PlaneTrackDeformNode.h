@@ -23,6 +23,8 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief PlaneTrackDeformNode
  * \ingroup Node
@@ -33,3 +35,5 @@ class PlaneTrackDeformNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

@@ -32,6 +32,8 @@
 
 #include "COM_Node.h" /* own include */
 
+namespace blender::compositor {
+
 /**************
  **** Node ****
  **************/
@@ -74,13 +76,11 @@ Node::Node(bNode *editorNode, bool create_sockets)
 
 Node::~Node()
 {
-  while (!this->m_outputsockets.empty()) {
-    delete (this->m_outputsockets.back());
-    this->m_outputsockets.pop_back();
+  while (!this->outputs.is_empty()) {
+    delete (this->outputs.pop_last());
   }
-  while (!this->m_inputsockets.empty()) {
-    delete (this->m_inputsockets.back());
-    this->m_inputsockets.pop_back();
+  while (!this->inputs.is_empty()) {
+    delete (this->inputs.pop_last());
   }
 }
 
@@ -92,7 +92,7 @@ void Node::addInputSocket(DataType datatype)
 void Node::addInputSocket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeInput *socket = new NodeInput(this, bSocket, datatype);
-  this->m_inputsockets.push_back(socket);
+  this->inputs.append(socket);
 }
 
 void Node::addOutputSocket(DataType datatype)
@@ -102,19 +102,17 @@ void Node::addOutputSocket(DataType datatype)
 void Node::addOutputSocket(DataType datatype, bNodeSocket *bSocket)
 {
   NodeOutput *socket = new NodeOutput(this, bSocket, datatype);
-  this->m_outputsockets.push_back(socket);
+  outputs.append(socket);
 }
 
 NodeOutput *Node::getOutputSocket(unsigned int index) const
 {
-  BLI_assert(index < this->m_outputsockets.size());
-  return this->m_outputsockets[index];
+  return outputs[index];
 }
 
 NodeInput *Node::getInputSocket(unsigned int index) const
 {
-  BLI_assert(index < this->m_inputsockets.size());
-  return this->m_inputsockets[index];
+  return inputs[index];
 }
 
 bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)
@@ -208,3 +206,5 @@ void NodeOutput::getEditorValueVector(float *value)
   RNA_pointer_create((ID *)getNode()->getbNodeTree(), &RNA_NodeSocket, getbNodeSocket(), &ptr);
   return RNA_float_get_array(&ptr, "default_value", value);
 }
+
+}  // namespace blender::compositor

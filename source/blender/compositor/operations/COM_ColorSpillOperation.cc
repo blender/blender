@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #define AVG(a, b) ((a + b) / 2)
 
+namespace blender::compositor {
+
 ColorSpillOperation::ColorSpillOperation()
 {
   addInputSocket(DataType::Color);
@@ -115,3 +117,5 @@ void ColorSpillOperation::executePixelSampled(float output[4],
     copy_v4_v4(output, input);
   }
 }
+
+}  // namespace blender::compositor

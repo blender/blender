@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class FlipOperation : public NodeOperation {
  private:
   SocketReader *m_inputOperation;
@@ -44,3 +46,5 @@ class FlipOperation : public NodeOperation {
     this->m_flipY = flipY;
   }
 };
+
+}  // namespace blender::compositor

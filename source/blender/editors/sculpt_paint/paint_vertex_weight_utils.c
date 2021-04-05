@@ -118,7 +118,7 @@ bool ED_wpaint_ensure_data(bContext *C,
   }
 
   if (flag & WPAINT_ENSURE_MIRROR) {
-    if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
+    if (ME_USING_MIRROR_X_VERTEX_GROUPS(me)) {
       int mirror = ED_wpaint_mirror_vgroup_ensure(ob, ob->actdef - 1);
       if (vgroup_index) {
         vgroup_index->mirror = mirror;

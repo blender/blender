@@ -20,6 +20,8 @@
 
 #include "COM_ReadBufferOperation.h"
 
+namespace blender::compositor {
+
 class WrapOperation : public ReadBufferOperation {
  private:
   int m_wrappingType;
@@ -37,3 +39,5 @@ class WrapOperation : public ReadBufferOperation {
 
   void setFactorXY(float factorX, float factorY);
 };
+
+}  // namespace blender::compositor

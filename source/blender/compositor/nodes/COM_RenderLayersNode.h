@@ -23,6 +23,7 @@
 #include "DNA_node_types.h"
 
 struct Render;
+namespace blender::compositor {
 
 /**
  * \brief RenderLayersNode
@@ -49,3 +50,5 @@ class RenderLayersNode : public Node {
   void missingSocketLink(NodeConverter &converter, NodeOutput *output) const;
   void missingRenderLink(NodeConverter &converter) const;
 };
+
+}  // namespace blender::compositor

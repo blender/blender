@@ -26,6 +26,7 @@
 #include "COM_NodeOperationBuilder.h"
 
 #include "COM_AlphaOverNode.h"
+#include "COM_AntiAliasingNode.h"
 #include "COM_BilateralBlurNode.h"
 #include "COM_BlurNode.h"
 #include "COM_BokehBlurNode.h"
@@ -114,6 +115,8 @@
 #include "COM_ViewLevelsNode.h"
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
+
+namespace blender::compositor {
 
 bool COM_bnode_is_fast_node(const bNode &b_node)
 {
@@ -418,6 +421,9 @@ Node *COM_convert_bnode(bNode *b_node)
     case CMP_NODE_EXPOSURE:
       node = new ExposureNode(b_node);
       break;
+    case CMP_NODE_ANTIALIASING:
+      node = new AntiAliasingNode(b_node);
+      break;
   }
   return node;
 }
@@ -563,3 +569,5 @@ void COM_convert_resolution(NodeOperationBuilder &builder,
     builder.addLink(translateOperation->getOutputSocket(), toSocket);
   }
 }
+
+}  // namespace blender::compositor

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class GammaCorrectOperation : public NodeOperation {
  private:
   /**
@@ -71,3 +73,5 @@ class GammaUncorrectOperation : public NodeOperation {
    */
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

@@ -313,6 +313,8 @@ struct GeometrySet {
   friend bool operator==(const GeometrySet &a, const GeometrySet &b);
   uint64_t hash() const;
 
+  void clear();
+
   /* Utility methods for creation. */
   static GeometrySet create_with_mesh(
       Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);

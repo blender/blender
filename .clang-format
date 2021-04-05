@@ -2,7 +2,7 @@
 # Configuration of clang-format
 # =============================
 #
-# Tested to work with versions: 6 to 8.
+# Tested to work with versions: 8 to 11.
 
 # This causes parameters on continuations to align to the opening brace.
 #
@@ -255,7 +255,6 @@ ForEachMacros:
   - SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN
   - SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN
   - SEQ_ALL_BEGIN
-  - SEQ_CURRENT_BEGIN
   - SURFACE_QUAD_ITER_BEGIN
   - foreach
   - ED_screen_areas_iter
@@ -264,8 +263,5 @@ ForEachMacros:
   - MAP_SLOT_PROBING_BEGIN
   - VECTOR_SET_SLOT_PROBING_BEGIN
 
-# Use once we bump the minimum version to version 8.
-# # Without this string literals that in-line 'STRINGIFY' behave strangely (a bug?).
-# StatementMacros:
-#   - PyObject_VAR_HEAD
-#   - STRINGIFY
+StatementMacros:
+  - PyObject_VAR_HEAD

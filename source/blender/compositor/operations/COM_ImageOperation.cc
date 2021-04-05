@@ -31,6 +31,8 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
+namespace blender::compositor {
+
 BaseImageOperation::BaseImageOperation()
 {
   this->m_image = nullptr;
@@ -203,3 +205,5 @@ void ImageDepthOperation::executePixelSampled(float output[4],
     }
   }
 }
+
+}  // namespace blender::compositor

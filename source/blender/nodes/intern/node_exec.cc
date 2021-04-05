@@ -47,7 +47,7 @@ bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
   if (stack && sock && sock->stack_index >= 0) {
     return stack + sock->stack_index;
   }
-  return NULL;
+  return nullptr;
 }
 
 void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out)
@@ -56,13 +56,13 @@ void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack 
 
   /* build pointer stack */
   if (in) {
-    for (sock = node->inputs.first; sock; sock = sock->next) {
+    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
       *(in++) = node_get_socket_stack(stack, sock);
     }
   }
 
   if (out) {
-    for (sock = node->outputs.first; sock; sock = sock->next) {
+    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
       *(out++) = node_get_socket_stack(stack, sock);
     }
   }
@@ -90,7 +90,7 @@ static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *inte
   if (internal_links) {
     bNodeLink *link;
     /* copy the stack index from internally connected input to skip the node */
-    for (link = internal_links->first; link; link = link->next) {
+    for (link = (bNodeLink *)internal_links->first; link; link = link->next) {
       if (link->tosock == sock) {
         sock->stack_index = link->fromsock->stack_index;
         /* set the link pointer to indicate that this socket
@@ -128,7 +128,7 @@ static struct bNodeStack *setup_stack(bNodeStack *stack,
 {
   bNodeStack *ns = node_get_socket_stack(stack, sock);
   if (!ns) {
-    return NULL;
+    return nullptr;
   }
 
   /* don't mess with remote socket stacks, these are initialized by other nodes! */
@@ -178,7 +178,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   ntreeGetDependencyList(ntree, &nodelist, &totnodes);
 
   /* XXX could let callbacks do this for specialized data */
-  exec = MEM_callocN(sizeof(bNodeTreeExec), "node tree execution data");
+  exec = (bNodeTreeExec *)MEM_callocN(sizeof(bNodeTreeExec), "node tree execution data");
   /* backpointer to node tree */
   exec->nodetree = ntree;
 
@@ -188,28 +188,29 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     node = nodelist[n];
 
     /* init node socket stack indexes */
-    for (sock = node->inputs.first; sock; sock = sock->next) {
+    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
       node_init_input_index(sock, &index);
     }
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      for (sock = node->outputs.first; sock; sock = sock->next) {
+      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
         node_init_output_index(sock, &index, &node->internal_links);
       }
     }
     else {
-      for (sock = node->outputs.first; sock; sock = sock->next) {
-        node_init_output_index(sock, &index, NULL);
+      for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
+        node_init_output_index(sock, &index, nullptr);
       }
     }
   }
 
   /* allocated exec data pointers for nodes */
   exec->totnodes = totnodes;
-  exec->nodeexec = MEM_callocN(exec->totnodes * sizeof(bNodeExec), "node execution data");
+  exec->nodeexec = (bNodeExec *)MEM_callocN(exec->totnodes * sizeof(bNodeExec),
+                                            "node execution data");
   /* allocate data pointer for node stack */
   exec->stacksize = index;
-  exec->stack = MEM_callocN(exec->stacksize * sizeof(bNodeStack), "bNodeStack");
+  exec->stack = (bNodeStack *)MEM_callocN(exec->stacksize * sizeof(bNodeStack), "bNodeStack");
 
   /* all non-const results are considered inputs */
   for (n = 0; n < exec->stacksize; n++) {
@@ -222,7 +223,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     nodeexec->free_exec_fn = node->typeinfo->free_exec_fn;
 
     /* tag inputs */
-    for (sock = node->inputs.first; sock; sock = sock->next) {
+    for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
       /* disable the node if an input link is invalid */
       if (sock->link && !(sock->link->flag & NODE_LINK_VALID)) {
         node->need_exec = 0;
@@ -235,14 +236,14 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
     }
 
     /* tag all outputs */
-    for (sock = node->outputs.first; sock; sock = sock->next) {
+    for (sock = (bNodeSocket *)node->outputs.first; sock; sock = sock->next) {
       /* ns = */ setup_stack(exec->stack, ntree, node, sock);
     }
 
     nodekey = BKE_node_instance_key(parent_key, ntree, node);
-    nodeexec->data.preview = context->previews ?
-                                 BKE_node_instance_hash_lookup(context->previews, nodekey) :
-                                 NULL;
+    nodeexec->data.preview = context->previews ? (bNodePreview *)BKE_node_instance_hash_lookup(
+                                                     context->previews, nodekey) :
+                                                 nullptr;
     if (node->typeinfo->init_exec_fn) {
       nodeexec->data.data = node->typeinfo->init_exec_fn(context, node, nodekey);
     }
@@ -284,7 +285,7 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   ListBase *lb = &exec->threadstack[thread];
   bNodeThreadStack *nts;
 
-  for (nts = lb->first; nts; nts = nts->next) {
+  for (nts = (bNodeThreadStack *)lb->first; nts; nts = nts->next) {
     if (!nts->used) {
       nts->used = true;
       break;
@@ -292,8 +293,8 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
   }
 
   if (!nts) {
-    nts = MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
-    nts->stack = MEM_dupallocN(exec->stack);
+    nts = (bNodeThreadStack *)MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
+    nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
     nts->used = true;
     BLI_addtail(lb, nts);
   }
@@ -303,13 +304,13 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 
 void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 {
-  nts->used = 0;
+  nts->used = false;
 }
 
 bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
 {
-  bNodeStack *nsin[MAX_SOCKET] = {NULL};  /* arbitrary... watch this */
-  bNodeStack *nsout[MAX_SOCKET] = {NULL}; /* arbitrary... watch this */
+  bNodeStack *nsin[MAX_SOCKET] = {nullptr};  /* arbitrary... watch this */
+  bNodeStack *nsout[MAX_SOCKET] = {nullptr}; /* arbitrary... watch this */
   bNodeExec *nodeexec;
   bNode *node;
   int n;

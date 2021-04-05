@@ -22,6 +22,8 @@
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -63,3 +65,5 @@ void ChromaMatteNode::convertToOperations(NodeConverter &converter,
 
   converter.addPreview(operationAlpha->getOutputSocket());
 }
+
+}  // namespace blender::compositor

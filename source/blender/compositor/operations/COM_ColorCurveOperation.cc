@@ -22,6 +22,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::compositor {
+
 ColorCurveOperation::ColorCurveOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -151,3 +153,5 @@ void ConstantLevelColorCurveOperation::deinitExecution()
   this->m_inputFacProgram = nullptr;
   this->m_inputImageProgram = nullptr;
 }
+
+}  // namespace blender::compositor

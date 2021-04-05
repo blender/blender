@@ -1104,8 +1104,6 @@ static bool collection_drop_init(bContext *C,
                                  const wmEvent *event,
                                  CollectionDrop *data)
 {
-  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-
   /* Get collection to drop into. */
   TreeElementInsertType insert_type;
   TreeElement *te = outliner_drop_insert_collection_find(C, event, &insert_type);
@@ -1140,7 +1138,7 @@ static bool collection_drop_init(bContext *C,
   /* Get collection to drag out of. */
   ID *parent = drag_id->from_parent;
   Collection *from_collection = collection_parent_from_ID(parent);
-  if (event->ctrl || space_outliner->outlinevis == SO_SCENES) {
+  if (event->ctrl) {
     from_collection = NULL;
   }
 

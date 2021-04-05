@@ -21,6 +21,10 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+struct RNG;
+
+namespace blender::compositor {
+
 class ScreenLensDistortionOperation : public NodeOperation {
  private:
   /**
@@ -96,3 +100,5 @@ class ScreenLensDistortionOperation : public NodeOperation {
                   float sum[4],
                   int count[3]) const;
 };
+
+}  // namespace blender::compositor

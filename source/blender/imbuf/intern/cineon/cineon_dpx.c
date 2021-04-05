@@ -198,10 +198,10 @@ ImBuf *imb_load_cineon(const unsigned char *mem,
                        int flags,
                        char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_a_cineon(mem, size)) {
-    return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
+  if (!imb_is_a_cineon(mem, size)) {
+    return NULL;
   }
-  return NULL;
+  return imb_load_dpx_cineon(mem, size, 1, flags, colorspace);
 }
 
 bool imb_save_dpx(struct ImBuf *buf, const char *filepath, int flags)
@@ -219,8 +219,8 @@ ImBuf *imb_load_dpx(const unsigned char *mem,
                     int flags,
                     char colorspace[IM_MAX_SPACE])
 {
-  if (imb_is_a_dpx(mem, size)) {
-    return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
+  if (!imb_is_a_dpx(mem, size)) {
+    return NULL;
   }
-  return NULL;
+  return imb_load_dpx_cineon(mem, size, 0, flags, colorspace);
 }

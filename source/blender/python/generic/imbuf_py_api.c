@@ -50,8 +50,8 @@ static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf);
 
 typedef struct Py_ImBuf {
   PyObject_VAR_HEAD
-      /* can be NULL */
-      ImBuf *ibuf;
+  /* can be NULL */
+  ImBuf *ibuf;
 } Py_ImBuf;
 
 static int py_imbuf_valid_check(Py_ImBuf *self)

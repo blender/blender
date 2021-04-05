@@ -144,8 +144,21 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
 void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
 /* Depth buffer */
-void ED_view3d_depth_update(struct ARegion *region);
-float ED_view3d_depth_read_cached(const struct ViewContext *vc, const int mval[2]);
+typedef enum {
+  V3D_DEPTH_NO_GPENCIL = 0,
+  V3D_DEPTH_GPENCIL_ONLY,
+  V3D_DEPTH_OBJECT_ONLY,
+} eV3DDepthOverrideMode;
+void ED_view3d_depth_override(struct Depsgraph *depsgraph,
+                              struct ARegion *region,
+                              struct View3D *v3d,
+                              struct Object *obact,
+                              eV3DDepthOverrideMode mode,
+                              bool update_cache);
+bool ED_view3d_depth_read_cached(const ViewDepths *vd,
+                                 const int mval[2],
+                                 int margin,
+                                 float *r_depth);
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
                                         const int mval[2],
                                         float r_normal[3]);
@@ -481,11 +494,6 @@ bool ED_view3d_autodist(struct Depsgraph *depsgraph,
                         const bool alphaoverride,
                         const float fallback_depth_pt[3]);
 
-/* Only draw so #ED_view3d_autodist_simple can be called many times after. */
-void ED_view3d_autodist_init(struct Depsgraph *depsgraph,
-                             struct ARegion *region,
-                             struct View3D *v3d,
-                             int mode);
 bool ED_view3d_autodist_simple(struct ARegion *region,
                                const int mval[2],
                                float mouse_worldloc[3],

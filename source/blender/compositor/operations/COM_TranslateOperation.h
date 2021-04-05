@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class TranslateOperation : public NodeOperation {
  private:
   SocketReader *m_inputOperation;
@@ -64,3 +66,5 @@ class TranslateOperation : public NodeOperation {
 
   void setFactorXY(float factorX, float factorY);
 };
+
+}  // namespace blender::compositor

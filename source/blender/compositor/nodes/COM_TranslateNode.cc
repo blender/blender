@@ -23,6 +23,8 @@
 #include "COM_WrapOperation.h"
 #include "COM_WriteBufferOperation.h"
 
+namespace blender::compositor {
+
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -69,3 +71,5 @@ void TranslateNode::convertToOperations(NodeConverter &converter,
     converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
   }
 }
+
+}  // namespace blender::compositor

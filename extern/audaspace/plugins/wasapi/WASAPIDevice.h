@@ -26,7 +26,7 @@
  * The WASAPIDevice class.
  */
 
-#include "devices/SoftwareDevice.h"
+#include "devices/ThreadedDevice.h"
 
 #include <thread>
 
@@ -40,45 +40,22 @@ AUD_NAMESPACE_BEGIN
 /**
  * This device plays back through WASAPI, the Windows audio API.
  */
-class AUD_PLUGIN_API WASAPIDevice : public SoftwareDevice
+class AUD_PLUGIN_API WASAPIDevice : public ThreadedDevice
 {
 private:
-	/**
-	 * Whether there is currently playback.
-	 */
-	bool m_playing;
-
-	/**
-	 * Whether the current playback should stop.
-	 */
-	bool m_stop;
-
 	IMMDeviceEnumerator* m_imm_device_enumerator;
 	IMMDevice* m_imm_device;
 	IAudioClient* m_audio_client;
 	WAVEFORMATEXTENSIBLE m_wave_format_extensible;
 
 	/**
-	 * The streaming thread.
-	 */
-	std::thread m_thread;
-
-	/**
-	 * Starts the streaming thread.
-	 */
-	AUD_LOCAL void start();
-
-	/**
 	 * Streaming thread main function.
 	 */
-	AUD_LOCAL void updateStream();
+	AUD_LOCAL void runMixingThread();
 
 	// delete copy constructor and operator=
 	WASAPIDevice(const WASAPIDevice&) = delete;
 	WASAPIDevice& operator=(const WASAPIDevice&) = delete;
-
-protected:
-	virtual void playing(bool playing);
 
 public:
 	/**

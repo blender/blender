@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 //#define COM_DEFOCUS_SEARCH
 
 class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepHelper {
@@ -124,3 +126,5 @@ class InverseSearchRadiusOperation : public NodeOperation {
   }
 };
 #endif
+
+}  // namespace blender::compositor

@@ -18,14 +18,16 @@
 
 #include "COM_CryptomatteOperation.h"
 
+namespace blender::compositor {
+
 CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
 {
+  inputs.resize(num_inputs);
   for (size_t i = 0; i < num_inputs; i++) {
     this->addInputSocket(DataType::Color);
   }
-  inputs.resize(num_inputs);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void CryptomatteOperation::initExecution()
@@ -38,7 +40,7 @@ void CryptomatteOperation::initExecution()
 void CryptomatteOperation::addObjectIndex(float objectIndex)
 {
   if (objectIndex != 0.0f) {
-    m_objectIndex.push_back(objectIndex);
+    m_objectIndex.append(objectIndex);
   }
 }
 
@@ -58,13 +60,15 @@ void CryptomatteOperation::executePixel(float output[4], int x, int y, void *dat
       output[1] = ((float)((m3hash << 8)) / (float)UINT32_MAX);
       output[2] = ((float)((m3hash << 16)) / (float)UINT32_MAX);
     }
-    for (size_t i = 0; i < m_objectIndex.size(); i++) {
-      if (m_objectIndex[i] == input[0]) {
+    for (float hash : m_objectIndex) {
+      if (input[0] == hash) {
         output[3] += input[1];
       }
-      if (m_objectIndex[i] == input[2]) {
+      if (input[2] == hash) {
         output[3] += input[3];
       }
     }
   }
 }
+
+}  // namespace blender::compositor

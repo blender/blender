@@ -28,6 +28,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+namespace blender::compositor {
+
 class PlaneTrackCommon {
  protected:
   MovieClip *m_movieClip;
@@ -97,3 +99,5 @@ class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
     NodeOperation::determineResolution(temp, resolution);
   }
 };
+
+}  // namespace blender::compositor

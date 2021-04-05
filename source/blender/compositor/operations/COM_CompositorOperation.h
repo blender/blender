@@ -24,6 +24,8 @@
 
 struct Scene;
 
+namespace blender::compositor {
+
 /**
  * \brief Compositor output operation
  */
@@ -109,9 +111,9 @@ class CompositorOperation : public NodeOperation {
   }
   void initExecution() override;
   void deinitExecution() override;
-  CompositorPriority getRenderPriority() const override
+  eCompositorPriority getRenderPriority() const override
   {
-    return CompositorPriority::Medium;
+    return eCompositorPriority::Medium;
   }
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
@@ -124,3 +126,5 @@ class CompositorOperation : public NodeOperation {
     this->m_active = active;
   }
 };
+
+}  // namespace blender::compositor

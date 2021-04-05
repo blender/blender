@@ -20,6 +20,8 @@
 
 #include "COM_MixOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -70,3 +72,5 @@ class ChannelMatteOperation : public NodeOperation {
     this->m_matte_channel = custom2;
   }
 };
+
+}  // namespace blender::compositor

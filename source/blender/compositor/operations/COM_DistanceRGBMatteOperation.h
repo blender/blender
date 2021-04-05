@@ -20,6 +20,8 @@
 
 #include "COM_MixOperation.h"
 
+namespace blender::compositor {
+
 /**
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
@@ -51,3 +53,5 @@ class DistanceRGBMatteOperation : public NodeOperation {
     this->m_settings = nodeChroma;
   }
 };
+
+}  // namespace blender::compositor

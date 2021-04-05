@@ -24,6 +24,8 @@
 #include "COM_WorkPackage.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 /** \brief the workscheduler
  * \ingroup execution
  */
@@ -31,13 +33,11 @@ struct WorkScheduler {
   /**
    * \brief schedule a chunk of a group to be calculated.
    * An execution group schedules a chunk in the WorkScheduler
-   * when ExecutionGroup.isOpenCL is set the work will be handled by a OpenCLDevice
+   * when ExecutionGroup.get_flags().open_cl is set the work will be handled by a OpenCLDevice
    * otherwise the work is scheduled for an CPUDevice
    * \see ExecutionGroup.execute
-   * \param group: the execution group
-   * \param chunkNumber: the number of the chunk in the group to be executed
    */
-  static void schedule(ExecutionGroup *group, int chunkNumber);
+  static void schedule(WorkPackage *package);
 
   /**
    * \brief initialize the WorkScheduler
@@ -93,3 +93,5 @@ struct WorkScheduler {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkScheduler")
 #endif
 };
+
+}  // namespace blender::compositor

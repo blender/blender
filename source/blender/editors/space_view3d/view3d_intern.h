@@ -122,17 +122,7 @@ void VIEW3D_OT_walk(struct wmOperatorType *ot);
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *region);
 
-void ED_view3d_draw_depth(struct Depsgraph *depsgraph,
-                          struct ARegion *region,
-                          View3D *v3d,
-                          bool alphaoverride);
-
 /* view3d_draw_legacy.c */
-void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  struct ARegion *region,
-                                  View3D *v3d);
-
 void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
                                 ViewContext *vc,
                                 Scene *scene,

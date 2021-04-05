@@ -41,13 +41,13 @@ using blender::bke::ReadAttributePtr;
 
 static void add_columns_for_instances(const InstancesComponent &instances_component,
                                       SpreadsheetColumnLayout &column_layout,
-                                      ResourceCollector &resources)
+                                      ResourceScope &scope)
 {
   Span<InstancedData> instance_data = instances_component.instanced_data();
   Span<float4x4> transforms = instances_component.transforms();
 
   Vector<std::unique_ptr<SpreadsheetColumn>> &columns =
-      resources.construct<Vector<std::unique_ptr<SpreadsheetColumn>>>("columns");
+      scope.construct<Vector<std::unique_ptr<SpreadsheetColumn>>>("columns");
 
   columns.append(spreadsheet_column_from_function(
       "Name", [instance_data](int index, CellValue &r_cell_value) {
@@ -330,13 +330,13 @@ static Span<int64_t> filter_mesh_elements_by_selection(const bContext *C,
                                                        Object *object_eval,
                                                        const MeshComponent *component,
                                                        const AttributeDomain domain,
-                                                       ResourceCollector &resources)
+                                                       ResourceScope &scope)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const bool show_only_selected = sspreadsheet->filter_flag & SPREADSHEET_FILTER_SELECTED_ONLY;
   if (object_eval->mode == OB_MODE_EDIT && show_only_selected) {
     Object *object_orig = DEG_get_original_object(object_eval);
-    Vector<int64_t> &visible_rows = resources.construct<Vector<int64_t>>("visible rows");
+    Vector<int64_t> &visible_rows = scope.construct<Vector<int64_t>>("visible rows");
     const Mesh *mesh_eval = component->get_for_read();
     Mesh *mesh_orig = (Mesh *)object_orig->data;
     BMesh *bm = mesh_orig->edit_mesh->bm;
@@ -389,14 +389,14 @@ static GeometryComponentType get_display_component_type(const bContext *C, Objec
 void spreadsheet_columns_from_geometry(const bContext *C,
                                        Object *object_eval,
                                        SpreadsheetColumnLayout &column_layout,
-                                       ResourceCollector &resources)
+                                       ResourceScope &scope)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
 
   /* Create a resource collector that owns stuff that needs to live until drawing is done. */
-  GeometrySet &geometry_set = resources.add_value(
+  GeometrySet &geometry_set = scope.add_value(
       get_display_geometry_set(sspreadsheet, object_eval, component_type), "geometry set");
 
   const GeometryComponent *component = geometry_set.get_component_for_read(component_type);
@@ -405,7 +405,7 @@ void spreadsheet_columns_from_geometry(const bContext *C,
   }
   if (component_type == GEO_COMPONENT_TYPE_INSTANCES) {
     add_columns_for_instances(
-        *static_cast<const InstancesComponent *>(component), column_layout, resources);
+        *static_cast<const InstancesComponent *>(component), column_layout, scope);
     return;
   }
 
@@ -416,12 +416,12 @@ void spreadsheet_columns_from_geometry(const bContext *C,
   Vector<std::string> attribute_names = get_sorted_attribute_names_to_display(*component, domain);
 
   Vector<std::unique_ptr<SpreadsheetColumn>> &columns =
-      resources.construct<Vector<std::unique_ptr<SpreadsheetColumn>>>("columns");
+      scope.construct<Vector<std::unique_ptr<SpreadsheetColumn>>>("columns");
 
   for (StringRefNull attribute_name : attribute_names) {
     ReadAttributePtr attribute_ptr = component->attribute_try_get_for_read(attribute_name);
     ReadAttribute &attribute = *attribute_ptr;
-    resources.add(std::move(attribute_ptr), "attribute");
+    scope.add(std::move(attribute_ptr), "attribute");
     add_columns_for_attribute(&attribute, attribute_name, columns);
   }
 
@@ -433,7 +433,7 @@ void spreadsheet_columns_from_geometry(const bContext *C,
   Span<int64_t> visible_rows;
   if (component_type == GEO_COMPONENT_TYPE_MESH) {
     visible_rows = filter_mesh_elements_by_selection(
-        C, object_eval, static_cast<const MeshComponent *>(component), domain, resources);
+        C, object_eval, static_cast<const MeshComponent *>(component), domain, scope);
   }
   else {
     visible_rows = IndexRange(component->attribute_domain_size(domain)).as_span();

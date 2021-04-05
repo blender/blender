@@ -18,13 +18,15 @@
 
 #include "COM_NormalizeOperation.h"
 
+namespace blender::compositor {
+
 NormalizeOperation::NormalizeOperation()
 {
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Value);
   this->m_imageReader = nullptr;
   this->m_cachedInstance = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void NormalizeOperation::initExecution()
 {
@@ -124,3 +126,5 @@ void NormalizeOperation::deinitializeTileData(rcti * /*rect*/, void * /*data*/)
 {
   /* pass */
 }
+
+}  // namespace blender::compositor

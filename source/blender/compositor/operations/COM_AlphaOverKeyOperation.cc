@@ -18,6 +18,8 @@
 
 #include "COM_AlphaOverKeyOperation.h"
 
+namespace blender::compositor {
+
 AlphaOverKeyOperation::AlphaOverKeyOperation()
 {
   /* pass */
@@ -52,3 +54,5 @@ void AlphaOverKeyOperation::executePixelSampled(float output[4],
     output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
   }
 }
+
+}  // namespace blender::compositor

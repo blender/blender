@@ -56,6 +56,7 @@ list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
 if(WITH_OPENAL)
   find_package(OpenAL)
   if(NOT OPENAL_FOUND)
+    message(WARNING "OpenAL not found, disabling WITH_OPENAL")
     set(WITH_OPENAL OFF)
   endif()
 endif()
@@ -65,6 +66,7 @@ if(WITH_JACK)
     NAMES jackmp
   )
   if(NOT JACK_FRAMEWORK)
+    message(STATUS "JACK not found, disabling WITH_JACK")
     set(WITH_JACK OFF)
   else()
     set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
@@ -102,6 +104,7 @@ endif()
 if(WITH_USD)
   find_package(USD)
   if(NOT USD_FOUND)
+    message(STATUS "USD not found, disabling WITH_USD")
     set(WITH_USD OFF)
   endif()
 endif()
@@ -146,7 +149,7 @@ if(WITH_PYTHON)
 
     set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
     set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
-    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}/")
+    set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}")
     # set(PYTHON_LIBRARY python${PYTHON_VERSION})
     # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 
@@ -308,7 +311,7 @@ if(WITH_OPENCOLORIO)
 
   if(NOT OPENCOLORIO_FOUND)
     set(WITH_OPENCOLORIO OFF)
-    message(STATUS "OpenColorIO not found")
+    message(STATUS "OpenColorIO not found, disabling WITH_OPENCOLORIO")
   endif()
 endif()
 
@@ -357,7 +360,7 @@ if(WITH_CYCLES_OSL)
   if(OSL_INCLUDE_DIR AND OSL_LIBRARIES AND OSL_COMPILER AND OSL_SHADER_DIR)
     set(OSL_FOUND TRUE)
   else()
-    message(STATUS "OSL not found")
+    message(WARNING "OSL not found, disabling WITH_CYCLES_OSL")
     set(WITH_CYCLES_OSL OFF)
   endif()
 endif()
@@ -385,7 +388,7 @@ if(WITH_OPENIMAGEDENOISE)
 
   if(NOT OPENIMAGEDENOISE_FOUND)
     set(WITH_OPENIMAGEDENOISE OFF)
-    message(STATUS "OpenImageDenoise not found")
+    message(STATUS "OpenImageDenoise not found, disabling WITH_OPENIMAGEDENOISE")
   endif()
 endif()
 
@@ -413,7 +416,7 @@ if(WITH_OPENMP)
     set(OpenMP_LINKER_FLAGS "-L'${LIBDIR}/openmp/lib' -lomp")
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
-    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB`is added by the deps builder.
+    # `@executable_path/../Resources/lib/` `LC_ID_DYLIB` is added by the deps builder.
     # For single config generator datatoc, tests etc.
     execute_process(
       COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib

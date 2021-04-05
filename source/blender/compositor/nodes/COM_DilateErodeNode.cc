@@ -24,6 +24,8 @@
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
+namespace blender::compositor {
+
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
   /* initialize node data */
@@ -83,7 +85,7 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
   }
   else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_FEATHER) {
     /* this uses a modified gaussian blur function otherwise its far too slow */
-    CompositorQuality quality = context.getQuality();
+    eCompositorQuality quality = context.getQuality();
 
     GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
     operationx->setData(&m_alpha_blur);
@@ -147,3 +149,5 @@ void DilateErodeNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

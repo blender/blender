@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
   SocketReader *m_inputProgram;
@@ -78,3 +80,5 @@ class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
   void determineResolution(unsigned int resolution[2],
                            unsigned int preferredResolution[2]) override;
 };
+
+}  // namespace blender::compositor

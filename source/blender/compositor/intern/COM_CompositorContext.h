@@ -19,12 +19,17 @@
 #pragma once
 
 #include "BLI_rect.h"
-#include "COM_defines.h"
+
+#include "COM_Enums.h"
+
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+
 #include <string>
 #include <vector>
+
+namespace blender::compositor {
 
 /**
  * \brief Overall context of the compositor
@@ -33,8 +38,8 @@ class CompositorContext {
  private:
   /**
    * \brief The rendering field describes if we are rendering (F12) or if we are editing (Node
-   * editor) This field is initialized in ExecutionSystem and must only be read from that point on.
-   * \see ExecutionSystem
+   * editor) This field is initialized in ExecutionSystem and must only be read from that point
+   * on. \see ExecutionSystem
    */
   bool m_rendering;
 
@@ -43,7 +48,7 @@ class CompositorContext {
    * This field is initialized in ExecutionSystem and must only be read from that point on.
    * \see ExecutionSystem
    */
-  CompositorQuality m_quality;
+  eCompositorQuality m_quality;
 
   Scene *m_scene;
 
@@ -200,7 +205,7 @@ class CompositorContext {
   /**
    * \brief set the quality
    */
-  void setQuality(CompositorQuality quality)
+  void setQuality(eCompositorQuality quality)
   {
     this->m_quality = quality;
   }
@@ -208,7 +213,7 @@ class CompositorContext {
   /**
    * \brief get the quality
    */
-  CompositorQuality getQuality() const
+  eCompositorQuality getQuality() const
   {
     return this->m_quality;
   }
@@ -277,3 +282,5 @@ class CompositorContext {
     return m_rd->size * 0.01f;
   }
 };
+
+}  // namespace blender::compositor

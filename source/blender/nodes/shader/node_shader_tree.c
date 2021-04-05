@@ -1028,30 +1028,3 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
     ntree->execdata = NULL;
   }
 }
-
-/* TODO: left over from Blender Internal, could reuse for new texture nodes. */
-bool ntreeShaderExecTree(bNodeTree *ntree, int thread)
-{
-  ShaderCallData scd;
-  bNodeThreadStack *nts = NULL;
-  bNodeTreeExec *exec = ntree->execdata;
-  int compat;
-
-  /* ensure execdata is only initialized once */
-  if (!exec) {
-    BLI_thread_lock(LOCK_NODES);
-    if (!ntree->execdata) {
-      ntree->execdata = ntreeShaderBeginExecTree(ntree);
-    }
-    BLI_thread_unlock(LOCK_NODES);
-
-    exec = ntree->execdata;
-  }
-
-  nts = ntreeGetThreadStack(exec, thread);
-  compat = ntreeExecThreadNodes(exec, nts, &scd, thread);
-  ntreeReleaseThreadStack(nts);
-
-  /* if compat is zero, it has been using non-compatible nodes */
-  return compat;
-}

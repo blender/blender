@@ -21,6 +21,8 @@
 #include "COM_DisplaceSimpleOperation.h"
 #include "COM_ExecutionSystem.h"
 
+namespace blender::compositor {
+
 DisplaceNode::DisplaceNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -30,7 +32,7 @@ void DisplaceNode::convertToOperations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
   NodeOperation *operation;
-  if (context.getQuality() == CompositorQuality::Low) {
+  if (context.getQuality() == eCompositorQuality::Low) {
     operation = new DisplaceSimpleOperation();
   }
   else {
@@ -44,3 +46,5 @@ void DisplaceNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(3), operation->getInputSocket(3));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

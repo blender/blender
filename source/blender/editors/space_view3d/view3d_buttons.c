@@ -1031,7 +1031,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
             }
           }
         }
-        BKE_nurb_test_2d(nu);
+        if (CU_IS_2D(cu)) {
+          BKE_nurb_project_2d(nu);
+        }
         BKE_nurb_handles_test(nu, true, false); /* test for bezier too */
       }
     }

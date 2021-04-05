@@ -20,12 +20,14 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class CryptomatteOperation : public NodeOperation {
  private:
-  std::vector<float> m_objectIndex;
+  Vector<float> m_objectIndex;
 
  public:
-  std::vector<SocketReader *> inputs;
+  Vector<SocketReader *> inputs;
 
   CryptomatteOperation(size_t num_inputs = 6);
 
@@ -34,3 +36,5 @@ class CryptomatteOperation : public NodeOperation {
 
   void addObjectIndex(float objectIndex);
 };
+
+}  // namespace blender::compositor

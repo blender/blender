@@ -20,6 +20,8 @@
 
 #include "COM_Device.h"
 
+namespace blender::compositor {
+
 /**
  * \brief class representing a CPU device.
  * \note for every hardware thread in the system a CPUDevice instance
@@ -43,3 +45,5 @@ class CPUDevice : public Device {
  protected:
   int m_thread_id;
 };
+
+}  // namespace blender::compositor

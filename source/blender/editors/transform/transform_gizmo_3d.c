@@ -512,11 +512,11 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 /* for pose mode */
 static void protectflag_to_drawflags_pchan(RegionView3D *rv3d,
                                            const bPoseChannel *pchan,
-                                           short orientation_type)
+                                           short orientation_index)
 {
   /* Protect-flags apply to local space in pose mode, so only let them influence axis
    * visibility if we show the global orientation, otherwise it's confusing. */
-  if (orientation_type == V3D_ORIENT_LOCAL) {
+  if (orientation_index == V3D_ORIENT_LOCAL) {
     protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
   }
 }
@@ -657,12 +657,9 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   int a, totsel = 0;
 
   const int pivot_point = scene->toolsettings->transform_pivot_point;
-  const short orientation_type = params->orientation_type ?
-                                     (params->orientation_type - 1) :
-                                     scene->orientation_slots[SCE_ORIENT_DEFAULT].type;
-  const short orientation_index_custom =
-      params->orientation_type ? params->orientation_index_custom :
-                                 scene->orientation_slots[SCE_ORIENT_DEFAULT].index_custom;
+  const short orient_index = params->orientation_index ?
+                                 (params->orientation_index - 1) :
+                                 BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
 
   /* transform widget matrix */
   unit_m4(rv3d->twmat);
@@ -678,7 +675,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   if (ob) {
     float mat[3][3];
     ED_transform_calc_orientation_from_type_ex(
-        C, mat, scene, rv3d, ob, obedit, orientation_type, orientation_index_custom, pivot_point);
+        C, mat, scene, rv3d, ob, obedit, orient_index, pivot_point);
     copy_m4_m3(rv3d->twmat, mat);
   }
 
@@ -976,7 +973,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
           Bone *bone = pchan->bone;
           if (bone && (bone->flag & BONE_TRANSFORM)) {
             calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
-            protectflag_to_drawflags_pchan(rv3d, pchan, orientation_type);
+            protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
           }
         }
         totsel += totsel_iter;
@@ -1063,7 +1060,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       /* Protect-flags apply to world space in object mode, so only let them influence axis
        * visibility if we show the global orientation, otherwise it's confusing. */
-      if (orientation_type == V3D_ORIENT_GLOBAL) {
+      if (orient_index == V3D_ORIENT_GLOBAL) {
         protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
       }
       totsel++;
@@ -1689,18 +1686,15 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     }
   }
 
-  const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
-      scene, ggd->twtype_init);
+  const int orient_index = BKE_scene_orientation_get_index_from_flag(scene, ggd->twtype_init);
 
   /* skip, we don't draw anything anyway */
-  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(
-                              C,
-                              &(struct TransformCalcParams){
-                                  .use_only_center = true,
-                                  .orientation_type = orient_slot->type + 1,
-                                  .orientation_index_custom = orient_slot->index_custom,
-                              },
-                              &tbounds) == 0))) {
+  if ((ggd->all_hidden = (ED_transform_calc_gizmo_stats(C,
+                                                        &(struct TransformCalcParams){
+                                                            .use_only_center = true,
+                                                            .orientation_index = orient_index + 1,
+                                                        },
+                                                        &tbounds) == 0))) {
     return;
   }
 
@@ -2119,14 +2113,12 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
     gzgroup->use_fallback_keymap = false;
   }
 
-  const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene,
-                                                                               SCE_ORIENT_SCALE);
+  const int orient_index = BKE_scene_orientation_get_index_from_flag(scene, SCE_ORIENT_SCALE);
 
   if ((ED_transform_calc_gizmo_stats(C,
                                      &(struct TransformCalcParams){
                                          .use_local_axis = true,
-                                         .orientation_type = orient_slot->type + 1,
-                                         .orientation_index_custom = orient_slot->index_custom,
+                                         .orientation_index = orient_index + 1,
                                      },
                                      &tbounds) == 0) ||
       equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max)) {
@@ -2335,14 +2327,14 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
   /* Needed to test view orientation changes. */
   copy_m3_m4(xgzgroup->prev.viewinv_m3, rv3d->viewinv);
 
-  const TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get(scene,
-                                                                               SCE_ORIENT_ROTATE);
+  TransformOrientationSlot *orient_slot = BKE_scene_orientation_slot_get_from_flag(
+      scene, SCE_ORIENT_ROTATE);
+  const int orient_index = BKE_scene_orientation_slot_get_index(orient_slot);
 
   if (ED_transform_calc_gizmo_stats(C,
                                     &(struct TransformCalcParams){
                                         .use_local_axis = false,
-                                        .orientation_type = orient_slot->type + 1,
-                                        .orientation_index_custom = orient_slot->index_custom,
+                                        .orientation_index = orient_index + 1,
                                     },
                                     &tbounds) == 0) {
     for (int i = 0; i < 3; i++) {

@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ConvolutionFilterOperation : public NodeOperation {
  private:
   int m_filterWidth;
@@ -42,3 +44,5 @@ class ConvolutionFilterOperation : public NodeOperation {
   void initExecution() override;
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

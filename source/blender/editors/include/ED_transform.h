@@ -151,8 +151,7 @@ short ED_transform_calc_orientation_from_type_ex(const struct bContext *C,
                                                  struct RegionView3D *rv3d,
                                                  struct Object *ob,
                                                  struct Object *obedit,
-                                                 const short orientation_type,
-                                                 int orientation_index_custom,
+                                                 const short orientation_index,
                                                  const int pivot_point);
 
 /* transform gizmos */
@@ -186,8 +185,7 @@ struct TransformCalcParams {
   uint use_only_center : 1;
   uint use_local_axis : 1;
   /* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
-  ushort orientation_type;
-  ushort orientation_index_custom;
+  ushort orientation_index;
 };
 int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,

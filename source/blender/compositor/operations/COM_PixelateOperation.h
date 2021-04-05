@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * \brief Pixelate operation
  *
@@ -60,3 +62,5 @@ class PixelateOperation : public NodeOperation {
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

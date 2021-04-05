@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_TonemapOperation.h"
 
+namespace blender::compositor {
+
 TonemapNode::TonemapNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -38,3 +40,5 @@ void TonemapNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

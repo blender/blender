@@ -778,6 +778,13 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
 {
   IDP_BlendReadLib(reader, sock->prop);
 
+  /* This can happen for all socket types when a file is saved in an older version of Blender than
+   * it was originally created in (T86298). Some socket types still require a default value. The
+   * default value of those sockets will be created in `ntreeSetTypes`. */
+  if (sock->default_value == nullptr) {
+    return;
+  }
+
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
       bNodeSocketValueObject *default_value = (bNodeSocketValueObject *)sock->default_value;
@@ -4704,6 +4711,7 @@ static void registerCompositNodes()
   register_node_type_cmp_defocus();
   register_node_type_cmp_sunbeams();
   register_node_type_cmp_denoise();
+  register_node_type_cmp_antialiasing();
 
   register_node_type_cmp_valtorgb();
   register_node_type_cmp_rgbtobw();

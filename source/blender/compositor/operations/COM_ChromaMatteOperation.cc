@@ -19,6 +19,8 @@
 #include "COM_ChromaMatteOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 ChromaMatteOperation::ChromaMatteOperation()
 {
   addInputSocket(DataType::Color);
@@ -107,3 +109,5 @@ void ChromaMatteOperation::executePixelSampled(float output[4],
     output[0] = inImage[3]; /* make pixel just as transparent as it was before */
   }
 }
+
+}  // namespace blender::compositor

@@ -26,6 +26,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_mask.h"
 
+namespace blender::compositor {
+
 MaskOperation::MaskOperation()
 {
   this->addOutputSocket(DataType::Value);
@@ -158,3 +160,5 @@ void MaskOperation::executePixelSampled(float output[4],
     output[0] /= this->m_rasterMaskHandleTot;
   }
 }
+
+}  // namespace blender::compositor

@@ -19,13 +19,15 @@
 #include "COM_MapUVOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 MapUVOperation::MapUVOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addInputSocket(DataType::Vector);
   this->addOutputSocket(DataType::Color);
   this->m_alpha = 0.0f;
-  this->setComplex(true);
+  this->flags.complex = true;
   setResolutionInputSocketIndex(1);
 
   this->m_inputUVProgram = nullptr;
@@ -183,3 +185,5 @@ bool MapUVOperation::determineDependingAreaOfInterest(rcti *input,
 
   return false;
 }
+
+}  // namespace blender::compositor

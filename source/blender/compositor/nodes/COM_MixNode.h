@@ -20,6 +20,9 @@
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
+
+namespace blender::compositor {
+
 /**
  * \brief MixNode
  * \ingroup Node
@@ -30,3 +33,5 @@ class MixNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

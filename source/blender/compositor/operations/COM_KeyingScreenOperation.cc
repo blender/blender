@@ -30,13 +30,15 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 KeyingScreenOperation::KeyingScreenOperation()
 {
   this->addOutputSocket(DataType::Color);
   this->m_movieClip = nullptr;
   this->m_framenumber = 0;
   this->m_trackingObject[0] = 0;
-  setComplex(true);
+  flags.complex = true;
 }
 
 void KeyingScreenOperation::initExecution()
@@ -344,3 +346,5 @@ void KeyingScreenOperation::executePixel(float output[4], int x, int y, void *da
     }
   }
 }
+
+}  // namespace blender::compositor

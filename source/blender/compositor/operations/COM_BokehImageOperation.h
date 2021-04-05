@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 /**
  * \brief The BokehImageOperation class is an operation that creates an image useful to mimic the
  *internals of a camera.
@@ -150,3 +152,5 @@ class BokehImageOperation : public NodeOperation {
     this->m_deleteData = true;
   }
 };
+
+}  // namespace blender::compositor

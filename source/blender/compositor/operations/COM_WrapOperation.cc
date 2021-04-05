@@ -20,6 +20,8 @@
 
 #include "COM_WrapOperation.h"
 
+namespace blender::compositor {
+
 WrapOperation::WrapOperation(DataType datatype) : ReadBufferOperation(datatype)
 {
   this->m_wrappingType = CMP_NODE_WRAP_NONE;
@@ -115,3 +117,5 @@ void WrapOperation::setWrapping(int wrapping_type)
 {
   m_wrappingType = wrapping_type;
 }
+
+}  // namespace blender::compositor

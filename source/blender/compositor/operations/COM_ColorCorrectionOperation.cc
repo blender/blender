@@ -21,6 +21,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 ColorCorrectionOperation::ColorCorrectionOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -160,3 +162,5 @@ void ColorCorrectionOperation::deinitExecution()
   this->m_inputImage = nullptr;
   this->m_inputMask = nullptr;
 }
+
+}  // namespace blender::compositor

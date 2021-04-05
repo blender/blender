@@ -18,6 +18,8 @@
 
 #include "COM_SetSamplerOperation.h"
 
+namespace blender::compositor {
+
 SetSamplerOperation::SetSamplerOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -40,3 +42,5 @@ void SetSamplerOperation::executePixelSampled(float output[4],
 {
   this->m_reader->readSampled(output, x, y, this->m_sampler);
 }
+
+}  // namespace blender::compositor

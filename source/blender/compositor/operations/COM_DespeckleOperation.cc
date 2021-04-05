@@ -22,6 +22,8 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 DespeckleOperation::DespeckleOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -29,7 +31,7 @@ DespeckleOperation::DespeckleOperation()
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
   this->m_inputOperation = nullptr;
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 void DespeckleOperation::initExecution()
 {
@@ -141,3 +143,5 @@ bool DespeckleOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

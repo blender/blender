@@ -39,7 +39,7 @@ namespace {
 using BoneNameSet = blender::Set<std::string>;
 
 // Forward declarations.
-BoneNameSet pose_apply_find_selected_bones(const bPose *pose);
+BoneNameSet pose_apply_find_selected_bones(const bArmature *armature, const bPose *pose);
 void pose_apply_disable_fcurves_for_unselected_bones(bAction *action,
                                                      const BoneNameSet &selected_bone_names);
 void pose_apply_restore_fcurves(bAction *action);
@@ -54,7 +54,8 @@ void BKE_pose_apply_action(struct Object *ob,
     return;
   }
 
-  const BoneNameSet selected_bone_names = pose_apply_find_selected_bones(pose);
+  const bArmature *armature = (bArmature *)ob->data;
+  const BoneNameSet selected_bone_names = pose_apply_find_selected_bones(armature, pose);
   const bool limit_to_selected_bones = !selected_bone_names.is_empty();
 
   if (limit_to_selected_bones) {
@@ -74,15 +75,14 @@ void BKE_pose_apply_action(struct Object *ob,
 }
 
 namespace {
-BoneNameSet pose_apply_find_selected_bones(const bPose *pose)
+BoneNameSet pose_apply_find_selected_bones(const bArmature *armature, const bPose *pose)
 {
   BoneNameSet selected_bone_names;
   bool all_bones_selected = true;
   bool no_bones_selected = true;
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    const bool is_selected = (pchan->bone->flag & BONE_SELECTED) != 0 &&
-                             (pchan->bone->flag & BONE_HIDDEN_P) == 0;
+    const bool is_selected = PBONE_SELECTED(armature, pchan->bone);
     all_bones_selected &= is_selected;
     no_bones_selected &= !is_selected;
 

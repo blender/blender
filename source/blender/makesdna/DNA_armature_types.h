@@ -134,7 +134,7 @@ typedef struct bArmature {
 
   /** ID data is older than edit-mode data (TODO: move to edit-mode struct). */
   char needs_flush_to_id;
-  char _pad0[7];
+  char _pad0[3];
 
   int flag;
   int drawtype;
@@ -146,6 +146,9 @@ typedef struct bArmature {
   unsigned int layer_used;
   /** For buttons to work, both variables in this order together. */
   unsigned int layer, layer_protected;
+
+  /** Relative position of the axes on the bone, from head (0.0f) to tail (1.0f). */
+  float axes_position;
 } bArmature;
 
 /* armature->flag */
@@ -230,8 +233,10 @@ typedef enum eBone_Flag {
   BONE_MULT_VG_ENV = (1 << 11),
   /** bone doesn't deform geometry */
   BONE_NO_DEFORM = (1 << 12),
+#ifdef DNA_DEPRECATED_ALLOW
   /** set to prevent destruction of its unkeyframed pose (after transform) */
   BONE_UNKEYED = (1 << 13),
+#endif
   /** set to prevent hinge child bones from influencing the transform center */
   BONE_HINGE_CHILD_TRANSFORM = (1 << 14),
 #ifdef DNA_DEPRECATED_ALLOW

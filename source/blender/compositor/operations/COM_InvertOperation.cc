@@ -18,6 +18,8 @@
 
 #include "COM_InvertOperation.h"
 
+namespace blender::compositor {
+
 InvertOperation::InvertOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -67,3 +69,5 @@ void InvertOperation::deinitExecution()
   this->m_inputValueProgram = nullptr;
   this->m_inputColorProgram = nullptr;
 }
+
+}  // namespace blender::compositor

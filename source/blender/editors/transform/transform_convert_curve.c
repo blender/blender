@@ -461,11 +461,7 @@ void recalcData_curve(TransInfo *t)
     }
     else {
       /* Normal updating */
-      while (nu) {
-        BKE_nurb_test_2d(nu);
-        BKE_nurb_handles_calc(nu);
-        nu = nu->next;
-      }
+      BKE_curve_dimension_update(cu);
     }
   }
 }

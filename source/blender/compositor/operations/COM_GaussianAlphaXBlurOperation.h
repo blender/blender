@@ -21,6 +21,8 @@
 #include "COM_BlurBaseOperation.h"
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class GaussianAlphaXBlurOperation : public BlurBaseOperation {
  private:
   float *m_gausstab;
@@ -65,3 +67,5 @@ class GaussianAlphaXBlurOperation : public BlurBaseOperation {
     this->m_falloff = falloff;
   }
 };
+
+}  // namespace blender::compositor

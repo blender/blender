@@ -263,7 +263,7 @@ enum {
 
 /* me->editflag */
 enum {
-  ME_EDIT_VERTEX_GROUPS_X_SYMMETRY = 1 << 0,
+  ME_EDIT_MIRROR_VERTEX_GROUPS = 1 << 0,
   ME_EDIT_MIRROR_Y = 1 << 1, /* unused so far */
   ME_EDIT_MIRROR_Z = 1 << 2, /* unused so far */
 
@@ -272,12 +272,16 @@ enum {
   ME_EDIT_PAINT_VERT_SEL = 1 << 5,
 };
 
-/* we cant have both flags enabled at once,
+/* Helper macro to see if vertex group X mirror is on. */
+#define ME_USING_MIRROR_X_VERTEX_GROUPS(_me) \
+  (((_me)->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) && ((_me)->symmetry & ME_SYMMETRY_X))
+
+/* We cant have both flags enabled at once,
  * flags defined in DNA_scene_types.h */
 #define ME_EDIT_PAINT_SEL_MODE(_me) \
-  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? \
-       SCE_SELECT_FACE : \
-       ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : 0)
+  (((_me)->editflag & ME_EDIT_PAINT_FACE_SEL) ? SCE_SELECT_FACE : \
+   ((_me)->editflag & ME_EDIT_PAINT_VERT_SEL) ? SCE_SELECT_VERTEX : \
+                                                0)
 
 /* me->flag */
 enum {

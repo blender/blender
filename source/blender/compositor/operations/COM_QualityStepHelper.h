@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "COM_defines.h"
+#include "COM_Enums.h"
+
+namespace blender::compositor {
 
 typedef enum QualityHelper {
   COM_QH_INCREASE,
@@ -27,7 +29,7 @@ typedef enum QualityHelper {
 
 class QualityStepHelper {
  private:
-  CompositorQuality m_quality;
+  eCompositorQuality m_quality;
   int m_step;
   int m_offsetadd;
 
@@ -49,8 +51,10 @@ class QualityStepHelper {
  public:
   QualityStepHelper();
 
-  void setQuality(CompositorQuality quality)
+  void setQuality(eCompositorQuality quality)
   {
     this->m_quality = quality;
   }
 };
+
+}  // namespace blender::compositor

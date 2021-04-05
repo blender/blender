@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -29,8 +31,9 @@ BokehBlurOperation::BokehBlurOperation()
   this->addInputSocket(DataType::Value);
   this->addInputSocket(DataType::Value);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
-  this->setOpenCL(true);
+
+  flags.complex = true;
+  flags.open_cl = true;
 
   this->m_size = 1.0f;
   this->m_sizeavailable = false;
@@ -106,12 +109,12 @@ void BokehBlurOperation::executePixel(float output[4], int x, int y, void *data)
     maxx = MIN2(maxx, input_rect.xmax);
 
     int step = getStep();
-    int offsetadd = getOffsetAdd() * COM_NUM_CHANNELS_COLOR;
+    int offsetadd = getOffsetAdd() * COM_DATA_TYPE_COLOR_CHANNELS;
 
     float m = this->m_bokehDimension / pixelSize;
     for (int ny = miny; ny < maxy; ny += step) {
-      int bufferindex = ((minx - bufferstartx) * COM_NUM_CHANNELS_COLOR) +
-                        ((ny - bufferstarty) * COM_NUM_CHANNELS_COLOR * bufferwidth);
+      int bufferindex = ((minx - bufferstartx) * COM_DATA_TYPE_COLOR_CHANNELS) +
+                        ((ny - bufferstarty) * COM_DATA_TYPE_COLOR_CHANNELS * bufferwidth);
       for (int nx = minx; nx < maxx; nx += step) {
         float u = this->m_bokehMidX - (nx - x) * m;
         float v = this->m_bokehMidY - (ny - y) * m;
@@ -241,3 +244,5 @@ void BokehBlurOperation::determineResolution(unsigned int resolution[2],
     resolution[1] += 2 * this->m_size * max_dim / 100.0f;
   }
 }
+
+}  // namespace blender::compositor

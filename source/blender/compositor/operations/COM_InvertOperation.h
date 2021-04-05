@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class InvertOperation : public NodeOperation {
  private:
   /**
@@ -58,3 +60,5 @@ class InvertOperation : public NodeOperation {
     this->m_alpha = alpha;
   }
 };
+
+}  // namespace blender::compositor

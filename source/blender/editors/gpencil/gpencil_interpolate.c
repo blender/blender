@@ -84,7 +84,8 @@ typedef struct tGPDinterpolate_layer {
   /** interpolate factor */
   float factor;
 
-  /* Hash tablets to create temp relationship between strokes. */
+  /* List of strokes and Hash tablets to create temp relationship between strokes. */
+  struct ListBase selected_strokes;
   struct GHash *used_strokes;
   struct GHash *pair_strokes;
 
@@ -282,6 +283,7 @@ static void gpencil_stroke_pair_table(bContext *C,
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* Create hash tablets with relationship between strokes. */
+  BLI_listbase_clear(&tgpil->selected_strokes);
   tgpil->used_strokes = BLI_ghash_ptr_new(__func__);
   tgpil->pair_strokes = BLI_ghash_ptr_new(__func__);
 
@@ -315,7 +317,8 @@ static void gpencil_stroke_pair_table(bContext *C,
     if (ELEM(NULL, gps_from, gps_to)) {
       continue;
     }
-    /* Insert the pair entry in the hash table. */
+    /* Insert the pair entry in the hash table and the list of strokes to keep order. */
+    BLI_addtail(&tgpil->selected_strokes, BLI_genericNodeN(gps_from));
     BLI_ghash_insert(tgpil->pair_strokes, gps_from, gps_to);
   }
 }
@@ -405,10 +408,13 @@ static void gpencil_interpolate_update_strokes(bContext *C, tGPDinterpolate *tgp
     /* Clear previous interpolations. */
     gpencil_interpolate_free_tagged_strokes(tgpil->interFrame);
 
-    GHashIterator gh_iter;
-    GHASH_ITER (gh_iter, tgpil->pair_strokes) {
-      bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
+    LISTBASE_FOREACH (LinkData *, link, &tgpil->selected_strokes) {
+      bGPDstroke *gps_from = link->data;
+      if (!BLI_ghash_haskey(tgpil->pair_strokes, gps_from)) {
+        continue;
+      }
+      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(tgpil->pair_strokes, gps_from);
+
       /* Create new stroke. */
       bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps_from, true, true);
       new_stroke->flag |= GP_STROKE_TAG;
@@ -527,10 +533,12 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     gpencil_stroke_pair_table(C, tgpi, tgpil);
 
     /* Create new strokes data with interpolated points reading original stroke. */
-    GHashIterator gh_iter;
-    GHASH_ITER (gh_iter, tgpil->pair_strokes) {
-      bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
+    LISTBASE_FOREACH (LinkData *, link, &tgpil->selected_strokes) {
+      bGPDstroke *gps_from = link->data;
+      if (!BLI_ghash_haskey(tgpil->pair_strokes, gps_from)) {
+        continue;
+      }
+      bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(tgpil->pair_strokes, gps_from);
 
       /* If destination stroke is smaller, resize new_stroke to size of gps_to stroke. */
       if (gps_from->totpoints > gps_to->totpoints) {
@@ -657,6 +665,9 @@ static void gpencil_interpolate_exit(bContext *C, wmOperator *op)
       MEM_SAFE_FREE(tgpil->prevFrame);
       MEM_SAFE_FREE(tgpil->nextFrame);
       MEM_SAFE_FREE(tgpil->interFrame);
+
+      /* Free list of strokes. */
+      BLI_freelistN(&tgpil->selected_strokes);
 
       /* Free Hash tablets. */
       if (tgpil->used_strokes != NULL) {
@@ -1270,7 +1281,6 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
   }
 
   /* loop all layer to check if need interpolation */
-  bool use_select_order = false;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* all layers or only active */
     if ((!all_layers) && (gpl != active_gpl)) {
@@ -1293,6 +1303,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     bGPDframe *nextFrame = BKE_gpencil_frame_duplicate(gpf_next, true);
 
     /* Create a table with source and target pair of strokes. */
+    ListBase selected_strokes = {NULL};
     GHash *used_strokes = BLI_ghash_ptr_new(__func__);
     GHash *pair_strokes = BLI_ghash_ptr_new(__func__);
     LISTBASE_FOREACH (bGPDstroke *, gps_from, &prevFrame->strokes) {
@@ -1313,7 +1324,6 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       /* Try to get the related stroke. */
       if ((is_multiedit) && (gps_from->select_index > 0)) {
         gps_to = gpencil_stroke_get_related(used_strokes, nextFrame, gps_from->select_index);
-        use_select_order = true;
       }
       /* If not found, get final stroke to interpolate using position in the array. */
       if (gps_to == NULL) {
@@ -1343,7 +1353,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         }
       }
 
-      /* Insert the pair entry in the hash table. */
+      /* Insert the pair entry in the hash table and in the list of strokes to keep same order.
+       */
+      BLI_addtail(&selected_strokes, BLI_genericNodeN(gps_from));
       BLI_ghash_insert(pair_strokes, gps_from, gps_to);
     }
 
@@ -1370,11 +1382,12 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       }
 
       /* Apply the factor to all pair of strokes. */
-      GHashIterator gh_iter;
-      GHASH_ITER (gh_iter, pair_strokes) {
-        bGPDstroke *gps_from = (bGPDstroke *)BLI_ghashIterator_getKey(&gh_iter);
-        bGPDstroke *gps_to = (bGPDstroke *)BLI_ghashIterator_getValue(&gh_iter);
-
+      LISTBASE_FOREACH (LinkData *, link, &selected_strokes) {
+        bGPDstroke *gps_from = link->data;
+        if (!BLI_ghash_haskey(pair_strokes, gps_from)) {
+          continue;
+        }
+        bGPDstroke *gps_to = (bGPDstroke *)BLI_ghash_lookup(pair_strokes, gps_from);
         /* Create new stroke. */
         bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps_from, true, true);
         new_stroke->flag |= GP_STROKE_TAG;
@@ -1391,15 +1404,11 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
         bGPDframe *interFrame = BKE_gpencil_layer_frame_get(gpl, cframe, GP_GETFRAME_ADD_NEW);
         interFrame->key_type = BEZT_KEYTYPE_BREAKDOWN;
 
-        /* If not using the selection order, the iter is inversed. */
-        if (use_select_order) {
-          BLI_addtail(&interFrame->strokes, new_stroke);
-        }
-        else {
-          BLI_addhead(&interFrame->strokes, new_stroke);
-        }
+        BLI_addtail(&interFrame->strokes, new_stroke);
       }
     }
+
+    BLI_freelistN(&selected_strokes);
 
     /* Free Hash tablets. */
     if (used_strokes != NULL) {

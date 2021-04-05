@@ -139,16 +139,20 @@ void DEG_graph_time_tag_update(struct Depsgraph *depsgraph);
 void DEG_graph_id_type_tag(struct Depsgraph *depsgraph, short id_type);
 void DEG_id_type_tag(struct Main *bmain, short id_type);
 
-void DEG_ids_clear_recalc(struct Main *bmain, Depsgraph *depsgraph);
+/* Set a depsgraph to flush updates to editors. This would be done
+ * for viewport depsgraphs, but not render or export depsgraph for example. */
+void DEG_enable_editors_update(struct Depsgraph *depsgraph);
 
-/* Check if something was changed in the database and inform
- * editors about this.
- */
-void DEG_ids_check_recalc(struct Main *bmain,
-                          struct Depsgraph *depsgraph,
-                          struct Scene *scene,
-                          struct ViewLayer *view_layer,
-                          bool time);
+/* Check if something was changed in the database and inform editors about this,
+ * then clear recalc flags. */
+void DEG_editors_update(struct Main *bmain,
+                        struct Depsgraph *depsgraph,
+                        struct Scene *scene,
+                        struct ViewLayer *view_layer,
+                        bool time);
+
+/* Clear recalc flags after editors or renderers have handled updates. */
+void DEG_ids_clear_recalc(Depsgraph *depsgraph);
 
 /* ************************************************ */
 /* Evaluation Engine API */

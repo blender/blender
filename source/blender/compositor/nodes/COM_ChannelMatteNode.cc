@@ -22,6 +22,8 @@
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+namespace blender::compositor {
+
 ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -93,3 +95,5 @@ void ChannelMatteNode::convertToOperations(NodeConverter &converter,
     converter.addPreview(operationAlpha->getOutputSocket());
   }
 }
+
+}  // namespace blender::compositor

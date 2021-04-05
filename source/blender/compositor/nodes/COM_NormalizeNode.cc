@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_NormalizeOperation.h"
 
+namespace blender::compositor {
+
 NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -34,3 +36,5 @@ void NormalizeNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

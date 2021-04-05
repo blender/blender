@@ -70,7 +70,8 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
       scene_cow(nullptr),
       is_active(false),
       is_evaluating(false),
-      is_render_pipeline_depsgraph(false)
+      is_render_pipeline_depsgraph(false),
+      use_editors_update(false)
 {
   BLI_spin_init(&lock);
   memset(id_type_updated, 0, sizeof(id_type_updated));
@@ -285,7 +286,9 @@ Depsgraph *DEG_graph_new(Main *bmain, Scene *scene, ViewLayer *view_layer, eEval
 }
 
 /* Replace the "owner" pointers (currently Main/Scene/ViewLayer) of this depsgraph.
- * Used during undo steps when we do want to re-use the old depsgraph data as much as possible. */
+ * Used for:
+ * - Undo steps when we do want to re-use the old depsgraph data as much as possible.
+ * - Rendering where we want to re-use objects between different view layers. */
 void DEG_graph_replace_owners(struct Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,

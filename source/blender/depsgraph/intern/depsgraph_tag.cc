@@ -816,11 +816,22 @@ void DEG_on_visible_update(Main *bmain, const bool do_time)
   }
 }
 
+void DEG_enable_editors_update(Depsgraph *depsgraph)
+{
+  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  graph->use_editors_update = true;
+}
+
 /* Check if something was changed in the database and inform
  * editors about this. */
-void DEG_ids_check_recalc(
+void DEG_editors_update(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, bool time)
 {
+  deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
+  if (!graph->use_editors_update) {
+    return;
+  }
+
   bool updated = time || DEG_id_type_any_updated(depsgraph);
 
   DEGEditorUpdateContext update_ctx = {nullptr};
@@ -829,6 +840,8 @@ void DEG_ids_check_recalc(
   update_ctx.scene = scene;
   update_ctx.view_layer = view_layer;
   deg::deg_editors_scene_update(&update_ctx, updated);
+
+  DEG_ids_clear_recalc(depsgraph);
 }
 
 static void deg_graph_clear_id_recalc_flags(ID *id)
@@ -842,7 +855,7 @@ static void deg_graph_clear_id_recalc_flags(ID *id)
   /* XXX And what about scene's master collection here? */
 }
 
-void DEG_ids_clear_recalc(Main *UNUSED(bmain), Depsgraph *depsgraph)
+void DEG_ids_clear_recalc(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   /* TODO(sergey): Re-implement POST_UPDATE_HANDLER_WORKAROUND using entry_tags

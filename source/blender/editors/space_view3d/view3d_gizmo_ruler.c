@@ -387,7 +387,11 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
       }
 
       ED_gizmotypes_snap_3d_update(
-          snap_gizmo, depsgraph, ruler_info->region, v3d, ruler_info->wm, mval_fl, co, NULL);
+          snap_gizmo, depsgraph, ruler_info->region, v3d, ruler_info->wm, mval_fl);
+
+      if (ED_gizmotypes_snap_3d_is_enabled(snap_gizmo)) {
+        ED_gizmotypes_snap_3d_data_get(snap_gizmo, co, NULL, NULL, NULL);
+      }
     }
     return true;
   }

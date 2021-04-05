@@ -20,6 +20,8 @@
 
 #include "BKE_colorband.h"
 
+namespace blender::compositor {
+
 ColorRampOperation::ColorRampOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -48,3 +50,5 @@ void ColorRampOperation::deinitExecution()
 {
   this->m_inputProgram = nullptr;
 }
+
+}  // namespace blender::compositor

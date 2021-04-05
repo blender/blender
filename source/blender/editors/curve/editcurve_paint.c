@@ -206,7 +206,9 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
   else {
     const ViewDepths *depths = rv3d->depths;
     if (depths && ((uint)mval_i[0] < depths->w) && ((uint)mval_i[1] < depths->h)) {
-      const double depth = (double)ED_view3d_depth_read_cached(&cdd->vc, mval_i);
+      float depth_fl = 1.0f;
+      ED_view3d_depth_read_cached(depths, mval_i, 0, &depth_fl);
+      const double depth = (double)depth_fl;
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject(region, mval_i, depth, r_location_world)) {
           is_location_world_set = true;
@@ -1072,7 +1074,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     const float *plane_no = NULL;
     const float *plane_co = NULL;
 
-    if ((cu->flag & CU_3D) == 0) {
+    if (CU_IS_2D(cu)) {
       /* 2D overrides other options */
       plane_co = obedit->obmat[3];
       plane_no = obedit->obmat[2];
@@ -1083,13 +1085,8 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         /* needed or else the draw matrix can be incorrect */
         view3d_operator_needs_opengl(C);
 
-        ED_view3d_autodist_init(cdd->vc.depsgraph, cdd->vc.region, cdd->vc.v3d, 0);
-
-        if (cdd->vc.rv3d->depths) {
-          cdd->vc.rv3d->depths->damaged = true;
-        }
-
-        ED_view3d_depth_update(cdd->vc.region);
+        ED_view3d_depth_override(
+            cdd->vc.depsgraph, cdd->vc.region, cdd->vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, true);
 
         if (cdd->vc.rv3d->depths != NULL) {
           cdd->project.use_depth = true;

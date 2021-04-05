@@ -18,6 +18,8 @@
 
 #pragma once
 
+namespace blender::compositor {
+
 /**
  * \brief possible data types for sockets
  * \ingroup Model
@@ -32,37 +34,28 @@ enum class DataType {
 };
 
 /**
- * \brief Possible quality settings
- * \see CompositorContext.quality
- * \ingroup Execution
+ * Utility to get the number of channels of the given data type.
  */
-enum class CompositorQuality {
-  /** \brief High quality setting */
-  High = 0,
-  /** \brief Medium quality setting */
-  Medium = 1,
-  /** \brief Low quality setting */
-  Low = 2,
-};
+constexpr int COM_data_type_num_channels(const DataType datatype)
+{
+  switch (datatype) {
+    case DataType::Value:
+      return 1;
+    case DataType::Vector:
+      return 3;
+    case DataType::Color:
+    default:
+      return 4;
+  }
+}
 
-/**
- * \brief Possible priority settings
- * \ingroup Execution
- */
-enum class CompositorPriority {
-  /** \brief High quality setting */
-  High = 2,
-  /** \brief Medium quality setting */
-  Medium = 1,
-  /** \brief Low quality setting */
-  Low = 0,
-};
+constexpr int COM_DATA_TYPE_VALUE_CHANNELS = COM_data_type_num_channels(DataType::Value);
+constexpr int COM_DATA_TYPE_COLOR_CHANNELS = COM_data_type_num_channels(DataType::Color);
 
 // configurable items
 
 // chunk size determination
-#define COM_PREVIEW_SIZE 140.0f
-//#define COM_DEBUG
+// #define COM_DEBUG
 
 // chunk order
 /**
@@ -82,10 +75,8 @@ enum class ChunkOrdering {
   Default = ChunkOrdering::CenterOut,
 };
 
-#define COM_RULE_OF_THIRDS_DIVIDER 100.0f
+constexpr float COM_PREVIEW_SIZE = 140.f;
+constexpr float COM_RULE_OF_THIRDS_DIVIDER = 100.0f;
+constexpr float COM_BLUR_BOKEH_PIXELS = 512;
 
-#define COM_NUM_CHANNELS_VALUE 1
-#define COM_NUM_CHANNELS_VECTOR 3
-#define COM_NUM_CHANNELS_COLOR 4
-
-#define COM_BLUR_BOKEH_PIXELS 512
+}  // namespace blender::compositor

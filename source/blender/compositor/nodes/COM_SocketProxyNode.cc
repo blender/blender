@@ -25,6 +25,8 @@
 #include "COM_SocketProxyOperation.h"
 #include "COM_WriteBufferOperation.h"
 
+namespace blender::compositor {
+
 SocketProxyNode::SocketProxyNode(bNode *editorNode,
                                  bNodeSocket *editorInput,
                                  bNodeSocket *editorOutput,
@@ -101,3 +103,5 @@ void SocketBufferNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(input, writeOperation->getInputSocket(0));
   converter.mapOutputSocket(output, readOperation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

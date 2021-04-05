@@ -21,6 +21,8 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 DenoiseNode::DenoiseNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -41,3 +43,5 @@ void DenoiseNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

@@ -131,7 +131,6 @@ static bool bake_strokes(Object *ob, Depsgraph *dg, GpencilModifierData *md, int
       lmd->transparency_mask,
       lmd->thickness,
       lmd->opacity,
-      lmd->resample_length,
       lmd->source_vertex_group,
       lmd->vgname,
       lmd->flags);

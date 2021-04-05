@@ -33,6 +33,8 @@
 
 #include "COM_NodeGraph.h" /* own include */
 
+namespace blender::compositor {
+
 /*******************
  **** NodeGraph ****
  *******************/
@@ -43,9 +45,8 @@ NodeGraph::NodeGraph()
 
 NodeGraph::~NodeGraph()
 {
-  for (int index = 0; index < this->m_nodes.size(); index++) {
-    Node *node = this->m_nodes[index];
-    delete node;
+  while (m_nodes.size()) {
+    delete m_nodes.pop_last();
   }
 }
 
@@ -153,27 +154,11 @@ void NodeGraph::add_bNode(const CompositorContext &context,
   }
 }
 
-NodeGraph::NodeInputs NodeGraph::find_inputs(const NodeRange &node_range, bNodeSocket *b_socket)
-{
-  NodeInputs result;
-  for (blender::Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
-    Node *node = *it;
-    for (int index = 0; index < node->getNumberOfInputSockets(); index++) {
-      NodeInput *input = node->getInputSocket(index);
-      if (input->getbNodeSocket() == b_socket) {
-        result.push_back(input);
-      }
-    }
-  }
-  return result;
-}
-
 NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_socket)
 {
-  for (blender::Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
+  for (Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
     Node *node = *it;
-    for (int index = 0; index < node->getNumberOfOutputSockets(); index++) {
-      NodeOutput *output = node->getOutputSocket(index);
+    for (NodeOutput *output : node->getOutputSockets()) {
       if (output->getbNodeSocket() == b_socket) {
         return output;
       }
@@ -202,12 +187,13 @@ void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink
     return;
   }
 
-  NodeInputs inputs = find_inputs(node_range, b_nodelink->tosock);
-  for (NodeInput *input : inputs) {
-    if (input->isLinked()) {
-      continue;
+  for (Vector<Node *>::iterator it = node_range.first; it != node_range.second; ++it) {
+    Node *node = *it;
+    for (NodeInput *input : node->getInputSockets()) {
+      if (input->getbNodeSocket() == b_nodelink->tosock && !input->isLinked()) {
+        add_link(output, input);
+      }
     }
-    add_link(output, input);
   }
 }
 
@@ -331,3 +317,5 @@ void NodeGraph::add_proxies_reroute(bNodeTree *b_ntree,
       b_node, (bNodeSocket *)b_node->inputs.first, (bNodeSocket *)b_node->outputs.first, false);
   add_node(proxy, b_ntree, key, is_active_group);
 }
+
+}  // namespace blender::compositor

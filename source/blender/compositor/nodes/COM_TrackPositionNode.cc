@@ -26,6 +26,8 @@
 
 #include "BKE_node.h"
 
+namespace blender::compositor {
+
 TrackPositionNode::TrackPositionNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -109,3 +111,5 @@ void TrackPositionNode::convertToOperations(NodeConverter &converter,
   converter.addLink(operationMotionPostY->getOutputSocket(), combine_operation->getInputSocket(3));
   converter.mapOutputSocket(outputSpeed, combine_operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

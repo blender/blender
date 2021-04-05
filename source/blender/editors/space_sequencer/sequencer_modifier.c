@@ -230,14 +230,13 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = scene->ed;
   Sequence *seq = SEQ_select_active_get(scene);
-  Sequence *seq_iter;
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!seq || !seq->modifiers.first) {
     return OPERATOR_CANCELLED;
   }
 
-  SEQ_CURRENT_BEGIN (ed, seq_iter) {
+  LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
     if (seq_iter->flag & SELECT) {
       if (seq_iter == seq) {
         continue;
@@ -259,7 +258,6 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
       SEQ_modifier_list_copy(seq_iter, seq);
     }
   }
-  SEQ_CURRENT_END;
 
   SEQ_relations_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

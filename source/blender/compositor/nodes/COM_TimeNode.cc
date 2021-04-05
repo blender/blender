@@ -24,6 +24,8 @@
 
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -56,3 +58,5 @@ void TimeNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

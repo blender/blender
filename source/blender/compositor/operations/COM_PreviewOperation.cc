@@ -33,6 +33,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const ColorManagedDisplaySettings *displaySettings,
                                    const unsigned int defaultWidth,
@@ -48,6 +50,8 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
   this->m_displaySettings = displaySettings;
   this->m_defaultWidth = defaultWidth;
   this->m_defaultHeight = defaultHeight;
+  flags.use_viewer_border = true;
+  flags.is_preview_operation = true;
 }
 
 void PreviewOperation::verifyPreview(bNodeInstanceHash *previews, bNodeInstanceKey key)
@@ -162,7 +166,9 @@ void PreviewOperation::determineResolution(unsigned int resolution[2],
   resolution[1] = height;
 }
 
-CompositorPriority PreviewOperation::getRenderPriority() const
+eCompositorPriority PreviewOperation::getRenderPriority() const
 {
-  return CompositorPriority::Low;
+  return eCompositorPriority::Low;
 }
+
+}  // namespace blender::compositor

@@ -121,61 +121,68 @@ class ColumnLayoutDrawer : public SpreadsheetDrawer {
     if (cell_value.value_int.has_value()) {
       const int value = *cell_value.value_int;
       const std::string value_str = std::to_string(value);
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       ICON_NONE,
-                       value_str.c_str(),
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Integers. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
     else if (cell_value.value_float.has_value()) {
       const float value = *cell_value.value_float;
       std::stringstream ss;
       ss << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       ICON_NONE,
-                       value_str.c_str(),
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Floats. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
     else if (cell_value.value_bool.has_value()) {
       const bool value = *cell_value.value_bool;
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       icon,
-                       "",
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    icon,
+                                    "",
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
     else if (cell_value.value_object.has_value()) {
       const ObjectCellValue value = *cell_value.value_object;

@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
 
+namespace blender::compositor {
+
 typedef enum MovieClipAttribute {
   MCA_SCALE,
   MCA_X,
@@ -71,3 +73,5 @@ class MovieClipAttributeOperation : public NodeOperation {
     this->m_invert = invert;
   }
 };
+
+}  // namespace blender::compositor

@@ -43,7 +43,6 @@ Checks:  >
   # the windows compiler currently.
   -modernize-raw-string-literal
 
-WarningsAsErrors: '*'
 CheckOptions:
   - key: modernize-use-default-member-init.UseAssignment
     value: 1

@@ -2529,9 +2529,8 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
 {
   ARegion *region = CTX_wm_region(C);
 
-  Panel *panel = NULL;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    panel = block->panel;
+    Panel *panel = block->panel;
     if (panel == NULL) {
       continue;
     }
@@ -2541,15 +2540,11 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
     ui_window_to_block(region, block, &mx, &my);
     const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
     if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
-      break;
+      return UI_panel_custom_data_get(panel);
     }
   }
 
-  if (panel == NULL) {
-    return NULL;
-  }
-
-  return UI_panel_custom_data_get(panel);
+  return NULL;
 }
 
 /** \} */

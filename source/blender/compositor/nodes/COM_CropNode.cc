@@ -19,6 +19,8 @@
 #include "COM_CropNode.h"
 #include "COM_CropOperation.h"
 
+namespace blender::compositor {
+
 CropNode::CropNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -45,3 +47,5 @@ void CropNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

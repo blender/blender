@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 /**
  * \brief base class of CalculateMean, implementing the simple CalculateMean
  * \ingroup operation
@@ -67,3 +69,5 @@ class CalculateMeanOperation : public NodeOperation {
  protected:
   void calculateMean(MemoryBuffer *tile);
 };
+
+}  // namespace blender::compositor

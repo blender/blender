@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ColorCorrectionOperation : public NodeOperation {
  private:
   /**
@@ -68,3 +70,5 @@ class ColorCorrectionOperation : public NodeOperation {
     this->m_blueChannelEnabled = enabled;
   }
 };
+
+}  // namespace blender::compositor

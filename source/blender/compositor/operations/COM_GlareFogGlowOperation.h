@@ -22,6 +22,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class GlareFogGlowOperation : public GlareBaseOperation {
  public:
   GlareFogGlowOperation() : GlareBaseOperation()
@@ -31,3 +33,5 @@ class GlareFogGlowOperation : public GlareBaseOperation {
  protected:
   void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) override;
 };
+
+}  // namespace blender::compositor

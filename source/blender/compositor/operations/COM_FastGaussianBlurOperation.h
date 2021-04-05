@@ -21,6 +21,8 @@
 #include "COM_BlurBaseOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class FastGaussianBlurOperation : public BlurBaseOperation {
  private:
   float m_sx;
@@ -79,3 +81,5 @@ class FastGaussianBlurValueOperation : public NodeOperation {
     this->m_overlay = overlay;
   }
 };
+
+}  // namespace blender::compositor

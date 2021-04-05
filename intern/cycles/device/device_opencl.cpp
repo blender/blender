@@ -126,6 +126,9 @@ void device_opencl_info(vector<DeviceInfo> &devices)
     /* Check OpenCL extensions */
     info.has_half_images = platform_device.device_extensions.find("cl_khr_fp16") != string::npos;
 
+    /* Disabled for now due to apparent AMD driver bug. */
+    info.has_nanovdb = platform_name != "AMD Accelerated Parallel Processing";
+
     devices.push_back(info);
     num_devices++;
   }

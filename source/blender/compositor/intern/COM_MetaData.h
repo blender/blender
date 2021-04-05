@@ -28,6 +28,8 @@
 /* Forward declarations. */
 struct RenderResult;
 
+namespace blender::compositor {
+
 /* Cryptomatte includes hash in its meta data keys. The hash is generated from the render
  * layer/pass name. Compositing happens without the knowledge of the original layer and pass. The
  * next keys are used to transfer the cryptomatte meta data in a neutral way. The file output node
@@ -41,7 +43,7 @@ constexpr blender::StringRef META_DATA_KEY_CRYPTOMATTE_NAME("cryptomatte/{hash}/
 
 class MetaData {
  private:
-  blender::Map<std::string, std::string> entries_;
+  Map<std::string, std::string> entries_;
   void addCryptomatteEntry(const blender::StringRef layer_name,
                            const blender::StringRefNull key,
                            const blender::StringRef value);
@@ -69,3 +71,5 @@ struct MetaDataExtractCallbackData {
                                             char *propvalue,
                                             int UNUSED(len));
 };
+
+}  // namespace blender::compositor

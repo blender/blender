@@ -20,6 +20,8 @@
 #include "COM_VectorBlurOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 VectorBlurNode::VectorBlurNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -41,3 +43,5 @@ void VectorBlurNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(2), operation->getInputSocket(2));
   converter.mapOutputSocket(getOutputSocket(), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

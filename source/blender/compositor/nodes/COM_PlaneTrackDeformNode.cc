@@ -25,6 +25,8 @@
 #include "BKE_node.h"
 #include "BKE_tracking.h"
 
+namespace blender::compositor {
+
 PlaneTrackDeformNode::PlaneTrackDeformNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -70,3 +72,5 @@ void PlaneTrackDeformNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(output_plane, plane_mask_operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

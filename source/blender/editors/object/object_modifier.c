@@ -1115,6 +1115,40 @@ bool edit_modifier_invoke_properties(bContext *C, wmOperator *op)
   return false;
 }
 
+/**
+ * If the "modifier" property is not set,fill the modifier property with the name of the modifier
+ * with a UI panel below the mouse cursor, without checking the context pointer. Used in order to
+ * apply modifier operators on hover over their panels. If this checked the context pointer then it
+ * would always use the active modifier, which isn't desired.
+ */
+bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent *event,
+                                                          int *r_retval)
+{
+  if (RNA_struct_property_is_set(op->ptr, "modifier")) {
+    return true;
+  }
+
+  PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
+  if (panel_ptr == NULL || RNA_pointer_is_null(panel_ptr)) {
+    *r_retval = OPERATOR_CANCELLED;
+    return false;
+  }
+
+  if (!RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
+    /* Work around multiple operators using the same shortcut. The operators for the other
+     * stacks in the property editor use the same key, and will not run after these return
+     * OPERATOR_CANCELLED. */
+    *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+    return false;
+  }
+
+  const ModifierData *md = panel_ptr->data;
+  RNA_string_set(op->ptr, "modifier", md->name);
+  return true;
+}
+
 ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 {
   char modifier_name[MAX_NAME];
@@ -1174,14 +1208,13 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_remove_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_remove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_remove_exec(C, op);
   }
-
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 void OBJECT_OT_modifier_remove(wmOperatorType *ot)
@@ -1221,13 +1254,13 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_move_up_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_move_up_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
@@ -1266,13 +1299,13 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_down_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_move_down_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_move_down_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
@@ -1309,12 +1342,13 @@ static int modifier_move_to_index_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_move_to_index_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_move_to_index_exec(C, op);
   }
-  return OPERATOR_CANCELLED;
+  return retval;
 }
 
 void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
@@ -1421,13 +1455,13 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
   return modifier_apply_exec_ex(C, op, MODIFIER_APPLY_DATA, false);
 }
 
-static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_apply_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
@@ -1465,15 +1499,13 @@ static int modifier_apply_as_shapekey_exec(bContext *C, wmOperator *op)
   return modifier_apply_exec_ex(C, op, MODIFIER_APPLY_SHAPE, keep);
 }
 
-static int modifier_apply_as_shapekey_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent *UNUSED(event))
+static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_apply_as_shapekey_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(C),
@@ -1579,13 +1611,13 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_copy_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int modifier_copy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_copy_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 void OBJECT_OT_modifier_copy(wmOperatorType *ot)
@@ -1622,54 +1654,12 @@ static int modifier_set_active_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/**
- * Get the modifier below the mouse cursor modifier without checking the context pointer.
- * Used in order to set the active modifier on mouse click. If this checked the context
- * pointer then it would always set the active modifier to the already active modifier.
- *
- * \param event: If this isn't NULL, the operator will also look for panels underneath
- * the cursor with custom-data set to a modifier.
- * \param r_retval: This should be used if #event is used in order to return
- * #OPERATOR_PASS_THROUGH to check other operators with the same key set.
- */
-bool edit_modifier_invoke_properties_with_hover_no_active(bContext *C,
-                                                          wmOperator *op,
-                                                          const wmEvent *event,
-                                                          int *r_retval)
-{
-  if (RNA_struct_property_is_set(op->ptr, "modifier")) {
-    return true;
-  }
-
-  PointerRNA *panel_ptr = UI_region_panel_custom_data_under_cursor(C, event);
-
-  if (!(panel_ptr == NULL || RNA_pointer_is_null(panel_ptr))) {
-    if (RNA_struct_is_a(panel_ptr->type, &RNA_Modifier)) {
-      ModifierData *md = panel_ptr->data;
-      RNA_string_set(op->ptr, "modifier", md->name);
-      return true;
-    }
-    BLI_assert(r_retval != NULL); /* We need the return value in this case. */
-    if (r_retval != NULL) {
-      *r_retval = (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
-    }
-    return false;
-  }
-
-  if (r_retval != NULL) {
-    *r_retval = OPERATOR_CANCELLED;
-  }
-
-  return false;
-}
-
 static int modifier_set_active_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int retval;
   if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
     return modifier_set_active_exec(C, op);
   }
-
   return retval;
 }
 
@@ -1756,15 +1746,13 @@ static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int modifier_copy_to_selected_invoke(bContext *C,
-                                            wmOperator *op,
-                                            const wmEvent *UNUSED(event))
+static int modifier_copy_to_selected_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (edit_modifier_invoke_properties(C, op)) {
-    return modifier_copy_to_selected_exec(C, op);
+  int retval;
+  if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
+    return modifier_set_active_exec(C, op);
   }
-  /* Work around multiple operators using the same shortcut. */
-  return (OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED);
+  return retval;
 }
 
 static bool modifier_copy_to_selected_poll(bContext *C)

@@ -785,10 +785,14 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     /* need to restore the original projection settings before packing up */
     view3d_region_operator_needs_opengl(tgpi->win, tgpi->region);
-    ED_view3d_autodist_init(tgpi->depsgraph,
-                            tgpi->region,
-                            tgpi->v3d,
-                            (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+    ED_view3d_depth_override(tgpi->depsgraph,
+                             tgpi->region,
+                             tgpi->v3d,
+                             NULL,
+                             (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ?
+                                 V3D_DEPTH_GPENCIL_ONLY :
+                                 V3D_DEPTH_NO_GPENCIL,
+                             false);
 
     depth_arr = MEM_mallocN(sizeof(float) * gps->totpoints, "depth_points");
     tGPspoint *ptc = &points2D[0];

@@ -576,11 +576,7 @@ ImBuf *imb_loadtiff(const unsigned char *mem,
   int ib_depth;
   int found;
 
-  /* check whether or not we have a TIFF file */
-  if (size < IMB_TIFF_NCB) {
-    fprintf(stderr, "imb_loadtiff: size < IMB_TIFF_NCB\n");
-    return NULL;
-  }
+  /* Check whether or not we have a TIFF file. */
   if (imb_is_a_tiff(mem, size) == 0) {
     return NULL;
   }

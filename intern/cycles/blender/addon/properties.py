@@ -801,17 +801,22 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_texture_limit
     )
 
+    use_fast_gi: BoolProperty(
+        name="Fast GI Approximation",
+        description="Approximate diffuse indirect light with background tinted ambient occlusion. This provides fast alternative to full global illumination, for interactive viewport rendering or final renders with reduced quality",
+        default=False,
+    )
     ao_bounces: IntProperty(
         name="AO Bounces",
-        default=0,
-        description="Approximate indirect light with background tinted ambient occlusion at the specified bounce, 0 disables this feature",
+        default=1,
+        description="After this number of light bounces, use approximate global illumination. 0 disables this feature",
         min=0, max=1024,
     )
 
     ao_bounces_render: IntProperty(
         name="AO Bounces Render",
-        default=0,
-        description="Approximate indirect light with background tinted ambient occlusion at the specified bounce, 0 disables this feature",
+        default=1,
+        description="After this number of light bounces, use approximate global illumination. 0 disables this feature",
         min=0, max=1024,
     )
 

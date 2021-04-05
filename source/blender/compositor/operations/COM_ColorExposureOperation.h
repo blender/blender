@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class ExposureOperation : public NodeOperation {
  private:
   /**
@@ -46,3 +48,5 @@ class ExposureOperation : public NodeOperation {
    */
   void deinitExecution() override;
 };
+
+}  // namespace blender::compositor

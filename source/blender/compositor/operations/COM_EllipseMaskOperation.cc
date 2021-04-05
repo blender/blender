@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 EllipseMaskOperation::EllipseMaskOperation()
 {
   this->addInputSocket(DataType::Value);
@@ -117,3 +119,5 @@ void EllipseMaskOperation::deinitExecution()
   this->m_inputMask = nullptr;
   this->m_inputValue = nullptr;
 }
+
+}  // namespace blender::compositor

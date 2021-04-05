@@ -18,14 +18,23 @@
 
 #pragma once
 
+#include "COM_Enums.h"
+
+#include "BLI_rect.h"
+
+#include <ostream>
+
+namespace blender::compositor {
+// Forward Declarations.
 class ExecutionGroup;
-#include "COM_ExecutionGroup.h"
 
 /**
  * \brief contains data about work that can be scheduled
  * \see WorkScheduler
  */
 struct WorkPackage {
+  eWorkPackageState state = eWorkPackageState::NotScheduled;
+
   /**
    * \brief executionGroup with the operations-setup to be evaluated
    */
@@ -37,13 +46,15 @@ struct WorkPackage {
   unsigned int chunk_number;
 
   /**
-   * constructor
-   * \param group: the ExecutionGroup
-   * \param chunk_number: the number of the chunk
+   * Area of the execution group that the work package calculates.
    */
-  WorkPackage(ExecutionGroup *group, unsigned int chunk_number);
+  rcti rect;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkPackage")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const WorkPackage &WorkPackage);
+
+}  // namespace blender::compositor

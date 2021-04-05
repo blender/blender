@@ -70,9 +70,9 @@ typedef struct Light {
 
   short area_shape;
   float area_size, area_sizey, area_sizez;
+  float area_spread;
 
   float sun_angle;
-  char _pad3[4];
 
   /* texact is for buttons */
   short texact, shadhalostep;

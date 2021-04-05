@@ -31,6 +31,8 @@
 
 #include "PIL_time.h"
 
+namespace blender::compositor {
+
 CompositorOperation::CompositorOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -50,6 +52,8 @@ CompositorOperation::CompositorOperation()
   this->m_scene = nullptr;
   this->m_sceneName[0] = '\0';
   this->m_viewName = nullptr;
+
+  flags.use_render_border = true;
 }
 
 void CompositorOperation::initExecution()
@@ -147,7 +151,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
   int y2 = rect->ymax;
   int offset = (y1 * this->getWidth() + x1);
   int add = (this->getWidth() - (x2 - x1));
-  int offset4 = offset * COM_NUM_CHANNELS_COLOR;
+  int offset4 = offset * COM_DATA_TYPE_COLOR_CHANNELS;
   int x;
   int y;
   bool breaked = false;
@@ -205,14 +209,14 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 
       this->m_depthInput->readSampled(color, input_x, input_y, PixelSampler::Nearest);
       zbuffer[offset] = color[0];
-      offset4 += COM_NUM_CHANNELS_COLOR;
+      offset4 += COM_DATA_TYPE_COLOR_CHANNELS;
       offset++;
       if (isBraked()) {
         breaked = true;
       }
     }
     offset += add;
-    offset4 += add * COM_NUM_CHANNELS_COLOR;
+    offset4 += add * COM_DATA_TYPE_COLOR_CHANNELS;
   }
 }
 
@@ -242,3 +246,5 @@ void CompositorOperation::determineResolution(unsigned int resolution[2],
   resolution[0] = width;
   resolution[1] = height;
 }
+
+}  // namespace blender::compositor

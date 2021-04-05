@@ -111,7 +111,9 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
         }
       }
 
-      BKE_nurb_test_2d(nu);
+      if (CU_IS_2D(cu)) {
+        BKE_nurb_project_2d(nu);
+      }
       BKE_nurb_handles_test(nu, true, false); /* test for bezier too */
       nu = nu->next;
     }

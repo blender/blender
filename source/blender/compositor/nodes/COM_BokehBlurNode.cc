@@ -25,6 +25,8 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+namespace blender::compositor {
+
 BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -75,3 +77,5 @@ void BokehBlurNode::convertToOperations(NodeConverter &converter,
     }
   }
 }
+
+}  // namespace blender::compositor

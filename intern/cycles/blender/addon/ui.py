@@ -526,6 +526,35 @@ class CYCLES_RENDER_PT_light_paths_caustics(CyclesButtonsPanel, Panel):
         col.prop(cscene, "caustics_refractive", text="Refractive")
 
 
+class CYCLES_RENDER_PT_light_paths_fast_gi(CyclesButtonsPanel, Panel):
+    bl_label = "Fast GI Approximation"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "CYCLES_RENDER_PT_light_paths"
+
+    def draw_header(self, context):
+        scene = context.scene
+        cscene = scene.cycles
+
+        self.layout.prop(cscene, "use_fast_gi", text="")
+
+    def draw(self, context):
+        scene = context.scene
+        cscene = scene.cycles
+        world = scene.world
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column(align=True)
+        col.prop(cscene, "ao_bounces", text="Viewport Bounces")
+        col.prop(cscene, "ao_bounces_render", text="Render Bounces")
+
+        if world:
+          light = world.light_settings
+          layout.prop(light, "distance", text="AO Distance")
+
+
 class CYCLES_RENDER_PT_motion_blur(CyclesButtonsPanel, Panel):
     bl_label = "Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
@@ -746,7 +775,7 @@ class CYCLES_RENDER_PT_performance_final_render(CyclesButtonsPanel, Panel):
         col = layout.column()
 
         col.prop(rd, "use_save_buffers")
-        col.prop(rd, "use_persistent_data", text="Persistent Images")
+        col.prop(rd, "use_persistent_data", text="Persistent Data")
 
 
 class CYCLES_RENDER_PT_performance_viewport(CyclesButtonsPanel, Panel):
@@ -1409,15 +1438,15 @@ class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
         panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface')
 
 
-class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
-    bl_label = "Spot Shape"
+class CYCLES_LIGHT_PT_beam_shape(CyclesButtonsPanel, Panel):
+    bl_label = "Beam Shape"
     bl_parent_id = "CYCLES_LIGHT_PT_light"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        light = context.light
-        return (light and light.type == 'SPOT') and CyclesButtonsPanel.poll(context)
+        if context.light.type in {'SPOT', 'AREA'}:
+            return context.light and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -1425,9 +1454,12 @@ class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         col = layout.column()
-        col.prop(light, "spot_size", text="Size")
-        col.prop(light, "spot_blend", text="Blend", slider=True)
-        col.prop(light, "show_cone")
+        if light.type == 'SPOT':
+            col.prop(light, "spot_size", text="Spot Size")
+            col.prop(light, "spot_blend", text="Blend", slider=True)
+            col.prop(light, "show_cone")
+        elif light.type == 'AREA':
+            col.prop(light, "spread", text="Spread")
 
 
 class CYCLES_WORLD_PT_preview(CyclesButtonsPanel, Panel):
@@ -2038,7 +2070,6 @@ class CYCLES_RENDER_PT_simplify_viewport(CyclesButtonsPanel, Panel):
         col.prop(rd, "simplify_subdivision", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
         col.prop(cscene, "texture_limit", text="Texture Limit")
-        col.prop(cscene, "ao_bounces", text="AO Bounces")
         col.prop(rd, "simplify_volumes", text="Volume Resolution")
 
 
@@ -2064,7 +2095,6 @@ class CYCLES_RENDER_PT_simplify_render(CyclesButtonsPanel, Panel):
         col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
         col.prop(rd, "simplify_child_particles_render", text="Child Particles")
         col.prop(cscene, "texture_limit_render", text="Texture Limit")
-        col.prop(cscene, "ao_bounces_render", text="AO Bounces")
 
 
 class CYCLES_RENDER_PT_simplify_culling(CyclesButtonsPanel, Panel):
@@ -2242,6 +2272,7 @@ classes = (
     CYCLES_RENDER_PT_light_paths_max_bounces,
     CYCLES_RENDER_PT_light_paths_clamping,
     CYCLES_RENDER_PT_light_paths_caustics,
+    CYCLES_RENDER_PT_light_paths_fast_gi,
     CYCLES_RENDER_PT_volumes,
     CYCLES_RENDER_PT_subdivision,
     CYCLES_RENDER_PT_hair,
@@ -2284,7 +2315,7 @@ classes = (
     CYCLES_LIGHT_PT_preview,
     CYCLES_LIGHT_PT_light,
     CYCLES_LIGHT_PT_nodes,
-    CYCLES_LIGHT_PT_spot,
+    CYCLES_LIGHT_PT_beam_shape,
     CYCLES_WORLD_PT_preview,
     CYCLES_WORLD_PT_surface,
     CYCLES_WORLD_PT_volume,
@@ -2314,7 +2345,7 @@ classes = (
     node_panel(CYCLES_WORLD_PT_settings_surface),
     node_panel(CYCLES_WORLD_PT_settings_volume),
     node_panel(CYCLES_LIGHT_PT_light),
-    node_panel(CYCLES_LIGHT_PT_spot),
+    node_panel(CYCLES_LIGHT_PT_beam_shape)
 )
 
 

@@ -20,6 +20,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_VectorCurveOperation.h"
 
+namespace blender::compositor {
+
 VectorCurveNode::VectorCurveNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -35,3 +37,5 @@ void VectorCurveNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(getInputSocket(0), operation->getInputSocket(0));
   converter.mapOutputSocket(getOutputSocket(0), operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

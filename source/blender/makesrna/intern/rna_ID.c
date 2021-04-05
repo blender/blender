@@ -85,6 +85,47 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_enum_override_library_property_operation_items[] = {
+    {IDOVERRIDE_LIBRARY_OP_NOOP,
+     "NOOP",
+     0,
+     "No-Op",
+     "Does nothing, prevents adding actual overrides (NOT USED)"},
+    {IDOVERRIDE_LIBRARY_OP_REPLACE,
+     "REPLACE",
+     0,
+     "Replace",
+     "Replace value of reference by overriding one"},
+    {IDOVERRIDE_LIBRARY_OP_ADD,
+     "DIFF_ADD",
+     0,
+     "Differential",
+     "Stores and apply difference between reference and local value (NOT USED)"},
+    {IDOVERRIDE_LIBRARY_OP_SUBTRACT,
+     "DIFF_SUB",
+     0,
+     "Differential",
+     "Stores and apply difference between reference and local value (NOT USED)"},
+    {IDOVERRIDE_LIBRARY_OP_MULTIPLY,
+     "FACT_MULTIPLY",
+     0,
+     "Factor",
+     "Stores and apply multiplication factor between reference and local value (NOT USED)"},
+    {IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+     "INSERT_AFTER",
+     0,
+     "Insert After",
+     "Insert a new item into collection after the one referenced in subitem_reference_name or "
+     "_index"},
+    {IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE,
+     "INSERT_BEFORE",
+     0,
+     "Insert Before",
+     "Insert a new item into collection after the one referenced in subitem_reference_name or "
+     "_index (NOT USED)"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "DNA_anim_types.h"
@@ -550,6 +591,65 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
   return local_id;
+}
+
+static void rna_ID_override_template_create(ID *id, ReportList *reports)
+{
+  if (!U.experimental.use_override_templates) {
+    BKE_report(reports, RPT_ERROR, "Override template experimental feature is disabled");
+    return;
+  }
+  if (ID_IS_LINKED(id)) {
+    BKE_report(reports, RPT_ERROR, "Unable to create override template for linked data-blocks");
+    return;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    BKE_report(
+        reports, RPT_ERROR, "Unable to create override template for overridden data-blocks");
+    return;
+  }
+  BKE_lib_override_library_template_create(id);
+}
+
+static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
+    IDOverrideLibrary *override_library, ReportList *reports, const char rna_path[])
+{
+  bool created;
+  IDOverrideLibraryProperty *result = BKE_lib_override_library_property_get(
+      override_library, rna_path, &created);
+
+  if (!created) {
+    BKE_report(reports, RPT_DEBUG, "No new override property created, property already exists");
+  }
+
+  return result;
+}
+
+static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_operations_add(
+    IDOverrideLibraryProperty *override_property,
+    ReportList *reports,
+    int operation,
+    const char *subitem_refname,
+    const char *subitem_locname,
+    int subitem_refindex,
+    int subitem_locindex)
+{
+  bool created;
+  bool strict;
+  IDOverrideLibraryPropertyOperation *result = BKE_lib_override_library_property_operation_get(
+      override_property,
+      operation,
+      subitem_refname,
+      subitem_locname,
+      subitem_refindex,
+      subitem_locindex,
+      false,
+      &strict,
+      &created);
+  if (!created) {
+    BKE_report(reports, RPT_DEBUG, "No new override operation created, operation already exists");
+  }
+  return result;
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -1267,47 +1367,6 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem override_library_property_operation_items[] = {
-      {IDOVERRIDE_LIBRARY_OP_NOOP,
-       "NOOP",
-       0,
-       "No-Op",
-       "Does nothing, prevents adding actual overrides (NOT USED)"},
-      {IDOVERRIDE_LIBRARY_OP_REPLACE,
-       "REPLACE",
-       0,
-       "Replace",
-       "Replace value of reference by overriding one"},
-      {IDOVERRIDE_LIBRARY_OP_ADD,
-       "DIFF_ADD",
-       0,
-       "Differential",
-       "Stores and apply difference between reference and local value (NOT USED)"},
-      {IDOVERRIDE_LIBRARY_OP_SUBTRACT,
-       "DIFF_SUB",
-       0,
-       "Differential",
-       "Stores and apply difference between reference and local value (NOT USED)"},
-      {IDOVERRIDE_LIBRARY_OP_MULTIPLY,
-       "FACT_MULTIPLY",
-       0,
-       "Factor",
-       "Stores and apply multiplication factor between reference and local value (NOT USED)"},
-      {IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-       "INSERT_AFTER",
-       0,
-       "Insert After",
-       "Insert a new item into collection after the one referenced in subitem_reference_name or "
-       "_index"},
-      {IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE,
-       "INSERT_BEFORE",
-       0,
-       "Insert Before",
-       "Insert a new item into collection after the one referenced in subitem_reference_name or "
-       "_index (NOT USED)"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem override_library_property_flag_items[] = {
       {IDOVERRIDE_LIBRARY_FLAG_MANDATORY,
        "MANDATORY",
@@ -1329,7 +1388,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
 
   prop = RNA_def_enum(srna,
                       "operation",
-                      override_library_property_operation_items,
+                      rna_enum_override_library_property_operation_items,
                       IDOVERRIDE_LIBRARY_OP_REPLACE,
                       "Operation",
                       "What override operation is performed");
@@ -1386,6 +1445,66 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
 }
 
+static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "IDOverrideLibraryPropertyOperations");
+  srna = RNA_def_struct(brna, "IDOverrideLibraryPropertyOperations", NULL);
+  RNA_def_struct_sdna(srna, "IDOverrideLibraryProperty");
+  RNA_def_struct_ui_text(srna, "Override Operations", "Collection of override operations");
+
+  /* Add Property */
+  func = RNA_def_function(srna, "add", "rna_ID_override_library_property_operations_add");
+  RNA_def_function_ui_description(func, "Add a new operation");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_enum(func,
+                      "operation",
+                      rna_enum_override_library_property_operation_items,
+                      IDOVERRIDE_LIBRARY_OP_REPLACE,
+                      "Operation",
+                      "What override operation is performed");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "subitem_reference_name",
+                        NULL,
+                        INT_MAX,
+                        "Subitem Reference Name",
+                        "Used to handle insertions into collection");
+  parm = RNA_def_string(func,
+                        "subitem_local_name",
+                        NULL,
+                        INT_MAX,
+                        "Subitem Local Name",
+                        "Used to handle insertions into collection");
+  parm = RNA_def_int(func,
+                     "subitem_reference_index",
+                     -1,
+                     -1,
+                     INT_MAX,
+                     "Subitem Reference Index",
+                     "Used to handle insertions into collection",
+                     -1,
+                     INT_MAX);
+  parm = RNA_def_int(func,
+                     "subitem_local_index",
+                     -1,
+                     -1,
+                     INT_MAX,
+                     "Subitem Local Index",
+                     "Used to handle insertions into collection",
+                     -1,
+                     INT_MAX);
+  parm = RNA_def_pointer(func,
+                         "property",
+                         "IDOverrideLibraryPropertyOperation",
+                         "New Operation",
+                         "Created operation");
+  RNA_def_function_return(func, parm);
+}
+
 static void rna_def_ID_override_library_property(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1405,18 +1524,47 @@ static void rna_def_ID_override_library_property(BlenderRNA *brna)
                         "RNA path leading to that property, from owning ID");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
 
-  RNA_def_collection(srna,
-                     "operations",
-                     "IDOverrideLibraryPropertyOperation",
-                     "Operations",
-                     "List of overriding operations for a property");
+  prop = RNA_def_collection(srna,
+                            "operations",
+                            "IDOverrideLibraryPropertyOperation",
+                            "Operations",
+                            "List of overriding operations for a property");
+  rna_def_ID_override_library_property_operations(brna, prop);
 
   rna_def_ID_override_library_property_operation(brna);
+}
+
+static void rna_def_ID_override_library_properties(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "IDOverrideLibraryProperties");
+  srna = RNA_def_struct(brna, "IDOverrideLibraryProperties", NULL);
+  RNA_def_struct_sdna(srna, "IDOverrideLibrary");
+  RNA_def_struct_ui_text(srna, "Override Properties", "Collection of override properties");
+
+  /* Add Property */
+  func = RNA_def_function(srna, "add", "rna_ID_override_library_properties_add");
+  RNA_def_function_ui_description(
+      func, "Add a property to the override library when it doesn't exist yet");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "property",
+                         "IDOverrideLibraryProperty",
+                         "New Property",
+                         "Newly created override property or existing one");
+  RNA_def_function_return(func, parm);
+  parm = RNA_def_string(
+      func, "rna_path", NULL, 256, "RNA Path", "RNA-Path of the property to add");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_ID_override_library(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "IDOverrideLibrary", NULL);
   RNA_def_struct_ui_text(
@@ -1425,11 +1573,12 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
 
-  RNA_def_collection(srna,
-                     "properties",
-                     "IDOverrideLibraryProperty",
-                     "Properties",
-                     "List of overridden properties");
+  prop = RNA_def_collection(srna,
+                            "properties",
+                            "IDOverrideLibraryProperty",
+                            "Properties",
+                            "List of overridden properties");
+  rna_def_ID_override_library_properties(brna, prop);
 
   rna_def_ID_override_library_property(brna);
 }
@@ -1580,6 +1729,10 @@ static void rna_def_ID(BlenderRNA *brna)
                   "",
                   "Whether local usages of the linked ID should be remapped to the new "
                   "library override of it");
+
+  func = RNA_def_function(srna, "override_template_create", "rna_ID_override_template_create");
+  RNA_def_function_ui_description(func, "Create an override template for this ID");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
   func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
   RNA_def_function_ui_description(func,

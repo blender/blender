@@ -20,12 +20,15 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
   this->m_single_value = false;
   this->m_offset = 0;
   this->m_buffer = nullptr;
+  flags.is_read_buffer_operation = true;
 }
 
 void *ReadBufferOperation::initializeTileData(rcti * /*rect*/)
@@ -131,3 +134,5 @@ void ReadBufferOperation::updateMemoryBuffer()
 {
   this->m_buffer = this->getMemoryProxy()->getBuffer();
 }
+
+}  // namespace blender::compositor

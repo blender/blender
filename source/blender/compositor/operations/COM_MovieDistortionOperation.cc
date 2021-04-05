@@ -23,6 +23,8 @@
 
 #include "BLI_linklist.h"
 
+namespace blender::compositor {
+
 MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
   this->addInputSocket(DataType::Color);
@@ -125,3 +127,5 @@ bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input,
   newInput.ymax = input->ymax + m_margin[1];
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

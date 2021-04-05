@@ -18,14 +18,17 @@
 
 #pragma once
 
+#include "COM_NodeOperation.h"
+
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
 
 struct bNode;
 
+namespace blender::compositor {
+
 class Node;
-class NodeOperation;
 class NodeOperationInput;
 class NodeOperationOutput;
 class NodeOperationBuilder;
@@ -65,3 +68,5 @@ NodeOperation *COM_convert_data_type(const NodeOperationOutput &from,
 void COM_convert_resolution(NodeOperationBuilder &builder,
                             NodeOperationOutput *fromSocket,
                             NodeOperationInput *toSocket);
+
+}  // namespace blender::compositor

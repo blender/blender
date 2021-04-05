@@ -20,6 +20,8 @@
 
 #include "COM_NodeOperation.h"
 
+namespace blender::compositor {
+
 class MapUVOperation : public NodeOperation {
  private:
   /**
@@ -65,3 +67,5 @@ class MapUVOperation : public NodeOperation {
  private:
   bool read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha);
 };
+
+}  // namespace blender::compositor

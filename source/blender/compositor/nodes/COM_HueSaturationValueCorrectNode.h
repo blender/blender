@@ -20,6 +20,8 @@
 
 #include "COM_Node.h"
 
+namespace blender::compositor {
+
 /**
  * \brief HueSaturationValueCorrectNode
  * \ingroup Node
@@ -30,3 +32,5 @@ class HueSaturationValueCorrectNode : public Node {
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
 };
+
+}  // namespace blender::compositor

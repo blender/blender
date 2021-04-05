@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
+namespace blender::compositor {
+
 class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
  private:
   SocketReader *m_inputColorProgram;
@@ -55,3 +57,5 @@ class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
     this->m_data = data;
   }
 };
+
+}  // namespace blender::compositor

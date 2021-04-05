@@ -77,6 +77,7 @@ class COLLECTION_PT_instancing(CollectionButtonsPanel, Panel):
 
 class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
     bl_label = "Line Art"
+    bl_order = 10
 
     def draw(self, context):
         layout = self.layout

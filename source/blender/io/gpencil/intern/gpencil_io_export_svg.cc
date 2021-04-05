@@ -119,6 +119,7 @@ void GpencilExporterSVG::create_document_header()
   main_node_.append_attribute("version").set_value("1.0");
   main_node_.append_attribute("x").set_value("0px");
   main_node_.append_attribute("y").set_value("0px");
+  main_node_.append_attribute("xmlns").set_value("http://www.w3.org/2000/svg");
 
   std::string width;
   std::string height;

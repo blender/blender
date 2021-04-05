@@ -21,6 +21,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 GlareThresholdOperation::GlareThresholdOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::FitAny);
@@ -67,3 +69,5 @@ void GlareThresholdOperation::deinitExecution()
 {
   this->m_inputProgram = nullptr;
 }
+
+}  // namespace blender::compositor

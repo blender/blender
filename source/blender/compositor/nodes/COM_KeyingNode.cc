@@ -37,6 +37,8 @@
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
+namespace blender::compositor {
+
 KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -142,7 +144,7 @@ NodeOperationOutput *KeyingNode::setupFeather(NodeConverter &converter,
                                               int distance) const
 {
   /* this uses a modified gaussian blur function otherwise its far too slow */
-  CompositorQuality quality = context.getQuality();
+  eCompositorQuality quality = context.getQuality();
 
   /* initialize node data */
   NodeBlurData data;
@@ -348,3 +350,5 @@ void KeyingNode::convertToOperations(NodeConverter &converter,
     converter.mapOutputSocket(outputEdges, edgesMatte);
   }
 }
+
+}  // namespace blender::compositor

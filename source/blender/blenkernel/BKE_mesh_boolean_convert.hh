@@ -23,18 +23,21 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_array.hh"
+#include "BLI_float4x4.hh"
+#include "BLI_mesh_boolean.hh"
+#include "BLI_span.hh"
 
-Mesh *BKE_mesh_boolean(const Mesh **meshes,
-                       const float (*obmats[])[4][4],
-                       const short **material_remaps,
-                       const int meshes_len,
-                       const bool use_self,
-                       const bool hole_tolerant,
-                       const int boolean_mode);
+struct Mesh;
 
-#ifdef __cplusplus
-}
-#endif
+namespace blender::meshintersect {
+
+Mesh *direct_mesh_boolean(blender::Span<const Mesh *> meshes,
+                          blender::Span<const float4x4 *> obmats,
+                          const float4x4 &target_transform,
+                          blender::Span<blender::Array<short>> material_remaps,
+                          const bool use_self,
+                          const bool hole_tolerant,
+                          const int boolean_mode);
+
+}  // namespace blender::meshintersect

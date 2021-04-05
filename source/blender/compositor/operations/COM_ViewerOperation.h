@@ -23,6 +23,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
 
+namespace blender::compositor {
+
 class ViewerOperation : public NodeOperation {
  private:
   float *m_outputBuffer;
@@ -100,11 +102,7 @@ class ViewerOperation : public NodeOperation {
   {
     return this->m_chunkOrder;
   }
-  CompositorPriority getRenderPriority() const override;
-  bool isViewerOperation() const override
-  {
-    return true;
-  }
+  eCompositorPriority getRenderPriority() const override;
   void setUseAlphaInput(bool value)
   {
     this->m_useAlphaInput = value;
@@ -131,3 +129,5 @@ class ViewerOperation : public NodeOperation {
   void updateImage(rcti *rect);
   void initImage();
 };
+
+}  // namespace blender::compositor

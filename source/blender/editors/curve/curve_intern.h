@@ -142,7 +142,10 @@ struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
 /* helper functions */
-void ed_editnurb_translate_flag(struct ListBase *editnurb, uint8_t flag, const float vec[3]);
+void ed_editnurb_translate_flag(struct ListBase *editnurb,
+                                uint8_t flag,
+                                const float vec[3],
+                                bool is_2d);
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const uint8_t flag);
 bool ed_editnurb_spin(float viewmat[4][4],
                       struct View3D *v3d,

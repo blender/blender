@@ -20,6 +20,8 @@
 
 #include "IMB_colormanagement.h"
 
+namespace blender::compositor {
+
 ConvertBaseOperation::ConvertBaseOperation()
 {
   this->m_inputOperation = nullptr;
@@ -478,3 +480,5 @@ void CombineChannelsOperation::executePixelSampled(float output[4],
     output[3] = input[0];
   }
 }
+
+}  // namespace blender::compositor

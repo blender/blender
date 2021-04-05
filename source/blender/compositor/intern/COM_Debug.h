@@ -21,10 +21,12 @@
 #include <map>
 #include <string>
 
+#include "COM_NodeOperation.h"
 #include "COM_defines.h"
 
+namespace blender::compositor {
+
 class Node;
-class NodeOperation;
 class ExecutionSystem;
 class ExecutionGroup;
 
@@ -55,7 +57,7 @@ class DebugInfo {
 #ifdef COM_DEBUG
  protected:
   static int graphviz_operation(const ExecutionSystem *system,
-                                const NodeOperation *operation,
+                                NodeOperation *operation,
                                 const ExecutionGroup *group,
                                 char *str,
                                 int maxlen);
@@ -81,3 +83,5 @@ class DebugInfo {
   static GroupStateMap m_group_states;
 #endif
 };
+
+}  // namespace blender::compositor

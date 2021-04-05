@@ -524,15 +524,13 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
   ED_view3d_viewcontext_init(C, &data->vc, data->depsgraph);
 
   if (!XRAY_ENABLED(data->vc.v3d)) {
-    if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
-      /* needed or else the draw matrix can be incorrect */
-      view3d_operator_needs_opengl(C);
-
-      ED_view3d_backbuf_depth_validate(&data->vc);
-      /* we may need to force an update here by setting the rv3d as dirty
-       * for now it seems ok, but take care!:
-       * rv3d->depths->dirty = 1; */
-      ED_view3d_depth_update(data->vc.region);
+    if (!(data->vc.v3d->runtime.flag & V3D_RUNTIME_DEPTHBUF_OVERRIDDEN)) {
+      ED_view3d_depth_override(data->depsgraph,
+                               data->vc.region,
+                               data->vc.v3d,
+                               data->vc.obact,
+                               V3D_DEPTH_OBJECT_ONLY,
+                               true);
     }
   }
 }

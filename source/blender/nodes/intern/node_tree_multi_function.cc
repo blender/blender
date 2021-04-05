@@ -250,11 +250,11 @@ static fn::MFOutputSocket &insert_default_value_for_type(CommonMFNetworkBuilderD
 {
   const fn::MultiFunction *default_fn;
   if (type.is_single()) {
-    default_fn = &common.resources.construct<fn::CustomMF_GenericConstant>(
+    default_fn = &common.scope.construct<fn::CustomMF_GenericConstant>(
         AT, type.single_type(), type.single_type().default_value());
   }
   else {
-    default_fn = &common.resources.construct<fn::CustomMF_GenericConstantArray>(
+    default_fn = &common.scope.construct<fn::CustomMF_GenericConstantArray>(
         AT, fn::GSpan(type.vector_base_type()));
   }
 
@@ -349,11 +349,11 @@ static void insert_links_and_unlinked_inputs(CommonMFNetworkBuilderData &common)
  */
 MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
                                                   const DerivedNodeTree &tree,
-                                                  ResourceCollector &resources)
+                                                  ResourceScope &scope)
 {
   MFNetworkTreeMap network_map{tree, network};
 
-  CommonMFNetworkBuilderData common{resources, network, network_map, tree};
+  CommonMFNetworkBuilderData common{scope, network, network_map, tree};
 
   insert_nodes(common);
   insert_links_and_unlinked_inputs(common);
@@ -427,7 +427,7 @@ static const fn::MultiFunction &create_function_for_node_that_expands_into_multi
     const DNode &dnode,
     fn::MFNetwork &network,
     MFNetworkTreeMap &network_map,
-    ResourceCollector &resources)
+    ResourceScope &scope)
 {
   Vector<const fn::MFOutputSocket *> dummy_fn_inputs;
   for (const InputSocketRef *dsocket : dnode->inputs()) {
@@ -452,7 +452,7 @@ static const fn::MultiFunction &create_function_for_node_that_expands_into_multi
     }
   }
 
-  fn::MFNetworkEvaluator &fn_evaluator = resources.construct<fn::MFNetworkEvaluator>(
+  fn::MFNetworkEvaluator &fn_evaluator = scope.construct<fn::MFNetworkEvaluator>(
       __func__, std::move(dummy_fn_inputs), std::move(dummy_fn_outputs));
   return fn_evaluator;
 }
@@ -461,16 +461,15 @@ static const fn::MultiFunction &create_function_for_node_that_expands_into_multi
  * Returns a single multi-function for every node that supports it. This makes it easier to reuse
  * the multi-function implementation of nodes in different contexts.
  */
-MultiFunctionByNode get_multi_function_per_node(const DerivedNodeTree &tree,
-                                                ResourceCollector &resources)
+MultiFunctionByNode get_multi_function_per_node(const DerivedNodeTree &tree, ResourceScope &scope)
 {
   /* Build a network that nodes can insert themselves into. However, the individual nodes are not
    * connected. */
-  fn::MFNetwork &network = resources.construct<fn::MFNetwork>(__func__);
+  fn::MFNetwork &network = scope.construct<fn::MFNetwork>(__func__);
   MFNetworkTreeMap network_map{tree, network};
   MultiFunctionByNode functions_by_node;
 
-  CommonMFNetworkBuilderData common{resources, network, network_map, tree};
+  CommonMFNetworkBuilderData common{scope, network, network_map, tree};
 
   tree.foreach_node([&](DNode dnode) {
     const bNodeType *node_type = dnode->typeinfo();
@@ -499,7 +498,7 @@ MultiFunctionByNode get_multi_function_per_node(const DerivedNodeTree &tree,
         /* If a node expanded into multiple functions, a new function has to be created that
          * combines those. */
         const fn::MultiFunction &fn = create_function_for_node_that_expands_into_multiple(
-            dnode, network, network_map, resources);
+            dnode, network, network_map, scope);
         functions_by_node.add_new(dnode, &fn);
         break;
       }

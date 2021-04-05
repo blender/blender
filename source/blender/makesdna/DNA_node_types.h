@@ -715,6 +715,12 @@ typedef struct NodeBilateralBlurData {
   char _pad[2];
 } NodeBilateralBlurData;
 
+typedef struct NodeAntiAliasingData {
+  float threshold;
+  float contrast_limit;
+  float corner_rounding;
+} NodeAntiAliasingData;
+
 /* NOTE: Only for do-version code. */
 typedef struct NodeHueSat {
   float hue, sat, val;

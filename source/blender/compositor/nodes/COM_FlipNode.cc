@@ -21,6 +21,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_FlipOperation.h"
 
+namespace blender::compositor {
+
 FlipNode::FlipNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -52,3 +54,5 @@ void FlipNode::convertToOperations(NodeConverter &converter,
   converter.mapInputSocket(inputSocket, operation->getInputSocket(0));
   converter.mapOutputSocket(outputSocket, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

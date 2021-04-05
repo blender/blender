@@ -99,15 +99,7 @@ static void autokeyframe_pose(
   bPoseChannel *pchan;
   FCurve *fcu;
 
-  /* TODO: this should probably be done per channel instead. */
   if (!autokeyframe_cfra_can_key(scene, id)) {
-    /* tag channels that should have unkeyed data */
-    for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-      if (pchan->bone->flag & BONE_TRANSFORM) {
-        /* tag this channel */
-        pchan->bone->flag |= BONE_UNKEYED;
-      }
-    }
     return;
   }
 
@@ -138,9 +130,6 @@ static void autokeyframe_pose(
     }
 
     ListBase dsources = {NULL, NULL};
-
-    /* clear any 'unkeyed' flag it may have */
-    pchan->bone->flag &= ~BONE_UNKEYED;
 
     /* add datasource override for the camera object */
     ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan);

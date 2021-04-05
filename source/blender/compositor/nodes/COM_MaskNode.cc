@@ -22,6 +22,8 @@
 
 #include "DNA_mask_types.h"
 
+namespace blender::compositor {
+
 MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -68,3 +70,5 @@ void MaskNode::convertToOperations(NodeConverter &converter,
   converter.addOperation(operation);
   converter.mapOutputSocket(outputMask, operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

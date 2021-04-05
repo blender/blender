@@ -37,6 +37,8 @@
 
 #include "BKE_global.h"
 
+namespace blender::compositor {
+
 enum class ThreadingModel {
   /** Everything is executed in the caller thread. easy for debugging. */
   SingleThreaded,
@@ -70,7 +72,7 @@ static struct {
     /** \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is
      * created
      */
-    blender::Vector<CPUDevice> devices;
+    Vector<CPUDevice> devices;
 
     /** \brief list of all thread for every CPUDevice in cpudevices a thread exists. */
     ListBase threads;
@@ -89,7 +91,7 @@ static struct {
     cl_program program;
     /** \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice
      * is created. */
-    blender::Vector<OpenCLDevice> devices;
+    Vector<OpenCLDevice> devices;
     /** \brief list of all thread for every GPUDevice in cpudevices a thread exists. */
     ListBase threads;
     /** \brief all scheduled work for the GPU. */
@@ -117,7 +119,6 @@ static void *thread_execute_gpu(void *data)
 
   while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.opencl.queue))) {
     device->execute(work);
-    delete work;
   }
 
   return nullptr;
@@ -142,7 +143,7 @@ static void opencl_start(CompositorContext &context)
 
 static bool opencl_schedule(WorkPackage *package)
 {
-  if (package->execution_group->isOpenCL() && g_work_scheduler.opencl.active) {
+  if (package->execution_group->get_flags().open_cl && g_work_scheduler.opencl.active) {
     BLI_thread_queue_push(g_work_scheduler.opencl.queue, package);
     return true;
   }
@@ -304,7 +305,6 @@ static void threading_model_single_thread_execute(WorkPackage *package)
 {
   CPUDevice device(0);
   device.execute(package);
-  delete package;
 }
 
 /* \} */
@@ -320,7 +320,6 @@ static void *threading_model_queue_execute(void *data)
   BLI_thread_local_set(g_thread_device, device);
   while ((work = (WorkPackage *)BLI_thread_queue_pop(g_work_scheduler.queue.queue))) {
     device->execute(work);
-    delete work;
   }
 
   return nullptr;
@@ -431,10 +430,8 @@ static void threading_model_task_stop()
 /** \name Public API
  * \{ */
 
-void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
+void WorkScheduler::schedule(WorkPackage *package)
 {
-  WorkPackage *package = new WorkPackage(group, chunkNumber);
-
   if (COM_is_opencl_enabled()) {
     if (opencl_schedule(package)) {
       return;
@@ -583,3 +580,5 @@ int WorkScheduler::current_thread_id()
 }
 
 /* \} */
+
+}  // namespace blender::compositor

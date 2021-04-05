@@ -179,7 +179,7 @@ void Scene::free_memory(bool final)
 
     bake_manager->device_free(device, &dscene);
 
-    if (!params.persistent_data || final)
+    if (final)
       image_manager->device_free(device);
     else
       image_manager->device_free_builtin(device);

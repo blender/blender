@@ -29,6 +29,8 @@
 #include "BKE_node.h"
 #include "BKE_tracking.h"
 
+namespace blender::compositor {
+
 /* ******** PlaneTrackCommon ******** */
 
 PlaneTrackCommon::PlaneTrackCommon()
@@ -121,3 +123,5 @@ void PlaneTrackWarpImageOperation::initExecution()
     }
   }
 }
+
+}  // namespace blender::compositor

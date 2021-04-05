@@ -21,12 +21,14 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 BilateralBlurOperation::BilateralBlurOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
-  this->setComplex(true);
+  this->flags.complex = true;
 
   this->m_inputColorProgram = nullptr;
   this->m_inputDeterminatorProgram = nullptr;
@@ -112,3 +114,5 @@ bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

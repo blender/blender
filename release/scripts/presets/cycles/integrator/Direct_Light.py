@@ -9,3 +9,6 @@ cycles.glossy_bounces = 1
 cycles.transmission_bounces = 2
 cycles.volume_bounces = 0
 cycles.transparent_max_bounces = 8
+cycles.use_fast_gi = False
+cycles.ao_bounces = 1
+cycles.ao_bounces_render = 1

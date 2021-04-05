@@ -1528,6 +1528,17 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   uiItemR(sub, ptr, "z_scale", DEFAULT_FLAGS, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_antialiasing(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiLayout *col;
+
+  col = uiLayoutColumn(layout, false);
+
+  uiItemR(col, ptr, "threshold", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "contrast_limit", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "corner_rounding", 0, NULL, ICON_NONE);
+}
+
 /* qdn: glare node */
 static void node_composit_buts_glare(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
@@ -2798,6 +2809,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
       break;
     case CMP_NODE_DEFOCUS:
       ntype->draw_buttons = node_composit_buts_defocus;
+      break;
+    case CMP_NODE_ANTIALIASING:
+      ntype->draw_buttons = node_composit_buts_antialiasing;
       break;
     case CMP_NODE_GLARE:
       ntype->draw_buttons = node_composit_buts_glare;

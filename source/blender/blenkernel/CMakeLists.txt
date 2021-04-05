@@ -212,7 +212,7 @@ set(SRC
   intern/node_ui_storage.cc
   intern/object.c
   intern/object_deform.c
-  intern/object_dupli.c
+  intern/object_dupli.cc
   intern/object_facemap.c
   intern/object_update.c
   intern/ocean.c
@@ -371,7 +371,7 @@ set(SRC
   BKE_mball.h
   BKE_mball_tessellate.h
   BKE_mesh.h
-  BKE_mesh_boolean_convert.h
+  BKE_mesh_boolean_convert.hh
   BKE_mesh_fair.h
   BKE_mesh_iterators.h
   BKE_mesh_mapping.h

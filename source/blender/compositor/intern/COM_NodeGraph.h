@@ -29,6 +29,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+namespace blender::compositor {
+
 class CompositorContext;
 class Node;
 class NodeInput;
@@ -50,18 +52,18 @@ class NodeGraph {
   };
 
  private:
-  blender::Vector<Node *> m_nodes;
-  blender::Vector<Link> m_links;
+  Vector<Node *> m_nodes;
+  Vector<Link> m_links;
 
  public:
   NodeGraph();
   ~NodeGraph();
 
-  const blender::Vector<Node *> &nodes() const
+  const Vector<Node *> &nodes() const
   {
     return m_nodes;
   }
-  const blender::Vector<Link> &links() const
+  const Vector<Link> &links() const
   {
     return m_links;
   }
@@ -69,9 +71,7 @@ class NodeGraph {
   void from_bNodeTree(const CompositorContext &context, bNodeTree *tree);
 
  protected:
-  typedef std::pair<blender::Vector<Node *>::iterator, blender::Vector<Node *>::iterator>
-      NodeRange;
-  typedef std::vector<NodeInput *> NodeInputs;
+  typedef std::pair<Vector<Node *>::iterator, Vector<Node *>::iterator> NodeRange;
 
   static bNodeSocket *find_b_node_input(bNode *b_node, const char *identifier);
   static bNodeSocket *find_b_node_output(bNode *b_node, const char *identifier);
@@ -90,7 +90,6 @@ class NodeGraph {
                  bNodeInstanceKey key,
                  bool is_active_group);
 
-  NodeInputs find_inputs(const NodeRange &node_range, bNodeSocket *b_socket);
   NodeOutput *find_output(const NodeRange &node_range, bNodeSocket *b_socket);
   void add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink);
 
@@ -121,3 +120,5 @@ class NodeGraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeGraph")
 #endif
 };
+
+}  // namespace blender::compositor

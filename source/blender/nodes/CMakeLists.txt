@@ -46,6 +46,7 @@ set(INC
 
 set(SRC
   composite/nodes/node_composite_alphaOver.c
+  composite/nodes/node_composite_antialiasing.c
   composite/nodes/node_composite_bilateralblur.c
   composite/nodes/node_composite_blur.c
   composite/nodes/node_composite_bokehblur.c
@@ -307,7 +308,7 @@ set(SRC
   intern/derived_node_tree.cc
   intern/math_functions.cc
   intern/node_common.c
-  intern/node_exec.c
+  intern/node_exec.cc
   intern/node_geometry_exec.cc
   intern/node_socket.cc
   intern/node_tree_multi_function.cc

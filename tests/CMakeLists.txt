@@ -47,8 +47,13 @@ unset(_default_test_python_exe)
 set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --debug-memory --debug-exit-on-error --python-exit-code 1)
 
 # Python CTests
-if(WITH_BLENDER AND WITH_PYTHON)
+if(WITH_BLENDER AND WITH_PYTHON AND NOT WITH_PYTHON_MODULE)
   add_subdirectory(python)
+endif()
+
+# Blender as python module tests.
+if(WITH_PYTHON_MODULE)
+  add_subdirectory(blender_as_python_module)
 endif()
 
 # GTest

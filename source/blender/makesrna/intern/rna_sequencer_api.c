@@ -224,13 +224,15 @@ static Sequence *rna_Sequences_new_image(ID *id,
                                          const char *name,
                                          const char *file,
                                          int channel,
-                                         int frame_start)
+                                         int frame_start,
+                                         int fit_method)
 {
   Scene *scene = (Scene *)id;
 
   SeqLoadData load_data;
   SEQ_add_load_data_init(&load_data, name, file, frame_start, channel);
   load_data.image.len = 1;
+  load_data.fit_method = fit_method;
   Sequence *seq = SEQ_add_image_strip(bmain, scene, seqbase, &load_data);
 
   char dir[FILE_MAX], filename[FILE_MAX];
@@ -253,10 +255,11 @@ static Sequence *rna_Sequences_editing_new_image(ID *id,
                                                  const char *name,
                                                  const char *file,
                                                  int channel,
-                                                 int frame_start)
+                                                 int frame_start,
+                                                 int fit_method)
 {
   return rna_Sequences_new_image(
-      id, &ed->seqbase, bmain, reports, name, file, channel, frame_start);
+      id, &ed->seqbase, bmain, reports, name, file, channel, frame_start, fit_method);
 }
 
 static Sequence *rna_Sequences_meta_new_image(ID *id,
@@ -266,10 +269,11 @@ static Sequence *rna_Sequences_meta_new_image(ID *id,
                                               const char *name,
                                               const char *file,
                                               int channel,
-                                              int frame_start)
+                                              int frame_start,
+                                              int fit_method)
 {
   return rna_Sequences_new_image(
-      id, &seq->seqbase, bmain, reports, name, file, channel, frame_start);
+      id, &seq->seqbase, bmain, reports, name, file, channel, frame_start, fit_method);
 }
 
 static Sequence *rna_Sequences_new_movie(ID *id,
@@ -278,11 +282,13 @@ static Sequence *rna_Sequences_new_movie(ID *id,
                                          const char *name,
                                          const char *file,
                                          int channel,
-                                         int frame_start)
+                                         int frame_start,
+                                         int fit_method)
 {
   Scene *scene = (Scene *)id;
   SeqLoadData load_data;
   SEQ_add_load_data_init(&load_data, name, file, frame_start, channel);
+  load_data.fit_method = fit_method;
   load_data.allow_invalid_file = true;
   Sequence *seq = SEQ_add_movie_strip(bmain, scene, seqbase, &load_data);
 
@@ -299,9 +305,11 @@ static Sequence *rna_Sequences_editing_new_movie(ID *id,
                                                  const char *name,
                                                  const char *file,
                                                  int channel,
-                                                 int frame_start)
+                                                 int frame_start,
+                                                 int fit_method)
 {
-  return rna_Sequences_new_movie(id, &ed->seqbase, bmain, name, file, channel, frame_start);
+  return rna_Sequences_new_movie(
+      id, &ed->seqbase, bmain, name, file, channel, frame_start, fit_method);
 }
 
 static Sequence *rna_Sequences_meta_new_movie(ID *id,
@@ -310,9 +318,11 @@ static Sequence *rna_Sequences_meta_new_movie(ID *id,
                                               const char *name,
                                               const char *file,
                                               int channel,
-                                              int frame_start)
+                                              int frame_start,
+                                              int fit_method)
 {
-  return rna_Sequences_new_movie(id, &seq->seqbase, bmain, name, file, channel, frame_start);
+  return rna_Sequences_new_movie(
+      id, &seq->seqbase, bmain, name, file, channel, frame_start, fit_method);
 }
 
 #  ifdef WITH_AUDASPACE
@@ -724,6 +734,18 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem scale_fit_methods[] = {
+      {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image so fits in preview"},
+      {SEQ_SCALE_TO_FILL,
+       "FILL",
+       0,
+       "Scale to Fill",
+       "Scale image so it fills preview completely"},
+      {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image so it fills preview"},
+      {SEQ_USE_ORIGINAL_SIZE, "ORIGINAL", 0, "Use Original Size", "Don't scale the image"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   const char *new_clip_func_name = "rna_Sequences_editing_new_clip";
   const char *new_mask_func_name = "rna_Sequences_editing_new_mask";
   const char *new_scene_func_name = "rna_Sequences_editing_new_scene";
@@ -849,6 +871,9 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
                      -MAXFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_enum(
+      func, "fit_method", scale_fit_methods, SEQ_USE_ORIGINAL_SIZE, "Image Fit Method", NULL);
+  RNA_def_parameter_flags(parm, 0, PARM_PYFUNC_OPTIONAL);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);
@@ -873,6 +898,9 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
                      -MAXFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_enum(
+      func, "fit_method", scale_fit_methods, SEQ_USE_ORIGINAL_SIZE, "Image Fit Method", NULL);
+  RNA_def_parameter_flags(parm, 0, PARM_PYFUNC_OPTIONAL);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);

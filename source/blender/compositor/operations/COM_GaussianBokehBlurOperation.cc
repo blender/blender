@@ -22,6 +22,8 @@
 
 #include "RE_pipeline.h"
 
+namespace blender::compositor {
+
 GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(DataType::Color)
 {
   this->m_gausstab = nullptr;
@@ -303,7 +305,7 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
     int minyr = y - refrady < 0 ? -y : -refrady;
     int maxyr = y + refrady > imgy ? imgy - y : refrady;
 
-    float *srcd = buffer + COM_NUM_CHANNELS_COLOR * ((y + minyr) * imgx + x + minxr);
+    float *srcd = buffer + COM_DATA_TYPE_COLOR_CHANNELS * ((y + minyr) * imgx + x + minxr);
 
     gausstabx = m_maintabs[refradx - 1];
     gausstabcentx = gausstabx + refradx;
@@ -311,9 +313,9 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
     gausstabcenty = gausstaby + refrady;
 
     sum = gval = rval = bval = aval = 0.0f;
-    for (i = minyr; i < maxyr; i++, srcd += COM_NUM_CHANNELS_COLOR * imgx) {
+    for (i = minyr; i < maxyr; i++, srcd += COM_DATA_TYPE_COLOR_CHANNELS * imgx) {
       src = srcd;
-      for (j = minxr; j < maxxr; j++, src += COM_NUM_CHANNELS_COLOR) {
+      for (j = minxr; j < maxxr; j++, src += COM_DATA_TYPE_COLOR_CHANNELS) {
 
         val = gausstabcenty[i] * gausstabcentx[j];
         sum += val;
@@ -360,3 +362,5 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(
   newInput.ymin = input->ymin - addy;
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+}  // namespace blender::compositor

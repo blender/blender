@@ -19,13 +19,15 @@
 
 #include "COM_SunBeamsOperation.h"
 
+namespace blender::compositor {
+
 SunBeamsOperation::SunBeamsOperation()
 {
   this->addInputSocket(DataType::Color);
   this->addOutputSocket(DataType::Color);
   this->setResolutionInputSocketIndex(0);
 
-  this->setComplex(true);
+  this->flags.complex = true;
 }
 
 void SunBeamsOperation::initExecution()
@@ -138,7 +140,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     falloff_factor = dist_max > dist_min ? dr / (float)(dist_max - dist_min) : 0.0f;
 
-    float *iter = input->getBuffer() + COM_NUM_CHANNELS_COLOR * (x + input->getWidth() * y);
+    float *iter = input->getBuffer() + COM_DATA_TYPE_COLOR_CHANNELS * (x + input->getWidth() * y);
     return iter;
   }
 
@@ -167,7 +169,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
     if ((int)(co[0] - source[0]) == 0 && (int)(co[1] - source[1]) == 0) {
       copy_v4_v4(output,
-                 input->getBuffer() + COM_NUM_CHANNELS_COLOR *
+                 input->getBuffer() + COM_DATA_TYPE_COLOR_CHANNELS *
                                           ((int)source[0] + input->getWidth() * (int)source[1]));
       return;
     }
@@ -208,7 +210,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
       /* decrement u */
       x -= fxu;
       y -= fyu;
-      buffer -= (fxu + fyu * buffer_width) * COM_NUM_CHANNELS_COLOR;
+      buffer -= (fxu + fyu * buffer_width) * COM_DATA_TYPE_COLOR_CHANNELS;
 
       /* decrement v (in steps of dv < 1) */
       v_local -= dv;
@@ -217,7 +219,7 @@ template<int fxu, int fxv, int fyu, int fyv> struct BufferLineAccumulator {
 
         x -= fxv;
         y -= fyv;
-        buffer -= (fxv + fyv * buffer_width) * COM_NUM_CHANNELS_COLOR;
+        buffer -= (fxv + fyv * buffer_width) * COM_DATA_TYPE_COLOR_CHANNELS;
       }
     }
 
@@ -353,3 +355,5 @@ bool SunBeamsOperation::determineDependingAreaOfInterest(rcti *input,
 
   return NodeOperation::determineDependingAreaOfInterest(&rect, readOperation, output);
 }
+
+}  // namespace blender::compositor

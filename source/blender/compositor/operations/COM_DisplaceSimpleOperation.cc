@@ -20,6 +20,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+namespace blender::compositor {
+
 DisplaceSimpleOperation::DisplaceSimpleOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -129,3 +131,5 @@ bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input,
 
   return false;
 }
+
+}  // namespace blender::compositor

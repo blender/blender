@@ -1899,8 +1899,8 @@ void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
 /* note: now unlinks constraints as well */
 void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 {
-  if (BKE_library_ID_is_indirectly_used(bmain, ob) && ID_REAL_USERS(ob) <= 1 &&
-      ID_EXTRA_USERS(ob) == 0) {
+  if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
+      BKE_library_ID_is_indirectly_used(bmain, ob)) {
     /* We cannot delete indirectly used object... */
     printf(
         "WARNING, undeletable object '%s', should have been caught before reaching this "
@@ -1920,6 +1920,7 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
  */
 void ED_object_base_free_and_unlink_no_indirect_check(Main *bmain, Scene *scene, Object *ob)
 {
+  BLI_assert(!BKE_library_ID_is_indirectly_used(bmain, ob));
   DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_BASE_FLAGS);
   BKE_scene_collections_object_remove(bmain, scene, ob, true);
 }
@@ -1940,7 +1941,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
-    const bool is_indirectly_used = BKE_library_ID_is_indirectly_used(bmain, ob);
     if (ob->id.tag & LIB_TAG_INDIRECT) {
       /* Can this case ever happen? */
       BKE_reportf(op->reports,
@@ -1949,7 +1949,9 @@ static int object_delete_exec(bContext *C, wmOperator *op)
                   ob->id.name + 2);
       continue;
     }
-    if (is_indirectly_used && ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0) {
+
+    if (ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0 &&
+        BKE_library_ID_is_indirectly_used(bmain, ob)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Cannot delete object '%s' from scene '%s', indirectly used objects need at "
@@ -1965,20 +1967,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     }
 
-    /* remove from Grease Pencil parent */
-    /* XXX This is likely not correct?
-     *     Will also remove parent from grease pencil from other scenes,
-     *     even when use_global is false... */
-    for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
-      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        if (gpl->parent != NULL) {
-          if (gpl->parent == ob) {
-            gpl->parent = NULL;
-          }
-        }
-      }
-    }
-
     /* Use multi tagged delete if `use_global=True`, or the object is used only in one scene. */
     if (use_global || ID_REAL_USERS(ob) <= 1) {
       ob->id.tag |= LIB_TAG_DOIT;
@@ -1988,6 +1976,18 @@ static int object_delete_exec(bContext *C, wmOperator *op)
       /* Object is used in multiple scenes. Delete the object from the current scene only. */
       ED_object_base_free_and_unlink_no_indirect_check(bmain, scene, ob);
       changed_count += 1;
+
+      /* FIXME: this will also remove parent from grease pencil from other scenes. */
+      /* Remove from Grease Pencil parent */
+      for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+          if (gpl->parent != NULL) {
+            if (gpl->parent == ob) {
+              gpl->parent = NULL;
+            }
+          }
+        }
+      }
     }
   }
   CTX_DATA_END;
@@ -2897,7 +2897,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       cu->flag &= ~CU_3D;
-      BKE_curve_curve_dimension_update(cu);
+      BKE_curve_dimension_update(cu);
 
       if (target == OB_MESH) {
         /* No assumption should be made that the resulting objects is a mesh, as conversion can

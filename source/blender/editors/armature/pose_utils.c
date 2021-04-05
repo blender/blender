@@ -313,11 +313,6 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 
     /* Add data-source override for the PoseChannel, to be used later. */
     ANIM_relative_keyingset_add_source(&dsources, &pfl->ob->id, &RNA_PoseBone, pchan);
-
-    /* clear any unkeyed tags */
-    if (pchan->bone) {
-      pchan->bone->flag &= ~BONE_UNKEYED;
-    }
   }
 
   /* insert keyframes for all relevant bones in one go */

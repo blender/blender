@@ -779,7 +779,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       Nurb *nu;
 
       for (nu = cu->nurb.first; nu; nu = nu->next) {
-        nu->flag |= (nu->type & CU_2D);
         nu->type &= CU_TYPE;
       }
     }

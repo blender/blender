@@ -47,6 +47,7 @@
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "BKE_deform.h"
 
@@ -69,7 +70,7 @@ typedef struct LatticeDeformData {
 LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Object *ob)
 {
   /* we make an array with all differences */
-  Lattice *lt = oblatt->data;
+  Lattice *lt = BKE_object_get_lattice(oblatt);
   BPoint *bp;
   DispList *dl = oblatt->runtime.curve_cache ?
                      BKE_displist_find(&oblatt->runtime.curve_cache->disp, DL_VERTS) :
@@ -83,9 +84,6 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   float latmat[4][4];
   LatticeDeformData *lattice_deform_data;
 
-  if (lt->editlatt) {
-    lt = lt->editlatt->latt;
-  }
   bp = lt->def;
 
   const int32_t num_points = lt->pntsu * lt->pntsv * lt->pntsw;

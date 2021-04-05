@@ -219,7 +219,7 @@ static Vector<MFInputSocket *> find_constant_inputs_to_fold(
 
 static void prepare_params_for_constant_folding(const MultiFunction &network_fn,
                                                 MFParamsBuilder &params,
-                                                ResourceCollector &resources)
+                                                ResourceScope &scope)
 {
   for (int param_index : network_fn.param_indices()) {
     MFParamType param_type = network_fn.param_type(param_index);
@@ -229,8 +229,7 @@ static void prepare_params_for_constant_folding(const MultiFunction &network_fn,
       case MFDataType::Single: {
         /* Allocates memory for a single constant folded value. */
         const CPPType &cpp_type = data_type.single_type();
-        void *buffer = resources.linear_allocator().allocate(cpp_type.size(),
-                                                             cpp_type.alignment());
+        void *buffer = scope.linear_allocator().allocate(cpp_type.size(), cpp_type.alignment());
         GMutableSpan array{cpp_type, buffer, 1};
         params.add_uninitialized_single_output(array);
         break;
@@ -238,7 +237,7 @@ static void prepare_params_for_constant_folding(const MultiFunction &network_fn,
       case MFDataType::Vector: {
         /* Allocates memory for a constant folded vector. */
         const CPPType &cpp_type = data_type.vector_base_type();
-        GVectorArray &vector_array = resources.construct<GVectorArray>(AT, cpp_type, 1);
+        GVectorArray &vector_array = scope.construct<GVectorArray>(AT, cpp_type, 1);
         params.add_vector_output(vector_array);
         break;
       }
@@ -248,7 +247,7 @@ static void prepare_params_for_constant_folding(const MultiFunction &network_fn,
 
 static Array<MFOutputSocket *> add_constant_folded_sockets(const MultiFunction &network_fn,
                                                            MFParamsBuilder &params,
-                                                           ResourceCollector &resources,
+                                                           ResourceScope &scope,
                                                            MFNetwork &network)
 {
   Array<MFOutputSocket *> folded_sockets{network_fn.param_indices().size(), nullptr};
@@ -264,15 +263,15 @@ static Array<MFOutputSocket *> add_constant_folded_sockets(const MultiFunction &
         const CPPType &cpp_type = data_type.single_type();
         GMutableSpan array = params.computed_array(param_index);
         void *buffer = array.data();
-        resources.add(buffer, array.type().destruct_cb(), AT);
+        scope.add(buffer, array.type().destruct_cb(), AT);
 
-        constant_fn = &resources.construct<CustomMF_GenericConstant>(AT, cpp_type, buffer);
+        constant_fn = &scope.construct<CustomMF_GenericConstant>(AT, cpp_type, buffer);
         break;
       }
       case MFDataType::Vector: {
         GVectorArray &vector_array = params.computed_vector_array(param_index);
         GSpan array = vector_array[0];
-        constant_fn = &resources.construct<CustomMF_GenericConstantArray>(AT, array);
+        constant_fn = &scope.construct<CustomMF_GenericConstantArray>(AT, array);
         break;
       }
     }
@@ -284,17 +283,15 @@ static Array<MFOutputSocket *> add_constant_folded_sockets(const MultiFunction &
 }
 
 static Array<MFOutputSocket *> compute_constant_sockets_and_add_folded_nodes(
-    MFNetwork &network,
-    Span<const MFInputSocket *> sockets_to_compute,
-    ResourceCollector &resources)
+    MFNetwork &network, Span<const MFInputSocket *> sockets_to_compute, ResourceScope &scope)
 {
   MFNetworkEvaluator network_fn{{}, sockets_to_compute};
 
   MFContextBuilder context;
   MFParamsBuilder params{network_fn, 1};
-  prepare_params_for_constant_folding(network_fn, params, resources);
+  prepare_params_for_constant_folding(network_fn, params, scope);
   network_fn.call({0}, params, context);
-  return add_constant_folded_sockets(network_fn, params, resources, network);
+  return add_constant_folded_sockets(network_fn, params, scope, network);
 }
 
 class MyClass {
@@ -304,7 +301,7 @@ class MyClass {
 /**
  * Find function nodes that always output the same value and replace those with constant nodes.
  */
-void constant_folding(MFNetwork &network, ResourceCollector &resources)
+void constant_folding(MFNetwork &network, ResourceScope &scope)
 {
   Vector<MFDummyNode *> temporary_nodes;
   Vector<MFInputSocket *> inputs_to_fold = find_constant_inputs_to_fold(network, temporary_nodes);
@@ -313,7 +310,7 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
   }
 
   Array<MFOutputSocket *> folded_sockets = compute_constant_sockets_and_add_folded_nodes(
-      network, inputs_to_fold, resources);
+      network, inputs_to_fold, scope);
 
   for (int i : inputs_to_fold.index_range()) {
     MFOutputSocket &original_socket = *inputs_to_fold[i]->origin();

@@ -22,6 +22,8 @@
 
 #include "DNA_movieclip_types.h"
 
+namespace blender::compositor {
+
 KeyingScreenNode::KeyingScreenNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -45,3 +47,5 @@ void KeyingScreenNode::convertToOperations(NodeConverter &converter,
 
   converter.mapOutputSocket(outputScreen, operation->getOutputSocket());
 }
+
+}  // namespace blender::compositor

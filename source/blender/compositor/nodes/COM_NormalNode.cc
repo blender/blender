@@ -22,6 +22,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_SetVectorOperation.h"
 
+namespace blender::compositor {
+
 NormalNode::NormalNode(bNode *editorNode) : Node(editorNode)
 {
   /* pass */
@@ -54,3 +56,5 @@ void NormalNode::convertToOperations(NodeConverter &converter,
   converter.addLink(operationSet->getOutputSocket(0), operation->getInputSocket(1));
   converter.mapOutputSocket(outputSocketDotproduct, operation->getOutputSocket(0));
 }
+
+}  // namespace blender::compositor

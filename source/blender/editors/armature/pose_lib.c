@@ -1108,17 +1108,6 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
         if (autokey) {
           /* Add data-source override for the PoseChannel, to be used later. */
           ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan);
-
-          /* clear any unkeyed tags */
-          if (pchan->bone) {
-            pchan->bone->flag &= ~BONE_UNKEYED;
-          }
-        }
-        else {
-          /* add unkeyed tags */
-          if (pchan->bone) {
-            pchan->bone->flag |= BONE_UNKEYED;
-          }
         }
       }
     }

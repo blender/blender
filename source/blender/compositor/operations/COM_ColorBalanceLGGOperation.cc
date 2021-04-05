@@ -19,6 +19,8 @@
 #include "COM_ColorBalanceLGGOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)
 {
   /* 1:1 match with the sequencer with linear/srgb conversions, the conversion isn't pretty
@@ -84,3 +86,5 @@ void ColorBalanceLGGOperation::deinitExecution()
   this->m_inputValueOperation = nullptr;
   this->m_inputColorOperation = nullptr;
 }
+
+}  // namespace blender::compositor

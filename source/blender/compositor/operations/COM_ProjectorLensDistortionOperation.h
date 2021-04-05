@@ -21,6 +21,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
+namespace blender::compositor {
+
 class ProjectorLensDistortionOperation : public NodeOperation {
  private:
   /**
@@ -58,3 +60,5 @@ class ProjectorLensDistortionOperation : public NodeOperation {
 
   void updateDispersion();
 };
+
+}  // namespace blender::compositor

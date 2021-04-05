@@ -19,6 +19,8 @@
 #include "COM_GammaOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 GammaOperation::GammaOperation()
 {
   this->addInputSocket(DataType::Color);
@@ -54,3 +56,5 @@ void GammaOperation::deinitExecution()
   this->m_inputProgram = nullptr;
   this->m_inputGammaProgram = nullptr;
 }
+
+}  // namespace blender::compositor

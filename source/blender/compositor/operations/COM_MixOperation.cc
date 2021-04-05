@@ -20,6 +20,8 @@
 
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 /* ******** Mix Base Operation ******** */
 
 MixBaseOperation::MixBaseOperation()
@@ -944,3 +946,5 @@ void MixValueOperation::executePixelSampled(float output[4],
 
   clampIfNeeded(output);
 }
+
+}  // namespace blender::compositor

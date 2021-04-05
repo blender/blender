@@ -29,6 +29,8 @@
 
 #include "BLI_voronoi_2d.h"
 
+namespace blender::compositor {
+
 /**
  * Class with implementation of green screen gradient rasterization
  */
@@ -83,3 +85,5 @@ class KeyingScreenOperation : public NodeOperation {
 
   void executePixel(float output[4], int x, int y, void *data) override;
 };
+
+}  // namespace blender::compositor

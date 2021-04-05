@@ -20,6 +20,12 @@
 
 #include "COM_MemoryProxy.h"
 #include "COM_NodeOperation.h"
+
+namespace blender::compositor {
+
+class OpenCLDevice;
+class MemoryProxy;
+
 /**
  * \brief NodeOperation to write to a tile
  * \ingroup Operation
@@ -37,10 +43,6 @@ class WriteBufferOperation : public NodeOperation {
     return this->m_memoryProxy;
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
-  bool isWriteBufferOperation() const override
-  {
-    return true;
-  }
   bool isSingleValue() const
   {
     return m_single_value;
@@ -62,3 +64,5 @@ class WriteBufferOperation : public NodeOperation {
     return m_input;
   }
 };
+
+}  // namespace blender::compositor

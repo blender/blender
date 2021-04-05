@@ -19,6 +19,8 @@
 #include "COM_GlareStreaksOperation.h"
 #include "BLI_math.h"
 
+namespace blender::compositor {
+
 void GlareStreaksOperation::generateGlare(float *data,
                                           MemoryBuffer *inputTile,
                                           NodeGlare *settings)
@@ -97,3 +99,5 @@ void GlareStreaksOperation::generateGlare(float *data,
     nump++;
   }
 }
+
+}  // namespace blender::compositor

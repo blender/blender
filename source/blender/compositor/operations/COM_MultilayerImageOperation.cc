@@ -21,6 +21,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+namespace blender::compositor {
+
 MultilayerBaseOperation::MultilayerBaseOperation(RenderLayer *render_layer,
                                                  RenderPass *render_pass,
                                                  int view)
@@ -155,3 +157,5 @@ void MultilayerVectorOperation::executePixelSampled(float output[4],
     }
   }
 }
+
+}  // namespace blender::compositor

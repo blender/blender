@@ -31,87 +31,44 @@ template <class T> void SafeRelease(T **ppT)
 	}
 }
 
-void WASAPIDevice::start()
-{
-	lock();
-
-	// thread is still running, we can abort stopping it
-	if(m_stop)
-		m_stop = false;
-	// thread is not running, let's start it
-	else if(!m_playing)
-	{
-		if(m_thread.joinable())
-			m_thread.join();
-
-		m_playing = true;
-
-		m_thread = std::thread(&WASAPIDevice::updateStream, this);
-	}
-
-	unlock();
-}
-
-void WASAPIDevice::updateStream()
+void WASAPIDevice::runMixingThread()
 {
 	UINT32 buffer_size;
+	UINT32 padding;
+	UINT32 length;
 	data_t* buffer;
 
-	lock();
-
-	if(FAILED(m_audio_client->GetBufferSize(&buffer_size)))
-	{
-		m_playing = false;
-		m_stop = false;
-		unlock();
-		return;
-	}
-
 	IAudioRenderClient* render_client = nullptr;
-	const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 
-	if(FAILED(m_audio_client->GetService(IID_IAudioRenderClient, reinterpret_cast<void**>(&render_client))))
 	{
-		m_playing = false;
-		m_stop = false;
-		unlock();
-		return;
+		std::lock_guard<ILockable> lock(*this);
+
+		const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
+
+		if(FAILED(m_audio_client->GetBufferSize(&buffer_size)))
+			goto init_error;
+
+		if(FAILED(m_audio_client->GetService(IID_IAudioRenderClient, reinterpret_cast<void**>(&render_client))))
+			goto init_error;
+
+		if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
+			goto init_error;
+
+		length = buffer_size - padding;
+
+		if(FAILED(render_client->GetBuffer(length, &buffer)))
+			goto init_error;
+
+		mix((data_t*)buffer, length);
+
+		if(FAILED(render_client->ReleaseBuffer(length, 0)))
+		{
+			init_error:
+				SafeRelease(&render_client);
+				doStop();
+				return;
+		}
 	}
-
-	UINT32 padding;
-
-	if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
-	{
-		SafeRelease(&render_client);
-		m_playing = false;
-		m_stop = false;
-		unlock();
-		return;
-	}
-
-	UINT32 length = buffer_size - padding;
-
-	if(FAILED(render_client->GetBuffer(length, &buffer)))
-	{
-		SafeRelease(&render_client);
-		m_playing = false;
-		m_stop = false;
-		unlock();
-		return;
-	}
-
-	mix((data_t*)buffer, length);
-
-	if(FAILED(render_client->ReleaseBuffer(length, 0)))
-	{
-		SafeRelease(&render_client);
-		m_playing = false;
-		m_stop = false;
-		unlock();
-		return;
-	}
-
-	unlock();
 
 	m_audio_client->Start();
 
@@ -119,71 +76,38 @@ void WASAPIDevice::updateStream()
 
 	for(;;)
 	{
-		lock();
-
-		if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
 		{
-			m_audio_client->Stop();
-			SafeRelease(&render_client);
-			m_playing = false;
-			m_stop = false;
-			unlock();
-			return;
+			std::lock_guard<ILockable> lock(*this);
+
+			if(FAILED(m_audio_client->GetCurrentPadding(&padding)))
+				goto stop_thread;
+
+			length = buffer_size - padding;
+
+			if(FAILED(render_client->GetBuffer(length, &buffer)))
+				goto stop_thread;
+
+			mix((data_t*)buffer, length);
+
+			if(FAILED(render_client->ReleaseBuffer(length, 0)))
+				goto stop_thread;
+
+			// stop thread
+			if(shouldStop())
+			{
+				stop_thread:
+					m_audio_client->Stop();
+					SafeRelease(&render_client);
+					doStop();
+					return;
+			}
 		}
-
-		length = buffer_size - padding;
-
-		if(FAILED(render_client->GetBuffer(length, &buffer)))
-		{
-			m_audio_client->Stop();
-			SafeRelease(&render_client);
-			m_playing = false;
-			m_stop = false;
-			unlock();
-			return;
-		}
-
-		mix((data_t*)buffer, length);
-
-		if(FAILED(render_client->ReleaseBuffer(length, 0)))
-		{
-			m_audio_client->Stop();
-			SafeRelease(&render_client);
-			m_playing = false;
-			m_stop = false;
-			unlock();
-			return;
-		}
-
-		// stop thread
-		if(m_stop)
-		{
-			m_audio_client->Stop();
-			SafeRelease(&render_client);
-			m_playing = false;
-			m_stop = false;
-			unlock();
-			return;
-		}
-
-		unlock();
 
 		std::this_thread::sleep_for(sleepDuration);
 	}
 }
 
-void WASAPIDevice::playing(bool playing)
-{
-	if((!m_playing || m_stop) && playing)
-		start();
-	else
-		m_stop = true;
-}
-
 WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
-	m_playing(false),
-	m_stop(false),
-
 	m_imm_device_enumerator(nullptr),
 	m_imm_device(nullptr),
 	m_audio_client(nullptr),
@@ -361,14 +285,7 @@ WASAPIDevice::WASAPIDevice(DeviceSpecs specs, int buffersize) :
 
 WASAPIDevice::~WASAPIDevice()
 {
-	lock();
-
-	stopAll();
-
-	unlock();
-
-	if(m_thread.joinable())
-		m_thread.join();
+	stopMixingThread();
 
 	SafeRelease(&m_audio_client);
 	SafeRelease(&m_imm_device);

@@ -23,6 +23,11 @@
 #include "DNA_mask_types.h"
 #include "IMB_imbuf_types.h"
 
+/* Forward declarations. */
+struct MaskRasterHandle;
+
+namespace blender::compositor {
+
 /**
  * Class with implementation of mask rasterization
  */
@@ -94,3 +99,5 @@ class MaskOperation : public NodeOperation {
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
+
+}  // namespace blender::compositor

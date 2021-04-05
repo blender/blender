@@ -44,7 +44,7 @@ static Curve *curve_from_font_object(Object *object, Depsgraph *depsgraph)
   new_curve->type = OB_CURVE;
 
   new_curve->flag &= ~CU_3D;
-  BKE_curve_curve_dimension_update(new_curve);
+  BKE_curve_dimension_update(new_curve);
 
   return new_curve;
 }

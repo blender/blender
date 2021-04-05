@@ -29,6 +29,8 @@
 
 #include "COM_NodeConverter.h" /* own include */
 
+namespace blender::compositor {
+
 NodeConverter::NodeConverter(NodeOperationBuilder *builder) : m_builder(builder)
 {
 }
@@ -160,3 +162,5 @@ ViewerOperation *NodeConverter::active_viewer() const
 {
   return m_builder->active_viewer();
 }
+
+}  // namespace blender::compositor
