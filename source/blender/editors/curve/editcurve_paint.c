@@ -206,7 +206,9 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
   else {
     const ViewDepths *depths = rv3d->depths;
     if (depths && ((uint)mval_i[0] < depths->w) && ((uint)mval_i[1] < depths->h)) {
-      const double depth = (double)ED_view3d_depth_read_cached(&cdd->vc, mval_i);
+      float depth_fl = 1.0f;
+      ED_view3d_depth_read_cached(depths, mval_i, 0, &depth_fl);
+      const double depth = (double)depth_fl;
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject(region, mval_i, depth, r_location_world)) {
           is_location_world_set = true;
