@@ -828,18 +828,17 @@ void DEG_editors_update(
     Main *bmain, Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, bool time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
-  if (!graph->use_editors_update) {
-    return;
+
+  if (graph->use_editors_update) {
+    bool updated = time || DEG_id_type_any_updated(depsgraph);
+
+    DEGEditorUpdateContext update_ctx = {nullptr};
+    update_ctx.bmain = bmain;
+    update_ctx.depsgraph = depsgraph;
+    update_ctx.scene = scene;
+    update_ctx.view_layer = view_layer;
+    deg::deg_editors_scene_update(&update_ctx, updated);
   }
-
-  bool updated = time || DEG_id_type_any_updated(depsgraph);
-
-  DEGEditorUpdateContext update_ctx = {nullptr};
-  update_ctx.bmain = bmain;
-  update_ctx.depsgraph = depsgraph;
-  update_ctx.scene = scene;
-  update_ctx.view_layer = view_layer;
-  deg::deg_editors_scene_update(&update_ctx, updated);
 
   DEG_ids_clear_recalc(depsgraph);
 }
