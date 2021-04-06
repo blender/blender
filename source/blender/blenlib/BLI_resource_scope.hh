@@ -72,38 +72,46 @@ class ResourceScope : NonCopyable, NonMovable {
    * Pass ownership of the resource to the ResourceScope. It will be destructed and freed when
    * the collector is destructed.
    */
-  template<typename T> void add(std::unique_ptr<T> resource, const char *name)
+  template<typename T> T *add(std::unique_ptr<T> resource, const char *name)
   {
     BLI_assert(resource.get() != nullptr);
+    T *ptr = resource.release();
+    if (ptr == nullptr) {
+      return nullptr;
+    }
     this->add(
-        resource.release(),
+        ptr,
         [](void *data) {
           T *typed_data = reinterpret_cast<T *>(data);
           delete typed_data;
         },
         name);
+    return ptr;
   }
 
   /**
    * Pass ownership of the resource to the ResourceScope. It will be destructed when the
    * collector is destructed.
    */
-  template<typename T> void add(destruct_ptr<T> resource, const char *name)
+  template<typename T> T *add(destruct_ptr<T> resource, const char *name)
   {
+    T *ptr = resource.release();
+    if (ptr == nullptr) {
+      return nullptr;
+    }
     /* There is no need to keep track of such types. */
     if (std::is_trivially_destructible_v<T>) {
-      resource.release();
-      return;
+      return ptr;
     }
 
-    BLI_assert(resource.get() != nullptr);
     this->add(
-        resource.release(),
+        ptr,
         [](void *data) {
           T *typed_data = reinterpret_cast<T *>(data);
           typed_data->~T();
         },
         name);
+    return ptr;
   }
 
   /**
