@@ -4937,6 +4937,7 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_attribute_remove();
   register_node_type_geo_boolean();
+  register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
   register_node_type_geo_edge_split();
   register_node_type_geo_is_viewport();

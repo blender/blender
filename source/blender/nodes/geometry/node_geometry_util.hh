@@ -58,4 +58,6 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const int verts_num,
                                    const GeometryNodeMeshCircleFillType fill_type);
 
+Mesh *create_cube_mesh(const float size);
+
 }  // namespace blender::nodes
