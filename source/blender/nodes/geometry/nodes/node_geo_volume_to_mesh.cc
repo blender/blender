@@ -37,7 +37,7 @@
 static bNodeSocketTemplate geo_node_volume_to_mesh_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {SOCK_STRING, N_("Density")},
-    {SOCK_FLOAT, N_("Voxel Size"), 0.3f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX},
+    {SOCK_FLOAT, N_("Voxel Size"), 0.3f, 0.0f, 0.0f, 0.0f, 0.01f, FLT_MAX, PROP_DISTANCE},
     {SOCK_FLOAT, N_("Voxel Amount"), 64.0f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
     {SOCK_FLOAT, N_("Threshold"), 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, FLT_MAX},
     {SOCK_FLOAT, N_("Adaptivity"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
