@@ -256,7 +256,7 @@ static BMesh *BMD_mesh_bm_create(
 
   BMeshFromMeshParams params{};
   params.calc_face_normal = true;
-  BM_mesh_bm_from_me(bm, mesh_operand_ob, &params);
+  BM_mesh_bm_from_me(object, bm, mesh_operand_ob, &params);
 
   if (UNLIKELY(*r_is_flip)) {
     const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -267,7 +267,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(bm, mesh, &params);
+  BM_mesh_bm_from_me(object, bm, mesh, &params);
 
   return bm;
 }
@@ -544,7 +544,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           /* Needed for multiple objects to work. */
           BMeshToMeshParams params{};
           params.calc_object_remap = false;
-          BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
+          BM_mesh_bm_to_me(nullptr, nullptr, bm, mesh, &params);
 
           result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
           BM_mesh_free(bm);
