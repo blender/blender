@@ -21,19 +21,32 @@
  * actual mode switching logic is per-object type.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_gpencil_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
+
+#include "PIL_time.h"
 
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
+#include "GPU_state.h"
+
 #include "BKE_context.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -44,6 +57,8 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -51,6 +66,7 @@
 #include "ED_armature.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
+#include "ED_space_API.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_undo.h"
 #include "ED_view3d.h"
@@ -406,6 +422,89 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object 
  * leaving the mode of the current object.
  * \{ */
 
+typedef struct SwitchObjectCustomData {
+  void *draw_handle;
+  Object *target_object;
+  Mesh *mesh;
+  MLoopTri *looptri;
+  wmTimer *timer;
+
+  int tottris;
+  double start_time;
+  float alpha;
+} SwitchObjectCustomData;
+
+static void switch_object_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+{
+  SwitchObjectCustomData *cd = arg;
+
+  if (!cd->mesh) {
+    return;
+  }
+  if (!cd->looptri) {
+    return;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_line_smooth(true);
+
+  uint pos3d = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR);
+  GPU_matrix_push();
+  GPU_matrix_mul(cd->target_object->obmat);
+
+  const float col_base = 0.6f;
+  immUniformColor4f(col_base, col_base, col_base, 0.25 * cd->alpha);
+
+  Mesh *mesh = cd->mesh;
+  immBegin(GPU_PRIM_TRIS, cd->tottris * 3);
+
+  for (int i = 0; i < cd->tottris; i++) {
+    MLoopTri *looptri = &cd->looptri[i];
+    for (int j = 0; j < 3; j++) {
+      MLoop *loop = &mesh->mloop[looptri->tri[j]];
+      MVert *vert = &mesh->mvert[loop->v];
+      float co[3] = {0.0f, 0.0f, 0.0f};
+      immVertex3fv(pos3d, vert->co);
+    }
+  }
+
+  immEnd();
+
+  immUnbindProgram();
+  GPU_matrix_pop();
+  GPU_blend(GPU_BLEND_NONE);
+
+  GPU_line_smooth(false);
+}
+
+static int object_switch_object_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+
+  ARegion *region = CTX_wm_region(C);
+  SwitchObjectCustomData *cd = op->customdata;
+  if (cd->start_time == 0.0) {
+    cd->start_time = PIL_check_seconds_timer();
+  }
+  const double time = PIL_check_seconds_timer();
+  const double delta_time = time - cd->start_time;
+  float alpha = 1.0f - (6.0 * delta_time);
+
+  if (alpha > 0.01f) {
+    cd->alpha = alpha;
+    ED_region_tag_redraw(region);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), cd->timer);
+
+  ED_region_draw_cb_exit(region->type, cd->draw_handle);
+  MEM_freeN(op->customdata);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_FINISHED;
+}
+
 static bool object_switch_object_poll(bContext *C)
 {
 
@@ -445,6 +544,7 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   int retval = OPERATOR_CANCELLED;
+  bool switched = false;
 
   ED_undo_group_begin(C);
 
@@ -474,11 +574,43 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);
     retval = OPERATOR_FINISHED;
+    switched = true;
   }
 
   ED_undo_group_end(C);
 
-  return retval;
+  const bool flash_object = true;
+
+  if (!flash_object) {
+    if (switched) {
+      return OPERATOR_FINISHED;
+    }
+    else {
+      return OPERATOR_CANCELLED;
+    }
+  }
+
+  SwitchObjectCustomData *cd = MEM_callocN(sizeof(SwitchObjectCustomData),
+                                           "Switch Object Custom Data");
+
+  cd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.05f);
+  cd->draw_handle = ED_region_draw_cb_activate(
+      region->type, switch_object_draw, cd, REGION_DRAW_POST_VIEW);
+  cd->target_object = ob_dst;
+  cd->start_time = 0.0;
+
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *evaluated_object = DEG_get_evaluated_object(depsgraph, cd->target_object);
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(evaluated_object, false);
+  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+  cd->looptri = looptri;
+  cd->tottris = BKE_mesh_runtime_looptri_len(mesh);
+  cd->mesh = mesh;
+  cd->alpha = 1.0f;
+
+  op->customdata = cd;
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 void OBJECT_OT_switch_object(wmOperatorType *ot)
@@ -492,10 +624,14 @@ void OBJECT_OT_switch_object(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = object_switch_object_invoke;
+  ot->modal = object_switch_object_modal;
   ot->poll = object_switch_object_poll;
 
   /* Undo push is handled by the operator. */
   ot->flag = OPTYPE_REGISTER;
+
+  RNA_def_boolean(
+      ot->srna, "flash_object", true, "Flash Object", "Flash object when entering the new mode");
 }
 
 /** \} */
