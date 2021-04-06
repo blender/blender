@@ -4632,34 +4632,55 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
       seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
     }
 
-    RNG *rng = BLI_rng_new_srandom(seed_iter);
-
     if (em->selectmode & SCE_SELECT_VERTEX) {
+      int elem_map_len = 0;
+      BMVert **elem_map = MEM_mallocN(sizeof(*elem_map) * em->bm->totvert, __func__);
       BMVert *eve;
       BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-        if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-          BM_vert_select_set(em->bm, eve, select);
+        if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+          elem_map[elem_map_len++] = eve;
         }
       }
+
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      const int count_select = elem_map_len * randfac;
+      for (int i = 0; i < count_select; i++) {
+        BM_vert_select_set(em->bm, elem_map[i], select);
+      }
+      MEM_freeN(elem_map);
     }
     else if (em->selectmode & SCE_SELECT_EDGE) {
+      int elem_map_len = 0;
+      BMEdge **elem_map = MEM_mallocN(sizeof(*elem_map) * em->bm->totedge, __func__);
       BMEdge *eed;
       BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-        if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-          BM_edge_select_set(em->bm, eed, select);
+        if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+          elem_map[elem_map_len++] = eed;
         }
       }
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      const int count_select = elem_map_len * randfac;
+      for (int i = 0; i < count_select; i++) {
+        BM_edge_select_set(em->bm, elem_map[i], select);
+      }
+      MEM_freeN(elem_map);
     }
     else {
+      int elem_map_len = 0;
+      BMFace **elem_map = MEM_mallocN(sizeof(*elem_map) * em->bm->totface, __func__);
       BMFace *efa;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-          BM_face_select_set(em->bm, efa, select);
+        if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+          elem_map[elem_map_len++] = efa;
         }
       }
+      BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
+      const int count_select = elem_map_len * randfac;
+      for (int i = 0; i < count_select; i++) {
+        BM_face_select_set(em->bm, elem_map[i], select);
+      }
+      MEM_freeN(elem_map);
     }
-
-    BLI_rng_free(rng);
 
     if (select) {
       /* was EDBM_select_flush, but it over select in edge/face mode */
