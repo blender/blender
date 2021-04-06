@@ -155,7 +155,10 @@ void ED_view3d_depth_override(struct Depsgraph *depsgraph,
                               struct Object *obact,
                               eV3DDepthOverrideMode mode,
                               bool update_cache);
-float ED_view3d_depth_read_cached(const struct ViewContext *vc, const int mval[2]);
+bool ED_view3d_depth_read_cached(const ViewDepths *vd,
+                                 const int mval[2],
+                                 int margin,
+                                 float *r_depth);
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
                                         const int mval[2],
                                         float r_normal[3]);

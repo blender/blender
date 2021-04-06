@@ -36,6 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array_utils.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -1629,19 +1630,48 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
 /** \name Depth Buffer Utilities
  * \{ */
 
-float ED_view3d_depth_read_cached(const ViewContext *vc, const int mval[2])
+static bool depth_read_test_fn(const void *value, void *userdata)
 {
-  ViewDepths *vd = vc->rv3d->depths;
+  float *r_depth = userdata;
+  float depth = *(float *)value;
+  if (depth < *r_depth) {
+    *r_depth = depth;
+  }
+  return false;
+}
+
+bool ED_view3d_depth_read_cached(const ViewDepths *vd,
+                                 const int mval[2],
+                                 int margin,
+                                 float *r_depth)
+{
+  if (!vd || !vd->depths) {
+    return false;
+  }
 
   int x = mval[0];
   int y = mval[1];
+  if (x < 0 || y < 0 || x >= vd->w || y >= vd->h) {
+    return false;
+  }
 
-  if (vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h) {
-    return vd->depths[y * vd->w + x];
+  float depth = 1.0f;
+  if (margin) {
+    /* TODO: No need to go spiral. */
+    int shape[2] = {vd->w, vd->h};
+    BLI_array_iter_spiral_square(vd->depths, shape, mval, depth_read_test_fn, &depth);
+  }
+  else {
+    depth = vd->depths[y * vd->w + x];
   }
 
   BLI_assert(1.0 <= vd->depth_range[1]);
-  return 1.0f;
+  if (depth != 1.0f) {
+    *r_depth = depth;
+    return true;
+  }
+
+  return false;
 }
 
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
@@ -1662,7 +1692,9 @@ bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
     for (int y = 0; y < 2; y++) {
       const int mval_ofs[2] = {mval[0] + (x - 1), mval[1] + (y - 1)};
 
-      const double depth = (double)ED_view3d_depth_read_cached(vc, mval_ofs);
+      float depth_fl = 1.0f;
+      ED_view3d_depth_read_cached(depths, mval_ofs, 0, &depth_fl);
+      const double depth = (double)depth_fl;
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject(region, mval_ofs, depth, coords[i])) {
           depths_valid[i] = true;

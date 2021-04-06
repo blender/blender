@@ -662,17 +662,6 @@ void RE_FreeAllRender(void)
 #endif
 }
 
-void RE_FreeAllPersistentData(void)
-{
-  Render *re;
-  for (re = RenderGlobal.renderlist.first; re != NULL; re = re->next) {
-    if ((re->r.mode & R_PERSISTENT_DATA) != 0 && re->engine != NULL) {
-      RE_engine_free(re->engine);
-      re->engine = NULL;
-    }
-  }
-}
-
 /* on file load, free all re */
 void RE_FreeAllRenderResults(void)
 {
@@ -687,19 +676,39 @@ void RE_FreeAllRenderResults(void)
   }
 }
 
-void RE_FreePersistentData(void)
+void RE_FreeAllPersistentData(void)
 {
   Render *re;
-
-  /* render engines can be kept around for quick re-render, this clears all */
-  for (re = RenderGlobal.renderlist.first; re; re = re->next) {
-    if (re->engine) {
-      /* if engine is currently rendering, just tag it to be freed when render is finished */
-      if (!(re->engine->flag & RE_ENGINE_RENDERING)) {
-        RE_engine_free(re->engine);
-      }
-
+  for (re = RenderGlobal.renderlist.first; re != NULL; re = re->next) {
+    if (re->engine != NULL) {
+      BLI_assert(!(re->engine->flag & RE_ENGINE_RENDERING));
+      RE_engine_free(re->engine);
       re->engine = NULL;
+    }
+  }
+}
+
+static void re_free_persistent_data(Render *re)
+{
+  /* If engine is currently rendering, just wait for it to be freed when it finishes rendering. */
+  if (re->engine && !(re->engine->flag & RE_ENGINE_RENDERING)) {
+    RE_engine_free(re->engine);
+    re->engine = NULL;
+  }
+}
+
+void RE_FreePersistentData(const Scene *scene)
+{
+  /* Render engines can be kept around for quick re-render, this clears all or one scene. */
+  if (scene) {
+    Render *re = RE_GetSceneRender(scene);
+    if (re) {
+      re_free_persistent_data(re);
+    }
+  }
+  else {
+    for (Render *re = RenderGlobal.renderlist.first; re; re = re->next) {
+      re_free_persistent_data(re);
     }
   }
 }
@@ -2669,13 +2678,17 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 void RE_CleanAfterRender(Render *re)
 {
-  /* Destroy the opengl context in the correct thread. */
-  RE_gl_context_destroy(re);
+  if (re->engine && !RE_engine_use_persistent_data(re->engine)) {
+    RE_engine_free(re->engine);
+    re->engine = NULL;
+  }
   if (re->pipeline_depsgraph != NULL) {
     DEG_graph_free(re->pipeline_depsgraph);
+    re->pipeline_depsgraph = NULL;
+    re->pipeline_scene_eval = NULL;
   }
-  re->pipeline_depsgraph = NULL;
-  re->pipeline_scene_eval = NULL;
+  /* Destroy the opengl context in the correct thread. */
+  RE_gl_context_destroy(re);
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */

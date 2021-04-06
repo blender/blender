@@ -188,7 +188,7 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       ED_render_engine_area_exit(bmain, area);
     }
   }
-  RE_FreePersistentData();
+  RE_FreePersistentData(NULL);
   /* Inform all render engines and draw managers. */
   DEGEditorUpdateContext update_ctx = {NULL};
   update_ctx.bmain = bmain;

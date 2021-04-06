@@ -337,10 +337,10 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
              center[1] < arr_shape[1]);
 
   const char *arr = arr_v;
-  const int stride[2] = {arr_shape[1] * (int)elem_size, (int)elem_size};
+  const int stride[2] = {arr_shape[0] * (int)elem_size, (int)elem_size};
 
   /* Test center first. */
-  int ofs[2] = {center[0] * stride[0], center[1] * stride[1]};
+  int ofs[2] = {center[0] * stride[1], center[1] * stride[0]};
   if (test_fn(arr + ofs[0] + ofs[1], user_data)) {
     return true;
   }
