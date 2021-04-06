@@ -119,6 +119,16 @@ class NodeOperationBuilder {
     return m_active_viewer;
   }
 
+  const Vector<NodeOperation *> &get_operations() const
+  {
+    return m_operations;
+  }
+
+  const Vector<Link> &get_links() const
+  {
+    return m_links;
+  }
+
  protected:
   /** Add datatype conversion where needed */
   void add_datatype_conversions();
@@ -159,5 +169,8 @@ class NodeOperationBuilder {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder);
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder::Link &link);
 
 }  // namespace blender::compositor

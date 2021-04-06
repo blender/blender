@@ -222,7 +222,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   /* relink palettes (old palettes deprecated, only to convert old files) */
   BLO_read_list(reader, &gpd->palettes);
   if (gpd->palettes.first != NULL) {
-    LISTBASE_FOREACH (Palette *, palette, &gpd->palettes) {
+    LISTBASE_FOREACH (bGPDpalette *, palette, &gpd->palettes) {
       BLO_read_list(reader, &palette->colors);
     }
   }

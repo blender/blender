@@ -186,57 +186,24 @@ struct InputAngle_Data {
 static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const double mval[2], float output[3])
 {
   struct InputAngle_Data *data = mi->data;
-  double dx2 = mval[0] - (double)mi->center[0];
-  double dy2 = mval[1] - (double)mi->center[1];
-  double B = sqrt(dx2 * dx2 + dy2 * dy2);
+  float dir_prev[2], dir_curr[2], mi_center[2];
+  copy_v2_v2(mi_center, mi->center);
 
-  double dx1 = data->mval_prev[0] - (double)mi->center[0];
-  double dy1 = data->mval_prev[1] - (double)mi->center[1];
-  double A = sqrt(dx1 * dx1 + dy1 * dy1);
+  sub_v2_v2v2(dir_prev, (const float[2]){UNPACK2(data->mval_prev)}, mi_center);
+  sub_v2_v2v2(dir_curr, (const float[2]){UNPACK2(mval)}, mi_center);
 
-  double dx3 = mval[0] - data->mval_prev[0];
-  double dy3 = mval[1] - data->mval_prev[1];
+  if (normalize_v2(dir_prev) && normalize_v2(dir_curr)) {
+    float dphi = angle_normalized_v2v2(dir_prev, dir_curr);
 
-  /* use doubles here, to make sure a "1.0" (no rotation)
-   * doesn't become 9.999999e-01, which gives 0.02 for acos */
-  double deler = (((dx1 * dx1 + dy1 * dy1) + (dx2 * dx2 + dy2 * dy2) - (dx3 * dx3 + dy3 * dy3)) /
-                  (2.0 * (((A * B) != 0.0) ? (A * B) : 1.0)));
-  /* ((A * B) ? (A * B) : 1.0) this takes care of potential divide by zero errors */
-
-  float dphi;
-
-  dphi = saacos((float)deler);
-  if ((dx1 * dy2 - dx2 * dy1) > 0.0) {
-    dphi = -dphi;
-  }
-
-  /* If the angle is zero, because of lack of precision close to the 1.0 value in acos
-   * approximate the angle with the opposite side of the normalized triangle
-   * This is a good approximation here since the smallest acos value seems to be around
-   * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
-   */
-  if (dphi == 0) {
-    double dx, dy;
-
-    dx2 /= A;
-    dy2 /= A;
-
-    dx1 /= B;
-    dy1 /= B;
-
-    dx = dx1 - dx2;
-    dy = dy1 - dy2;
-
-    dphi = sqrt(dx * dx + dy * dy);
-    if ((dx1 * dy2 - dx2 * dy1) > 0.0) {
+    if (cross_v2v2(dir_prev, dir_curr) > 0.0f) {
       dphi = -dphi;
     }
+
+    data->angle += ((double)dphi) * (mi->precision ? (double)mi->precision_factor : 1.0);
+
+    data->mval_prev[0] = mval[0];
+    data->mval_prev[1] = mval[1];
   }
-
-  data->angle += ((double)dphi) * (mi->precision ? (double)mi->precision_factor : 1.0);
-
-  data->mval_prev[0] = mval[0];
-  data->mval_prev[1] = mval[1];
 
   output[0] = data->angle;
 }
