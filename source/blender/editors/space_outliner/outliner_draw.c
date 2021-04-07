@@ -1795,18 +1795,17 @@ static bool outliner_draw_overrides_buts(uiBlock *block,
       case TSE_LIBRARY_OVERRIDE_BASE: {
         ID *id = tselem->id;
 
-        if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && ID_REAL_USERS(id) == 0) {
-          item_has_warnings = true;
-          if (do_draw) {
-            tip = TIP_("This override data-block is unused");
-          }
-        }
-
-        else if (id->flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
+        if (id->flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
           item_has_warnings = true;
           if (do_draw) {
             tip = TIP_(
                 "This override data-block is not needed anymore, but was detected as user-edited");
+          }
+        }
+        else if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && ID_REAL_USERS(id) == 0) {
+          item_has_warnings = true;
+          if (do_draw) {
+            tip = TIP_("This override data-block is unused");
           }
         }
         break;
