@@ -141,7 +141,7 @@ bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
   return CustomData_get_named_layer_index(&ss->bm->vdata, type, name) >= 0;
 }
 
-int SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name)
+void SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name)
 {
   int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
 
@@ -152,23 +152,20 @@ int SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *nam
         ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
 
     li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
+    ss->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
   }
-
-  int cd_off = CustomData_get_n_offset(
-      &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
-
-  ss->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
-
-  return cd_off;
 }
 
 int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
 {
-  if (!SCULPT_dyntopo_has_templayer(ss, type, name)) {
+  int li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
+
+  if (li < 0) {
     return -1;
   }
 
-  return SCULPT_dyntopo_ensure_templayer(ss, type, name);
+  return CustomData_get_n_offset(
+      &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
 }
 
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
@@ -370,10 +367,15 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   // convert layer brush data
   if (ss->persistent_base) {
-    cd_pers_co = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
-    cd_pers_no = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
-    cd_pers_disp = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
-    cd_layer_disp = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+
+    cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+    cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
 
     SCULPT_dyntopo_node_layers_update_offsets(ss);
     BKE_pbvh_update_offsets(
@@ -437,7 +439,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
-void SCULPT_dyntopo_save_persistent_base(SculptSession *ss) {
+void SCULPT_dyntopo_save_persistent_base(SculptSession *ss)
+{
   int cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
   int cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
   int cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
@@ -517,7 +520,7 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Typically valid but with global-undo they can be NULL, see: T36234. */
   if (ss->bm) {
-    //rebuild ss->persistent_base if necassary
+    // rebuild ss->persistent_base if necassary
     SCULPT_dyntopo_save_persistent_base(ss);
 
     BM_mesh_free(ss->bm);

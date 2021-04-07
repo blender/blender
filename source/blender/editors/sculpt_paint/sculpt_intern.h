@@ -1442,17 +1442,15 @@ void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node);
 void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3]);
 
 /*
-Get a named temporary customdata layer, creating it if necassary.
+Ensure a named temporary layer exists, creating it if necassary.
 The layer will be marked with CD_FLAG_TEMPORARY.
-
-Returns customdata offset.
 */
-int SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name);
+void SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name);
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name);
 
-/* like SCULPT_dyntopo_ensure_templayer but doesn't auto-create layers,
-   if a layer doesn't exist it will return -1*/
+/* Get a named temporary vertex customdata layer offset, if it exists.  If not
+  -1 is returned.*/
 int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
 
 void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);

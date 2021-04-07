@@ -8820,9 +8820,13 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     ss->persistent_base = NULL;
 
-    int cd_pers_co = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
-    int cd_pers_no = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
-    int cd_pers_disp = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+
+    int cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    int cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    int cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
 
     const int totvert = SCULPT_vertex_count_get(ss);
     for (int i = 0; i < totvert; i++) {
