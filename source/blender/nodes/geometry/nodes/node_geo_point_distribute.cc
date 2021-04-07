@@ -716,8 +716,8 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
       geometry_set_out.get_component_for_write<PointCloudComponent>();
 
   Map<std::string, AttributeKind> attributes;
-  bke::gather_attribute_info(
-      attributes, {GEO_COMPONENT_TYPE_MESH}, set_groups, {"position", "normal", "id"});
+  bke::geometry_set_gather_instances_attribute_info(
+      set_groups, {GEO_COMPONENT_TYPE_MESH}, {"position", "normal", "id"}, attributes);
   add_remaining_point_attributes(set_groups,
                                  instance_start_offsets,
                                  attributes,

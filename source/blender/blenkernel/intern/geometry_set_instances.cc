@@ -162,10 +162,10 @@ void geometry_set_gather_instances(const GeometrySet &geometry_set,
   geometry_set_collect_recursive(geometry_set, unit_transform, r_instance_groups);
 }
 
-void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
-                           Span<GeometryComponentType> component_types,
-                           Span<GeometryInstanceGroup> set_groups,
-                           const Set<std::string> &ignored_attributes)
+void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,
+                                                  Span<GeometryComponentType> component_types,
+                                                  const Set<std::string> &ignored_attributes,
+                                                  Map<std::string, AttributeKind> &r_attributes)
 {
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
@@ -189,7 +189,7 @@ void gather_attribute_info(Map<std::string, AttributeKind> &attributes,
               {attribute_kind->data_type, meta_data.data_type});
         };
 
-        attributes.add_or_modify(name, add_info, modify_info);
+        r_attributes.add_or_modify(name, add_info, modify_info);
         return true;
       });
     }
@@ -383,10 +383,11 @@ static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
 
   /* Don't copy attributes that are stored directly in the mesh data structs. */
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(attributes,
-                        component_types,
-                        set_groups,
-                        {"position", "material_index", "normal", "shade_smooth", "crease"});
+  geometry_set_gather_instances_attribute_info(
+      set_groups,
+      component_types,
+      {"position", "material_index", "normal", "shade_smooth", "crease"},
+      attributes);
   join_attributes(
       set_groups, component_types, attributes, static_cast<GeometryComponent &>(dst_component));
 }
@@ -410,7 +411,8 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(totpoint);
   dst_component.replace(pointcloud);
   Map<std::string, AttributeKind> attributes;
-  gather_attribute_info(attributes, {GEO_COMPONENT_TYPE_POINT_CLOUD}, set_groups, {});
+  geometry_set_gather_instances_attribute_info(
+      set_groups, {GEO_COMPONENT_TYPE_POINT_CLOUD}, {}, attributes);
   join_attributes(set_groups,
                   {GEO_COMPONENT_TYPE_POINT_CLOUD},
                   attributes,
