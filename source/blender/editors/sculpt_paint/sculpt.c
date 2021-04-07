@@ -5092,8 +5092,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   bool use_persistent_base = brush->flag & BRUSH_PERSISTENT;
   const bool is_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
-  bool reset_disp = false;
-
   if (is_bmesh) {
     use_persistent_base = use_persistent_base && data->cd_pers_co >= 0;
 
@@ -5102,8 +5100,24 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     if (!use_persistent_base) {
       int nidx = BKE_pbvh_get_node_index(ss->pbvh, data->nodes[n]);
 
-      reset_disp = !BLI_BITMAP_TEST(ss->cache->layer_disp_map, nidx);
-      BLI_BITMAP_SET(ss->cache->layer_disp_map, nidx, true);
+      bool reset_disp = !BLI_BITMAP_TEST(ss->cache->layer_disp_map, nidx);
+      if (reset_disp) {
+        PBVHVertexIter vd;
+
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+          BMVert *v = (BMVert *)vd.vertex.i;
+          float *disp_factor = BM_ELEM_CD_GET_VOID_P(v, data->cd_layer_disp);
+
+          *disp_factor = 0.0f;
+
+          // update orig data to while we're at it, just to be paranoid
+          float *dummy;
+
+          BKE_pbvh_bmesh_update_origvert(ss->pbvh, v, &dummy, &dummy, NULL);
+          BLI_BITMAP_SET(ss->cache->layer_disp_map, nidx, true);
+        }
+        BKE_pbvh_vertex_iter_end;
+      }
     }
   }
   else {
@@ -5155,10 +5169,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     }
     else {
       disp_factor = &ss->cache->layer_displacement_factor[vi];
-    }
-
-    if (reset_disp) {
-      *disp_factor = 0.0f;
     }
 
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
@@ -5244,8 +5254,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
     cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
 
-    cd_layer_disp  = SCULPT_dyntopo_get_templayer(
-        ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+    cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
   }
   else if (ss->cache->layer_displacement_factor == NULL) {
     ss->cache->layer_displacement_factor = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
