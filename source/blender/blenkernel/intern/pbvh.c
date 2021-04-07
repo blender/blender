@@ -3240,6 +3240,10 @@ int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node)
   return (int)(node - pbvh->nodes);
 }
 
+int BKE_pbvh_get_totnodes(PBVH *pbvh) {
+  return pbvh->totnode;
+}
+
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node)
 {
   return node->id;

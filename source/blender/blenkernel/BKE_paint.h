@@ -343,6 +343,11 @@ typedef struct SculptClothSimulation {
   /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
   struct GHash *node_state_index;
   eSculptClothNodeSimState *node_state;
+
+  //persistent base customdata layer offsets
+  int cd_pers_co;
+  int cd_pers_no;
+  int cd_pers_disp;
 } SculptClothSimulation;
 
 typedef struct SculptPersistentBase {

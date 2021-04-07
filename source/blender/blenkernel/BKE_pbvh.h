@@ -658,6 +658,8 @@ void SCULPT_update_flat_vcol_shading(struct Object *ob, struct Scene *scene);
 void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state);
 bool BKE_pbvh_curvature_update_get(PBVHNode *node);
 
+int BKE_pbvh_get_totnodes(PBVH *pbvh);
+
 #ifdef __cplusplus
 }
 #endif

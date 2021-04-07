@@ -104,8 +104,13 @@ void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3
 float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef index);
 const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef index);
 
-const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index);
-void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
+const float *SCULPT_vertex_persistent_co_get(SculptSession *ss,
+                                             SculptVertRef index,
+                                             int cd_pers_co);
+void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
+                                         SculptVertRef index,
+                                         float no[3],
+                                         int cd_pers_no);
 
 /* Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled. */
 const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, SculptVertRef index);
@@ -309,11 +314,14 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
 
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef index);
 void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index);
-void SCULPT_floodfill_execute(
-    struct SculptSession *ss,
-    SculptFloodFill *flood,
-    bool (*func)(SculptSession *ss, SculptVertRef from_v, SculptVertRef to_v, bool is_duplicate, void *userdata),
-    void *userdata);
+void SCULPT_floodfill_execute(struct SculptSession *ss,
+                              SculptFloodFill *flood,
+                              bool (*func)(SculptSession *ss,
+                                           SculptVertRef from_v,
+                                           SculptVertRef to_v,
+                                           bool is_duplicate,
+                                           void *userdata),
+                              void *userdata);
 void SCULPT_floodfill_free(SculptFloodFill *flood);
 
 /* Dynamic topology */
@@ -695,7 +703,7 @@ typedef struct SculptUndoNode {
   int nodemap_size;
 
   size_t undo_size;
-  //int gen, lasthash;
+  // int gen, lasthash;
 } SculptUndoNode;
 
 /* Factor of brush to have rake point following behind
@@ -820,6 +828,9 @@ typedef struct SculptThreadedTaskData {
 
   ThreadMutex mutex;
 
+  // Layer brush
+  int cd_pers_co, cd_pers_no, cd_pers_disp;
+  int cd_layer_disp;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1092,9 +1103,12 @@ typedef struct StrokeCache {
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
 
-  float stroke_distance; //copy of PaintStroke->stroke_distance
+  float stroke_distance;  // copy of PaintStroke->stroke_distance
   float stroke_distance_t;
   float last_dyntopo_t;
+
+  int layer_disp_map_size;
+  BLI_bitmap *layer_disp_map;
 } StrokeCache;
 
 /* Sculpt Filters */
@@ -1415,7 +1429,6 @@ bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
 
 float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref);
 
-
 typedef struct SculptCurvatureData {
   float ks[3];
   float principle[3][3];  // normalized
@@ -1427,3 +1440,28 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
 
 void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node);
 void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3]);
+
+/*
+Get a named temporary customdata layer, creating it if necassary.
+The layer will be marked with CD_FLAG_TEMPORARY.
+
+Returns customdata offset.
+*/
+int SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *name);
+
+bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name);
+
+/* like SCULPT_dyntopo_ensure_templayer but doesn't auto-create layers,
+   if a layer doesn't exist it will return -1*/
+int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name);
+
+void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
+
+#define SCULPT_LAYER_PERS_CO "__dyntopo_layer_pers_co"
+#define SCULPT_LAYER_PERS_NO "__dyntopo_layer_pers_no"
+#define SCULPT_LAYER_PERS_DISP "__dyntopo_layer_pers_disp"
+#define SCULPT_LAYER_DISP "__dyntopo_layer_disp"
+
+// these tools don't support dynamic pbvh splitting during the stroke
+#define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) \
+  (ELEM(tool, SCULPT_TOOL_DRAW_SHARP, SCULPT_TOOL_LAYER) == 0)

@@ -242,8 +242,9 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_STRUCTURAL;
 
   if (use_persistent) {
-    length_constraint->length = len_v3v3(SCULPT_vertex_persistent_co_get(ss, v1),
-                                         SCULPT_vertex_persistent_co_get(ss, v2));
+    length_constraint->length = len_v3v3(
+        SCULPT_vertex_persistent_co_get(ss, v1, cloth_sim->cd_pers_co),
+        SCULPT_vertex_persistent_co_get(ss, v2, cloth_sim->cd_pers_no));
   }
   else {
     length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, v1),
@@ -1073,6 +1074,13 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
 
   cloth_sim = MEM_callocN(sizeof(SculptClothSimulation), "cloth constraints");
 
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    cloth_sim->cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    cloth_sim->cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    cloth_sim->cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+  }
+
+  //cloth_sim->cd_pers_co = SCULPT_dyntopo_get_templayer
   cloth_sim->length_constraints = MEM_callocN(sizeof(SculptClothLengthConstraint) *
                                                   CLOTH_LENGTH_CONSTRAINTS_BLOCK,
                                               "cloth length constraints");

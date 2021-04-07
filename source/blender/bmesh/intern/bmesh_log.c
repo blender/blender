@@ -39,6 +39,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
@@ -454,20 +456,16 @@ static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts, BMLogEntry
     }
 #endif
 
-    if (log->cd_origco_offset >= 0) {
-      float *oco = BM_ELEM_CD_GET_VOID_P(v, log->cd_origco_offset);
-      copy_v3_v3(oco, v->co);
-    }
+    if (log->cd_dyn_vert >= 0) {
+      MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, log->cd_dyn_vert);
+      copy_v3_v3(mv->origco, v->co);
+      copy_v3_v3(mv->origno, v->no);
 
-    if (log->cd_origno_offset >= 0) {
-      float *ono = BM_ELEM_CD_GET_VOID_P(v, log->cd_origno_offset);
-      copy_v3_v3(ono, v->no);
-    }
+      if (cd_vcol_offset >= 0) {
+        float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
 
-    if (log->cd_origvcol_offset >= 0) {
-      float *ocolor = BM_ELEM_CD_GET_VOID_P(v, log->cd_origvcol_offset);
-      float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-      copy_v3_v3(ocolor, color);
+        copy_v4_v4(mv->origcolor, color);
+      }
     }
   }
 }
@@ -535,22 +533,6 @@ static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts, BMLogEn
       CustomData_bmesh_copy_data(&entry->vdata, &bm->vdata, lv->customdata, &v->head.data);
     }
 #endif
-
-    if (log->cd_origco_offset >= 0) {
-      float *oco = BM_ELEM_CD_GET_VOID_P(v, log->cd_origco_offset);
-      copy_v3_v3(oco, v->co);
-    }
-
-    if (log->cd_origno_offset >= 0) {
-      float *ono = BM_ELEM_CD_GET_VOID_P(v, log->cd_origno_offset);
-      copy_v3_v3(ono, v->no);
-    }
-
-    if (log->cd_origvcol_offset >= 0) {
-      float *ocolor = BM_ELEM_CD_GET_VOID_P(v, log->cd_origvcol_offset);
-      float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
-      copy_v3_v3(ocolor, color);
-    }
   }
 }
 
@@ -716,9 +698,6 @@ static void bm_log_id_ghash_release(BMLog *log, GHash *id_ghash)
 void BM_log_set_cd_offsets(
     BMLog *log, int cd_origco_offset, int cd_origno_offset, int cd_origvol_offset, int cd_dyn_vert)
 {
-  log->cd_origco_offset = cd_origco_offset;
-  log->cd_origno_offset = cd_origno_offset;
-  log->cd_origvcol_offset = cd_origvol_offset;
   log->cd_dyn_vert = cd_dyn_vert;
 }
 

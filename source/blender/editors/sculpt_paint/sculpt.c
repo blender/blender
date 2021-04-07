@@ -210,14 +210,27 @@ void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3
   }
 }
 
-const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index)
+const float *SCULPT_vertex_persistent_co_get(SculptSession *ss,
+                                             SculptVertRef index,
+                                             int cd_pers_co)
 {
-  if (ss->persistent_base) {
-    if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-      index.i = BM_elem_index_get((BMVert *)index.i);
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    if (cd_pers_co >= 0) {
+      BMVert *v = (BMVert *)index.i;
+      float *co = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
+
+      return co;
     }
-    return ss->persistent_base[index.i].co;
+
+    return SCULPT_vertex_co_get(ss, index);
   }
+
+  if (ss->persistent_base) {
+    int i = BKE_pbvh_vertex_index_to_table(ss->pbvh, index);
+
+    return ss->persistent_base[i].co;
+  }
+
   return SCULPT_vertex_co_get(ss, index);
 }
 
@@ -259,8 +272,24 @@ void SCULPT_vertex_limit_surface_get(SculptSession *ss, SculptVertRef index, flo
   }
 }
 
-void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef index, float no[3])
+void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
+                                         SculptVertRef index,
+                                         float no[3],
+                                         int cd_pers_no)
 {
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    if (cd_pers_no >= 0) {
+      BMVert *v = (BMVert *)index.i;
+      float(*no2)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
+
+      copy_v3_v3(no, no2);
+      return;
+    }
+
+    SCULPT_vertex_normal_get(ss, index, no);
+    return;
+  }
+
   if (ss->persistent_base) {
     copy_v3_v3(no, ss->persistent_base[BKE_pbvh_vertex_index_to_table(ss->pbvh, index)].no);
     return;
@@ -5060,7 +5089,26 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   Sculpt *sd = data->sd;
   const Brush *brush = data->brush;
 
-  const bool use_persistent_base = ss->persistent_base && brush->flag & BRUSH_PERSISTENT;
+  bool use_persistent_base = brush->flag & BRUSH_PERSISTENT;
+  const bool is_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
+
+  bool reset_disp = false;
+
+  if (is_bmesh) {
+    use_persistent_base = use_persistent_base && data->cd_pers_co >= 0;
+
+    // check if we need to zero displacement factor
+    // in first run of brush stroke
+    if (!use_persistent_base) {
+      int nidx = BKE_pbvh_get_node_index(ss->pbvh, data->nodes[n]);
+
+      reset_disp = !BLI_BITMAP_TEST(ss->cache->layer_disp_map, nidx);
+      BLI_BITMAP_SET(ss->cache->layer_disp_map, nidx, true);
+    }
+  }
+  else {
+    use_persistent_base = use_persistent_base && ss->persistent_base;
+  }
 
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
@@ -5073,10 +5121,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   bool bmeshpbvh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
-  if (bmeshpbvh) {
-    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
-    // BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
-  }
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
@@ -5097,10 +5141,24 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     const int vi = vd.index;
     float *disp_factor;
     if (use_persistent_base) {
-      disp_factor = &ss->persistent_base[vi].disp;
+      if (is_bmesh) {
+        BMVert *v = (BMVert *)vd.vertex.i;
+        disp_factor = BM_ELEM_CD_GET_VOID_P(v, data->cd_pers_disp);
+      }
+      else {
+        disp_factor = &ss->persistent_base[vi].disp;
+      }
+    }
+    else if (is_bmesh) {
+      BMVert *v = (BMVert *)vd.vertex.i;
+      disp_factor = BM_ELEM_CD_GET_VOID_P(v, data->cd_layer_disp);
     }
     else {
       disp_factor = &ss->cache->layer_displacement_factor[vi];
+    }
+
+    if (reset_disp) {
+      *disp_factor = 0.0f;
     }
 
     /* When using persistent base, the layer brush (holding Control) invert mode resets the
@@ -5127,10 +5185,12 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     float normal[3];
 
     if (use_persistent_base) {
-      SCULPT_vertex_persistent_normal_get(ss, vd.vertex, normal);
+      SCULPT_vertex_persistent_normal_get(ss, vd.vertex, normal, data->cd_pers_no);
       mul_v3_fl(normal, brush->height);
-      madd_v3_v3v3fl(
-          final_co, SCULPT_vertex_persistent_co_get(ss, vd.vertex), normal, *disp_factor);
+      madd_v3_v3v3fl(final_co,
+                     SCULPT_vertex_persistent_co_get(ss, vd.vertex, data->cd_pers_co),
+                     normal,
+                     *disp_factor);
     }
     else {
       normal_short_to_float_v3(normal, orig_data.no);
@@ -5156,17 +5216,53 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+  int cd_pers_co = -1, cd_pers_no = -1, cd_pers_disp = -1, cd_layer_disp = -1;
 
-  if (ss->cache->layer_displacement_factor == NULL) {
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    if (ss->cache->layer_displacement_factor) {
+      MEM_SAFE_FREE(ss->cache->layer_displacement_factor);
+      ss->cache->layer_displacement_factor = NULL;
+    }
+
+    // note that we don't allow dyntopo to split the PBVH during
+    // the stroke (see DYNTOPO_HAS_DYNAMIC_SPLIT)
+    // so we don't have to worry about resizing ss->cache->layer_disp_map
+    if (!ss->cache->layer_disp_map) {
+      int totnode2 = BKE_pbvh_get_totnodes(ss->pbvh);
+
+      ss->cache->layer_disp_map = BLI_BITMAP_NEW(totnode2, "ss->cache->layer_disp_map");
+      ss->cache->layer_disp_map_size = totnode2;
+    }
+
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+
+    SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+
+    cd_pers_co = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    cd_pers_no = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+
+    cd_layer_disp  = SCULPT_dyntopo_get_templayer(
+        ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+  }
+  else if (ss->cache->layer_displacement_factor == NULL) {
     ss->cache->layer_displacement_factor = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
                                                        "layer displacement factor");
   }
+
+  SCULPT_vertex_random_access_ensure(ss);
 
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
+      .cd_pers_co = cd_pers_co,
+      .cd_pers_no = cd_pers_no,
+      .cd_pers_disp = cd_pers_disp,
+      .cd_layer_disp = cd_layer_disp,
   };
 
   TaskParallelSettings settings;
@@ -6188,10 +6284,12 @@ static void topology_undopush_cb(PBVHNode *node, void *data)
 {
   SculptSearchSphereData *sdata = (SculptSearchSphereData *)data;
 
-  SCULPT_undo_push_node(sdata->ob,
-                        node,
-                        sdata->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                        SCULPT_UNDO_COORDS);
+  SCULPT_ensure_dyntopo_node_undo(
+      sdata->ob,
+      node,
+      sdata->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS,
+      0);
+
   BKE_pbvh_node_mark_update(node);
 }
 
@@ -6260,7 +6358,7 @@ static void sculpt_topology_update(Sculpt *sd,
       (brush->flag & BRUSH_FRONTFACE) != 0,
       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
       symidx,
-      brush->sculpt_tool != SCULPT_TOOL_DRAW_SHARP);
+      DYNTOPO_HAS_DYNAMIC_SPLIT(brush->sculpt_tool));
 
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
@@ -7188,6 +7286,10 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->detail_directions);
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
+
+  MEM_SAFE_FREE(cache->layer_disp_map);
+  cache->layer_disp_map = NULL;
+  cache->layer_disp_map_size = 0;
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -8705,6 +8807,30 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   MEM_SAFE_FREE(ss->persistent_base);
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    ss->persistent_base = NULL;
+
+    int cd_pers_co = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
+    int cd_pers_no = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO);
+    int cd_pers_disp = SCULPT_dyntopo_ensure_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
+
+    const int totvert = SCULPT_vertex_count_get(ss);
+    for (int i = 0; i < totvert; i++) {
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      BMVert *v = (BMVert *)vertex.i;
+
+      float(*co)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
+      float(*no)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
+      float *disp = BM_ELEM_CD_GET_VOID_P(v, cd_pers_disp);
+
+      copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));
+      SCULPT_vertex_normal_get(ss, vertex, no);
+      *disp = 0.0f;
+    }
+
+    return OPERATOR_FINISHED;
+  }
 
   const int totvert = SCULPT_vertex_count_get(ss);
   ss->persistent_base = MEM_mallocN(sizeof(SculptPersistentBase) * totvert,
