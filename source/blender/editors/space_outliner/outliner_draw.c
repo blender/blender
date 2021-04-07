@@ -2979,12 +2979,18 @@ static void outliner_draw_iconrow(bContext *C,
       }
 
       if (!ELEM(tselem->type,
+                TSE_ID_BASE,
                 TSE_SOME_ID,
                 TSE_LAYER_COLLECTION,
                 TSE_R_LAYER,
                 TSE_GP_LAYER,
                 TSE_LIBRARY_OVERRIDE_BASE,
-                TSE_LIBRARY_OVERRIDE)) {
+                TSE_LIBRARY_OVERRIDE,
+                TSE_BONE,
+                TSE_EBONE,
+                TSE_POSE_CHANNEL,
+                TSE_POSEGRP,
+                TSE_DEFGROUP)) {
         outliner_draw_iconrow_doit(block, te, fstyle, xmax, offsx, ys, alpha_fac, active, 1);
       }
       else {
