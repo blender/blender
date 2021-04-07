@@ -702,6 +702,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                 base = BKE_view_layer_base_find(view_layer, ob_new);
                 DEG_id_tag_update_ex(
                     bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
+                if (is_resync) {
+                  ob_new->id.flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
+                }
               }
 
               if (ob_new == (Object *)ob_reference->id.newid && base != NULL) {
@@ -713,6 +716,9 @@ static void lib_override_library_create_post_process(Main *bmain,
                          view_layer, ob_new, is_resync)) {
               BKE_collection_object_add(bmain, collection_new, ob_new);
               DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
+              if (is_resync) {
+                ob_new->id.flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
+              }
             }
           }
         }
@@ -728,6 +734,9 @@ static void lib_override_library_create_post_process(Main *bmain,
           }
           else {
             BKE_collection_object_add_from(bmain, scene, (Object *)id_root, ob_new);
+          }
+          if (is_resync) {
+            ob_new->id.flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
           }
         }
         break;
@@ -1087,6 +1096,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
         /* Otherwise, keep them, user needs to decide whether what to do with them. */
         BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
         id_fake_user_set(id);
+        id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
         CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
       }
     }
