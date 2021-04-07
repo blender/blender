@@ -88,7 +88,7 @@ static void geo_node_boolean_exec(GeoNodeExecParams params)
 
   if (operation < 0 || operation > 2) {
     BLI_assert(false);
-    params.set_output("Geometry", std::move(GeometrySet()));
+    params.set_output("Geometry", GeometrySet());
     return;
   }
 
