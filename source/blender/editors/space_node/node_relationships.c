@@ -745,14 +745,11 @@ static void node_link_update_header(bContext *C, bNodeLinkDrag *UNUSED(nldrag))
   ED_workspace_status_text(C, header);
 }
 
-static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
+static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
 {
   int count = 0;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    if (link->fromsock == sock) {
-      count++;
-    }
-    if (link->tosock == sock) {
+    if (ELEM(socket, link->fromsock, link->tosock)) {
       count++;
     }
   }
