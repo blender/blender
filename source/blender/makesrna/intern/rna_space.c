@@ -3399,6 +3399,11 @@ static void rna_def_space_outliner(BlenderRNA *brna)
        ICON_RNA,
        "Data API",
        "Display low level Blender data and its properties"},
+      {SO_OVERRIDES_LIBRARY,
+       "LIBRARY_OVERRIDES",
+       ICON_LIBRARY_DATA_OVERRIDE,
+       "Library Overrides",
+       "Display data-blocks with library overrides and list their overridden properties"},
       {SO_ID_ORPHANS,
        "ORPHAN_DATA",
        ICON_ORPHAN_DATA,
@@ -3587,6 +3592,16 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Show Library Overrides",
                            "For libraries with overrides created, show the overridden values");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
+  prop = RNA_def_property(srna, "use_filter_lib_override_system", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_SHOW_SYSTEM_OVERRIDES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show System Overrides",
+      "For libraries with overrides created, show the overridden values that are "
+      "defined/controlled automatically (e.g. to make users of an overridden data-block point to "
+      "the override data, not the original linked data)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 }
 

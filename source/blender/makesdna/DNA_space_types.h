@@ -323,6 +323,8 @@ typedef enum eSpaceOutliner_Filter {
   SO_FILTER_NO_CHILDREN = (1 << 4),
 
   SO_FILTER_UNUSED_5 = (1 << 5), /* cleared */
+  /** Show overrides that are defined/controlled by Blender. */
+  SO_FILTER_SHOW_SYSTEM_OVERRIDES = SO_FILTER_UNUSED_5, /* re-use */
   SO_FILTER_NO_OB_MESH = (1 << 6),
   SO_FILTER_NO_OB_ARMATURE = (1 << 7),
   SO_FILTER_NO_OB_EMPTY = (1 << 8),
@@ -391,6 +393,7 @@ typedef enum eSpaceOutliner_Mode {
   /* SO_KEYMAP         = 13, */ /* deprecated! */
   SO_ID_ORPHANS = 14,
   SO_VIEW_LAYER = 15,
+  SO_OVERRIDES_LIBRARY = 16,
 } eSpaceOutliner_Mode;
 
 /* SpaceOutliner.storeflag */

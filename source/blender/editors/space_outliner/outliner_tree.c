@@ -908,6 +908,11 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
       BLI_assert(!"Expected this ID type to be ported to new Outliner tree-element design");
     }
   }
+  else if (ELEM(type, TSE_LIBRARY_OVERRIDE_BASE, TSE_LIBRARY_OVERRIDE)) {
+    if (!te->type) {
+      BLI_assert(!"Expected override types to be ported to new Outliner tree-element design");
+    }
+  }
   else {
     /* Other cases must be caught above. */
     BLI_assert(TSE_IS_REAL_ID(tselem));
