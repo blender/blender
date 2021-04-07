@@ -2084,10 +2084,10 @@ void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
   SceneObjectsIteratorData *data = MEM_callocN(sizeof(SceneObjectsIteratorData), __func__);
   iter->data = data;
 
-  /* lookup list ot make sure each object is object called once */
+  /* Lookup list to make sure that each object is only processed once. */
   data->visited = BLI_gset_ptr_new(__func__);
 
-  /* we wrap the scenecollection iterator here to go over the scene collections */
+  /* We wrap the scenecollection iterator here to go over the scene collections. */
   BKE_scene_collections_iterator_begin(&data->scene_collection_iter, scene);
 
   Collection *collection = data->scene_collection_iter.current;
