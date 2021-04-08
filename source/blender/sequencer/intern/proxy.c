@@ -466,12 +466,14 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
       seq_open_anim_file(scene, nseq, true);
       sanim = BLI_findlink(&nseq->anims, i);
 
-      context->index_context = IMB_anim_index_rebuild_context(sanim->anim,
-                                                              context->tc_flags,
-                                                              context->size_flags,
-                                                              context->quality,
-                                                              context->overwrite,
-                                                              file_list);
+      if (sanim->anim) {
+        context->index_context = IMB_anim_index_rebuild_context(sanim->anim,
+                                                                context->tc_flags,
+                                                                context->size_flags,
+                                                                context->quality,
+                                                                context->overwrite,
+                                                                file_list);
+      }
       if (!context->index_context) {
         MEM_freeN(context);
         return false;
