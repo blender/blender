@@ -161,7 +161,7 @@ struct Depsgraph {
    * does not need any bases. */
   bool is_render_pipeline_depsgraph;
 
-  /* Notify editors about changes to IDs in this depsgrpah. */
+  /* Notify editors about changes to IDs in this depsgraph. */
   bool use_editors_update;
 
   /* Cached list of colliders/effectors for collections and the scene

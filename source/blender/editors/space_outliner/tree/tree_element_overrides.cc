@@ -101,8 +101,8 @@ TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_t
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE);
 
   legacy_te.name = override_prop_.rna_path;
-  /* Abusing this for now, better way to do it is also pending current refacor of the whole tree
-   * code to use CPP... */
+  /* Abusing this for now, better way to do it is also pending current refactor of the whole tree
+   * code to use C++. */
   legacy_te.directdata = POINTER_FROM_UINT(override_data.is_rna_path_valid);
 }
 

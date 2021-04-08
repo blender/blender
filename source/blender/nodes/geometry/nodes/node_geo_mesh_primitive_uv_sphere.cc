@@ -152,7 +152,7 @@ static void calculate_sphere_faces(MutableSpan<MLoop> loops,
   int loop_index = 0;
   int poly_index = 0;
 
-  /* Add the triangles conntected to the top vertex. */
+  /* Add the triangles connected to the top vertex. */
   const int first_vert_ring_index_start = 1;
   for (const int segment : IndexRange(segments)) {
     MPoly &poly = polys[poly_index++];

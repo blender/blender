@@ -648,8 +648,8 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
       ob->pd->tex = NULL;
     }
 
-    /* In the case of specific forcefields that are using the EffectorData's normal, we need to
-     * rebuild mesh and bhvtree for SurfaceModifier to work correctly. */
+    /* In the case of specific force-fields that are using the #EffectorData's normal, we need to
+     * rebuild mesh and BVH-tree for #SurfaceModifier to work correctly. */
     if (ELEM(ob->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
         ob->pd->forcefield == PFIELD_GUIDE) {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
