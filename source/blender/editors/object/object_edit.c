@@ -523,7 +523,7 @@ static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
  * Load EditMode data back into the object,
  * optionally freeing the editmode data.
  */
-static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool freedata)
+static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool free_data)
 {
   if (obedit == NULL) {
     return false;
@@ -544,9 +544,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
 
-    EDBM_mesh_load_ex(bmain, obedit, freedata);
+    EDBM_mesh_load_ex(bmain, obedit, free_data);
 
-    if (freedata) {
+    if (free_data) {
       EDBM_mesh_free(me->edit_mesh);
       MEM_freeN(me->edit_mesh);
       me->edit_mesh = NULL;
@@ -563,7 +563,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
     ED_armature_from_edit(bmain, obedit->data);
-    if (freedata) {
+    if (free_data) {
       ED_armature_edit_free(obedit->data);
     }
     /* TODO(sergey): Pose channels might have been changed, so need
@@ -578,7 +578,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
     ED_curve_editnurb_load(bmain, obedit);
-    if (freedata) {
+    if (free_data) {
       ED_curve_editnurb_free(obedit);
     }
   }
@@ -588,7 +588,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
     ED_curve_editfont_load(obedit);
-    if (freedata) {
+    if (free_data) {
       ED_curve_editfont_free(obedit);
     }
   }
@@ -598,7 +598,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
     BKE_editlattice_load(obedit);
-    if (freedata) {
+    if (free_data) {
       BKE_editlattice_free(obedit);
     }
   }
@@ -608,7 +608,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
     ED_mball_editmball_load(obedit);
-    if (freedata) {
+    if (free_data) {
       ED_mball_editmball_free(obedit);
     }
   }
@@ -635,9 +635,9 @@ bool ED_object_editmode_load(Main *bmain, Object *obedit)
  */
 bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
 {
-  const bool freedata = (flag & EM_FREEDATA) != 0;
+  const bool free_data = (flag & EM_FREEDATA) != 0;
 
-  if (ED_object_editmode_load_ex(bmain, obedit, freedata) == false) {
+  if (ED_object_editmode_load_ex(bmain, obedit, free_data) == false) {
     /* in rare cases (background mode) its possible active object
      * is flagged for editmode, without 'obedit' being set T35489. */
     if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
@@ -648,8 +648,8 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
     return true;
   }
 
-  /* freedata only 0 now on file saves and render */
-  if (freedata) {
+  /* `free_data` only false now on file saves and render. */
+  if (free_data) {
     /* flag object caches as outdated */
     ListBase pidlist;
     BKE_ptcache_ids_from_object(&pidlist, obedit, scene, 0);
