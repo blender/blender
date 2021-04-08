@@ -1793,7 +1793,13 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr,
 
   st->text = value.data;
 
-  WM_main_add_notifier(NC_TEXT | NA_SELECTED, st->text);
+  ScrArea *area = rna_area_from_space(ptr);
+  if (area) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    if (region) {
+      ED_text_scroll_to_cursor(st, region, true);
+    }
+  }
 }
 
 static bool rna_SpaceTextEditor_text_is_syntax_highlight_supported(struct SpaceText *space)

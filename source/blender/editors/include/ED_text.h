@@ -34,6 +34,8 @@ struct UndoStep;
 struct UndoType;
 struct bContext;
 
+void ED_text_scroll_to_cursor(struct SpaceText *st, struct ARegion *region, bool center);
+
 bool ED_text_region_location_from_cursor(struct SpaceText *st,
                                          struct ARegion *region,
                                          const int cursor_co[2],

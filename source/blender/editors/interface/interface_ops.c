@@ -72,6 +72,7 @@
 #include "BKE_main.h"
 #include "BLI_ghash.h"
 #include "ED_screen.h"
+#include "ED_text.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Copy Data Path Operator
@@ -1336,18 +1337,23 @@ static int editsource_text_edit(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
+  txt_move_toline(text, line - 1, false);
+
   /* naughty!, find text area to set, not good behavior
    * but since this is a dev tool lets allow it - campbell */
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TEXT, 0);
   if (area) {
     SpaceText *st = area->spacedata.first;
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     st->text = text;
+    if (region) {
+      ED_text_scroll_to_cursor(st, region, true);
+    }
   }
   else {
     BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
   }
 
-  txt_move_toline(text, line - 1, false);
   WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
 
   return OPERATOR_FINISHED;

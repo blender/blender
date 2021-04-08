@@ -138,13 +138,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
 
       switch (wmn->data) {
         case ND_DISPLAY:
-          ED_area_tag_redraw(area);
-          break;
         case ND_CURSOR:
-          if (st->text && st->text == wmn->reference) {
-            text_scroll_to_cursor__area(st, area, true);
-          }
-
           ED_area_tag_redraw(area);
           break;
       }
@@ -160,13 +154,8 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
           ATTR_FALLTHROUGH; /* fall down to tag redraw */
         case NA_ADDED:
         case NA_REMOVED:
-          ED_area_tag_redraw(area);
-          break;
         case NA_SELECTED:
-          if (st->text && st->text == wmn->reference) {
-            text_scroll_to_cursor__area(st, area, true);
-          }
-
+          ED_area_tag_redraw(area);
           break;
       }
 
