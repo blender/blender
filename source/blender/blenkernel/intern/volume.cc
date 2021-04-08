@@ -897,6 +897,32 @@ bool BKE_volume_save(const Volume *volume,
 #endif
 }
 
+bool BKE_volume_min_max(const Volume *volume, float3 &r_min, float3 &r_max)
+{
+  bool have_minmax = false;
+#ifdef WITH_OPENVDB
+  /* TODO: if we know the volume is going to be displayed, it may be good to
+   * load it as part of dependency graph evaluation for better threading. We
+   * could also share the bounding box computation in the global volume cache. */
+  if (BKE_volume_load(const_cast<Volume *>(volume), G.main)) {
+    for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
+      const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
+      openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+      float3 grid_min;
+      float3 grid_max;
+      if (BKE_volume_grid_bounds(grid, grid_min, grid_max)) {
+        DO_MIN(grid_min, r_min);
+        DO_MAX(grid_max, r_max);
+        have_minmax = true;
+      }
+    }
+  }
+#else
+  UNUSED_VARS(volume, r_min, r_max);
+#endif
+  return have_minmax;
+}
+
 BoundBox *BKE_volume_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
@@ -906,40 +932,19 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
   }
 
   if (ob->runtime.bb == nullptr) {
-    const Volume *volume = (const Volume *)ob->data;
-
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "volume boundbox");
-
-    float min[3], max[3];
-    bool have_minmax = false;
-    INIT_MINMAX(min, max);
-
-    /* TODO: if we know the volume is going to be displayed, it may be good to
-     * load it as part of dependency graph evaluation for better threading. We
-     * could also share the bounding box computation in the global volume cache. */
-    if (BKE_volume_load(volume, G.main)) {
-      const int num_grids = BKE_volume_num_grids(volume);
-
-      for (int i = 0; i < num_grids; i++) {
-        const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, i);
-        float grid_min[3], grid_max[3];
-
-        BKE_volume_grid_load(volume, grid);
-        if (BKE_volume_grid_bounds(grid, grid_min, grid_max)) {
-          DO_MIN(grid_min, min);
-          DO_MAX(grid_max, max);
-          have_minmax = true;
-        }
-      }
-    }
-
-    if (!have_minmax) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
-
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
   }
+
+  const Volume *volume = (Volume *)ob->data;
+
+  float3 min, max;
+  INIT_MINMAX(min, max);
+  if (!BKE_volume_min_max(volume, min, max)) {
+    min = float3(-1);
+    max = float3(1);
+  }
+
+  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
   return ob->runtime.bb;
 }
@@ -1366,34 +1371,6 @@ void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4
 
 /* Grid Tree and Voxels */
 
-bool BKE_volume_grid_bounds(const VolumeGrid *volume_grid, float min[3], float max[3])
-{
-#ifdef WITH_OPENVDB
-  /* TODO: we can get this from grid metadata in some cases? */
-  const openvdb::GridBase::Ptr grid = volume_grid->grid();
-  BLI_assert(BKE_volume_grid_is_loaded(volume_grid));
-
-  openvdb::CoordBBox coordbbox;
-  if (!grid->baseTree().evalLeafBoundingBox(coordbbox)) {
-    INIT_MINMAX(min, max);
-    return false;
-  }
-
-  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
-  min[0] = (float)bbox.min().x();
-  min[1] = (float)bbox.min().y();
-  min[2] = (float)bbox.min().z();
-  max[0] = (float)bbox.max().x();
-  max[1] = (float)bbox.max().y();
-  max[2] = (float)bbox.max().z();
-  return true;
-#else
-  UNUSED_VARS(volume_grid);
-  INIT_MINMAX(min, max);
-  return false;
-#endif
-}
-
 /* Volume Editing */
 
 Volume *BKE_volume_new_for_eval(const Volume *volume_src)
@@ -1503,6 +1480,22 @@ float BKE_volume_simplify_factor(const Depsgraph *depsgraph)
 /* OpenVDB Grid Access */
 
 #ifdef WITH_OPENVDB
+
+bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, float3 &r_max)
+{
+  /* TODO: we can get this from grid metadata in some cases? */
+  openvdb::CoordBBox coordbbox;
+  if (!grid->baseTree().evalLeafBoundingBox(coordbbox)) {
+    return false;
+  }
+
+  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
+
+  r_min = float3((float)bbox.min().x(), (float)bbox.min().y(), (float)bbox.min().z());
+  r_max = float3((float)bbox.max().x(), (float)bbox.max().y(), (float)bbox.max().z());
+
+  return true;
+}
 
 /**
  * Return a new grid pointer with only the metadata and transform changed.

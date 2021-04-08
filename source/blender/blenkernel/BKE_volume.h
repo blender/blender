@@ -120,9 +120,6 @@ VolumeGridType BKE_volume_grid_type(const struct VolumeGrid *grid);
 int BKE_volume_grid_channels(const struct VolumeGrid *grid);
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
 
-/* Bounds */
-bool BKE_volume_grid_bounds(const struct VolumeGrid *grid, float min[3], float max[3]);
-
 /* Volume Editing
  *
  * These are intended for modifiers to use on evaluated datablocks.
@@ -161,11 +158,18 @@ bool BKE_volume_save(const struct Volume *volume,
  * file or copy shared grids to make them writeable. */
 
 #ifdef __cplusplus
+#  include "BLI_float3.hh"
 #  include "BLI_float4x4.hh"
+
+bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
 
 #  ifdef WITH_OPENVDB
 #    include <openvdb/openvdb.h>
 #    include <openvdb/points/PointDataGrid.h>
+
+bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
+                            blender::float3 &r_min,
+                            blender::float3 &r_max);
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform);
