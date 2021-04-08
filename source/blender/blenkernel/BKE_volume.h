@@ -160,9 +160,15 @@ bool BKE_volume_save(const struct Volume *volume,
  * Access to OpenVDB grid for C++. These will automatically load grids from
  * file or copy shared grids to make them writeable. */
 
-#if defined(__cplusplus) && defined(WITH_OPENVDB)
-#  include <openvdb/openvdb.h>
-#  include <openvdb/points/PointDataGrid.h>
+#ifdef __cplusplus
+#  include "BLI_float4x4.hh"
+
+#  ifdef WITH_OPENVDB
+#    include <openvdb/openvdb.h>
+#    include <openvdb/points/PointDataGrid.h>
+
+openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
+                                                              const blender::float4x4 &transform);
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const struct VolumeGrid *grid);
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume *volume,
@@ -213,4 +219,5 @@ openvdb::GridBase::Ptr BKE_volume_grid_create_with_changed_resolution(
     const openvdb::GridBase &old_grid,
     const float resolution_factor);
 
+#  endif
 #endif

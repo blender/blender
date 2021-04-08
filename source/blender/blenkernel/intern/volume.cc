@@ -28,7 +28,10 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
+#include "BLI_float3.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
@@ -62,6 +65,10 @@ static CLG_LogRef LOG = {"bke.volume"};
 #endif
 
 #define VOLUME_FRAME_NONE INT_MAX
+
+using blender::float3;
+using blender::float4x4;
+using blender::IndexRange;
 
 #ifdef WITH_OPENVDB
 #  include <atomic>
@@ -1496,6 +1503,22 @@ float BKE_volume_simplify_factor(const Depsgraph *depsgraph)
 /* OpenVDB Grid Access */
 
 #ifdef WITH_OPENVDB
+
+/**
+ * Return a new grid pointer with only the metadata and transform changed.
+ * This is useful for instances, where there is a separate transform on top of the original
+ * grid transform that must be applied for some operations that only take a grid argument.
+ */
+openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
+                                                              const blender::float4x4 &transform)
+{
+  openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
+  grid_transform->postMult(openvdb::Mat4d(((float *)transform.values)));
+
+  /* Create a transformed grid. The underlying tree is shared. */
+  return grid->copyGridReplacingTransform(grid_transform);
+}
+
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const VolumeGrid *grid)
 {
   return grid->grid();
