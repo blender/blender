@@ -718,26 +718,22 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
     return false;
   }
 
+  /* This checks actual `ob->data`, for cases when other scenes have it in edit-mode context.
+   * Currently multiple objects sharing a mesh being in edit-mode at once isn't supported,
+   * see: T86767. */
+  if (BKE_object_is_in_editmode(ob)) {
+    return true;
+  }
+
   if (BKE_object_obdata_is_libdata(ob)) {
     /* Ideally the caller should check this. */
     CLOG_WARN(&LOG, "Unable to enter edit-mode on library data for object '%s'", ob->id.name + 2);
     return false;
   }
 
-  if ((ob->mode & OB_MODE_EDIT) == 0) {
-    ob->restore_mode = ob->mode;
+  ob->restore_mode = ob->mode;
 
-    ob->mode = OB_MODE_EDIT;
-  }
-
-  /* This checks actual `object->data`,
-   * for cases when other scenes have it in edit-mode context.
-   *
-   * It's important to run this after setting the object's mode (above), since in rare cases
-   * the object may have the edit-data but not it's object-mode set. See T85974. */
-  if (BKE_object_is_in_editmode(ob)) {
-    return true;
-  }
+  ob->mode = OB_MODE_EDIT;
 
   if (ob->type == OB_MESH) {
     ok = true;
