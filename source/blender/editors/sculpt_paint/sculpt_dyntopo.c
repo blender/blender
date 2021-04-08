@@ -134,6 +134,8 @@ static char layer_id[] = "_dyntopo_node_id";
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
 {
   SCULPT_dyntopo_node_layers_add(ss);
+  BKE_pbvh_update_offsets(
+      ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
 }
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
@@ -148,8 +150,6 @@ void SCULPT_dyntopo_ensure_templayer(SculptSession *ss, int type, const char *na
   if (li < 0) {
     BM_data_layer_add_named(ss->bm, &ss->bm->vdata, type, name);
     SCULPT_dyntopo_node_layers_update_offsets(ss);
-    BKE_pbvh_update_offsets(
-        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
 
     li = CustomData_get_named_layer_index(&ss->bm->vdata, type, name);
     ss->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
@@ -319,8 +319,6 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
   if (modified) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
-    BKE_pbvh_update_offsets(
-        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
   }
 }
 
@@ -378,8 +376,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
 
     SCULPT_dyntopo_node_layers_update_offsets(ss);
-    BKE_pbvh_update_offsets(
-        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
 
     cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
   }
@@ -430,8 +426,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   ss->update_boundary_info_bmesh = 1;
 
   /* Enable logging for undo/redo. */
-  ss->bm_log = BM_log_create(
-      ss->bm, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
+  ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */

@@ -1533,6 +1533,7 @@ void layerDynTopoVert_interp(
 
     if (i == 0) {  // copy flag from first source
       mv->flag = mv2->flag;
+      mv->stroke_id = mv2->stroke_id;
     }
 
     if (sub_weights) {
@@ -1949,10 +1950,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      NULL,  // flag singleton layer
      1,
      N_("DynTopoVert"),
-      layerDynTopoVert_copy,
-      NULL,
-       layerDynTopoVert_interp
-    }};
+     layerDynTopoVert_copy,
+     NULL,
+     layerDynTopoVert_interp}};
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
     /*   0-4 */ "CDMVert",
@@ -3818,7 +3818,71 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
   }
 }
 
-void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+__attribute__((optnone)) void CustomData_bmesh_swap_data(CustomData *source,
+                                CustomData *dest,
+                                void *src_block,
+                                void **dest_block)
+{
+  int src_i = 0;
+  int dest_i = 0;
+  int dest_i_start = 0;
+
+  if (*dest_block == NULL) {
+    CustomData_bmesh_alloc_block(dest, dest_block);
+
+    if (*dest_block) {
+      memset(*dest_block, 0, dest->totsize);
+      CustomData_bmesh_set_default(dest, dest_block);
+    }
+  }
+
+  for (src_i = 0; src_i < source->totlayer; src_i++) {
+    /* find the first dest layer with type >= the source type
+     * (this should work because layers are ordered by type)
+     */
+    while (dest_i_start < dest->totlayer &&
+           dest->layers[dest_i_start].type < source->layers[src_i].type) {
+      dest_i_start++;
+    }
+
+    /* if there are no more dest layers, we're done */
+    if (dest_i_start >= dest->totlayer) {
+      return;
+    }
+
+    dest_i = dest_i_start;
+
+    while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
+      /* if we found a matching layer, copy the data */
+      if (dest->layers[dest_i].type == source->layers[src_i].type &&
+          STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+        void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
+        void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
+        const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
+        const uint size = typeInfo->size;
+
+        // swap data
+        char *bsrc = (char *)src_data;
+        char *bdst = (char *)dest_data;
+
+        for (int j = 0; j < size; j++) {
+          char t = *bsrc;
+          *bsrc = *bdst;
+          *bdst = t;
+
+          bsrc++;
+          bdst++;
+        }
+
+        break;
+      }
+
+      dest_i++;
+    }
+  }
+}
+
+__attribute__ ((optnone)) void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,
@@ -3835,49 +3899,54 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     }
   }
 
+  for (int dest_i=0; dest_i < dest->totlayer; dest_i++) {
+    CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
+    dest_i++;
+  }
+
   /* copies a layer at a time */
-  int dest_i = 0;
+  int dest_i_start = 0;
+
   for (int src_i = 0; src_i < source->totlayer; src_i++) {
 
     /* find the first dest layer with type >= the source type
      * (this should work because layers are ordered by type)
      */
-    while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-      CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-      dest_i++;
+    while (dest_i_start < dest->totlayer &&
+           dest->layers[dest_i_start].type < source->layers[src_i].type) {
+      dest_i_start++;
     }
 
     /* if there are no more dest layers, we're done */
-    if (dest_i >= dest->totlayer) {
+    if (dest_i_start >= dest->totlayer) {
       return;
     }
 
-    /* if we found a matching layer, copy the data */
-    if (dest->layers[dest_i].type == source->layers[src_i].type &&
-        STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
-      if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
-        const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
-        void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
-        const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
-        if (typeInfo->copy) {
-          typeInfo->copy(src_data, dest_data, 1);
+    int dest_i = dest_i_start;
+
+    /*Previously this code was only checking one source layer against one destination.
+      Now it scans all the layers of that type.  - joeedh
+    */
+    while (dest_i < dest->totlayer && dest->layers[dest_i].type == source->layers[src_i].type) {
+      /* if we found a matching layer, copy the data */
+      if (STREQ(dest->layers[dest_i].name, source->layers[src_i].name)) {
+        if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
+          const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
+          void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
+          const LayerTypeInfo *typeInfo = layerType_getInfo(source->layers[src_i].type);
+          if (typeInfo->copy) {
+            typeInfo->copy(src_data, dest_data, 1);
+          }
+          else {
+            memcpy(dest_data, src_data, typeInfo->size);
+          }
         }
-        else {
-          memcpy(dest_data, src_data, typeInfo->size);
-        }
+
+        break;
       }
 
-      /* if there are multiple source & dest layers of the same type,
-       * we don't want to copy all source layers to the same dest, so
-       * increment dest_i
-       */
       dest_i++;
     }
-  }
-
-  while (dest_i < dest->totlayer) {
-    CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-    dest_i++;
   }
 }
 

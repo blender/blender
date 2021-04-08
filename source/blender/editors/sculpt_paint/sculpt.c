@@ -1677,6 +1677,29 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
  */
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter)
 {
+  // check if we need to update original data for current stroke
+  if (orig_data->bm_log) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert);
+    if (mv->stroke_id != orig_data->ss->stroke_id) {
+      mv->stroke_id = orig_data->ss->stroke_id;
+
+      copy_v3_v3(mv->origco, iter->bm_vert->co);
+      copy_v3_v3(mv->origno, iter->bm_vert->no);
+
+      const int cd_vcol = iter->cd_vcol_offset;
+      const int cd_mask = iter->cd_vert_mask_offset;
+
+      if (cd_vcol >= 0) {
+        MPropCol *col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, cd_vcol);
+        copy_v4_v4(mv->origcolor, col->color);
+      }
+
+      if (cd_mask >= 0) {
+        mv->origmask = BM_ELEM_CD_GET_FLOAT(iter->bm_vert, cd_mask);
+      }
+    }
+  }
+
   if (orig_data->datatype == SCULPT_UNDO_COORDS) {
     if (orig_data->bm_log) {
       orig_data->co = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origco;
@@ -1704,8 +1727,7 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
   else if (orig_data->datatype == SCULPT_UNDO_MASK) {
     if (orig_data->bm_log) {
-      orig_data->mask = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)
-                            ->origmask;  // BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
+      orig_data->mask = BKE_PBVH_DYNVERT(iter->cd_dyn_vert, iter->bm_vert)->origmask;
     }
     else {
       orig_data->mask = orig_data->vmasks[iter->i];
@@ -2439,16 +2461,11 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
 
       if (use_original) {
         if (unode->bm_entry) {
-          float *temp_co;
-          float *temp_no;
+          BMVert *v = vd.bm_vert;
+          MDynTopoVert *mv = BKE_PBVH_DYNVERT(vd.cd_dyn_vert, v);
 
-          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &temp_co, &temp_no, NULL);
-          if (temp_no) {
-            normal_float_to_short_v3(no_s, temp_no);
-          }
-          // BM_log_original_vert_data(ss->bm, ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s,
-          // false);
-          copy_v3_v3(co, temp_co);
+          normal_float_to_short_v3(no_s, mv->origno);
+          copy_v3_v3(co, mv->origco);
         }
         else {
           copy_v3_v3(co, unode->co[vd.i]);
@@ -5110,10 +5127,6 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 
           *disp_factor = 0.0f;
 
-          // update orig data to while we're at it, just to be paranoid
-          float *dummy;
-
-          BKE_pbvh_bmesh_update_origvert(ss->pbvh, v, &dummy, &dummy, NULL);
           BLI_BITMAP_SET(ss->cache->layer_disp_map, nidx, true);
         }
         BKE_pbvh_vertex_iter_end;
@@ -5255,6 +5268,12 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     cd_pers_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP);
 
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
+
+    //should never happen
+    if (cd_pers_co < 0 || cd_pers_no < 0 || cd_pers_disp < 0 || cd_layer_disp < 0) {
+      printf("error!! $d $d $d $d\n", cd_pers_co, cd_pers_no, cd_pers_disp, cd_layer_disp);
+      return;
+    }
   }
   else if (ss->cache->layer_displacement_factor == NULL) {
     ss->cache->layer_displacement_factor = MEM_callocN(sizeof(float) * SCULPT_vertex_count_get(ss),
@@ -5265,7 +5284,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   SculptThreadedTaskData data = {
       .sd = sd,
-      .ob = ob,
+      .ob = ob, 
       .brush = brush,
       .nodes = nodes,
       .cd_pers_co = cd_pers_co,
@@ -6492,16 +6511,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       for (int i = 0; i < totnode; i++) {
         int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
 
-        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, other)) {
-          BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
-
-          if (other != -1) {
-            BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes[i]);
-          }
-        }
-
+        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, other);
         BKE_pbvh_node_mark_update_color(nodes[i]);
-        // SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
       }
     }
     else if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
@@ -6515,26 +6526,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
         BKE_pbvh_node_mark_update(nodes[i]);
       }
-    }
-    else if (brush->sculpt_tool == SCULPT_TOOL_ELASTIC_DEFORM) {
-      PBVHNode **nodes2;
-      int totnode2 = 0;
-
-      BKE_pbvh_get_nodes(ss->pbvh, PBVH_Leaf, &nodes2, &totnode2);
-
-      for (int i = 0; i < totnode2; i++) {
-        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes2[i], SCULPT_UNDO_COORDS, -1)) {
-          BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes2[i]);
-          BKE_pbvh_node_free_proxies(nodes2[i]);
-        }
-        BKE_pbvh_node_mark_update(nodes2[i]);
-      }
-    }
-    else {
+    } else {
       for (int i = 0; i < totnode; i++) {
-        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1)) {
-          // BKE_pbvh_update_origco_bmesh(ss->pbvh, nodes[i]);
-        }
+        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
         BKE_pbvh_node_mark_update(nodes[i]);
       }
     }
@@ -8516,6 +8510,8 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
 
+    // increment stroke_id to flag origdata update
+    ss->stroke_id++;
     sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
     SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));

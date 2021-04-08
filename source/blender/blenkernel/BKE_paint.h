@@ -23,11 +23,11 @@
  * \ingroup bke
  */
 
+#include "BKE_pbvh.h"
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "DNA_brush_enums.h"
 #include "DNA_object_enums.h"
-#include "BKE_pbvh.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -344,7 +344,7 @@ typedef struct SculptClothSimulation {
   struct GHash *node_state_index;
   eSculptClothNodeSimState *node_state;
 
-  //persistent base customdata layer offsets
+  // persistent base customdata layer offsets
   int cd_pers_co;
   int cd_pers_no;
   int cd_pers_disp;
@@ -624,6 +624,10 @@ typedef struct SculptSession {
    */
   char needs_flush_to_id;
   char update_boundary_info_bmesh;
+
+  // id of current stroke, used to detect
+  // if vertex original data needs to be updated
+  int stroke_id;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

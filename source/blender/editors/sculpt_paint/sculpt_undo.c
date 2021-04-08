@@ -459,15 +459,12 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
                           }));
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
   SCULPT_dyntopo_node_layers_add(ss);
-  SCULPT_dyntopo_save_origverts(ss);
-
 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Restore the BMLog using saved entries. */
   ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
-  BM_log_set_cd_offsets(
-      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
+  BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
 }
 
 static void sculpt_undo_bmesh_restore_begin(bContext *C,
@@ -601,8 +598,7 @@ static int sculpt_undo_bmesh_restore(bContext *C,
                                      SculptSession *ss)
 {
   if (ss->bm_log) {
-    BM_log_set_cd_offsets(
-        ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset, ss->cd_dyn_vert);
+    BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
   }
 
   switch (unode->type) {
@@ -1325,12 +1321,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
     switch (type) {
       case SCULPT_UNDO_COORDS:
       case SCULPT_UNDO_MASK:
-        /* Before any vertex values get modified, ensure their
-         * original positions are logged. */
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           float *dummy;
-          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
-          // BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
+          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -1341,7 +1334,6 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
-          // BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
         }
         BKE_pbvh_vertex_iter_end;
 
@@ -1353,13 +1345,11 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       }
 
       case SCULPT_UNDO_COLOR: {
-#if 1
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           float *dummy;
-          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, NULL, NULL, &dummy);
+          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
         }
         BKE_pbvh_vertex_iter_end;
-#endif
         break;
       }
       case SCULPT_UNDO_FACE_SETS: {
