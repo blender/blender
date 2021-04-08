@@ -520,11 +520,18 @@ static bool mesh_needs_keyindex(Main *bmain, const Mesh *me)
 }
 
 /**
- * Load EditMode data back into the object,
- * optionally freeing the editmode data.
+ * Load edit-mode data back into the object.
+ *
+ * \param load_data: Flush the edit-mode data back to the object.
+ * \param free_data: Free the edit-mode data.
  */
-static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool free_data)
+static bool ED_object_editmode_load_free_ex(Main *bmain,
+                                            Object *obedit,
+                                            const bool load_data,
+                                            const bool free_data)
 {
+  BLI_assert(load_data || free_data);
+
   if (obedit == NULL) {
     return false;
   }
@@ -544,7 +551,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
       return false;
     }
 
-    EDBM_mesh_load_ex(bmain, obedit, free_data);
+    if (load_data) {
+      EDBM_mesh_load_ex(bmain, obedit, free_data);
+    }
 
     if (free_data) {
       EDBM_mesh_free(me->edit_mesh);
@@ -562,7 +571,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     if (arm->edbo == NULL) {
       return false;
     }
-    ED_armature_from_edit(bmain, obedit->data);
+
+    if (load_data) {
+      ED_armature_from_edit(bmain, obedit->data);
+    }
+
     if (free_data) {
       ED_armature_edit_free(obedit->data);
     }
@@ -577,7 +590,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     if (cu->editnurb == NULL) {
       return false;
     }
-    ED_curve_editnurb_load(bmain, obedit);
+
+    if (load_data) {
+      ED_curve_editnurb_load(bmain, obedit);
+    }
+
     if (free_data) {
       ED_curve_editnurb_free(obedit);
     }
@@ -587,7 +604,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     if (cu->editfont == NULL) {
       return false;
     }
-    ED_curve_editfont_load(obedit);
+
+    if (load_data) {
+      ED_curve_editfont_load(obedit);
+    }
+
     if (free_data) {
       ED_curve_editfont_free(obedit);
     }
@@ -597,7 +618,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     if (lt->editlatt == NULL) {
       return false;
     }
-    BKE_editlattice_load(obedit);
+
+    if (load_data) {
+      BKE_editlattice_load(obedit);
+    }
+
     if (free_data) {
       BKE_editlattice_free(obedit);
     }
@@ -607,7 +632,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     if (mb->editelems == NULL) {
       return false;
     }
-    ED_mball_editmball_load(obedit);
+
+    if (load_data) {
+      ED_mball_editmball_load(obedit);
+    }
+
     if (free_data) {
       ED_mball_editmball_free(obedit);
     }
@@ -616,9 +645,11 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
     return false;
   }
 
-  char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(obedit->data);
-  if (needs_flush_ptr) {
-    *needs_flush_ptr = false;
+  if (load_data) {
+    char *needs_flush_ptr = BKE_object_data_editmode_flush_ptr_get(obedit->data);
+    if (needs_flush_ptr) {
+      *needs_flush_ptr = false;
+    }
   }
 
   return true;
@@ -626,7 +657,7 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 
 bool ED_object_editmode_load(Main *bmain, Object *obedit)
 {
-  return ED_object_editmode_load_ex(bmain, obedit, false);
+  return ED_object_editmode_load_free_ex(bmain, obedit, true, false);
 }
 
 /**
@@ -637,7 +668,7 @@ bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int f
 {
   const bool free_data = (flag & EM_FREEDATA) != 0;
 
-  if (ED_object_editmode_load_ex(bmain, obedit, free_data) == false) {
+  if (ED_object_editmode_load_free_ex(bmain, obedit, true, free_data) == false) {
     /* in rare cases (background mode) its possible active object
      * is flagged for editmode, without 'obedit' being set T35489. */
     if (UNLIKELY(obedit && obedit->mode & OB_MODE_EDIT)) {
@@ -681,6 +712,16 @@ bool ED_object_editmode_exit(bContext *C, int flag)
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   return ED_object_editmode_exit_ex(bmain, scene, obedit, flag);
+}
+
+/**
+ * Support freeing edit-mode data without flushing it back to the object.
+ *
+ * \return true if data was freed.
+ */
+bool ED_object_editmode_free_ex(Main *bmain, Object *obedit)
+{
+  return ED_object_editmode_load_free_ex(bmain, obedit, false, true);
 }
 
 bool ED_object_editmode_exit_multi_ex(Main *bmain, Scene *scene, ViewLayer *view_layer, int flag)
