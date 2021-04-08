@@ -136,7 +136,7 @@ static void find_used_ids_from_nodes(const bNodeTree &tree, Set<ID *> &ids)
     addIdsUsedBySocket(&node->inputs, ids);
     addIdsUsedBySocket(&node->outputs, ids);
 
-    if (node->type == NODE_GROUP) {
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       const bNodeTree *group = (bNodeTree *)node->id;
       if (group != nullptr && handled_groups.add(group)) {
         find_used_ids_from_nodes(*group, ids);
