@@ -311,8 +311,8 @@ static void object_free_data(ID *id)
   /* Free runtime curves data. */
   if (ob->runtime.curve_cache) {
     BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-    if (ob->runtime.curve_cache->path) {
-      free_path(ob->runtime.curve_cache->path);
+    if (ob->runtime.curve_cache->anim_path_accum_length) {
+      MEM_freeN(ob->runtime.curve_cache->anim_path_accum_length);
     }
     MEM_freeN(ob->runtime.curve_cache);
     ob->runtime.curve_cache = NULL;
@@ -1188,8 +1188,8 @@ void BKE_object_free_curve_cache(Object *ob)
   if (ob->runtime.curve_cache) {
     BKE_displist_free(&ob->runtime.curve_cache->disp);
     BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-    if (ob->runtime.curve_cache->path) {
-      free_path(ob->runtime.curve_cache->path);
+    if (ob->runtime.curve_cache->anim_path_accum_length) {
+      MEM_freeN(ob->runtime.curve_cache->anim_path_accum_length);
     }
     BKE_nurbList_free(&ob->runtime.curve_cache->deformed_nurbs);
     MEM_freeN(ob->runtime.curve_cache);
@@ -3244,7 +3244,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   if (par->runtime.curve_cache == NULL) {
     return false;
   }
-  if (par->runtime.curve_cache->path == NULL) {
+  if (par->runtime.curve_cache->anim_path_accum_length == NULL) {
     return false;
   }
 
@@ -3260,12 +3260,12 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   else {
     ctime = cu->ctime;
   }
-  CLAMP(ctime, 0.0f, 1.0f);
 
   unit_m4(r_mat);
 
   /* vec: 4 items! */
-  if (where_on_path(par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
+  if (BKE_where_on_path(
+          par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
     if (cu->flag & CU_FOLLOW) {
       quat_apply_track(quat, ob->trackflag, ob->upflag);
       normalize_qt(quat);

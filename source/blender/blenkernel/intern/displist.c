@@ -1491,10 +1491,10 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
      * was needed before and only not needed for orco calculation.
      */
     if (!for_orco) {
-      if (ob->runtime.curve_cache->path) {
-        free_path(ob->runtime.curve_cache->path);
+      if (ob->runtime.curve_cache->anim_path_accum_length) {
+        MEM_freeN(ob->runtime.curve_cache->anim_path_accum_length);
       }
-      ob->runtime.curve_cache->path = NULL;
+      ob->runtime.curve_cache->anim_path_accum_length = NULL;
     }
 
     if (ob->type == OB_FONT) {
@@ -1703,7 +1703,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
     if (!for_orco) {
       if ((cu->flag & CU_PATH) ||
           DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
-        calc_curvepath(ob, &nubase);
+        BKE_anim_path_calc_data(ob);
       }
 
       BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);

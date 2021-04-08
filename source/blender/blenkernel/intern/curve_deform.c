@@ -68,75 +68,7 @@ static void init_curve_deform(const Object *ob_curve, const Object *ob_target, C
 }
 
 /**
- * This makes sure we can extend for non-cyclic.
- *
- * \return Success.
- */
-static bool where_on_path_deform(const Object *ob_curve,
-                                 float ctime,
-                                 float r_vec[4],
-                                 float r_dir[3],
-                                 float r_quat[4],
-                                 float *r_radius)
-{
-  BevList *bl;
-  float ctime1;
-  int cycl = 0;
-
-  /* test for cyclic */
-  bl = ob_curve->runtime.curve_cache->bev.first;
-  if (!bl->nr) {
-    return false;
-  }
-  if (bl->poly > -1) {
-    cycl = 1;
-  }
-
-  if (cycl == 0) {
-    ctime1 = CLAMPIS(ctime, 0.0f, 1.0f);
-  }
-  else {
-    ctime1 = ctime;
-  }
-
-  /* vec needs 4 items */
-  if (where_on_path(ob_curve, ctime1, r_vec, r_dir, r_quat, r_radius, NULL)) {
-
-    if (cycl == 0) {
-      Path *path = ob_curve->runtime.curve_cache->path;
-      float dvec[3];
-
-      if (ctime < 0.0f) {
-        sub_v3_v3v3(dvec, path->data[1].vec, path->data[0].vec);
-        mul_v3_fl(dvec, ctime * (float)path->len);
-        add_v3_v3(r_vec, dvec);
-        if (r_quat) {
-          copy_qt_qt(r_quat, path->data[0].quat);
-        }
-        if (r_radius) {
-          *r_radius = path->data[0].radius;
-        }
-      }
-      else if (ctime > 1.0f) {
-        sub_v3_v3v3(dvec, path->data[path->len - 1].vec, path->data[path->len - 2].vec);
-        mul_v3_fl(dvec, (ctime - 1.0f) * (float)path->len);
-        add_v3_v3(r_vec, dvec);
-        if (r_quat) {
-          copy_qt_qt(r_quat, path->data[path->len - 1].quat);
-        }
-        if (r_radius) {
-          *r_radius = path->data[path->len - 1].radius;
-        }
-        /* weight - not used but could be added */
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
-/**
- * For each point, rotate & translate to curve use path, since it has constant distances.
+ * For each point, rotate & translate to curve.
  *
  * \param co: local coord, result local too.
  * \param r_quat: returns quaternion for rotation,
@@ -155,7 +87,7 @@ static bool calc_curve_deform(
     return false;
   }
 
-  if (ob_curve->runtime.curve_cache->path == NULL) {
+  if (ob_curve->runtime.curve_cache->anim_path_accum_length == NULL) {
     return false; /* happens on append, cyclic dependencies and empty curves */
   }
 
@@ -172,8 +104,10 @@ static bool calc_curve_deform(
       }
     }
     else {
-      if (LIKELY(ob_curve->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
-        fac = -(co[index] - cd->dmax[index]) / (ob_curve->runtime.curve_cache->path->totdist);
+      CurveCache *cc = ob_curve->runtime.curve_cache;
+      float totdist = BKE_anim_path_get_length(cc);
+      if (LIKELY(totdist > FLT_EPSILON)) {
+        fac = -(co[index] - cd->dmax[index]) / totdist;
       }
       else {
         fac = 0.0f;
@@ -192,8 +126,10 @@ static bool calc_curve_deform(
       }
     }
     else {
-      if (LIKELY(ob_curve->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
-        fac = +(co[index] - cd->dmin[index]) / (ob_curve->runtime.curve_cache->path->totdist);
+      CurveCache *cc = ob_curve->runtime.curve_cache;
+      float totdist = BKE_anim_path_get_length(cc);
+      if (LIKELY(totdist > FLT_EPSILON)) {
+        fac = +(co[index] - cd->dmin[index]) / totdist;
       }
       else {
         fac = 0.0f;
@@ -201,7 +137,7 @@ static bool calc_curve_deform(
     }
   }
 
-  if (where_on_path_deform(ob_curve, fac, loc, dir, new_quat, &radius)) { /* returns OK */
+  if (BKE_where_on_path(ob_curve, fac, loc, dir, new_quat, &radius, NULL)) { /* returns OK */
     float quat[4], cent[3];
 
     if (cd->no_rot_axis) { /* set by caller */

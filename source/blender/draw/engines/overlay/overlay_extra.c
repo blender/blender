@@ -542,16 +542,15 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
       DRW_buffer_add_entry(cb->field_vortex, color, &instdata);
       break;
     case PFIELD_GUIDE:
-      if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path &&
-          ob->runtime.curve_cache->path->data) {
+      if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
         float pos[4], tmp[3];
-        where_on_path(ob, 0.0f, pos, tmp, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 0.0f, pos, tmp, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_curve, color, &instdata);
 
-        where_on_path(ob, 1.0f, pos, tmp, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 1.0f, pos, tmp, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_sphere_limit, color, &instdata);
