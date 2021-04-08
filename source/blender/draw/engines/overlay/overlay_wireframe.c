@@ -180,14 +180,17 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   const bool is_edit_mode = DRW_object_is_in_edit_mode(ob);
   bool has_edit_mesh_cage = false;
   bool is_mesh_verts_only = false;
-  if (is_mesh && is_edit_mode) {
+  if (is_mesh) {
     /* TODO: Should be its own function. */
     Mesh *me = ob->data;
-    BMEditMesh *embm = me->edit_mesh;
-    if (embm) {
-      has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
-      if (embm->mesh_eval_final) {
-        me = embm->mesh_eval_final;
+    if (is_edit_mode) {
+      BMEditMesh *embm = me->edit_mesh;
+      if (embm) {
+        has_edit_mesh_cage = embm->mesh_eval_cage &&
+                             (embm->mesh_eval_cage != embm->mesh_eval_final);
+        if (embm->mesh_eval_final) {
+          me = embm->mesh_eval_final;
+        }
       }
     }
     is_mesh_verts_only = me->totedge == 0 && me->totvert > 0;
