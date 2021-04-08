@@ -14,22 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
-#include "BKE_attribute.h"
-#include "BKE_attribute_access.hh"
-
-#include "BLI_array.hh"
-#include "BLI_math_base_safe.h"
-#include "BLI_rand.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_pointcloud_types.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "NOD_math_functions.hh"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_compare_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},

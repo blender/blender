@@ -14,10 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BLI_task.hh"
-
-#include "BLI_math_matrix.h"
-
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_bounding_box_in[] = {

@@ -14,9 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
-
 #include "DNA_modifier_types.h"
 
 #include "node_geometry_util.hh"

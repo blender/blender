@@ -14,15 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
-#include "BLI_rand.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_pointcloud_types.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_fill_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},

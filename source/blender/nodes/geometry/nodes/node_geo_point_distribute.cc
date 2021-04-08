@@ -14,12 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BLI_float3.hh"
 #include "BLI_hash.h"
 #include "BLI_kdtree.h"
-#include "BLI_math_vector.h"
 #include "BLI_rand.hh"
-#include "BLI_span.hh"
 #include "BLI_timeit.hh"
 
 #include "DNA_mesh_types.h"
@@ -28,7 +25,6 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
-#include "BKE_deform.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
