@@ -472,10 +472,10 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                               context->quality,
                                                               context->overwrite,
                                                               file_list);
-    }
-    if (!context->index_context) {
-      SEQ_proxy_rebuild_finish(context, false);
-      return false;
+      if (!context->index_context) {
+        MEM_freeN(context);
+        return false;
+      }
     }
 
     link = BLI_genericNodeN(context);
