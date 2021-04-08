@@ -227,6 +227,8 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
+struct GSet *BKE_scene_objects_as_gset(struct Scene *scene, struct GSet *objects_gset);
+
 #define FOREACH_SCENE_COLLECTION_BEGIN(scene, _instance) \
   ITER_BEGIN (BKE_scene_collections_iterator_begin, \
               BKE_scene_collections_iterator_next, \
