@@ -2941,7 +2941,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "concave_mask_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "concave_mask_factor");
-  RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(
@@ -3113,6 +3112,13 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Invert Cavity Mask",
                            "Invert mask to expose convex instead of concave areas");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_automasking_concave", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "automasking_flags", BRUSH_AUTOMASKING_CONCAVITY);
+  RNA_def_property_ui_text(prop,
+                           "Cavity Auto-Masking",
+                           "Filter verts by concavity; use with paint brushes");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_automasking_topology", PROP_BOOLEAN, PROP_NONE);

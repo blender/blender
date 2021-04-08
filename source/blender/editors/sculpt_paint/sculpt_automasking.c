@@ -145,7 +145,7 @@ float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
     return mask;
   }
 
-  do_concave = ss->cache->brush->concave_mask_factor > 0.0f ||
+  do_concave = ss->cache->brush->concave_mask_factor > 0.0f &&
                (automasking->settings.flags & BRUSH_AUTOMASKING_CONCAVITY);
 
   /* If the cache is initialized with valid info, use the cache. This is used when the
@@ -372,10 +372,6 @@ static void SCULPT_automasking_cache_settings_update(AutomaskingCache *automaski
                                                      Brush *brush)
 {
   automasking->settings.flags = sculpt_automasking_mode_effective_bits(sd, brush);
-
-  if (brush->concave_mask_factor != 0.0f) {
-    automasking->settings.flags |= BRUSH_AUTOMASKING_CONCAVITY;
-  }
 
   automasking->settings.initial_face_set = SCULPT_active_face_set_get(ss);
   automasking->settings.concave_factor = brush->concave_mask_factor;

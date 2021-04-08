@@ -926,8 +926,13 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         # topology automasking
         col.prop(brush, "use_automasking_topology", text="Topology")
 
-        col.prop(brush, "concave_mask_factor", text="Cavity Factor");
-        col.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask");
+        col.prop(brush, "use_automasking_concave")
+
+        col2 = col.column()
+        col2.enabled = brush.use_automasking_concave
+
+        col2.prop(brush, "concave_mask_factor", text="Cavity Factor");
+        col2.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask");
 
         # face masks automasking
         col.prop(brush, "use_automasking_face_sets", text="Face Sets")
