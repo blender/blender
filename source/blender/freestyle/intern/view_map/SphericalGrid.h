@@ -73,8 +73,7 @@ class SphericalGrid {
     // Cell(const Cell& other);
     // Cell& operator=(const Cell& other);
 
-    explicit Cell();
-    ~Cell();
+    explicit Cell() = default;
 
     static bool compareOccludersByShallowestPoint(const OccluderData *a, const OccluderData *b);
 
@@ -106,7 +105,6 @@ class SphericalGrid {
     // epsilon is not used in this class, but other grids with the same interface may need an
     // epsilon
     explicit Iterator(SphericalGrid &grid, Vec3r &center, real epsilon = 1.0e-06);
-    ~Iterator();
     void initBeforeTarget();
     void initAfterTarget();
     void nextOccluder();
@@ -135,7 +133,7 @@ class SphericalGrid {
 
   class Transform : public GridHelpers::Transform {
    public:
-    explicit Transform();
+    explicit Transform() = default;
     explicit Transform(Transform &other);
     Vec3r operator()(const Vec3r &point) const;
     static Vec3r sphericalProjection(const Vec3r &M);

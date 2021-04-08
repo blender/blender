@@ -39,7 +39,6 @@ class AverageAreaGridDensityProvider : public GridDensityProvider {
                                  const GridHelpers::Transform &transform,
                                  real sizeFactor);
   AverageAreaGridDensityProvider(OccluderSource &source, real sizeFactor);
-  virtual ~AverageAreaGridDensityProvider();
 
  private:
   void initialize(const real proscenium[4], real sizeFactor);
@@ -48,7 +47,6 @@ class AverageAreaGridDensityProvider : public GridDensityProvider {
 class AverageAreaGridDensityProviderFactory : public GridDensityProviderFactory {
  public:
   AverageAreaGridDensityProviderFactory(real sizeFactor);
-  ~AverageAreaGridDensityProviderFactory();
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);

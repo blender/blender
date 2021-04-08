@@ -26,13 +26,7 @@ using namespace std;
 
 namespace Freestyle {
 
-BezierCurveSegment::BezierCurveSegment()
-{
-}
-
-BezierCurveSegment::~BezierCurveSegment()
-{
-}
+BezierCurveSegment::~BezierCurveSegment() = default;
 
 void BezierCurveSegment::AddControlPoint(const Vec2d &iPoint)
 {

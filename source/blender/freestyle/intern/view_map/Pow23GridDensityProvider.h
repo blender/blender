@@ -37,7 +37,6 @@ class Pow23GridDensityProvider : public GridDensityProvider {
                            const GridHelpers::Transform &transform,
                            unsigned numFaces);
   Pow23GridDensityProvider(OccluderSource &source, unsigned numFaces);
-  virtual ~Pow23GridDensityProvider();
 
  protected:
   unsigned numFaces;
@@ -49,7 +48,6 @@ class Pow23GridDensityProvider : public GridDensityProvider {
 class Pow23GridDensityProviderFactory : public GridDensityProviderFactory {
  public:
   Pow23GridDensityProviderFactory(unsigned numFaces);
-  ~Pow23GridDensityProviderFactory();
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);

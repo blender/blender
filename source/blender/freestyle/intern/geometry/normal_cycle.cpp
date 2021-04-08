@@ -36,10 +36,6 @@ namespace Freestyle::OGF {
 
 //_________________________________________________________
 
-NormalCycle::NormalCycle()
-{
-}
-
 void NormalCycle::begin()
 {
   M_[0] = M_[1] = M_[2] = M_[3] = M_[4] = M_[5] = 0;

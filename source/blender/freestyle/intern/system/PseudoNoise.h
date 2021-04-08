@@ -31,8 +31,6 @@ namespace Freestyle {
 
 class PseudoNoise {
  public:
-  PseudoNoise();
-
   virtual ~PseudoNoise()
   {
   }

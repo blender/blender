@@ -55,10 +55,6 @@ ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource &sourc
   initialize(proscenium);
 }
 
-ArbitraryGridDensityProvider::~ArbitraryGridDensityProvider()
-{
-}
-
 void ArbitraryGridDensityProvider::initialize(const real proscenium[4])
 {
   float prosceniumWidth = (proscenium[1] - proscenium[0]);
@@ -96,10 +92,6 @@ void ArbitraryGridDensityProvider::initialize(const real proscenium[4])
 
 ArbitraryGridDensityProviderFactory::ArbitraryGridDensityProviderFactory(unsigned numCells)
     : numCells(numCells)
-{
-}
-
-ArbitraryGridDensityProviderFactory::~ArbitraryGridDensityProviderFactory()
 {
 }
 

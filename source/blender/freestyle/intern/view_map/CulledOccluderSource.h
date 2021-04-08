@@ -36,7 +36,6 @@ class CulledOccluderSource : public OccluderSource {
                        WingedEdge &we,
                        ViewMap &viewMap,
                        bool extensiveFEdgeSearch = true);
-  virtual ~CulledOccluderSource();
 
   void cullViewEdges(ViewMap &viewMap, bool extensiveFEdgeSearch);
 
