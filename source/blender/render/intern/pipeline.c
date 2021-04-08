@@ -2674,6 +2674,12 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
   RE_SetCamera(re, camera);
 
   do_render_3d(re);
+
+  /* No persistent data for preview render. */
+  if (re->engine) {
+    RE_engine_free(re->engine);
+    re->engine = NULL;
+  }
 }
 
 void RE_CleanAfterRender(Render *re)
