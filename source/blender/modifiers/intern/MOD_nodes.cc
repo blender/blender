@@ -43,17 +43,22 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_query.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_node_ui_storage.hh"
+#include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
 #include "BKE_simulation.h"
+#include "BKE_workspace.h"
 
 #include "BLO_read_write.h"
 
@@ -1088,6 +1093,110 @@ static void reset_tree_ui_storage(Span<const blender::nodes::NodeTreeRef *> tree
   }
 }
 
+static const DTreeContext *find_derived_tree_context_that_matches_tree_path(
+    const SpaceNode &snode, const DerivedNodeTree &tree)
+{
+  const DTreeContext &root_context = tree.root_context();
+  bNodeTree *root_tree_eval = root_context.tree().btree();
+  bNodeTree *root_tree_orig = (bNodeTree *)DEG_get_original_id(&root_tree_eval->id);
+  if (snode.nodetree != root_tree_orig) {
+    return nullptr;
+  }
+
+  const DTreeContext *current_context = &root_context;
+  bool is_first = true;
+  LISTBASE_FOREACH (const bNodeTreePath *, path, &snode.treepath) {
+    if (is_first) {
+      is_first = false;
+      continue;
+    }
+    StringRef parent_node_name = path->node_name;
+    const NodeTreeRef &tree_ref = current_context->tree();
+    const NodeRef *parent_node_ref = nullptr;
+    for (const NodeRef *node_ref : tree_ref.nodes()) {
+      if (node_ref->name() == parent_node_name) {
+        parent_node_ref = node_ref;
+        break;
+      }
+    }
+    if (parent_node_ref == nullptr) {
+      return nullptr;
+    }
+    current_context = current_context->child_context(*parent_node_ref);
+    if (current_context == nullptr) {
+      return nullptr;
+    }
+  }
+  return current_context;
+}
+
+static DNode find_active_preview_node_in_node_editor(const SpaceNode &snode,
+                                                     const DerivedNodeTree &tree)
+{
+  const DTreeContext *context = find_derived_tree_context_that_matches_tree_path(snode, tree);
+  if (context == nullptr) {
+    return {};
+  }
+  const NodeTreeRef &tree_ref = context->tree();
+  for (const NodeRef *node_ref : tree_ref.nodes()) {
+    if (node_ref->bnode()->flag & NODE_ACTIVE_PREVIEW) {
+      return {context, node_ref};
+    }
+  }
+  return {};
+}
+
+static DNode find_active_preview_node_in_all_node_editors(Depsgraph *depsgraph,
+                                                          const DerivedNodeTree &tree)
+{
+  Main *bmain = DEG_get_bmain(depsgraph);
+  wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
+    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      SpaceLink *sl = (SpaceLink *)area->spacedata.first;
+      if (sl->spacetype != SPACE_NODE) {
+        continue;
+      }
+      SpaceNode *snode = (SpaceNode *)sl;
+      DNode preview_node = find_active_preview_node_in_node_editor(*snode, tree);
+      if (!preview_node) {
+        continue;
+      }
+      return preview_node;
+    }
+  }
+  return {};
+}
+
+static DSocket find_preview_socket_in_all_node_editors(Depsgraph *depsgraph,
+                                                       const DerivedNodeTree &tree)
+{
+  DNode preview_node = find_active_preview_node_in_all_node_editors(depsgraph, tree);
+  if (!preview_node) {
+    return {};
+  }
+  for (const SocketRef *socket : preview_node->outputs()) {
+    if (socket->bsocket()->type == SOCK_GEOMETRY) {
+      return {preview_node.context(), socket};
+    }
+  }
+  for (const SocketRef *socket : preview_node->inputs()) {
+    if (socket->bsocket()->type == SOCK_GEOMETRY &&
+        (socket->bsocket()->flag & SOCK_MULTI_INPUT) == 0) {
+      return {preview_node.context(), socket};
+    }
+  }
+  return {};
+}
+
+static void log_preview_socket_value(const Span<GPointer> values, Object *object)
+{
+  GeometrySet geometry_set = *(const GeometrySet *)values[0].get();
+  geometry_set.ensure_owns_direct_data();
+  BKE_object_set_preview_geometry_set(object, new GeometrySet(std::move(geometry_set)));
+}
+
 /**
  * Evaluate a node group to compute the output geometry.
  * Currently, this uses a fairly basic and inefficient algorithm that might compute things more
@@ -1143,6 +1252,14 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   Vector<DInputSocket> group_outputs;
   group_outputs.append({root_context, &socket_to_compute});
 
+  const DSocket preview_socket = find_preview_socket_in_all_node_editors(ctx->depsgraph, tree);
+
+  auto log_socket_value = [&](const DSocket socket, const Span<GPointer> values) {
+    if (socket == preview_socket && nmd->modifier.flag & eModifierFlag_Active) {
+      log_preview_socket_value(values, ctx->object);
+    }
+  };
+
   GeometryNodesEvaluator evaluator{group_inputs,
                                    group_outputs,
                                    mf_by_node,
@@ -1150,7 +1267,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
                                    ctx->object,
                                    (ModifierData *)nmd,
                                    ctx->depsgraph,
-                                   {}};
+                                   log_socket_value};
 
   Vector<GMutablePointer> results = evaluator.execute();
   BLI_assert(results.size() == 1);

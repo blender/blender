@@ -7365,6 +7365,11 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        ICON_NONE,
        "Original",
        "Use data from original object without any modifiers applied"},
+      {SPREADSHEET_OBJECT_EVAL_STATE_NODE,
+       "NODE",
+       ICON_NONE,
+       "Node",
+       "Use data from the first geometry output of the node tagged for preview"},
       {0, NULL, 0, NULL, NULL},
   };
 

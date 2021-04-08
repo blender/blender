@@ -1756,6 +1756,10 @@ void BKE_object_free_derived_caches(Object *ob)
     BKE_geometry_set_free(ob->runtime.geometry_set_eval);
     ob->runtime.geometry_set_eval = NULL;
   }
+  if (ob->runtime.geometry_set_preview != NULL) {
+    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
+    ob->runtime.geometry_set_preview = NULL;
+  }
 }
 
 void BKE_object_free_caches(Object *object)
@@ -1804,6 +1808,18 @@ void BKE_object_free_caches(Object *object)
   if (update_flag != 0) {
     DEG_id_tag_update(&object->id, update_flag);
   }
+}
+
+/* Can be called from multiple threads. */
+void BKE_object_set_preview_geometry_set(Object *ob, struct GeometrySet *geometry_set)
+{
+  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
+  BLI_mutex_lock(&mutex);
+  if (ob->runtime.geometry_set_preview != NULL) {
+    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
+  }
+  ob->runtime.geometry_set_preview = geometry_set;
+  BLI_mutex_unlock(&mutex);
 }
 
 /**

@@ -200,25 +200,7 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
                                             const GeometryComponentType used_component_type)
 {
   GeometrySet geometry_set;
-  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
-    if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
-      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
-      if (mesh == nullptr) {
-        return geometry_set;
-      }
-      BKE_mesh_wrapper_ensure_mdata(mesh);
-      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-      mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
-      mesh_component.copy_vertex_group_names_from_object(*object_eval);
-    }
-    else {
-      if (object_eval->runtime.geometry_set_eval != nullptr) {
-        /* This does not copy the geometry data itself. */
-        geometry_set = *object_eval->runtime.geometry_set_eval;
-      }
-    }
-  }
-  else {
+  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     Object *object_orig = DEG_get_original_object(object_eval);
     if (object_orig->type == OB_MESH) {
       MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
@@ -245,6 +227,30 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
       PointCloudComponent &pointcloud_component =
           geometry_set.get_component_for_write<PointCloudComponent>();
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
+    }
+  }
+  else {
+    if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
+      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
+      if (mesh == nullptr) {
+        return geometry_set;
+      }
+      BKE_mesh_wrapper_ensure_mdata(mesh);
+      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+      mesh_component.copy_vertex_group_names_from_object(*object_eval);
+    }
+    else {
+      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_NODE) {
+        if (object_eval->runtime.geometry_set_preview != nullptr) {
+          geometry_set = *object_eval->runtime.geometry_set_preview;
+        }
+      }
+      else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+        if (object_eval->runtime.geometry_set_eval != nullptr) {
+          geometry_set = *object_eval->runtime.geometry_set_eval;
+        }
+      }
     }
   }
   return geometry_set;
@@ -377,7 +383,7 @@ static Span<int64_t> filter_mesh_elements_by_selection(const bContext *C,
 static GeometryComponentType get_display_component_type(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+  if (sspreadsheet->object_eval_state != SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     return (GeometryComponentType)sspreadsheet->geometry_component_type;
   }
   if (object_eval->type == OB_POINTCLOUD) {

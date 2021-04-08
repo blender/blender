@@ -41,6 +41,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -1316,6 +1317,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       nodeSetSelected(node, false);
       node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_TEXTURE);
       nodeSetSelected(newnode, true);
+      newnode->flag &= ~NODE_ACTIVE_PREVIEW;
 
       do_tag_update |= (do_tag_update || node_connected_to_output(bmain, ntree, newnode));
     }
@@ -1686,6 +1688,55 @@ void NODE_OT_hide_socket_toggle(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = node_socket_toggle_exec;
+  ot->poll = ED_operator_node_active;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static void disable_active_preview_on_all_nodes(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->flag &= ~NODE_ACTIVE_PREVIEW;
+  }
+}
+
+static int node_active_preview_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+  Main *bmain = CTX_data_main(C);
+  bNodeTree *ntree = snode->edittree;
+  disable_active_preview_on_all_nodes(ntree);
+  bNode *active_node = nodeGetActive(ntree);
+  active_node->flag |= NODE_ACTIVE_PREVIEW;
+
+  /* Tag for update, so that dependent objects are reevaluated. This is necessary when a
+   * spreadsheet editor displays data from a node. */
+  LISTBASE_FOREACH (wmWindow *, window, &((wmWindowManager *)bmain->wm.first)->windows) {
+    bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype == SPACE_SPREADSHEET) {
+        SpaceSpreadsheet *sspreadsheet = area->spacedata.first;
+        if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_NODE) {
+          DEG_id_tag_update(&ntree->id, ID_RECALC_COPY_ON_WRITE);
+          ED_area_tag_redraw(area);
+        }
+      }
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_active_preview_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Active Preview";
+  ot->description = "Toggle active preview state of node";
+  ot->idname = "NODE_OT_active_preview_toggle";
+
+  /* callbacks */
+  ot->exec = node_active_preview_toggle_exec;
   ot->poll = ED_operator_node_active;
 
   /* flags */

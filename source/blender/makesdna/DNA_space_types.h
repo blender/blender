@@ -1889,6 +1889,7 @@ typedef enum eSpaceSpreadsheet_FilterFlag {
 typedef enum eSpaceSpreadsheet_ObjectEvalState {
   SPREADSHEET_OBJECT_EVAL_STATE_FINAL = 0,
   SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL = 1,
+  SPREADSHEET_OBJECT_EVAL_STATE_NODE = 2,
 } eSpaceSpreadsheet_Context;
 
 /* -------------------------------------------------------------------- */

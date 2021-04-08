@@ -169,6 +169,11 @@ typedef struct Object_Runtime {
   struct GeometrySet *geometry_set_eval;
 
   /**
+   * Data from this geometry set is previewed in the spreadsheet editor.
+   */
+  struct GeometrySet *geometry_set_preview;
+
+  /**
    * Mesh structure created during object evaluation.
    * It has deformation only modifiers applied on it.
    */
