@@ -184,13 +184,11 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     /* TODO: Should be its own function. */
     Mesh *me = ob->data;
     if (is_edit_mode) {
+      BLI_assert(me->edit_mesh);
       BMEditMesh *embm = me->edit_mesh;
-      if (embm) {
-        has_edit_mesh_cage = embm->mesh_eval_cage &&
-                             (embm->mesh_eval_cage != embm->mesh_eval_final);
-        if (embm->mesh_eval_final) {
-          me = embm->mesh_eval_final;
-        }
+      has_edit_mesh_cage = embm->mesh_eval_cage && (embm->mesh_eval_cage != embm->mesh_eval_final);
+      if (embm->mesh_eval_final) {
+        me = embm->mesh_eval_final;
       }
     }
     is_mesh_verts_only = me->totedge == 0 && me->totvert > 0;
