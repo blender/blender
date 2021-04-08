@@ -117,11 +117,11 @@ static void create_mesh_from_volume(GeometrySet &geometry_set_in,
     return;
   }
 
-  Main *bmain = DEG_get_bmain(params.depsgraph());
-  BKE_volume_load(const_cast<Volume *>(volume), bmain);
+  const Main *bmain = DEG_get_bmain(params.depsgraph());
+  BKE_volume_load(volume, bmain);
 
   const std::string grid_name = params.get_input<std::string>("Density");
-  VolumeGrid *volume_grid = BKE_volume_grid_find(volume, grid_name.c_str());
+  const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, grid_name.c_str());
   if (volume_grid == nullptr) {
     return;
   }

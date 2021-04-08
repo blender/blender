@@ -137,7 +137,7 @@ static void rna_Volume_grids_end(CollectionPropertyIterator *UNUSED(iter))
 static PointerRNA rna_Volume_grids_get(CollectionPropertyIterator *iter)
 {
   Volume *volume = iter->internal.count.ptr;
-  const VolumeGrid *grid = BKE_volume_grid_get(volume, iter->internal.count.item);
+  const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, iter->internal.count.item);
   return rna_pointer_inherit_refine(&iter->parent, &RNA_VolumeGrid, (void *)grid);
 }
 
@@ -205,6 +205,16 @@ static int rna_VolumeGrids_frame_filepath_length(PointerRNA *ptr)
 {
   Volume *volume = (Volume *)ptr->data;
   return strlen(BKE_volume_grids_frame_filepath(volume));
+}
+
+static bool rna_Volume_load(Volume *volume, Main *bmain)
+{
+  return BKE_volume_load(volume, bmain);
+}
+
+static bool rna_Volume_save(Volume *volume, Main *bmain, ReportList *reports, const char *filepath)
+{
+  return BKE_volume_save(volume, bmain, reports, filepath);
 }
 
 #else
@@ -335,7 +345,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  func = RNA_def_function(srna, "load", "BKE_volume_load");
+  func = RNA_def_function(srna, "load", "rna_Volume_load");
   RNA_def_function_ui_description(func, "Load list of grids and metadata from file");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   parm = RNA_def_boolean(func, "success", 0, "", "True if grid list was successfully loaded");
@@ -344,7 +354,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "unload", "BKE_volume_unload");
   RNA_def_function_ui_description(func, "Unload all grid and voxel data from memory");
 
-  func = RNA_def_function(srna, "save", "BKE_volume_save");
+  func = RNA_def_function(srna, "save", "rna_Volume_save");
   RNA_def_function_ui_description(func, "Save grids and metadata to file");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "File path to save to");

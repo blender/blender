@@ -78,16 +78,17 @@ extern void (*BKE_volume_batch_cache_free_cb)(struct Volume *volume);
 
 typedef struct VolumeGrid VolumeGrid;
 
-bool BKE_volume_load(struct Volume *volume, struct Main *bmain);
+bool BKE_volume_load(const struct Volume *volume, const struct Main *bmain);
 void BKE_volume_unload(struct Volume *volume);
 bool BKE_volume_is_loaded(const struct Volume *volume);
 
 int BKE_volume_num_grids(const struct Volume *volume);
 const char *BKE_volume_grids_error_msg(const struct Volume *volume);
 const char *BKE_volume_grids_frame_filepath(const struct Volume *volume);
-VolumeGrid *BKE_volume_grid_get(const struct Volume *volume, int grid_index);
-VolumeGrid *BKE_volume_grid_active_get(const struct Volume *volume);
-VolumeGrid *BKE_volume_grid_find(const struct Volume *volume, const char *name);
+const VolumeGrid *BKE_volume_grid_get_for_read(const struct Volume *volume, int grid_index);
+VolumeGrid *BKE_volume_grid_get_for_write(struct Volume *volume, int grid_index);
+const VolumeGrid *BKE_volume_grid_active_get_for_read(const struct Volume *volume);
+const VolumeGrid *BKE_volume_grid_find_for_read(const struct Volume *volume, const char *name);
 
 /* Grid
  *
@@ -109,8 +110,8 @@ typedef enum VolumeGridType {
   VOLUME_GRID_POINTS,
 } VolumeGridType;
 
-bool BKE_volume_grid_load(const struct Volume *volume, struct VolumeGrid *grid);
-void BKE_volume_grid_unload(const struct Volume *volume, struct VolumeGrid *grid);
+bool BKE_volume_grid_load(const struct Volume *volume, const struct VolumeGrid *grid);
+void BKE_volume_grid_unload(const struct Volume *volume, const struct VolumeGrid *grid);
 bool BKE_volume_grid_is_loaded(const struct VolumeGrid *grid);
 
 /* Metadata */
@@ -145,8 +146,8 @@ int BKE_volume_simplify_level(const struct Depsgraph *depsgraph);
 float BKE_volume_simplify_factor(const struct Depsgraph *depsgraph);
 
 /* File Save */
-bool BKE_volume_save(struct Volume *volume,
-                     struct Main *bmain,
+bool BKE_volume_save(const struct Volume *volume,
+                     const struct Main *bmain,
                      struct ReportList *reports,
                      const char *filepath);
 
@@ -165,7 +166,7 @@ bool BKE_volume_save(struct Volume *volume,
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const struct VolumeGrid *grid);
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume *volume,
-                                                             struct VolumeGrid *grid);
+                                                             const struct VolumeGrid *grid);
 openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *volume,
                                                          struct VolumeGrid *grid,
                                                          const bool clear);
