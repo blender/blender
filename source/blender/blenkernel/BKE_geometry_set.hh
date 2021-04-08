@@ -186,7 +186,7 @@ class GeometryComponent {
                             const CustomDataType data_type);
 
   blender::Set<std::string> attribute_names() const;
-  void attribute_foreach(const AttributeForeachCallback callback) const;
+  bool attribute_foreach(const AttributeForeachCallback callback) const;
 
   virtual bool is_empty() const;
 
