@@ -34,9 +34,8 @@ struct Depsgraph;
 
 class AnimationValueBackup {
  public:
-  AnimationValueBackup();
+  AnimationValueBackup() = default;
   AnimationValueBackup(const string &rna_path, int array_index, float value);
-  ~AnimationValueBackup();
 
   AnimationValueBackup(const AnimationValueBackup &other) = default;
   AnimationValueBackup(AnimationValueBackup &&other) noexcept = default;

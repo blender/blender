@@ -120,10 +120,6 @@ class IMemStream : public Imf::IStream {
     _exrbuf = exrbuf;
   }
 
-  ~IMemStream() override
-  {
-  }
-
   bool read(char c[], int n) override
   {
     if (n + _exrpos <= _exrsize) {

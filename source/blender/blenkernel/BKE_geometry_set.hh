@@ -135,7 +135,7 @@ class GeometryComponent {
 
  public:
   GeometryComponent(GeometryComponentType type);
-  virtual ~GeometryComponent();
+  virtual ~GeometryComponent() = default;
   static GeometryComponent *create(GeometryComponentType component_type);
 
   /* The returned component should be of the same type as the type this is called on. */

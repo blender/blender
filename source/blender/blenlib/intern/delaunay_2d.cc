@@ -334,9 +334,6 @@ template<typename T> class CDT_state {
   T epsilon;
 
   explicit CDT_state(int num_input_verts, int num_input_edges, int num_input_faces, T epsilon);
-  ~CDT_state()
-  {
-  }
 };
 
 template<typename T> CDTArrangement<T>::~CDTArrangement()

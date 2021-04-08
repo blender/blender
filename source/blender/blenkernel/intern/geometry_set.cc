@@ -49,10 +49,6 @@ GeometryComponent::GeometryComponent(GeometryComponentType type) : type_(type)
 {
 }
 
-GeometryComponent ::~GeometryComponent()
-{
-}
-
 GeometryComponent *GeometryComponent::create(GeometryComponentType component_type)
 {
   switch (component_type) {

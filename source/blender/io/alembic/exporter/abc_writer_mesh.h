@@ -51,7 +51,6 @@ class ABCGenericMeshWriter : public ABCAbstractWriter {
 
  public:
   explicit ABCGenericMeshWriter(const ABCWriterConstructorArgs &args);
-  virtual ~ABCGenericMeshWriter();
 
   virtual void create_alembic_objects(const HierarchyContext *context) override;
   virtual Alembic::Abc::OObject get_alembic_object() const override;

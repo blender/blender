@@ -43,9 +43,6 @@ class DupliParentFinder final {
   InstancerPIDToDuplisMap instancer_pid_to_duplis_;
 
  public:
-  DupliParentFinder();
-  ~DupliParentFinder();
-
   void insert(const DupliObject *dupli_ob);
 
   bool is_duplicated(const Object *object) const;

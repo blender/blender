@@ -171,10 +171,6 @@ static struct VolumeFileCache {
   };
 
   /* Cache */
-  VolumeFileCache()
-  {
-  }
-
   ~VolumeFileCache()
   {
     BLI_assert(cache.empty());

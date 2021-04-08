@@ -137,10 +137,6 @@ AbstractHierarchyWriter *EnsuredWriter::operator->()
   return writer_;
 }
 
-AbstractHierarchyWriter::~AbstractHierarchyWriter()
-{
-}
-
 bool AbstractHierarchyWriter::check_is_animated(const HierarchyContext &context) const
 {
   const Object *object = context.object;

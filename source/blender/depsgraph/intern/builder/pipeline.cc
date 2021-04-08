@@ -40,10 +40,6 @@ AbstractBuilderPipeline::AbstractBuilderPipeline(::Depsgraph *graph)
 {
 }
 
-AbstractBuilderPipeline::~AbstractBuilderPipeline()
-{
-}
-
 void AbstractBuilderPipeline::build()
 {
   double start_time = 0.0;

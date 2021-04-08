@@ -51,10 +51,6 @@ CustomPropertiesExporter::CustomPropertiesExporter(ABCAbstractWriter *owner) : o
 {
 }
 
-CustomPropertiesExporter::~CustomPropertiesExporter()
-{
-}
-
 void CustomPropertiesExporter::write_all(const IDProperty *group)
 {
   if (group == nullptr) {

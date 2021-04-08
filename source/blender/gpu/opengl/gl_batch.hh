@@ -96,9 +96,6 @@ class GLBatch : public Batch {
   GLVaoCache vao_cache_;
 
  public:
-  GLBatch();
-  ~GLBatch();
-
   void draw(int v_first, int v_count, int i_first, int i_count) override;
   void bind(int i_first);
 

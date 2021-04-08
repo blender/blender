@@ -30,14 +30,6 @@
 
 namespace blender::deg {
 
-RootPChanMap::RootPChanMap()
-{
-}
-
-RootPChanMap::~RootPChanMap()
-{
-}
-
 /* Debug contents of map */
 void RootPChanMap::print_debug()
 {

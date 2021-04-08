@@ -37,7 +37,7 @@ class DepsgraphBuilderCache;
 
 class DepsgraphBuilder {
  public:
-  virtual ~DepsgraphBuilder();
+  virtual ~DepsgraphBuilder() = default;
 
   virtual bool need_pull_base_into_graph(Base *base);
 

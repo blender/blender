@@ -32,10 +32,8 @@
 
 namespace blender::gpu {
 
-ShaderInterface::ShaderInterface()
-{
-  /* TODO(fclem): add unique ID for debugging. */
-}
+/* TODO(fclem): add unique ID for debugging. */
+ShaderInterface::ShaderInterface() = default;
 
 ShaderInterface::~ShaderInterface()
 {

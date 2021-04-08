@@ -30,12 +30,6 @@ namespace blender::compositor {
 class DistanceYCCMatteOperation : public DistanceRGBMatteOperation {
  protected:
   float calculateDistance(float key[4], float image[4]) override;
-
- public:
-  /**
-   * Default constructor
-   */
-  DistanceYCCMatteOperation();
 };
 
 }  // namespace blender::compositor

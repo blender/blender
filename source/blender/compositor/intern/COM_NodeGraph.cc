@@ -39,10 +39,6 @@ namespace blender::compositor {
  **** NodeGraph ****
  *******************/
 
-NodeGraph::NodeGraph()
-{
-}
-
 NodeGraph::~NodeGraph()
 {
   while (m_nodes.size()) {

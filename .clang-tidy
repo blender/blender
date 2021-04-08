@@ -35,7 +35,6 @@ Checks:  >
   -modernize-use-auto,
   -modernize-use-trailing-return-type,
   -modernize-avoid-c-arrays,
-  -modernize-use-equals-default,
   -modernize-use-nodiscard,
   -modernize-loop-convert,
   -modernize-pass-by-value,

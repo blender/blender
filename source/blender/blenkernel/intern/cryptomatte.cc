@@ -54,7 +54,7 @@ struct CryptomatteSession {
   /* Layer names in order of creation. */
   blender::Vector<std::string> layer_names;
 
-  CryptomatteSession();
+  CryptomatteSession() = default;
   CryptomatteSession(const Main *bmain);
   CryptomatteSession(StampData *stamp_data);
   CryptomatteSession(const Scene *scene);
@@ -66,10 +66,6 @@ struct CryptomatteSession {
   MEM_CXX_CLASS_ALLOC_FUNCS("cryptomatte:CryptomatteSession")
 #endif
 };
-
-CryptomatteSession::CryptomatteSession()
-{
-}
 
 CryptomatteSession::CryptomatteSession(const Main *bmain)
 {
