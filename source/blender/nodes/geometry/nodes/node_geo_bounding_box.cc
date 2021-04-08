@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_volume.h"
+
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_bounding_box_in[] = {
@@ -52,6 +54,36 @@ static void compute_min_max_from_position_and_transform(const GeometryComponent 
   }
 }
 
+static void compute_min_max_from_volume_and_transforms(const VolumeComponent &volume_component,
+                                                       Span<float4x4> transforms,
+                                                       float3 &r_min,
+                                                       float3 &r_max)
+{
+#ifdef WITH_OPENVDB
+  const Volume *volume = volume_component.get_for_read();
+  if (volume == nullptr) {
+    return;
+  }
+  for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
+    const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
+    openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+
+    for (const float4x4 &transform : transforms) {
+      openvdb::GridBase::ConstPtr instance_grid = BKE_volume_grid_shallow_transform(grid,
+                                                                                    transform);
+      float3 grid_min = float3(FLT_MAX);
+      float3 grid_max = float3(-FLT_MAX);
+      if (BKE_volume_grid_bounds(instance_grid, grid_min, grid_max)) {
+        DO_MIN(grid_min, r_min);
+        DO_MAX(grid_max, r_max);
+      }
+    }
+  }
+#else
+  UNUSED_VARS(volume_component, transforms, r_min, r_max);
+#endif
+}
+
 static void compute_geometry_set_instances_boundbox(const GeometrySet &geometry_set,
                                                     float3 &r_min,
                                                     float3 &r_max)
@@ -70,6 +102,10 @@ static void compute_geometry_set_instances_boundbox(const GeometrySet &geometry_
     if (set.has<MeshComponent>()) {
       compute_min_max_from_position_and_transform(
           *set.get_component_for_read<MeshComponent>(), transforms, r_min, r_max);
+    }
+    if (set.has<VolumeComponent>()) {
+      compute_min_max_from_volume_and_transforms(
+          *set.get_component_for_read<VolumeComponent>(), transforms, r_min, r_max);
     }
   }
 }

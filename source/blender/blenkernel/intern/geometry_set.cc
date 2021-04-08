@@ -178,6 +178,10 @@ void GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   if (mesh != nullptr) {
     BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
   }
+  const Volume *volume = this->get_volume_for_read();
+  if (volume != nullptr) {
+    BKE_volume_min_max(volume, *r_min, *r_max);
+  }
 }
 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
