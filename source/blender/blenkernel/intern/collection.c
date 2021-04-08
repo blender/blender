@@ -2015,12 +2015,10 @@ static void scene_collections_array(Scene *scene,
   BLI_assert(collection != NULL);
   scene_collection_callback(collection, scene_collections_count, r_collections_array_len);
 
-  if (*r_collections_array_len == 0) {
-    return;
-  }
+  BLI_assert(*r_collections_array_len > 0);
 
-  Collection **array = MEM_mallocN(sizeof(Collection *) * (*r_collections_array_len),
-                                   "CollectionArray");
+  Collection **array = MEM_malloc_arrayN(
+      *r_collections_array_len, sizeof(Collection *), "CollectionArray");
   *r_collections_array = array;
   scene_collection_callback(collection, scene_collections_build_array, &array);
 }
