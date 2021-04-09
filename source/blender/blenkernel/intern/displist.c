@@ -1492,7 +1492,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
      */
     if (!for_orco) {
       if (ob->runtime.curve_cache->anim_path_accum_length) {
-        MEM_freeN(ob->runtime.curve_cache->anim_path_accum_length);
+        MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
       }
       ob->runtime.curve_cache->anim_path_accum_length = NULL;
     }

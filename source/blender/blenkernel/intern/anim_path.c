@@ -65,11 +65,11 @@ int BKE_anim_path_get_array_size(const CurveCache *curve_cache)
 
 float BKE_anim_path_get_length(const CurveCache *curve_cache)
 {
-  int seg_size = BKE_anim_path_get_array_size(curve_cache);
+  const int seg_size = BKE_anim_path_get_array_size(curve_cache);
   return curve_cache->anim_path_accum_length[seg_size - 1];
 }
 
-void BKE_anim_path_calc_data(struct Object *ob)
+void BKE_anim_path_calc_data(Object *ob)
 {
   if (ob == NULL || ob->type != OB_CURVE) {
     return;
@@ -87,7 +87,7 @@ void BKE_anim_path_calc_data(struct Object *ob)
 
   /* Free old data. */
   if (ob->runtime.curve_cache->anim_path_accum_length) {
-    MEM_freeN(ob->runtime.curve_cache->anim_path_accum_length);
+    MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
   }
 
   /* We assume that we have at least two points.
@@ -96,11 +96,10 @@ void BKE_anim_path_calc_data(struct Object *ob)
    */
   BLI_assert(bl->nr > 1);
 
-  int seg_size = get_bevlist_seg_array_size(bl);
+  const int seg_size = get_bevlist_seg_array_size(bl);
+  float *len_data = (float *)MEM_mallocN(sizeof(float) * seg_size, "calcpathdist");
+  ob->runtime.curve_cache->anim_path_accum_length = len_data;
 
-  ob->runtime.curve_cache->anim_path_accum_length = (float *)MEM_mallocN(sizeof(float) * seg_size,
-                                                                         "calcpathdist");
-  float *len_data = ob->runtime.curve_cache->anim_path_accum_length;
   BevPoint *bp_arr = bl->bevpoints;
   float prev_len = 0.0f;
   for (int i = 0; i < bl->nr - 1; i++) {
@@ -115,20 +114,20 @@ void BKE_anim_path_calc_data(struct Object *ob)
 }
 
 static void get_curve_points_from_idx(const int idx,
-                                      BevList *bl,
-                                      bool is_cyclic,
-                                      BevPoint **r_p0,
-                                      BevPoint **r_p1,
-                                      BevPoint **r_p2,
-                                      BevPoint **r_p3)
+                                      const BevList *bl,
+                                      const bool is_cyclic,
+                                      BevPoint const **r_p0,
+                                      BevPoint const **r_p1,
+                                      BevPoint const **r_p2,
+                                      BevPoint const **r_p3)
 {
   BLI_assert(idx >= 0);
   BLI_assert(idx < bl->nr - 1 || (is_cyclic && idx < bl->nr));
   BLI_assert(bl->nr > 1);
 
-  BevPoint *bp_arr = bl->bevpoints;
+  const BevPoint *bp_arr = bl->bevpoints;
 
-  /* First segement. */
+  /* First segment. */
   if (idx == 0) {
     *r_p1 = &bp_arr[0];
     if (is_cyclic) {
@@ -273,11 +272,11 @@ bool BKE_where_on_path(const Object *ob,
   }
 
   /* The curve points for this ctime value. */
-  BevPoint *p0, *p1, *p2, *p3;
+  const BevPoint *p0, *p1, *p2, *p3;
 
   float frac;
   const int seg_size = get_bevlist_seg_array_size(bl);
-  float *accum_len_arr = ob->runtime.curve_cache->anim_path_accum_length;
+  const float *accum_len_arr = ob->runtime.curve_cache->anim_path_accum_length;
   const float goal_len = ctime * accum_len_arr[seg_size - 1];
 
   /* Are we simply trying to get the start/end point? */
@@ -296,7 +295,7 @@ bool BKE_where_on_path(const Object *ob,
   else {
     /* Do binary search to get the correct segment. */
     int idx;
-    bool found_idx = binary_search_anim_path(accum_len_arr, seg_size, goal_len, &idx, &frac);
+    const bool found_idx = binary_search_anim_path(accum_len_arr, seg_size, goal_len, &idx, &frac);
 
     if (UNLIKELY(!found_idx)) {
       return false;
@@ -349,8 +348,8 @@ bool BKE_where_on_path(const Object *ob,
   /* Clamp weights to 0-1 as we don't want to extrapolate other values than position. */
   clamp_v4(w, 0.0f, 1.0f);
 
-  r_vec[3] = /* Tilt, should not be needed since we have quat still used */
-      w[0] * p0->tilt + w[1] * p1->tilt + w[2] * p2->tilt + w[3] * p3->tilt;
+  /* Tilt, should not be needed since we have quat still used. */
+  r_vec[3] = w[0] * p0->tilt + w[1] * p1->tilt + w[2] * p2->tilt + w[3] * p3->tilt;
 
   if (r_quat) {
     float totfac, q1[4], q2[4];

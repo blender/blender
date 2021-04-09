@@ -55,9 +55,8 @@ typedef struct CurveCache {
    * The first entry is the length between point 0 and 1 while the last is the
    * total length of the curve.
    *
-   * Used by 'BKE_where_on_path'.
-   */
-  float *anim_path_accum_length;
+   * Used by 'BKE_where_on_path'. */
+  const float *anim_path_accum_length;
 } CurveCache;
 
 /* Definitions needed for shape keys */
