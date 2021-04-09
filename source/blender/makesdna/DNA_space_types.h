@@ -1854,6 +1854,22 @@ typedef struct SpaceStatusBar {
 /** \name Spreadsheet
  * \{ */
 
+typedef struct SpreadsheetColumnID {
+  char *name;
+  int index;
+  char _pad[4];
+} SpreadsheetColumnID;
+
+typedef struct SpreadsheetColumn {
+  struct SpreadsheetColumn *next, *prev;
+  /**
+   * Identifies the data in the column.
+   * This is a pointer instead of a struct to make it easier if we want to "subclass"
+   * #SpreadsheetColumnID in the future for different kinds of ids.
+   */
+  SpreadsheetColumnID *id;
+} SpreadsheetColumn;
+
 typedef struct SpaceSpreadsheet {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1862,6 +1878,9 @@ typedef struct SpaceSpreadsheet {
   char link_flag;
   char _pad0[6];
   /* End 'SpaceLink' header. */
+
+  /* List of #SpreadsheetColumn. */
+  ListBase columns;
 
   struct ID *pinned_id;
 
@@ -1880,8 +1899,6 @@ typedef struct SpaceSpreadsheet {
   SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;
 
-/** \} */
-
 typedef enum eSpaceSpreadsheet_FilterFlag {
   SPREADSHEET_FILTER_SELECTED_ONLY = (1 << 0),
 } eSpaceSpreadsheet_FilterFlag;
@@ -1891,6 +1908,8 @@ typedef enum eSpaceSpreadsheet_ObjectEvalState {
   SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL = 1,
   SPREADSHEET_OBJECT_EVAL_STATE_NODE = 2,
 } eSpaceSpreadsheet_Context;
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Space Defines (eSpace_Type)

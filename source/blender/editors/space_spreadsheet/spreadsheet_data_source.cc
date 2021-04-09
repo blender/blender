@@ -14,21 +14,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#pragma once
-
-#include "BKE_geometry_set.hh"
-
-#include "BLI_resource_scope.hh"
-
-#include "spreadsheet_column_layout.hh"
-
-struct bContext;
+#include "spreadsheet_data_source.hh"
 
 namespace blender::ed::spreadsheet {
 
-void spreadsheet_columns_from_geometry(const bContext *C,
-                                       Object *object_eval,
-                                       SpreadsheetColumnLayout &column_layout,
-                                       ResourceScope &scope);
+/* Provide a "key function" for the linker. */
+DataSource::~DataSource() = default;
 
 }  // namespace blender::ed::spreadsheet
