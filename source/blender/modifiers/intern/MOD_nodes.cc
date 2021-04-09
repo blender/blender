@@ -173,7 +173,7 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
         add_collection_object_relations_recursive(ctx, *collection_instance);
       }
     }
-    else {
+    else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
     }
   }
