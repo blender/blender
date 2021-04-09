@@ -2168,11 +2168,13 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
   }
 }
 
-/** Generate a new GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
+/**
+ * Generate a new GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
  * all collections of given `scene`.
  *
  * \note: This will include objects without a base currently (because they would belong to excluded
- * collections only e.g.). */
+ * collections only e.g.).
+ */
 GSet *BKE_scene_objects_as_gset(Scene *scene, GSet *objects_gset)
 {
   BLI_Iterator iter;

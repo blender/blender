@@ -408,8 +408,10 @@ static uint nla_draw_use_dashed_outlines(const float color[4], bool muted)
   return shdr_pos;
 }
 
-/** This check only accounts for the track's disabled flag and whether the strip is being tweaked.
- * It does not account for muting or soloing. */
+/**
+ * This check only accounts for the track's disabled flag and whether the strip is being tweaked.
+ * It does not account for muting or soloing.
+ */
 static bool is_nlastrip_enabled(AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
 {
   /** This shouldn't happen. If passed NULL, then just treat strip as enabled. */

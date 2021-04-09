@@ -218,10 +218,12 @@ static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
   return local_id;
 }
 
-/** Check if given ID has some override rules that actually indicate the user edited it.
+/**
+ * Check if given ID has some override rules that actually indicate the user edited it.
  *
- * TODO: This could be simplified by storing a flag in IDOverrideLibrary during the diffing
- * process? */
+ * TODO: This could be simplified by storing a flag in #IDOverrideLibrary during the diffing
+ * process?
+ */
 bool BKE_lib_override_library_is_user_edited(struct ID *id)
 {
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
@@ -2407,8 +2409,10 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-/** Restore given ID modified by \a BKE_lib_override_library_operations_store_start, to its
- * original state. */
+/**
+ * Restore given ID modified by #BKE_lib_override_library_operations_store_start, to its
+ * original state.
+ */
 void BKE_lib_override_library_operations_store_end(
     OverrideLibraryStorage *UNUSED(override_storage), ID *local)
 {

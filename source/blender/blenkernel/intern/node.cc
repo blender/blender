@@ -3096,10 +3096,12 @@ void ntreeSetOutput(bNodeTree *ntree)
    * might be different for editor or for "real" use... */
 }
 
-/** Get address of potential nodetree pointer of given ID.
+/**
+ * Get address of potential node-tree pointer of given ID.
  *
  * \warning Using this function directly is potentially dangerous, if you don't know or are not
- * sure, please use `ntreeFromID()` instead. */
+ * sure, please use `ntreeFromID()` instead.
+ */
 bNodeTree **BKE_ntree_ptr_from_id(ID *id)
 {
   switch (GS(id->name)) {

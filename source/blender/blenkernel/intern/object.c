@@ -1359,8 +1359,9 @@ static bool object_modifier_type_copy_check(ModifierType md_type)
   return !ELEM(md_type, eModifierType_Hook, eModifierType_Collision);
 }
 
-/** Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings
- * ID), or add one, and return valid `psys` from `ob_dst`.
+/**
+ * Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings ID),
+ * or add one, and return valid `psys` from `ob_dst`.
  *
  * \note Order handling is fairly weak here. This code assumes that it is called **before** the
  * modifier using the psys is actually copied, and that this copied modifier will be added at the
@@ -1392,7 +1393,8 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
   return psys_dst;
 }
 
-/** Copy a single modifier.
+/**
+ * Copy a single modifier.
  *
  * \note **Do not** use this function to copy a whole modifier stack (see note below too). Use
  * `BKE_object_modifier_stack_copy` instead.
@@ -1400,7 +1402,8 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
  * \note Complex modifiers relaying on other data (like e.g. dynamic paint or fluid using particle
  * systems) are not always 100% 'correctly' copied here, since we have to use heuristics to decide
  * which particle system to use or add in `ob_dst`, and it's placement in the stack, etc. If used
- * more than once, this function should preferably be called in stack order. */
+ * more than once, this function should preferably be called in stack order.
+ */
 bool BKE_object_copy_modifier(
     Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md_src)
 {
@@ -1500,10 +1503,12 @@ bool BKE_object_copy_modifier(
   return true;
 }
 
-/** Copy a single GPencil modifier.
+/**
+ * Copy a single GPencil modifier.
  *
  * \note **Do not** use this function to copy a whole modifier stack. Use
- * `BKE_object_modifier_stack_copy` instead. */
+ * `BKE_object_modifier_stack_copy` instead.
+ */
 bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *gmd_src)
 {
   BLI_assert(ob_dst->type == OB_GPENCIL);

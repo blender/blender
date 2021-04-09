@@ -434,8 +434,10 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
   return strip;
 }
 
-/** Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure). */
+/**
+ * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure).
+ */
 void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
 {
   BKE_LIB_FOREACHID_PROCESS(data, strip->act, IDWALK_CB_USER);
@@ -1380,8 +1382,10 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
   }
 }
 
-/** Recalculate the start and end frames for the strip to match the bounds of its action such that
- * the overall NLA animation result is unchanged. */
+/**
+ * Recalculate the start and end frames for the strip to match the bounds of its action such that
+ * the overall NLA animation result is unchanged.
+ */
 void BKE_nlastrip_recalculate_bounds_sync_action(NlaStrip *strip)
 {
   float prev_actstart;

@@ -483,7 +483,8 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
   return i;
 }
 
-/** Update the FCurve to allow insertion of `bezt` without modifying the curve shape.
+/**
+ * Update the FCurve to allow insertion of `bezt` without modifying the curve shape.
  *
  * Checks whether it is necessary to apply Bezier subdivision due to involvement of non-auto
  * handles. If necessary, changes `bezt` handles from Auto to Aligned.

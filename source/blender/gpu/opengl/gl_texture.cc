@@ -290,7 +290,9 @@ void GLTexture::update_sub(
   }
 }
 
-/** This will create the mipmap images and populate them with filtered data from base level.
+/**
+ * This will create the mipmap images and populate them with filtered data from base level.
+ *
  * WARNING: Depth textures are not populated but they have their mips correctly defined.
  * WARNING: This resets the mipmap range.
  */

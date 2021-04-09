@@ -616,7 +616,8 @@ static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob
   return remap_cfra;
 }
 
-/** Get the current frame re-timed with time modifiers.
+/**
+ * Get the current frame re-timed with time modifiers.
  * \param depsgraph: Current depsgraph.
  * \param scene: Current scene
  * \param ob: Grease pencil object
@@ -746,7 +747,8 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   BKE_gpencil_update_orig_pointers(ob_orig, ob);
 }
 
-/** Calculate gpencil modifiers.
+/**
+ * Calculate gpencil modifiers.
  * \param depsgraph: Current depsgraph
  * \param scene: Current scene
  * \param ob: Grease pencil object

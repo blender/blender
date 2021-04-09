@@ -181,8 +181,10 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
   }
 }
 
-/** Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure). */
+/**
+ * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure).
+ */
 void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
 {
   ChannelDriver *driver = fcu->driver;
@@ -1508,7 +1510,8 @@ bool test_time_fcurve(FCurve *fcu)
 /** \name F-Curve Calculations
  * \{ */
 
-/* The length of each handle is not allowed to be more
+/**
+ * The length of each handle is not allowed to be more
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
  *
@@ -1555,9 +1558,13 @@ void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], con
   }
 }
 
-/** Find roots of cubic equation (c0 x³ + c1 x² + c2 x + c3)
+/**
+   .
+ * Find roots of cubic equation (c0 x³ + c1 x² + c2 x + c3)
  * \return number of roots in `o`.
- * NOTE: it is up to the caller to allocate enough memory for `o`. */
+ *
+ * \note it is up to the caller to allocate enough memory for `o`.
+ */
 static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
 {
   double a, b, c, p, q, d, t, phi;
