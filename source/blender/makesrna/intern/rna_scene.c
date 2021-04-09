@@ -778,7 +778,6 @@ static void rna_Scene_objects_begin(CollectionPropertyIterator *iter, PointerRNA
   Scene *scene = (Scene *)ptr->data;
   iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
 
-  ((BLI_Iterator *)iter->internal.custom)->valid = true;
   BKE_scene_objects_iterator_begin(iter->internal.custom, (void *)scene);
   iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
