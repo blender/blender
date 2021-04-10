@@ -463,8 +463,8 @@ if(UNIX AND NOT APPLE)
       add_custom_target(
         blender_man_page ALL
         COMMAND ${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py
-                ${EXECUTABLE_OUTPUT_PATH}/blender
-                ${CMAKE_CURRENT_BINARY_DIR}/blender.1)
+                --blender ${EXECUTABLE_OUTPUT_PATH}/blender
+                --output ${CMAKE_CURRENT_BINARY_DIR}/blender.1)
       add_dependencies(blender_man_page blender)
     endif()
   endif()
