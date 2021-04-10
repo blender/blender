@@ -116,6 +116,8 @@ enum {
   LIB_ID_COPY_NO_ANIMDATA = 1 << 19,
   /** Mesh: Reference CD data layers instead of doing real copy - USE WITH CAUTION! */
   LIB_ID_COPY_CD_REFERENCE = 1 << 20,
+  /** Do not copy id->override_library, used by ID datablock override routines. */
+  LIB_ID_COPY_NO_LIB_OVERRIDE = 1 << 21,
 
   /* *** XXX Hackish/not-so-nice specific behaviors needed for some corner cases. *** */
   /* *** Ideally we should not have those, but we need them for now... *** */
@@ -136,7 +138,8 @@ enum {
   LIB_ID_CREATE_LOCALIZE = LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
                            LIB_ID_CREATE_NO_DEG_TAG,
   /** Generate a local copy, outside of bmain, to work on (used by COW e.g.). */
-  LIB_ID_COPY_LOCALIZE = LIB_ID_CREATE_LOCALIZE | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_CACHES,
+  LIB_ID_COPY_LOCALIZE = LIB_ID_CREATE_LOCALIZE | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_CACHES |
+                         LIB_ID_COPY_NO_LIB_OVERRIDE,
 };
 
 void BKE_libblock_copy_ex(struct Main *bmain,

@@ -1264,9 +1264,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     new_id->properties = IDP_CopyProperty_ex(id->properties, copy_data_flag);
   }
 
-  /* We may need our own flag to control that at some point, but for now 'no main' one should be
-   * good enough. */
-  if ((orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+  if ((orig_flag & LIB_ID_COPY_NO_LIB_OVERRIDE) == 0) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       /* We do not want to copy existing override rules here, as they would break the proper
        * remapping between IDs. Proper overrides rules will be re-generated anyway. */
