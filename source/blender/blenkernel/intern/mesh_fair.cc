@@ -172,7 +172,7 @@ class FairingContext {
     }
 
     /* Early return, nothing to do. */
-    if (num_affected_vertices == 0 || num_affected_vertices == totvert_) {
+    if (ELEM(num_affected_vertices, 0, totvert_)) {
       return;
     }
 

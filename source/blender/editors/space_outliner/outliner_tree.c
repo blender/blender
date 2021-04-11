@@ -1340,7 +1340,7 @@ static void outliner_sort(ListBase *lb)
         tp->name = te->name;
         tp->idcode = te->idcode;
 
-        if ((tselem->type != TSE_SOME_ID) && tselem->type != TSE_DEFGROUP) {
+        if (!ELEM(tselem->type, TSE_SOME_ID, TSE_DEFGROUP)) {
           tp->idcode = 0; /* Don't sort this. */
         }
         if (tselem->type == TSE_ID_BASE) {
