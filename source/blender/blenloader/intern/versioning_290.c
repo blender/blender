@@ -1961,6 +1961,27 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 17)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->dyntopo.detail_range == 0.0f) {
+        Brush defbrush = *brush;
+
+        BKE_brush_sculpt_reset(&defbrush);
+        brush->dyntopo = defbrush.dyntopo;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
+        brush->dyntopo.inherit = ((1 << 17) - 1) &
+                              ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
+        brush->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
+      }
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 14)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
@@ -1976,29 +1997,20 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->dyntopo.detail_range == 0.0f) {
-        Brush defbrush = *brush;
-
-        BKE_brush_sculpt_reset(&defbrush);
-        brush->dyntopo = defbrush.dyntopo;
-      }
-
-      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-        if (ntree->type == NTREE_GEOMETRY) {
-          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == GEO_NODE_ATTRIBUTE_FILL) {
-              node->custom2 = ATTR_DOMAIN_AUTO;
-            }
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_ATTRIBUTE_FILL) {
+            node->custom2 = ATTR_DOMAIN_AUTO;
           }
         }
       }
+    }
 
-      if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "diff_fac")) {
-        LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-          light->diff_fac = 1.0f;
-          light->volume_fac = 1.0f;
-        }
+    if (!DNA_struct_elem_find(fd->filesdna, "Light", "float", "diff_fac")) {
+      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+        light->diff_fac = 1.0f;
+        light->volume_fac = 1.0f;
       }
     }
   }
