@@ -50,7 +50,7 @@ def man_format(data: str) -> str:
 
 def blender_extract_info(blender_bin: str) -> Dict[str, str]:
 
-    blender_env={
+    blender_env = {
         "ASAN_OPTIONS": "exitcode=0:" + os.environ.get("ASAN_OPTIONS", ""),
     }
 
@@ -61,15 +61,27 @@ def blender_extract_info(blender_bin: str) -> Dict[str, str]:
         stdout=subprocess.PIPE,
     ).stdout.decode(encoding="utf-8")
 
-    blender_version = subprocess.run(
+    blender_version_ouput = subprocess.run(
         [blender_bin, "--version"],
         env=blender_env,
         check=True,
         stdout=subprocess.PIPE,
-    ).stdout.decode(encoding="utf-8").strip()
+    ).stdout.decode(encoding="utf-8")
 
-    blender_version, blender_date = (blender_version.split("build") + ["", ""])[0:2]
-    blender_version = blender_version.rstrip().partition(" ")[2]  # Remove 'Blender' prefix.
+    # Extract information from the version string.
+    # Note that some internal modules may print errors (e.g. color management),
+    # check for each lines prefix to ensure these aren't included.
+    blender_version = ""
+    blender_date = ""
+    for l in blender_version_ouput.split("\n"):
+        if l.startswith("Blender "):
+            # Remove 'Blender' prefix.
+            blender_version = l.split(" ", 1)[1].strip()
+        elif l.lstrip().startswith("build date:"):
+            # Remove 'build date:' prefix.
+            blender_date = l.split(":", 1)[1].strip()
+        if blender_version and blender_date:
+            break
 
     if not blender_date:
         # Happens when built without WITH_BUILD_INFO e.g.
@@ -94,28 +106,28 @@ def man_page_from_blender_help(fh: TextIO, blender_bin: str) -> None:
         (blender_info["date"], blender_info["version"].replace(".", "\\&."))
     )
 
-    fh.write('''
+    fh.write(r'''
 .SH NAME
 blender \- a full-featured 3D application''')
 
-    fh.write('''
+    fh.write(r'''
 .SH SYNOPSIS
 .B blender [args ...] [file] [args ...]''')
 
-    fh.write('''
+    fh.write(r'''
 .br
 .SH DESCRIPTION
 .PP
 .B blender
-is a full-featured 3D application. It supports the entirety of the 3D pipeline - \
-modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
+is a full-featured 3D application. It supports the entirety of the 3D pipeline - '''
+'''modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
 
-Use Blender to create 3D images and animations, films and commercials, content for games, \
-architectural and industrial visualizatons, and scientific visualizations.
+Use Blender to create 3D images and animations, films and commercials, content for games, '''
+r'''architectural and industrial visualizatons, and scientific visualizations.
 
 https://www.blender.org''')
 
-    fh.write('''
+    fh.write(r'''
 .SH OPTIONS''')
 
     fh.write("\n\n")
@@ -159,8 +171,7 @@ https://www.blender.org''')
 
     # Footer Content.
 
-    fh.write(
-        '''
+    fh.write(r'''
 .br
 .SH SEE ALSO
 .B luxrender(1)
