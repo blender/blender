@@ -87,7 +87,6 @@ class NodeOperationBuilder {
 
  public:
   NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
-  ~NodeOperationBuilder();
 
   const CompositorContext &context() const
   {

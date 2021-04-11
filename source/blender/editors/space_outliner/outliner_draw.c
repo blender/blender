@@ -1775,6 +1775,87 @@ static void outliner_draw_userbuts(uiBlock *block,
   }
 }
 
+static bool outliner_draw_overrides_buts(uiBlock *block,
+                                         ARegion *region,
+                                         SpaceOutliner *space_outliner,
+                                         ListBase *lb,
+                                         const bool is_open)
+{
+  bool any_item_has_warnings = false;
+
+  LISTBASE_FOREACH (TreeElement *, te, lb) {
+    bool item_has_warnings = false;
+    const bool do_draw = (te->ys + 2 * UI_UNIT_Y >= region->v2d.cur.ymin &&
+                          te->ys <= region->v2d.cur.ymax);
+    int but_flag = UI_BUT_DRAG_LOCK;
+    const char *tip = NULL;
+
+    TreeStoreElem *tselem = TREESTORE(te);
+    switch (tselem->type) {
+      case TSE_LIBRARY_OVERRIDE_BASE: {
+        ID *id = tselem->id;
+
+        if (id->flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
+          item_has_warnings = true;
+          if (do_draw) {
+            tip = TIP_(
+                "This override data-block is not needed anymore, but was detected as user-edited");
+          }
+        }
+        else if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && ID_REAL_USERS(id) == 0) {
+          item_has_warnings = true;
+          if (do_draw) {
+            tip = TIP_("This override data-block is unused");
+          }
+        }
+        break;
+      }
+      case TSE_LIBRARY_OVERRIDE: {
+        const bool is_rna_path_valid = (bool)(POINTER_AS_UINT(te->directdata));
+        if (!is_rna_path_valid) {
+          item_has_warnings = true;
+          if (do_draw) {
+            tip = TIP_(
+                "This override property does not exist in current data, it will be removed on "
+                "next .blend file save");
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    const bool any_child_has_warnings = outliner_draw_overrides_buts(
+        block,
+        region,
+        space_outliner,
+        &te->subtree,
+        is_open && TSELEM_OPEN(tselem, space_outliner));
+
+    if (do_draw &&
+        (item_has_warnings || (any_child_has_warnings && !TSELEM_OPEN(tselem, space_outliner)))) {
+      if (tip == NULL) {
+        tip = TIP_("Some sub-items require attention");
+      }
+      uiBut *bt = uiDefIconBlockBut(block,
+                                    NULL,
+                                    NULL,
+                                    1,
+                                    ICON_ERROR,
+                                    (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
+                                    te->ys,
+                                    UI_UNIT_X,
+                                    UI_UNIT_Y,
+                                    tip);
+      UI_but_flag_enable(bt, but_flag);
+    }
+    any_item_has_warnings = any_item_has_warnings || item_has_warnings || any_child_has_warnings;
+  }
+
+  return any_item_has_warnings;
+}
+
 static void outliner_draw_rnacols(ARegion *region, int sizex)
 {
   View2D *v2d = &region->v2d;
@@ -2896,7 +2977,19 @@ static void outliner_draw_iconrow(bContext *C,
         active = tree_element_type_active_state_get(C, tvc, te, tselem);
       }
 
-      if (!ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION, TSE_R_LAYER, TSE_GP_LAYER)) {
+      if (!ELEM(tselem->type,
+                TSE_ID_BASE,
+                TSE_SOME_ID,
+                TSE_LAYER_COLLECTION,
+                TSE_R_LAYER,
+                TSE_GP_LAYER,
+                TSE_LIBRARY_OVERRIDE_BASE,
+                TSE_LIBRARY_OVERRIDE,
+                TSE_BONE,
+                TSE_EBONE,
+                TSE_POSE_CHANNEL,
+                TSE_POSEGRP,
+                TSE_DEFGROUP)) {
         outliner_draw_iconrow_doit(block, te, fstyle, xmax, offsx, ys, alpha_fac, active, 1);
       }
       else {
@@ -3656,7 +3749,11 @@ void draw_outliner(const bContext *C)
   }
 
   /* Sync selection state from view layer. */
-  if (!ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API, SO_ID_ORPHANS) &&
+  if (!ELEM(space_outliner->outlinevis,
+            SO_LIBRARIES,
+            SO_OVERRIDES_LIBRARY,
+            SO_DATA_API,
+            SO_ID_ORPHANS) &&
       space_outliner->flag & SO_SYNC_SELECT) {
     outliner_sync_selection(C, space_outliner);
   }
@@ -3702,6 +3799,10 @@ void draw_outliner(const bContext *C)
   else if (space_outliner->outlinevis == SO_ID_ORPHANS) {
     /* draw user toggle columns */
     outliner_draw_userbuts(block, region, space_outliner, &space_outliner->tree);
+  }
+  else if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
+    /* Draw overrides status columns. */
+    outliner_draw_overrides_buts(block, region, space_outliner, &space_outliner->tree, true);
   }
   else if (restrict_column_width > 0.0f) {
     /* draw restriction columns */

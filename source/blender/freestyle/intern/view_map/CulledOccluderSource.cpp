@@ -44,10 +44,6 @@ CulledOccluderSource::CulledOccluderSource(const GridHelpers::Transform &t,
   }
 }
 
-CulledOccluderSource::~CulledOccluderSource()
-{
-}
-
 bool CulledOccluderSource::testCurrent()
 {
   if (valid) {

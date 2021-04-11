@@ -497,6 +497,7 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_bo
 
 #  include "NOD_common.h"
 #  include "NOD_composite.h"
+#  include "NOD_geometry.h"
 #  include "NOD_shader.h"
 #  include "NOD_socket.h"
 
@@ -3289,6 +3290,35 @@ static StructRNA *rna_NodeCustomGroup_register(Main *bmain,
 
   return nt->rna_ext.srna;
 }
+
+static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
+                                                       ReportList *reports,
+                                                       void *data,
+                                                       const char *identifier,
+                                                       StructValidateFunc validate,
+                                                       StructCallbackFunc call,
+                                                       StructFreeFunc free)
+{
+  bNodeType *nt = rna_Node_register_base(
+      bmain, reports, &RNA_GeometryNodeCustomGroup, data, identifier, validate, call, free);
+
+  if (!nt) {
+    return NULL;
+  }
+
+  nt->group_update_func = node_group_update;
+  nt->type = NODE_CUSTOM_GROUP;
+
+  register_node_type_geo_custom_group(nt);
+
+  nodeRegisterType(nt);
+
+  WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+
+  return nt->rna_ext.srna;
+}
+
+void register_node_type_geo_custom_group(bNodeType *ntype);
 
 static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
                                                      ReportList *reports,
@@ -11501,6 +11531,12 @@ void RNA_def_nodetree(BlenderRNA *brna)
                    "Custom Group",
                    "Base node type for custom registered node group types",
                    "rna_NodeCustomGroup_register");
+  def_custom_group(brna,
+                   "GeometryNodeCustomGroup",
+                   "GeometryNode",
+                   "Geometry Custom Group",
+                   "Custom Geometry Group Node for Python nodes",
+                   "rna_GeometryNodeCustomGroup_register");
 
   /* special socket types */
   rna_def_cmp_output_file_slot_file(brna);

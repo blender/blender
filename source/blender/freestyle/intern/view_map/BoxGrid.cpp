@@ -38,14 +38,6 @@ namespace Freestyle {
 // Cell
 /////////
 
-BoxGrid::Cell::Cell()
-{
-}
-
-BoxGrid::Cell::~Cell()
-{
-}
-
 void BoxGrid::Cell::setDimensions(real x, real y, real sizeX, real sizeY)
 {
   const real epsilon = 1.0e-06;
@@ -87,10 +79,6 @@ BoxGrid::Iterator::Iterator(BoxGrid &grid, Vec3r &center, real /*epsilon*/)
   _current = _cell->faces.begin();
 }
 
-BoxGrid::Iterator::~Iterator()
-{
-}
-
 // BoxGrid
 /////////////////
 
@@ -124,9 +112,7 @@ BoxGrid::BoxGrid(OccluderSource &source,
   }
 }
 
-BoxGrid::~BoxGrid()
-{
-}
+BoxGrid::~BoxGrid() = default;
 
 void BoxGrid::assignCells(OccluderSource & /*source*/,
                           GridDensityProvider &density,
@@ -240,10 +226,6 @@ const Vec3r &BoxGrid::viewpoint() const
 bool BoxGrid::enableQI() const
 {
   return _enableQI;
-}
-
-BoxGrid::Transform::Transform()
-{
 }
 
 Vec3r BoxGrid::Transform::operator()(const Vec3r &point) const

@@ -1739,7 +1739,7 @@ void text_update_character_width(SpaceText *st)
 
 /* Moves the view to the cursor location,
  * also used to make sure the view isn't outside the file */
-void text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool center)
+void ED_text_scroll_to_cursor(SpaceText *st, ARegion *region, const bool center)
 {
   Text *text;
   int i, x, winx = region->winx;
@@ -1818,7 +1818,7 @@ void text_scroll_to_cursor__area(SpaceText *st, ScrArea *area, const bool center
   region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   if (region) {
-    text_scroll_to_cursor(st, region, center);
+    ED_text_scroll_to_cursor(st, region, center);
   }
 }
 

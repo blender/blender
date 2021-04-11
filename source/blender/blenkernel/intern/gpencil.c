@@ -1293,7 +1293,8 @@ bGPDframe *BKE_gpencil_layer_frame_find(bGPDlayer *gpl, int cframe)
   return NULL;
 }
 
-/** Get the appropriate gp-frame from a given layer
+/**
+ * Get the appropriate gp-frame from a given layer
  * - this sets the layer's actframe var (if allowed to)
  * - extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  *

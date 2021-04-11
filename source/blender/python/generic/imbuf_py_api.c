@@ -173,7 +173,15 @@ PyDoc_STRVAR(py_imbuf_copy_doc,
 static PyObject *py_imbuf_copy(Py_ImBuf *self)
 {
   PY_IMBUF_CHECK_OBJ(self);
-  return Py_ImBuf_CreatePyObject(self->ibuf);
+  ImBuf *ibuf_copy = IMB_dupImBuf(self->ibuf);
+
+  if (UNLIKELY(ibuf_copy == NULL)) {
+    PyErr_SetString(PyExc_MemoryError,
+                    "ImBuf.copy(): "
+                    "failed to allocate memory memory");
+    return NULL;
+  }
+  return Py_ImBuf_CreatePyObject(ibuf_copy);
 }
 
 static PyObject *py_imbuf_deepcopy(Py_ImBuf *self, PyObject *args)

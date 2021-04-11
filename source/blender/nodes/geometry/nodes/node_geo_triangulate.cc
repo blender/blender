@@ -14,10 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "DNA_node_types.h"
-
-#include "RNA_enum_types.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 

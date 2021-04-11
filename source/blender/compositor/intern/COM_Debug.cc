@@ -451,6 +451,8 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
     BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), basename);
     m_file_index++;
 
+    std::cout << "Writing compositor debug to: " << filename << "\n";
+
     FILE *fp = BLI_fopen(filename, "wb");
     fputs(str, fp);
     fclose(fp);

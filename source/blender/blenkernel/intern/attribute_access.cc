@@ -822,12 +822,16 @@ Set<std::string> GeometryComponent::attribute_names() const
   return attributes;
 }
 
-void GeometryComponent::attribute_foreach(const AttributeForeachCallback callback) const
+/**
+ * \return False if the callback explicitly returned false at any point, otherwise true,
+ * meaning the callback made it all the way through.
+ */
+bool GeometryComponent::attribute_foreach(const AttributeForeachCallback callback) const
 {
   using namespace blender::bke;
   const ComponentAttributeProviders *providers = this->get_attribute_providers();
   if (providers == nullptr) {
-    return;
+    return true;
   }
 
   /* Keep track handled attribute names to make sure that we do not return the same name twice. */
@@ -838,7 +842,7 @@ void GeometryComponent::attribute_foreach(const AttributeForeachCallback callbac
     if (provider->exists(*this)) {
       AttributeMetaData meta_data{provider->domain(), provider->data_type()};
       if (!callback(provider->name(), meta_data)) {
-        return;
+        return false;
       }
       handled_attribute_names.add_new(provider->name());
     }
@@ -852,9 +856,11 @@ void GeometryComponent::attribute_foreach(const AttributeForeachCallback callbac
           return true;
         });
     if (!continue_loop) {
-      return;
+      return false;
     }
   }
+
+  return true;
 }
 
 bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name) const

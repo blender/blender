@@ -287,8 +287,10 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
          !BLI_listbase_is_empty(&adt->overrides);
 }
 
-/** Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure). */
+/**
+ * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
+ * `IDTypeInfo` structure).
+ */
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 {
   LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {

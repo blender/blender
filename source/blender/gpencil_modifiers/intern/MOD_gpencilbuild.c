@@ -564,10 +564,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Use Factor"));
+  uiLayoutSetPropDecorate(row, false);
   uiItemR(row, ptr, "use_percentage", 0, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_percentage"));
   uiItemR(sub, ptr, "percentage_factor", 0, "", ICON_NONE);
+  uiItemDecoratorR(row, ptr, "percentage_factor", 0);
 
   /* Check for incompatible time modifier. */
   Object *ob = ob_ptr.data;

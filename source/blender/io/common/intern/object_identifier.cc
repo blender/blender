@@ -35,15 +35,6 @@ ObjectIdentifier::ObjectIdentifier(Object *object,
 {
 }
 
-ObjectIdentifier::ObjectIdentifier(const ObjectIdentifier &other)
-    : object(other.object), duplicated_by(other.duplicated_by), persistent_id(other.persistent_id)
-{
-}
-
-ObjectIdentifier::~ObjectIdentifier()
-{
-}
-
 ObjectIdentifier ObjectIdentifier::for_real_object(Object *object)
 {
   return ObjectIdentifier(object, nullptr, PersistentID());

@@ -54,10 +54,6 @@ Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource &source, unsig
   initialize(proscenium);
 }
 
-Pow23GridDensityProvider::~Pow23GridDensityProvider()
-{
-}
-
 void Pow23GridDensityProvider::initialize(const real proscenium[4])
 {
   float prosceniumWidth = (proscenium[1] - proscenium[0]);
@@ -95,10 +91,6 @@ void Pow23GridDensityProvider::initialize(const real proscenium[4])
 
 Pow23GridDensityProviderFactory::Pow23GridDensityProviderFactory(unsigned numFaces)
     : numFaces(numFaces)
-{
-}
-
-Pow23GridDensityProviderFactory::~Pow23GridDensityProviderFactory()
 {
 }
 

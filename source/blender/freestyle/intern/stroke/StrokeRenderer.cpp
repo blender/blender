@@ -37,13 +37,7 @@ namespace Freestyle {
 
 TextureManager *StrokeRenderer::_textureManager = nullptr;
 
-StrokeRenderer::StrokeRenderer()
-{
-}
-
-StrokeRenderer::~StrokeRenderer()
-{
-}
+StrokeRenderer::~StrokeRenderer() = default;
 
 bool StrokeRenderer::loadTextures()
 {

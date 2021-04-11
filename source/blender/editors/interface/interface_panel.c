@@ -437,15 +437,21 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
 
   /* Find how many instanced panels with this context string. */
   int list_panels_len = 0;
+  int start_index = -1;
   LISTBASE_FOREACH (const Panel *, panel, &region->panels) {
     if (panel->type) {
       if (panel->type->flag & PANEL_TYPE_INSTANCED) {
         if (panel_type_context_poll(region, panel->type, context)) {
+          if (panel == drag_panel) {
+            BLI_assert(start_index == -1); /* This panel should only appear once. */
+            start_index = list_panels_len;
+          }
           list_panels_len++;
         }
       }
     }
   }
+  BLI_assert(start_index != -1); /* The drag panel should definitely be in the list. */
 
   /* Sort the matching instanced panels by their display order. */
   PanelSort *panel_sort = MEM_callocN(list_panels_len * sizeof(*panel_sort), __func__);
@@ -471,6 +477,11 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   }
 
   MEM_freeN(panel_sort);
+
+  if (move_to_index == start_index) {
+    /* In this case, the reorder was not changed, so don't do any updates or call the callback. */
+    return;
+  }
 
   /* Set the bit to tell the interface to instanced the list. */
   drag_panel->flag |= PNL_INSTANCED_LIST_ORDER_CHANGED;

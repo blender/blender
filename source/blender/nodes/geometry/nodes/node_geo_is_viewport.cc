@@ -14,9 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
 #include "DEG_depsgraph_query.h"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_is_viewport_out[] = {
     {SOCK_BOOLEAN, N_("Is Viewport")},

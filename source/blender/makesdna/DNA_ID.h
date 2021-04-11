@@ -491,6 +491,11 @@ enum {
    * Note that this also applies to shapekeys, even though they are not 100% embedded data...
    */
   LIB_EMBEDDED_DATA_LIB_OVERRIDE = 1 << 12,
+  /**
+   * The override data-block appears to not be needed anymore after resync with linked data, but it
+   * was kept around (because e.g. detected as user-edited).
+   */
+  LIB_LIB_OVERRIDE_RESYNC_LEFTOVER = 1 << 13,
 };
 
 /**

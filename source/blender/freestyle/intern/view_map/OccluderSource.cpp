@@ -33,9 +33,7 @@ OccluderSource::OccluderSource(const GridHelpers::Transform &t, WingedEdge &we)
   begin();
 }
 
-OccluderSource::~OccluderSource()
-{
-}
+OccluderSource::~OccluderSource() = default;
 
 void OccluderSource::buildCachedPolygon()
 {

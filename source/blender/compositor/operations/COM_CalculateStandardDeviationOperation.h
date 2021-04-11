@@ -34,8 +34,6 @@ class CalculateStandardDeviationOperation : public CalculateMeanOperation {
   float m_standardDeviation;
 
  public:
-  CalculateStandardDeviationOperation();
-
   /**
    * The inner loop of this operation.
    */

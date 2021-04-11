@@ -46,11 +46,6 @@ inline static uint colorDistance(Color32 c0, Color32 c1)
 }
 #endif
 
-/** Default constructor. */
-ColorBlock::ColorBlock()
-{
-}
-
 /** Init the color block from an array of colors. */
 ColorBlock::ColorBlock(const uint *linearImage)
 {

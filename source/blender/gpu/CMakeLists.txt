@@ -381,6 +381,10 @@ endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  target_compile_options(bf_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wsuggest-override>)
+endif()
+
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC

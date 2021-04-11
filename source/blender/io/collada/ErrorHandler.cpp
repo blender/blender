@@ -36,11 +36,6 @@ ErrorHandler::ErrorHandler() : mError(false)
 }
 
 //--------------------------------------------------------------------
-ErrorHandler::~ErrorHandler()
-{
-}
-
-//--------------------------------------------------------------------
 bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 {
   /* This method must return false when Collada should continue.

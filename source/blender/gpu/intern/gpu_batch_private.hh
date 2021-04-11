@@ -42,8 +42,7 @@ namespace gpu {
  */
 class Batch : public GPUBatch {
  public:
-  Batch(){};
-  virtual ~Batch(){};
+  virtual ~Batch() = default;
 
   virtual void draw(int v_first, int v_count, int i_first, int i_count) = 0;
 

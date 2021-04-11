@@ -50,7 +50,6 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
 
  public:
   explicit ABCAbstractWriter(const ABCWriterConstructorArgs &args);
-  virtual ~ABCAbstractWriter();
 
   virtual void write(HierarchyContext &context) override;
 

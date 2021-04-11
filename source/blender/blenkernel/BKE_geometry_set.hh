@@ -135,11 +135,17 @@ class GeometryComponent {
 
  public:
   GeometryComponent(GeometryComponentType type);
-  virtual ~GeometryComponent();
+  virtual ~GeometryComponent() = default;
   static GeometryComponent *create(GeometryComponentType component_type);
 
   /* The returned component should be of the same type as the type this is called on. */
   virtual GeometryComponent *copy() const = 0;
+
+  /* Direct data is everything except for instances of objects/collections.
+   * If this returns true, the geometry set can be cached and is still valid after e.g. modifier
+   * evaluation ends. Instances can only be valid as long as the data they instance is valid. */
+  virtual bool owns_direct_data() const = 0;
+  virtual void ensure_owns_direct_data() = 0;
 
   void user_add() const;
   void user_remove() const;
@@ -180,7 +186,7 @@ class GeometryComponent {
                             const CustomDataType data_type);
 
   blender::Set<std::string> attribute_names() const;
-  void attribute_foreach(const AttributeForeachCallback callback) const;
+  bool attribute_foreach(const AttributeForeachCallback callback) const;
 
   virtual bool is_empty() const;
 
@@ -315,6 +321,8 @@ struct GeometrySet {
 
   void clear();
 
+  void ensure_owns_direct_data();
+
   /* Utility methods for creation. */
   static GeometrySet create_with_mesh(
       Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
@@ -374,6 +382,9 @@ class MeshComponent : public GeometryComponent {
 
   bool is_empty() const final;
 
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
+
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_MESH;
 
  private:
@@ -403,6 +414,9 @@ class PointCloudComponent : public GeometryComponent {
   int attribute_domain_size(const AttributeDomain domain) const final;
 
   bool is_empty() const final;
+
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
 
@@ -444,6 +458,9 @@ class InstancesComponent : public GeometryComponent {
 
   bool is_empty() const final;
 
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
+
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_INSTANCES;
 };
 
@@ -465,6 +482,9 @@ class VolumeComponent : public GeometryComponent {
 
   const Volume *get_for_read() const;
   Volume *get_for_write();
+
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_VOLUME;
 };

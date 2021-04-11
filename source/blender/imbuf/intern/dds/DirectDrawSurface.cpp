@@ -890,10 +890,6 @@ DirectDrawSurface::DirectDrawSurface(unsigned char *mem, uint size) : stream(mem
   }
 }
 
-DirectDrawSurface::~DirectDrawSurface()
-{
-}
-
 bool DirectDrawSurface::isValid() const
 {
   if (header.fourcc != FOURCC_DDS || header.size != 124) {

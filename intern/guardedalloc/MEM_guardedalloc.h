@@ -57,9 +57,11 @@
 extern "C" {
 #endif
 
-/** Returns the length of the allocated memory segment pointed at
+/**
+ * Returns the length of the allocated memory segment pointed at
  * by vmemh. If the pointer was not previously allocated by this
- * module, the result is undefined.*/
+ * module, the result is undefined.
+ */
 extern size_t (*MEM_allocN_len)(const void *vmemh) ATTR_WARN_UNUSED_RESULT;
 
 /**
@@ -103,7 +105,8 @@ extern void *(*MEM_recallocN_id)(void *vmemh,
 /**
  * Allocate a block of memory of size len, with tag name str. The
  * memory is cleared. The name must be static, because only a
- * pointer to it is stored ! */
+ * pointer to it is stored!
+ */
 extern void *(*MEM_callocN)(size_t len, const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(2);
 
@@ -143,12 +146,15 @@ extern void *(*MEM_mallocN_aligned)(size_t len,
                                     const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 
-/** Print a list of the names and sizes of all allocated memory
- * blocks. as a python dict for easy investigation */
+/**
+ * Print a list of the names and sizes of all allocated memory
+ * blocks. as a python dict for easy investigation.
+ */
 extern void (*MEM_printmemlist_pydict)(void);
 
-/** Print a list of the names and sizes of all allocated memory
- * blocks. */
+/**
+ * Print a list of the names and sizes of all allocated memory blocks.
+ */
 extern void (*MEM_printmemlist)(void);
 
 /** calls the function on all allocated memory blocks. */
@@ -163,7 +169,8 @@ extern void (*MEM_set_error_callback)(void (*func)(const char *));
 /**
  * Are the start/end block markers still correct ?
  *
- * \retval true for correct memory, false for corrupted memory. */
+ * \retval true for correct memory, false for corrupted memory.
+ */
 extern bool (*MEM_consistency_check)(void);
 
 /** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
@@ -209,8 +216,10 @@ extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 extern const char *(*MEM_name_ptr)(void *vmemh);
 #endif
 
-/** This should be called as early as possible in the program. When it has been called, information
- * about memory leaks will be printed on exit. */
+/**
+ * This should be called as early as possible in the program. When it has been called, information
+ * about memory leaks will be printed on exit.
+ */
 void MEM_init_memleak_detection(void);
 
 /**
@@ -219,9 +228,11 @@ void MEM_init_memleak_detection(void);
  */
 void MEM_use_memleak_detection(bool enabled);
 
-/** When this has been called and memory leaks have been detected, the process will have an exit
+/**
+ * When this has been called and memory leaks have been detected, the process will have an exit
  * code that indicates failure. This can be used for when checking for memory leaks with automated
- * tests. */
+ * tests.
+ */
 void MEM_enable_fail_on_memleak(void);
 
 /* Switch allocator to fast mode, with less tracking.

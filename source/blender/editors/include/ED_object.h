@@ -210,6 +210,8 @@ bool ED_object_editmode_exit_ex(struct Main *bmain,
                                 int flag);
 bool ED_object_editmode_exit(struct bContext *C, int flag);
 
+bool ED_object_editmode_free_ex(struct Main *bmain, struct Object *obedit);
+
 bool ED_object_editmode_exit_multi_ex(struct Main *bmain,
                                       struct Scene *scene,
                                       struct ViewLayer *view_layer,

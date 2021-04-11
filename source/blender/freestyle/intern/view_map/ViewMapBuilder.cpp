@@ -2322,10 +2322,6 @@ struct less_Intersection {
 };
 
 struct silhouette_binary_rule : public binary_rule<segment, segment> {
-  silhouette_binary_rule()
-  {
-  }
-
   bool operator()(segment &s1, segment &s2) override
   {
     FEdge *f1 = s1.edge();

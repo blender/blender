@@ -35,10 +35,6 @@ ABCInstanceWriter::ABCInstanceWriter(const ABCWriterConstructorArgs &args)
 {
 }
 
-ABCInstanceWriter::~ABCInstanceWriter()
-{
-}
-
 void ABCInstanceWriter::create_alembic_objects(const HierarchyContext *context)
 {
   OObject original = args_.hierarchy_iterator->get_alembic_object(context->original_export_path);

@@ -50,10 +50,6 @@
 
 #include "CLG_log.h"
 
-BlendfileLoadingBaseTest::~BlendfileLoadingBaseTest()
-{
-}
-
 void BlendfileLoadingBaseTest::SetUpTestCase()
 {
   testing::Test::SetUpTestCase();

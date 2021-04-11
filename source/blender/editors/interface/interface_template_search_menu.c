@@ -510,11 +510,19 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
   const char *global_menu_prefix = NULL;
 
   if (include_all_areas) {
+    bScreen *screen = WM_window_get_active_screen(win);
+
     /* First create arrays for ui_type. */
     PropertyRNA *prop_ui_type = NULL;
     {
+      /* This must be a valid pointer, with only it's type checked. */
+      ScrArea area_dummy = {
+          /* Anything besides #SPACE_EMPTY is fine,
+           * as this value is only included in the enum when set. */
+          .spacetype = SPACE_TOPBAR,
+      };
       PointerRNA ptr;
-      RNA_pointer_create(NULL, &RNA_Area, NULL, &ptr);
+      RNA_pointer_create(&screen->id, &RNA_Area, &area_dummy, &ptr);
       prop_ui_type = RNA_struct_find_property(&ptr, "ui_type");
       RNA_property_enum_items(C,
                               &ptr,
@@ -529,7 +537,6 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
       }
     }
 
-    bScreen *screen = WM_window_get_active_screen(win);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
       if (region != NULL) {

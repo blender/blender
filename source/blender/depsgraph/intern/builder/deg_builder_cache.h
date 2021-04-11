@@ -81,7 +81,6 @@ class AnimatedPropertyStorage {
 /* Cached data which can be re-used by multiple builders. */
 class DepsgraphBuilderCache {
  public:
-  DepsgraphBuilderCache();
   ~DepsgraphBuilderCache();
 
   /* Makes sure storage for animated properties exists and initialized for the given ID. */

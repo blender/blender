@@ -100,7 +100,7 @@ class AbcObjectReader {
  public:
   explicit AbcObjectReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
-  virtual ~AbcObjectReader();
+  virtual ~AbcObjectReader() = default;
 
   const Alembic::Abc::IObject &iobject() const;
 

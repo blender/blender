@@ -41,7 +41,6 @@ class BezierCurveSegment {
   std::vector<Vec2d> _Vertices;
 
  public:
-  BezierCurveSegment();
   virtual ~BezierCurveSegment();
 
   void AddControlPoint(const Vec2d &iPoint);

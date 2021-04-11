@@ -32,7 +32,6 @@ namespace Freestyle {
 class HeuristicGridDensityProviderFactory : public GridDensityProviderFactory {
  public:
   HeuristicGridDensityProviderFactory(real sizeFactor, unsigned numFaces);
-  ~HeuristicGridDensityProviderFactory();
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);

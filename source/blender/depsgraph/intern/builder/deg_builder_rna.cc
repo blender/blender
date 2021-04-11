@@ -119,9 +119,7 @@ RNANodeQuery::RNANodeQuery(Depsgraph *depsgraph, DepsgraphBuilder *builder)
 {
 }
 
-RNANodeQuery::~RNANodeQuery()
-{
-}
+RNANodeQuery::~RNANodeQuery() = default;
 
 Node *RNANodeQuery::find_node(const PointerRNA *ptr,
                               const PropertyRNA *prop,

@@ -28,7 +28,10 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
+#include "BLI_float3.hh"
+#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
+#include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
@@ -62,6 +65,10 @@ static CLG_LogRef LOG = {"bke.volume"};
 #endif
 
 #define VOLUME_FRAME_NONE INT_MAX
+
+using blender::float3;
+using blender::float4x4;
+using blender::IndexRange;
 
 #ifdef WITH_OPENVDB
 #  include <atomic>
@@ -144,14 +151,14 @@ static struct VolumeFileCache {
     blender::Map<int, openvdb::GridBase::Ptr> simplified_grids;
 
     /* Has the grid tree been loaded? */
-    bool is_loaded;
+    mutable bool is_loaded;
     /* Error message if an error occurred while loading. */
     std::string error_msg;
     /* User counting. */
     int num_metadata_users;
     int num_tree_users;
     /* Mutex for on-demand reading of tree. */
-    std::mutex mutex;
+    mutable std::mutex mutex;
   };
 
   struct EntryHasher {
@@ -171,10 +178,6 @@ static struct VolumeFileCache {
   };
 
   /* Cache */
-  VolumeFileCache()
-  {
-  }
-
   ~VolumeFileCache()
   {
     BLI_assert(cache.empty());
@@ -293,7 +296,7 @@ struct VolumeGrid {
     }
   }
 
-  void load(const char *volume_name, const char *filepath)
+  void load(const char *volume_name, const char *filepath) const
   {
     /* If already loaded or not file-backed, nothing to do. */
     if (is_loaded || entry == nullptr) {
@@ -335,7 +338,7 @@ struct VolumeGrid {
     is_loaded = true;
   }
 
-  void unload(const char *volume_name)
+  void unload(const char *volume_name) const
   {
     /* Not loaded or not file-backed, nothing to do. */
     if (!is_loaded || entry == nullptr) {
@@ -436,10 +439,14 @@ struct VolumeGrid {
   int simplify_level = 0;
   /* OpenVDB grid if it's not shared through the file cache. */
   openvdb::GridBase::Ptr local_grid;
-  /* Indicates if the tree has been loaded for this grid. Note that vdb.tree()
+  /**
+   * Indicates if the tree has been loaded for this grid. Note that vdb.tree()
    * may actually be loaded by another user while this is false. But only after
-   * calling load() and is_loaded changes to true is it safe to access. */
-  bool is_loaded;
+   * calling load() and is_loaded changes to true is it safe to access.
+   *
+   * Const write access to this must be protected by `entry->mutex`.
+   */
+  mutable bool is_loaded;
 };
 
 /* Volume Grid Vector
@@ -472,14 +479,15 @@ struct VolumeGridVector : public std::list<VolumeGrid> {
     metadata.reset();
   }
 
+  /* Mutex for file loading of grids list. Const write access to the fields after this must be
+   * protected by locking with this mutex. */
+  mutable std::mutex mutex;
   /* Absolute file path that grids have been loaded from. */
   char filepath[FILE_MAX];
   /* File loading error message. */
   std::string error_msg;
   /* File Metadata. */
   openvdb::MetaMap::Ptr metadata;
-  /* Mutex for file loading of grids list. */
-  std::mutex mutex;
 };
 #endif
 
@@ -766,10 +774,10 @@ bool BKE_volume_is_loaded(const Volume *volume)
 #endif
 }
 
-bool BKE_volume_load(Volume *volume, Main *bmain)
+bool BKE_volume_load(const Volume *volume, const Main *bmain)
 {
 #ifdef WITH_OPENVDB
-  VolumeGridVector &grids = *volume->runtime.grids;
+  const VolumeGridVector &const_grids = *volume->runtime.grids;
 
   if (volume->runtime.frame == VOLUME_FRAME_NONE) {
     /* Skip loading this frame, outside of sequence range. */
@@ -777,14 +785,18 @@ bool BKE_volume_load(Volume *volume, Main *bmain)
   }
 
   if (BKE_volume_is_loaded(volume)) {
-    return grids.error_msg.empty();
+    return const_grids.error_msg.empty();
   }
 
   /* Double-checked lock. */
-  std::lock_guard<std::mutex> lock(grids.mutex);
+  std::lock_guard<std::mutex> lock(const_grids.mutex);
   if (BKE_volume_is_loaded(volume)) {
-    return grids.error_msg.empty();
+    return const_grids.error_msg.empty();
   }
+
+  /* Guarded by the lock, we can continue to access the grid vector,
+   * adding error messages or a new grid, etc. */
+  VolumeGridVector &grids = const_cast<VolumeGridVector &>(const_grids);
 
   /* Get absolute file path at current frame. */
   const char *volume_name = volume->id.name + 2;
@@ -850,7 +862,10 @@ void BKE_volume_unload(Volume *volume)
 
 /* File Save */
 
-bool BKE_volume_save(Volume *volume, Main *bmain, ReportList *reports, const char *filepath)
+bool BKE_volume_save(const Volume *volume,
+                     const Main *bmain,
+                     ReportList *reports,
+                     const char *filepath)
 {
 #ifdef WITH_OPENVDB
   if (!BKE_volume_load(volume, bmain)) {
@@ -882,6 +897,32 @@ bool BKE_volume_save(Volume *volume, Main *bmain, ReportList *reports, const cha
 #endif
 }
 
+bool BKE_volume_min_max(const Volume *volume, float3 &r_min, float3 &r_max)
+{
+  bool have_minmax = false;
+#ifdef WITH_OPENVDB
+  /* TODO: if we know the volume is going to be displayed, it may be good to
+   * load it as part of dependency graph evaluation for better threading. We
+   * could also share the bounding box computation in the global volume cache. */
+  if (BKE_volume_load(const_cast<Volume *>(volume), G.main)) {
+    for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
+      const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, i);
+      openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+      float3 grid_min;
+      float3 grid_max;
+      if (BKE_volume_grid_bounds(grid, grid_min, grid_max)) {
+        DO_MIN(grid_min, r_min);
+        DO_MAX(grid_max, r_max);
+        have_minmax = true;
+      }
+    }
+  }
+#else
+  UNUSED_VARS(volume, r_min, r_max);
+#endif
+  return have_minmax;
+}
+
 BoundBox *BKE_volume_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
@@ -891,40 +932,19 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
   }
 
   if (ob->runtime.bb == nullptr) {
-    Volume *volume = (Volume *)ob->data;
-
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), "volume boundbox");
-
-    float min[3], max[3];
-    bool have_minmax = false;
-    INIT_MINMAX(min, max);
-
-    /* TODO: if we know the volume is going to be displayed, it may be good to
-     * load it as part of dependency graph evaluation for better threading. We
-     * could also share the bounding box computation in the global volume cache. */
-    if (BKE_volume_load(volume, G.main)) {
-      const int num_grids = BKE_volume_num_grids(volume);
-
-      for (int i = 0; i < num_grids; i++) {
-        VolumeGrid *grid = BKE_volume_grid_get(volume, i);
-        float grid_min[3], grid_max[3];
-
-        BKE_volume_grid_load(volume, grid);
-        if (BKE_volume_grid_bounds(grid, grid_min, grid_max)) {
-          DO_MIN(grid_min, min);
-          DO_MAX(grid_max, max);
-          have_minmax = true;
-        }
-      }
-    }
-
-    if (!have_minmax) {
-      min[0] = min[1] = min[2] = -1.0f;
-      max[0] = max[1] = max[2] = 1.0f;
-    }
-
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
   }
+
+  const Volume *volume = (Volume *)ob->data;
+
+  float3 min, max;
+  INIT_MINMAX(min, max);
+  if (!BKE_volume_min_max(volume, min, max)) {
+    min = float3(-1);
+    max = float3(1);
+  }
+
+  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 
   return ob->runtime.bb;
 }
@@ -957,7 +977,7 @@ bool BKE_volume_is_points_only(const Volume *volume)
   }
 
   for (int i = 0; i < num_grids; i++) {
-    VolumeGrid *grid = BKE_volume_grid_get(volume, i);
+    const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, i);
     if (BKE_volume_grid_type(grid) != VOLUME_GRID_POINTS) {
       return false;
     }
@@ -1144,7 +1164,23 @@ const char *BKE_volume_grids_frame_filepath(const Volume *volume)
 #endif
 }
 
-VolumeGrid *BKE_volume_grid_get(const Volume *volume, int grid_index)
+const VolumeGrid *BKE_volume_grid_get_for_read(const Volume *volume, int grid_index)
+{
+#ifdef WITH_OPENVDB
+  const VolumeGridVector &grids = *volume->runtime.grids;
+  for (const VolumeGrid &grid : grids) {
+    if (grid_index-- == 0) {
+      return &grid;
+    }
+  }
+  return nullptr;
+#else
+  UNUSED_VARS(volume, grid_index);
+  return nullptr;
+#endif
+}
+
+VolumeGrid *BKE_volume_grid_get_for_write(Volume *volume, int grid_index)
 {
 #ifdef WITH_OPENVDB
   VolumeGridVector &grids = *volume->runtime.grids;
@@ -1160,7 +1196,7 @@ VolumeGrid *BKE_volume_grid_get(const Volume *volume, int grid_index)
 #endif
 }
 
-VolumeGrid *BKE_volume_grid_active_get(const Volume *volume)
+const VolumeGrid *BKE_volume_grid_active_get_for_read(const Volume *volume)
 {
   const int num_grids = BKE_volume_num_grids(volume);
   if (num_grids == 0) {
@@ -1168,15 +1204,15 @@ VolumeGrid *BKE_volume_grid_active_get(const Volume *volume)
   }
 
   const int index = clamp_i(volume->active_grid, 0, num_grids - 1);
-  return BKE_volume_grid_get(volume, index);
+  return BKE_volume_grid_get_for_read(volume, index);
 }
 
 /* Tries to find a grid with the given name. Make sure that that the volume has been loaded. */
-VolumeGrid *BKE_volume_grid_find(const Volume *volume, const char *name)
+const VolumeGrid *BKE_volume_grid_find_for_read(const Volume *volume, const char *name)
 {
   int num_grids = BKE_volume_num_grids(volume);
   for (int i = 0; i < num_grids; i++) {
-    VolumeGrid *grid = BKE_volume_grid_get(volume, i);
+    const VolumeGrid *grid = BKE_volume_grid_get_for_read(volume, i);
     if (STREQ(BKE_volume_grid_name(grid), name)) {
       return grid;
     }
@@ -1187,7 +1223,7 @@ VolumeGrid *BKE_volume_grid_find(const Volume *volume, const char *name)
 
 /* Grid Loading */
 
-bool BKE_volume_grid_load(const Volume *volume, VolumeGrid *grid)
+bool BKE_volume_grid_load(const Volume *volume, const VolumeGrid *grid)
 {
 #ifdef WITH_OPENVDB
   VolumeGridVector &grids = *volume->runtime.grids;
@@ -1205,7 +1241,7 @@ bool BKE_volume_grid_load(const Volume *volume, VolumeGrid *grid)
 #endif
 }
 
-void BKE_volume_grid_unload(const Volume *volume, VolumeGrid *grid)
+void BKE_volume_grid_unload(const Volume *volume, const VolumeGrid *grid)
 {
 #ifdef WITH_OPENVDB
   const char *volume_name = volume->id.name + 2;
@@ -1335,34 +1371,6 @@ void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4
 
 /* Grid Tree and Voxels */
 
-bool BKE_volume_grid_bounds(const VolumeGrid *volume_grid, float min[3], float max[3])
-{
-#ifdef WITH_OPENVDB
-  /* TODO: we can get this from grid metadata in some cases? */
-  const openvdb::GridBase::Ptr grid = volume_grid->grid();
-  BLI_assert(BKE_volume_grid_is_loaded(volume_grid));
-
-  openvdb::CoordBBox coordbbox;
-  if (!grid->baseTree().evalLeafBoundingBox(coordbbox)) {
-    INIT_MINMAX(min, max);
-    return false;
-  }
-
-  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
-  min[0] = (float)bbox.min().x();
-  min[1] = (float)bbox.min().y();
-  min[2] = (float)bbox.min().z();
-  max[0] = (float)bbox.max().x();
-  max[1] = (float)bbox.max().y();
-  max[2] = (float)bbox.max().z();
-  return true;
-#else
-  UNUSED_VARS(volume_grid);
-  INIT_MINMAX(min, max);
-  return false;
-#endif
-}
-
 /* Volume Editing */
 
 Volume *BKE_volume_new_for_eval(const Volume *volume_src)
@@ -1410,7 +1418,7 @@ VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType
 {
 #ifdef WITH_OPENVDB
   VolumeGridVector &grids = *volume->runtime.grids;
-  BLI_assert(BKE_volume_grid_find(volume, name) == nullptr);
+  BLI_assert(BKE_volume_grid_find_for_read(volume, name) == nullptr);
   BLI_assert(type != VOLUME_GRID_UNKNOWN);
 
   openvdb::GridBase::Ptr vdb_grid = BKE_volume_grid_type_operation(type, CreateGridOp{});
@@ -1472,13 +1480,45 @@ float BKE_volume_simplify_factor(const Depsgraph *depsgraph)
 /* OpenVDB Grid Access */
 
 #ifdef WITH_OPENVDB
+
+bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, float3 &r_max)
+{
+  /* TODO: we can get this from grid metadata in some cases? */
+  openvdb::CoordBBox coordbbox;
+  if (!grid->baseTree().evalLeafBoundingBox(coordbbox)) {
+    return false;
+  }
+
+  openvdb::BBoxd bbox = grid->transform().indexToWorld(coordbbox);
+
+  r_min = float3((float)bbox.min().x(), (float)bbox.min().y(), (float)bbox.min().z());
+  r_max = float3((float)bbox.max().x(), (float)bbox.max().y(), (float)bbox.max().z());
+
+  return true;
+}
+
+/**
+ * Return a new grid pointer with only the metadata and transform changed.
+ * This is useful for instances, where there is a separate transform on top of the original
+ * grid transform that must be applied for some operations that only take a grid argument.
+ */
+openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
+                                                              const blender::float4x4 &transform)
+{
+  openvdb::math::Transform::Ptr grid_transform = grid->transform().copy();
+  grid_transform->postMult(openvdb::Mat4d(((float *)transform.values)));
+
+  /* Create a transformed grid. The underlying tree is shared. */
+  return grid->copyGridReplacingTransform(grid_transform);
+}
+
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const VolumeGrid *grid)
 {
   return grid->grid();
 }
 
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const Volume *volume,
-                                                             VolumeGrid *grid)
+                                                             const VolumeGrid *grid)
 {
   BKE_volume_grid_load(volume, grid);
   return grid->grid();

@@ -40,9 +40,6 @@ class ExtraHandler : public COLLADASaxFWL::IExtraDataCallbackHandler {
   /** Constructor. */
   ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp);
 
-  /** Destructor. */
-  virtual ~ExtraHandler();
-
   /** Handle the beginning of an element. */
   bool elementBegin(const char *elementName, const char **attributes);
 

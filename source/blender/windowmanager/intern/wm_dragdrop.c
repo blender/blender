@@ -372,7 +372,7 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
   }
 
   wmDragAsset *asset_drag = drag->poin;
-  return (idcode == 0 || asset_drag->id_type == idcode) ? asset_drag : NULL;
+  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : NULL;
 }
 
 static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)

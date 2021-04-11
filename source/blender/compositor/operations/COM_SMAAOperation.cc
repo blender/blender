@@ -384,7 +384,7 @@ void SMAABlendingWeightCalculationOperation::executePixel(float output[4],
     int bottom = searchYDown(x, y);
     int d1 = y - top, d2 = bottom - y;
 
-    /* Fetch the top ang bottom crossing edges: */
+    /* Fetch the top and bottom crossing edges: */
     int e1 = 0, e2 = 0;
     sample(m_imageReader, x - 1, top, c);
     if (c[1] > 0.0) {

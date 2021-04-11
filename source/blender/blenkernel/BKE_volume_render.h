@@ -43,7 +43,7 @@ typedef struct DenseFloatVolumeGrid {
 } DenseFloatVolumeGrid;
 
 bool BKE_volume_grid_dense_floats(const struct Volume *volume,
-                                  struct VolumeGrid *volume_grid,
+                                  const struct VolumeGrid *volume_grid,
                                   DenseFloatVolumeGrid *r_dense_grid);
 void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid);
 
@@ -53,7 +53,7 @@ typedef void (*BKE_volume_wireframe_cb)(
     void *userdata, float (*verts)[3], int (*edges)[2], int totvert, int totedge);
 
 void BKE_volume_grid_wireframe(const struct Volume *volume,
-                               struct VolumeGrid *volume_grid,
+                               const struct VolumeGrid *volume_grid,
                                BKE_volume_wireframe_cb cb,
                                void *cb_userdata);
 
@@ -63,7 +63,7 @@ typedef void (*BKE_volume_selection_surface_cb)(
     void *userdata, float (*verts)[3], int (*tris)[3], int totvert, int tottris);
 
 void BKE_volume_grid_selection_surface(const struct Volume *volume,
-                                       struct VolumeGrid *volume_grid,
+                                       const struct VolumeGrid *volume_grid,
                                        BKE_volume_selection_surface_cb cb,
                                        void *cb_userdata);
 

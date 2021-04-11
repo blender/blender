@@ -27,14 +27,6 @@
 
 namespace blender::deg {
 
-BuilderMap::BuilderMap()
-{
-}
-
-BuilderMap::~BuilderMap()
-{
-}
-
 bool BuilderMap::checkIsBuilt(ID *id, int tag) const
 {
   return (getIDTag(id) & tag) == tag;

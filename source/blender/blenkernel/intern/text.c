@@ -523,7 +523,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   return ta;
 }
 
-/** Load a text file.
+/**
+ * Load a text file.
  *
  * \note Text data-blocks have no user by default, only the 'real user' flag.
  */

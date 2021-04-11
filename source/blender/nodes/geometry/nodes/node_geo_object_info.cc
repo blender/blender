@@ -14,17 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
-#include "BKE_mesh.h"
-#include "BKE_mesh_wrapper.h"
-#include "BKE_modifier.h"
-#include "BKE_volume.h"
-
 #include "BLI_math_matrix.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_object_info_in[] = {
     {SOCK_OBJECT, N_("Object")},

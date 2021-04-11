@@ -213,10 +213,6 @@ OperationNode::OperationNode() : name_tag(-1), flag(0)
 {
 }
 
-OperationNode::~OperationNode()
-{
-}
-
 string OperationNode::identifier() const
 {
   return string(operationCodeAsString(opcode)) + "(" + name + ")";

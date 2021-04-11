@@ -41,6 +41,8 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
+#include "DEG_depsgraph_build.h"
+
 #include "ED_node.h" /* own include */
 #include "ED_render.h"
 #include "ED_screen.h"
@@ -473,6 +475,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   snode_dag_update(C, snode);
 
   ED_node_tag_update_nodetree(bmain, ntree, object_node);
+  DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
 }

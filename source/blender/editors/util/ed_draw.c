@@ -189,7 +189,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
           ofs_y += vertical_offset;
         }
       } /* Strip */
-      else if (i == 1 || i == 2) {
+      else if (ELEM(i, 1, 2)) {
         int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);

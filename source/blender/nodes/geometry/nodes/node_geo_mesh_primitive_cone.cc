@@ -17,13 +17,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-
-#include "bmesh.h"
 
 #include "node_geometry_util.hh"
 
@@ -189,45 +186,357 @@ static int face_total(const GeometryNodeMeshCircleFillType fill_type,
   return face_total;
 }
 
+static void calculate_uvs(Mesh *mesh,
+                          const bool top_is_point,
+                          const bool bottom_is_point,
+                          const int verts_num,
+                          const GeometryNodeMeshCircleFillType fill_type)
+{
+  MeshComponent mesh_component;
+  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  OutputAttributePtr uv_attribute = mesh_component.attribute_try_get_for_output(
+      "uv_map", ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2, nullptr);
+  MutableSpan<float2> uvs = uv_attribute->get_span_for_write_only<float2>();
+
+  Array<float2> circle(verts_num);
+  float angle = 0.0f;
+  const float angle_delta = 2.0f * M_PI / static_cast<float>(verts_num);
+  for (const int i : IndexRange(verts_num)) {
+    circle[i].x = std::cos(angle) * 0.225f + 0.25f;
+    circle[i].y = std::sin(angle) * 0.225f + 0.25f;
+    angle += angle_delta;
+  }
+
+  int loop_index = 0;
+  if (!top_is_point) {
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
+      for (const int i : IndexRange(verts_num)) {
+        uvs[loop_index++] = circle[i];
+      }
+    }
+    else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        uvs[loop_index++] = circle[i];
+        uvs[loop_index++] = circle[(i + 1) % verts_num];
+        uvs[loop_index++] = float2(0.25f, 0.25f);
+      }
+    }
+  }
+
+  /* Create side corners and faces. */
+  if (!top_is_point && !bottom_is_point) {
+    const float bottom = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NONE) ? 0.0f : 0.5f;
+    /* Quads connect the top and bottom. */
+    for (const int i : IndexRange(verts_num)) {
+      const float vert = static_cast<float>(i);
+      uvs[loop_index++] = float2(vert / verts_num, bottom);
+      uvs[loop_index++] = float2(vert / verts_num, 1.0f);
+      uvs[loop_index++] = float2((vert + 1.0f) / verts_num, 1.0f);
+      uvs[loop_index++] = float2((vert + 1.0f) / verts_num, bottom);
+    }
+  }
+  else {
+    /* Triangles connect the top and bottom section. */
+    if (!top_is_point) {
+      for (const int i : IndexRange(verts_num)) {
+        uvs[loop_index++] = circle[i] + float2(0.5f, 0.0f);
+        uvs[loop_index++] = float2(0.75f, 0.25f);
+        uvs[loop_index++] = circle[(i + 1) % verts_num] + float2(0.5f, 0.0f);
+      }
+    }
+    else {
+      BLI_assert(!bottom_is_point);
+      for (const int i : IndexRange(verts_num)) {
+        uvs[loop_index++] = circle[i];
+        uvs[loop_index++] = circle[(i + 1) % verts_num];
+        uvs[loop_index++] = float2(0.25f, 0.25f);
+      }
+    }
+  }
+
+  /* Create bottom corners and faces. */
+  if (!bottom_is_point) {
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
+      for (const int i : IndexRange(verts_num)) {
+        /* Go backwards because of reversed face normal. */
+        uvs[loop_index++] = circle[verts_num - 1 - i] + float2(0.5f, 0.0f);
+      }
+    }
+    else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        uvs[loop_index++] = circle[i] + float2(0.5f, 0.0f);
+        uvs[loop_index++] = float2(0.75f, 0.25f);
+        uvs[loop_index++] = circle[(i + 1) % verts_num] + float2(0.5f, 0.0f);
+      }
+    }
+  }
+
+  uv_attribute.apply_span_and_save();
+}
+
 Mesh *create_cylinder_or_cone_mesh(const float radius_top,
                                    const float radius_bottom,
                                    const float depth,
                                    const int verts_num,
                                    const GeometryNodeMeshCircleFillType fill_type)
 {
-  const float4x4 transform = float4x4::identity();
-
   const bool top_is_point = radius_top == 0.0f;
   const bool bottom_is_point = radius_bottom == 0.0f;
+  const float height = depth * 0.5f;
+  /* Handle the case of a line / single point before everything else to avoid
+   * the need to check for it later. */
+  if (top_is_point && bottom_is_point) {
+    const bool single_vertex = height == 0.0f;
+    Mesh *mesh = BKE_mesh_new_nomain(single_vertex ? 1 : 2, single_vertex ? 0 : 1, 0, 0, 0);
+    copy_v3_v3(mesh->mvert[0].co, float3(0.0f, 0.0f, height));
+    if (single_vertex) {
+      const short up[3] = {0, 0, SHRT_MAX};
+      copy_v3_v3_short(mesh->mvert[0].no, up);
+      return mesh;
+    }
+    copy_v3_v3(mesh->mvert[1].co, float3(0.0f, 0.0f, -height));
+    mesh->medge[0].v1 = 0;
+    mesh->medge[0].v2 = 1;
+    mesh->medge[0].flag |= ME_LOOSEEDGE;
+    BKE_mesh_calc_normals(mesh);
+    return mesh;
+  }
 
-  const BMeshCreateParams bmcp = {true};
-  const BMAllocTemplate allocsize = {
+  Mesh *mesh = BKE_mesh_new_nomain(
       vert_total(fill_type, verts_num, top_is_point, bottom_is_point),
       edge_total(fill_type, verts_num, top_is_point, bottom_is_point),
+      0,
       corner_total(fill_type, verts_num, top_is_point, bottom_is_point),
-      face_total(fill_type, verts_num, top_is_point, bottom_is_point)};
-  BMesh *bm = BM_mesh_create(&allocsize, &bmcp);
+      face_total(fill_type, verts_num, top_is_point, bottom_is_point));
+  MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
+  MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
+  MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
+  MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
-  const bool cap_end = (fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE);
-  const bool cap_tri = (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN);
-  BMO_op_callf(bm,
-               BMO_FLAG_DEFAULTS,
-               "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b "
-               "cap_tris=%b depth=%f matrix=%m4 calc_uvs=%b",
-               verts_num,
-               radius_bottom,
-               radius_top,
-               cap_end,
-               cap_tri,
-               depth,
-               transform.values,
-               true);
+  /* Calculate vertex positions. */
+  const int top_verts_start = 0;
+  const int bottom_verts_start = top_verts_start + (!top_is_point ? verts_num : 1);
+  float angle = 0.0f;
+  const float angle_delta = 2.0f * M_PI / static_cast<float>(verts_num);
+  for (const int i : IndexRange(verts_num)) {
+    const float x = std::cos(angle);
+    const float y = std::sin(angle);
+    if (!top_is_point) {
+      copy_v3_v3(verts[top_verts_start + i].co, float3(x * radius_top, y * radius_top, height));
+    }
+    if (!bottom_is_point) {
+      copy_v3_v3(verts[bottom_verts_start + i].co,
+                 float3(x * radius_bottom, y * radius_bottom, -height));
+    }
+    angle += angle_delta;
+  }
+  if (top_is_point) {
+    copy_v3_v3(verts[top_verts_start].co, float3(0.0f, 0.0f, height));
+  }
+  if (bottom_is_point) {
+    copy_v3_v3(verts[bottom_verts_start].co, float3(0.0f, 0.0f, -height));
+  }
 
-  BMeshToMeshParams params{};
-  params.calc_object_remap = false;
-  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
-  BM_mesh_bm_to_me(nullptr, bm, mesh, &params);
-  BM_mesh_free(bm);
+  /* Add center vertices for the triangle fans at the end. */
+  const int top_center_vert_index = bottom_verts_start + (bottom_is_point ? 1 : verts_num);
+  const int bottom_center_vert_index = top_center_vert_index + (top_is_point ? 0 : 1);
+  if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+    if (!top_is_point) {
+      copy_v3_v3(verts[top_center_vert_index].co, float3(0.0f, 0.0f, height));
+    }
+    if (!bottom_is_point) {
+      copy_v3_v3(verts[bottom_center_vert_index].co, float3(0.0f, 0.0f, -height));
+    }
+  }
+
+  /* Create top edges. */
+  const int top_edges_start = 0;
+  const int top_fan_edges_start = (!top_is_point &&
+                                   fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) ?
+                                      top_edges_start + verts_num :
+                                      top_edges_start;
+  if (!top_is_point) {
+    for (const int i : IndexRange(verts_num)) {
+      MEdge &edge = edges[top_edges_start + i];
+      edge.v1 = top_verts_start + i;
+      edge.v2 = top_verts_start + (i + 1) % verts_num;
+      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    }
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        MEdge &edge = edges[top_fan_edges_start + i];
+        edge.v1 = top_center_vert_index;
+        edge.v2 = top_verts_start + i;
+        edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      }
+    }
+  }
+
+  /* Create connecting edges. */
+  const int connecting_edges_start = top_fan_edges_start + (!top_is_point ? verts_num : 0);
+  for (const int i : IndexRange(verts_num)) {
+    MEdge &edge = edges[connecting_edges_start + i];
+    edge.v1 = top_verts_start + (!top_is_point ? i : 0);
+    edge.v2 = bottom_verts_start + (!bottom_is_point ? i : 0);
+    edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+  }
+
+  /* Create bottom edges. */
+  const int bottom_edges_start = connecting_edges_start + verts_num;
+  const int bottom_fan_edges_start = (!bottom_is_point &&
+                                      fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) ?
+                                         bottom_edges_start + verts_num :
+                                         bottom_edges_start;
+  if (!bottom_is_point) {
+    for (const int i : IndexRange(verts_num)) {
+      MEdge &edge = edges[bottom_edges_start + i];
+      edge.v1 = bottom_verts_start + i;
+      edge.v2 = bottom_verts_start + (i + 1) % verts_num;
+      edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+    }
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        MEdge &edge = edges[bottom_fan_edges_start + i];
+        edge.v1 = bottom_center_vert_index;
+        edge.v2 = bottom_verts_start + i;
+        edge.flag = ME_EDGEDRAW | ME_EDGERENDER;
+      }
+    }
+  }
+
+  /* Create top corners and faces. */
+  int loop_index = 0;
+  int poly_index = 0;
+  if (!top_is_point) {
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
+      MPoly &poly = polys[poly_index++];
+      poly.loopstart = loop_index;
+      poly.totloop = verts_num;
+
+      for (const int i : IndexRange(verts_num)) {
+        MLoop &loop = loops[loop_index++];
+        loop.v = top_verts_start + i;
+        loop.e = top_edges_start + i;
+      }
+    }
+    else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        MPoly &poly = polys[poly_index++];
+        poly.loopstart = loop_index;
+        poly.totloop = 3;
+
+        MLoop &loop_a = loops[loop_index++];
+        loop_a.v = top_verts_start + i;
+        loop_a.e = top_edges_start + i;
+        MLoop &loop_b = loops[loop_index++];
+        loop_b.v = top_verts_start + (i + 1) % verts_num;
+        loop_b.e = top_fan_edges_start + (i + 1) % verts_num;
+        MLoop &loop_c = loops[loop_index++];
+        loop_c.v = top_center_vert_index;
+        loop_c.e = top_fan_edges_start + i;
+      }
+    }
+  }
+
+  /* Create side corners and faces. */
+  if (!top_is_point && !bottom_is_point) {
+    /* Quads connect the top and bottom. */
+    for (const int i : IndexRange(verts_num)) {
+      MPoly &poly = polys[poly_index++];
+      poly.loopstart = loop_index;
+      poly.totloop = 4;
+
+      MLoop &loop_a = loops[loop_index++];
+      loop_a.v = top_verts_start + i;
+      loop_a.e = connecting_edges_start + i;
+      MLoop &loop_b = loops[loop_index++];
+      loop_b.v = bottom_verts_start + i;
+      loop_b.e = bottom_edges_start + i;
+      MLoop &loop_c = loops[loop_index++];
+      loop_c.v = bottom_verts_start + (i + 1) % verts_num;
+      loop_c.e = connecting_edges_start + (i + 1) % verts_num;
+      MLoop &loop_d = loops[loop_index++];
+      loop_d.v = top_verts_start + (i + 1) % verts_num;
+      loop_d.e = top_edges_start + i;
+    }
+  }
+  else {
+    /* Triangles connect the top and bottom section. */
+    if (!top_is_point) {
+      for (const int i : IndexRange(verts_num)) {
+        MPoly &poly = polys[poly_index++];
+        poly.loopstart = loop_index;
+        poly.totloop = 3;
+
+        MLoop &loop_a = loops[loop_index++];
+        loop_a.v = top_verts_start + i;
+        loop_a.e = connecting_edges_start + i;
+        MLoop &loop_b = loops[loop_index++];
+        loop_b.v = bottom_verts_start;
+        loop_b.e = connecting_edges_start + (i + 1) % verts_num;
+        MLoop &loop_c = loops[loop_index++];
+        loop_c.v = top_verts_start + (i + 1) % verts_num;
+        loop_c.e = top_edges_start + i;
+      }
+    }
+    else {
+      BLI_assert(!bottom_is_point);
+      for (const int i : IndexRange(verts_num)) {
+        MPoly &poly = polys[poly_index++];
+        poly.loopstart = loop_index;
+        poly.totloop = 3;
+
+        MLoop &loop_a = loops[loop_index++];
+        loop_a.v = bottom_verts_start + i;
+        loop_a.e = bottom_edges_start + i;
+        MLoop &loop_b = loops[loop_index++];
+        loop_b.v = bottom_verts_start + (i + 1) % verts_num;
+        loop_b.e = connecting_edges_start + (i + 1) % verts_num;
+        MLoop &loop_c = loops[loop_index++];
+        loop_c.v = top_verts_start;
+        loop_c.e = connecting_edges_start + i;
+      }
+    }
+  }
+
+  /* Create bottom corners and faces. */
+  if (!bottom_is_point) {
+    if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
+      MPoly &poly = polys[poly_index++];
+      poly.loopstart = loop_index;
+      poly.totloop = verts_num;
+
+      for (const int i : IndexRange(verts_num)) {
+        /* Go backwards to reverse surface normal. */
+        MLoop &loop = loops[loop_index++];
+        loop.v = bottom_verts_start + verts_num - 1 - i;
+        loop.e = bottom_edges_start + verts_num - 1 - (i + 1) % verts_num;
+      }
+    }
+    else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+      for (const int i : IndexRange(verts_num)) {
+        MPoly &poly = polys[poly_index++];
+        poly.loopstart = loop_index;
+        poly.totloop = 3;
+
+        MLoop &loop_a = loops[loop_index++];
+        loop_a.v = bottom_verts_start + i;
+        loop_a.e = bottom_fan_edges_start + i;
+        MLoop &loop_b = loops[loop_index++];
+        loop_b.v = bottom_center_vert_index;
+        loop_b.e = bottom_fan_edges_start + (i + 1) % verts_num;
+        MLoop &loop_c = loops[loop_index++];
+        loop_c.v = bottom_verts_start + (i + 1) % verts_num;
+        loop_c.e = bottom_edges_start + i;
+      }
+    }
+  }
+
+  BKE_mesh_calc_normals(mesh);
+
+  calculate_uvs(mesh, top_is_point, bottom_is_point, verts_num, fill_type);
+
+  BLI_assert(BKE_mesh_is_valid(mesh));
 
   return mesh;
 }
@@ -253,6 +562,7 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
   Mesh *mesh = create_cylinder_or_cone_mesh(
       radius_top, radius_bottom, depth, verts_num, fill_type);
 
+  /* Transform the mesh so that the base of the cone is at the origin. */
   BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));

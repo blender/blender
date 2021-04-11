@@ -41,10 +41,6 @@ namespace Freestyle {
 
 real PseudoNoise::_values[];
 
-PseudoNoise::PseudoNoise()
-{
-}
-
 void PseudoNoise::init(long seed)
 {
   RandGen::srand48(seed);

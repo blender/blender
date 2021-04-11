@@ -56,7 +56,6 @@ class NodeGraph {
   Vector<Link> m_links;
 
  public:
-  NodeGraph();
   ~NodeGraph();
 
   const Vector<Node *> &nodes() const

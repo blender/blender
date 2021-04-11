@@ -123,7 +123,7 @@ struct HierarchyContext {
  */
 class AbstractHierarchyWriter {
  public:
-  virtual ~AbstractHierarchyWriter();
+  virtual ~AbstractHierarchyWriter() = default;
   virtual void write(HierarchyContext &context) = 0;
   /* TODO(Sybren): add function like absent() that's called when a writer was previously created,
    * but wasn't used while exporting the current frame (for example, a particle-instanced mesh of
@@ -186,9 +186,6 @@ class ObjectIdentifier {
   ObjectIdentifier(Object *object, Object *duplicated_by, const PersistentID &persistent_id);
 
  public:
-  ObjectIdentifier(const ObjectIdentifier &other);
-  ~ObjectIdentifier();
-
   static ObjectIdentifier for_graph_root();
   static ObjectIdentifier for_real_object(Object *object);
   static ObjectIdentifier for_hierarchy_context(const HierarchyContext *context);

@@ -2015,12 +2015,10 @@ static void scene_collections_array(Scene *scene,
   BLI_assert(collection != NULL);
   scene_collection_callback(collection, scene_collections_count, r_collections_array_len);
 
-  if (*r_collections_array_len == 0) {
-    return;
-  }
+  BLI_assert(*r_collections_array_len > 0);
 
-  Collection **array = MEM_mallocN(sizeof(Collection *) * (*r_collections_array_len),
-                                   "CollectionArray");
+  Collection **array = MEM_malloc_arrayN(
+      *r_collections_array_len, sizeof(Collection *), "CollectionArray");
   *r_collections_array = array;
   scene_collection_callback(collection, scene_collections_build_array, &array);
 }
@@ -2035,8 +2033,9 @@ void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
   CollectionsIteratorData *data = MEM_callocN(sizeof(CollectionsIteratorData), __func__);
 
   data->scene = scene;
+
+  BLI_ITERATOR_INIT(iter);
   iter->data = data;
-  iter->valid = true;
 
   scene_collections_array(scene, (Collection ***)&data->array, &data->tot);
   BLI_assert(data->tot != 0);
@@ -2078,22 +2077,35 @@ typedef struct SceneObjectsIteratorData {
   BLI_Iterator scene_collection_iter;
 } SceneObjectsIteratorData;
 
-void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+static void scene_objects_iterator_begin(BLI_Iterator *iter, Scene *scene, GSet *visited_objects)
 {
-  Scene *scene = data_in;
   SceneObjectsIteratorData *data = MEM_callocN(sizeof(SceneObjectsIteratorData), __func__);
+
+  BLI_ITERATOR_INIT(iter);
   iter->data = data;
 
-  /* lookup list ot make sure each object is object called once */
-  data->visited = BLI_gset_ptr_new(__func__);
+  /* Lookup list to make sure that each object is only processed once. */
+  if (visited_objects != NULL) {
+    data->visited = visited_objects;
+  }
+  else {
+    data->visited = BLI_gset_ptr_new(__func__);
+  }
 
-  /* we wrap the scenecollection iterator here to go over the scene collections */
+  /* We wrap the scenecollection iterator here to go over the scene collections. */
   BKE_scene_collections_iterator_begin(&data->scene_collection_iter, scene);
 
   Collection *collection = data->scene_collection_iter.current;
   data->cob_next = collection->gobject.first;
 
   BKE_scene_objects_iterator_next(iter);
+}
+
+void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+{
+  Scene *scene = data_in;
+
+  scene_objects_iterator_begin(iter, scene, NULL);
 }
 
 /**
@@ -2149,9 +2161,36 @@ void BKE_scene_objects_iterator_end(BLI_Iterator *iter)
   SceneObjectsIteratorData *data = iter->data;
   if (data) {
     BKE_scene_collections_iterator_end(&data->scene_collection_iter);
-    BLI_gset_free(data->visited, NULL);
+    if (data->visited != NULL) {
+      BLI_gset_free(data->visited, NULL);
+    }
     MEM_freeN(data);
   }
+}
+
+/**
+ * Generate a new GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
+ * all collections of given `scene`.
+ *
+ * \note: This will include objects without a base currently (because they would belong to excluded
+ * collections only e.g.).
+ */
+GSet *BKE_scene_objects_as_gset(Scene *scene, GSet *objects_gset)
+{
+  BLI_Iterator iter;
+  scene_objects_iterator_begin(&iter, scene, objects_gset);
+  while (iter.valid) {
+    BKE_scene_objects_iterator_next(&iter);
+  }
+
+  /* `return_gset` is either given `objects_gset` (if non-NULL), or the GSet allocated by the
+   * iterator. Either way, we want to get it back, and prevent `BKE_scene_objects_iterator_end`
+   * from freeing it. */
+  GSet *return_gset = ((SceneObjectsIteratorData *)iter.data)->visited;
+  ((SceneObjectsIteratorData *)iter.data)->visited = NULL;
+  BKE_scene_objects_iterator_end(&iter);
+
+  return return_gset;
 }
 
 /** \} */

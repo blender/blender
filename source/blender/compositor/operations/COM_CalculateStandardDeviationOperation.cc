@@ -24,11 +24,6 @@
 
 namespace blender::compositor {
 
-CalculateStandardDeviationOperation::CalculateStandardDeviationOperation()
-{
-  /* pass */
-}
-
 void CalculateStandardDeviationOperation::executePixel(float output[4],
                                                        int /*x*/,
                                                        int /*y*/,

@@ -20,11 +20,6 @@
 
 namespace blender::compositor {
 
-AlphaOverKeyOperation::AlphaOverKeyOperation()
-{
-  /* pass */
-}
-
 void AlphaOverKeyOperation::executePixelSampled(float output[4],
                                                 float x,
                                                 float y,

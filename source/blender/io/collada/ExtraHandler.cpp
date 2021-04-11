@@ -30,10 +30,6 @@ ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp)
   this->aimp = aimp;
 }
 
-ExtraHandler::~ExtraHandler()
-{
-}
-
 bool ExtraHandler::elementBegin(const char *elementName, const char **attributes)
 {
   /* \todo attribute handling for profile tags */

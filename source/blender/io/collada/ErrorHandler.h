@@ -34,8 +34,6 @@ class ErrorHandler : public COLLADASaxFWL::IErrorHandler {
   /** Constructor. */
   ErrorHandler();
 
-  /** Destructor. */
-  virtual ~ErrorHandler();
   /** handle any error thrown by the parser. */
   bool virtual handleError(const COLLADASaxFWL::IError *error);
   /** True if there was an error during parsing. */

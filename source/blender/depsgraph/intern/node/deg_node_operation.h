@@ -231,7 +231,6 @@ enum OperationFlag {
 /* Atomic Operation - Base type for all operations */
 struct OperationNode : public Node {
   OperationNode();
-  ~OperationNode();
 
   virtual string identifier() const override;
   string full_identifier() const;

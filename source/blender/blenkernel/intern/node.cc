@@ -1314,8 +1314,8 @@ void nodeUnregisterType(bNodeType *nt)
 bool nodeTypeUndefined(bNode *node)
 {
   return (node->typeinfo == &NodeTypeUndefined) ||
-         (node->type == NODE_GROUP && node->id && ID_IS_LINKED(node->id) &&
-          (node->id->tag & LIB_TAG_MISSING));
+         ((node->type == NODE_GROUP || node->type == NODE_CUSTOM_GROUP) && node->id &&
+          ID_IS_LINKED(node->id) && (node->id->tag & LIB_TAG_MISSING));
 }
 
 GHashIterator *nodeTypeGetIterator(void)
@@ -3096,10 +3096,12 @@ void ntreeSetOutput(bNodeTree *ntree)
    * might be different for editor or for "real" use... */
 }
 
-/** Get address of potential nodetree pointer of given ID.
+/**
+ * Get address of potential node-tree pointer of given ID.
  *
  * \warning Using this function directly is potentially dangerous, if you don't know or are not
- * sure, please use `ntreeFromID()` instead. */
+ * sure, please use `ntreeFromID()` instead.
+ */
 bNodeTree **BKE_ntree_ptr_from_id(ID *id)
 {
   switch (GS(id->name)) {
@@ -4937,6 +4939,7 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_vector_math();
   register_node_type_geo_attribute_remove();
   register_node_type_geo_boolean();
+  register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
   register_node_type_geo_edge_split();
   register_node_type_geo_is_viewport();

@@ -29,10 +29,6 @@ HeuristicGridDensityProviderFactory::HeuristicGridDensityProviderFactory(real si
 {
 }
 
-HeuristicGridDensityProviderFactory::~HeuristicGridDensityProviderFactory()
-{
-}
-
 AutoPtr<GridDensityProvider> HeuristicGridDensityProviderFactory::newGridDensityProvider(
     OccluderSource &source, const real proscenium[4])
 {

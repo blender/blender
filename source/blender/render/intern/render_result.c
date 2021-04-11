@@ -126,7 +126,7 @@ void render_result_free(RenderResult *rr)
   MEM_freeN(rr);
 }
 
-/* version that's compatible with fullsample buffers */
+/** Version that's compatible with full-sample buffers. */
 void render_result_free_list(ListBase *lb, RenderResult *rr)
 {
   RenderResult *rrnext;

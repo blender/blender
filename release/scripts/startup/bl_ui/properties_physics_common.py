@@ -38,13 +38,12 @@ class PhysicButtonsPanel:
 def physics_add(layout, md, name, type, typeicon, toggles):
     row = layout.row(align=True)
     if md:
-        row.context_pointer_set("modifier", md)
         row.operator(
             "object.modifier_remove",
             text=name,
             text_ctxt=i18n_contexts.default,
             icon='X',
-        )
+        ).modifier = md.name
         if toggles:
             row.prop(md, "show_viewport", text="")
             row.prop(md, "show_render", text="")

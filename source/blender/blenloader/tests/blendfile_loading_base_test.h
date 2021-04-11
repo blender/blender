@@ -30,8 +30,6 @@ class BlendfileLoadingBaseTest : public testing::Test {
   struct Depsgraph *depsgraph = nullptr;
 
  public:
-  virtual ~BlendfileLoadingBaseTest();
-
   /* Sets up Blender just enough to not crash on loading
    * a blendfile and constructing a depsgraph. */
   static void SetUpTestCase();

@@ -46,10 +46,6 @@ NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNo
   m_graph.from_bNodeTree(*context, b_nodetree);
 }
 
-NodeOperationBuilder::~NodeOperationBuilder()
-{
-}
-
 void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 {
   /* interface handle for nodes */

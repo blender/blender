@@ -164,7 +164,7 @@ class ChainingIterator : public ViewEdgeInternal::ViewEdgeIterator {
    *    Indicates whether to force the chaining to stay within
    *    the set of selected ViewEdges or not.
    *  \param iRestrictToUnvisited:
-   *    Indicates whether a ViewEdge that has already been chained must be ignored ot not.
+   *    Indicates whether a ViewEdge that has already been chained must be ignored or not.
    *  \param begin:
    *    The ViewEdge from which to start the chain.
    *  \param orientation:

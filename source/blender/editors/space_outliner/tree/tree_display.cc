@@ -44,6 +44,9 @@ TreeDisplay *outliner_tree_display_create(eSpaceOutliner_Mode mode, SpaceOutline
     case SO_ID_ORPHANS:
       tree_display = new TreeDisplayIDOrphans(*space_outliner);
       break;
+    case SO_OVERRIDES_LIBRARY:
+      tree_display = new TreeDisplayOverrideLibrary(*space_outliner);
+      break;
     case SO_VIEW_LAYER:
     default:
       tree_display = new TreeDisplayViewLayer(*space_outliner);

@@ -1706,7 +1706,7 @@ static bool gpencil_interpolate_reverse_poll(bContext *C)
   if (area == NULL) {
     return false;
   }
-  if ((area->spacetype != SPACE_VIEW3D) && (area->spacetype != SPACE_ACTION)) {
+  if (!ELEM(area->spacetype, SPACE_VIEW3D, SPACE_ACTION)) {
     return false;
   }
 
