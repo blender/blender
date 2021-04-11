@@ -87,7 +87,6 @@ def blender_extract_info(blender_bin: str) -> Dict[str, str]:
         # Happens when built without WITH_BUILD_INFO e.g.
         date_string = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
     else:
-        blender_date = blender_date.strip().partition(" ")[2]  # Remove 'date:' prefix.
         date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
 
     return {
