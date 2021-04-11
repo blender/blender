@@ -1130,21 +1130,6 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
       }
       fmask /= 3.0f;
 
-      /*
-
-
-      v1
-      |\
-      |   \
-      v3    v4
-      |  v6   \
-      |         \
-      v0---v5---v2
-      */
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index + 0, v_index + 1);
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
-      GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index + 0);
-
       uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
       if (show_face_sets && cd_fset_offset >= 0) {
@@ -1180,6 +1165,8 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
       interp_v3_v3v3(cos[4], v[1]->co, v[2]->co, 0.5f);
       interp_v3_v3v3(cos[5], v[2]->co, v[0]->co, 0.5f);
 
+      const int v_start = v_index;
+
       for (int j = 0; j < 3; j++) {
         int next = 3 + ((j) % 3);
         int prev = 3 + ((j + 3 - 1) % 3);
@@ -1197,6 +1184,23 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
             cos[6], v[j], buffers->vert_buf, v_index + 4, cd_vcols, cd_vcol_count, f->no);
         gpu_flat_vcol_make_vert(
             cos[prev], v[j], buffers->vert_buf, v_index + 5, cd_vcols, cd_vcol_count, f->no);
+
+
+      /*
+        v1
+        |\
+        |   \
+        v3    v4
+        |  v6   \
+        |         \
+        v0---v5---v2
+        */
+
+        next = j == 2 ? v_start : v_index + 6;
+
+        GPU_indexbuf_add_line_verts(&elb_lines, v_index, next);
+        // GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
+        // GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index + 0);
 
         v_index += 6;
       }

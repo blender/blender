@@ -755,6 +755,66 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
 
 
 # TODO, move to space_view3d.py
+class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
+    bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
+    bl_label = "Dyntopo (Advanced)"
+    #bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
+
+    @classmethod
+    def poll(cls, context):
+        paint_settings = cls.paint_settings(context)
+        return (context.sculpt_object and context.tool_settings.sculpt and paint_settings)
+
+    def draw_header(self, context):
+        pass
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
+        col = layout.column()
+        print(dir(col))
+        col.label(text="Local Brush Settings")
+        inherit_all = "ALL" in brush.dyntopo.inherit
+
+        col.prop_enum(brush.dyntopo, "inherit", value="ALL", text="All Scene Defaults", icon="LOCKED" if inherit_all else "UNLOCKED");
+
+
+        def do_prop(key):
+            row = col.row()
+            if key.upper() in brush.dyntopo.inherit:
+                icon = "LOCKED"
+            else:
+                icon = "UNLOCKED"
+
+            row.prop_enum(brush.dyntopo, "inherit", value=key.upper(), icon=icon, text="");
+
+            row2 = row.row()
+            row2.prop(brush.dyntopo, key)
+
+            if icon == "UNLOCKED":
+                row2.enabled = False
+
+            if inherit_all:
+                row.enabled = False
+
+        col = layout.column()
+        do_prop("subdivide");
+        do_prop("collapse");
+        do_prop("spacing");
+        do_prop("detail_range");
+        do_prop("detail_percent");
+        do_prop("constant_detail");
+        do_prop("mode")
+
+# TODO, move to space_view3d.py
 class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dyntopo"
@@ -2242,6 +2302,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_brush_vertex_color,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_palette,
     VIEW3D_PT_tools_grease_pencil_brush_vertex_falloff,
+    VIEW3D_PT_sculpt_dyntopo_advanced
 )
 
 if __name__ == "__main__":  # only for live edit.

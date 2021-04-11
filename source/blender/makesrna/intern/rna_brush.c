@@ -363,10 +363,11 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
     {DYNTOPO_INHERIT_ALL, "ALL", ICON_NONE, "All", "Inherit All"},
-    {DYNTOPO_INHERIT_DETAIL_RANGE, "RANGE", ICON_NONE, "All", ""},
-    {DYNTOPO_INHERIT_DETAIL_PERCENT, "PERCENT", ICON_NONE, "Percent", ""},
+    {DYNTOPO_INHERIT_DETAIL_RANGE, "DETAIL_RANGE", ICON_NONE, "All", ""},
+    {DYNTOPO_INHERIT_DETAIL_PERCENT, "DETAIL_PERCENT", ICON_NONE, "Percent", ""},
     {DYNTOPO_INHERIT_MODE, "MODE", ICON_NONE, "Mode", ""},
     {DYNTOPO_INHERIT_CONSTANT_DETAIL, "CONSTANT_DETAIL", ICON_NONE, "Constant Detail", ""},
+    {DYNTOPO_INHERIT_SPACING, "SPACING", ICON_NONE, "Spacing", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1180,6 +1181,30 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
       prop, "Spacing", "Spacing between DynTopo daubs as a percentage of brush diameter");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+  prop = RNA_def_property(srna, "detail_percent", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_float_sdna(prop, NULL, "detail_percent");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 500, 5, -1);
+  RNA_def_property_ui_text(
+      prop, "Detail Percent", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "detail_range", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "detail_range");
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.001, 4);
+  RNA_def_property_ui_text(
+      prop, "Detail Range", "Higher values are faster but produce lower quality topology");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "constant_detail");
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.001, 4);
+  RNA_def_property_ui_text(
+      prop, "Constant Detail", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "subdivide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_SUBDIVIDE);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
@@ -1200,6 +1225,12 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
   RNA_def_property_ui_text(prop, "Collapse", "Enable Dyntopo Decimation");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, 0);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, rna_enum_brush_dyntopo_mode);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Mode", "Detail Mode");
 
   prop = RNA_def_property(srna, "inherit", PROP_ENUM, 0);
   RNA_def_property_enum_sdna(prop, NULL, "inherit");
