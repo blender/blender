@@ -197,7 +197,7 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bo
 static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
 {
   /* Note: We do not want to copy possible override data from reference here (whether it is an
-   * override template, or aleady an override of some other ref data). */
+   * override template, or already an override of some other ref data). */
   ID *local_id = BKE_id_copy_ex(
       bmain, reference_id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE);
 

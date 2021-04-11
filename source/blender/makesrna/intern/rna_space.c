@@ -1673,7 +1673,7 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 
   values[0] = values[1] = 1;
 
-  /* find aregion */
+  /* Find #ARegion. */
   area = rna_area_from_space(ptr); /* can be NULL */
   region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region) {

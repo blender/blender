@@ -555,7 +555,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /* Wintab API */
   struct {
-    /** WinTab DLL handle. */
+    /** `WinTab.dll` handle. */
     HMODULE handle = NULL;
 
     /** API functions */
@@ -574,7 +574,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   GHOST_TWindowState m_normal_state;
 
-  /** user32 dll handle*/
+  /** `user32.dll` handle */
   HMODULE m_user32;
   GHOST_WIN32_GetPointerInfoHistory m_fpGetPointerInfoHistory;
   GHOST_WIN32_GetPointerPenInfoHistory m_fpGetPointerPenInfoHistory;

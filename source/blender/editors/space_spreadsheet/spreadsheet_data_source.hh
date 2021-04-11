@@ -25,7 +25,7 @@ namespace blender::ed::spreadsheet {
 
 /**
  * This class is subclassed to implement different data sources for the spreadsheet. A data source
- * provides the information that should be displayed. It is not concerned with how data is layed
+ * provides the information that should be displayed. It is not concerned with how data is laid
  * out in the spreadsheet editor exactly.
  */
 class DataSource {

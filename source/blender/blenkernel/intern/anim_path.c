@@ -150,7 +150,7 @@ static void get_curve_points_from_idx(const int idx,
 
   /* Last segment (or next to last in a cyclic curve). */
   if (idx == bl->nr - 2) {
-    /* The case when the bl->nr == 2 falls in to the "first segement" check above.
+    /* The case when the bl->nr == 2 falls in to the "first segment" check above.
      * So here we can assume that bl->nr > 2.
      */
     *r_p0 = &bp_arr[idx - 1];
@@ -207,7 +207,7 @@ static bool binary_search_anim_path(const float *accum_len_arr,
       return true;
     }
     if (cur_idx == 0) {
-      /* We ended up at the first segement. The point must be in here. */
+      /* We ended up at the first segment. The point must be in here. */
       *r_idx = 0;
       *r_frac = goal_len / accum_len_arr[0];
       return true;
