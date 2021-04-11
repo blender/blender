@@ -6345,12 +6345,13 @@ static void sculpt_topology_update(Sculpt *sd,
   PBVHTopologyUpdateMode mode = 0;
   float location[3];
 
-  if (!(sd->flags & SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    if (sd->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
+  if (brush->cached_dyntopo.mode != DYNTOPO_DETAIL_MANUAL) {
+    if (brush->cached_dyntopo.flag & DYNTOPO_SUBDIVIDE) {
       mode |= PBVH_Subdivide;
     }
 
-    if ((sd->flags & SCULPT_DYNTOPO_COLLAPSE) || (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY)) {
+    if ((brush->cached_dyntopo.flag & DYNTOPO_COLLAPSE)
+        /*||(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY)*/) {
       mode |= PBVH_Collapse;
     }
   }

@@ -1950,8 +1950,10 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.005f;
       break;
 
-    case SCULPT_TOOL_VCOL_BOUNDARY:
     case SCULPT_TOOL_SIMPLIFY:
+      br->dyntopo.inherit = ((1<<17)-1) & ~(DYNTOPO_INHERIT_ALL|DYNTOPO_SUBDIVIDE|DYNTOPO_COLLAPSE);
+      br->dyntopo.flag |= DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE;
+    case SCULPT_TOOL_VCOL_BOUNDARY:
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_MASK:
     case SCULPT_TOOL_DRAW_FACE_SETS:

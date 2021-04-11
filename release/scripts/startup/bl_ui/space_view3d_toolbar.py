@@ -780,21 +780,25 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         brush = settings.brush
 
         col = layout.column()
-        print(dir(col))
         col.label(text="Local Brush Settings")
+
+        row = col.row()
+        row.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
+
+        col.label(text="Overrides")
         inherit_all = "ALL" in brush.dyntopo.inherit
 
-        col.prop_enum(brush.dyntopo, "inherit", value="ALL", text="All Scene Defaults", icon="LOCKED" if inherit_all else "UNLOCKED");
+        col.prop_enum(brush.dyntopo, "inherit", value="ALL", text="Use All Defaults", icon="LOCKED" if inherit_all else "UNLOCKED")
 
 
         def do_prop(key):
             row = col.row()
             if key.upper() in brush.dyntopo.inherit:
-                icon = "LOCKED"
-            else:
                 icon = "UNLOCKED"
+            else:
+                icon = "LOCKED"
 
-            row.prop_enum(brush.dyntopo, "inherit", value=key.upper(), icon=icon, text="");
+            row.prop_enum(brush.dyntopo, "inherit", value=key.upper(), icon=icon, text="")
 
             row2 = row.row()
             row2.prop(brush.dyntopo, key)
@@ -806,12 +810,12 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
                 row.enabled = False
 
         col = layout.column()
-        do_prop("subdivide");
-        do_prop("collapse");
-        do_prop("spacing");
-        do_prop("detail_range");
-        do_prop("detail_percent");
-        do_prop("constant_detail");
+        do_prop("subdivide")
+        do_prop("collapse")
+        do_prop("spacing")
+        do_prop("detail_range")
+        do_prop("detail_percent")
+        do_prop("constant_detail")
         do_prop("mode")
 
 # TODO, move to space_view3d.py
