@@ -90,8 +90,7 @@ static int gpu_shader_map_range(GPUMaterial *mat,
   return ret;
 }
 
-static void map_range_signature(
-    blender::fn::MFSignatureBuilder *signature, bool use_steps)
+static void map_range_signature(blender::fn::MFSignatureBuilder *signature, bool use_steps)
 {
   signature->single_input<float>("Value");
   signature->single_input<float>("From Min");
