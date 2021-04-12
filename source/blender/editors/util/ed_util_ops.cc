@@ -149,7 +149,7 @@ static void ED_OT_lib_id_generate_preview(wmOperatorType *ot)
   ot->exec = lib_id_generate_preview_exec;
 
   /* flags */
-  ot->flag = OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
