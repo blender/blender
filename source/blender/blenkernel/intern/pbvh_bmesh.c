@@ -633,8 +633,12 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 /**
  * \note Callers are responsible for checking if the face exists before adding.
  */
-static BMFace *pbvh_bmesh_face_create(
-    PBVH *pbvh, int node_index, BMVert *v_tri[3], BMEdge *e_tri[3], const BMFace *f_example)
+static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
+                                      int node_index,
+                                      BMVert *v_tri[3],
+                                      BMEdge *e_tri[3],
+                                      const BMFace *f_example,
+                                      bool ensure_verts)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
@@ -661,6 +665,20 @@ static BMFace *pbvh_bmesh_face_create(
 
   /* Log the new face */
   BM_log_face_added(pbvh->bm_log, f);
+  int cd_vert_node = pbvh->cd_vert_node_offset;
+
+  if (ensure_verts) {
+    BMLoop *l = f->l_first;
+    do {
+      if (BM_ELEM_CD_GET_INT(l->v, cd_vert_node) == DYNTOPO_NODE_NONE) {
+        BLI_table_gset_add(node->bm_unique_verts, l->v);
+      } else {
+        BLI_table_gset_add(node->bm_other_verts, l->v);
+      }
+       
+      l = l->next;
+    } while (l != f->l_first);
+  }
 
   return f;
 }
@@ -2045,7 +2063,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     v_tri[1] = v_new;
     v_tri[2] = v_opp;
     bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
+    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false);
     long_edge_queue_face_add(eq_ctx, f_new);
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
@@ -2087,7 +2105,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     e_tri[2] = e_tri[1]; /* switched */
     e_tri[1] = BM_edge_create(pbvh->bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
 
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
+    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false);
     long_edge_queue_face_add(eq_ctx, f_new);
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
@@ -2333,7 +2351,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     ws[i] = w;
   }
 
-  //snap customdata
+  // snap customdata
   if (totl > 0) {
     CustomData_bmesh_interp(&pbvh->bm->ldata, blocks, ws, NULL, totl, ls[0]->head.data);
     //*
@@ -2400,7 +2418,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       PBVHNode *n = pbvh_bmesh_node_from_face(pbvh, f);
       int ni = n - pbvh->nodes;
       bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
-      BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
+      BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f, false);
 
       BMLoop *l2 = f2->l_first;
 
@@ -2648,15 +2666,15 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
 /************************* Called from pbvh.c *************************/
 
-bool pbvh_bmesh_node_raycast(PBVHNode *node,
-                             const float ray_start[3],
-                             const float ray_normal[3],
-                             struct IsectRayPrecalc *isect_precalc,
-                             float *depth,
-                             bool use_original,
-                             SculptVertRef *r_active_vertex_index,
-                             SculptFaceRef *r_active_face_index,
-                             float *r_face_normal)
+__attribute__((optnone)) bool pbvh_bmesh_node_raycast(PBVHNode *node,
+                                                      const float ray_start[3],
+                                                      const float ray_normal[3],
+                                                      struct IsectRayPrecalc *isect_precalc,
+                                                      float *depth,
+                                                      bool use_original,
+                                                      SculptVertRef *r_active_vertex_index,
+                                                      SculptFaceRef *r_active_face_index,
+                                                      float *r_face_normal)
 {
   bool hit = false;
   float nearest_vertex_co[3] = {0.0f};
@@ -3276,11 +3294,11 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
 }
 
 static bool cleanup_valence_3_4(PBVH *pbvh,
-                                                         const float center[3],
-                                                         const float view_normal[3],
-                                                         float radius,
-                                                         const bool use_frontface,
-                                                         const bool use_projected)
+                                const float center[3],
+                                const float view_normal[3],
+                                float radius,
+                                const bool use_frontface,
+                                const bool use_projected)
 {
   bool modified = false;
 
@@ -3385,7 +3403,7 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
 
       BMFace *f1 = NULL;
       if (vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2]) {
-        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f);
+        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, true);
       }
 
       if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
@@ -3393,7 +3411,7 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
         vs[1] = ls[2]->v;
         vs[2] = ls[3]->v;
 
-        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f);
+        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, true);
         SWAP(void *, f2->l_first->prev->head.data, ls[3]->head.data);
 
         CustomData_bmesh_copy_data(
@@ -3530,6 +3548,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
           !(node->flag & PBVH_FullyHidden)) {
         node->flag &= ~PBVH_UpdateTopology;
 
+        pbvh_bmesh_node_drop_orig(node);
+
         /* Recursively split nodes that have gotten too many
          * elements */
         if (updatePBVH) {
@@ -3562,7 +3582,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-void BKE_pbvh_bmesh_node_save_ortri(BMesh *bm, PBVHNode *node)
+__attribute__((optnone)) void BKE_pbvh_bmesh_node_save_ortri(BMesh *bm, PBVHNode *node)
 {
   /* Skip if original coords/triangles are already saved */
   if (node->bm_orco) {
@@ -3606,6 +3626,14 @@ void BKE_pbvh_bmesh_node_save_ortri(BMesh *bm, PBVHNode *node)
     }
 
 #if 0
+    if (f->l_first->v->head.index >= totvert || f->l_first->next->v->head.index >= totvert ||
+        f->l_first->prev->v->head.index >= totvert) {
+      printf("Error!\n");
+      continue;
+    }
+#endif
+
+#if 0
     BMIter bm_iter;
     BMVert *v;
     int j = 0;
@@ -3619,6 +3647,7 @@ void BKE_pbvh_bmesh_node_save_ortri(BMesh *bm, PBVHNode *node)
     i++;
   }
   TGSET_ITER_END
+
   node->bm_tot_ortri = i;
 }
 
