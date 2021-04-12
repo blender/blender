@@ -1366,7 +1366,7 @@ class VIEW3D_MT_select_object(Menu):
 
         layout.operator_menu_enum("object.select_by_type", "type", text="Select All by Type")
         layout.operator("object.select_camera", text="Select Active Camera")
-        layout.operator("object.select_mirror", text="Mirror Selection")
+        layout.operator("object.select_mirror")
         layout.operator("object.select_random", text="Select Random")
 
         layout.separator()
@@ -1424,7 +1424,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.separator()
 
-        layout.operator("pose.select_mirror", text="Flip Active")
+        layout.operator("pose.select_mirror")
 
         layout.separator()
 
@@ -1597,7 +1597,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.separator()
 
         layout.operator("mesh.select_axis", text="Side of Active")
-        layout.operator("mesh.select_mirror", text="Mirror Selection")
+        layout.operator("mesh.select_mirror")
 
 
 class VIEW3D_MT_select_edit_curve(Menu):
@@ -1784,7 +1784,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("armature.select_mirror", text="Mirror").extend = False
+        layout.operator("armature.select_mirror")
 
         layout.separator()
 
