@@ -672,6 +672,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
     do {
       if (BM_ELEM_CD_GET_INT(l->v, cd_vert_node) == DYNTOPO_NODE_NONE) {
         BLI_table_gset_add(node->bm_unique_verts, l->v);
+        BM_ELEM_CD_SET_INT(l->v, cd_vert_node, node_index);
       } else {
         BLI_table_gset_add(node->bm_other_verts, l->v);
       }
