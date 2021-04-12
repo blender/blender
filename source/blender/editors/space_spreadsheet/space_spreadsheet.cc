@@ -175,14 +175,18 @@ static std::unique_ptr<DataSource> get_data_source(const bContext *C)
 static float get_column_width(const ColumnValues &values)
 {
   if (values.default_width > 0) {
-    return values.default_width * UI_UNIT_X;
+    return values.default_width;
   }
   const int fontid = UI_style_get()->widget.uifont_id;
-  const int widget_points = UI_style_get_dpi()->widget.points;
-  BLF_size(fontid, widget_points * U.pixelsize, U.dpi);
+  BLF_size(fontid, UI_DEFAULT_TEXT_POINTS, U.dpi);
   const StringRefNull name = values.name();
   const float name_width = BLF_width(fontid, name.data(), name.size());
-  return std::max<float>(name_width + UI_UNIT_X, 3 * UI_UNIT_X);
+  return std::max<float>(name_width / UI_UNIT_X + 1.0f, 3.0f);
+}
+
+static float get_column_width_in_pixels(const ColumnValues &values)
+{
+  return get_column_width(values) * SPREADSHEET_WIDTH_UNIT;
 }
 
 static int get_index_column_width(const int tot_rows)
@@ -239,7 +243,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     /* Should have been removed before if it does not exist anymore. */
     BLI_assert(values_ptr);
     const ColumnValues *values = scope.add(std::move(values_ptr), __func__);
-    const int width = get_column_width(*values);
+    const int width = get_column_width_in_pixels(*values);
     spreadsheet_layout.columns.append({values, width});
   }
 

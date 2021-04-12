@@ -1909,6 +1909,13 @@ typedef enum eSpaceSpreadsheet_ObjectEvalState {
   SPREADSHEET_OBJECT_EVAL_STATE_NODE = 2,
 } eSpaceSpreadsheet_Context;
 
+/**
+ * We can't just use UI_UNIT_X, because it does not take `widget.points` into account, which
+ * modifies the width of text as well.
+ */
+#define SPREADSHEET_WIDTH_UNIT \
+  (UI_UNIT_X * UI_style_get_dpi()->widget.points / (float)UI_DEFAULT_TEXT_POINTS)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
