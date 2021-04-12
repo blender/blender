@@ -1975,9 +1975,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
-        brush->dyntopo.inherit = ((1 << 17) - 1) &
-                              ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
-        brush->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
+        brush->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+                                 ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
+        brush->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
+      }
+    }
+
+    Scene *scene;
+    for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
+      ToolSettings *ts = scene->toolsettings;
+
+      if (ts->sculpt) {
+        ts->sculpt->flags |= SCULPT_DYNTOPO_CLEANUP;
       }
     }
   }

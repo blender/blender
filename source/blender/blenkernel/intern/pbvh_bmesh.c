@@ -3368,6 +3368,7 @@ __attribute__((optnone)) static bool cleanup_valence_3_4(PBVH *pbvh,
       }
 
       pbvh_bmesh_vert_remove(pbvh, v);
+      BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
 
       BMFace *f;
       BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {

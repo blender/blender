@@ -1080,7 +1080,7 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
     paint->symmetry_flags |= PAINT_SYMM_X;
 
     /* Make sure at least dyntopo subdivision is enabled */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
+    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE | SCULPT_DYNTOPO_CLEANUP;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_callocN(sizeof(*data), __func__);
@@ -1908,9 +1908,12 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
   if (!sd->detail_size) {
     sd->detail_size = 12;
   }
+
   if (!sd->detail_range) {
     sd->detail_range = 0.4f;
+    sd->flags |= SCULPT_DYNTOPO_CLEANUP; //should really do this in do_versions_290.c
   }
+
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }
