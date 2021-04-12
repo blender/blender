@@ -46,10 +46,6 @@ NodeOperationBuilder::NodeOperationBuilder(const CompositorContext *context, bNo
   m_graph.from_bNodeTree(*context, b_nodetree);
 }
 
-NodeOperationBuilder::~NodeOperationBuilder()
-{
-}
-
 void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 {
   /* interface handle for nodes */
@@ -124,6 +120,7 @@ void NodeOperationBuilder::convertToOperations(ExecutionSystem *system)
 
 void NodeOperationBuilder::addOperation(NodeOperation *operation)
 {
+  operation->set_id(m_operations.size());
   m_operations.append(operation);
   if (m_current_node) {
     operation->set_name(m_current_node->getbNode()->name);
@@ -689,6 +686,43 @@ void NodeOperationBuilder::group_operations()
       }
     }
   }
+}
+
+/** Create a graphviz representation of the NodeOperationBuilder. */
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder)
+{
+  os << "# Builder start\n";
+  os << "digraph  G {\n";
+  os << "    rankdir=LR;\n";
+  os << "    node [shape=box];\n";
+  for (const NodeOperation *operation : builder.get_operations()) {
+    os << "    op" << operation->get_id() << " [label=\"" << *operation << "\"];\n";
+  }
+
+  os << "\n";
+  for (const NodeOperationBuilder::Link &link : builder.get_links()) {
+    os << "    op" << link.from()->getOperation().get_id() << " -> op"
+       << link.to()->getOperation().get_id() << ";\n";
+  }
+  for (const NodeOperation *operation : builder.get_operations()) {
+    if (operation->get_flags().is_read_buffer_operation) {
+      const ReadBufferOperation &read_operation = static_cast<const ReadBufferOperation &>(
+          *operation);
+      const WriteBufferOperation &write_operation =
+          *read_operation.getMemoryProxy()->getWriteBufferOperation();
+      os << "    op" << write_operation.get_id() << " -> op" << read_operation.get_id() << ";\n";
+    }
+  }
+
+  os << "}\n";
+  os << "# Builder end\n";
+  return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder::Link &link)
+{
+  os << link.from()->getOperation().get_id() << " -> " << link.to()->getOperation().get_id();
+  return os;
 }
 
 }  // namespace blender::compositor

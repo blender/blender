@@ -128,7 +128,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
 
   GPU_front_facing(ob->transflag & OB_NEG_SCALE);
 
-  /* Just to create the data to pass to immediate mode, grr! */
+  /* Just to create the data to pass to immediate mode! (sigh) */
   const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
   if (facemap_data) {
     GPU_blend(GPU_BLEND_ALPHA);

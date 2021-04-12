@@ -97,10 +97,6 @@ void AbcObjectReader::determine_inherits_xform()
   }
 }
 
-AbcObjectReader::~AbcObjectReader()
-{
-}
-
 const IObject &AbcObjectReader::iobject() const
 {
   return m_iobject;

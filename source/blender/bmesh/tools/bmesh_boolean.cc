@@ -38,7 +38,8 @@ namespace blender::meshintersect {
 
 #ifdef WITH_GMP
 
-/** Make a #blender::meshintersect::Mesh from #BMesh bm.
+/**
+ * Make a #blender::meshintersect::Mesh from #BMesh bm.
  * We are given a triangulation of it from the caller via #looptris,
  * which are looptris_tot triples of loops that together tessellate
  * the faces of bm.

@@ -368,6 +368,7 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_INHERIT_MODE, "MODE", ICON_NONE, "Mode", ""},
     {DYNTOPO_INHERIT_CONSTANT_DETAIL, "CONSTANT_DETAIL", ICON_NONE, "Constant Detail", ""},
     {DYNTOPO_INHERIT_SPACING, "SPACING", ICON_NONE, "Spacing", ""},
+    {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1216,6 +1217,13 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
   RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_DISABLED);
   RNA_def_property_ui_icon(prop, ICON_NONE, 0);
   RNA_def_property_ui_text(prop, "Disable", "Disable Dyntopo for this brush");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "cleanup", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", DYNTOPO_CLEANUP);
+  RNA_def_property_ui_icon(prop, ICON_NONE, 0);
+  RNA_def_property_ui_text(prop, "Cleanup", "Dissolve Verts With Only 3 or 4 faces");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 

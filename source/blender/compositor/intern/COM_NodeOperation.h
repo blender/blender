@@ -251,6 +251,7 @@ struct NodeOperationFlags {
  */
 class NodeOperation {
  private:
+  int m_id;
   std::string m_name;
   Vector<NodeOperationInput> m_inputs;
   Vector<NodeOperationOutput> m_outputs;
@@ -305,6 +306,16 @@ class NodeOperation {
   const std::string get_name() const
   {
     return m_name;
+  }
+
+  void set_id(const int id)
+  {
+    m_id = id;
+  }
+
+  const int get_id() const
+  {
+    return m_id;
   }
 
   const NodeOperationFlags get_flags() const

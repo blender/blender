@@ -29,10 +29,6 @@ namespace blender {
 namespace deg {
 
 struct RootPChanMap {
-  /* Constructor and destructor - Create and free the internal map respectively. */
-  RootPChanMap();
-  ~RootPChanMap();
-
   /* Debug contents of map. */
   void print_debug();
 

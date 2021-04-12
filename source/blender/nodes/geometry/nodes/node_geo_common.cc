@@ -43,3 +43,17 @@ void register_node_type_geo_group(void)
 
   nodeRegisterType(&ntype);
 }
+
+void register_node_type_geo_custom_group(bNodeType *ntype)
+{
+  /* These methods can be overridden but need a default implementation otherwise. */
+  if (ntype->poll == nullptr) {
+    ntype->poll = geo_node_poll_default;
+  }
+  if (ntype->insert_link == nullptr) {
+    ntype->insert_link = node_insert_link_default;
+  }
+  if (ntype->update_internal_links == nullptr) {
+    ntype->update_internal_links = node_update_internal_links_default;
+  }
+}

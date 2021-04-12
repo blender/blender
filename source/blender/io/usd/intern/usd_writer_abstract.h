@@ -49,7 +49,6 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
  public:
   USDAbstractWriter(const USDExporterContext &usd_export_context);
-  virtual ~USDAbstractWriter();
 
   virtual void write(HierarchyContext &context) override;
 

@@ -355,9 +355,6 @@ class StrokeVertex : public CurvePoint {
   /*! Builds a stroke from a view vertex and an attribute */
   StrokeVertex(SVertex *iSVertex, const StrokeAttribute &iAttribute);
 
-  /*! destructor */
-  virtual ~StrokeVertex();
-
   /* operators */
   /*! operator = */
   StrokeVertex &operator=(const StrokeVertex &iBrother);

@@ -75,16 +75,8 @@ void animated_property_store_cb(ID *id, FCurve *fcurve, void *data_v)
 
 }  // namespace
 
-AnimationValueBackup::AnimationValueBackup()
-{
-}
-
 AnimationValueBackup::AnimationValueBackup(const string &rna_path, int array_index, float value)
     : rna_path(rna_path), array_index(array_index), value(value)
-{
-}
-
-AnimationValueBackup::~AnimationValueBackup()
 {
 }
 

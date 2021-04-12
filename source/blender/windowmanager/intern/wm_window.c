@@ -812,7 +812,7 @@ wmWindow *WM_window_open(bContext *C,
     LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
       if (WM_window_is_temp_screen(win_iter)) {
         char *wintitle = GHOST_GetTitle(win_iter->ghostwin);
-        if (strcmp(title, wintitle) == 0) {
+        if (STREQ(title, wintitle)) {
           win = win_iter;
         }
         free(wintitle);

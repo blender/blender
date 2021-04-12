@@ -620,7 +620,8 @@ enum {
 enum {
   DYNTOPO_SUBDIVIDE = 1<<0,
   DYNTOPO_COLLAPSE = 1<<1,
-  DYNTOPO_DISABLED = 1<<2
+  DYNTOPO_DISABLED = 1<<2,
+  DYNTOPO_CLEANUP = 1<<3
 };
 
 //dyntopo override flags, copies all flags from dyntopo flags

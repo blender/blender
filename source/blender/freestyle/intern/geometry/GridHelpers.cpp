@@ -42,8 +42,6 @@ void GridHelpers::getDefaultViewProscenium(real viewProscenium[4])
   viewProscenium[3] = g_freestyle.viewport[3] * (1.0f - borderZone + bufferZone);
 }
 
-GridHelpers::Transform::~Transform()
-{
-}
+GridHelpers::Transform::~Transform() = default;
 
 } /* namespace Freestyle */

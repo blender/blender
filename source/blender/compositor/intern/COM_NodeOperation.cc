@@ -259,17 +259,18 @@ std::ostream &operator<<(std::ostream &os, const NodeOperation &node_operation)
 {
   NodeOperationFlags flags = node_operation.get_flags();
   os << "NodeOperation(";
+  os << "id=" << node_operation.get_id();
   if (!node_operation.get_name().empty()) {
-    os << "name=" << node_operation.get_name() << ",";
+    os << ",name=" << node_operation.get_name();
   }
-  os << "flags={" << flags << "},";
+  os << ",flags={" << flags << "}";
   if (flags.is_read_buffer_operation) {
     const ReadBufferOperation *read_operation = (const ReadBufferOperation *)&node_operation;
     const MemoryProxy *proxy = read_operation->getMemoryProxy();
     if (proxy) {
       const WriteBufferOperation *write_operation = proxy->getWriteBufferOperation();
       if (write_operation) {
-        os << "write=" << (NodeOperation &)*write_operation << ",";
+        os << ",write=" << (NodeOperation &)*write_operation;
       }
     }
   }

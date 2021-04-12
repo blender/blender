@@ -31,7 +31,6 @@ namespace blender::io::alembic {
 class ABCInstanceWriter : public ABCAbstractWriter {
  public:
   explicit ABCInstanceWriter(const ABCWriterConstructorArgs &args);
-  virtual ~ABCInstanceWriter();
 
   virtual void create_alembic_objects(const HierarchyContext *context) override;
   virtual Alembic::Abc::OObject get_alembic_object() const override;

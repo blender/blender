@@ -42,157 +42,192 @@ static CLG_LogRef LOG = {"bke.anim"};
 /* ******************************************************************** */
 /* Curve Paths - for curve deforms and/or curve following */
 
-/**
- * Free curve path data
- *
- * \note Frees the path itself!
- * \note This is increasingly inaccurate with non-uniform #BevPoint subdivisions T24633.
- */
-void free_path(Path *path)
+static int get_bevlist_seg_array_size(const BevList *bl)
 {
-  if (path->data) {
-    MEM_freeN(path->data);
+  if (bl->poly >= 0) {
+    /* Cyclic curve. */
+    return bl->nr;
   }
-  MEM_freeN(path);
+
+  return bl->nr - 1;
 }
 
-/**
- * Calculate a curve-deform path for a curve
- * - Only called from displist.c -> #do_makeDispListCurveTypes
- */
-void calc_curvepath(Object *ob, ListBase *nurbs)
+int BKE_anim_path_get_array_size(const CurveCache *curve_cache)
 {
-  BevList *bl;
-  BevPoint *bevp, *bevpn, *bevpfirst, *bevplast;
-  PathPoint *pp;
-  Nurb *nu;
-  Path *path;
-  float *fp, *dist, *maxdist, xyz[3];
-  float fac, d = 0, fac1, fac2;
-  int a, tot, cycl = 0;
+  BLI_assert(curve_cache != NULL);
 
-  /* in a path vertices are with equal differences: path->len = number of verts */
-  /* NOW WITH BEVELCURVE!!! */
+  BevList *bl = curve_cache->bev.first;
 
+  BLI_assert(bl != NULL && bl->nr > 1);
+
+  return get_bevlist_seg_array_size(bl);
+}
+
+float BKE_anim_path_get_length(const CurveCache *curve_cache)
+{
+  const int seg_size = BKE_anim_path_get_array_size(curve_cache);
+  return curve_cache->anim_path_accum_length[seg_size - 1];
+}
+
+void BKE_anim_path_calc_data(Object *ob)
+{
   if (ob == NULL || ob->type != OB_CURVE) {
     return;
   }
-
-  if (ob->runtime.curve_cache->path) {
-    free_path(ob->runtime.curve_cache->path);
+  if (ob->runtime.curve_cache == NULL) {
+    CLOG_WARN(&LOG, "No curve cache!");
+    return;
   }
-  ob->runtime.curve_cache->path = NULL;
-
-  /* weak! can only use first curve */
-  bl = ob->runtime.curve_cache->bev.first;
+  /* We only use the first curve. */
+  BevList *bl = ob->runtime.curve_cache->bev.first;
   if (bl == NULL || !bl->nr) {
+    CLOG_WARN(&LOG, "No bev list data!");
     return;
   }
 
-  nu = nurbs->first;
-
-  ob->runtime.curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
-
-  /* if POLY: last vertice != first vertice */
-  cycl = (bl->poly != -1);
-
-  tot = cycl ? bl->nr : bl->nr - 1;
-
-  path->len = tot + 1;
-  /* Exception: vector handle paths and polygon paths should be subdivided
-   * at least a factor resolution. */
-  if (path->len < nu->resolu * SEGMENTSU(nu)) {
-    path->len = nu->resolu * SEGMENTSU(nu);
+  /* Free old data. */
+  if (ob->runtime.curve_cache->anim_path_accum_length) {
+    MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
   }
 
-  dist = (float *)MEM_mallocN(sizeof(float) * (tot + 1), "calcpathdist");
+  /* We assume that we have at least two points.
+   * If there is less than two points in the curve,
+   * no BevList should have been generated.
+   */
+  BLI_assert(bl->nr > 1);
 
-  /* all lengths in *dist */
-  bevp = bevpfirst = bl->bevpoints;
-  fp = dist;
-  *fp = 0.0f;
-  for (a = 0; a < tot; a++) {
-    fp++;
-    if (cycl && a == tot - 1) {
-      sub_v3_v3v3(xyz, bevpfirst->vec, bevp->vec);
-    }
-    else {
-      sub_v3_v3v3(xyz, (bevp + 1)->vec, bevp->vec);
-    }
+  const int seg_size = get_bevlist_seg_array_size(bl);
+  float *len_data = (float *)MEM_mallocN(sizeof(float) * seg_size, "calcpathdist");
+  ob->runtime.curve_cache->anim_path_accum_length = len_data;
 
-    *fp = *(fp - 1) + len_v3(xyz);
-    bevp++;
+  BevPoint *bp_arr = bl->bevpoints;
+  float prev_len = 0.0f;
+  for (int i = 0; i < bl->nr - 1; i++) {
+    prev_len += len_v3v3(bp_arr[i].vec, bp_arr[i + 1].vec);
+    len_data[i] = prev_len;
   }
 
-  path->totdist = *fp;
-
-  /* the path verts  in path->data */
-  /* now also with TILT value */
-  pp = path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint) * path->len, "pathdata");
-
-  bevp = bevpfirst;
-  bevpn = bevp + 1;
-  bevplast = bevpfirst + (bl->nr - 1);
-  if (UNLIKELY(bevpn > bevplast)) {
-    bevpn = cycl ? bevpfirst : bevplast;
+  if (bl->poly >= 0) {
+    /* Cyclic curve. */
+    len_data[seg_size - 1] = prev_len + len_v3v3(bp_arr[0].vec, bp_arr[bl->nr - 1].vec);
   }
-  fp = dist + 1;
-  maxdist = dist + tot;
-  fac = 1.0f / ((float)path->len - 1.0f);
-  fac = fac * path->totdist;
-
-  for (a = 0; a < path->len; a++) {
-
-    d = ((float)a) * fac;
-
-    /* we're looking for location (distance) 'd' in the array */
-    if (LIKELY(tot > 0)) {
-      while ((fp < maxdist) && (d >= *fp)) {
-        fp++;
-        if (bevp < bevplast) {
-          bevp++;
-        }
-        bevpn = bevp + 1;
-        if (UNLIKELY(bevpn > bevplast)) {
-          bevpn = cycl ? bevpfirst : bevplast;
-        }
-      }
-
-      fac1 = (*(fp)-d) / (*(fp) - *(fp - 1));
-      fac2 = 1.0f - fac1;
-    }
-    else {
-      fac1 = 1.0f;
-      fac2 = 0.0f;
-    }
-
-    interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
-    pp->vec[3] = fac1 * bevp->tilt + fac2 * bevpn->tilt;
-    pp->radius = fac1 * bevp->radius + fac2 * bevpn->radius;
-    pp->weight = fac1 * bevp->weight + fac2 * bevpn->weight;
-    interp_qt_qtqt(pp->quat, bevp->quat, bevpn->quat, fac2);
-    normalize_qt(pp->quat);
-
-    pp++;
-  }
-
-  MEM_freeN(dist);
 }
 
-static int interval_test(const int min, const int max, int p1, const int cycl)
+static void get_curve_points_from_idx(const int idx,
+                                      const BevList *bl,
+                                      const bool is_cyclic,
+                                      BevPoint const **r_p0,
+                                      BevPoint const **r_p1,
+                                      BevPoint const **r_p2,
+                                      BevPoint const **r_p3)
 {
-  if (cycl) {
-    p1 = mod_i(p1 - min, (max - min + 1)) + min;
-  }
-  else {
-    if (p1 < min) {
-      p1 = min;
+  BLI_assert(idx >= 0);
+  BLI_assert(idx < bl->nr - 1 || (is_cyclic && idx < bl->nr));
+  BLI_assert(bl->nr > 1);
+
+  const BevPoint *bp_arr = bl->bevpoints;
+
+  /* First segment. */
+  if (idx == 0) {
+    *r_p1 = &bp_arr[0];
+    if (is_cyclic) {
+      *r_p0 = &bp_arr[bl->nr - 1];
     }
-    else if (p1 > max) {
-      p1 = max;
+    else {
+      *r_p0 = *r_p1;
     }
+
+    *r_p2 = &bp_arr[1];
+
+    if (bl->nr > 2) {
+      *r_p3 = &bp_arr[2];
+    }
+    else {
+      *r_p3 = *r_p2;
+    }
+    return;
   }
-  return p1;
+
+  /* Last segment (or next to last in a cyclic curve). */
+  if (idx == bl->nr - 2) {
+    /* The case when the bl->nr == 2 falls in to the "first segment" check above.
+     * So here we can assume that bl->nr > 2.
+     */
+    *r_p0 = &bp_arr[idx - 1];
+    *r_p1 = &bp_arr[idx];
+    *r_p2 = &bp_arr[idx + 1];
+
+    if (is_cyclic) {
+      *r_p3 = &bp_arr[0];
+    }
+    else {
+      *r_p3 = *r_p2;
+    }
+    return;
+  }
+
+  if (idx == bl->nr - 1) {
+    /* Last segment in a cyclic curve. This should only trigger if the curve is cyclic
+     * as it gets an extra segment between the end and the start point. */
+    *r_p0 = &bp_arr[idx - 1];
+    *r_p1 = &bp_arr[idx];
+    *r_p2 = &bp_arr[0];
+    *r_p3 = &bp_arr[1];
+    return;
+  }
+
+  /* To get here the curve has to have four curve points or more and idx can't
+   * be the first or the last segment.
+   * So we can assume that we can get four points without any special checks.
+   */
+  *r_p0 = &bp_arr[idx - 1];
+  *r_p1 = &bp_arr[idx];
+  *r_p2 = &bp_arr[idx + 1];
+  *r_p3 = &bp_arr[idx + 2];
+}
+
+static bool binary_search_anim_path(const float *accum_len_arr,
+                                    const int seg_size,
+                                    const float goal_len,
+                                    int *r_idx,
+                                    float *r_frac)
+{
+  float left_len, right_len;
+  int cur_idx = 0, cur_base = 0;
+  int cur_step = seg_size - 1;
+
+  while (true) {
+    cur_idx = cur_base + cur_step / 2;
+    left_len = accum_len_arr[cur_idx];
+    right_len = accum_len_arr[cur_idx + 1];
+
+    if (left_len <= goal_len && right_len > goal_len) {
+      *r_idx = cur_idx + 1;
+      *r_frac = (goal_len - left_len) / (right_len - left_len);
+      return true;
+    }
+    if (cur_idx == 0) {
+      /* We ended up at the first segment. The point must be in here. */
+      *r_idx = 0;
+      *r_frac = goal_len / accum_len_arr[0];
+      return true;
+    }
+
+    if (UNLIKELY(cur_step == 0)) {
+      /* This should never happen unless there is something horribly wrong. */
+      CLOG_ERROR(&LOG, "Couldn't find any valid point on the animation path!");
+      BLI_assert(!"Couldn't find any valid point on the animation path!");
+      return false;
+    }
+
+    if (left_len < goal_len) {
+      /* Go to the right. */
+      cur_base = cur_idx + 1;
+      cur_step--;
+    } /* Else, go to the left. */
+
+    cur_step /= 2;
+  }
 }
 
 /**
@@ -203,66 +238,70 @@ static int interval_test(const int min, const int max, int p1, const int cycl)
  *
  * \return success.
  */
-bool where_on_path(const Object *ob,
-                   float ctime,
-                   float r_vec[4],
-                   float r_dir[3],
-                   float r_quat[4],
-                   float *r_radius,
-                   float *r_weight)
+bool BKE_where_on_path(const Object *ob,
+                       float ctime,
+                       float r_vec[4],
+                       float r_dir[3],
+                       float r_quat[4],
+                       float *r_radius,
+                       float *r_weight)
 {
-  Curve *cu;
-  const Nurb *nu;
-  const BevList *bl;
-  const Path *path;
-  const PathPoint *pp, *p0, *p1, *p2, *p3;
-  float fac;
-  float data[4];
-  int cycl = 0, s0, s1, s2, s3;
-  const ListBase *nurbs;
-
   if (ob == NULL || ob->type != OB_CURVE) {
     return false;
   }
-  cu = ob->data;
-  if (ob->runtime.curve_cache == NULL || ob->runtime.curve_cache->path == NULL ||
-      ob->runtime.curve_cache->path->data == NULL) {
-    CLOG_WARN(&LOG, "no path!");
+  Curve *cu = ob->data;
+  if (ob->runtime.curve_cache == NULL) {
+    CLOG_WARN(&LOG, "No curve cache!");
     return false;
   }
-  path = ob->runtime.curve_cache->path;
-  pp = path->data;
-
-  /* test for cyclic */
-  bl = ob->runtime.curve_cache->bev.first;
-  if (!bl) {
+  /* We only use the first curve. */
+  BevList *bl = ob->runtime.curve_cache->bev.first;
+  if (bl == NULL || !bl->nr) {
+    CLOG_WARN(&LOG, "No bev list data!");
     return false;
   }
-  if (!bl->nr) {
-    return false;
+
+  /* Test for cyclic curve. */
+  const bool is_cyclic = bl->poly >= 0;
+
+  if (is_cyclic) {
+    /* Wrap the time into a 0.0 - 1.0 range. */
+    if (ctime < 0.0f || ctime > 1.0f) {
+      ctime -= floorf(ctime);
+    }
   }
-  if (bl->poly > -1) {
-    cycl = 1;
+
+  /* The curve points for this ctime value. */
+  const BevPoint *p0, *p1, *p2, *p3;
+
+  float frac;
+  const int seg_size = get_bevlist_seg_array_size(bl);
+  const float *accum_len_arr = ob->runtime.curve_cache->anim_path_accum_length;
+  const float goal_len = ctime * accum_len_arr[seg_size - 1];
+
+  /* Are we simply trying to get the start/end point? */
+  if (ctime <= 0.0f || ctime >= 1.0f) {
+    const float clamp_time = clamp_f(ctime, 0.0f, 1.0f);
+    const int idx = clamp_time * (seg_size - 1);
+    get_curve_points_from_idx(idx, bl, is_cyclic, &p0, &p1, &p2, &p3);
+
+    if (idx == 0) {
+      frac = goal_len / accum_len_arr[0];
+    }
+    else {
+      frac = (goal_len - accum_len_arr[idx - 1]) / (accum_len_arr[idx] - accum_len_arr[idx - 1]);
+    }
   }
+  else {
+    /* Do binary search to get the correct segment. */
+    int idx;
+    const bool found_idx = binary_search_anim_path(accum_len_arr, seg_size, goal_len, &idx, &frac);
 
-  /* values below zero for non-cyclic curves give strange results */
-  BLI_assert(cycl || ctime >= 0.0f);
-
-  ctime *= (path->len - 1);
-
-  s1 = (int)floor(ctime);
-  fac = (float)(s1 + 1) - ctime;
-
-  /* path->len is corrected for cyclic */
-  s0 = interval_test(0, path->len - 1 - cycl, s1 - 1, cycl);
-  s1 = interval_test(0, path->len - 1 - cycl, s1, cycl);
-  s2 = interval_test(0, path->len - 1 - cycl, s1 + 1, cycl);
-  s3 = interval_test(0, path->len - 1 - cycl, s1 + 2, cycl);
-
-  p0 = pp + s0;
-  p1 = pp + s1;
-  p2 = pp + s2;
-  p3 = pp + s3;
+    if (UNLIKELY(!found_idx)) {
+      return false;
+    }
+    get_curve_points_from_idx(idx, bl, is_cyclic, &p0, &p1, &p2, &p3);
+  }
 
   /* NOTE: commented out for follow constraint
    *
@@ -272,65 +311,68 @@ bool where_on_path(const Object *ob,
    */
   // if (cu->flag & CU_FOLLOW) {
 
-  key_curve_tangent_weights(1.0f - fac, data, KEY_BSPLINE);
+  float w[4];
 
-  interp_v3_v3v3v3v3(r_dir, p0->vec, p1->vec, p2->vec, p3->vec, data);
+  key_curve_tangent_weights(frac, w, KEY_BSPLINE);
+
+  interp_v3_v3v3v3v3(r_dir, p0->vec, p1->vec, p2->vec, p3->vec, w);
 
   /* Make compatible with #vec_to_quat. */
   negate_v3(r_dir);
   //}
 
-  nurbs = BKE_curve_editNurbs_get(cu);
+  const ListBase *nurbs = BKE_curve_editNurbs_get(cu);
   if (!nurbs) {
     nurbs = &cu->nurb;
   }
-  nu = nurbs->first;
+  const Nurb *nu = nurbs->first;
 
   /* make sure that first and last frame are included in the vectors here  */
-  if (nu->type == CU_POLY) {
-    key_curve_position_weights(1.0f - fac, data, KEY_LINEAR);
+  if (ELEM(nu->type, CU_POLY, CU_BEZIER, CU_NURBS)) {
+    key_curve_position_weights(frac, w, KEY_LINEAR);
   }
-  else if (nu->type == CU_BEZIER) {
-    key_curve_position_weights(1.0f - fac, data, KEY_LINEAR);
-  }
-  else if (s0 == s1 || p2 == p3) {
-    key_curve_position_weights(1.0f - fac, data, KEY_CARDINAL);
+  else if (p2 == p3) {
+    key_curve_position_weights(frac, w, KEY_CARDINAL);
   }
   else {
-    key_curve_position_weights(1.0f - fac, data, KEY_BSPLINE);
+    key_curve_position_weights(frac, w, KEY_BSPLINE);
   }
 
   r_vec[0] = /* X */
-      data[0] * p0->vec[0] + data[1] * p1->vec[0] + data[2] * p2->vec[0] + data[3] * p3->vec[0];
+      w[0] * p0->vec[0] + w[1] * p1->vec[0] + w[2] * p2->vec[0] + w[3] * p3->vec[0];
   r_vec[1] = /* Y */
-      data[0] * p0->vec[1] + data[1] * p1->vec[1] + data[2] * p2->vec[1] + data[3] * p3->vec[1];
+      w[0] * p0->vec[1] + w[1] * p1->vec[1] + w[2] * p2->vec[1] + w[3] * p3->vec[1];
   r_vec[2] = /* Z */
-      data[0] * p0->vec[2] + data[1] * p1->vec[2] + data[2] * p2->vec[2] + data[3] * p3->vec[2];
-  r_vec[3] = /* Tilt, should not be needed since we have quat still used */
-      data[0] * p0->vec[3] + data[1] * p1->vec[3] + data[2] * p2->vec[3] + data[3] * p3->vec[3];
+      w[0] * p0->vec[2] + w[1] * p1->vec[2] + w[2] * p2->vec[2] + w[3] * p3->vec[2];
+
+  /* Clamp weights to 0-1 as we don't want to extrapolate other values than position. */
+  clamp_v4(w, 0.0f, 1.0f);
+
+  /* Tilt, should not be needed since we have quat still used. */
+  r_vec[3] = w[0] * p0->tilt + w[1] * p1->tilt + w[2] * p2->tilt + w[3] * p3->tilt;
 
   if (r_quat) {
     float totfac, q1[4], q2[4];
 
-    totfac = data[0] + data[3];
+    totfac = w[0] + w[3];
     if (totfac > FLT_EPSILON) {
-      interp_qt_qtqt(q1, p0->quat, p3->quat, data[3] / totfac);
+      interp_qt_qtqt(q1, p0->quat, p3->quat, w[3] / totfac);
     }
     else {
       copy_qt_qt(q1, p1->quat);
     }
 
-    totfac = data[1] + data[2];
+    totfac = w[1] + w[2];
     if (totfac > FLT_EPSILON) {
-      interp_qt_qtqt(q2, p1->quat, p2->quat, data[2] / totfac);
+      interp_qt_qtqt(q2, p1->quat, p2->quat, w[2] / totfac);
     }
     else {
       copy_qt_qt(q2, p3->quat);
     }
 
-    totfac = data[0] + data[1] + data[2] + data[3];
+    totfac = w[0] + w[1] + w[2] + w[3];
     if (totfac > FLT_EPSILON) {
-      interp_qt_qtqt(r_quat, q1, q2, (data[1] + data[2]) / totfac);
+      interp_qt_qtqt(r_quat, q1, q2, (w[1] + w[2]) / totfac);
     }
     else {
       copy_qt_qt(r_quat, q2);
@@ -338,13 +380,11 @@ bool where_on_path(const Object *ob,
   }
 
   if (r_radius) {
-    *r_radius = data[0] * p0->radius + data[1] * p1->radius + data[2] * p2->radius +
-                data[3] * p3->radius;
+    *r_radius = w[0] * p0->radius + w[1] * p1->radius + w[2] * p2->radius + w[3] * p3->radius;
   }
 
   if (r_weight) {
-    *r_weight = data[0] * p0->weight + data[1] * p1->weight + data[2] * p2->weight +
-                data[3] * p3->weight;
+    *r_weight = w[0] * p0->weight + w[1] * p1->weight + w[2] * p2->weight + w[3] * p3->weight;
   }
 
   return true;

@@ -323,6 +323,8 @@ typedef enum eSpaceOutliner_Filter {
   SO_FILTER_NO_CHILDREN = (1 << 4),
 
   SO_FILTER_UNUSED_5 = (1 << 5), /* cleared */
+  /** Show overrides that are defined/controlled by Blender. */
+  SO_FILTER_SHOW_SYSTEM_OVERRIDES = SO_FILTER_UNUSED_5, /* re-use */
   SO_FILTER_NO_OB_MESH = (1 << 6),
   SO_FILTER_NO_OB_ARMATURE = (1 << 7),
   SO_FILTER_NO_OB_EMPTY = (1 << 8),
@@ -391,6 +393,7 @@ typedef enum eSpaceOutliner_Mode {
   /* SO_KEYMAP         = 13, */ /* deprecated! */
   SO_ID_ORPHANS = 14,
   SO_VIEW_LAYER = 15,
+  SO_OVERRIDES_LIBRARY = 16,
 } eSpaceOutliner_Mode;
 
 /* SpaceOutliner.storeflag */
@@ -1851,6 +1854,22 @@ typedef struct SpaceStatusBar {
 /** \name Spreadsheet
  * \{ */
 
+typedef struct SpreadsheetColumnID {
+  char *name;
+  int index;
+  char _pad[4];
+} SpreadsheetColumnID;
+
+typedef struct SpreadsheetColumn {
+  struct SpreadsheetColumn *next, *prev;
+  /**
+   * Identifies the data in the column.
+   * This is a pointer instead of a struct to make it easier if we want to "subclass"
+   * #SpreadsheetColumnID in the future for different kinds of ids.
+   */
+  SpreadsheetColumnID *id;
+} SpreadsheetColumn;
+
 typedef struct SpaceSpreadsheet {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1859,6 +1878,9 @@ typedef struct SpaceSpreadsheet {
   char link_flag;
   char _pad0[6];
   /* End 'SpaceLink' header. */
+
+  /* List of #SpreadsheetColumn. */
+  ListBase columns;
 
   struct ID *pinned_id;
 
@@ -1877,8 +1899,6 @@ typedef struct SpaceSpreadsheet {
   SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;
 
-/** \} */
-
 typedef enum eSpaceSpreadsheet_FilterFlag {
   SPREADSHEET_FILTER_SELECTED_ONLY = (1 << 0),
 } eSpaceSpreadsheet_FilterFlag;
@@ -1886,7 +1906,10 @@ typedef enum eSpaceSpreadsheet_FilterFlag {
 typedef enum eSpaceSpreadsheet_ObjectEvalState {
   SPREADSHEET_OBJECT_EVAL_STATE_FINAL = 0,
   SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL = 1,
+  SPREADSHEET_OBJECT_EVAL_STATE_NODE = 2,
 } eSpaceSpreadsheet_Context;
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Space Defines (eSpace_Type)

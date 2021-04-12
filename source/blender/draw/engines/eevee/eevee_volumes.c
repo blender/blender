@@ -332,7 +332,7 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
   bool multiple_transforms = true;
 
   LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
-    VolumeGrid *volume_grid = BKE_volume_grid_find(volume, gpu_grid->name);
+    const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, gpu_grid->name);
     DRWVolumeGrid *drw_grid = (volume_grid) ?
                                   DRW_volume_batch_cache_get_grid(volume, volume_grid) :
                                   NULL;
@@ -385,7 +385,7 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
 
   /* Bind volume grid textures. */
   LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
-    VolumeGrid *volume_grid = BKE_volume_grid_find(volume, gpu_grid->name);
+    const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, gpu_grid->name);
     DRWVolumeGrid *drw_grid = (volume_grid) ?
                                   DRW_volume_batch_cache_get_grid(volume, volume_grid) :
                                   NULL;

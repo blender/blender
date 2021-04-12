@@ -87,7 +87,6 @@ class NodeOperationBuilder {
 
  public:
   NodeOperationBuilder(const CompositorContext *context, bNodeTree *b_nodetree);
-  ~NodeOperationBuilder();
 
   const CompositorContext &context() const
   {
@@ -117,6 +116,16 @@ class NodeOperationBuilder {
   ViewerOperation *active_viewer() const
   {
     return m_active_viewer;
+  }
+
+  const Vector<NodeOperation *> &get_operations() const
+  {
+    return m_operations;
+  }
+
+  const Vector<Link> &get_links() const
+  {
+    return m_links;
   }
 
  protected:
@@ -159,5 +168,8 @@ class NodeOperationBuilder {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:NodeCompilerImpl")
 #endif
 };
+
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder);
+std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder::Link &link);
 
 }  // namespace blender::compositor

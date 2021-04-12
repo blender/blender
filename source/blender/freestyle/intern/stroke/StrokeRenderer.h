@@ -121,7 +121,6 @@ class TextureManager {
  * first rendering */
 class StrokeRenderer {
  public:
-  StrokeRenderer();
   virtual ~StrokeRenderer();
 
   /*! Renders a stroke rep */

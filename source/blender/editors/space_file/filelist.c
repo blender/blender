@@ -3017,8 +3017,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
       }
     }
 
-    /* XXX TODO: if databrowse F4 or append/link
-     * filelist->flags & FLF_HIDE_PARENT has to be set */
+    /* XXX TODO: if data-browse or append/link #FLF_HIDE_PARENT has to be set. */
     if (!(filelist->filter_data.flags & FLF_HIDE_PARENT)) {
       filelist->filelist.nbr_entries++;
     }

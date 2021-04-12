@@ -1605,8 +1605,9 @@ static bool nla_combine_get_inverted_strip_value(const int mix_mode,
   }
 }
 
-/** Accumulate quaternion channels for Combine mode according to influence.
- * \returns blended_value = lower_values @ strip_values^infl
+/**
+ * Accumulate quaternion channels for Combine mode according to influence.
+ * \returns `blended_value = lower_values @ strip_values^infl`
  */
 static void nla_combine_quaternion(const float lower_values[4],
                                    const float strip_values[4],
@@ -2094,8 +2095,10 @@ static void animsys_evaluate_nla_domain(PointerRNA *ptr, NlaEvalData *channels, 
 
 /* ---------------------- */
 
-/** Tweaked strip is evaluated differently from other strips. Adjacent strips are ignored
- * and includes a workaround for when user is not editing in place. */
+/**
+ * Tweaked strip is evaluated differently from other strips. Adjacent strips are ignored
+ * and includes a workaround for when user is not editing in place.
+ */
 static void animsys_create_tweak_strip(const AnimData *adt,
                                        const bool keyframing_to_strip,
                                        NlaStrip *r_tweak_strip)
@@ -2210,8 +2213,10 @@ static bool is_nlatrack_evaluatable(const AnimData *adt, const NlaTrack *nlt)
   return true;
 }
 
-/** Check for special case of non-pushed action being evaluated with no NLA influence (off and no
- * strips evaluated) nor NLA interference (ensure NLA not soloing). */
+/**
+ * Check for special case of non-pushed action being evaluated with no NLA influence (off and no
+ * strips evaluated) nor NLA interference (ensure NLA not soloing).
+ */
 static bool is_action_track_evaluated_without_nla(const AnimData *adt,
                                                   const bool any_strip_evaluated)
 {
@@ -2491,7 +2496,8 @@ void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapsh
   }
 }
 
-/** Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
+/**
+ * Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
  * to the given \a upper_blendmode and \a upper_influence.
  *
  * For \a upper_snapshot, blending limited to values in the \a blend_domain. For Replace blendmode,

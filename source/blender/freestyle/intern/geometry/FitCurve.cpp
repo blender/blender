@@ -462,10 +462,6 @@ static Vector2 V2SubII(Vector2 a, Vector2 b)
 
 //------------------------- WRAPPER -----------------------------//
 
-FitCurveWrapper::FitCurveWrapper()
-{
-}
-
 FitCurveWrapper::~FitCurveWrapper()
 {
   _vertices.clear();

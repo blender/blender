@@ -14,13 +14,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BKE_mesh.h"
 #include "BKE_persistent_data_handle.hh"
 
 #include "DNA_collection_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_pointcloud_types.h"
 
 #include "BLI_hash.h"
 

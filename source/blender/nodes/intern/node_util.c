@@ -239,24 +239,21 @@ void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int m
 /** \name Link Insertion
  * \{ */
 
-/* test if two sockets are interchangeable */
-static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
+static bool node_link_socket_match(const bNodeSocket *a, const bNodeSocket *b)
 {
-  /* check if sockets are of the same type */
+  /* Check if sockets are of the same type. */
   if (a->typeinfo != b->typeinfo) {
     return false;
   }
 
-  /* tests if alphabetic prefix matches
-   * this allows for imperfect matches, such as numeric suffixes,
-   * like Color1/Color2
-   */
+  /* Test if alphabetic prefix matches, allowing for imperfect matches, such as numeric suffixes
+   * like Color1/Color2. */
   int prefix_len = 0;
-  char *ca = a->name, *cb = b->name;
+  const char *ca = a->name, *cb = b->name;
   for (; *ca != '\0' && *cb != '\0'; ca++, cb++) {
-    /* end of common prefix? */
+    /* End of common prefix? */
     if (*ca != *cb) {
-      /* prefix delimited by non-alphabetic char */
+      /* Prefix delimited by non-alphabetic char. */
       if (isalpha(*ca) || isalpha(*cb)) {
         return false;
       }
@@ -267,75 +264,73 @@ static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
   return prefix_len > 0;
 }
 
-static int node_count_links(bNodeTree *ntree, bNodeSocket *sock)
+static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
 {
-  bNodeLink *link;
   int count = 0;
-  for (link = ntree->links.first; link; link = link->next) {
-    if (link->fromsock == sock) {
-      count++;
-    }
-    if (link->tosock == sock) {
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (ELEM(socket, link->fromsock, link->tosock)) {
       count++;
     }
   }
   return count;
 }
 
-/* Find an eligible socket for linking. */
-static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree, bNode *node, bNodeSocket *cur)
+static bNodeSocket *node_find_linkable_socket(bNodeTree *ntree,
+                                              bNode *node,
+                                              bNodeSocket *to_socket)
 {
-  bNodeSocket *first = cur->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
-  bNodeSocket *sock;
+  bNodeSocket *first = to_socket->in_out == SOCK_IN ? node->inputs.first : node->outputs.first;
 
-  /* Iterate over all sockets of the target node, to find one that matches the same socket type.
-   * The idea behind this is: When a user connects an input to a socket that is
-   * already linked (and if its not an Multi Input Socket), we try to find a replacement socket for
-   * the link that we try to overwrite and connect that previous link to the new socket. */
-  sock = cur->next ? cur->next : first; /* Wrap around the list end. */
-  while (sock != cur) {
-    if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
-      break;
+  /* Wrap around the list end. */
+  bNodeSocket *socket_iter = to_socket->next ? to_socket->next : first;
+  while (socket_iter != to_socket) {
+    if (!nodeSocketIsHidden(socket_iter) && node_link_socket_match(socket_iter, to_socket)) {
+      const int link_count = node_count_links(ntree, socket_iter);
+      /* Add one to account for the new link being added. */
+      if (link_count + 1 <= nodeSocketLinkLimit(socket_iter)) {
+        return socket_iter; /* Found a valid free socket we can swap to. */
+      }
     }
-    sock = sock->next ? sock->next : first; /* Wrap around the list end. */
+    socket_iter = socket_iter->next ? socket_iter->next : first; /* Wrap around the list end. */
   }
 
-  if (!nodeSocketIsHidden(sock) && node_link_socket_match(sock, cur)) {
-    int link_count = node_count_links(ntree, sock);
-    /* Take +1 into account since we would add a new link. */
-    if (link_count + 1 <= nodeSocketLinkLimit(sock)) {
-      return sock; /* Found a valid free socket we can swap to. */
-    }
-  }
   return NULL;
 }
 
+/**
+ * The idea behind this is: When a user connects an input to a socket that is
+ * already linked (and if its not an Multi Input Socket), we try to find a replacement socket for
+ * the link that we try to overwrite and connect that previous link to the new socket.
+ */
 void node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
-  bNodeSocket *sock = link->tosock;
-  bNodeLink *tlink, *tlink_next;
+  bNodeSocket *socket = link->tosock;
 
   if (node != link->tonode) {
     return;
   }
 
-  for (tlink = ntree->links.first; tlink; tlink = tlink_next) {
-    bNodeSocket *new_sock;
-    tlink_next = tlink->next;
+  /* If we're not at the link limit of the target socket, we can skip
+   * trying to move existing links to another socket. */
+  const int to_link_limit = nodeSocketLinkLimit(socket);
+  if (socket->total_inputs + 1 < to_link_limit) {
+    return;
+  }
 
-    if (sock != tlink->tosock) {
-      continue;
-    }
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, to_link, &ntree->links) {
+    if (socket == to_link->tosock) {
+      bNodeSocket *new_socket = node_find_linkable_socket(ntree, node, socket);
+      if (new_socket && new_socket != socket) {
+        /* Attempt to redirect the existing link to the new socket. */
+        to_link->tosock = new_socket;
+        return;
+      }
 
-    new_sock = node_find_linkable_socket(ntree, node, sock);
-    if (new_sock && new_sock != sock) {
-      /* redirect existing link */
-      tlink->tosock = new_sock;
-    }
-    else if (!new_sock) {
-      /* no possible replacement, remove tlink */
-      nodeRemLink(ntree, tlink);
-      tlink = NULL;
+      if (new_socket == NULL) {
+        /* No possible replacement, remove the existing link. */
+        nodeRemLink(ntree, to_link);
+        return;
+      }
     }
   }
 }

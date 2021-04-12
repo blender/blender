@@ -653,11 +653,17 @@ void update_list_orig_pointers(const ListBase *listbase_orig,
 {
   T *element_orig = reinterpret_cast<T *>(listbase_orig->first);
   T *element_cow = reinterpret_cast<T *>(listbase->first);
-  while (element_orig != nullptr) {
+
+  /* Both lists should have the same number of elements, so the check on
+   * `element_cow` is just to prevent a crash if this is not the case. */
+  while (element_orig != nullptr && element_cow != nullptr) {
     element_cow->*orig_field = element_orig;
     element_cow = element_cow->next;
     element_orig = element_orig->next;
   }
+
+  BLI_assert((element_orig == nullptr && element_cow == nullptr) ||
+             !"list of pointers of different sizes, unable to reliably set orig pointer");
 }
 
 void update_particle_system_orig_pointers(const Object *object_orig, Object *object_cow)

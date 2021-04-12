@@ -641,7 +641,15 @@ static BMFace *pbvh_bmesh_face_create(
   /* ensure we never add existing face */
   BLI_assert(!BM_face_exists(v_tri, 3));
 
-  BMFace *f = BM_face_create(pbvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
+  BMFace *f;
+
+  if (!e_tri) {
+    f = BM_face_create_verts(pbvh->bm, v_tri, 3, f_example, BM_CREATE_NOP, true);
+  }
+  else {
+    f = BM_face_create(pbvh->bm, v_tri, e_tri, 3, f_example, BM_CREATE_NOP);
+  }
+
   f->head.hflag = f_example->head.hflag;
 
   BLI_table_gset_insert(node->bm_faces, f);
@@ -2294,7 +2302,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
    * really buy anything. */
   BLI_buffer_clear(deleted_faces);
 
-#define MAX_LS 24
+#define MAX_LS 64
 
   BMLoop *l;
   BMLoop *ls[MAX_LS];
@@ -2318,26 +2326,41 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_LOOPS_OF_VERT_ITER_END;
 
   void *blocks[MAX_LS];
-  float ws[MAX_LS], w = totl > 1 ? 1.0f / (float)(totl - 1) : 1.0f;
+  float ws[MAX_LS], w = totl > 0 ? 1.0f / (float)(totl) : 1.0f;
 
-  for (int i = 0; i < totl - 1; i++) {
-    blocks[i] = ls[i + 1]->head.data;
+  for (int i = 0; i < totl; i++) {
+    blocks[i] = ls[i]->head.data;
     ws[i] = w;
   }
 
-  if (totl > 1) {
-    CustomData_bmesh_interp(&pbvh->bm->ldata, blocks, ws, NULL, totl - 1, ls[0]->head.data);
-
+  //snap customdata
+  if (totl > 0) {
+    CustomData_bmesh_interp(&pbvh->bm->ldata, blocks, ws, NULL, totl, ls[0]->head.data);
+    //*
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
+      BMLoop *l2 = l->v != v_del ? l->next : l;
+
+      if (l2 == ls[0]) {
+        continue;
+      }
+
       CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l->head.data);
+          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
     }
     BM_LOOPS_OF_VERT_ITER_END;
+
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
+      BMLoop *l2 = l->v != v_conn ? l->next : l;
+
+      if (l2 == ls[0]) {
+        continue;
+      }
+
       CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l->head.data);
+          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l2->head.data);
     }
     BM_LOOPS_OF_VERT_ITER_END;
+    //*/
   }
 
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
@@ -2456,8 +2479,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     // log vert in bmlog, but don't update original customata layers, we want them to be
     // interpolated
     BM_log_vert_before_modified(pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset, true);
-    // void *dummy;
-    // BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
 
     mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
     add_v3_v3(v_conn->no, v_del->no);
@@ -3094,7 +3115,7 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
     BKE_pbvh_node_mark_rebuild_draw(n);
 
     BKE_pbvh_node_fully_hidden_set(n, !has_visible);
-    n->flag |= PBVH_UpdateNormals|PBVH_UpdateCurvatureDir;
+    n->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
   }
 }
 
@@ -3254,6 +3275,151 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
   return modified;
 }
 
+__attribute__((optnone)) static bool cleanup_valence_3_4(PBVH *pbvh,
+                                                         const float center[3],
+                                                         const float view_normal[3],
+                                                         float radius,
+                                                         const bool use_frontface,
+                                                         const bool use_projected)
+{
+  bool modified = false;
+
+  float radius2 = radius * 1.25;
+  float rsqr = radius2 * radius2;
+
+  for (int n = 0; n < pbvh->totnode; n++) {
+    PBVHNode *node = pbvh->nodes + n;
+
+    /* Check leaf nodes marked for topology update */
+    bool ok = (node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology);
+    ok = ok && !(node->flag & PBVH_FullyHidden);
+
+    if (!ok) {
+      continue;
+    }
+
+    PBVHVertexIter vi;
+    GSetIterator gi;
+    BMVert *v;
+
+    TGSET_ITER (v, node->bm_unique_verts) {
+      if (len_squared_v3v3(v->co, center) >= rsqr) {
+        continue;
+      }
+
+      const int val = BM_vert_edge_count(v);
+      if (val < 3 || val > 4) {
+        continue;
+      }
+
+      BMIter iter;
+      BMLoop *l;
+      BMLoop *ls[4];
+      BMVert *vs[4];
+      BMEdge *es[4];
+
+      l = v->e->l;
+
+      if (!l) {
+        continue;
+      }
+
+      if (l->v != v) {
+        l = l->next;
+      }
+
+      bool bad = false;
+      int i = 0;
+
+      for (int j = 0; j < val; j++) {
+        ls[i++] = l->v == v ? l->next : l;
+
+        l = l->prev->radial_next;
+
+        if (l->v != v) {
+          l = l->next;
+        }
+
+        if (l->radial_next == l || l->radial_next->radial_next != l) {
+          bad = true;
+          break;
+        }
+
+        for (int k = 0; k < j; k++) {
+          if (ls[k]->v == ls[j]->v) {
+            if (ls[j]->next->v != v) {
+              ls[j] = ls[j]->next;
+            }
+            else {
+              bad = true;
+              break;
+            }
+          }
+
+          if (ls[k]->f == ls[j]->f) {
+            bad = true;
+            break;
+          }
+        }
+      }
+
+      if (bad) {
+        continue;
+      }
+
+      pbvh_bmesh_vert_remove(pbvh, v);
+
+      BMFace *f;
+      BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+        pbvh_bmesh_face_remove(pbvh, f);
+      }
+
+      modified = true;
+
+      l = v->e->l;
+
+      vs[0] = ls[0]->v;
+      vs[1] = ls[1]->v;
+      vs[2] = ls[2]->v;
+
+      BMFace *f1 = NULL;
+      if (vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2]) {
+        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f);
+      }
+
+      if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
+        vs[0] = ls[0]->v;
+        vs[1] = ls[2]->v;
+        vs[2] = ls[3]->v;
+
+        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f);
+        SWAP(void *, f2->l_first->prev->head.data, ls[3]->head.data);
+
+        CustomData_bmesh_copy_data(
+            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &f2->l_first->head.data);
+        CustomData_bmesh_copy_data(
+            &pbvh->bm->ldata, &pbvh->bm->ldata, ls[2]->head.data, &f2->l_first->next->head.data);
+      }
+
+      if (f1) {
+        SWAP(void *, f1->l_first->head.data, ls[0]->head.data);
+        SWAP(void *, f1->l_first->next->head.data, ls[1]->head.data);
+        SWAP(void *, f1->l_first->prev->head.data, ls[2]->head.data);
+      }
+
+      BM_vert_kill(pbvh->bm, v);
+    }
+    TGSET_ITER_END
+  }
+
+  if (modified) {
+    pbvh->bm->elem_index_dirty |= BM_VERT | BM_FACE | BM_EDGE;
+    pbvh->bm->elem_table_dirty |= BM_VERT | BM_FACE | BM_EDGE;
+  }
+
+  return modified;
+}
+
 /* Collapse short edges, subdivide long edges */
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,
@@ -3288,6 +3454,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   if (view_normal) {
     BLI_assert(len_squared_v3(view_normal) != 0.0f);
   }
+
 #if 1
   if (mode & PBVH_Collapse) {
     EdgeQueue q;
@@ -3335,7 +3502,13 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     BLI_heapsimple_free(q.heap, NULL);
     BLI_mempool_destroy(queue_pool);
   }
+
 #endif
+  if (mode & PBVH_Cleanup) {
+    modified |= cleanup_valence_3_4(
+        pbvh, center, view_normal, radius, use_frontface, use_projected);
+  }
+
   if (modified) {
 
 #ifdef PROXY_ADVANCED
@@ -3696,7 +3869,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   j = 0;
   for (int i = 0; i < bvh->totnode; i++) {
     if (!(bvh->nodes[i].flag & PBVH_Delete)) {
-      if (bvh->nodes[i].children_offset >= bvh->totnode-1) {
+      if (bvh->nodes[i].children_offset >= bvh->totnode - 1) {
         printf("error %i %i\n", i, bvh->nodes[i].children_offset);
         continue;
       }

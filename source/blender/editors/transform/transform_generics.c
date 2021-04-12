@@ -409,9 +409,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     short orient_types[3];
     float custom_matrix[3][3];
 
-    short orient_type_scene = V3D_ORIENT_GLOBAL;
-    short orient_type_set = V3D_ORIENT_GLOBAL;
-    short orient_type_matrix_set = -1;
+    int orient_type_scene = V3D_ORIENT_GLOBAL;
+    int orient_type_default = -1;
+    int orient_type_set = -1;
+    int orient_type_matrix_set = -1;
 
     bool use_orient_axis = false;
 
@@ -424,7 +425,13 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    short orient_type_default = orient_type_scene;
+    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
+               RNA_property_is_set(op->ptr, prop))) {
+      orient_type_set = RNA_property_enum_get(op->ptr, prop);
+      if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
+        orient_type_set = V3D_ORIENT_GLOBAL;
+      }
+    }
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
       t->orient_axis = RNA_property_enum_get(op->ptr, prop);
@@ -435,31 +442,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       t->orient_axis_ortho = RNA_property_enum_get(op->ptr, prop);
     }
 
-    if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
-               RNA_property_is_set(op->ptr, prop))) {
-      orient_type_set = RNA_property_enum_get(op->ptr, prop);
-      if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
-        orient_type_set = V3D_ORIENT_GLOBAL;
-      }
-
-      /* Change the default orientation to be used when redoing. */
-      orient_type_default = orient_type_set;
-    }
-    else if (t->con.mode & CON_APPLY) {
-      orient_type_set = orient_type_scene;
-    }
-    else {
-      if (orient_type_set == orient_type_scene) {
-        BLI_assert(orient_type_set == V3D_ORIENT_GLOBAL);
-        orient_type_set = V3D_ORIENT_LOCAL;
-      }
-
-      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode)) &&
-          (t->mode != TFM_ALIGN)) {
-        orient_type_default = V3D_ORIENT_VIEW;
-      }
-    }
-
     if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_matrix")) &&
                RNA_property_is_set(op->ptr, prop))) {
       RNA_property_float_get_array(op->ptr, prop, &custom_matrix[0][0]);
@@ -468,19 +450,46 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
           RNA_property_is_set(op->ptr, prop)) {
         orient_type_matrix_set = RNA_property_enum_get(op->ptr, prop);
       }
-      else {
-        orient_type_matrix_set = orient_type_set;
-      }
-
-      if (orient_type_matrix_set == orient_type_set) {
-        /* Constraints are forced to use the custom matrix when redoing. */
+      else if (orient_type_set == -1) {
         orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
       }
     }
 
-    orient_types[0] = orient_type_default;
-    orient_types[1] = orient_type_scene;
-    orient_types[2] = orient_type_set;
+    if (orient_type_set != -1) {
+      orient_type_default = orient_type_set;
+    }
+    else if (orient_type_matrix_set != -1) {
+      orient_type_default = orient_type_set = orient_type_matrix_set;
+    }
+    else if (t->con.mode & CON_APPLY) {
+      orient_type_default = orient_type_set = orient_type_scene;
+    }
+    else {
+      if (orient_type_scene == V3D_ORIENT_GLOBAL) {
+        orient_type_set = V3D_ORIENT_LOCAL;
+      }
+      else {
+        orient_type_set = V3D_ORIENT_GLOBAL;
+      }
+
+      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode)) &&
+          (t->mode != TFM_ALIGN)) {
+        orient_type_default = V3D_ORIENT_VIEW;
+      }
+      else {
+        orient_type_default = orient_type_scene;
+      }
+    }
+
+    BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
+    if (orient_type_matrix_set == orient_type_set) {
+      /* Constraints are forced to use the custom matrix when redoing. */
+      orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
+    }
+
+    orient_types[0] = (short)orient_type_default;
+    orient_types[1] = (short)orient_type_scene;
+    orient_types[2] = (short)orient_type_set;
 
     for (int i = 0; i < 3; i++) {
       /* For efficiency, avoid calculating the same orientation twice. */

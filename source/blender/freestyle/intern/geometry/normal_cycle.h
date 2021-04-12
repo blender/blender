@@ -64,7 +64,6 @@ template<class T> inline void ogf_swap(T &x, T &y)
  */
 class NormalCycle {
  public:
-  NormalCycle();
   void begin();
   void end();
   /**

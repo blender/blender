@@ -215,7 +215,7 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
   /* Create 3D textures. */
   Volume *volume = ob->data;
   BKE_volume_load(volume, G.main);
-  VolumeGrid *volume_grid = BKE_volume_grid_active_get(volume);
+  const VolumeGrid *volume_grid = BKE_volume_grid_active_get_for_read(volume);
   if (volume_grid == NULL) {
     return;
   }

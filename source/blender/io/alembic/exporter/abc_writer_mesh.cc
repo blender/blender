@@ -113,10 +113,6 @@ void ABCGenericMeshWriter::create_alembic_objects(const HierarchyContext *contex
   liquid_sim_modifier_ = get_liquid_sim_modifier(scene_eval, context->object);
 }
 
-ABCGenericMeshWriter::~ABCGenericMeshWriter()
-{
-}
-
 Alembic::Abc::OObject ABCGenericMeshWriter::get_alembic_object() const
 {
   if (is_subd_) {

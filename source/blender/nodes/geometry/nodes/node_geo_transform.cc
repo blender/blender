@@ -130,7 +130,7 @@ static void transform_volume(Volume *volume,
       (scale.z == 0.0f) ? FLT_EPSILON : scale.z,
   };
 
-  Main *bmain = DEG_get_bmain(params.depsgraph());
+  const Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
   const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, limited_scale);
@@ -141,7 +141,7 @@ static void transform_volume(Volume *volume,
 
   const int num_grids = BKE_volume_num_grids(volume);
   for (const int i : IndexRange(num_grids)) {
-    VolumeGrid *volume_grid = BKE_volume_grid_get(volume, i);
+    VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(volume, i);
 
     openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(volume, volume_grid, false);
     openvdb::math::Transform &grid_transform = grid->transform();

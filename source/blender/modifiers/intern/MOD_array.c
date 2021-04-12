@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_anim_path.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -471,9 +472,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob != NULL) {
     Object *curve_ob = amd->curve_ob;
     CurveCache *curve_cache = curve_ob->runtime.curve_cache;
-    if (curve_cache != NULL && curve_cache->path != NULL) {
+    if (curve_cache != NULL && curve_cache->anim_path_accum_length != NULL) {
       float scale_fac = mat4_to_scale(curve_ob->obmat);
-      length = scale_fac * curve_cache->path->totdist;
+      length = scale_fac * BKE_anim_path_get_length(curve_cache);
     }
   }
 

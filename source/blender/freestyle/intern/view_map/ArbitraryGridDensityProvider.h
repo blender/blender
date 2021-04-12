@@ -39,7 +39,6 @@ class ArbitraryGridDensityProvider : public GridDensityProvider {
                                const GridHelpers::Transform &transform,
                                unsigned numCells);
   ArbitraryGridDensityProvider(OccluderSource &source, unsigned numCells);
-  virtual ~ArbitraryGridDensityProvider();
 
  protected:
   unsigned numCells;
@@ -51,7 +50,6 @@ class ArbitraryGridDensityProvider : public GridDensityProvider {
 class ArbitraryGridDensityProviderFactory : public GridDensityProviderFactory {
  public:
   ArbitraryGridDensityProviderFactory(unsigned numCells);
-  ~ArbitraryGridDensityProviderFactory();
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);

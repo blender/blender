@@ -20,11 +20,6 @@
 
 namespace blender::compositor {
 
-AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation()
-{
-  /* pass */
-}
-
 void AlphaOverPremultiplyOperation::executePixelSampled(float output[4],
                                                         float x,
                                                         float y,

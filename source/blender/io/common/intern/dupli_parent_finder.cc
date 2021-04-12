@@ -25,14 +25,6 @@
 
 namespace blender::io {
 
-DupliParentFinder::DupliParentFinder()
-{
-}
-
-DupliParentFinder::~DupliParentFinder()
-{
-}
-
 void DupliParentFinder::insert(const DupliObject *dupli_ob)
 {
   dupli_set_.insert(dupli_ob->ob);

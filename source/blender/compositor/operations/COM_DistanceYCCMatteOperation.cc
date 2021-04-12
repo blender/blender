@@ -21,11 +21,6 @@
 
 namespace blender::compositor {
 
-DistanceYCCMatteOperation::DistanceYCCMatteOperation()
-{
-  /* pass */
-}
-
 float DistanceYCCMatteOperation::calculateDistance(float key[4], float image[4])
 {
   /* only measure the second 2 values */

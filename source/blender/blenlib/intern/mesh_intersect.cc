@@ -527,9 +527,7 @@ IMeshArena::IMeshArena()
   pimpl_ = std::make_unique<IMeshArenaImpl>();
 }
 
-IMeshArena::~IMeshArena()
-{
-}
+IMeshArena::~IMeshArena() = default;
 
 void IMeshArena::reserve(int vert_num_hint, int face_num_hint)
 {
@@ -753,27 +751,6 @@ struct BoundingBox {
   BoundingBox(const float3 &min, const float3 &max) : min(min), max(max)
   {
   }
-  BoundingBox(const BoundingBox &other) : min(other.min), max(other.max)
-  {
-  }
-  BoundingBox(BoundingBox &&other) noexcept : min(std::move(other.min)), max(std::move(other.max))
-  {
-  }
-  ~BoundingBox() = default;
-  BoundingBox operator=(const BoundingBox &other)
-  {
-    if (this != &other) {
-      min = other.min;
-      max = other.max;
-    }
-    return *this;
-  }
-  BoundingBox operator=(BoundingBox &&other) noexcept
-  {
-    min = std::move(other.min);
-    max = std::move(other.max);
-    return *this;
-  }
 
   void combine(const float3 &p)
   {
@@ -936,28 +913,6 @@ class CoplanarCluster {
   {
     this->add_tri(t, bb);
   }
-  CoplanarCluster(const CoplanarCluster &other) : tris_(other.tris_), bb_(other.bb_)
-  {
-  }
-  CoplanarCluster(CoplanarCluster &&other) noexcept
-      : tris_(std::move(other.tris_)), bb_(std::move(other.bb_))
-  {
-  }
-  ~CoplanarCluster() = default;
-  CoplanarCluster &operator=(const CoplanarCluster &other)
-  {
-    if (this != &other) {
-      tris_ = other.tris_;
-      bb_ = other.bb_;
-    }
-    return *this;
-  }
-  CoplanarCluster &operator=(CoplanarCluster &&other) noexcept
-  {
-    tris_ = std::move(other.tris_);
-    bb_ = std::move(other.bb_);
-    return *this;
-  }
 
   /* Assume that caller knows this will not be a duplicate. */
   void add_tri(int t, const BoundingBox &bb)
@@ -1072,38 +1027,6 @@ struct ITT_value {
   }
   ITT_value(ITT_value_kind k, const mpq3 &p1, const mpq3 &p2) : p1(p1), p2(p2), kind(k)
   {
-  }
-  ITT_value(const ITT_value &other)
-      : p1(other.p1), p2(other.p2), t_source(other.t_source), kind(other.kind)
-  {
-  }
-  ITT_value(ITT_value &&other) noexcept
-      : p1(std::move(other.p1)),
-        p2(std::move(other.p2)),
-        t_source(other.t_source),
-        kind(other.kind)
-  {
-  }
-  ~ITT_value()
-  {
-  }
-  ITT_value &operator=(const ITT_value &other)
-  {
-    if (this != &other) {
-      kind = other.kind;
-      p1 = other.p1;
-      p2 = other.p2;
-      t_source = other.t_source;
-    }
-    return *this;
-  }
-  ITT_value &operator=(ITT_value &&other) noexcept
-  {
-    kind = other.kind;
-    p1 = std::move(other.p1);
-    p2 = std::move(other.p2);
-    t_source = other.t_source;
-    return *this;
   }
 };
 

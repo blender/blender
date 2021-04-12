@@ -47,9 +47,6 @@ class BuilderMap {
                     TAG_SCENE_COMPOSITOR | TAG_SCENE_SEQUENCER | TAG_SCENE_AUDIO),
   };
 
-  BuilderMap();
-  ~BuilderMap();
-
   /* Check whether given ID is already handled by builder (or if it's being handled). */
   bool checkIsBuilt(ID *id, int tag = TAG_COMPLETE) const;
 

@@ -23,6 +23,8 @@
 
 #include "node_shader_util.h"
 
+#include "BLI_math_base_safe.h"
+
 /* **************** Map Range ******************** */
 static bNodeSocketTemplate sh_node_map_range_in[] = {
     {SOCK_FLOAT, N_("Value"), 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
@@ -88,6 +90,19 @@ static int gpu_shader_map_range(GPUMaterial *mat,
   return ret;
 }
 
+static void map_range_signature(blender::fn::MFSignatureBuilder *signature, bool use_steps)
+{
+  signature->single_input<float>("Value");
+  signature->single_input<float>("From Min");
+  signature->single_input<float>("From Max");
+  signature->single_input<float>("To Min");
+  signature->single_input<float>("To Max");
+  if (use_steps) {
+    signature->single_input<float>("Steps");
+  }
+  signature->single_output<float>("Result");
+}
+
 class MapRangeFunction : public blender::fn::MultiFunction {
  private:
   bool clamp_;
@@ -102,12 +117,7 @@ class MapRangeFunction : public blender::fn::MultiFunction {
   static blender::fn::MFSignature create_signature()
   {
     blender::fn::MFSignatureBuilder signature{"Map Range"};
-    signature.single_input<float>("Value");
-    signature.single_input<float>("From Min");
-    signature.single_input<float>("From Max");
-    signature.single_input<float>("To Min");
-    signature.single_input<float>("To Max");
-    signature.single_output<float>("Result");
+    map_range_signature(&signature, false);
     return signature.build();
   }
 
@@ -136,25 +146,163 @@ class MapRangeFunction : public blender::fn::MultiFunction {
   }
 };
 
+class MapRangeSteppedFunction : public blender::fn::MultiFunction {
+ private:
+  bool clamp_;
+
+ public:
+  MapRangeSteppedFunction(bool clamp) : clamp_(clamp)
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Map Range Stepped"};
+    map_range_signature(&signature, true);
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    const blender::VArray<float> &steps = params.readonly_single_input<float>(5, "Steps");
+    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(6, "Result");
+
+    for (int64_t i : mask) {
+      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      factor = safe_divide(floorf(factor * (steps[i] + 1.0f)), steps[i]);
+      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
+    }
+
+    if (clamp_) {
+      for (int64_t i : mask) {
+        results[i] = (to_min[i] > to_max[i]) ? clamp_f(results[i], to_max[i], to_min[i]) :
+                                               clamp_f(results[i], to_min[i], to_max[i]);
+      }
+    }
+  }
+};
+
+class MapRangeSmoothstepFunction : public blender::fn::MultiFunction {
+ public:
+  MapRangeSmoothstepFunction()
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
+    map_range_signature(&signature, false);
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+
+    for (int64_t i : mask) {
+      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      factor = std::clamp(factor, 0.0f, 1.0f);
+      factor = (3.0f - 2.0f * factor) * (factor * factor);
+      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
+    }
+  }
+};
+
+class MapRangeSmootherstepFunction : public blender::fn::MultiFunction {
+ public:
+  MapRangeSmootherstepFunction()
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
+    map_range_signature(&signature, false);
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+
+    for (int64_t i : mask) {
+      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
+      factor = std::clamp(factor, 0.0f, 1.0f);
+      factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
+      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
+    }
+  }
+};
+
 static void sh_node_map_range_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
   bNode &bnode = builder.bnode();
   bool clamp = bnode.custom1 != 0;
   int interpolation_type = bnode.custom2;
 
-  if (interpolation_type == NODE_MAP_RANGE_LINEAR) {
-    static MapRangeFunction fn_with_clamp{true};
-    static MapRangeFunction fn_without_clamp{false};
-
-    if (clamp) {
-      builder.set_matching_fn(fn_with_clamp);
+  switch (interpolation_type) {
+    case NODE_MAP_RANGE_LINEAR: {
+      if (clamp) {
+        static MapRangeFunction fn_with_clamp{true};
+        builder.set_matching_fn(fn_with_clamp);
+      }
+      else {
+        static MapRangeFunction fn_without_clamp{false};
+        builder.set_matching_fn(fn_without_clamp);
+      }
+      break;
     }
-    else {
-      builder.set_matching_fn(fn_without_clamp);
+    case NODE_MAP_RANGE_STEPPED: {
+      if (clamp) {
+        static MapRangeSteppedFunction fn_stepped_with_clamp{true};
+        builder.set_matching_fn(fn_stepped_with_clamp);
+      }
+      else {
+        static MapRangeSteppedFunction fn_stepped_without_clamp{false};
+        builder.set_matching_fn(fn_stepped_without_clamp);
+      }
+      break;
     }
-  }
-  else {
-    builder.set_not_implemented();
+    case NODE_MAP_RANGE_SMOOTHSTEP: {
+      static MapRangeSmoothstepFunction smoothstep;
+      builder.set_matching_fn(smoothstep);
+      break;
+    }
+    case NODE_MAP_RANGE_SMOOTHERSTEP: {
+      static MapRangeSmootherstepFunction smootherstep;
+      builder.set_matching_fn(smootherstep);
+      break;
+    }
+    default:
+      builder.set_not_implemented();
+      break;
   }
 }
 

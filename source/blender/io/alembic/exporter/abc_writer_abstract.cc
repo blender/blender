@@ -45,10 +45,6 @@ ABCAbstractWriter::ABCAbstractWriter(const ABCWriterConstructorArgs &args)
 {
 }
 
-ABCAbstractWriter::~ABCAbstractWriter()
-{
-}
-
 bool ABCAbstractWriter::is_supported(const HierarchyContext * /*context*/) const
 {
   return true;

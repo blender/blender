@@ -608,4 +608,8 @@ endif()
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
+endif()
+
 add_dependencies(bf_compositor smaa_areatex_header)

@@ -136,7 +136,6 @@ struct DDSHeader {
 class DirectDrawSurface {
  public:
   DirectDrawSurface(unsigned char *mem, uint size);
-  ~DirectDrawSurface();
 
   bool isValid() const;
   bool isSupported() const;

@@ -148,10 +148,6 @@ class TBBTaskGroup : public tbb::task_group {
     }
 #  endif
   }
-
-  ~TBBTaskGroup()
-  {
-  }
 };
 #endif
 

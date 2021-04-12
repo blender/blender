@@ -75,7 +75,7 @@ FIND_PATH(OSL_SHADER_DIR
     /usr/share/OSL/
     /usr/include/OSL/
   PATH_SUFFIXES
-    shaders
+    share/OSL/shaders
 )
 
 # handle the QUIETLY and REQUIRED arguments and set OSL_FOUND to TRUE if

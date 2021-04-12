@@ -528,7 +528,7 @@ inline bool NodeRef::is_reroute_node() const
 
 inline bool NodeRef::is_group_node() const
 {
-  return bnode_->type == NODE_GROUP;
+  return bnode_->type == NODE_GROUP || bnode_->type == NODE_CUSTOM_GROUP;
 }
 
 inline bool NodeRef::is_group_input_node() const

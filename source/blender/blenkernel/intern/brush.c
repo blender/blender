@@ -2667,4 +2667,13 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
       out->flag &= ~DYNTOPO_COLLAPSE;
     }
   }
+
+  if (inherit & DYNTOPO_CLEANUP) {
+    if (sd->flags & SCULPT_DYNTOPO_CLEANUP) {
+      out->flag |= DYNTOPO_CLEANUP;
+    }
+    else {
+      out->flag &= ~DYNTOPO_CLEANUP;
+    }
+  }
 };

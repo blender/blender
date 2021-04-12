@@ -1504,8 +1504,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
     return;
   }
 
-  if (ob->type == OB_MESH || ob->type == OB_MBALL || ob->type == OB_CURVE || ob->type == OB_SURF ||
-      ob->type == OB_FONT) {
+  if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
 
     if (ob->type == OB_MESH) {
       use_mesh = DEG_get_evaluated_object(dg, ob)->data;
@@ -1647,7 +1646,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       if (usage == OBJECT_LRT_INTERSECTION_ONLY) {
         rt->flags |= LRT_TRIANGLE_INTERSECTION_ONLY;
       }
-      else if (usage == OBJECT_LRT_NO_INTERSECTION || usage == OBJECT_LRT_OCCLUSION_ONLY) {
+      else if (ELEM(usage, OBJECT_LRT_NO_INTERSECTION, OBJECT_LRT_OCCLUSION_ONLY)) {
         rt->flags |= LRT_TRIANGLE_NO_INTERSECTION;
       }
 
@@ -1711,8 +1710,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       LineartLineSegment *rls = lineart_mem_aquire(&rb->render_data_pool,
                                                    sizeof(LineartLineSegment));
       BLI_addtail(&la_e->segments, rls);
-      if (usage == OBJECT_LRT_INHERIT || usage == OBJECT_LRT_INCLUDE ||
-          usage == OBJECT_LRT_NO_INTERSECTION) {
+      if (ELEM(usage, OBJECT_LRT_INHERIT, OBJECT_LRT_INCLUDE, OBJECT_LRT_NO_INTERSECTION)) {
         lineart_add_edge_to_list(rb, la_e);
       }
 

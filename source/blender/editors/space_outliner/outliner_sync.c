@@ -356,8 +356,11 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
 void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_outliner)
 {
   /* Don't sync if not checked or in certain outliner display modes */
-  if (!(space_outliner->flag & SO_SYNC_SELECT) ||
-      ELEM(space_outliner->outlinevis, SO_LIBRARIES, SO_DATA_API, SO_ID_ORPHANS)) {
+  if (!(space_outliner->flag & SO_SYNC_SELECT) || ELEM(space_outliner->outlinevis,
+                                                       SO_LIBRARIES,
+                                                       SO_OVERRIDES_LIBRARY,
+                                                       SO_DATA_API,
+                                                       SO_ID_ORPHANS)) {
     return;
   }
 

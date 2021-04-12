@@ -355,6 +355,7 @@ void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_
 typedef enum {
   PBVH_Subdivide = 1,
   PBVH_Collapse = 2,
+  PBVH_Cleanup = 4, //dissolve verts surrounded by either 3 or 4 triangles then triangulate
 } PBVHTopologyUpdateMode;
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,

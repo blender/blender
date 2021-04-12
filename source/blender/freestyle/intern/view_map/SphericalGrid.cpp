@@ -38,14 +38,6 @@ namespace Freestyle {
 // Cell
 /////////
 
-SphericalGrid::Cell::Cell()
-{
-}
-
-SphericalGrid::Cell::~Cell()
-{
-}
-
 void SphericalGrid::Cell::setDimensions(real x, real y, real sizeX, real sizeY)
 {
   const real epsilon = 1.0e-06;
@@ -87,10 +79,6 @@ SphericalGrid::Iterator::Iterator(SphericalGrid &grid, Vec3r &center, real /*eps
   _current = _cell->faces.begin();
 }
 
-SphericalGrid::Iterator::~Iterator()
-{
-}
-
 // SphericalGrid
 /////////////////
 
@@ -121,9 +109,7 @@ SphericalGrid::SphericalGrid(OccluderSource &source,
   }
 }
 
-SphericalGrid::~SphericalGrid()
-{
-}
+SphericalGrid::~SphericalGrid() = default;
 
 void SphericalGrid::assignCells(OccluderSource & /*source*/,
                                 GridDensityProvider &density,
@@ -236,10 +222,6 @@ const Vec3r &SphericalGrid::viewpoint() const
 bool SphericalGrid::enableQI() const
 {
   return _enableQI;
-}
-
-SphericalGrid::Transform::Transform()
-{
 }
 
 Vec3r SphericalGrid::Transform::operator()(const Vec3r &point) const

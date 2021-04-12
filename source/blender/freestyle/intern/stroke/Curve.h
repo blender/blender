@@ -236,9 +236,7 @@ class CurvePoint : public Interface0D {
   CurvePoint &operator=(const CurvePoint &iBrother);
 
   /*! Destructor */
-  virtual ~CurvePoint()
-  {
-  }
+  virtual ~CurvePoint() = default;
 
   /*! Operator == */
   bool operator==(const CurvePoint &b)

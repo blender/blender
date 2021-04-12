@@ -231,7 +231,8 @@ const MEdge *MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
   return medge;
 }
 
-/** Convert all of the meshes in `meshes` to an `IMesh` and return that.
+/**
+ * Convert all of the meshes in `meshes` to an `IMesh` and return that.
  * All of the coordinates are transformed into the local space of the
  * first Mesh. To do this transformation, we also need the transformation
  * obmats corresponding to the Meshes, so they are in the `obmats` argument.
@@ -638,7 +639,8 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
   }
 }
 
-/** Make sure that there are custom data layers in the target mesh
+/**
+ * Make sure that there are custom data layers in the target mesh
  * corresponding to all target layers in all of the operands after the first.
  * (The target should already have layers for those in the first operand mesh).
  * Edges done separately -- will have to be done later, after edges are made.
@@ -673,7 +675,8 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
   }
 }
 
-/** Convert the output IMesh im to a Blender Mesh,
+/**
+ * Convert the output IMesh im to a Blender Mesh,
  * using the information in mim to get all the attributes right.
  */
 static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)

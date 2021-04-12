@@ -149,10 +149,6 @@ bool AnimatedPropertyStorage::isPropertyAnimated(const PointerRNA *pointer_rna,
 
 /* Builder cache itself. */
 
-DepsgraphBuilderCache::DepsgraphBuilderCache()
-{
-}
-
 DepsgraphBuilderCache::~DepsgraphBuilderCache()
 {
   for (AnimatedPropertyStorage *animated_property_storage :

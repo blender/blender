@@ -1858,7 +1858,7 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-          (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE)) &&
+          (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP)) &&
           !(brush->cached_dyntopo.flag & DYNTOPO_DISABLED) &&
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
@@ -6354,6 +6354,10 @@ static void sculpt_topology_update(Sculpt *sd,
         /*||(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY)*/) {
       mode |= PBVH_Collapse;
     }
+  }
+
+  if (brush->cached_dyntopo.flag & DYNTOPO_CLEANUP) {
+    mode |= PBVH_Cleanup;
   }
 
   PBVHNode **nodes = NULL;

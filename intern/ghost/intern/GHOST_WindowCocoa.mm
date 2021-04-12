@@ -1131,7 +1131,8 @@ GHOST_TSuccess GHOST_WindowCocoa::hasCursorShape(GHOST_TStandardCursor shape)
   return success;
 }
 
-/** Reverse the bits in a GHOST_TUns8
+/* Reverse the bits in a GHOST_TUns8 */
+#if 0
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {
   ch= ((ch >> 1) & 0x55) | ((ch << 1) & 0xAA);
@@ -1139,7 +1140,7 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
   ch= ((ch >> 4) & 0x0F) | ((ch << 4) & 0xF0);
   return ch;
 }
-*/
+#endif
 
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)

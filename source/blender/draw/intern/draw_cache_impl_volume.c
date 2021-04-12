@@ -225,7 +225,7 @@ GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
 
   if (cache->face_wire.batch == NULL) {
-    VolumeGrid *volume_grid = BKE_volume_grid_active_get(volume);
+    const VolumeGrid *volume_grid = BKE_volume_grid_active_get_for_read(volume);
     if (volume_grid == NULL) {
       return NULL;
     }
@@ -274,7 +274,7 @@ GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   if (cache->selection_surface == NULL) {
-    VolumeGrid *volume_grid = BKE_volume_grid_active_get(volume);
+    const VolumeGrid *volume_grid = BKE_volume_grid_active_get_for_read(volume);
     if (volume_grid == NULL) {
       return NULL;
     }
@@ -284,8 +284,8 @@ GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
   return cache->selection_surface;
 }
 
-static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
-                                            VolumeGrid *grid,
+static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
+                                            const VolumeGrid *grid,
                                             VolumeBatchCache *cache)
 {
   const char *name = BKE_volume_grid_name(grid);
@@ -351,7 +351,7 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
   return cache_grid;
 }
 
-DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume, VolumeGrid *volume_grid)
+DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume, const VolumeGrid *volume_grid)
 {
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   DRWVolumeGrid *grid = volume_grid_cache_get(volume, volume_grid, cache);

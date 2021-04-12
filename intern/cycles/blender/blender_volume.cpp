@@ -26,7 +26,7 @@
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
 openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume *volume,
-                                                             struct VolumeGrid *grid);
+                                                             const struct VolumeGrid *grid);
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -227,7 +227,7 @@ class BlenderVolumeLoader : public VDBImageLoader {
         const bool unload = !b_volume_grid.is_loaded();
 
         ::Volume *volume = (::Volume *)b_volume.ptr.data;
-        VolumeGrid *volume_grid = (VolumeGrid *)b_volume_grid.ptr.data;
+        const VolumeGrid *volume_grid = (VolumeGrid *)b_volume_grid.ptr.data;
         grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
 
         if (unload) {

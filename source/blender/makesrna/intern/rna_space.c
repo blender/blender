@@ -1673,7 +1673,7 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 
   values[0] = values[1] = 1;
 
-  /* find aregion */
+  /* Find #ARegion. */
   area = rna_area_from_space(ptr); /* can be NULL */
   region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region) {
@@ -1793,7 +1793,13 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr,
 
   st->text = value.data;
 
-  WM_main_add_notifier(NC_TEXT | NA_SELECTED, st->text);
+  ScrArea *area = rna_area_from_space(ptr);
+  if (area) {
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    if (region) {
+      ED_text_scroll_to_cursor(st, region, true);
+    }
+  }
 }
 
 static bool rna_SpaceTextEditor_text_is_syntax_highlight_supported(struct SpaceText *space)
@@ -3399,6 +3405,11 @@ static void rna_def_space_outliner(BlenderRNA *brna)
        ICON_RNA,
        "Data API",
        "Display low level Blender data and its properties"},
+      {SO_OVERRIDES_LIBRARY,
+       "LIBRARY_OVERRIDES",
+       ICON_LIBRARY_DATA_OVERRIDE,
+       "Library Overrides",
+       "Display data-blocks with library overrides and list their overridden properties"},
       {SO_ID_ORPHANS,
        "ORPHAN_DATA",
        ICON_ORPHAN_DATA,
@@ -3587,6 +3598,16 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Show Library Overrides",
                            "For libraries with overrides created, show the overridden values");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
+  prop = RNA_def_property(srna, "use_filter_lib_override_system", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_SHOW_SYSTEM_OVERRIDES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show System Overrides",
+      "For libraries with overrides created, show the overridden values that are "
+      "defined/controlled automatically (e.g. to make users of an overridden data-block point to "
+      "the override data, not the original linked data)");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 }
 
@@ -4080,7 +4101,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_LOOK_DEV);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "HDRI Preview", "Show HDRI preview spheres");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
 
   prop = RNA_def_property(srna, "show_wireframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_WIREFRAMES);
@@ -7344,6 +7365,11 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        ICON_NONE,
        "Original",
        "Use data from original object without any modifiers applied"},
+      {SPREADSHEET_OBJECT_EVAL_STATE_NODE,
+       "NODE",
+       ICON_NONE,
+       "Node",
+       "Use data from the first geometry output of the node tagged for preview"},
       {0, NULL, 0, NULL, NULL},
   };
 

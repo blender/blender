@@ -32,9 +32,7 @@ ExtraTags::ExtraTags(std::string profile)
   this->tags = std::map<std::string, std::string>();
 }
 
-ExtraTags::~ExtraTags()
-{
-}
+ExtraTags::~ExtraTags() = default;
 
 bool ExtraTags::isProfile(std::string profile)
 {

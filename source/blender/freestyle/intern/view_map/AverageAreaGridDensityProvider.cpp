@@ -56,10 +56,6 @@ AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource &s
   initialize(proscenium, sizeFactor);
 }
 
-AverageAreaGridDensityProvider::~AverageAreaGridDensityProvider()
-{
-}
-
 void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real sizeFactor)
 {
   float prosceniumWidth = (proscenium[1] - proscenium[0]);
@@ -117,10 +113,6 @@ void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real s
 
 AverageAreaGridDensityProviderFactory::AverageAreaGridDensityProviderFactory(real sizeFactor)
     : sizeFactor(sizeFactor)
-{
-}
-
-AverageAreaGridDensityProviderFactory::~AverageAreaGridDensityProviderFactory()
 {
 }
 

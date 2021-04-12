@@ -311,8 +311,8 @@ static void object_free_data(ID *id)
   /* Free runtime curves data. */
   if (ob->runtime.curve_cache) {
     BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-    if (ob->runtime.curve_cache->path) {
-      free_path(ob->runtime.curve_cache->path);
+    if (ob->runtime.curve_cache->anim_path_accum_length) {
+      MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
     }
     MEM_freeN(ob->runtime.curve_cache);
     ob->runtime.curve_cache = NULL;
@@ -1188,8 +1188,8 @@ void BKE_object_free_curve_cache(Object *ob)
   if (ob->runtime.curve_cache) {
     BKE_displist_free(&ob->runtime.curve_cache->disp);
     BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
-    if (ob->runtime.curve_cache->path) {
-      free_path(ob->runtime.curve_cache->path);
+    if (ob->runtime.curve_cache->anim_path_accum_length) {
+      MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
     }
     BKE_nurbList_free(&ob->runtime.curve_cache->deformed_nurbs);
     MEM_freeN(ob->runtime.curve_cache);
@@ -1359,8 +1359,9 @@ static bool object_modifier_type_copy_check(ModifierType md_type)
   return !ELEM(md_type, eModifierType_Hook, eModifierType_Collision);
 }
 
-/** Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings
- * ID), or add one, and return valid `psys` from `ob_dst`.
+/**
+ * Find a `psys` matching given `psys_src` in `ob_dst` (i.e. sharing the same ParticleSettings ID),
+ * or add one, and return valid `psys` from `ob_dst`.
  *
  * \note Order handling is fairly weak here. This code assumes that it is called **before** the
  * modifier using the psys is actually copied, and that this copied modifier will be added at the
@@ -1392,7 +1393,8 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
   return psys_dst;
 }
 
-/** Copy a single modifier.
+/**
+ * Copy a single modifier.
  *
  * \note **Do not** use this function to copy a whole modifier stack (see note below too). Use
  * `BKE_object_modifier_stack_copy` instead.
@@ -1400,7 +1402,8 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
  * \note Complex modifiers relaying on other data (like e.g. dynamic paint or fluid using particle
  * systems) are not always 100% 'correctly' copied here, since we have to use heuristics to decide
  * which particle system to use or add in `ob_dst`, and it's placement in the stack, etc. If used
- * more than once, this function should preferably be called in stack order. */
+ * more than once, this function should preferably be called in stack order.
+ */
 bool BKE_object_copy_modifier(
     Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md_src)
 {
@@ -1500,10 +1503,12 @@ bool BKE_object_copy_modifier(
   return true;
 }
 
-/** Copy a single GPencil modifier.
+/**
+ * Copy a single GPencil modifier.
  *
  * \note **Do not** use this function to copy a whole modifier stack. Use
- * `BKE_object_modifier_stack_copy` instead. */
+ * `BKE_object_modifier_stack_copy` instead.
+ */
 bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *gmd_src)
 {
   BLI_assert(ob_dst->type == OB_GPENCIL);
@@ -1756,6 +1761,10 @@ void BKE_object_free_derived_caches(Object *ob)
     BKE_geometry_set_free(ob->runtime.geometry_set_eval);
     ob->runtime.geometry_set_eval = NULL;
   }
+  if (ob->runtime.geometry_set_preview != NULL) {
+    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
+    ob->runtime.geometry_set_preview = NULL;
+  }
 }
 
 void BKE_object_free_caches(Object *object)
@@ -1804,6 +1813,18 @@ void BKE_object_free_caches(Object *object)
   if (update_flag != 0) {
     DEG_id_tag_update(&object->id, update_flag);
   }
+}
+
+/* Can be called from multiple threads. */
+void BKE_object_set_preview_geometry_set(Object *ob, struct GeometrySet *geometry_set)
+{
+  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
+  BLI_mutex_lock(&mutex);
+  if (ob->runtime.geometry_set_preview != NULL) {
+    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
+  }
+  ob->runtime.geometry_set_preview = geometry_set;
+  BLI_mutex_unlock(&mutex);
 }
 
 /**
@@ -3244,7 +3265,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   if (par->runtime.curve_cache == NULL) {
     return false;
   }
-  if (par->runtime.curve_cache->path == NULL) {
+  if (par->runtime.curve_cache->anim_path_accum_length == NULL) {
     return false;
   }
 
@@ -3260,12 +3281,12 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   else {
     ctime = cu->ctime;
   }
-  CLAMP(ctime, 0.0f, 1.0f);
 
   unit_m4(r_mat);
 
   /* vec: 4 items! */
-  if (where_on_path(par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
+  if (BKE_where_on_path(
+          par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
     if (cu->flag & CU_FOLLOW) {
       quat_apply_track(quat, ob->trackflag, ob->upflag);
       normalize_qt(quat);

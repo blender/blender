@@ -166,7 +166,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   int index;
   bNode **nodelist;
   int totnodes, n;
-  /* XXX texnodes have threading issues with muting, have to disable it there ... */
+  /* XXX: texture-nodes have threading issues with muting, have to disable it there. */
 
   /* ensure all sock->link pointers and node levels are correct */
   /* Using global main here is likely totally wrong, not sure what to do about that one though...

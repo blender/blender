@@ -50,7 +50,7 @@ class DepsgraphRelationBuilder;
 class AbstractBuilderPipeline {
  public:
   AbstractBuilderPipeline(::Depsgraph *graph);
-  virtual ~AbstractBuilderPipeline();
+  virtual ~AbstractBuilderPipeline() = default;
 
   void build();
 

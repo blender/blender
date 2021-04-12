@@ -20,11 +20,14 @@
 extern "C" {
 #endif
 
+#include "BKE_node.h"
+
 extern struct bNodeTreeType *ntreeType_Geometry;
 
 void register_node_tree_type_geo(void);
 
 void register_node_type_geo_group(void);
+void register_node_type_geo_custom_group(bNodeType *ntype);
 
 void register_node_type_geo_align_rotation_to_vector(void);
 void register_node_type_geo_attribute_clamp(void);
@@ -42,6 +45,7 @@ void register_node_type_geo_attribute_separate_xyz(void);
 void register_node_type_geo_attribute_vector_math(void);
 void register_node_type_geo_attribute_remove(void);
 void register_node_type_geo_boolean(void);
+void register_node_type_geo_bounding_box(void);
 void register_node_type_geo_collection_info(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_is_viewport(void);

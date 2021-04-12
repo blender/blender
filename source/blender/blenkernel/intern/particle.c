@@ -2417,14 +2417,15 @@ int do_guides(Depsgraph *depsgraph,
       cu = (Curve *)eff->ob->data;
 
       if (pd->flag & PFIELD_GUIDE_PATH_ADD) {
-        if (where_on_path(
+        if (BKE_where_on_path(
                 eff->ob, data->strength * guidetime, guidevec, guidedir, NULL, &radius, &weight) ==
             0) {
           return 0;
         }
       }
       else {
-        if (where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius, &weight) == 0) {
+        if (BKE_where_on_path(eff->ob, guidetime, guidevec, guidedir, NULL, &radius, &weight) ==
+            0) {
           return 0;
         }
       }

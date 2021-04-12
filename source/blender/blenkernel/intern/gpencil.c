@@ -222,7 +222,7 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   /* relink palettes (old palettes deprecated, only to convert old files) */
   BLO_read_list(reader, &gpd->palettes);
   if (gpd->palettes.first != NULL) {
-    LISTBASE_FOREACH (Palette *, palette, &gpd->palettes) {
+    LISTBASE_FOREACH (bGPDpalette *, palette, &gpd->palettes) {
       BLO_read_list(reader, &palette->colors);
     }
   }
@@ -1293,7 +1293,8 @@ bGPDframe *BKE_gpencil_layer_frame_find(bGPDlayer *gpl, int cframe)
   return NULL;
 }
 
-/** Get the appropriate gp-frame from a given layer
+/**
+ * Get the appropriate gp-frame from a given layer
  * - this sets the layer's actframe var (if allowed to)
  * - extension beyond range (if first gp-frame is after all frame in interest and cannot add)
  *

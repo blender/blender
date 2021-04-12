@@ -558,7 +558,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
   int overlay_alpha = (primary) ? brush->texture_overlay_alpha : brush->mask_overlay_alpha;
 
   if (mode == PAINT_MODE_TEXTURE_3D) {
-    if (primary && brush->imagepaint_tool == PAINT_TOOL_DRAW) {
+    if (primary && brush->imagepaint_tool != PAINT_TOOL_DRAW) {
       /* All non-draw tools don't use the primary texture (clone, smear, soften.. etc). */
       return false;
     }

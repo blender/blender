@@ -14,14 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
 #include "BLI_math_matrix.h"
 
 #include "DNA_collection_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_collection_info_in[] = {
     {SOCK_COLLECTION, N_("Collection")},

@@ -209,8 +209,7 @@ static void updateDepsgraph(GpencilModifierData *md,
   }
   else {
     FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (ctx->scene->master_collection, ob, mode) {
-      if (ob->type == OB_MESH || ob->type == OB_MBALL || ob->type == OB_CURVE ||
-          ob->type == OB_SURF || ob->type == OB_FONT) {
+      if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
         if (ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
           DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
           DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");

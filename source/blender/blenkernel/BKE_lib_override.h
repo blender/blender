@@ -84,7 +84,8 @@ bool BKE_lib_override_library_resync(struct Main *bmain,
                                      struct ViewLayer *view_layer,
                                      struct ID *id_root,
                                      struct Collection *override_resync_residual_storage,
-                                     const bool do_hierarchy_enforce);
+                                     const bool do_hierarchy_enforce,
+                                     const bool do_post_process);
 void BKE_lib_override_library_main_resync(struct Main *bmain,
                                           struct Scene *scene,
                                           struct ViewLayer *view_layer);

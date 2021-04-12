@@ -14,12 +14,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "node_geometry_util.hh"
-
 #include "BLI_math_base_safe.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_attribute_map_range_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},

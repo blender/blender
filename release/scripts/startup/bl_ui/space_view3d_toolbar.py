@@ -812,6 +812,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         col = layout.column()
         do_prop("subdivide")
         do_prop("collapse")
+        do_prop("cleanup")
         do_prop("spacing")
         do_prop("detail_range")
         do_prop("detail_percent")
@@ -870,6 +871,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
+        col.prop(sculpt, "use_dyntopo_cleanup")
         col.prop(sculpt, "use_smooth_shading")
         col.prop(sculpt, "use_flat_vcol_shading")
 

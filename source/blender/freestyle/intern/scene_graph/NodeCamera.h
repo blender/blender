@@ -136,7 +136,7 @@ class NodeOrthographicCamera : public NodeCamera {
     return zFar_;
   }
 
-  NodeOrthographicCamera(const NodeOrthographicCamera &iBrother);
+  NodeOrthographicCamera(const NodeOrthographicCamera &iBrother) = default;
 
  private:
   double left_;

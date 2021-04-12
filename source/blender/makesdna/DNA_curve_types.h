@@ -47,25 +47,6 @@ struct VFont;
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
-typedef struct PathPoint {
-  /** Grr, cant get rid of tilt yet. */
-  float vec[4];
-  float quat[4];
-  float radius, weight;
-} PathPoint;
-
-/* These two Lines with # tell makesdna this struct can be excluded. */
-#
-#
-typedef struct Path {
-  struct PathPoint *data;
-  int len;
-  float totdist;
-} Path;
-
-/* These two Lines with # tell makesdna this struct can be excluded. */
-#
-#
 typedef struct BevPoint {
   float vec[3], tilt, radius, weight, offset;
   /** 2D Only. */

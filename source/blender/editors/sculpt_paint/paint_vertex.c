@@ -2323,7 +2323,7 @@ static void wpaint_do_symmetrical_brush_actions(
   cache->symmetry = symm;
 
   if (me->editflag & ME_EDIT_MIRROR_VERTEX_GROUPS) {
-    /* We don't do any symmetry strokes when mirroing vertex groups. */
+    /* We don't do any symmetry strokes when mirroring vertex groups. */
     copy_v3_v3(cache->true_last_location, cache->true_location);
     cache->is_last_valid = true;
     return;

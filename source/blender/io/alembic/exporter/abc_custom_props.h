@@ -61,7 +61,7 @@ class CustomPropertiesExporter {
 
  public:
   CustomPropertiesExporter(ABCAbstractWriter *owner);
-  virtual ~CustomPropertiesExporter();
+  virtual ~CustomPropertiesExporter() = default;
 
   void write_all(const IDProperty *group);
 

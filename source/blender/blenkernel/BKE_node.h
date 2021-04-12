@@ -1398,6 +1398,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_MESH_PRIMITIVE_GRID 1039
 #define GEO_NODE_ATTRIBUTE_MAP_RANGE 1040
 #define GEO_NODE_ATTRIBUTE_CLAMP 1041
+#define GEO_NODE_BOUNDING_BOX 1042
 
 /** \} */
 

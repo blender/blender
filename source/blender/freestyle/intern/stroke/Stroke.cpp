@@ -383,10 +383,6 @@ StrokeVertex::StrokeVertex(SVertex *iSVertex, const StrokeAttribute &iAttribute)
   _StrokeLength = 0.0f;
 }
 
-StrokeVertex::~StrokeVertex()
-{
-}
-
 StrokeVertex &StrokeVertex::operator=(const StrokeVertex &iBrother)
 {
   ((CurvePoint *)this)->operator=(iBrother);

@@ -812,7 +812,8 @@ bool ED_object_parent_set(ReportList *reports,
               if (md) {
                 ((CurveModifierData *)md)->object = par;
               }
-              if (par->runtime.curve_cache && par->runtime.curve_cache->path == NULL) {
+              if (par->runtime.curve_cache &&
+                  par->runtime.curve_cache->anim_path_accum_length == NULL) {
                 DEG_id_tag_update(&par->id, ID_RECALC_GEOMETRY);
               }
             }

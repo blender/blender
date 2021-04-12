@@ -273,9 +273,11 @@ static void ed_undo_step_post(bContext *C,
   }
 }
 
-/** Undo or redo one step from current active one.
- *  May undo or redo several steps at once only if the target step is a 'skipped' one.
- *  The target step will be the one immediately before or after the active one. */
+/**
+ * Undo or redo one step from current active one.
+ * May undo or redo several steps at once only if the target step is a 'skipped' one.
+ * The target step will be the one immediately before or after the active one.
+ */
 static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportList *reports)
 {
   BLI_assert(ELEM(step, STEP_UNDO, STEP_REDO));
@@ -308,9 +310,11 @@ static int ed_undo_step_direction(bContext *C, enum eUndoStepDir step, ReportLis
   return OPERATOR_FINISHED;
 }
 
-/** Undo the step matching given name.
- *  May undo several steps at once.
- *  The target step will be the one immediately before given named one. */
+/**
+ * Undo the step matching given name.
+ * May undo several steps at once.
+ * The target step will be the one immediately before given named one.
+ */
 static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *reports)
 {
   BLI_assert(undo_name != NULL);
@@ -354,9 +358,11 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
   return OPERATOR_FINISHED;
 }
 
-/** Load the step matching given index in the stack.
- *  May undo or redo several steps at once.
- *  The target step will be the one indicated by the given index. */
+/**
+ * Load the step matching given index in the stack.
+ * May undo or redo several steps at once.
+ * The target step will be the one indicated by the given index.
+ */
 static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *reports)
 {
   BLI_assert(undo_index >= 0);

@@ -245,8 +245,6 @@ void RE_InitState(struct Render *re,
                   int winx,
                   int winy,
                   rcti *disprect);
-void RE_ChangeResolution(struct Render *re, int winx, int winy, rcti *disprect);
-void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
@@ -296,9 +294,6 @@ void RE_RenderFreestyleStrokes(struct Render *re,
                                int render);
 void RE_RenderFreestyleExternal(struct Render *re);
 #endif
-
-/* Free memory and clear runtime data which is only needed during rendering. */
-void RE_CleanAfterRender(struct Render *re);
 
 void RE_SetActiveRenderView(struct Render *re, const char *viewname);
 const char *RE_GetActiveRenderView(struct Render *re);

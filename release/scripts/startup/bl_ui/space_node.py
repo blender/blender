@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 import bpy
-import nodeitems_utils
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
@@ -225,6 +224,8 @@ class NODE_MT_add(bpy.types.Menu):
     bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, context):
+        import nodeitems_utils
+
         layout = self.layout
 
         layout.operator_context = 'INVOKE_DEFAULT'
