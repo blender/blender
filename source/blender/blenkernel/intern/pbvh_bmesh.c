@@ -3275,7 +3275,7 @@ bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
   return modified;
 }
 
-__attribute__((optnone)) static bool cleanup_valence_3_4(PBVH *pbvh,
+static bool cleanup_valence_3_4(PBVH *pbvh,
                                                          const float center[3],
                                                          const float view_normal[3],
                                                          float radius,

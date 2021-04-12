@@ -3818,7 +3818,7 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
   }
 }
 
-__attribute__((optnone)) void CustomData_bmesh_swap_data(CustomData *source,
+void CustomData_bmesh_swap_data(CustomData *source,
                                 CustomData *dest,
                                 void *src_block,
                                 void **dest_block)
@@ -3882,7 +3882,7 @@ __attribute__((optnone)) void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
-__attribute__ ((optnone)) void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
+void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,

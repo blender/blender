@@ -1778,6 +1778,8 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
+      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK & ~(DYNTOPO_INHERIT_ALL | DYNTOPO_COLLAPSE);
+      br->dyntopo.flag |= DYNTOPO_COLLAPSE;
       break;
     case SCULPT_TOOL_THUMB:
       br->size = 75;
@@ -1891,7 +1893,7 @@ void BKE_brush_sculpt_reset(Brush *br)
   }
 
   if (disable_dyntopo) {
-    //disabled flag is never inherited
+    // disabled flag is never inherited
     br->dyntopo.flag |= DYNTOPO_DISABLED;
   }
 
@@ -1951,8 +1953,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
 
     case SCULPT_TOOL_SIMPLIFY:
-      br->dyntopo.inherit = ((1<<17)-1) & ~(DYNTOPO_INHERIT_ALL|DYNTOPO_SUBDIVIDE|DYNTOPO_COLLAPSE);
-      br->dyntopo.flag |= DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE;
+      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+                            ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
+      br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
       br->autosmooth_factor = 0.02;
     case SCULPT_TOOL_VCOL_BOUNDARY:
     case SCULPT_TOOL_PAINT:
@@ -2597,10 +2600,10 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
 
   // detect unconverted file data
   if (!out->inherit && !out->detail_range) {
-    //reload default dyntopo settings
+    // reload default dyntopo settings
     Brush brush2 = *brush;
 
-    //don't copy heap allocd data
+    // don't copy heap allocd data
     brush2.curve = NULL;
     brush2.icon_imbuf = NULL;
     brush2.gpencil_settings = NULL;
@@ -2611,7 +2614,7 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
 
     brush->dyntopo = *out = brush2.dyntopo;
 
-    brush_free_data((ID*)&brush2);
+    brush_free_data((ID *)&brush2);
   }
 
   int inherit = out->inherit;
