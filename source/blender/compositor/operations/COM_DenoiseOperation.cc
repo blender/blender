@@ -101,6 +101,11 @@ void DenoiseOperation::generateDenoise(float *data,
   if (BLI_cpu_support_sse41())
 #  endif
   {
+    /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
+     * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless.
+     */
+    BLI_mutex_lock(&oidn_lock);
+
     oidn::DeviceRef device = oidn::newDevice();
     device.commit();
 
@@ -145,10 +150,6 @@ void DenoiseOperation::generateDenoise(float *data,
     }
 
     filter.commit();
-    /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
-     * OpenImageDenoise is multithreaded internally and should use all available cores nonetheless.
-     */
-    BLI_mutex_lock(&oidn_lock);
     filter.execute();
     BLI_mutex_unlock(&oidn_lock);
 
