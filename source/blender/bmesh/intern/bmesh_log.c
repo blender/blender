@@ -330,7 +330,7 @@ static void vert_mask_set(BMVert *v, const float new_mask, const int cd_vert_mas
 
 /* Update a BMLogVert with data from a BMVert */
 static void bm_log_vert_bmvert_copy(BMLog *log,
-                                    BMLog *entry,
+                                    BMLogEntry *entry,
                                     BMLogVert *lv,
                                     BMVert *v,
                                     const int cd_vert_mask_offset,
@@ -426,7 +426,7 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces, BMLogEntry 
       e_tri[i] = l_iter->e;
     }
 
-    //ensure we have final customdata for face in log
+    // ensure we have final customdata for face in log
 #ifdef CUSTOMDATA
     if (lf->customdata_f) {
       CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
@@ -539,7 +539,7 @@ static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts, BMLogEn
   }
 }
 
-__attribute__ ((optnone)) static void bm_log_face_values_swap(BMLog *log, GHash *faces, BMLogEntry *entry)
+static void bm_log_face_values_swap(BMLog *log, GHash *faces, BMLogEntry *entry)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, faces) {
@@ -1053,7 +1053,7 @@ void BM_log_entry_drop(BMLogEntry *entry)
 /* Undo one BMLogEntry
  *
  * Has no effect if there's nothing left to undo */
-__attribute__((optnone)) static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
+static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;

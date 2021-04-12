@@ -2341,7 +2341,7 @@ typedef struct AreaNormalCenterTLSData {
   int count_co[2];
 } AreaNormalCenterTLSData;
 
-__attribute__((optnone)) static void calc_area_normal_and_center_task_cb(
+static void calc_area_normal_and_center_task_cb(
     void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
@@ -2608,7 +2608,7 @@ void SCULPT_calc_area_normal(
 }
 
 /* Expose 'calc_area_normal' externally. */
-__attribute__((optnone)) bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
+bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   Object *ob,
                                   PBVHNode **nodes,
                                   int totnode,
@@ -3121,7 +3121,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(Object *ob,
 }
 
 /* Calculate primary direction of movement for many brushes. */
-__attribute__ ((optnone)) static void calc_sculpt_normal(
+static void calc_sculpt_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3])
 {
   const Brush *brush = BKE_paint_brush(&sd->paint);
@@ -3687,7 +3687,7 @@ static void do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
 
 /** \} */
 
-__attribute__ ((optnone)) static void do_draw_brush_task_cb_ex(void *__restrict userdata,
+static void do_draw_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
 {
