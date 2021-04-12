@@ -52,6 +52,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
@@ -2912,7 +2913,14 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
 {
-  return user_string_to_number(C, str, unit, unit_type, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
+  char *error = NULL;
+  const bool ok = user_string_to_number(C, str, unit, unit_type, r_value, true, &error);
+  if (error) {
+    ReportList *reports = CTX_wm_reports(C);
+    BKE_reportf(reports, RPT_ERROR, "%s: %s", UI_NUMBER_EVAL_ERROR_PREFIX, error);
+    MEM_freeN(error);
+  }
+  return ok;
 }
 
 static bool ui_number_from_string_units_with_but(bContext *C,
@@ -2929,7 +2937,11 @@ static bool ui_number_from_string(bContext *C, const char *str, double *r_value)
 {
   bool ok;
 #ifdef WITH_PYTHON
-  ok = BPY_run_string_as_number(C, NULL, str, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
+  struct BPy_RunErrInfo err_info = {
+      .reports = CTX_wm_reports(C),
+      .report_prefix = UI_NUMBER_EVAL_ERROR_PREFIX,
+  };
+  ok = BPY_run_string_as_number(C, NULL, str, &err_info, r_value);
 #else
   UNUSED_VARS(C);
   *r_value = atof(str);

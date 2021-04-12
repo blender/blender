@@ -29,6 +29,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_unit.h"
 
@@ -283,10 +284,15 @@ bool user_string_to_number(bContext *C,
                            const char *str,
                            const UnitSettings *unit,
                            int type,
-                           const char *error_prefix,
-                           double *r_value)
+                           double *r_value,
+                           const bool use_single_line_error,
+                           char **r_error)
 {
 #ifdef WITH_PYTHON
+  struct BPy_RunErrInfo err_info = {
+      .use_single_line_error = use_single_line_error,
+      .r_string = r_error,
+  };
   double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
   if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
@@ -294,10 +300,10 @@ bool user_string_to_number(bContext *C,
     BKE_unit_replace_string(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
 
-    return BPY_run_string_as_number(C, NULL, str_unit_convert, error_prefix, r_value);
+    return BPY_run_string_as_number(C, NULL, str_unit_convert, &err_info, r_value);
   }
 
-  int success = BPY_run_string_as_number(C, NULL, str, error_prefix, r_value);
+  int success = BPY_run_string_as_number(C, NULL, str, &err_info, r_value);
   *r_value = BKE_unit_apply_preferred_unit(unit, type, *r_value);
   *r_value /= unit_scale;
   return success;
@@ -577,10 +583,19 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   if (n->str[0]) {
     const float val_prev = n->val[idx];
     Scene *sce = CTX_data_scene(C);
+    char *error = NULL;
 
     double val;
     int success = user_string_to_number(
-        C, n->str, &sce->unit, n->unit_type[idx], IFACE_("Numeric input evaluation"), &val);
+        C, n->str, &sce->unit, n->unit_type[idx], &val, false, &error);
+
+    if (error) {
+      ReportList *reports = CTX_wm_reports(C);
+      printf("%s\n", error);
+      BKE_report(reports, RPT_ERROR, error);
+      BKE_report(reports, RPT_ERROR, IFACE_("Numeric input evaluation"));
+      MEM_freeN(error);
+    }
 
     if (success) {
       n->val[idx] = (float)val;
