@@ -408,6 +408,7 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces, BMLogEntry 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, faces) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
+    BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
     uint id = POINTER_AS_UINT(key);
     BMFace *f = bm_log_face_from_id(log, id);
 
@@ -425,8 +426,25 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces, BMLogEntry 
       e_tri[i] = l_iter->e;
     }
 
-    /* Remove any unused edges */
+    //ensure we have final customdata for face in log
+#ifdef CUSTOMDATA
+    if (lf->customdata_f) {
+      CustomData_bmesh_copy_data(&bm->pdata, &entry->pdata, f->head.data, &lf->customdata_f);
+    }
+
+    BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
+
+    for (int i = 0; i < 3; i++) {
+      if (lf->customdata[i]) {
+        CustomData_bmesh_copy_data(
+            &bm->ldata, &entry->ldata, ls[i]->head.data, &lf->customdata[i]);
+      }
+    }
+#endif
+
     BM_face_kill(bm, f);
+
+    /* Remove any unused edges */
     for (i = 0; i < 3; i++) {
       if (BM_edge_is_wire(e_tri[i])) {
         BM_edge_kill(bm, e_tri[i]);
