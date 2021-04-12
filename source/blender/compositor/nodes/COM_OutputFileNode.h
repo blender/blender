@@ -19,6 +19,9 @@
 #pragma once
 
 #include "COM_Node.h"
+
+#include "COM_OutputFileMultiViewOperation.h"
+
 #include "DNA_node_types.h"
 
 namespace blender::compositor {
@@ -32,6 +35,11 @@ class OutputFileNode : public Node {
   OutputFileNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter,
                            const CompositorContext &context) const override;
+
+ private:
+  void add_input_sockets(OutputOpenExrMultiLayerOperation &operation) const;
+  void map_input_sockets(NodeConverter &converter,
+                         OutputOpenExrMultiLayerOperation &operation) const;
 };
 
 }  // namespace blender::compositor
