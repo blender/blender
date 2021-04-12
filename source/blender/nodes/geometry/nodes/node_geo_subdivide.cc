@@ -49,7 +49,7 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
 
 #ifndef WITH_OPENSUBDIV
   params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was built without OpenSubdiv"));
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
   params.set_output("Geometry", std::move(geometry_set));
   return;
 #endif
@@ -98,6 +98,7 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set));
 }
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_subdivide()
