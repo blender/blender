@@ -83,7 +83,6 @@ static void draw_render_info(
     const bContext *C, Scene *scene, Image *ima, ARegion *region, float zoomx, float zoomy)
 {
   Render *re = RE_GetSceneRender(scene);
-  RenderData *rd = RE_engine_get_render_data(re);
   Scene *stats_scene = ED_render_job_get_scene(C);
   if (stats_scene == NULL) {
     stats_scene = CTX_data_scene(C);
@@ -112,6 +111,7 @@ static void draw_render_info(
       GPU_matrix_translate_2f(x, y);
       GPU_matrix_scale_2f(zoomx, zoomy);
 
+      RenderData *rd = RE_engine_get_render_data(re);
       if (rd->mode & R_BORDER) {
         /* TODO: round or floor instead of casting to int */
         GPU_matrix_translate_2f((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
