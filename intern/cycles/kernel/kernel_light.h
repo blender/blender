@@ -135,6 +135,8 @@ ccl_device_inline bool lamp_light_sample(
         ls->pdf = invarea;
       }
       else {
+        inplane = ls->P;
+
         float3 sample_axisu = axisu;
         float3 sample_axisv = axisv;
 
@@ -145,7 +147,6 @@ ccl_device_inline bool lamp_light_sample(
           }
         }
 
-        inplane = ls->P;
         ls->pdf = rect_light_sample(P, &ls->P, sample_axisu, sample_axisv, randu, randv, true);
         inplane = ls->P - inplane;
       }
