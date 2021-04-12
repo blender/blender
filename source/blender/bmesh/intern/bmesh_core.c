@@ -1805,7 +1805,8 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          BMVert *v_kill,
                                          const bool do_del,
                                          const bool check_edge_exists,
-                                         const bool kill_degenerate_faces)
+                                         const bool kill_degenerate_faces,
+                                         const bool kill_duplicate_faces)
 {
   BMEdge *e_old;
   BMVert *v_old, *v_target;
@@ -1839,6 +1840,9 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     BMEdge *e_splice;
     BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
     BMLoop *l_kill_next;
+
+    /* Candidates for being duplicate. */
+    BLI_SMALLSTACK_DECLARE(faces_duplicate_candidate, BMFace *);
 
 #ifndef NDEBUG
     /* For verification later, count valence of 'v_old' and 'v_target' */
@@ -1877,9 +1881,14 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
 
         /* fix len attribute of face */
         l_kill->f->len--;
-        if (kill_degenerate_faces) {
-          if (l_kill->f->len < 3) {
-            BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
+        if (kill_degenerate_faces && (l_kill->f->len < 3)) {
+          BLI_SMALLSTACK_PUSH(faces_degenerate, l_kill->f);
+        }
+        else {
+          /* The duplicate test isn't reliable at this point as `e_splice` might be set,
+           * so the duplicate test needs to run once the edge has been spliced. */
+          if (kill_duplicate_faces) {
+            BLI_SMALLSTACK_PUSH(faces_duplicate_candidate, l_kill->f);
           }
         }
         l_kill_next = l_kill->radial_next;
@@ -1937,6 +1946,15 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
       BMFace *f_kill;
       while ((f_kill = BLI_SMALLSTACK_POP(faces_degenerate))) {
         BM_face_kill(bm, f_kill);
+      }
+    }
+
+    if (kill_duplicate_faces) {
+      BMFace *f_kill;
+      while ((f_kill = BLI_SMALLSTACK_POP(faces_duplicate_candidate))) {
+        if (BM_face_find_double(f_kill)) {
+          BM_face_kill(bm, f_kill);
+        }
       }
     }
 

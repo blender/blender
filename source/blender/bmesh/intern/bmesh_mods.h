@@ -51,12 +51,14 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm,
                                float fac,
                                const bool do_del,
                                const bool join_faces,
-                               const bool kill_degenerate_faces);
+                               const bool kill_degenerate_faces,
+                               const bool kill_duplicate_faces);
 BMEdge *BM_vert_collapse_edge(BMesh *bm,
                               BMEdge *e_kill,
                               BMVert *v_kill,
                               const bool do_del,
-                              const bool kill_degenerate_faces);
+                              const bool kill_degenerate_faces,
+                              const bool kill_duplicate_faces);
 
 BMVert *BM_edge_collapse(BMesh *bm,
                          BMEdge *e_kill,
