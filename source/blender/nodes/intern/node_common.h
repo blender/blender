@@ -32,7 +32,9 @@ extern "C" {
 struct bNodeTree;
 
 void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-bool node_group_poll_instance(struct bNode *node, struct bNodeTree *nodetree);
+bool node_group_poll_instance(struct bNode *node,
+                              struct bNodeTree *nodetree,
+                              const char **r_disabled_hint);
 
 void ntree_update_reroute_nodes(struct bNodeTree *ntree);
 

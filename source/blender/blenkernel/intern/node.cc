@@ -2007,7 +2007,8 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
     /* do an extra poll here, because some int types are used
      * for multiple node types, this helps find the desired type
      */
-    if (ntype->type == type && (!ntype->poll || ntype->poll(ntype, ntree))) {
+    const char *disabled_hint;
+    if (ntype->type == type && (!ntype->poll || ntype->poll(ntype, ntree, &disabled_hint))) {
       idname = ntype->idname;
       break;
     }
@@ -4407,15 +4408,17 @@ static void node_type_base_defaults(bNodeType *ntype)
 }
 
 /* allow this node for any tree type */
-static bool node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(ntree))
+static bool node_poll_default(bNodeType *UNUSED(ntype),
+                              bNodeTree *UNUSED(ntree),
+                              const char **UNUSED(disabled_hint))
 {
   return true;
 }
 
 /* use the basic poll function */
-static bool node_poll_instance_default(bNode *node, bNodeTree *ntree)
+static bool node_poll_instance_default(bNode *node, bNodeTree *ntree, const char **disabled_hint)
 {
-  return node->typeinfo->poll(node->typeinfo, ntree);
+  return node->typeinfo->poll(node->typeinfo, ntree, disabled_hint);
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
@@ -4634,7 +4637,9 @@ void node_type_internal_links(bNodeType *ntype,
 
 /* callbacks for undefined types */
 
-static bool node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))
+static bool node_undefined_poll(bNodeType *UNUSED(ntype),
+                                bNodeTree *UNUSED(nodetree),
+                                const char **UNUSED(r_disabled_hint))
 {
   /* this type can not be added deliberately, it's just a placeholder */
   return false;

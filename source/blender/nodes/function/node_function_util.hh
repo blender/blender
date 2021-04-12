@@ -38,4 +38,3 @@
 
 void fn_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
-bool fn_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);

@@ -1085,13 +1085,25 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
     return NULL;
   }
 
-  if (ntype->poll && !ntype->poll(ntype, ntree)) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Cannot add node of type %s to node tree '%s'",
-                type,
-                ntree->id.name + 2);
-    return NULL;
+  const char *disabled_hint = NULL;
+  if (ntype->poll && !ntype->poll(ntype, ntree, &disabled_hint)) {
+    if (disabled_hint) {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Cannot add node of type %s to node tree '%s'\n  %s",
+                  type,
+                  ntree->id.name + 2,
+                  disabled_hint);
+      return NULL;
+    }
+    else {
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "Cannot add node of type %s to node tree '%s'",
+                  type,
+                  ntree->id.name + 2);
+      return NULL;
+    }
   }
 
   node = nodeAddNode(C, ntree, type);
@@ -1531,7 +1543,7 @@ char *rna_Node_ImageUser_path(PointerRNA *ptr)
   return NULL;
 }
 
-static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
+static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree, const char **UNUSED(r_disabled_hint))
 {
   extern FunctionRNA rna_Node_poll_func;
 
@@ -1556,7 +1568,9 @@ static bool rna_Node_poll(bNodeType *ntype, bNodeTree *ntree)
   return visible;
 }
 
-static bool rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
+static bool rna_Node_poll_instance(bNode *node,
+                                   bNodeTree *ntree,
+                                   const char **UNUSED(disabled_info))
 {
   extern FunctionRNA rna_Node_poll_instance_func;
 
@@ -1581,10 +1595,12 @@ static bool rna_Node_poll_instance(bNode *node, bNodeTree *ntree)
   return visible;
 }
 
-static bool rna_Node_poll_instance_default(bNode *node, bNodeTree *ntree)
+static bool rna_Node_poll_instance_default(bNode *node,
+                                           bNodeTree *ntree,
+                                           const char **disabled_info)
 {
   /* use the basic poll function */
-  return rna_Node_poll(node->typeinfo, ntree);
+  return rna_Node_poll(node->typeinfo, ntree, disabled_info);
 }
 
 static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
@@ -3214,18 +3230,20 @@ static PointerRNA rna_NodeInternal_output_template(StructRNA *srna, int index)
 static bool rna_NodeInternal_poll(StructRNA *srna, bNodeTree *ntree)
 {
   bNodeType *ntype = RNA_struct_blender_type_get(srna);
-  return ntype && (!ntype->poll || ntype->poll(ntype, ntree));
+  const char *disabled_hint;
+  return ntype && (!ntype->poll || ntype->poll(ntype, ntree, &disabled_hint));
 }
 
 static bool rna_NodeInternal_poll_instance(bNode *node, bNodeTree *ntree)
 {
   bNodeType *ntype = node->typeinfo;
+  const char *disabled_hint;
   if (ntype->poll_instance) {
-    return ntype->poll_instance(node, ntree);
+    return ntype->poll_instance(node, ntree, &disabled_hint);
   }
   else {
     /* fall back to basic poll function */
-    return !ntype->poll || ntype->poll(ntype, ntree);
+    return !ntype->poll || ntype->poll(ntype, ntree, &disabled_hint);
   }
 }
 
@@ -3408,7 +3426,8 @@ static void rna_NodeGroup_node_tree_set(PointerRNA *ptr,
   bNode *node = ptr->data;
   bNodeTree *ngroup = value.data;
 
-  if (nodeGroupPoll(ntree, ngroup)) {
+  const char *disabled_hint = NULL;
+  if (nodeGroupPoll(ntree, ngroup, &disabled_hint)) {
     if (node->id) {
       id_us_min(node->id);
     }
@@ -3430,7 +3449,8 @@ static bool rna_NodeGroup_node_tree_poll(PointerRNA *ptr, const PointerRNA value
     return false;
   }
 
-  return nodeGroupPoll(ntree, ngroup);
+  const char *disabled_hint = NULL;
+  return nodeGroupPoll(ntree, ngroup, &disabled_hint);
 }
 
 static StructRNA *rna_NodeGroup_interface_typef(PointerRNA *ptr)

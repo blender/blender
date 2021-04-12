@@ -56,9 +56,15 @@ void update_attribute_input_socket_availabilities(bNode &node,
 
 }  // namespace blender::nodes
 
-bool geo_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+bool geo_node_poll_default(bNodeType *UNUSED(ntype),
+                           bNodeTree *ntree,
+                           const char **r_disabled_hint)
 {
-  return STREQ(ntree->idname, "GeometryNodeTree");
+  if (!STREQ(ntree->idname, "GeometryNodeTree")) {
+    *r_disabled_hint = "Not a geometry node tree";
+    return false;
+  }
+  return true;
 }
 
 void geo_node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
