@@ -60,9 +60,7 @@ Topology rake:
 #include "bmesh.h"
 #include "pbvh_intern.h"
 
-//#define DYNTOPO_TIME_LIMIT 0.015
-#define DYNTOPO_RUN_INTERVAL 0.02
-#define DYNTOPO_MAX_ITER 1024
+#define DYNTOPO_MAX_ITER 8192
 
 #define DYNTOPO_USE_HEAP
 
@@ -638,7 +636,8 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
                                       BMVert *v_tri[3],
                                       BMEdge *e_tri[3],
                                       const BMFace *f_example,
-                                      bool ensure_verts)
+                                      bool ensure_verts,
+                                      bool log_face)
 {
   PBVHNode *node = &pbvh->nodes[node_index];
 
@@ -664,7 +663,10 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
   node->flag &= ~PBVH_FullyHidden;
 
   /* Log the new face */
-  BM_log_face_added(pbvh->bm_log, f);
+  if (log_face) {
+    BM_log_face_added(pbvh->bm_log, f);
+  }
+
   int cd_vert_node = pbvh->cd_vert_node_offset;
 
   if (ensure_verts) {
@@ -673,10 +675,13 @@ static BMFace *pbvh_bmesh_face_create(PBVH *pbvh,
       if (BM_ELEM_CD_GET_INT(l->v, cd_vert_node) == DYNTOPO_NODE_NONE) {
         BLI_table_gset_add(node->bm_unique_verts, l->v);
         BM_ELEM_CD_SET_INT(l->v, cd_vert_node, node_index);
-      } else {
+
+        node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB;
+      }
+      else {
         BLI_table_gset_add(node->bm_other_verts, l->v);
       }
-       
+
       l = l->next;
     } while (l != f->l_first);
   }
@@ -2064,7 +2069,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     v_tri[1] = v_new;
     v_tri[2] = v_opp;
     bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false);
+    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false, true);
     long_edge_queue_face_add(eq_ctx, f_new);
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
@@ -2106,7 +2111,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     e_tri[2] = e_tri[1]; /* switched */
     e_tri[1] = BM_edge_create(pbvh->bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
 
-    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false);
+    f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj, false, true);
     long_edge_queue_face_add(eq_ctx, f_new);
 
     pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
@@ -2419,7 +2424,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       PBVHNode *n = pbvh_bmesh_node_from_face(pbvh, f);
       int ni = n - pbvh->nodes;
       bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
-      BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f, false);
+      BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f, false, true);
 
       BMLoop *l2 = f2->l_first;
 
@@ -3404,7 +3409,7 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
 
       BMFace *f1 = NULL;
       if (vs[0] != vs[1] && vs[1] != vs[2] && vs[0] != vs[2]) {
-        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, true);
+        f1 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, l->f, true, false);
       }
 
       if (val == 4 && vs[0] != vs[2] && vs[2] != vs[3] && vs[0] != vs[3]) {
@@ -3412,19 +3417,23 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
         vs[1] = ls[2]->v;
         vs[2] = ls[3]->v;
 
-        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, true);
+        BMFace *f2 = pbvh_bmesh_face_create(pbvh, n, vs, NULL, v->e->l->f, true, false);
         SWAP(void *, f2->l_first->prev->head.data, ls[3]->head.data);
 
         CustomData_bmesh_copy_data(
             &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &f2->l_first->head.data);
         CustomData_bmesh_copy_data(
             &pbvh->bm->ldata, &pbvh->bm->ldata, ls[2]->head.data, &f2->l_first->next->head.data);
+
+        BM_log_face_added(pbvh->bm_log, f2);
       }
 
       if (f1) {
         SWAP(void *, f1->l_first->head.data, ls[0]->head.data);
         SWAP(void *, f1->l_first->next->head.data, ls[1]->head.data);
         SWAP(void *, f1->l_first->prev->head.data, ls[2]->head.data);
+
+        BM_log_face_added(pbvh->bm_log, f1);
       }
 
       BM_vert_kill(pbvh->bm, v);
@@ -3554,7 +3563,11 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
         /* Recursively split nodes that have gotten too many
          * elements */
         if (updatePBVH) {
-          pbvh_bmesh_node_limit_ensure(pbvh, i);
+          if (!pbvh_bmesh_node_limit_ensure(pbvh, i)) {
+            BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, pbvh->nodes + i);
+          }
+        } else {
+          BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, pbvh->nodes + i);
         }
       }
     }
@@ -4030,7 +4043,9 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh)
 
       /* Recursively split nodes that have gotten too many
        * elements */
-      pbvh_bmesh_node_limit_ensure(pbvh, i);
+      if (!pbvh_bmesh_node_limit_ensure(pbvh, i)) {
+        BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, n);
+      }
     }
   }
 

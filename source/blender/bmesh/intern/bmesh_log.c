@@ -539,7 +539,7 @@ static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts, BMLogEn
   }
 }
 
-static void bm_log_face_values_swap(BMLog *log, GHash *faces, BMLogEntry *entry)
+__attribute__ ((optnone)) static void bm_log_face_values_swap(BMLog *log, GHash *faces, BMLogEntry *entry)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, faces) {
@@ -1053,7 +1053,7 @@ void BM_log_entry_drop(BMLogEntry *entry)
 /* Undo one BMLogEntry
  *
  * Has no effect if there's nothing left to undo */
-static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
+__attribute__((optnone)) static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
@@ -1206,8 +1206,7 @@ void BM_log_vert_added(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
 
 /* Log a face before it is modified
  *
- * This is intended to handle only header flags and we always
- * assume face has been added before
+ * We always assume face has been added before
  */
 void BM_log_face_modified(BMLog *log, BMFace *f)
 {
