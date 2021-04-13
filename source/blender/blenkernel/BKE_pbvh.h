@@ -33,11 +33,13 @@
 extern "C" {
 #endif
 
-typedef struct {
-  int64_t i;
+typedef struct SculptVertRef {
+  intptr_t i;
 } SculptVertRef;
 
-typedef SculptVertRef SculptFaceRef;
+typedef struct SculptFaceRef {
+  intptr_t i;
+} SculptFaceRef;
 
 BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
 {
@@ -50,6 +52,23 @@ BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
   SculptFaceRef ret = {i};
   return ret;
 }
+
+typedef struct PBVHTri {
+  int v[3];  // references into PBVHTriBuf->verts
+
+  float no[3];
+  SculptFaceRef f;
+} PBVHTri;
+
+typedef struct PBVHTriBuf {
+  PBVHTri *tris;
+  SculptVertRef *verts;
+  int tottri, totvert;
+
+  //private field
+  intptr_t *loops;
+  int totloop;
+} PBVHTriBuf;
 
 struct BMLog;
 struct BMesh;
@@ -175,7 +194,8 @@ typedef enum {
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
   PBVH_Delete = 1 << 15,
-  PBVH_UpdateCurvatureDir = 1 << 16
+  PBVH_UpdateCurvatureDir = 1 << 16,
+  PBVH_UpdateTris = 1 << 17
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -234,9 +254,16 @@ void BKE_pbvh_free(PBVH *pbvh);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(
-    PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color);
+    PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color, bool log_undo);
 void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_update_origco_bmesh(PBVH *pbvh, PBVHNode *node);
+
+/**
+checks if original data needs to be updated for v, and if so updates it.  Stroke_id
+is provided by the sculpt code and is used to detect updates.  The reason we do it
+inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
+*/
+bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, struct BMVert *v, int stroke_id);
 
 /* Hierarchical Search in the BVH, two methods:
  * - for each hit calling a callback
@@ -261,7 +288,8 @@ void BKE_pbvh_raycast(PBVH *pbvh,
                       void *data,
                       const float ray_start[3],
                       const float ray_normal[3],
-                      bool original);
+                      bool original,
+                      int stroke_id);
 
 bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            PBVHNode *node,
@@ -273,9 +301,11 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            float *depth,
                            SculptVertRef *active_vertex_index,
                            SculptFaceRef *active_face_grid_index,
-                           float *face_normal);
+                           float *face_normal,
+                           int stroke_id);
 
-bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
+bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
+                                        PBVHNode *node,
                                         const float ray_start[3],
                                         struct IsectRayPrecalc *isect_precalc,
                                         float *depth,
@@ -300,7 +330,8 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
                                        const float ray_start[3],
                                        const float ray_normal[3],
                                        float *depth,
-                                       float *dist_sq);
+                                       float *dist_sq,
+                                       int stroke_id);
 
 /* Drawing */
 
@@ -355,7 +386,7 @@ void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_
 typedef enum {
   PBVH_Subdivide = 1,
   PBVH_Collapse = 2,
-  PBVH_Cleanup = 4, //dissolve verts surrounded by either 3 or 4 triangles then triangulate
+  PBVH_Cleanup = 4,  // dissolve verts surrounded by either 3 or 4 triangles then triangulate
 } PBVHTopologyUpdateMode;
 bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     PBVHTopologyUpdateMode mode,
@@ -422,7 +453,8 @@ bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
 struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
-void BKE_pbvh_bmesh_node_save_ortri(struct BMesh *bm, PBVHNode *node);
+
+// now generated PBVHTris
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
 /* Update Bounding Box/Redraw and clear flags */
@@ -622,10 +654,6 @@ void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
-void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
-                                    int (**r_orco_tris)[3],
-                                    int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3]);
 
 bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
 
@@ -660,6 +688,10 @@ void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state);
 bool BKE_pbvh_curvature_update_get(PBVHNode *node);
 
 int BKE_pbvh_get_totnodes(PBVH *pbvh);
+
+void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
+PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
+void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 
 #ifdef __cplusplus
 }

@@ -250,7 +250,7 @@ void pbvh_grow_nodes(PBVH *pbvh, int totnode)
 
   pbvh->totnode = totnode;
 
-  for (int i=0; i<pbvh->totnode; i++) {
+  for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = pbvh->nodes + i;
 
     if (!node->id) {
@@ -1866,19 +1866,23 @@ void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
 }
 
-void BKE_pbvh_node_mark_curvature_update(PBVHNode *node) {
+void BKE_pbvh_node_mark_curvature_update(PBVHNode *node)
+{
   node->flag |= PBVH_UpdateCurvatureDir;
 }
 
-void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state) {
+void BKE_pbvh_curvature_update_set(PBVHNode *node, bool state)
+{
   if (state) {
     node->flag |= PBVH_UpdateCurvatureDir;
-  } else {
+  }
+  else {
     node->flag &= ~PBVH_UpdateCurvatureDir;
   }
 }
 
-bool BKE_pbvh_curvature_update_get(PBVHNode *node) {
+bool BKE_pbvh_curvature_update_get(PBVHNode *node)
+{
   return node->flag & PBVH_UpdateCurvatureDir;
 }
 
@@ -2073,16 +2077,6 @@ void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
   }
 }
 
-void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
-                                    int (**r_orco_tris)[3],
-                                    int *r_orco_tris_num,
-                                    float (**r_orco_coords)[3])
-{
-  *r_orco_tris = node->bm_ortri;
-  *r_orco_tris_num = node->bm_tot_ortri;
-  *r_orco_coords = node->bm_orco;
-}
-
 /**
  * \note doing a full search on all vertices here seems expensive,
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
@@ -2111,6 +2105,7 @@ bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node)
 typedef struct {
   struct IsectRayAABB_Precalc ray;
   bool original;
+  int stroke_id;
 } RaycastData;
 
 static bool ray_aabb_intersect(PBVHNode *node, void *data_v)
@@ -2137,12 +2132,14 @@ void BKE_pbvh_raycast(PBVH *pbvh,
                       void *data,
                       const float ray_start[3],
                       const float ray_normal[3],
-                      bool original)
+                      bool original,
+                      int stroke_id)
 {
   RaycastData rcd;
 
   isect_ray_aabb_v3_precalc(&rcd.ray, ray_start, ray_normal);
   rcd.original = original;
+  rcd.stroke_id = stroke_id;
 
   BKE_pbvh_search_callback_occluded(pbvh, ray_aabb_intersect, &rcd, cb, data);
 }
@@ -2431,7 +2428,8 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            float *depth,
                            SculptVertRef *active_vertex_index,
                            SculptFaceRef *active_face_grid_index,
-                           float *face_normal)
+                           float *face_normal,
+                           int stroke_id)
 {
   bool hit = false;
 
@@ -2466,7 +2464,9 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
       break;
     case PBVH_BMESH:
       // BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT);
-      hit = pbvh_bmesh_node_raycast(node,
+
+      hit = pbvh_bmesh_node_raycast(pbvh,
+                                    node,
                                     ray_start,
                                     ray_normal,
                                     isect_precalc,
@@ -2474,7 +2474,8 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                     use_origco,
                                     active_vertex_index,
                                     active_face_grid_index,
-                                    face_normal);
+                                    face_normal,
+                                    stroke_id);
       break;
   }
 
@@ -2689,7 +2690,8 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
                                        const float ray_start[3],
                                        const float ray_normal[3],
                                        float *depth,
-                                       float *dist_sq)
+                                       float *dist_sq,
+                                       int stroke_id)
 {
   bool hit = false;
 
@@ -2708,7 +2710,7 @@ bool BKE_pbvh_node_find_nearest_to_ray(PBVH *pbvh,
       break;
     case PBVH_BMESH:
       hit = pbvh_bmesh_node_nearest_to_ray(
-          node, ray_start, ray_normal, depth, dist_sq, use_origco);
+          pbvh, node, ray_start, ray_normal, depth, dist_sq, use_origco, stroke_id);
       break;
   }
 
@@ -3240,7 +3242,8 @@ int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node)
   return (int)(node - pbvh->nodes);
 }
 
-int BKE_pbvh_get_totnodes(PBVH *pbvh) {
+int BKE_pbvh_get_totnodes(PBVH *pbvh)
+{
   return pbvh->totnode;
 }
 

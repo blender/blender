@@ -106,9 +106,8 @@ struct PBVHNode {
   TableGSet *bm_faces;
   TableGSet *bm_unique_verts;
   TableGSet *bm_other_verts;
-  float (*bm_orco)[3];
-  int (*bm_ortri)[3];
-  int bm_tot_ortri;
+
+  PBVHTriBuf *tribuf;
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
@@ -235,20 +234,25 @@ bool ray_face_nearest_tri(const float ray_start[3],
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
-bool pbvh_bmesh_node_raycast(PBVHNode *node,
+bool pbvh_bmesh_node_raycast(PBVH *pbvh,
+                             PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
                              struct IsectRayPrecalc *isect_precalc,
                              float *dist,
                              bool use_original,
-                             SculptVertRef *r_active_vertex_index,
-                             SculptFaceRef *r_active_face_index,
-                             float *r_face_normal);
-bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
+                             struct SculptVertRef *r_active_vertex_index,
+                             struct SculptFaceRef *r_active_face_index,
+                             float *r_face_normal,
+                             int stroke_id);
+
+bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
+                                    PBVHNode *node,
                                     const float ray_start[3],
                                     const float ray_normal[3],
                                     float *depth,
                                     float *dist_sq,
-                                    bool use_original);
+                                    bool use_original,
+                                    int stroke_id);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);

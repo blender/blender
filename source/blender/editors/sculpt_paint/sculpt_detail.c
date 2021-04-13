@@ -64,6 +64,7 @@ typedef struct {
   float edge_length;
 
   struct IsectRayPrecalc isect_precalc;
+  SculptSession *ss;
 } SculptDetailRaycastData;
 
 static bool sculpt_and_constant_or_manual_detail_poll(bContext *C)
@@ -193,8 +194,13 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 {
   if (BKE_pbvh_node_get_tmin(node) < *tmin) {
     SculptDetailRaycastData *srd = data_v;
-    if (BKE_pbvh_bmesh_node_raycast_detail(
-            node, srd->ray_start, &srd->isect_precalc, &srd->depth, &srd->edge_length)) {
+
+    if (BKE_pbvh_bmesh_node_raycast_detail(srd->ss->pbvh,
+                                           node,
+                                           srd->ray_start,
+                                           &srd->isect_precalc,
+                                           &srd->depth,
+                                           &srd->edge_length)) {
       srd->hit = true;
       *tmin = srd->depth;
     }
@@ -215,12 +221,14 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, ARegion *region,
 
   SculptDetailRaycastData srd;
   srd.hit = 0;
+  srd.ss = ob->sculpt;
+
   srd.ray_start = ray_start;
   srd.depth = depth;
   srd.edge_length = 0.0f;
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false);
+  BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd, ray_start, ray_normal, false, srd.ss->stroke_id);
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */

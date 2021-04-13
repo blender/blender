@@ -131,6 +131,17 @@ int SCULPT_vertex_count_get(SculptSession *ss)
   return 0;
 }
 
+const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
+{
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+    BMVert *v = (BMVert *)vertex.i;
+    return BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v)->origco;
+  }
+
+  // XXX implement me
+  return SCULPT_vertex_co_get(ss, vertex);
+}
+
 const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1851,16 +1862,17 @@ static void sculpt_project_v3(const SculptProjectVector *spvc, const float vec[3
  * Same goes for alt-key smoothing. */
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
-  return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
+  return (
+      (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
-          (!ss->cache || (!ss->cache->alt_smooth)) &&
+      (!ss->cache || (!ss->cache->alt_smooth)) &&
 
-          /* Requires mesh restore, which doesn't work with
-           * dynamic-topology. */
-          !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-          (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP)) &&
-          !(brush->cached_dyntopo.flag & DYNTOPO_DISABLED) &&
-          SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
+      /* Requires mesh restore, which doesn't work with
+       * dynamic-topology. */
+      !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
+      (brush->cached_dyntopo.flag & (DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP)) &&
+      !(brush->cached_dyntopo.flag & DYNTOPO_DISABLED) &&
+      SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
 /*** paint mesh ***/
@@ -2341,8 +2353,7 @@ typedef struct AreaNormalCenterTLSData {
   int count_co[2];
 } AreaNormalCenterTLSData;
 
-static void calc_area_normal_and_center_task_cb(
-    void *__restrict userdata,
+static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {
@@ -2404,13 +2415,18 @@ static void calc_area_normal_and_center_task_cb(
     int(*orco_tris)[3];
     int orco_tris_num;
 
-    BKE_pbvh_node_get_bm_orco_data(data->nodes[n], &orco_tris, &orco_tris_num, &orco_coords);
+    PBVHTriBuf *tribuf = BKE_pbvh_bmesh_get_tris(ss->pbvh, data->nodes[n]);
 
-    for (int i = 0; i < orco_tris_num; i++) {
-      const float *co_tri[3] = {
-          orco_coords[orco_tris[i][0]],
-          orco_coords[orco_tris[i][1]],
-          orco_coords[orco_tris[i][2]],
+    for (int i = 0; i < tribuf->tottri; i++) {
+      PBVHTri *tri = tribuf->tris + i;
+      SculptVertRef v1 = tribuf->verts[tri->v[0]];
+      SculptVertRef v2 = tribuf->verts[tri->v[1]];
+      SculptVertRef v3 = tribuf->verts[tri->v[2]];
+
+      const float(*co_tri[3]) = {
+          SCULPT_vertex_origco_get(ss, v1),
+          SCULPT_vertex_origco_get(ss, v2),
+          SCULPT_vertex_origco_get(ss, v3),
       };
       float co[3];
 
@@ -5270,7 +5286,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
     cd_layer_disp = SCULPT_dyntopo_get_templayer(ss, CD_PROP_FLOAT, SCULPT_LAYER_DISP);
 
-    //should never happen
+    // should never happen
     if (cd_pers_co < 0 || cd_pers_no < 0 || cd_pers_disp < 0 || cd_layer_disp < 0) {
       printf("error!! $d $d $d $d\n", cd_pers_co, cd_pers_no, cd_pers_disp, cd_layer_disp);
       return;
@@ -5285,7 +5301,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   SculptThreadedTaskData data = {
       .sd = sd,
-      .ob = ob, 
+      .ob = ob,
       .brush = brush,
       .nodes = nodes,
       .cd_pers_co = cd_pers_co,
@@ -6532,7 +6548,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
         BKE_pbvh_node_mark_update(nodes[i]);
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < totnode; i++) {
         SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
         BKE_pbvh_node_mark_update(nodes[i]);
@@ -7947,7 +7964,8 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
                             &srd->depth,
                             &srd->active_vertex_index,
                             &srd->active_face_grid_index,
-                            srd->face_normal)) {
+                            srd->face_normal,
+                            srd->ss->stroke_id)) {
     srd->hit = true;
     *tmin = srd->depth;
   }
@@ -7981,7 +7999,8 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
                                         srd->ray_start,
                                         srd->ray_normal,
                                         &srd->depth,
-                                        &srd->dist_sq_to_ray)) {
+                                        &srd->dist_sq_to_ray,
+                                        srd->ss->stroke_id)) {
     srd->hit = true;
     *tmin = srd->dist_sq_to_ray;
   }
@@ -8071,7 +8090,8 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
       .face_normal = face_normal,
   };
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
-  BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+  BKE_pbvh_raycast(
+      ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original, srd.ss->stroke_id);
 
   /* Cursor is not over the mesh, return default values. */
   if (!srd.hit) {
@@ -8198,7 +8218,8 @@ bool SCULPT_stroke_get_location(bContext *C, float out[3], const float mouse[2])
     srd.face_normal = face_normal;
     isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
-    BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original);
+    BKE_pbvh_raycast(
+        ss->pbvh, sculpt_raycast_cb, &srd, ray_start, ray_normal, srd.original, srd.ss->stroke_id);
     if (srd.hit) {
       hit = true;
       copy_v3_v3(out, ray_normal);

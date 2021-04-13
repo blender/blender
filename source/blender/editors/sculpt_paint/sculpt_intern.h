@@ -179,6 +179,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss);
 const float *SCULPT_active_vertex_co_get(SculptSession *ss);
+const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
 void SCULPT_active_vertex_normal_get(SculptSession *ss, float normal[3]);
 
 /* Returns PBVH deformed vertices array if shape keys or deform modifiers are used, otherwise
