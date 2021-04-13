@@ -41,6 +41,7 @@ namespace blender::nodes {
 static void geo_node_subdivide_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  geometry_set = geometry_set_realize_instances(geometry_set);
 
   if (!geometry_set.has_mesh()) {
     params.set_output("Geometry", geometry_set);
