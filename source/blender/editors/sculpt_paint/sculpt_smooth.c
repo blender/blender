@@ -463,10 +463,7 @@ void SCULPT_smooth(Sculpt *sd,
     return;
   }
 
-  if (type != PBVH_BMESH) {
-    SCULPT_vertex_random_access_ensure(ss);
-  }
-
+  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
 #ifdef PROXY_ADVANCED
@@ -827,10 +824,7 @@ void SCULPT_smooth_vcol_boundary(
     return;
   }
 
-  if (type != PBVH_BMESH) {
-    SCULPT_vertex_random_access_ensure(ss);
-  }
-
+  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
 #ifdef PROXY_ADVANCED
