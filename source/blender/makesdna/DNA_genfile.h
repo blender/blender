@@ -63,6 +63,7 @@ typedef enum eSDNA_Type {
 #define SDNA_TYPE_VOID 9
   SDNA_TYPE_INT64 = 10,
   SDNA_TYPE_UINT64 = 11,
+  SDNA_TYPE_INT8 = 12,
 } eSDNA_Type;
 
 /**

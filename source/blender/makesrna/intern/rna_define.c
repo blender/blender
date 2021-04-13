@@ -2410,6 +2410,10 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
       iprop->softmin = -10000; /* rather arbitrary .. */
       iprop->softmax = 10000;
     }
+    else if (dp->dnatype && STREQ(dp->dnatype, "int8_t")) {
+      iprop->hardmin = iprop->softmin = INT8_MIN;
+      iprop->hardmax = iprop->softmax = INT8_MAX;
+    }
 
     if (prop->subtype == PROP_UNSIGNED || prop->subtype == PROP_PERCENTAGE ||
         prop->subtype == PROP_FACTOR) {

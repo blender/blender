@@ -235,9 +235,6 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
 
     if (version_dir == DNA_RENAME_STATIC_FROM_ALIAS) {
       const char *renames[][2] = {
-          /* Disable 'int8_t' until we support 'signed char', since changing negative
-           * values to a different type isn't supported and will change the value. */
-          /* {"int8_t", "char"}, */
           {"uint8_t", "uchar"},
           {"int16_t", "short"},
           {"uint16_t", "ushort"},
