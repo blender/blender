@@ -1608,7 +1608,7 @@ static void icon_preview_free(void *customdata)
 }
 
 void ED_preview_icon_render(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, ID *id, uint *rect, int sizex, int sizey)
+    const bContext *C, Scene *scene, ID *id, uint *rect, int sizex, int sizey)
 {
   IconPreview ip = {NULL};
   short stop = false, update = false;
@@ -1616,9 +1616,9 @@ void ED_preview_icon_render(
 
   ED_preview_ensure_dbase();
 
-  ip.bmain = bmain;
+  ip.bmain = CTX_data_main(C);
   ip.scene = scene;
-  ip.depsgraph = depsgraph;
+  ip.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ip.owner = BKE_previewimg_id_ensure(id);
   ip.id = id;
   /* Control isn't given back to the caller until the preview is done. So we don't need to copy
