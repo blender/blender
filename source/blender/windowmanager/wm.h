@@ -23,7 +23,6 @@
 
 #pragma once
 
-struct ReportList;
 struct wmWindow;
 
 #include "gizmo/wm_gizmo_wmapi.h"
