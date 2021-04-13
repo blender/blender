@@ -157,6 +157,11 @@ static void draw_socket_list(const bContext *C,
     RNA_pointer_create((ID *)ntree, &RNA_NodeSocketInterface, socket, &socket_ptr);
     uiItemR(layout, &socket_ptr, "name", 0, NULL, ICON_NONE);
 
+    /* Display descriptions only for Geometry Nodes, since it's only used in the modifier panel. */
+    if (ntree->type == NTREE_GEOMETRY) {
+      uiItemR(layout, &socket_ptr, "description", 0, NULL, ICON_NONE);
+    }
+
     if (socket->typeinfo->interface_draw) {
       socket->typeinfo->interface_draw((bContext *)C, layout, &socket_ptr);
     }

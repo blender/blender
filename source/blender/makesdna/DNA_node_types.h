@@ -125,6 +125,7 @@ typedef struct bNodeSocket {
 
   /** Custom dynamic defined label, MAX_NAME. */
   char label[64];
+  char description[64];
 
   /** Cached data from execution. */
   void *cache;

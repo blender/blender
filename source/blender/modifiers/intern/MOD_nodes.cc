@@ -703,6 +703,14 @@ static IDProperty *socket_add_property(IDProperty *settings_prop_group,
     IDP_AddToGroup(ui_container, prop_ui_group);
   }
 
+  /* Set property description (tooltip). */
+  IDPropertyTemplate property_description_template;
+  property_description_template.string.str = socket.description;
+  property_description_template.string.len = BLI_strnlen(socket.description, MAX_NAME) + 1;
+  property_description_template.string.subtype = IDP_STRING_SUB_UTF8;
+  IDProperty *description = IDP_New(IDP_STRING, &property_description_template, "description");
+  IDP_AddToGroup(prop_ui_group, description);
+
   /* Create the properties for the socket's UI settings. */
   if (property_type.create_min_ui_prop != nullptr) {
     IDP_AddToGroup(prop_ui_group, property_type.create_min_ui_prop(socket, "min"));
