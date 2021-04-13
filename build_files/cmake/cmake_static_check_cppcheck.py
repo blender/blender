@@ -25,6 +25,12 @@ import subprocess
 import sys
 import os
 
+from typing import (
+    Any,
+    List,
+)
+
+
 USE_QUIET = (os.environ.get("QUIET", None) is not None)
 
 CHECKER_IGNORE_PREFIX = [
@@ -47,25 +53,26 @@ if USE_QUIET:
     CHECKER_ARGS.append("--quiet")
 
 
-def main():
+def main() -> None:
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
     source_defines = project_source_info.build_defines_as_args()
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
-        cmd = ([CHECKER_BIN] +
-               CHECKER_ARGS +
-               [c] +
-               [("-I%s" % i) for i in inc_dirs] +
-               [("-D%s" % d) for d in defs] +
-               source_defines
-               )
+        cmd = (
+            [CHECKER_BIN] +
+            CHECKER_ARGS +
+            [c] +
+            [("-I%s" % i) for i in inc_dirs] +
+            [("-D%s" % d) for d in defs] +
+            source_defines
+        )
 
         check_commands.append((c, cmd))
 
     process_functions = []
 
-    def my_process(i, c, cmd):
+    def my_process(i: int, c: str, cmd: List[str]) -> subprocess.Popen[Any]:
         if not USE_QUIET:
             percent = 100.0 * (i / len(check_commands))
             percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"

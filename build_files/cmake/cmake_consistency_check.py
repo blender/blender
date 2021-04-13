@@ -49,6 +49,7 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Iterator,
     List,
     Optional,
     Tuple,
