@@ -735,7 +735,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 
   /* Ensure for drag events we use the location where the user clicked.
    * Without this click-dragging on a gizmo can accidentally act on the wrong gizmo. */
-  if (ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG)) {
+  if (WM_event_is_mouse_drag(event)) {
     mval[0] += event->x - event->prevclickx;
     mval[1] += event->y - event->prevclicky;
   }
