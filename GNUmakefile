@@ -128,6 +128,9 @@ Utilities
    * source_archive:
      Create a compressed archive of the source code.
 
+   * source_archive_complete:
+     Create a compressed archive of the source code and all the libraries of dependencies.
+
    * update:
      Updates git and all submodules and svn.
 
@@ -510,6 +513,13 @@ check_descriptions: .FORCE
 
 source_archive: .FORCE
 	python3 ./build_files/utils/make_source_archive.py
+
+source_archive_complete: .FORCE
+	cmake -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
+		-DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
+# This assumes CMake is still using a default `PACKAGE_DIR` variable:
+	python3 ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
+
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE
