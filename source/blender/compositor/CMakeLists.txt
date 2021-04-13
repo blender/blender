@@ -59,11 +59,11 @@ set(SRC
   intern/COM_CompositorContext.h
   intern/COM_Converter.cc
   intern/COM_Converter.h
-  intern/COM_Enums.cc
   intern/COM_Debug.cc
   intern/COM_Debug.h
   intern/COM_Device.cc
   intern/COM_Device.h
+  intern/COM_Enums.cc
   intern/COM_ExecutionGroup.cc
   intern/COM_ExecutionGroup.h
   intern/COM_ExecutionSystem.cc
@@ -279,6 +279,8 @@ set(SRC
   nodes/COM_VectorBlurNode.h
   operations/COM_VectorBlurOperation.cc
   operations/COM_VectorBlurOperation.h
+  nodes/COM_AntiAliasingNode.cc
+  nodes/COM_AntiAliasingNode.h
   nodes/COM_BlurNode.cc
   nodes/COM_BlurNode.h
   nodes/COM_BokehBlurNode.cc
@@ -295,8 +297,6 @@ set(SRC
   nodes/COM_FilterNode.h
   nodes/COM_InpaintNode.cc
   nodes/COM_InpaintNode.h
-  nodes/COM_AntiAliasingNode.cc
-  nodes/COM_AntiAliasingNode.h
 
   operations/COM_BlurBaseOperation.cc
   operations/COM_BlurBaseOperation.h
@@ -322,10 +322,10 @@ set(SRC
   operations/COM_MovieClipAttributeOperation.h
   operations/COM_MovieDistortionOperation.cc
   operations/COM_MovieDistortionOperation.h
-  operations/COM_VariableSizeBokehBlurOperation.cc
-  operations/COM_VariableSizeBokehBlurOperation.h
   operations/COM_SMAAOperation.cc
   operations/COM_SMAAOperation.h
+  operations/COM_VariableSizeBokehBlurOperation.cc
+  operations/COM_VariableSizeBokehBlurOperation.h
 
   # Matte nodes
   nodes/COM_BoxMaskNode.cc
