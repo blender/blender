@@ -3077,6 +3077,9 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
     }
   }
 
+  static EnumPropertyItem mesh_vertex_domain_item = {
+      ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", "Attribute per point/vertex"};
+
   EnumPropertyItem *item_array = NULL;
   int items_len = 0;
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != NULL;
@@ -3095,7 +3098,12 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *C,
         continue;
       }
     }
-    RNA_enum_item_add(&item_array, &items_len, item);
+    if (item->value == ATTR_DOMAIN_POINT && component_type == GEO_COMPONENT_TYPE_MESH) {
+      RNA_enum_item_add(&item_array, &items_len, &mesh_vertex_domain_item);
+    }
+    else {
+      RNA_enum_item_add(&item_array, &items_len, item);
+    }
   }
   RNA_enum_item_end(&item_array, &items_len);
 
