@@ -3038,6 +3038,11 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.operator("sculpt.optimize")
 
+        layout.separator()
+
+        props = layout.operator("object.transfer_mode", text="Transfer Sculpt Mode")
+        props.use_eyedropper = True
+
 
 class VIEW3D_MT_mask(Menu):
     bl_label = "Mask"
