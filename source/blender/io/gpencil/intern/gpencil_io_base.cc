@@ -120,6 +120,8 @@ GpencilIO::GpencilIO(const GpencilIOParams *iparams)
     offset_.x = 0.0f;
     offset_.y = 0.0f;
 
+    create_object_list();
+
     selected_objects_boundbox_calc();
     rctf boundbox;
     selected_objects_boundbox_get(&boundbox);
