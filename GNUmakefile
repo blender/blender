@@ -480,6 +480,9 @@ check_smatch: .FORCE
 	cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
 
+check_mypy: .FORCE
+	$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+
 check_spelling_py: .FORCE
 	cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
