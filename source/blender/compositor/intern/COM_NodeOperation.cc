@@ -220,7 +220,9 @@ void NodeOperationOutput::determineResolution(unsigned int resolution[2],
   }
   else {
     operation.determineResolution(resolution, preferredResolution);
-    operation.setResolution(resolution);
+    if (resolution[0] > 0 && resolution[1] > 0) {
+      operation.setResolution(resolution);
+    }
   }
 }
 
