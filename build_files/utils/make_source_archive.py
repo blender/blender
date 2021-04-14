@@ -6,7 +6,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Iterable, TextIO, Optional, Any
+from typing import Iterable, TextIO, Optional, Any, Union
 
 # This script can run from any location,
 # output is created in the $CWD
@@ -264,7 +264,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
         yield path
 
 
-def git_command(*cli_args) -> Iterable[str]:
+def git_command(*cli_args: Union[bytes, str, Path] ) -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = ("git", *cli_args)
 
