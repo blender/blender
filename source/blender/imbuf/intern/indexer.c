@@ -500,7 +500,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->c->codec_id = AV_CODEC_ID_H264;
   rv->c->width = width;
   rv->c->height = height;
-  rv->c->gop_size = 2;
+  rv->c->gop_size = 10;
   rv->c->max_b_frames = 0;
   /* Correct wrong default ffmpeg param which crash x264. */
   rv->c->qmin = 10;
