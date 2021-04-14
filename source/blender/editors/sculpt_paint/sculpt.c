@@ -4518,6 +4518,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
   const float bstrength = ss->cache->bstrength;
 
   SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  bool update = false;
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -4575,11 +4576,13 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
     mul_v3_fl(final_disp, SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex));
 
-    copy_v3_v3(proxy[vd.i], final_disp);
-
-    if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    if (dot_v3v3(final_disp, final_disp) > 0.0000001) {
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
     }
+
+    copy_v3_v3(proxy[vd.i], final_disp);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -6552,6 +6555,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     else {
       for (int i = 0; i < totnode; i++) {
         SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
+
         BKE_pbvh_node_mark_update(nodes[i]);
       }
     }

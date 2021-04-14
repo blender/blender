@@ -135,10 +135,11 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
   if (buffers->vert_buf == NULL) {
     /* Initialize vertex buffer (match 'VertexBufferFormat'). */
     buffers->vert_buf = GPU_vertbuf_create_with_format_ex(&g_vbo_id.format, GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(buffers->vert_buf, vert_len);
   }
-  else if (vert_len != buffers->vert_buf->vertex_len) {
-    GPU_vertbuf_data_resize(buffers->vert_buf, vert_len);
+  if (GPU_vertbuf_get_data(buffers->vert_buf) == NULL ||
+      GPU_vertbuf_get_vertex_len(buffers->vert_buf) != vert_len) {
+    /* Allocate buffer if not allocated yet or size changed. */
+    GPU_vertbuf_data_alloc(buffers->vert_buf, vert_len);
   }
 #else
   if (buffers->vert_buf == NULL) {
@@ -817,34 +818,14 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 
   if (show_vcol && cd_vcol_offset >= 0) {
     ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-    int col[4] = {0, 0, 0, 0};
-    int tot = 0;
+    
+    MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
 
-    BMIter iter;
-    BMLoop *l;
+    vcol[0] = unit_float_to_ushort_clamp(col->color[0]);
+    vcol[1] = unit_float_to_ushort_clamp(col->color[1]);
+    vcol[2] = unit_float_to_ushort_clamp(col->color[2]);
+    vcol[3] = unit_float_to_ushort_clamp(col->color[3]);
 
-    BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-      MLoopCol *ml = BM_ELEM_CD_GET_VOID_P(l, cd_vcol_offset);
-
-      col[0] += ml->r;
-      col[1] += ml->g;
-      col[2] += ml->b;
-      col[3] += ml->a;
-      tot++;
-    }
-
-    if (tot) {
-      col[0] /= tot;
-      col[1] /= tot;
-      col[2] /= tot;
-      col[3] /= tot;
-
-      vcol[0] = (ushort)(col[0] * 257);
-      vcol[1] = (ushort)(col[1] * 257);
-      vcol[2] = (ushort)(col[2] * 257);
-      vcol[3] = (ushort)(col[3] * 257);
-      // printf("%d %d %d %d   %d\n", vcol[0], vcol[1], vcol[2], vcol[3], tot);
-    }
     // const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[0], v_index, vcol);
   }
@@ -1185,16 +1166,15 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
         gpu_flat_vcol_make_vert(
             cos[prev], v[j], buffers->vert_buf, v_index + 5, cd_vcols, cd_vcol_count, f->no);
 
-
-      /*
-        v1
-        |\
-        |   \
-        v3    v4
-        |  v6   \
-        |         \
-        v0---v5---v2
-        */
+        /*
+          v1
+          |\
+          |   \
+          v3    v4
+          |  v6   \
+          |         \
+          v0---v5---v2
+          */
 
         next = j == 2 ? v_start : v_index + 6;
 
@@ -1233,6 +1213,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    TableGSet *bm_faces,
                                    TableGSet *bm_unique_verts,
                                    TableGSet *bm_other_verts,
+                                   PBVHTriBuf *tribuf,
                                    const int update_flags,
                                    const int cd_vert_node_offset,
                                    int face_sets_color_seed,
@@ -1271,12 +1252,13 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   int cd_vcol_count = gpu_pbvh_bmesh_make_vcol_offs(bm, cd_vcols, active_vcol_only);
 
   /* Count visible triangles */
-  tottri = gpu_bmesh_face_visible_count(bm_faces);
+  const bool indexed = buffers->smooth && tribuf && !have_uv;
+  tottri = indexed ? tribuf->tottri : gpu_bmesh_face_visible_count(bm_faces);
 
   // XXX disable indexed verts for now
-  if (0 && buffers->smooth) {
+  if (indexed) {
     /* Count visible vertices */
-    totvert = gpu_bmesh_vert_visible_count(bm_unique_verts, bm_other_verts);
+    totvert = tribuf->totvert;
   }
   else {
     totvert = tottri * 3;
@@ -1308,8 +1290,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
   int v_index = 0;
 
-  // disable shared vertex mode for now
-  if (0 && buffers->smooth) {
+  if (indexed) {
     /* Fill the vertex and triangle buffer in one pass over faces. */
     GPUIndexBufBuilder elb, elb_lines;
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottri, totvert);
@@ -1318,51 +1299,35 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
     GHash *bm_vert_to_index = BLI_ghash_int_new_ex("bm_vert_to_index", totvert);
     BMFace *f;
 
-    TGSET_ITER (f, bm_faces) {
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        BMVert *v[3];
-        BM_face_as_array_vert_tri(f, v);
+    for (int i=0; i<tribuf->totvert; i++) {
+      BMVert *v = (BMVert*) tribuf->verts[i].i;
 
-        uint idx[3];
-        for (int i = 0; i < 3; i++) {
-          void **idx_p;
-          if (!BLI_ghash_ensure_p(bm_vert_to_index, v[i], &idx_p)) {
-            /* Add vertex to the vertex buffer each time a new one is encountered */
-            *idx_p = POINTER_FROM_UINT(v_index);
-
-            gpu_bmesh_vert_to_buffer_copy(v[i],
-                                          buffers->vert_buf,
-                                          v_index,
-                                          NULL,
-                                          NULL,
-                                          cd_vert_mask_offset,
-                                          cd_vert_node_offset,
-                                          show_mask,
-                                          show_vcol,
-                                          &empty_mask,
-                                          cd_mcol_offset);
-
-            idx[i] = v_index;
-            v_index++;
-          }
-          else {
-            /* Vertex already in the vertex buffer, just get the index. */
-            idx[i] = POINTER_AS_UINT(*idx_p);
-          }
-        }
-
-        GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
-
-        GPU_indexbuf_add_line_verts(&elb_lines, idx[0], idx[1]);
-        GPU_indexbuf_add_line_verts(&elb_lines, idx[1], idx[2]);
-        GPU_indexbuf_add_line_verts(&elb_lines, idx[2], idx[0]);
-      }
+      gpu_bmesh_vert_to_buffer_copy(v,
+                                    buffers->vert_buf,
+                                    i,
+                                    NULL,
+                                    NULL,
+                                    cd_vert_mask_offset,
+                                    cd_vert_node_offset,
+                                    show_mask,
+                                    show_vcol,
+                                    &empty_mask,
+                                    cd_vcol_offset);
     }
-    TGSET_ITER_END
 
-    BLI_ghash_free(bm_vert_to_index, NULL, NULL);
+    for (int i=0; i<tribuf->tottri; i++) {
+      PBVHTri *tri = tribuf->tris + i;
+
+      GPU_indexbuf_add_tri_verts(&elb, tri->v[0], tri->v[1], tri->v[2]);
+
+      GPU_indexbuf_add_line_verts(&elb_lines, tri->v[0], tri->v[1]);
+      GPU_indexbuf_add_line_verts(&elb_lines, tri->v[1], tri->v[2]);
+      GPU_indexbuf_add_line_verts(&elb_lines, tri->v[2], tri->v[0]);
+
+    }
 
     buffers->tot_tri = tottri;
+
     if (buffers->index_buf == NULL) {
       buffers->index_buf = GPU_indexbuf_build(&elb);
     }

@@ -1286,6 +1286,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[n];
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
+    node->updategen++;
+
     switch (pbvh->type) {
       case PBVH_GRIDS:
         node->draw_buffers = GPU_pbvh_grid_buffers_build(node->totprim, pbvh->grid_hidden);
@@ -1309,6 +1311,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
+    node->updategen++;
 
     const int update_flags = pbvh_get_buffers_update_flags(pbvh);
     switch (pbvh->type) {
@@ -1337,11 +1340,13 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      update_flags);
         break;
       case PBVH_BMESH:
+        BKE_pbvh_bmesh_check_tris(pbvh, node);
         GPU_pbvh_bmesh_buffers_update(node->draw_buffers,
                                       pbvh->bm,
                                       node->bm_faces,
                                       node->bm_unique_verts,
                                       node->bm_other_verts,
+                                      node->tribuf,
                                       update_flags,
                                       pbvh->cd_vert_node_offset,
                                       pbvh->face_sets_color_seed,
@@ -2891,7 +2896,9 @@ void BKE_pbvh_draw_debug_cb(
   for (int a = 0; a < pbvh->totnode; a++) {
     PBVHNode *node = &pbvh->nodes[a];
 
-    draw_fn(user_data, node->vb.bmin, node->vb.bmax, node->flag);
+    int num = a + node->updategen;
+
+    draw_fn(&num, node->vb.bmin, node->vb.bmax, node->flag);
   }
 }
 

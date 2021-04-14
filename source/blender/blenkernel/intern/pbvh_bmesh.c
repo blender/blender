@@ -2702,7 +2702,7 @@ bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
   MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
 
   if (mv->stroke_id != stroke_id) {
-    void *dummy;
+    float *dummy;
 
     BKE_pbvh_bmesh_update_origvert(pbvh, v, &dummy, &dummy, &dummy, false);
     mv->stroke_id = stroke_id;
@@ -2825,7 +2825,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
   for (int i = 0; i < node->tribuf->tottri; i++) {
-    PBVHTri *tri = node->tribuf + i;
+    PBVHTri *tri = node->tribuf->tris + i;
     BMVert *v1 = (BMVert *)node->tribuf->verts[tri->v[0]].i;
     BMVert *v2 = (BMVert *)node->tribuf->verts[tri->v[1]].i;
     BMVert *v3 = (BMVert *)node->tribuf->verts[tri->v[2]].i;
@@ -2869,7 +2869,7 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
   const int cd_dyn_vert = pbvh->cd_dyn_vert;
 
   for (int i = 0; i < tribuf->tottri; i++) {
-    PBVHTri *tri = tribuf + i;
+    PBVHTri *tri = tribuf->tris + i;
     BMFace *f = (BMFace *)tri->f.i;
 
     if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -3736,7 +3736,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
           MLoopUV *uv1 = BM_ELEM_CD_GET_VOID_P(l, cd_uv + cd_size * i);
           MLoopUV *uv2 = BM_ELEM_CD_GET_VOID_P(l2, cd_uv + cd_size * i);
 
-          if (len_v3v3(uv1, uv2) > 0.001) {
+          if (len_v3v3(uv1->uv, uv2->uv) > 0.001) {
             ok = false;
             break;
           }

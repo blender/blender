@@ -109,6 +109,8 @@ struct PBVHNode {
 
   PBVHTriBuf *tribuf;
 
+  int updategen;
+
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
 #ifdef PROXY_ADVANCED

@@ -126,7 +126,7 @@ static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
   BoundaryInitialVertexFloodFillData fdata = {
       .initial_vertex = initial_vertex,
       .initial_vertex_index = initial_vertex_index,
-      .boundary_initial_vertex = BOUNDARY_VERTEX_NONE,
+      .boundary_initial_vertex = {BOUNDARY_VERTEX_NONE},
       .boundary_initial_vertex_steps = INT_MAX,
       .radius_sq = radius * radius,
   };
@@ -297,7 +297,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   BoundaryFloodFillData fdata = {
       .boundary = boundary,
       .included_vertices = included_vertices,
-      .last_visited_vertex = BOUNDARY_VERTEX_NONE,
+      .last_visited_vertex = {BOUNDARY_VERTEX_NONE},
 
   };
 
@@ -414,7 +414,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
           boundary->edit_info[ni.index].num_propagation_steps =
               boundary->edit_info[from_v_i].num_propagation_steps + 1;
 
-          BLI_gsqueue_push(next_iteration, &ni.index);
+          BLI_gsqueue_push(next_iteration, &ni.vertex);
+
 
           /* When copying the data to the neighbor for the next iteration, it has to be copied to
            * all its duplicates too. This is because it is not possible to know if the updated
@@ -569,6 +570,8 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 
 void SCULPT_boundary_data_free(SculptBoundary *boundary)
 {
+  printf("    ======================= boundary free!\n\n");
+
   MEM_SAFE_FREE(boundary->vertices);
   MEM_SAFE_FREE(boundary->edges);
   MEM_SAFE_FREE(boundary->distance);
