@@ -151,7 +151,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
       gp_style->fill_rgba[3] = 1.0f;
       copy_v4_v4(gp_style->stroke_rgba, gp_style->fill_rgba);
       if (lighting_mode != V3D_LIGHTING_FLAT) {
-        gpencil_shade_color(gp_style->stroke_rgba);
+        gpencil_shade_color(gp_style->fill_rgba);
       }
       break;
     case V3D_SHADING_OBJECT_COLOR:
@@ -161,7 +161,7 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
       copy_v4_v4(gp_style->fill_rgba, ob->color);
       copy_v4_v4(gp_style->stroke_rgba, ob->color);
       if (lighting_mode != V3D_LIGHTING_FLAT) {
-        gpencil_shade_color(gp_style->stroke_rgba);
+        gpencil_shade_color(gp_style->fill_rgba);
       }
       break;
     case V3D_SHADING_VERTEX_COLOR:
