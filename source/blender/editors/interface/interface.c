@@ -6602,6 +6602,8 @@ uiBut *uiDefSearchBut(uiBlock *block,
  * \param search_create_fn: Function to create the menu.
  * \param search_update_fn: Function to refresh search content after the search text has changed.
  * \param arg: user value.
+ * \param free_arg: Set to true if the argument is newly allocated memory for every redraw and
+ * should be freed when the button is destroyed.
  * \param search_arg_free_fn: When non-null, use this function to free \a arg.
  * \param search_exec_fn: Function that executes the action, gets \a arg as the first argument.
  * The second argument as the active item-pointer
@@ -6612,6 +6614,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
+                            const bool free_arg,
                             uiButSearchArgFreeFn search_arg_free_fn,
                             uiButHandleFunc search_exec_fn,
                             void *active)
@@ -6647,11 +6650,17 @@ void UI_but_func_search_set(uiBut *but,
     }
 #endif
     /* Handling will pass the active item as arg2 later, so keep it NULL here. */
-    UI_but_func_set(but, search_exec_fn, search_but->arg, NULL);
+    if (free_arg) {
+      UI_but_funcN_set(but, search_exec_fn, search_but->arg, NULL);
+    }
+    else {
+      UI_but_func_set(but, search_exec_fn, search_but->arg, NULL);
+    }
   }
 
-  /* search buttons show red-alert if item doesn't exist, not for menus */
-  if (0 == (but->block->flag & UI_BLOCK_LOOP)) {
+  /* search buttons show red-alert if item doesn't exist, not for menus. Don't do this for
+   * buttons where any result is valid anyway, since any string will be valid anyway. */
+  if (0 == (but->block->flag & UI_BLOCK_LOOP) && !search_but->results_are_suggestions) {
     /* skip empty buttons, not all buttons need input, we only show invalid */
     if (but->drawstr[0]) {
       ui_but_search_refresh(search_but);
@@ -6791,6 +6800,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                          ui_searchbox_create_generic,
                          operator_enum_search_update_fn,
                          but,
+                         false,
                          NULL,
                          operator_enum_search_exec_fn,
                          NULL);

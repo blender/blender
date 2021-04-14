@@ -30,6 +30,11 @@
 #include "BKE_node_ui_storage.hh"
 #include "BKE_object.h"
 
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
+#include "BLT_translation.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -37,44 +42,77 @@
 
 using blender::IndexRange;
 using blender::Map;
-using blender::MultiValueMap;
 using blender::Set;
 using blender::StringRef;
 
 struct AttributeSearchData {
   const bNodeTree &node_tree;
   const bNode &node;
-
-  uiBut *search_button;
-
-  /* Used to keep track of a button pointer over multiple redraws. Since the UI code
-   * may reallocate the button, without this we might end up with a dangling pointer. */
-  uiButStore *button_store;
-  uiBlock *button_store_block;
+  bNodeSocket &socket;
 };
+
+/* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
+BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
+
+static StringRef attribute_data_type_string(const CustomDataType type)
+{
+  const char *name = nullptr;
+  RNA_enum_name_from_value(rna_enum_attribute_type_items, type, &name);
+  return StringRef(IFACE_(name));
+}
+
+static StringRef attribute_domain_string(const AttributeDomain domain)
+{
+  const char *name = nullptr;
+  RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &name);
+  return StringRef(IFACE_(name));
+}
+
+/* Unicode arrow. */
+#define MENU_SEP "\xe2\x96\xb6"
+
+static bool attribute_search_item_add(uiSearchItems *items, const AvailableAttributeInfo &item)
+{
+  const StringRef data_type_name = attribute_data_type_string(item.data_type);
+  const StringRef domain_name = attribute_domain_string(item.domain);
+  std::string search_item_text = domain_name + " " + MENU_SEP + item.name + UI_SEP_CHAR +
+                                 data_type_name;
+
+  return UI_search_item_add(
+      items, search_item_text.c_str(), (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
+}
 
 static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
   AttributeSearchData *data = static_cast<AttributeSearchData *>(arg);
+  NodeTreeUIStorage *tree_ui_storage = data->node_tree.ui_storage;
+  if (tree_ui_storage == nullptr) {
+    return;
+  }
   const NodeUIStorage *ui_storage = BKE_node_tree_ui_storage_get_from_context(
       C, data->node_tree, data->node);
   if (ui_storage == nullptr) {
     return;
   }
 
-  const MultiValueMap<std::string, AvailableAttributeInfo> &attribute_hints =
-      ui_storage->attribute_hints;
+  const Set<AvailableAttributeInfo> &attribute_hints = ui_storage->attribute_hints;
 
-  if (str[0] != '\0' && attribute_hints.lookup_as(StringRef(str)).is_empty()) {
-    /* Any string may be valid, so add the current search string with the hints. */
-    UI_search_item_add(items, str, (void *)str, ICON_ADD, 0, 0);
+  /* Any string may be valid, so add the current search string along with the hints. */
+  if (str[0] != '\0') {
+    /* Note that the attribute domain and data type are dummies, since
+     * #AvailableAttributeInfo equality is only based on the string. */
+    if (!attribute_hints.contains(AvailableAttributeInfo{str, ATTR_DOMAIN_AUTO, CD_PROP_BOOL})) {
+      tree_ui_storage->dummy_info_for_search.name = std::string(str);
+      UI_search_item_add(items, str, &tree_ui_storage->dummy_info_for_search, ICON_ADD, 0, 0);
+    }
   }
 
   if (str[0] == '\0' && !is_first) {
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening an attribute field for the first time would show this search item. */
-    UI_search_item_add(items, str, (void *)str, ICON_X, 0, 0);
+    tree_ui_storage->dummy_info_for_search.name = std::string(str);
+    UI_search_item_add(items, str, &tree_ui_storage->dummy_info_for_search, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
@@ -82,16 +120,16 @@ static void attribute_search_update_fn(
   const char *string = is_first ? "" : str;
 
   StringSearch *search = BLI_string_search_new();
-  for (const std::string &attribute_name : attribute_hints.keys()) {
-    BLI_string_search_add(search, attribute_name.c_str(), (void *)&attribute_name);
+  for (const AvailableAttributeInfo &item : attribute_hints) {
+    BLI_string_search_add(search, item.name.c_str(), (void *)&item);
   }
 
-  std::string **filtered_items;
+  AvailableAttributeInfo **filtered_items;
   const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
 
   for (const int i : IndexRange(filtered_amount)) {
-    std::string *item = filtered_items[i];
-    if (!UI_search_item_add(items, item->c_str(), item, ICON_NONE, 0, 0)) {
+    const AvailableAttributeInfo *item = filtered_items[i];
+    if (!attribute_search_item_add(items, *item)) {
       break;
     }
   }
@@ -100,12 +138,14 @@ static void attribute_search_update_fn(
   BLI_string_search_free(search);
 }
 
-static void attribute_search_free_fn(void *arg)
+static void attribute_search_exec_fn(bContext *UNUSED(C), void *data_v, void *item_v)
 {
-  AttributeSearchData *data = static_cast<AttributeSearchData *>(arg);
+  AttributeSearchData *data = static_cast<AttributeSearchData *>(data_v);
+  AvailableAttributeInfo *item = static_cast<AvailableAttributeInfo *>(item_v);
 
-  UI_butstore_free(data->button_store_block, data->button_store);
-  delete data;
+  bNodeSocket &socket = data->socket;
+  bNodeSocketValueString *value = static_cast<bNodeSocketValueString *>(socket.default_value);
+  BLI_strncpy(value->value, item->name.c_str(), MAX_NAME);
 }
 
 void node_geometry_add_attribute_search_button(const bNodeTree *node_tree,
@@ -132,22 +172,17 @@ void node_geometry_add_attribute_search_button(const bNodeTree *node_tree,
                                  0.0f,
                                  "");
 
-  AttributeSearchData *data = new AttributeSearchData{
-      *node_tree,
-      *node,
-      but,
-      UI_butstore_create(block),
-      block,
-  };
-
-  UI_butstore_register(data->button_store, &data->search_button);
+  AttributeSearchData *data = OBJECT_GUARDED_NEW(
+      AttributeSearchData, {*node_tree, *node, *static_cast<bNodeSocket *>(socket_ptr->data)});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
+  UI_but_func_search_set_sep_string(but, MENU_SEP);
   UI_but_func_search_set(but,
                          nullptr,
                          attribute_search_update_fn,
                          static_cast<void *>(data),
-                         attribute_search_free_fn,
+                         true,
                          nullptr,
+                         attribute_search_exec_fn,
                          nullptr);
 }
