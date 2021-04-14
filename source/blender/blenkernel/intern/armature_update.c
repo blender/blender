@@ -288,10 +288,9 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
                                    float *r_new_curve_pos,
                                    float *r_radius)
 {
-  /* This is using the tesselated curve data.
-   * So we are working with piecewise linear curve segements.
-   * The same method is use in `BKE_where_on_path` to get curve location data.
-   */
+  /* This is using the tessellated curve data.
+   * So we are working with piece-wise linear curve segments.
+   * The same method is use in #BKE_where_on_path to get curve location data. */
   const CurveCache *cache = ik_data->tar->runtime.curve_cache;
   const BevList *bl = cache->bev.first;
   BevPoint *bp = bl->bevpoints;
@@ -319,7 +318,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   bool is_cyclic = bl->poly >= 0;
   BevPoint *prev_bp = bp - 1;
 
-  /* Go to the next tesselated curve point until we cross to outside of the sphere. */
+  /* Go to the next tessellated curve point until we cross to outside of the sphere. */
   while (len_v3v3(head_pos, bp->vec) < sphere_radius) {
     if (bp_idx > max_seg_idx) {
       /* We are outside the defined curve. We will now extrapolate the intersection point. */
@@ -474,7 +473,7 @@ static void splineik_evaluate_bone(
 
     /* Determine if the bone should still be affected by SplineIK.
      * This makes it so that the bone slowly becomes poseable again the further it rolls off the
-     * curve. When the whole bone has rolled off the curve, the IK contraint will not influence it
+     * curve. When the whole bone has rolled off the curve, the IK constraint will not influence it
      * anymore.
      */
     if (point_end >= 1.0f) {
