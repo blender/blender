@@ -33,7 +33,7 @@ set(INC
 
 set(SRC
   space_spreadsheet.cc
-  spreadsheet_breadcrumb.cc
+  spreadsheet_context.cc
   spreadsheet_column.cc
   spreadsheet_data_source.cc
   spreadsheet_data_source_geometry.cc
@@ -41,7 +41,7 @@ set(SRC
   spreadsheet_layout.cc
   spreadsheet_ops.cc
 
-  spreadsheet_breadcrumb.hh
+  spreadsheet_context.hh
   spreadsheet_cell_value.hh
   spreadsheet_column.hh
   spreadsheet_column_values.hh

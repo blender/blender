@@ -45,7 +45,7 @@
 
 #include "spreadsheet_intern.hh"
 
-#include "spreadsheet_breadcrumb.hh"
+#include "spreadsheet_context.hh"
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"

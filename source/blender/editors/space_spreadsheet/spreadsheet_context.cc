@@ -32,7 +32,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
-#include "spreadsheet_breadcrumb.hh"
+#include "spreadsheet_context.hh"
 
 namespace blender::ed::spreadsheet {
 
