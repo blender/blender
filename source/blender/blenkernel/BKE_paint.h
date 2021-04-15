@@ -362,6 +362,9 @@ typedef struct SculptVertexInfo {
 
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
+
+  /* Indexed by vertex, stores the symmetrical topology vertex index found by symmetrize. */
+  int *symmetrize_map;
 } SculptVertexInfo;
 
 typedef struct SculptBoundaryEditInfo {

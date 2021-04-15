@@ -57,6 +57,160 @@
 #include <math.h>
 #include <stdlib.h>
 
+typedef uint MirrTopoHash_t;
+
+typedef struct MirrTopoVert_t {
+  MirrTopoHash_t hash;
+  int v_index;
+} MirrTopoVert_t;
+
+static int mirrtopo_hash_sort(const void *l1, const void *l2)
+{
+  if ((MirrTopoHash_t)(intptr_t)l1 > (MirrTopoHash_t)(intptr_t)l2) {
+    return 1;
+  }
+  if ((MirrTopoHash_t)(intptr_t)l1 < (MirrTopoHash_t)(intptr_t)l2) {
+    return -1;
+  }
+  return 0;
+}
+
+static int mirrtopo_vert_sort(const void *v1, const void *v2)
+{
+  if (((MirrTopoVert_t *)v1)->hash > ((MirrTopoVert_t *)v2)->hash) {
+    return 1;
+  }
+  if (((MirrTopoVert_t *)v1)->hash < ((MirrTopoVert_t *)v2)->hash) {
+    return -1;
+  }
+  return 0;
+}
+
+void SCULPT_symmetrize_map_ensure(Object *ob)
+{ 
+  SculptSession *ss = ob->sculpt;
+  Mesh *me = BKE_mesh_from_object(ob);
+
+  if (ss->vertex_info.symmetrize_map) {
+      /* Nothing to do. */
+      return;
+  }
+
+  MEdge *medge = NULL, *med;
+
+  int a, last;
+  int totvert, totedge;
+  int tot_unique = -1, tot_unique_prev = -1;
+  int tot_unique_edges = 0, tot_unique_edges_prev;
+
+  MirrTopoHash_t *topo_hash = NULL;
+  MirrTopoHash_t *topo_hash_prev = NULL;
+  MirrTopoVert_t *topo_pairs;
+  MirrTopoHash_t topo_pass = 1;
+
+  intptr_t *index_lookup; /* direct access to mesh_topo_store->index_lookup */
+
+  totvert = me->totvert;
+  topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
+
+  /* Initialize the vert-edge-user counts used to detect unique topology */
+    totedge = me->totedge;
+    medge = me->medge;
+
+    for (a = 0, med = medge; a < totedge; a++, med++) {
+      const uint i1 = med->v1, i2 = med->v2;
+      topo_hash[i1]++;
+      topo_hash[i2]++;
+    }
+
+  topo_hash_prev = MEM_dupallocN(topo_hash);
+
+  tot_unique_prev = -1;
+  tot_unique_edges_prev = -1;
+  while (true) {
+    /* use the number of edges per vert to give verts unique topology IDs */
+
+    tot_unique_edges = 0;
+
+    /* This can make really big numbers, wrapping around here is fine */
+      for (a = 0, med = medge; a < totedge; a++, med++) {
+        const uint i1 = med->v1, i2 = med->v2;
+        topo_hash[i1] += topo_hash_prev[i2] * topo_pass;
+        topo_hash[i2] += topo_hash_prev[i1] * topo_pass;
+        tot_unique_edges += (topo_hash[i1] != topo_hash[i2]);
+      }
+    memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
+
+    /* sort so we can count unique values */
+    qsort(topo_hash_prev, totvert, sizeof(MirrTopoHash_t), mirrtopo_hash_sort);
+
+    tot_unique = 1; /* account for skipping the first value */
+    for (a = 1; a < totvert; a++) {
+      if (topo_hash_prev[a - 1] != topo_hash_prev[a]) {
+        tot_unique++;
+      }
+    }
+
+    if ((tot_unique <= tot_unique_prev) && (tot_unique_edges <= tot_unique_edges_prev)) {
+      /* Finish searching for unique values when 1 loop doesn't give a
+       * higher number of unique values compared to the previous loop. */
+      break;
+    }
+    tot_unique_prev = tot_unique;
+    tot_unique_edges_prev = tot_unique_edges;
+    /* Copy the hash calculated this iteration, so we can use them next time */
+    memcpy(topo_hash_prev, topo_hash, sizeof(MirrTopoHash_t) * totvert);
+
+    topo_pass++;
+  }
+
+  /* Hash/Index pairs are needed for sorting to find index pairs */
+  topo_pairs = MEM_callocN(sizeof(MirrTopoVert_t) * totvert, "MirrTopoPairs");
+
+  /* since we are looping through verts, initialize these values here too */
+  index_lookup = MEM_mallocN(totvert * sizeof(*index_lookup), "mesh_topo_lookup");
+
+  for (a = 0; a < totvert; a++) {
+    topo_pairs[a].hash = topo_hash[a];
+    topo_pairs[a].v_index = a;
+
+    /* initialize lookup */
+    index_lookup[a] = -1;
+  }
+
+  qsort(topo_pairs, totvert, sizeof(MirrTopoVert_t), mirrtopo_vert_sort);
+
+  last = 0;
+
+  /* Get the pairs out of the sorted hashes, note, totvert+1 means we can use the previous 2,
+   * but you cant ever access the last 'a' index of MirrTopoPairs */
+    for (a = 1; a <= totvert; a++) {
+      if ((a == totvert) || (topo_pairs[a - 1].hash != topo_pairs[a].hash)) {
+        const int match_count = a - last;
+        if (match_count == 2) {
+          const int j = topo_pairs[a - 1].v_index, k = topo_pairs[a - 2].v_index;
+          index_lookup[j] = k;
+          index_lookup[k] = j;
+        }
+        else if (match_count == 1) {
+          /* Center vertex. */
+          const int j = topo_pairs[a - 1].v_index;
+          index_lookup[j] = j;
+        }
+        last = a;
+      }
+    }
+
+  MEM_freeN(topo_pairs);
+  topo_pairs = NULL;
+
+  MEM_freeN(topo_hash);
+  MEM_freeN(topo_hash_prev);
+
+  ss->vertex_info.symmetrize_map = index_lookup;
+}
+
+
 
 static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
                                                    const int n,
