@@ -307,8 +307,8 @@ static bool boundary_floodfill_cb(
                                              boundary->distance[from_v_i] + edge_len :
                                              0.0f;
   sculpt_boundary_index_add(ss, boundary, to_v, distance_boundary_to_dst, data->included_vertices);
-  //if (!is_duplicate) {
-    sculpt_boundary_preview_edge_add(boundary, from_v, to_v);
+  // if (!is_duplicate) {
+  sculpt_boundary_preview_edge_add(boundary, from_v, to_v);
   //}
 
   return sculpt_boundary_is_vertex_in_editable_boundary(ss, to_v);
@@ -447,14 +447,15 @@ ATTR_NO_OPT static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
-
         const bool is_visible = SCULPT_vertex_visible_get(ss, ni.vertex);
+
         if (!is_visible ||
             boundary->edit_info[ni.index].num_propagation_steps != BOUNDARY_STEPS_NONE) {
           continue;
         }
         boundary->edit_info[ni.index].original_vertex =
             boundary->edit_info[from_v_i].original_vertex;
+
         boundary->edit_info[ni.index].original_vertex_i =
             boundary->edit_info[from_v_i].original_vertex_i;
 
@@ -662,25 +663,34 @@ ATTR_NO_OPT static void sculpt_boundary_bend_data_init(SculptSession *ss, Sculpt
   boundary->bend.pivot_positions = MEM_calloc_arrayN(
       totvert, 4 * sizeof(float) * TSTN, "pivot positions");
 
-  for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+  for (int step = 0; step < 1; step++) {
+    bool ok = true;
 
-    if (boundary->edit_info[i].num_propagation_steps != boundary->max_propagation_steps) {
-      continue;
-    }
+    for (int i = 0; i < totvert; i++) {
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    if (boundary->edit_info[i].original_vertex_i == BOUNDARY_VERTEX_NONE) {
-      continue;
-    }
+      bool bad = boundary->edit_info[i].num_propagation_steps !=
+                 boundary->max_propagation_steps - step;
+      if (step == 2) {
+        bad = false;
+      }
 
-    float dir[3];
-    float normal[3];
-    SCULPT_vertex_normal_get(ss, vertex, normal);
-    sub_v3_v3v3(dir,
-                SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
-                SCULPT_vertex_co_get(ss, vertex));
+      bad = bad || boundary->edit_info[i].original_vertex_i == BOUNDARY_VERTEX_NONE;
+      bad = bad ||
+            boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i][3] != 0.0f;
 
-    validateVert(ss, boundary->edit_info[i].original_vertex);
+      if (bad && (step != 3 || boundary->edit_info[i].original_vertex_i == i)) {
+        continue;
+      }
+
+      float dir[3];
+      float normal[3];
+      SCULPT_vertex_normal_get(ss, vertex, normal);
+      sub_v3_v3v3(dir,
+                  SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
+                  SCULPT_vertex_co_get(ss, vertex));
+
+      validateVert(ss, boundary->edit_info[i].original_vertex);
 
 #if 0
     /*strategy to increase accuracy for non-quad topologies:
@@ -700,29 +710,121 @@ ATTR_NO_OPT static void sculpt_boundary_bend_data_init(SculptSession *ss, Sculpt
     add_v3_v3(dir, cdir);
 #endif
 
-    cross_v3_v3v3(
-        boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i], dir, normal);
-    normalize_v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
-    copy_v3_v3(boundary->bend.pivot_positions[i], SCULPT_vertex_co_get(ss, vertex));
+      cross_v3_v3v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i],
+                    dir,
+                    normal);
+      normalize_v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
+      copy_v3_v3(boundary->bend.pivot_positions[i], SCULPT_vertex_co_get(ss, vertex));
 
-    add_v3_v3(boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i],
-              SCULPT_vertex_co_get(ss, vertex));
-    boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i][3] += 1.0f;
-  }
-
-  for (int i = 0; i < totvert; i++) {
-    if (boundary->bend.pivot_positions[i][3] > 0.0f) {
-      float mul = 1.0f / boundary->bend.pivot_positions[i][3];
-      boundary->bend.pivot_positions[i][0] *= mul;
-      boundary->bend.pivot_positions[i][1] *= mul;
-      boundary->bend.pivot_positions[i][2] *= mul;
-      boundary->bend.pivot_positions[i][3] = 1.0f;
+      add_v3_v3(boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i],
+                SCULPT_vertex_co_get(ss, vertex));
+      boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i][3] += 1.0f;
     }
-    else {  // pathological case, at least prevent from rotating around origin
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-      float *co = SCULPT_vertex_co_get(ss, vertex);
 
-      copy_v3_v3(boundary->bend.pivot_positions[i], co);
+    for (int i = 0; i < totvert; i++) {
+      if (boundary->edit_info[i].num_propagation_steps == 0 &&
+          boundary->bend.pivot_positions[i][3] == 0.0f) {
+
+        printf("eek!\n");
+        SculptVertexNeighborIter ni;
+        SculptVertexNeighborIter ni2;
+        const int maxstack = 32;
+        SculptVertRef stack[32];
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        const float *co1 = SCULPT_vertex_co_get(ss, vertex);
+        int si = 0;
+        stack[si++] = vertex;
+
+        float mindis = 1e17;
+        float pivota[3], pivotb[3];
+        float rota[3], rotb[3];
+        SculptVertRef v_a = {-1}, v_b = {-1};
+
+        copy_v3_v3(pivota, co1);
+        copy_v3_v3(pivotb, co1);
+        zero_v3(rota);
+        zero_v3(rotb);
+
+        float mindis2 = 1e17;
+
+        // do a short walk on mesh to find pivot
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni2) {
+          SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni2.vertex, ni) {
+            SculptVertRef v2 = ni.vertex;
+
+            bool ok = ni.vertex.i != vertex.i;
+            ok = ok && boundary->edit_info[ni.index].num_propagation_steps == 0;
+            ok = ok && boundary->bend.pivot_positions[ni.index][3] > 0.0f;
+
+            if (ok) {
+              const float *co2 = SCULPT_vertex_co_get(ss, ni.vertex);
+              float dis = len_squared_v3v3(co1, co2);
+
+              if (dis < mindis) {
+                copy_v3_v3(pivotb, pivota);
+                copy_v3_v3(rotb, rota);
+
+                v_b = v_a;
+                mindis2 = mindis;
+
+                copy_v3_v3(pivota, boundary->bend.pivot_positions[ni.index]);
+                copy_v3_v3(rota, boundary->bend.pivot_rotation_axis[ni.index]);
+
+                v_a = ni.vertex;
+                mindis = dis;
+              }
+              else if (dis < mindis2) {
+                v_b = ni.vertex;
+                copy_v3_v3(pivotb, boundary->bend.pivot_positions[ni.index]);
+                copy_v3_v3(rotb, boundary->bend.pivot_rotation_axis[ni.index]);
+                mindis2 = dis;
+              }
+            }
+          }
+          SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+        }
+        SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
+
+        float len = len_v3v3(pivota, pivotb);
+        if (len > 0.0) {
+          float vec1[3], vec2[3];
+
+          sub_v3_v3v3(vec1, pivotb, pivota);
+          normalize_v3(vec1);
+
+          sub_v3_v3v3(vec2, co1, pivota);
+
+          float t = dot_v3v3(vec2, vec1) / len;
+
+          interp_v3_v3v3(pivota, pivota, pivotb, t);
+          interp_v3_v3v3(rota, rota, rotb, t);
+
+          copy_v3_v3(boundary->bend.pivot_positions[i], pivota);
+          boundary->bend.pivot_positions[i][3] = 1.0f;
+          copy_v3_v3(boundary->bend.pivot_rotation_axis[i], rota);
+        }
+      }
+
+      if (boundary->bend.pivot_positions[i][3] > 0.0f) {
+        float mul = 1.0f / boundary->bend.pivot_positions[i][3];
+        boundary->bend.pivot_positions[i][0] *= mul;
+        boundary->bend.pivot_positions[i][1] *= mul;
+        boundary->bend.pivot_positions[i][2] *= mul;
+        boundary->bend.pivot_positions[i][3] = 1.0f;
+      }
+      else {
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        float *co = SCULPT_vertex_co_get(ss, vertex);
+
+        //boundary->bend.pivot_positions[i][0] = co[0];
+        //boundary->bend.pivot_positions[i][1] = co[1];
+        //boundary->bend.pivot_positions[i][2] = co[2];
+        //boundary->bend.pivot_positions[i][3] = 0.0f;
+      }
+    }
+
+    if (ok) {
+      break;
     }
   }
 
@@ -733,6 +835,9 @@ ATTR_NO_OPT static void sculpt_boundary_bend_data_init(SculptSession *ss, Sculpt
 
     copy_v3_v3(boundary->bend.pivot_positions[i],
                boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i]);
+
+    boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i][3] = 1.0f;
+
     copy_v3_v3(boundary->bend.pivot_rotation_axis[i],
                boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
   }

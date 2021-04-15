@@ -1073,11 +1073,14 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   BMVert *v = (BMVert *)index.i;
   BMIter liter;
   BMLoop *l;
+
+  iter->is_duplicate = false;
   iter->size = 0;
   iter->num_duplicates = 0;
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
+  iter->i = 0;
 
 #if 1  // note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
   BMEdge *e;
@@ -1115,6 +1118,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->capacity = SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
+  iter->is_duplicate = false;
 
   for (int i = 0; i < ss->pmap[index].count; i++) {
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
@@ -1158,6 +1162,8 @@ static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
 
   SubdivCCGNeighbors neighbors;
   BKE_subdiv_ccg_neighbor_coords_get(ss->subdiv_ccg, &coord, include_duplicates, &neighbors);
+
+  iter->is_duplicate = include_duplicates;
 
   iter->size = 0;
   iter->num_duplicates = neighbors.num_duplicates;
