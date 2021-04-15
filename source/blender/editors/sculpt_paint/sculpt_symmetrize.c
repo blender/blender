@@ -277,6 +277,11 @@ void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+      return;
+  }
+
   if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
       return;
   }
