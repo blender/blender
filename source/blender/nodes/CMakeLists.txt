@@ -316,6 +316,7 @@ set(SRC
   intern/node_tree_ref.cc
   intern/node_util.c
   intern/type_callbacks.cc
+  intern/type_conversions.cc
 
   composite/node_composite_util.h
   function/node_function_util.hh
@@ -337,6 +338,7 @@ set(SRC
   NOD_static_types.h
   NOD_texture.h
   NOD_type_callbacks.hh
+  NOD_type_conversions.hh
   intern/node_common.h
   intern/node_exec.h
   intern/node_util.h

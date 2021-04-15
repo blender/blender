@@ -387,33 +387,4 @@ MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
 using MultiFunctionByNode = Map<DNode, const fn::MultiFunction *>;
 MultiFunctionByNode get_multi_function_per_node(const DerivedNodeTree &tree, ResourceScope &scope);
 
-class DataTypeConversions {
- private:
-  Map<std::pair<fn::MFDataType, fn::MFDataType>, const fn::MultiFunction *> conversions_;
-
- public:
-  void add(fn::MFDataType from_type, fn::MFDataType to_type, const fn::MultiFunction &fn)
-  {
-    conversions_.add_new({from_type, to_type}, &fn);
-  }
-
-  const fn::MultiFunction *get_conversion(fn::MFDataType from, fn::MFDataType to) const
-  {
-    return conversions_.lookup_default({from, to}, nullptr);
-  }
-
-  bool is_convertible(const CPPType &from_type, const CPPType &to_type) const
-  {
-    return conversions_.contains(
-        {fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type)});
-  }
-
-  void convert(const CPPType &from_type,
-               const CPPType &to_type,
-               const void *from_value,
-               void *to_value) const;
-};
-
-const DataTypeConversions &get_implicit_type_conversions();
-
 }  // namespace blender::nodes

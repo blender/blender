@@ -84,6 +84,7 @@
 #include "NOD_geometry_exec.hh"
 #include "NOD_node_tree_multi_function.hh"
 #include "NOD_type_callbacks.hh"
+#include "NOD_type_conversions.hh"
 
 using blender::float3;
 using blender::FunctionRef;

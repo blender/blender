@@ -34,7 +34,7 @@
 
 #include "CLG_log.h"
 
-#include "NOD_node_tree_multi_function.hh"
+#include "NOD_type_conversions.hh"
 
 #include "attribute_access_intern.hh"
 
