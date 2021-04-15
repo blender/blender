@@ -233,10 +233,9 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     }
 
     const int symmetrical_index = ss->vertex_info.symmetrize_map[vd.index];
-    printf("SYMM INDEX %d\n", symmetrical_index);
 
     if (symmetrical_index == -1) {
-        return;
+        continue;
     }
 
     float symm_co[3];
@@ -260,8 +259,6 @@ void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
       return;
   }
-
-  printf("SYMMETRIZE BRUSH STEP \n");
 
   SCULPT_symmetrize_map_ensure(ob);
 
