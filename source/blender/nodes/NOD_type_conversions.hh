@@ -21,20 +21,45 @@
 namespace blender::nodes {
 
 using fn::CPPType;
+using fn::GVArray;
+
+struct ConversionFunctions {
+  const fn::MultiFunction *multi_function;
+  void (*convert_single_to_initialized)(const void *src, void *dst);
+  void (*convert_single_to_uninitialized)(const void *src, void *dst);
+};
 
 class DataTypeConversions {
  private:
-  Map<std::pair<fn::MFDataType, fn::MFDataType>, const fn::MultiFunction *> conversions_;
+  Map<std::pair<fn::MFDataType, fn::MFDataType>, ConversionFunctions> conversions_;
 
  public:
-  void add(fn::MFDataType from_type, fn::MFDataType to_type, const fn::MultiFunction &fn)
+  void add(fn::MFDataType from_type,
+           fn::MFDataType to_type,
+           const fn::MultiFunction &fn,
+           void (*convert_single_to_initialized)(const void *src, void *dst),
+           void (*convert_single_to_uninitialized)(const void *src, void *dst))
   {
-    conversions_.add_new({from_type, to_type}, &fn);
+    conversions_.add_new({from_type, to_type},
+                         {&fn, convert_single_to_initialized, convert_single_to_uninitialized});
   }
 
-  const fn::MultiFunction *get_conversion(fn::MFDataType from, fn::MFDataType to) const
+  const ConversionFunctions *get_conversion_functions(fn::MFDataType from, fn::MFDataType to) const
   {
-    return conversions_.lookup_default({from, to}, nullptr);
+    return conversions_.lookup_ptr({from, to});
+  }
+
+  const ConversionFunctions *get_conversion_functions(const CPPType &from, const CPPType &to) const
+  {
+    return this->get_conversion_functions(fn::MFDataType::ForSingle(from),
+                                          fn::MFDataType::ForSingle(to));
+  }
+
+  const fn::MultiFunction *get_conversion_multi_function(fn::MFDataType from,
+                                                         fn::MFDataType to) const
+  {
+    const ConversionFunctions *functions = this->get_conversion_functions(from, to);
+    return functions ? functions->multi_function : nullptr;
   }
 
   bool is_convertible(const CPPType &from_type, const CPPType &to_type) const
@@ -43,10 +68,10 @@ class DataTypeConversions {
         {fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type)});
   }
 
-  void convert(const CPPType &from_type,
-               const CPPType &to_type,
-               const void *from_value,
-               void *to_value) const;
+  void convert_to_uninitialized(const CPPType &from_type,
+                                const CPPType &to_type,
+                                const void *from_value,
+                                void *to_value) const;
 };
 
 const DataTypeConversions &get_implicit_type_conversions();

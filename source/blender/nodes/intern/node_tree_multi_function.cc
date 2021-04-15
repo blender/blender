@@ -219,8 +219,8 @@ static void insert_links_and_unlinked_inputs(CommonMFNetworkBuilderData &common)
       const fn::MFDataType from_type = from_socket->data_type();
 
       if (from_type != to_type) {
-        const fn::MultiFunction *conversion_fn = get_implicit_type_conversions().get_conversion(
-            from_type, to_type);
+        const fn::MultiFunction *conversion_fn =
+            get_implicit_type_conversions().get_conversion_multi_function(from_type, to_type);
         if (conversion_fn != nullptr) {
           fn::MFNode &node = common.network.add_function(*conversion_fn);
           common.network.add_link(*from_socket, node.input(0));

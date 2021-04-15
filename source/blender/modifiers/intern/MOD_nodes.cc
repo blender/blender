@@ -583,7 +583,8 @@ class GeometryNodesEvaluator {
       else {
         void *buffer = allocator_.allocate(to_type.size(), to_type.alignment());
         if (conversions_.is_convertible(from_type, to_type)) {
-          conversions_.convert(from_type, to_type, value_to_forward.get(), buffer);
+          conversions_.convert_to_uninitialized(
+              from_type, to_type, value_to_forward.get(), buffer);
         }
         else {
           to_type.copy_to_uninitialized(to_type.default_value(), buffer);
@@ -653,7 +654,7 @@ class GeometryNodesEvaluator {
     if (conversions_.is_convertible(type, required_type)) {
       void *converted_buffer = allocator_.allocate(required_type.size(),
                                                    required_type.alignment());
-      conversions_.convert(type, required_type, buffer, converted_buffer);
+      conversions_.convert_to_uninitialized(type, required_type, buffer, converted_buffer);
       type.destruct(buffer);
       return {required_type, converted_buffer};
     }
