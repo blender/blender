@@ -89,6 +89,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   int domain_size = attribute->size();
   switch (attribute->custom_data_type()) {
     case CD_PROP_FLOAT:
+      if (column_id.index != -1) {
+        return {};
+      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             float value;
@@ -96,6 +99,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
             r_cell_value.value_float = value;
           });
     case CD_PROP_INT32:
+      if (column_id.index != -1) {
+        return {};
+      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             int value;
@@ -103,6 +109,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
             r_cell_value.value_int = value;
           });
     case CD_PROP_BOOL:
+      if (column_id.index != -1) {
+        return {};
+      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             bool value;
