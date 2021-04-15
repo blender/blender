@@ -73,6 +73,8 @@
 #include "ED_undo.h"
 #include "ED_view3d.h"
 
+#include "UI_resources.h"
+
 #include "WM_toolsystem.h"
 
 #include "ED_object.h" /* own include */
@@ -455,8 +457,7 @@ static void transfer_mode_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), v
   GPU_matrix_push();
   GPU_matrix_mul(cd->target_object->obmat);
 
-  const float col_base = 0.6f;
-  immUniformColor4f(col_base, col_base, col_base, 0.25 * cd->alpha);
+  immUniformThemeColorAlpha(TH_VERTEX_SELECT, 0.25 * cd->alpha);
 
   Mesh *mesh = cd->mesh;
   immBegin(GPU_PRIM_TRIS, cd->tottris * 3);
