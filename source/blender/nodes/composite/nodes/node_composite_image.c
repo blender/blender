@@ -526,24 +526,32 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
   }
 }
 
-static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+static bool node_composit_poll_rlayers(bNodeType *UNUSED(ntype),
+                                       bNodeTree *ntree,
+                                       const char **r_disabled_hint)
 {
-  if (STREQ(ntree->idname, "CompositorNodeTree")) {
-    Scene *scene;
-
-    /* XXX ugly: check if ntree is a local scene node tree.
-     * Render layers node can only be used in local scene->nodetree,
-     * since it directly links to the scene.
-     */
-    for (scene = G.main->scenes.first; scene; scene = scene->id.next) {
-      if (scene->nodetree == ntree) {
-        break;
-      }
-    }
-
-    return (scene != NULL);
+  if (!STREQ(ntree->idname, "CompositorNodeTree")) {
+    *r_disabled_hint = "Not a compositor node tree";
+    return false;
   }
-  return false;
+
+  Scene *scene;
+
+  /* XXX ugly: check if ntree is a local scene node tree.
+   * Render layers node can only be used in local scene->nodetree,
+   * since it directly links to the scene.
+   */
+  for (scene = G.main->scenes.first; scene; scene = scene->id.next) {
+    if (scene->nodetree == ntree) {
+      break;
+    }
+  }
+
+  if (scene == NULL) {
+    *r_disabled_hint = "The node tree must be the compositing node tree of any scene in the file";
+    return false;
+  }
+  return true;
 }
 
 static void node_composit_free_rlayers(bNode *node)

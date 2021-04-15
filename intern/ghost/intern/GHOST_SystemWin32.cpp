@@ -1442,12 +1442,23 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            */
           break;
         case WM_SYSCOMMAND:
-          /* The WM_SYSCHAR message is sent to the window when system commands such as
+          /* The WM_SYSCOMMAND message is sent to the window when system commands such as
            * maximize, minimize  or close the window are triggered. Also it is sent when ALT
            * button is press for menu. To prevent this we must return preventing DefWindowProc.
+           *
+           * Note that the four low-order bits of the wParam parameter are used internally by the
+           * OS. To obtain the correct result when testing the value of wParam, an application
+           * must combine the value 0xFFF0 with the wParam value by using the bitwise AND operator.
            */
-          if (wParam == SC_KEYMENU) {
-            eventHandled = true;
+          switch (wParam & 0xFFF0) {
+            case SC_KEYMENU:
+              eventHandled = true;
+              break;
+            case SC_RESTORE:
+              ::ShowWindow(hwnd, SW_RESTORE);
+              window->setState(window->getState());
+              eventHandled = true;
+              break;
           }
           break;
         ////////////////////////////////////////////////////////////////////////

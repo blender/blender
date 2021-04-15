@@ -31,6 +31,7 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_text.h"
 
 #include "DNA_text_types.h"
@@ -294,13 +295,47 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
  * in code that doesn't deal with Python data-types.
  * \{ */
 
+static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
+{
+  if (err_info == NULL) {
+    PyErr_Print();
+    PyErr_Clear();
+    return;
+  }
+
+  /* Signal to do nothing. */
+  if (!(err_info->reports || err_info->r_string)) {
+    PyErr_Clear();
+    return;
+  }
+
+  PyObject *py_err_str = err_info->use_single_line_error ? PyC_ExceptionBuffer_Simple() :
+                                                           PyC_ExceptionBuffer();
+  const char *err_str = py_err_str ? PyUnicode_AsUTF8(py_err_str) : "Unable to extract exception";
+
+  if (err_info->reports != NULL) {
+    if (err_info->report_prefix) {
+      BKE_reportf(err_info->reports, RPT_ERROR, "%s: %s", err_info->report_prefix, err_str);
+    }
+    else {
+      BKE_report(err_info->reports, RPT_ERROR, err_str);
+    }
+  }
+
+  if (err_info->r_string != NULL) {
+    *err_info->r_string = BLI_strdup(err_str);
+  }
+
+  Py_XDECREF(py_err_str);
+}
+
 /**
  * \return success
  */
 bool BPY_run_string_as_number(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               double *r_value)
 {
   PyGILState_STATE gilstate;
@@ -320,12 +355,7 @@ bool BPY_run_string_as_number(bContext *C,
   ok = PyC_RunString_AsNumber(imports, expr, "<expr as number>", r_value);
 
   if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), report_prefix, false, false);
-    }
-    else {
-      PyErr_Clear();
-    }
+    run_string_handle_error(err_info);
   }
 
   bpy_context_clear(C, &gilstate);
@@ -339,7 +369,7 @@ bool BPY_run_string_as_number(bContext *C,
 bool BPY_run_string_as_string_and_size(bContext *C,
                                        const char *imports[],
                                        const char *expr,
-                                       const char *report_prefix,
+                                       struct BPy_RunErrInfo *err_info,
                                        char **r_value,
                                        size_t *r_value_size)
 {
@@ -357,12 +387,7 @@ bool BPY_run_string_as_string_and_size(bContext *C,
   ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_size);
 
   if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), false, false, report_prefix);
-    }
-    else {
-      PyErr_Clear();
-    }
+    run_string_handle_error(err_info);
   }
 
   bpy_context_clear(C, &gilstate);
@@ -373,12 +398,11 @@ bool BPY_run_string_as_string_and_size(bContext *C,
 bool BPY_run_string_as_string(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               char **r_value)
 {
   size_t value_dummy_size;
-  return BPY_run_string_as_string_and_size(
-      C, imports, expr, report_prefix, r_value, &value_dummy_size);
+  return BPY_run_string_as_string_and_size(C, imports, expr, err_info, r_value, &value_dummy_size);
 }
 
 /**
@@ -389,7 +413,7 @@ bool BPY_run_string_as_string(bContext *C,
 bool BPY_run_string_as_intptr(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value)
 {
   BLI_assert(r_value && expr);
@@ -406,12 +430,7 @@ bool BPY_run_string_as_intptr(bContext *C,
   ok = PyC_RunString_AsIntPtr(imports, expr, "<expr as intptr>", r_value);
 
   if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), report_prefix, false, false);
-    }
-    else {
-      PyErr_Clear();
-    }
+    run_string_handle_error(err_info);
   }
 
   bpy_context_clear(C, &gilstate);

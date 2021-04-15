@@ -169,9 +169,10 @@ typedef struct Object_Runtime {
   struct GeometrySet *geometry_set_eval;
 
   /**
-   * Data from this geometry set is previewed in the spreadsheet editor.
+   * A GHash that contains geometry sets for intermediate stages of evaluation. The keys are just a
+   * hash and are not owned by the map. The geometry sets are owned.
    */
-  struct GeometrySet *geometry_set_preview;
+  void *geometry_set_previews;
 
   /**
    * Mesh structure created during object evaluation.

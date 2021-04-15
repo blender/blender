@@ -115,7 +115,8 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          BMVert *v_kill,
                                          const bool do_del,
                                          const bool check_edge_exists,
-                                         const bool kill_degenerate_faces);
+                                         const bool kill_degenerate_faces,
+                                         const bool kill_duplicate_faces);
 BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,

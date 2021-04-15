@@ -505,7 +505,7 @@ void GPENCIL_OT_select_alternate(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "unselect_ends",
-                  true,
+                  false,
                   "Unselect Ends",
                   "Do not select the first and last point of the stroke");
 }

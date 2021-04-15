@@ -63,7 +63,7 @@ void GlareNode::convertToOperations(NodeConverter &converter,
   thresholdOperation->setGlareSettings(glare);
 
   SetValueOperation *mixvalueoperation = new SetValueOperation();
-  mixvalueoperation->setValue(0.5f + glare->mix * 0.5f);
+  mixvalueoperation->setValue(glare->mix);
 
   MixGlareOperation *mixoperation = new MixGlareOperation();
   mixoperation->setResolutionInputSocketIndex(1);

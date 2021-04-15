@@ -37,17 +37,6 @@ static bNodeSocketTemplate geo_node_subdivision_surface_out[] = {
     {-1, ""},
 };
 
-static void geo_node_subdivision_surface_layout(uiLayout *layout,
-                                                bContext *UNUSED(C),
-                                                PointerRNA *UNUSED(ptr))
-{
-#ifndef WITH_OPENSUBDIV
-  uiItemL(layout, IFACE_("Disabled, built without OpenSubdiv"), ICON_ERROR);
-#else
-  UNUSED_VARS(layout);
-#endif
-}
-
 namespace blender::nodes {
 static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
 {
@@ -61,9 +50,8 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   }
 
 #ifndef WITH_OPENSUBDIV
-  /* Return input geometry if Blender is built without OpenSubdiv. */
-  params.set_output("Geometry", std::move(geometry_set));
-  return;
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 #else
   const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 30);
 
@@ -113,9 +101,11 @@ static void geo_node_subdivision_surface_exec(GeoNodeExecParams params)
   // BKE_subdiv_stats_print(&subdiv->stats);
   BKE_subdiv_free(subdiv);
 
-  params.set_output("Geometry", std::move(geometry_set));
 #endif
+
+  params.set_output("Geometry", std::move(geometry_set));
 }
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_subdivision_surface()
@@ -127,6 +117,5 @@ void register_node_type_geo_subdivision_surface()
   node_type_socket_templates(
       &ntype, geo_node_subdivision_surface_in, geo_node_subdivision_surface_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_subdivision_surface_exec;
-  ntype.draw_buttons = geo_node_subdivision_surface_layout;
   nodeRegisterType(&ntype);
 }

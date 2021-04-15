@@ -14,37 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/** \file
- * \ingroup DNA
- */
-
 #pragma once
 
-/* Struct members on own line. */
-/* clang-format off */
+#include "DNA_space_types.h"
 
-/* -------------------------------------------------------------------- */
-/** \name MovieClip Struct
- * \{ */
+namespace blender::ed::spreadsheet {
 
-#define _DNA_DEFAULT_MovieClipProxy \
-  { \
-    .build_size_flag = IMB_PROXY_25, \
-    .build_tc_flag = IMB_TC_RECORD_RUN | IMB_TC_FREE_RUN | \
-                     IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN | IMB_TC_RECORD_RUN_NO_GAPS, \
-    .quality = 50, \
-  }
+SpreadsheetContext *spreadsheet_context_new(eSpaceSpreadsheet_ContextType type);
+SpreadsheetContext *spreadsheet_context_copy(const SpreadsheetContext *old_context);
+void spreadsheet_context_free(SpreadsheetContext *context);
 
-
-#define _DNA_DEFAULT_MovieClip \
-  { \
-    .aspx = 1.0f, \
-    .aspy = 1.0f, \
-    .proxy = _DNA_DEFAULT_MovieClipProxy, \
-    .start_frame = 1, \
-    .frame_offset = 0, \
-  }
-
-/** \} */
-
-/* clang-format on */
+}  // namespace blender::ed::spreadsheet

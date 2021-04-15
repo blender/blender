@@ -105,10 +105,12 @@ static void gpencil_shade_color(float color[3])
 }
 
 /* Apply all overrides from the solid viewport mode to the GPencil material. */
-static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_PrivateData *pd,
-                                                                 Object *ob,
-                                                                 int color_type,
-                                                                 MaterialGPencilStyle *gp_style)
+static MaterialGPencilStyle *gpencil_viewport_material_overrides(
+    GPENCIL_PrivateData *pd,
+    Object *ob,
+    int color_type,
+    MaterialGPencilStyle *gp_style,
+    const eV3DShadingLightingMode lighting_mode)
 {
   static MaterialGPencilStyle gp_style_tmp;
 
@@ -148,7 +150,9 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_Private
       copy_v3_v3(gp_style->fill_rgba, pd->v3d_single_color);
       gp_style->fill_rgba[3] = 1.0f;
       copy_v4_v4(gp_style->stroke_rgba, gp_style->fill_rgba);
-      gpencil_shade_color(gp_style->stroke_rgba);
+      if (lighting_mode != V3D_LIGHTING_FLAT) {
+        gpencil_shade_color(gp_style->fill_rgba);
+      }
       break;
     case V3D_SHADING_OBJECT_COLOR:
       gp_style = &gp_style_tmp;
@@ -156,7 +160,9 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(GPENCIL_Private
       gp_style->fill_style = GP_MATERIAL_FILL_STYLE_SOLID;
       copy_v4_v4(gp_style->fill_rgba, ob->color);
       copy_v4_v4(gp_style->stroke_rgba, ob->color);
-      gpencil_shade_color(gp_style->stroke_rgba);
+      if (lighting_mode != V3D_LIGHTING_FLAT) {
+        gpencil_shade_color(gp_style->fill_rgba);
+      }
       break;
     case V3D_SHADING_VERTEX_COLOR:
       gp_style = &gp_style_tmp;
@@ -198,6 +204,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
   int color_type = (pd->v3d_color_type != -1 && GPENCIL_VERTEX_MODE(gpd)) ?
                        V3D_SHADING_VERTEX_COLOR :
                        pd->v3d_color_type;
+  const eV3DShadingLightingMode lighting_mode = (pd->v3d != NULL) ? pd->v3d->shading.light :
+                                                                    V3D_LIGHTING_STUDIO;
 
   GPENCIL_MaterialPool *pool = matpool;
   for (int i = 0; i < mat_len; i++) {
@@ -245,7 +253,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
       mat_data->flag |= GP_FILL_HOLDOUT;
     }
 
-    gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style);
+    gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style, lighting_mode);
 
     /* Dots or Squares rotation. */
     mat_data->alignment_rot_cos = cosf(gp_style->alignment_rotation);

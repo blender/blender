@@ -27,7 +27,6 @@
 struct ARegion;
 struct bContext;
 struct View3D;
-struct wmOperator;
 struct wmOperatorType;
 
 void WM_OT_gpencil_import_svg(struct wmOperatorType *ot);

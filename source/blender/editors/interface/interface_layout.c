@@ -2718,6 +2718,7 @@ uiBut *ui_but_add_search(
                            ui_searchbox_create_generic,
                            ui_rna_collection_search_update_fn,
                            coll_search,
+                           false,
                            ui_rna_collection_search_arg_free_fn,
                            NULL,
                            NULL);

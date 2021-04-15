@@ -30,7 +30,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string_utf8.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
+#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -68,6 +69,8 @@
 #include "BLI_hash.h"
 #include "BLI_strict_flags.h"
 
+using blender::Array;
+using blender::float3;
 using blender::float4x4;
 using blender::Span;
 
@@ -912,40 +915,37 @@ struct FaceDupliData_EditMesh {
   const float (*vert_coords)[3];
 };
 
-static void get_dupliface_transform_from_coords(const float coords[][3],
-                                                const int coords_len,
+static void get_dupliface_transform_from_coords(Span<float3> coords,
                                                 const bool use_scale,
                                                 const float scale_fac,
                                                 float r_mat[4][4])
 {
-  float loc[3], quat[4], scale, size[3];
-
   /* Location. */
-  {
-    const float w = 1.0f / (float)coords_len;
-    zero_v3(loc);
-    for (int i = 0; i < coords_len; i++) {
-      madd_v3_v3fl(loc, coords[i], w);
-    }
+  float3 location(0);
+  for (const float3 &coord : coords) {
+    location += coord;
   }
+  location *= 1.0f / (float)coords.size();
+
   /* Rotation. */
-  {
-    float f_no[3];
-    cross_poly_v3(f_no, coords, (uint)coords_len);
-    normalize_v3(f_no);
-    tri_to_quat_ex(quat, coords[0], coords[1], coords[2], f_no);
-  }
+  float quat[4];
+
+  float3 f_no;
+  cross_poly_v3(f_no, (const float(*)[3])coords.data(), (uint)coords.size());
+  f_no.normalize();
+  tri_to_quat_ex(quat, coords[0], coords[1], coords[2], f_no);
+
   /* Scale. */
+  float scale;
   if (use_scale) {
-    const float area = area_poly_v3(coords, (uint)coords_len);
+    const float area = area_poly_v3((const float(*)[3])coords.data(), (uint)coords.size());
     scale = sqrtf(area) * scale_fac;
   }
   else {
     scale = 1.0f;
   }
-  size[0] = size[1] = size[2] = scale;
 
-  loc_quat_size_to_mat4(r_mat, loc, quat, size);
+  loc_quat_size_to_mat4(r_mat, location, quat, float3(scale));
 }
 
 static DupliObject *face_dupli(const DupliContext *ctx,
@@ -954,14 +954,13 @@ static DupliObject *face_dupli(const DupliContext *ctx,
                                const int index,
                                const bool use_scale,
                                const float scale_fac,
-                               const float (*coords)[3],
-                               const int coords_len)
+                               Span<float3> coords)
 {
   float obmat[4][4];
   float space_mat[4][4];
 
   /* `obmat` is transform to face. */
-  get_dupliface_transform_from_coords(coords, coords_len, use_scale, scale_fac, obmat);
+  get_dupliface_transform_from_coords(coords, use_scale, scale_fac, obmat);
 
   /* Make offset relative to inst_ob using relative child transform. */
   mul_mat3_m4_v3(child_imat, obmat[3]);
@@ -989,7 +988,6 @@ static DupliObject *face_dupli(const DupliContext *ctx,
   return dob;
 }
 
-/** Wrap #face_dupli, needed since we can't #alloca in a loop. */
 static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          Object *inst_ob,
                                          const float child_imat[4][4],
@@ -1003,17 +1001,16 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const MVert *mvert)
 {
   const int coords_len = mpoly->totloop;
-  float(*coords)[3] = (float(*)[3])BLI_array_alloca(coords, (size_t)coords_len);
+  Array<float3, 64> coords(coords_len);
 
   const MLoop *ml = mloopstart;
   for (int i = 0; i < coords_len; i++, ml++) {
-    copy_v3_v3(coords[i], mvert[ml->v].co);
+    coords[i] = float3(mvert[ml->v].co);
   }
 
-  return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords, coords_len);
+  return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
 }
 
-/** Wrap #face_dupli, needed since we can't #alloca in a loop. */
 static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
                                              Object *inst_ob,
                                              const float child_imat[4][4],
@@ -1026,7 +1023,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
                                              const float (*vert_coords)[3])
 {
   const int coords_len = f->len;
-  float(*coords)[3] = (float(*)[3])BLI_array_alloca(coords, (size_t)coords_len);
+  Array<float3, 64> coords(coords_len);
 
   BMLoop *l_first, *l_iter;
   int i = 0;
@@ -1042,7 +1039,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords, coords_len);
+  return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
 }
 
 static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,

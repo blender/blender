@@ -439,7 +439,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     for (i = 0; i < vinput_len; i++) {
       BMVert *v = vinput_arr[i];
       if (LIKELY(v != NULL) && BM_vert_is_edge_pair(v)) {
-        BM_vert_collapse_edge(bm, v->e, v, true, true); /* join edges */
+        BM_vert_collapse_edge(bm, v->e, v, true, true, true); /* join edges */
       }
     }
   }
@@ -482,7 +482,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
           BM_vert_is_edge_pair(v)
 #endif
       ) {
-        e_new = BM_vert_collapse_edge(bm, v->e, v, true, true); /* join edges */
+        e_new = BM_vert_collapse_edge(bm, v->e, v, true, true, true); /* join edges */
 
         if (e_new) {
 

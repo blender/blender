@@ -592,7 +592,7 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const int highlight_part_init = gz->highlight_part;
 
   if (gz->drag_part != -1) {
-    if (ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG)) {
+    if (WM_event_is_mouse_drag(event)) {
       gz->highlight_part = gz->drag_part;
     }
   }

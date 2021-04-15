@@ -289,10 +289,22 @@ typedef struct bNodeType {
   void (*freefunc_api)(struct PointerRNA *ptr);
   void (*copyfunc_api)(struct PointerRNA *ptr, const struct bNode *src_node);
 
-  /* can this node type be added to a node tree */
-  bool (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree);
-  /* can this node be added to a node tree */
-  bool (*poll_instance)(struct bNode *node, struct bNodeTree *nodetree);
+  /**
+   * Can this node type be added to a node tree?
+   * \param r_disabled_hint: Optional hint to display in the UI when the poll fails.
+   *                         The callback can set this to a static string without having to
+   *                         null-check it (or without setting it to null if it's not used).
+   *                         The caller must pass a valid `const char **` and null-initialize it
+   *                         when it's not just a dummy, that is, if it actually wants to access
+   *                         the returned disabled-hint (null-check needed!).
+   */
+  bool (*poll)(struct bNodeType *ntype, struct bNodeTree *nodetree, const char **r_disabled_hint);
+  /** Can this node be added to a node tree?
+   * \param r_disabled_hint: See `poll()`.
+   */
+  bool (*poll_instance)(struct bNode *node,
+                        struct bNodeTree *nodetree,
+                        const char **r_disabled_hint);
 
   /* optional handling of link insertion */
   void (*insert_link)(struct bNodeTree *ntree, struct bNode *node, struct bNodeLink *link);
@@ -804,7 +816,9 @@ void BKE_node_preview_set_pixel(
 void nodeLabel(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
 const char *nodeSocketLabel(const struct bNodeSocket *sock);
 
-int nodeGroupPoll(struct bNodeTree *nodetree, struct bNodeTree *grouptree);
+bool nodeGroupPoll(struct bNodeTree *nodetree,
+                   struct bNodeTree *grouptree,
+                   const char **r_disabled_hint);
 
 /* Init a new node type struct with default values and callbacks */
 void node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass, short flag);

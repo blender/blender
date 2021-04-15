@@ -3010,8 +3010,13 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         else if (sl->spacetype == SPACE_SPREADSHEET) {
           SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
-          sspreadsheet->pinned_id = restore_pointer_by_name(
-              id_map, sspreadsheet->pinned_id, USER_IGNORE);
+          LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+            if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
+              SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
+              object_context->object = restore_pointer_by_name(
+                  id_map, (ID *)object_context->object, USER_IGNORE);
+            }
+          }
         }
       }
     }

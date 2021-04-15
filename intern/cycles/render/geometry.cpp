@@ -1364,7 +1364,6 @@ void GeometryManager::device_update_bvh(Device *device,
   }
 
   dscene->data.bvh.root = pack.root_index;
-  dscene->data.bvh.bvh_layout = bparams.bvh_layout;
   dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
   dscene->data.bvh.curve_subdivisions = scene->params.curve_subdivisions();
   /* The scene handle is set in 'CPUDevice::const_copy_to' and 'OptiXDevice::const_copy_to' */
@@ -1983,6 +1982,11 @@ void GeometryManager::device_update(Device *device,
       return;
     }
   }
+
+  /* Always set BVH layout again after displacement where it was set to none,
+   * to avoid ray-tracing at that stage. */
+  dscene->data.bvh.bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
+                                                           device->get_bvh_layout_mask());
 
   {
     scoped_callback_timer timer([scene](double time) {

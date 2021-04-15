@@ -52,6 +52,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
@@ -2912,7 +2913,14 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
 static bool ui_number_from_string_units(
     bContext *C, const char *str, const int unit_type, const UnitSettings *unit, double *r_value)
 {
-  return user_string_to_number(C, str, unit, unit_type, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
+  char *error = NULL;
+  const bool ok = user_string_to_number(C, str, unit, unit_type, r_value, true, &error);
+  if (error) {
+    ReportList *reports = CTX_wm_reports(C);
+    BKE_reportf(reports, RPT_ERROR, "%s: %s", UI_NUMBER_EVAL_ERROR_PREFIX, error);
+    MEM_freeN(error);
+  }
+  return ok;
 }
 
 static bool ui_number_from_string_units_with_but(bContext *C,
@@ -2929,7 +2937,11 @@ static bool ui_number_from_string(bContext *C, const char *str, double *r_value)
 {
   bool ok;
 #ifdef WITH_PYTHON
-  ok = BPY_run_string_as_number(C, NULL, str, UI_NUMBER_EVAL_ERROR_PREFIX, r_value);
+  struct BPy_RunErrInfo err_info = {
+      .reports = CTX_wm_reports(C),
+      .report_prefix = UI_NUMBER_EVAL_ERROR_PREFIX,
+  };
+  ok = BPY_run_string_as_number(C, NULL, str, &err_info, r_value);
 #else
   UNUSED_VARS(C);
   *r_value = atof(str);
@@ -6590,6 +6602,8 @@ uiBut *uiDefSearchBut(uiBlock *block,
  * \param search_create_fn: Function to create the menu.
  * \param search_update_fn: Function to refresh search content after the search text has changed.
  * \param arg: user value.
+ * \param free_arg: Set to true if the argument is newly allocated memory for every redraw and
+ * should be freed when the button is destroyed.
  * \param search_arg_free_fn: When non-null, use this function to free \a arg.
  * \param search_exec_fn: Function that executes the action, gets \a arg as the first argument.
  * The second argument as the active item-pointer
@@ -6600,6 +6614,7 @@ void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
                             uiButSearchUpdateFn search_update_fn,
                             void *arg,
+                            const bool free_arg,
                             uiButSearchArgFreeFn search_arg_free_fn,
                             uiButHandleFunc search_exec_fn,
                             void *active)
@@ -6635,11 +6650,17 @@ void UI_but_func_search_set(uiBut *but,
     }
 #endif
     /* Handling will pass the active item as arg2 later, so keep it NULL here. */
-    UI_but_func_set(but, search_exec_fn, search_but->arg, NULL);
+    if (free_arg) {
+      UI_but_funcN_set(but, search_exec_fn, search_but->arg, NULL);
+    }
+    else {
+      UI_but_func_set(but, search_exec_fn, search_but->arg, NULL);
+    }
   }
 
-  /* search buttons show red-alert if item doesn't exist, not for menus */
-  if (0 == (but->block->flag & UI_BLOCK_LOOP)) {
+  /* search buttons show red-alert if item doesn't exist, not for menus. Don't do this for
+   * buttons where any result is valid anyway, since any string will be valid anyway. */
+  if (0 == (but->block->flag & UI_BLOCK_LOOP) && !search_but->results_are_suggestions) {
     /* skip empty buttons, not all buttons need input, we only show invalid */
     if (but->drawstr[0]) {
       ui_but_search_refresh(search_but);
@@ -6779,6 +6800,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                          ui_searchbox_create_generic,
                          operator_enum_search_update_fn,
                          but,
+                         false,
                          NULL,
                          operator_enum_search_exec_fn,
                          NULL);

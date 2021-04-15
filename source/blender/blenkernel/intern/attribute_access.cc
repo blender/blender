@@ -34,7 +34,7 @@
 
 #include "CLG_log.h"
 
-#include "NOD_node_tree_multi_function.hh"
+#include "NOD_type_conversions.hh"
 
 #include "attribute_access_intern.hh"
 
@@ -210,23 +210,25 @@ class ConvertedReadAttribute final : public ReadAttribute {
   const CPPType &from_type_;
   const CPPType &to_type_;
   ReadAttributePtr base_attribute_;
-  const nodes::DataTypeConversions &conversions_;
+  void (*convert_)(const void *src, void *dst);
 
  public:
   ConvertedReadAttribute(ReadAttributePtr base_attribute, const CPPType &to_type)
       : ReadAttribute(base_attribute->domain(), to_type, base_attribute->size()),
         from_type_(base_attribute->cpp_type()),
         to_type_(to_type),
-        base_attribute_(std::move(base_attribute)),
-        conversions_(nodes::get_implicit_type_conversions())
+        base_attribute_(std::move(base_attribute))
   {
+    const nodes::DataTypeConversions &conversions = nodes::get_implicit_type_conversions();
+    convert_ = conversions.get_conversion_functions(base_attribute_->cpp_type(), to_type)
+                   ->convert_single_to_uninitialized;
   }
 
   void get_internal(const int64_t index, void *r_value) const override
   {
     BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
     base_attribute_->get(index, buffer);
-    conversions_.convert(from_type_, to_type_, buffer, r_value);
+    convert_(buffer, r_value);
   }
 };
 
@@ -989,7 +991,7 @@ blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_rea
   BLI_assert(conversions.is_convertible(*in_cpp_type, *out_cpp_type));
 
   void *out_value = alloca(out_cpp_type->size());
-  conversions.convert(*in_cpp_type, *out_cpp_type, value, out_value);
+  conversions.convert_to_uninitialized(*in_cpp_type, *out_cpp_type, value, out_value);
 
   const int domain_size = this->attribute_domain_size(domain);
   blender::bke::ReadAttributePtr attribute = std::make_unique<blender::bke::ConstantReadAttribute>(

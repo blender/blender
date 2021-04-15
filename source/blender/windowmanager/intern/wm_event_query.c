@@ -265,6 +265,11 @@ bool WM_event_is_last_mousemove(const wmEvent *event)
   return true;
 }
 
+bool WM_event_is_mouse_drag(const wmEvent *event)
+{
+  return ISTWEAK(event->type) || (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -65,7 +65,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_paths_range_update);
   WM_operatortype_append(OBJECT_OT_forcefield_toggle);
 
-  WM_operatortype_append(OBJECT_OT_switch_object);
+  WM_operatortype_append(OBJECT_OT_transfer_mode);
 
   WM_operatortype_append(OBJECT_OT_parent_set);
   WM_operatortype_append(OBJECT_OT_parent_no_inverse_set);

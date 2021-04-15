@@ -242,7 +242,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
       if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
         if (BM_vert_is_edge_pair(v)) {
-          BM_vert_collapse_edge(bm, v->e, v, true, true);
+          BM_vert_collapse_edge(bm, v->e, v, true, true, true);
         }
       }
     }
@@ -327,6 +327,10 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
       /* join faces */
       f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+      if (f_new && BM_face_find_double(f_new)) {
+        BM_face_kill(bm, f_new);
+        f_new = NULL;
+      }
 
       if (f_new) {
         /* maintain active face */
@@ -355,7 +359,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
       if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
         if (BM_vert_is_edge_pair(v)) {
-          BM_vert_collapse_edge(bm, v->e, v, true, true);
+          BM_vert_collapse_edge(bm, v->e, v, true, true, true);
         }
       }
     }
@@ -441,10 +445,16 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 
           /* join faces */
           f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+          if (f_new && BM_face_find_double(f_new)) {
+            BM_face_kill(bm, f_new);
+            f_new = NULL;
+          }
 
-          /* maintain active face */
-          if (act_face && bm->act_face == NULL) {
-            bm->act_face = f_new;
+          if (f_new) {
+            /* maintain active face */
+            if (act_face && bm->act_face == NULL) {
+              bm->act_face = f_new;
+            }
           }
         }
       }
@@ -462,7 +472,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   /* final cleanup */
   BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
     if (BM_vert_is_edge_pair(v)) {
-      BM_vert_collapse_edge(bm, v->e, v, false, true);
+      BM_vert_collapse_edge(bm, v->e, v, false, true, true);
     }
   }
 

@@ -40,7 +40,6 @@ struct MDeformVert;
 struct Main;
 struct Nurb;
 struct Object;
-struct Path;
 struct TextBox;
 struct rctf;
 

@@ -779,7 +779,7 @@ static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C
     RNA_enum_item_add(&item, &totitem, &new_item);
   }
 
-#  ifndef NDEBUG
+#  if !defined(NDEBUG) || !defined(WITH_AUDASPACE)
   if (i == 0) {
     EnumPropertyItem new_item = {i, "SOUND_NONE", 0, "No Sound", ""};
     RNA_enum_item_add(&item, &totitem, &new_item);
@@ -6288,11 +6288,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_sculpt_vertex_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_vertex_colors", 1);
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "Use the new Vertex Painting system");
-
-  prop = RNA_def_property(srna, "use_switch_object_operator", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_switch_object_operator", 1);
-  RNA_def_property_ui_text(
-      prop, "Switch Object Operator", "Enable the operator to switch objects by pressing D");
 
   prop = RNA_def_property(srna, "use_sculpt_tools_tilt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_tools_tilt", 1);

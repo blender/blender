@@ -34,12 +34,44 @@ class SPREADSHEET_OT_toggle_pin(Operator):
     def execute(self, context):
         space = context.space_data
 
-        if space.pinned_id:
-            space.pinned_id = None
+        if space.is_pinned:
+            self.unpin(context)
         else:
-            space.pinned_id = context.active_object
-
+            self.pin(context)
         return {'FINISHED'}
+
+    def pin(self, context):
+        space = context.space_data
+        space.is_pinned = True
+
+    def unpin(self, context):
+        space = context.space_data
+        space.is_pinned = False
+
+        space.context_path.clear()
+
+        # Try to find a node with an active preview in any open editor.
+        if space.object_eval_state == 'EVALUATED':
+            node_editors = self.find_geometry_node_editors(context)
+            for node_editor in node_editors:
+                ntree = node_editor.edit_tree
+                for node in ntree.nodes:
+                    if node.active_preview:
+                        space.set_geometry_node_context(node_editor, node)
+                        return
+
+    def find_geometry_node_editors(self, context):
+        editors = []
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                space = area.spaces.active
+                if space.type != 'NODE_EDITOR':
+                    continue
+                if space.edit_tree is None:
+                    continue
+                if space.edit_tree.type == 'GEOMETRY':
+                    editors.append(space)
+        return editors
 
 
 classes = (

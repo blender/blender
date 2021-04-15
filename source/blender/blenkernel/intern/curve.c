@@ -414,6 +414,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
     cu->tb[0].w = cu->tb[0].h = 0.0;
   }
   else if (cu->type == OB_SURF) {
+    cu->flag |= CU_3D;
     cu->resolv = 4;
   }
   cu->bevel_profile = NULL;

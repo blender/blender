@@ -49,8 +49,6 @@ class GpencilExporterPDF : public GpencilExporter {
   HPDF_Doc pdf_;
   /* PDF page. */
   HPDF_Page page_;
-  /* State. */
-  HPDF_ExtGState gstate_;
 
   bool create_document();
   bool add_page();

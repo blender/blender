@@ -521,7 +521,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 
   switch (state) {
     case GHOST_kWindowStateMinimized:
-      wp.showCmd = SW_SHOWMINIMIZED;
+      wp.showCmd = SW_MINIMIZE;
       break;
     case GHOST_kWindowStateMaximized:
       wp.showCmd = SW_SHOWMAXIMIZED;

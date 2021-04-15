@@ -679,8 +679,19 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
   /* check poll functions for selected nodes */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node_group_make_use_node(node, gnode)) {
-      if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, ngroup)) {
-        BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+      const char *disabled_hint = NULL;
+      if (node->typeinfo->poll_instance &&
+          !node->typeinfo->poll_instance(node, ngroup, &disabled_hint)) {
+        if (disabled_hint) {
+          BKE_reportf(reports,
+                      RPT_WARNING,
+                      "Can not add node '%s' in a group:\n  %s",
+                      node->name,
+                      disabled_hint);
+        }
+        else {
+          BKE_reportf(reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+        }
         ok = false;
         break;
       }

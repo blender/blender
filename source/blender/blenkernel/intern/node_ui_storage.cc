@@ -163,6 +163,6 @@ void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
                                      const CustomDataType data_type)
 {
   NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
-  node_ui_storage.attribute_hints.add_as(attribute_name,
-                                         AvailableAttributeInfo{domain, data_type});
+  node_ui_storage.attribute_hints.add_as(
+      AvailableAttributeInfo{attribute_name, domain, data_type});
 }

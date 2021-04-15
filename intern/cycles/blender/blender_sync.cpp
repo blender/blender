@@ -569,7 +569,8 @@ int BlenderSync::get_denoising_pass(BL::RenderPass &b_pass)
   return -1;
 }
 
-vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay,
+vector<Pass> BlenderSync::sync_render_passes(BL::Scene &b_scene,
+                                             BL::RenderLayer &b_rlay,
                                              BL::ViewLayer &b_view_layer,
                                              bool adaptive_sampling,
                                              const DenoiseParams &denoising)
@@ -580,7 +581,7 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay,
   for (BL::RenderPass &b_pass : b_rlay.passes) {
     PassType pass_type = get_pass_type(b_pass);
 
-    if (pass_type == PASS_MOTION && scene->integrator->get_motion_blur())
+    if (pass_type == PASS_MOTION && b_scene.render().use_motion_blur())
       continue;
     if (pass_type != PASS_NONE)
       Pass::add(pass_type, passes, b_pass.name().c_str());

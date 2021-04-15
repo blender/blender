@@ -399,7 +399,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
                    "'%s').label",
                    idname);
           char *expr_result = NULL;
-          if (BPY_run_string_as_string(C, expr_imports, expr, __func__, &expr_result)) {
+          if (BPY_run_string_as_string(C, expr_imports, expr, NULL, &expr_result)) {
             STRNCPY(drawstr, expr_result);
             MEM_freeN(expr_result);
           }

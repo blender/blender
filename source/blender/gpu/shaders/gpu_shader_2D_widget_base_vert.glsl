@@ -61,11 +61,27 @@ vec2 do_widget(void)
   const vec2 ofs = vec2(0.5, -0.5);
   lineWidth = abs(rect.x - recti.x);
   vec2 emboss_ofs = vec2(0.0, -lineWidth);
-  vec2 v_pos[4] = vec2[4](rect.xz + emboss_ofs + ofs.yy,
-                          rect.xw + ofs.yx,
-                          rect.yz + emboss_ofs + ofs.xy,
-                          rect.yw + ofs.xx);
-  vec2 pos = v_pos[gl_VertexID];
+
+  vec2 pos;
+  switch (gl_VertexID) {
+    default:
+    case 0: {
+      pos = rect.xz + emboss_ofs + ofs.yy;
+      break;
+    }
+    case 1: {
+      pos = rect.xw + ofs.yx;
+      break;
+    }
+    case 2: {
+      pos = rect.yz + emboss_ofs + ofs.xy;
+      break;
+    }
+    case 3: {
+      pos = rect.yw + ofs.xx;
+      break;
+    }
+  }
 
   uvInterp = pos - rect.xz;
   outRectSize = rect.yw - rect.xz;

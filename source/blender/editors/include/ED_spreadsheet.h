@@ -12,31 +12,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
-
-/** \file
- * \ingroup nodes
  */
 
 #pragma once
 
-#include "DNA_listBase.h"
+struct SpreadsheetContext;
+struct SpaceSpreadsheet;
+struct SpaceNode;
+struct ID;
+struct bNode;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct bNodeTree;
+struct SpreadsheetContext *ED_spreadsheet_context_new(int type);
+void ED_spreadsheet_context_free(struct SpreadsheetContext *context);
+void ED_spreadsheet_context_path_clear(struct SpaceSpreadsheet *sspreadsheet);
+void ED_spreadsheet_context_path_update_tag(struct SpaceSpreadsheet *sspreadsheet);
+uint64_t ED_spreadsheet_context_path_hash(struct SpaceSpreadsheet *sspreadsheet);
 
-void node_group_label(struct bNodeTree *ntree, struct bNode *node, char *label, int maxlen);
-bool node_group_poll_instance(struct bNode *node,
-                              struct bNodeTree *nodetree,
-                              const char **r_disabled_hint);
+struct ID *ED_spreadsheet_get_current_id(struct SpaceSpreadsheet *sspreadsheet);
 
-void ntree_update_reroute_nodes(struct bNodeTree *ntree);
+void ED_spreadsheet_set_geometry_node_context(struct SpaceSpreadsheet *sspreadsheet,
+                                              struct SpaceNode *snode,
+                                              struct bNode *node);
 
 #ifdef __cplusplus
 }

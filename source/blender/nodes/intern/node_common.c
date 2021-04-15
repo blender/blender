@@ -79,12 +79,12 @@ void node_group_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int ma
   BLI_strncpy(label, (node->id) ? node->id->name + 2 : IFACE_("Missing Data-Block"), maxlen);
 }
 
-bool node_group_poll_instance(bNode *node, bNodeTree *nodetree)
+bool node_group_poll_instance(bNode *node, bNodeTree *nodetree, const char **disabled_hint)
 {
-  if (node->typeinfo->poll(node->typeinfo, nodetree)) {
+  if (node->typeinfo->poll(node->typeinfo, nodetree, disabled_hint)) {
     bNodeTree *grouptree = (bNodeTree *)node->id;
     if (grouptree) {
-      return nodeGroupPoll(nodetree, grouptree);
+      return nodeGroupPoll(nodetree, grouptree, disabled_hint);
     }
 
     return true; /* without a linked node tree, group node is always ok */
@@ -93,25 +93,27 @@ bool node_group_poll_instance(bNode *node, bNodeTree *nodetree)
   return false;
 }
 
-int nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree)
+bool nodeGroupPoll(bNodeTree *nodetree, bNodeTree *grouptree, const char **r_disabled_hint)
 {
   bNode *node;
-  int valid = 1;
+  bool valid = true;
 
   /* unspecified node group, generally allowed
    * (if anything, should be avoided on operator level)
    */
   if (grouptree == NULL) {
-    return 1;
+    return true;
   }
 
   if (nodetree == grouptree) {
-    return 0;
+    *r_disabled_hint = "Nesting a node group inside of itself is not allowed";
+    return false;
   }
 
   for (node = grouptree->nodes.first; node; node = node->next) {
-    if (node->typeinfo->poll_instance && !node->typeinfo->poll_instance(node, nodetree)) {
-      valid = 0;
+    if (node->typeinfo->poll_instance &&
+        !node->typeinfo->poll_instance(node, nodetree, r_disabled_hint)) {
+      valid = false;
       break;
     }
   }

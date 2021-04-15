@@ -40,6 +40,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_gpencil_modifier.h"
@@ -52,6 +53,7 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -416,7 +418,7 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Switch Object
+/** \name Transfer Mode
  *
  * Enters the same mode of the current active object in another object,
  * leaving the mode of the current object.
@@ -434,7 +436,7 @@ typedef struct SwitchObjectCustomData {
   float alpha;
 } SwitchObjectCustomData;
 
-static void switch_object_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
+static void transfer_mode_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
   SwitchObjectCustomData *cd = arg;
 
@@ -478,73 +480,53 @@ static void switch_object_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), v
   GPU_line_smooth(false);
 }
 
-static int object_switch_object_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static bool object_transfer_mode_poll(bContext *C)
 {
-
-  ARegion *region = CTX_wm_region(C);
-  SwitchObjectCustomData *cd = op->customdata;
-  if (cd->start_time == 0.0) {
-    cd->start_time = PIL_check_seconds_timer();
-  }
-  const double time = PIL_check_seconds_timer();
-  const double delta_time = time - cd->start_time;
-  float alpha = 1.0f - (6.0 * delta_time);
-
-  if (alpha > 0.01f) {
-    cd->alpha = alpha;
-    ED_region_tag_redraw(region);
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), cd->timer);
-
-  ED_region_draw_cb_exit(region->type, cd->draw_handle);
-  MEM_freeN(op->customdata);
-  ED_region_tag_redraw(region);
-
-  return OPERATOR_FINISHED;
-}
-
-static bool object_switch_object_poll(bContext *C)
-{
-
-  if (!U.experimental.use_switch_object_operator) {
-    return false;
-  }
-
   if (!CTX_wm_region_view3d(C)) {
     return false;
   }
   const Object *ob = CTX_data_active_object(C);
-  return ob && (ob->mode & (OB_MODE_EDIT | OB_MODE_SCULPT));
+  return ob && (ob->mode & (OB_MODE_SCULPT));
 }
 
-static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+/* Update the viewport rotation origin to the mouse cursor. */
+static void object_transfer_mode_reposition_view_pivot(bContext *C, const int mval[2])
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
+
+  float global_loc[3];
+  if (!ED_view3d_autodist_simple(region, mval, global_loc, 0, NULL)) {
+    return;
+  }
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  copy_v3_v3(ups->average_stroke_accum, global_loc);
+  ups->average_stroke_counter = 1;
+  ups->last_stroke_valid = true;
+}
+
+static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)
+{
+  Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
-
   if (base_dst == NULL) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   Object *ob_dst = base_dst->object;
   Object *ob_src = CTX_data_active_object(C);
 
   if (ob_dst == ob_src) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
   const eObjectMode last_mode = (eObjectMode)ob_src->mode;
   if (!ED_object_mode_compat_test(ob_dst, last_mode)) {
-    return OPERATOR_CANCELLED;
+    return false;
   }
 
-  int retval = OPERATOR_CANCELLED;
-  bool switched = false;
+  bool mode_transfered = false;
 
   ED_undo_group_begin(C);
 
@@ -560,43 +542,64 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
     ob_dst_orig = DEG_get_original_object(ob_dst);
     ED_object_mode_set_ex(C, last_mode, true, op->reports);
 
-    /* Update the viewport rotation origin to the mouse cursor. */
-    if (last_mode & OB_MODE_ALL_PAINT) {
-      float global_loc[3];
-      if (ED_view3d_autodist_simple(region, event->mval, global_loc, 0, NULL)) {
-        UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-        copy_v3_v3(ups->average_stroke_accum, global_loc);
-        ups->average_stroke_counter = 1;
-        ups->last_stroke_valid = true;
-      }
-    }
-
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);
-    retval = OPERATOR_FINISHED;
-    switched = true;
+    mode_transfered = true;
   }
 
   ED_undo_group_end(C);
+  return mode_transfered;
+}
 
-  const bool flash_object = true;
+static bool object_transfer_mode_flash_animation_update(bContext *C, wmOperator *op) {
+  SwitchObjectCustomData *cd = op->customdata;
 
-  if (!flash_object) {
-    if (switched) {
-      return OPERATOR_FINISHED;
-    }
-    else {
-      return OPERATOR_CANCELLED;
-    }
+  if (cd == NULL) {
+    return true;
   }
 
+  ARegion *region = CTX_wm_region(C);
+  if (cd->start_time == 0.0) {
+    cd->start_time = PIL_check_seconds_timer();
+  }
+  const double time = PIL_check_seconds_timer();
+  const double delta_time = time - cd->start_time;
+  float alpha = 1.0f - (6.0 * delta_time);
+
+  if (alpha > 0.01f) {
+    cd->alpha = alpha;
+    ED_region_tag_redraw(region);
+    return false;
+  }
+
+  WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), cd->timer);
+
+  ED_region_draw_cb_exit(region->type, cd->draw_handle);
+  MEM_freeN(op->customdata);
+  ED_region_tag_redraw(region);
+
+  return true;
+}
+
+static void object_transfer_mode_flash_animation_begin(bContext *C, wmOperator *op, Base *base_dst) {
+
+  if (!base_dst) {
+    return;
+  }
+
+  if (!base_dst->object) {
+    return;
+  }
+
+
+  ARegion *region = CTX_wm_region(C);
   SwitchObjectCustomData *cd = MEM_callocN(sizeof(SwitchObjectCustomData),
                                            "Switch Object Custom Data");
 
   cd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.05f);
   cd->draw_handle = ED_region_draw_cb_activate(
-      region->type, switch_object_draw, cd, REGION_DRAW_POST_VIEW);
-  cd->target_object = ob_dst;
+      region->type, transfer_mode_draw, cd, REGION_DRAW_POST_VIEW);
+  cd->target_object = base_dst->object;
   cd->start_time = 0.0;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -607,31 +610,123 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
   cd->tottris = BKE_mesh_runtime_looptri_len(mesh);
   cd->mesh = mesh;
   cd->alpha = 1.0f;
-
   op->customdata = cd;
+}
+
+static int object_transfer_mode_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool use_eyedropper = RNA_boolean_get(op->ptr, "use_eyedropper");
+  const bool flash_object = RNA_boolean_get(op->ptr, "flash_object");
+
+  if (use_eyedropper) {
+  switch (event->type) {
+    case LEFTMOUSE:
+      if (event->val == KM_PRESS) {
+        WM_cursor_modal_restore(CTX_wm_window(C));
+        ED_workspace_status_text(C, NULL);
+
+        /* This ensures that the click was done in an viewport region. */
+        bScreen *screen = CTX_wm_screen(C);
+        ARegion *region = BKE_screen_find_main_region_at_xy(
+            screen, SPACE_VIEW3D, event->x, event->y);
+        if (!region) {
+          return OPERATOR_CANCELLED;
+        }
+
+        const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+        Base *base_dst = ED_view3d_give_base_under_cursor(C, mval);
+        const bool mode_transfered = object_transfer_mode_to_base(C, op, base_dst);
+        if (!mode_transfered) {
+          return OPERATOR_CANCELLED;
+        }
+
+        if (!flash_object) {
+          return OPERATOR_FINISHED;
+        }
+
+        object_transfer_mode_flash_animation_begin(C, op, base_dst);
+
+      }
+      break;
+    case RIGHTMOUSE: {
+      WM_cursor_modal_restore(CTX_wm_window(C));
+      ED_workspace_status_text(C, NULL);
+      return OPERATOR_CANCELLED;
+    }
+  }
+  if (!flash_object) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+  }
+
+
+  if (!object_transfer_mode_flash_animation_update(C, op)) {
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool use_eyedropper = RNA_boolean_get(op->ptr, "use_eyedropper");
+  const bool flash_object = RNA_boolean_get(op->ptr, "flash_object");
+
+  if (use_eyedropper) {
+    ED_workspace_status_text(C, TIP_("Click in the viewport to select an object"));
+    WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
+    WM_event_add_modal_handler(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  Object *ob_src = CTX_data_active_object(C);
+  const eObjectMode src_mode = (eObjectMode)ob_src->mode;
+
+  Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
+  const bool mode_transfered = object_transfer_mode_to_base(C, op, base_dst);
+  if (!mode_transfered) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (src_mode & OB_MODE_ALL_PAINT) {
+    object_transfer_mode_reposition_view_pivot(C, event->mval);
+  }
+
+
+  if (!flash_object) {
+    return OPERATOR_FINISHED;
+  }
+
+  object_transfer_mode_flash_animation_begin(C, op, base_dst);
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
 
-void OBJECT_OT_switch_object(wmOperatorType *ot)
+void OBJECT_OT_transfer_mode(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Switch Object";
-  ot->idname = "OBJECT_OT_switch_object";
+  ot->name = "Transfer Mode";
+  ot->idname = "OBJECT_OT_transfer_mode";
   ot->description =
       "Switches the active object and assigns the same mode to a new one under the mouse cursor, "
       "leaving the active mode in the current one";
 
   /* api callbacks */
-  ot->invoke = object_switch_object_invoke;
-  ot->modal = object_switch_object_modal;
-  ot->poll = object_switch_object_poll;
+  ot->invoke = object_transfer_mode_invoke;
+  ot->modal = object_transfer_mode_modal;
+  ot->poll = object_transfer_mode_poll;
 
   /* Undo push is handled by the operator. */
   ot->flag = OPTYPE_REGISTER;
 
   RNA_def_boolean(
       ot->srna, "flash_object", true, "Flash Object", "Flash object when entering the new mode");
+
+  RNA_def_boolean(ot->srna,
+                  "use_eyedropper",
+                  false,
+                  "Use Eyedropper",
+                  "Pick the object to switch to using an eyedropper");
 }
 
 /** \} */

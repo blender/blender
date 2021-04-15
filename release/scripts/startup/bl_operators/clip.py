@@ -18,7 +18,6 @@
 
 # <pep8 compliant>
 import bpy
-import os
 from bpy.types import Operator
 from bpy.props import FloatProperty
 from mathutils import (
@@ -356,6 +355,7 @@ class CLIP_OT_delete_proxy(Operator):
 
     @staticmethod
     def _rmproxy(abspath):
+        import os
         import shutil
 
         if not os.path.exists(abspath):
@@ -367,6 +367,7 @@ class CLIP_OT_delete_proxy(Operator):
             os.remove(abspath)
 
     def execute(self, context):
+        import os
         sc = context.space_data
         clip = sc.clip
         if clip.use_proxy_custom_directory:

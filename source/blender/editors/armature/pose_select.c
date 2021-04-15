@@ -1284,7 +1284,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_mirror(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Flip Active/Selected Bone";
+  ot->name = "Select Mirror";
   ot->idname = "POSE_OT_select_mirror";
   ot->description = "Mirror the bone selection";
 

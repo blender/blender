@@ -58,9 +58,11 @@ typedef struct bNodeLinkDrag {
   bool from_multi_input_socket;
   int in_out;
 
-  /** Temporarily stores the last picked link from multi input socket operator. */
+  /** Temporarily stores the last picked link from multi-input socket operator. */
   struct bNodeLink *last_picked_multi_input_socket_link;
 
+  /** Temporarily stores the last hovered socket for multi-input socket operator.
+   *  Store it to recalculate sorting after it is no longer hovered. */
   struct bNode *last_node_hovered_while_dragging_a_link;
 } bNodeLinkDrag;
 

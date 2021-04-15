@@ -33,11 +33,6 @@ struct ReportList;
 
 char *BPy_enum_as_string(const struct EnumPropertyItem *item);
 
-#define BLANK_PYTHON_TYPE \
-  { \
-    PyVarObject_HEAD_INIT(NULL, 0) NULL \
-  }
-
 /* error reporting */
 short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
 void BPy_reports_write_stdout(const struct ReportList *reports, const char *header);

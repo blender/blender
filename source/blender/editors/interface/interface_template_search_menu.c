@@ -1148,6 +1148,7 @@ void UI_but_func_menu_search(uiBut *but)
                          ui_searchbox_create_menu,
                          menu_search_update_fn,
                          data,
+                         false,
                          menu_search_arg_free_fn,
                          menu_search_exec_fn,
                          NULL);

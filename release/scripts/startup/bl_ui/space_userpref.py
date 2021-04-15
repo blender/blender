@@ -2241,7 +2241,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_sculpt_vertex_colors"}, "T71947"),
-                ({"property": "use_switch_object_operator"}, "T80402"),
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_asset_browser"}, ("project/profile/124/", "Milestone 1")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),

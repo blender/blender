@@ -1422,7 +1422,7 @@ static void node_draw_basis(const bContext *C,
                               0,
                               0,
                               0,
-                              "Show this node's geometry output in the spreadsheet in Node mode");
+                              "Show this node's geometry output in the spreadsheet");
     UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_active_preview_toggle");
     UI_block_emboss_set(node->block, UI_EMBOSS);
   }

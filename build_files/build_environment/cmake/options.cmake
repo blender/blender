@@ -37,14 +37,8 @@ else(BUILD_MODE STREQUAL "Debug")
 endif()
 
 set(DOWNLOAD_DIR "${CMAKE_CURRENT_BINARY_DIR}/downloads" CACHE STRING "Path for downloaded files")
-# look in blenders source folder for packages directory, if that exists
-# it will our package folder, otherwise it will be in the build folder
-if(EXISTS "${CMAKE_SOURCE_DIR}/../../packages")
-  set(PACKAGE_DIR_DEFAULT "${CMAKE_SOURCE_DIR}/../../packages")
-else()
-  set(PACKAGE_DIR_DEFAULT "${CMAKE_CURRENT_BINARY_DIR}/packages")
-endif()
-set(PACKAGE_DIR ${PACKAGE_DIR_DEFAULT} CACHE STRING "Path for downloaded source files")
+# This path must be hard-coded like this, so that the GNUmakefile knows where it is and can pass it to make_source_archive.py:
+set(PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/packages")
 option(PACKAGE_USE_UPSTREAM_SOURCES "Use soures upstream to download the package sources, when OFF the blender mirror will be used" ON)
 
 file(TO_CMAKE_PATH ${DOWNLOAD_DIR} DOWNLOAD_DIR)

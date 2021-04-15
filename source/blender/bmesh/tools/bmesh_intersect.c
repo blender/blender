@@ -1622,7 +1622,7 @@ bool BM_mesh_intersect(BMesh *bm,
           }
 
           if (ok) {
-            BM_vert_collapse_edge(bm, v->e, v, true, false);
+            BM_vert_collapse_edge(bm, v->e, v, true, false, false);
           }
         }
       }

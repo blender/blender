@@ -2367,6 +2367,7 @@ static void rna_def_trackingObject(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "keyframe1");
   RNA_def_property_ui_text(
       prop, "Keyframe A", "First keyframe used for reconstruction initialization");
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
   /* keyframe_b */
   prop = RNA_def_property(srna, "keyframe_b", PROP_INT, PROP_NONE);
@@ -2374,6 +2375,7 @@ static void rna_def_trackingObject(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "keyframe2");
   RNA_def_property_ui_text(
       prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
+  RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 }
 
 static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)

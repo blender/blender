@@ -309,6 +309,7 @@ static uiBlock *template_common_search_menu(const bContext *C,
                          ui_searchbox_create_generic,
                          search_update_fn,
                          search_arg,
+                         false,
                          NULL,
                          search_exec_fn,
                          active_item);
