@@ -180,25 +180,10 @@ ccl_device_inline
 
               /* todo: optimize so primitive visibility flag indicates if
                * the primitive has a transparent shadow shader? */
-              int prim = kernel_tex_fetch(__prim_index, isect_array->prim);
-              int shader = 0;
-
-#ifdef __HAIR__
-              if (kernel_tex_fetch(__prim_type, isect_array->prim) & PRIMITIVE_ALL_TRIANGLE)
-#endif
-              {
-                shader = kernel_tex_fetch(__tri_shader, prim);
-              }
-#ifdef __HAIR__
-              else {
-                float4 str = kernel_tex_fetch(__curves, prim);
-                shader = __float_as_int(str.z);
-              }
-#endif
-              int flag = kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
+              const int flags = intersection_get_shader_flags(kg, isect_array);
 
               /* if no transparent shadows, all light is blocked */
-              if (!(flag & SD_HAS_TRANSPARENT_SHADOW)) {
+              if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
                 return true;
               }
               /* if maximum number of hits reached, block all light */
