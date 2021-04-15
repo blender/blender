@@ -6628,6 +6628,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     case SCULPT_TOOL_SCENE_PROJECT:
       do_scene_project_brush(sd, ob, nodes, totnode);
       break;
+    case SCULPT_TOOL_SYMMETRIZE:
+      SCULPT_do_symmetrize_brush(sd, ob, nodes, totnode);
+      break;
   }
 
   if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&

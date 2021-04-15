@@ -599,6 +599,9 @@ void SCULPT_relax_vertex(struct SculptSession *ss,
                          bool filter_boundary_face_sets,
                          float *r_final_pos);
 
+/* Symmetrize Map. */
+void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+
 /* Undo */
 
 typedef enum {
