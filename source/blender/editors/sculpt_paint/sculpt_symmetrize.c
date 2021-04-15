@@ -242,7 +242,28 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     copy_v3_v3(symm_co, SCULPT_vertex_co_get(ss, symmetrical_index));
 
     symm_co[0] *= -1;
-    copy_v3_v3(vd.co, symm_co);
+    float new_co[3];
+    copy_v3_v3(new_co, symm_co);
+
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    sqrtf(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
+                                                    thread_id);
+
+
+
+    float disp[3];
+    sub_v3_v3v3(disp, new_co, vd.co);
+    madd_v3_v3v3fl(vd.co, vd.co, disp, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
 
     BKE_pbvh_vertex_iter_end;
   }
