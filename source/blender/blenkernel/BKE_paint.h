@@ -427,7 +427,7 @@ typedef struct SculptBoundary {
   /* Bend Deform type. */
   struct {
     float (*pivot_rotation_axis)[3];
-    float (*pivot_positions)[3];
+    float (*pivot_positions)[4];
   } bend;
 
   /* Slide Deform type. */

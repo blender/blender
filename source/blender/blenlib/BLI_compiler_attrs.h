@@ -98,3 +98,14 @@
 #else
 #  define ATTR_ALIGN(x) __attribute__((aligned(x)))
 #endif
+
+/* Disable optimization for a function (for debugging use only)*/
+#ifdef __clang__
+#define ATTR_NO_OPT __attribute__((optnone))
+#elif __MSC_VER
+#  define ATTR_NO_OPT __pragma(optimize("", off))
+#elif __GNUC__
+#define ATTR_NO_OPT _Pragma(optimize, "O0")
+#else
+#define ATTR_NO_OPT
+#endif
