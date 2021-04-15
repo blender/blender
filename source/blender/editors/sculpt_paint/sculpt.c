@@ -2390,6 +2390,7 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_DRAW:
     case SCULPT_TOOL_DRAW_SHARP:
     case SCULPT_TOOL_LAYER:
+    case SCULPT_TOOL_SYMMETRIZE:
       return alpha * flip * pressure * overlap * feather;
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
@@ -3531,6 +3532,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
+
 
   /* XXX - this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
    * initialize before threads so they can do curve mapping. */
@@ -7222,6 +7224,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Fairing Brush";
     case SCULPT_TOOL_SCENE_PROJECT:
       return "Scene Project";
+    case SCULPT_TOOL_SYMMETRIZE:
+      return "Symmetrize Brush";
   }
 
   return "Sculpting";
