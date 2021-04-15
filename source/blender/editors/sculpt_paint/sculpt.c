@@ -6317,6 +6317,7 @@ static void sculpt_topology_update(Sculpt *sd,
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
   MEM_SAFE_FREE(ss->vertex_info.boundary);
+  MEM_SAFE_FREE(ss->vertex_info.symmetrize_map);
   MEM_SAFE_FREE(ss->vertex_info.connected_component);
 
   PBVHTopologyUpdateMode mode = 0;
