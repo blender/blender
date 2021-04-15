@@ -2260,7 +2260,12 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
       node_remove_extra_links(snode, link);
       link->flag &= ~NODE_LINKFLAG_HILITE;
 
-      nodeAddLink(snode->edittree, select, best_output, node, sockto);
+      bNodeLink *new_link = nodeAddLink(snode->edittree, select, best_output, node, sockto);
+
+      /* Copy the socket index for the new link, and reset it for the old link. This way the
+       * relative order of links is preserved, and the links get drawn in the right place. */
+      new_link->multi_input_socket_index = link->multi_input_socket_index;
+      link->multi_input_socket_index = 0;
 
       /* set up insert offset data, it needs stuff from here */
       if ((snode->flag & SNODE_SKIP_INSOFFSET) == 0) {
@@ -2277,8 +2282,6 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
       snode_update(snode, select);
       ED_node_tag_update_id((ID *)snode->edittree);
       ED_node_tag_update_id(snode->id);
-
-      sort_multi_input_socket_links(snode, node, NULL, NULL);
     }
   }
 }
