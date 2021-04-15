@@ -71,10 +71,10 @@ class POINTCLOUD_MT_add_attribute(Menu):
         layout = self.layout
         pointcloud = context.pointcloud
 
-        self.add_standard_attribute(layout, pointcloud, 'Radius', 'FLOAT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'Color', 'FLOAT_COLOR', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'Particle ID', 'INT', 'POINT')
-        self.add_standard_attribute(layout, pointcloud, 'Velocity', 'FLOAT_VECTOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'radius', 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'color', 'FLOAT_COLOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'id', 'INT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'velocity', 'FLOAT_VECTOR', 'POINT')
 
         layout.separator()
 
