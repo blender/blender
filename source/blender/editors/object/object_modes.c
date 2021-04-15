@@ -565,7 +565,7 @@ static bool object_transfer_mode_flash_animation_update(bContext *C, wmOperator 
   }
   const double time = PIL_check_seconds_timer();
   const double delta_time = time - cd->start_time;
-  float alpha = 1.0f - (6.0 * delta_time);
+  float alpha = 1.0f - (4.0 * delta_time);
 
   if (alpha > 0.01f) {
     cd->alpha = alpha;
