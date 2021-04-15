@@ -224,6 +224,12 @@ static void pick_link(const bContext *C,
 
   BLI_addtail(&nldrag->links, linkdata);
   nodeRemLink(snode->edittree, link_to_pick);
+
+  BLI_assert(nldrag->last_node_hovered_while_dragging_a_link != NULL);
+
+  sort_multi_input_socket_links(
+      snode, nldrag->last_node_hovered_while_dragging_a_link, NULL,NULL);
+
   /* Send changed event to original link->tonode. */
   if (node) {
     snode_update(snode, node);
@@ -895,7 +901,9 @@ static void node_link_find_socket(bContext *C, wmOperator *op, float cursor[2])
               existing_link_connected_to_fromsock->multi_input_socket_index;
           continue;
         }
-        sort_multi_input_socket_links(snode, tnode, link, cursor);
+        if(link->tosock && link->tosock->flag & SOCK_MULTI_INPUT){
+          sort_multi_input_socket_links(snode, tnode, link, cursor);
+        }
       }
     }
     else {
@@ -1038,6 +1046,7 @@ static bNodeLinkDrag *node_link_init(Main *bmain, SpaceNode *snode, float cursor
   /* or an input? */
   else if (node_find_indicated_socket(snode, &node, &sock, cursor, SOCK_IN)) {
     nldrag = MEM_callocN(sizeof(bNodeLinkDrag), "drag link op customdata");
+    nldrag->last_node_hovered_while_dragging_a_link = node;
 
     const int num_links = nodeCountSocketLinks(snode->edittree, sock);
     if (num_links > 0) {
