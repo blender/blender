@@ -169,6 +169,7 @@ void GpencilExporterPDF::export_gpencil_layers()
           continue;
         }
         /* Skip invisible lines. */
+        prepare_stroke_export_colors(ob, gps);
         const float fill_opacity = fill_color_[3] * gpl->opacity;
         const float stroke_opacity = stroke_color_[3] * stroke_average_opacity_get() *
                                      gpl->opacity;
@@ -179,7 +180,8 @@ void GpencilExporterPDF::export_gpencil_layers()
 
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
         const bool is_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) &&
-                                (gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH));
+                                (gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
+                                (stroke_opacity > GPENCIL_ALPHA_OPACITY_THRESH));
         const bool is_fill = ((gp_style->flag & GP_MATERIAL_FILL_SHOW) &&
                               (gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH));
 
@@ -189,7 +191,6 @@ void GpencilExporterPDF::export_gpencil_layers()
 
         /* Duplicate the stroke to apply any layer thickness change. */
         bGPDstroke *gps_duplicate = BKE_gpencil_stroke_duplicate(gps, true, false);
-        prepare_stroke_export_colors(ob, gps_duplicate);
 
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
