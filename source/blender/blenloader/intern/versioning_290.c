@@ -2054,5 +2054,19 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Consolidate node and final evaluation modes. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SPREADSHEET) {
+            SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+            if (sspreadsheet->object_eval_state == 2) {
+              sspreadsheet->object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED;
+            }
+          }
+        }
+      }
+    }
   }
 }

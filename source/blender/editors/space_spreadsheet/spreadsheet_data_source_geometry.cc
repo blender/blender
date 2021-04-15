@@ -29,6 +29,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_spreadsheet.h"
+
 #include "bmesh.h"
 
 #include "spreadsheet_data_source_geometry.hh"
@@ -396,7 +398,7 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
   }
-  else {
+  else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED) {
     if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
       Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
       if (mesh == nullptr) {
@@ -408,14 +410,21 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
       mesh_component.copy_vertex_group_names_from_object(*object_eval);
     }
     else {
-      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_NODE) {
-        if (object_eval->runtime.geometry_set_preview != nullptr) {
-          geometry_set = *object_eval->runtime.geometry_set_preview;
-        }
-      }
-      else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+      if (BLI_listbase_count(&sspreadsheet->context_path) == 1) {
+        /* Use final evaluated object. */
         if (object_eval->runtime.geometry_set_eval != nullptr) {
           geometry_set = *object_eval->runtime.geometry_set_eval;
+        }
+      }
+      else {
+        if (object_eval->runtime.geometry_set_previews != nullptr) {
+          GHash *ghash = (GHash *)object_eval->runtime.geometry_set_previews;
+          const uint64_t key = ED_spreadsheet_context_path_hash(sspreadsheet);
+          GeometrySet *geometry_set_preview = (GeometrySet *)BLI_ghash_lookup_default(
+              ghash, POINTER_FROM_UINT(key), nullptr);
+          if (geometry_set_preview != nullptr) {
+            geometry_set = *geometry_set_preview;
+          }
         }
       }
     }
