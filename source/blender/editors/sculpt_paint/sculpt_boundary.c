@@ -87,7 +87,7 @@ typedef struct BoundaryInitialVertexFloodFillData {
   float radius_sq;
 } BoundaryInitialVertexFloodFillData;
 #if 0
-__attribute__((optnone)) static bool validVert(SculptSession *ss, SculptVertRef v)
+ATTR_NO_OPT static bool validVert(SculptSession *ss, SculptVertRef v)
 {
   if (v.i == -1) {
     return false;
@@ -102,7 +102,7 @@ __attribute__((optnone)) static bool validVert(SculptSession *ss, SculptVertRef 
 
   return idx >= 0 && idx < totvert;
 }
-__attribute__((optnone)) static void validateVert(SculptSession *ss, SculptVertRef v)
+ATTR_NO_OPT static void validateVert(SculptSession *ss, SculptVertRef v)
 {
   if (!validVert(ss, v)) {
     printf("Error! %p\n", v.i);
@@ -190,7 +190,7 @@ static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
  * deformations usually need in the boundary. */
 static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
-ATTR_NO_OPT static void sculpt_boundary_index_add(SculptSession *ss,
+static void sculpt_boundary_index_add(SculptSession *ss,
                                                   SculptBoundary *boundary,
                                                   const SculptVertRef new_index,
                                                   const float distance,
@@ -377,7 +377,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
  * needed to go from a boundary vertex to an interior vertex and which vertex of the boundary is
  * the closest one.
  */
-ATTR_NO_OPT static void sculpt_boundary_edit_data_init(SculptSession *ss,
+static void sculpt_boundary_edit_data_init(SculptSession *ss,
                                                        SculptBoundary *boundary,
                                                        const SculptVertRef initial_vertex,
                                                        const float radius)
@@ -655,7 +655,7 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
  * SculptBoundaryEditInfo. They calculate the data using the vertices that have the
  * max_propagation_steps value and them this data is copied to the rest of the vertices using the
  * original vertex index. */
-ATTR_NO_OPT static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *boundary)
+static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->bend.pivot_rotation_axis = MEM_calloc_arrayN(
