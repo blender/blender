@@ -132,7 +132,7 @@ static void blender_version_init(void)
 
   BLI_snprintf(blender_version_string,
                ARRAY_SIZE(blender_version_string),
-               "%d.%02d.%d%s",
+               "%d.%01d.%d%s",
                BLENDER_VERSION / 100,
                BLENDER_VERSION % 100,
                BLENDER_VERSION_PATCH,
