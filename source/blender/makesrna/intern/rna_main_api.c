@@ -996,7 +996,7 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
-  RNA_def_function_ui_description(func, "Remove a object from the current blendfile");
+  RNA_def_function_ui_description(func, "Remove an object from the current blendfile");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
@@ -1200,7 +1200,7 @@ void RNA_def_main_lights(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_string(func, "name", "Light", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(
-      func, "type", rna_enum_light_type_items, 0, "Type", "The type of texture to add");
+      func, "type", rna_enum_light_type_items, 0, "Type", "The type of light to add");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "light", "Light", "", "New light data-block");
@@ -1216,7 +1216,7 @@ void RNA_def_main_lights(BlenderRNA *brna, PropertyRNA *cprop)
                   "do_unlink",
                   true,
                   "",
-                  "Unlink all usages of this Light before deleting it "
+                  "Unlink all usages of this light before deleting it "
                   "(WARNING: will also delete objects instancing that light data)");
   RNA_def_boolean(func,
                   "do_id_user",
@@ -1248,7 +1248,7 @@ void RNA_def_main_libraries(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a camera from the current blendfile");
+  RNA_def_function_ui_description(func, "Remove a library from the current blendfile");
   parm = RNA_def_pointer(func, "library", "Library", "", "Library to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -1258,9 +1258,9 @@ void RNA_def_main_libraries(BlenderRNA *brna, PropertyRNA *cprop)
                   "do_id_user",
                   true,
                   "",
-                  "Decrement user counter of all datablocks used by this object");
+                  "Decrement user counter of all datablocks used by this library");
   RNA_def_boolean(
-      func, "do_ui_user", true, "", "Make sure interface does not reference this object");
+      func, "do_ui_user", true, "", "Make sure interface does not reference this library");
 }
 
 void RNA_def_main_screens(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1327,7 +1327,7 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Load a new image into the main database");
   parm = RNA_def_string_file_path(
-      func, "filepath", "File Path", 0, "", "path of the file to load");
+      func, "filepath", "File Path", 0, "", "Path of the file to load");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_boolean(func,
                   "check_existing",
@@ -1372,7 +1372,7 @@ void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_string(func, "name", "Lattice", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   /* return type */
-  parm = RNA_def_pointer(func, "lattice", "Lattice", "", "New lattices data-block");
+  parm = RNA_def_pointer(func, "lattice", "Lattice", "", "New lattice data-block");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
@@ -1857,7 +1857,7 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a armature from the current blendfile");
+  RNA_def_function_ui_description(func, "Remove an armature from the current blendfile");
   parm = RNA_def_pointer(func, "armature", "Armature", "", "Armature to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -1900,7 +1900,7 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a action from the current blendfile");
+  RNA_def_function_ui_description(func, "Remove an action from the current blendfile");
   parm = RNA_def_pointer(func, "action", "Action", "", "Action to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -2158,7 +2158,7 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
   /* remove func */
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a masks from the current blendfile.");
+  RNA_def_function_ui_description(func, "Remove a mask from the current blendfile");
   parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
@@ -2238,11 +2238,11 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_ui_text(srna, "Main Light Probes", "Collection of light probes");
 
   func = RNA_def_function(srna, "new", "rna_Main_lightprobe_new");
-  RNA_def_function_ui_description(func, "Add a new probe to the main database");
+  RNA_def_function_ui_description(func, "Add a new light probe to the main database");
   parm = RNA_def_string(func, "name", "Probe", 0, "", "New name for the data-block");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_enum(
-      func, "type", rna_enum_lightprobes_type_items, 0, "Type", "The type of lightprobe to add");
+      func, "type", rna_enum_lightprobes_type_items, 0, "Type", "The type of light probe to add");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "lightprobe", "LightProbe", "", "New light probe data-block");
@@ -2250,15 +2250,15 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Remove a probe from the current blendfile");
-  parm = RNA_def_pointer(func, "lightprobe", "LightProbe", "", "Probe to remove");
+  RNA_def_function_ui_description(func, "Remove a light probe from the current blendfile");
+  parm = RNA_def_pointer(func, "lightprobe", "LightProbe", "", "Light probe to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_boolean(func,
                   "do_unlink",
                   true,
                   "",
-                  "Unlink all usages of this probe before deleting it "
+                  "Unlink all usages of this light probe before deleting it "
                   "(WARNING: will also delete objects instancing that light probe data)");
   RNA_def_boolean(func,
                   "do_id_user",

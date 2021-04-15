@@ -44,6 +44,13 @@ class NodeOperation;
 typedef NodeOperation SocketReader;
 
 /**
+ * RESOLUTION_INPUT_ANY is a wildcard when any resolution of an input can be used.
+ * This solves the issue that the FileInputNode in a group node cannot find the
+ * correct resolution.
+ */
+static constexpr unsigned int RESOLUTION_INPUT_ANY = 999999;
+
+/**
  * \brief Resize modes of inputsockets
  * How are the input and working resolutions matched
  * \ingroup Model

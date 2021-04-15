@@ -20,7 +20,6 @@
 
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
-#include "BLI_multi_value_map.hh"
 #include "BLI_session_uuid.h"
 #include "BLI_set.hh"
 
@@ -80,30 +79,37 @@ struct NodeWarning {
 };
 
 struct AvailableAttributeInfo {
+  std::string name;
   AttributeDomain domain;
   CustomDataType data_type;
 
   uint64_t hash() const
   {
-    uint64_t domain_hash = (uint64_t)domain;
-    uint64_t data_type_hash = (uint64_t)data_type;
-    return (domain_hash * 33) ^ (data_type_hash * 89);
+    return blender::get_default_hash(name);
   }
 
   friend bool operator==(const AvailableAttributeInfo &a, const AvailableAttributeInfo &b)
   {
-    return a.domain == b.domain && a.data_type == b.data_type;
+    return a.name == b.name;
   }
 };
 
 struct NodeUIStorage {
   blender::Vector<NodeWarning> warnings;
-  blender::MultiValueMap<std::string, AvailableAttributeInfo> attribute_hints;
+  blender::Set<AvailableAttributeInfo> attribute_hints;
 };
 
 struct NodeTreeUIStorage {
   blender::Map<NodeTreeEvaluationContext, blender::Map<std::string, NodeUIStorage>> context_map;
   std::mutex context_map_mutex;
+
+  /**
+   * Attribute search uses this to store the fake info for the string typed into a node, in order
+   * to pass the info to the execute callback that sets node socket values. This is mutable since
+   * we can count on only one attribute search being open at a time, and there is no real data
+   * stored here.
+   */
+  mutable AvailableAttributeInfo dummy_info_for_search;
 };
 
 const NodeUIStorage *BKE_node_tree_ui_storage_get_from_context(const bContext *C,

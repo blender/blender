@@ -462,27 +462,26 @@ void MixGlareOperation::executePixelSampled(float output[4],
   float inputColor1[4];
   float inputColor2[4];
   float inputValue[4];
-  float value;
+  float value, input_weight, glare_weight;
 
   this->m_inputValueOperation->readSampled(inputValue, x, y, sampler);
   this->m_inputColor1Operation->readSampled(inputColor1, x, y, sampler);
   this->m_inputColor2Operation->readSampled(inputColor2, x, y, sampler);
   value = inputValue[0];
-  float mf = 2.0f - 2.0f * fabsf(value - 0.5f);
-
-  if (inputColor1[0] < 0.0f) {
-    inputColor1[0] = 0.0f;
+  /* Linear interpolation between 3 cases:
+   *  value=-1:output=input    value=0:output=input+glare   value=1:output=glare
+   */
+  if (value < 0.0f) {
+    input_weight = 1.0f;
+    glare_weight = 1.0f + value;
   }
-  if (inputColor1[1] < 0.0f) {
-    inputColor1[1] = 0.0f;
+  else {
+    input_weight = 1.0f - value;
+    glare_weight = 1.0f;
   }
-  if (inputColor1[2] < 0.0f) {
-    inputColor1[2] = 0.0f;
-  }
-
-  output[0] = mf * MAX2(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
-  output[1] = mf * MAX2(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
-  output[2] = mf * MAX2(inputColor1[2] + value * (inputColor2[2] - inputColor1[2]), 0.0f);
+  output[0] = input_weight * MAX2(inputColor1[0], 0.0f) + glare_weight * inputColor2[0];
+  output[1] = input_weight * MAX2(inputColor1[1], 0.0f) + glare_weight * inputColor2[1];
+  output[2] = input_weight * MAX2(inputColor1[2], 0.0f) + glare_weight * inputColor2[2];
   output[3] = inputColor1[3];
 
   clampIfNeeded(output);

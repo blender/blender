@@ -39,9 +39,15 @@
 
 #include "node_texture_util.h"
 
-bool tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+bool tex_node_poll_default(bNodeType *UNUSED(ntype),
+                           bNodeTree *ntree,
+                           const char **r_disabled_hint)
 {
-  return STREQ(ntree->idname, "TextureNodeTree");
+  if (!STREQ(ntree->idname, "TextureNodeTree")) {
+    *r_disabled_hint = "Not a texture node tree";
+    return false;
+  }
+  return true;
 }
 
 void tex_node_type_base(

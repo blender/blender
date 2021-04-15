@@ -128,6 +128,9 @@ Utilities
    * source_archive:
      Create a compressed archive of the source code.
 
+   * source_archive_complete:
+     Create a compressed archive of the source code and all the libraries of dependencies.
+
    * update:
      Updates git and all submodules and svn.
 
@@ -477,6 +480,9 @@ check_smatch: .FORCE
 	cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
 
+check_mypy: .FORCE
+	$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+
 check_spelling_py: .FORCE
 	cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
@@ -510,6 +516,13 @@ check_descriptions: .FORCE
 
 source_archive: .FORCE
 	python3 ./build_files/utils/make_source_archive.py
+
+source_archive_complete: .FORCE
+	cmake -S "$(BLENDER_DIR)/build_files/build_environment" -B"$(BUILD_DIR)/source_archive" \
+		-DCMAKE_BUILD_TYPE_INIT:STRING=$(BUILD_TYPE) -DPACKAGE_USE_UPSTREAM_SOURCES=OFF
+# This assumes CMake is still using a default `PACKAGE_DIR` variable:
+	python3 ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
+
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE

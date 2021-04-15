@@ -428,7 +428,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     if (has_valid_context == false) {
       expr_result = BLI_strdup(has_valid_context_error);
     }
-    else if (BPY_run_string_as_string(C, expr_imports, expr, __func__, &expr_result)) {
+    else if (BPY_run_string_as_string(C, expr_imports, expr, NULL, &expr_result)) {
       if (STREQ(expr_result, "")) {
         MEM_freeN(expr_result);
         expr_result = NULL;
@@ -485,7 +485,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     if (has_valid_context == false) {
       expr_result = BLI_strdup(has_valid_context_error);
     }
-    else if (BPY_run_string_as_string(C, expr_imports, expr, __func__, &expr_result)) {
+    else if (BPY_run_string_as_string(C, expr_imports, expr, NULL, &expr_result)) {
       if (STREQ(expr_result, ".")) {
         MEM_freeN(expr_result);
         expr_result = NULL;
@@ -589,7 +589,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
         if (has_valid_context == false) {
           shortcut = BLI_strdup(has_valid_context_error);
         }
-        else if (BPY_run_string_as_intptr(C, expr_imports, expr, __func__, &expr_result)) {
+        else if (BPY_run_string_as_intptr(C, expr_imports, expr, NULL, &expr_result)) {
           if (expr_result != 0) {
             wmKeyMap *keymap = (wmKeyMap *)expr_result;
             LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
@@ -654,7 +654,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
         /* pass */
       }
       else if (BPY_run_string_as_string_and_size(
-                   C, expr_imports, expr, __func__, &expr_result, &expr_result_len)) {
+                   C, expr_imports, expr, NULL, &expr_result, &expr_result_len)) {
         /* pass. */
       }
     }
@@ -731,7 +731,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     if (has_valid_context == false) {
       /* pass */
     }
-    else if (BPY_run_string_as_intptr(C, expr_imports, expr, __func__, &expr_result)) {
+    else if (BPY_run_string_as_intptr(C, expr_imports, expr, NULL, &expr_result)) {
       if (expr_result != 0) {
         {
           uiTooltipField *field = text_field_add(data,

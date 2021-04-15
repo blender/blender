@@ -3981,6 +3981,11 @@ static int gpencil_count_subdivision_cuts(bGPDstroke *gps)
     }
   }
 
+  if ((gps->flag & GP_STROKE_CYCLIC) && (gps->points[0].flag & GP_SPOINT_SELECT) &&
+      (gps->points[gps->totpoints - 1].flag & GP_SPOINT_SELECT)) {
+    totnewpoints++;
+  }
+
   return totnewpoints;
 }
 
@@ -4079,6 +4084,47 @@ static void gpencil_stroke_subdivide(bGPDstroke *gps, const int cuts)
         }
       }
     }
+
+    /* Subdivide between last and first point. */
+    if (gps->flag & GP_STROKE_CYCLIC) {
+      bGPDspoint *pt = &temp_points[oldtotpoints - 1];
+      bGPDspoint *next = &temp_points[0];
+      if ((pt->flag & GP_SPOINT_SELECT) && (next->flag & GP_SPOINT_SELECT)) {
+        bGPDspoint *pt_final = &gps->points[i2];
+        if (gps->dvert != NULL) {
+          dvert_final = &gps->dvert[i2];
+        }
+        /* Interpolate all values */
+        interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+        pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
+        pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
+        CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+        interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
+        pt_final->time = interpf(pt->time, next->time, 0.5f);
+        pt_final->flag |= GP_SPOINT_SELECT;
+
+        /* interpolate weights */
+        if (gps->dvert != NULL) {
+          dvert = &temp_dverts[oldtotpoints - 1];
+          dvert_next = &temp_dverts[0];
+          dvert_final = &gps->dvert[i2];
+
+          dvert_final->totweight = dvert->totweight;
+          dvert_final->dw = MEM_dupallocN(dvert->dw);
+
+          /* interpolate weight values */
+          for (int d = 0; d < dvert->totweight; d++) {
+            MDeformWeight *dw_a = &dvert->dw[d];
+            if (dvert_next->totweight > d) {
+              MDeformWeight *dw_b = &dvert_next->dw[d];
+              MDeformWeight *dw_final = &dvert_final->dw[d];
+              dw_final->weight = interpf(dw_a->weight, dw_b->weight, 0.5f);
+            }
+          }
+        }
+      }
+    }
+
     /* free temp memory */
     MEM_SAFE_FREE(temp_points);
     MEM_SAFE_FREE(temp_dverts);

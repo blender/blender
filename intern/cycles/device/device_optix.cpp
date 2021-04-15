@@ -362,7 +362,7 @@ class OptiXDevice : public CUDADevice {
       }
     }
 
-    OptixModuleCompileOptions module_options;
+    OptixModuleCompileOptions module_options = {};
     module_options.maxRegisterCount = 0;  // Do not set an explicit register limit
 #  ifdef WITH_CYCLES_DEBUG
     module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
@@ -377,7 +377,7 @@ class OptiXDevice : public CUDADevice {
     module_options.numBoundValues = 0;
 #  endif
 
-    OptixPipelineCompileOptions pipeline_options;
+    OptixPipelineCompileOptions pipeline_options = {};
     // Default to no motion blur and two-level graph, since it is the fastest option
     pipeline_options.usesMotionBlur = false;
     pipeline_options.traversableGraphFlags =
@@ -477,7 +477,7 @@ class OptiXDevice : public CUDADevice {
 
 #  if OPTIX_ABI_VERSION >= 36
       if (DebugFlags().optix.curves_api && requested_features.use_hair_thick) {
-        OptixBuiltinISOptions builtin_options;
+        OptixBuiltinISOptions builtin_options = {};
         builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
         builtin_options.usesMotionBlur = false;
 
@@ -571,7 +571,7 @@ class OptiXDevice : public CUDADevice {
                          stack_size[PG_HITS_MOTION].cssIS + stack_size[PG_HITS_MOTION].cssAH);
 #  endif
 
-    OptixPipelineLinkOptions link_options;
+    OptixPipelineLinkOptions link_options = {};
     link_options.maxTraceDepth = 1;
 #  ifdef WITH_CYCLES_DEBUG
     link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
@@ -953,7 +953,7 @@ class OptiXDevice : public CUDADevice {
         }
 
         // Create OptiX denoiser handle on demand when it is first used
-        OptixDenoiserOptions denoiser_options;
+        OptixDenoiserOptions denoiser_options = {};
         assert(task.denoising.input_passes >= 1 && task.denoising.input_passes <= 3);
         denoiser_options.inputKind = static_cast<OptixDenoiserInputKind>(
             OPTIX_DENOISER_INPUT_RGB + (task.denoising.input_passes - 1));
@@ -1157,7 +1157,7 @@ class OptiXDevice : public CUDADevice {
 
     // Compute memory usage
     OptixAccelBufferSizes sizes = {};
-    OptixAccelBuildOptions options;
+    OptixAccelBuildOptions options = {};
     options.operation = operation;
     if (background) {
       // Prefer best performance and lowest memory consumption in background
@@ -1195,7 +1195,7 @@ class OptiXDevice : public CUDADevice {
     }
 
     // Finally build the acceleration structure
-    OptixAccelEmitDesc compacted_size_prop;
+    OptixAccelEmitDesc compacted_size_prop = {};
     compacted_size_prop.type = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
     // A tiny space was allocated for this property at the end of the temporary buffer above
     // Make sure this pointer is 8-byte aligned

@@ -543,7 +543,6 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, doub
 
 struct bGPDlayer;
 struct bGPDframe;
-struct GpencilModifierData;
 
 void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   struct Depsgraph *depsgraph,

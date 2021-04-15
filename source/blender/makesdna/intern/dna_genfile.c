@@ -792,6 +792,9 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         old_value_i = *((uint64_t *)old_data);
         old_value_f = (double)old_value_i;
         break;
+      case SDNA_TYPE_INT8:
+        old_value_i = (uint64_t) * ((int8_t *)old_data);
+        old_value_f = (double)old_value_i;
     }
 
     switch (new_type) {
@@ -827,6 +830,9 @@ static void cast_primitive_type(const eSDNA_Type old_type,
         break;
       case SDNA_TYPE_UINT64:
         *((uint64_t *)new_data) = old_value_i;
+        break;
+      case SDNA_TYPE_INT8:
+        *((int8_t *)new_data) = (int8_t)old_value_i;
         break;
     }
 
@@ -1655,6 +1661,7 @@ int DNA_elem_type_size(const eSDNA_Type elem_nr)
   switch (elem_nr) {
     case SDNA_TYPE_CHAR:
     case SDNA_TYPE_UCHAR:
+    case SDNA_TYPE_INT8:
       return 1;
     case SDNA_TYPE_SHORT:
     case SDNA_TYPE_USHORT:

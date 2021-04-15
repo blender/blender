@@ -498,7 +498,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 
   /* Compute render passes and film settings. */
   vector<Pass> passes = sync->sync_render_passes(
-      b_rlay, b_view_layer, session_params.adaptive_sampling, session_params.denoising);
+      b_scene, b_rlay, b_view_layer, session_params.adaptive_sampling, session_params.denoising);
 
   /* Set buffer params, using film settings from sync_render_passes. */
   buffer_params.passes = passes;

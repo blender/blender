@@ -147,8 +147,7 @@ class GreasePencilDisplayPanel:
 
             if self.is_popover:
                 row = layout.row(align=True)
-                row.prop(settings, "show_brush", text="")
-                row.label(text="Display Cursor")
+                row.prop(settings, "show_brush", text="Display Cursor")
 
             col = layout.column(align=True)
             col.active = settings.show_brush

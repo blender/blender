@@ -19,7 +19,6 @@
 #include "BLI_vector.hh"
 
 struct uiBlock;
-struct rcti;
 struct bContext;
 struct ARegion;
 

@@ -39,8 +39,8 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/gpencil_io_capi.cc
   intern/gpencil_io_base.cc
+  intern/gpencil_io_capi.cc
   intern/gpencil_io_import_base.cc
   intern/gpencil_io_import_svg.cc
 

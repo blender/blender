@@ -330,7 +330,9 @@ static void ui_node_link_items(NodeLinkArg *arg,
     int i;
 
     for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
-      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup)) {
+      const char *disabled_hint;
+      if ((ngroup->type != arg->ntree->type) ||
+          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
         continue;
       }
 
@@ -343,7 +345,9 @@ static void ui_node_link_items(NodeLinkArg *arg,
 
       i = 0;
       for (ngroup = arg->bmain->nodetrees.first; ngroup; ngroup = ngroup->id.next) {
-        if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup)) {
+        const char *disabled_hint;
+        if ((ngroup->type != arg->ntree->type) ||
+            !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
           continue;
         }
 
@@ -481,7 +485,8 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   BLI_array_declare(sorted_ntypes);
 
   NODE_TYPES_BEGIN (ntype) {
-    if (!(ntype->poll && ntype->poll(ntype, ntree))) {
+    const char *disabled_hint;
+    if (!(ntype->poll && ntype->poll(ntype, ntree, &disabled_hint))) {
       continue;
     }
 

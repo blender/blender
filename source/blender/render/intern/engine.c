@@ -717,6 +717,9 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
     return;
   }
 
+  /* Clear recalc flags before update so engine can detect what changed. */
+  DEG_ids_clear_recalc(engine->depsgraph);
+
   Render *re = engine->re;
   double cfra = (double)frame + (double)subframe;
 

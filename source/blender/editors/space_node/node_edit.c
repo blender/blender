@@ -2241,13 +2241,25 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* make sure all clipboard nodes would be valid in the target tree */
   bool all_nodes_valid = true;
   LISTBASE_FOREACH (bNode *, node, clipboard_nodes_lb) {
-    if (!node->typeinfo->poll_instance || !node->typeinfo->poll_instance(node, ntree)) {
+    const char *disabled_hint = NULL;
+    if (!node->typeinfo->poll_instance ||
+        !node->typeinfo->poll_instance(node, ntree, &disabled_hint)) {
       all_nodes_valid = false;
-      BKE_reportf(op->reports,
-                  RPT_ERROR,
-                  "Cannot add node %s into node tree %s",
-                  node->name,
-                  ntree->id.name + 2);
+      if (disabled_hint) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot add node %s into node tree %s:\n  %s",
+                    node->name,
+                    ntree->id.name + 2,
+                    disabled_hint);
+      }
+      else {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Cannot add node %s into node tree %s",
+                    node->name,
+                    ntree->id.name + 2);
+      }
     }
   }
   if (!all_nodes_valid) {

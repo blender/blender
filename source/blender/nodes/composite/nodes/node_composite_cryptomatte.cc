@@ -263,7 +263,9 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = dest_nc;
 }
 
-static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype), bNodeTree *ntree)
+static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype),
+                                  bNodeTree *ntree,
+                                  const char **r_disabled_hint)
 {
   if (STREQ(ntree->idname, "CompositorNodeTree")) {
     Scene *scene;
@@ -276,8 +278,13 @@ static bool node_poll_cryptomatte(bNodeType *UNUSED(ntype), bNodeTree *ntree)
       }
     }
 
+    if (scene == nullptr) {
+      *r_disabled_hint =
+          "The node tree must be the compositing node tree of any scene in the file";
+    }
     return scene != nullptr;
   }
+  *r_disabled_hint = "Not a compositor node tree";
   return false;
 }
 

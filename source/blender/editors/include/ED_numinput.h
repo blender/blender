@@ -107,8 +107,9 @@ bool user_string_to_number(bContext *C,
                            const char *str,
                            const struct UnitSettings *unit,
                            int type,
-                           const char *error_prefix,
-                           double *r_value);
+                           double *r_value,
+                           const bool use_single_line_error,
+                           char **r_error);
 
 /** \} */
 

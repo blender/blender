@@ -733,7 +733,6 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
 
   PyErr_Restore(error_type, error_value, error_traceback);
 
-  PyErr_Print();
   PyErr_Clear();
   return string_io_buf;
 }

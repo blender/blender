@@ -263,7 +263,7 @@ void bmo_offset_edgeloops_exec(BMesh *bm, BMOperator *op)
       }
 
       while ((v = STACK_POP(varr))) {
-        bmesh_kernel_join_edge_kill_vert(bm, v->e, v, true, false, false);
+        bmesh_kernel_join_edge_kill_vert(bm, v->e, v, true, false, false, true);
       }
     }
   }

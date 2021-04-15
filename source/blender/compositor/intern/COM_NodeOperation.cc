@@ -62,15 +62,29 @@ void NodeOperation::addOutputSocket(DataType datatype)
 void NodeOperation::determineResolution(unsigned int resolution[2],
                                         unsigned int preferredResolution[2])
 {
-  if (m_resolutionInputSocketIndex < m_inputs.size()) {
+  unsigned int used_resolution_index = 0;
+  if (m_resolutionInputSocketIndex == RESOLUTION_INPUT_ANY) {
+    for (NodeOperationInput &input : m_inputs) {
+      unsigned int any_resolution[2] = {0, 0};
+      input.determineResolution(any_resolution, preferredResolution);
+      if (any_resolution[0] * any_resolution[1] > 0) {
+        resolution[0] = any_resolution[0];
+        resolution[1] = any_resolution[1];
+        break;
+      }
+      used_resolution_index += 1;
+    }
+  }
+  else if (m_resolutionInputSocketIndex < m_inputs.size()) {
     NodeOperationInput &input = m_inputs[m_resolutionInputSocketIndex];
     input.determineResolution(resolution, preferredResolution);
+    used_resolution_index = m_resolutionInputSocketIndex;
   }
   unsigned int temp2[2] = {resolution[0], resolution[1]};
 
   unsigned int temp[2];
   for (unsigned int index = 0; index < m_inputs.size(); index++) {
-    if (index == this->m_resolutionInputSocketIndex) {
+    if (index == used_resolution_index) {
       continue;
     }
     NodeOperationInput &input = m_inputs[index];
@@ -206,7 +220,9 @@ void NodeOperationOutput::determineResolution(unsigned int resolution[2],
   }
   else {
     operation.determineResolution(resolution, preferredResolution);
-    operation.setResolution(resolution);
+    if (resolution[0] > 0 && resolution[1] > 0) {
+      operation.setResolution(resolution);
+    }
   }
 }
 

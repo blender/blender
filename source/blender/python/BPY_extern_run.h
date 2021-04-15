@@ -42,27 +42,43 @@ bool BPY_run_text(struct bContext *C,
 bool BPY_run_string_exec(struct bContext *C, const char *imports[], const char *expr);
 bool BPY_run_string_eval(struct bContext *C, const char *imports[], const char *expr);
 
+/**
+ * \note When this struct is passed in as NULL,
+ * print errors to the `stdout` and clear.
+ */
+struct BPy_RunErrInfo {
+  /** Brief text, single line (can show this in status bar for e.g.). */
+  bool use_single_line_error;
+
+  /** Report with optional prefix (when non-NULL). */
+  struct ReportList *reports;
+  const char *report_prefix;
+
+  /** Allocated exception text (assign when non-NULL). */
+  char **r_string;
+};
+
 /* Run, evaluating to fixed type result. */
 bool BPY_run_string_as_number(struct bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               double *r_value);
 bool BPY_run_string_as_intptr(struct bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value);
 bool BPY_run_string_as_string_and_size(struct bContext *C,
                                        const char *imports[],
                                        const char *expr,
-                                       const char *report_prefix,
+                                       struct BPy_RunErrInfo *err_info,
                                        char **r_value,
                                        size_t *r_value_size);
 bool BPY_run_string_as_string(struct bContext *C,
                               const char *imports[],
                               const char *expr,
-                              const char *report_prefix,
+                              struct BPy_RunErrInfo *err_info,
                               char **r_value);
 
 #ifdef __cplusplus

@@ -4469,8 +4469,9 @@ def km_sculpt(params):
     )
 
     items.extend([
-        # Switch Object (release to avoid conflict with grease pencil drawing).
-        ("object.switch_object", {"type": 'D', "value": 'RELEASE'}, None),
+        # Transfer Sculpt Mode (release to avoid conflict with grease pencil drawing).
+        ("object.transfer_mode", {"type": 'D', "value": 'RELEASE'},
+         {"properties": [("use_eyedropper", False)]}),
         # Brush strokes
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("mode", 'NORMAL')]}),
@@ -4594,8 +4595,6 @@ def km_mesh(params):
     )
 
     items.extend([
-        # Switch Object (release to avoid conflict with grease pencil drawing).
-        ("object.switch_object", {"type": 'D', "value": 'RELEASE'}, None),
         # Tools.
         ("mesh.loopcut_slide", {"type": 'R', "value": 'PRESS', "ctrl": True},
          {"properties": [("TRANSFORM_OT_edge_slide", [("release_confirm", False)],)]}),

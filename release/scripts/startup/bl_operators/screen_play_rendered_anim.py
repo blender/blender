@@ -22,7 +22,6 @@
 
 import bpy
 from bpy.types import Operator
-import os
 
 from bpy.app.translations import pgettext_tip as tip_
 
@@ -62,6 +61,7 @@ class PlayRenderedAnim(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
+        import os
         import subprocess
         from shlex import quote
 

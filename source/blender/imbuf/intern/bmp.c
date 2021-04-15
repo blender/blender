@@ -74,7 +74,7 @@ typedef struct BMPHEADER {
 
 static bool checkbmp(const uchar *mem, const size_t size)
 {
-  if (size < BMP_FILEHEADER_SIZE) {
+  if (size < (BMP_FILEHEADER_SIZE + sizeof(BMPINFOHEADER))) {
     return false;
   }
 
@@ -113,24 +113,20 @@ bool imb_is_a_bmp(const uchar *buf, size_t size)
 
 static size_t imb_bmp_calc_row_size_in_bytes(size_t x, size_t depth)
 {
-  if (depth <= 8) {
-    return (depth * x + 31) / 32 * 4;
-  }
-  return (depth >> 3) * x;
+  /* https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader#calculating-surface-stride
+   */
+  return (((x * depth) + 31) & ~31) >> 3;
 }
 
 ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   ImBuf *ibuf = NULL;
   BMPINFOHEADER bmi;
-  int x, y, depth, ibuf_depth, skip;
+  int ibuf_depth;
   const uchar *bmp;
   uchar *rect;
   ushort col;
-  double xppm, yppm;
   bool top_to_bottom = false;
-
-  (void)size; /* unused */
 
   if (checkbmp(mem, size) == 0) {
     return NULL;
@@ -138,31 +134,36 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-  const size_t pixel_data_offset = LITTLE_LONG(*(int *)(mem + 10));
-  bmp = mem + pixel_data_offset;
+  /* For systems where an int needs to be 4 bytes aligned. */
+  memcpy(&bmi, mem + BMP_FILEHEADER_SIZE, sizeof(bmi));
 
-  if (CHECK_HEADER_FIELD_BMP(mem)) {
-    /* skip fileheader */
-    mem += BMP_FILEHEADER_SIZE;
+  const size_t palette_offset = (size_t)BMP_FILEHEADER_SIZE + LITTLE_LONG(bmi.biSize);
+  const int depth = LITTLE_SHORT(bmi.biBitCount);
+  const int xppm = LITTLE_LONG(bmi.biXPelsPerMeter);
+  const int yppm = LITTLE_LONG(bmi.biYPelsPerMeter);
+  const int x = LITTLE_LONG(bmi.biWidth);
+  int y = LITTLE_LONG(bmi.biHeight);
+
+  /* Negative height means bitmap is stored top-to-bottom. */
+  if (y < 0) {
+    y = -y;
+    top_to_bottom = true;
   }
-  else {
+
+  /* Validate and cross-check offsets and sizes. */
+  if (x < 1 ||
+      !(depth == 1 || depth == 4 || depth == 8 || depth == 16 || depth == 24 || depth == 32)) {
     return NULL;
   }
 
-  /* for systems where an int needs to be 4 bytes aligned */
-  memcpy(&bmi, mem, sizeof(bmi));
-
-  skip = LITTLE_LONG(bmi.biSize);
-  x = LITTLE_LONG(bmi.biWidth);
-  y = LITTLE_LONG(bmi.biHeight);
-  depth = LITTLE_SHORT(bmi.biBitCount);
-  xppm = LITTLE_LONG(bmi.biXPelsPerMeter);
-  yppm = LITTLE_LONG(bmi.biYPelsPerMeter);
-
+  const size_t pixel_data_offset = (size_t)LITTLE_LONG(*(int *)(mem + 10));
+  const size_t header_bytes = BMP_FILEHEADER_SIZE + sizeof(BMPINFOHEADER);
+  const size_t num_actual_data_bytes = size - pixel_data_offset;
   const size_t row_size_in_bytes = imb_bmp_calc_row_size_in_bytes(x, depth);
   const size_t num_expected_data_bytes = row_size_in_bytes * y;
-  const size_t num_actual_data_bytes = size - pixel_data_offset;
-  if (num_actual_data_bytes < num_expected_data_bytes) {
+  if (num_actual_data_bytes < num_expected_data_bytes || num_actual_data_bytes > size ||
+      pixel_data_offset < header_bytes || pixel_data_offset > (size - num_expected_data_bytes) ||
+      palette_offset < header_bytes || palette_offset > pixel_data_offset) {
     return NULL;
   }
 
@@ -173,14 +174,10 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
     ibuf_depth = depth;
   }
 
-  if (y < 0) {
-    /* Negative height means bitmap is stored top-to-bottom... */
-    y = -y;
-    top_to_bottom = true;
-  }
+  bmp = mem + pixel_data_offset;
 
 #if 0
-  printf("skip: %d, x: %d y: %d, depth: %d (%x)\n", skip, x, y, depth, bmi.biBitCount);
+  printf("palette_offset: %d, x: %d y: %d, depth: %d\n", palette_offset, x, y, depth);
 #endif
 
   if (flags & IB_test) {
@@ -195,7 +192,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
     rect = (uchar *)ibuf->rect;
 
     if (depth <= 8) {
-      const char(*palette)[4] = (void *)(mem + skip);
+      const char(*palette)[4] = (const char(*)[4])(mem + palette_offset);
       const int startmask = ((1 << depth) - 1) << 8;
       for (size_t i = y; i > 0; i--) {
         int index;

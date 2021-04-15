@@ -1225,12 +1225,6 @@ static bool draw_widgetbase_batch_skip_draw_cache(void)
     return true;
   }
 
-  /* There are also reports that some AMD and Mesa driver configuration suffer from the
-   * same issue, T78803. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
-    return true;
-  }
-
   return false;
 }
 

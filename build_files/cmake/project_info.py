@@ -44,6 +44,15 @@ __all__ = (
     "init",
 )
 
+from typing import (
+    Callable,
+    Generator,
+    List,
+    Optional,
+    Union,
+    Tuple,
+)
+
 
 import sys
 if sys.version_info.major < 3:
@@ -70,10 +79,11 @@ SOURCE_DIR = abspath(SOURCE_DIR)
 SIMPLE_PROJECTFILE = False
 
 # must initialize from 'init'
-CMAKE_DIR = None
+CMAKE_DIR = ""
+PROJECT_DIR = ""
 
 
-def init(cmake_path):
+def init(cmake_path: str) -> bool:
     global CMAKE_DIR, PROJECT_DIR
 
     # get cmake path
@@ -91,7 +101,10 @@ def init(cmake_path):
     return True
 
 
-def source_list(path, filename_check=None):
+def source_list(
+        path: str,
+        filename_check: Optional[Callable[[str], bool]] = None,
+) -> Generator[str, None, None]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -103,53 +116,57 @@ def source_list(path, filename_check=None):
 
 
 # extension checking
-def is_cmake(filename):
+def is_cmake(filename: str) -> bool:
     ext = splitext(filename)[1]
     return (ext == ".cmake") or (filename.endswith("CMakeLists.txt"))
 
 
-def is_c_header(filename):
+def is_c_header(filename: str) -> bool:
     ext = splitext(filename)[1]
     return (ext in {".h", ".hpp", ".hxx", ".hh"})
 
 
-def is_py(filename):
+def is_py(filename: str) -> bool:
     ext = splitext(filename)[1]
     return (ext == ".py")
 
 
-def is_glsl(filename):
+def is_glsl(filename: str) -> bool:
     ext = splitext(filename)[1]
     return (ext == ".glsl")
 
 
-def is_c(filename):
+def is_c(filename: str) -> bool:
     ext = splitext(filename)[1]
     return (ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".osl"})
 
 
-def is_c_any(filename):
+def is_c_any(filename: str) -> bool:
     return is_c(filename) or is_c_header(filename)
 
 
-def is_svn_file(filename):
+def is_svn_file(filename: str) -> bool:
     dn, fn = os.path.split(filename)
     filename_svn = join(dn, ".svn", "text-base", "%s.svn-base" % fn)
     return exists(filename_svn)
 
 
-def is_project_file(filename):
+def is_project_file(filename: str) -> bool:
     return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))  # and is_svn_file(filename)
 
 
-def cmake_advanced_info():
+def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tuple[None, None]]:
     """ Extract includes and defines from cmake.
     """
 
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
+    if make_exe is None:
+        print("Make command not found in: %r not found" % project_path)
+        return None, None
+
     make_exe_basename = os.path.basename(make_exe)
 
-    def create_eclipse_project():
+    def create_eclipse_project() -> str:
         print("CMAKE_DIR %r" % CMAKE_DIR)
         if sys.platform == "win32":
             raise Exception("Error: win32 is not supported")
@@ -219,7 +236,7 @@ def cmake_advanced_info():
     return includes, defines
 
 
-def cmake_cache_var(var):
+def cmake_cache_var(var: str) -> Optional[str]:
     with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
         lines = [
             l_strip for l in cache_file
@@ -233,12 +250,12 @@ def cmake_cache_var(var):
     return None
 
 
-def cmake_compiler_defines():
+def cmake_compiler_defines() -> Optional[List[str]]:
     compiler = cmake_cache_var("CMAKE_C_COMPILER")  # could do CXX too
 
     if compiler is None:
         print("Couldn't find the compiler, os defines will be omitted...")
-        return
+        return None
 
     import tempfile
     temp_c = tempfile.mkstemp(suffix=".c")[1]
@@ -255,5 +272,5 @@ def cmake_compiler_defines():
     return lines
 
 
-def project_name_get():
+def project_name_get() -> Optional[str]:
     return cmake_cache_var("CMAKE_PROJECT_NAME")

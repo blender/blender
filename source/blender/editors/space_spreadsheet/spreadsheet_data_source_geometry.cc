@@ -284,6 +284,10 @@ Span<int64_t> GeometryDataSource::get_selected_element_indices() const
 void InstancesDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &)> fn) const
 {
+  if (component_->instances_amount() == 0) {
+    return;
+  }
+
   SpreadsheetColumnID column_id;
   column_id.index = -1;
   column_id.name = (char *)"Name";
@@ -300,6 +304,10 @@ void InstancesDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
+  if (component_->instances_amount() == 0) {
+    return {};
+  }
+
   const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Name")) {

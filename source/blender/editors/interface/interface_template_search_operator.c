@@ -121,6 +121,7 @@ void UI_but_func_operator_search(uiBut *but)
                          operator_search_update_fn,
                          NULL,
                          false,
+                         NULL,
                          operator_search_exec_fn,
                          NULL);
 }

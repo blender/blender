@@ -703,6 +703,14 @@ static IDProperty *socket_add_property(IDProperty *settings_prop_group,
     IDP_AddToGroup(ui_container, prop_ui_group);
   }
 
+  /* Set property description (tooltip). */
+  IDPropertyTemplate property_description_template;
+  property_description_template.string.str = socket.description;
+  property_description_template.string.len = BLI_strnlen(socket.description, MAX_NAME) + 1;
+  property_description_template.string.subtype = IDP_STRING_SUB_UTF8;
+  IDProperty *description = IDP_New(IDP_STRING, &property_description_template, "description");
+  IDP_AddToGroup(prop_ui_group, description);
+
   /* Create the properties for the socket's UI settings. */
   if (property_type.create_min_ui_prop != nullptr) {
     IDP_AddToGroup(prop_ui_group, property_type.create_min_ui_prop(socket, "min"));
@@ -1375,6 +1383,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   geometry_set.get_component_for_write<MeshComponent>().copy_vertex_group_names_from_object(
       *ctx->object);
   modifyGeometry(md, ctx, geometry_set);
+
+  /* This function is only called when applying modifiers. In this case it makes sense to realize
+   * instances, otherwise in some cases there might be no results when applying the modifier. */
+  geometry_set = blender::bke::geometry_set_realize_mesh_for_modifier(geometry_set);
+
   Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
   if (new_mesh == nullptr) {
     return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
