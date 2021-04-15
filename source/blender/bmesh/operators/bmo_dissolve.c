@@ -327,6 +327,10 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
       /* join faces */
       f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+      if (BM_face_find_double(f_new)) {
+        BM_face_kill(bm, f_new);
+        f_new = NULL;
+      }
 
       if (f_new) {
         /* maintain active face */
@@ -441,6 +445,10 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 
           /* join faces */
           f_new = BM_faces_join_pair(bm, l_a, l_b, false);
+          if (BM_face_find_double(f_new)) {
+            BM_face_kill(bm, f_new);
+            f_new = NULL;
+          }
 
           /* maintain active face */
           if (act_face && bm->act_face == NULL) {
