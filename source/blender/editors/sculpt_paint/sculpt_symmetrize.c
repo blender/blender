@@ -89,7 +89,8 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
 void SCULPT_symmetrize_map_ensure(Object *ob)
 { 
   SculptSession *ss = ob->sculpt;
-  Mesh *me = BKE_mesh_from_object(ob);
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  
 
   if (ss->vertex_info.symmetrize_map) {
       /* Nothing to do. */

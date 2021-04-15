@@ -1264,6 +1264,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_CLOTH,
               SCULPT_TOOL_PAINT,
               SCULPT_TOOL_SMEAR,
+              SCULPT_TOOL_SYMMETRIZE,
               SCULPT_TOOL_DRAW_FACE_SETS);
 }
 
