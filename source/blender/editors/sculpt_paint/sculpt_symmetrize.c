@@ -108,7 +108,7 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
   MirrTopoVert_t *topo_pairs;
   MirrTopoHash_t topo_pass = 1;
 
-  intptr_t *index_lookup; /* direct access to mesh_topo_store->index_lookup */
+  int *index_lookup; /* direct access to mesh_topo_store->index_lookup */
 
   totvert = me->totvert;
   topo_hash = MEM_callocN(totvert * sizeof(MirrTopoHash_t), "TopoMirr");
@@ -168,7 +168,7 @@ void SCULPT_symmetrize_map_ensure(Object *ob)
   topo_pairs = MEM_callocN(sizeof(MirrTopoVert_t) * totvert, "MirrTopoPairs");
 
   /* since we are looping through verts, initialize these values here too */
-  index_lookup = MEM_mallocN(totvert * sizeof(*index_lookup), "mesh_topo_lookup");
+  index_lookup = MEM_mallocN(totvert * sizeof(int), "mesh_topo_lookup");
 
   for (a = 0; a < totvert; a++) {
     topo_pairs[a].hash = topo_hash[a];
@@ -232,7 +232,18 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
       continue;
     }
 
-    zero_v3(vd.co);
+    const int symmetrical_index = ss->vertex_info.symmetrize_map[vd.index];
+    printf("SYMM INDEX %d\n", symmetrical_index);
+
+    if (symmetrical_index == -1) {
+        return;
+    }
+
+    float symm_co[3];
+    copy_v3_v3(symm_co, SCULPT_vertex_co_get(ss, symmetrical_index));
+
+    symm_co[0] *= -1;
+    copy_v3_v3(vd.co, symm_co);
 
     BKE_pbvh_vertex_iter_end;
   }
@@ -245,6 +256,14 @@ void SCULPT_do_symmetrize_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (!SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
+      return;
+  }
+
+  printf("SYMMETRIZE BRUSH STEP \n");
+
+  SCULPT_symmetrize_map_ensure(ob);
 
   SculptThreadedTaskData data = {
       .sd = sd,
