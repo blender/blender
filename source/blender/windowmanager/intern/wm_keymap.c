@@ -80,6 +80,9 @@ static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
     kmin->ptr = MEM_callocN(sizeof(PointerRNA), "UserKeyMapItemPtr");
     WM_operator_properties_create(kmin->ptr, kmin->idname);
 
+    /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+    kmin->ptr->owner_id = NULL;
+
     kmin->properties = IDP_CopyProperty(kmin->properties);
     kmin->ptr->data = kmin->properties;
   }
@@ -106,6 +109,9 @@ static void wm_keymap_item_properties_set(wmKeyMapItem *kmi)
 {
   WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
   WM_operator_properties_sanitize(kmi->ptr, 1);
+
+  /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+  kmi->ptr->owner_id = NULL;
 }
 
 /**
@@ -136,6 +142,9 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
           kmi->ptr->data = kmi->properties;
         }
         WM_operator_properties_sanitize(kmi->ptr, 1);
+
+        /* Signal for no context, see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+        kmi->ptr->owner_id = NULL;
       }
     }
     else {

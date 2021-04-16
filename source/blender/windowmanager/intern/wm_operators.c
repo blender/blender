@@ -583,7 +583,8 @@ char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, i
 
 void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
 {
-  RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+  /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+  RNA_pointer_create(G_MAIN->wm.first, ot->srna, NULL, ptr);
 }
 
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
@@ -594,7 +595,8 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
     WM_operator_properties_create_ptr(ptr, ot);
   }
   else {
-    RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
+    /* Set the ID so the context can be accessed: see #STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID. */
+    RNA_pointer_create(G_MAIN->wm.first, &RNA_OperatorProperties, NULL, ptr);
   }
 }
 
