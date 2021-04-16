@@ -1623,34 +1623,34 @@ void RNA_property_enum_items_ex(bContext *C,
 
   *r_free = false;
 
-  if (!use_static && eprop->item_fn && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
-    const EnumPropertyItem *item;
+  if (!use_static && (eprop->item_fn != NULL)) {
+    const bool no_context = (prop->flag & PROP_ENUM_NO_CONTEXT) ||
+                            ((ptr->type->flag & STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID) &&
+                             (ptr->owner_id == NULL));
+    if (C != NULL || no_context) {
+      const EnumPropertyItem *item;
 
-    if (prop->flag & PROP_ENUM_NO_CONTEXT) {
-      item = eprop->item_fn(NULL, ptr, prop, r_free);
-    }
-    else {
-      item = eprop->item_fn(C, ptr, prop, r_free);
-    }
+      item = eprop->item_fn(no_context ? NULL : C, ptr, prop, r_free);
 
-    /* any callbacks returning NULL should be fixed */
-    BLI_assert(item != NULL);
+      /* any callbacks returning NULL should be fixed */
+      BLI_assert(item != NULL);
 
-    if (r_totitem) {
-      int tot;
-      for (tot = 0; item[tot].identifier; tot++) {
-        /* pass */
+      if (r_totitem) {
+        int tot;
+        for (tot = 0; item[tot].identifier; tot++) {
+          /* pass */
+        }
+        *r_totitem = tot;
       }
-      *r_totitem = tot;
-    }
 
-    *r_item = item;
-  }
-  else {
-    *r_item = eprop->item;
-    if (r_totitem) {
-      *r_totitem = eprop->totitem;
+      *r_item = item;
+      return;
     }
+  }
+
+  *r_item = eprop->item;
+  if (r_totitem) {
+    *r_totitem = eprop->totitem;
   }
 }
 
@@ -1753,42 +1753,42 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
     *r_totitem = eprop->totitem;
   }
 
-  if (eprop->item_fn && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
-    const EnumPropertyItem *item;
-    int i;
-    bool free = false;
+  if (eprop->item_fn != NULL) {
+    const bool no_context = (prop->flag & PROP_ENUM_NO_CONTEXT) ||
+                            ((ptr->type->flag & STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID) &&
+                             (ptr->owner_id == NULL));
+    if (C != NULL || no_context) {
+      const EnumPropertyItem *item;
+      int i;
+      bool free = false;
 
-    if (prop->flag & PROP_ENUM_NO_CONTEXT) {
-      item = eprop->item_fn(NULL, ptr, prop, &free);
-    }
-    else {
-      item = eprop->item_fn(C, ptr, prop, &free);
-    }
+      item = eprop->item_fn(no_context ? NULL : NULL, ptr, prop, &free);
 
-    /* any callbacks returning NULL should be fixed */
-    BLI_assert(item != NULL);
+      /* any callbacks returning NULL should be fixed */
+      BLI_assert(item != NULL);
 
-    for (i = 0; i < eprop->totitem; i++) {
-      bool exists = false;
-      int i_fixed;
+      for (i = 0; i < eprop->totitem; i++) {
+        bool exists = false;
+        int i_fixed;
 
-      /* Items that do not exist on list are returned,
-       * but have their names/identifiers NULL'ed out. */
-      for (i_fixed = 0; item[i_fixed].identifier; i_fixed++) {
-        if (STREQ(item[i_fixed].identifier, item_array[i].identifier)) {
-          exists = true;
-          break;
+        /* Items that do not exist on list are returned,
+         * but have their names/identifiers NULL'ed out. */
+        for (i_fixed = 0; item[i_fixed].identifier; i_fixed++) {
+          if (STREQ(item[i_fixed].identifier, item_array[i].identifier)) {
+            exists = true;
+            break;
+          }
+        }
+
+        if (!exists) {
+          item_array[i].name = NULL;
+          item_array[i].identifier = "";
         }
       }
 
-      if (!exists) {
-        item_array[i].name = NULL;
-        item_array[i].identifier = "";
+      if (free) {
+        MEM_freeN((void *)item);
       }
-    }
-
-    if (free) {
-      MEM_freeN((void *)item);
     }
   }
 

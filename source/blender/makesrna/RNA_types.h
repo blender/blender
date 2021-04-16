@@ -636,6 +636,12 @@ typedef enum StructFlag {
   STRUCT_PUBLIC_NAMESPACE = (1 << 9),
   /** All subtypes are added too. */
   STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10),
+  /**
+   * When the #PointerRNA.owner_id is NULL, this signifies the property should be accessed
+   * without any context (the key-map UI and import/export for example).
+   * So accessing the property should not read from the current context to derive values/limits.
+   */
+  STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
