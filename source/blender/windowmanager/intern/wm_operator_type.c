@@ -252,7 +252,7 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
     return;
   }
 
-  RNA_pointer_create(NULL, ot->srna, NULL, &struct_ptr);
+  WM_operator_properties_create_ptr(&struct_ptr, ot);
 
   RNA_STRUCT_BEGIN (&struct_ptr, prop) {
     counter++;

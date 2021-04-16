@@ -1621,7 +1621,7 @@ int WM_operator_name_call_with_properties(struct bContext *C,
 {
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
-  RNA_pointer_create(NULL, ot->srna, properties, &props_ptr);
+  RNA_pointer_create(G_MAIN->wm.first, ot->srna, properties, &props_ptr);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr);
 }
 
