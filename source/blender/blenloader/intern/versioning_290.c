@@ -1574,7 +1574,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed != NULL) {
+      if (scene->toolsettings->sequencer_tool_settings == NULL) {
         scene->toolsettings->sequencer_tool_settings = SEQ_tool_settings_init();
       }
     }
