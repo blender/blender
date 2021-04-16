@@ -137,7 +137,7 @@ static char *blender_version_decimal(const int version)
 {
   static char version_str[5];
   BLI_assert(version < 1000);
-  BLI_snprintf(version_str, sizeof(version_str), "%d.%02d", version / 100, version % 100);
+  BLI_snprintf(version_str, sizeof(version_str), "%d.%d", version / 100, version % 100);
   return version_str;
 }
 

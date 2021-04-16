@@ -67,6 +67,8 @@ static void geometry_node_tree_get_from_context(const bContext *C,
 
 static void geometry_node_tree_update(bNodeTree *ntree)
 {
+  ntreeSetOutput(ntree);
+
   /* Needed to give correct types to reroutes. */
   ntree_update_reroute_nodes(ntree);
 }

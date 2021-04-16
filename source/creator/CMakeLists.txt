@@ -130,14 +130,11 @@ set(SRC
 
 # MSVC 2010 gives linking errors with the manifest
 if(WIN32 AND NOT UNIX)
-  string(SUBSTRING ${BLENDER_VERSION} 0 1 bver1)
-  string(SUBSTRING ${BLENDER_VERSION} 2 1 bver2)
-  string(SUBSTRING ${BLENDER_VERSION} 3 1 bver3)
   add_definitions(
     -DBLEN_VER_RC_STR="${BLENDER_VERSION}"
-    -DBLEN_VER_RC_1=${bver1}
-    -DBLEN_VER_RC_2=${bver2}
-    -DBLEN_VER_RC_3=${bver3}
+    -DBLEN_VER_RC_1=${BLENDER_VERSION_MAJOR}
+    -DBLEN_VER_RC_2=${BLENDER_VERSION_MINOR}
+    -DBLEN_VER_RC_3=${BLENDER_VERSION_PATCH}
     -DBLEN_VER_RC_4=0
   )
 

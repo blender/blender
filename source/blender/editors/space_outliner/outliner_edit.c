@@ -665,6 +665,10 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
                                                  PropertyRNA *UNUSED(prop),
                                                  bool *r_free)
 {
+  if (C == NULL) {
+    return DummyRNA_NULL_items;
+  }
+
   EnumPropertyItem item_tmp = {0}, *item = NULL;
   int totitem = 0;
   int i = 0;

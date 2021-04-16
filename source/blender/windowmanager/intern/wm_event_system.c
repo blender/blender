@@ -1621,7 +1621,7 @@ int WM_operator_name_call_with_properties(struct bContext *C,
 {
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find(opstring, false);
-  RNA_pointer_create(NULL, ot->srna, properties, &props_ptr);
+  RNA_pointer_create(G_MAIN->wm.first, ot->srna, properties, &props_ptr);
   return WM_operator_name_call_ptr(C, ot, context, &props_ptr);
 }
 
@@ -2941,6 +2941,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
     if (wm_action_not_handled(action)) {
       if (win->event_queue_check_drag) {
         if (WM_event_drag_test(event, &event->prevclickx)) {
+          win->event_queue_check_drag_handled = true;
+
           int x = event->x;
           int y = event->y;
           short val = event->val;
@@ -2984,6 +2986,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         if (event->is_repeat == false) {
           win->event_queue_check_click = true;
           win->event_queue_check_drag = true;
+          win->event_queue_check_drag_handled = false;
         }
       }
       else if (event->val == KM_RELEASE) {
@@ -3468,6 +3471,13 @@ void wm_event_do_handlers(bContext *C)
       if (ISMOUSE_BUTTON(event->type) && event->val == KM_PRESS &&
           !wm_action_not_handled(action)) {
         win->event_queue_check_click = false;
+      }
+
+      /* If the drag even was handled, don't attempt to keep re-handing the same
+       * drag event on every cursor motion, see: T87511. */
+      if (win->event_queue_check_drag_handled) {
+        win->event_queue_check_drag = false;
+        win->event_queue_check_drag_handled = false;
       }
 
       /* Update previous mouse position for following events to use. */

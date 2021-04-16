@@ -72,7 +72,7 @@ enum {
 
 /* for the callbacks: */
 #ifndef WITH_PYTHON_MODULE
-#  define BLEND_VERSION_FMT "Blender %d.%02d.%d"
+#  define BLEND_VERSION_FMT "Blender %d.%d.%d"
 #  define BLEND_VERSION_ARG (BLENDER_VERSION / 100), (BLENDER_VERSION % 100), BLENDER_VERSION_PATCH
 #endif
 

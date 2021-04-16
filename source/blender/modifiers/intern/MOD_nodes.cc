@@ -179,6 +179,14 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
     }
     else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
+      /* We don't know exactly what attributes from the other object we will need. */
+      CustomData_MeshMasks mask;
+      mask.vmask = CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT;
+      mask.pmask = CD_MASK_PROP_ALL;
+      mask.lmask = CD_MASK_PROP_ALL;
+      mask.fmask = CD_MASK_PROP_ALL;
+      mask.emask = CD_MASK_PROP_ALL;
+      DEG_add_customdata_mask(ctx->node, &object, &mask);
     }
   }
 }
@@ -454,10 +462,6 @@ class GeometryNodesEvaluator {
   {
     const bNode &bnode = params.node();
 
-    if (DEG_is_active(depsgraph_)) {
-      this->store_ui_hints(node, params);
-    }
-
     /* Use the geometry-node-execute callback if it exists. */
     if (bnode.typeinfo->geometry_node_execute != nullptr) {
       bnode.typeinfo->geometry_node_execute(params);
@@ -473,41 +477,6 @@ class GeometryNodesEvaluator {
 
     /* Just output default values if no implementation exists. */
     this->execute_unknown_node(node, params);
-  }
-
-  void store_ui_hints(const DNode node, GeoNodeExecParams params) const
-  {
-    for (const InputSocketRef *socket_ref : node->inputs()) {
-      if (!socket_ref->is_available()) {
-        continue;
-      }
-      if (socket_ref->bsocket()->type != SOCK_GEOMETRY) {
-        continue;
-      }
-      if (socket_ref->is_multi_input_socket()) {
-        /* Not needed currently. */
-        continue;
-      }
-
-      bNodeTree *btree_cow = node->btree();
-      bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
-      const NodeTreeEvaluationContext context(*self_object_, *modifier_);
-
-      const GeometrySet &geometry_set = params.get_input<GeometrySet>(socket_ref->identifier());
-
-      blender::bke::geometry_set_instances_attribute_foreach(
-          geometry_set,
-          [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
-            BKE_nodetree_attribute_hint_add(*btree_original,
-                                            context,
-                                            *node->bnode(),
-                                            attribute_name,
-                                            meta_data.domain,
-                                            meta_data.data_type);
-            return true;
-          },
-          8);
-    }
   }
 
   void execute_multi_function_node(const DNode node,
@@ -1231,6 +1200,37 @@ static void log_preview_socket_value(const Span<GPointer> values,
   }
 }
 
+static void log_ui_hints(const DSocket socket,
+                         const Span<GPointer> values,
+                         Object *self_object,
+                         NodesModifierData *nmd)
+{
+  const DNode node = socket.node();
+  if (node->is_reroute_node() || socket->typeinfo()->type != SOCK_GEOMETRY) {
+    return;
+  }
+  bNodeTree *btree_cow = node->btree();
+  bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
+  const NodeTreeEvaluationContext context{*self_object, nmd->modifier};
+  for (const GPointer data : values) {
+    if (data.type() == &CPPType::get<GeometrySet>()) {
+      const GeometrySet &geometry_set = *(const GeometrySet *)data.get();
+      blender::bke::geometry_set_instances_attribute_foreach(
+          geometry_set,
+          [&](StringRefNull attribute_name, const AttributeMetaData &meta_data) {
+            BKE_nodetree_attribute_hint_add(*btree_original,
+                                            context,
+                                            *node->bnode(),
+                                            attribute_name,
+                                            meta_data.domain,
+                                            meta_data.data_type);
+            return true;
+          },
+          8);
+    }
+  }
+}
+
 /**
  * Evaluate a node group to compute the output geometry.
  * Currently, this uses a fairly basic and inefficient algorithm that might compute things more
@@ -1297,6 +1297,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
     if (!keys.is_empty()) {
       log_preview_socket_value(values, ctx->object, keys);
     }
+    log_ui_hints(socket, values, ctx->object, nmd);
   };
 
   GeometryNodesEvaluator evaluator{group_inputs,
