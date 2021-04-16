@@ -923,10 +923,6 @@ function(get_blender_version)
   math(EXPR _out_version_major "${_out_version} / 100")
   math(EXPR _out_version_minor "${_out_version} % 100")
 
-  # Zero pad the minor version so `_out_version_minor` is always two characters.
-  # This is needed if the minor version is a single digit.
-  string(REGEX REPLACE "^([0-9])$" "0\\1" _out_version_minor "${_out_version_minor}")
-
   # output vars
   set(BLENDER_VERSION "${_out_version_major}.${_out_version_minor}" PARENT_SCOPE)
   set(BLENDER_VERSION_MAJOR "${_out_version_major}" PARENT_SCOPE)
