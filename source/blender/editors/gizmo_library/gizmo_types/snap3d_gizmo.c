@@ -68,7 +68,9 @@ typedef struct SnapGizmo3D {
   struct {
     int x;
     int y;
+#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
     short shift, ctrl, alt, oskey;
+#endif
   } last_eventstate;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
@@ -99,28 +101,30 @@ static bool eventstate_has_changed(SnapGizmo3D *snap_gizmo, const wmWindowManage
   if (wm && wm->winactive) {
     const wmEvent *event = wm->winactive->eventstate;
     if ((event->x != snap_gizmo->last_eventstate.x) ||
-        (event->y != snap_gizmo->last_eventstate.y) ||
-        (event->ctrl != snap_gizmo->last_eventstate.ctrl) ||
-        (event->shift != snap_gizmo->last_eventstate.shift) ||
-        (event->alt != snap_gizmo->last_eventstate.alt) ||
-        (event->oskey != snap_gizmo->last_eventstate.oskey)) {
+        (event->y != snap_gizmo->last_eventstate.y)) {
       return true;
     }
+#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
+    if (!(snap_gizmo->flag & ED_SNAPGIZMO_TOGGLE_ALWAYS_TRUE)) {
+      if ((event->ctrl != snap_gizmo->last_eventstate.ctrl) ||
+          (event->shift != snap_gizmo->last_eventstate.shift) ||
+          (event->alt != snap_gizmo->last_eventstate.alt) ||
+          (event->oskey != snap_gizmo->last_eventstate.oskey)) {
+        return true;
+      }
+    }
+#endif
   }
   return false;
 }
 
 /* Copies the current eventstate. */
-static void eventstate_save(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
+static void eventstate_save_xy(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
 {
   if (wm && wm->winactive) {
     const wmEvent *event = wm->winactive->eventstate;
     snap_gizmo->last_eventstate.x = event->x;
     snap_gizmo->last_eventstate.y = event->y;
-    snap_gizmo->last_eventstate.ctrl = event->ctrl;
-    snap_gizmo->last_eventstate.shift = event->shift;
-    snap_gizmo->last_eventstate.alt = event->alt;
-    snap_gizmo->last_eventstate.oskey = event->oskey;
   }
 }
 
@@ -139,6 +143,12 @@ static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm)
     /* Nothing has changed. */
     return snap_gizmo->invert_snap;
   }
+
+  /* Save new eventstate. */
+  snap_gizmo->last_eventstate.ctrl = event->ctrl;
+  snap_gizmo->last_eventstate.shift = event->shift;
+  snap_gizmo->last_eventstate.alt = event->alt;
+  snap_gizmo->last_eventstate.oskey = event->oskey;
 
   const int snap_on = snap_gizmo->snap_on;
 
@@ -328,23 +338,17 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
   Scene *scene = DEG_get_input_scene(depsgraph);
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-  if ((snap_gizmo->flag & ED_SNAPGIZMO_TOGGLE_ALWAYS_TRUE) == 0) {
-    bool invert_snap_toggle = invert_snap(snap_gizmo, wm);
-    if (invert_snap_toggle != snap_gizmo->invert_snap) {
-      snap_gizmo->invert_snap = invert_snap_toggle;
-
-      /* Status has changed, be sure to save before early return. */
-      eventstate_save(snap_gizmo, wm);
-    }
+  if (!(snap_gizmo->flag & ED_SNAPGIZMO_TOGGLE_ALWAYS_TRUE)) {
+    snap_gizmo->invert_snap = invert_snap(snap_gizmo, wm);
 
     const ToolSettings *ts = scene->toolsettings;
-    if (invert_snap_toggle != !(ts->snap_flag & SCE_SNAP)) {
+    if (snap_gizmo->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
       snap_gizmo->snap_elem = 0;
       return 0;
     }
   }
 #endif
-  eventstate_save(snap_gizmo, wm);
+  eventstate_save_xy(snap_gizmo, wm);
 
   snap_gizmo->is_enabled = true;
 
