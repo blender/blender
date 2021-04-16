@@ -880,6 +880,7 @@ static PointerRNA rna_KeyMapItem_properties_get(PointerRNA *ptr)
   wmKeyMapItem *kmi = ptr->data;
 
   if (kmi->ptr) {
+    BLI_assert(kmi->ptr->owner_id == NULL);
     return *(kmi->ptr);
   }
 
@@ -1974,7 +1975,7 @@ static void rna_def_operator(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
   RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
   RNA_def_struct_property_tags(srna, rna_enum_operator_property_tags);
-  RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
+  RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES | STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID);
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 }
 

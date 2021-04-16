@@ -374,7 +374,12 @@ typedef struct wmKeyMapItem {
   /** Unique identifier. Positive for kmi that override builtins, negative otherwise. */
   short id;
   char _pad[2];
-  /** Rna pointer to access properties. */
+  /**
+   * RNA pointer to access properties.
+   *
+   * \note The `ptr.owner_id` value must be NULL, as a signal not to use the context
+   * when running property callbacks such as ENUM item functions.
+   */
   struct PointerRNA *ptr;
 } wmKeyMapItem;
 
