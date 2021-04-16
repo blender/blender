@@ -571,7 +571,6 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
     shaderdesc_to_display->setLanguage(GPU_LANGUAGE_GLSL_1_3);
     shaderdesc_to_display->setFunctionName("OCIO_to_display");
     shaderdesc_to_scene_linear->setResourcePrefix("to_display");
-    shaderdesc_to_display->getNextResourceIndex();
     (*(ConstProcessorRcPtr *)processor_to_display)
         ->getDefaultGPUProcessor()
         ->extractGpuShaderInfo(shaderdesc_to_display);
