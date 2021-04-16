@@ -622,7 +622,7 @@ static void geo_node_point_distribute_exec(GeoNodeExecParams params)
   const GeometryNodePointDistributeMode distribute_method =
       static_cast<GeometryNodePointDistributeMode>(params.node().custom1);
 
-  const int seed = params.get_input<int>("Seed");
+  const int seed = params.get_input<int>("Seed") * 5383843;
   const float density = params.extract_input<float>("Density Max");
   const std::string density_attribute_name = params.extract_input<std::string>(
       "Density Attribute");
