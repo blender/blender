@@ -179,6 +179,14 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
     }
     else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
+      /* We don't know exactly what attributes from the other object we will need. */
+      CustomData_MeshMasks mask;
+      mask.vmask = CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT;
+      mask.pmask = CD_MASK_PROP_ALL;
+      mask.lmask = CD_MASK_PROP_ALL;
+      mask.fmask = CD_MASK_PROP_ALL;
+      mask.emask = CD_MASK_PROP_ALL;
+      DEG_add_customdata_mask(ctx->node, &object, &mask);
     }
   }
 }
