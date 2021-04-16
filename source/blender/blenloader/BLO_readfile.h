@@ -226,7 +226,10 @@ int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const uint64
  * Struct for temporarily loading datablocks from a blend file.
  */
 typedef struct TempLibraryContext {
-  struct Main *temp_main;
+  /** Temporary main used for library data. */
+  struct Main *bmain_lib;
+  /** Temporary main used to load data into (currently initialized from `real_main`). */
+  struct Main *bmain_base;
   struct BlendHandle *blendhandle;
   struct LibraryLink_Params liblink_params;
   struct Library *lib;
