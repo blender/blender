@@ -43,6 +43,7 @@ typedef enum {
   SNAP_ALL = 0,
   SNAP_NOT_SELECTED = 1,
   SNAP_NOT_ACTIVE = 2,
+  SNAP_ONLY_ACTIVE = 3,
 } eSnapSelect;
 
 typedef enum {

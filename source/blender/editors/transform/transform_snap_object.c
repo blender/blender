@@ -418,6 +418,13 @@ static void iter_snap_objects(SnapObjectContext *sctx,
   const bool use_backface_culling = params->use_backface_culling;
 
   Base *base_act = view_layer->basact;
+  if (snap_select == SNAP_ONLY_ACTIVE) {
+    Object *obj_eval = DEG_get_evaluated_object(depsgraph, base_act->object);
+    sob_callback(
+        sctx, obj_eval, obj_eval->obmat, edit_mode_type, use_backface_culling, true, data);
+    return;
+  }
+
   for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
     if (!BASE_VISIBLE(v3d, base)) {
       continue;
