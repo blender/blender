@@ -144,11 +144,6 @@ struct SnapObjectContext {
 /** \name Utilities
  * \{ */
 
-static bool editmesh_eval_final_is_bmesh(const BMEditMesh *em)
-{
-  return (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH);
-}
-
 /* Mesh used for snapping.
  * If NULL the BMesh should be used. */
 static Mesh *mesh_for_snap(Object *ob, eSnapEditType edit_mode_type, bool *r_use_hide)
@@ -156,16 +151,22 @@ static Mesh *mesh_for_snap(Object *ob, eSnapEditType edit_mode_type, bool *r_use
   Mesh *me = ob->data;
   bool use_hide = false;
   if (BKE_object_is_in_editmode(ob)) {
-    if ((edit_mode_type == SNAP_GEOM_EDIT) || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
+    if (edit_mode_type == SNAP_GEOM_EDIT) {
       return NULL;
     }
 
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     if ((edit_mode_type == SNAP_GEOM_FINAL) && em->mesh_eval_final) {
+      if (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        return NULL;
+      }
       me = em->mesh_eval_final;
       use_hide = true;
     }
     else if ((edit_mode_type == SNAP_GEOM_CAGE) && em->mesh_eval_cage) {
+      if (em->mesh_eval_cage->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        return NULL;
+      }
       me = em->mesh_eval_cage;
       use_hide = true;
     }
