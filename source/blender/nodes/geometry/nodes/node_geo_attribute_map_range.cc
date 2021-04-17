@@ -192,8 +192,8 @@ static float map_smootherstep(const float value,
   return min_to + factor_mapped * (max_to - min_to);
 }
 
-static void map_range_float(FloatReadAttribute attribute_input,
-                            FloatWriteAttribute attribute_result,
+static void map_range_float(const VArray<float> &attribute_input,
+                            MutableSpan<float> results,
                             const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
@@ -204,32 +204,31 @@ static void map_range_float(FloatReadAttribute attribute_input,
   const float min_to = params.get_input<float>("To Min");
   const float max_to = params.get_input<float>("To Max");
 
-  Span<float> span = attribute_input.get_span();
-  MutableSpan<float> result_span = attribute_result.get_span();
+  VArray_Span<float> span{attribute_input};
 
   switch (interpolation_type) {
     case NODE_MAP_RANGE_LINEAR: {
       for (int i : span.index_range()) {
-        result_span[i] = map_linear(span[i], min_from, max_from, min_to, max_to);
+        results[i] = map_linear(span[i], min_from, max_from, min_to, max_to);
       }
       break;
     }
     case NODE_MAP_RANGE_STEPPED: {
       const float steps = params.get_input<float>("Steps");
       for (int i : span.index_range()) {
-        result_span[i] = map_stepped(span[i], min_from, max_from, min_to, max_to, steps);
+        results[i] = map_stepped(span[i], min_from, max_from, min_to, max_to, steps);
       }
       break;
     }
     case NODE_MAP_RANGE_SMOOTHSTEP: {
       for (int i : span.index_range()) {
-        result_span[i] = map_smoothstep(span[i], min_from, max_from, min_to, max_to);
+        results[i] = map_smoothstep(span[i], min_from, max_from, min_to, max_to);
       }
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
       for (int i : span.index_range()) {
-        result_span[i] = map_smootherstep(span[i], min_from, max_from, min_to, max_to);
+        results[i] = map_smootherstep(span[i], min_from, max_from, min_to, max_to);
       }
       break;
     }
@@ -241,14 +240,14 @@ static void map_range_float(FloatReadAttribute attribute_input,
     const float clamp_min = min_to < max_to ? min_to : max_to;
     const float clamp_max = min_to < max_to ? max_to : min_to;
 
-    for (int i : result_span.index_range()) {
-      result_span[i] = std::clamp(result_span[i], clamp_min, clamp_max);
+    for (int i : results.index_range()) {
+      results[i] = std::clamp(results[i], clamp_min, clamp_max);
     }
   }
 }
 
-static void map_range_float3(Float3ReadAttribute attribute_input,
-                             Float3WriteAttribute attribute_result,
+static void map_range_float3(const VArray<float3> &attribute_input,
+                             const MutableSpan<float3> results,
                              const GeoNodeExecParams &params)
 {
   const bNode &node = params.node();
@@ -259,43 +258,39 @@ static void map_range_float3(Float3ReadAttribute attribute_input,
   const float3 min_to = params.get_input<float3>("To Min_001");
   const float3 max_to = params.get_input<float3>("To Max_001");
 
-  Span<float3> span = attribute_input.get_span();
-  MutableSpan<float3> result_span = attribute_result.get_span();
+  VArray_Span<float3> span{attribute_input};
 
   switch (interpolation_type) {
     case NODE_MAP_RANGE_LINEAR: {
       for (int i : span.index_range()) {
-        result_span[i].x = map_linear(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
-        result_span[i].y = map_linear(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
-        result_span[i].z = map_linear(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
+        results[i].x = map_linear(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
+        results[i].y = map_linear(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
+        results[i].z = map_linear(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
       }
       break;
     }
     case NODE_MAP_RANGE_STEPPED: {
       const float3 steps = params.get_input<float3>("Steps_001");
       for (int i : span.index_range()) {
-        result_span[i].x = map_stepped(
-            span[i].x, min_from.x, max_from.x, min_to.x, max_to.x, steps.x);
-        result_span[i].y = map_stepped(
-            span[i].y, min_from.y, max_from.y, min_to.y, max_to.y, steps.y);
-        result_span[i].z = map_stepped(
-            span[i].z, min_from.z, max_from.z, min_to.z, max_to.z, steps.z);
+        results[i].x = map_stepped(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x, steps.x);
+        results[i].y = map_stepped(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y, steps.y);
+        results[i].z = map_stepped(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z, steps.z);
       }
       break;
     }
     case NODE_MAP_RANGE_SMOOTHSTEP: {
       for (int i : span.index_range()) {
-        result_span[i].x = map_smoothstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
-        result_span[i].y = map_smoothstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
-        result_span[i].z = map_smoothstep(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
+        results[i].x = map_smoothstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
+        results[i].y = map_smoothstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
+        results[i].z = map_smoothstep(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
       }
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
       for (int i : span.index_range()) {
-        result_span[i].x = map_smootherstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
-        result_span[i].y = map_smootherstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
-        result_span[i].z = map_smootherstep(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
+        results[i].x = map_smootherstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
+        results[i].y = map_smootherstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
+        results[i].z = map_smootherstep(span[i].z, min_from.z, max_from.z, min_to.z, max_to.z);
       }
       break;
     }
@@ -313,8 +308,8 @@ static void map_range_float3(Float3ReadAttribute attribute_input,
     clamp_min.z = min_to.z < max_to.z ? min_to.z : max_to.z;
     clamp_max.z = min_to.z < max_to.z ? max_to.z : min_to.z;
 
-    for (int i : result_span.index_range()) {
-      clamp_v3_v3v3(result_span[i], clamp_min, clamp_max);
+    for (int i : results.index_range()) {
+      clamp_v3_v3v3(results[i], clamp_min, clamp_max);
     }
   }
 }
@@ -323,13 +318,13 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef source_name,
                                          StringRef result_name)
 {
-  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  ReadAttributeLookup result_attribute = component.attribute_try_get_for_read(result_name);
   if (result_attribute) {
-    return result_attribute->domain();
+    return result_attribute.domain;
   }
-  ReadAttributePtr source_attribute = component.attribute_try_get_for_read(source_name);
+  ReadAttributeLookup source_attribute = component.attribute_try_get_for_read(source_name);
   if (source_attribute) {
-    return source_attribute->domain();
+    return source_attribute.domain;
   }
   return ATTR_DOMAIN_POINT;
 }
@@ -349,8 +344,7 @@ static void map_range_attribute(GeometryComponent &component, const GeoNodeExecP
 
   const AttributeDomain domain = get_result_domain(component, input_name, result_name);
 
-  ReadAttributePtr attribute_input = component.attribute_try_get_for_read(
-      input_name, domain, data_type);
+  GVArrayPtr attribute_input = component.attribute_try_get_for_read(input_name, domain, data_type);
 
   if (!attribute_input) {
     params.error_message_add(NodeWarningType::Error,
@@ -358,7 +352,7 @@ static void map_range_attribute(GeometryComponent &component, const GeoNodeExecP
     return;
   }
 
-  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
+  OutputAttribute attribute_result = component.attribute_try_get_for_output_only(
       result_name, domain, data_type);
   if (!attribute_result) {
     params.error_message_add(NodeWarningType::Error,
@@ -369,18 +363,19 @@ static void map_range_attribute(GeometryComponent &component, const GeoNodeExecP
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      map_range_float(*attribute_input, *attribute_result, params);
+      map_range_float(attribute_input->typed<float>(), attribute_result.as_span<float>(), params);
       break;
     }
     case CD_PROP_FLOAT3: {
-      map_range_float3(*attribute_input, *attribute_result, params);
+      map_range_float3(
+          attribute_input->typed<float3>(), attribute_result.as_span<float3>(), params);
       break;
     }
     default:
       BLI_assert_unreachable();
   }
 
-  attribute_result.apply_span_and_save();
+  attribute_result.save();
 }
 
 static void geo_node_attribute_map_range_exec(GeoNodeExecParams params)

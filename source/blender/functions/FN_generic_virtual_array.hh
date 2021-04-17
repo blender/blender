@@ -212,6 +212,9 @@ class GVMutableArray : public GVArray {
   virtual void *try_get_internal_mutable_varray_impl();
 };
 
+using GVArrayPtr = std::unique_ptr<GVArray>;
+using GVMutableArrayPtr = std::unique_ptr<GVMutableArray>;
+
 class GVArray_For_GSpan : public GVArray {
  protected:
   const void *data_ = nullptr;
@@ -582,11 +585,11 @@ template<typename T> class GVArray_Span : public Span<T> {
 
 template<typename T> class GVArray_For_OwnedVArray : public GVArray_For_VArray<T> {
  private:
-  std::unique_ptr<VArray<T>> owned_varray_;
+  VArrayPtr<T> owned_varray_;
 
  public:
   /* Takes ownership of varray and passes a reference to the base class. */
-  GVArray_For_OwnedVArray(std::unique_ptr<VArray<T>> varray)
+  GVArray_For_OwnedVArray(VArrayPtr<T> varray)
       : GVArray_For_VArray<T>(*varray), owned_varray_(std::move(varray))
   {
   }
@@ -594,11 +597,11 @@ template<typename T> class GVArray_For_OwnedVArray : public GVArray_For_VArray<T
 
 template<typename T> class VArray_For_OwnedGVArray : public VArray_For_GVArray<T> {
  private:
-  std::unique_ptr<VArray<T>> owned_varray_;
+  GVArrayPtr owned_varray_;
 
  public:
   /* Takes ownership of varray and passes a reference to the base class. */
-  VArray_For_OwnedGVArray(std::unique_ptr<GVArray> varray)
+  VArray_For_OwnedGVArray(GVArrayPtr varray)
       : VArray_For_GVArray<T>(*varray), owned_varray_(std::move(varray))
   {
   }
@@ -607,11 +610,11 @@ template<typename T> class VArray_For_OwnedGVArray : public VArray_For_GVArray<T
 template<typename T>
 class GVMutableArray_For_OwnedVMutableArray : public GVMutableArray_For_VMutableArray<T> {
  private:
-  std::unique_ptr<VMutableArray<T>> owned_varray_;
+  VMutableArrayPtr<T> owned_varray_;
 
  public:
   /* Takes ownership of varray and passes a reference to the base class. */
-  GVMutableArray_For_OwnedVMutableArray(std::unique_ptr<VMutableArray<T>> varray)
+  GVMutableArray_For_OwnedVMutableArray(VMutableArrayPtr<T> varray)
       : GVMutableArray_For_VMutableArray<T>(*varray), owned_varray_(std::move(varray))
   {
   }
@@ -620,11 +623,11 @@ class GVMutableArray_For_OwnedVMutableArray : public GVMutableArray_For_VMutable
 template<typename T>
 class VMutableArray_For_OwnedGVMutableArray : public VMutableArray_For_GVMutableArray<T> {
  private:
-  std::unique_ptr<GVMutableArray> owned_varray_;
+  GVMutableArrayPtr owned_varray_;
 
  public:
   /* Takes ownership of varray and passes a reference to the base class. */
-  VMutableArray_For_OwnedGVMutableArray(std::unique_ptr<GVMutableArray> varray)
+  VMutableArray_For_OwnedGVMutableArray(GVMutableArrayPtr varray)
       : VMutableArray_For_GVMutableArray<T>(*varray), owned_varray_(std::move(varray))
   {
   }
@@ -740,7 +743,7 @@ template<typename T> class GVArray_Typed {
   std::optional<VArray_For_Span<T>> varray_span_;
   std::optional<VArray_For_Single<T>> varray_single_;
   std::optional<VArray_For_GVArray<T>> varray_any_;
-  std::unique_ptr<GVArray> owned_gvarray_;
+  GVArrayPtr owned_gvarray_;
 
  public:
   explicit GVArray_Typed(const GVArray &gvarray)
@@ -767,7 +770,7 @@ template<typename T> class GVArray_Typed {
   }
 
   /* Same as the constructor above, but also takes ownership of the passed in virtual array. */
-  explicit GVArray_Typed(std::unique_ptr<GVArray> gvarray) : GVArray_Typed(*gvarray)
+  explicit GVArray_Typed(GVArrayPtr gvarray) : GVArray_Typed(*gvarray)
   {
     owned_gvarray_ = std::move(gvarray);
   }
@@ -811,7 +814,7 @@ template<typename T> class GVMutableArray_Typed {
   VMutableArray<T> *varray_;
   std::optional<VMutableArray_For_MutableSpan<T>> varray_span_;
   std::optional<VMutableArray_For_GVMutableArray<T>> varray_any_;
-  std::unique_ptr<GVMutableArray> owned_gvarray_;
+  GVMutableArrayPtr owned_gvarray_;
 
  public:
   explicit GVMutableArray_Typed(GVMutableArray &gvarray)
@@ -831,8 +834,7 @@ template<typename T> class GVMutableArray_Typed {
     }
   }
 
-  explicit GVMutableArray_Typed(std::unique_ptr<GVMutableArray> gvarray)
-      : GVMutableArray_Typed(*gvarray)
+  explicit GVMutableArray_Typed(GVMutableArrayPtr gvarray) : GVMutableArray_Typed(*gvarray)
   {
     owned_gvarray_ = std::move(gvarray);
   }

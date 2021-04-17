@@ -24,6 +24,9 @@
 
 namespace blender::nodes {
 
+using fn::GVArrayPtr;
+using fn::GVMutableArray;
+using fn::GVMutableArrayPtr;
 using fn::MFDataType;
 
 template<typename From, typename To, To (*ConversionF)(const From &)>
@@ -227,11 +230,120 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
                                                    const void *from_value,
                                                    void *to_value) const
 {
+  if (from_type == to_type) {
+    from_type.copy_to_uninitialized(from_value, to_value);
+    return;
+  }
+
   const ConversionFunctions *functions = this->get_conversion_functions(
       MFDataType::ForSingle(from_type), MFDataType::ForSingle(to_type));
   BLI_assert(functions != nullptr);
 
   functions->convert_single_to_uninitialized(from_value, to_value);
+}
+
+class GVArray_For_ConvertedGVArray : public GVArray {
+ private:
+  GVArrayPtr varray_;
+  const CPPType &from_type_;
+  ConversionFunctions old_to_new_conversions_;
+
+ public:
+  GVArray_For_ConvertedGVArray(GVArrayPtr varray,
+                               const CPPType &to_type,
+                               const DataTypeConversions &conversions)
+      : GVArray(to_type, varray->size()), varray_(std::move(varray)), from_type_(varray_->type())
+  {
+    old_to_new_conversions_ = *conversions.get_conversion_functions(from_type_, to_type);
+  }
+
+ private:
+  void get_impl(const int64_t index, void *r_value) const override
+  {
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    varray_->get(index, buffer);
+    old_to_new_conversions_.convert_single_to_initialized(buffer, r_value);
+    from_type_.destruct(buffer);
+  }
+
+  void get_to_uninitialized_impl(const int64_t index, void *r_value) const override
+  {
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    varray_->get(index, buffer);
+    old_to_new_conversions_.convert_single_to_uninitialized(buffer, r_value);
+    from_type_.destruct(buffer);
+  }
+};
+
+class GVMutableArray_For_ConvertedGVMutableArray : public GVMutableArray {
+ private:
+  GVMutableArrayPtr varray_;
+  const CPPType &from_type_;
+  ConversionFunctions old_to_new_conversions_;
+  ConversionFunctions new_to_old_conversions_;
+
+ public:
+  GVMutableArray_For_ConvertedGVMutableArray(GVMutableArrayPtr varray,
+                                             const CPPType &to_type,
+                                             const DataTypeConversions &conversions)
+      : GVMutableArray(to_type, varray->size()),
+        varray_(std::move(varray)),
+        from_type_(varray_->type())
+  {
+    old_to_new_conversions_ = *conversions.get_conversion_functions(from_type_, to_type);
+    new_to_old_conversions_ = *conversions.get_conversion_functions(to_type, from_type_);
+  }
+
+ private:
+  void get_impl(const int64_t index, void *r_value) const override
+  {
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    varray_->get(index, buffer);
+    old_to_new_conversions_.convert_single_to_initialized(buffer, r_value);
+    from_type_.destruct(buffer);
+  }
+
+  void get_to_uninitialized_impl(const int64_t index, void *r_value) const override
+  {
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    varray_->get(index, buffer);
+    old_to_new_conversions_.convert_single_to_uninitialized(buffer, r_value);
+    from_type_.destruct(buffer);
+  }
+
+  void set_by_move_impl(const int64_t index, void *value) override
+  {
+    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
+    new_to_old_conversions_.convert_single_to_uninitialized(value, buffer);
+    varray_->set_by_relocate(index, buffer);
+  }
+};
+
+fn::GVArrayPtr DataTypeConversions::try_convert(fn::GVArrayPtr varray,
+                                                const CPPType &to_type) const
+{
+  const CPPType &from_type = varray->type();
+  if (from_type == to_type) {
+    return varray;
+  }
+  if (!this->is_convertible(from_type, to_type)) {
+    return {};
+  }
+  return std::make_unique<GVArray_For_ConvertedGVArray>(std::move(varray), to_type, *this);
+}
+
+fn::GVMutableArrayPtr DataTypeConversions::try_convert(fn::GVMutableArrayPtr varray,
+                                                       const CPPType &to_type) const
+{
+  const CPPType &from_type = varray->type();
+  if (from_type == to_type) {
+    return varray;
+  }
+  if (!this->is_convertible(from_type, to_type)) {
+    return {};
+  }
+  return std::make_unique<GVMutableArray_For_ConvertedGVMutableArray>(
+      std::move(varray), to_type, *this);
 }
 
 }  // namespace blender::nodes

@@ -248,6 +248,9 @@ template<typename T> class VMutableArray : public VArray<T> {
   }
 };
 
+template<typename T> using VArrayPtr = std::unique_ptr<VArray<T>>;
+template<typename T> using VMutableArrayPtr = std::unique_ptr<VMutableArray<T>>;
+
 /**
  * A virtual array implementation for a span. Methods in this class are final so that it can be
  * devirtualized by the compiler in some cases (e.g. when #devirtualize_varray is used).

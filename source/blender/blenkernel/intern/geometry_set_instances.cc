@@ -450,12 +450,13 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     BLI_assert(cpp_type != nullptr);
 
     result.attribute_try_create(entry.key, domain_output, data_type_output);
-    WriteAttributePtr write_attribute = result.attribute_try_get_for_write(name);
-    if (!write_attribute || &write_attribute->cpp_type() != cpp_type ||
-        write_attribute->domain() != domain_output) {
+    WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(name);
+    if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
+        write_attribute.domain != domain_output) {
       continue;
     }
-    fn::GMutableSpan dst_span = write_attribute->get_span_for_write_only();
+
+    fn::GVMutableArray_GSpan dst_span{*write_attribute.varray};
 
     int offset = 0;
     for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -467,11 +468,11 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
           if (domain_size == 0) {
             continue; /* Domain size is 0, so no need to increment the offset. */
           }
-          ReadAttributePtr source_attribute = component.attribute_try_get_for_read(
+          GVArrayPtr source_attribute = component.attribute_try_get_for_read(
               name, domain_output, data_type_output);
 
           if (source_attribute) {
-            fn::GSpan src_span = source_attribute->get_span();
+            fn::GVArray_GSpan src_span{*source_attribute};
             const void *src_buffer = src_span.data();
             for (const int UNUSED(i) : set_group.transforms.index_range()) {
               void *dst_buffer = dst_span[offset];
@@ -486,7 +487,7 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
       }
     }
 
-    write_attribute->apply_span();
+    dst_span.save();
   }
 }
 

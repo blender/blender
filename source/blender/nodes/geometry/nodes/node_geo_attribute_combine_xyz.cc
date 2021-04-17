@@ -77,9 +77,9 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef result_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  ReadAttributeLookup result_attribute = component.attribute_try_get_for_read(result_name);
   if (result_attribute) {
-    return result_attribute->domain();
+    return result_attribute.domain;
   }
 
   /* Otherwise use the highest priority domain from existing input attributes, or the default. */
@@ -94,27 +94,24 @@ static void combine_attributes(GeometryComponent &component, const GeoNodeExecPa
   }
   const AttributeDomain result_domain = get_result_domain(component, params, result_name);
 
-  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
-      result_name, result_domain, CD_PROP_FLOAT3);
+  OutputAttribute_Typed<float3> attribute_result =
+      component.attribute_try_get_for_output_only<float3>(result_name, result_domain);
   if (!attribute_result) {
     return;
   }
-  FloatReadAttribute attribute_x = params.get_input_attribute<float>(
+  GVArray_Typed<float> attribute_x = params.get_input_attribute<float>(
       "X", component, result_domain, 0.0f);
-  FloatReadAttribute attribute_y = params.get_input_attribute<float>(
+  GVArray_Typed<float> attribute_y = params.get_input_attribute<float>(
       "Y", component, result_domain, 0.0f);
-  FloatReadAttribute attribute_z = params.get_input_attribute<float>(
+  GVArray_Typed<float> attribute_z = params.get_input_attribute<float>(
       "Z", component, result_domain, 0.0f);
 
-  MutableSpan<float3> results = attribute_result->get_span_for_write_only<float3>();
-  for (const int i : results.index_range()) {
+  for (const int i : IndexRange(attribute_result->size())) {
     const float x = attribute_x[i];
     const float y = attribute_y[i];
     const float z = attribute_z[i];
-    const float3 result = float3(x, y, z);
-    results[i] = result;
+    attribute_result->set(i, {x, y, z});
   }
-  attribute_result.apply_span_and_save();
 }
 
 static void geo_node_attribute_combine_xyz_exec(GeoNodeExecParams params)

@@ -77,17 +77,17 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
 {
   /* Use the highest priority domain from any existing attribute outputs. */
   Vector<AttributeDomain, 3> output_domains;
-  ReadAttributePtr attribute_x = component.attribute_try_get_for_read(result_name_x);
-  ReadAttributePtr attribute_y = component.attribute_try_get_for_read(result_name_y);
-  ReadAttributePtr attribute_z = component.attribute_try_get_for_read(result_name_z);
+  ReadAttributeLookup attribute_x = component.attribute_try_get_for_read(result_name_x);
+  ReadAttributeLookup attribute_y = component.attribute_try_get_for_read(result_name_y);
+  ReadAttributeLookup attribute_z = component.attribute_try_get_for_read(result_name_z);
   if (attribute_x) {
-    output_domains.append(attribute_x->domain());
+    output_domains.append(attribute_x.domain);
   }
   if (attribute_y) {
-    output_domains.append(attribute_y->domain());
+    output_domains.append(attribute_y.domain);
   }
   if (attribute_z) {
-    output_domains.append(attribute_z->domain());
+    output_domains.append(attribute_z.domain);
   }
   if (output_domains.size() > 0) {
     return bke::attribute_domain_highest_priority(output_domains);
@@ -107,37 +107,32 @@ static void separate_attribute(GeometryComponent &component, const GeoNodeExecPa
   }
 
   /* The node is only for float3 to float conversions. */
-  const CustomDataType input_type = CD_PROP_FLOAT3;
-  const CustomDataType result_type = CD_PROP_FLOAT;
   const AttributeDomain result_domain = get_result_domain(
       component, params, result_name_x, result_name_y, result_name_z);
 
-  ReadAttributePtr attribute_input = params.get_input_attribute(
-      "Vector", component, result_domain, input_type, nullptr);
-  if (!attribute_input) {
-    return;
-  }
-  const Span<float3> input_span = attribute_input->get_span<float3>();
+  GVArray_Typed<float3> attribute_input = params.get_input_attribute<float3>(
+      "Vector", component, result_domain, {0, 0, 0});
+  VArray_Span<float3> input_span{*attribute_input};
 
-  OutputAttributePtr attribute_result_x = component.attribute_try_get_for_output(
-      result_name_x, result_domain, result_type);
-  OutputAttributePtr attribute_result_y = component.attribute_try_get_for_output(
-      result_name_y, result_domain, result_type);
-  OutputAttributePtr attribute_result_z = component.attribute_try_get_for_output(
-      result_name_z, result_domain, result_type);
+  OutputAttribute_Typed<float> attribute_result_x =
+      component.attribute_try_get_for_output_only<float>(result_name_x, result_domain);
+  OutputAttribute_Typed<float> attribute_result_y =
+      component.attribute_try_get_for_output_only<float>(result_name_y, result_domain);
+  OutputAttribute_Typed<float> attribute_result_z =
+      component.attribute_try_get_for_output_only<float>(result_name_z, result_domain);
 
   /* Only extract the components for the outputs with a given attribute. */
   if (attribute_result_x) {
-    extract_input(0, input_span, attribute_result_x->get_span_for_write_only<float>());
-    attribute_result_x.apply_span_and_save();
+    extract_input(0, input_span, attribute_result_x.as_span());
+    attribute_result_x.save();
   }
   if (attribute_result_y) {
-    extract_input(1, input_span, attribute_result_y->get_span_for_write_only<float>());
-    attribute_result_y.apply_span_and_save();
+    extract_input(1, input_span, attribute_result_y.as_span());
+    attribute_result_y.save();
   }
   if (attribute_result_z) {
-    extract_input(2, input_span, attribute_result_z->get_span_for_write_only<float>());
-    attribute_result_z.apply_span_and_save();
+    extract_input(2, input_span, attribute_result_z.as_span());
+    attribute_result_z.save();
   }
 }
 

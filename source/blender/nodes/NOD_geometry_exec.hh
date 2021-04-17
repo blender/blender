@@ -33,29 +33,28 @@ struct ModifierData;
 
 namespace blender::nodes {
 
-using bke::BooleanReadAttribute;
-using bke::BooleanWriteAttribute;
-using bke::Color4fReadAttribute;
-using bke::Color4fWriteAttribute;
-using bke::Float2ReadAttribute;
-using bke::Float2WriteAttribute;
-using bke::Float3ReadAttribute;
-using bke::Float3WriteAttribute;
-using bke::FloatReadAttribute;
-using bke::FloatWriteAttribute;
 using bke::geometry_set_realize_instances;
-using bke::Int32ReadAttribute;
-using bke::Int32WriteAttribute;
+using bke::OutputAttribute;
+using bke::OutputAttribute_Typed;
 using bke::PersistentDataHandleMap;
 using bke::PersistentObjectHandle;
-using bke::ReadAttribute;
-using bke::ReadAttributePtr;
-using bke::WriteAttribute;
-using bke::WriteAttributePtr;
+using bke::ReadAttributeLookup;
+using bke::WriteAttributeLookup;
 using fn::CPPType;
 using fn::GMutablePointer;
+using fn::GMutableSpan;
 using fn::GPointer;
+using fn::GSpan;
 using fn::GValueMap;
+using fn::GVArray;
+using fn::GVArray_GSpan;
+using fn::GVArray_Span;
+using fn::GVArray_Typed;
+using fn::GVArrayPtr;
+using fn::GVMutableArray;
+using fn::GVMutableArray_GSpan;
+using fn::GVMutableArray_Typed;
+using fn::GVMutableArrayPtr;
 
 class GeoNodeExecParams {
  private:
@@ -217,20 +216,21 @@ class GeoNodeExecParams {
    * \note This will add an error message if the string socket is active and
    * the input attribute does not exist.
    */
-  ReadAttributePtr get_input_attribute(const StringRef name,
-                                       const GeometryComponent &component,
-                                       const AttributeDomain domain,
-                                       const CustomDataType type,
-                                       const void *default_value) const;
+  GVArrayPtr get_input_attribute(const StringRef name,
+                                 const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 const CustomDataType type,
+                                 const void *default_value) const;
 
   template<typename T>
-  bke::TypedReadAttribute<T> get_input_attribute(const StringRef name,
-                                                 const GeometryComponent &component,
-                                                 const AttributeDomain domain,
-                                                 const T &default_value) const
+  GVArray_Typed<T> get_input_attribute(const StringRef name,
+                                       const GeometryComponent &component,
+                                       const AttributeDomain domain,
+                                       const T &default_value) const
   {
     const CustomDataType type = bke::cpp_type_to_custom_data_type(CPPType::get<T>());
-    return this->get_input_attribute(name, component, domain, type, &default_value);
+    GVArrayPtr varray = this->get_input_attribute(name, component, domain, type, &default_value);
+    return GVArray_Typed<T>(std::move(varray));
   }
 
   /**

@@ -149,9 +149,9 @@ static void geo_node_attribute_math_update(bNodeTree *UNUSED(ntree), bNode *node
       operation_use_input_c(operation));
 }
 
-static void do_math_operation(Span<float> span_a,
-                              Span<float> span_b,
-                              Span<float> span_c,
+static void do_math_operation(const VArray<float> &span_a,
+                              const VArray<float> &span_b,
+                              const VArray<float> &span_c,
                               MutableSpan<float> span_result,
                               const NodeMathOperation operation)
 {
@@ -165,8 +165,8 @@ static void do_math_operation(Span<float> span_a,
   UNUSED_VARS_NDEBUG(success);
 }
 
-static void do_math_operation(Span<float> span_a,
-                              Span<float> span_b,
+static void do_math_operation(const VArray<float> &span_a,
+                              const VArray<float> &span_b,
                               MutableSpan<float> span_result,
                               const NodeMathOperation operation)
 {
@@ -180,7 +180,7 @@ static void do_math_operation(Span<float> span_a,
   UNUSED_VARS_NDEBUG(success);
 }
 
-static void do_math_operation(Span<float> span_input,
+static void do_math_operation(const VArray<float> &span_input,
                               MutableSpan<float> span_result,
                               const NodeMathOperation operation)
 {
@@ -200,9 +200,9 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef result_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
+  ReadAttributeLookup result_attribute = component.attribute_try_get_for_read(result_name);
   if (result_attribute) {
-    return result_attribute->domain();
+    return result_attribute.domain;
   }
 
   /* Otherwise use the highest priority domain from existing input attributes, or the default. */
@@ -224,56 +224,39 @@ static void attribute_math_calc(GeometryComponent &component, const GeoNodeExecP
   const std::string result_name = params.get_input<std::string>("Result");
 
   /* The result type of this node is always float. */
-  const CustomDataType result_type = CD_PROP_FLOAT;
   const AttributeDomain result_domain = get_result_domain(
       component, params, operation, result_name);
 
-  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
-      result_name, result_domain, result_type);
+  OutputAttribute_Typed<float> attribute_result =
+      component.attribute_try_get_for_output_only<float>(result_name, result_domain);
   if (!attribute_result) {
     return;
   }
 
-  ReadAttributePtr attribute_a = params.get_input_attribute(
-      "A", component, result_domain, result_type, nullptr);
-  if (!attribute_a) {
-    return;
-  }
+  GVArray_Typed<float> attribute_a = params.get_input_attribute<float>(
+      "A", component, result_domain, 0.0f);
 
-  /* Note that passing the data with `get_span<float>()` works
+  MutableSpan<float> result_span = attribute_result.as_span();
+
+  /* Note that passing the data with `get_internal_span<float>()` works
    * because the attributes were accessed with #CD_PROP_FLOAT. */
   if (operation_use_input_b(operation)) {
-    ReadAttributePtr attribute_b = params.get_input_attribute(
-        "B", component, result_domain, result_type, nullptr);
-    if (!attribute_b) {
-      return;
-    }
+    GVArray_Typed<float> attribute_b = params.get_input_attribute<float>(
+        "B", component, result_domain, 0.0f);
     if (operation_use_input_c(operation)) {
-      ReadAttributePtr attribute_c = params.get_input_attribute(
-          "C", component, result_domain, result_type, nullptr);
-      if (!attribute_c) {
-        return;
-      }
-      do_math_operation(attribute_a->get_span<float>(),
-                        attribute_b->get_span<float>(),
-                        attribute_c->get_span<float>(),
-                        attribute_result->get_span_for_write_only<float>(),
-                        operation);
+      GVArray_Typed<float> attribute_c = params.get_input_attribute<float>(
+          "C", component, result_domain, 0.0f);
+      do_math_operation(attribute_a, attribute_b, attribute_c, result_span, operation);
     }
     else {
-      do_math_operation(attribute_a->get_span<float>(),
-                        attribute_b->get_span<float>(),
-                        attribute_result->get_span_for_write_only<float>(),
-                        operation);
+      do_math_operation(attribute_a, attribute_b, result_span, operation);
     }
   }
   else {
-    do_math_operation(attribute_a->get_span<float>(),
-                      attribute_result->get_span_for_write_only<float>(),
-                      operation);
+    do_math_operation(attribute_a, result_span, operation);
   }
 
-  attribute_result.apply_span_and_save();
+  attribute_result.save();
 }
 
 static void geo_node_attribute_math_exec(GeoNodeExecParams params)
