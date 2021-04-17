@@ -195,11 +195,11 @@ template<typename Key, typename Value> class SimpleMapSlot {
    * Change the state of this slot from empty/removed to occupied. The key/value has to be
    * constructed by calling the constructor with the given key/value as parameter.
    */
-  template<typename ForwardKey, typename ForwardValue>
-  void occupy(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
+  template<typename ForwardKey, typename... ForwardValue>
+  void occupy(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
   {
     BLI_assert(!this->is_occupied());
-    new (&value_buffer_) Value(std::forward<ForwardValue>(value));
+    new (&value_buffer_) Value(std::forward<ForwardValue>(value)...);
     this->occupy_no_value(std::forward<ForwardKey>(key), hash);
     state_ = Occupied;
   }
@@ -315,12 +315,12 @@ template<typename Key, typename Value, typename KeyInfo> class IntrusiveMapSlot 
     return is_equal(key, key_);
   }
 
-  template<typename ForwardKey, typename ForwardValue>
-  void occupy(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
+  template<typename ForwardKey, typename... ForwardValue>
+  void occupy(ForwardKey &&key, uint64_t hash, ForwardValue &&... value)
   {
     BLI_assert(!this->is_occupied());
     BLI_assert(KeyInfo::is_not_empty_or_removed(key));
-    new (&value_buffer_) Value(std::forward<ForwardValue>(value));
+    new (&value_buffer_) Value(std::forward<ForwardValue>(value)...);
     this->occupy_no_value(std::forward<ForwardKey>(key), hash);
   }
 
