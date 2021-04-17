@@ -407,7 +407,7 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
       &(const struct SnapObjectParams){
           .snap_select = SNAP_ALL,
           /* Avoid having to convert the edit-mesh to a regular mesh. */
-          .use_object_edit_cage = true,
+          .edit_mode_type = SNAP_GEOM_EDIT,
       },
       ray_start,
       ray_normal,
@@ -982,7 +982,7 @@ static float getVelocityZeroTime(const float gravity, const float velocity)
 
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 {
-#define WALK_ROTATE_RELATIVE_FAC 2.2f           /* More is faster, relative to region size. */
+#define WALK_ROTATE_RELATIVE_FAC 2.2f /* More is faster, relative to region size. */
 #define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* More is faster, radians per-pixel. */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
 #define WALK_BOTTOM_LIMIT DEG2RADF(-80.0f)

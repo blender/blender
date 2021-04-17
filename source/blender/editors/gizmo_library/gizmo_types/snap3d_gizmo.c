@@ -376,7 +376,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                                            snap_elements,
                                                            &(const struct SnapObjectParams){
                                                                .snap_select = SNAP_ALL,
-                                                               .use_object_edit_cage = true,
+                                                               .edit_mode_type = SNAP_GEOM_EDIT,
                                                                .use_occlusion_test = true,
                                                            },
                                                            mval_fl,

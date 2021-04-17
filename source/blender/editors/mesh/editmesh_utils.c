@@ -1721,7 +1721,7 @@ void EDBM_project_snap_verts(
                                                     SCE_SNAP_MODE_FACE,
                                                     &(const struct SnapObjectParams){
                                                         .snap_select = SNAP_NOT_ACTIVE,
-                                                        .use_object_edit_cage = false,
+                                                        .edit_mode_type = SNAP_GEOM_FINAL,
                                                         .use_occlusion_test = true,
                                                     },
                                                     mval,

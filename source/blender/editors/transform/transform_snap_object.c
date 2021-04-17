@@ -149,6 +149,33 @@ static bool editmesh_eval_final_is_bmesh(const BMEditMesh *em)
   return (em->mesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH);
 }
 
+/* Mesh used for snapping.
+ * If NULL the BMesh should be used. */
+static Mesh *mesh_for_snap(Object *ob, eSnapEditType edit_mode_type, bool *r_use_hide)
+{
+  Mesh *me = ob->data;
+  bool use_hide = false;
+  if (BKE_object_is_in_editmode(ob)) {
+    if ((edit_mode_type == SNAP_GEOM_EDIT) || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
+      return NULL;
+    }
+
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    if ((edit_mode_type == SNAP_GEOM_FINAL) && em->mesh_eval_final) {
+      me = em->mesh_eval_final;
+      use_hide = true;
+    }
+    else if ((edit_mode_type == SNAP_GEOM_CAGE) && em->mesh_eval_cage) {
+      me = em->mesh_eval_cage;
+      use_hide = true;
+    }
+  }
+  if (r_use_hide) {
+    *r_use_hide = use_hide;
+  }
+  return me;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -369,7 +396,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 typedef void (*IterSnapObjsCallback)(SnapObjectContext *sctx,
                                      Object *ob,
                                      float obmat[4][4],
-                                     bool use_obedit,
+                                     eSnapEditType edit_mode_type,
                                      bool use_backface_culling,
                                      bool is_object_active,
                                      void *data);
@@ -386,7 +413,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   const View3D *v3d = sctx->v3d_data.v3d;
   const eSnapSelect snap_select = params->snap_select;
-  const bool use_object_edit_cage = params->use_object_edit_cage;
+  const eSnapEditType edit_mode_type = params->edit_mode_type;
   const bool use_backface_culling = params->use_backface_culling;
 
   Base *base_act = view_layer->basact;
@@ -422,7 +449,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
         sob_callback(sctx,
                      dupli_ob->ob,
                      dupli_ob->mat,
-                     use_object_edit_cage,
+                     edit_mode_type,
                      use_backface_culling,
                      is_object_active,
                      data);
@@ -433,7 +460,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
     sob_callback(sctx,
                  obj_eval,
                  obj_eval->obmat,
-                 use_object_edit_cage,
+                 edit_mode_type,
                  use_backface_culling,
                  is_object_active,
                  data);
@@ -966,7 +993,7 @@ struct RaycastObjUserData {
 static void raycast_obj_fn(SnapObjectContext *sctx,
                            Object *ob,
                            float obmat[4][4],
-                           bool use_obedit,
+                           eSnapEditType edit_mode_type,
                            bool use_backface_culling,
                            bool is_object_active,
                            void *data)
@@ -979,7 +1006,8 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
 
   bool retval = false;
   if (use_occlusion_test) {
-    if (use_obedit && sctx->use_v3d && XRAY_FLAG_ENABLED(sctx->v3d_data.v3d)) {
+    if ((edit_mode_type == SNAP_GEOM_EDIT) && sctx->use_v3d &&
+        XRAY_FLAG_ENABLED(sctx->v3d_data.v3d)) {
       /* Use of occlude geometry in editing mode disabled. */
       return;
     }
@@ -993,33 +1021,25 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
 
   switch (ob->type) {
     case OB_MESH: {
-      Mesh *me = ob->data;
       bool use_hide = false;
-      if (BKE_object_is_in_editmode(ob)) {
-        if (use_obedit || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
-          /* Operators only update the editmesh looptris of the original mesh. */
-          BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
-          retval = raycastEditMesh(sctx,
-                                   dt->ray_start,
-                                   dt->ray_dir,
-                                   ob,
-                                   em_orig,
-                                   obmat,
-                                   ob_index,
-                                   use_backface_culling,
-                                   ray_depth,
-                                   dt->r_loc,
-                                   dt->r_no,
-                                   dt->r_index,
-                                   dt->r_hit_list);
-          break;
-        }
-
-        BMEditMesh *em = BKE_editmesh_from_object(ob);
-        if (em->mesh_eval_final) {
-          me = em->mesh_eval_final;
-          use_hide = true;
-        }
+      Mesh *me = mesh_for_snap(ob, edit_mode_type, &use_hide);
+      if (me == NULL) {
+        /* Operators only update the editmesh looptris of the original mesh. */
+        BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+        retval = raycastEditMesh(sctx,
+                                 dt->ray_start,
+                                 dt->ray_dir,
+                                 ob,
+                                 em_orig,
+                                 obmat,
+                                 ob_index,
+                                 use_backface_culling,
+                                 ray_depth,
+                                 dt->r_loc,
+                                 dt->r_no,
+                                 dt->r_index,
+                                 dt->r_hit_list);
+        break;
       }
       retval = raycastMesh(sctx,
                            dt->ray_start,
@@ -1771,7 +1791,6 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
 static short snapArmature(SnapData *snapdata,
                           Object *ob,
                           const float obmat[4][4],
-                          bool use_obedit,
                           /* read/write args */
                           float *dist_px,
                           /* return args */
@@ -1792,7 +1811,7 @@ static short snapArmature(SnapData *snapdata,
   dist_squared_to_projected_aabb_precalc(
       &neasrest_precalc, lpmat, snapdata->win_size, snapdata->mval);
 
-  use_obedit = use_obedit && BKE_object_is_in_editmode(ob);
+  bool use_obedit = ((bArmature *)ob->data)->edbo != NULL;
 
   if (use_obedit == false) {
     /* Test BoundBox */
@@ -2663,7 +2682,7 @@ struct SnapObjUserData {
 static void snap_obj_fn(SnapObjectContext *sctx,
                         Object *ob,
                         float obmat[4][4],
-                        bool use_obedit,
+                        eSnapEditType edit_mode_type,
                         bool use_backface_culling,
                         bool UNUSED(is_object_active),
                         void *data)
@@ -2673,28 +2692,21 @@ static void snap_obj_fn(SnapObjectContext *sctx,
 
   switch (ob->type) {
     case OB_MESH: {
-      Mesh *me = ob->data;
-      if (BKE_object_is_in_editmode(ob)) {
-        if (use_obedit || editmesh_eval_final_is_bmesh(me->edit_mesh)) {
-          /* Operators only update the editmesh looptris of the original mesh. */
-          BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
-          retval = snapEditMesh(sctx,
-                                dt->snapdata,
-                                ob,
-                                em_orig,
-                                obmat,
-                                use_backface_culling,
-                                dt->dist_px,
-                                dt->r_loc,
-                                dt->r_no,
-                                dt->r_index);
-          break;
-        }
-
-        BMEditMesh *em = BKE_editmesh_from_object(ob);
-        if (em->mesh_eval_final) {
-          me = em->mesh_eval_final;
-        }
+      Mesh *me = mesh_for_snap(ob, edit_mode_type, NULL);
+      if (me == NULL) {
+        /* Operators only update the editmesh looptris of the original mesh. */
+        BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
+        retval = snapEditMesh(sctx,
+                              dt->snapdata,
+                              ob,
+                              em_orig,
+                              obmat,
+                              use_backface_culling,
+                              dt->dist_px,
+                              dt->r_loc,
+                              dt->r_no,
+                              dt->r_index);
+        break;
       }
       else if (ob->dt == OB_BOUNDBOX) {
         /* Do not snap to objects that are in bounding box display mode */
@@ -2715,11 +2727,17 @@ static void snap_obj_fn(SnapObjectContext *sctx,
     }
     case OB_ARMATURE:
       retval = snapArmature(
-          dt->snapdata, ob, obmat, use_obedit, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
+          dt->snapdata, ob, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
       break;
     case OB_CURVE:
-      retval = snapCurve(
-          dt->snapdata, ob, obmat, use_obedit, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
+      retval = snapCurve(dt->snapdata,
+                         ob,
+                         obmat,
+                         edit_mode_type == SNAP_GEOM_EDIT,
+                         dt->dist_px,
+                         dt->r_loc,
+                         dt->r_no,
+                         dt->r_index);
       break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
     case OB_SURF:
     case OB_FONT: {
