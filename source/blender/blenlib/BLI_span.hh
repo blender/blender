@@ -94,7 +94,7 @@ template<typename T> class Span {
   using iterator = const T *;
   using size_type = int64_t;
 
- private:
+ protected:
   const T *data_ = nullptr;
   int64_t size_ = 0;
 
@@ -477,7 +477,7 @@ template<typename T> class MutableSpan {
   using iterator = T *;
   using size_type = int64_t;
 
- private:
+ protected:
   T *data_;
   int64_t size_;
 

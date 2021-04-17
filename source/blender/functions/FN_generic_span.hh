@@ -30,7 +30,7 @@ namespace blender::fn {
  * A generic span. It behaves just like a blender::Span<T>, but the type is only known at run-time.
  */
 class GSpan {
- private:
+ protected:
   const CPPType *type_;
   const void *data_;
   int64_t size_;
@@ -92,7 +92,7 @@ class GSpan {
  * known at run-time.
  */
 class GMutableSpan {
- private:
+ protected:
   const CPPType *type_;
   void *data_;
   int64_t size_;

@@ -60,21 +60,21 @@ void GVectorArray::extend(const int64_t index, const GVArray &values)
 
 void GVectorArray::extend(const int64_t index, const GSpan values)
 {
-  GVArrayForGSpan varray{values};
+  GVArray_For_GSpan varray{values};
   this->extend(index, varray);
 }
 
 void GVectorArray::extend(IndexMask mask, const GVVectorArray &values)
 {
   for (const int i : mask) {
-    GVArrayForGVVectorArrayIndex array{values, i};
+    GVArray_For_GVVectorArrayIndex array{values, i};
     this->extend(i, array);
   }
 }
 
 void GVectorArray::extend(IndexMask mask, const GVectorArray &values)
 {
-  GVVectorArrayForGVectorArray virtual_values{values};
+  GVVectorArray_For_GVectorArray virtual_values{values};
   this->extend(mask, virtual_values);
 }
 
