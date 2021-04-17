@@ -1555,6 +1555,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
 
   const int direction = RNA_enum_get(op->ptr, "direction");
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  bGPDstroke *gps_target = NULL;
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -1569,7 +1570,6 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
         if (gpf == NULL) {
           continue;
         }
-        bool gpf_lock = false;
         /* verify if any selected stroke is in the extreme of the stack and select to move */
         for (gps = gpf->strokes.first; gps; gps = gps->next) {
           /* only if selected */
@@ -1582,18 +1582,19 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
             if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
               continue;
             }
+            bool gpf_lock = false;
             /* some stroke is already at front*/
             if (ELEM(direction, GP_STROKE_MOVE_TOP, GP_STROKE_MOVE_UP)) {
               if (gps == gpf->strokes.last) {
                 gpf_lock = true;
-                continue;
+                gps_target = gps;
               }
             }
             /* Some stroke is already at bottom. */
             if (ELEM(direction, GP_STROKE_MOVE_BOTTOM, GP_STROKE_MOVE_DOWN)) {
               if (gps == gpf->strokes.first) {
                 gpf_lock = true;
-                continue;
+                gps_target = gps;
               }
             }
             /* add to list (if not locked) */
@@ -1602,47 +1603,74 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
             }
           }
         }
+
+        const int target_index = (gps_target) ? BLI_findindex(&gpf->strokes, gps_target) : -1;
+        int prev_index = target_index;
         /* Now do the movement of the stroke */
-        if (!gpf_lock) {
-          switch (direction) {
-            /* Bring to Front */
-            case GP_STROKE_MOVE_TOP:
-              LISTBASE_FOREACH (LinkData *, link, &selected) {
-                gps = link->data;
-                BLI_remlink(&gpf->strokes, gps);
+        switch (direction) {
+          /* Bring to Front */
+          case GP_STROKE_MOVE_TOP:
+            LISTBASE_FOREACH (LinkData *, link, &selected) {
+              gps = link->data;
+              BLI_remlink(&gpf->strokes, gps);
+              if (gps_target) {
+                BLI_insertlinkbefore(&gpf->strokes, gps_target, gps);
+              }
+              else {
                 BLI_addtail(&gpf->strokes, gps);
-                changed = true;
               }
-              break;
-            /* Bring Forward */
-            case GP_STROKE_MOVE_UP:
-              LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
-                gps = link->data;
-                BLI_listbase_link_move(&gpf->strokes, gps, 1);
-                changed = true;
+              changed = true;
+            }
+            break;
+          /* Bring Forward */
+          case GP_STROKE_MOVE_UP:
+            LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
+              gps = link->data;
+              if (gps_target) {
+                int gps_index = BLI_findindex(&gpf->strokes, gps);
+                if (gps_index + 1 >= prev_index) {
+                  prev_index = gps_index;
+                  continue;
+                }
+                prev_index = gps_index;
               }
-              break;
-            /* Send Backward */
-            case GP_STROKE_MOVE_DOWN:
-              LISTBASE_FOREACH (LinkData *, link, &selected) {
-                gps = link->data;
-                BLI_listbase_link_move(&gpf->strokes, gps, -1);
-                changed = true;
+              BLI_listbase_link_move(&gpf->strokes, gps, 1);
+              changed = true;
+            }
+            break;
+          /* Send Backward */
+          case GP_STROKE_MOVE_DOWN:
+            LISTBASE_FOREACH (LinkData *, link, &selected) {
+              gps = link->data;
+              if (gps_target) {
+                int gps_index = BLI_findindex(&gpf->strokes, gps);
+                if (gps_index - 1 <= prev_index) {
+                  prev_index = gps_index;
+                  continue;
+                }
+                prev_index = gps_index;
               }
-              break;
-            /* Send to Back */
-            case GP_STROKE_MOVE_BOTTOM:
-              LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
-                gps = link->data;
-                BLI_remlink(&gpf->strokes, gps);
+              BLI_listbase_link_move(&gpf->strokes, gps, -1);
+              changed = true;
+            }
+            break;
+          /* Send to Back */
+          case GP_STROKE_MOVE_BOTTOM:
+            LISTBASE_FOREACH_BACKWARD (LinkData *, link, &selected) {
+              gps = link->data;
+              BLI_remlink(&gpf->strokes, gps);
+              if (gps_target) {
+                BLI_insertlinkafter(&gpf->strokes, gps_target, gps);
+              }
+              else {
                 BLI_addhead(&gpf->strokes, gps);
-                changed = true;
               }
-              break;
-            default:
-              BLI_assert(0);
-              break;
-          }
+              changed = true;
+            }
+            break;
+          default:
+            BLI_assert(0);
+            break;
         }
         BLI_freelistN(&selected);
       }
