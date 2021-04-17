@@ -93,6 +93,15 @@ TEST(stack, Push)
   EXPECT_EQ(stack.size(), 2);
 }
 
+TEST(stack, PushAs)
+{
+  Stack<StringRef> stack;
+  stack.push_as("hello", 3);
+  stack.push_as("world", 1);
+  EXPECT_EQ(stack.pop(), "w");
+  EXPECT_EQ(stack.pop(), "hel");
+}
+
 TEST(stack, PushMultiple)
 {
   Stack<int> stack;
