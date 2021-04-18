@@ -2315,7 +2315,7 @@ static short snapMesh(SnapObjectContext *sctx,
     if (sod->has_loose_vert && sod->bvhtree[1] == NULL) {
       sod->bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_tmp, me, BVHTREE_FROM_LOOSEVERTS, 2);
       if (sod->bvhtree[1] == NULL) {
-        sod->has_loose_edge = false;
+        sod->has_loose_vert = false;
       }
       sod->cached[1] = treedata_tmp.cached;
       BLI_assert(!ELEM(true,
