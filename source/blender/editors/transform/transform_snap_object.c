@@ -1348,6 +1348,33 @@ typedef struct Nearest2dUserData {
   bool use_backface_culling;
 } Nearest2dUserData;
 
+static void nearest2d_data_init(SnapObjectData *sod,
+                                bool is_persp,
+                                bool use_backface_culling,
+                                Nearest2dUserData *r_nearest2d)
+{
+  if (sod->type == SNAP_MESH) {
+    r_nearest2d->userdata = &sod->treedata_mesh;
+    r_nearest2d->get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
+    r_nearest2d->get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
+    r_nearest2d->copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
+    r_nearest2d->get_tri_verts_index = (Nearest2DGetTriVertsCallback)cb_mlooptri_verts_get;
+    r_nearest2d->get_tri_edges_index = (Nearest2DGetTriEdgesCallback)cb_mlooptri_edges_get;
+  }
+  else {
+    BLI_assert(sod->type == SNAP_EDIT_MESH);
+    r_nearest2d->userdata = sod->treedata_editmesh.em;
+    r_nearest2d->get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
+    r_nearest2d->get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
+    r_nearest2d->copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
+    r_nearest2d->get_tri_verts_index = NULL;
+    r_nearest2d->get_tri_edges_index = NULL;
+  }
+
+  r_nearest2d->is_persp = is_persp;
+  r_nearest2d->use_backface_culling = use_backface_culling;
+}
+
 static void cb_snap_vert(void *userdata,
                          int index,
                          const struct DistProjectedAABBPrecalc *precalc,
@@ -1520,27 +1547,20 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
     mul_v4_m4v4(clip_planes_local[i], tobmat, snapdata->clip_plane[i]);
   }
 
-  Nearest2dUserData nearest2d = {
-      .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
-      .use_backface_culling = use_backface_culling,
-  };
-
   BVHTreeNearest nearest = {
       .index = -1,
       .dist_sq = square_f(*dist_px),
   };
 
   SnapObjectData *sod = snap_object_data_lookup(sctx, ob);
-
   BLI_assert(sod != NULL);
+
+  Nearest2dUserData nearest2d;
+  nearest2d_data_init(
+      sod, snapdata->view_proj == VIEW_PROJ_PERSP, use_backface_culling, &nearest2d);
 
   if (sod->type == SNAP_MESH) {
     BVHTreeFromMesh *treedata = &sod->treedata_mesh;
-
-    nearest2d.userdata = treedata;
-    nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
-    nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
-    nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
 
     const MPoly *mp = &sod->poly[*r_index];
     const MLoop *ml = &treedata->loop[mp->loopstart];
@@ -1571,11 +1591,6 @@ static short snap_mesh_polygon(SnapObjectContext *sctx,
   else {
     BLI_assert(sod->type == SNAP_EDIT_MESH);
     BMEditMesh *em = sod->treedata_editmesh.em;
-
-    nearest2d.userdata = em;
-    nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
-    nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
-    nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
 
     BM_mesh_elem_table_ensure(em->bm, BM_FACE);
     BMFace *f = BM_face_at_index(em->bm, *r_index);
@@ -1652,27 +1667,11 @@ static short snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
   }
 
   SnapObjectData *sod = snap_object_data_lookup(sctx, ob);
-
   BLI_assert(sod != NULL);
 
   Nearest2dUserData nearest2d;
-  {
-    nearest2d.is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
-    nearest2d.use_backface_culling = use_backface_culling;
-    if (sod->type == SNAP_MESH) {
-      nearest2d.userdata = &sod->treedata_mesh;
-      nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get;
-      nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get;
-      nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
-    }
-    else {
-      BLI_assert(sod->type == SNAP_EDIT_MESH);
-      nearest2d.userdata = sod->treedata_editmesh.em;
-      nearest2d.get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get;
-      nearest2d.get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get;
-      nearest2d.copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy;
-    }
-  }
+  nearest2d_data_init(
+      sod, snapdata->view_proj == VIEW_PROJ_PERSP, use_backface_culling, &nearest2d);
 
   int vindex[2];
   nearest2d.get_edge_verts_index(*r_index, vindex, nearest2d.userdata);
@@ -2354,16 +2353,9 @@ static short snapMesh(SnapObjectContext *sctx,
     }
   }
 
-  Nearest2dUserData nearest2d = {
-      .userdata = treedata,
-      .get_vert_co = (Nearest2DGetVertCoCallback)cb_mvert_co_get,
-      .get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_medge_verts_get,
-      .get_tri_verts_index = (Nearest2DGetTriVertsCallback)cb_mlooptri_verts_get,
-      .get_tri_edges_index = (Nearest2DGetTriEdgesCallback)cb_mlooptri_edges_get,
-      .copy_vert_no = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy,
-      .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
-      .use_backface_culling = use_backface_culling,
-  };
+  Nearest2dUserData nearest2d;
+  nearest2d_data_init(
+      sod, snapdata->view_proj == VIEW_PROJ_PERSP, use_backface_culling, &nearest2d);
 
   BVHTreeNearest nearest = {
       .index = -1,
@@ -2582,14 +2574,9 @@ static short snapEditMesh(SnapObjectContext *sctx,
     }
   }
 
-  Nearest2dUserData nearest2d = {
-      .userdata = em,
-      .get_vert_co = (Nearest2DGetVertCoCallback)cb_bvert_co_get,
-      .get_edge_verts_index = (Nearest2DGetEdgeVertsCallback)cb_bedge_verts_get,
-      .copy_vert_no = (Nearest2DCopyVertNoCallback)cb_bvert_no_copy,
-      .is_persp = snapdata->view_proj == VIEW_PROJ_PERSP,
-      .use_backface_culling = use_backface_culling,
-  };
+  Nearest2dUserData nearest2d;
+  nearest2d_data_init(
+      sod, snapdata->view_proj == VIEW_PROJ_PERSP, use_backface_culling, &nearest2d);
 
   BVHTreeNearest nearest = {
       .index = -1,
