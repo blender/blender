@@ -197,8 +197,9 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(disp, segments[ik].weights[vd.index]);
 
       /* Apply the vertex mask to the displacement. */
-      float mask = vd.mask ? *vd.mask : 0.0f;
-      mul_v3_fl(disp, 1.0f - mask);
+      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+      const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index);
+      mul_v3_fl(disp, mask * automask);
 
       /* Accumulate the displacement. */
       add_v3_v3(total_disp, disp);
