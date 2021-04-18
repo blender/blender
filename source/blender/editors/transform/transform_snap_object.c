@@ -43,6 +43,7 @@
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -251,7 +252,10 @@ static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *
   return sod;
 }
 
-static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object *ob)
+static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
+                                                 Object *ob,
+                                                 Mesh *me,
+                                                 bool use_hide)
 {
   SnapObjectData *sod;
   void **sod_p;
@@ -259,7 +263,43 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object
 
   if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
     sod = *sod_p;
+    bool is_dirty = false;
     if (sod->type != SNAP_MESH) {
+      is_dirty = true;
+    }
+    else if (sod->treedata_mesh.tree && sod->treedata_mesh.cached &&
+             !bvhcache_has_tree(me->runtime.bvh_cache, sod->treedata_mesh.tree)) {
+      /* The tree is owned by the Mesh and may have been freed since we last used. */
+      is_dirty = true;
+    }
+    else if (sod->bvhtree[0] && sod->cached[0] &&
+             !bvhcache_has_tree(me->runtime.bvh_cache, sod->bvhtree[0])) {
+      /* The tree is owned by the Mesh and may have been freed since we last used. */
+      is_dirty = true;
+    }
+    else if (sod->bvhtree[1] && sod->cached[1] &&
+             !bvhcache_has_tree(me->runtime.bvh_cache, sod->bvhtree[1])) {
+      /* The tree is owned by the Mesh and may have been freed since we last used. */
+      is_dirty = true;
+    }
+    else if (!sod->treedata_mesh.looptri_allocated &&
+             sod->treedata_mesh.looptri != me->runtime.looptris.array) {
+      is_dirty = true;
+    }
+    else if (!sod->treedata_mesh.vert_allocated && sod->treedata_mesh.vert != me->mvert) {
+      is_dirty = true;
+    }
+    else if (!sod->treedata_mesh.loop_allocated && sod->treedata_mesh.loop != me->mloop) {
+      is_dirty = true;
+    }
+    else if (!sod->treedata_mesh.edge_allocated && sod->treedata_mesh.edge != me->medge) {
+      is_dirty = true;
+    }
+    else if (sod->poly != me->mpoly) {
+      is_dirty = true;
+    }
+
+    if (is_dirty) {
       snap_object_data_clear(sod);
       init = true;
     }
@@ -271,8 +311,32 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx, Object
 
   if (init) {
     sod->type = SNAP_MESH;
-    /* start assuming that it has each of these element types */
-    sod->has_looptris = true;
+
+    /* The BVHTree from looptris is always required. */
+    BLI_assert(sod->treedata_mesh.tree == NULL);
+    BKE_bvhtree_from_mesh_get(&sod->treedata_mesh,
+                              me,
+                              use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI,
+                              4);
+
+    if (sod->treedata_mesh.tree == NULL) {
+      sod->treedata_mesh.vert = me->mvert;
+      sod->treedata_mesh.loop = me->mloop;
+      sod->treedata_mesh.looptri = BKE_mesh_runtime_looptri_ensure(me);
+      BLI_assert(sod->has_looptris == false);
+    }
+    else {
+      BLI_assert(sod->treedata_mesh.vert != NULL);
+      BLI_assert(sod->treedata_mesh.loop != NULL);
+      BLI_assert(sod->treedata_mesh.looptri != NULL);
+      sod->has_looptris = true;
+    }
+
+    /* Required for snapping with occlusion. */
+    sod->treedata_mesh.edge = me->medge;
+    sod->poly = me->mpoly;
+
+    /* Start assuming that it has each of these element types. */
     sod->has_loose_edge = true;
     sod->has_loose_vert = true;
   }
@@ -299,7 +363,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 {
   SnapObjectData *sod;
   void **sod_p;
-  bool init = false, init_min_max = true, clear_cache = false;
+  bool init = false;
 
   {
     /* Use object-data as the key in ghash since the editmesh
@@ -318,38 +382,43 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 
   if (BLI_ghash_ensure_p(sctx->cache.object_map, ob, &sod_p)) {
     sod = *sod_p;
-    bool clear = false;
+    bool is_dirty = false;
     /* Check if the geometry has changed. */
     if (sod->type != SNAP_EDIT_MESH) {
-      clear = true;
+      is_dirty = true;
     }
     else if (sod->treedata_editmesh.em != em) {
-      clear_cache = true;
-      init = true;
+      is_dirty = true;
     }
     else if (sod->mesh_runtime) {
       if (sod->mesh_runtime != snap_object_data_editmesh_runtime_get(ob)) {
-        clear_cache = true;
-        init = true;
+        if (G.moving) {
+          /* Hack to avoid updating while transforming. */
+          BLI_assert(!sod->treedata_editmesh.cached && !sod->cached[0] && !sod->cached[1]);
+          sod->mesh_runtime = snap_object_data_editmesh_runtime_get(ob);
+        }
+        else {
+          is_dirty = true;
+        }
       }
       else if (sod->treedata_editmesh.tree && sod->treedata_editmesh.cached &&
                !bvhcache_has_tree(sod->mesh_runtime->bvh_cache, sod->treedata_editmesh.tree)) {
         /* The tree is owned by the EditMesh and may have been freed since we last used! */
-        clear = true;
+        is_dirty = true;
       }
       else if (sod->bvhtree[0] && sod->cached[0] &&
                !bvhcache_has_tree(sod->mesh_runtime->bvh_cache, sod->bvhtree[0])) {
         /* The tree is owned by the EditMesh and may have been freed since we last used! */
-        clear = true;
+        is_dirty = true;
       }
       else if (sod->bvhtree[1] && sod->cached[1] &&
                !bvhcache_has_tree(sod->mesh_runtime->bvh_cache, sod->bvhtree[1])) {
         /* The tree is owned by the EditMesh and may have been freed since we last used! */
-        clear = true;
+        is_dirty = true;
       }
     }
 
-    if (clear) {
+    if (is_dirty) {
       snap_object_data_clear(sod);
       init = true;
     }
@@ -362,27 +431,8 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
   if (init) {
     sod->type = SNAP_EDIT_MESH;
     sod->treedata_editmesh.em = em;
-
-    if (clear_cache) {
-      /* Only init min and max when you have a non-custom bvhtree pending. */
-      init_min_max = false;
-      if (sod->treedata_editmesh.cached) {
-        sod->treedata_editmesh.tree = NULL;
-        init_min_max = true;
-      }
-      for (int i = 0; i < ARRAY_SIZE(sod->bvhtree); i++) {
-        if (sod->cached[i]) {
-          sod->bvhtree[i] = NULL;
-          init_min_max = true;
-        }
-      }
-    }
-
-    if (init_min_max) {
-      bm_mesh_minmax(em->bm, sod->min, sod->max);
-    }
-
     sod->mesh_runtime = snap_object_data_editmesh_runtime_get(ob);
+    bm_mesh_minmax(em->bm, sod->min, sod->max);
   }
 
   return sod;
@@ -693,53 +743,18 @@ static bool raycastMesh(SnapObjectContext *sctx,
     len_diff = 0.0f;
   }
 
-  SnapObjectData *sod = snap_object_data_mesh_get(sctx, ob);
+  SnapObjectData *sod = snap_object_data_mesh_get(sctx, ob, me, use_hide);
 
   BVHTreeFromMesh *treedata = &sod->treedata_mesh;
 
-  /* The tree is owned by the Mesh and may have been freed since we last used. */
-  if (treedata->tree) {
-    BLI_assert(treedata->cached);
-    if (!bvhcache_has_tree(me->runtime.bvh_cache, treedata->tree)) {
-      free_bvhtree_from_mesh(treedata);
-    }
-    else {
-      /* Update Pointers. */
-      if (treedata->vert && treedata->vert_allocated == false) {
-        treedata->vert = me->mvert;
-      }
-      if (treedata->loop && treedata->loop_allocated == false) {
-        treedata->loop = me->mloop;
-      }
-      if (treedata->looptri && treedata->looptri_allocated == false) {
-        treedata->looptri = BKE_mesh_runtime_looptri_ensure(me);
-      }
-      /* required for snapping with occlusion. */
-      treedata->edge = me->medge;
-      sod->poly = me->mpoly;
-    }
-  }
-
   if (treedata->tree == NULL) {
-    if (use_hide) {
-      BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI_NO_HIDDEN, 4);
-    }
-    else {
-      BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
-    }
-
-    /* required for snapping with occlusion. */
-    treedata->edge = me->medge;
-    sod->poly = me->mpoly;
-
-    if (treedata->tree == NULL) {
-      return retval;
-    }
+    return retval;
   }
 
   float timat[3][3]; /* transpose inverse matrix for normals */
   transpose_m3_m4(timat, imat);
 
+  BLI_assert(treedata->raycast_callback != NULL);
   if (r_hit_list) {
     struct RayCastAll_Data data;
 
@@ -2248,6 +2263,7 @@ static short snapMesh(SnapObjectContext *sctx,
                       Object *ob,
                       Mesh *me,
                       const float obmat[4][4],
+                      bool use_hide,
                       bool use_backface_culling,
                       /* read/write args */
                       float *dist_px,
@@ -2276,81 +2292,43 @@ static short snapMesh(SnapObjectContext *sctx,
     return 0;
   }
 
-  SnapObjectData *sod = snap_object_data_mesh_get(sctx, ob);
+  SnapObjectData *sod = snap_object_data_mesh_get(sctx, ob, me, use_hide);
 
-  BVHTreeFromMesh *treedata, dummy_treedata;
+  BVHTreeFromMesh *treedata, treedata_tmp;
   treedata = &sod->treedata_mesh;
 
-  /* The tree is owned by the Mesh and may have been freed since we last used! */
-  if (treedata->cached && treedata->tree &&
-      !bvhcache_has_tree(me->runtime.bvh_cache, treedata->tree)) {
-    free_bvhtree_from_mesh(treedata);
-  }
-  if (sod->cached[0] && sod->bvhtree[0] &&
-      !bvhcache_has_tree(me->runtime.bvh_cache, sod->bvhtree[0])) {
-    sod->bvhtree[0] = NULL;
-  }
-  if (sod->cached[1] && sod->bvhtree[1] &&
-      !bvhcache_has_tree(me->runtime.bvh_cache, sod->bvhtree[1])) {
-    sod->bvhtree[1] = NULL;
-  }
-
-  if (sod->has_looptris && treedata->tree == NULL) {
-    BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
-    sod->has_looptris = (treedata->tree != NULL);
-    if (sod->has_looptris) {
-      /* Make sure that the array of edges is referenced in the callbacks. */
-      treedata->edge = me->medge; /* CustomData_get_layer(&me->edata, CD_MEDGE);? */
-    }
-  }
   if (sod->has_loose_edge && sod->bvhtree[0] == NULL) {
-    sod->bvhtree[0] = BKE_bvhtree_from_mesh_get(&dummy_treedata, me, BVHTREE_FROM_LOOSEEDGES, 2);
-    sod->has_loose_edge = sod->bvhtree[0] != NULL;
-    sod->cached[0] = dummy_treedata.cached;
-
-    if (sod->has_loose_edge) {
-      BLI_assert(treedata->vert_allocated == false);
-      treedata->vert = dummy_treedata.vert;
-      treedata->vert_allocated = dummy_treedata.vert_allocated;
-
-      BLI_assert(treedata->edge_allocated == false);
-      treedata->edge = dummy_treedata.edge;
-      treedata->edge_allocated = dummy_treedata.edge_allocated;
+    sod->bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_tmp, me, BVHTREE_FROM_LOOSEEDGES, 2);
+    if (sod->bvhtree[0] == NULL) {
+      sod->has_loose_edge = false;
     }
+    sod->cached[0] = treedata_tmp.cached;
+    BLI_assert(!ELEM(true,
+                     treedata_tmp.vert_allocated,
+                     treedata_tmp.edge_allocated,
+                     treedata_tmp.face_allocated,
+                     treedata_tmp.loop_allocated,
+                     treedata_tmp.looptri_allocated));
   }
+
   if (snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX) {
     if (sod->has_loose_vert && sod->bvhtree[1] == NULL) {
-      sod->bvhtree[1] = BKE_bvhtree_from_mesh_get(&dummy_treedata, me, BVHTREE_FROM_LOOSEVERTS, 2);
-      sod->has_loose_vert = sod->bvhtree[1] != NULL;
-      sod->cached[1] = dummy_treedata.cached;
-
-      if (sod->has_loose_vert) {
-        BLI_assert(treedata->vert_allocated == false);
-        treedata->vert = dummy_treedata.vert;
-        treedata->vert_allocated = dummy_treedata.vert_allocated;
+      sod->bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_tmp, me, BVHTREE_FROM_LOOSEVERTS, 2);
+      if (sod->bvhtree[1] == NULL) {
+        sod->has_loose_edge = false;
       }
+      sod->cached[1] = treedata_tmp.cached;
+      BLI_assert(!ELEM(true,
+                       treedata_tmp.vert_allocated,
+                       treedata_tmp.edge_allocated,
+                       treedata_tmp.face_allocated,
+                       treedata_tmp.loop_allocated,
+                       treedata_tmp.looptri_allocated));
     }
   }
   else {
     /* Not necessary, just to keep the data more consistent. */
     sod->has_loose_vert = false;
-  }
-
-  /* Update pointers. */
-  if (treedata->vert_allocated == false) {
-    treedata->vert = me->mvert; /* CustomData_get_layer(&me->vdata, CD_MVERT);? */
-  }
-  if (treedata->tree || sod->bvhtree[0]) {
-    if (treedata->edge_allocated == false) {
-      /* If raycast has been executed before, `treedata->edge` can be NULL. */
-      treedata->edge = me->medge; /* CustomData_get_layer(&me->edata, CD_MEDGE);? */
-    }
-    if (treedata->loop && treedata->loop_allocated == false) {
-      treedata->loop = me->mloop; /* CustomData_get_layer(&me->edata, CD_MLOOP);? */
-    }
-    if (treedata->looptri && treedata->looptri_allocated == false) {
-      treedata->looptri = BKE_mesh_runtime_looptri_ensure(me);
-    }
   }
 
   Nearest2dUserData nearest2d;
@@ -2682,7 +2660,8 @@ static void snap_obj_fn(SnapObjectContext *sctx,
 
   switch (ob->type) {
     case OB_MESH: {
-      Mesh *me = mesh_for_snap(ob, edit_mode_type, NULL);
+      bool use_hide;
+      Mesh *me = mesh_for_snap(ob, edit_mode_type, &use_hide);
       if (me == NULL) {
         /* Operators only update the editmesh looptris of the original mesh. */
         BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob));
@@ -2708,6 +2687,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
                         ob,
                         me,
                         obmat,
+                        use_hide,
                         use_backface_culling,
                         dt->dist_px,
                         dt->r_loc,
@@ -2738,6 +2718,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
                            ob,
                            mesh_eval,
                            obmat,
+                           false,
                            use_backface_culling,
                            dt->dist_px,
                            dt->r_loc,
@@ -3121,6 +3102,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
     if (has_hit && ob->type != OB_CURVE) {
       /* Compute the new clip_pane but do not add it yet. */
       float new_clipplane[4];
+      BLI_ASSERT_UNIT_V3(no);
       plane_from_point_normal_v3(new_clipplane, loc, no);
       if (dot_v3v3(snapdata.clip_plane[0], new_clipplane) > 0.0f) {
         /* The plane is facing the wrong direction. */
