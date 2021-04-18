@@ -1114,6 +1114,7 @@ void SCULPT_tag_update_overlays(bContext *C)
   View3D *v3d = CTX_wm_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -5686,6 +5687,12 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
     }
 
     if (!plane_point_side_flip(vd.co, test.plane_tool, flip)) {
+      continue;
+    }
+
+    float vertex_no[3];
+    SCULPT_vertex_normal_get(ss, vd.index, vertex_no);
+    if (dot_v3v3(area_no_sp, vertex_no) <= -0.1f) {
       continue;
     }
 
