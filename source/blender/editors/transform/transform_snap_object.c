@@ -2716,7 +2716,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
                               dt->r_index);
         break;
       }
-      else if (ob->dt == OB_BOUNDBOX) {
+      if (ob->dt == OB_BOUNDBOX) {
         /* Do not snap to objects that are in bounding box display mode */
         return;
       }
