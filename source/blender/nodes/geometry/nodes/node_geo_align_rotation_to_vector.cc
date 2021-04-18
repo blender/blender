@@ -50,10 +50,10 @@ static void geo_node_align_rotation_to_vector_layout(uiLayout *layout,
 
 namespace blender::nodes {
 
-static void align_rotations_auto_pivot(const Float3ReadAttribute &vectors,
-                                       const FloatReadAttribute &factors,
+static void align_rotations_auto_pivot(const VArray<float3> &vectors,
+                                       const VArray<float> &factors,
                                        const float3 local_main_axis,
-                                       MutableSpan<float3> rotations)
+                                       const MutableSpan<float3> rotations)
 {
   for (const int i : IndexRange(vectors.size())) {
     const float3 vector = vectors[i];
@@ -93,11 +93,11 @@ static void align_rotations_auto_pivot(const Float3ReadAttribute &vectors,
   }
 }
 
-static void align_rotations_fixed_pivot(const Float3ReadAttribute &vectors,
-                                        const FloatReadAttribute &factors,
+static void align_rotations_fixed_pivot(const VArray<float3> &vectors,
+                                        const VArray<float> &factors,
                                         const float3 local_main_axis,
                                         const float3 local_pivot_axis,
-                                        MutableSpan<float3> rotations)
+                                        const MutableSpan<float3> rotations)
 {
   if (local_main_axis == local_pivot_axis) {
     /* Can't compute any meaningful rotation angle in this case. */
@@ -144,30 +144,30 @@ static void align_rotations_on_component(GeometryComponent &component,
   const NodeGeometryAlignRotationToVector &storage = *(const NodeGeometryAlignRotationToVector *)
                                                           node.storage;
 
-  OutputAttributePtr rotation_attribute = component.attribute_try_get_for_output(
-      "rotation", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
-  if (!rotation_attribute) {
+  OutputAttribute_Typed<float3> rotations = component.attribute_try_get_for_output<float3>(
+      "rotation", ATTR_DOMAIN_POINT, {0, 0, 0});
+  if (!rotations) {
     return;
   }
-  MutableSpan<float3> rotations = rotation_attribute->get_span<float3>();
 
-  FloatReadAttribute factors = params.get_input_attribute<float>(
+  GVArray_Typed<float> factors = params.get_input_attribute<float>(
       "Factor", component, ATTR_DOMAIN_POINT, 1.0f);
-  Float3ReadAttribute vectors = params.get_input_attribute<float3>(
+  GVArray_Typed<float3> vectors = params.get_input_attribute<float3>(
       "Vector", component, ATTR_DOMAIN_POINT, {0, 0, 1});
 
   float3 local_main_axis{0, 0, 0};
   local_main_axis[storage.axis] = 1;
   if (storage.pivot_axis == GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_AUTO) {
-    align_rotations_auto_pivot(vectors, factors, local_main_axis, rotations);
+    align_rotations_auto_pivot(vectors, factors, local_main_axis, rotations.as_span());
   }
   else {
     float3 local_pivot_axis{0, 0, 0};
     local_pivot_axis[storage.pivot_axis - 1] = 1;
-    align_rotations_fixed_pivot(vectors, factors, local_main_axis, local_pivot_axis, rotations);
+    align_rotations_fixed_pivot(
+        vectors, factors, local_main_axis, local_pivot_axis, rotations.as_span());
   }
 
-  rotation_attribute.apply_span_and_save();
+  rotations.save();
 }
 
 static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)

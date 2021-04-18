@@ -338,7 +338,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
                                                   SCE_SNAP_MODE_FACE,
                                                   &(const struct SnapObjectParams){
                                                       .snap_select = SNAP_ALL,
-                                                      .use_object_edit_cage = true,
+                                                      .edit_mode_type = SNAP_GEOM_CAGE,
                                                   },
                                                   mval_fl,
                                                   NULL,
@@ -352,7 +352,7 @@ static bool view3d_ruler_item_mousemove(struct Depsgraph *depsgraph,
                                              depsgraph,
                                              &(const struct SnapObjectParams){
                                                  .snap_select = SNAP_ALL,
-                                                 .use_object_edit_cage = true,
+                                                 .edit_mode_type = SNAP_GEOM_CAGE,
                                              },
                                              ray_start,
                                              ray_normal,
@@ -1124,12 +1124,13 @@ static void WIDGETGROUP_ruler_setup(const bContext *C, wmGizmoGroup *gzgroup)
     const wmGizmoType *gzt_snap;
     gzt_snap = WM_gizmotype_find("GIZMO_GT_snap_3d", true);
     gizmo = WM_gizmo_new_ptr(gzt_snap, gzgroup, NULL);
+
     RNA_enum_set(gizmo->ptr,
                  "snap_elements_force",
                  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
                   /* SCE_SNAP_MODE_VOLUME | SCE_SNAP_MODE_GRID | SCE_SNAP_MODE_INCREMENT | */
                   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT));
-
+    ED_gizmotypes_snap_3d_flag_set(gizmo, ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE);
     WM_gizmo_set_color(gizmo, (float[4]){1.0f, 1.0f, 1.0f, 1.0f});
 
     wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_ruler_add", true);

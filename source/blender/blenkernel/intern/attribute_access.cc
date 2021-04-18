@@ -44,195 +44,9 @@ using blender::float3;
 using blender::Set;
 using blender::StringRef;
 using blender::StringRefNull;
-using blender::bke::ReadAttributePtr;
-using blender::bke::WriteAttributePtr;
 using blender::fn::GMutableSpan;
 
 namespace blender::bke {
-
-/* -------------------------------------------------------------------- */
-/** \name Attribute Accessor implementations
- * \{ */
-
-ReadAttribute::~ReadAttribute()
-{
-  if (array_is_temporary_ && array_buffer_ != nullptr) {
-    cpp_type_.destruct_n(array_buffer_, size_);
-    MEM_freeN(array_buffer_);
-  }
-}
-
-fn::GSpan ReadAttribute::get_span() const
-{
-  if (size_ == 0) {
-    return fn::GSpan(cpp_type_);
-  }
-  if (array_buffer_ == nullptr) {
-    std::lock_guard lock{span_mutex_};
-    if (array_buffer_ == nullptr) {
-      this->initialize_span();
-    }
-  }
-  return fn::GSpan(cpp_type_, array_buffer_, size_);
-}
-
-void ReadAttribute::initialize_span() const
-{
-  const int element_size = cpp_type_.size();
-  array_buffer_ = MEM_mallocN_aligned(size_ * element_size, cpp_type_.alignment(), __func__);
-  array_is_temporary_ = true;
-  for (const int i : IndexRange(size_)) {
-    this->get_internal(i, POINTER_OFFSET(array_buffer_, i * element_size));
-  }
-}
-
-WriteAttribute::~WriteAttribute()
-{
-  if (array_should_be_applied_) {
-    CLOG_ERROR(&LOG, "Forgot to call apply_span.");
-  }
-  if (array_is_temporary_ && array_buffer_ != nullptr) {
-    cpp_type_.destruct_n(array_buffer_, size_);
-    MEM_freeN(array_buffer_);
-  }
-}
-
-/**
- * Get a mutable span that can be modified. When all modifications to the attribute are done,
- * #apply_span should be called. */
-fn::GMutableSpan WriteAttribute::get_span()
-{
-  if (size_ == 0) {
-    return fn::GMutableSpan(cpp_type_);
-  }
-  if (array_buffer_ == nullptr) {
-    this->initialize_span(false);
-  }
-  array_should_be_applied_ = true;
-  return fn::GMutableSpan(cpp_type_, array_buffer_, size_);
-}
-
-fn::GMutableSpan WriteAttribute::get_span_for_write_only()
-{
-  if (size_ == 0) {
-    return fn::GMutableSpan(cpp_type_);
-  }
-  if (array_buffer_ == nullptr) {
-    this->initialize_span(true);
-  }
-  array_should_be_applied_ = true;
-  return fn::GMutableSpan(cpp_type_, array_buffer_, size_);
-}
-
-void WriteAttribute::initialize_span(const bool write_only)
-{
-  const int element_size = cpp_type_.size();
-  array_buffer_ = MEM_mallocN_aligned(element_size * size_, cpp_type_.alignment(), __func__);
-  array_is_temporary_ = true;
-  if (write_only) {
-    /* This does nothing for trivial types, but is necessary for general correctness. */
-    cpp_type_.construct_default_n(array_buffer_, size_);
-  }
-  else {
-    for (const int i : IndexRange(size_)) {
-      this->get(i, POINTER_OFFSET(array_buffer_, i * element_size));
-    }
-  }
-}
-
-void WriteAttribute::apply_span()
-{
-  this->apply_span_if_necessary();
-  array_should_be_applied_ = false;
-}
-
-void WriteAttribute::apply_span_if_necessary()
-{
-  /* Only works when the span has been initialized beforehand. */
-  BLI_assert(array_buffer_ != nullptr);
-
-  const int element_size = cpp_type_.size();
-  for (const int i : IndexRange(size_)) {
-    this->set_internal(i, POINTER_OFFSET(array_buffer_, i * element_size));
-  }
-}
-
-/* This is used by the #OutputAttributePtr class. */
-class TemporaryWriteAttribute final : public WriteAttribute {
- public:
-  GMutableSpan data;
-  GeometryComponent &component;
-  std::string final_name;
-
-  TemporaryWriteAttribute(AttributeDomain domain,
-                          GMutableSpan data,
-                          GeometryComponent &component,
-                          std::string final_name)
-      : WriteAttribute(domain, data.type(), data.size()),
-        data(data),
-        component(component),
-        final_name(std::move(final_name))
-  {
-  }
-
-  ~TemporaryWriteAttribute() override
-  {
-    if (data.data() != nullptr) {
-      cpp_type_.destruct_n(data.data(), data.size());
-      MEM_freeN(data.data());
-    }
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    data.type().copy_to_uninitialized(data[index], r_value);
-  }
-
-  void set_internal(const int64_t index, const void *value) override
-  {
-    data.type().copy_to_initialized(value, data[index]);
-  }
-
-  void initialize_span(const bool UNUSED(write_only)) override
-  {
-    array_buffer_ = data.data();
-    array_is_temporary_ = false;
-  }
-
-  void apply_span_if_necessary() override
-  {
-    /* Do nothing, because the span contains the attribute itself already. */
-  }
-};
-
-class ConvertedReadAttribute final : public ReadAttribute {
- private:
-  const CPPType &from_type_;
-  const CPPType &to_type_;
-  ReadAttributePtr base_attribute_;
-  void (*convert_)(const void *src, void *dst);
-
- public:
-  ConvertedReadAttribute(ReadAttributePtr base_attribute, const CPPType &to_type)
-      : ReadAttribute(base_attribute->domain(), to_type, base_attribute->size()),
-        from_type_(base_attribute->cpp_type()),
-        to_type_(to_type),
-        base_attribute_(std::move(base_attribute))
-  {
-    const nodes::DataTypeConversions &conversions = nodes::get_implicit_type_conversions();
-    convert_ = conversions.get_conversion_functions(base_attribute_->cpp_type(), to_type)
-                   ->convert_single_to_uninitialized;
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    BUFFER_FOR_CPP_TYPE_VALUE(from_type_, buffer);
-    base_attribute_->get(index, buffer);
-    convert_(buffer, r_value);
-  }
-};
-
-/** \} */
 
 const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
 {
@@ -368,7 +182,17 @@ AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
   return highest_priority_domain;
 }
 
-ReadAttributePtr BuiltinCustomDataLayerProvider::try_get_for_read(
+void OutputAttribute::save()
+{
+  if (optional_span_varray_.has_value()) {
+    optional_span_varray_->save();
+  }
+  if (save_) {
+    save_(*this);
+  }
+}
+
+GVArrayPtr BuiltinCustomDataLayerProvider::try_get_for_read(
     const GeometryComponent &component) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
@@ -384,7 +208,7 @@ ReadAttributePtr BuiltinCustomDataLayerProvider::try_get_for_read(
   return as_read_attribute_(data, domain_size);
 }
 
-WriteAttributePtr BuiltinCustomDataLayerProvider::try_get_for_write(
+GVMutableArrayPtr BuiltinCustomDataLayerProvider::try_get_for_write(
     GeometryComponent &component) const
 {
   if (writable_ != Writable) {
@@ -463,7 +287,7 @@ bool BuiltinCustomDataLayerProvider::exists(const GeometryComponent &component) 
   return data != nullptr;
 }
 
-ReadAttributePtr CustomDataAttributeProvider::try_get_for_read(
+ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
     const GeometryComponent &component, const StringRef attribute_name) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
@@ -496,7 +320,7 @@ ReadAttributePtr CustomDataAttributeProvider::try_get_for_read(
   return {};
 }
 
-WriteAttributePtr CustomDataAttributeProvider::try_get_for_write(
+WriteAttributeLookup CustomDataAttributeProvider::try_get_for_write(
     GeometryComponent &component, const StringRef attribute_name) const
 {
   CustomData *custom_data = custom_data_access_.get_custom_data(component);
@@ -595,7 +419,7 @@ bool CustomDataAttributeProvider::foreach_attribute(const GeometryComponent &com
   return true;
 }
 
-ReadAttributePtr NamedLegacyCustomDataProvider::try_get_for_read(
+ReadAttributeLookup NamedLegacyCustomDataProvider::try_get_for_read(
     const GeometryComponent &component, const StringRef attribute_name) const
 {
   const CustomData *custom_data = custom_data_access_.get_const_custom_data(component);
@@ -606,14 +430,14 @@ ReadAttributePtr NamedLegacyCustomDataProvider::try_get_for_read(
     if (layer.type == stored_type_) {
       if (layer.name == attribute_name) {
         const int domain_size = component.attribute_domain_size(domain_);
-        return as_read_attribute_(layer.data, domain_size);
+        return {as_read_attribute_(layer.data, domain_size), domain_};
       }
     }
   }
   return {};
 }
 
-WriteAttributePtr NamedLegacyCustomDataProvider::try_get_for_write(
+WriteAttributeLookup NamedLegacyCustomDataProvider::try_get_for_write(
     GeometryComponent &component, const StringRef attribute_name) const
 {
   CustomData *custom_data = custom_data_access_.get_custom_data(component);
@@ -630,7 +454,7 @@ WriteAttributePtr NamedLegacyCustomDataProvider::try_get_for_write(
         if (data_old != data_new) {
           custom_data_access_.update_custom_data_pointers(component);
         }
-        return as_write_attribute_(layer.data, domain_size);
+        return {as_write_attribute_(layer.data, domain_size), domain_};
       }
     }
   }
@@ -708,7 +532,17 @@ int GeometryComponent::attribute_domain_size(const AttributeDomain UNUSED(domain
   return 0;
 }
 
-ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
+bool GeometryComponent::attribute_is_builtin(const blender::StringRef attribute_name) const
+{
+  using namespace blender::bke;
+  const ComponentAttributeProviders *providers = this->get_attribute_providers();
+  if (providers == nullptr) {
+    return false;
+  }
+  return providers->builtin_attribute_providers().contains_as(attribute_name);
+}
+
+blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
     const StringRef attribute_name) const
 {
   using namespace blender::bke;
@@ -719,11 +553,11 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
   const BuiltinAttributeProvider *builtin_provider =
       providers->builtin_attribute_providers().lookup_default_as(attribute_name, nullptr);
   if (builtin_provider != nullptr) {
-    return builtin_provider->try_get_for_read(*this);
+    return {builtin_provider->try_get_for_read(*this), builtin_provider->domain()};
   }
   for (const DynamicAttributesProvider *dynamic_provider :
        providers->dynamic_attribute_providers()) {
-    ReadAttributePtr attribute = dynamic_provider->try_get_for_read(*this, attribute_name);
+    ReadAttributeLookup attribute = dynamic_provider->try_get_for_read(*this, attribute_name);
     if (attribute) {
       return attribute;
     }
@@ -731,16 +565,19 @@ ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
   return {};
 }
 
-ReadAttributePtr GeometryComponent::attribute_try_adapt_domain(
-    ReadAttributePtr attribute, const AttributeDomain new_domain) const
+std::unique_ptr<blender::fn::GVArray> GeometryComponent::attribute_try_adapt_domain(
+    std::unique_ptr<blender::fn::GVArray> varray,
+    const AttributeDomain from_domain,
+    const AttributeDomain to_domain) const
 {
-  if (attribute && attribute->domain() == new_domain) {
-    return attribute;
+  if (from_domain == to_domain) {
+    return varray;
   }
   return {};
 }
 
-WriteAttributePtr GeometryComponent::attribute_try_get_for_write(const StringRef attribute_name)
+blender::bke::WriteAttributeLookup GeometryComponent::attribute_try_get_for_write(
+    const StringRef attribute_name)
 {
   using namespace blender::bke;
   const ComponentAttributeProviders *providers = this->get_attribute_providers();
@@ -750,11 +587,11 @@ WriteAttributePtr GeometryComponent::attribute_try_get_for_write(const StringRef
   const BuiltinAttributeProvider *builtin_provider =
       providers->builtin_attribute_providers().lookup_default_as(attribute_name, nullptr);
   if (builtin_provider != nullptr) {
-    return builtin_provider->try_get_for_write(*this);
+    return {builtin_provider->try_get_for_write(*this), builtin_provider->domain()};
   }
   for (const DynamicAttributesProvider *dynamic_provider :
        providers->dynamic_attribute_providers()) {
-    WriteAttributePtr attribute = dynamic_provider->try_get_for_write(*this, attribute_name);
+    WriteAttributeLookup attribute = dynamic_provider->try_get_for_write(*this, attribute_name);
     if (attribute) {
       return attribute;
     }
@@ -814,6 +651,24 @@ bool GeometryComponent::attribute_try_create(const StringRef attribute_name,
   return false;
 }
 
+bool GeometryComponent::attribute_try_create_builtin(const blender::StringRef attribute_name)
+{
+  using namespace blender::bke;
+  if (attribute_name.is_empty()) {
+    return false;
+  }
+  const ComponentAttributeProviders *providers = this->get_attribute_providers();
+  if (providers == nullptr) {
+    return false;
+  }
+  const BuiltinAttributeProvider *builtin_provider =
+      providers->builtin_attribute_providers().lookup_default_as(attribute_name, nullptr);
+  if (builtin_provider == nullptr) {
+    return false;
+  }
+  return builtin_provider->try_create(*this);
+}
+
 Set<std::string> GeometryComponent::attribute_names() const
 {
   Set<std::string> attributes;
@@ -867,264 +722,234 @@ bool GeometryComponent::attribute_foreach(const AttributeForeachCallback callbac
 
 bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name) const
 {
-  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  blender::bke::ReadAttributeLookup attribute = this->attribute_try_get_for_read(attribute_name);
   if (attribute) {
     return true;
   }
   return false;
 }
 
-static ReadAttributePtr try_adapt_data_type(ReadAttributePtr attribute,
-                                            const blender::fn::CPPType &to_type)
+static std::unique_ptr<blender::fn::GVArray> try_adapt_data_type(
+    std::unique_ptr<blender::fn::GVArray> varray, const blender::fn::CPPType &to_type)
 {
-  const blender::fn::CPPType &from_type = attribute->cpp_type();
-  if (from_type == to_type) {
-    return attribute;
-  }
-
   const blender::nodes::DataTypeConversions &conversions =
       blender::nodes::get_implicit_type_conversions();
-  if (!conversions.is_convertible(from_type, to_type)) {
-    return {};
-  }
-
-  return std::make_unique<blender::bke::ConvertedReadAttribute>(std::move(attribute), to_type);
+  return conversions.try_convert(std::move(varray), to_type);
 }
 
-ReadAttributePtr GeometryComponent::attribute_try_get_for_read(
+std::unique_ptr<blender::fn::GVArray> GeometryComponent::attribute_try_get_for_read(
     const StringRef attribute_name,
     const AttributeDomain domain,
     const CustomDataType data_type) const
 {
-  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  blender::bke::ReadAttributeLookup attribute = this->attribute_try_get_for_read(attribute_name);
   if (!attribute) {
     return {};
   }
 
-  if (domain != ATTR_DOMAIN_AUTO && attribute->domain() != domain) {
-    attribute = this->attribute_try_adapt_domain(std::move(attribute), domain);
-    if (!attribute) {
+  std::unique_ptr<blender::fn::GVArray> varray = std::move(attribute.varray);
+  if (domain != ATTR_DOMAIN_AUTO && attribute.domain != domain) {
+    varray = this->attribute_try_adapt_domain(std::move(varray), attribute.domain, domain);
+    if (!varray) {
       return {};
     }
   }
 
   const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
   BLI_assert(cpp_type != nullptr);
-  if (attribute->cpp_type() != *cpp_type) {
-    attribute = try_adapt_data_type(std::move(attribute), *cpp_type);
-    if (!attribute) {
+  if (varray->type() != *cpp_type) {
+    varray = try_adapt_data_type(std::move(varray), *cpp_type);
+    if (!varray) {
       return {};
     }
   }
 
-  return attribute;
+  return varray;
 }
 
-ReadAttributePtr GeometryComponent::attribute_try_get_for_read(const StringRef attribute_name,
-                                                               const AttributeDomain domain) const
+std::unique_ptr<blender::bke::GVArray> GeometryComponent::attribute_try_get_for_read(
+    const StringRef attribute_name, const AttributeDomain domain) const
 {
   if (!this->attribute_domain_supported(domain)) {
     return {};
   }
 
-  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name);
+  blender::bke::ReadAttributeLookup attribute = this->attribute_try_get_for_read(attribute_name);
   if (!attribute) {
     return {};
   }
 
-  if (attribute->domain() != domain) {
-    attribute = this->attribute_try_adapt_domain(std::move(attribute), domain);
+  if (attribute.domain != domain) {
+    return this->attribute_try_adapt_domain(std::move(attribute.varray), attribute.domain, domain);
+  }
+
+  return std::move(attribute.varray);
+}
+
+std::unique_ptr<blender::bke::GVArray> GeometryComponent::attribute_get_for_read(
+    const StringRef attribute_name,
+    const AttributeDomain domain,
+    const CustomDataType data_type,
+    const void *default_value) const
+{
+  std::unique_ptr<blender::bke::GVArray> varray = this->attribute_try_get_for_read(
+      attribute_name, domain, data_type);
+  if (varray) {
+    return varray;
+  }
+  const blender::fn::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  if (default_value == nullptr) {
+    default_value = type->default_value();
+  }
+  const int domain_size = this->attribute_domain_size(domain);
+  return std::make_unique<blender::fn::GVArray_For_SingleValue>(*type, domain_size, default_value);
+}
+
+class GVMutableAttribute_For_OutputAttribute
+    : public blender::fn::GVMutableArray_For_GMutableSpan {
+ public:
+  GeometryComponent *component;
+  std::string final_name;
+
+  GVMutableAttribute_For_OutputAttribute(GMutableSpan data,
+                                         GeometryComponent &component,
+                                         std::string final_name)
+      : blender::fn::GVMutableArray_For_GMutableSpan(data),
+        component(&component),
+        final_name(std::move(final_name))
+  {
+  }
+
+  ~GVMutableAttribute_For_OutputAttribute() override
+  {
+    type_->destruct_n(data_, size_);
+    MEM_freeN(data_);
+  }
+};
+
+static void save_output_attribute(blender::bke::OutputAttribute &output_attribute)
+{
+  using namespace blender;
+  using namespace blender::fn;
+  using namespace blender::bke;
+
+  GVMutableAttribute_For_OutputAttribute &varray =
+      dynamic_cast<GVMutableAttribute_For_OutputAttribute &>(output_attribute.varray());
+
+  GeometryComponent &component = *varray.component;
+  const StringRefNull name = varray.final_name;
+  const AttributeDomain domain = output_attribute.domain();
+  const CustomDataType data_type = output_attribute.custom_data_type();
+  const CPPType &cpp_type = output_attribute.cpp_type();
+
+  component.attribute_try_delete(name);
+  if (!component.attribute_try_create(varray.final_name, domain, data_type)) {
+    CLOG_WARN(&LOG,
+              "Could not create the '%s' attribute with type '%s'.",
+              name.c_str(),
+              cpp_type.name().c_str());
+    return;
+  }
+  WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(name);
+  BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), buffer);
+  for (const int i : IndexRange(varray.size())) {
+    varray.get(i, buffer);
+    write_attribute.varray->set_by_relocate(i, buffer);
+  }
+}
+
+static blender::bke::OutputAttribute create_output_attribute(
+    GeometryComponent &component,
+    const blender::StringRef attribute_name,
+    const AttributeDomain domain,
+    const CustomDataType data_type,
+    const bool ignore_old_values,
+    const void *default_value)
+{
+  using namespace blender;
+  using namespace blender::fn;
+  using namespace blender::bke;
+
+  if (attribute_name.is_empty()) {
+    return {};
+  }
+
+  const CPPType *cpp_type = custom_data_type_to_cpp_type(data_type);
+  BLI_assert(cpp_type != nullptr);
+  const nodes::DataTypeConversions &conversions = nodes::get_implicit_type_conversions();
+
+  if (component.attribute_is_builtin(attribute_name)) {
+    WriteAttributeLookup attribute = component.attribute_try_get_for_write(attribute_name);
     if (!attribute) {
+      component.attribute_try_create_builtin(attribute_name);
+      attribute = component.attribute_try_get_for_write(attribute_name);
+      if (!attribute) {
+        /* Builtin attribute does not exist and can't be created. */
+        return {};
+      }
+    }
+    if (attribute.domain != domain) {
+      /* Builtin attribute is on different domain. */
+      return {};
+    }
+    GVMutableArrayPtr varray = std::move(attribute.varray);
+    if (varray->type() == *cpp_type) {
+      /* Builtin attribute matches exactly. */
+      return OutputAttribute(std::move(varray), domain, {}, ignore_old_values);
+    }
+    /* Builtin attribute is on the same domain but has a different data type. */
+    varray = conversions.try_convert(std::move(varray), *cpp_type);
+    return OutputAttribute(std::move(varray), domain, {}, ignore_old_values);
+  }
+
+  WriteAttributeLookup attribute = component.attribute_try_get_for_write(attribute_name);
+  if (!attribute) {
+    component.attribute_try_create(attribute_name, domain, data_type);
+    attribute = component.attribute_try_get_for_write(attribute_name);
+    if (!attribute) {
+      /* Can't create the attribute. */
       return {};
     }
   }
-
-  return attribute;
-}
-
-ReadAttributePtr GeometryComponent::attribute_get_for_read(const StringRef attribute_name,
-                                                           const AttributeDomain domain,
-                                                           const CustomDataType data_type,
-                                                           const void *default_value) const
-{
-  ReadAttributePtr attribute = this->attribute_try_get_for_read(attribute_name, domain, data_type);
-  if (attribute) {
-    return attribute;
+  if (attribute.domain == domain && attribute.varray->type() == *cpp_type) {
+    /* Existing generic attribute matches exactly. */
+    return OutputAttribute(std::move(attribute.varray), domain, {}, ignore_old_values);
   }
-  return this->attribute_get_constant_for_read(domain, data_type, default_value);
-}
-
-blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_read(
-    const AttributeDomain domain, const CustomDataType data_type, const void *value) const
-{
-  BLI_assert(this->attribute_domain_supported(domain));
-  const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
-  BLI_assert(cpp_type != nullptr);
-  if (value == nullptr) {
-    value = cpp_type->default_value();
-  }
-  const int domain_size = this->attribute_domain_size(domain);
-  return std::make_unique<blender::bke::ConstantReadAttribute>(
-      domain, domain_size, *cpp_type, value);
-}
-
-blender::bke::ReadAttributePtr GeometryComponent::attribute_get_constant_for_read_converted(
-    const AttributeDomain domain,
-    const CustomDataType in_data_type,
-    const CustomDataType out_data_type,
-    const void *value) const
-{
-  BLI_assert(this->attribute_domain_supported(domain));
-  if (value == nullptr || in_data_type == out_data_type) {
-    return this->attribute_get_constant_for_read(domain, out_data_type, value);
-  }
-
-  const blender::fn::CPPType *in_cpp_type = blender::bke::custom_data_type_to_cpp_type(
-      in_data_type);
-  const blender::fn::CPPType *out_cpp_type = blender::bke::custom_data_type_to_cpp_type(
-      out_data_type);
-  BLI_assert(in_cpp_type != nullptr);
-  BLI_assert(out_cpp_type != nullptr);
-
-  const blender::nodes::DataTypeConversions &conversions =
-      blender::nodes::get_implicit_type_conversions();
-  BLI_assert(conversions.is_convertible(*in_cpp_type, *out_cpp_type));
-
-  void *out_value = alloca(out_cpp_type->size());
-  conversions.convert_to_uninitialized(*in_cpp_type, *out_cpp_type, value, out_value);
-
-  const int domain_size = this->attribute_domain_size(domain);
-  blender::bke::ReadAttributePtr attribute = std::make_unique<blender::bke::ConstantReadAttribute>(
-      domain, domain_size, *out_cpp_type, out_value);
-
-  out_cpp_type->destruct(out_value);
-  return attribute;
-}
-
-OutputAttributePtr GeometryComponent::attribute_try_get_for_output(const StringRef attribute_name,
-                                                                   const AttributeDomain domain,
-                                                                   const CustomDataType data_type,
-                                                                   const void *default_value)
-{
-  const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
-  BLI_assert(cpp_type != nullptr);
-
-  WriteAttributePtr attribute = this->attribute_try_get_for_write(attribute_name);
-
-  /* If the attribute doesn't exist, make a new one with the correct type. */
-  if (!attribute) {
-    this->attribute_try_create(attribute_name, domain, data_type);
-    attribute = this->attribute_try_get_for_write(attribute_name);
-    if (attribute && default_value != nullptr) {
-      void *data = attribute->get_span_for_write_only().data();
-      cpp_type->fill_initialized(default_value, data, attribute->size());
-      attribute->apply_span();
-    }
-    return OutputAttributePtr(std::move(attribute));
-  }
-
-  /* If an existing attribute has a matching domain and type, just use that. */
-  if (attribute->domain() == domain && attribute->cpp_type() == *cpp_type) {
-    return OutputAttributePtr(std::move(attribute));
-  }
-
-  /* Otherwise create a temporary buffer to use before saving the new attribute. */
-  return OutputAttributePtr(*this, domain, attribute_name, data_type);
-}
-
-/* Construct from an attribute that already exists in the geometry component. */
-OutputAttributePtr::OutputAttributePtr(WriteAttributePtr attribute)
-    : attribute_(std::move(attribute))
-{
-}
-
-/* Construct a temporary attribute that has to replace an existing one later on. */
-OutputAttributePtr::OutputAttributePtr(GeometryComponent &component,
-                                       AttributeDomain domain,
-                                       std::string final_name,
-                                       CustomDataType data_type)
-{
-  const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
-  BLI_assert(cpp_type != nullptr);
 
   const int domain_size = component.attribute_domain_size(domain);
-  void *buffer = MEM_malloc_arrayN(domain_size, cpp_type->size(), __func__);
-  GMutableSpan new_span{*cpp_type, buffer, domain_size};
-
-  /* Copy converted values from conflicting attribute, in case the value is read.
-   * TODO: An optimization could be to not do this, when the caller says that the attribute will
-   * only be written. */
-  ReadAttributePtr src_attribute = component.attribute_get_for_read(
-      final_name, domain, data_type, nullptr);
-  for (const int i : blender::IndexRange(domain_size)) {
-    src_attribute->get(i, new_span[i]);
+  /* Allocate a new array that lives next to the existing attribute. It will overwrite the existing
+   * attribute after processing is done. */
+  void *data = MEM_mallocN_aligned(
+      cpp_type->size() * domain_size, cpp_type->alignment(), __func__);
+  if (ignore_old_values) {
+    /* This does nothing for trivially constructible types, but is necessary for correctness. */
+    cpp_type->construct_default_n(data, domain);
   }
+  else {
+    /* Fill the temporary array with values from the existing attribute. */
+    GVArrayPtr old_varray = component.attribute_get_for_read(
+        attribute_name, domain, data_type, default_value);
+    old_varray->materialize_to_uninitialized(IndexRange(domain_size), data);
+  }
+  GVMutableArrayPtr varray = std::make_unique<GVMutableAttribute_For_OutputAttribute>(
+      GMutableSpan{*cpp_type, data, domain_size}, component, attribute_name);
 
-  attribute_ = std::make_unique<blender::bke::TemporaryWriteAttribute>(
-      domain, new_span, component, std::move(final_name));
+  return OutputAttribute(std::move(varray), domain, save_output_attribute, true);
 }
 
-/* Store the computed attribute. If it was stored from the beginning already, nothing is done. This
- * might delete another attribute with the same name. */
-void OutputAttributePtr::save()
+blender::bke::OutputAttribute GeometryComponent::attribute_try_get_for_output(
+    const StringRef attribute_name,
+    const AttributeDomain domain,
+    const CustomDataType data_type,
+    const void *default_value)
 {
-  if (!attribute_) {
-    CLOG_WARN(&LOG, "Trying to save an attribute that does not exist anymore.");
-    return;
-  }
-
-  blender::bke::TemporaryWriteAttribute *attribute =
-      dynamic_cast<blender::bke::TemporaryWriteAttribute *>(attribute_.get());
-
-  if (attribute == nullptr) {
-    /* The attribute is saved already. */
-    attribute_.reset();
-    return;
-  }
-
-  StringRefNull name = attribute->final_name;
-  const blender::fn::CPPType &cpp_type = attribute->cpp_type();
-
-  /* Delete an existing attribute with the same name if necessary. */
-  attribute->component.attribute_try_delete(name);
-
-  if (!attribute->component.attribute_try_create(
-          name, attribute_->domain(), attribute_->custom_data_type())) {
-    /* Cannot create the target attribute for some reason. */
-    CLOG_WARN(&LOG,
-              "Creating the '%s' attribute with type '%s' failed.",
-              name.c_str(),
-              cpp_type.name().c_str());
-    attribute_.reset();
-    return;
-  }
-
-  WriteAttributePtr new_attribute = attribute->component.attribute_try_get_for_write(name);
-
-  GMutableSpan temp_span = attribute->data;
-  GMutableSpan new_span = new_attribute->get_span_for_write_only();
-  BLI_assert(temp_span.size() == new_span.size());
-
-  /* Currently we copy over the attribute. In the future we want to reuse the buffer. */
-  cpp_type.move_to_initialized_n(temp_span.data(), new_span.data(), new_span.size());
-  new_attribute->apply_span();
-
-  attribute_.reset();
+  return create_output_attribute(*this, attribute_name, domain, data_type, false, default_value);
 }
 
-OutputAttributePtr::~OutputAttributePtr()
+blender::bke::OutputAttribute GeometryComponent::attribute_try_get_for_output_only(
+    const blender::StringRef attribute_name,
+    const AttributeDomain domain,
+    const CustomDataType data_type)
 {
-  if (attribute_) {
-    CLOG_ERROR(&LOG, "Forgot to call #save or #apply_span_and_save.");
-  }
+  return create_output_attribute(*this, attribute_name, domain, data_type, true, nullptr);
 }
-
-/* Utility function to call #apply_span and #save in the right order. */
-void OutputAttributePtr::apply_span_and_save()
-{
-  BLI_assert(attribute_);
-  attribute_->apply_span();
-  this->save();
-}
-
-/** \} */

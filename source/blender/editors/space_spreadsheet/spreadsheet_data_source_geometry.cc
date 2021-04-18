@@ -78,24 +78,25 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 {
   std::lock_guard lock{mutex_};
 
-  bke::ReadAttributePtr attribute_ptr = component_->attribute_try_get_for_read(column_id.name);
-  if (!attribute_ptr) {
+  bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
+  if (!attribute) {
     return {};
   }
-  const bke::ReadAttribute *attribute = scope_.add(std::move(attribute_ptr), __func__);
-  if (attribute->domain() != domain_) {
+  const fn::GVArray *varray = scope_.add(std::move(attribute.varray), __func__);
+  if (attribute.domain != domain_) {
     return {};
   }
-  int domain_size = attribute->size();
-  switch (attribute->custom_data_type()) {
+  int domain_size = varray->size();
+  const CustomDataType type = bke::cpp_type_to_custom_data_type(varray->type());
+  switch (type) {
     case CD_PROP_FLOAT:
       if (column_id.index != -1) {
         return {};
       }
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             float value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_float = value;
           });
     case CD_PROP_INT32:
@@ -103,9 +104,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         return {};
       }
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             int value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_int = value;
           });
     case CD_PROP_BOOL:
@@ -113,9 +114,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         return {};
       }
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             bool value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_bool = value;
           });
     case CD_PROP_FLOAT2: {
@@ -125,11 +126,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       const std::array<const char *, 2> suffixes = {" X", " Y"};
       const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
-          domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          name, domain_size, [varray, axis = column_id.index](int index, CellValue &r_cell_value) {
             float2 value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_float = value[axis];
           });
     }
@@ -140,11 +139,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
       const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
-          domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          name, domain_size, [varray, axis = column_id.index](int index, CellValue &r_cell_value) {
             float3 value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_float = value[axis];
           });
     }
@@ -155,11 +152,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       const std::array<const char *, 4> suffixes = {" R", " G", " B", " A"};
       const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
-          domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          name, domain_size, [varray, axis = column_id.index](int index, CellValue &r_cell_value) {
             Color4f value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_float = value[axis];
           });
     }

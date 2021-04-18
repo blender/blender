@@ -123,7 +123,7 @@ template<typename T> class GVectorArray_TypedMutableRef {
 
   void extend(const int64_t index, const VArray<T> &values)
   {
-    GVArrayForVArray<T> array{values};
+    GVArray_For_VArray<T> array{values};
     this->extend(index, array);
   }
 
@@ -134,12 +134,12 @@ template<typename T> class GVectorArray_TypedMutableRef {
 };
 
 /* A generic virtual vector array implementation for a `GVectorArray`. */
-class GVVectorArrayForGVectorArray : public GVVectorArray {
+class GVVectorArray_For_GVectorArray : public GVVectorArray {
  private:
   const GVectorArray &vector_array_;
 
  public:
-  GVVectorArrayForGVectorArray(const GVectorArray &vector_array)
+  GVVectorArray_For_GVectorArray(const GVectorArray &vector_array)
       : GVVectorArray(vector_array.type(), vector_array.size()), vector_array_(vector_array)
   {
   }

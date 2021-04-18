@@ -1212,7 +1212,7 @@ static void log_ui_hints(const DSocket socket,
   bNodeTree *btree_cow = node->btree();
   bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
   const NodeTreeEvaluationContext context{*self_object, nmd->modifier};
-  for (const GPointer data : values) {
+  for (const GPointer &data : values) {
     if (data.type() == &CPPType::get<GeometrySet>()) {
       const GeometrySet &geometry_set = *(const GeometrySet *)data.get();
       blender::bke::geometry_set_instances_attribute_foreach(

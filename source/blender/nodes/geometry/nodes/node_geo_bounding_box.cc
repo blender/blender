@@ -39,15 +39,12 @@ static void compute_min_max_from_position_and_transform(const GeometryComponent 
                                                         float3 &r_min,
                                                         float3 &r_max)
 {
-  ReadAttributePtr position_attribute = component.attribute_try_get_for_read("position");
-  if (!position_attribute) {
-    BLI_assert(component.attribute_domain_size(ATTR_DOMAIN_POINT) == 0);
-    return;
-  }
-  Span<float3> positions = position_attribute->get_span<float3>();
+  GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
+      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   for (const float4x4 &transform : transforms) {
-    for (const float3 &position : positions) {
+    for (const int i : positions.index_range()) {
+      const float3 position = positions[i];
       const float3 transformed_position = transform * position;
       minmax_v3v3_v3(r_min, r_max, transformed_position);
     }

@@ -72,6 +72,10 @@ class DataTypeConversions {
                                 const CPPType &to_type,
                                 const void *from_value,
                                 void *to_value) const;
+
+  fn::GVArrayPtr try_convert(fn::GVArrayPtr varray, const CPPType &to_type) const;
+
+  fn::GVMutableArrayPtr try_convert(fn::GVMutableArrayPtr varray, const CPPType &to_type) const;
 };
 
 const DataTypeConversions &get_implicit_type_conversions();

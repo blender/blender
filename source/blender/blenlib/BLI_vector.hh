@@ -437,13 +437,17 @@ class Vector {
    */
   void append(const T &value)
   {
-    this->ensure_space_for_one();
-    this->append_unchecked(value);
+    this->append_as(value);
   }
   void append(T &&value)
   {
+    this->append_as(std::move(value));
+  }
+  /* This is similar to std::vector::emblace_back. */
+  template<typename... ForwardValue> void append_as(ForwardValue &&... value)
+  {
     this->ensure_space_for_one();
-    this->append_unchecked(std::move(value));
+    this->append_unchecked_as(std::forward<ForwardValue>(value)...);
   }
 
   /**
@@ -474,10 +478,18 @@ class Vector {
    * behavior when not enough capacity has been reserved beforehand. Only use this in performance
    * critical code.
    */
-  template<typename ForwardT> void append_unchecked(ForwardT &&value)
+  void append_unchecked(const T &value)
+  {
+    this->append_unchecked_as(value);
+  }
+  void append_unchecked(T &&value)
+  {
+    this->append_unchecked_as(std::move(value));
+  }
+  template<typename... ForwardT> void append_unchecked_as(ForwardT &&... value)
   {
     BLI_assert(end_ < capacity_end_);
-    new (end_) T(std::forward<ForwardT>(value));
+    new (end_) T(std::forward<ForwardT>(value)...);
     end_++;
     UPDATE_VECTOR_SIZE(this);
   }

@@ -224,9 +224,9 @@ static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float r
 {
   MeshComponent mesh_component;
   mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  OutputAttributePtr uv_attribute = mesh_component.attribute_try_get_for_output(
-      "uv_map", ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2, nullptr);
-  MutableSpan<float2> uvs = uv_attribute->get_span_for_write_only<float2>();
+  OutputAttribute_Typed<float2> uv_attribute =
+      mesh_component.attribute_try_get_for_output_only<float2>("uv_map", ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.as_span();
 
   int loop_index = 0;
   const float dy = 1.0f / rings;
@@ -256,7 +256,7 @@ static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float r
     uvs[loop_index++] = float2(segment / segments, 1.0f - dy);
   }
 
-  uv_attribute.apply_span_and_save();
+  uv_attribute.save();
 }
 
 static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const int rings)

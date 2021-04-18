@@ -368,25 +368,39 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
       snap_elements &= ~SCE_SNAP_MODE_EDGE_PERPENDICULAR;
     }
 
+    eSnapSelect snap_select = (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_ONLY_ACTIVE) ?
+                                  SNAP_ONLY_ACTIVE :
+                                  SNAP_ALL;
+
+    eSnapEditType edit_mode_type = (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_EDIT_GEOM_FINAL) ?
+                                       SNAP_GEOM_FINAL :
+                                       (snap_gizmo->flag & ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE) ?
+                                       SNAP_GEOM_CAGE :
+                                       SNAP_GEOM_EDIT;
+
+    bool use_occlusion_test = (snap_gizmo->flag & ED_SNAPGIZMO_OCCLUSION_ALWAYS_TRUE) ? false :
+                                                                                        true;
+
     float dist_px = 12.0f * U.pixelsize;
 
     ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, gz);
-    snap_elem = ED_transform_snap_object_project_view3d_ex(snap_gizmo->snap_context_v3d,
-                                                           depsgraph,
-                                                           snap_elements,
-                                                           &(const struct SnapObjectParams){
-                                                               .snap_select = SNAP_ALL,
-                                                               .use_object_edit_cage = true,
-                                                               .use_occlusion_test = true,
-                                                           },
-                                                           mval_fl,
-                                                           prev_co,
-                                                           &dist_px,
-                                                           co,
-                                                           no,
-                                                           &index,
-                                                           NULL,
-                                                           NULL);
+    snap_elem = ED_transform_snap_object_project_view3d_ex(
+        snap_gizmo->snap_context_v3d,
+        depsgraph,
+        snap_elements,
+        &(const struct SnapObjectParams){
+            .snap_select = snap_select,
+            .edit_mode_type = edit_mode_type,
+            .use_occlusion_test = use_occlusion_test,
+        },
+        mval_fl,
+        prev_co,
+        &dist_px,
+        co,
+        no,
+        &index,
+        NULL,
+        NULL);
   }
 
   if (snap_elem == 0) {

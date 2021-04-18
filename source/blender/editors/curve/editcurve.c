@@ -5576,7 +5576,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
           SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
               .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
-              .use_object_edit_cage = false,
+              .edit_mode_type = SNAP_GEOM_FINAL,
           },
           mval,
           NULL,

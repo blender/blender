@@ -974,11 +974,11 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__full(const MFInputS
   if (any_value->type == ValueType::OwnSingle) {
     OwnSingleValue *value = static_cast<OwnSingleValue *>(any_value);
     if (value->is_single_allocated) {
-      return scope.construct<GVArrayForSingleValueRef>(
+      return scope.construct<GVArray_For_SingleValueRef>(
           __func__, value->span.type(), min_array_size_, value->span.data());
     }
 
-    return scope.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArray_For_GSpan>(__func__, value->span);
   }
   if (any_value->type == ValueType::InputSingle) {
     InputSingleValue *value = static_cast<InputSingleValue *>(any_value);
@@ -987,11 +987,11 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__full(const MFInputS
   if (any_value->type == ValueType::OutputSingle) {
     OutputSingleValue *value = static_cast<OutputSingleValue *>(any_value);
     BLI_assert(value->is_computed);
-    return scope.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArray_For_GSpan>(__func__, value->span);
   }
 
   BLI_assert(false);
-  return scope.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
+  return scope.construct<GVArray_For_Empty>(__func__, CPPType::get<float>());
 }
 
 const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInputSocket &socket,
@@ -1004,7 +1004,7 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInpu
   if (any_value->type == ValueType::OwnSingle) {
     OwnSingleValue *value = static_cast<OwnSingleValue *>(any_value);
     BLI_assert(value->span.size() == 1);
-    return scope.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArray_For_GSpan>(__func__, value->span);
   }
   if (any_value->type == ValueType::InputSingle) {
     InputSingleValue *value = static_cast<InputSingleValue *>(any_value);
@@ -1015,11 +1015,11 @@ const GVArray &MFNetworkEvaluationStorage::get_single_input__single(const MFInpu
     OutputSingleValue *value = static_cast<OutputSingleValue *>(any_value);
     BLI_assert(value->is_computed);
     BLI_assert(value->span.size() == 1);
-    return scope.construct<GVArrayForGSpan>(__func__, value->span);
+    return scope.construct<GVArray_For_GSpan>(__func__, value->span);
   }
 
   BLI_assert(false);
-  return scope.construct<GVArrayForEmpty>(__func__, CPPType::get<float>());
+  return scope.construct<GVArray_For_Empty>(__func__, CPPType::get<float>());
 }
 
 const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
@@ -1033,10 +1033,10 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
     OwnVectorValue *value = static_cast<OwnVectorValue *>(any_value);
     if (value->vector_array->size() == 1) {
       GSpan span = (*value->vector_array)[0];
-      return scope.construct<GVVectorArrayForSingleGSpan>(__func__, span, min_array_size_);
+      return scope.construct<GVVectorArray_For_SingleGSpan>(__func__, span, min_array_size_);
     }
 
-    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArray_For_GVectorArray>(__func__, *value->vector_array);
   }
   if (any_value->type == ValueType::InputVector) {
     InputVectorValue *value = static_cast<InputVectorValue *>(any_value);
@@ -1044,11 +1044,11 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__full(
   }
   if (any_value->type == ValueType::OutputVector) {
     OutputVectorValue *value = static_cast<OutputVectorValue *>(any_value);
-    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArray_For_GVectorArray>(__func__, *value->vector_array);
   }
 
   BLI_assert(false);
-  return scope.construct<GVVectorArrayForSingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
+  return scope.construct<GVVectorArray_For_SingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
 }
 
 const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
@@ -1061,7 +1061,7 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
   if (any_value->type == ValueType::OwnVector) {
     OwnVectorValue *value = static_cast<OwnVectorValue *>(any_value);
     BLI_assert(value->vector_array->size() == 1);
-    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArray_For_GVectorArray>(__func__, *value->vector_array);
   }
   if (any_value->type == ValueType::InputVector) {
     InputVectorValue *value = static_cast<InputVectorValue *>(any_value);
@@ -1071,11 +1071,11 @@ const GVVectorArray &MFNetworkEvaluationStorage::get_vector_input__single(
   if (any_value->type == ValueType::OutputVector) {
     OutputVectorValue *value = static_cast<OutputVectorValue *>(any_value);
     BLI_assert(value->vector_array->size() == 1);
-    return scope.construct<GVVectorArrayForGVectorArray>(__func__, *value->vector_array);
+    return scope.construct<GVVectorArray_For_GVectorArray>(__func__, *value->vector_array);
   }
 
   BLI_assert(false);
-  return scope.construct<GVVectorArrayForSingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
+  return scope.construct<GVVectorArray_For_SingleGSpan>(__func__, GSpan(CPPType::get<float>()), 0);
 }
 
 /** \} */

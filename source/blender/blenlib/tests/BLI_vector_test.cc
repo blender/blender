@@ -248,6 +248,15 @@ TEST(vector, Append)
   EXPECT_EQ(vec[2], 7);
 }
 
+TEST(vector, AppendAs)
+{
+  Vector<StringRef> vec;
+  vec.append_as("hello", 2);
+  vec.append_as("world", 3);
+  EXPECT_EQ(vec[0], "he");
+  EXPECT_EQ(vec[1], "wor");
+}
+
 TEST(vector, AppendAndGetIndex)
 {
   Vector<int> vec;

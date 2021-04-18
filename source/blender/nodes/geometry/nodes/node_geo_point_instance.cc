@@ -174,13 +174,13 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
   Array<std::optional<InstancedData>> instances_data = get_instanced_data(
       params, src_geometry, domain_size);
 
-  Float3ReadAttribute positions = src_geometry.attribute_get_for_read<float3>(
+  GVArray_Typed<float3> positions = src_geometry.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
-  Float3ReadAttribute rotations = src_geometry.attribute_get_for_read<float3>(
+  GVArray_Typed<float3> rotations = src_geometry.attribute_get_for_read<float3>(
       "rotation", domain, {0, 0, 0});
-  Float3ReadAttribute scales = src_geometry.attribute_get_for_read<float3>(
+  GVArray_Typed<float3> scales = src_geometry.attribute_get_for_read<float3>(
       "scale", domain, {1, 1, 1});
-  Int32ReadAttribute ids = src_geometry.attribute_get_for_read<int>("id", domain, -1);
+  GVArray_Typed<int> ids = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   for (const int i : IndexRange(domain_size)) {
     if (instances_data[i].has_value()) {
