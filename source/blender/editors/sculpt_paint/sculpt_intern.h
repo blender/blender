@@ -1435,12 +1435,21 @@ typedef struct SculptCurvatureData {
   float principle[3][3];  // normalized
 } SculptCurvatureData;
 
+/*
+If useAccurateSolver is false, a faster but less accurate
+power solver will be used.  If true then BLI_eigen_solve_selfadjoint_m3
+will be called.
+*/
 bool SCULPT_calc_principle_curvatures(SculptSession *ss,
                                       SculptVertRef vertex,
-                                      SculptCurvatureData *out);
+                                      SculptCurvatureData *out,
+                                      bool useAccurateSolver);
 
-void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node);
-void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3]);
+void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAccurateSolver);
+void SCULPT_curvature_dir_get(SculptSession *ss,
+                              SculptVertRef v,
+                              float dir[3],
+                              bool useAccurateSolver);
 
 /*
 Ensure a named temporary layer exists, creating it if necassary.

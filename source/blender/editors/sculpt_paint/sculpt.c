@@ -3353,7 +3353,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   // const bool update_curvature = node->flag & PBVH_UpdateCurvatureDir;
   const bool update_curvature = BKE_pbvh_curvature_update_get(node);
 
-  SCULPT_curvature_begin(ss, node);
+  SCULPT_curvature_begin(ss, node, false);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -3371,7 +3371,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     float avg[3], val[3];
 
     if (use_curvature) {
-      SCULPT_curvature_dir_get(ss, vd.vertex, direction2);
+      SCULPT_curvature_dir_get(ss, vd.vertex, direction2, false);
       // SculptCurvatureData cdata;
       // SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
       // copy_v3_v3(direction2, cdata.principle[0]);
@@ -9756,6 +9756,10 @@ void SCULPT_connected_components_ensure(Object *ob)
   int next_id = 0;
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    if (!SCULPT_vertex_visible_get(ss, vertex)) {
+      continue;
+    }
 
     if (ss->vertex_info.connected_component[i] == SCULPT_TOPOLOGY_ID_NONE) {
       SculptFloodFill flood;

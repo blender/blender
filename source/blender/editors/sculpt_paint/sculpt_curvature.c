@@ -31,6 +31,7 @@
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_solvers.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -138,7 +139,8 @@ BLI_INLINE void normal_covariance(float mat[3][3], float no[3])
 
 bool SCULPT_calc_principle_curvatures(SculptSession *ss,
                                       SculptVertRef vertex,
-                                      SculptCurvatureData *out)
+                                      SculptCurvatureData *out,
+                                      bool useAccurateSolver)
 {
   SculptVertexNeighborIter ni;
   float nmat[3][3], nmat2[3][3];
@@ -159,7 +161,7 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-  if (true || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
+  if (!useAccurateSolver || !BLI_eigen_solve_selfadjoint_m3(nmat, out->ks, out->principle)) {
     // do simple power solve in one direction
 
     float t[3];
@@ -192,11 +194,14 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
   return true;
 }
 
-void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3])
+void SCULPT_curvature_dir_get(SculptSession *ss,
+                              SculptVertRef v,
+                              float dir[3],
+                              bool useAccurateSolver)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     SculptCurvatureData curv;
-    SCULPT_calc_principle_curvatures(ss, v, &curv);
+    SCULPT_calc_principle_curvatures(ss, v, &curv, useAccurateSolver);
 
     copy_v3_v3(dir, curv.principle[0]);
     return;
@@ -208,7 +213,7 @@ void SCULPT_curvature_dir_get(SculptSession *ss, SculptVertRef v, float dir[3])
   copy_v3_v3(dir, mv->curvature_dir);
 }
 
-void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node)
+void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node, bool useAccurateSolver)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
     // caching only happens for bmesh for now
@@ -225,7 +230,7 @@ void SCULPT_curvature_begin(SculptSession *ss, struct PBVHNode *node)
       MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
       SculptCurvatureData curv;
-      SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv);
+      SCULPT_calc_principle_curvatures(ss, vi.vertex, &curv, useAccurateSolver);
 
       copy_v3_v3(mv->curvature_dir, curv.principle[0]);
     }
