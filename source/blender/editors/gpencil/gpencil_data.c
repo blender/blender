@@ -3745,3 +3745,51 @@ void GPENCIL_OT_layer_mask_remove(wmOperatorType *ot)
   ot->exec = gpencil_layer_mask_remove_exec;
   ot->poll = gpencil_active_layer_poll;
 }
+
+static int gpencil_layer_mask_move_exec(bContext *C, wmOperator *op)
+{
+  bGPdata *gpd = ED_gpencil_data_get_active(C);
+  bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
+  const int direction = RNA_enum_get(op->ptr, "type");
+
+  /* sanity checks */
+  if (ELEM(NULL, gpd, gpl)) {
+    return OPERATOR_CANCELLED;
+  }
+  if (gpl->act_mask > 0) {
+    bGPDlayer_Mask *mask = BLI_findlink(&gpl->mask_layers, gpl->act_mask - 1);
+    if (mask != NULL) {
+      BLI_assert(ELEM(direction, -1, 0, 1)); /* we use value below */
+      if (BLI_listbase_link_move(&gpl->mask_layers, mask, direction)) {
+        gpl->act_mask += direction;
+        DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+        WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+      }
+    }
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_mask_move(wmOperatorType *ot)
+{
+  static const EnumPropertyItem slot_move[] = {
+      {GP_LAYER_MOVE_UP, "UP", 0, "Up", ""},
+      {GP_LAYER_MOVE_DOWN, "DOWN", 0, "Down", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  /* identifiers */
+  ot->name = "Move Grease Pencil Layer Mask";
+  ot->idname = "GPENCIL_OT_layer_mask_move";
+  ot->description = "Move the active Grease Pencil mask layer up/down in the list";
+
+  /* api callbacks */
+  ot->exec = gpencil_layer_mask_move_exec;
+  ot->poll = gpencil_active_layer_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}

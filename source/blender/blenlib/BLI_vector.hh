@@ -443,7 +443,7 @@ class Vector {
   {
     this->append_as(std::move(value));
   }
-  /* This is similar to std::vector::emblace_back. */
+  /* This is similar to `std::vector::emplace_back`. */
   template<typename... ForwardValue> void append_as(ForwardValue &&... value)
   {
     this->ensure_space_for_one();

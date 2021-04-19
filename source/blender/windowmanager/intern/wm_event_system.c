@@ -2595,6 +2595,15 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
                                         ListBase *handlers,
                                         const bool do_debug_handler)
 {
+  /* Drag events use the previous click location to highlight the gizmos,
+   * Get the highlight again in case the user dragged off the gizmo. */
+  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+  const bool is_event_modifier = ISKEYMODIFIER(event->type);
+  /* Only keep the highlight if the gizmo becomes modal as result of event handling.
+   * Without this check, even un-handled drag events will set the highlight if the drag
+   * was initiated over a gizmo. */
+  const bool restore_highlight_unless_activated = is_event_drag;
+
   int action = WM_HANDLER_CONTINUE;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -2608,12 +2617,24 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   if (region->type->clip_gizmo_events_by_ui) {
     if (UI_region_block_find_mouse_over(region, &event->x, true)) {
       if (gz != NULL && event->type != EVT_GIZMO_UPDATE) {
-        WM_tooltip_clear(C, CTX_wm_window(C));
-        wm_gizmomap_highlight_set(gzmap, C, NULL, 0);
+        if (restore_highlight_unless_activated == false) {
+          WM_tooltip_clear(C, CTX_wm_window(C));
+          wm_gizmomap_highlight_set(gzmap, C, NULL, 0);
+        }
       }
       return action;
     }
   }
+
+  struct {
+    wmGizmo *gz_modal;
+    wmGizmo *gz;
+    int part;
+  } prev = {
+      .gz_modal = wm_gizmomap_modal_get(gzmap),
+      .gz = gz,
+      .part = gz ? gz->highlight_part : 0,
+  };
 
   if (region->gizmo_map != handler->gizmo_map) {
     WM_gizmomap_tag_refresh(handler->gizmo_map);
@@ -2622,16 +2643,11 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   wm_gizmomap_handler_context_gizmo(C, handler);
   wm_region_mouse_co(C, event);
 
-  /* Drag events use the previous click location to highlight the gizmos,
-   * Get the highlight again in case the user dragged off the gizmo. */
-  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
-  const bool is_event_modifier = ISKEYMODIFIER(event->type);
-
   bool handle_highlight = false;
   bool handle_keymap = false;
 
   /* Handle gizmo highlighting. */
-  if (!wm_gizmomap_modal_get(gzmap) &&
+  if ((prev.gz_modal == NULL) &&
       ((event->type == MOUSEMOVE) || is_event_modifier || is_event_drag)) {
     handle_highlight = true;
     if (is_event_modifier || is_event_drag) {
@@ -2642,14 +2658,15 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
     handle_keymap = true;
   }
 
+  /* There is no need to handle this event when the key-map isn't being applied
+   * since any change to the highlight will be restored to the previous value. */
+  if (restore_highlight_unless_activated) {
+    if ((handle_highlight == true) && (handle_keymap == false)) {
+      return action;
+    }
+  }
+
   if (handle_highlight) {
-    struct {
-      wmGizmo *gz;
-      int part;
-    } prev = {
-        .gz = gz,
-        .part = gz ? gz->highlight_part : 0,
-    };
     int part = -1;
     gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
 
@@ -2730,6 +2747,16 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
             }
           }
         }
+      }
+    }
+  }
+
+  if (handle_highlight) {
+    if (restore_highlight_unless_activated) {
+      /* Check handling the key-map didn't activate a gizmo. */
+      wmGizmo *gz_modal = wm_gizmomap_modal_get(gzmap);
+      if (!(gz_modal && (gz_modal != prev.gz_modal))) {
+        wm_gizmomap_highlight_set(gzmap, C, prev.gz, prev.part);
       }
     }
   }

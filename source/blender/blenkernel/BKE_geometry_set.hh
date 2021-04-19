@@ -182,7 +182,7 @@ class GeometryComponent {
 
   /**
    * Returns an "output attribute", which is essentially a mutable virtual array with some commonly
-   * used convience features. The returned output attribute might be empty if requested attribute
+   * used convince features. The returned output attribute might be empty if requested attribute
    * cannot exist on the geometry.
    *
    * The included convenience features are:

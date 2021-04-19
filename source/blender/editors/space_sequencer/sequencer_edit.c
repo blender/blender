@@ -1491,19 +1491,16 @@ static void sequencer_split_ui(bContext *UNUSED(C), wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-
   uiLayout *row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "frame", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "side", 0, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "frame", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "side", 0, NULL, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "use_cursor_position", 0, NULL, ICON_NONE);
-  if (RNA_boolean_get(&ptr, "use_cursor_position")) {
-    uiItemR(layout, &ptr, "channel", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_cursor_position", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
+    uiItemR(layout, op->ptr, "channel", 0, NULL, ICON_NONE);
   }
 }
 

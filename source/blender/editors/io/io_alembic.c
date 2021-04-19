@@ -240,21 +240,17 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr;
-
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-
   /* Conveniently set start and end frame to match the scene's frame range. */
   Scene *scene = CTX_data_scene(C);
 
-  if (scene != NULL && RNA_boolean_get(&ptr, "init_scene_frame_range")) {
-    RNA_int_set(&ptr, "start", SFRA);
-    RNA_int_set(&ptr, "end", EFRA);
+  if (scene != NULL && RNA_boolean_get(op->ptr, "init_scene_frame_range")) {
+    RNA_int_set(op->ptr, "start", SFRA);
+    RNA_int_set(op->ptr, "end", EFRA);
 
-    RNA_boolean_set(&ptr, "init_scene_frame_range", false);
+    RNA_boolean_set(op->ptr, "init_scene_frame_range", false);
   }
 
-  ui_alembic_export_settings(op->layout, &ptr);
+  ui_alembic_export_settings(op->layout, op->ptr);
 }
 
 static bool wm_alembic_export_check(bContext *UNUSED(C), wmOperator *op)
@@ -595,10 +591,7 @@ static void ui_alembic_import_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_alembic_import_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  PointerRNA ptr;
-
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-  ui_alembic_import_settings(op->layout, &ptr);
+  ui_alembic_import_settings(op->layout, op->ptr);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */

@@ -3694,20 +3694,18 @@ static const EnumPropertyItem *shape_itemf(bContext *C,
 static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  PointerRNA ptr;
   Object *obedit = CTX_data_edit_object(C);
   Mesh *me = obedit->data;
   PointerRNA ptr_key;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
   RNA_id_pointer_create((ID *)me->key, &ptr_key);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemPointerR(layout, &ptr, "shape", &ptr_key, "key_blocks", NULL, ICON_SHAPEKEY_DATA);
-  uiItemR(layout, &ptr, "blend", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "add", 0, NULL, ICON_NONE);
+  uiItemPointerR(layout, op->ptr, "shape", &ptr_key, "key_blocks", NULL, ICON_SHAPEKEY_DATA);
+  uiItemR(layout, op->ptr, "blend", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "add", 0, NULL, ICON_NONE);
 }
 
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
@@ -5614,25 +5612,22 @@ static bool edbm_decimate_check(bContext *UNUSED(C), wmOperator *UNUSED(op))
 static void edbm_decimate_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout, *row, *col, *sub;
-  PointerRNA ptr;
-
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "ratio", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "ratio", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_vertex_group", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_vertex_group", 0, NULL, ICON_NONE);
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetActive(col, RNA_boolean_get(&ptr, "use_vertex_group"));
-  uiItemR(col, &ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "invert_vertex_group", 0, NULL, ICON_NONE);
+  uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_vertex_group"));
+  uiItemR(col, op->ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
+  uiItemR(col, op->ptr, "invert_vertex_group", 0, NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
-  uiItemR(row, &ptr, "use_symmetry", 0, "", ICON_NONE);
+  uiItemR(row, op->ptr, "use_symmetry", 0, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
-  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_symmetry"));
-  uiItemR(sub, &ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "use_symmetry"));
+  uiItemR(sub, op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 }
 
 void MESH_OT_decimate(wmOperatorType *ot)

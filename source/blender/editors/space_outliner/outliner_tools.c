@@ -602,8 +602,8 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
                          NULL,
                          merged_element_search_update_fn,
                          data,
-                         NULL,
                          false,
+                         NULL,
                          merged_element_search_exec_fn,
                          NULL);
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);

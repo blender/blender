@@ -138,10 +138,7 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_gpencil_import_svg_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-
-  ui_gpencil_import_svg_settings(op->layout, &ptr);
+  ui_gpencil_import_svg_settings(op->layout, op->ptr);
 }
 
 static bool wm_gpencil_import_svg_poll(bContext *C)
