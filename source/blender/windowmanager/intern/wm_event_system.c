@@ -2595,6 +2595,11 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
                                         ListBase *handlers,
                                         const bool do_debug_handler)
 {
+  /* Drag events use the previous click location to highlight the gizmos,
+   * Get the highlight again in case the user dragged off the gizmo. */
+  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
+  const bool is_event_modifier = ISKEYMODIFIER(event->type);
+
   int action = WM_HANDLER_CONTINUE;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -2615,6 +2620,16 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
     }
   }
 
+  struct {
+    wmGizmo *gz_modal;
+    wmGizmo *gz;
+    int part;
+  } prev = {
+      .gz_modal = wm_gizmomap_modal_get(gzmap),
+      .gz = gz,
+      .part = gz ? gz->highlight_part : 0,
+  };
+
   if (region->gizmo_map != handler->gizmo_map) {
     WM_gizmomap_tag_refresh(handler->gizmo_map);
   }
@@ -2622,16 +2637,11 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   wm_gizmomap_handler_context_gizmo(C, handler);
   wm_region_mouse_co(C, event);
 
-  /* Drag events use the previous click location to highlight the gizmos,
-   * Get the highlight again in case the user dragged off the gizmo. */
-  const bool is_event_drag = ISTWEAK(event->type) || (event->val == KM_CLICK_DRAG);
-  const bool is_event_modifier = ISKEYMODIFIER(event->type);
-
   bool handle_highlight = false;
   bool handle_keymap = false;
 
   /* Handle gizmo highlighting. */
-  if (!wm_gizmomap_modal_get(gzmap) &&
+  if ((prev.gz_modal == NULL) &&
       ((event->type == MOUSEMOVE) || is_event_modifier || is_event_drag)) {
     handle_highlight = true;
     if (is_event_modifier || is_event_drag) {
@@ -2643,13 +2653,6 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
   }
 
   if (handle_highlight) {
-    struct {
-      wmGizmo *gz;
-      int part;
-    } prev = {
-        .gz = gz,
-        .part = gz ? gz->highlight_part : 0,
-    };
     int part = -1;
     gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
 
