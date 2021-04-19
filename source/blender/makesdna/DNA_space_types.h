@@ -1911,7 +1911,7 @@ typedef struct SpaceSpreadsheet {
   /**
    * List of #SpreadsheetContext.
    * This is a path to the data that is displayed in the spreadsheet.
-   * It can be set explicitely by an action of the user (e.g. clicking the preview icon in a
+   * It can be set explicitly by an action of the user (e.g. clicking the preview icon in a
    * geometry node) or it can be derived from context automatically based on some heuristic.
    */
   ListBase context_path;
