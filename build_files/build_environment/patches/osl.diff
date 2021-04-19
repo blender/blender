@@ -63,3 +63,19 @@ diff -Naur org/CMakeLists.txt external_osl/CMakeLists.txt
 
  set (OSL_NO_DEFAULT_TEXTURESYSTEM OFF CACHE BOOL "Do not use create a raw OIIO::TextureSystem")
  if (OSL_NO_DEFAULT_TEXTURESYSTEM)
+diff --git a/src/liboslexec/llvm_util.cpp b/src/liboslexec/llvm_util.cpp
+index 445f6400..3d468de2 100644
+--- a/src/liboslexec/llvm_util.cpp
++++ b/src/liboslexec/llvm_util.cpp
+@@ -3430,8 +3430,9 @@ LLVM_Util::call_function (llvm::Value *func, cspan<llvm::Value *> args)
+ #endif
+     //llvm_gen_debug_printf (std::string("start ") + std::string(name));
+ #if OSL_LLVM_VERSION >= 110
+-    OSL_DASSERT(llvm::isa<llvm::Function>(func));
+-    llvm::Value *r = builder().CreateCall(llvm::cast<llvm::Function>(func), llvm::ArrayRef<llvm::Value *>(args.data(), args.size()));
++    llvm::Value* r = builder().CreateCall(
++        llvm::cast<llvm::FunctionType>(func->getType()->getPointerElementType()), func,
++        llvm::ArrayRef<llvm::Value*>(args.data(), args.size()));
+ #else
+     llvm::Value *r = builder().CreateCall (func, llvm::ArrayRef<llvm::Value *>(args.data(), args.size()));
+ #endif

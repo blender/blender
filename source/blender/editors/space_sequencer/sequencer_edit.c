@@ -1485,14 +1485,15 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   return sequencer_split_exec(C, op);
 }
 
-static void sequencer_split_ui(bContext *UNUSED(C), wmOperator *op)
+static void sequencer_split_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   uiLayout *row = uiLayoutRow(layout, false);
   uiItemR(row, &ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
