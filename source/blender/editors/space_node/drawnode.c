@@ -3458,7 +3458,7 @@ static void std_node_socket_draw(
 
       const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
       if (node_tree->type == NTREE_GEOMETRY) {
-        node_geometry_add_attribute_search_button(node_tree, node, ptr, row);
+        node_geometry_add_attribute_search_button(C, node_tree, node, ptr, row);
       }
       else {
         uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
