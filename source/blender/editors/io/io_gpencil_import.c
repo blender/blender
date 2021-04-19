@@ -136,13 +136,9 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(col, imfptr, "scale", 0, NULL, ICON_NONE);
 }
 
-static void wm_gpencil_import_svg_draw(bContext *C, wmOperator *op)
+static void wm_gpencil_import_svg_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  PointerRNA ptr;
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-  ui_gpencil_import_svg_settings(op->layout, &ptr);
+  ui_gpencil_import_svg_settings(op->layout, op->ptr);
 }
 
 static bool wm_gpencil_import_svg_poll(bContext *C)

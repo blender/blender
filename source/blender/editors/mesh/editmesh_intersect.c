@@ -251,32 +251,28 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void edbm_intersect_ui(bContext *C, wmOperator *op)
+static void edbm_intersect_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  wmWindowManager *wm = CTX_wm_manager(C);
   uiLayout *row;
-  PointerRNA ptr;
 
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-  bool use_exact = RNA_enum_get(&ptr, "solver") == ISECT_SOLVER_EXACT;
+  bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   uiItemS(layout);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "separate_mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "separate_mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   uiItemS(layout);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   uiItemS(layout);
 
   if (!use_exact) {
-    uiItemR(layout, &ptr, "threshold", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "threshold", 0, NULL, ICON_NONE);
   }
 }
 
@@ -418,32 +414,28 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void edbm_intersect_boolean_ui(bContext *C, wmOperator *op)
+static void edbm_intersect_boolean_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *row;
-  wmWindowManager *wm = CTX_wm_manager(C);
-  PointerRNA ptr;
 
-  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-  bool use_exact = RNA_enum_get(&ptr, "solver") == ISECT_SOLVER_EXACT;
+  bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "operation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "operation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   uiItemS(layout);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "use_swap", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_self", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_swap", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_self", 0, NULL, ICON_NONE);
   if (!use_exact) {
-    uiItemR(layout, &ptr, "threshold", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "threshold", 0, NULL, ICON_NONE);
   }
 }
 
