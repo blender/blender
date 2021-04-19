@@ -1729,7 +1729,7 @@ struct Panel *UI_panel_add_instanced(const struct bContext *C,
                                      struct PointerRNA *custom_data);
 void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 
-#define INSTANCED_PANEL_UNIQUE_STR_LEN 4
+#define INSTANCED_PANEL_UNIQUE_STR_LEN 16
 void UI_list_panel_unique_str(struct Panel *panel, char *r_name);
 
 typedef void (*uiListPanelIDFromDataFunc)(void *data_link, char *r_idname);
