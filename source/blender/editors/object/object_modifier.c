@@ -1750,7 +1750,7 @@ static int modifier_copy_to_selected_invoke(bContext *C, wmOperator *op, const w
 {
   int retval;
   if (edit_modifier_invoke_properties_with_hover_no_active(C, op, event, &retval)) {
-    return modifier_set_active_exec(C, op);
+    return modifier_copy_to_selected_exec(C, op);
   }
   return retval;
 }
