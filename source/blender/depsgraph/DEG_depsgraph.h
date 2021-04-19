@@ -143,8 +143,7 @@ void DEG_id_type_tag(struct Main *bmain, short id_type);
  * for viewport depsgraphs, but not render or export depsgraph for example. */
 void DEG_enable_editors_update(struct Depsgraph *depsgraph);
 
-/* Check if something was changed in the database and inform editors about this,
- * then clear recalc flags. */
+/* Check if something was changed in the database and inform editors about this. */
 void DEG_editors_update(struct Depsgraph *depsgraph, bool time);
 
 /* Clear recalc flags after editors or renderers have handled updates. */

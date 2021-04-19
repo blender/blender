@@ -690,7 +690,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   }
   else {
     /* Go through update with full Python callbacks for regular render. */
-    BKE_scene_graph_update_for_newframe(engine->depsgraph);
+    BKE_scene_graph_update_for_newframe_ex(engine->depsgraph, false);
   }
 
   engine->has_grease_pencil = DRW_render_check_grease_pencil(engine->depsgraph);
@@ -725,7 +725,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(re->scene, cfra);
-  BKE_scene_graph_update_for_newframe(engine->depsgraph);
+  BKE_scene_graph_update_for_newframe_ex(engine->depsgraph, false);
 
   BKE_scene_camera_switch_update(re->scene);
 }

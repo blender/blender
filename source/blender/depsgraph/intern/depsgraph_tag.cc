@@ -842,8 +842,6 @@ void DEG_editors_update(Depsgraph *depsgraph, bool time)
   update_ctx.scene = scene;
   update_ctx.view_layer = view_layer;
   deg::deg_editors_scene_update(&update_ctx, updated);
-
-  DEG_ids_clear_recalc(depsgraph, false);
 }
 
 static void deg_graph_clear_id_recalc_flags(ID *id)

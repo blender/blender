@@ -2682,7 +2682,8 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     }
 
     /* Clear recalc flags for second pass, but back them up for editors update. */
-    DEG_ids_clear_recalc(depsgraph, true);
+    const bool backup = true;
+    DEG_ids_clear_recalc(depsgraph, backup);
     used_multiple_passes = true;
     run_callbacks = false;
   }
@@ -2691,7 +2692,11 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
   if (used_multiple_passes) {
     DEG_ids_restore_recalc(depsgraph);
   }
-  DEG_editors_update(depsgraph, false);
+  const bool is_time_update = false;
+  DEG_editors_update(depsgraph, is_time_update);
+
+  const bool backup = false;
+  DEG_ids_clear_recalc(depsgraph, backup);
 }
 
 void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
@@ -2705,10 +2710,9 @@ void BKE_scene_graph_evaluated_ensure(Depsgraph *depsgraph, Main *bmain)
 }
 
 /* applies changes right away, does all sets too */
-void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
+void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool clear_recalc)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
-  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
   bool used_multiple_passes = false;
 
@@ -2755,7 +2759,8 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
     }
 
     /* Clear recalc flags for second pass, but back them up for editors update. */
-    DEG_ids_clear_recalc(depsgraph, true);
+    const bool backup = true;
+    DEG_ids_clear_recalc(depsgraph, backup);
     used_multiple_passes = true;
   }
 
@@ -2763,7 +2768,21 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
   if (used_multiple_passes) {
     DEG_ids_restore_recalc(depsgraph);
   }
-  DEG_editors_update(depsgraph, true);
+
+  const bool is_time_update = true;
+  DEG_editors_update(depsgraph, is_time_update);
+
+  /* Clear recalc flags, can be skipped for e.g. renderers that will read these
+   * and clear the flags later. */
+  if (clear_recalc) {
+    const bool backup = false;
+    DEG_ids_clear_recalc(depsgraph, backup);
+  }
+}
+
+void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
+{
+  BKE_scene_graph_update_for_newframe_ex(depsgraph, true);
 }
 
 /**
@@ -3523,8 +3542,8 @@ GHash *BKE_scene_undo_depsgraphs_extract(Main *bmain)
 
   for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
     if (scene->depsgraph_hash == NULL) {
-      /* In some cases, e.g. when undo has to perform multiple steps at once, no depsgraph will be
-       * built so this pointer may be NULL. */
+      /* In some cases, e.g. when undo has to perform multiple steps at once, no depsgraph will
+       * be built so this pointer may be NULL. */
       continue;
     }
     for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
