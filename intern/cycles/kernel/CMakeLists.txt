@@ -93,6 +93,7 @@ set(SRC_BVH_HEADERS
   bvh/bvh_local.h
   bvh/bvh_traversal.h
   bvh/bvh_types.h
+  bvh/bvh_util.h
   bvh/bvh_volume.h
   bvh/bvh_volume_all.h
   bvh/bvh_embree.h

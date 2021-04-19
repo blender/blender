@@ -29,9 +29,10 @@
 #  include "kernel/bvh/bvh_embree.h"
 #endif
 
-CCL_NAMESPACE_BEGIN
-
 #include "kernel/bvh/bvh_types.h"
+#include "kernel/bvh/bvh_util.h"
+
+CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_OPTIX__
 
@@ -532,98 +533,5 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals *kg,
   return bvh_intersect_volume_all(kg, ray, isect, max_hits, visibility);
 }
 #endif /* __VOLUME_RECORD_ALL__ */
-
-/* Ray offset to avoid self intersection.
- *
- * This function should be used to compute a modified ray start position for
- * rays leaving from a surface. */
-
-ccl_device_inline float3 ray_offset(float3 P, float3 Ng)
-{
-#ifdef __INTERSECTION_REFINE__
-  const float epsilon_f = 1e-5f;
-  /* ideally this should match epsilon_f, but instancing and motion blur
-   * precision makes it problematic */
-  const float epsilon_test = 1.0f;
-  const int epsilon_i = 32;
-
-  float3 res;
-
-  /* x component */
-  if (fabsf(P.x) < epsilon_test) {
-    res.x = P.x + Ng.x * epsilon_f;
-  }
-  else {
-    uint ix = __float_as_uint(P.x);
-    ix += ((ix ^ __float_as_uint(Ng.x)) >> 31) ? -epsilon_i : epsilon_i;
-    res.x = __uint_as_float(ix);
-  }
-
-  /* y component */
-  if (fabsf(P.y) < epsilon_test) {
-    res.y = P.y + Ng.y * epsilon_f;
-  }
-  else {
-    uint iy = __float_as_uint(P.y);
-    iy += ((iy ^ __float_as_uint(Ng.y)) >> 31) ? -epsilon_i : epsilon_i;
-    res.y = __uint_as_float(iy);
-  }
-
-  /* z component */
-  if (fabsf(P.z) < epsilon_test) {
-    res.z = P.z + Ng.z * epsilon_f;
-  }
-  else {
-    uint iz = __float_as_uint(P.z);
-    iz += ((iz ^ __float_as_uint(Ng.z)) >> 31) ? -epsilon_i : epsilon_i;
-    res.z = __uint_as_float(iz);
-  }
-
-  return res;
-#else
-  const float epsilon_f = 1e-4f;
-  return P + epsilon_f * Ng;
-#endif
-}
-
-#if defined(__VOLUME_RECORD_ALL__) || (defined(__SHADOW_RECORD_ALL__) && defined(__KERNEL_CPU__))
-/* ToDo: Move to another file? */
-ccl_device int intersections_compare(const void *a, const void *b)
-{
-  const Intersection *isect_a = (const Intersection *)a;
-  const Intersection *isect_b = (const Intersection *)b;
-
-  if (isect_a->t < isect_b->t)
-    return -1;
-  else if (isect_a->t > isect_b->t)
-    return 1;
-  else
-    return 0;
-}
-#endif
-
-#if defined(__SHADOW_RECORD_ALL__)
-ccl_device_inline void sort_intersections(Intersection *hits, uint num_hits)
-{
-#  ifdef __KERNEL_GPU__
-  /* Use bubble sort which has more friendly memory pattern on GPU. */
-  bool swapped;
-  do {
-    swapped = false;
-    for (int j = 0; j < num_hits - 1; ++j) {
-      if (hits[j].t > hits[j + 1].t) {
-        struct Intersection tmp = hits[j];
-        hits[j] = hits[j + 1];
-        hits[j + 1] = tmp;
-        swapped = true;
-      }
-    }
-    --num_hits;
-  } while (swapped);
-#  else
-  qsort(hits, num_hits, sizeof(Intersection), intersections_compare);
-#  endif
-}
-#endif /* __SHADOW_RECORD_ALL__ | __VOLUME_RECORD_ALL__ */
 
 CCL_NAMESPACE_END

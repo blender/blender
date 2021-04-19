@@ -824,23 +824,24 @@ void DEG_enable_editors_update(Depsgraph *depsgraph)
 
 /* Check if something was changed in the database and inform
  * editors about this. */
-void DEG_editors_update(
-    Main *bmain, Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, bool time)
+void DEG_editors_update(Depsgraph *depsgraph, bool time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
-
-  if (graph->use_editors_update) {
-    bool updated = time || DEG_id_type_any_updated(depsgraph);
-
-    DEGEditorUpdateContext update_ctx = {nullptr};
-    update_ctx.bmain = bmain;
-    update_ctx.depsgraph = depsgraph;
-    update_ctx.scene = scene;
-    update_ctx.view_layer = view_layer;
-    deg::deg_editors_scene_update(&update_ctx, updated);
+  if (!graph->use_editors_update) {
+    return;
   }
 
-  DEG_ids_clear_recalc(depsgraph);
+  Scene *scene = DEG_get_input_scene(depsgraph);
+  ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  Main *bmain = DEG_get_bmain(depsgraph);
+  bool updated = time || DEG_id_type_any_updated(depsgraph);
+
+  DEGEditorUpdateContext update_ctx = {nullptr};
+  update_ctx.bmain = bmain;
+  update_ctx.depsgraph = depsgraph;
+  update_ctx.scene = scene;
+  update_ctx.view_layer = view_layer;
+  deg::deg_editors_scene_update(&update_ctx, updated);
 }
 
 static void deg_graph_clear_id_recalc_flags(ID *id)
@@ -854,7 +855,7 @@ static void deg_graph_clear_id_recalc_flags(ID *id)
   /* XXX And what about scene's master collection here? */
 }
 
-void DEG_ids_clear_recalc(Depsgraph *depsgraph)
+void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   /* TODO(sergey): Re-implement POST_UPDATE_HANDLER_WORKAROUND using entry_tags
@@ -864,6 +865,9 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph)
   }
   /* Go over all ID nodes nodes, clearing tags. */
   for (deg::IDNode *id_node : deg_graph->id_nodes) {
+    if (backup) {
+      id_node->id_cow_recalc_backup |= id_node->id_cow->recalc;
+    }
     /* TODO: we clear original ID recalc flags here, but this may not work
      * correctly when there are multiple depsgraph with others still using
      * the recalc flag. */
@@ -874,4 +878,14 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph)
     }
   }
   memset(deg_graph->id_type_updated, 0, sizeof(deg_graph->id_type_updated));
+}
+
+void DEG_ids_restore_recalc(Depsgraph *depsgraph)
+{
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
+
+  for (deg::IDNode *id_node : deg_graph->id_nodes) {
+    id_node->id_cow->recalc |= id_node->id_cow_recalc_backup;
+    id_node->id_cow_recalc_backup = 0;
+  }
 }
