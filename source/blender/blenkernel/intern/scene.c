@@ -2636,6 +2636,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
 
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  bool used_multiple_passes = false;
 
   bool run_callbacks = DEG_id_type_any_updated(depsgraph);
   if (run_callbacks) {
@@ -2672,8 +2673,6 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
        * If there are no relations changed by the callback this call will do nothing. */
       DEG_graph_relations_update(depsgraph);
     }
-    /* Inform editors about possible changes. */
-    DEG_editors_update(bmain, depsgraph, scene, view_layer, false);
 
     /* If user callback did not tag anything for update we can skip second iteration.
      * Otherwise we update scene once again, but without running callbacks to bring
@@ -2682,8 +2681,17 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
       break;
     }
 
+    /* Clear recalc flags for second pass, but back them up for editors update. */
+    DEG_ids_clear_recalc(depsgraph, true);
+    used_multiple_passes = true;
     run_callbacks = false;
   }
+
+  /* Inform editors about changes, using recalc flags from both passes. */
+  if (used_multiple_passes) {
+    DEG_ids_restore_recalc(depsgraph);
+  }
+  DEG_editors_update(depsgraph, false);
 }
 
 void BKE_scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain)
@@ -2702,6 +2710,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
   Main *bmain = DEG_get_bmain(depsgraph);
+  bool used_multiple_passes = false;
 
   /* Keep this first. */
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_FRAME_CHANGE_PRE);
@@ -2738,16 +2747,23 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
       DEG_graph_relations_update(depsgraph);
     }
 
-    /* Inform editors about possible changes. */
-    DEG_editors_update(bmain, depsgraph, scene, view_layer, true);
-
     /* If user callback did not tag anything for update we can skip second iteration.
      * Otherwise we update scene once again, but without running callbacks to bring
      * scene to a fully evaluated state with user modifications taken into account. */
     if (DEG_is_fully_evaluated(depsgraph)) {
       break;
     }
+
+    /* Clear recalc flags for second pass, but back them up for editors update. */
+    DEG_ids_clear_recalc(depsgraph, true);
+    used_multiple_passes = true;
   }
+
+  /* Inform editors about changes, using recalc flags from both passes. */
+  if (used_multiple_passes) {
+    DEG_ids_restore_recalc(depsgraph);
+  }
+  DEG_editors_update(depsgraph, true);
 }
 
 /**
