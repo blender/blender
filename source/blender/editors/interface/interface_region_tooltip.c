@@ -1469,9 +1469,10 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
    */
   if (gz->type->screen_bounds_get) {
     rcti bounds;
-    gz->type->screen_bounds_get(C, gz, &bounds);
-    init_position[0] = bounds.xmin;
-    init_position[1] = bounds.ymin;
+    if (gz->type->screen_bounds_get(C, gz, &bounds)) {
+      init_position[0] = bounds.xmin;
+      init_position[1] = bounds.ymin;
+    }
   }
 
   return ui_tooltip_create_with_data(C, data, init_position, NULL, aspect);
