@@ -1413,6 +1413,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_MAP_RANGE 1040
 #define GEO_NODE_ATTRIBUTE_CLAMP 1041
 #define GEO_NODE_BOUNDING_BOX 1042
+#define GEO_NODE_SWITCH 1043
 
 /** \} */
 
