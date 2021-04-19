@@ -120,6 +120,9 @@ struct IDNode : public Node {
   /* Accumulated flag from operation. Is initialized and used during updates flush. */
   bool is_user_modified;
 
+  /* Accumulate recalc flags from multiple update passes. */
+  int id_cow_recalc_backup;
+
   IDComponentsMask visible_components_mask;
   IDComponentsMask previously_visible_components_mask;
 

@@ -702,7 +702,7 @@ static void engine_depsgraph_exit(RenderEngine *engine)
     if (engine_keep_depsgraph(engine)) {
       /* Clear recalc flags since the engine should have handled the updates for the currently
        * rendered framed by now. */
-      DEG_ids_clear_recalc(engine->depsgraph);
+      DEG_ids_clear_recalc(engine->depsgraph, false);
     }
     else {
       /* Free immediately to save memory. */
@@ -718,7 +718,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
   }
 
   /* Clear recalc flags before update so engine can detect what changed. */
-  DEG_ids_clear_recalc(engine->depsgraph);
+  DEG_ids_clear_recalc(engine->depsgraph, false);
 
   Render *re = engine->re;
   double cfra = (double)frame + (double)subframe;
