@@ -61,7 +61,7 @@ struct SnapObjectHitDepth {
   float no[3];
   int index;
 
-  struct Object *ob;
+  struct Object *ob_eval;
   float obmat[4][4];
 
   /* needed to tell which ray-cast this was part of,
