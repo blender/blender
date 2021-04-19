@@ -1479,15 +1479,16 @@ static bool image_open_draw_check_prop(PointerRNA *UNUSED(ptr),
   return !(STR_ELEM(prop_id, "filepath", "directory", "filename"));
 }
 
-static void image_open_draw(bContext *UNUSED(C), wmOperator *op)
+static void image_open_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   ImageOpenData *iod = op->customdata;
   ImageFormatData *imf = &iod->im_format;
   PointerRNA imf_ptr, ptr;
 
   /* main draw call */
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   uiDefAutoButsRNA(
       layout, &ptr, image_open_draw_check_prop, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
@@ -2000,9 +2001,10 @@ static bool image_save_as_draw_check_prop(PointerRNA *ptr,
            ((STREQ(prop_id, "relative_path")) && RNA_boolean_get(ptr, "copy")));
 }
 
-static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
+static void image_save_as_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   ImageSaveData *isd = op->customdata;
   PointerRNA imf_ptr, ptr;
   const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
@@ -2012,7 +2014,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
   uiTemplateImageSettings(layout, &imf_ptr, false);
 
   /* main draw call */
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   uiDefAutoButsRNA(
       layout, &ptr, image_save_as_draw_check_prop, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
@@ -2612,17 +2614,18 @@ static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
   return WM_operator_props_dialog_popup(C, op, 300);
 }
 
-static void image_new_draw(bContext *UNUSED(C), wmOperator *op)
+static void image_new_draw(bContext *C, wmOperator *op)
 {
   uiLayout *col;
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 #if 0
   Scene *scene = CTX_data_scene(C);
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 #endif
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   /* copy of WM_operator_props_dialog_popup() layout */
 
@@ -3988,13 +3991,14 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   return WM_operator_props_dialog_popup(C, op, 300);
 }
 
-static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
+static void tile_add_draw(bContext *C, wmOperator *op)
 {
   uiLayout *col;
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -4124,10 +4128,11 @@ static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
   return WM_operator_props_dialog_popup(C, op, 300);
 }
 
-static void tile_fill_draw(bContext *UNUSED(C), wmOperator *op)
+static void tile_fill_draw(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   draw_fill_tile(&ptr, op->layout);
 }

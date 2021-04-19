@@ -729,15 +729,16 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
+static void sequencer_add_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   SequencerAddData *sad = op->customdata;
   ImageFormatData *imf = &sad->im_format;
   PointerRNA imf_ptr, ptr;
 
   /* Main draw call. */
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   uiDefAutoButsRNA(
       layout, &ptr, sequencer_add_draw_check_fn, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 

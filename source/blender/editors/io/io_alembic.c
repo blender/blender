@@ -240,9 +240,10 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_alembic_export_draw(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   /* Conveniently set start and end frame to match the scene's frame range. */
   Scene *scene = CTX_data_scene(C);
@@ -593,11 +594,12 @@ static void ui_alembic_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
-static void wm_alembic_import_draw(bContext *UNUSED(C), wmOperator *op)
+static void wm_alembic_import_draw(bContext *C, wmOperator *op)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   ui_alembic_import_settings(op->layout, &ptr);
 }
 

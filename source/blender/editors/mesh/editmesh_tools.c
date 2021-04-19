@@ -3694,12 +3694,13 @@ static const EnumPropertyItem *shape_itemf(bContext *C,
 static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
   Object *obedit = CTX_data_edit_object(C);
   Mesh *me = obedit->data;
   PointerRNA ptr_key;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   RNA_id_pointer_create((ID *)me->key, &ptr_key);
 
   uiLayoutSetPropSep(layout, true);
@@ -5611,12 +5612,13 @@ static bool edbm_decimate_check(bContext *UNUSED(C), wmOperator *UNUSED(op))
   return true;
 }
 
-static void edbm_decimate_ui(bContext *UNUSED(C), wmOperator *op)
+static void edbm_decimate_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout, *row, *col, *sub;
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   uiLayoutSetPropSep(layout, true);
 

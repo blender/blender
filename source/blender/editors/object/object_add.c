@@ -3110,14 +3110,15 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void object_convert_ui(bContext *UNUSED(C), wmOperator *op)
+static void object_convert_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   PointerRNA ptr;
 
   uiLayoutSetPropSep(layout, true);
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
   uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "keep_original", 0, NULL, ICON_NONE);
 

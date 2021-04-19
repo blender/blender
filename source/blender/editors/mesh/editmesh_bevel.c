@@ -911,10 +911,11 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 static void edbm_bevel_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
   uiLayout *col, *row;
   PointerRNA ptr, toolsettings_ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+  RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
   int profile_type = RNA_enum_get(&ptr, "profile_type");
   int offset_type = RNA_enum_get(&ptr, "offset_type");
