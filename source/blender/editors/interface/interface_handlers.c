@@ -1126,6 +1126,12 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
     ui_but_value_set(but, data->value);
   }
 
+  /* If the value entered is the exact same, do not trigger an update. */
+  if (data->value == data->startvalue) {
+    data->cancel = true;
+    return;
+  }
+
   ui_but_update_edited(but);
   ui_apply_but_func(C, but);
 
