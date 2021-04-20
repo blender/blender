@@ -219,6 +219,40 @@ def RKS_GEN_scaling(_ksi, _context, ks, data):
     else:
         ks.paths.add(id_block, path)
 
+
+# Custom Properties
+def RKS_GEN_custom_props(_ksi, _context, ks, data):
+    # get id-block and path info
+    id_block, base_path, grouping = get_transform_generators_base_info(data)
+
+    # Only some RNA types can be animated.
+    prop_type_compat = {bpy.types.BoolProperty,
+                        bpy.types.IntProperty,
+                        bpy.types.FloatProperty}
+
+    # When working with a pose, 'id_block' is the armature object (which should
+    # get the animation data), whereas 'data' is the bone being keyed.
+    for cprop_name in data.keys():
+        # ignore special "_RNA_UI" used for UI editing
+        if cprop_name == "_RNA_UI":
+            continue
+
+        prop_path = '["%s"]' % bpy.utils.escape_identifier(cprop_name)
+        try:
+            rna_property = data.path_resolve(prop_path, False)
+        except ValueError as ex:
+            # This happens when a custom property is set to None. In that case it cannot
+            # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
+            continue
+        if rna_property.rna_type not in prop_type_compat:
+            continue
+
+        path = "%s%s" % (base_path, prop_path)
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+
 # ------
 
 
