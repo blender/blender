@@ -1797,6 +1797,10 @@ compile_OCIO() {
     cmake_d="$cmake_d -D OCIO_BUILD_PYTHON=OFF"
     cmake_d="$cmake_d -D OCIO_BUILD_GPU_TESTS=OFF"
 
+    if [ $(uname -m) == "aarch64" ]; then
+      cmake_d="$cmake_d -D OCIO_USE_SSE=OFF"
+    fi
+
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
     else
@@ -2059,7 +2063,10 @@ compile_OIIO() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D LINKSTATIC=OFF"
-    cmake_d="$cmake_d -D USE_SIMD=sse2"
+
+    if [ $(uname -m) != "aarch64" ]; then
+      cmake_d="$cmake_d -D USE_SIMD=sse2"
+    fi
 
     cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
 
@@ -2079,7 +2086,7 @@ compile_OIIO() {
     cmake_d="$cmake_d -D USE_OPENCV=OFF"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
     cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=ON"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
     cmake_d="$cmake_d -D TXT2MAN="
     #cmake_d="$cmake_d -D CMAKE_EXPORT_COMPILE_COMMANDS=ON"
     #cmake_d="$cmake_d -D CMAKE_VERBOSE_MAKEFILE=ON"
@@ -2209,10 +2216,15 @@ compile_LLVM() {
     mkdir build
     cd build
 
+    LLVM_TARGETS="X86"
+    if [ $(uname -m) == "aarch64" ]; then
+      LLVM_TARGETS="AArch64"
+    fi
+
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
-    cmake_d="$cmake_d -D LLVM_TARGETS_TO_BUILD=X86"
+    cmake_d="$cmake_d -D LLVM_TARGETS_TO_BUILD=$LLVM_TARGETS"
     cmake_d="$cmake_d -D LLVM_ENABLE_TERMINFO=OFF"
 
     if [ -d $_FFI_INCLUDE_DIR ]; then
@@ -2329,12 +2341,15 @@ compile_OSL() {
     cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_PLUGINS=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_TESTS=OFF"
-    cmake_d="$cmake_d -D USE_SIMD=sse2"
     cmake_d="$cmake_d -D USE_LLVM_BITCODE=OFF"
     cmake_d="$cmake_d -D USE_PARTIO=OFF"
     cmake_d="$cmake_d -D OSL_BUILD_MATERIALX=OFF"
     cmake_d="$cmake_d -D USE_QT=OFF"
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
+
+    if [ $(uname -m) != "aarch64" ]; then
+      cmake_d="$cmake_d -D USE_SIMD=sse2"
+    fi
 
     cmake_d="$cmake_d -D CMAKE_CXX_STANDARD=14"
 

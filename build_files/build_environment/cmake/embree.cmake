@@ -47,7 +47,7 @@ else()
   set(EMBREE_BUILD_DIR)
 endif()
 
-if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
+if(BLENDER_PLATFORM_ARM)
   ExternalProject_Add(external_embree
     GIT_REPOSITORY ${EMBREE_ARM_GIT}
     GIT_TAG "blender-arm"

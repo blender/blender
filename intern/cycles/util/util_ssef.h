@@ -596,7 +596,7 @@ template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const ssef shuffle(const ssef &b)
 {
 #  ifdef __KERNEL_NEON__
-  return shuffle_neon<ssef, i0, i1, i2, i3>(b.m128);
+  return shuffle_neon<float32x4_t, i0, i1, i2, i3>(b.m128);
 #  else
   return _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b), _MM_SHUFFLE(i3, i2, i1, i0)));
 #  endif
@@ -625,7 +625,7 @@ __forceinline const ssef shuffle(const ssef &a, const ssef &b)
 template<size_t i0> __forceinline const ssef shuffle(const ssef &a, const ssef &b)
 {
 #  ifdef __KERNEL_NEON__
-  return shuffle<float32x4_t, i0, i0, i0, i0>(a, b);
+  return shuffle_neon<float32x4_t, i0, i0, i0, i0>(a, b);
 #  else
   return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i0, i0, i0, i0));
 #  endif
