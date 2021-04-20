@@ -790,7 +790,8 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           const bool show_mask,
                                           const bool show_vcol,
                                           bool *empty_mask,
-                                          int cd_vcol_offset)
+                                          const int cd_vcol_offsets[MAX_MCOL],
+                                          int totvcol)
 {
   /* Vertex should always be visible if it's used by a visible face. */
   BLI_assert(!BM_elem_flag_test(v, BM_ELEM_HIDDEN));
@@ -816,20 +817,22 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
     *empty_mask = *empty_mask && (cmask == 0);
   }
 
-  if (show_vcol && cd_vcol_offset >= 0) {
-    ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-    
-    MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
+  if (show_vcol && totvcol > 0) {
+    for (int i = 0; i < totvcol; i++) {
+      ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
 
-    vcol[0] = unit_float_to_ushort_clamp(col->color[0]);
-    vcol[1] = unit_float_to_ushort_clamp(col->color[1]);
-    vcol[2] = unit_float_to_ushort_clamp(col->color[2]);
-    vcol[3] = unit_float_to_ushort_clamp(col->color[3]);
+      MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offsets[i]);
 
-    // const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[0], v_index, vcol);
+      vcol[0] = unit_float_to_ushort_clamp(col->color[0]);
+      vcol[1] = unit_float_to_ushort_clamp(col->color[1]);
+      vcol[2] = unit_float_to_ushort_clamp(col->color[2]);
+      vcol[3] = unit_float_to_ushort_clamp(col->color[3]);
+
+      // const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+      GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[i], v_index, vcol);
+    }
   }
-  else if (show_vcol) {
+  else if (show_vcol) {  // ensure first vcol attribute is not zero
     const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[0], v_index, vcol);
   }
@@ -1299,8 +1302,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
     GHash *bm_vert_to_index = BLI_ghash_int_new_ex("bm_vert_to_index", totvert);
     BMFace *f;
 
-    for (int i=0; i<tribuf->totvert; i++) {
-      BMVert *v = (BMVert*) tribuf->verts[i].i;
+    for (int i = 0; i < tribuf->totvert; i++) {
+      BMVert *v = (BMVert *)tribuf->verts[i].i;
 
       gpu_bmesh_vert_to_buffer_copy(v,
                                     buffers->vert_buf,
@@ -1312,10 +1315,11 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                     show_mask,
                                     show_vcol,
                                     &empty_mask,
-                                    cd_vcol_offset);
+                                    cd_vcols,
+                                    cd_vcol_count);
     }
 
-    for (int i=0; i<tribuf->tottri; i++) {
+    for (int i = 0; i < tribuf->tottri; i++) {
       PBVHTri *tri = tribuf->tris + i;
 
       GPU_indexbuf_add_tri_verts(&elb, tri->v[0], tri->v[1], tri->v[2]);
@@ -1323,7 +1327,6 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[0], tri->v[1]);
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[1], tri->v[2]);
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[2], tri->v[0]);
-
     }
 
     buffers->tot_tri = tottri;
@@ -1388,7 +1391,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                         show_mask,
                                         false,
                                         &empty_mask,
-                                        -1);
+                                        NULL, 0);
 
           if (cd_vcol_count >= 0) {
             for (int j = 0; j < cd_vcol_count; j++) {

@@ -157,7 +157,7 @@ static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scal
   }
 }
 
-ATTR_NO_OPT static void do_pose_brush_task_cb_ex(void *__restrict userdata,
+static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -222,7 +222,7 @@ typedef struct PoseGrowFactorTLSData {
   int pos_count;
 } PoseGrowFactorTLSData;
 
-ATTR_NO_OPT static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
+static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
 {
@@ -255,7 +255,7 @@ ATTR_NO_OPT static void pose_brush_grow_factor_task_cb_ex(void *__restrict userd
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata),
+static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata),
                                           void *__restrict chunk_join,
                                           void *__restrict chunk)
 {
@@ -267,7 +267,7 @@ ATTR_NO_OPT static void pose_brush_grow_factor_reduce(const void *__restrict UNU
 
 /* Grow the factor until its boundary is near to the offset pose origin or outside the target
  * distance. */
-ATTR_NO_OPT static void sculpt_pose_grow_pose_factor(Sculpt *sd,
+static void sculpt_pose_grow_pose_factor(Sculpt *sd,
                                          Object *ob,
                                          SculptSession *ss,
                                          float pose_origin[3],
@@ -413,8 +413,11 @@ typedef struct PoseFloodFillData {
   int target_face_set;
 } PoseFloodFillData;
 
-static bool pose_topology_floodfill_cb(
-    SculptSession *ss, SculptVertRef UNUSED(from_v), SculptVertRef to_vref, bool is_duplicate, void *userdata)
+static bool pose_topology_floodfill_cb(SculptSession *ss,
+                                       SculptVertRef UNUSED(from_v),
+                                       SculptVertRef to_vref,
+                                       bool is_duplicate,
+                                       void *userdata)
 {
   PoseFloodFillData *data = userdata;
   int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vref);
@@ -444,8 +447,11 @@ static bool pose_topology_floodfill_cb(
   return false;
 }
 
-static bool pose_face_sets_floodfill_cb(
-    SculptSession *ss, SculptVertRef UNUSED(from_v), SculptVertRef to_v, bool is_duplicate, void *userdata)
+static bool pose_face_sets_floodfill_cb(SculptSession *ss,
+                                        SculptVertRef UNUSED(from_v),
+                                        SculptVertRef to_v,
+                                        bool is_duplicate,
+                                        void *userdata)
 {
   PoseFloodFillData *data = userdata;
 
@@ -549,7 +555,7 @@ static bool pose_face_sets_floodfill_cb(
  * \param r_pose_origin: Must be a valid pointer.
  * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
  */
-ATTR_NO_OPT void SCULPT_pose_calc_pose_data(Sculpt *sd,
+void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 Object *ob,
                                 SculptSession *ss,
                                 float initial_location[3],
@@ -635,7 +641,7 @@ static SculptPoseIKChain *pose_ik_chain_new(const int totsegments, const int tot
 }
 
 /* Init the origin/head pairs of all the segments from the calculated origins. */
-ATTR_NO_OPT static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
+static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
                                             const float initial_location[3])
 {
   float origin[3];
@@ -671,7 +677,7 @@ static int pose_brush_num_effective_segments(const Brush *brush)
   return brush->pose_ik_segments;
 }
 
-ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
+static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
                                                       Object *ob,
                                                       SculptSession *ss,
                                                       Brush *br,
@@ -684,7 +690,8 @@ ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   float next_chain_segment_target[3];
 
   int totvert = SCULPT_vertex_count_get(ss);
-  SculptVertRef nearest_vertex = SCULPT_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
+  SculptVertRef nearest_vertex = SCULPT_nearest_vertex_get(
+      sd, ob, initial_location, FLT_MAX, true);
   int nearest_vertex_index = BKE_pbvh_vertex_index_to_table(ss->pbvh, nearest_vertex);
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
@@ -753,7 +760,7 @@ ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   return ik_chain;
 }
 
-ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets(
+static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     Sculpt *sd, Object *ob, SculptSession *ss, Brush *br, const float radius)
 {
 
@@ -826,8 +833,11 @@ ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   return ik_chain;
 }
 
-static bool pose_face_sets_fk_find_masked_floodfill_cb(
-    SculptSession *ss, SculptVertRef from_vr, SculptVertRef to_vr, bool is_duplicate, void *userdata)
+static bool pose_face_sets_fk_find_masked_floodfill_cb(SculptSession *ss,
+                                                       SculptVertRef from_vr,
+                                                       SculptVertRef to_vr,
+                                                       bool is_duplicate,
+                                                       void *userdata)
 {
   PoseFloodFillData *data = userdata;
   int from_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_vr);
@@ -862,15 +872,18 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
   return SCULPT_vertex_has_face_set(ss, to_vr, data->initial_face_set);
 }
 
-ATTR_NO_OPT static bool pose_face_sets_fk_set_weights_floodfill_cb(
-    SculptSession *ss, SculptVertRef UNUSED(from_v), SculptVertRef to_v, bool UNUSED(is_duplicate), void *userdata)
+static bool pose_face_sets_fk_set_weights_floodfill_cb(SculptSession *ss,
+                                                       SculptVertRef UNUSED(from_v),
+                                                       SculptVertRef to_v,
+                                                       bool UNUSED(is_duplicate),
+                                                       void *userdata)
 {
   PoseFloodFillData *data = userdata;
   data->fk_weights[BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v)] = 1.0f;
   return !SCULPT_vertex_has_face_set(ss, to_v, data->masked_face_set);
 }
 
-ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
+static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
     Sculpt *sd, Object *ob, SculptSession *ss, const float radius, const float *initial_location)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -902,7 +915,8 @@ ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    if (fdata.floodfill_it[i] != 0 && SCULPT_vertex_has_face_set(ss, vref, fdata.initial_face_set) &&
+    if (fdata.floodfill_it[i] != 0 &&
+        SCULPT_vertex_has_face_set(ss, vref, fdata.initial_face_set) &&
         SCULPT_vertex_has_face_set(ss, vref, fdata.masked_face_set)) {
       add_v3_v3(origin_acc, SCULPT_vertex_co_get(ss, vref));
       origin_count++;
