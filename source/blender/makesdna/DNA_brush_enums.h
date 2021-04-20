@@ -631,12 +631,13 @@ enum {
   DYNTOPO_INHERIT_DETAIL_PERCENT = 1<<12,
   DYNTOPO_INHERIT_MODE = 1<<13,
   DYNTOPO_INHERIT_CONSTANT_DETAIL = 1<<14,
-  DYNTOPO_INHERIT_SPACING = 1<<15
+  DYNTOPO_INHERIT_SPACING = 1<<15,
+  DYNTOPO_INHERIT_DETAIL_SIZE = 1<<16
   //make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
 };
 
 //represents all possible inherit flags
-#define DYNTOPO_INHERIT_BITMASK ((1<<16)-1)
+#define DYNTOPO_INHERIT_BITMASK ((1<<17)-1)
 
 //dyntopo mode
 enum {

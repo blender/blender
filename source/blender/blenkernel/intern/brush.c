@@ -1953,7 +1953,9 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
 
     case SCULPT_TOOL_SIMPLIFY:
-      br->dyntopo.inherit = DYNTOPO_INHERIT_BITMASK &
+      //don't use DYNTOPO_INHERIT_BITMASK, we want to include
+      //future bits
+      br->dyntopo.inherit = 0x7FFFFFFF &
                             ~(DYNTOPO_INHERIT_ALL | DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE;
       br->autosmooth_factor = 0.02;
@@ -2615,12 +2617,15 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     brush->dyntopo = *out = brush2.dyntopo;
 
     brush_free_data((ID *)&brush2);
+  } else if (!out->detail_size) {
+    brush->dyntopo.inherit |= DYNTOPO_INHERIT_DETAIL_SIZE;
+    brush->dyntopo.detail_size = 12.0;
   }
 
   int inherit = out->inherit;
 
   if (inherit & DYNTOPO_INHERIT_ALL) {
-    inherit = 0x7FFFFFF;
+    inherit = 0x7FFFFFFF;
   }
 
   if (inherit & DYNTOPO_INHERIT_MODE) {
@@ -2636,6 +2641,10 @@ void BKE_brush_get_dyntopo(Brush *brush, Sculpt *sd, DynTopoSettings *out)
     else {
       out->mode = DYNTOPO_DETAIL_RELATIVE;
     }
+  }
+
+  if (inherit & DYNTOPO_INHERIT_DETAIL_SIZE) {
+    out->detail_size = sd->detail_size;
   }
 
   if (inherit & DYNTOPO_INHERIT_DETAIL_RANGE) {

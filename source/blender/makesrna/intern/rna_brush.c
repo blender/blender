@@ -369,6 +369,7 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_INHERIT_CONSTANT_DETAIL, "CONSTANT_DETAIL", ICON_NONE, "Constant Detail", ""},
     {DYNTOPO_INHERIT_SPACING, "SPACING", ICON_NONE, "Spacing", ""},
     {DYNTOPO_CLEANUP, "CLEANUP", ICON_NONE, "Cleanup", ""},
+    {DYNTOPO_INHERIT_DETAIL_SIZE, "DETAIL_SIZE", ICON_NONE, "Detail Size", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1188,6 +1189,14 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
   RNA_def_property_ui_range(prop, 1, 500, 5, -1);
   RNA_def_property_ui_text(
       prop, "Detail Percent", "");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "detail_size");
+  RNA_def_property_range(prop, 0.0, 100.0);
+  RNA_def_property_ui_range(prop, 0.0, 50.0, 0.1, 4);
+  RNA_def_property_ui_text(
+      prop, "Detail Size", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "detail_range", PROP_FLOAT, PROP_NONE);

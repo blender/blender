@@ -814,6 +814,7 @@ class VIEW3D_PT_sculpt_dyntopo_advanced(Panel, View3DPaintPanel):
         do_prop("collapse")
         do_prop("cleanup")
         do_prop("spacing")
+        do_prop("detail_size")
         do_prop("detail_range")
         do_prop("detail_percent")
         do_prop("constant_detail")

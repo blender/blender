@@ -157,7 +157,7 @@ static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scal
   }
 }
 
-static void do_pose_brush_task_cb_ex(void *__restrict userdata,
+ATTR_NO_OPT static void do_pose_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -222,7 +222,7 @@ typedef struct PoseGrowFactorTLSData {
   int pos_count;
 } PoseGrowFactorTLSData;
 
-static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
+ATTR_NO_OPT static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
                                               const int n,
                                               const TaskParallelTLS *__restrict tls)
 {
@@ -255,7 +255,7 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata),
+ATTR_NO_OPT static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata),
                                           void *__restrict chunk_join,
                                           void *__restrict chunk)
 {
@@ -267,7 +267,7 @@ static void pose_brush_grow_factor_reduce(const void *__restrict UNUSED(userdata
 
 /* Grow the factor until its boundary is near to the offset pose origin or outside the target
  * distance. */
-static void sculpt_pose_grow_pose_factor(Sculpt *sd,
+ATTR_NO_OPT static void sculpt_pose_grow_pose_factor(Sculpt *sd,
                                          Object *ob,
                                          SculptSession *ss,
                                          float pose_origin[3],
@@ -549,7 +549,7 @@ static bool pose_face_sets_floodfill_cb(
  * \param r_pose_origin: Must be a valid pointer.
  * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
  */
-void SCULPT_pose_calc_pose_data(Sculpt *sd,
+ATTR_NO_OPT void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 Object *ob,
                                 SculptSession *ss,
                                 float initial_location[3],
@@ -635,7 +635,7 @@ static SculptPoseIKChain *pose_ik_chain_new(const int totsegments, const int tot
 }
 
 /* Init the origin/head pairs of all the segments from the calculated origins. */
-static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
+ATTR_NO_OPT static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
                                             const float initial_location[3])
 {
   float origin[3];
@@ -671,7 +671,7 @@ static int pose_brush_num_effective_segments(const Brush *brush)
   return brush->pose_ik_segments;
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
+ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
                                                       Object *ob,
                                                       SculptSession *ss,
                                                       Brush *br,
@@ -753,7 +753,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   return ik_chain;
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_face_sets(
+ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     Sculpt *sd, Object *ob, SculptSession *ss, Brush *br, const float radius)
 {
 
@@ -862,7 +862,7 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(
   return SCULPT_vertex_has_face_set(ss, to_vr, data->initial_face_set);
 }
 
-static bool pose_face_sets_fk_set_weights_floodfill_cb(
+ATTR_NO_OPT static bool pose_face_sets_fk_set_weights_floodfill_cb(
     SculptSession *ss, SculptVertRef UNUSED(from_v), SculptVertRef to_v, bool UNUSED(is_duplicate), void *userdata)
 {
   PoseFloodFillData *data = userdata;
@@ -870,7 +870,7 @@ static bool pose_face_sets_fk_set_weights_floodfill_cb(
   return !SCULPT_vertex_has_face_set(ss, to_v, data->masked_face_set);
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
+ATTR_NO_OPT static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
     Sculpt *sd, Object *ob, SculptSession *ss, const float radius, const float *initial_location)
 {
   const int totvert = SCULPT_vertex_count_get(ss);

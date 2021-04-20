@@ -8590,7 +8590,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
                                    (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (sd->detail_size * U.pixelsize) / 0.4f,
+                                       (brush->cached_dyntopo.detail_size * U.pixelsize) / 0.4f,
                                    brush->cached_dyntopo.detail_range);
   }
 
