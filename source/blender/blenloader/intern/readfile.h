@@ -210,6 +210,7 @@ void blo_do_versions_260(struct FileData *fd, struct Library *lib, struct Main *
 void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_280(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_290(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_300(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_cycles(struct FileData *fd, struct Library *lib, struct Main *bmain);
 
 void do_versions_after_linking_250(struct Main *bmain);
@@ -217,6 +218,7 @@ void do_versions_after_linking_260(struct Main *bmain);
 void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_290(struct Main *bmain, struct ReportList *reports);
+void do_versions_after_linking_300(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
 /* This is rather unfortunate to have to expose this here, but better use that nasty hack in
