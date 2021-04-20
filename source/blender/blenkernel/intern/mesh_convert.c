@@ -1634,6 +1634,10 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     if (totloop == mesh_dst->totloop) {
       MDisps *mdisps = CustomData_get_layer(&mesh_dst->ldata, CD_MDISPS);
       CustomData_add_layer(&tmp.ldata, CD_MDISPS, alloctype, mdisps, totloop);
+      if (alloctype == CD_ASSIGN) {
+        /* Assign NULL to prevent double-free. */
+        CustomData_set_layer(&mesh_dst->ldata, CD_MDISPS, NULL);
+      }
     }
   }
 
