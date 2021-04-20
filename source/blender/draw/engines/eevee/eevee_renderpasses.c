@@ -291,6 +291,8 @@ void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
   g_data->renderpass_transmittance_input = volumetric_active ? txl->volume_transmittance_accum :
                                                                txl->color;
 
+  printf("renderpass_current_sample %d\n", g_data->renderpass_current_sample);
+
   if (!volumetric_active && renderpass_type == EEVEE_RENDER_PASS_VOLUME_LIGHT) {
     /* Early exit: Volumetric effect is off, but the volume light pass was requested. */
     static float clear_col[4] = {0.0f};
