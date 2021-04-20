@@ -4666,7 +4666,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
     }
 
     /* UI updates */
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
   }
 
   /* Tag for full animation update, so that the settings will have an effect. */
