@@ -386,7 +386,8 @@ float specular_occlusion(
   float specular_solid_angle = spherical_cap_intersection(M_PI_2, spec_angle, cone_nor_dist);
   float specular_occlusion = isect_solid_angle / specular_solid_angle;
   /* Mix because it is unstable in unoccluded areas. */
-  visibility = mix(specular_occlusion, 1.0, pow(visibility, 8.0));
+  float tmp = saturate(pow8(visibility));
+  visibility = mix(specular_occlusion, 1.0, tmp);
 
   /* Scale by user factor */
   visibility = pow(saturate(visibility), aoFactor);

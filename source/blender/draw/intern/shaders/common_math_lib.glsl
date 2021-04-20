@@ -91,6 +91,8 @@ vec2 sqr(vec2 a) { return a * a; }
 vec3 sqr(vec3 a) { return a * a; }
 vec4 sqr(vec4 a) { return a * a; }
 
+float pow8(float x) { return sqr(sqr(sqr(x))); }
+
 float len_squared(vec3 a) { return dot(a, a); }
 float len_squared(vec2 a) { return dot(a, a); }
 
