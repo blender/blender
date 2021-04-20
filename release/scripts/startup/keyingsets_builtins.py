@@ -366,14 +366,7 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
 
 ###############################
 
-
-# All properties that are likely to get animated in a character rig
-class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
-    """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
-    """(useful when blocking out a shot)"""
-    bl_idname = ANIM_KS_WHOLE_CHARACTER_ID
-    bl_label = "Whole Character"
-
+class WholeCharacterMixin:
     # these prefixes should be avoided, as they are not really bones
     # that animators should be touching (or need to touch)
     badBonePrefixes = (
@@ -394,7 +387,7 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # iterator - all bones regardless of selection
     def iterator(self, context, ks):
         for bone in context.active_object.pose.bones:
-            if not bone.name.startswith(BUILTIN_KSI_WholeCharacter.badBonePrefixes):
+            if not bone.name.startswith(self.badBonePrefixes):
                 self.generate(context, ks, bone)
 
     # generator - all unlocked bone transforms + custom properties
@@ -532,10 +525,14 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
                 self.addProp(ks, bone, prop)
 
 
-# All properties that are likely to get animated in a character rig, only selected bones.
+class BUILTIN_KSI_WholeCharacter(WholeCharacterMixin, KeyingSetInfo):
+    """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
+    """(useful when blocking out a shot)"""
+    bl_idname = ANIM_KS_WHOLE_CHARACTER_ID
+    bl_label = "Whole Character"
 
 
-class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
+class BUILTIN_KSI_WholeCharacterSelected(WholeCharacterMixin, KeyingSetInfo):
     """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
     """(only selected bones)"""
     bl_idname = ANIM_KS_WHOLE_CHARACTER_SELECTED_ID
@@ -547,20 +544,10 @@ class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
         bones = context.selected_pose_bones_from_active_object or context.active_object.pose.bones
 
         for bone in bones:
-            if bone.name.startswith(BUILTIN_KSI_WholeCharacter.badBonePrefixes):
+            if bone.name.startswith(self.badBonePrefixes):
                 continue
             self.generate(context, ks, bone)
 
-    # Poor man's subclassing. Blender breaks when we actually subclass BUILTIN_KSI_WholeCharacter.
-    poll = BUILTIN_KSI_WholeCharacter.poll
-    generate = BUILTIN_KSI_WholeCharacter.generate
-    addProp = BUILTIN_KSI_WholeCharacter.addProp
-    doLoc = BUILTIN_KSI_WholeCharacter.doLoc
-    doRot4d = BUILTIN_KSI_WholeCharacter.doRot4d
-    doRot3d = BUILTIN_KSI_WholeCharacter.doRot3d
-    doScale = BUILTIN_KSI_WholeCharacter.doScale
-    doBBone = BUILTIN_KSI_WholeCharacter.doBBone
-    doCustomProps = BUILTIN_KSI_WholeCharacter.doCustomProps
 
 ###############################
 
