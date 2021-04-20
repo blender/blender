@@ -87,6 +87,10 @@ struct bContext {
      * For more advanced formatting use `operator_poll_msg_dyn_params`.
      */
     const char *operator_poll_msg;
+    /**
+     * Store values to dynamically to create the string (called when a tool-tip is shown).
+     */
+    struct bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
   } wm;
 
   /* data context */
@@ -119,11 +123,16 @@ bContext *CTX_copy(const bContext *C)
 {
   bContext *newC = MEM_dupallocN((void *)C);
 
+  memset(&newC->wm.operator_poll_msg_dyn_params, 0, sizeof(newC->wm.operator_poll_msg_dyn_params));
+
   return newC;
 }
 
 void CTX_free(bContext *C)
 {
+  /* This may contain a dynamically allocated message, free. */
+  CTX_wm_operator_poll_msg_clear(C);
+
   MEM_freeN(C);
 }
 
@@ -1011,15 +1020,43 @@ void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup)
 
 void CTX_wm_operator_poll_msg_clear(bContext *C)
 {
+  struct bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
+  if (params->free_fn != NULL) {
+    params->free_fn(C, params->user_data);
+  }
+  params->get_fn = NULL;
+  params->free_fn = NULL;
+  params->user_data = NULL;
+
   C->wm.operator_poll_msg = NULL;
 }
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
 {
+  CTX_wm_operator_poll_msg_clear(C);
+
   C->wm.operator_poll_msg = msg;
 }
 
-const char *CTX_wm_operator_poll_msg_get(bContext *C)
+void CTX_wm_operator_poll_msg_set_dynamic(bContext *C,
+                                          const struct bContextPollMsgDyn_Params *params)
 {
+  CTX_wm_operator_poll_msg_clear(C);
+
+  C->wm.operator_poll_msg_dyn_params = *params;
+}
+
+const char *CTX_wm_operator_poll_msg_get(bContext *C, bool *r_free)
+{
+  struct bContextPollMsgDyn_Params *params = &C->wm.operator_poll_msg_dyn_params;
+  if (params->get_fn != NULL) {
+    char *msg = params->get_fn(C, params->user_data);
+    if (msg != NULL) {
+      *r_free = true;
+    }
+    return msg;
+  }
+
+  *r_free = false;
   return IFACE_(C->wm.operator_poll_msg);
 }
 
