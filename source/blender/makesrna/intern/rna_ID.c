@@ -579,18 +579,18 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 
 static void rna_ID_mark_asset(ID *id, bContext *C)
 {
-  ED_asset_mark_id(C, id);
-
-  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
-  WM_main_add_notifier(NC_ASSET | NA_ADDED, NULL);
+  if (ED_asset_mark_id(C, id)) {
+    WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
+    WM_main_add_notifier(NC_ASSET | NA_ADDED, NULL);
+  }
 }
 
 static void rna_ID_clear_asset(ID *id)
 {
-  ED_asset_clear_id(id);
-
-  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
-  WM_main_add_notifier(NC_ASSET | NA_REMOVED, NULL);
+  if (ED_asset_clear_id(id)) {
+    WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
+    WM_main_add_notifier(NC_ASSET | NA_REMOVED, NULL);
+  }
 }
 
 static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
