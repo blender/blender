@@ -1081,12 +1081,22 @@ void EEVEE_material_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
       }
     }
     if (pd->render_passes & EEVEE_RENDER_PASS_SPECULAR_COLOR) {
+      bool prev_ssr = sldata->common_data.ssr_toggle;
+      if (prev_ssr) {
+        /* We need to disable ssr here so output radiance is not directed to the ssr buffer. */
+        sldata->common_data.ssr_toggle = false;
+        GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
+      }
       material_renderpass_accumulate(fbl,
                                      material_accum_ps,
                                      NULL,
                                      pd,
                                      txl->spec_color_accum,
                                      sldata->renderpass_ubo.spec_color);
+      if (prev_ssr) {
+        sldata->common_data.ssr_toggle = prev_ssr;
+        GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
+      }
     }
     if (pd->render_passes & EEVEE_RENDER_PASS_SPECULAR_LIGHT) {
       material_renderpass_accumulate(fbl,
