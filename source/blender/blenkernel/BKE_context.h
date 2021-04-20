@@ -223,7 +223,7 @@ struct bContextPollMsgDyn_Params {
 const char *CTX_wm_operator_poll_msg_get(struct bContext *C, bool *r_free);
 void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
 void CTX_wm_operator_poll_msg_set_dynamic(bContext *C,
-                                          const struct bContextPollMsgDyn_Params *parms);
+                                          const struct bContextPollMsgDyn_Params *params);
 void CTX_wm_operator_poll_msg_clear(struct bContext *C);
 
 /* Data Context
