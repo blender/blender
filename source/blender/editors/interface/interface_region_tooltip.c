@@ -950,7 +950,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
     /* if operator poll check failed, it can give pretty precise info why */
     if (but->optype) {
-      CTX_wm_operator_poll_msg_set(C, NULL);
+      CTX_wm_operator_poll_msg_clear(C);
       WM_operator_poll_context(C, but->optype, but->opcontext);
       disabled_msg = CTX_wm_operator_poll_msg_get(C);
     }

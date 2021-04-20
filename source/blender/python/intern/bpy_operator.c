@@ -249,7 +249,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
                  "Operator bpy.ops.%.200s.poll() %.200s",
                  opname,
                  msg ? msg : "failed, context is incorrect");
-    CTX_wm_operator_poll_msg_set(C, NULL); /* better set to NULL else it could be used again */
+    CTX_wm_operator_poll_msg_clear(C);
     error_val = -1;
   }
   else {

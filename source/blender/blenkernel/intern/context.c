@@ -80,7 +80,13 @@ struct bContext {
     struct ARegion *menu;
     struct wmGizmoGroup *gizmo_group;
     struct bContextStore *store;
-    const char *operator_poll_msg; /* reason for poll failing */
+
+    /* Operator poll. */
+    /**
+     * Store the reason the poll function fails (static string, not allocated).
+     * For more advanced formatting use `operator_poll_msg_dyn_params`.
+     */
+    const char *operator_poll_msg;
   } wm;
 
   /* data context */
@@ -1003,6 +1009,10 @@ void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup)
   C->wm.gizmo_group = gzgroup;
 }
 
+void CTX_wm_operator_poll_msg_clear(bContext *C)
+{
+  C->wm.operator_poll_msg = NULL;
+}
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
 {
   C->wm.operator_poll_msg = msg;

@@ -208,6 +208,7 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
 const char *CTX_wm_operator_poll_msg_get(struct bContext *C);
 void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
+void CTX_wm_operator_poll_msg_clear(struct bContext *C);
 
 /* Data Context
  *
