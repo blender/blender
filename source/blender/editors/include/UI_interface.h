@@ -186,17 +186,17 @@ enum {
   UI_RETURN_POPUP_OK = 1 << 5,
 };
 
-/* but->flag - general state flags. */
+/** #uiBut.flag general state flags. */
 enum {
-  /** Warning, the first 6 flags are internal. */
-  UI_BUT_ICON_SUBMENU = 1 << 6,
-  UI_BUT_ICON_PREVIEW = 1 << 7,
+  /* WARNING: the first 7 flags are internal (see #UI_SELECT definition). */
+  UI_BUT_ICON_SUBMENU = 1 << 7,
+  UI_BUT_ICON_PREVIEW = 1 << 8,
 
-  UI_BUT_NODE_LINK = 1 << 8,
-  UI_BUT_NODE_ACTIVE = 1 << 9,
-  UI_BUT_DRAG_LOCK = 1 << 10,
+  UI_BUT_NODE_LINK = 1 << 9,
+  UI_BUT_NODE_ACTIVE = 1 << 10,
+  UI_BUT_DRAG_LOCK = 1 << 11,
   /** Grayed out and un-editable. */
-  UI_BUT_DISABLED = 1 << 11,
+  UI_BUT_DISABLED = 1 << 12,
 
   UI_BUT_ANIMATED = 1 << 13,
   UI_BUT_ANIMATED_KEY = 1 << 14,
