@@ -1065,6 +1065,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Curve *curve = (Curve *)object->data;
   Curve remapped_curve = *curve;
   Object remapped_object = *object;
+  remapped_object.runtime.bb = NULL;
   remapped_object.data = &remapped_curve;
 
   /* Clear all modifiers for the bevel object.
@@ -1077,6 +1078,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Object bevel_object = {{NULL}};
   if (remapped_curve.bevobj != NULL) {
     bevel_object = *remapped_curve.bevobj;
+    bevel_object.runtime.bb = NULL;
     BLI_listbase_clear(&bevel_object.modifiers);
     remapped_curve.bevobj = &bevel_object;
   }
@@ -1085,6 +1087,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Object taper_object = {{NULL}};
   if (remapped_curve.taperobj != NULL) {
     taper_object = *remapped_curve.taperobj;
+    taper_object.runtime.bb = NULL;
     BLI_listbase_clear(&taper_object.modifiers);
     remapped_curve.taperobj = &taper_object;
   }
@@ -1106,6 +1109,10 @@ static void curve_to_mesh_eval_ensure(Object *object)
   if (mesh_eval != NULL) {
     BKE_object_eval_assign_data(&remapped_object, &mesh_eval->id, true);
   }
+
+  MEM_SAFE_FREE(remapped_object.runtime.bb);
+  MEM_SAFE_FREE(taper_object.runtime.bb);
+  MEM_SAFE_FREE(bevel_object.runtime.bb);
 
   BKE_object_free_curve_cache(&bevel_object);
   BKE_object_free_curve_cache(&taper_object);
