@@ -256,7 +256,6 @@ void EEVEE_reflection_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEV
     /* Clear texture. */
     if (effects->taa_current_sample == 1) {
       const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-      printf("Clear\n");
       GPU_framebuffer_clear_color(fbl->ssr_accum_fb, clear);
     }
 
