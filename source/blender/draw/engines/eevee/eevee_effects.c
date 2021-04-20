@@ -171,7 +171,8 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
                                   });
   }
   else {
-    txl->filtered_radiance = NULL;
+    DRW_TEXTURE_FREE_SAFE(txl->filtered_radiance);
+    GPU_FRAMEBUFFER_FREE_SAFE(fbl->radiance_filtered_fb);
   }
 
   /**
