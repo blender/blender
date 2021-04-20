@@ -124,7 +124,7 @@ static struct StepTy {
 template<class type, int i0, int i1, int i2, int i3> type shuffle_neon(const type &a)
 {
   if (i0 == i1 && i0 == i2 && i0 == i3) {
-    return vdupq_laneq_s32(a, i0);
+    return type(vdupq_laneq_s32(int32x4_t(a), i0));
   }
   static const uint8_t tbl[16] = {(i0 * 4) + 0,
                                   (i0 * 4) + 1,
@@ -143,7 +143,7 @@ template<class type, int i0, int i1, int i2, int i3> type shuffle_neon(const typ
                                   (i3 * 4) + 2,
                                   (i3 * 4) + 3};
 
-  return vqtbl1q_s8(int8x16_t(a), *(int8x16_t *)tbl);
+  return type(vqtbl1q_s8(int8x16_t(a), *(uint8x16_t *)tbl));
 }
 
 template<class type, int i0, int i1, int i2, int i3>
@@ -167,7 +167,7 @@ type shuffle_neon(const type &a, const type &b)
                                     (i3 * 4) + 2,
                                     (i3 * 4) + 3};
 
-    return vqtbl1q_s8(int8x16_t(b), *(int8x16_t *)tbl);
+    return type(vqtbl1q_s8(int8x16_t(b), *(uint8x16_t *)tbl));
   }
   else {
 
@@ -188,7 +188,7 @@ type shuffle_neon(const type &a, const type &b)
                                     (i3 * 4) + 2 + 16,
                                     (i3 * 4) + 3 + 16};
 
-    return vqtbl2q_s8((int8x16x2_t){a, b}, *(int8x16_t *)tbl);
+    return type(vqtbl2q_s8((int8x16x2_t){int8x16_t(a), int8x16_t(b)}, *(uint8x16_t *)tbl));
   }
 }
 #endif /* __KERNEL_NEON */

@@ -11,3 +11,14 @@ index 7a8d06a0..886699d8 100644
          #define __TBB_DEPRECATED [[deprecated]]
          #define __TBB_DEPRECATED_MSG(msg) [[deprecated(msg)]]
      #elif _MSC_VER
+--- a/src/tbb/tools_api/ittnotify_config.h
++++ b/src/tbb/tools_api/ittnotify_config.h
+@@ -162,7 +162,7 @@
+ #    define ITT_ARCH ITT_ARCH_IA32E
+ #  elif defined _M_IA64 || defined __ia64__
+ #    define ITT_ARCH ITT_ARCH_IA64
+-#  elif defined _M_ARM || defined __arm__
++#  elif defined _M_ARM || defined __arm__ || defined __aarch64__
+ #    define ITT_ARCH ITT_ARCH_ARM
+ #  elif defined __powerpc64__
+ #    define ITT_ARCH ITT_ARCH_PPC64

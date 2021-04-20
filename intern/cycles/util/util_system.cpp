@@ -166,12 +166,33 @@ static void __cpuid(int data[4], int selector)
 
 string system_cpu_brand_string()
 {
+#if !defined(WIN32) && !defined(__x86_64__) && !defined(__i386__)
+  FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
+  if (cpuinfo != nullptr) {
+    char cpuinfo_buf[513] = "";
+    fread(cpuinfo_buf, sizeof(cpuinfo_buf) - 1, 1, cpuinfo);
+    fclose(cpuinfo);
+
+    char *modelname = strstr(cpuinfo_buf, "model name");
+    if (modelname != nullptr) {
+      modelname = strchr(modelname, ':');
+      if (modelname != nullptr) {
+        modelname += 2;
+        char *modelname_end = strchr(modelname, '\n');
+        if (modelname_end != nullptr) {
+          *modelname_end = '\0';
+          return modelname;
+        }
+      }
+    }
+  }
+#else
   char buf[49] = {0};
   int result[4] = {0};
 
   __cpuid(result, 0x80000000);
 
-  if (result[0] >= (int)0x80000004) {
+  if (result[0] != 0 && result[0] >= (int)0x80000004) {
     __cpuid((int *)(buf + 0), 0x80000002);
     __cpuid((int *)(buf + 16), 0x80000003);
     __cpuid((int *)(buf + 32), 0x80000004);
@@ -183,7 +204,7 @@ string system_cpu_brand_string()
 
     return brand;
   }
-
+#endif
   return "Unknown CPU";
 }
 

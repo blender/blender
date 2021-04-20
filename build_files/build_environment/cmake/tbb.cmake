@@ -21,6 +21,7 @@ if(WIN32)
     -DTBB_BUILD_TBBMALLOC=On
     -DTBB_BUILD_TBBMALLOC_PROXY=On
     -DTBB_BUILD_STATIC=Off
+    -DTBB_BUILD_TESTS=Off
   )
   set(TBB_LIBRARY tbb)
   set(TBB_STATIC_LIBRARY Off)
@@ -30,6 +31,7 @@ else()
     -DTBB_BUILD_TBBMALLOC=On
     -DTBB_BUILD_TBBMALLOC_PROXY=Off
     -DTBB_BUILD_STATIC=On
+    -DTBB_BUILD_TESTS=Off
   )
   set(TBB_LIBRARY tbb_static)
   set(TBB_STATIC_LIBRARY On)
@@ -42,7 +44,7 @@ ExternalProject_Add(external_tbb
   URL_HASH ${TBB_HASH_TYPE}=${TBB_HASH}
   PREFIX ${BUILD_DIR}/tbb
   PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_tbb.txt ${BUILD_DIR}/tbb/src/external_tbb/CMakeLists.txt &&
-  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/tbb/src/external_tbb/build/vs2013/version_string.ver ${BUILD_DIR}/tbb/src/external_tbb/src/tbb/version_string.ver &&
+  ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/tbb/src/external_tbb/build/vs2013/version_string.ver ${BUILD_DIR}/tbb/src/external_tbb/build/version_string.ver.in &&
   ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/tbb/src/external_tbb < ${PATCH_DIR}/tbb.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/tbb ${DEFAULT_CMAKE_FLAGS} ${TBB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/tbb

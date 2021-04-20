@@ -18,6 +18,12 @@
 
 set(BOOST_ADDRESS_MODEL 64)
 
+if(BLENDER_PLATFORM_ARM)
+  set(BOOST_ARCHITECTURE arm)
+else()
+  set(BOOST_ARCHITECTURE x86)
+endif()
+
 if(WIN32)
   set(BOOST_TOOLSET toolset=msvc-14.1)
   set(BOOST_COMPILER_STRING -vc141)
@@ -29,7 +35,6 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-${BOOST_VERSION_NODOTS_SHORT}/ ${HARVEST_TARGET}/boost/include/)
   endif()
-
 elseif(APPLE)
   set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
   set(BOOST_BUILD_COMMAND ./b2)
@@ -93,7 +98,7 @@ ExternalProject_Add(external_boost
   UPDATE_COMMAND  ""
   PATCH_COMMAND ${BOOST_PATCH_COMMAND}
   CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
-  BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=x86 address-model=${BOOST_ADDRESS_MODEL} link=static threading=multi ${BOOST_OPTIONS}    --prefix=${LIBDIR}/boost install
+  BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=${BOOST_ARCHITECTURE} address-model=${BOOST_ADDRESS_MODEL} link=static threading=multi ${BOOST_OPTIONS}    --prefix=${LIBDIR}/boost install
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )

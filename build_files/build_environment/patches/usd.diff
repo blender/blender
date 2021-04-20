@@ -53,3 +53,147 @@ diff -ru USD-20.11/pxr/base/tf/pxrLZ4/lz4.cpp external_usd/pxr/base/tf/pxrLZ4/lz
  
  /*-******************************
  *  Compression functions
+
+From 442d087962f762deeb8b6e49a0955753fcf9aeb9 Mon Sep 17 00:00:00 2001
+From: Tsahi Zidenberg <tsahee@amazon.com>
+Date: Sun, 15 Nov 2020 15:18:24 +0000
+Subject: [PATCH 1/2] stackTrace: support aarch64/linux
+
+stacktrace calls syscall directly via assembler. Create compatible
+aarch64 code.
+---
+ pxr/base/arch/stackTrace.cpp | 30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
+
+diff --git a/pxr/base/arch/stackTrace.cpp b/pxr/base/arch/stackTrace.cpp
+index dcc1dfd46..c11aabeb1 100644
+--- a/pxr/base/arch/stackTrace.cpp
++++ b/pxr/base/arch/stackTrace.cpp
+@@ -583,7 +583,6 @@ nonLockingLinux__execve (const char *file,
+                          char *const argv[],
+                          char *const envp[])
+ {
+-#if defined(ARCH_BITS_64)
+     /*
+      * We make a direct system call here, because we can't find an
+      * execve which corresponds with the non-locking fork we call
+@@ -594,7 +593,27 @@ nonLockingLinux__execve (const char *file,
+      * hangs in a threaded app.  (We use the non-locking fork to get
+      * around problems with forking when we have had memory
+      * corruption.)  whew.
+-     *
++     */
++
++    unsigned long result;
++
++#if defined (__aarch64__)
++    {
++        register long __file_result asm ("x0") = (long)file;
++        register char* const* __argv asm ("x1") = argv;
++        register char* const* __envp asm ("x2") = envp;
++        register long __num_execve asm ("x8") = 221;
++        __asm__ __volatile__ (
++            "svc 0"
++            : "=r" (__file_result)
++            : "r"(__num_execve), "r" (__file_result), "r" (__argv), "r" (__envp)
++            : "memory"
++        );
++        result = __file_result;
++    }
++#elif defined(ARCH_CPU_INTEL) && defined(ARCH_BITS_64)
++
++    /*
+      * %rdi, %rsi, %rdx, %rcx, %r8, %r9 are args 0-5
+      * syscall clobbers %rcx and %r11
+      *
+@@ -603,7 +622,6 @@ nonLockingLinux__execve (const char *file,
+      * constraints to gcc.
+      */
+ 
+-    unsigned long result;
+     __asm__ __volatile__ (
+         "mov    %0, %%rdi    \n\t"
+         "mov    %%rcx, %%rsi \n\t"
+@@ -614,6 +632,9 @@ nonLockingLinux__execve (const char *file,
+         : "0" (file), "c" (argv), "d" (envp)
+         : "memory", "cc", "r11"
+     );
++#else
++#error Unknown architecture
++#endif
+ 
+     if (result >= 0xfffffffffffff000) {
+         errno = -result;
+@@ -621,9 +642,6 @@ nonLockingLinux__execve (const char *file,
+     }
+ 
+     return result;
+-#else
+-#error Unknown architecture
+-#endif
+ }
+ 
+ #endif
+
+From a1dffe02519bb3c6ccbbe8c6c58304da5db98995 Mon Sep 17 00:00:00 2001
+From: Tsahi Zidenberg <tsahee@amazon.com>
+Date: Sun, 15 Nov 2020 15:22:52 +0000
+Subject: [PATCH 2/2] timing: support aarch64/linux
+
+The aarch64 arch-timer is directly accessible to userspace via two
+registers:
+CNTVCT_EL0 - holds the current counter value
+CNTFRQ_EL0 - holds the counter frequency (in Hz)
+---
+ pxr/base/arch/timing.cpp | 6 ++++++
+ pxr/base/arch/timing.h   | 6 +++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/pxr/base/arch/timing.cpp b/pxr/base/arch/timing.cpp
+index 27ad58fed..9022950c1 100644
+--- a/pxr/base/arch/timing.cpp
++++ b/pxr/base/arch/timing.cpp
+@@ -59,6 +59,11 @@ ARCH_HIDDEN
+ void
+ Arch_InitTickTimer()
+ {
++#ifdef __aarch64__
++    uint64_t counter_hz;
++    __asm __volatile("mrs	%0, CNTFRQ_EL0" : "=&r" (counter_hz));
++    Arch_NanosecondsPerTick = double(1e9) / double(counter_hz);
++#else
+     // NOTE: Normally ifstream would be cleaner, but it causes crashes when
+     //       used in conjunction with DSOs and the Intel Compiler.
+     FILE *in;
+@@ -135,6 +140,7 @@ Arch_InitTickTimer()
+     }
+ 
+     Arch_NanosecondsPerTick = double(1e9) / double(cpuHz);
++#endif
+ }
+ #elif defined(ARCH_OS_WINDOWS)
+ 
+diff --git a/pxr/base/arch/timing.h b/pxr/base/arch/timing.h
+index 67ec0d15f..6dc3e85a0 100644
+--- a/pxr/base/arch/timing.h
++++ b/pxr/base/arch/timing.h
+@@ -36,7 +36,7 @@
+ /// \addtogroup group_arch_SystemFunctions
+ ///@{
+ 
+-#if defined(ARCH_OS_LINUX)
++#if defined(ARCH_OS_LINUX) && defined(ARCH_CPU_INTEL)
+ #include <x86intrin.h>
+ #elif defined(ARCH_OS_DARWIN)
+ #include <mach/mach_time.h>
+@@ -69,6 +69,10 @@ ArchGetTickTime()
+ #elif defined(ARCH_CPU_INTEL)
+     // On Intel we'll use the rdtsc instruction.
+     return __rdtsc();
++#elif defined (__aarch64__)
++    uint64_t result;
++    __asm __volatile("mrs	%0, CNTVCT_EL0" : "=&r" (result));
++    return result;
+ #else
+ #error Unknown architecture.
+ #endif

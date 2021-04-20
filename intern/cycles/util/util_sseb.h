@@ -283,7 +283,7 @@ __forceinline uint32_t popcnt(const sseb &a)
 {
 #    if defined(__KERNEL_NEON__)
   const int32x4_t mask = {1, 1, 1, 1};
-  int32x4_t t = vandq_s32(a.m128, mask);
+  int32x4_t t = vandq_s32(vreinterpretq_s32_m128(a.m128), mask);
   return vaddvq_s32(t);
 #    else
   return _mm_popcnt_u32(_mm_movemask_ps(a));
@@ -299,7 +299,7 @@ __forceinline uint32_t popcnt(const sseb &a)
 __forceinline bool reduce_and(const sseb &a)
 {
 #  if defined(__KERNEL_NEON__)
-  return vaddvq_s32(a.m128) == -4;
+  return vaddvq_s32(vreinterpretq_s32_m128(a.m128)) == -4;
 #  else
   return _mm_movemask_ps(a) == 0xf;
 #  endif
@@ -307,7 +307,7 @@ __forceinline bool reduce_and(const sseb &a)
 __forceinline bool reduce_or(const sseb &a)
 {
 #  if defined(__KERNEL_NEON__)
-  return vaddvq_s32(a.m128) != 0x0;
+  return vaddvq_s32(vreinterpretq_s32_m128(a.m128)) != 0x0;
 #  else
   return _mm_movemask_ps(a) != 0x0;
 #  endif
@@ -315,7 +315,7 @@ __forceinline bool reduce_or(const sseb &a)
 __forceinline bool all(const sseb &b)
 {
 #  if defined(__KERNEL_NEON__)
-  return vaddvq_s32(b.m128) == -4;
+  return vaddvq_s32(vreinterpretq_s32_m128(b.m128)) == -4;
 #  else
   return _mm_movemask_ps(b) == 0xf;
 #  endif
@@ -323,7 +323,7 @@ __forceinline bool all(const sseb &b)
 __forceinline bool any(const sseb &b)
 {
 #  if defined(__KERNEL_NEON__)
-  return vaddvq_s32(b.m128) != 0x0;
+  return vaddvq_s32(vreinterpretq_s32_m128(b.m128)) != 0x0;
 #  else
   return _mm_movemask_ps(b) != 0x0;
 #  endif
@@ -331,7 +331,7 @@ __forceinline bool any(const sseb &b)
 __forceinline bool none(const sseb &b)
 {
 #  if defined(__KERNEL_NEON__)
-  return vaddvq_s32(b.m128) == 0x0;
+  return vaddvq_s32(vreinterpretq_s32_m128(b.m128)) == 0x0;
 #  else
   return _mm_movemask_ps(b) == 0x0;
 #  endif
