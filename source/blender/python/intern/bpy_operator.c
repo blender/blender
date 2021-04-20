@@ -244,12 +244,16 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   }
 
   if (WM_operator_poll_context((bContext *)C, ot, context) == false) {
-    const char *msg = CTX_wm_operator_poll_msg_get(C);
+    bool msg_free = false;
+    const char *msg = CTX_wm_operator_poll_msg_get(C, &msg_free);
     PyErr_Format(PyExc_RuntimeError,
                  "Operator bpy.ops.%.200s.poll() %.200s",
                  opname,
                  msg ? msg : "failed, context is incorrect");
-    CTX_wm_operator_poll_msg_set(C, NULL); /* better set to NULL else it could be used again */
+    CTX_wm_operator_poll_msg_clear(C);
+    if (msg_free) {
+      MEM_freeN((void *)msg);
+    }
     error_val = -1;
   }
   else {

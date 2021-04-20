@@ -256,7 +256,7 @@ static std::unique_ptr<DataSource> get_data_source(const bContext *C)
     return {};
   }
   Object *object_orig = (Object *)used_id;
-  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD)) {
+  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
     return {};
   }
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);

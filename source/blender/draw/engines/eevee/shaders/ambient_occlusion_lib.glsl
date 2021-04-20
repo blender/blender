@@ -210,14 +210,14 @@ void occlusion_eval(OcclusionData data,
   bool early_out = (inverted != 0.0) ? (max_v4(abs(data.horizons)) == 0.0) :
                                        (min_v4(abs(data.horizons)) == M_PI);
   if (early_out) {
-    visibility = dot(N, Ng) * 0.5 + 0.5;
+    visibility = saturate(dot(N, Ng) * 0.5 + 0.5);
     visibility = min(visibility, data.custom_occlusion);
 
     if ((int(aoSettings) & USE_BENT_NORMAL) == 0) {
       bent_normal = N;
     }
     else {
-      bent_normal = normalize(N + Ng);
+      bent_normal = safe_normalize(N + Ng);
     }
     return;
   }
@@ -283,7 +283,9 @@ void occlusion_eval(OcclusionData data,
     bent_normal = N;
   }
   else {
-    bent_normal = normalize(mix(bent_normal, N, sqr(sqr(sqr(visibility)))));
+    /* Note: using pow(visibility, 6.0) produces NaN (see T87369). */
+    float tmp = saturate(pow6(visibility));
+    bent_normal = normalize(mix(bent_normal, N, tmp));
   }
 }
 
@@ -386,7 +388,8 @@ float specular_occlusion(
   float specular_solid_angle = spherical_cap_intersection(M_PI_2, spec_angle, cone_nor_dist);
   float specular_occlusion = isect_solid_angle / specular_solid_angle;
   /* Mix because it is unstable in unoccluded areas. */
-  visibility = mix(specular_occlusion, 1.0, pow(visibility, 8.0));
+  float tmp = saturate(pow8(visibility));
+  visibility = mix(specular_occlusion, 1.0, tmp);
 
   /* Scale by user factor */
   visibility = pow(saturate(visibility), aoFactor);

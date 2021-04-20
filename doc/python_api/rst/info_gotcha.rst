@@ -50,7 +50,8 @@ you should be able to find the poll function with no knowledge of C.
 
    Blender does have the functionality for poll functions to describe why they fail,
    but its currently not used much, if you're interested to help improve the API
-   feel free to add calls to ``CTX_wm_operator_poll_msg_set`` where its not obvious why poll fails, e.g:
+   feel free to add calls to :class:`bpy.types.Operator.poll_message_set` (``CTX_wm_operator_poll_msg_set`` in C)
+   where its not obvious why poll fails, e.g:
 
       >>> bpy.ops.gpencil.draw()
       RuntimeError: Operator bpy.ops.gpencil.draw.poll() Failed to find Grease Pencil data to draw into

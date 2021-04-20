@@ -167,6 +167,14 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
   }
 }
 
+static void bpy_context_end(bContext *C)
+{
+  if (UNLIKELY(C == NULL)) {
+    return;
+  }
+  CTX_wm_operator_poll_msg_clear(C);
+}
+
 /**
  * Use for `CTX_*_set(..)` functions need to set values which are later read back as expected.
  * In this case we don't want the Python context to override the values as it causes problems
@@ -523,6 +531,9 @@ void BPY_python_end(void)
 
   /* finalizing, no need to grab the state, except when we are a module */
   gilstate = PyGILState_Ensure();
+
+  /* Clear Python values in the context so freeing the context after Python exits doesn't crash. */
+  bpy_context_end(BPY_context_get());
 
   /* Decrement user counts of all callback functions. */
   BPY_rna_props_clear_all();

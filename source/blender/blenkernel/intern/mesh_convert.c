@@ -1065,6 +1065,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Curve *curve = (Curve *)object->data;
   Curve remapped_curve = *curve;
   Object remapped_object = *object;
+  remapped_object.runtime.bb = NULL;
   remapped_object.data = &remapped_curve;
 
   /* Clear all modifiers for the bevel object.
@@ -1077,6 +1078,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Object bevel_object = {{NULL}};
   if (remapped_curve.bevobj != NULL) {
     bevel_object = *remapped_curve.bevobj;
+    bevel_object.runtime.bb = NULL;
     BLI_listbase_clear(&bevel_object.modifiers);
     remapped_curve.bevobj = &bevel_object;
   }
@@ -1085,6 +1087,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
   Object taper_object = {{NULL}};
   if (remapped_curve.taperobj != NULL) {
     taper_object = *remapped_curve.taperobj;
+    taper_object.runtime.bb = NULL;
     BLI_listbase_clear(&taper_object.modifiers);
     remapped_curve.taperobj = &taper_object;
   }
@@ -1106,6 +1109,10 @@ static void curve_to_mesh_eval_ensure(Object *object)
   if (mesh_eval != NULL) {
     BKE_object_eval_assign_data(&remapped_object, &mesh_eval->id, true);
   }
+
+  MEM_SAFE_FREE(remapped_object.runtime.bb);
+  MEM_SAFE_FREE(taper_object.runtime.bb);
+  MEM_SAFE_FREE(bevel_object.runtime.bb);
 
   BKE_object_free_curve_cache(&bevel_object);
   BKE_object_free_curve_cache(&taper_object);
@@ -1535,7 +1542,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
    * check whether it is still true with Mesh */
   Mesh tmp = *mesh_dst;
   int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
-  int did_shapekeys = 0;
+  bool did_shapekeys = false;
   eCDAllocType alloctype = CD_DUPLICATE;
 
   if (take_ownership /* && dm->type == DM_TYPE_CDDM && dm->needsFree */) {
@@ -1590,7 +1597,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     }
 
     shapekey_layers_to_keyblocks(mesh_src, mesh_dst, uid);
-    did_shapekeys = 1;
+    did_shapekeys = true;
   }
 
   /* copy texture space */
@@ -1619,13 +1626,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
                          totedge);
   }
   if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-    /* TODO(Sybren): assignment to tmp.mxxx is probably not necessary due to the
-     * BKE_mesh_update_customdata_pointers() call below. */
-    tmp.mloop = (alloctype == CD_ASSIGN) ? mesh_src->mloop : MEM_dupallocN(mesh_src->mloop);
-    tmp.mpoly = (alloctype == CD_ASSIGN) ? mesh_src->mpoly : MEM_dupallocN(mesh_src->mpoly);
-
-    CustomData_add_layer(&tmp.ldata, CD_MLOOP, CD_ASSIGN, tmp.mloop, tmp.totloop);
-    CustomData_add_layer(&tmp.pdata, CD_MPOLY, CD_ASSIGN, tmp.mpoly, tmp.totpoly);
+    CustomData_add_layer(&tmp.ldata,
+                         CD_MLOOP,
+                         CD_ASSIGN,
+                         (alloctype == CD_ASSIGN) ? mesh_src->mloop :
+                                                    MEM_dupallocN(mesh_src->mloop),
+                         tmp.totloop);
+    CustomData_add_layer(&tmp.pdata,
+                         CD_MPOLY,
+                         CD_ASSIGN,
+                         (alloctype == CD_ASSIGN) ? mesh_src->mpoly :
+                                                    MEM_dupallocN(mesh_src->mpoly),
+                         tmp.totpoly);
   }
 
   /* object had got displacement layer, should copy this layer to save sculpted data */
@@ -1634,14 +1646,15 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     if (totloop == mesh_dst->totloop) {
       MDisps *mdisps = CustomData_get_layer(&mesh_dst->ldata, CD_MDISPS);
       CustomData_add_layer(&tmp.ldata, CD_MDISPS, alloctype, mdisps, totloop);
+      if (alloctype == CD_ASSIGN) {
+        /* Assign NULL to prevent double-free. */
+        CustomData_set_layer(&mesh_dst->ldata, CD_MDISPS, NULL);
+      }
     }
   }
 
   /* yes, must be before _and_ after tessellate */
   BKE_mesh_update_customdata_pointers(&tmp, false);
-
-  /* since 2.65 caller must do! */
-  // BKE_mesh_tessface_calc(&tmp);
 
   CustomData_free(&mesh_dst->vdata, mesh_dst->totvert);
   CustomData_free(&mesh_dst->edata, mesh_dst->totedge);

@@ -301,6 +301,11 @@ static void action_header_region_init(wmWindowManager *UNUSED(wm), ARegion *regi
 
 static void action_header_region_draw(const bContext *C, ARegion *region)
 {
+  /* The anim context is not actually used, but this makes sure the action being displayed is up to
+   * date. */
+  bAnimContext ac;
+  ANIM_animdata_get_context(C, &ac);
+
   ED_region_header(C, region);
 }
 

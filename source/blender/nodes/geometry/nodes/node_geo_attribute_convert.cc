@@ -66,6 +66,28 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
   return ATTR_DOMAIN_POINT;
 }
 
+static bool conversion_can_be_skipped(const GeometryComponent &component,
+                                      const StringRef source_name,
+                                      const StringRef result_name,
+                                      const AttributeDomain result_domain,
+                                      const CustomDataType result_type)
+{
+  if (source_name != result_name) {
+    return false;
+  }
+  ReadAttributeLookup read_attribute = component.attribute_try_get_for_read(source_name);
+  if (!read_attribute) {
+    return false;
+  }
+  if (read_attribute.domain != result_domain) {
+    return false;
+  }
+  if (read_attribute.varray->type() != *bke::custom_data_type_to_cpp_type(result_type)) {
+    return false;
+  }
+  return true;
+}
+
 static void attribute_convert_calc(GeometryComponent &component,
                                    const GeoNodeExecParams &params,
                                    const StringRef source_name,
@@ -77,6 +99,10 @@ static void attribute_convert_calc(GeometryComponent &component,
                                             get_result_domain(
                                                 component, source_name, result_name) :
                                             domain;
+
+  if (conversion_can_be_skipped(component, source_name, result_name, result_domain, result_type)) {
+    return;
+  }
 
   GVArrayPtr source_attribute = component.attribute_try_get_for_read(
       source_name, result_domain, result_type);

@@ -3868,6 +3868,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   blo_do_versions_270(fd, lib, main);
   blo_do_versions_280(fd, lib, main);
   blo_do_versions_290(fd, lib, main);
+  blo_do_versions_300(fd, lib, main);
   blo_do_versions_cycles(fd, lib, main);
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -3891,6 +3892,7 @@ static void do_versions_after_linking(Main *main, ReportList *reports)
   do_versions_after_linking_270(main);
   do_versions_after_linking_280(main, reports);
   do_versions_after_linking_290(main, reports);
+  do_versions_after_linking_300(main, reports);
   do_versions_after_linking_cycles(main);
 
   main->is_locked_for_linking = false;
