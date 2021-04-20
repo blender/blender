@@ -61,7 +61,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
     common_data->ao_dist = scene_eval->eevee.gtao_distance;
-    common_data->ao_factor = scene_eval->eevee.gtao_factor;
+    common_data->ao_factor = max_ff(1e-4f, scene_eval->eevee.gtao_factor);
     common_data->ao_quality = scene_eval->eevee.gtao_quality;
 
     if (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED) {
