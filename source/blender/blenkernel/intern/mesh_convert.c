@@ -1535,7 +1535,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
    * check whether it is still true with Mesh */
   Mesh tmp = *mesh_dst;
   int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
-  int did_shapekeys = 0;
+  bool did_shapekeys = false;
   eCDAllocType alloctype = CD_DUPLICATE;
 
   if (take_ownership /* && dm->type == DM_TYPE_CDDM && dm->needsFree */) {
@@ -1590,7 +1590,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
     }
 
     shapekey_layers_to_keyblocks(mesh_src, mesh_dst, uid);
-    did_shapekeys = 1;
+    did_shapekeys = true;
   }
 
   /* copy texture space */
@@ -1619,13 +1619,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
                          totedge);
   }
   if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-    /* TODO(Sybren): assignment to tmp.mxxx is probably not necessary due to the
-     * BKE_mesh_update_customdata_pointers() call below. */
-    tmp.mloop = (alloctype == CD_ASSIGN) ? mesh_src->mloop : MEM_dupallocN(mesh_src->mloop);
-    tmp.mpoly = (alloctype == CD_ASSIGN) ? mesh_src->mpoly : MEM_dupallocN(mesh_src->mpoly);
-
-    CustomData_add_layer(&tmp.ldata, CD_MLOOP, CD_ASSIGN, tmp.mloop, tmp.totloop);
-    CustomData_add_layer(&tmp.pdata, CD_MPOLY, CD_ASSIGN, tmp.mpoly, tmp.totpoly);
+    CustomData_add_layer(&tmp.ldata,
+                         CD_MLOOP,
+                         CD_ASSIGN,
+                         (alloctype == CD_ASSIGN) ? mesh_src->mloop :
+                                                    MEM_dupallocN(mesh_src->mloop),
+                         tmp.totloop);
+    CustomData_add_layer(&tmp.pdata,
+                         CD_MPOLY,
+                         CD_ASSIGN,
+                         (alloctype == CD_ASSIGN) ? mesh_src->mpoly :
+                                                    MEM_dupallocN(mesh_src->mpoly),
+                         tmp.totpoly);
   }
 
   /* object had got displacement layer, should copy this layer to save sculpted data */
@@ -1643,9 +1648,6 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src,
 
   /* yes, must be before _and_ after tessellate */
   BKE_mesh_update_customdata_pointers(&tmp, false);
-
-  /* since 2.65 caller must do! */
-  // BKE_mesh_tessface_calc(&tmp);
 
   CustomData_free(&mesh_dst->vdata, mesh_dst->totvert);
   CustomData_free(&mesh_dst->edata, mesh_dst->totedge);
