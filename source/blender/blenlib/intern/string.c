@@ -540,6 +540,29 @@ void BLI_str_replace_char(char *str, char src, char dst)
 }
 
 /**
+ * Simple exact-match string replacement.
+ *
+ * \param replace_table: Array of source, destination pairs.
+ *
+ * \note Larger tables should use a hash table.
+ */
+bool BLI_str_replace_table_exact(char *string,
+                                 const size_t string_len,
+                                 const char *replace_table[][2],
+                                 int replace_table_len)
+{
+  for (int i = 0; i < replace_table_len; i++) {
+    if (STREQ(string, replace_table[i][0])) {
+      BLI_strncpy(string, replace_table[i][1], string_len);
+      return true;
+    }
+  }
+  return false;
+}
+
+/** \} */
+
+/**
  * Compare two strings without regard to case.
  *
  * \retval True if the strings are equal, false otherwise.

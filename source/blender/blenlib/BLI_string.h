@@ -68,6 +68,11 @@ char *BLI_str_replaceN(const char *__restrict str,
 
 void BLI_str_replace_char(char *string, char src, char dst) ATTR_NONNULL();
 
+bool BLI_str_replace_table_exact(char *string,
+                                 const size_t string_len,
+                                 const char *replace_table[][2],
+                                 int replace_table_len);
+
 size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
