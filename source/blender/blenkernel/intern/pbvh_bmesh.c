@@ -2260,7 +2260,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   return any_subdivided;
 }
 
-static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
+ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                      BMEdge *e,
                                      BMVert *v1,
                                      BMVert *v2,
@@ -2411,15 +2411,6 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     /* Get vertices, replace use of v_del with v_conn */
     // BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
     BMFace *f = l->f;
-#if 0
-    BMVert *v_tri[3];
-    BM_face_as_array_vert_tri(f, v_tri);
-    for (int i = 0; i < 3; i++) {
-      if (v_tri[i] == v_del) {
-        v_tri[i] = v_conn;
-      }
-    }
-#endif
 
     /* Check if a face using these vertices already exists. If so,
      * skip adding this face and mark the existing one for
@@ -2431,7 +2422,19 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     if (UNLIKELY(existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)))
 #endif
     {
-      BLI_buffer_append(deleted_faces, BMFace *, existing_face);
+      bool ok = true;
+
+      //check we're not already in deleted_faces
+      for (int i=0; i<deleted_faces->count; i++) {
+        if (BLI_buffer_at(deleted_faces, BMFace*, i) == existing_face) {
+          ok = false;
+          break;
+        }
+      }
+
+      if (ok) {
+        BLI_buffer_append(deleted_faces, BMFace *, existing_face);
+      }
     }
     else
     {
@@ -2485,6 +2488,19 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     l_iter = l_iter->next;
     v_tri[2] = l_iter->v;
     e_tri[2] = l_iter->e;
+
+    BMLoop *l1 = f_del->l_first;
+    do {
+      if (!l1->e) {
+        printf("bmesh error!\n");
+        l1->e = BM_edge_exists(l->v, l->next->v);
+        if (!l1->e) {
+          //create
+          l1->e = BM_edge_create(pbvh->bm, l->v, l->next->v, NULL, 0);
+        }
+      }
+      l1 = l1->next;
+    } while (l1 != f_del->l_first);
 
     /* Remove the face */
     pbvh_bmesh_face_remove(pbvh, f_del);
