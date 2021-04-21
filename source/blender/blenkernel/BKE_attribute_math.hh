@@ -31,7 +31,7 @@ using fn::CPPType;
  * Utility function that simplifies calling a templated function based on a custom data type.
  */
 template<typename Func>
-void convert_to_static_type(const CustomDataType data_type, const Func &func)
+inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
@@ -58,7 +58,8 @@ void convert_to_static_type(const CustomDataType data_type, const Func &func)
   }
 }
 
-template<typename Func> void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func)
+template<typename Func>
+inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func)
 {
   if (cpp_type.is<float>()) {
     func(float());
