@@ -85,6 +85,14 @@ class GSpan {
     BLI_assert(type_->is<T>());
     return Span<T>(static_cast<const T *>(data_), size_);
   }
+
+  GSpan slice(const int64_t start, int64_t size) const
+  {
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
+    return GSpan(*type_, POINTER_OFFSET(data_, type_->size() * start), new_size);
+  }
 };
 
 /**
@@ -152,6 +160,14 @@ class GMutableSpan {
   {
     BLI_assert(type_->is<T>());
     return MutableSpan<T>(static_cast<T *>(data_), size_);
+  }
+
+  GMutableSpan slice(const int64_t start, int64_t size) const
+  {
+    BLI_assert(start >= 0);
+    BLI_assert(size >= 0);
+    const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
+    return GMutableSpan(*type_, POINTER_OFFSET(data_, type_->size() * start), new_size);
   }
 };
 
