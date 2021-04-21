@@ -2619,12 +2619,25 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int wm_recover_last_session_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static void wm_recover_last_session_after_dialog_callback(bContext *C, void *user_data)
+{
+  WM_operator_name_call_with_properties(
+      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+}
+
+static int wm_recover_last_session_invoke(bContext *C,
+                                          wmOperator *op,
+                                          const wmEvent *UNUSED(event))
 {
   /* Keep the current setting instead of using the preferences since a file selector
    * doesn't give us the option to change the setting. */
   wm_open_init_use_scripts(op, false);
-  return WM_operator_confirm(C, op, event);
+
+  if (wm_operator_close_file_dialog_if_needed(
+          C, op, wm_recover_last_session_after_dialog_callback)) {
+    return OPERATOR_INTERFACE;
+  }
+  return wm_recover_last_session_exec(C, op);
 }
 
 void WM_OT_recover_last_session(wmOperatorType *ot)
