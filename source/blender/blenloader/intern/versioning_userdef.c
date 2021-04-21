@@ -24,6 +24,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #ifdef WITH_INTERNATIONAL
@@ -838,6 +839,23 @@ void blo_do_versions_userdef(UserDef *userdef)
   if (!USER_VERSION_ATLEAST(292, 9)) {
     if (BLI_listbase_is_empty(&userdef->asset_libraries)) {
       BKE_preferences_asset_library_default_add(userdef);
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(293, 1)) {
+    /* This rename was made after 2.93.0, harmless to run when it's not needed. */
+    const char *replace_table[][2] = {
+        {"blender", "Blender"},
+        {"blender_27x", "Blender_27x"},
+        {"industry_compatible", "Industry_Compatible"},
+    };
+    const int replace_table_len = ARRAY_SIZE(replace_table);
+
+    BLI_str_replace_table_exact(
+        userdef->keyconfigstr, sizeof(userdef->keyconfigstr), replace_table, replace_table_len);
+    LISTBASE_FOREACH (wmKeyConfigPref *, kpt, &userdef->user_keyconfig_prefs) {
+      BLI_str_replace_table_exact(
+          kpt->idname, sizeof(kpt->idname), replace_table, replace_table_len);
     }
   }
 
