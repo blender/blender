@@ -51,7 +51,6 @@ void do_versions_after_linking_300(Main *UNUSED(bmain), ReportList *UNUSED(repor
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
-  UNUSED_VARS(fd);
 
   /**
    * Versioning code until next subversion bump goes here.
