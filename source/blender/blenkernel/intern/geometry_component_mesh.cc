@@ -1014,7 +1014,8 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component)) const final
+  bool try_create(GeometryComponent &UNUSED(component),
+                  const AttributeInit &UNUSED(initializer)) const final
   {
     return false;
   }
