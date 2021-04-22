@@ -2237,7 +2237,7 @@ static short snapMesh(SnapObjectContext *sctx,
   if (me->totvert == 0) {
     return 0;
   }
-  else if (me->totedge == 0 && !(snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
+  if (me->totedge == 0 && !(snapdata->snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
     return 0;
   }
 
