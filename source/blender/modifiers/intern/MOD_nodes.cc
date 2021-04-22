@@ -271,6 +271,17 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
+static bool logging_enabled(const ModifierEvalContext *ctx)
+{
+  if (!DEG_is_active(ctx->depsgraph)) {
+    return false;
+  }
+  if ((ctx->flag & MOD_APPLY_ORCO) != 0) {
+    return false;
+  }
+  return true;
+}
+
 class GeometryNodesEvaluator {
  public:
   using LogSocketValueFn = std::function<void(DSocket, Span<GPointer>)>;
@@ -1290,7 +1301,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   find_sockets_to_preview(nmd, ctx, tree, preview_sockets);
 
   auto log_socket_value = [&](const DSocket socket, const Span<GPointer> values) {
-    if (!DEG_is_active(ctx->depsgraph)) {
+    if (!logging_enabled(ctx)) {
       return;
     }
     Span<uint64_t> keys = preview_sockets.lookup(socket);
@@ -1401,7 +1412,7 @@ static void modifyGeometry(ModifierData *md,
     return;
   }
 
-  if (DEG_is_active(ctx->depsgraph)) {
+  if (logging_enabled(ctx)) {
     reset_tree_ui_storage(tree.used_node_tree_refs(), *ctx->object, *md);
   }
 
