@@ -2059,6 +2059,19 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 293, 19)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Mirror) {
+          MirrorModifierData *mmd = (MirrorModifierData *)md;
+          /* This was the previous hard-coded value. */
+          mmd->bisect_threshold = 0.001f;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
