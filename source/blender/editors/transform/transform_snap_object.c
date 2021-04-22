@@ -43,6 +43,7 @@
 #include "BKE_curve.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
+#include "BKE_geometry_set.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
