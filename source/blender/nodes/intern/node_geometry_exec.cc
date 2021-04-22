@@ -126,11 +126,11 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
 
   if (found_socket->type == SOCK_STRING) {
     const std::string name = this->get_input<std::string>(found_socket->identifier);
-    ReadAttributeLookup attribute = component.attribute_try_get_for_read(name);
-    if (!attribute) {
-      return default_type;
+    std::optional<AttributeMetaData> info = component.attribute_get_meta_data(name);
+    if (info) {
+      return info->data_type;
     }
-    return bke::cpp_type_to_custom_data_type(attribute.varray->type());
+    return default_type;
   }
   if (found_socket->type == SOCK_FLOAT) {
     return CD_PROP_FLOAT;
@@ -169,9 +169,9 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
 
     if (found_socket->type == SOCK_STRING) {
       const std::string name = this->get_input<std::string>(found_socket->identifier);
-      ReadAttributeLookup attribute = component.attribute_try_get_for_read(name);
-      if (attribute) {
-        input_domains.append(attribute.domain);
+      std::optional<AttributeMetaData> info = component.attribute_get_meta_data(name);
+      if (info) {
+        input_domains.append(info->domain);
       }
     }
   }

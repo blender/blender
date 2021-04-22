@@ -49,20 +49,19 @@ static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
 namespace blender::nodes {
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
-                                         StringRef result_attribute_name,
-                                         StringRef map_attribute_name)
+                                         const StringRef result_name,
+                                         const StringRef map_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributeLookup result_attribute = component.attribute_try_get_for_read(
-      result_attribute_name);
-  if (result_attribute) {
-    return result_attribute.domain;
+  std::optional<AttributeMetaData> result_info = component.attribute_get_meta_data(result_name);
+  if (result_info) {
+    return result_info->domain;
   }
 
   /* Otherwise use the name of the map attribute. */
-  ReadAttributeLookup map_attribute = component.attribute_try_get_for_read(map_attribute_name);
-  if (map_attribute) {
-    return map_attribute.domain;
+  std::optional<AttributeMetaData> map_info = component.attribute_get_meta_data(map_name);
+  if (map_info) {
+    return map_info->domain;
   }
 
   /* The node won't execute in this case, but we still have to return a value. */

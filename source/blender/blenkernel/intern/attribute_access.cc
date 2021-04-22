@@ -729,6 +729,20 @@ bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name
   return false;
 }
 
+std::optional<AttributeMetaData> GeometryComponent::attribute_get_meta_data(
+    const StringRef attribute_name) const
+{
+  std::optional<AttributeMetaData> result{std::nullopt};
+  this->attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
+    if (attribute_name == name) {
+      result = meta_data;
+      return false;
+    }
+    return true;
+  });
+  return result;
+}
+
 static std::unique_ptr<blender::fn::GVArray> try_adapt_data_type(
     std::unique_ptr<blender::fn::GVArray> varray, const blender::fn::CPPType &to_type)
 {

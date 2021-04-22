@@ -102,6 +102,10 @@ class GeometryComponent {
   /* Return true when any attribute with this name exists, including built in attributes. */
   bool attribute_exists(const blender::StringRef attribute_name) const;
 
+  /* Return the data type and domain of an attribute with the given name if it exists. */
+  std::optional<AttributeMetaData> attribute_get_meta_data(
+      const blender::StringRef attribute_name) const;
+
   /* Returns true when the geometry component supports this attribute domain. */
   bool attribute_domain_supported(const AttributeDomain domain) const;
   /* Can only be used with supported domain types. */

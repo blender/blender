@@ -306,17 +306,14 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       const MeshComponent &source_component = *set.get_component_for_read<MeshComponent>();
       const Mesh &mesh = *source_component.get_for_read();
 
-      /* Use a dummy read without specifying a domain or data type in order to
-       * get the existing attribute's domain. Interpolation is done manually based
-       * on the bary coords in #interpolate_attribute. */
-      ReadAttributeLookup dummy_attribute = source_component.attribute_try_get_for_read(
+      std::optional<AttributeMetaData> attribute_info = component.attribute_get_meta_data(
           attribute_name);
-      if (!dummy_attribute) {
+      if (!attribute_info) {
         i_instance += set_group.transforms.size();
         continue;
       }
 
-      const AttributeDomain source_domain = dummy_attribute.domain;
+      const AttributeDomain source_domain = attribute_info->domain;
       GVArrayPtr source_attribute = source_component.attribute_get_for_read(
           attribute_name, source_domain, output_data_type, nullptr);
       if (!source_attribute) {
