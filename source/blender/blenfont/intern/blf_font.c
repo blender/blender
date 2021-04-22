@@ -41,6 +41,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -640,18 +641,12 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
                                       (size_t)buf_info->ch);
               float *fbuf = buf_info->fbuf + buf_ofs;
 
-              if (a >= 1.0f) {
-                fbuf[0] = b_col_float[0];
-                fbuf[1] = b_col_float[1];
-                fbuf[2] = b_col_float[2];
-                fbuf[3] = 1.0f;
-              }
-              else {
-                fbuf[0] = (b_col_float[0] * a) + (fbuf[0] * (1.0f - a));
-                fbuf[1] = (b_col_float[1] * a) + (fbuf[1] * (1.0f - a));
-                fbuf[2] = (b_col_float[2] * a) + (fbuf[2] * (1.0f - a));
-                fbuf[3] = MIN2(fbuf[3] + a, 1.0f); /* clamp to 1.0 */
-              }
+              float font_pixel[4];
+              font_pixel[0] = b_col_float[0] * a;
+              font_pixel[1] = b_col_float[1] * a;
+              font_pixel[2] = b_col_float[2] * a;
+              font_pixel[3] = a;
+              blend_color_mix_float(fbuf, fbuf, font_pixel);
             }
           }
 
@@ -677,19 +672,12 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
                                       (size_t)buf_info->ch);
               unsigned char *cbuf = buf_info->cbuf + buf_ofs;
 
-              if (a >= 1.0f) {
-                cbuf[0] = b_col_char[0];
-                cbuf[1] = b_col_char[1];
-                cbuf[2] = b_col_char[2];
-                cbuf[3] = 255;
-              }
-              else {
-                cbuf[0] = (unsigned char)((b_col_char[0] * a) + (cbuf[0] * (1.0f - a)));
-                cbuf[1] = (unsigned char)((b_col_char[1] * a) + (cbuf[1] * (1.0f - a)));
-                cbuf[2] = (unsigned char)((b_col_char[2] * a) + (cbuf[2] * (1.0f - a)));
-                /* clamp to 255 */
-                cbuf[3] = (unsigned char)MIN2((int)cbuf[3] + (int)(a * 255), 255);
-              }
+              uchar font_pixel[4];
+              font_pixel[0] = b_col_char[0];
+              font_pixel[1] = b_col_char[1];
+              font_pixel[2] = b_col_char[2];
+              font_pixel[3] = unit_float_to_uchar_clamp(a);
+              blend_color_mix_byte(cbuf, cbuf, font_pixel);
             }
           }
 
