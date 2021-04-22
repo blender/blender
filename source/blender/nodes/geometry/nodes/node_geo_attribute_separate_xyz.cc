@@ -71,23 +71,23 @@ static void extract_input(const int index, const Span<float3> &input, MutableSpa
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          const GeoNodeExecParams &params,
-                                         StringRef result_name_x,
-                                         StringRef result_name_y,
-                                         StringRef result_name_z)
+                                         const StringRef name_x,
+                                         const StringRef name_y,
+                                         const StringRef name_z)
 {
   /* Use the highest priority domain from any existing attribute outputs. */
   Vector<AttributeDomain, 3> output_domains;
-  ReadAttributeLookup attribute_x = component.attribute_try_get_for_read(result_name_x);
-  ReadAttributeLookup attribute_y = component.attribute_try_get_for_read(result_name_y);
-  ReadAttributeLookup attribute_z = component.attribute_try_get_for_read(result_name_z);
-  if (attribute_x) {
-    output_domains.append(attribute_x.domain);
+  std::optional<AttributeMetaData> info_x = component.attribute_get_meta_data(name_x);
+  std::optional<AttributeMetaData> info_y = component.attribute_get_meta_data(name_y);
+  std::optional<AttributeMetaData> info_z = component.attribute_get_meta_data(name_z);
+  if (info_x) {
+    output_domains.append(info_x->domain);
   }
-  if (attribute_y) {
-    output_domains.append(attribute_y.domain);
+  if (info_y) {
+    output_domains.append(info_y->domain);
   }
-  if (attribute_z) {
-    output_domains.append(attribute_z.domain);
+  if (info_z) {
+    output_domains.append(info_z->domain);
   }
   if (output_domains.size() > 0) {
     return bke::attribute_domain_highest_priority(output_domains);

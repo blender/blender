@@ -89,7 +89,8 @@ class BuiltinAttributeProvider {
   virtual GVArrayPtr try_get_for_read(const GeometryComponent &component) const = 0;
   virtual GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const = 0;
   virtual bool try_delete(GeometryComponent &component) const = 0;
-  virtual bool try_create(GeometryComponent &UNUSED(component)) const = 0;
+  virtual bool try_create(GeometryComponent &UNUSED(component),
+                          const AttributeInit &UNUSED(initializer)) const = 0;
   virtual bool exists(const GeometryComponent &component) const = 0;
 
   StringRefNull name() const
@@ -122,7 +123,8 @@ class DynamicAttributesProvider {
   virtual bool try_create(GeometryComponent &UNUSED(component),
                           const StringRef UNUSED(attribute_name),
                           const AttributeDomain UNUSED(domain),
-                          const CustomDataType UNUSED(data_type)) const
+                          const CustomDataType UNUSED(data_type),
+                          const AttributeInit &UNUSED(initializer)) const
   {
     /* Some providers should not create new attributes. */
     return false;
@@ -162,7 +164,8 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   bool try_create(GeometryComponent &component,
                   const StringRef attribute_name,
                   const AttributeDomain domain,
-                  const CustomDataType data_type) const final;
+                  const CustomDataType data_type,
+                  const AttributeInit &initializer) const final;
 
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
@@ -278,7 +281,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   GVArrayPtr try_get_for_read(const GeometryComponent &component) const final;
   GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final;
   bool try_delete(GeometryComponent &component) const final;
-  bool try_create(GeometryComponent &component) const final;
+  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final;
   bool exists(const GeometryComponent &component) const final;
 };
 

@@ -449,7 +449,8 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type_output);
     BLI_assert(cpp_type != nullptr);
 
-    result.attribute_try_create(entry.key, domain_output, data_type_output);
+    result.attribute_try_create(
+        entry.key, domain_output, data_type_output, AttributeInitDefault());
     WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(name);
     if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
         write_attribute.domain != domain_output) {

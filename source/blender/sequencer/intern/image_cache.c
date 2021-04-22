@@ -976,14 +976,34 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
   SeqCacheKey *next = base->link_next;
 
   while (base) {
+    if (!BLI_ghash_haskey(cache->hash, base)) {
+      break; /* Key has already been removed from cache. */
+    }
+
     SeqCacheKey *prev = base->link_prev;
+    if (prev != NULL && prev->link_next != base) {
+      /* Key has been removed and replaced and doesn't belong to this chain anymore. */
+      base->link_prev = NULL;
+      break;
+    }
+
     BLI_ghash_remove(cache->hash, base, seq_cache_keyfree, seq_cache_valfree);
     base = prev;
   }
 
   base = next;
   while (base) {
+    if (!BLI_ghash_haskey(cache->hash, base)) {
+      break; /* Key has already been removed from cache. */
+    }
+
     next = base->link_next;
+    if (next != NULL && next->link_prev != base) {
+      /* Key has been removed and replaced and doesn't belong to this chain anymore. */
+      base->link_next = NULL;
+      break;
+    }
+
     BLI_ghash_remove(cache->hash, base, seq_cache_keyfree, seq_cache_valfree);
     base = next;
   }

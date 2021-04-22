@@ -37,17 +37,90 @@
 
 #include "gpu_py_buffer.h"
 
-// #define PYGPU_BUFFER_PROTOCOL
+//#define PYGPU_BUFFER_PROTOCOL
+#define MAX_DIMENSIONS 64
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
 
-static bool pygpu_buffer_dimensions_compare(int ndim,
-                                            const Py_ssize_t *shape_a,
-                                            const Py_ssize_t *shape_b)
+static Py_ssize_t pygpu_buffer_dimensions_tot_elem(const Py_ssize_t *shape, Py_ssize_t shape_len)
 {
-  return (bool)memcmp(shape_a, shape_b, ndim * sizeof(Py_ssize_t));
+  Py_ssize_t tot = shape[0];
+  for (int i = 1; i < shape_len; i++) {
+    tot *= shape[i];
+  }
+
+  return tot;
+}
+
+static bool pygpu_buffer_dimensions_tot_len_compare(const Py_ssize_t *shape_a,
+                                                    const Py_ssize_t shape_a_len,
+                                                    const Py_ssize_t *shape_b,
+                                                    const Py_ssize_t shape_b_len)
+{
+  if (pygpu_buffer_dimensions_tot_elem(shape_a, shape_a_len) !=
+      pygpu_buffer_dimensions_tot_elem(shape_b, shape_b_len)) {
+    PyErr_Format(PyExc_BufferError, "array size does not match");
+    return false;
+  }
+
+  return true;
+}
+
+static bool pygpu_buffer_pyobj_as_shape(PyObject *shape_obj,
+                                        Py_ssize_t r_shape[MAX_DIMENSIONS],
+                                        Py_ssize_t *r_shape_len)
+{
+  Py_ssize_t shape_len = 0;
+  if (PyLong_Check(shape_obj)) {
+    shape_len = 1;
+    if (((r_shape[0] = PyLong_AsLong(shape_obj)) < 1)) {
+      PyErr_SetString(PyExc_AttributeError, "dimension must be greater than or equal to 1");
+      return false;
+    }
+  }
+  else if (PySequence_Check(shape_obj)) {
+    shape_len = PySequence_Size(shape_obj);
+    if (shape_len > MAX_DIMENSIONS) {
+      PyErr_SetString(PyExc_AttributeError,
+                      "too many dimensions, max is " STRINGIFY(MAX_DIMENSIONS));
+      return false;
+    }
+    if (shape_len < 1) {
+      PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
+      return false;
+    }
+
+    for (int i = 0; i < shape_len; i++) {
+      PyObject *ob = PySequence_GetItem(shape_obj, i);
+      if (!PyLong_Check(ob)) {
+        PyErr_Format(PyExc_TypeError,
+                     "invalid dimension %i, expected an int, not a %.200s",
+                     i,
+                     Py_TYPE(ob)->tp_name);
+        Py_DECREF(ob);
+        return false;
+      }
+
+      r_shape[i] = PyLong_AsLong(ob);
+      Py_DECREF(ob);
+
+      if (r_shape[i] < 1) {
+        PyErr_SetString(PyExc_AttributeError, "dimension must be greater than or equal to 1");
+        return false;
+      }
+    }
+  }
+  else {
+    PyErr_Format(PyExc_TypeError,
+                 "invalid second argument argument expected a sequence "
+                 "or an int, not a %.200s",
+                 Py_TYPE(shape_obj)->tp_name);
+  }
+
+  *r_shape_len = shape_len;
+  return true;
 }
 
 static const char *pygpu_buffer_formatstr(eGPUDataFormat data_format)
@@ -174,7 +247,7 @@ static PyObject *pygpu_buffer_to_list_recursive(BPyGPUBuffer *self)
   return list;
 }
 
-static PyObject *pygpu_buffer_dimensions(BPyGPUBuffer *self, void *UNUSED(arg))
+static PyObject *pygpu_buffer_dimensions_get(BPyGPUBuffer *self, void *UNUSED(arg))
 {
   PyObject *list = PyList_New(self->shape_len);
   int i;
@@ -184,6 +257,30 @@ static PyObject *pygpu_buffer_dimensions(BPyGPUBuffer *self, void *UNUSED(arg))
   }
 
   return list;
+}
+
+static int pygpu_buffer_dimensions_set(BPyGPUBuffer *self, PyObject *value, void *UNUSED(type))
+{
+  Py_ssize_t shape[MAX_DIMENSIONS];
+  Py_ssize_t shape_len = 0;
+
+  if (!pygpu_buffer_pyobj_as_shape(value, shape, &shape_len)) {
+    return -1;
+  }
+
+  if (!pygpu_buffer_dimensions_tot_len_compare(shape, shape_len, self->shape, self->shape_len)) {
+    return -1;
+  }
+
+  size_t size = shape_len * sizeof(*self->shape);
+  if (shape_len != self->shape_len) {
+    MEM_freeN(self->shape);
+    self->shape = MEM_mallocN(size, __func__);
+  }
+
+  self->shape_len = shape_len;
+  memcpy(self->shape, shape, size);
+  return 0;
 }
 
 static int pygpu_buffer__tp_traverse(BPyGPUBuffer *self, visitproc visit, void *arg)
@@ -280,14 +377,13 @@ static int pygpu_buffer_ass_slice(BPyGPUBuffer *self,
   return err;
 }
 
-#define MAX_DIMENSIONS 64
 static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
   PyObject *length_ob, *init = NULL;
   BPyGPUBuffer *buffer = NULL;
   Py_ssize_t shape[MAX_DIMENSIONS];
 
-  Py_ssize_t i, shape_len = 0;
+  Py_ssize_t shape_len = 0;
 
   if (kwds && PyDict_Size(kwds)) {
     PyErr_SetString(PyExc_TypeError, "Buffer(): takes no keyword args");
@@ -300,49 +396,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
     return NULL;
   }
 
-  if (PyLong_Check(length_ob)) {
-    shape_len = 1;
-    if (((shape[0] = PyLong_AsLong(length_ob)) < 1)) {
-      PyErr_SetString(PyExc_AttributeError, "dimension must be greater than or equal to 1");
-      return NULL;
-    }
-  }
-  else if (PySequence_Check(length_ob)) {
-    shape_len = PySequence_Size(length_ob);
-    if (shape_len > MAX_DIMENSIONS) {
-      PyErr_SetString(PyExc_AttributeError,
-                      "too many dimensions, max is " STRINGIFY(MAX_DIMENSIONS));
-      return NULL;
-    }
-    if (shape_len < 1) {
-      PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
-      return NULL;
-    }
-
-    for (i = 0; i < shape_len; i++) {
-      PyObject *ob = PySequence_GetItem(length_ob, i);
-      if (!PyLong_Check(ob)) {
-        PyErr_Format(PyExc_TypeError,
-                     "invalid dimension %i, expected an int, not a %.200s",
-                     i,
-                     Py_TYPE(ob)->tp_name);
-        Py_DECREF(ob);
-        return NULL;
-      }
-      shape[i] = PyLong_AsLong(ob);
-      Py_DECREF(ob);
-
-      if (shape[i] < 1) {
-        PyErr_SetString(PyExc_AttributeError, "dimension must be greater than or equal to 1");
-        return NULL;
-      }
-    }
-  }
-  else {
-    PyErr_Format(PyExc_TypeError,
-                 "invalid second argument argument expected a sequence "
-                 "or an int, not a %.200s",
-                 Py_TYPE(length_ob)->tp_name);
+  if (!pygpu_buffer_pyobj_as_shape(length_ob, shape, &shape_len)) {
     return NULL;
   }
 
@@ -354,11 +408,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
       return NULL;
     }
 
-    if (shape_len != pybuffer.ndim ||
-        !pygpu_buffer_dimensions_compare(shape_len, shape, pybuffer.shape)) {
-      PyErr_Format(PyExc_TypeError, "array size does not match");
-    }
-    else {
+    if (pygpu_buffer_dimensions_tot_len_compare(shape, shape_len, pybuffer.shape, pybuffer.ndim)) {
       buffer = pygpu_buffer_make_from_data(
           init, pygpu_dataformat.value_found, pybuffer.ndim, shape, pybuffer.buf);
     }
@@ -518,7 +568,11 @@ static PyMethodDef pygpu_buffer__tp_methods[] = {
 };
 
 static PyGetSetDef pygpu_buffer_getseters[] = {
-    {"dimensions", (getter)pygpu_buffer_dimensions, NULL, NULL, NULL},
+    {"dimensions",
+     (getter)pygpu_buffer_dimensions_get,
+     (setter)pygpu_buffer_dimensions_set,
+     NULL,
+     NULL},
     {NULL, NULL, NULL, NULL, NULL},
 };
 
@@ -625,13 +679,7 @@ static size_t pygpu_buffer_calc_size(const int format,
                                      const int shape_len,
                                      const Py_ssize_t *shape)
 {
-  size_t r_size = GPU_texture_dataformat_size(format);
-
-  for (int i = 0; i < shape_len; i++) {
-    r_size *= shape[i];
-  }
-
-  return r_size;
+  return pygpu_buffer_dimensions_tot_elem(shape, shape_len) * GPU_texture_dataformat_size(format);
 }
 
 size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer)

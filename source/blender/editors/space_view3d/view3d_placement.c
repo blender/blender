@@ -1472,10 +1472,27 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           RNA_float_set_array(&op_props, "rotation", rotation);
           RNA_float_set_array(&op_props, "location", location);
           RNA_float_set_array(&op_props, "scale", scale);
-          /* Always use default size here. */
+
+          /* Always use the defaults here since desired bounds have been set interactively, it does
+           * not make sense to use a different values from a previous command. */
           if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CUBE) {
             RNA_float_set(&op_props, "size", 2.0f);
           }
+          if (ELEM(ipd->primitive_type,
+                   PLACE_PRIMITIVE_TYPE_CYLINDER,
+                   PLACE_PRIMITIVE_TYPE_SPHERE_UV,
+                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO)) {
+            RNA_float_set(&op_props, "radius", 1.0f);
+          }
+          if (ELEM(
+                  ipd->primitive_type, PLACE_PRIMITIVE_TYPE_CYLINDER, PLACE_PRIMITIVE_TYPE_CONE)) {
+            RNA_float_set(&op_props, "depth", 2.0f);
+          }
+          if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CONE) {
+            RNA_float_set(&op_props, "radius1", 1.0f);
+            RNA_float_set(&op_props, "radius2", 0.0f);
+          }
+
           WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
           WM_operator_properties_free(&op_props);
         }
@@ -2044,7 +2061,7 @@ static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
     GPU_matrix_projection_set(rv3d->winmat);
     GPU_matrix_set(rv3d->viewmat);
 
-    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac;
+    const float scale_mod = U.gizmo_size * 2 * U.dpi_fac / U.pixelsize;
 
     float final_scale = (scale_mod * pixel_size);
 

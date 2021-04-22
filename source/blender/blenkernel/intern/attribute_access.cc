@@ -254,7 +254,43 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   return delete_success;
 }
 
-bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component) const
+static bool add_custom_data_layer_from_attribute_init(CustomData &custom_data,
+                                                      const CustomDataType data_type,
+                                                      const int domain_size,
+                                                      const AttributeInit &initializer)
+{
+  switch (initializer.type) {
+    case AttributeInit::Type::Default: {
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
+      return data != nullptr;
+    }
+    case AttributeInit::Type::VArray: {
+      void *data = CustomData_add_layer(&custom_data, data_type, CD_DEFAULT, nullptr, domain_size);
+      if (data == nullptr) {
+        return false;
+      }
+      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
+      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
+      return true;
+    }
+    case AttributeInit::Type::MoveArray: {
+      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *data = CustomData_add_layer(
+          &custom_data, data_type, CD_ASSIGN, source_data, domain_size);
+      if (data == nullptr) {
+        MEM_freeN(source_data);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
+bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,
+                                                const AttributeInit &initializer) const
 {
   if (createable_ != Creatable) {
     return false;
@@ -267,10 +303,10 @@ bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component) co
     /* Exists already. */
     return false;
   }
+
   const int domain_size = component.attribute_domain_size(domain_);
-  const void *data = CustomData_add_layer(
-      custom_data, stored_type_, CD_DEFAULT, nullptr, domain_size);
-  const bool success = data != nullptr;
+  const bool success = add_custom_data_layer_from_attribute_init(
+      *custom_data, stored_type_, domain_size, initializer);
   if (success) {
     custom_data_access_.update_custom_data_pointers(component);
   }
@@ -372,10 +408,52 @@ bool CustomDataAttributeProvider::try_delete(GeometryComponent &component,
   return false;
 }
 
+static bool add_named_custom_data_layer_from_attribute_init(const StringRef attribute_name,
+                                                            CustomData &custom_data,
+                                                            const CustomDataType data_type,
+                                                            const int domain_size,
+                                                            const AttributeInit &initializer)
+{
+  char attribute_name_c[MAX_NAME];
+  attribute_name.copy(attribute_name_c);
+
+  switch (initializer.type) {
+    case AttributeInit::Type::Default: {
+      void *data = CustomData_add_layer_named(
+          &custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
+      return data != nullptr;
+    }
+    case AttributeInit::Type::VArray: {
+      void *data = CustomData_add_layer_named(
+          &custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
+      if (data == nullptr) {
+        return false;
+      }
+      const GVArray *varray = static_cast<const AttributeInitVArray &>(initializer).varray;
+      varray->materialize_to_uninitialized(IndexRange(varray->size()), data);
+      return true;
+    }
+    case AttributeInit::Type::MoveArray: {
+      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      void *data = CustomData_add_layer_named(
+          &custom_data, data_type, CD_ASSIGN, source_data, domain_size, attribute_name_c);
+      if (data == nullptr) {
+        MEM_freeN(source_data);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
 bool CustomDataAttributeProvider::try_create(GeometryComponent &component,
                                              const StringRef attribute_name,
                                              const AttributeDomain domain,
-                                             const CustomDataType data_type) const
+                                             const CustomDataType data_type,
+                                             const AttributeInit &initializer) const
 {
   if (domain_ != domain) {
     return false;
@@ -393,10 +471,8 @@ bool CustomDataAttributeProvider::try_create(GeometryComponent &component,
     }
   }
   const int domain_size = component.attribute_domain_size(domain_);
-  char attribute_name_c[MAX_NAME];
-  attribute_name.copy(attribute_name_c);
-  CustomData_add_layer_named(
-      custom_data, data_type, CD_DEFAULT, nullptr, domain_size, attribute_name_c);
+  add_named_custom_data_layer_from_attribute_init(
+      attribute_name, *custom_data, data_type, domain_size, initializer);
   return true;
 }
 
@@ -621,7 +697,8 @@ bool GeometryComponent::attribute_try_delete(const StringRef attribute_name)
 
 bool GeometryComponent::attribute_try_create(const StringRef attribute_name,
                                              const AttributeDomain domain,
-                                             const CustomDataType data_type)
+                                             const CustomDataType data_type,
+                                             const AttributeInit &initializer)
 {
   using namespace blender::bke;
   if (attribute_name.is_empty()) {
@@ -640,18 +717,19 @@ bool GeometryComponent::attribute_try_create(const StringRef attribute_name,
     if (builtin_provider->data_type() != data_type) {
       return false;
     }
-    return builtin_provider->try_create(*this);
+    return builtin_provider->try_create(*this, initializer);
   }
   for (const DynamicAttributesProvider *dynamic_provider :
        providers->dynamic_attribute_providers()) {
-    if (dynamic_provider->try_create(*this, attribute_name, domain, data_type)) {
+    if (dynamic_provider->try_create(*this, attribute_name, domain, data_type, initializer)) {
       return true;
     }
   }
   return false;
 }
 
-bool GeometryComponent::attribute_try_create_builtin(const blender::StringRef attribute_name)
+bool GeometryComponent::attribute_try_create_builtin(const blender::StringRef attribute_name,
+                                                     const AttributeInit &initializer)
 {
   using namespace blender::bke;
   if (attribute_name.is_empty()) {
@@ -666,7 +744,7 @@ bool GeometryComponent::attribute_try_create_builtin(const blender::StringRef at
   if (builtin_provider == nullptr) {
     return false;
   }
-  return builtin_provider->try_create(*this);
+  return builtin_provider->try_create(*this, initializer);
 }
 
 Set<std::string> GeometryComponent::attribute_names() const
@@ -729,6 +807,20 @@ bool GeometryComponent::attribute_exists(const blender::StringRef attribute_name
   return false;
 }
 
+std::optional<AttributeMetaData> GeometryComponent::attribute_get_meta_data(
+    const StringRef attribute_name) const
+{
+  std::optional<AttributeMetaData> result{std::nullopt};
+  this->attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
+    if (attribute_name == name) {
+      result = meta_data;
+      return false;
+    }
+    return true;
+  });
+  return result;
+}
+
 static std::unique_ptr<blender::fn::GVArray> try_adapt_data_type(
     std::unique_ptr<blender::fn::GVArray> varray, const blender::fn::CPPType &to_type)
 {
@@ -784,6 +876,23 @@ std::unique_ptr<blender::bke::GVArray> GeometryComponent::attribute_try_get_for_
   }
 
   return std::move(attribute.varray);
+}
+
+blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
+    const blender::StringRef attribute_name, const CustomDataType data_type) const
+{
+  blender::bke::ReadAttributeLookup attribute = this->attribute_try_get_for_read(attribute_name);
+  if (!attribute) {
+    return {};
+  }
+  const blender::fn::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  BLI_assert(type != nullptr);
+  if (attribute.varray->type() == *type) {
+    return attribute;
+  }
+  const blender::nodes::DataTypeConversions &conversions =
+      blender::nodes::get_implicit_type_conversions();
+  return {conversions.try_convert(std::move(attribute.varray), *type), attribute.domain};
 }
 
 std::unique_ptr<blender::bke::GVArray> GeometryComponent::attribute_get_for_read(
@@ -843,7 +952,8 @@ static void save_output_attribute(blender::bke::OutputAttribute &output_attribut
   const CPPType &cpp_type = output_attribute.cpp_type();
 
   component.attribute_try_delete(name);
-  if (!component.attribute_try_create(varray.final_name, domain, data_type)) {
+  if (!component.attribute_try_create(
+          varray.final_name, domain, data_type, AttributeInitDefault())) {
     CLOG_WARN(&LOG,
               "Could not create the '%s' attribute with type '%s'.",
               name.c_str(),
@@ -881,7 +991,15 @@ static blender::bke::OutputAttribute create_output_attribute(
   if (component.attribute_is_builtin(attribute_name)) {
     WriteAttributeLookup attribute = component.attribute_try_get_for_write(attribute_name);
     if (!attribute) {
-      component.attribute_try_create_builtin(attribute_name);
+      if (default_value) {
+        const int64_t domain_size = component.attribute_domain_size(domain);
+        const GVArray_For_SingleValueRef default_varray{*cpp_type, domain_size, default_value};
+        component.attribute_try_create_builtin(attribute_name,
+                                               AttributeInitVArray(&default_varray));
+      }
+      else {
+        component.attribute_try_create_builtin(attribute_name, AttributeInitDefault());
+      }
       attribute = component.attribute_try_get_for_write(attribute_name);
       if (!attribute) {
         /* Builtin attribute does not exist and can't be created. */
@@ -902,9 +1020,19 @@ static blender::bke::OutputAttribute create_output_attribute(
     return OutputAttribute(std::move(varray), domain, {}, ignore_old_values);
   }
 
+  const int domain_size = component.attribute_domain_size(domain);
+
   WriteAttributeLookup attribute = component.attribute_try_get_for_write(attribute_name);
   if (!attribute) {
-    component.attribute_try_create(attribute_name, domain, data_type);
+    if (default_value) {
+      const GVArray_For_SingleValueRef default_varray{*cpp_type, domain_size, default_value};
+      component.attribute_try_create(
+          attribute_name, domain, data_type, AttributeInitVArray(&default_varray));
+    }
+    else {
+      component.attribute_try_create(attribute_name, domain, data_type, AttributeInitDefault());
+    }
+
     attribute = component.attribute_try_get_for_write(attribute_name);
     if (!attribute) {
       /* Can't create the attribute. */
@@ -916,7 +1044,6 @@ static blender::bke::OutputAttribute create_output_attribute(
     return OutputAttribute(std::move(attribute.varray), domain, {}, ignore_old_values);
   }
 
-  const int domain_size = component.attribute_domain_size(domain);
   /* Allocate a new array that lives next to the existing attribute. It will overwrite the existing
    * attribute after processing is done. */
   void *data = MEM_mallocN_aligned(

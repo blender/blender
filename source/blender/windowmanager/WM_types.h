@@ -132,17 +132,21 @@ struct wmWindowManager;
 extern "C" {
 #endif
 
+typedef void (*wmGenericUserDataFreeFn)(void *data);
+
 typedef struct wmGenericUserData {
   void *data;
   /** When NULL, use #MEM_freeN. */
-  void (*free_fn)(void *data);
+  wmGenericUserDataFreeFn free_fn;
   bool use_free;
 } wmGenericUserData;
 
+typedef void (*wmGenericCallbackFn)(struct bContext *C, void *user_data);
+
 typedef struct wmGenericCallback {
-  void (*exec)(struct bContext *C, void *user_data);
+  wmGenericCallbackFn exec;
   void *user_data;
-  void (*free_user_data)(void *user_data);
+  wmGenericUserDataFreeFn free_user_data;
 } wmGenericCallback;
 
 /* ************** wmOperatorType ************************ */

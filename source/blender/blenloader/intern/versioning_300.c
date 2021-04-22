@@ -20,6 +20,12 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
+#include "DNA_genfile.h"
+#include "DNA_modifier_types.h"
+
 #include "BKE_main.h"
 
 #include "BLO_readfile.h"
@@ -27,7 +33,6 @@
 
 void do_versions_after_linking_300(Main *UNUSED(bmain), ReportList *UNUSED(reports))
 {
-  
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -44,9 +49,8 @@ void do_versions_after_linking_300(Main *UNUSED(bmain), ReportList *UNUSED(repor
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *UNUSED(bmain))
+void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
-  UNUSED_VARS(fd);
 
   /**
    * Versioning code until next subversion bump goes here.
@@ -59,5 +63,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *UNUSED(bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
+    if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_Mirror) {
+            MirrorModifierData *mmd = (MirrorModifierData *)md;
+            /* This was the previous hard-coded value. */
+            mmd->bisect_threshold = 0.001f;
+          }
+        }
+      }
+    }
   }
 }

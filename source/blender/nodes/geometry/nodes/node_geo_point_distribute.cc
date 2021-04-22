@@ -28,6 +28,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_sample.hh"
 #include "BKE_pointcloud.h"
 
 #include "UI_interface.h"
@@ -249,99 +250,27 @@ BLI_NOINLINE static void eliminate_points_based_on_mask(Span<bool> elimination_m
   }
 }
 
-template<typename T>
-BLI_NOINLINE static void interpolate_attribute_point(const Mesh &mesh,
-                                                     const Span<float3> bary_coords,
-                                                     const Span<int> looptri_indices,
-                                                     const Span<T> data_in,
-                                                     MutableSpan<T> data_out)
-{
-  BLI_assert(data_in.size() == mesh.totvert);
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
-
-  for (const int i : bary_coords.index_range()) {
-    const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
-    const float3 &bary_coord = bary_coords[i];
-
-    const int v0_index = mesh.mloop[looptri.tri[0]].v;
-    const int v1_index = mesh.mloop[looptri.tri[1]].v;
-    const int v2_index = mesh.mloop[looptri.tri[2]].v;
-
-    const T &v0 = data_in[v0_index];
-    const T &v1 = data_in[v1_index];
-    const T &v2 = data_in[v2_index];
-
-    const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
-  }
-}
-
-template<typename T>
-BLI_NOINLINE static void interpolate_attribute_corner(const Mesh &mesh,
-                                                      const Span<float3> bary_coords,
-                                                      const Span<int> looptri_indices,
-                                                      const Span<T> data_in,
-                                                      MutableSpan<T> data_out)
-{
-  BLI_assert(data_in.size() == mesh.totloop);
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
-
-  for (const int i : bary_coords.index_range()) {
-    const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
-    const float3 &bary_coord = bary_coords[i];
-
-    const int loop_index_0 = looptri.tri[0];
-    const int loop_index_1 = looptri.tri[1];
-    const int loop_index_2 = looptri.tri[2];
-
-    const T &v0 = data_in[loop_index_0];
-    const T &v1 = data_in[loop_index_1];
-    const T &v2 = data_in[loop_index_2];
-
-    const T interpolated_value = attribute_math::mix3(bary_coord, v0, v1, v2);
-    data_out[i] = interpolated_value;
-  }
-}
-
-template<typename T>
-BLI_NOINLINE static void interpolate_attribute_face(const Mesh &mesh,
-                                                    const Span<int> looptri_indices,
-                                                    const Span<T> data_in,
-                                                    MutableSpan<T> data_out)
-{
-  BLI_assert(data_in.size() == mesh.totpoly);
-  Span<MLoopTri> looptris = get_mesh_looptris(mesh);
-
-  for (const int i : data_out.index_range()) {
-    const int looptri_index = looptri_indices[i];
-    const MLoopTri &looptri = looptris[looptri_index];
-    const int poly_index = looptri.poly;
-    data_out[i] = data_in[poly_index];
-  }
-}
-
-template<typename T>
 BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                Span<float3> bary_coords,
                                                Span<int> looptri_indices,
                                                const AttributeDomain source_domain,
-                                               Span<T> source_span,
-                                               MutableSpan<T> output_span)
+                                               const GVArray &source_data,
+                                               GMutableSpan output_data)
 {
   switch (source_domain) {
     case ATTR_DOMAIN_POINT: {
-      interpolate_attribute_point<T>(mesh, bary_coords, looptri_indices, source_span, output_span);
+      bke::mesh_surface_sample::sample_point_attribute(
+          mesh, looptri_indices, bary_coords, source_data, output_data);
       break;
     }
     case ATTR_DOMAIN_CORNER: {
-      interpolate_attribute_corner<T>(
-          mesh, bary_coords, looptri_indices, source_span, output_span);
+      bke::mesh_surface_sample::sample_corner_attribute(
+          mesh, looptri_indices, bary_coords, source_data, output_data);
       break;
     }
     case ATTR_DOMAIN_FACE: {
-      interpolate_attribute_face<T>(mesh, looptri_indices, source_span, output_span);
+      bke::mesh_surface_sample::sample_face_attribute(
+          mesh, looptri_indices, source_data, output_data);
       break;
     }
     default: {
@@ -377,17 +306,14 @@ BLI_NOINLINE static void interpolate_existing_attributes(
       const MeshComponent &source_component = *set.get_component_for_read<MeshComponent>();
       const Mesh &mesh = *source_component.get_for_read();
 
-      /* Use a dummy read without specifying a domain or data type in order to
-       * get the existing attribute's domain. Interpolation is done manually based
-       * on the bary coords in #interpolate_attribute. */
-      ReadAttributeLookup dummy_attribute = source_component.attribute_try_get_for_read(
+      std::optional<AttributeMetaData> attribute_info = component.attribute_get_meta_data(
           attribute_name);
-      if (!dummy_attribute) {
+      if (!attribute_info) {
         i_instance += set_group.transforms.size();
         continue;
       }
 
-      const AttributeDomain source_domain = dummy_attribute.domain;
+      const AttributeDomain source_domain = attribute_info->domain;
       GVArrayPtr source_attribute = source_component.attribute_get_for_read(
           attribute_name, source_domain, output_data_type, nullptr);
       if (!source_attribute) {
@@ -395,22 +321,22 @@ BLI_NOINLINE static void interpolate_existing_attributes(
         continue;
       }
 
+      for (const int UNUSED(i_set_instance) : set_group.transforms.index_range()) {
+        const int offset = instance_start_offsets[i_instance];
+        Span<float3> bary_coords = bary_coords_array[i_instance];
+        Span<int> looptri_indices = looptri_indices_array[i_instance];
+
+        GMutableSpan instance_span = out_span.slice(offset, bary_coords.size());
+        interpolate_attribute(
+            mesh, bary_coords, looptri_indices, source_domain, *source_attribute, instance_span);
+
+        i_instance++;
+      }
+
       attribute_math::convert_to_static_type(output_data_type, [&](auto dummy) {
         using T = decltype(dummy);
 
         GVArray_Span<T> source_span{*source_attribute};
-
-        for (const int UNUSED(i_set_instance) : set_group.transforms.index_range()) {
-          const int offset = instance_start_offsets[i_instance];
-          Span<float3> bary_coords = bary_coords_array[i_instance];
-          Span<int> looptri_indices = looptri_indices_array[i_instance];
-
-          MutableSpan<T> instance_span = out_span.typed<T>().slice(offset, bary_coords.size());
-          interpolate_attribute<T>(
-              mesh, bary_coords, looptri_indices, source_domain, source_span, instance_span);
-
-          i_instance++;
-        }
       });
     }
 

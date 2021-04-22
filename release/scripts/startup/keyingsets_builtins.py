@@ -44,6 +44,7 @@ ANIM_KS_LOCATION_ID = "Location"
 ANIM_KS_ROTATION_ID = "Rotation"
 ANIM_KS_SCALING_ID = "Scaling"
 ANIM_KS_LOC_ROT_SCALE_ID = "LocRotScale"
+ANIM_KS_LOC_ROT_SCALE_CPROP_ID = "LocRotScaleCProp"
 ANIM_KS_AVAILABLE_ID = "Available"
 ANIM_KS_WHOLE_CHARACTER_ID = "WholeCharacter"
 ANIM_KS_WHOLE_CHARACTER_SELECTED_ID = "WholeCharacterSelected"
@@ -157,6 +158,22 @@ class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
         keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
         # scale
         keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+
+
+# LocRotScaleCProp
+class BUILTIN_KSI_LocRotScaleCProp(KeyingSetInfo):
+    """Key location/rotation/scale as well as custom properties"""
+    bl_idname = ANIM_KS_LOC_ROT_SCALE_CPROP_ID
+    bl_label = "Location, Rotation, Scale & Custom Properties"
+
+    poll = keyingsets_utils.RKS_POLL_selected_items
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    def generate(self, context, ks, data):
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_custom_props(self, context, ks, data)
 
 
 # RotScale
@@ -651,6 +668,7 @@ classes = (
     BUILTIN_KSI_Scaling,
     BUILTIN_KSI_LocRot,
     BUILTIN_KSI_LocRotScale,
+    BUILTIN_KSI_LocRotScaleCProp,
     BUILTIN_KSI_LocScale,
     BUILTIN_KSI_RotScale,
     BUILTIN_KSI_DeltaLocation,

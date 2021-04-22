@@ -70,6 +70,65 @@ using AttributeForeachCallback = blender::FunctionRef<bool(blender::StringRefNul
                                                            const AttributeMetaData &meta_data)>;
 
 /**
+ * Base class for the attribute intializer types described below.
+ */
+struct AttributeInit {
+  enum class Type {
+    Default,
+    VArray,
+    MoveArray,
+  };
+  Type type;
+  AttributeInit(const Type type) : type(type)
+  {
+  }
+};
+
+/**
+ * Create an attribute using the default value for the data type.
+ * The default values may depend on the attribute provider implementation.
+ */
+struct AttributeInitDefault : public AttributeInit {
+  AttributeInitDefault() : AttributeInit(Type::Default)
+  {
+  }
+};
+
+/**
+ * Create an attribute by copying data from an existing virtual array. The virtual array
+ * must have the same type as the newly created attribute.
+ *
+ * Note that this can be used to fill the new attribute with the default
+ */
+struct AttributeInitVArray : public AttributeInit {
+  const blender::fn::GVArray *varray;
+
+  AttributeInitVArray(const blender::fn::GVArray *varray)
+      : AttributeInit(Type::VArray), varray(varray)
+  {
+  }
+};
+
+/**
+ * Create an attribute with a by passing ownership of a pre-allocated contiguous array of data.
+ * Sometimes data is created before a geometry component is available. In that case, it's
+ * preferable to move data directly to the created attribute to avoid a new allocation and a copy.
+ *
+ * Note that this will only have a benefit for attributes that are stored directly as contigious
+ * arrays, so not for some built-in attributes.
+ *
+ * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
+ * can't be used directly, and that is generally how Blender expects custom data to be allocated.
+ */
+struct AttributeInitMove : public AttributeInit {
+  void *data = nullptr;
+
+  AttributeInitMove(void *data) : AttributeInit(Type::MoveArray), data(data)
+  {
+  }
+};
+
+/**
  * This is the base class for specialized geometry component types.
  */
 class GeometryComponent {
@@ -102,6 +161,10 @@ class GeometryComponent {
   /* Return true when any attribute with this name exists, including built in attributes. */
   bool attribute_exists(const blender::StringRef attribute_name) const;
 
+  /* Return the data type and domain of an attribute with the given name if it exists. */
+  std::optional<AttributeMetaData> attribute_get_meta_data(
+      const blender::StringRef attribute_name) const;
+
   /* Returns true when the geometry component supports this attribute domain. */
   bool attribute_domain_supported(const AttributeDomain domain) const;
   /* Can only be used with supported domain types. */
@@ -133,11 +196,13 @@ class GeometryComponent {
   /* Returns true when the attribute has been created. */
   bool attribute_try_create(const blender::StringRef attribute_name,
                             const AttributeDomain domain,
-                            const CustomDataType data_type);
+                            const CustomDataType data_type,
+                            const AttributeInit &initializer);
 
   /* Try to create the builtin attribute with the given name. No data type or domain has to be
    * provided, because those are fixed for builtin attributes. */
-  bool attribute_try_create_builtin(const blender::StringRef attribute_name);
+  bool attribute_try_create_builtin(const blender::StringRef attribute_name,
+                                    const AttributeInit &initializer);
 
   blender::Set<std::string> attribute_names() const;
   bool attribute_foreach(const AttributeForeachCallback callback) const;
@@ -157,6 +222,12 @@ class GeometryComponent {
    * requested domain. */
   std::unique_ptr<blender::fn::GVArray> attribute_try_get_for_read(
       const blender::StringRef attribute_name, const AttributeDomain domain) const;
+
+  /* Get a virtual array to read data of an attribute with the given data type. The domain is
+   * left unchanged. Returns null when the attribute does not exist or cannot be converted to the
+   * requested data type. */
+  blender::bke::ReadAttributeLookup attribute_try_get_for_read(
+      const blender::StringRef attribute_name, const CustomDataType data_type) const;
 
   /* Get a virtual array to read the data of an attribute. If that is not possible, the returned
    * virtual array will contain a default value. This never returns null. */
