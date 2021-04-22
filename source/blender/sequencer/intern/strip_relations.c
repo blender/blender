@@ -114,7 +114,6 @@ static void sequence_invalidate_cache(Scene *scene,
   Editing *ed = scene->ed;
 
   if (invalidate_self) {
-    SEQ_relations_sequence_free_anim(seq);
     seq_cache_cleanup_sequence(scene, seq, seq, invalidate_types, false);
   }
 
