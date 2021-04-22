@@ -81,7 +81,7 @@ static bool pygpu_buffer_pyobj_as_shape(PyObject *shape_obj,
     }
   }
   else if (PySequence_Check(shape_obj)) {
-    Py_ssize_t shape_len = PySequence_Size(shape_obj);
+    shape_len = PySequence_Size(shape_obj);
     if (shape_len > MAX_DIMENSIONS) {
       PyErr_SetString(PyExc_AttributeError,
                       "too many dimensions, max is " STRINGIFY(MAX_DIMENSIONS));
@@ -111,8 +111,6 @@ static bool pygpu_buffer_pyobj_as_shape(PyObject *shape_obj,
         return false;
       }
     }
-
-    *r_shape_len = shape_len;
   }
   else {
     PyErr_Format(PyExc_TypeError,
@@ -398,7 +396,7 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
     return NULL;
   }
 
-  if (pygpu_buffer_pyobj_as_shape(length_ob, shape, &shape_len) == -1) {
+  if (!pygpu_buffer_pyobj_as_shape(length_ob, shape, &shape_len)) {
     return NULL;
   }
 
