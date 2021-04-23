@@ -2305,7 +2305,13 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
   scene->r.xsch = se->orig_width;
   scene->r.ysch = se->orig_height;
 
+  active_seq->strip->transform->scale_x = active_seq->strip->transform->scale_y = 1.0f;
+  active_seq->strip->transform->xofs = active_seq->strip->transform->yofs = 0.0f;
+
+  SEQ_relations_invalidate_cache_preprocessed(scene, active_seq);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
   return OPERATOR_FINISHED;
 }
 
