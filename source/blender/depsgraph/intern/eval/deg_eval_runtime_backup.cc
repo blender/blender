@@ -33,7 +33,7 @@ namespace blender::deg {
 
 RuntimeBackup::RuntimeBackup(const Depsgraph *depsgraph)
     : have_backup(false),
-      id_data({.py_instance = nullptr}),
+      id_data({nullptr}),
       animation_backup(depsgraph),
       scene_backup(depsgraph),
       sound_backup(depsgraph),
