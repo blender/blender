@@ -457,7 +457,8 @@ template<size_t i0, size_t i1, size_t i2, size_t i3>
 __forceinline const ssei shuffle(const ssei &a, const ssei &b)
 {
 #  ifdef __KERNEL_NEON__
-  int32x4_t result = shuffle_neon<int32x4_t, i0, i1, i2, i3>(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b));
+  int32x4_t result = shuffle_neon<int32x4_t, i0, i1, i2, i3>(vreinterpretq_s32_m128i(a),
+                                                             vreinterpretq_s32_m128i(b));
   return vreinterpretq_m128i_s32(result);
 #  else
   return _mm_castps_si128(

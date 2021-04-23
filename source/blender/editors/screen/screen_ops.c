@@ -4219,7 +4219,7 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
     uiItemS(layout);
     uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
     uiItemS(layout);
-   screen_area_menu_items(area, layout);
+    screen_area_menu_items(area, layout);
   }
 }
 
