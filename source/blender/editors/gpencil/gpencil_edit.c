@@ -3815,12 +3815,12 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
             }
 
             changed = true;
-            /* If not multi-edit, exit loop. */
-            if (!is_multiedit) {
-              break;
-            }
           }
         }
+      }
+      /* If not multi-edit, exit loop. */
+      if (!is_multiedit) {
+        break;
       }
     }
   }
