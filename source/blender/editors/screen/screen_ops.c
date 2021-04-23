@@ -1387,6 +1387,58 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Area Close Operator
+ *
+ * Close selected area, replace by expanding a neighbor
+ * \{ */
+
+/* operator callback */
+static int area_close_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+  ScrArea *area = CTX_wm_area(C);
+  if ((area != NULL) && screen_area_close(C, CTX_wm_screen(C), area)) {
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
+}
+
+static bool area_close_poll(bContext *C)
+{
+  if (!ED_operator_areaactive(C)) {
+    return false;
+  }
+
+  ScrArea *area = CTX_wm_area(C);
+
+  if (ED_area_is_global(area)) {
+    return false;
+  }
+
+  bScreen *screen = CTX_wm_screen(C);
+
+  /* Can this area join with ANY other area? */
+  LISTBASE_FOREACH (ScrArea *, ar, &screen->areabase) {
+    if (area_getorientation(ar, area) != -1) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static void SCREEN_OT_area_close(wmOperatorType *ot)
+{
+  ot->name = "Close Area";
+  ot->description = "Close selected area";
+  ot->idname = "SCREEN_OT_area_close";
+  ot->invoke = area_close_invoke;
+  ot->poll = area_close_poll;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Move Area Edge Operator
  * \{ */
 
@@ -3212,7 +3264,7 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 typedef struct sAreaJoinData {
   ScrArea *sa1;        /* first area to be considered */
   ScrArea *sa2;        /* second area to be considered */
-  void *draw_callback; /* call `ED_screen_draw_join_shape` */
+  void *draw_callback; /* call 'ED_screen_draw_join_highlight' */
 
 } sAreaJoinData;
 
@@ -3222,7 +3274,7 @@ static void area_join_draw_cb(const struct wmWindow *UNUSED(win), void *userdata
 
   sAreaJoinData *sd = op->customdata;
   if (sd->sa1 && sd->sa2) {
-    ED_screen_draw_join_shape(sd->sa1, sd->sa2);
+    ED_screen_draw_join_highlight(sd->sa1, sd->sa2);
   }
 }
 
@@ -4069,6 +4121,69 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 /** \name Region Context Menu Operator (Header/Footer/Navbar)
  * \{ */
 
+static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
+{
+  if (ED_area_is_global(area)) {
+    return;
+  }
+
+  PointerRNA ptr;
+
+  /* Mouse position as if in middle of area. */
+  const int loc[2] = {BLI_rcti_cent_x(&area->totrct), BLI_rcti_cent_y(&area->totrct)};
+
+  /* Vertical Split */
+  uiItemFullO(layout,
+              "SCREEN_OT_area_split",
+              IFACE_("Vertical Split"),
+              ICON_NONE,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &ptr);
+
+  RNA_int_set_array(&ptr, "cursor", loc);
+  RNA_enum_set(&ptr, "direction", 'v');
+
+  /* Horizontal Split */
+  uiItemFullO(layout,
+              "SCREEN_OT_area_split",
+              IFACE_("Horizontal Split"),
+              ICON_NONE,
+              NULL,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              &ptr);
+
+  RNA_int_set_array(&ptr, "cursor", &loc[0]);
+  RNA_enum_set(&ptr, "direction", 'h');
+
+  uiItemS(layout);
+
+  if (area->spacetype != SPACE_FILE) {
+    uiItemO(layout,
+            area->full ? IFACE_("Restore Areas") : IFACE_("Maximize Area"),
+            ICON_NONE,
+            "SCREEN_OT_screen_full_area");
+
+    if (!area->full) {
+      uiItemFullO(layout,
+                  "SCREEN_OT_screen_full_area",
+                  IFACE_("Full Screen Area"),
+                  ICON_NONE,
+                  NULL,
+                  WM_OP_INVOKE_DEFAULT,
+                  0,
+                  &ptr);
+      RNA_boolean_set(&ptr, "use_hide_panels", true);
+    }
+  }
+
+  uiItemO(layout, NULL, ICON_NONE, "SCREEN_OT_area_dupli");
+  uiItemS(layout);
+  uiItemO(layout, NULL, ICON_NONE, "SCREEN_OT_area_close");
+}
+
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
   ScrArea *area = CTX_wm_area(C);
@@ -4102,17 +4217,9 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 
   if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
     uiItemS(layout);
-
     uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
-  }
-
-  /* File browser should be fullscreen all the time, top-bar should
-   * never be. But other regions can be maximized/restored. */
-  if (!ELEM(area->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
     uiItemS(layout);
-
-    const char *but_str = area->full ? IFACE_("Tile Area") : IFACE_("Maximize Area");
-    uiItemO(layout, but_str, ICON_NONE, "SCREEN_OT_screen_full_area");
+   screen_area_menu_items(area, layout);
   }
 }
 
@@ -4134,14 +4241,8 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 
   uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
 
-  /* File browser should be fullscreen all the time, top-bar should
-   * never be. But other regions can be maximized/restored... */
-  if (!ELEM(area->spacetype, SPACE_FILE, SPACE_TOPBAR)) {
-    uiItemS(layout);
-
-    const char *but_str = area->full ? IFACE_("Tile Area") : IFACE_("Maximize Area");
-    uiItemO(layout, but_str, ICON_NONE, "SCREEN_OT_screen_full_area");
-  }
+  uiItemS(layout);
+  screen_area_menu_items(area, layout);
 }
 
 void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
@@ -5461,6 +5562,7 @@ void ED_operatortypes_screen(void)
   WM_operatortype_append(SCREEN_OT_area_move);
   WM_operatortype_append(SCREEN_OT_area_split);
   WM_operatortype_append(SCREEN_OT_area_join);
+  WM_operatortype_append(SCREEN_OT_area_close);
   WM_operatortype_append(SCREEN_OT_area_options);
   WM_operatortype_append(SCREEN_OT_area_dupli);
   WM_operatortype_append(SCREEN_OT_area_swap);
