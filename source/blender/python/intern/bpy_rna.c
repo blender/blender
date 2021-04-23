@@ -4178,6 +4178,10 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
     iterprop = RNA_struct_iterator_property(ptr->type);
 
     RNA_PROP_BEGIN (ptr, itemptr, iterprop) {
+      /* Custom-properties are exposed using `__getitem__`, exclude from `__dir__`. */
+      if (RNA_property_is_idprop(itemptr.data)) {
+        continue;
+      }
       nameptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
 
       if (nameptr) {
