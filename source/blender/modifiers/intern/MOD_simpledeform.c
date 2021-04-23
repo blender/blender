@@ -21,9 +21,9 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
+#include "BLI_utildefines.h"
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
@@ -67,8 +67,8 @@ ALIGN_STRUCT struct DeformUserData {
   float smd_factor;
   float smd_limit[2];
   float (*vertexCos)[3];
-  SpaceTransform *transf;
-  MDeformVert *dvert;
+  const SpaceTransform *transf;
+  const MDeformVert *dvert;
 };
 
 /* Re-maps the indices for X Y Z by shifting them up and wrapping, such that
@@ -221,8 +221,9 @@ static void simple_helper(void *__restrict userdata,
                           const int iter,
                           const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  struct DeformUserData *curr_deform_data = userdata;
-  float weight = BKE_defvert_array_find_weight_safe(curr_deform_data->dvert, iter, curr_deform_data->vgroup);
+  const struct DeformUserData *curr_deform_data = userdata;
+  float weight = BKE_defvert_array_find_weight_safe(
+      curr_deform_data->dvert, iter, curr_deform_data->vgroup);
   const uint *axis_map = axis_map_table[(curr_deform_data->mode != MOD_SIMPLEDEFORM_MODE_BEND) ?
                                             curr_deform_data->deform_axis :
                                             2];
@@ -289,7 +290,8 @@ static void simple_helper(void *__restrict userdata,
     copy_v3_v3_unmap(co, co_remap, axis_map);
 
     /* Use vertex weight has coef of linear interpolation */
-    interp_v3_v3v3(curr_deform_data->vertexCos[iter], curr_deform_data->vertexCos[iter], co, weight);
+    interp_v3_v3v3(
+        curr_deform_data->vertexCos[iter], curr_deform_data->vertexCos[iter], co, weight);
 
     if (curr_deform_data->transf) {
       BLI_space_transform_invert(curr_deform_data->transf, curr_deform_data->vertexCos[iter]);
@@ -398,23 +400,25 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   MOD_get_vgroup(ob, mesh, smd->vgroup_name, &dvert, &vgroup);
   const bool invert_vgroup = (smd->flag & MOD_SIMPLEDEFORM_FLAG_INVERT_VGROUP) != 0;
 
-  // build our data
-  struct DeformUserData deform_pool_data = {.mode = smd->mode,
-                                            .smd_factor = smd_factor,
-                                            .deform_axis = deform_axis,
-                                            .transf = transf,
-                                            .vertexCos = vertexCos,
-                                            .invert_vgroup = invert_vgroup,
-                                            .lock_axis = lock_axis,
-                                            .vgroup = vgroup,
-                                            .smd_limit[0] = smd_limit[0],
-                                            .smd_limit[1] = smd_limit[1],
-                                            .dvert = dvert,
-                                            .limit_axis = limit_axis};
+  /* Build our data. */
+  const struct DeformUserData deform_pool_data = {
+      .mode = smd->mode,
+      .smd_factor = smd_factor,
+      .deform_axis = deform_axis,
+      .transf = transf,
+      .vertexCos = vertexCos,
+      .invert_vgroup = invert_vgroup,
+      .lock_axis = lock_axis,
+      .vgroup = vgroup,
+      .smd_limit[0] = smd_limit[0],
+      .smd_limit[1] = smd_limit[1],
+      .dvert = dvert,
+      .limit_axis = limit_axis,
+  };
   /* Do deformation. */
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  BLI_task_parallel_range(0, numVerts, &deform_pool_data, simple_helper, &settings);
+  BLI_task_parallel_range(0, numVerts, (void *)&deform_pool_data, simple_helper, &settings);
 }
 
 /* SimpleDeform */
