@@ -303,6 +303,7 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain,
 /* Can be called with both old_collection and new_collection being NULL,
  * this means we have to check whole Main database then. */
 static void libblock_remap_data_postprocess_collection_update(Main *bmain,
+                                                              Collection *owner_collection,
                                                               Collection *UNUSED(old_collection),
                                                               Collection *new_collection)
 {
@@ -311,7 +312,7 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain,
      * and BKE_main_collection_sync_remap() does not tolerate any of those, so for now always check
      * whole existing collections for NULL pointers.
      * I'd consider optimizing that whole collection remapping process a TODO for later. */
-    BKE_collections_child_remove_nulls(bmain, NULL /*old_collection*/);
+    BKE_collections_child_remove_nulls(bmain, owner_collection, NULL /*old_collection*/);
   }
   else {
     /* Temp safe fix, but a "tad" brute force... We should probably be able to use parents from
@@ -523,7 +524,7 @@ void BKE_libblock_remap_locked(Main *bmain, void *old_idv, void *new_idv, const 
       break;
     case ID_GR:
       libblock_remap_data_postprocess_collection_update(
-          bmain, (Collection *)old_id, (Collection *)new_id);
+          bmain, NULL, (Collection *)old_id, (Collection *)new_id);
       break;
     case ID_ME:
     case ID_CU:
@@ -628,6 +629,12 @@ void BKE_libblock_relink_ex(
   switch (GS(id->name)) {
     case ID_SCE:
     case ID_GR: {
+      /* Note: here we know which collection we have affected, so at lest for NULL children
+       * detection we can only process that one.
+       * This is also a required fix in case `id` would not be in Main anymore, which can happen
+       * e.g. when called from `id_delete`. */
+      Collection *owner_collection = (GS(id->name) == ID_GR) ? (Collection *)id :
+                                                               ((Scene *)id)->master_collection;
       if (old_id) {
         switch (GS(old_id->name)) {
           case ID_OB:
@@ -636,7 +643,7 @@ void BKE_libblock_relink_ex(
             break;
           case ID_GR:
             libblock_remap_data_postprocess_collection_update(
-                bmain, (Collection *)old_id, (Collection *)new_id);
+                bmain, owner_collection, (Collection *)old_id, (Collection *)new_id);
             break;
           default:
             break;
@@ -644,7 +651,7 @@ void BKE_libblock_relink_ex(
       }
       else {
         /* No choice but to check whole objects/collections. */
-        libblock_remap_data_postprocess_collection_update(bmain, NULL, NULL);
+        libblock_remap_data_postprocess_collection_update(bmain, owner_collection, NULL, NULL);
         libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
       }
       break;

@@ -1302,41 +1302,50 @@ static void collection_missing_parents_remove(Collection *collection)
  *
  * \note caller must ensure #BKE_main_collection_sync_remap() is called afterwards!
  *
- * \param collection: may be \a NULL,
+ * \param parent_collection: The collection owning the pointers that were remapped. May be \a NULL,
+ * in which case whole \a bmain database of collections is checked.
+ * \param child_collection: The collection that was remapped to another pointer. May be \a NULL,
  * in which case whole \a bmain database of collections is checked.
  */
-void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
+void BKE_collections_child_remove_nulls(Main *bmain,
+                                        Collection *parent_collection,
+                                        Collection *child_collection)
 {
-  if (collection == NULL) {
-    /* We need to do the checks in two steps when more than one collection may be involved,
-     * otherwise we can miss some cases...
-     * Also, master collections are not in bmain, so we also need to loop over scenes.
-     */
-    for (collection = bmain->collections.first; collection != NULL;
-         collection = collection->id.next) {
-      collection_null_children_remove(collection);
+  if (child_collection == NULL) {
+    if (parent_collection != NULL) {
+      collection_null_children_remove(parent_collection);
     }
-    for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
-      collection_null_children_remove(scene->master_collection);
+    else {
+      /* We need to do the checks in two steps when more than one collection may be involved,
+       * otherwise we can miss some cases...
+       * Also, master collections are not in bmain, so we also need to loop over scenes.
+       */
+      for (child_collection = bmain->collections.first; child_collection != NULL;
+           child_collection = child_collection->id.next) {
+        collection_null_children_remove(child_collection);
+      }
+      for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+        collection_null_children_remove(scene->master_collection);
+      }
     }
 
-    for (collection = bmain->collections.first; collection != NULL;
-         collection = collection->id.next) {
-      collection_missing_parents_remove(collection);
+    for (child_collection = bmain->collections.first; child_collection != NULL;
+         child_collection = child_collection->id.next) {
+      collection_missing_parents_remove(child_collection);
     }
     for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
       collection_missing_parents_remove(scene->master_collection);
     }
   }
   else {
-    for (CollectionParent *parent = collection->parents.first, *parent_next; parent;
+    for (CollectionParent *parent = child_collection->parents.first, *parent_next; parent;
          parent = parent_next) {
       parent_next = parent->next;
 
       collection_null_children_remove(parent->collection);
 
-      if (!collection_find_child(parent->collection, collection)) {
-        BLI_freelinkN(&collection->parents, parent);
+      if (!collection_find_child(parent->collection, child_collection)) {
+        BLI_freelinkN(&child_collection->parents, parent);
       }
     }
   }
