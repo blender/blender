@@ -94,6 +94,7 @@ class OutputAttribute {
   SaveFn save_;
   std::optional<fn::GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
+  bool save_has_been_called_ = false;
 
  public:
   OutputAttribute() = default;
@@ -108,6 +109,10 @@ class OutputAttribute {
         ignore_old_values_(ignore_old_values)
   {
   }
+
+  OutputAttribute(OutputAttribute &&other) = default;
+
+  ~OutputAttribute();
 
   operator bool() const
   {

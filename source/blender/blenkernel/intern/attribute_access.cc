@@ -184,11 +184,21 @@ AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
 
 void OutputAttribute::save()
 {
+  save_has_been_called_ = true;
   if (optional_span_varray_.has_value()) {
     optional_span_varray_->save();
   }
   if (save_) {
     save_(*this);
+  }
+}
+
+OutputAttribute::~OutputAttribute()
+{
+  if (!save_has_been_called_) {
+    if (varray_) {
+      std::cout << "Warning: Call `save()` to make sure that changes persist in all cases.\n";
+    }
   }
 }
 
