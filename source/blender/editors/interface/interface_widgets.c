@@ -2420,7 +2420,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
   }
 
   if (!no_text_padding) {
-    const int text_padding = (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
+    const int text_padding = round_fl_to_int((UI_TEXT_MARGIN_X * U.widget_unit) /
+                                             but->block->aspect);
     if (but->editstr) {
       rect->xmin += text_padding;
     }
