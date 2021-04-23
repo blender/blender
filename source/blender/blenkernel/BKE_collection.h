@@ -112,7 +112,9 @@ bool BKE_scene_collections_object_remove(struct Main *bmain,
                                          struct Object *object,
                                          const bool free_us);
 void BKE_collections_object_remove_nulls(struct Main *bmain);
-void BKE_collections_child_remove_nulls(struct Main *bmain, struct Collection *old_collection);
+void BKE_collections_child_remove_nulls(struct Main *bmain,
+                                        struct Collection *parent_collection,
+                                        struct Collection *child_collection);
 
 /* Dependencies. */
 
