@@ -1519,33 +1519,30 @@ static void tc_mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tc
   }
 }
 
-static void tc_mesh_customdatacorrect_apply(TransInfo *t, bool is_final)
+static void tc_mesh_customdatacorrect_apply(TransDataContainer *tc, bool is_final)
 {
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (!tc->custom.type.data) {
-      continue;
+  if (!tc->custom.type.data) {
+    return;
+  }
+  struct TransCustomDataLayer *tcld = tc->custom.type.data;
+  const bool use_merge_group = tcld->use_merge_group;
+
+  struct TransCustomDataMergeGroup *merge_data = tcld->merge_group.data;
+  TransData *tob = tc->data;
+  for (int i = tc->data_len; i--; tob++) {
+    tc_mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)tob, merge_data, is_final);
+
+    if (use_merge_group) {
+      merge_data++;
     }
-    struct TransCustomDataLayer *tcld = tc->custom.type.data;
-    const bool use_merge_group = tcld->use_merge_group;
+  }
 
-    struct TransCustomDataMergeGroup *merge_data = tcld->merge_group.data;
-    TransData *tob = tc->data;
-    for (int i = tc->data_len; i--; tob++) {
-      tc_mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)tob, merge_data, is_final);
+  TransDataMirror *td_mirror = tc->data_mirror;
+  for (int i = tc->data_mirror_len; i--; td_mirror++) {
+    tc_mesh_customdatacorrect_apply_vert(tcld, (TransDataBasic *)td_mirror, merge_data, is_final);
 
-      if (use_merge_group) {
-        merge_data++;
-      }
-    }
-
-    TransDataMirror *td_mirror = tc->data_mirror;
-    for (int i = tc->data_mirror_len; i--; td_mirror++) {
-      tc_mesh_customdatacorrect_apply_vert(
-          tcld, (TransDataBasic *)td_mirror, merge_data, is_final);
-
-      if (use_merge_group) {
-        merge_data++;
-      }
+    if (use_merge_group) {
+      merge_data++;
     }
   }
 }
@@ -1585,38 +1582,36 @@ static void tc_mesh_customdatacorrect_restore(struct TransInfo *t)
 /** \name Recalc Mesh Data
  * \{ */
 
-static void tc_mesh_transdata_mirror_apply(TransInfo *t)
+static void tc_mesh_transdata_mirror_apply(TransDataContainer *tc)
 {
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    if (tc->use_mirror_axis_any) {
-      int i;
-      TransData *td;
-      for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-        if (td->flag & (TD_MIRROR_EDGE_X | TD_MIRROR_EDGE_Y | TD_MIRROR_EDGE_Z)) {
-          if (td->flag & TD_MIRROR_EDGE_X) {
-            td->loc[0] = 0.0f;
-          }
-          if (td->flag & TD_MIRROR_EDGE_Y) {
-            td->loc[1] = 0.0f;
-          }
-          if (td->flag & TD_MIRROR_EDGE_Z) {
-            td->loc[2] = 0.0f;
-          }
+  if (tc->use_mirror_axis_any) {
+    int i;
+    TransData *td;
+    for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+      if (td->flag & (TD_MIRROR_EDGE_X | TD_MIRROR_EDGE_Y | TD_MIRROR_EDGE_Z)) {
+        if (td->flag & TD_MIRROR_EDGE_X) {
+          td->loc[0] = 0.0f;
+        }
+        if (td->flag & TD_MIRROR_EDGE_Y) {
+          td->loc[1] = 0.0f;
+        }
+        if (td->flag & TD_MIRROR_EDGE_Z) {
+          td->loc[2] = 0.0f;
         }
       }
+    }
 
-      TransDataMirror *td_mirror = tc->data_mirror;
-      for (i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
-        copy_v3_v3(td_mirror->loc, td_mirror->loc_src);
-        if (td_mirror->flag & TD_MIRROR_X) {
-          td_mirror->loc[0] *= -1;
-        }
-        if (td_mirror->flag & TD_MIRROR_Y) {
-          td_mirror->loc[1] *= -1;
-        }
-        if (td_mirror->flag & TD_MIRROR_Z) {
-          td_mirror->loc[2] *= -1;
-        }
+    TransDataMirror *td_mirror = tc->data_mirror;
+    for (i = 0; i < tc->data_mirror_len; i++, td_mirror++) {
+      copy_v3_v3(td_mirror->loc, td_mirror->loc_src);
+      if (td_mirror->flag & TD_MIRROR_X) {
+        td_mirror->loc[0] *= -1;
+      }
+      if (td_mirror->flag & TD_MIRROR_Y) {
+        td_mirror->loc[1] *= -1;
+      }
+      if (td_mirror->flag & TD_MIRROR_Z) {
+        td_mirror->loc[2] *= -1;
       }
     }
   }
@@ -1625,17 +1620,21 @@ static void tc_mesh_transdata_mirror_apply(TransInfo *t)
 void recalcData_mesh(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
-  /* mirror modifier clipping? */
+  /* Apply corrections. */
   if (!is_canceling) {
-    /* apply clipping after so we never project past the clip plane T25423. */
     applyProject(t);
-    transform_convert_clip_mirror_modifier_apply(t);
 
-    if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
-      tc_mesh_transdata_mirror_apply(t);
+    bool do_mirror = !(t->flag & T_NO_MIRROR) && !(t->options & CTX_NO_MIRROR);
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      /* Apply clipping after so we never project past the clip plane T25423. */
+      transform_convert_clip_mirror_modifier_apply(tc);
+
+      if (do_mirror) {
+        tc_mesh_transdata_mirror_apply(tc);
+      }
+
+      tc_mesh_customdatacorrect_apply(tc, false);
     }
-
-    tc_mesh_customdatacorrect_apply(t, false);
   }
   else {
     tc_mesh_customdatacorrect_restore(t);
@@ -1662,7 +1661,9 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
   if (!is_canceling && ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
     /* NOTE(joeedh): Handle multi-res re-projection,
      * done on transform completion since it's really slow. */
-    tc_mesh_customdatacorrect_apply(t, true);
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      tc_mesh_customdatacorrect_apply(tc, true);
+    }
   }
 
   if (use_automerge) {

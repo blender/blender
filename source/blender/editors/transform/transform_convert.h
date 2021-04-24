@@ -62,7 +62,7 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic);
 struct TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt);
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe);
 bool FrameOnMouseSide(char side, float frame, float cframe);
-void transform_convert_clip_mirror_modifier_apply(TransInfo *t);
+void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc);
 void animrecord_check_state(TransInfo *t, struct Object *ob);
 
 /* transform_convert_action.c */
