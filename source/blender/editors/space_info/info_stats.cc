@@ -18,8 +18,8 @@
  * \ingroup spinfo
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -69,7 +69,7 @@
 
 #define MAX_INFO_NUM_LEN 16
 
-typedef struct SceneStats {
+struct SceneStats {
   uint64_t totvert, totvertsel, totvertsculpt;
   uint64_t totedge, totedgesel;
   uint64_t totface, totfacesel, totfacesculpt;
@@ -78,9 +78,9 @@ typedef struct SceneStats {
   uint64_t totlamp, totlampsel;
   uint64_t tottri;
   uint64_t totgplayer, totgpframe, totgpstroke, totgppoint;
-} SceneStats;
+};
 
-typedef struct SceneStatsFmt {
+struct SceneStatsFmt {
   /* Totals */
   char totvert[MAX_INFO_NUM_LEN], totvertsel[MAX_INFO_NUM_LEN], totvertsculpt[MAX_INFO_NUM_LEN];
   char totface[MAX_INFO_NUM_LEN], totfacesel[MAX_INFO_NUM_LEN];
@@ -91,16 +91,16 @@ typedef struct SceneStatsFmt {
   char tottri[MAX_INFO_NUM_LEN];
   char totgplayer[MAX_INFO_NUM_LEN], totgpframe[MAX_INFO_NUM_LEN];
   char totgpstroke[MAX_INFO_NUM_LEN], totgppoint[MAX_INFO_NUM_LEN];
-} SceneStatsFmt;
+};
 
 static bool stats_mesheval(Mesh *me_eval, bool is_selected, SceneStats *stats)
 {
-  if (me_eval == NULL) {
+  if (me_eval == nullptr) {
     return false;
   }
 
   int totvert, totedge, totface, totloop;
-  if (me_eval->runtime.subdiv_ccg != NULL) {
+  if (me_eval->runtime.subdiv_ccg != nullptr) {
     const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
     BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
   }
@@ -156,7 +156,7 @@ static void stats_object(Object *ob, SceneStats *stats, GSet *objects_gset)
     case OB_CURVE:
     case OB_FONT: {
       Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-      if ((me_eval != NULL) && !BLI_gset_add(objects_gset, me_eval)) {
+      if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, me_eval)) {
         break;
       }
 
@@ -232,10 +232,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */
-    bArmature *arm = obedit->data;
+    bArmature *arm = (bArmature *)obedit->data;
     EditBone *ebo;
 
-    for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    for (ebo = (EditBone *)arm->edbo->first; ebo; ebo = ebo->next) {
       stats->totbone++;
 
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
@@ -264,14 +264,14 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
-    Curve *cu = obedit->data;
+    Curve *cu = (Curve *)obedit->data;
     Nurb *nu;
     BezTriple *bezt;
     BPoint *bp;
     int a;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-    for (nu = nurbs->first; nu; nu = nu->next) {
+    for (nu = (Nurb *)nurbs->first; nu; nu = nu->next) {
       if (nu->type == CU_BEZIER) {
         bezt = nu->bezt;
         a = nu->pntsu;
@@ -304,10 +304,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_MBALL) {
     /* MetaBall Edit */
-    MetaBall *mball = obedit->data;
+    MetaBall *mball = (MetaBall *)obedit->data;
     MetaElem *ml;
 
-    for (ml = mball->editelems->first; ml; ml = ml->next) {
+    for (ml = (MetaElem *)mball->editelems->first; ml; ml = ml->next) {
       stats->totvert++;
       if (ml->flag & SELECT) {
         stats->totvertsel++;
@@ -316,7 +316,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
   }
   else if (obedit->type == OB_LATTICE) {
     /* Lattice Edit */
-    Lattice *lt = obedit->data;
+    Lattice *lt = (Lattice *)obedit->data;
     Lattice *editlatt = lt->editlatt->latt;
     BPoint *bp;
     int a;
@@ -337,10 +337,10 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 static void stats_object_pose(Object *ob, SceneStats *stats)
 {
   if (ob->pose) {
-    bArmature *arm = ob->data;
+    bArmature *arm = (bArmature *)ob->data;
     bPoseChannel *pchan;
 
-    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+    for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
       stats->totbone++;
       if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
         if (pchan->bone->layer & arm->layer) {
@@ -353,10 +353,10 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
 
 static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 {
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
-  const eObjectMode object_mode = ob->mode;
+  const eObjectMode object_mode = (eObjectMode)ob->mode;
   return ((object_mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
 }
 
@@ -420,7 +420,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
       stats_object(ob_iter, &stats, objects_gset);
     }
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
-    BLI_gset_free(objects_gset, NULL);
+    BLI_gset_free(objects_gset, nullptr);
   }
 
   if (ob && (ob->mode & OB_MODE_SCULPT)) {
@@ -430,7 +430,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
   }
 
   if (!view_layer->stats) {
-    view_layer->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
+    view_layer->stats = (SceneStats *)MEM_callocN(sizeof(SceneStats), "SceneStats");
   }
 
   *(view_layer->stats) = stats;
@@ -440,7 +440,7 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 {
   if (view_layer->stats) {
     MEM_freeN(view_layer->stats);
-    view_layer->stats = NULL;
+    view_layer->stats = nullptr;
   }
 }
 
@@ -452,7 +452,7 @@ static bool format_stats(Main *bmain,
   /* Create stats if they don't already exist. */
   if (!view_layer->stats) {
     /* Do not not access dependency graph if interface is marked as locked. */
-    wmWindowManager *wm = bmain->wm.first;
+    wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
     if (wm->is_interface_locked) {
       return false;
     }
@@ -501,7 +501,7 @@ static void get_stats_string(
 {
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   LayerCollection *layer_collection = view_layer->active_collection;
 
   if (object_mode == OB_MODE_OBJECT) {
@@ -660,9 +660,8 @@ const char *ED_info_statusbar_string(Main *bmain, Scene *scene, ViewLayer *view_
 
 const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
-  const eUserpref_StatusBar_Flag statistics_status_bar_flag = STATUSBAR_SHOW_STATS |
-                                                              STATUSBAR_SHOW_MEMORY |
-                                                              STATUSBAR_SHOW_VERSION;
+  const eUserpref_StatusBar_Flag statistics_status_bar_flag = (eUserpref_StatusBar_Flag)(
+      STATUSBAR_SHOW_STATS | STATUSBAR_SHOW_MEMORY | STATUSBAR_SHOW_VERSION);
 
   return info_statusbar_string(bmain, scene, view_layer, statistics_status_bar_flag);
 }
@@ -692,7 +691,7 @@ void ED_info_draw_stats(
 
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
-  eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
+  eObjectMode object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
   const int font_id = BLF_default();
 
   UI_FontThemeColor(font_id, TH_TEXT_HI);
@@ -751,7 +750,7 @@ void ED_info_draw_stats(
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
     }
     else if (obedit->type == OB_ARMATURE) {
       stats_row(col1, labels[JOINTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
@@ -765,15 +764,15 @@ void ED_info_draw_stats(
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
   else if ((ob) && (ob->type == OB_GPENCIL)) {
-    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, NULL, y, height);
-    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, NULL, y, height);
-    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, NULL, y, height);
-    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, NULL, y, height);
+    stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
+    stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
+    stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);
+    stats_row(col1, labels[POINTS], col2, stats_fmt.totgppoint, nullptr, y, height);
   }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, NULL, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+      stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, nullptr, y, height);
+      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
     }
     else {
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsculpt, stats_fmt.totvert, y, height);
@@ -781,10 +780,10 @@ void ED_info_draw_stats(
     }
   }
   else {
-    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, NULL, y, height);
-    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, NULL, y, height);
-    stats_row(col1, labels[FACES], col2, stats_fmt.totface, NULL, y, height);
-    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, NULL, y, height);
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
+    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
+    stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
+    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
   }
 
   BLF_disable(font_id, BLF_SHADOW);

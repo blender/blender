@@ -21,8 +21,8 @@
  * \ingroup spinfo
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -54,7 +54,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "info_intern.h"
+#include "info_intern.hh"
 
 /********************* pack blend file libraries operator *********************/
 
@@ -159,7 +159,7 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   Image *ima;
 
   /* First check for dirty images. */
-  for (ima = bmain->images.first; ima; ima = ima->id.next) {
+  for (ima = (Image *)bmain->images.first; ima; ima = (Image *)ima->id.next) {
     if (BKE_image_is_dirty(ima)) {
       break;
     }
@@ -210,7 +210,7 @@ static const EnumPropertyItem unpack_all_method_items[] = {
     {PF_KEEP, "KEEP", 0, "Disable auto-pack, keep all packed files", ""},
     {PF_REMOVE, "REMOVE", 0, "Remove Pack", ""},
     /* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int unpack_all_exec(bContext *C, wmOperator *op)
@@ -219,7 +219,8 @@ static int unpack_all_exec(bContext *C, wmOperator *op)
   int method = RNA_enum_get(op->ptr, "method");
 
   if (method != PF_KEEP) {
-    BKE_packedfile_unpack_all(bmain, op->reports, method); /* XXX PF_ASK can't work here */
+    BKE_packedfile_unpack_all(
+        bmain, op->reports, (enum ePF_FileStatus)method); /* XXX PF_ASK can't work here */
   }
   G.fileflags &= ~G_FILE_AUTOPACK;
 
@@ -299,7 +300,7 @@ static const EnumPropertyItem unpack_item_method_items[] = {
      "Write file to original location (overwrite existing file)",
      ""},
     /* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int unpack_item_exec(bContext *C, wmOperator *op)
@@ -313,13 +314,14 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "id_name", idname);
   id = BKE_libblock_find_name(bmain, type, idname);
 
-  if (id == NULL) {
+  if (id == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "No packed file");
     return OPERATOR_CANCELLED;
   }
 
   if (method != PF_KEEP) {
-    BKE_packedfile_id_unpack(bmain, id, op->reports, method); /* XXX PF_ASK can't work here */
+    BKE_packedfile_id_unpack(
+        bmain, id, op->reports, (enum ePF_FileStatus)method); /* XXX PF_ASK can't work here */
   }
 
   G.fileflags &= ~G_FILE_AUTOPACK;
@@ -336,7 +338,8 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
   layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemsFullEnumO(layout, op->type->idname, "method", op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
+  uiItemsFullEnumO(
+      layout, op->type->idname, "method", (IDProperty *)op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
 
   UI_popup_menu_end(C, pup);
 
@@ -361,7 +364,7 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
   RNA_def_string(
-      ot->srna, "id_name", NULL, BKE_ST_MAXNAME, "ID Name", "Name of ID block to unpack");
+      ot->srna, "id_name", nullptr, BKE_ST_MAXNAME, "ID Name", "Name of ID block to unpack");
   RNA_def_int(ot->srna,
               "id_type",
               ID_IM,
@@ -387,7 +390,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
   BKE_bpath_relative_convert(bmain, BKE_main_blendfile_path(bmain), op->reports);
 
   /* redraw everything so any changed paths register */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -420,7 +423,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
   BKE_bpath_absolute_convert(bmain, BKE_main_blendfile_path(bmain), op->reports);
 
   /* redraw everything so any changed paths register */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -470,7 +473,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", NULL, 0);
+  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0);
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
   BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);
@@ -542,8 +545,8 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   int send_note = 0;
 
   /* escape if not our timer */
-  if ((reports->reporttimer == NULL) || (reports->reporttimer != event->customdata) ||
-      ((report = BKE_reports_last_displayable(reports)) == NULL)
+  if ((reports->reporttimer == nullptr) || (reports->reporttimer != event->customdata) ||
+      ((report = BKE_reports_last_displayable(reports)) == nullptr)
       /* may have been deleted */
   ) {
     return OPERATOR_PASS_THROUGH;
@@ -555,10 +558,10 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 
   /* clear the report display after timeout */
   if ((float)reports->reporttimer->duration > timeout) {
-    WM_event_remove_timer(wm, NULL, reports->reporttimer);
-    reports->reporttimer = NULL;
+    WM_event_remove_timer(wm, nullptr, reports->reporttimer);
+    reports->reporttimer = nullptr;
 
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
 
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -598,7 +601,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
   }
 
   if (send_note) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
   }
 
   return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);

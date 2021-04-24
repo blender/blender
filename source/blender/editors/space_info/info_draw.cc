@@ -21,8 +21,8 @@
  * \ingroup spinfo
  */
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -35,7 +35,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "info_intern.h"
+#include "info_intern.hh"
 #include "textview.h"
 
 static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
@@ -45,7 +45,7 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
                                                        uchar r_icon_fg[4],
                                                        uchar r_icon_bg[4])
 {
-  const Report *report = tvc->iter;
+  const Report *report = (const Report *)tvc->iter;
 
   /* Same text color no matter what type of report. */
   UI_GetThemeColor4ubv((report->flag & SELECT) ? TH_INFO_SELECTED_TEXT : TH_TEXT, fg);
@@ -71,16 +71,17 @@ static enum eTextViewContext_LineFlag report_line_data(TextViewContext *tvc,
     /* This theme color is RGB only, so set alpha. */
     r_icon_fg[3] = 255;
     UI_GetThemeColor4ubv(icon_bg_id, r_icon_bg);
-    return TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON | TVC_LINE_ICON_FG | TVC_LINE_ICON_BG;
+    return (enum eTextViewContext_LineFlag)(TVC_LINE_FG | TVC_LINE_BG | TVC_LINE_ICON |
+                                            TVC_LINE_ICON_FG | TVC_LINE_ICON_BG);
   }
 
-  return TVC_LINE_FG | TVC_LINE_BG;
+  return (enum eTextViewContext_LineFlag)(TVC_LINE_FG | TVC_LINE_BG);
 }
 
 /* reports! */
 static void report_textview_init__internal(TextViewContext *tvc)
 {
-  const Report *report = tvc->iter;
+  const Report *report = (const Report *)tvc->iter;
   const char *str = report->message;
   for (int i = tvc->iter_char_end - 1; i >= 0; i -= 1) {
     if (str[i] == '\n') {
@@ -93,17 +94,17 @@ static void report_textview_init__internal(TextViewContext *tvc)
 
 static int report_textview_skip__internal(TextViewContext *tvc)
 {
-  const SpaceInfo *sinfo = tvc->arg1;
+  const SpaceInfo *sinfo = (const SpaceInfo *)tvc->arg1;
   const int report_mask = info_report_mask(sinfo);
   while (tvc->iter && (((const Report *)tvc->iter)->type & report_mask) == 0) {
     tvc->iter = (void *)((Link *)tvc->iter)->prev;
   }
-  return (tvc->iter != NULL);
+  return (tvc->iter != nullptr);
 }
 
 static int report_textview_begin(TextViewContext *tvc)
 {
-  const ReportList *reports = tvc->arg2;
+  const ReportList *reports = (const ReportList *)tvc->arg2;
 
   tvc->sel_start = 0;
   tvc->sel_end = 0;
@@ -116,7 +117,7 @@ static int report_textview_begin(TextViewContext *tvc)
   tvc->iter_tmp = 0;
   if (tvc->iter && report_textview_skip__internal(tvc)) {
     /* init the newline iterator */
-    const Report *report = tvc->iter;
+    const Report *report = (const Report *)tvc->iter;
     tvc->iter_char_end = report->len;
     report_textview_init__internal(tvc);
 
@@ -134,14 +135,14 @@ static void report_textview_end(TextViewContext *UNUSED(tvc))
 static int report_textview_step(TextViewContext *tvc)
 {
   /* simple case, but no newline support */
-  const Report *report = tvc->iter;
+  const Report *report = (const Report *)tvc->iter;
 
   if (tvc->iter_char_begin <= 0) {
     tvc->iter = (void *)((Link *)tvc->iter)->prev;
     if (tvc->iter && report_textview_skip__internal(tvc)) {
       tvc->iter_tmp++;
 
-      report = tvc->iter;
+      report = (const Report *)tvc->iter;
       tvc->iter_char_end = report->len; /* reset start */
       report_textview_init__internal(tvc);
 
@@ -159,7 +160,7 @@ static int report_textview_step(TextViewContext *tvc)
 
 static void report_textview_line_get(TextViewContext *tvc, const char **r_line, int *r_len)
 {
-  const Report *report = tvc->iter;
+  const Report *report = (const Report *)tvc->iter;
   *r_line = report->message + tvc->iter_char_begin;
   *r_len = tvc->iter_char_end - tvc->iter_char_begin;
 }
@@ -200,7 +201,7 @@ static int info_textview_main__internal(const SpaceInfo *sinfo,
   tvc.step = report_textview_step;
   tvc.line_get = report_textview_line_get;
   tvc.line_data = report_line_data;
-  tvc.const_colors = NULL;
+  tvc.const_colors = nullptr;
 
   tvc.arg1 = sinfo;
   tvc.arg2 = reports;
@@ -225,21 +226,21 @@ void *info_text_pick(const SpaceInfo *sinfo,
                      const ReportList *reports,
                      int mouse_y)
 {
-  void *mval_pick_item = NULL;
+  void *mval_pick_item = nullptr;
   const int mval[2] = {0, mouse_y};
 
-  info_textview_main__internal(sinfo, region, reports, false, mval, &mval_pick_item, NULL);
+  info_textview_main__internal(sinfo, region, reports, false, mval, &mval_pick_item, nullptr);
   return (void *)mval_pick_item;
 }
 
 int info_textview_height(const SpaceInfo *sinfo, const ARegion *region, const ReportList *reports)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  return info_textview_main__internal(sinfo, region, reports, false, mval, NULL, NULL);
+  return info_textview_main__internal(sinfo, region, reports, false, mval, nullptr, nullptr);
 }
 
 void info_textview_main(const SpaceInfo *sinfo, const ARegion *region, const ReportList *reports)
 {
   const int mval[2] = {INT_MAX, INT_MAX};
-  info_textview_main__internal(sinfo, region, reports, true, mval, NULL, NULL);
+  info_textview_main__internal(sinfo, region, reports, true, mval, nullptr, nullptr);
 }
