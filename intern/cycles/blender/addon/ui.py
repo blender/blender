@@ -552,6 +552,7 @@ class CYCLES_RENDER_PT_light_paths_fast_gi(CyclesButtonsPanel, Panel):
 
         if world:
           light = world.light_settings
+          sub.prop(light, "ao_factor", text="AO Factor")
           layout.prop(light, "distance", text="AO Distance")
 
 
