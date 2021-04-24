@@ -48,8 +48,8 @@
  * \{ */
 
 static float *tc_mesh_skin_transdata_center(const struct TransIslandData *island_data,
-                                         const int island_index,
-                                         BMVert *eve)
+                                            const int island_index,
+                                            BMVert *eve)
 {
   if (island_data->center && island_index != -1) {
     return island_data->center[island_index];
@@ -58,10 +58,10 @@ static float *tc_mesh_skin_transdata_center(const struct TransIslandData *island
 }
 
 static void tc_mesh_skin_transdata_create(TransDataBasic *td,
-                                       BMEditMesh *em,
-                                       BMVert *eve,
-                                       const struct TransIslandData *island_data,
-                                       const int island_index)
+                                          BMEditMesh *em,
+                                          BMVert *eve,
+                                          const struct TransIslandData *island_data,
+                                          const int island_index)
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
   MVertSkin *vs = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MVERT_SKIN);
@@ -292,7 +292,7 @@ void recalcData_mesh_skin(TransInfo *t)
   bool is_canceling = t->state == TRANS_CANCEL;
   /* mirror modifier clipping? */
   if (!is_canceling) {
-    if ((t->flag & T_NO_MIRROR) == 0 && (t->options & CTX_NO_MIRROR) == 0) {
+    if (!(t->flag & T_NO_MIRROR)) {
       tc_mesh_skin_apply_to_mirror(t);
     }
   }

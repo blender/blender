@@ -88,12 +88,11 @@ typedef enum {
   CTX_TEXTURE_SPACE = (1 << 9),
 
   CTX_NO_PET = (1 << 10),
-  CTX_NO_MIRROR = (1 << 11),
-  CTX_AUTOCONFIRM = (1 << 12),
+  CTX_AUTOCONFIRM = (1 << 11),
   /** When transforming object's, adjust the object data so it stays in the same place. */
-  CTX_OBMODE_XFORM_OBDATA = (1 << 13),
+  CTX_OBMODE_XFORM_OBDATA = (1 << 12),
   /** Transform object parents without moving their children. */
-  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 14),
+  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 13),
 } eTContext;
 
 /** #TransInfo.flag */

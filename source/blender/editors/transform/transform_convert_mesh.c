@@ -1624,7 +1624,7 @@ void recalcData_mesh(TransInfo *t)
   if (!is_canceling) {
     applyProject(t);
 
-    bool do_mirror = !(t->flag & T_NO_MIRROR) && !(t->options & CTX_NO_MIRROR);
+    bool do_mirror = !(t->flag & T_NO_MIRROR);
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       /* Apply clipping after so we never project past the clip plane T25423. */
       transform_convert_clip_mirror_modifier_apply(tc);
