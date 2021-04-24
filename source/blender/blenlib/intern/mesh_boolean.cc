@@ -2684,12 +2684,6 @@ static IMesh raycast_patches_boolean(const IMesh &tm,
   return ans;
 }
 
-#  ifdef fast_triangulate
-/* This code uses Blenlib's BLI_polyfill_calc to do triangulation, and is therefore quite fast.
- * Unfortunately, it can product degenerate triangles that mesh_intersect will remove, leaving
- * the mesh non-PWN.
- */
-
 /**
  * Tessellate face f into triangles and return an array of `const Face *`
  * giving that triangulation. Intended to be used when f has > 4 vertices.
@@ -2697,8 +2691,12 @@ static IMesh raycast_patches_boolean(const IMesh &tm,
  * each edge in the output triangles either matches the original edge
  * for the (identical) edge of f, or else is -1. So diagonals added
  * for triangulation can later be identified by having #NO_INDEX for original.
+ *
+ * This code uses Blenlib's BLI_polyfill_calc to do triangulation, and is therefore quite fast.
+ * Unfortunately, it can product degenerate triangles that mesh_intersect will remove, leaving
+ * the mesh non-PWN.
  */
-static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
+static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 {
   /* Similar to loop body in BM_mesh_calc_tesselation. */
   int flen = f->size();
@@ -2751,7 +2749,7 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
 
   return ans;
 }
-#  else
+
 /**
  * Which CDT output edge index is for an edge between output verts
  * v1 and v2 (in either order)?
@@ -2775,6 +2773,13 @@ static int find_cdt_edge(const CDT_result<mpq_class> &cdt_out, int v1, int v2)
  * each edge in the output triangles either matches the original edge
  * for the (identical) edge of f, or else is -1. So diagonals added
  * for triangulation can later be identified by having #NO_INDEX for original.
+ *
+ * The method used is to use the CDT triangulation. Usually that triangulation
+ * will only use the existing vertices. However, if the face self-intersects
+ * then the CDT triangulation will include the intersection points.
+ * If this happens, we use the polyfill triangulator instead. We don't
+ * use the polyfill triangulator by default because it can create degenerate
+ * triangles (which we can handle but they'll create non-manifold meshes).
  */
 static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
 {
@@ -2816,9 +2821,18 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
     int i_v_out[3];
     const Vert *v[3];
     int eo[3];
+    bool needs_steiner = false;
     for (int i = 0; i < 3; ++i) {
       i_v_out[i] = cdt_out.face[t][i];
+      if (cdt_out.vert_orig[i_v_out[i]].size() == 0) {
+        needs_steiner = true;
+        break;
+      }
       v[i] = (*f)[cdt_out.vert_orig[i_v_out[i]][0]];
+    }
+    if (needs_steiner) {
+      /* Fall back on the polyfill triangulator. */
+      return polyfill_triangulate_poly(f, arena);
     }
     for (int i = 0; i < 3; ++i) {
       int e_out = find_cdt_edge(cdt_out, i_v_out[i], i_v_out[(i + 1) % 3]);
@@ -2842,7 +2856,6 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
   }
   return ans;
 }
-#  endif
 
 /**
  * Return an #IMesh that is a triangulation of a mesh with general
