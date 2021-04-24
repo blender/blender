@@ -1472,7 +1472,7 @@ void createTransData(bContext *C, TransInfo *t)
 /** \name Transform Data Recalc/Flush
  * \{ */
 
-void clipMirrorModifier(TransInfo *t)
+void transform_convert_clip_mirror_modifier_apply(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Object *ob = tc->obedit;

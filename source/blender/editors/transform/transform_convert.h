@@ -45,7 +45,7 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize);
 void clipUVData(TransInfo *t);
 
 /* transform_convert_mesh.c */
-void mesh_customdatacorrect_init(TransInfo *t);
+void transform_convert_mesh_customdatacorrect_init(TransInfo *t);
 
 /* transform_convert_sequencer.c */
 int transform_convert_sequencer_get_snap_bound(TransInfo *t);
@@ -62,7 +62,7 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic);
 struct TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTriple *bezt);
 char transform_convert_frame_side_dir_get(TransInfo *t, float cframe);
 bool FrameOnMouseSide(char side, float frame, float cframe);
-void clipMirrorModifier(TransInfo *t);
+void transform_convert_clip_mirror_modifier_apply(TransInfo *t);
 void animrecord_check_state(TransInfo *t, struct Object *ob);
 
 /* transform_convert_action.c */

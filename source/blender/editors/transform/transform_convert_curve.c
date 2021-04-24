@@ -441,7 +441,7 @@ void createTransCurveVerts(TransInfo *t)
 void recalcData_curve(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    clipMirrorModifier(t);
+    transform_convert_clip_mirror_modifier_apply(t);
     applyProject(t);
   }
 

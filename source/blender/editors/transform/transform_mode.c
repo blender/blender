@@ -1263,7 +1263,7 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
   if (t->data_type == TC_MESH_VERTS) {
     /* Init Custom Data correction.
      * Ideally this should be called when creating the TransData. */
-    mesh_customdatacorrect_init(t);
+    transform_convert_mesh_customdatacorrect_init(t);
   }
 
   /* TODO(germano): Some of these operations change the `t->mode`.
