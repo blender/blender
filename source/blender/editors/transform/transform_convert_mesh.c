@@ -727,10 +727,10 @@ void transform_convert_mesh_crazyspace_free(struct TransMeshDataCrazySpace *r_cr
 /** \name Edit Mesh Verts Transform Creation
  * \{ */
 
-static void transdata_center_get(const struct TransIslandData *island_data,
-                                 const int island_index,
-                                 const float iloc[3],
-                                 float r_center[3])
+static void tc_mesh_transdata_center_copy(const struct TransIslandData *island_data,
+                                          const int island_index,
+                                          const float iloc[3],
+                                          float r_center[3])
 {
   if (island_data->center && island_index != -1) {
     copy_v3_v3(r_center, island_data->center[island_index]);
@@ -769,7 +769,7 @@ static void VertsToTransData(TransInfo *t,
     no = eve->no;
   }
 
-  transdata_center_get(island_data, island_index, td->iloc, td->center);
+  tc_mesh_transdata_center_copy(island_data, island_index, td->iloc, td->center);
 
   if ((island_index != -1) && island_data->axismtx) {
     copy_m3_m3(td->axismtx, island_data->axismtx[island_index]);
@@ -959,7 +959,8 @@ void createTransEditVerts(TransInfo *t)
         copy_v3_v3(td_mirror->iloc, eve->co);
         td_mirror->flag = mirror_data.vert_map[a].flag;
         td_mirror->loc_src = v_src->co;
-        transdata_center_get(&island_data, island_index, td_mirror->iloc, td_mirror->center);
+        tc_mesh_transdata_center_copy(
+            &island_data, island_index, td_mirror->iloc, td_mirror->center);
 
         td_mirror++;
       }
