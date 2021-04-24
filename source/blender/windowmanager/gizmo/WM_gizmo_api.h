@@ -146,6 +146,7 @@ void WM_gizmotype_append(void (*gtfunc)(struct wmGizmoType *));
 void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void *userdata);
 bool WM_gizmotype_remove(struct bContext *C, struct Main *bmain, const char *idname);
 void WM_gizmotype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmGizmoType *gzt);
+void WM_gizmotype_free_ptr(struct wmGizmoType *gzt);
 void WM_gizmotype_iter(struct GHashIterator *ghi);
 
 /* wm_gizmo_group_type.c */
@@ -154,8 +155,6 @@ struct wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoG
 struct wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGizmoGroupType *,
                                                                      void *),
                                                       void *userdata);
-bool WM_gizmogrouptype_free(const char *idname);
-void WM_gizmogrouptype_free_ptr(struct wmGizmoGroupType *gzgt);
 void WM_gizmogrouptype_iter(struct GHashIterator *ghi);
 
 struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
@@ -377,6 +376,9 @@ void WM_gizmo_group_type_unlink_delayed(const char *idname);
 void WM_gizmo_group_unlink_delayed_ptr_from_space(struct wmGizmoGroupType *gzgt,
                                                   struct wmGizmoMapType *gzmap_type,
                                                   struct ScrArea *area);
+
+void WM_gizmo_group_type_free_ptr(wmGizmoGroupType *gzgt);
+bool WM_gizmo_group_type_free(const char *idname);
 
 /* Has the result of unlinking and linking (re-initializes gizmo's). */
 void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
