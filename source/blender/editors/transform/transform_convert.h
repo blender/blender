@@ -84,6 +84,8 @@ void special_aftertrans_update__pose(bContext *C, TransInfo *t);
 /* transform_convert_cursor.c */
 void createTransCursor_image(TransInfo *t);
 void createTransCursor_view3d(TransInfo *t);
+void recalcData_cursor_image(TransInfo *t);
+void recalcData_cursor(TransInfo *t);
 
 /* transform_convert_curve.c */
 void createTransCurveVerts(TransInfo *t);
@@ -109,6 +111,7 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t);
 
 /* transform_convert_mball.c */
 void createTransMBallVerts(TransInfo *t);
+void recalcData_mball(TransInfo *t);
 
 /* transform_convert_mesh.c */
 struct TransIslandData {

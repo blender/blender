@@ -134,3 +134,29 @@ void createTransCursor_view3d(TransInfo *t)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Cursor
+ * \{ */
+
+void recalcData_cursor_image(TransInfo *t)
+{
+  TransDataContainer *tc = t->data_container;
+  TransData *td = tc->data;
+  float aspect_inv[2];
+
+  aspect_inv[0] = 1.0f / t->aspect[0];
+  aspect_inv[1] = 1.0f / t->aspect[1];
+
+  td->loc[0] = td->loc[0] * aspect_inv[0];
+  td->loc[1] = td->loc[1] * aspect_inv[1];
+
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+}
+
+void recalcData_cursor(TransInfo *t)
+{
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+}
+
+/** \} */
