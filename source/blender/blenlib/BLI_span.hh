@@ -662,6 +662,16 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Return a reference to the first element in the array. This invokes undefined behavior when the
+   * array is empty.
+   */
+  constexpr T &first() const
+  {
+    BLI_assert(size_ > 0);
+    return data_[0];
+  }
+
+  /**
    * Returns a reference to the last element. This invokes undefined behavior when the array is
    * empty.
    */
