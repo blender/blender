@@ -34,14 +34,14 @@ set(INC
 )
 
 set(SRC
-  info_draw.cc
-  info_ops.cc
-  info_report.cc
-  info_stats.cc
-  space_info.cc
-  textview.cc
+  info_draw.c
+  info_ops.c
+  info_report.c
+  info_stats.c
+  space_info.c
+  textview.c
 
-  info_intern.hh
+  info_intern.h
   textview.h
 )
 

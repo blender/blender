@@ -20,10 +20,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum eTextViewContext_LineFlag {
   TVC_LINE_FG = (1 << 0),
   TVC_LINE_BG = (1 << 1),
@@ -82,7 +78,3 @@ int textview_draw(struct TextViewContext *tvc,
                   const int mval_init[2],
                   void **r_mval_pick_item,
                   int *r_mval_pick_offset);
-
-#ifdef __cplusplus
-}
-#endif

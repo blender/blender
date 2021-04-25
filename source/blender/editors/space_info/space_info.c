@@ -21,8 +21,8 @@
  * \ingroup spinfo
  */
 
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -44,7 +44,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "info_intern.hh" /* own include */
+#include "info_intern.h" /* own include */
 
 /* ******************** default callbacks for info space ***************** */
 
@@ -53,20 +53,20 @@ static SpaceLink *info_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   ARegion *region;
   SpaceInfo *sinfo;
 
-  sinfo = (SpaceInfo *)MEM_callocN(sizeof(SpaceInfo), "initinfo");
+  sinfo = MEM_callocN(sizeof(SpaceInfo), "initinfo");
   sinfo->spacetype = SPACE_INFO;
 
   sinfo->rpt_mask = INFO_RPT_OP;
 
   /* header */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "header for info");
+  region = MEM_callocN(sizeof(ARegion), "header for info");
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "main region for info");
+  region = MEM_callocN(sizeof(ARegion), "main region for info");
 
   BLI_addtail(&sinfo->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -98,7 +98,7 @@ static void info_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
 
 static SpaceLink *info_duplicate(SpaceLink *sl)
 {
-  SpaceInfo *sinfon = (SpaceInfo *)MEM_dupallocN(sl);
+  SpaceInfo *sinfon = MEM_dupallocN(sl);
 
   /* clear or remove stuff from old */
 
@@ -154,10 +154,10 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  UI_view2d_scrollers_draw(v2d, NULL);
 }
 
-static void info_operatortypes()
+static void info_operatortypes(void)
 {
   WM_operatortype_append(FILE_OT_autopack_toggle);
   WM_operatortype_append(FILE_OT_pack_all);
@@ -267,7 +267,7 @@ static void info_header_region_message_subscribe(const wmRegionMessageSubscribeP
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_info(void)
 {
-  SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype info");
+  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype info");
   ARegionType *art;
 
   st->spaceid = SPACE_INFO;
@@ -281,7 +281,7 @@ void ED_spacetype_info(void)
   st->keymap = info_keymap;
 
   /* regions: main window */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype info region");
+  art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 
@@ -292,7 +292,7 @@ void ED_spacetype_info(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype info region");
+  art = MEM_callocN(sizeof(ARegionType), "spacetype info region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
 

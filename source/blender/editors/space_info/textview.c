@@ -42,7 +42,7 @@ static void textview_font_begin(const int font_id, const int lheight)
   BLF_size(font_id, 0.8f * lheight, 72);
 }
 
-struct TextViewDrawState {
+typedef struct TextViewDrawState {
   int font_id;
   int cwidth;
   int lheight;
@@ -62,7 +62,7 @@ struct TextViewDrawState {
   int *mval_pick_offset;
   const int *mval;  // [2]
   bool do_draw;
-};
+} TextViewDrawState;
 
 BLI_INLINE void textview_step_sel(TextViewDrawState *tds, const int step)
 {
@@ -111,7 +111,7 @@ static int textview_wrap_offsets(
 
   *r_lines = 1;
 
-  *r_offsets = (int *)MEM_callocN(
+  *r_offsets = MEM_callocN(
       sizeof(**r_offsets) *
           (len * BLI_UTF8_WIDTH_MAX / MAX2(1, width - (BLI_UTF8_WIDTH_MAX - 1)) + 1),
       __func__);
@@ -225,13 +225,16 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
     rgba_uchar_to_float(col, icon_bg);
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    const rctf rect{
-        hpadding,
-        bg_size + hpadding,
-        line_top - bg_size - vpadding,
-        line_top - vpadding,
-    };
-    UI_draw_roundbox_4fv(&rect, true, 4 * UI_DPI_FAC, col);
+    UI_draw_roundbox_4fv(
+        &(const rctf){
+            .xmin = hpadding,
+            .xmax = bg_size + hpadding,
+            .ymin = line_top - bg_size - vpadding,
+            .ymax = line_top - vpadding,
+        },
+        true,
+        4 * UI_DPI_FAC,
+        col);
   }
 
   if (icon) {
@@ -339,7 +342,7 @@ int textview_draw(TextViewContext *tvc,
           CLAMPIS(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->scroll_ymin,
   };
 
-  if (r_mval_pick_offset != nullptr) {
+  if (r_mval_pick_offset != NULL) {
     *r_mval_pick_offset = 0;
   }
 
@@ -396,11 +399,11 @@ int textview_draw(TextViewContext *tvc,
           &tds,
           ext_line,
           ext_len,
-          (data_flag & TVC_LINE_FG) ? fg : nullptr,
-          (data_flag & TVC_LINE_BG) ? bg : nullptr,
+          (data_flag & TVC_LINE_FG) ? fg : NULL,
+          (data_flag & TVC_LINE_BG) ? bg : NULL,
           (data_flag & TVC_LINE_ICON) ? icon : 0,
-          (data_flag & TVC_LINE_ICON_FG) ? icon_fg : nullptr,
-          (data_flag & TVC_LINE_ICON_BG) ? icon_bg : nullptr,
+          (data_flag & TVC_LINE_ICON_FG) ? icon_fg : NULL,
+          (data_flag & TVC_LINE_ICON_BG) ? icon_bg : NULL,
           bg_sel);
 
       if (do_draw) {
