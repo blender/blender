@@ -623,7 +623,6 @@ typedef struct SculptSession {
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
   char needs_flush_to_id;
-  char update_boundary_info_bmesh;
 
   // id of current stroke, used to detect
   // if vertex original data needs to be updated

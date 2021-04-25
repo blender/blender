@@ -8482,7 +8482,6 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
-    ss->update_boundary_info_bmesh = true;
 #if 0
     if (update_flags & SCULPT_UPDATE_COLOR) {
       PBVHNode **nodes;
@@ -9778,32 +9777,9 @@ void SCULPT_boundary_info_ensure(Object *object)
 {
   SculptSession *ss = object->sculpt;
 
+  // PBVH_BMESH now handles itself
   if (ss->bm) {
-    if (!ss->update_boundary_info_bmesh) {
-      return;
-    }
-
-    ss->update_boundary_info_bmesh = 0;
-
-    BMVert *v;
-    BMIter iter;
-
-    MEM_SAFE_FREE(ss->vertex_info.boundary);
-
-    // return; //XXX
-    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
-
-    BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
-      SculptVertRef sv = {(uintptr_t)v};
-
-      if (BM_vert_is_boundary(v) || !SCULPT_vertex_all_face_sets_visible_get(ss, sv)) {
-        mv->flag |= DYNVERT_BOUNDARY;
-      }
-      else {
-        mv->flag &= ~DYNVERT_BOUNDARY;
-      }
-    }
+    return;
   }
   else {
     if (ss->vertex_info.boundary) {

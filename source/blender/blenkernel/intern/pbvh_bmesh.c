@@ -1993,6 +1993,10 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BMesh *bm = pbvh->bm;
 
   float co_mid[3], no_mid[3];
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v1);
+  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, e->v2);
+
+  bool boundary = (mv1->flag & DYNVERT_BOUNDARY) && (mv2->flag & DYNVERT_BOUNDARY);
 
   /* Get all faces adjacent to the edge */
   pbvh_bmesh_edge_loops(edge_loops, e);
@@ -2021,6 +2025,11 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   void *vsrcs[2] = {e->v1->head.data, e->v2->head.data};
   float vws[2] = {0.5f, 0.5f};
   CustomData_bmesh_interp(&pbvh->bm->vdata, vsrcs, vws, NULL, 2, v_new->head.data);
+
+  if (boundary) {
+    MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
+    mv_new->flag |= DYNVERT_BOUNDARY;
+  }
 
   /* update paint mask */
   if (eq_ctx->cd_dyn_vert != -1) {
@@ -2270,6 +2279,9 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 {
   BMVert *v_del, *v_conn;
 
+  MDynTopoVert *mv1 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v1);
+  MDynTopoVert *mv2 = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v2);
+
   // customdata interpolation
   if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
     for (int step = 0; step < 2; step++) {
@@ -2424,9 +2436,9 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     {
       bool ok = true;
 
-      //check we're not already in deleted_faces
-      for (int i=0; i<deleted_faces->count; i++) {
-        if (BLI_buffer_at(deleted_faces, BMFace*, i) == existing_face) {
+      // check we're not already in deleted_faces
+      for (int i = 0; i < deleted_faces->count; i++) {
+        if (BLI_buffer_at(deleted_faces, BMFace *, i) == existing_face) {
           ok = false;
           break;
         }
@@ -2495,7 +2507,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
         printf("bmesh error!\n");
         l1->e = BM_edge_exists(l->v, l->next->v);
         if (!l1->e) {
-          //create
+          // create
           l1->e = BM_edge_create(pbvh->bm, l->v, l->next->v, NULL, 0);
         }
       }
@@ -2550,6 +2562,11 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
                       PBVH_UpdateTris;
     }
     BM_LOOPS_OF_VERT_ITER_END;
+
+    if (BM_vert_is_boundary(v_conn)) {
+      MDynTopoVert *mv_conn = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_conn);
+      mv_conn->flag |= DYNVERT_BOUNDARY;
+    }
   }
 
   /* Delete v_del */
@@ -3625,7 +3642,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
     }
 #endif
 
-    //avoid potential infinite loops
+    // avoid potential infinite loops
     const int totnode = pbvh->totnode;
 
     for (int i = 0; i < totnode; i++) {
@@ -3856,12 +3873,11 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       if (!BLI_ghash_ensure_p(vmap, l->v, &val)) {
         SculptVertRef sv = {(intptr_t)l->v};
 
-        *val = (void*) BLI_array_len(verts);
+        *val = (void *)BLI_array_len(verts);
         BLI_array_append(verts, sv);
-
       }
 
-      tri.v[j] = (intptr_t) val[0];
+      tri.v[j] = (intptr_t)val[0];
 
       j++;
       l = l->next;

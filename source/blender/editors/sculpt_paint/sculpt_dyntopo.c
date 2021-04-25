@@ -409,6 +409,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
     MDynTopoVert *mv = BKE_PBVH_DYNVERT(ss->cd_dyn_vert, v);
 
+    if (BM_vert_is_boundary(v)) {
+      mv->flag |= DYNVERT_BOUNDARY;
+    }
+
     // persistent base
     if (cd_pers_co >= 0) {
       float(*co)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
@@ -443,8 +447,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   /* Enable dynamic topology. */
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
-
-  ss->update_boundary_info_bmesh = 1;
 
   /* Enable logging for undo/redo. */
   ss->bm_log = BM_log_create(ss->bm, ss->cd_dyn_vert);
