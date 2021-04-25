@@ -1051,7 +1051,9 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
     if (iter->neighbors == iter->neighbors_fixed) {
       iter->neighbors = MEM_mallocN(iter->capacity * sizeof(SculptVertRef), "neighbor array");
       iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
-      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(int) * iter->size);
+
+      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(SculptVertRef) * iter->size);
+      memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
     }
     else {
       iter->neighbors = MEM_reallocN_id(
@@ -1534,6 +1536,7 @@ void SCULPT_floodfill_execute(SculptSession *ss,
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
       const SculptVertRef to_v = ni.vertex;
+
       const int to_index = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
 
       if (BLI_BITMAP_TEST(flood->visited_vertices, to_index)) {
