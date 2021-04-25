@@ -259,15 +259,6 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
         continue;
       }
 
-      modified = modified || CustomData_get_active_layer_index(data1, cl1->type) !=
-                                 CustomData_get_active_layer_index(data2, cl1->type);
-      modified = modified || CustomData_get_render_layer_index(data1, cl1->type) !=
-                                 CustomData_get_render_layer_index(data2, cl1->type);
-      modified = modified || CustomData_get_stencil_layer_index(data1, cl1->type) !=
-                                 CustomData_get_stencil_layer_index(data2, cl1->type);
-      modified = modified || CustomData_get_clone_layer_index(data1, cl1->type) !=
-                                 CustomData_get_clone_layer_index(data2, cl1->type);
-
       int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       if (idx < 0) {
         BLI_array_append(newlayers, cl1);
@@ -276,16 +267,13 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
     for (int j = 0; j < BLI_array_len(newlayers); j++) {
       BM_data_layer_add_named(bm, data2, newlayers[j]->type, newlayers[j]->name);
-      modified |= true;
+      modified = true;
     }
 
-    char typemap[CD_NUMTYPES] = {
-        0,
-    };
+    bool typemap[CD_NUMTYPES] = {0};
 
     for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl = data1->layers + j;
-      CustomDataLayer *cl1 = cl;
+      CustomDataLayer *cl1 = data1->layers + j;
 
       if ((1 << cl1->type) & badmask) {
         continue;
@@ -295,23 +283,56 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
         continue;
       }
 
-      typemap[cl1->type] = 1;
-      cl1 = cl + CustomData_get_active_layer(data1, cl1->type);
+      typemap[cl1->type] = true;
 
-      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-      CustomData_set_layer_active_index(data2, cl1->type, idx);
+      // find first layer
+      int baseidx = CustomData_get_layer_index(data2, cl1->type);
 
-      cl1 = cl + CustomData_get_render_layer(data1, cl1->type);
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-      CustomData_set_layer_render_index(data2, cl1->type, idx);
+      if (baseidx < 0) {
+        modified |= true;
+        continue;
+      }
 
-      cl1 = cl + CustomData_get_stencil_layer(data1, cl1->type);
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-      CustomData_set_layer_stencil_index(data2, cl1->type, idx);
+      CustomDataLayer *cl2 = data2->layers + baseidx;
 
-      cl1 = cl + CustomData_get_clone_layer(data1, cl1->type);
-      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
-      CustomData_set_layer_clone_index(data2, cl1->type, idx);
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active;
+        cl2->active = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_rnd].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_rnd;
+        cl2->active_rnd = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_mask].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_mask;
+        cl2->active_mask = idx - baseidx;
+      }
+
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1[cl1->active_clone].name);
+      if (idx >= 0) {
+        modified |= idx - baseidx != cl2->active_clone;
+        cl2->active_clone = idx - baseidx;
+      }
+
+      for (int k = baseidx; k < data2->totlayer; k++) {
+        CustomDataLayer *cl3 = data2->layers + k;
+
+        if (cl3->type != cl2->type) {
+          break;
+        }
+
+        //based off of how CustomData_set_layer_XXXX_index works
+
+        cl3->active = (cl2->active + baseidx) - k;
+        cl3->active_rnd = (cl2->active_rnd + baseidx) - k;
+        cl3->active_mask = (cl2->active_mask + baseidx) - k;
+        cl3->active_clone = (cl2->active_clone + baseidx) - k;
+      }
     }
 
     BLI_array_free(newlayers);

@@ -1415,7 +1415,7 @@ static void pbvh_update_draw_buffers(
     ldata = pbvh->ldata;
   }
 
-  GPU_pbvh_update_attribute_names(vdata, ldata);
+  GPU_pbvh_update_attribute_names(vdata, ldata, active_vcol_only);
 
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data = {.pbvh = pbvh,

@@ -87,7 +87,10 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
-void GPU_pbvh_update_attribute_names(struct CustomData *vdata, struct CustomData *ldata);
+/** if active_vcol_only is true, only the active (not render!) layer will
+    be uploaded to GPU*/
+void GPU_pbvh_update_attribute_names(struct CustomData *vdata, struct CustomData *ldata, bool active_vcol_only);
+
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
                                    struct TableGSet *bm_faces,

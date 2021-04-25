@@ -86,31 +86,6 @@ typedef struct BoundaryInitialVertexFloodFillData {
   int *floodfill_steps;
   float radius_sq;
 } BoundaryInitialVertexFloodFillData;
-#if 0
-ATTR_NO_OPT static bool validVert(SculptSession *ss, SculptVertRef v)
-{
-  if (v.i == -1) {
-    return false;
-  }
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && v.i < 1000000) {
-    return false;
-  }
-
-  int totvert = SCULPT_vertex_count_get(ss);
-  int idx = BKE_pbvh_vertex_index_to_table(ss->pbvh, v);
-
-  return idx >= 0 && idx < totvert;
-}
-ATTR_NO_OPT static void validateVert(SculptSession *ss, SculptVertRef v)
-{
-  if (!validVert(ss, v)) {
-    printf("Error! %p\n", v.i);
-  }
-}
-#endif
-// XXX remove all calls to validateVert before final merge
-#define validateVert(ss, vertex)
 
 static bool boundary_initial_vertex_floodfill_cb(SculptSession *ss,
                                                  SculptVertRef from_vref,
@@ -119,9 +94,6 @@ static bool boundary_initial_vertex_floodfill_cb(SculptSession *ss,
                                                  void *userdata)
 {
   BoundaryInitialVertexFloodFillData *data = userdata;
-
-  validateVert(ss, from_vref);
-  validateVert(ss, to_vref);
 
   int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vref);
   int from_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_vref);
@@ -157,8 +129,6 @@ static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
     const int initial_vertex_index,
     const float radius)
 {
-  validateVert(ss, initial_vertex);
-
   if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
     return initial_vertex;
   }
@@ -320,8 +290,6 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
                                          const SculptVertRef initial_boundary_index)
 {
 
-  validateVert(ss, initial_boundary_index);
-
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->vertices = MEM_malloc_arrayN(
       BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptVertRef) * TSTN, "boundary vrefs");
@@ -386,8 +354,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
   const bool has_duplicates = BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
 
-  validateVert(ss, initial_vertex);
-
   boundary->edit_info = MEM_malloc_arrayN(
       totvert, sizeof(SculptBoundaryEditInfo) * TSTN, "Boundary edit info");
 
@@ -443,8 +409,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       BLI_gsqueue_pop(current_iteration, &from_v);
       const int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
 
-      validateVert(ss, from_v);
-
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
         const bool is_visible = SCULPT_vertex_visible_get(ss, ni.vertex);
@@ -459,8 +423,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
         boundary->edit_info[ni.index].original_vertex_i =
             boundary->edit_info[from_v_i].original_vertex_i;
 
-        validateVert(ss, boundary->edit_info[ni.index].original_vertex);
-
         BLI_BITMAP_ENABLE(visited_vertices, ni.index);
 
         if (ni.is_duplicate) {
@@ -474,8 +436,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
           BLI_gsqueue_push(next_iteration, &ni.vertex);
 
-          validateVert(ss, ni.vertex);
-
           /* When copying the data to the neighbor for the next iteration, it has to be copied to
            * all its duplicates too. This is because it is not possible to know if the updated
            * neighbor or one if its uninitialized duplicates is going to come first in order to
@@ -483,8 +443,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
           if (has_duplicates) {
             SculptVertexNeighborIter ni_duplis;
             SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni_duplis) {
-              validateVert(ss, ni_duplis.vertex);
-
               if (ni_duplis.is_duplicate) {
                 boundary->edit_info[ni_duplis.index].original_vertex =
                     boundary->edit_info[from_v_i].original_vertex;
@@ -689,8 +647,6 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
       sub_v3_v3v3(dir,
                   SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
                   SCULPT_vertex_co_get(ss, vertex));
-
-      validateVert(ss, boundary->edit_info[i].original_vertex);
 
 #if 0
     /*strategy to increase accuracy for non-quad topologies:
@@ -947,8 +903,6 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
     float t_orig_co[3];
     float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
-
-    validateVert(ss, vd.vertex);
 
     sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
     rotate_v3_v3v3fl(target_co,

@@ -2260,7 +2260,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
   return any_subdivided;
 }
 
-ATTR_NO_OPT static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
+static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
                                      BMEdge *e,
                                      BMVert *v1,
                                      BMVert *v2,

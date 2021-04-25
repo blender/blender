@@ -1209,10 +1209,12 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna) {
 
   prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "constant_detail");
-  RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.001, 4);
-  RNA_def_property_ui_text(
-      prop, "Constant Detail", "");
+  RNA_def_property_range(prop, 0.0001, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001, 1000.0, 10, 2);
+  RNA_def_property_ui_text(prop,
+                           "Resolution",
+                           "Maximum edge length for dynamic topology sculpting (as divisor "
+                           "of blender unit - higher value means smaller edge length)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "subdivide", PROP_BOOLEAN, PROP_NONE);
