@@ -1136,8 +1136,8 @@ static bool cursor_isect_multi_input_socket(const float cursor[2], const bNodeSo
        * But keep it smaller because for multi-input socket you
        * sometimes want to drag the link to the other side, if you may
        * accidentally pick the wrong link otherwise. */
-      .ymin = socket->locy - node_socket_height * 0.5 - NODE_SOCKSIZE,
-      .ymax = socket->locy + node_socket_height * 0.5 + NODE_SOCKSIZE,
+      .ymin = socket->locy - node_socket_height,
+      .ymax = socket->locy + node_socket_height,
   };
   if (BLI_rctf_isect_pt(&multi_socket_rect, cursor[0], cursor[1])) {
     return true;
