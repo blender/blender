@@ -51,6 +51,7 @@ waveletNoiseTile.bin
 /Testing
 
 # Gitpod
+!.gitpod.yml
 !.gitpod/
 !.gitpod/*
 /src
