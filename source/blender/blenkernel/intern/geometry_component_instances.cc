@@ -44,6 +44,7 @@ GeometryComponent *InstancesComponent::copy() const
   InstancesComponent *new_component = new InstancesComponent();
   new_component->transforms_ = transforms_;
   new_component->instanced_data_ = instanced_data_;
+  new_component->ids_ = ids_;
   return new_component;
 }
 
@@ -51,6 +52,7 @@ void InstancesComponent::clear()
 {
   instanced_data_.clear();
   transforms_.clear();
+  ids_.clear();
 }
 
 void InstancesComponent::add_instance(Object *object, float4x4 transform, const int id)
