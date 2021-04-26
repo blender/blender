@@ -1,10 +1,12 @@
 image:
   file: .gitpod/.gitpod.Dockerfile
 
-tasks:
-  - name: setup
-    prebuild: |
-      build_files/build_environment/install_deps.sh --source=/workspace/blender/src/blender-deps --install=/workspace/blender/opt/lib --no-confirm
+# tasks:
+#   - name: setup
+#     prebuild: |
+#       mkdir lib
+#       cd lib
+#       svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/linux_centos7_x86_64
 
 github:
   prebuilds:
@@ -24,10 +26,3 @@ github:
     addBadge: true
     # add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: true
-
-
-    #  -s <path>, --source=<path>
-    #     Use a specific path where to store downloaded libraries sources (defaults to '/home/gitpod/src/blender-deps').
-
-    # -i <path>, --install=<path>
-    #     Use a specific path where to install built libraries (defaults to '/opt/lib').
