@@ -1591,7 +1591,6 @@ ModifierTypeInfo modifierType_Nodes = {
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ nullptr,
     /* modifyGeometrySet */ modifyGeometrySet,
-    /* modifyVolume */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

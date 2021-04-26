@@ -1332,11 +1332,8 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
-  if (ob->type == OB_POINTCLOUD) {
+  if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME)) {
     return (mti->modifyGeometrySet != NULL);
-  }
-  if (ob->type == OB_VOLUME) {
-    return (mti->modifyVolume != NULL) || (mti->modifyGeometrySet != NULL);
   }
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
     if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {

@@ -380,6 +380,8 @@ struct GeometrySet {
   void replace_mesh(Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   void replace_pointcloud(PointCloud *pointcloud,
                           GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  void replace_volume(Volume *volume,
+                      GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 };
 
 /** A geometry component that can store a mesh. */

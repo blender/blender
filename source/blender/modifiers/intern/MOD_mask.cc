@@ -463,7 +463,6 @@ ModifierTypeInfo modifierType_Mask = {
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
-    /* modifyVolume */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

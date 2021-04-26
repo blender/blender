@@ -1007,7 +1007,6 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       Object *object,
-                                      Volume *volume_input,
                                       GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
@@ -1032,18 +1031,6 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
 
     if (mti->modifyGeometrySet) {
       mti->modifyGeometrySet(md, &mectx, &geometry_set);
-    }
-    else if (mti->modifyVolume) {
-      VolumeComponent &volume_component = geometry_set.get_component_for_write<VolumeComponent>();
-      Volume *volume_old = volume_component.get_for_write();
-      if (volume_old == nullptr) {
-        volume_old = BKE_volume_new_for_eval(volume_input);
-        volume_component.replace(volume_old);
-      }
-      Volume *volume_new = mti->modifyVolume(md, &mectx, volume_old);
-      if (volume_new != volume_old) {
-        volume_component.replace(volume_new);
-      }
     }
   }
 }
@@ -1095,9 +1082,8 @@ void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Ob
   /* Evaluate modifiers. */
   Volume *volume = (Volume *)object->data;
   GeometrySet geometry_set;
-  VolumeComponent &volume_component = geometry_set.get_component_for_write<VolumeComponent>();
-  volume_component.replace(volume, GeometryOwnershipType::ReadOnly);
-  volume_evaluate_modifiers(depsgraph, scene, object, volume, geometry_set);
+  geometry_set.replace_volume(volume, GeometryOwnershipType::ReadOnly);
+  volume_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   Volume *volume_eval = take_volume_ownership_from_geometry_set(geometry_set);
 
