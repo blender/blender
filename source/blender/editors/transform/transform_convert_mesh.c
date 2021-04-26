@@ -292,8 +292,8 @@ static void tc_mesh_customdatacorrect_init_container_merge_group(TransDataContai
       tcld->arena, tcld->merge_group.data_len * sizeof(*tcld->merge_group.data));
 }
 
-struct TransCustomDataLayer *tc_mesh_customdatacorrect_create(TransDataContainer *tc,
-                                                              const bool use_merge_group)
+static struct TransCustomDataLayer *tc_mesh_customdatacorrect_create(TransDataContainer *tc,
+                                                                     const bool use_merge_group)
 {
   BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
   BMesh *bm = em->bm;
