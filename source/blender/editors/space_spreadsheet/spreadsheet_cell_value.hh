@@ -18,6 +18,10 @@
 
 #include <optional>
 
+#include "BLI_color.hh"
+#include "BLI_float2.hh"
+#include "BLI_float3.hh"
+
 struct Object;
 struct Collection;
 
@@ -44,6 +48,9 @@ class CellValue {
   std::optional<int> value_int;
   std::optional<float> value_float;
   std::optional<bool> value_bool;
+  std::optional<float2> value_float2;
+  std::optional<float3> value_float3;
+  std::optional<Color4f> value_color;
   std::optional<ObjectCellValue> value_object;
   std::optional<CollectionCellValue> value_collection;
 };
