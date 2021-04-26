@@ -49,3 +49,9 @@ waveletNoiseTile.bin
 
 # testing environment
 /Testing
+
+# Gitpod
+!.gitpod/
+!.gitpod/*
+/src
+/opt
