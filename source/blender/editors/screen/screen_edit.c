@@ -279,42 +279,44 @@ void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new)
   screen_new->do_draw = true;
 }
 
-/* with area as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
-/* -1 = not valid check */
-/* used with join operator */
-int area_getorientation(ScrArea *area, ScrArea *sb)
+/**
+ * with `sa_a` as center, `sa_b` is located at: 0=W, 1=N, 2=E, 3=S
+ * -1 = not valid check.
+ * used with join operator.
+ */
+int area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
 {
-  if (area == NULL || sb == NULL || area == sb) {
+  if (sa_a == NULL || sa_b == NULL || sa_a == sa_b) {
     return -1;
   }
 
-  vec2s saBL = area->v1->vec;
-  vec2s saTL = area->v2->vec;
-  vec2s saTR = area->v3->vec;
-  vec2s saBR = area->v4->vec;
+  const vec2s *sa_bl = &sa_a->v1->vec;
+  const vec2s *sa_tl = &sa_a->v2->vec;
+  const vec2s *sa_tr = &sa_a->v3->vec;
+  const vec2s *sa_br = &sa_a->v4->vec;
 
-  vec2s sbBL = sb->v1->vec;
-  vec2s sbTL = sb->v2->vec;
-  vec2s sbTR = sb->v3->vec;
-  vec2s sbBR = sb->v4->vec;
+  const vec2s *sb_bl = &sa_b->v1->vec;
+  const vec2s *sb_tl = &sa_b->v2->vec;
+  const vec2s *sb_tr = &sa_b->v3->vec;
+  const vec2s *sb_br = &sa_b->v4->vec;
 
-  if (saBL.x == sbBR.x && saTL.x == sbTR.x) { /* area to right of sb = W */
-    if ((MIN2(saTL.y, sbTR.y) - MAX2(saBL.y, sbBR.y)) > AREAJOINTOLERANCEY) {
+  if (sa_bl->x == sb_br->x && sa_tl->x == sb_tr->x) { /* sa_a to right of sa_b = W */
+    if ((MIN2(sa_tl->y, sb_tr->y) - MAX2(sa_bl->y, sb_br->y)) > AREAJOINTOLERANCEY) {
       return 0;
     }
   }
-  else if (saTL.y == sbBL.y && saTR.y == sbBR.y) { /* area to bottom of sb = N */
-    if ((MIN2(saTR.x, sbBR.x) - MAX2(saTL.x, sbBL.x)) > AREAJOINTOLERANCEX) {
+  else if (sa_tl->y == sb_bl->y && sa_tr->y == sb_br->y) { /* sa_a to bottom of sa_b = N */
+    if ((MIN2(sa_tr->x, sb_br->x) - MAX2(sa_tl->x, sb_bl->x)) > AREAJOINTOLERANCEX) {
       return 1;
     }
   }
-  else if (saTR.x == sbTL.x && saBR.x == sbBL.x) { /* area to left of sb = E */
-    if ((MIN2(saTR.y, sbTL.y) - MAX2(saBR.y, sbBL.y)) > AREAJOINTOLERANCEY) {
+  else if (sa_tr->x == sb_tl->x && sa_br->x == sb_bl->x) { /* sa_a to left of sa_b = E */
+    if ((MIN2(sa_tr->y, sb_tl->y) - MAX2(sa_br->y, sb_bl->y)) > AREAJOINTOLERANCEY) {
       return 2;
     }
   }
-  else if (saBL.y == sbTL.y && saBR.y == sbTR.y) { /* area on top of sb = S */
-    if ((MIN2(saBR.x, sbTR.x) - MAX2(saBL.x, sbTL.x)) > AREAJOINTOLERANCEX) {
+  else if (sa_bl->y == sb_tl->y && sa_br->y == sb_tr->y) { /* sa_a on top of sa_b = S */
+    if ((MIN2(sa_br->x, sb_tr->x) - MAX2(sa_bl->x, sb_tl->x)) > AREAJOINTOLERANCEX) {
       return 3;
     }
   }
@@ -322,32 +324,34 @@ int area_getorientation(ScrArea *area, ScrArea *sb)
   return -1;
 }
 
-/* Get alignment offset of adjacent areas. 'dir' value is like area_getorientation().  */
-void area_getoffsets(ScrArea *area, ScrArea *sb, const int dir, int *offset1, int *offset2)
+/**
+ * Get alignment offset of adjacent areas. 'dir' value is like #area_getorientation().
+ */
+void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, const int dir, int *r_offset1, int *r_offset2)
 {
-  if (area == NULL || sb == NULL) {
-    *offset1 = INT_MAX;
-    *offset2 = INT_MAX;
+  if (sa_a == NULL || sa_b == NULL) {
+    *r_offset1 = INT_MAX;
+    *r_offset2 = INT_MAX;
   }
-  else if (dir == 0) { /* West: sa on right and sb to the left. */
-    *offset1 = sb->v3->vec.y - area->v2->vec.y;
-    *offset2 = sb->v4->vec.y - area->v1->vec.y;
+  else if (dir == 0) { /* West: sa on right and sa_b to the left. */
+    *r_offset1 = sa_b->v3->vec.y - sa_a->v2->vec.y;
+    *r_offset2 = sa_b->v4->vec.y - sa_a->v1->vec.y;
   }
-  else if (dir == 1) { /* North: sa below and sb above. */
-    *offset1 = area->v2->vec.x - sb->v1->vec.x;
-    *offset2 = area->v3->vec.x - sb->v4->vec.x;
+  else if (dir == 1) { /* North: sa below and sa_b above. */
+    *r_offset1 = sa_a->v2->vec.x - sa_b->v1->vec.x;
+    *r_offset2 = sa_a->v3->vec.x - sa_b->v4->vec.x;
   }
-  else if (dir == 2) { /* East: sa on left and sb to the right. */
-    *offset1 = sb->v2->vec.y - area->v3->vec.y;
-    *offset2 = sb->v1->vec.y - area->v4->vec.y;
+  else if (dir == 2) { /* East: sa on left and sa_b to the right. */
+    *r_offset1 = sa_b->v2->vec.y - sa_a->v3->vec.y;
+    *r_offset2 = sa_b->v1->vec.y - sa_a->v4->vec.y;
   }
-  else if (dir == 3) { /* South: sa above and sb below. */
-    *offset1 = area->v1->vec.x - sb->v2->vec.x;
-    *offset2 = area->v4->vec.x - sb->v3->vec.x;
+  else if (dir == 3) { /* South: sa above and sa_b below. */
+    *r_offset1 = sa_a->v1->vec.x - sa_b->v2->vec.x;
+    *r_offset2 = sa_a->v4->vec.x - sa_b->v3->vec.x;
   }
   else {
-    *offset1 = INT_MAX;
-    *offset2 = INT_MAX;
+    *r_offset1 = INT_MAX;
+    *r_offset2 = INT_MAX;
   }
 }
 
