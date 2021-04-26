@@ -594,6 +594,7 @@ NodeType geometry_tag_to_component(const ID *id)
     case ID_HA:
     case ID_PT:
     case ID_VO:
+    case ID_GR:
       return NodeType::GEOMETRY;
     case ID_PA: /* Particles */
       return NodeType::UNDEFINED;

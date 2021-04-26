@@ -1150,6 +1150,8 @@ bool BKE_collection_object_add(Main *bmain, Collection *collection, Object *ob)
     BKE_main_collection_sync(bmain);
   }
 
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+
   return true;
 }
 
@@ -1200,6 +1202,8 @@ bool BKE_collection_object_remove(Main *bmain,
   if (BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);
   }
+
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
 
   return true;
 }
