@@ -305,7 +305,7 @@ static void displace_volume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   }
 
 #else
-  UNUSED_VARS(md, ctx);
+  UNUSED_VARS(md, volume, ctx);
   BKE_modifier_set_error(ctx->object, md, "Compiled without OpenVDB");
 #endif
 }
