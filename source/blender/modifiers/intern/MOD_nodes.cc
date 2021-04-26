@@ -164,45 +164,31 @@ static void find_used_ids_from_settings(const NodesModifierSettings &settings, S
       &ids);
 }
 
-static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
-                                                      Collection &collection);
+/* We don't know exactly what attributes from the other object we will need. */
+static const CustomData_MeshMasks dependency_data_mask{CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT,
+                                                       CD_MASK_PROP_ALL,
+                                                       CD_MASK_PROP_ALL,
+                                                       CD_MASK_PROP_ALL,
+                                                       CD_MASK_PROP_ALL};
+
+static void add_collection_relation(const ModifierUpdateDepsgraphContext *ctx,
+                                    Collection &collection)
+{
+  DEG_add_collection_geometry_relation(ctx->node, &collection, "Nodes Modifier");
+  DEG_add_collection_geometry_customdata_mask(ctx->node, &collection, &dependency_data_mask);
+}
 
 static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Object &object)
 {
   DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
   if (&(ID &)object != &ctx->object->id) {
-    if (object.type == OB_EMPTY) {
-      Collection *collection_instance = object.instance_collection;
-      if (collection_instance != nullptr) {
-        add_collection_object_relations_recursive(ctx, *collection_instance);
-      }
+    if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
+      add_collection_relation(ctx, *object.instance_collection);
     }
     else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
-      /* We don't know exactly what attributes from the other object we will need. */
-      CustomData_MeshMasks mask;
-      mask.vmask = CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT;
-      mask.pmask = CD_MASK_PROP_ALL;
-      mask.lmask = CD_MASK_PROP_ALL;
-      mask.fmask = CD_MASK_PROP_ALL;
-      mask.emask = CD_MASK_PROP_ALL;
-      DEG_add_customdata_mask(ctx->node, &object, &mask);
+      DEG_add_customdata_mask(ctx->node, &object, &dependency_data_mask);
     }
-  }
-}
-
-static void add_collection_object_relations_recursive(const ModifierUpdateDepsgraphContext *ctx,
-                                                      Collection &collection)
-{
-  LISTBASE_FOREACH (CollectionObject *, collection_object, &collection.gobject) {
-    BLI_assert(collection_object->ob != nullptr);
-    Object &object = *collection_object->ob;
-    add_object_relation(ctx, object);
-  }
-  LISTBASE_FOREACH (CollectionChild *, collection_child, &collection.children) {
-    BLI_assert(collection_child->collection != nullptr);
-    Collection &collection = *collection_child->collection;
-    add_collection_object_relations_recursive(ctx, collection);
   }
 }
 
@@ -223,7 +209,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
       }
       if (GS(id->name) == ID_GR) {
         Collection *collection = reinterpret_cast<Collection *>(id);
-        add_collection_object_relations_recursive(ctx, *collection);
+        add_collection_relation(ctx, *collection);
       }
     }
   }

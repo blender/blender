@@ -923,7 +923,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         # Perform a "natural sort", so 20 comes after 3 (for example).
         files.sort(
             key=lambda file_path:
-            tuple(int(t) if t.isdigit() else t for t in re.split("(\d+)", file_path[0].lower())),
+            tuple(int(t) if t.isdigit() else t for t in re.split(r"(\d+)", file_path[0].lower())),
         )
 
         col = layout.column(align=True)
