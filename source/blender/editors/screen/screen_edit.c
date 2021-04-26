@@ -519,7 +519,7 @@ static bool screen_area_join_ex(
   screen_area_join_aligned(C, screen, sa1, sa2);
 
   if (close_all_remainders || offset1 < 0 || offset2 > 0) {
-    /* Close both if trimiming sa1. */
+    /* Close both if trimming `sa1`. */
     screen_area_close(C, screen, side1);
     screen_area_close(C, screen, side2);
   }

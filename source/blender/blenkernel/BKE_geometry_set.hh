@@ -114,7 +114,7 @@ struct AttributeInitVArray : public AttributeInit {
  * Sometimes data is created before a geometry component is available. In that case, it's
  * preferable to move data directly to the created attribute to avoid a new allocation and a copy.
  *
- * Note that this will only have a benefit for attributes that are stored directly as contigious
+ * Note that this will only have a benefit for attributes that are stored directly as contiguous
  * arrays, so not for some built-in attributes.
  *
  * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
