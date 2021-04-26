@@ -47,28 +47,7 @@ void GeometryDataSource::foreach_default_column_ids(
     }
     SpreadsheetColumnID column_id;
     column_id.name = (char *)name.c_str();
-    if (meta_data.data_type == CD_PROP_FLOAT3) {
-      for (const int i : {0, 1, 2}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else if (meta_data.data_type == CD_PROP_FLOAT2) {
-      for (const int i : {0, 1}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else if (meta_data.data_type == CD_PROP_COLOR) {
-      for (const int i : {0, 1, 2, 3}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else {
-      column_id.index = -1;
-      fn(column_id);
-    }
+    fn(column_id);
     return true;
   });
 }
@@ -89,9 +68,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   int domain_size = attribute->size();
   switch (attribute->custom_data_type()) {
     case CD_PROP_FLOAT:
-      if (column_id.index != -1) {
-        return {};
-      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             float value;
@@ -99,9 +75,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
             r_cell_value.value_float = value;
           });
     case CD_PROP_INT32:
-      if (column_id.index != -1) {
-        return {};
-      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             int value;
@@ -109,9 +82,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
             r_cell_value.value_int = value;
           });
     case CD_PROP_BOOL:
-      if (column_id.index != -1) {
-        return {};
-      }
       return column_values_from_function(
           column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
             bool value;
@@ -119,49 +89,37 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
             r_cell_value.value_bool = value;
           });
     case CD_PROP_FLOAT2: {
-      if (column_id.index < 0 || column_id.index > 1) {
-        return {};
-      }
-      const std::array<const char *, 2> suffixes = {" X", " Y"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [attribute](int index, CellValue &r_cell_value) {
             float2 value;
             attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            r_cell_value.value_float2 = value;
+          },
+          default_float2_column_width);
     }
     case CD_PROP_FLOAT3: {
-      if (column_id.index < 0 || column_id.index > 2) {
-        return {};
-      }
-      const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [attribute](int index, CellValue &r_cell_value) {
             float3 value;
             attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            r_cell_value.value_float3 = value;
+          },
+          default_float3_column_width);
     }
     case CD_PROP_COLOR: {
-      if (column_id.index < 0 || column_id.index > 3) {
-        return {};
-      }
-      const std::array<const char *, 4> suffixes = {" R", " G", " B", " A"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [attribute](int index, CellValue &r_cell_value) {
             Color4f value;
             attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            r_cell_value.value_color = value;
+          },
+          default_color_column_width);
     }
     default:
       break;
@@ -300,15 +258,11 @@ void InstancesDataSource::foreach_default_column_ids(
   }
 
   SpreadsheetColumnID column_id;
-  column_id.index = -1;
   column_id.name = (char *)"Name";
   fn(column_id);
   for (const char *name : {"Position", "Rotation", "Scale"}) {
-    for (const int i : {0, 1, 2}) {
-      column_id.name = (char *)name;
-      column_id.index = i;
-      fn(column_id);
-    }
+    column_id.name = (char *)name;
+    fn(column_id);
   }
 }
 
@@ -319,7 +273,6 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
     return {};
   }
 
-  const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Name")) {
     Span<InstancedData> instance_data = component_->instanced_data();
@@ -340,30 +293,33 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
     values->default_width = 8.0f;
     return values;
   }
-  if (column_id.index < 0 || column_id.index > 2) {
-    return {};
-  }
   Span<float4x4> transforms = component_->transforms();
   if (STREQ(column_id.name, "Position")) {
-    std::string name = StringRef("Position") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].translation()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].translation();
+        },
+        default_float3_column_width);
   }
   if (STREQ(column_id.name, "Rotation")) {
-    std::string name = StringRef("Rotation") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].to_euler()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].to_euler();
+        },
+        default_float3_column_width);
   }
   if (STREQ(column_id.name, "Scale")) {
-    std::string name = StringRef("Scale") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].scale()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].scale();
+        },
+        default_float3_column_width);
   }
   return {};
 }
