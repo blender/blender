@@ -654,7 +654,7 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
 
       /* An instance is part of the geometry of the collection. */
       if (cob->ob->type == OB_EMPTY) {
-        Collection *collection_instance = object->instance_collection;
+        Collection *collection_instance = cob->ob->instance_collection;
         if (collection_instance != nullptr) {
           OperationKey collection_instance_key{
               &collection_instance->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
