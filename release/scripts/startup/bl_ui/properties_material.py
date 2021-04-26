@@ -286,19 +286,17 @@ class MATERIAL_PT_lineart(MaterialButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         mat = context.material
         lineart = mat.lineart
 
         layout.prop(lineart, "use_transparency")
 
-        if lineart.use_transparency:
-
-            layout.label(text="Transparency Masks:")
-
-            row = layout.row(align=True)
-            for i in range(8):
-                row.prop(lineart, "use_transparency_mask", text=str(i), index=i, toggle=True)
+        row = layout.row(align=True, heading="Masks")
+        row.active = lineart.use_transparency
+        for i in range(8):
+            row.prop(lineart, "use_transparency_mask", text=str(i), index=i, toggle=True)
 
 
 classes = (
