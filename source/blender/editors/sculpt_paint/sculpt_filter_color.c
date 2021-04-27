@@ -281,7 +281,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   if (!ss->pbvh) {
     return OPERATOR_CANCELLED;
   }
-  if (BKE_pbvh_type(pbvh) != PBVH_FACES) {
+  if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
     return OPERATOR_CANCELLED;
   }
 
