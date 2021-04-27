@@ -98,3 +98,10 @@
 #else
 #  define ATTR_ALIGN(x) __attribute__((aligned(x)))
 #endif
+
+/* Alignment directive */
+#ifdef _WIN64
+#  define ALIGN_STRUCT __declspec(align(64))
+#else
+#  define ALIGN_STRUCT
+#endif

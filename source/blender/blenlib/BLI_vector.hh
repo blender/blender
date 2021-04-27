@@ -669,6 +669,21 @@ class Vector {
   }
 
   /**
+   * Return a reference to the first element in the vector.
+   * This invokes undefined behavior when the vector is empty.
+   */
+  const T &first() const
+  {
+    BLI_assert(this->size() > 0);
+    return *begin_;
+  }
+  T &first()
+  {
+    BLI_assert(this->size() > 0);
+    return *begin_;
+  }
+
+  /**
    * Return how many values are currently stored in the vector.
    */
   int64_t size() const

@@ -121,7 +121,7 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void 
 /**
  * Free but don't remove from ghash.
  */
-static void gizmotype_free(wmGizmoType *gzt)
+void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
   if (gzt->rna_ext.srna) { /* python gizmo, allocs own string */
     MEM_freeN((void *)gzt->idname);
@@ -169,8 +169,6 @@ void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt)
   BLI_ghash_remove(global_gizmotype_hash, gzt->idname, NULL, NULL);
 
   gizmotype_unlink(C, bmain, gzt);
-
-  gizmotype_free(gzt);
 }
 
 bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
@@ -186,9 +184,9 @@ bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
   return true;
 }
 
-static void wm_gizmotype_ghash_free_cb(wmGizmoType *mt)
+static void wm_gizmotype_ghash_free_cb(wmGizmoType *gzt)
 {
-  gizmotype_free(mt);
+  WM_gizmotype_free_ptr(gzt);
 }
 
 void wm_gizmotype_free(void)

@@ -21,10 +21,9 @@
  * \ingroup modifiers
  */
 
-#include "BLI_utildefines.h"
-
 #include "BLI_math.h"
-
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
@@ -56,6 +55,21 @@
 #include "bmesh.h"
 
 #define BEND_EPS 0.000001f
+
+ALIGN_STRUCT struct DeformUserData {
+  bool invert_vgroup;
+  char mode;
+  char deform_axis;
+  int lock_axis;
+  int vgroup;
+  int limit_axis;
+  float weight;
+  float smd_factor;
+  float smd_limit[2];
+  float (*vertexCos)[3];
+  const SpaceTransform *transf;
+  const MDeformVert *dvert;
+};
 
 /* Re-maps the indices for X Y Z by shifting them up and wrapping, such that
  * X = Y, Y = Z, Z = X (for X axis), and X = Z, Y = X, Z = Y (for Y axis). This
@@ -203,6 +217,88 @@ static void simpleDeform_bend(const float factor,
   }
 }
 
+static void simple_helper(void *__restrict userdata,
+                          const int iter,
+                          const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  const struct DeformUserData *curr_deform_data = userdata;
+  float weight = BKE_defvert_array_find_weight_safe(
+      curr_deform_data->dvert, iter, curr_deform_data->vgroup);
+  const uint *axis_map = axis_map_table[(curr_deform_data->mode != MOD_SIMPLEDEFORM_MODE_BEND) ?
+                                            curr_deform_data->deform_axis :
+                                            2];
+  const float base_limit[2] = {0.0f, 0.0f};
+
+  if (curr_deform_data->invert_vgroup) {
+    weight = 1.0f - weight;
+  }
+
+  if (weight != 0.0f) {
+    float co[3], dcut[3] = {0.0f, 0.0f, 0.0f};
+
+    if (curr_deform_data->transf) {
+      BLI_space_transform_apply(curr_deform_data->transf, curr_deform_data->vertexCos[iter]);
+    }
+
+    copy_v3_v3(co, curr_deform_data->vertexCos[iter]);
+
+    /* Apply axis limits, and axis mappings */
+    if (curr_deform_data->lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) {
+      axis_limit(0, base_limit, co, dcut);
+    }
+    if (curr_deform_data->lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) {
+      axis_limit(1, base_limit, co, dcut);
+    }
+    if (curr_deform_data->lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Z) {
+      axis_limit(2, base_limit, co, dcut);
+    }
+    axis_limit(curr_deform_data->limit_axis, curr_deform_data->smd_limit, co, dcut);
+
+    /* apply the deform to a mapped copy of the vertex, and then re-map it back. */
+    float co_remap[3];
+    float dcut_remap[3];
+    copy_v3_v3_map(co_remap, co, axis_map);
+    copy_v3_v3_map(dcut_remap, dcut, axis_map);
+    switch (curr_deform_data->mode) {
+      case MOD_SIMPLEDEFORM_MODE_TWIST:
+        simpleDeform_twist(curr_deform_data->smd_factor,
+                           curr_deform_data->deform_axis,
+                           dcut_remap,
+                           co_remap); /* apply deform */
+        break;
+      case MOD_SIMPLEDEFORM_MODE_BEND:
+        simpleDeform_bend(curr_deform_data->smd_factor,
+                          curr_deform_data->deform_axis,
+                          dcut_remap,
+                          co_remap); /* apply deform */
+        break;
+      case MOD_SIMPLEDEFORM_MODE_TAPER:
+        simpleDeform_taper(curr_deform_data->smd_factor,
+                           curr_deform_data->deform_axis,
+                           dcut_remap,
+                           co_remap); /* apply deform */
+        break;
+      case MOD_SIMPLEDEFORM_MODE_STRETCH:
+        simpleDeform_stretch(curr_deform_data->smd_factor,
+                             curr_deform_data->deform_axis,
+                             dcut_remap,
+                             co_remap); /* apply deform */
+        break;
+      default:
+        return; /* No simple-deform mode? */
+    }
+    copy_v3_v3_unmap(co, co_remap, axis_map);
+
+    /* Use vertex weight has coef of linear interpolation */
+    interp_v3_v3v3(
+        curr_deform_data->vertexCos[iter], curr_deform_data->vertexCos[iter], co, weight);
+
+    if (curr_deform_data->transf) {
+      BLI_space_transform_invert(curr_deform_data->transf, curr_deform_data->vertexCos[iter]);
+    }
+  }
+}
+
 /* simple deform modifier */
 static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
                                     const ModifierEvalContext *UNUSED(ctx),
@@ -211,14 +307,9 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
                                     float (*vertexCos)[3],
                                     int numVerts)
 {
-  const float base_limit[2] = {0.0f, 0.0f};
   int i;
   float smd_limit[2], smd_factor;
   SpaceTransform *transf = NULL, tmp_transf;
-  void (*simpleDeform_callback)(const float factor,
-                                const int axis,
-                                const float dcut[3],
-                                float co[3]) = NULL; /* Mode callback */
   int vgroup;
   MDeformVert *dvert;
 
@@ -300,23 +391,6 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
     smd_factor = smd->factor / max_ff(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
   }
 
-  switch (smd->mode) {
-    case MOD_SIMPLEDEFORM_MODE_TWIST:
-      simpleDeform_callback = simpleDeform_twist;
-      break;
-    case MOD_SIMPLEDEFORM_MODE_BEND:
-      simpleDeform_callback = simpleDeform_bend;
-      break;
-    case MOD_SIMPLEDEFORM_MODE_TAPER:
-      simpleDeform_callback = simpleDeform_taper;
-      break;
-    case MOD_SIMPLEDEFORM_MODE_STRETCH:
-      simpleDeform_callback = simpleDeform_stretch;
-      break;
-    default:
-      return; /* No simple-deform mode? */
-  }
-
   if (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) {
     if (fabsf(smd_factor) < BEND_EPS) {
       return;
@@ -325,53 +399,26 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
 
   MOD_get_vgroup(ob, mesh, smd->vgroup_name, &dvert, &vgroup);
   const bool invert_vgroup = (smd->flag & MOD_SIMPLEDEFORM_FLAG_INVERT_VGROUP) != 0;
-  const uint *axis_map =
-      axis_map_table[(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) ? deform_axis : 2];
 
-  for (i = 0; i < numVerts; i++) {
-    float weight = BKE_defvert_array_find_weight_safe(dvert, i, vgroup);
-
-    if (invert_vgroup) {
-      weight = 1.0f - weight;
-    }
-
-    if (weight != 0.0f) {
-      float co[3], dcut[3] = {0.0f, 0.0f, 0.0f};
-
-      if (transf) {
-        BLI_space_transform_apply(transf, vertexCos[i]);
-      }
-
-      copy_v3_v3(co, vertexCos[i]);
-
-      /* Apply axis limits, and axis mappings */
-      if (lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) {
-        axis_limit(0, base_limit, co, dcut);
-      }
-      if (lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) {
-        axis_limit(1, base_limit, co, dcut);
-      }
-      if (lock_axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Z) {
-        axis_limit(2, base_limit, co, dcut);
-      }
-      axis_limit(limit_axis, smd_limit, co, dcut);
-
-      /* apply the deform to a mapped copy of the vertex, and then re-map it back. */
-      float co_remap[3];
-      float dcut_remap[3];
-      copy_v3_v3_map(co_remap, co, axis_map);
-      copy_v3_v3_map(dcut_remap, dcut, axis_map);
-      simpleDeform_callback(smd_factor, deform_axis, dcut_remap, co_remap); /* apply deform */
-      copy_v3_v3_unmap(co, co_remap, axis_map);
-
-      /* Use vertex weight has coef of linear interpolation */
-      interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);
-
-      if (transf) {
-        BLI_space_transform_invert(transf, vertexCos[i]);
-      }
-    }
-  }
+  /* Build our data. */
+  const struct DeformUserData deform_pool_data = {
+      .mode = smd->mode,
+      .smd_factor = smd_factor,
+      .deform_axis = deform_axis,
+      .transf = transf,
+      .vertexCos = vertexCos,
+      .invert_vgroup = invert_vgroup,
+      .lock_axis = lock_axis,
+      .vgroup = vgroup,
+      .smd_limit[0] = smd_limit[0],
+      .smd_limit[1] = smd_limit[1],
+      .dvert = dvert,
+      .limit_axis = limit_axis,
+  };
+  /* Do deformation. */
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  BLI_task_parallel_range(0, numVerts, (void *)&deform_pool_data, simple_helper, &settings);
 }
 
 /* SimpleDeform */
@@ -553,7 +600,6 @@ ModifierTypeInfo modifierType_SimpleDeform = {
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
-    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

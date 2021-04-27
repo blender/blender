@@ -554,6 +554,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
     id_node->is_directly_visible = is_collection_visible;
 
     build_idproperties(collection->id.properties);
+    add_operation_node(&collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
   }
   if (from_layer_collection != nullptr) {
     /* If we came from layer collection we don't go deeper, view layer

@@ -88,12 +88,11 @@ typedef enum {
   CTX_TEXTURE_SPACE = (1 << 9),
 
   CTX_NO_PET = (1 << 10),
-  CTX_NO_MIRROR = (1 << 11),
-  CTX_AUTOCONFIRM = (1 << 12),
+  CTX_AUTOCONFIRM = (1 << 11),
   /** When transforming object's, adjust the object data so it stays in the same place. */
-  CTX_OBMODE_XFORM_OBDATA = (1 << 13),
+  CTX_OBMODE_XFORM_OBDATA = (1 << 12),
   /** Transform object parents without moving their children. */
-  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 14),
+  CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 13),
 } eTContext;
 
 /** #TransInfo.flag */
@@ -105,51 +104,50 @@ typedef enum {
   /** restrictions flags */
   T_NO_CONSTRAINT = 1 << 2,
   T_NULL_ONE = 1 << 3,
-  T_NO_ZERO = 1 << 4,
-  T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE | T_NO_ZERO,
+  T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE,
 
-  T_PROP_EDIT = 1 << 5,
-  T_PROP_CONNECTED = 1 << 6,
-  T_PROP_PROJECTED = 1 << 7,
+  T_PROP_EDIT = 1 << 4,
+  T_PROP_CONNECTED = 1 << 5,
+  T_PROP_PROJECTED = 1 << 6,
   T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
 
-  T_V3D_ALIGN = 1 << 8,
+  T_V3D_ALIGN = 1 << 7,
   /** For 2D views such as UV or f-curve. */
-  T_2D_EDIT = 1 << 9,
-  T_CLIP_UV = 1 << 10,
+  T_2D_EDIT = 1 << 8,
+  T_CLIP_UV = 1 << 9,
 
   /** Auto-IK is on. */
-  T_AUTOIK = 1 << 11,
+  T_AUTOIK = 1 << 10,
 
   /** Don't use mirror even if the data-block option is set. */
-  T_NO_MIRROR = 1 << 12,
+  T_NO_MIRROR = 1 << 11,
 
   /** To indicate that the value set in the `value` parameter is the final
    * value of the transformation, modified only by the constrain. */
-  T_INPUT_IS_VALUES_FINAL = 1 << 13,
+  T_INPUT_IS_VALUES_FINAL = 1 << 12,
 
   /** To specify if we save back settings at the end. */
-  T_MODAL = 1 << 14,
+  T_MODAL = 1 << 13,
 
   /** No re-topology (projection). */
-  T_NO_PROJECT = 1 << 15,
+  T_NO_PROJECT = 1 << 14,
 
-  T_RELEASE_CONFIRM = 1 << 16,
+  T_RELEASE_CONFIRM = 1 << 15,
 
   /** Alternative transformation. used to add offset to tracking markers. */
-  T_ALT_TRANSFORM = 1 << 17,
+  T_ALT_TRANSFORM = 1 << 16,
 
   /** #TransInfo.center has been set, don't change it. */
-  T_OVERRIDE_CENTER = 1 << 18,
+  T_OVERRIDE_CENTER = 1 << 17,
 
-  T_MODAL_CURSOR_SET = 1 << 19,
+  T_MODAL_CURSOR_SET = 1 << 18,
 
-  T_CLNOR_REBUILD = 1 << 20,
+  T_CLNOR_REBUILD = 1 << 19,
 
   /** Merges unselected into selected after transforming (runs after transforming). */
-  T_AUTOMERGE = 1 << 21,
+  T_AUTOMERGE = 1 << 20,
   /** Runs auto-merge & splits. */
-  T_AUTOSPLIT = 1 << 22,
+  T_AUTOSPLIT = 1 << 21,
 } eTFlag;
 
 /** #TransInfo.modifiers */

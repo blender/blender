@@ -644,7 +644,6 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
-    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

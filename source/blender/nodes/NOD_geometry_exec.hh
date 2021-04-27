@@ -56,31 +56,59 @@ using fn::GVMutableArray_GSpan;
 using fn::GVMutableArray_Typed;
 using fn::GVMutableArrayPtr;
 
+/**
+ * This class exists to separate the memory management details of the geometry nodes evaluator from
+ * the node execution functions and related utilities.
+ */
+class GeoNodeExecParamsProvider {
+ public:
+  DNode dnode;
+  const PersistentDataHandleMap *handle_map = nullptr;
+  const Object *self_object = nullptr;
+  const ModifierData *modifier = nullptr;
+  Depsgraph *depsgraph = nullptr;
+
+  /**
+   * Returns true when the node is allowed to get/extract the input value. The identifier is
+   * expected to be valid. This may return false if the input value has been consumed already.
+   */
+  virtual bool can_get_input(StringRef identifier) const = 0;
+
+  /**
+   * Returns true when the node is allowed to set the output value. The identifier is expected to
+   * be valid. This may return false if the output value has been set already.
+   */
+  virtual bool can_set_output(StringRef identifier) const = 0;
+
+  /**
+   * Take ownership of an input value. The caller is responsible for destructing the value. It does
+   * not have to be freed, because the memory is managed by the geometry nodes evaluator.
+   */
+  virtual GMutablePointer extract_input(StringRef identifier) = 0;
+
+  /**
+   * Similar to #extract_input, but has to be used for multi-input sockets.
+   */
+  virtual Vector<GMutablePointer> extract_multi_input(StringRef identifier) = 0;
+
+  /**
+   * Get the input value for the identifier without taking ownership of it.
+   */
+  virtual GPointer get_input(StringRef identifier) const = 0;
+
+  /**
+   * Prepare a memory buffer for an output value of the node. The returned memory has to be
+   * initialized by the caller. The identifier and type are expected to be correct.
+   */
+  virtual GMutablePointer alloc_output_value(StringRef identifier, const CPPType &type) = 0;
+};
+
 class GeoNodeExecParams {
  private:
-  const DNode node_;
-  GValueMap<StringRef> &input_values_;
-  GValueMap<StringRef> &output_values_;
-  const PersistentDataHandleMap &handle_map_;
-  const Object *self_object_;
-  const ModifierData *modifier_;
-  Depsgraph *depsgraph_;
+  GeoNodeExecParamsProvider *provider_;
 
  public:
-  GeoNodeExecParams(const DNode node,
-                    GValueMap<StringRef> &input_values,
-                    GValueMap<StringRef> &output_values,
-                    const PersistentDataHandleMap &handle_map,
-                    const Object *self_object,
-                    const ModifierData *modifier,
-                    Depsgraph *depsgraph)
-      : node_(node),
-        input_values_(input_values),
-        output_values_(output_values),
-        handle_map_(handle_map),
-        self_object_(self_object),
-        modifier_(modifier),
-        depsgraph_(depsgraph)
+  GeoNodeExecParams(GeoNodeExecParamsProvider &provider) : provider_(&provider)
   {
   }
 
@@ -93,9 +121,9 @@ class GeoNodeExecParams {
   GMutablePointer extract_input(StringRef identifier)
   {
 #ifdef DEBUG
-    this->check_extract_input(identifier);
+    this->check_input_access(identifier);
 #endif
-    return input_values_.extract(identifier);
+    return provider_->extract_input(identifier);
   }
 
   /**
@@ -106,9 +134,10 @@ class GeoNodeExecParams {
   template<typename T> T extract_input(StringRef identifier)
   {
 #ifdef DEBUG
-    this->check_extract_input(identifier, &CPPType::get<T>());
+    this->check_input_access(identifier, &CPPType::get<T>());
 #endif
-    return input_values_.extract<T>(identifier);
+    GMutablePointer gvalue = this->extract_input(identifier);
+    return gvalue.relocate_out<T>();
   }
 
   /**
@@ -118,18 +147,10 @@ class GeoNodeExecParams {
    */
   template<typename T> Vector<T> extract_multi_input(StringRef identifier)
   {
+    Vector<GMutablePointer> gvalues = provider_->extract_multi_input(identifier);
     Vector<T> values;
-    int index = 0;
-    while (true) {
-      std::string sub_identifier = identifier;
-      if (index > 0) {
-        sub_identifier += "[" + std::to_string(index) + "]";
-      }
-      if (!input_values_.contains(sub_identifier)) {
-        break;
-      }
-      values.append(input_values_.extract<T, StringRef>(sub_identifier));
-      index++;
+    for (GMutablePointer gvalue : gvalues) {
+      values.append(gvalue.relocate_out<T>());
     }
     return values;
   }
@@ -140,33 +161,11 @@ class GeoNodeExecParams {
   template<typename T> const T &get_input(StringRef identifier) const
   {
 #ifdef DEBUG
-    this->check_extract_input(identifier, &CPPType::get<T>());
+    this->check_input_access(identifier, &CPPType::get<T>());
 #endif
-    return input_values_.lookup<T>(identifier);
-  }
-
-  /**
-   * Move-construct a new value based on the given value and store it for the given socket
-   * identifier.
-   */
-  void set_output_by_move(StringRef identifier, GMutablePointer value)
-  {
-#ifdef DEBUG
-    BLI_assert(value.type() != nullptr);
-    BLI_assert(value.get() != nullptr);
-    this->check_set_output(identifier, *value.type());
-#endif
-    output_values_.add_new_by_move(identifier, value);
-  }
-
-  void set_output_by_copy(StringRef identifier, GPointer value)
-  {
-#ifdef DEBUG
-    BLI_assert(value.type() != nullptr);
-    BLI_assert(value.get() != nullptr);
-    this->check_set_output(identifier, *value.type());
-#endif
-    output_values_.add_new_by_copy(identifier, value);
+    GPointer gvalue = provider_->get_input(identifier);
+    BLI_assert(gvalue.is_type<T>());
+    return *(const T *)gvalue.get();
   }
 
   /**
@@ -174,10 +173,13 @@ class GeoNodeExecParams {
    */
   template<typename T> void set_output(StringRef identifier, T &&value)
   {
+    using StoredT = std::decay_t<T>;
+    const CPPType &type = CPPType::get<std::decay_t<T>>();
 #ifdef DEBUG
-    this->check_set_output(identifier, CPPType::get<std::decay_t<T>>());
+    this->check_output_access(identifier, type);
 #endif
-    output_values_.add_new(identifier, std::forward<T>(value));
+    GMutablePointer gvalue = provider_->alloc_output_value(identifier, type);
+    new (gvalue.get()) StoredT(std::forward<T>(value));
   }
 
   /**
@@ -185,22 +187,22 @@ class GeoNodeExecParams {
    */
   const bNode &node() const
   {
-    return *node_->bnode();
+    return *provider_->dnode->bnode();
   }
 
   const PersistentDataHandleMap &handle_map() const
   {
-    return handle_map_;
+    return *provider_->handle_map;
   }
 
   const Object *self_object() const
   {
-    return self_object_;
+    return provider_->self_object;
   }
 
   Depsgraph *depsgraph() const
   {
-    return depsgraph_;
+    return provider_->depsgraph;
   }
 
   /**
@@ -247,8 +249,8 @@ class GeoNodeExecParams {
 
  private:
   /* Utilities for detecting common errors at when using this class. */
-  void check_extract_input(StringRef identifier, const CPPType *requested_type = nullptr) const;
-  void check_set_output(StringRef identifier, const CPPType &value_type) const;
+  void check_input_access(StringRef identifier, const CPPType *requested_type = nullptr) const;
+  void check_output_access(StringRef identifier, const CPPType &value_type) const;
 
   /* Find the active socket socket with the input name (not the identifier). */
   const bNodeSocket *find_available_socket(const StringRef name) const;

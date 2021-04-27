@@ -1120,7 +1120,7 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
       data->cancel = true;
       return;
     }
-    
+
     if (ui_but_string_set(C, but, data->str)) {
       data->value = ui_but_value_get(but);
     }

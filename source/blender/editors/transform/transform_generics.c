@@ -538,7 +538,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else {
     /* Avoid mirroring for unsupported contexts. */
-    t->options |= CTX_NO_MIRROR;
+    t->flag |= T_NO_MIRROR;
   }
 
   /* setting PET flag only if property exist in operator. Otherwise, assume it's not supported */

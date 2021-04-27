@@ -2274,43 +2274,45 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 
 static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  int retval = OPERATOR_CANCELLED;
   Scene *scene = CTX_data_scene(C);
   Sequence *active_seq = SEQ_select_active_get(scene);
   StripElem *se = NULL;
 
-  if (active_seq == NULL) {
+  if (active_seq == NULL || active_seq->strip == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  if (active_seq->strip) {
-    switch (active_seq->type) {
-      case SEQ_TYPE_IMAGE:
-        se = SEQ_render_give_stripelem(active_seq, scene->r.cfra);
-        break;
-      case SEQ_TYPE_MOVIE:
-        se = active_seq->strip->stripdata;
-        break;
-      case SEQ_TYPE_SCENE:
-      case SEQ_TYPE_META:
-      case SEQ_TYPE_SOUND_RAM:
-      case SEQ_TYPE_SOUND_HD:
-      default:
-        break;
-    }
+  switch (active_seq->type) {
+    case SEQ_TYPE_IMAGE:
+      se = SEQ_render_give_stripelem(active_seq, scene->r.cfra);
+      break;
+    case SEQ_TYPE_MOVIE:
+      se = active_seq->strip->stripdata;
+      break;
+    default:
+      return OPERATOR_CANCELLED;
   }
 
-  if (se) {
-    /* Prevent setting the render size if sequence values aren't initialized. */
-    if ((se->orig_width > 0) && (se->orig_height > 0)) {
-      scene->r.xsch = se->orig_width;
-      scene->r.ysch = se->orig_height;
-      WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
-      retval = OPERATOR_FINISHED;
-    }
+  if (se == NULL) {
+    return OPERATOR_CANCELLED;
   }
 
-  return retval;
+  /* Prevent setting the render size if sequence values aren't initialized. */
+  if (se->orig_width <= 0 || se->orig_height <= 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  scene->r.xsch = se->orig_width;
+  scene->r.ysch = se->orig_height;
+
+  active_seq->strip->transform->scale_x = active_seq->strip->transform->scale_y = 1.0f;
+  active_seq->strip->transform->xofs = active_seq->strip->transform->yofs = 0.0f;
+
+  SEQ_relations_invalidate_cache_preprocessed(scene, active_seq);
+  WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+  return OPERATOR_FINISHED;
 }
 
 void SEQUENCER_OT_rendersize(wmOperatorType *ot)

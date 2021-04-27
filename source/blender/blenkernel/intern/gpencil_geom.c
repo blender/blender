@@ -2433,7 +2433,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
         make_element_name(
             ob_mesh->id.name + 2, (ma != NULL) ? ma->id.name + 2 : "Fill", 64, element_name);
-        mat_idx = gpencil_material_find_index_by_name(ob_gp, element_name);
+        mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
         if (mat_idx == -1) {
           float color[4];
           if (ma != NULL) {

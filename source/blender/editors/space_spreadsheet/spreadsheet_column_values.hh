@@ -74,11 +74,19 @@ template<typename GetValueF> class LambdaColumnValues : public ColumnValues {
 /* Utility function that simplifies creating a spreadsheet column from a lambda function. */
 template<typename GetValueF>
 std::unique_ptr<ColumnValues> column_values_from_function(std::string name,
-                                                          int size,
-                                                          GetValueF get_value)
+                                                          const int size,
+                                                          GetValueF get_value,
+                                                          const float default_width = 0.0f)
 {
-  return std::make_unique<LambdaColumnValues<GetValueF>>(
+  std::unique_ptr<ColumnValues> column_values = std::make_unique<LambdaColumnValues<GetValueF>>(
       std::move(name), size, std::move(get_value));
+  column_values->default_width = default_width;
+  return column_values;
 }
+
+static constexpr float default_float_column_width = 3;
+static constexpr float default_float2_column_width = 2 * default_float_column_width;
+static constexpr float default_float3_column_width = 3 * default_float_column_width;
+static constexpr float default_color_column_width = 4 * default_float_column_width;
 
 }  // namespace blender::ed::spreadsheet

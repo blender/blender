@@ -37,7 +37,6 @@ SpreadsheetColumnID *spreadsheet_column_id_copy(const SpreadsheetColumnID *src_c
 {
   SpreadsheetColumnID *new_column_id = spreadsheet_column_id_new();
   new_column_id->name = BLI_strdup(src_column_id->name);
-  new_column_id->index = src_column_id->index;
   return new_column_id;
 }
 

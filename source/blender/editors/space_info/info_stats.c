@@ -697,7 +697,8 @@ void ED_info_draw_stats(
 
   UI_FontThemeColor(font_id, TH_TEXT_HI);
   BLF_enable(font_id, BLF_SHADOW);
-  BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+  const float shadow_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  BLF_shadow(font_id, 5, shadow_color);
   BLF_shadow_offset(font_id, 1, -1);
 
   /* Translated labels for each stat row. */

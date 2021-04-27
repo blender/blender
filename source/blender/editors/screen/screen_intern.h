@@ -34,7 +34,9 @@ struct bContextDataResult;
 #define AZONEFADEIN (5.0f * U.widget_unit)  /* when #AZone is totally visible */
 #define AZONEFADEOUT (6.5f * U.widget_unit) /* when we start seeing the #AZone */
 
-#define AREAJOINTOLERANCE (1.0f * U.widget_unit) /* Edges must be close to allow joining. */
+/* Edges must be within these to allow joining. */
+#define AREAJOINTOLERANCEX (AREAMINX * U.dpi_fac)
+#define AREAJOINTOLERANCEY (HEADERY * U.dpi_fac)
 
 /* Expanded interaction influence of area borders. */
 #define BORDERPADDING (U.dpi_fac + U.pixelsize)
@@ -57,8 +59,9 @@ void screen_change_prepare(bScreen *screen_old,
 ScrArea *area_split(
     const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge);
 int screen_area_join(struct bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
-int area_getorientation(ScrArea *area, ScrArea *sb);
-
+int area_getorientation(ScrArea *sa_a, ScrArea *sa_b);
+void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, const int dir, int *r_offset1, int *r_offset2);
+bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area);
 struct AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
 /* screen_geometry.c */

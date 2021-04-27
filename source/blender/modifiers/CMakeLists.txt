@@ -79,6 +79,7 @@ set(SRC
   intern/MOD_mirror.c
   intern/MOD_multires.c
   intern/MOD_nodes.cc
+  intern/MOD_nodes_evaluator.cc
   intern/MOD_none.c
   intern/MOD_normal_edit.c
   intern/MOD_ocean.c
@@ -118,6 +119,7 @@ set(SRC
   MOD_modifiertypes.h
   MOD_nodes.h
   intern/MOD_meshcache_util.h
+  intern/MOD_nodes_evaluator.hh
   intern/MOD_solidify_util.h
   intern/MOD_ui_common.h
   intern/MOD_util.h

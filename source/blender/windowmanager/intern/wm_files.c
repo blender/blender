@@ -3265,7 +3265,10 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL);
+    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL) &
+        OPERATOR_CANCELLED) {
+      execute_callback = false;
+    }
   }
   else {
     WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL);

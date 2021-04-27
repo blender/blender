@@ -955,14 +955,21 @@ class OptiXDevice : public CUDADevice {
         // Create OptiX denoiser handle on demand when it is first used
         OptixDenoiserOptions denoiser_options = {};
         assert(task.denoising.input_passes >= 1 && task.denoising.input_passes <= 3);
+#  if OPTIX_ABI_VERSION >= 47
+        denoiser_options.guideAlbedo = task.denoising.input_passes >= 2;
+        denoiser_options.guideNormal = task.denoising.input_passes >= 3;
+        check_result_optix_ret(optixDenoiserCreate(
+            context, OPTIX_DENOISER_MODEL_KIND_HDR, &denoiser_options, &denoiser));
+#  else
         denoiser_options.inputKind = static_cast<OptixDenoiserInputKind>(
             OPTIX_DENOISER_INPUT_RGB + (task.denoising.input_passes - 1));
-#  if OPTIX_ABI_VERSION < 28
+#    if OPTIX_ABI_VERSION < 28
         denoiser_options.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT3;
-#  endif
+#    endif
         check_result_optix_ret(optixDenoiserCreate(context, &denoiser_options, &denoiser));
         check_result_optix_ret(
             optixDenoiserSetModel(denoiser, OPTIX_DENOISER_MODEL_KIND_HDR, NULL, 0));
+#  endif
 
         // OptiX denoiser handle was created with the requested number of input passes
         denoiser_input_passes = task.denoising.input_passes;
@@ -1032,10 +1039,34 @@ class OptiXDevice : public CUDADevice {
 #  endif
       output_layers[0].format = OPTIX_PIXEL_FORMAT_FLOAT3;
 
+#  if OPTIX_ABI_VERSION >= 47
+      OptixDenoiserLayer image_layers = {};
+      image_layers.input = input_layers[0];
+      image_layers.output = output_layers[0];
+
+      OptixDenoiserGuideLayer guide_layers = {};
+      guide_layers.albedo = input_layers[1];
+      guide_layers.normal = input_layers[2];
+#  endif
+
       // Finally run denonising
       OptixDenoiserParams params = {};  // All parameters are disabled/zero
+#  if OPTIX_ABI_VERSION >= 47
       check_result_optix_ret(optixDenoiserInvoke(denoiser,
-                                                 0,
+                                                 NULL,
+                                                 &params,
+                                                 denoiser_state.device_pointer,
+                                                 scratch_offset,
+                                                 &guide_layers,
+                                                 &image_layers,
+                                                 1,
+                                                 overlap_offset.x,
+                                                 overlap_offset.y,
+                                                 denoiser_state.device_pointer + scratch_offset,
+                                                 scratch_size));
+#  else
+      check_result_optix_ret(optixDenoiserInvoke(denoiser,
+                                                 NULL,
                                                  &params,
                                                  denoiser_state.device_pointer,
                                                  scratch_offset,
@@ -1046,6 +1077,7 @@ class OptiXDevice : public CUDADevice {
                                                  output_layers,
                                                  denoiser_state.device_pointer + scratch_offset,
                                                  scratch_size));
+#  endif
 
 #  if OPTIX_DENOISER_NO_PIXEL_STRIDE
       void *output_args[] = {&input_ptr,

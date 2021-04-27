@@ -591,14 +591,16 @@ typedef enum IDRecalcFlag {
   /* ** Object transformation changed. ** */
   ID_RECALC_TRANSFORM = (1 << 0),
 
-  /* ** Object geometry changed. **
+  /* ** Geometry changed. **
    *
    * When object of armature type gets tagged with this flag, its pose is
    * re-evaluated.
    * When object of other type is tagged with this flag it makes the modifier
    * stack to be re-evaluated.
    * When object data type (mesh, curve, ...) gets tagged with this flag it
-   * makes all objects which shares this data-block to be updated. */
+   * makes all objects which shares this data-block to be updated.
+   * When a collection gets tagged with this flag, all objects depending on the geometry and
+   * transforms on any of the objects in the collection are updated. */
   ID_RECALC_GEOMETRY = (1 << 1),
 
   /* ** Animation or time changed and animation is to be re-evaluated. ** */

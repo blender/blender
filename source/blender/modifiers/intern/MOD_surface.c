@@ -241,7 +241,6 @@ ModifierTypeInfo modifierType_Surface = {
     /* modifyMesh */ NULL,
     /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
-    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

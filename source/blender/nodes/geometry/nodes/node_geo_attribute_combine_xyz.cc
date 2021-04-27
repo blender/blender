@@ -112,6 +112,7 @@ static void combine_attributes(GeometryComponent &component, const GeoNodeExecPa
     const float z = attribute_z[i];
     attribute_result->set(i, {x, y, z});
   }
+  attribute_result.save();
 }
 
 static void geo_node_attribute_combine_xyz_exec(GeoNodeExecParams params)

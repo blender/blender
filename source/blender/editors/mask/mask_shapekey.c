@@ -220,8 +220,8 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
 }
 
 /*
- * - loop over selected shapekeys.
- * - find firstsel/lastsel pairs.
+ * - loop over selected shape-keys.
+ * - find first-selected/last-selected pairs.
  * - move these into a temp list.
  * - re-key all the original shapes.
  * - copy unselected values back from the original.

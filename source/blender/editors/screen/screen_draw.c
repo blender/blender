@@ -33,183 +33,10 @@
 
 #include "WM_api.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "screen_intern.h"
-
-/**
- * Draw horizontal shape visualizing future joining
- * (left as well right direction of future joining).
- */
-static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
-{
-  const float width = screen_geom_area_width(area) - 1;
-  const float height = screen_geom_area_height(area) - 1;
-
-  float w, h;
-  if (height < width) {
-    h = height / 8;
-    w = height / 4;
-  }
-  else {
-    h = width / 8;
-    w = width / 4;
-  }
-
-  vec2f points[10];
-  points[0].x = area->v1->vec.x;
-  points[0].y = area->v1->vec.y + height / 2;
-
-  points[1].x = area->v1->vec.x;
-  points[1].y = area->v1->vec.y;
-
-  points[2].x = area->v4->vec.x - w;
-  points[2].y = area->v4->vec.y;
-
-  points[3].x = area->v4->vec.x - w;
-  points[3].y = area->v4->vec.y + height / 2 - 2 * h;
-
-  points[4].x = area->v4->vec.x - 2 * w;
-  points[4].y = area->v4->vec.y + height / 2;
-
-  points[5].x = area->v4->vec.x - w;
-  points[5].y = area->v4->vec.y + height / 2 + 2 * h;
-
-  points[6].x = area->v3->vec.x - w;
-  points[6].y = area->v3->vec.y;
-
-  points[7].x = area->v2->vec.x;
-  points[7].y = area->v2->vec.y;
-
-  points[8].x = area->v4->vec.x;
-  points[8].y = area->v4->vec.y + height / 2 - h;
-
-  points[9].x = area->v4->vec.x;
-  points[9].y = area->v4->vec.y + height / 2 + h;
-
-  if (dir == 'l') {
-    /* when direction is left, then we flip direction of arrow */
-    float cx = area->v1->vec.x + width;
-    for (int i = 0; i < 10; i++) {
-      points[i].x -= cx;
-      points[i].x = -points[i].x;
-      points[i].x += area->v1->vec.x;
-    }
-  }
-
-  immBegin(GPU_PRIM_TRI_FAN, 5);
-
-  for (int i = 0; i < 5; i++) {
-    immVertex2f(pos, points[i].x, points[i].y);
-  }
-
-  immEnd();
-
-  immBegin(GPU_PRIM_TRI_FAN, 5);
-
-  for (int i = 4; i < 8; i++) {
-    immVertex2f(pos, points[i].x, points[i].y);
-  }
-
-  immVertex2f(pos, points[0].x, points[0].y);
-  immEnd();
-
-  immRectf(pos, points[2].x, points[2].y, points[8].x, points[8].y);
-  immRectf(pos, points[6].x, points[6].y, points[9].x, points[9].y);
-}
-
-/**
- * Draw vertical shape visualizing future joining (up/down direction).
- */
-static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
-{
-  const float width = screen_geom_area_width(area) - 1;
-  const float height = screen_geom_area_height(area) - 1;
-
-  float w, h;
-  if (height < width) {
-    h = height / 4;
-    w = height / 8;
-  }
-  else {
-    h = width / 4;
-    w = width / 8;
-  }
-
-  vec2f points[10];
-  points[0].x = area->v1->vec.x + width / 2;
-  points[0].y = area->v3->vec.y;
-
-  points[1].x = area->v2->vec.x;
-  points[1].y = area->v2->vec.y;
-
-  points[2].x = area->v1->vec.x;
-  points[2].y = area->v1->vec.y + h;
-
-  points[3].x = area->v1->vec.x + width / 2 - 2 * w;
-  points[3].y = area->v1->vec.y + h;
-
-  points[4].x = area->v1->vec.x + width / 2;
-  points[4].y = area->v1->vec.y + 2 * h;
-
-  points[5].x = area->v1->vec.x + width / 2 + 2 * w;
-  points[5].y = area->v1->vec.y + h;
-
-  points[6].x = area->v4->vec.x;
-  points[6].y = area->v4->vec.y + h;
-
-  points[7].x = area->v3->vec.x;
-  points[7].y = area->v3->vec.y;
-
-  points[8].x = area->v1->vec.x + width / 2 - w;
-  points[8].y = area->v1->vec.y;
-
-  points[9].x = area->v1->vec.x + width / 2 + w;
-  points[9].y = area->v1->vec.y;
-
-  if (dir == 'u') {
-    /* when direction is up, then we flip direction of arrow */
-    float cy = area->v1->vec.y + height;
-    for (int i = 0; i < 10; i++) {
-      points[i].y -= cy;
-      points[i].y = -points[i].y;
-      points[i].y += area->v1->vec.y;
-    }
-  }
-
-  immBegin(GPU_PRIM_TRI_FAN, 5);
-
-  for (int i = 0; i < 5; i++) {
-    immVertex2f(pos, points[i].x, points[i].y);
-  }
-
-  immEnd();
-
-  immBegin(GPU_PRIM_TRI_FAN, 5);
-
-  for (int i = 4; i < 8; i++) {
-    immVertex2f(pos, points[i].x, points[i].y);
-  }
-
-  immVertex2f(pos, points[0].x, points[0].y);
-  immEnd();
-
-  immRectf(pos, points[2].x, points[2].y, points[8].x, points[8].y);
-  immRectf(pos, points[6].x, points[6].y, points[9].x, points[9].y);
-}
-
-/**
- * Draw join shape due to direction of joining.
- */
-static void draw_join_shape(ScrArea *area, char dir, uint pos)
-{
-  if (ELEM(dir, 'u', 'd')) {
-    draw_vertical_join_shape(area, dir, pos);
-  }
-  else {
-    draw_horizontal_join_shape(area, dir, pos);
-  }
-}
 
 #define CORNER_RESOLUTION 3
 
@@ -289,28 +116,6 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
 }
 
 #undef CORNER_RESOLUTION
-
-/**
- * Draw screen area darker with arrow (visualization of future joining).
- */
-static void scrarea_draw_shape_dark(ScrArea *area, char dir, uint pos)
-{
-  GPU_blend(GPU_BLEND_ALPHA);
-  immUniformColor4ub(0, 0, 0, 50);
-
-  draw_join_shape(area, dir, pos);
-}
-
-/**
- * Draw screen area lighter with arrow shape ("eraser" of previous dark shape).
- */
-static void scrarea_draw_shape_light(ScrArea *area, char UNUSED(dir), uint pos)
-{
-  GPU_blend(GPU_BLEND_ALPHA);
-  immUniformColor4ub(255, 255, 255, 25);
-
-  immRectf(pos, area->v1->vec.x, area->v1->vec.y, area->v3->vec.x, area->v3->vec.y);
-}
 
 static void drawscredge_area_draw(
     int sizex, int sizey, short x1, short y1, short x2, short y2, float edge_thickness)
@@ -427,50 +232,92 @@ void ED_screen_draw_edges(wmWindow *win)
 }
 
 /**
- * The blended join arrows.
+ * Visual indication of the two areas involved in a proposed join.
  *
  * \param sa1: Area from which the resultant originates.
  * \param sa2: Target area that will be replaced.
  */
-void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
+void ED_screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  GPU_line_width(1);
-
-  /* blended join arrow */
   int dir = area_getorientation(sa1, sa2);
-  int dira = -1;
-  if (dir != -1) {
-    switch (dir) {
-      case 0: /* W */
-        dir = 'r';
-        dira = 'l';
-        break;
-      case 1: /* N */
-        dir = 'd';
-        dira = 'u';
-        break;
-      case 2: /* E */
-        dir = 'l';
-        dira = 'r';
-        break;
-      case 3: /* S */
-        dir = 'u';
-        dira = 'd';
-        break;
+  if (dir == -1) {
+    return;
+  }
+
+  /* Rect of the combined areas.*/
+  bool vertical = ELEM(dir, 1, 3);
+  rctf combined = {.xmin = vertical ? MAX2(sa1->totrct.xmin, sa2->totrct.xmin) :
+                                      MIN2(sa1->totrct.xmin, sa2->totrct.xmin),
+                   .xmax = vertical ? MIN2(sa1->totrct.xmax, sa2->totrct.xmax) :
+                                      MAX2(sa1->totrct.xmax, sa2->totrct.xmax),
+                   .ymin = vertical ? MIN2(sa1->totrct.ymin, sa2->totrct.ymin) :
+                                      MAX2(sa1->totrct.ymin, sa2->totrct.ymin),
+                   .ymax = vertical ? MAX2(sa1->totrct.ymax, sa2->totrct.ymax) :
+                                      MIN2(sa1->totrct.ymax, sa2->totrct.ymax)};
+
+  uint pos_id = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  /* Highlight source (sa1) within combined area. */
+  immUniformColor4fv((const float[4]){1.0f, 1.0f, 1.0f, 0.10f});
+  immRectf(pos_id,
+           MAX2(sa1->totrct.xmin, combined.xmin),
+           MAX2(sa1->totrct.ymin, combined.ymin),
+           MIN2(sa1->totrct.xmax, combined.xmax),
+           MIN2(sa1->totrct.ymax, combined.ymax));
+
+  /* Highlight destination (sa2) within combined area. */
+  immUniformColor4fv((const float[4]){0.0f, 0.0f, 0.0f, 0.25f});
+  immRectf(pos_id,
+           MAX2(sa2->totrct.xmin, combined.xmin),
+           MAX2(sa2->totrct.ymin, combined.ymin),
+           MIN2(sa2->totrct.xmax, combined.xmax),
+           MIN2(sa2->totrct.ymax, combined.ymax));
+
+  int offset1;
+  int offset2;
+  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
+  if (offset1 < 0 || offset2 > 0) {
+    /* Show partial areas that will be closed. */
+    immUniformColor4fv((const float[4]){0.0f, 0.0f, 0.0f, 0.8f});
+    if (vertical) {
+      if (sa1->totrct.xmin < combined.xmin) {
+        immRectf(pos_id, sa1->totrct.xmin, sa1->totrct.ymin, combined.xmin, sa1->totrct.ymax);
+      }
+      if (sa2->totrct.xmin < combined.xmin) {
+        immRectf(pos_id, sa2->totrct.xmin, sa2->totrct.ymin, combined.xmin, sa2->totrct.ymax);
+      }
+      if (sa1->totrct.xmax > combined.xmax) {
+        immRectf(pos_id, combined.xmax, sa1->totrct.ymin, sa1->totrct.xmax, sa1->totrct.ymax);
+      }
+      if (sa2->totrct.xmax > combined.xmax) {
+        immRectf(pos_id, combined.xmax, sa2->totrct.ymin, sa2->totrct.xmax, sa2->totrct.ymax);
+      }
     }
-
-    GPU_blend(GPU_BLEND_ALPHA);
-
-    scrarea_draw_shape_dark(sa2, dir, pos);
-    scrarea_draw_shape_light(sa1, dira, pos);
-
-    GPU_blend(GPU_BLEND_NONE);
+    else {
+      if (sa1->totrct.ymin < combined.ymin) {
+        immRectf(pos_id, sa1->totrct.xmin, combined.ymin, sa1->totrct.xmax, sa1->totrct.ymin);
+      }
+      if (sa2->totrct.ymin < combined.ymin) {
+        immRectf(pos_id, sa2->totrct.xmin, combined.ymin, sa2->totrct.xmax, sa2->totrct.ymin);
+      }
+      if (sa1->totrct.ymax > combined.ymax) {
+        immRectf(pos_id, sa1->totrct.xmin, sa1->totrct.ymax, sa1->totrct.xmax, combined.ymax);
+      }
+      if (sa2->totrct.ymax > combined.ymax) {
+        immRectf(pos_id, sa2->totrct.xmin, sa2->totrct.ymax, sa2->totrct.xmax, combined.ymax);
+      }
+    }
   }
 
   immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+
+  /* Outline the combined area. */
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv(&combined, false, 7 * U.pixelsize, (float[4]){1.0f, 1.0f, 1.0f, 0.8f});
 }
 
 void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)

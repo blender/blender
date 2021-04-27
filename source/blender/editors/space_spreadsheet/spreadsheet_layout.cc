@@ -161,6 +161,18 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr);
       UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
+    else if (cell_value.value_float2.has_value()) {
+      const float2 value = *cell_value.value_float2;
+      this->draw_float_vector(params, Span(&value.x, 2));
+    }
+    else if (cell_value.value_float3.has_value()) {
+      const float3 value = *cell_value.value_float3;
+      this->draw_float_vector(params, Span(&value.x, 3));
+    }
+    else if (cell_value.value_color.has_value()) {
+      const Color4f value = *cell_value.value_color;
+      this->draw_float_vector(params, Span(&value.r, 4));
+    }
     else if (cell_value.value_object.has_value()) {
       const ObjectCellValue value = *cell_value.value_object;
       uiDefIconTextBut(params.block,
@@ -196,6 +208,36 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        0,
                        0,
                        nullptr);
+    }
+  }
+
+  void draw_float_vector(const CellDrawParams &params, const Span<float> values) const
+  {
+    BLI_assert(!values.is_empty());
+    const float segment_width = (float)params.width / values.size();
+    for (const int i : values.index_range()) {
+      std::stringstream ss;
+      const float value = values[i];
+      ss << std::fixed << std::setprecision(3) << value;
+      const std::string value_str = ss.str();
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin + i * segment_width,
+                                    params.ymin,
+                                    segment_width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Floats. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
   }
 
