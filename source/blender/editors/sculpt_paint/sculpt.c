@@ -5734,6 +5734,8 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   const float offset = SCULPT_brush_plane_offset_get(sd, ss);
   const float displace = radius * (0.18f + offset);
 
+  SCULPT_vertex_random_access_ensure(ss);
+
   /* The sculpt-plane normal (whatever its set to). */
   float area_no_sp[3];
 
