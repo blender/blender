@@ -949,10 +949,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
-    BKE_mesh_flush_hidden_from_verts(ob->data);
-  }
-
   SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
