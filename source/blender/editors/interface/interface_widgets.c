@@ -2416,7 +2416,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     but->block->aspect = aspect_orig;
 #endif
 
-    rect->xmin += icon_size + icon_padding;
+    rect->xmin += round_fl_to_int(icon_size + icon_padding);
   }
 
   if (!no_text_padding) {
