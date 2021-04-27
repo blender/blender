@@ -66,6 +66,16 @@ class GMutablePointer {
     return type_ != nullptr && type_->is<T>();
   }
 
+  template<typename T> T relocate_out()
+  {
+    BLI_assert(this->is_type<T>());
+    T value;
+    type_->relocate_to_initialized(data_, &value);
+    data_ = nullptr;
+    type_ = nullptr;
+    return value;
+  }
+
   void destruct()
   {
     BLI_assert(data_ != nullptr);

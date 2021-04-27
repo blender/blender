@@ -666,7 +666,7 @@ class CPPType : NonCopyable, NonMovable {
 
   template<typename T> bool is() const
   {
-    return this == &CPPType::get<T>();
+    return this == &CPPType::get<std::decay_t<T>>();
   }
 };
 

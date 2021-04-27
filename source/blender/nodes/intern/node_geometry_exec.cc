@@ -30,22 +30,22 @@ namespace blender::nodes {
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::string message) const
 {
-  bNodeTree *btree_cow = node_->btree();
+  bNodeTree *btree_cow = provider_->dnode->btree();
   BLI_assert(btree_cow != nullptr);
   if (btree_cow == nullptr) {
     return;
   }
   bNodeTree *btree_original = (bNodeTree *)DEG_get_original_id((ID *)btree_cow);
 
-  const NodeTreeEvaluationContext context(*self_object_, *modifier_);
+  const NodeTreeEvaluationContext context(*provider_->self_object, *provider_->modifier);
 
   BKE_nodetree_error_message_add(
-      *btree_original, context, *node_->bnode(), type, std::move(message));
+      *btree_original, context, *provider_->dnode->bnode(), type, std::move(message));
 }
 
 const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name) const
 {
-  for (const InputSocketRef *socket : node_->inputs()) {
+  for (const InputSocketRef *socket : provider_->dnode->inputs()) {
     if (socket->is_available() && socket->name() == name) {
       return socket->bsocket();
     }
@@ -183,11 +183,11 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
   return default_domain;
 }
 
-void GeoNodeExecParams::check_extract_input(StringRef identifier,
-                                            const CPPType *requested_type) const
+void GeoNodeExecParams::check_input_access(StringRef identifier,
+                                           const CPPType *requested_type) const
 {
   bNodeSocket *found_socket = nullptr;
-  for (const InputSocketRef *socket : node_->inputs()) {
+  for (const InputSocketRef *socket : provider_->dnode->inputs()) {
     if (socket->identifier() == identifier) {
       found_socket = socket->bsocket();
       break;
@@ -197,39 +197,39 @@ void GeoNodeExecParams::check_extract_input(StringRef identifier,
   if (found_socket == nullptr) {
     std::cout << "Did not find an input socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    for (const InputSocketRef *socket : node_->inputs()) {
+    for (const InputSocketRef *socket : provider_->dnode->inputs()) {
       if (socket->is_available()) {
         std::cout << "'" << socket->identifier() << "', ";
       }
     }
     std::cout << "\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
   else if (found_socket->flag & SOCK_UNAVAIL) {
     std::cout << "The socket corresponding to the identifier '" << identifier
               << "' is disabled.\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
-  else if (!input_values_.contains(identifier)) {
+  else if (!provider_->can_get_input(identifier)) {
     std::cout << "The identifier '" << identifier
               << "' is valid, but there is no value for it anymore.\n";
     std::cout << "Most likely it has been extracted before.\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
   else if (requested_type != nullptr) {
     const CPPType &expected_type = *socket_cpp_type_get(*found_socket->typeinfo);
     if (*requested_type != expected_type) {
       std::cout << "The requested type '" << requested_type->name() << "' is incorrect. Expected '"
                 << expected_type.name() << "'.\n";
-      BLI_assert(false);
+      BLI_assert_unreachable();
     }
   }
 }
 
-void GeoNodeExecParams::check_set_output(StringRef identifier, const CPPType &value_type) const
+void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType &value_type) const
 {
   bNodeSocket *found_socket = nullptr;
-  for (const OutputSocketRef *socket : node_->outputs()) {
+  for (const OutputSocketRef *socket : provider_->dnode->outputs()) {
     if (socket->identifier() == identifier) {
       found_socket = socket->bsocket();
       break;
@@ -239,29 +239,29 @@ void GeoNodeExecParams::check_set_output(StringRef identifier, const CPPType &va
   if (found_socket == nullptr) {
     std::cout << "Did not find an output socket with the identifier '" << identifier << "'.\n";
     std::cout << "Possible identifiers are: ";
-    for (const OutputSocketRef *socket : node_->outputs()) {
+    for (const OutputSocketRef *socket : provider_->dnode->outputs()) {
       if (socket->is_available()) {
         std::cout << "'" << socket->identifier() << "', ";
       }
     }
     std::cout << "\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
   else if (found_socket->flag & SOCK_UNAVAIL) {
     std::cout << "The socket corresponding to the identifier '" << identifier
               << "' is disabled.\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
-  else if (output_values_.contains(identifier)) {
+  else if (!provider_->can_set_output(identifier)) {
     std::cout << "The identifier '" << identifier << "' has been set already.\n";
-    BLI_assert(false);
+    BLI_assert_unreachable();
   }
   else {
     const CPPType &expected_type = *socket_cpp_type_get(*found_socket->typeinfo);
     if (value_type != expected_type) {
       std::cout << "The value type '" << value_type.name() << "' is incorrect. Expected '"
                 << expected_type.name() << "'.\n";
-      BLI_assert(false);
+      BLI_assert_unreachable();
     }
   }
 }
