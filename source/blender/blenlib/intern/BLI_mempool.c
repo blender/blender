@@ -250,6 +250,82 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   return curnode;
 }
 
+/*
+This preallocates a mempool suitable for threading.  totelem elements are preallocated
+in chunks of size pchunk, and returned in r_chunks.  The idea is to pass these
+to tasks.
+*/
+
+BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
+                                          unsigned int totelem,
+                                          const unsigned int pchunk,
+                                          void ***r_chunks,
+                                          unsigned int *r_totchunk,
+                                          unsigned int flag)
+{
+  BLI_mempool *pool = BLI_mempool_create(esize, totelem, pchunk, flag);
+
+  BLI_mempool_chunk **chunks = MEM_callocN(sizeof(void *) * pool->maxchunks,
+                                           "BLI_mempool_create_for_tasks r_chunks");
+
+  int totalloc = 0;
+  *r_totchunk = 0;
+
+  BLI_mempool_chunk *chunk = pool->chunks, *lastchunk = NULL;
+
+  while (chunk) {
+    chunk = chunk->next;
+    totalloc += pool->pchunk;
+    lastchunk = chunk;
+  }
+
+  pool->totused = totalloc;
+  pool->free = NULL;
+
+  int i = pool->pchunk - 1;
+
+  while (lastchunk && totalloc > totelem) {
+    if (i < 0) {
+      BLI_mempool_chunk *lastchunk2 = NULL;
+
+      for (chunk = pool->chunks; chunk; chunk = chunk->next) {
+        if (chunk == lastchunk) {
+          lastchunk = lastchunk2;
+        }
+      }
+
+      if (!lastchunk) {
+        break;
+      }
+
+      i = pool->pchunk - 1;
+    }
+
+    char *elem = CHUNK_DATA(lastchunk);
+    elem += pool->esize * (unsigned int)i;
+
+    BLI_mempool_free(pool, elem);
+
+    totalloc--;
+  }
+
+  unsigned int ci = 0;
+
+  chunk = pool->chunks;
+  while (chunk && chunk != lastchunk) {
+    chunks[ci++] = CHUNK_DATA(chunk);
+    chunk = chunk->next;
+  }
+
+  if (lastchunk && i >= 0) {
+    chunks[ci++] = CHUNK_DATA(lastchunk);
+  }
+
+  *r_totchunk = ci;
+
+  return pool;
+}
+
 static void mempool_chunk_free(BLI_mempool_chunk *mpchunk)
 {
   MEM_freeN(mpchunk);

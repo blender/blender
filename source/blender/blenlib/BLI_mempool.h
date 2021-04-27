@@ -93,6 +93,19 @@ BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool,
     ATTR_NONNULL();
 void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr) ATTR_NONNULL();
 
+
+/*
+This preallocates a mempool suitable for threading.  totelem elements are preallocated
+in chunks of size pchunk, and returned in r_chunks.
+*/
+
+BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
+                                          unsigned int totelem,
+                                          const unsigned int pchunk,
+                                          void ***r_chunks,
+                                          unsigned int *r_totchunk,
+                                          unsigned int flag);
+
 #ifdef __cplusplus
 }
 #endif
