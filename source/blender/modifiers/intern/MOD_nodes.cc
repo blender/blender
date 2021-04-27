@@ -939,6 +939,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   eval_params.handle_map = &handle_map;
   eval_params.modifier_ = nmd;
   eval_params.depsgraph = ctx->depsgraph;
+  eval_params.self_object = ctx->object;
   eval_params.log_socket_value_fn = log_socket_value;
   blender::modifiers::geometry_nodes::evaluate_geometry_nodes(eval_params);
 

@@ -356,7 +356,7 @@ class StrokePanel(BrushPanel):
             col.operator("paintcurve.draw")
             col.separator()
 
-        if brush.use_space:
+        if brush.use_space or brush.use_line or brush.use_curve:
             col.separator()
             row = col.row(align=True)
             col.prop(brush, "dash_ratio", text="Dash Ratio")
