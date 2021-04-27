@@ -1429,6 +1429,7 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->vemap_mem);
 
   MEM_SAFE_FREE(ss->persistent_base);
+  MEM_SAFE_FREE(ss->limit_surface);
 
   MEM_SAFE_FREE(ss->preview_vert_index_list);
   ss->preview_vert_index_count = 0;
@@ -1498,6 +1499,8 @@ void BKE_sculptsession_free(Object *ob)
     MEM_SAFE_FREE(ss->orig_cos);
     MEM_SAFE_FREE(ss->deform_cos);
     MEM_SAFE_FREE(ss->deform_imats);
+
+    MEM_SAFE_FREE(ss->limit_surface);
 
     if (ss->pose_ik_chain_preview) {
       for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {

@@ -581,6 +581,9 @@ typedef struct SculptSession {
   /* This is freed with the PBVH, so it is always in sync with the mesh. */
   SculptPersistentBase *persistent_base;
 
+
+  float (*limit_surface)[3];
+
   SculptVertexInfo vertex_info;
   SculptFakeNeighbors fake_neighbors;
 

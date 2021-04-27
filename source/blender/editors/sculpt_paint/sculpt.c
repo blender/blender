@@ -237,6 +237,10 @@ void SCULPT_vertex_limit_surface_get(SculptSession *ss, int index, float r_co[3]
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_BMESH:
+      if (ss->limit_surface) {
+        copy_v3_v3(r_co, ss->limit_surface[index]);
+        break;
+      }
       copy_v3_v3(r_co, SCULPT_vertex_co_get(ss, index));
       break;
     case PBVH_GRIDS: {
@@ -10038,11 +10042,53 @@ static void SCULPT_OT_reset_brushes(struct wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 }
 
+static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob = CTX_data_active_object(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss) {
+    return OPERATOR_FINISHED;
+  }
+
+  SCULPT_vertex_random_access_ensure(ss);
+
+  MEM_SAFE_FREE(ss->limit_surface);
+
+  const int totvert = SCULPT_vertex_count_get(ss);
+  ss->limit_surface = MEM_mallocN(sizeof(float) * 3 * totvert,
+                                    "limit surface");
+
+  for (int i = 0; i < totvert; i++) {
+    SCULPT_neighbor_coords_average(ss, ss->limit_surface[i], i);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_set_limit_surface(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Limit Surface";
+  ot->idname = "SCULPT_OT_set_limit_surface";
+  ot->description = "Calculates and stores a limit surface from the current mesh";
+
+  /* API callbacks. */
+  ot->exec = sculpt_set_limit_surface_exec;
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
 void ED_operatortypes_sculpt(void)
 {
   WM_operatortype_append(SCULPT_OT_brush_stroke);
   WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
   WM_operatortype_append(SCULPT_OT_set_persistent_base);
+  WM_operatortype_append(SCULPT_OT_set_limit_surface);
   WM_operatortype_append(SCULPT_OT_dynamic_topology_toggle);
   WM_operatortype_append(SCULPT_OT_optimize);
   WM_operatortype_append(SCULPT_OT_symmetrize);

@@ -879,6 +879,9 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         col.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
         col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
 
+        col.separator()
+        col.operator("sculpt.set_limit_surface")
+
 
 class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
