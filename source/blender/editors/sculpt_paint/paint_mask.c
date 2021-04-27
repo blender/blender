@@ -1211,7 +1211,7 @@ static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
 
 static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 {
-  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
+  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 0 : 1;
 }
 
 static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
@@ -1224,7 +1224,9 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   if (sgcontext->ss && sgcontext->ss->bm) {
     bm = sgcontext->ss->bm;
+    BM_mesh_normals_update(bm);
   }
+
   else {
     const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
     bm = BM_mesh_create(&allocsize,
