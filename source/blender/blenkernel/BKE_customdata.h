@@ -602,6 +602,9 @@ void CustomData_blend_write(struct BlendWriter *writer,
                             struct ID *id);
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
+void CustomData_unmark_temporary_nocopy(struct CustomData *data);
+void CustomData_mark_temporary_nocopy(struct CustomData *data);
+
 #ifdef __cplusplus
 }
 #endif

@@ -95,6 +95,22 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
 
+static void bm_unmark_temp_cdlayers(BMesh *bm)
+{
+  CustomData_unmark_temporary_nocopy(&bm->vdata);
+  CustomData_unmark_temporary_nocopy(&bm->edata);
+  CustomData_unmark_temporary_nocopy(&bm->ldata);
+  CustomData_unmark_temporary_nocopy(&bm->pdata);
+}
+
+static void bm_mark_temp_cdlayers(BMesh *bm)
+{
+  CustomData_mark_temporary_nocopy(&bm->vdata);
+  CustomData_mark_temporary_nocopy(&bm->edata);
+  CustomData_mark_temporary_nocopy(&bm->ldata);
+  CustomData_mark_temporary_nocopy(&bm->pdata);
+}
+
 void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
 {
   const char cd_flag_all = BM_mesh_cd_flag_from_bmesh(bm) | cd_flag;
@@ -157,6 +173,7 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
   if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
     cd_flag |= ME_CDFLAG_EDGE_CREASE;
   }
+
   return cd_flag;
 }
 
@@ -176,7 +193,8 @@ static BMFace *bm_face_create_from_mpoly(
   return BM_face_create(bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD);
 }
 
-void BM_enter_multires_space(Object *ob, BMesh *bm, int space) {
+void BM_enter_multires_space(Object *ob, BMesh *bm, int space)
+{
   if (!bm->haveMultiResSettings && ob) {
     MultiresModifierData *mmd = get_multires_modifier(NULL, ob, true);
     if (mmd) {
@@ -186,7 +204,8 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space) {
     }
   }
 
-  if (!bm->haveMultiResSettings || !CustomData_has_layer(&bm->ldata, CD_MDISPS) || space == bm->multiresSpace) {
+  if (!bm->haveMultiResSettings || !CustomData_has_layer(&bm->ldata, CD_MDISPS) ||
+      space == bm->multiresSpace) {
     return;
   }
 
@@ -205,7 +224,10 @@ void BM_enter_multires_space(Object *ob, BMesh *bm, int space) {
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(Object *ob,
+                        BMesh *bm,
+                        const Mesh *me,
+                        const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -222,13 +244,18 @@ void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMes
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
+  if (params->copy_temp_cdlayers) {
+    bm_unmark_temp_cdlayers(bm);
+  }
+
   MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
 
   if (mmd) {
     bm->multires = *mmd;
     bm->haveMultiResSettings = true;
     bm->multiresSpace = MULTIRES_SPACE_TANGENT;
-  } else {
+  }
+  else {
     bm->haveMultiResSettings = false;
   }
 
@@ -244,6 +271,11 @@ void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMes
       CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
       CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
     }
+
+    if (params->copy_temp_cdlayers) {
+      bm_mark_temp_cdlayers(bm);
+    }
+
     return; /* Sanity check. */
   }
 
@@ -531,6 +563,10 @@ void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMes
   if (ftable) {
     MEM_freeN(ftable);
   }
+
+  if (params->copy_temp_cdlayers) {
+    bm_mark_temp_cdlayers(bm);
+  }
 }
 
 /**
@@ -615,7 +651,8 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
  *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
-void BM_mesh_bm_to_me(Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
+void BM_mesh_bm_to_me(
+    Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   MEdge *med;
   BMVert *v, *eve;
@@ -624,7 +661,11 @@ void BM_mesh_bm_to_me(Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct
   BMIter iter;
   int i, j;
 
-  //ensure multires space is correct
+  if (params->copy_temp_cdlayers) {
+    bm_unmark_temp_cdlayers(bm);
+  }
+
+  // ensure multires space is correct
   if (bm->haveMultiResSettings && bm->multiresSpace != MULTIRES_SPACE_TANGENT) {
     BM_enter_multires_space(ob, bm, MULTIRES_SPACE_TANGENT);
   }
@@ -1037,6 +1078,11 @@ void BM_mesh_bm_to_me(Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct
 
   /* To be removed as soon as COW is enabled by default.. */
   BKE_mesh_runtime_clear_geometry(me);
+
+  
+  if (params && params->copy_temp_cdlayers) {
+    bm_mark_temp_cdlayers(bm);
+  }
 }
 
 /**

@@ -86,6 +86,8 @@ void BM_log_face_removed(BMLog *log, struct BMFace *f);
 /* Log all vertices/faces in the BMesh as added */
 void BM_log_all_added(BMesh *bm, BMLog *log);
 
+void BM_log_full_mesh(BMesh *bm, BMLog *log);
+
 /* Log all vertices/faces in the BMesh as removed */
 void BM_log_before_all_removed(BMesh *bm, BMLog *log);
 

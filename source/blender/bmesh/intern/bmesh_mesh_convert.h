@@ -42,6 +42,7 @@ struct BMeshFromMeshParams {
   /* define the active shape key (index + 1) */
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
 };
 
 struct Object;
@@ -62,6 +63,7 @@ struct BMeshToMeshParams {
    */
   uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
+  uint copy_temp_cdlayers : 1;
 };
 
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);

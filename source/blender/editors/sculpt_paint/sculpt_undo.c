@@ -597,7 +597,8 @@ static int sculpt_undo_bmesh_restore(bContext *C,
                                      Object *ob,
                                      SculptSession *ss)
 {
-  if (ss->bm_log) {
+  if (ss->bm_log && ss->bm) {
+    SCULPT_dyntopo_node_layers_update_offsets(ss);
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
   }
 
@@ -1369,6 +1370,14 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_GEOMETRY:
         break;
     }
+  } else {
+    switch (type) {
+    case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+    case SCULPT_UNDO_GEOMETRY:
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+      break;
+      }
+
   }
 
   if (new_node) {

@@ -974,7 +974,8 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      trim_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -1220,22 +1221,28 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   Mesh *trim_mesh = trim_operation->mesh;
 
   BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = false,
-                      }));
+
+  if (sgcontext->ss && sgcontext->ss->bm) {
+    bm = sgcontext->ss->bm;
+  }
+  else {
+    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
+    bm = BM_mesh_create(&allocsize,
+                        &((struct BMeshCreateParams){
+                            .use_toolflags = false,
+                        }));
+
+    BM_mesh_bm_from_me(NULL,
+                       bm,
+                       sculpt_mesh,
+                       &((struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+  }
 
   BM_mesh_bm_from_me(NULL,
                      bm,
                      trim_mesh,
-                     &((struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
-
-  BM_mesh_bm_from_me(NULL,
-                     bm,
-                     sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
                      }));
@@ -1297,15 +1304,29 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   MEM_freeN(looptris);
 
-  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
-                                            (&(struct BMeshToMeshParams){
-                                                .calc_object_remap = false,
-                                            }),
-                                            sculpt_mesh);
-  BM_mesh_free(bm);
-  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-  BKE_mesh_nomain_to_mesh(
-      result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
+  if (sgcontext->ss && sgcontext->ss->bm) { //rebuild pbvh
+    BKE_pbvh_free(sgcontext->ss->pbvh);
+    sgcontext->ss->pbvh = BKE_pbvh_new();
+
+    BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
+                         sgcontext->ss->bm,
+                         false,
+                         sgcontext->ss->bm_log,
+                         sgcontext->ss->cd_vert_node_offset,
+                         sgcontext->ss->cd_face_node_offset,
+                         sgcontext->ss->cd_dyn_vert);
+  }
+  else { //save result to mesh
+    Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
+                                              (&(struct BMeshToMeshParams){
+                                                  .calc_object_remap = false,
+                                              }),
+                                              sculpt_mesh);
+    BM_mesh_free(bm);
+    result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    BKE_mesh_nomain_to_mesh(
+        result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
+  }
 }
 
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
@@ -1341,6 +1362,10 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
   }
 
   sculpt_gesture_trim_geometry_free(sgcontext);
+
+  if (sgcontext->ss && sgcontext->ss->bm) {
+    SCULPT_dynamic_topology_triangulate(sgcontext->ss->bm);
+  }
 
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
   BKE_mesh_batch_cache_dirty_tag(sgcontext->vc.obact->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -1551,8 +1576,8 @@ static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   SculptSession *ss = object->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-    /* Not supported in Multires and Dyntopo. */
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    /* Not supported in Multires. */
     return OPERATOR_CANCELLED;
   }
 

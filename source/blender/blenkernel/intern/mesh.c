@@ -1040,7 +1040,11 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
   BLI_assert(params->calc_object_remap == false);
   Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
   BM_mesh_bm_to_me(NULL, NULL, bm, mesh, params);
-  BKE_mesh_copy_settings(mesh, me_settings);
+
+  if (me_settings) {
+    BKE_mesh_copy_settings(mesh, me_settings);
+  }
+
   return mesh;
 }
 

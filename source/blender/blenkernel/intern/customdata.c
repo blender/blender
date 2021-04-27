@@ -2943,6 +2943,22 @@ bool CustomData_is_referenced_layer(struct CustomData *data, int type)
   return (layer->flag & CD_FLAG_NOFREE) != 0;
 }
 
+void CustomData_unmark_temporary_nocopy(CustomData *data) {
+  for (int i=0; i<data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
+      data->layers[i].flag &= ~CD_FLAG_NOCOPY;
+    }
+  }
+}
+
+void CustomData_mark_temporary_nocopy(CustomData *data) {
+  for (int i = 0; i < data->totlayer; i++) {
+    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
+      data->layers[i].flag |= CD_FLAG_NOCOPY;
+    }
+  }
+}
+
 void CustomData_free_temporary(CustomData *data, int totelem)
 {
   int i, j;

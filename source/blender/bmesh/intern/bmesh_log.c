@@ -32,6 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -39,9 +41,11 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
+#include "BKE_mesh.h"
 
 #include "bmesh.h"
 #include "bmesh_log.h"
@@ -50,6 +54,14 @@
 #include "BLI_strict_flags.h"
 
 #define CUSTOMDATA
+
+struct Mesh;
+
+typedef struct BMLogEdge {
+  uint v1, v2;
+  void *data;
+  int flag;
+} BMLogEdge;
 
 struct BMLogEntry {
   struct BMLogEntry *next, *prev;
@@ -61,6 +73,7 @@ struct BMLogEntry {
    * deleted */
   GHash *deleted_verts;
   GHash *deleted_faces;
+
   /* Elements that were not in the previous entry, but are in the
    * result of this entry */
   GHash *added_verts;
@@ -84,6 +97,11 @@ struct BMLogEntry {
 
   CustomData vdata, edata, ldata, pdata;
   struct BMLogEntry *combined_prev, *combined_next;
+
+  bool fully_copy;  // has full copy
+  struct Mesh
+      *full_copy_mesh;  // avoid excessive memory use by saving a Mesh instead of copying the bmesh
+  GHash *full_copy_idmap;  // maps ids to indices (with the elem-type in the high order bits)
 };
 
 struct BMLog {
@@ -589,6 +607,42 @@ static void bm_log_assign_ids(BMesh *bm, BMLog *log)
   }
 }
 
+static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
+{
+  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
+
+  entry->full_copy_idmap = BLI_ghash_ptr_new_ex("bmlog", bm->totvert + bm->totface);
+
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
+  GHashIterator gi;
+
+  for (int step = 0; step < 2; step++) {
+    BMIter iter;
+    BMHeader *elem;
+
+    BM_ITER_MESH (elem, &iter, bm, step ? BM_FACES_OF_MESH : BM_VERTS_OF_MESH) {
+      void **val = log_ghash_lookup_p(entry, log->elem_to_id, (void *)elem);
+      if (!val) {
+        continue;
+      }
+
+      uint id = POINTER_AS_UINT(*val);
+      uintptr_t key = elem->index;
+      key |= ((uintptr_t)elem->htype) << 31L;
+
+      BLI_ghash_insert(entry->full_copy_idmap, POINTER_FROM_UINT(id), (void *)key);
+    }
+  }
+
+  entry->full_copy_mesh = BKE_mesh_from_bmesh_nomain(
+      bm,
+      (&(struct BMeshToMeshParams){.update_shapekey_indices = false,
+                                   .calc_object_remap = false,
+                                   .cd_mask_extra = cd_mask_extra,
+                                   .copy_temp_cdlayers = true}),
+      NULL);
+}
+
 /* Allocate an empty log entry */
 static BMLogEntry *bm_log_entry_create(void)
 {
@@ -612,6 +666,14 @@ static BMLogEntry *bm_log_entry_create(void)
  * Note: does not free the log entry itself */
 static void bm_log_entry_free(BMLogEntry *entry)
 {
+  if (entry->full_copy_mesh) {
+    BKE_mesh_free(entry->full_copy_mesh);
+
+    if (entry->full_copy_idmap) {
+      BLI_ghash_free(entry->full_copy_idmap, NULL, NULL);
+    }
+  }
+
   BLI_ghash_free(entry->deleted_verts, NULL, NULL);
   BLI_ghash_free(entry->deleted_faces, NULL, NULL);
   BLI_ghash_free(entry->added_verts, NULL, NULL);
@@ -1049,6 +1111,75 @@ void BM_log_entry_drop(BMLogEntry *entry)
   bm_log_entry_free(entry);
   BLI_freelinkN(&log->entries, entry);
 }
+static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
+{
+  CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
+
+  BMIter iter;
+  BMVert *v;
+  BMFace *f;
+
+  BMLogEntry tmp = {0};
+
+  bm_log_full_mesh_intern(bm, log, &tmp);
+
+  BM_mesh_clear(bm);
+  BM_mesh_bm_from_me(NULL,
+                     bm,
+                     entry->full_copy_mesh,
+                     (&(struct BMeshFromMeshParams){.calc_face_normal = false,
+                                                    .add_key_index = false,
+                                                    .use_shapekey = false,
+                                                    .active_shapekey = -1,
+
+                                                    .cd_mask_extra = cd_mask_extra,
+                                                    .copy_temp_cdlayers = true}));
+
+  bm->elem_index_dirty |= BM_VERT | BM_FACE;
+
+  BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
+  BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
+
+  // restores ids
+  GHashIterator gi;
+  GHASH_ITER (gi, entry->full_copy_idmap) {
+    // uint id = POINTER_AS_UINT(BLI_ghashIterator_getKey(&gi));
+    uintptr_t id = (uintptr_t)BLI_ghashIterator_getKey(&gi);
+    uintptr_t key = (uintptr_t)BLI_ghashIterator_getValue(&gi);
+
+    uintptr_t idx = (key & ((1L << 31L) - 1L));
+    uintptr_t type = key >> 31L;
+    BMHeader *elem = NULL;
+
+    switch (type) {
+      case BM_VERT:
+        elem = &bm->vtable[idx]->head;
+        break;
+      case BM_FACE:
+        elem = &bm->ftable[idx]->head;
+        break;
+    }
+
+    if (elem) {
+      log_ghash_reinsert(entry, log->id_to_elem, POINTER_FROM_UINT(id), elem, NULL, NULL);
+      log_ghash_reinsert(entry, log->elem_to_id, elem, POINTER_FROM_UINT(id), NULL, NULL);
+    }
+    else {
+      // eek, error!
+      printf("bmlog error!\n");
+      log_ghash_remove(entry, log->id_to_elem, id, NULL, NULL);
+    }
+  }
+
+  BKE_mesh_free(entry->full_copy_mesh);
+  BLI_ghash_free(entry->full_copy_idmap, NULL, NULL);
+
+  entry->full_copy_idmap = tmp.full_copy_idmap;
+  entry->full_copy_mesh = tmp.full_copy_mesh;
+
+  bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+  bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+}
 
 /* Undo one BMLogEntry
  *
@@ -1057,6 +1188,11 @@ static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
+
+  if (entry->fully_copy) {
+    full_copy_swap(bm, log, entry);
+    return;
+  }
 
   /* Delete added faces and verts */
   bm_log_faces_unmake(bm, log, entry->added_faces, entry);
@@ -1095,6 +1231,12 @@ void BM_log_undo(BMesh *bm, BMLog *log)
  * Has no effect if there's nothing left to redo */
 static void bm_log_redo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
+  if (entry->fully_copy) {
+    // hrm, should we swap?
+    full_copy_swap(bm, log, entry);
+    return;
+  }
+
   bm->elem_index_dirty |= BM_VERT | BM_EDGE | BM_FACE;
   bm->elem_table_dirty |= BM_VERT | BM_EDGE | BM_FACE;
 
@@ -1360,6 +1502,30 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
   BM_ITER_MESH (f, &bm_iter, bm, BM_FACES_OF_MESH) {
     BM_log_face_added(log, f);
   }
+}
+
+void BM_log_full_mesh(BMesh *bm, BMLog *log)
+{
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+
+  BMLogEntry *entry = log->current_entry;
+
+  bool add = BLI_ghash_len(entry->added_faces) > 0;
+  add |= BLI_ghash_len(entry->modified_verts) > 0;
+  add |= BLI_ghash_len(entry->modified_faces) > 0;
+  add |= BLI_ghash_len(entry->deleted_verts) > 0;
+  add |= BLI_ghash_len(entry->deleted_faces) > 0;
+
+  if (add) {
+    entry = BM_log_entry_add_ex(bm, log, true);
+  }
+
+  entry->fully_copy = true;
+
+  bm_log_full_mesh_intern(bm, log, entry);
+
+  // push a fresh entry
+  BM_log_entry_add_ex(bm, log, true);
 }
 
 /* Log all vertices/faces in the BMesh as removed */

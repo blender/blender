@@ -73,6 +73,7 @@ typedef struct PBVHTriBuf {
 struct BMLog;
 struct BMesh;
 struct BMVert;
+struct BMEdge;
 struct BMFace;
 struct CCGElem;
 struct CCGKey;
@@ -698,6 +699,17 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
 void BKE_pbvh_bmesh_face_kill(PBVH *pbvh, struct BMFace *f);
+
+// note that e_tri and f_example are allowed to be NULL
+struct BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,
+                                          struct BMVert *v_tri[3],
+                                          struct BMEdge *e_tri[3],
+                                          const struct BMFace *f_example);
+
+// if node is NULL, one will be foudn in the pbvh, which potentially can be slow
+struct BMVert *BKE_pbvh_vert_create_bmesh(
+    PBVH *pbvh, float co[3], float no[3], PBVHNode *node, struct BMVert *v_example);
+PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 
 #ifdef __cplusplus
 }

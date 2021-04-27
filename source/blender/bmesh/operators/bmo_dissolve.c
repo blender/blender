@@ -445,7 +445,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 
           /* join faces */
           f_new = BM_faces_join_pair(bm, l_a, l_b, false);
-          if (BM_face_find_double(f_new)) {
+          if (f_new && BM_face_find_double(f_new)) {
             BM_face_kill(bm, f_new);
             f_new = NULL;
           }
