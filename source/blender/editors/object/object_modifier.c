@@ -1120,10 +1120,10 @@ bool edit_modifier_invoke_properties(bContext *C, wmOperator *op)
  * with a UI panel below the mouse cursor, unless a specific modifier is set with a context
  * pointer. Used in order to apply modifier operators on hover over their panels.
  */
-bool edit_modifier_invoke_properties_with_hover(bContext *C,
-                                                wmOperator *op,
-                                                const wmEvent *event,
-                                                int *r_retval)
+static bool edit_modifier_invoke_properties_with_hover(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event,
+                                                       int *r_retval)
 {
   if (RNA_struct_property_is_set(op->ptr, "modifier")) {
     return true;
