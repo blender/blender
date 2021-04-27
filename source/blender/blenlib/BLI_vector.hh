@@ -444,7 +444,7 @@ class Vector {
     this->append_as(std::move(value));
   }
   /* This is similar to `std::vector::emplace_back`. */
-  template<typename... ForwardValue> void append_as(ForwardValue &&...value)
+  template<typename... ForwardValue> void append_as(ForwardValue &&... value)
   {
     this->ensure_space_for_one();
     this->append_unchecked_as(std::forward<ForwardValue>(value)...);
@@ -486,7 +486,7 @@ class Vector {
   {
     this->append_unchecked_as(std::move(value));
   }
-  template<typename... ForwardT> void append_unchecked_as(ForwardT &&...value)
+  template<typename... ForwardT> void append_unchecked_as(ForwardT &&... value)
   {
     BLI_assert(end_ < capacity_end_);
     new (end_) T(std::forward<ForwardT>(value)...);
