@@ -8990,6 +8990,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       BM_mesh_toolflags_set(ss->bm, false);
 
+      BKE_pbvh_recalc_bmesh_boundary(ss->pbvh);
+
       /* Finish undo. */
       BM_log_all_added(ss->bm, ss->bm_log);
       SCULPT_undo_push_end();

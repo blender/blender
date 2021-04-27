@@ -3211,6 +3211,23 @@ static void pbvh_bmesh_create_nodes_fast_recursive(
 
 /***************************** Public API *****************************/
 
+/*Used by symmetrize to update boundary flags*/
+void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
+{
+  BMVert *v;
+  BMIter iter;
+
+  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v);
+
+    if (BM_vert_is_boundary(v)) {
+      mv->flag |= DYNVERT_BOUNDARY;
+    } else {
+      mv->flag &= ~DYNVERT_BOUNDARY;
+    }
+  }
+}
+
 /* Build a PBVH from a BMesh */
 void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           BMesh *bm,

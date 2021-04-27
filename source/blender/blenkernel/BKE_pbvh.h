@@ -693,6 +693,10 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node);
 PBVHTriBuf *BKE_pbvh_bmesh_get_tris(PBVH *pbvh, PBVHNode *node);
 void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 
+/*recalculates boundary flags for *all* vertices.  used by
+  symmetrize.*/
+void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
+
 #ifdef __cplusplus
 }
 #endif
