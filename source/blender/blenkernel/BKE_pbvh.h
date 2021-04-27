@@ -65,7 +65,7 @@ typedef struct PBVHTriBuf {
   SculptVertRef *verts;
   int tottri, totvert;
 
-  //private field
+  // private field
   intptr_t *loops;
   int totloop;
 } PBVHTriBuf;
@@ -73,6 +73,7 @@ typedef struct PBVHTriBuf {
 struct BMLog;
 struct BMesh;
 struct BMVert;
+struct BMFace;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
@@ -696,6 +697,7 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 /*recalculates boundary flags for *all* vertices.  used by
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
+void BKE_pbvh_bmesh_face_kill(PBVH *pbvh, struct BMFace *f);
 
 #ifdef __cplusplus
 }

@@ -888,6 +888,12 @@ static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
   f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateTris;
 }
 
+void BKE_pbvh_bmesh_face_kill(PBVH *pbvh, BMFace *f)
+{
+  pbvh_bmesh_face_remove(pbvh, f);
+  BM_face_kill(pbvh->bm, f);
+}
+
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
 {
   /* fast-path for most common case where an edge has 2 faces,
@@ -3222,7 +3228,8 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
 
     if (BM_vert_is_boundary(v)) {
       mv->flag |= DYNVERT_BOUNDARY;
-    } else {
+    }
+    else {
       mv->flag &= ~DYNVERT_BOUNDARY;
     }
   }

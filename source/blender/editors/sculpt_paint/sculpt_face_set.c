@@ -25,6 +25,7 @@
 
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
@@ -934,10 +935,23 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
       }
     }
 
-    for (int i = 0; i < ss->totfaces; i++) {
-      if (ss->face_sets[i] <= 0) {
-        hidden_vertex = true;
-        break;
+    if (ss->bm) {
+      BMIter iter;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        if (BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset) <= 0) {
+          hidden_vertex = true;
+          break;
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < ss->totfaces; i++) {
+        if (ss->face_sets[i] <= 0) {
+          hidden_vertex = true;
+          break;
+        }
       }
     }
 
@@ -1176,7 +1190,7 @@ static void sculpt_face_set_grow_bmesh(Object *ob,
 
     do {
       if (l->radial_next != l) {
-        BM_ELEM_CD_GET_INT(l->radial_next->f, active_face_set_id);
+        BM_ELEM_CD_SET_INT(l->radial_next->f, ss->cd_faceset_offset, active_face_set_id);
       }
       l = l->next;
     } while (l != f->l_first);
@@ -1218,6 +1232,59 @@ static void sculpt_face_set_grow(Object *ob,
   }
 }
 
+static void sculpt_face_set_shrink_bmesh(Object *ob,
+                                         SculptSession *ss,
+                                         const int *prev_face_sets,
+                                         const int active_face_set_id,
+                                         const bool modify_hidden)
+{
+  BMesh *bm = ss->bm;
+  BMIter iter;
+  BMFace *f;
+  BMFace **faces = NULL;
+  BLI_array_declare(faces);
+
+  if (ss->cd_faceset_offset < 0) {
+    return;
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) && !modify_hidden) {
+      continue;
+    }
+
+    int fset = abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset));
+
+    if (fset == active_face_set_id) {
+      BLI_array_append(faces, f);
+    }
+  }
+
+  for (int i = 0; i < BLI_array_len(faces); i++) {
+    BMFace *f = faces[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      if (!modify_hidden && BM_elem_flag_test(l->radial_next->f, BM_ELEM_HIDDEN)) {
+        l = l->next;
+        continue;
+      }
+
+      if (l->radial_next != l &&
+          abs(BM_ELEM_CD_GET_INT(l->radial_next->f, ss->cd_faceset_offset)) !=
+              abs(active_face_set_id)) {
+        BM_ELEM_CD_SET_INT(f,
+                           ss->cd_faceset_offset,
+                           BM_ELEM_CD_GET_INT(l->radial_next->f, ss->cd_faceset_offset));
+        break;
+      }
+      l = l->next;
+    } while (l != f->l_first);
+  }
+
+  BLI_array_free(faces);
+}
+
 static void sculpt_face_set_shrink(Object *ob,
                                    SculptSession *ss,
                                    const int *prev_face_sets,
@@ -1225,7 +1292,7 @@ static void sculpt_face_set_shrink(Object *ob,
                                    const bool modify_hidden)
 {
   if (ss && ss->bm) {
-    // XXX implement me
+    sculpt_face_set_shrink_bmesh(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
     return;
   }
 
@@ -1290,41 +1357,65 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
   Mesh *mesh = ob->data;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  BMesh *bm = BM_mesh_create(&allocsize,
-                             &((struct BMeshCreateParams){
-                                 .use_toolflags = true,
-                             }));
 
-  BM_mesh_bm_from_me(ob,
+  if (ss->bm) {
+    BMFace **faces = NULL;
+    BLI_array_declare(faces);
+
+    BMIter iter;
+    BMFace *f;
+
+    BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+      const int face_set_id = modify_hidden ? abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset)) :
+                                              BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+      if (face_set_id == active_face_set_id) {
+        BLI_array_append(faces, f);
+      }
+    }
+
+    for (int i = 0; i < BLI_array_len(faces); i++) {
+      BKE_pbvh_bmesh_face_kill(ss->pbvh, faces[i]);
+    }
+
+    BLI_array_free(faces);
+  }
+  else {
+    BMesh *bm = BM_mesh_create(&allocsize,
+                               &((struct BMeshCreateParams){
+                                   .use_toolflags = true,
+                               }));
+
+    BM_mesh_bm_from_me(ob,
+                       bm,
+                       mesh,
+                       (&(struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+
+    BM_mesh_elem_table_init(bm, BM_FACE);
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+    BMIter iter;
+    BMFace *f;
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      const int face_index = BM_elem_index_get(f);
+      const int face_set_id = modify_hidden ? abs(ss->face_sets[face_index]) :
+                                              ss->face_sets[face_index];
+      BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id == active_face_set_id);
+    }
+    BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
+    BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+
+    BM_mesh_bm_to_me(NULL,
+                     ob,
                      bm,
-                     mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
+                     ob->data,
+                     (&(struct BMeshToMeshParams){
+                         .calc_object_remap = false,
                      }));
 
-  BM_mesh_elem_table_init(bm, BM_FACE);
-  BM_mesh_elem_table_ensure(bm, BM_FACE);
-  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  BMIter iter;
-  BMFace *f;
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    const int face_index = BM_elem_index_get(f);
-    const int face_set_id = modify_hidden ? abs(ss->face_sets[face_index]) :
-                                            ss->face_sets[face_index];
-    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id == active_face_set_id);
+    BM_mesh_free(bm);
   }
-  BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
-  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-
-  BM_mesh_bm_to_me(NULL,
-                   ob,
-                   bm,
-                   ob->data,
-                   (&(struct BMeshToMeshParams){
-                       .calc_object_remap = false,
-                   }));
-
-  BM_mesh_free(bm);
 }
 
 static void sculpt_face_set_edit_fair_face_set(Object *ob,
@@ -1349,8 +1440,14 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
                        SCULPT_vertex_has_unique_face_set(ss, vref);
   }
 
-  MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  BKE_mesh_prefair_and_fair_vertices(mesh, mvert, fair_vertices, fair_order);
+  if (ss->bm) {
+    BKE_bmesh_prefair_and_fair_vertices(ss->bm, fair_vertices, fair_order);
+  }
+  else {
+    MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
+    BKE_mesh_prefair_and_fair_vertices(mesh, mvert, fair_vertices, fair_order);
+  }
+
   MEM_freeN(fair_vertices);
 }
 
@@ -1390,11 +1487,6 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
                                                     const eSculptFaceSetEditMode mode,
                                                     const bool modify_hidden)
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    /* Dyntopo is not supported. */
-    return false;
-  }
-
   if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* Modification of base mesh geometry requires special remapping of multires displacement,
