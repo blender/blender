@@ -268,7 +268,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   BLI_mempool_chunk **chunks = MEM_callocN(sizeof(void *) * pool->maxchunks,
                                            "BLI_mempool_create_for_tasks r_chunks");
 
-  int totalloc = 0;
+  unsigned int totalloc = 0;
   *r_totchunk = 0;
 
   BLI_mempool_chunk *chunk = pool->chunks, *lastchunk = NULL;
@@ -298,7 +298,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
         break;
       }
 
-      i = pool->pchunk - 1;
+      i = (int)pool->pchunk - 1;
     }
 
     char *elem = CHUNK_DATA(lastchunk);
