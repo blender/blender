@@ -1321,12 +1321,14 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   if (!ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
     return OPERATOR_CANCELLED;
   }
-  /* add new object if not currently editing a GP object,
-   * or if "empty" was chosen (i.e. user wants a blank GP canvas)
-   */
-  if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false) || (type == GP_EMPTY)) {
+  /* Add new object if not currently editing a GP object. */
+  if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false)) {
     const char *ob_name = NULL;
     switch (type) {
+      case GP_EMPTY: {
+        ob_name = "GPencil";
+        break;
+      }
       case GP_MONKEY: {
         ob_name = "Suzanne";
         break;
@@ -1356,6 +1358,13 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
   /* create relevant geometry */
   switch (type) {
+    case GP_EMPTY: {
+      float mat[4][4];
+
+      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+      ED_gpencil_create_blank(C, ob, mat);
+      break;
+    }
     case GP_STROKE: {
       float radius = RNA_float_get(op->ptr, "radius");
       float mat[4][4];
@@ -1423,10 +1432,6 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       /* Stroke object is drawn in front of meshes by default. */
       ob->dtx |= OB_DRAW_IN_FRONT;
     }
-    case GP_EMPTY:
-      /* do nothing */
-      break;
-
     default:
       BKE_report(op->reports, RPT_WARNING, "Not implemented");
       break;
