@@ -178,6 +178,7 @@ void BKE_armature_where_is_bone(struct Bone *bone,
 void BKE_pose_clear_pointers(struct bPose *pose);
 void BKE_pose_remap_bone_pointers(struct bArmature *armature, struct bPose *pose);
 void BKE_pchan_rebuild_bbone_handles(struct bPose *pose, struct bPoseChannel *pchan);
+void BKE_pose_channels_clear_with_null_bone(struct bPose *pose, const bool do_id_user);
 void BKE_pose_rebuild(struct Main *bmain,
                       struct Object *ob,
                       struct bArmature *arm,
