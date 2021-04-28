@@ -94,13 +94,11 @@ class ExportHelper:
         if check_extension is not None:
             filepath = self.filepath
             if os.path.basename(filepath):
-                filepath = bpy.path.ensure_ext(
-                    filepath,
-                    self.filename_ext
-                    if check_extension
-                    else "",
-                )
-
+                if check_extension:
+                    filepath = bpy.path.ensure_ext(
+                        os.path.splitext(filepath)[0],
+                        self.filename_ext,
+                    )
                 if filepath != self.filepath:
                     self.filepath = filepath
                     change_ext = True
