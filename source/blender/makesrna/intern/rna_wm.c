@@ -604,14 +604,22 @@ static PointerRNA rna_Operator_options_get(PointerRNA *ptr)
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
   wmOperator *op = (wmOperator *)ptr->data;
-  return rna_pointer_inherit_refine(ptr, op->type->srna, op->properties);
+
+  PointerRNA result;
+  WM_operator_properties_create_ptr(&result, op->type);
+  result.data = op->properties;
+  return result;
 }
 
 static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 {
   wmOperatorTypeMacro *otmacro = (wmOperatorTypeMacro *)ptr->data;
   wmOperatorType *ot = WM_operatortype_find(otmacro->idname, true);
-  return rna_pointer_inherit_refine(ptr, ot->srna, otmacro->properties);
+
+  PointerRNA result;
+  WM_operator_properties_create_ptr(&result, ot);
+  result.data = otmacro->properties;
+  return result;
 }
 
 static const EnumPropertyItem *rna_Event_value_itemf(bContext *UNUSED(C),
