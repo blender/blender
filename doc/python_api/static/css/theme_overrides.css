@@ -1,5 +1,5 @@
 /* T76453: Prevent Long enum lists */
-.field-list li {
+.field-list > dd > p {
    max-height: 245px;
    overflow-y: auto !important;
 }
