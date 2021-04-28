@@ -70,9 +70,11 @@ static int pack_libraries_exec(bContext *C, wmOperator *op)
 void FILE_OT_pack_libraries(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Pack Blender Libraries";
+  ot->name = "Pack Linked Libraries";
   ot->idname = "FILE_OT_pack_libraries";
-  ot->description = "Pack all used Blender library files into the current .blend";
+  ot->description =
+      "Store all data-blocks linked from other .blend files in the current .blend file. Library "
+      "references are preserved so the linked data-blocks can be unpacked again.";
 
   /* api callbacks */
   ot->exec = pack_libraries_exec;
@@ -93,15 +95,15 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
 static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   return WM_operator_confirm_message(
-      C, op, "Unpack Blender Libraries - creates directories, all new paths should work");
+      C, op, "Unpack Linked Libraries - creates directories, all new paths should work");
 }
 
 void FILE_OT_unpack_libraries(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Unpack Blender Libraries";
+  ot->name = "Unpack Linked Libraries";
   ot->idname = "FILE_OT_unpack_libraries";
-  ot->description = "Unpack all used Blender library files from this .blend file";
+  ot->description = "Restore all packed linked data-blocks to their original locations";
 
   /* api callbacks */
   ot->invoke = unpack_libraries_invoke;
@@ -131,7 +133,7 @@ static int autopack_toggle_exec(bContext *C, wmOperator *op)
 void FILE_OT_autopack_toggle(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Automatically Pack Into .blend";
+  ot->name = "Automatically Pack Resources";
   ot->idname = "FILE_OT_autopack_toggle";
   ot->description = "Automatically pack all external files into the .blend file";
 
@@ -176,9 +178,9 @@ static int pack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
 void FILE_OT_pack_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Pack All Into .blend";
+  ot->name = "Pack Resources";
   ot->idname = "FILE_OT_pack_all";
-  ot->description = "Pack all used external files into the .blend";
+  ot->description = "Pack all used external files into this .blend";
 
   /* api callbacks */
   ot->exec = pack_all_exec;
@@ -263,7 +265,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 void FILE_OT_unpack_all(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Unpack All Into Files";
+  ot->name = "Unpack Resources";
   ot->idname = "FILE_OT_unpack_all";
   ot->description = "Unpack all files packed into this .blend to external ones";
 
@@ -395,7 +397,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_relative(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make All Paths Relative";
+  ot->name = "Make Paths Relative";
   ot->idname = "FILE_OT_make_paths_relative";
   ot->description = "Make all paths to external files relative to current .blend";
 
@@ -428,7 +430,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 void FILE_OT_make_paths_absolute(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Make All Paths Absolute";
+  ot->name = "Make Paths Absolute";
   ot->idname = "FILE_OT_make_paths_absolute";
   ot->description = "Make all paths to external files absolute";
 
