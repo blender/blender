@@ -778,7 +778,7 @@ MINLINE float dot_shsh(const float a[9], const float b[9]);
 MINLINE float eval_shv3(float r[9], const float v[3]);
 MINLINE float diffuse_shv3(float r[9], const float v[3]);
 MINLINE void vec_fac_to_sh(float r[9], const float v[3], const float f);
-MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
+MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f);
 
 /********************************* Form Factor *******************************/
 

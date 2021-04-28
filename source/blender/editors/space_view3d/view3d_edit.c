@@ -2507,7 +2507,7 @@ static void view_dolly_to_vector_3d(ARegion *region,
   madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
-static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const short zoom_invert)
+static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_invert)
 {
   float zfac = 1.0;
 

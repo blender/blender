@@ -74,7 +74,7 @@
 
 static void drawTransformApply(const struct bContext *C, ARegion *region, void *arg);
 
-static void initSnapSpatial(TransInfo *t, float r_snap[3]);
+static void initSnapSpatial(TransInfo *t, float r_snap[2]);
 
 bool transdata_check_local_islands(TransInfo *t, short around)
 {

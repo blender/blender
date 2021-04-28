@@ -105,8 +105,8 @@ int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
 void hsv_clamp_v(float hsv[3], float v_max);
 
-void rgb_float_set_hue_float_offset(float *rgb, float hue_offset);
-void rgb_byte_set_hue_float_offset(unsigned char *rgb, float hue_offset);
+void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset);
+void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset);
 
 void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3]);
 void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4]);

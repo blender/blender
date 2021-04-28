@@ -162,7 +162,7 @@ void ED_area_tag_redraw_no_rebuild(ScrArea *area);
 void ED_area_tag_redraw_regiontype(ScrArea *area, int type);
 void ED_area_tag_refresh(ScrArea *area);
 void ED_area_do_refresh(struct bContext *C, ScrArea *area);
-struct AZone *ED_area_azones_update(ScrArea *area, const int mouse_xy[]);
+struct AZone *ED_area_azones_update(ScrArea *area, const int mouse_xy[2]);
 void ED_area_status_text(ScrArea *area, const char *str);
 void ED_area_newspace(struct bContext *C, ScrArea *area, int type, const bool skip_region_exit);
 void ED_area_prevspace(struct bContext *C, ScrArea *area);
