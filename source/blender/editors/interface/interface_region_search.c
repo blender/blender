@@ -677,8 +677,7 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
           }
 
           /* The previous menu item draws the active selection. */
-          ui_draw_menu_item(
-              &data->fstyle, &rect, name_sep, icon, state & ~UI_ACTIVE, separator_type, NULL);
+          ui_draw_menu_item(&data->fstyle, &rect, name_sep, icon, state, separator_type, NULL);
         }
       }
       /* indicate more */
