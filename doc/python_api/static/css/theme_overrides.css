@@ -1,7 +1,8 @@
 /* T76453: Prevent Long enum lists */
-.field-list li {
+.field-list > dd > p {
    max-height: 245px;
    overflow-y: auto !important;
+   word-break: break-word;
 }
 
 /* Hide home icon in search area */
@@ -11,3 +12,15 @@
 .wy-nav-content {
     max-width: 1000px !important;
 }
+
+/* Fix long titles on mobile */
+h1, h2, h3, h4, h5, h6 {word-break: break-all}
+
+/* Temp fix for https://github.com/readthedocs/sphinx_rtd_theme/pull/1109 */
+.hlist tr {
+   display: -ms-flexbox;
+   display: flex;
+   flex-flow: row wrap;
+ }
+
+.hlist td {margin-right: auto}
