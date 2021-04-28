@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "BLI_listbase.h"
+
 struct Sequence;
 
 namespace blender {
@@ -43,6 +45,7 @@ class SequenceBackup {
   bool isEmpty() const;
 
   void *scene_sound;
+  ListBase anims;
 };
 
 }  // namespace deg
