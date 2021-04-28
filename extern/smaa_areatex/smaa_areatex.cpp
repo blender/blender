@@ -1088,7 +1088,7 @@ static int generate_file(AreaOrtho *ortho, AreaDiag *diag, const char *path, boo
 		return 1;
 	}
 
-	fprintf(stderr, "Generating %s\n", path);
+	// fprintf(stderr, "Generating %s\n", path);
 
 	if (tga)
 		write_tga(ortho, diag, fp, subsampling);
