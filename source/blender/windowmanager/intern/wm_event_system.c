@@ -4478,16 +4478,21 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
   event.prevtype = event.type;
   event.prevval = event.val;
 
-  /* Ensure the event state is correct, any deviation from this may cause bugs. */
+  /* Ensure the event state is correct, any deviation from this may cause bugs.
+   *
+   * NOTE: #EVENT_NONE is set when unknown keys are pressed,
+   * while not common, avoid a false alarm. */
 #ifndef NDEBUG
   if ((event_state->type || event_state->val) && /* Ignore cleared event state. */
-      !(ISMOUSE_BUTTON(event_state->type) || ISKEYBOARD(event_state->type))) {
+      !(ISMOUSE_BUTTON(event_state->type) || ISKEYBOARD(event_state->type) ||
+        (event_state->type == EVENT_NONE))) {
     CLOG_WARN(WM_LOG_HANDLERS,
               "Non-keyboard/mouse button found in 'win->eventstate->type = %d'",
               event_state->type);
   }
   if ((event_state->prevtype || event_state->prevval) && /* Ignore cleared event state. */
-      !(ISMOUSE_BUTTON(event_state->prevtype) || ISKEYBOARD(event_state->prevtype))) {
+      !(ISMOUSE_BUTTON(event_state->prevtype) || ISKEYBOARD(event_state->prevtype) ||
+        (event_state->type == EVENT_NONE))) {
     CLOG_WARN(WM_LOG_HANDLERS,
               "Non-keyboard/mouse button found in 'win->eventstate->prevtype = %d'",
               event_state->prevtype);
