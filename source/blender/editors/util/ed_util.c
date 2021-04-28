@@ -33,7 +33,6 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_armature.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
