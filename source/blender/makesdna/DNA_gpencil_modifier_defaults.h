@@ -184,6 +184,8 @@
     .layer_pass = 0, \
     .hardeness = 1.0f, \
     .curve_intensity = NULL, \
+    .fading_end = 10.0f, \
+    .fading_end_factor = 0.2f, \
   }
 
 #define _DNA_DEFAULT_SimplifyGpencilModifierData \
@@ -251,6 +253,8 @@
     .thickness_fac = 1.0f, \
     .thickness = 30, \
     .layer_pass = 0, \
+    .fading_end = 10.0f, \
+    .fading_end_factor = 0.2f, \
   }
 
 #define _DNA_DEFAULT_TimeGpencilModifierData \

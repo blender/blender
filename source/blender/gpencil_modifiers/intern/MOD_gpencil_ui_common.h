@@ -37,6 +37,8 @@ void gpencil_modifier_masking_panel_draw(Panel *panel, bool use_material, bool u
 void gpencil_modifier_curve_header_draw(const bContext *C, Panel *panel);
 void gpencil_modifier_curve_panel_draw(const bContext *C, Panel *panel);
 
+void gpencil_modifier_fading_draw(const bContext *UNUSED(C), Panel *panel);
+
 void gpencil_modifier_panel_end(struct uiLayout *layout, PointerRNA *ptr);
 
 struct PointerRNA *gpencil_modifier_panel_get_property_pointers(struct Panel *panel,
