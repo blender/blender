@@ -55,7 +55,6 @@ constexpr int COM_DATA_TYPE_COLOR_CHANNELS = COM_data_type_num_channels(DataType
 // configurable items
 
 // chunk size determination
-// #define COM_DEBUG
 
 // chunk order
 /**

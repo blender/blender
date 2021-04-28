@@ -1050,8 +1050,21 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
   normalize_v3(locx);
   normalize_v3(locy);
 
+  /* Calculcate last point first. */
+  const bGPDspoint *pt_last = &points[totpoints - 1];
+  float tmp[3];
+  sub_v3_v3v3(tmp, &pt_last->x, &pt0->x);
+
+  points2d[totpoints - 1][0] = dot_v3v3(tmp, locx);
+  points2d[totpoints - 1][1] = dot_v3v3(tmp, locy);
+
+  /* Calculate the scalar cross product of the 2d points. */
+  float cross = 0.0f;
+  float *co_curr;
+  float *co_prev = (float *)&points2d[totpoints - 1];
+
   /* Get all points in local space */
-  for (int i = 0; i < totpoints; i++) {
+  for (int i = 0; i < totpoints - 1; i++) {
     const bGPDspoint *pt = &points[i];
     float loc[3];
 
@@ -1060,10 +1073,15 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
 
     points2d[i][0] = dot_v3v3(loc, locx);
     points2d[i][1] = dot_v3v3(loc, locy);
+
+    /* Calculate cross product. */
+    co_curr = (float *)&points2d[i][0];
+    cross += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+    co_prev = (float *)&points2d[i][0];
   }
 
-  /* Concave (-1), Convex (1), or Auto-detect (0)? */
-  *r_direction = (int)locy[2];
+  /* Concave (-1), Convex (1) */
+  *r_direction = (cross >= 0.0f) ? 1 : -1;
 }
 
 /**

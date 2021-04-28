@@ -35,24 +35,28 @@ SequenceBackup::SequenceBackup(const Depsgraph * /*depsgraph*/)
 void SequenceBackup::reset()
 {
   scene_sound = nullptr;
+  BLI_listbase_clear(&anims);
 }
 
 void SequenceBackup::init_from_sequence(Sequence *sequence)
 {
   scene_sound = sequence->scene_sound;
+  anims = sequence->anims;
 
   sequence->scene_sound = nullptr;
+  BLI_listbase_clear(&sequence->anims);
 }
 
 void SequenceBackup::restore_to_sequence(Sequence *sequence)
 {
   sequence->scene_sound = scene_sound;
+  sequence->anims = anims;
   reset();
 }
 
 bool SequenceBackup::isEmpty() const
 {
-  return (scene_sound == nullptr);
+  return (scene_sound == nullptr) && BLI_listbase_is_empty(&anims);
 }
 
 }  // namespace blender::deg

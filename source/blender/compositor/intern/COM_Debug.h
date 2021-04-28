@@ -21,11 +21,13 @@
 #include <map>
 #include <string>
 
+#include "COM_ExecutionSystem.h"
 #include "COM_NodeOperation.h"
 #include "COM_defines.h"
 
 namespace blender::compositor {
 
+static constexpr bool COM_EXPORT_GRAPHVIZ = false;
 class Node;
 class ExecutionSystem;
 class ExecutionGroup;
@@ -41,20 +43,81 @@ class DebugInfo {
   static std::string node_name(const Node *node);
   static std::string operation_name(const NodeOperation *op);
 
-  static void convert_started();
-  static void execute_started(const ExecutionSystem *system);
+ private:
+  static int m_file_index;
+  /** Map nodes to usable names for debug output. */
+  static NodeNameMap m_node_names;
+  /** Map operations to usable names for debug output. */
+  static OpNameMap m_op_names;
+  /** Base name for all operations added by a node. */
+  static std::string m_current_node_name;
+  /** Base name for automatic sub-operations. */
+  static std::string m_current_op_name;
+  /** For visualizing group states. */
+  static GroupStateMap m_group_states;
 
-  static void node_added(const Node *node);
-  static void node_to_operations(const Node *node);
-  static void operation_added(const NodeOperation *operation);
-  static void operation_read_write_buffer(const NodeOperation *operation);
+ public:
+  static void convert_started()
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_op_names.clear();
+    }
+  }
 
-  static void execution_group_started(const ExecutionGroup *group);
-  static void execution_group_finished(const ExecutionGroup *group);
+  static void execute_started(const ExecutionSystem *system)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_file_index = 1;
+      m_group_states.clear();
+      for (ExecutionGroup *execution_group : system->m_groups) {
+        m_group_states[execution_group] = EG_WAIT;
+      }
+    }
+  };
+
+  static void node_added(const Node *node)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_node_names[node] = std::string(node->getbNode() ? node->getbNode()->name : "");
+    }
+  }
+
+  static void node_to_operations(const Node *node)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_current_node_name = m_node_names[node];
+    }
+  }
+
+  static void operation_added(const NodeOperation *operation)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_op_names[operation] = m_current_node_name;
+    }
+  };
+
+  static void operation_read_write_buffer(const NodeOperation *operation)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_current_op_name = m_op_names[operation];
+    }
+  };
+
+  static void execution_group_started(const ExecutionGroup *group)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_group_states[group] = EG_RUNNING;
+    }
+  };
+  static void execution_group_finished(const ExecutionGroup *group)
+  {
+    if (COM_EXPORT_GRAPHVIZ) {
+      m_group_states[group] = EG_FINISHED;
+    }
+  };
 
   static void graphviz(const ExecutionSystem *system);
 
-#ifdef COM_DEBUG
  protected:
   static int graphviz_operation(const ExecutionSystem *system,
                                 NodeOperation *operation,
@@ -68,20 +131,6 @@ class DebugInfo {
       const char *name, const char *color, const char *style, char *str, int maxlen);
   static int graphviz_legend(char *str, int maxlen);
   static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
-
- private:
-  static int m_file_index;
-  /** Map nodes to usable names for debug output. */
-  static NodeNameMap m_node_names;
-  /** Map operations to usable names for debug output. */
-  static OpNameMap m_op_names;
-  /** Base name for all operations added by a node. */
-  static std::string m_current_node_name;
-  /** Base name for automatic sub-operations. */
-  static std::string m_current_op_name;
-  /** For visualizing group states. */
-  static GroupStateMap m_group_states;
-#endif
 };
 
 }  // namespace blender::compositor

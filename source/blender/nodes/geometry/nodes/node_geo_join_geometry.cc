@@ -246,8 +246,9 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
     const int size = component->instances_amount();
     Span<InstancedData> instanced_data = component->instanced_data();
     Span<float4x4> transforms = component->transforms();
+    Span<int> ids = component->ids();
     for (const int i : IndexRange(size)) {
-      dst_component.add_instance(instanced_data[i], transforms[i]);
+      dst_component.add_instance(instanced_data[i], transforms[i], ids[i]);
     }
   }
 }

@@ -404,6 +404,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
       }
       break;
     }
+    case NC_TEXTURE:
     case NC_GEOM: {
       ED_region_tag_redraw(region);
       break;

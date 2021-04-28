@@ -187,7 +187,12 @@ typedef struct ThickGpencilModifierData {
   int thickness;
   /** Custom index for passes. */
   int layer_pass;
-  char _pad[4];
+  /** Start/end distances of the fading effect. */
+  float fading_start;
+  float fading_end;
+  float fading_end_factor;
+  /** Fading reference object */
+  struct Object *object;
   struct CurveMapping *curve_thickness;
 } ThickGpencilModifierData;
 
@@ -199,6 +204,7 @@ typedef enum eThickGpencil_Flag {
   GP_THICK_NORMALIZE = (1 << 4),
   GP_THICK_INVERT_LAYERPASS = (1 << 5),
   GP_THICK_INVERT_MATERIAL = (1 << 6),
+  GP_THICK_FADING = (1 << 7),
 } eThickGpencil_Flag;
 
 typedef struct TimeGpencilModifierData {
@@ -291,9 +297,16 @@ typedef struct OpacityGpencilModifierData {
   int flag;
   /** Main Opacity factor. */
   float factor;
+  /** Fading controlling object */
+  int _pad0;
+  struct Object *object;
+  /** Start/end distances of the fading effect. */
+  float fading_start;
+  float fading_end;
+  float fading_end_factor;
   /** Modify stroke, fill or both. */
   char modify_color;
-  char _pad[3];
+  char _pad1[3];
   /** Custom index for passes. */
   int layer_pass;
 
@@ -309,6 +322,7 @@ typedef enum eOpacityGpencil_Flag {
   GP_OPACITY_INVERT_MATERIAL = (1 << 5),
   GP_OPACITY_CUSTOM_CURVE = (1 << 6),
   GP_OPACITY_NORMALIZE = (1 << 7),
+  GP_OPACITY_FADING = (1 << 8),
 } eOpacityGpencil_Flag;
 
 typedef struct ArrayGpencilModifierData {

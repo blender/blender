@@ -740,11 +740,12 @@ class Vector {
     BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     T *element_to_remove = begin_ + index;
-    if (element_to_remove < end_) {
-      *element_to_remove = std::move(*(end_ - 1));
+    T *last_element = end_ - 1;
+    if (element_to_remove < last_element) {
+      *element_to_remove = std::move(*last_element);
     }
-    end_--;
-    end_->~T();
+    end_ = last_element;
+    last_element->~T();
     UPDATE_VECTOR_SIZE(this);
   }
 

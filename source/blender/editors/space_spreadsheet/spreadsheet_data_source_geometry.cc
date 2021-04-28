@@ -261,7 +261,7 @@ void InstancesDataSource::foreach_default_column_ids(
   SpreadsheetColumnID column_id;
   column_id.name = (char *)"Name";
   fn(column_id);
-  for (const char *name : {"Position", "Rotation", "Scale"}) {
+  for (const char *name : {"Position", "Rotation", "Scale", "ID"}) {
     column_id.name = (char *)name;
     fn(column_id);
   }
@@ -321,6 +321,15 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
           r_cell_value.value_float3 = transforms[index].scale();
         },
         default_float3_column_width);
+  }
+  Span<int> ids = component_->ids();
+  if (STREQ(column_id.name, "ID")) {
+    /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
+    return column_values_from_function(
+        column_id.name,
+        size,
+        [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
+        5.5f);
   }
   return {};
 }

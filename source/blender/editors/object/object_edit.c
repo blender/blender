@@ -55,6 +55,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_anim_visualization.h"
+#include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
@@ -578,6 +579,14 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
 
     if (free_data) {
       ED_armature_edit_free(obedit->data);
+
+      if (load_data == false) {
+        /* Don't keep unused pose channels created by duplicating bones
+         * which may have been deleted/undone, see: T87631. */
+        if (obedit->pose != NULL) {
+          BKE_pose_channels_clear_with_null_bone(obedit->pose, true);
+        }
+      }
     }
     /* TODO(sergey): Pose channels might have been changed, so need
      * to inform dependency graph about this. But is it really the

@@ -67,7 +67,7 @@ const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {
 
 static const EnumPropertyItem node_socket_data_type_items[] = {
     {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
-    {SOCK_INT, "INT", 0, "Int", ""},
+    {SOCK_INT, "INT", 0, "Integer", ""},
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},
@@ -92,7 +92,7 @@ static const EnumPropertyItem rna_enum_node_socket_display_shape_items[] = {
 static const EnumPropertyItem node_socket_type_items[] = {
     {SOCK_CUSTOM, "CUSTOM", 0, "Custom", ""},
     {SOCK_FLOAT, "VALUE", 0, "Value", ""},
-    {SOCK_INT, "INT", 0, "Int", ""},
+    {SOCK_INT, "INT", 0, "Integer", ""},
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},

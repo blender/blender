@@ -397,7 +397,6 @@ static void threading_model_task_execute(TaskPool *__restrict UNUSED(pool), void
   CPUDevice device(BLI_task_parallel_thread_id(nullptr));
   BLI_thread_local_set(g_thread_device, &device);
   device.execute(package);
-  delete package;
 }
 
 static void threading_model_task_schedule(WorkPackage *package)

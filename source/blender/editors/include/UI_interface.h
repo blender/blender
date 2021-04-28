@@ -2137,7 +2137,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
                              struct PointerRNA *ptr,
                              const char *propname,
                              const char *name);
-void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
+void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float color[4]);
 void uiTemplateCacheFile(uiLayout *layout,
                          const struct bContext *C,
                          struct PointerRNA *ptr,
