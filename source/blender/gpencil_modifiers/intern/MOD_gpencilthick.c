@@ -131,7 +131,7 @@ static void deformStroke(GpencilModifierData *md,
 
     float curvef = 1.0f;
 
-    float factor_depth = 1;
+    float factor_depth = 1.0f;
 
     if (mmd->flag & GP_THICK_FADING) {
       if (mmd->object) {
@@ -143,13 +143,13 @@ static void deformStroke(GpencilModifierData *md,
 
         /* Better with ratiof() function from line art. */
         if (dist > fading_max) {
-          factor_depth = 0;
+          factor_depth = 0.0f;
         }
         else if (dist <= fading_max && dist > fading_min) {
           factor_depth = (fading_max - dist) / (fading_max - fading_min);
         }
         else {
-          factor_depth = 1;
+          factor_depth = 1.0f;
         }
       }
     }

@@ -91,7 +91,7 @@ static float give_opacity_fading_factor(OpacityGpencilModifierData *mmd,
                                         float *pos,
                                         bool apply_obmat)
 {
-  float factor_depth = 1;
+  float factor_depth = 1.0f;
 
   if (((mmd->flag & GP_OPACITY_FADING) == 0) || ((mmd->object) == NULL)) {
     return factor_depth;
@@ -107,13 +107,13 @@ static float give_opacity_fading_factor(OpacityGpencilModifierData *mmd,
 
   /* Better with ratiof() function from line art. */
   if (dist > fading_max) {
-    factor_depth = 0;
+    factor_depth = 0.0f;
   }
   else if (dist <= fading_max && dist > fading_min) {
     factor_depth = (fading_max - dist) / (fading_max - fading_min);
   }
   else {
-    factor_depth = 1;
+    factor_depth = 1.0f;
   }
 
   return factor_depth;
