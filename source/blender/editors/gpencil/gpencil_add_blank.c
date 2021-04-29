@@ -77,7 +77,7 @@ static const ColorTemplate gp_stroke_material_black = {
 /* Blank API */
 
 /* Add a Simple empty object with one layer and one color. */
-void ED_gpencil_create_blank(bContext *C, Object *ob, float mat[4][4])
+void ED_gpencil_create_blank(bContext *C, Object *ob, float UNUSED(mat[4][4]))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
