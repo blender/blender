@@ -1660,5 +1660,9 @@ bool BM_mesh_intersect(BMesh *bm,
 
   BLI_memarena_free(s.mem_arena);
 
+  /* It's unlikely the selection history is useful at this point,
+   * if this is not called this array would need to be validated, see: T86799. */
+  BM_select_history_clear(bm);
+
   return (has_edit_isect || has_edit_boolean);
 }
