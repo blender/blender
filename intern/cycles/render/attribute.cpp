@@ -689,6 +689,9 @@ void AttributeSet::update(AttributeSet &&new_attributes)
 
     it++;
   }
+
+  /* If all attributes were replaced, transform is no longer applied. */
+  geometry->transform_applied = false;
 }
 
 void AttributeSet::clear_modified()
