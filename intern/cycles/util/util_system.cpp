@@ -145,7 +145,7 @@ int system_cpu_num_active_group_processors()
   return numaAPI_GetNumCurrentNodesProcessors();
 }
 
-#if !defined(_WIN32) || defined(FREE_WINDOWS)
+#if !defined(__APPLE__) && (!defined(_WIN32) || defined(FREE_WINDOWS))
 static void __cpuid(int data[4], int selector)
 {
 #  if defined(__x86_64__)
@@ -166,7 +166,13 @@ static void __cpuid(int data[4], int selector)
 
 string system_cpu_brand_string()
 {
-#if !defined(WIN32) && !defined(__x86_64__) && !defined(__i386__)
+#if defined(__APPLE__)
+  char modelname[512] = "";
+  size_t bufferlen = 512;
+  if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, NULL, 0) == 0) {
+    return modelname;
+  }
+#elif !defined(WIN32) && !defined(__x86_64__) && !defined(__i386__)
   FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
   if (cpuinfo != nullptr) {
     char cpuinfo_buf[513] = "";
