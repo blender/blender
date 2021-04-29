@@ -474,6 +474,7 @@ static void file_listener(const wmSpaceTypeListenerParams *params)
           file_reset_filelist_showing_main_data(area, sfile);
           break;
       }
+      break;
     }
     case NC_ASSET: {
       switch (wmn->action) {
