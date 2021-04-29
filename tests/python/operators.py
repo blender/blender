@@ -196,6 +196,14 @@ def main():
         MeshTest("SphereFillHoles", "testSphereFillHoles", "expectedSphereFillHoles",
                  [OperatorSpecEditMode("fill_holes", {"sides": 9}, "VERT", {i for i in range(481)})]),
 
+        # face shade smooth (not a real test)
+        MeshTest("CubeShadeSmooth", "testCubeShadeSmooth", "expectedCubeShadeSmooth",
+                 [OperatorSpecEditMode("faces_shade_smooth", {}, "VERT", {i for i in range(8)})]),
+
+        # faces shade flat (not a real test)
+        MeshTest("CubeShadeFlat", "testCubeShadeFlat", "expectedCubeShadeFlat",
+                 [OperatorSpecEditMode("faces_shade_flat", {}, "FACE", {i for i in range(6)})]),
+
         # inset faces
         MeshTest("CubeInset",
                  "testCubeInset", "expectedCubeInset", [OperatorSpecEditMode("inset", {"thickness": 0.2}, "VERT",
@@ -225,6 +233,10 @@ def main():
                  [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {257, 169, 202, 207, 274, 278, 63})]),
         MeshTest("EmptyMeshLoopMultiSelect", "testEmptyMeshLoopMultiSelect", "expectedEmptyMeshLoopMultiSelect",
                  [OperatorSpecEditMode("loop_multi_select", {}, "VERT", {})]),
+
+        # mark seam
+        MeshTest("CubeMarkSeam", "testCubeMarkSeam", "expectedCubeMarkSeam",
+                 [OperatorSpecEditMode("mark_seam", {}, "EDGE", {1})]),
 
         # select all
         MeshTest("CircleSelectAll", "testCircleSelectAll", "expectedCircleSelectAll",
@@ -295,6 +307,26 @@ def main():
                  [OperatorSpecEditMode("select_linked", {}, "VERT", {11})]),
         MeshTest("EmptyMeshSelectLinked", "testEmptyMeshSelectLinked", "expectedEmptyMeshSelectLinked",
                  [OperatorSpecEditMode("select_linked", {}, "VERT", {})]),
+
+        # select nth (checkered deselect)
+        MeshTest("CircleSelect2nd", "testCircleSelect2nd", "expectedCircleSelect2nd",
+                 [OperatorSpecEditMode("select_nth", {}, "VERT", {i for i in range(32)})]),
+
+        # unsubdivide
+        # normal case
+        MeshTest("CubeFaceUnsubdivide", "testCubeUnsubdivide", "expectedCubeUnsubdivide",
+                 [OperatorSpecEditMode("unsubdivide", {}, "FACE", {i for i in range(6)})]),
+        
+        # T87259 - test cases
+        MeshTest("CubeEdgeUnsubdivide", "testCubeEdgeUnsubdivide", "expectedCubeEdgeUnsubdivide",
+                 [OperatorSpecEditMode("unsubdivide", {}, "EDGE", {i for i in range(6)})]),
+        MeshTest("UVSphereUnsubdivide", "testUVSphereUnsubdivide", "expectedUVSphereUnsubdivide",
+                [OperatorSpecEditMode("unsubdivide", {'iterations': 9}, "FACE", {i for i in range(512)})]),
+        
+        # vert connect path
+        # Tip: It works only if there is an already existing face or more than 2 vertices.
+        MeshTest("CubeVertConnectPath", "testCubeVertConnectPath", "expectedCubeVertConnectPath",
+                 [OperatorSpecEditMode("vert_connect_path", {}, "VERT", {0, 5})]),
 
     ]
 
