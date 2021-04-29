@@ -22,7 +22,18 @@ namespace blender::fn {
  * GVArray.
  */
 
+void GVArray::materialize_to_uninitialized(void *dst) const
+{
+  this->materialize_to_uninitialized(IndexMask(size_), dst);
+}
+
 void GVArray::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+{
+  BLI_assert(mask.min_array_size() <= size_);
+  this->materialize_to_uninitialized_impl(mask, dst);
+}
+
+void GVArray::materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const
 {
   for (const int64_t i : mask) {
     void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
