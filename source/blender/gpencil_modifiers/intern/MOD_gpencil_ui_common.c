@@ -210,7 +210,6 @@ void gpencil_modifier_fading_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *layout = panel->layout;
   uiLayoutSetPropSep(layout, true);
 
-  bool fading_enabled = RNA_boolean_get(ptr, "use_fading");
   uiItemR(layout, ptr, "object", 0, NULL, ICON_CUBE);
   uiLayout *sub = uiLayoutColumn(layout, true);
   uiItemR(sub, ptr, "fading_start", 0, NULL, ICON_NONE);

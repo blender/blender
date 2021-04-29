@@ -1050,7 +1050,7 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
   normalize_v3(locx);
   normalize_v3(locy);
 
-  /* Calculcate last point first. */
+  /* Calculate last point first. */
   const bGPDspoint *pt_last = &points[totpoints - 1];
   float tmp[3];
   sub_v3_v3v3(tmp, &pt_last->x, &pt0->x);
