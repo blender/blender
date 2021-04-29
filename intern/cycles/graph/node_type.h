@@ -148,16 +148,17 @@ struct NodeType {
 #define NODE_DECLARE \
   static const NodeType *get_node_type(); \
   template<typename T> static const NodeType *register_type(); \
-  static Node *create(const NodeType *type);
+  static Node *create(const NodeType *type); \
+  static const NodeType *node_type;
 
 #define NODE_DEFINE(structname) \
+  const NodeType *structname::node_type = structname::register_type<structname>(); \
   Node *structname::create(const NodeType *) \
   { \
     return new structname(); \
   } \
   const NodeType *structname::get_node_type() \
   { \
-    static const NodeType *node_type = register_type<structname>(); \
     return node_type; \
   } \
   template<typename T> const NodeType *structname::register_type()
@@ -169,6 +170,8 @@ struct NodeType {
 #define NODE_ABSTRACT_DEFINE(structname) \
   const NodeType *structname::get_node_base_type() \
   { \
+    /* Base types constructed in this getter to ensure correct initialization \
+     * order. Regular types are not so they are auto-registered for XML parsing. */ \
     static const NodeType *node_base_type = register_base_type<structname>(); \
     return node_base_type; \
   } \
