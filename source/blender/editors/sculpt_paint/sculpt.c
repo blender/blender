@@ -293,7 +293,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
       BMVert *v = (BMVert *)index.i;
       float(*no2)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
 
-      copy_v3_v3(no, no2);
+      copy_v3_v3(no, (float*)no2);
       return;
     }
 
@@ -8867,8 +8867,8 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
       BMVert *v = (BMVert *)vertex.i;
 
-      float(*co)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
-      float(*no)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
+      float *co = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
+      float *no = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
       float *disp = BM_ELEM_CD_GET_VOID_P(v, cd_pers_disp);
 
       copy_v3_v3(co, SCULPT_vertex_co_get(ss, vertex));

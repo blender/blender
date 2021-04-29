@@ -1572,8 +1572,11 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
   BMLoop *l = f->l_first;
 
   /* Check if triangle intersects the sphere */
-  float dis = dist_to_tri_sphere_simple(
-      q->center, l->v->co, l->next->v->co, l->prev->v->co, f->no);
+  float dis = dist_to_tri_sphere_simple((float *)q->center,
+                                        (float *)l->v->co,
+                                        (float *)l->next->v->co,
+                                        (float *)l->prev->v->co,
+                                        (float *)f->no);
 
   // closest_on_tri_to_point_v3(c, co, v1, v2, v3);
 
@@ -2291,7 +2294,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
   void *vsrcs[2] = {e->v1->head.data, e->v2->head.data};
   float vws[2] = {0.5f, 0.5f};
-  CustomData_bmesh_interp(&pbvh->bm->vdata, vsrcs, vws, NULL, 2, v_new->head.data);
+  CustomData_bmesh_interp(&pbvh->bm->vdata, (const void**)vsrcs, (float*)vws, NULL, 2, v_new->head.data);
 
   if (boundary) {
     MDynTopoVert *mv_new = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, v_new);
@@ -2387,17 +2390,19 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     void *lsrcs[2] = {l1->head.data, l2->head.data};
     float lws[2] = {0.5f, 0.5f};
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 2, f_new->l_first->next->head.data);
+    CustomData_bmesh_interp(&pbvh->bm->ldata, (const void**)lsrcs, lws, lws, 2, f_new->l_first->next->head.data);
 
     lsrcs[0] = l1->head.data;
     lws[0] = 1.0f;
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 1, f_new->l_first->head.data);
 
     lsrcs[0] = l3->head.data;
     lws[0] = 1.0f;
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
 
     v_tri[0] = v_new;
     v_tri[1] = v2;
@@ -2416,18 +2421,21 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     lsrcs[1] = lfirst->next->head.data;
     lws[0] = lws[1] = 0.5f;
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 2, f_new->l_first->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 2, f_new->l_first->head.data);
 
     lsrcs[0] = lfirst->next->head.data;
     ;
     lws[0] = 1.0f;
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->next->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 1, f_new->l_first->next->head.data);
 
     lsrcs[0] = lfirst->prev->head.data;
     lws[0] = 1.0f;
 
-    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
 
     /* Delete original */
     pbvh_bmesh_face_remove(pbvh, f_adj);
@@ -2659,7 +2667,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   // snap customdata
   if (totl > 0) {
-    CustomData_bmesh_interp(&pbvh->bm->ldata, blocks, ws, NULL, totl, ls[0]->head.data);
+    CustomData_bmesh_interp(
+        &pbvh->bm->ldata, (const void **)blocks, ws, NULL, totl, ls[0]->head.data);
     //*
     BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
       BMLoop *l2 = l->v != v_del ? l->next : l;

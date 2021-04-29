@@ -1012,7 +1012,7 @@ BMesh *BKE_mesh_to_bmesh_ex(const Object *ob,
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
   BMesh *bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me(ob, bm, me, convert_params);
+  BM_mesh_bm_from_me((Object*)ob, bm, me, convert_params);
 
   return bm;
 }

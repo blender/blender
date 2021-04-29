@@ -1159,7 +1159,7 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
       add_v3_v3(cent, v[2]->co);
       mul_v3_fl(cent, 1.0 / 3.0);
 
-      float *cos[7][3];
+      float cos[7][3];
 
       copy_v3_v3(cos[0], v[0]->co);
       copy_v3_v3(cos[1], v[1]->co);

@@ -770,7 +770,7 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
       }
       else {
         SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-        float *co = SCULPT_vertex_co_get(ss, vertex);
+        const float *co = SCULPT_vertex_co_get(ss, vertex);
 
         //boundary->bend.pivot_positions[i][0] = co[0];
         //boundary->bend.pivot_positions[i][1] = co[1];

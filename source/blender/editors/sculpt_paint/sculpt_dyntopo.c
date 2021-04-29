@@ -415,8 +415,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
     // persistent base
     if (cd_pers_co >= 0) {
-      float(*co)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
-      float(*no)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
+      float *co = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
+      float *no = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
       float *disp = BM_ELEM_CD_GET_VOID_P(v, cd_pers_disp);
 
       copy_v3_v3(co, ss->persistent_base[i].co);
@@ -473,8 +473,8 @@ void SCULPT_dyntopo_save_persistent_base(SculptSession *ss)
     int i = 0;
 
     BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-      float(*co)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
-      float(*no)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
+      float *co = BM_ELEM_CD_GET_VOID_P(v, cd_pers_co);
+      float *no = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
       float *disp = BM_ELEM_CD_GET_VOID_P(v, cd_pers_disp);
 
       copy_v3_v3(ss->persistent_base[i].co, co);
