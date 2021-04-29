@@ -161,66 +161,66 @@ typedef struct {
 #define logkey_hash BLI_ghashutil_inthash_p_simple
 #define logkey_cmp BLI_ghashutil_intcmp
 
-static void *log_ghash_lookup(BMLog *entry, GHash *gh, const void *key)
+static void *log_ghash_lookup(BMLog *log, GHash *gh, const void *key)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_READ);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_READ);
   void *ret = BLI_ghash_lookup(gh, key);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
 
 // this is not 100% threadsafe
-static void **log_ghash_lookup_p(BMLog *entry, GHash *gh, const void *key)
+static void **log_ghash_lookup_p(BMLog *log, GHash *gh, const void *key)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_READ);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_READ);
   void **ret = BLI_ghash_lookup_p(gh, key);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
 
-static void log_ghash_insert(BMLog *entry, GHash *gh, void *key, void *val)
+static void log_ghash_insert(BMLog *log, GHash *gh, void *key, void *val)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_WRITE);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_WRITE);
   BLI_ghash_insert(gh, key, val);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 }
 
 static bool log_ghash_remove(
-    BMLog *entry, GHash *gh, const void *key, GHashKeyFreeFP keyfree, GHashValFreeFP valfree)
+    BMLog *log, GHash *gh, const void *key, GHashKeyFreeFP keyfree, GHashValFreeFP valfree)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_WRITE);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_WRITE);
   bool ret = BLI_ghash_remove(gh, key, keyfree, valfree);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
 
 static bool log_ghash_reinsert(
-    BMLog *entry, GHash *gh, void *key, void *val, GHashKeyFreeFP keyfree, GHashValFreeFP valfree)
+    BMLog *log, GHash *gh, void *key, void *val, GHashKeyFreeFP keyfree, GHashValFreeFP valfree)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_WRITE);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_WRITE);
   bool ret = BLI_ghash_reinsert(gh, key, val, keyfree, valfree);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
 
-static bool log_ghash_haskey(BMLog *entry, GHash *gh, const void *key)
+static bool log_ghash_haskey(BMLog *log, GHash *gh, const void *key)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_READ);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_READ);
   bool ret = BLI_ghash_haskey(gh, key);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
 
-static bool log_ghash_ensure_p(BMLog *entry, GHash *gh, void *key, void ***val)
+static bool log_ghash_ensure_p(BMLog *log, GHash *gh, void *key, void ***val)
 {
-  BLI_rw_mutex_lock(&entry->lock, THREAD_LOCK_WRITE);
+  BLI_rw_mutex_lock(&log->lock, THREAD_LOCK_WRITE);
   bool ret = BLI_ghash_ensure_p(gh, key, val);
-  BLI_rw_mutex_unlock(&entry->lock);
+  BLI_rw_mutex_unlock(&log->lock);
 
   return ret;
 }
@@ -614,14 +614,13 @@ static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
   entry->full_copy_idmap = BLI_ghash_ptr_new_ex("bmlog", bm->totvert + bm->totface);
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
-  GHashIterator gi;
 
   for (int step = 0; step < 2; step++) {
     BMIter iter;
     BMHeader *elem;
 
     BM_ITER_MESH (elem, &iter, bm, step ? BM_FACES_OF_MESH : BM_VERTS_OF_MESH) {
-      void **val = log_ghash_lookup_p(entry, log->elem_to_id, (void *)elem);
+      void **val = log_ghash_lookup_p(log, log->elem_to_id, (void *)elem);
       if (!val) {
         continue;
       }
@@ -1115,10 +1114,6 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
 
-  BMIter iter;
-  BMVert *v;
-  BMFace *f;
-
   BMLogEntry tmp = {0};
 
   bm_log_full_mesh_intern(bm, log, &tmp);
@@ -1147,8 +1142,8 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
     uintptr_t id = (uintptr_t)BLI_ghashIterator_getKey(&gi);
     uintptr_t key = (uintptr_t)BLI_ghashIterator_getValue(&gi);
 
-    uintptr_t idx = (key & ((1L << 31L) - 1L));
-    uintptr_t type = key >> 31L;
+    uintptr_t idx = (key & ((1LL << 31LL) - 1LL));
+    uintptr_t type = key >> 31LL;
     BMHeader *elem = NULL;
 
     switch (type) {
@@ -1161,13 +1156,13 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
     }
 
     if (elem) {
-      log_ghash_reinsert(entry, log->id_to_elem, POINTER_FROM_UINT(id), elem, NULL, NULL);
-      log_ghash_reinsert(entry, log->elem_to_id, elem, POINTER_FROM_UINT(id), NULL, NULL);
+      log_ghash_reinsert(log, log->id_to_elem, POINTER_FROM_UINT(id), elem, NULL, NULL);
+      log_ghash_reinsert(log, log->elem_to_id, elem, POINTER_FROM_UINT(id), NULL, NULL);
     }
     else {
       // eek, error!
       printf("bmlog error!\n");
-      log_ghash_remove(entry, log->id_to_elem, id, NULL, NULL);
+      log_ghash_remove(log, log->id_to_elem, (void*)id, NULL, NULL);
     }
   }
 
@@ -1506,8 +1501,6 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 
 void BM_log_full_mesh(BMesh *bm, BMLog *log)
 {
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-
   BMLogEntry *entry = log->current_entry;
 
   bool add = BLI_ghash_len(entry->added_faces) > 0;
