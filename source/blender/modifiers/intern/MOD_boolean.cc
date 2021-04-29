@@ -124,13 +124,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   Collection *col = bmd->collection;
 
   if ((bmd->flag & eBooleanModifierFlag_Collection) && col != nullptr) {
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
-      if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
-        DEG_add_object_relation(ctx->node, operand_ob, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
-        DEG_add_object_relation(ctx->node, operand_ob, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
-      }
-    }
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    DEG_add_collection_geometry_relation(ctx->node, col, "Boolean Modifier");
   }
   /* We need own transformation as well. */
   DEG_add_modifier_to_transform_relation(ctx->node, "Boolean Modifier");
@@ -641,7 +635,6 @@ ModifierTypeInfo modifierType_Boolean = {
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
-    /* modifyVolume */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,

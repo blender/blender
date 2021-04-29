@@ -165,6 +165,13 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_merge"));
   uiItemR(sub, ptr, "merge_threshold", 0, "", ICON_NONE);
 
+  bool is_bisect_set[3];
+  RNA_boolean_get_array(ptr, "use_bisect_axis", is_bisect_set);
+
+  sub = uiLayoutRow(col, true);
+  uiLayoutSetActive(sub, is_bisect_set[0] || is_bisect_set[1] || is_bisect_set[2]);
+  uiItemR(sub, ptr, "bisect_threshold", 0, IFACE_("Bisect Distance"), ICON_NONE);
+
   modifier_panel_end(layout, ptr);
 }
 
@@ -232,7 +239,6 @@ ModifierTypeInfo modifierType_Mirror = {
     /* modifyMesh */ modifyMesh,
     /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
-    /* modifyVolume */ NULL,
 
     /* initData */ initData,
     /* requiredDataMask */ NULL,

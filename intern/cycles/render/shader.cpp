@@ -528,6 +528,8 @@ void ShaderManager::device_update_common(Device *device,
 
     if (shader->get_use_mis())
       flag |= SD_USE_MIS;
+    if (shader->has_surface_emission)
+      flag |= SD_HAS_EMISSION;
     if (shader->has_surface_transparent && shader->get_use_transparent_shadow())
       flag |= SD_HAS_TRANSPARENT_SHADOW;
     if (shader->has_volume) {

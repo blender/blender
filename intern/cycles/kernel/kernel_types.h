@@ -895,6 +895,8 @@ enum ShaderDataFlag {
   SD_HAS_CONSTANT_EMISSION = (1 << 27),
   /* Needs to access attributes for volume rendering */
   SD_NEED_VOLUME_ATTRIBUTES = (1 << 28),
+  /* Shader has emission */
+  SD_HAS_EMISSION = (1 << 29),
 
   SD_SHADER_FLAGS = (SD_USE_MIS | SD_HAS_TRANSPARENT_SHADOW | SD_HAS_VOLUME | SD_HAS_ONLY_VOLUME |
                      SD_HETEROGENEOUS_VOLUME | SD_HAS_BSSRDF_BUMP | SD_VOLUME_EQUIANGULAR |

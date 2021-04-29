@@ -49,19 +49,19 @@ static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
 namespace blender::nodes {
 
 static AttributeDomain get_result_domain(const GeometryComponent &component,
-                                         StringRef result_attribute_name,
-                                         StringRef map_attribute_name)
+                                         const StringRef result_name,
+                                         const StringRef map_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_attribute_name);
-  if (result_attribute) {
-    return result_attribute->domain();
+  std::optional<AttributeMetaData> result_info = component.attribute_get_meta_data(result_name);
+  if (result_info) {
+    return result_info->domain;
   }
 
   /* Otherwise use the name of the map attribute. */
-  ReadAttributePtr map_attribute = component.attribute_try_get_for_read(map_attribute_name);
-  if (map_attribute) {
-    return map_attribute->domain();
+  std::optional<AttributeMetaData> map_info = component.attribute_get_meta_data(map_name);
+  if (map_info) {
+    return map_info->domain;
   }
 
   /* The node won't execute in this case, but we still have to return a value. */
@@ -85,16 +85,16 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
   const AttributeDomain result_domain = get_result_domain(
       component, result_attribute_name, mapping_name);
 
-  OutputAttributePtr attribute_out = component.attribute_try_get_for_output(
-      result_attribute_name, result_domain, CD_PROP_COLOR);
+  OutputAttribute_Typed<Color4f> attribute_out =
+      component.attribute_try_get_for_output_only<Color4f>(result_attribute_name, result_domain);
   if (!attribute_out) {
     return;
   }
 
-  Float3ReadAttribute mapping_attribute = component.attribute_get_for_read<float3>(
+  GVArray_Typed<float3> mapping_attribute = component.attribute_get_for_read<float3>(
       mapping_name, result_domain, {0, 0, 0});
 
-  MutableSpan<Color4f> colors = attribute_out->get_span<Color4f>();
+  MutableSpan<Color4f> colors = attribute_out.as_span();
   for (const int i : IndexRange(mapping_attribute.size())) {
     TexResult texture_result = {0};
     const float3 position = mapping_attribute[i];
@@ -103,7 +103,7 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
     BKE_texture_get_value(nullptr, texture, remapped_position, &texture_result, false);
     colors[i] = {texture_result.tr, texture_result.tg, texture_result.tb, texture_result.ta};
   }
-  attribute_out.apply_span_and_save();
+  attribute_out.save();
 }
 
 static void geo_node_attribute_sample_texture_exec(GeoNodeExecParams params)

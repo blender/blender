@@ -815,66 +815,70 @@ static void ffmpeg_postprocess(struct anim *anim)
                    anim->y);
   }
 
-  if (ENDIAN_ORDER == B_ENDIAN) {
-    int *dstStride = anim->pFrameRGB->linesize;
-    uint8_t **dst = anim->pFrameRGB->data;
-    const int dstStride2[4] = {dstStride[0], 0, 0, 0};
-    uint8_t *dst2[4] = {dst[0], 0, 0, 0};
-    int x, y, h, w;
-    unsigned char *bottom;
-    unsigned char *top;
+#  if defined(__x86_64__) || defined(_M_X64)
+  /* Scale and flip image over Y axis in one go, using negative strides.
+   * This doesn't work with arm/powerpc though and may be misusing the API.
+   * Limit it x86_64 where it appears to work.
+   * http://trac.ffmpeg.org/ticket/9060 */
+  int *dstStride = anim->pFrameRGB->linesize;
+  uint8_t **dst = anim->pFrameRGB->data;
+  const int dstStride2[4] = {-dstStride[0], 0, 0, 0};
+  uint8_t *dst2[4] = {dst[0] + (anim->y - 1) * dstStride[0], 0, 0, 0};
 
-    sws_scale(anim->img_convert_ctx,
-              (const uint8_t *const *)input->data,
-              input->linesize,
-              0,
-              anim->y,
-              dst2,
-              dstStride2);
+  sws_scale(anim->img_convert_ctx,
+            (const uint8_t *const *)input->data,
+            input->linesize,
+            0,
+            anim->y,
+            dst2,
+            dstStride2);
+#  else
+  /* Scale with swscale then flip image over Y axis. */
+  int *dstStride = anim->pFrameRGB->linesize;
+  uint8_t **dst = anim->pFrameRGB->data;
+  const int dstStride2[4] = {dstStride[0], 0, 0, 0};
+  uint8_t *dst2[4] = {dst[0], 0, 0, 0};
+  int x, y, h, w;
+  unsigned char *bottom;
+  unsigned char *top;
 
-    bottom = (unsigned char *)ibuf->rect;
-    top = bottom + ibuf->x * (ibuf->y - 1) * 4;
+  sws_scale(anim->img_convert_ctx,
+            (const uint8_t *const *)input->data,
+            input->linesize,
+            0,
+            anim->y,
+            dst2,
+            dstStride2);
 
-    h = (ibuf->y + 1) / 2;
-    w = ibuf->x;
+  bottom = (unsigned char *)ibuf->rect;
+  top = bottom + ibuf->x * (ibuf->y - 1) * 4;
 
-    for (y = 0; y < h; y++) {
-      unsigned char tmp[4];
-      unsigned int *tmp_l = (unsigned int *)tmp;
+  h = (ibuf->y + 1) / 2;
+  w = ibuf->x;
 
-      for (x = 0; x < w; x++) {
-        tmp[0] = bottom[0];
-        tmp[1] = bottom[1];
-        tmp[2] = bottom[2];
-        tmp[3] = bottom[3];
+  for (y = 0; y < h; y++) {
+    unsigned char tmp[4];
+    unsigned int *tmp_l = (unsigned int *)tmp;
 
-        bottom[0] = top[0];
-        bottom[1] = top[1];
-        bottom[2] = top[2];
-        bottom[3] = top[3];
+    for (x = 0; x < w; x++) {
+      tmp[0] = bottom[0];
+      tmp[1] = bottom[1];
+      tmp[2] = bottom[2];
+      tmp[3] = bottom[3];
 
-        *(unsigned int *)top = *tmp_l;
+      bottom[0] = top[0];
+      bottom[1] = top[1];
+      bottom[2] = top[2];
+      bottom[3] = top[3];
 
-        bottom += 4;
-        top += 4;
-      }
-      top -= 8 * w;
+      *(unsigned int *)top = *tmp_l;
+
+      bottom += 4;
+      top += 4;
     }
+    top -= 8 * w;
   }
-  else {
-    int *dstStride = anim->pFrameRGB->linesize;
-    uint8_t **dst = anim->pFrameRGB->data;
-    const int dstStride2[4] = {-dstStride[0], 0, 0, 0};
-    uint8_t *dst2[4] = {dst[0] + (anim->y - 1) * dstStride[0], 0, 0, 0};
-
-    sws_scale(anim->img_convert_ctx,
-              (const uint8_t *const *)input->data,
-              input->linesize,
-              0,
-              anim->y,
-              dst2,
-              dstStride2);
-  }
+#  endif
 
   if (need_aligned_ffmpeg_buffer(anim)) {
     uint8_t *src = anim->pFrameRGB->data[0];

@@ -143,16 +143,15 @@ void DEG_id_type_tag(struct Main *bmain, short id_type);
  * for viewport depsgraphs, but not render or export depsgraph for example. */
 void DEG_enable_editors_update(struct Depsgraph *depsgraph);
 
-/* Check if something was changed in the database and inform editors about this,
- * then clear recalc flags. */
-void DEG_editors_update(struct Main *bmain,
-                        struct Depsgraph *depsgraph,
-                        struct Scene *scene,
-                        struct ViewLayer *view_layer,
-                        bool time);
+/* Check if something was changed in the database and inform editors about this. */
+void DEG_editors_update(struct Depsgraph *depsgraph, bool time);
 
 /* Clear recalc flags after editors or renderers have handled updates. */
-void DEG_ids_clear_recalc(Depsgraph *depsgraph);
+void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup);
+
+/* Restore recalc flags, backed up by a previous call to DEG_ids_clear_recalc.
+ * This also clears the backup. */
+void DEG_ids_restore_recalc(Depsgraph *depsgraph);
 
 /* ************************************************ */
 /* Evaluation Engine API */

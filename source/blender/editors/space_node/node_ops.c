@@ -57,7 +57,6 @@ void node_operatortypes(void)
   WM_operatortype_append(NODE_OT_preview_toggle);
   WM_operatortype_append(NODE_OT_options_toggle);
   WM_operatortype_append(NODE_OT_hide_socket_toggle);
-  WM_operatortype_append(NODE_OT_active_preview_toggle);
   WM_operatortype_append(NODE_OT_node_copy_color);
 
   WM_operatortype_append(NODE_OT_duplicate);

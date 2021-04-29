@@ -69,7 +69,6 @@ GpencilExporterPDF::GpencilExporterPDF(const char *filename, const GpencilIOPara
 
   pdf_ = nullptr;
   page_ = nullptr;
-  gstate_ = nullptr;
 }
 
 bool GpencilExporterPDF::new_document()
@@ -169,16 +168,29 @@ void GpencilExporterPDF::export_gpencil_layers()
         if (!ED_gpencil_stroke_material_visible(ob, gps)) {
           continue;
         }
-        /* Duplicate the stroke to apply any layer thickness change. */
-        bGPDstroke *gps_duplicate = BKE_gpencil_stroke_duplicate(gps, true, false);
-        MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob,
-                                                                       gps_duplicate->mat_nr + 1);
+        /* Skip invisible lines. */
+        prepare_stroke_export_colors(ob, gps);
+        const float fill_opacity = fill_color_[3] * gpl->opacity;
+        const float stroke_opacity = stroke_color_[3] * stroke_average_opacity_get() *
+                                     gpl->opacity;
+        if ((fill_opacity < GPENCIL_ALPHA_OPACITY_THRESH) &&
+            (stroke_opacity < GPENCIL_ALPHA_OPACITY_THRESH)) {
+          continue;
+        }
 
+        MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
         const bool is_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) &&
-                                (gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH));
+                                (gp_style->stroke_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
+                                (stroke_opacity > GPENCIL_ALPHA_OPACITY_THRESH));
         const bool is_fill = ((gp_style->flag & GP_MATERIAL_FILL_SHOW) &&
                               (gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH));
-        prepare_stroke_export_colors(ob, gps_duplicate);
+
+        if ((!is_stroke) && (!is_fill)) {
+          continue;
+        }
+
+        /* Duplicate the stroke to apply any layer thickness change. */
+        bGPDstroke *gps_duplicate = BKE_gpencil_stroke_duplicate(gps, true, false);
 
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
@@ -283,29 +295,35 @@ void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
 {
   const float fill_opacity = fill_color_[3] * gpl->opacity;
   const float stroke_opacity = stroke_color_[3] * stroke_average_opacity_get() * gpl->opacity;
+  const bool need_state = (do_fill && fill_opacity < 1.0f) || (stroke_opacity < 1.0f);
 
   HPDF_Page_GSave(page_);
-  gstate_ = HPDF_CreateExtGState(pdf_);
+  HPDF_ExtGState gstate = (need_state) ? HPDF_CreateExtGState(pdf_) : nullptr;
 
   float col[3];
   if (do_fill) {
     interp_v3_v3v3(col, fill_color_, gpl->tintcolor, gpl->tintcolor[3]);
     linearrgb_to_srgb_v3_v3(col, col);
     CLAMP3(col, 0.0f, 1.0f);
-
-    HPDF_ExtGState_SetAlphaFill(gstate_, clamp_f(fill_opacity, 0.0f, 1.0f));
     HPDF_Page_SetRGBFill(page_, col[0], col[1], col[2]);
+    if (gstate) {
+      HPDF_ExtGState_SetAlphaFill(gstate, clamp_f(fill_opacity, 0.0f, 1.0f));
+    }
   }
   else {
     interp_v3_v3v3(col, stroke_color_, gpl->tintcolor, gpl->tintcolor[3]);
     linearrgb_to_srgb_v3_v3(col, col);
     CLAMP3(col, 0.0f, 1.0f);
 
-    HPDF_ExtGState_SetAlphaFill(gstate_, clamp_f(stroke_opacity, 0.0f, 1.0f));
-    HPDF_ExtGState_SetAlphaStroke(gstate_, clamp_f(stroke_opacity, 0.0f, 1.0f));
     HPDF_Page_SetRGBFill(page_, col[0], col[1], col[2]);
     HPDF_Page_SetRGBStroke(page_, col[0], col[1], col[2]);
+    if (gstate) {
+      HPDF_ExtGState_SetAlphaFill(gstate, clamp_f(stroke_opacity, 0.0f, 1.0f));
+      HPDF_ExtGState_SetAlphaStroke(gstate, clamp_f(stroke_opacity, 0.0f, 1.0f));
+    }
   }
-  HPDF_Page_SetExtGState(page_, gstate_);
+  if (gstate) {
+    HPDF_Page_SetExtGState(page_, gstate);
+  }
 }
 }  // namespace blender::io::gpencil

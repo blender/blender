@@ -73,6 +73,12 @@ template<typename Key, typename Value> class MultiValueMap {
     vector.append(std::forward<ForwardValue>(value));
   }
 
+  void add_non_duplicates(const Key &key, const Value &value)
+  {
+    Vector<Value> &vector = map_.lookup_or_add_default_as(key);
+    vector.append_non_duplicates(value);
+  }
+
   /**
    * Add all given values to the key.
    */

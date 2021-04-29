@@ -362,7 +362,7 @@ void loc_quat_size_to_mat4(float R[4][4],
                            const float size[3]);
 void loc_axisangle_size_to_mat4(float R[4][4],
                                 const float loc[3],
-                                const float axis[4],
+                                const float axis[3],
                                 const float angle,
                                 const float size[3]);
 

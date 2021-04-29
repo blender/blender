@@ -143,12 +143,9 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
 static void engine_depsgraph_free(RenderEngine *engine)
 {
   if (engine->depsgraph) {
-    /* Need GPU context since this might free GPU buffers. This function can
-     * only be called from a render thread. We do not currently support
-     * persistent data with GPU contexts for that reason. */
+    /* Need GPU context since this might free GPU buffers. */
     const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT);
     if (use_gpu_context) {
-      BLI_assert(!BLI_thread_is_main());
       DRW_render_context_enable(engine->re);
     }
 
@@ -623,8 +620,8 @@ RenderData *RE_engine_get_render_data(Render *re)
 
 bool RE_engine_use_persistent_data(RenderEngine *engine)
 {
-  /* See engine_depsgraph_free() for why preserving the depsgraph for
-   * re-renders is not supported with GPU contexts. */
+  /* Re-rendering is not supported with GPU contexts, since the GPU context
+   * is destroyed when the render thread exists. */
   return (engine->re->r.mode & R_PERSISTENT_DATA) && !(engine->type->flag & RE_USE_GPU_CONTEXT);
 }
 
@@ -690,7 +687,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
   }
   else {
     /* Go through update with full Python callbacks for regular render. */
-    BKE_scene_graph_update_for_newframe(engine->depsgraph);
+    BKE_scene_graph_update_for_newframe_ex(engine->depsgraph, false);
   }
 
   engine->has_grease_pencil = DRW_render_check_grease_pencil(engine->depsgraph);
@@ -702,7 +699,7 @@ static void engine_depsgraph_exit(RenderEngine *engine)
     if (engine_keep_depsgraph(engine)) {
       /* Clear recalc flags since the engine should have handled the updates for the currently
        * rendered framed by now. */
-      DEG_ids_clear_recalc(engine->depsgraph);
+      DEG_ids_clear_recalc(engine->depsgraph, false);
     }
     else {
       /* Free immediately to save memory. */
@@ -718,14 +715,14 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
   }
 
   /* Clear recalc flags before update so engine can detect what changed. */
-  DEG_ids_clear_recalc(engine->depsgraph);
+  DEG_ids_clear_recalc(engine->depsgraph, false);
 
   Render *re = engine->re;
   double cfra = (double)frame + (double)subframe;
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(re->scene, cfra);
-  BKE_scene_graph_update_for_newframe(engine->depsgraph);
+  BKE_scene_graph_update_for_newframe_ex(engine->depsgraph, false);
 
   BKE_scene_camera_switch_update(re->scene);
 }

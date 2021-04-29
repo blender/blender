@@ -30,6 +30,8 @@
 #include "BKE_context.h"
 
 #include "transform.h"
+#include "transform_snap.h"
+
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
@@ -123,6 +125,24 @@ void createTransMBallVerts(TransInfo *t)
         td++;
         tx++;
       }
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalc Meta Ball
+ * \{ */
+
+void recalcData_mball(TransInfo *t)
+{
+  if (t->state != TRANS_CANCEL) {
+    applyProject(t);
+  }
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (tc->data_len) {
+      DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
     }
   }
 }

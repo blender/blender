@@ -94,6 +94,12 @@ BLI_INLINE bool vert_is_center_test(BMVert *v)
   return (BM_elem_flag_test(v, BM_ELEM_TAG) != 0);
 }
 
+BLI_INLINE bool vert_pair_adjacent_in_orig_face(BMVert *v_a, BMVert *v_b, const uint f_len_orig)
+{
+  const uint delta = (uint)abs((int)BM_VERT_LOOPINDEX(v_a) - (int)BM_VERT_LOOPINDEX(v_b));
+  return ELEM(delta, 1, (uint)(f_len_orig - 1));
+}
+
 /* enable when the edge can be cut */
 BLI_INLINE void edge_is_cut_enable(BMEdge *e)
 {
@@ -149,6 +155,9 @@ static void bm_face_bisect_verts(
   BMLoop *l_iter, *l_first;
   bool use_dirs[3] = {false, false, false};
   bool is_inside = false;
+  /* True when the face contains one or more edges with both it's vertices on the plane.
+   * When set, centered loops are walked over to check if they need to be skipped. */
+  bool face_has_center_edge = false;
 
   STACK_INIT(vert_split_arr, f_len_orig);
 
@@ -168,6 +177,12 @@ static void bm_face_bisect_verts(
                                  0);
 
       STACK_PUSH(vert_split_arr, l_iter->v);
+
+      if (face_has_center_edge == false) {
+        if (vert_is_center_test(l_iter->prev->v)) {
+          face_has_center_edge = true;
+        }
+      }
     }
     use_dirs[BM_VERT_DIR(l_iter->v) + 1] = true;
   } while ((l_iter = l_iter->next) != l_first);
@@ -192,6 +207,62 @@ static void bm_face_bisect_verts(
       }
     }
     else {
+
+      uint i = 0;
+
+      /* ---- */
+      /* Check contiguous spans of centered vertices (skipping when necessary). */
+      if (face_has_center_edge) {
+
+        /* Loop indices need to be set for adjacency checks. */
+        l_iter = l_first;
+        do {
+          BM_VERT_LOOPINDEX(l_iter->v) = i++;
+        } while ((l_iter = l_iter->next) != l_first);
+
+        /* Start out on a non-centered vertex so a span of centered vertices can be looped over
+         * without having to scan backwards as well as forwards. */
+        BMLoop *l_first_non_center = l_first;
+        while (vert_is_center_test(l_first_non_center->v)) {
+          l_first_non_center = l_first_non_center->next;
+        }
+
+        l_iter = l_first_non_center;
+        do {
+          if (BM_VERT_SKIP(l_iter->v)) {
+            continue;
+          }
+          /* No need to check the previous as the iteration starts on a non-centered vertex. */
+          if (!(vert_is_center_test(l_iter->v) && vert_is_center_test(l_iter->next->v))) {
+            continue;
+          }
+
+          /* Walk over the next loops as long as they are centered. */
+          BMLoop *l_prev = l_iter->prev;
+          BMLoop *l_next = l_iter->next->next;
+          /* No need to scan the previous vertices,
+           * these will have been dealt with in previous steps. */
+          BLI_assert(!vert_is_center_test(l_prev->v));
+          while (vert_is_center_test(l_next->v)) {
+            l_next = l_next->next;
+          }
+
+          /* Skip all vertices when the edges connected to the beginning/end
+           * of the range are on a different side of the bisecting plane. */
+          if (!(BM_VERT_DIR(l_prev->v) ^ BM_VERT_DIR(l_next->v))) {
+            BLI_assert(!vert_is_center_test(l_prev->v));
+            l_iter = l_prev->next;
+            while (l_iter != l_next) {
+              BLI_assert(vert_is_center_test(l_iter->v));
+              BM_VERT_SKIP(l_iter->v) = true;
+              l_iter = l_iter->next;
+            }
+          }
+          /* Step over the span already handled, even if skip wasn't set. */
+          l_iter = l_next->prev;
+        } while ((l_iter = l_iter->next) != l_first_non_center);
+      }
+
       /* less common case, _complicated_ we need to calculate how to do multiple cuts */
       float(*face_verts_proj_2d)[2] = BLI_array_alloca(face_verts_proj_2d, f_len_orig);
       float axis_mat[3][3];
@@ -200,7 +271,6 @@ static void bm_face_bisect_verts(
       STACK_DECLARE(face_split_arr);
 
       float sort_dir[3];
-      uint i;
 
       /* ---- */
       /* Calculate the direction to sort verts in the face intersecting the plane */
@@ -235,7 +305,6 @@ static void bm_face_bisect_verts(
       l_iter = l_first;
       i = 0;
       do {
-        BM_VERT_LOOPINDEX(l_iter->v) = i;
         mul_v2_m3v3(face_verts_proj_2d[i], axis_mat, l_iter->v->co);
         i++;
       } while ((l_iter = l_iter->next) != l_first);
@@ -264,6 +333,12 @@ static void bm_face_bisect_verts(
       for (i = 0; i < STACK_SIZE(vert_split_arr) - 1; i++) {
         BMVert *v_a = vert_split_arr[i];
         BMVert *v_b = vert_split_arr[i + 1];
+
+        if (face_has_center_edge) {
+          if (vert_pair_adjacent_in_orig_face(v_a, v_b, f_len_orig)) {
+            continue;
+          }
+        }
 
         if (!BM_VERT_SKIP(v_a)) {
           is_inside = !is_inside;

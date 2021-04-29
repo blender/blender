@@ -2515,6 +2515,17 @@ void BKE_pchan_rebuild_bbone_handles(bPose *pose, bPoseChannel *pchan)
   pchan->bbone_next = pose_channel_find_bone(pose, pchan->bone->bbone_next);
 }
 
+void BKE_pose_channels_clear_with_null_bone(bPose *pose, const bool do_id_user)
+{
+  LISTBASE_FOREACH_MUTABLE (bPoseChannel *, pchan, &pose->chanbase) {
+    if (pchan->bone == NULL) {
+      BKE_pose_channel_free_ex(pchan, do_id_user);
+      BKE_pose_channels_hash_free(pose);
+      BLI_freelinkN(&pose->chanbase, pchan);
+    }
+  }
+}
+
 /**
  * Only after leave editmode, duplicating, validating older files, library syncing.
  *
@@ -2526,7 +2537,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 {
   Bone *bone;
   bPose *pose;
-  bPoseChannel *pchan, *next;
+  bPoseChannel *pchan;
   int counter = 0;
 
   /* only done here */
@@ -2549,14 +2560,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   }
 
   /* and a check for garbage */
-  for (pchan = pose->chanbase.first; pchan; pchan = next) {
-    next = pchan->next;
-    if (pchan->bone == NULL) {
-      BKE_pose_channel_free_ex(pchan, do_id_user);
-      BKE_pose_channels_hash_free(pose);
-      BLI_freelinkN(&pose->chanbase, pchan);
-    }
-  }
+  BKE_pose_channels_clear_with_null_bone(pose, do_id_user);
 
   BKE_pose_channels_hash_make(pose);
 

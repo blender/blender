@@ -534,12 +534,16 @@ static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
     return;
   }
 
+  WM_gizmotype_remove_ptr(NULL, bmain, gzt);
+
+  /* Free extension after removing instances so `__del__` doesn't crash, see: T85567. */
   RNA_struct_free_extension(type, &gzt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  /* Free gizmo group after the extension as it owns the identifier memory. */
+  WM_gizmotype_free_ptr(gzt);
 
-  WM_gizmotype_remove_ptr(NULL, bmain, gzt);
+  WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 }
 
 static void **rna_Gizmo_instance(PointerRNA *ptr)
@@ -934,12 +938,16 @@ static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
     return;
   }
 
+  WM_gizmo_group_type_remove_ptr(bmain, gzgt);
+
+  /* Free extension after removing instances so `__del__` doesn't crash, see: T85567. */
   RNA_struct_free_extension(type, &gzgt->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  /* Free gizmo group after the extension as it owns the identifier memory. */
+  WM_gizmo_group_type_free_ptr(gzgt);
 
-  WM_gizmo_group_type_remove_ptr(bmain, gzgt);
+  WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 }
 
 static void **rna_GizmoGroup_instance(PointerRNA *ptr)

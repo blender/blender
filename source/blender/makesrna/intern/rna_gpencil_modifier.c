@@ -351,6 +351,8 @@ static void greasepencil_modifier_object_set(Object *self,
 RNA_GP_MOD_OBJECT_SET(Armature, object, OB_ARMATURE);
 RNA_GP_MOD_OBJECT_SET(Lattice, object, OB_LATTICE);
 RNA_GP_MOD_OBJECT_SET(Mirror, object, OB_EMPTY);
+RNA_GP_MOD_OBJECT_SET(Opacity, object, OB_EMPTY);
+RNA_GP_MOD_OBJECT_SET(Thick, object, OB_EMPTY);
 
 #  undef RNA_GP_MOD_OBJECT_SET
 
@@ -1116,6 +1118,38 @@ static void rna_def_modifier_gpencilthick(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Thickness Factor", "Factor to multiply the thickness with");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "use_fading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_THICK_FADING);
+  RNA_def_property_ui_text(prop, "Fading", "Fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  /* Distance reference object */
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object used as distance reference");
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_ThickGpencilModifier_object_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
+
+  prop = RNA_def_property(srna, "fading_start", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_start");
+  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_ui_text(prop, "Fading Start", "Start distance of fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fading_end", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_end");
+  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_ui_text(prop, "Fading End", "End distance of fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fading_end_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_end_factor");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10.0, 0.1, 3);
+  RNA_def_property_ui_text(prop, "End Factor", "Fading end thickness factor");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "pass_index");
   RNA_def_property_range(prop, 0, 100);
@@ -1255,6 +1289,34 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "scale");
   RNA_def_property_ui_text(prop, "Scale", "Values for changes in scale");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_offset", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_float_sdna(prop, NULL, "rnd_offset");
+  RNA_def_property_ui_text(prop, "Random Offset", "Value for changes in location");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_rotation", PROP_FLOAT, PROP_EULER);
+  RNA_def_property_float_sdna(prop, NULL, "rnd_rot");
+  RNA_def_property_ui_text(prop, "Random Rotation", "Value for changes in rotation");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_scale", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_float_sdna(prop, NULL, "rnd_scale");
+  RNA_def_property_ui_text(prop, "Scale", "Value for changes in scale");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "seed", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "Seed", "Random seed");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_uniform_random_scale", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_OFFSET_UNIFORM_RANDOM_SCALE);
+  RNA_def_property_ui_text(
+      prop, "Uniform Scale", "Use the same random seed for each scale axis for a uniform scale");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 
@@ -1623,6 +1685,38 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0, FLT_MAX, 0.1, 2);
   RNA_def_property_ui_text(prop, "Hardness", "Factor of stroke hardness");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_fading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_OPACITY_FADING);
+  RNA_def_property_ui_text(prop, "Fading", "Fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  /* Distance reference object */
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object used as distance reference");
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_OpacityGpencilModifier_object_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
+
+  prop = RNA_def_property(srna, "fading_start", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_start");
+  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_ui_text(prop, "Fading Start", "Start distance of fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fading_end", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_end");
+  RNA_def_property_ui_range(prop, 0, 1000.0, 1.0, 2);
+  RNA_def_property_ui_text(prop, "Fading End", "End distance of fading effect");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fading_end_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "fading_end_factor");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 10.0, 0.1, 3);
+  RNA_def_property_ui_text(prop, "End Factor", "Fading end thickness factor");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);

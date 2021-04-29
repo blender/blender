@@ -1630,12 +1630,23 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
 /** \name Depth Buffer Utilities
  * \{ */
 
+struct ReadData {
+  int count;
+  int count_max;
+  float r_depth;
+};
+
 static bool depth_read_test_fn(const void *value, void *userdata)
 {
-  float *r_depth = userdata;
+  struct ReadData *data = userdata;
   float depth = *(float *)value;
-  if (depth < *r_depth) {
-    *r_depth = depth;
+  if (depth < data->r_depth) {
+    data->r_depth = depth;
+  }
+
+  if ((++data->count) >= data->count_max) {
+    /* Outside the margin. */
+    return true;
   }
   return false;
 }
@@ -1657,9 +1668,18 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
 
   float depth = 1.0f;
   if (margin) {
-    /* TODO: No need to go spiral. */
     int shape[2] = {vd->w, vd->h};
-    BLI_array_iter_spiral_square(vd->depths, shape, mval, depth_read_test_fn, &depth);
+    int pixel_count = (min_ii(x + margin + 1, shape[1]) - max_ii(x - margin, 0)) *
+                      (min_ii(y + margin + 1, shape[0]) - max_ii(y - margin, 0));
+
+    struct ReadData data;
+    data.count = 0;
+    data.count_max = pixel_count;
+    data.r_depth = 1.0f;
+
+    /* TODO: No need to go spiral. */
+    BLI_array_iter_spiral_square(vd->depths, shape, mval, depth_read_test_fn, &data);
+    depth = data.r_depth;
   }
   else {
     depth = vd->depths[y * vd->w + x];

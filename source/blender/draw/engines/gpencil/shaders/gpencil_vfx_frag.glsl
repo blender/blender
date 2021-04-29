@@ -145,7 +145,7 @@ void main()
 uniform vec4 glowColor;
 uniform vec2 offset;
 uniform int sampCount;
-uniform vec3 threshold;
+uniform vec4 threshold;
 uniform bool firstPass;
 uniform bool glowUnder;
 uniform int blendMode;
@@ -168,7 +168,7 @@ void main()
     vec3 rev = texture(revealBuf, uv).rgb;
     if (threshold.x > -1.0) {
       if (threshold.y > -1.0) {
-        if (any(greaterThan(abs(col - threshold), vec3(0.05)))) {
+        if (any(greaterThan(abs(col - vec3(threshold)), vec3(threshold.w)))) {
           weight = 0.0;
         }
       }

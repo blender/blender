@@ -47,6 +47,8 @@
 #include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -82,6 +84,39 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   BKE_gpencil_modifier_copydata_generic(md, target);
 
   tgmd->curve_intensity = BKE_curvemapping_copy(gmd->curve_intensity);
+}
+
+static float give_opacity_fading_factor(OpacityGpencilModifierData *mmd,
+                                        Object *ob_this,
+                                        float *pos,
+                                        bool apply_obmat)
+{
+  float factor_depth = 1.0f;
+
+  if (((mmd->flag & GP_OPACITY_FADING) == 0) || ((mmd->object) == NULL)) {
+    return factor_depth;
+  }
+
+  float gvert[3];
+  if (apply_obmat) {
+    mul_v3_m4v3(gvert, ob_this->obmat, pos);
+  }
+  float dist = len_v3v3(mmd->object->obmat[3], gvert);
+  float fading_max = MAX2(mmd->fading_start, mmd->fading_end);
+  float fading_min = MIN2(mmd->fading_start, mmd->fading_end);
+
+  /* Better with ratiof() function from line art. */
+  if (dist > fading_max) {
+    factor_depth = 0.0f;
+  }
+  else if (dist <= fading_max && dist > fading_min) {
+    factor_depth = (fading_max - dist) / (fading_max - fading_min);
+  }
+  else {
+    factor_depth = 1.0f;
+  }
+
+  return factor_depth;
 }
 
 /* opacity strokes */
@@ -138,6 +173,9 @@ static void deformStroke(GpencilModifierData *md,
         factor_curve *= BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
       }
 
+      float factor_depth = give_opacity_fading_factor(mmd, ob, &pt->x, true);
+      factor_curve = interpf(factor_curve, mmd->fading_end_factor, factor_depth);
+
       if (def_nr < 0) {
         if (mmd->flag & GP_OPACITY_NORMALIZE) {
           pt->strength = factor_curve;
@@ -167,6 +205,10 @@ static void deformStroke(GpencilModifierData *md,
   /* Fill using opacity factor. */
   if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
     gps->fill_opacity_fac = mmd->factor;
+
+    float factor_depth = give_opacity_fading_factor(mmd, ob, ob->obmat[3], true);
+    gps->fill_opacity_fac = interpf(mmd->factor, mmd->fading_end_factor, factor_depth);
+
     CLAMP(gps->fill_opacity_fac, 0.0f, 1.0f);
   }
 }
@@ -201,6 +243,18 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+}
+
+static void updateDepsgraph(GpencilModifierData *md,
+                            const ModifierUpdateDepsgraphContext *ctx,
+                            const int UNUSED(mode))
+{
+  OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
+  if (mmd->object != NULL) {
+    DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "Opacity Modifier");
+  }
+  DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Opacity Modifier");
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -226,6 +280,20 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 
   gpencil_modifier_panel_end(layout, ptr);
+}
+
+static void fading_header_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
+
+  uiItemR(layout, ptr, "use_fading", 0, NULL, ICON_NONE);
+}
+
+static void fading_panel_draw(const bContext *C, Panel *panel)
+{
+  gpencil_modifier_fading_draw(C, panel);
 }
 
 static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -266,6 +334,9 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Opacity, panel_draw);
+
+  gpencil_modifier_subpanel_register(
+      region_type, "fading", "", fading_header_draw, fading_panel_draw, panel_type);
   PanelType *mask_panel_type = gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(
@@ -289,7 +360,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Opacity = {
     /* initData */ initData,
     /* freeData */ freeData,
     /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
+    /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,

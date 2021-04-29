@@ -194,9 +194,9 @@ static void calculate_uvs(Mesh *mesh,
 {
   MeshComponent mesh_component;
   mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  OutputAttributePtr uv_attribute = mesh_component.attribute_try_get_for_output(
-      "uv_map", ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2, nullptr);
-  MutableSpan<float2> uvs = uv_attribute->get_span_for_write_only<float2>();
+  OutputAttribute_Typed<float2> uv_attribute =
+      mesh_component.attribute_try_get_for_output_only<float2>("uv_map", ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.as_span();
 
   Array<float2> circle(verts_num);
   float angle = 0.0f;
@@ -271,7 +271,7 @@ static void calculate_uvs(Mesh *mesh,
     }
   }
 
-  uv_attribute.apply_span_and_save();
+  uv_attribute.save();
 }
 
 Mesh *create_cylinder_or_cone_mesh(const float radius_top,

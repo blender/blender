@@ -197,8 +197,9 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(disp, segments[ik].weights[vd.index]);
 
       /* Apply the vertex mask to the displacement. */
-      float mask = vd.mask ? *vd.mask : 0.0f;
-      mul_v3_fl(disp, 1.0f - mask);
+      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+      const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.vertex);
+      mul_v3_fl(disp, mask * automask);
 
       /* Accumulate the displacement. */
       add_v3_v3(total_disp, disp);
@@ -806,6 +807,13 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
     copy_v3_v3(fdata.pose_initial_co, SCULPT_vertex_co_get(ss, current_vertex));
     SCULPT_floodfill_execute(ss, &flood, pose_face_sets_floodfill_cb, &fdata);
     SCULPT_floodfill_free(&flood);
+
+    if (!fdata.next_face_set_found) {
+      for (int i = s; i < ik_chain->tot_segments; i++) {
+        zero_v3(ik_chain->segments[i].orig);
+      }
+      break;
+    }
 
     if (fdata.tot_co > 0) {
       mul_v3_fl(fdata.pose_origin, 1.0f / (float)fdata.tot_co);

@@ -44,6 +44,7 @@ ANIM_KS_LOCATION_ID = "Location"
 ANIM_KS_ROTATION_ID = "Rotation"
 ANIM_KS_SCALING_ID = "Scaling"
 ANIM_KS_LOC_ROT_SCALE_ID = "LocRotScale"
+ANIM_KS_LOC_ROT_SCALE_CPROP_ID = "LocRotScaleCProp"
 ANIM_KS_AVAILABLE_ID = "Available"
 ANIM_KS_WHOLE_CHARACTER_ID = "WholeCharacter"
 ANIM_KS_WHOLE_CHARACTER_SELECTED_ID = "WholeCharacterSelected"
@@ -157,6 +158,22 @@ class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
         keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
         # scale
         keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+
+
+# LocRotScaleCProp
+class BUILTIN_KSI_LocRotScaleCProp(KeyingSetInfo):
+    """Key location/rotation/scale as well as custom properties"""
+    bl_idname = ANIM_KS_LOC_ROT_SCALE_CPROP_ID
+    bl_label = "Location, Rotation, Scale & Custom Properties"
+
+    poll = keyingsets_utils.RKS_POLL_selected_items
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    def generate(self, context, ks, data):
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+        keyingsets_utils.RKS_GEN_custom_props(self, context, ks, data)
 
 
 # RotScale
@@ -350,7 +367,7 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
     bl_label = "Available"
 
     # poll - selected objects or selected object with animation data
-    def poll(ksi, context):
+    def poll(self, context):
         ob = context.active_object
         if ob:
             # TODO: this fails if one animation-less object is active, but many others are selected
@@ -366,14 +383,7 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
 
 ###############################
 
-
-# All properties that are likely to get animated in a character rig
-class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
-    """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
-    """(useful when blocking out a shot)"""
-    bl_idname = ANIM_KS_WHOLE_CHARACTER_ID
-    bl_label = "Whole Character"
-
+class WholeCharacterMixin:
     # these prefixes should be avoided, as they are not really bones
     # that animators should be touching (or need to touch)
     badBonePrefixes = (
@@ -387,38 +397,37 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     )
 
     # poll - pose-mode on active object only
-    def poll(ksi, context):
+    def poll(self, context):
         return ((context.active_object) and (context.active_object.pose) and
                 (context.active_object.mode == 'POSE'))
 
     # iterator - all bones regardless of selection
-    def iterator(ksi, context, ks):
+    def iterator(self, context, ks):
         for bone in context.active_object.pose.bones:
-            if not bone.name.startswith(BUILTIN_KSI_WholeCharacter.badBonePrefixes):
-                ksi.generate(context, ks, bone)
+            if not bone.name.startswith(self.badBonePrefixes):
+                self.generate(context, ks, bone)
 
     # generator - all unlocked bone transforms + custom properties
-    def generate(ksi, context, ks, bone):
+    def generate(self, context, ks, bone):
         # loc, rot, scale - only include unlocked ones
         if not bone.bone.use_connect:
-            ksi.doLoc(ks, bone)
+            self.doLoc(ks, bone)
 
         if bone.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
-            ksi.doRot4d(ks, bone)
+            self.doRot4d(ks, bone)
         else:
-            ksi.doRot3d(ks, bone)
-        ksi.doScale(ks, bone)
+            self.doRot3d(ks, bone)
+        self.doScale(ks, bone)
 
         # bbone properties?
-        ksi.doBBone(context, ks, bone)
+        self.doBBone(context, ks, bone)
 
         # custom props?
-        ksi.doCustomProps(ks, bone)
-
+        self.doCustomProps(ks, bone)
     # ----------------
 
     # helper to add some bone's property to the Keying Set
-    def addProp(ksi, ks, bone, prop, index=-1, use_groups=True):
+    def addProp(self, ks, bone, prop, index=-1, use_groups=True):
         # add the property name to the base path
         id_path = bone.path_from_id()
         id_block = bone.id_data
@@ -439,16 +448,16 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     # ----------------
 
     # location properties
-    def doLoc(ksi, ks, bone):
+    def doLoc(self, ks, bone):
         if bone.lock_location == (False, False, False):
-            ksi.addProp(ks, bone, "location")
+            self.addProp(ks, bone, "location")
         else:
             for i in range(3):
                 if not bone.lock_location[i]:
-                    ksi.addProp(ks, bone, "location", i)
+                    self.addProp(ks, bone, "location", i)
 
     # rotation properties
-    def doRot4d(ksi, ks, bone):
+    def doRot4d(self, ks, bone):
         # rotation mode affects the property used
         if bone.rotation_mode == 'QUATERNION':
             prop = "rotation_quaternion"
@@ -459,40 +468,40 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
         if bone.lock_rotations_4d:
             # can check individually
             if (bone.lock_rotation == (False, False, False)) and (bone.lock_rotation_w is False):
-                ksi.addProp(ks, bone, prop)
+                self.addProp(ks, bone, prop)
             else:
                 if bone.lock_rotation_w is False:
-                    ksi.addProp(ks, bone, prop, 0)  # w = 0
+                    self.addProp(ks, bone, prop, 0)  # w = 0
 
                 for i in range(3):
                     if not bone.lock_rotation[i]:
-                        ksi.addProp(ks, bone, prop, i + 1)  # i + 1, since here x/y/z = 1,2,3, and w=0
+                        self.addProp(ks, bone, prop, i + 1)  # i + 1, since here x/y/z = 1,2,3, and w=0
         elif True not in bone.lock_rotation:
             # if axis-angle rotations get locked as eulers, then it's too messy to allow anything
             # other than all open unless we keyframe the whole lot
-            ksi.addProp(ks, bone, prop)
+            self.addProp(ks, bone, prop)
 
-    def doRot3d(ksi, ks, bone):
+    def doRot3d(self, ks, bone):
         if bone.lock_rotation == (False, False, False):
-            ksi.addProp(ks, bone, "rotation_euler")
+            self.addProp(ks, bone, "rotation_euler")
         else:
             for i in range(3):
                 if not bone.lock_rotation[i]:
-                    ksi.addProp(ks, bone, "rotation_euler", i)
+                    self.addProp(ks, bone, "rotation_euler", i)
 
     # scale properties
-    def doScale(ksi, ks, bone):
+    def doScale(self, ks, bone):
         if bone.lock_scale == (0, 0, 0):
-            ksi.addProp(ks, bone, "scale")
+            self.addProp(ks, bone, "scale")
         else:
             for i in range(3):
                 if not bone.lock_scale[i]:
-                    ksi.addProp(ks, bone, "scale", i)
+                    self.addProp(ks, bone, "scale", i)
 
     # ----------------
 
     # bendy bone properties
-    def doBBone(ksi, context, ks, pchan):
+    def doBBone(self, context, ks, pchan):
         bone = pchan.bone
 
         # This check is crude, but is the best we can do for now
@@ -500,12 +509,12 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
         # (and the bone is a control bone). This may lead to some
         # false positives...
         if bone.bbone_segments > 1:
-            keyingsets_utils.RKS_GEN_bendy_bones(ksi, context, ks, pchan)
+            keyingsets_utils.RKS_GEN_bendy_bones(self, context, ks, pchan)
 
     # ----------------
 
     # custom properties
-    def doCustomProps(ksi, ks, bone):
+    def doCustomProps(self, ks, bone):
 
         prop_type_compat = {bpy.types.BoolProperty,
                             bpy.types.IntProperty,
@@ -528,39 +537,34 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
                     # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
                     continue
                 if rna_property.rna_type in prop_type_compat:
-                    ksi.addProp(ks, bone, prop_path)
+                    self.addProp(ks, bone, prop_path)
             elif prop_rna.is_animatable:
-                ksi.addProp(ks, bone, prop)
-
-# All properties that are likely to get animated in a character rig, only selected bones.
+                self.addProp(ks, bone, prop)
 
 
-class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
+class BUILTIN_KSI_WholeCharacter(WholeCharacterMixin, KeyingSetInfo):
+    """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
+    """(useful when blocking out a shot)"""
+    bl_idname = ANIM_KS_WHOLE_CHARACTER_ID
+    bl_label = "Whole Character"
+
+
+class BUILTIN_KSI_WholeCharacterSelected(WholeCharacterMixin, KeyingSetInfo):
     """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
     """(only selected bones)"""
     bl_idname = ANIM_KS_WHOLE_CHARACTER_SELECTED_ID
     bl_label = "Whole Character (Selected Bones Only)"
 
     # iterator - all bones regardless of selection
-    def iterator(ksi, context, ks):
+    def iterator(self, context, ks):
         # Use either the selected bones, or all of them if none are selected.
         bones = context.selected_pose_bones_from_active_object or context.active_object.pose.bones
 
         for bone in bones:
-            if bone.name.startswith(BUILTIN_KSI_WholeCharacter.badBonePrefixes):
+            if bone.name.startswith(self.badBonePrefixes):
                 continue
-            ksi.generate(context, ks, bone)
+            self.generate(context, ks, bone)
 
-    # Poor man's subclassing. Blender breaks when we actually subclass BUILTIN_KSI_WholeCharacter.
-    poll = BUILTIN_KSI_WholeCharacter.poll
-    generate = BUILTIN_KSI_WholeCharacter.generate
-    addProp = BUILTIN_KSI_WholeCharacter.addProp
-    doLoc = BUILTIN_KSI_WholeCharacter.doLoc
-    doRot4d = BUILTIN_KSI_WholeCharacter.doRot4d
-    doRot3d = BUILTIN_KSI_WholeCharacter.doRot3d
-    doScale = BUILTIN_KSI_WholeCharacter.doScale
-    doBBone = BUILTIN_KSI_WholeCharacter.doBBone
-    doCustomProps = BUILTIN_KSI_WholeCharacter.doCustomProps
 
 ###############################
 
@@ -578,7 +582,7 @@ class BUILTIN_KSI_DeltaLocation(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(ksi, context, ks, data):
+    def generate(self, context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 
@@ -604,7 +608,7 @@ class BUILTIN_KSI_DeltaRotation(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(ksi, context, ks, data):
+    def generate(self, context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 
@@ -638,7 +642,7 @@ class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
     iterator = keyingsets_utils.RKS_ITER_selected_objects
 
     # generator - delta location channels only
-    def generate(ksi, context, ks, data):
+    def generate(self, context, ks, data):
         # get id-block and path info
         id_block, base_path, grouping = keyingsets_utils.get_transform_generators_base_info(data)
 
@@ -664,6 +668,7 @@ classes = (
     BUILTIN_KSI_Scaling,
     BUILTIN_KSI_LocRot,
     BUILTIN_KSI_LocRotScale,
+    BUILTIN_KSI_LocRotScaleCProp,
     BUILTIN_KSI_LocScale,
     BUILTIN_KSI_RotScale,
     BUILTIN_KSI_DeltaLocation,

@@ -50,7 +50,7 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
    * for the factor. But for it's simpler to simply always use float3, since that is usually
    * expected anyway. */
   static const float3 scale_default = float3(1.0f);
-  OutputAttributePtr scale_attribute = component.attribute_try_get_for_output(
+  OutputAttribute_Typed<float3> scale_attribute = component.attribute_try_get_for_output(
       "scale", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, &scale_default);
   if (!scale_attribute) {
     return;
@@ -63,27 +63,27 @@ static void execute_on_component(GeoNodeExecParams params, GeometryComponent &co
   const CustomDataType data_type = (input_type == GEO_NODE_ATTRIBUTE_INPUT_FLOAT) ? CD_PROP_FLOAT :
                                                                                     CD_PROP_FLOAT3;
 
-  ReadAttributePtr attribute = params.get_input_attribute(
+  GVArrayPtr attribute = params.get_input_attribute(
       "Factor", component, ATTR_DOMAIN_POINT, data_type, nullptr);
   if (!attribute) {
     return;
   }
 
-  MutableSpan<float3> scale_span = scale_attribute->get_span<float3>();
+  MutableSpan<float3> scale_span = scale_attribute.as_span();
   if (data_type == CD_PROP_FLOAT) {
-    Span<float> factors = attribute->get_span<float>();
+    GVArray_Typed<float> factors{*attribute};
     for (const int i : scale_span.index_range()) {
       scale_span[i] = scale_span[i] * factors[i];
     }
   }
   else if (data_type == CD_PROP_FLOAT3) {
-    Span<float3> factors = attribute->get_span<float3>();
+    GVArray_Typed<float3> factors{*attribute};
     for (const int i : scale_span.index_range()) {
       scale_span[i] = scale_span[i] * factors[i];
     }
   }
 
-  scale_attribute.apply_span_and_save();
+  scale_attribute.save();
 }
 
 static void geo_node_point_scale_exec(GeoNodeExecParams params)

@@ -93,6 +93,11 @@ template<typename Key> class GValueMap {
     return values_.pop_as(key);
   }
 
+  template<typename ForwardKey> GPointer lookup(const ForwardKey &key) const
+  {
+    return values_.lookup_as(key);
+  }
+
   /* Remove the value for the given name from the container and remove it. */
   template<typename T, typename ForwardKey> T extract(const ForwardKey &key)
   {

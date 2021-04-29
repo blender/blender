@@ -1058,12 +1058,14 @@ bool WM_gizmo_group_type_ensure(const char *idname)
   return WM_gizmo_group_type_ensure_ptr(gzgt);
 }
 
+/**
+ * Call #WM_gizmo_group_type_free_ptr after to remove & free.
+ */
 void WM_gizmo_group_type_remove_ptr_ex(struct Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)
 {
   WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
-  WM_gizmogrouptype_free_ptr(gzgt);
 }
 void WM_gizmo_group_type_remove_ptr(struct Main *bmain, wmGizmoGroupType *gzgt)
 {

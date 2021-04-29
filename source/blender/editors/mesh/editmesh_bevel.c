@@ -912,74 +912,72 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *col, *row;
-  PointerRNA ptr, toolsettings_ptr;
+  PointerRNA toolsettings_ptr;
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-
-  int profile_type = RNA_enum_get(&ptr, "profile_type");
-  int offset_type = RNA_enum_get(&ptr, "offset_type");
-  bool affect_type = RNA_enum_get(&ptr, "affect");
+  int profile_type = RNA_enum_get(op->ptr, "profile_type");
+  int offset_type = RNA_enum_get(op->ptr, "offset_type");
+  bool affect_type = RNA_enum_get(op->ptr, "affect");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "affect", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "offset_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "offset_type", 0, NULL, ICON_NONE);
 
   if (offset_type == BEVEL_AMT_PERCENT) {
-    uiItemR(layout, &ptr, "offset_pct", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "offset_pct", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "offset", 0, NULL, ICON_NONE);
   }
 
-  uiItemR(layout, &ptr, "segments", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "segments", 0, NULL, ICON_NONE);
   if (ELEM(profile_type, BEVEL_PROFILE_SUPERELLIPSE, BEVEL_PROFILE_CUSTOM)) {
     uiItemR(layout,
-            &ptr,
+            op->ptr,
             "profile",
             UI_ITEM_R_SLIDER,
             (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") : IFACE_("Miter Shape"),
             ICON_NONE);
   }
-  uiItemR(layout, &ptr, "material", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "material", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "harden_normals", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "clamp_overlap", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "loop_slide", 0, NULL, ICON_NONE);
+  uiItemR(col, op->ptr, "harden_normals", 0, NULL, ICON_NONE);
+  uiItemR(col, op->ptr, "clamp_overlap", 0, NULL, ICON_NONE);
+  uiItemR(col, op->ptr, "loop_slide", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Mark"));
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, &ptr, "mark_seam", 0, IFACE_("Seams"), ICON_NONE);
-  uiItemR(col, &ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
+  uiItemR(col, op->ptr, "mark_seam", 0, IFACE_("Seams"), ICON_NONE);
+  uiItemR(col, op->ptr, "mark_sharp", 0, IFACE_("Sharp"), ICON_NONE);
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, &ptr, "miter_outer", 0, IFACE_("Miter Outer"), ICON_NONE);
-  uiItemR(col, &ptr, "miter_inner", 0, IFACE_("Inner"), ICON_NONE);
-  if (RNA_enum_get(&ptr, "miter_inner") == BEVEL_MITER_ARC) {
-    uiItemR(col, &ptr, "spread", 0, NULL, ICON_NONE);
+  uiItemR(col, op->ptr, "miter_outer", 0, IFACE_("Miter Outer"), ICON_NONE);
+  uiItemR(col, op->ptr, "miter_inner", 0, IFACE_("Inner"), ICON_NONE);
+  if (RNA_enum_get(op->ptr, "miter_inner") == BEVEL_MITER_ARC) {
+    uiItemR(col, op->ptr, "spread", 0, NULL, ICON_NONE);
   }
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, &ptr, "vmesh_method", 0, IFACE_("Intersection Type"), ICON_NONE);
+  uiItemR(col, op->ptr, "vmesh_method", 0, IFACE_("Intersection Type"), ICON_NONE);
 
-  uiItemR(layout, &ptr, "face_strength_mode", 0, IFACE_("Face Strength"), ICON_NONE);
+  uiItemR(layout, op->ptr, "face_strength_mode", 0, IFACE_("Face Strength"), ICON_NONE);
 
   uiItemS(layout);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, op->ptr, "profile_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
     Scene *scene = CTX_data_scene(C);

@@ -41,6 +41,8 @@
 #include "bpy_rna_types_capi.h"
 #include "bpy_rna_ui.h"
 
+#include "bpy_rna_operator.h"
+
 #include "../generic/py_capi_utils.h"
 
 #include "RNA_access.h"
@@ -81,6 +83,17 @@ static struct PyMethodDef pyrna_blenddatalibraries_methods[] = {
 
 static struct PyMethodDef pyrna_uilayout_methods[] = {
     {NULL, NULL, 0, NULL}, /* #BPY_rna_uilayout_introspect_method_def */
+    {NULL, NULL, 0, NULL},
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator
+ * \{ */
+
+static struct PyMethodDef pyrna_operator_methods[] = {
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_operator_poll_message_set */
     {NULL, NULL, 0, NULL},
 };
 
@@ -227,6 +240,11 @@ void BPY_rna_types_extend_capi(void)
 
   /* Space */
   pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods, NULL);
+
+  /* wmOperator */
+  ARRAY_SET_ITEMS(pyrna_operator_methods, BPY_rna_operator_poll_message_set_method_def);
+  BLI_assert(ARRAY_SIZE(pyrna_operator_methods) == 2);
+  pyrna_struct_type_extend_capi(&RNA_Operator, pyrna_operator_methods, NULL);
 
   /* WindowManager */
   pyrna_struct_type_extend_capi(

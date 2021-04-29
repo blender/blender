@@ -24,166 +24,8 @@
 
 namespace blender::bke {
 
-class ConstantReadAttribute final : public ReadAttribute {
- private:
-  void *value_;
-
- public:
-  ConstantReadAttribute(AttributeDomain domain,
-                        const int64_t size,
-                        const CPPType &type,
-                        const void *value)
-      : ReadAttribute(domain, type, size)
-  {
-    value_ = MEM_mallocN_aligned(type.size(), type.alignment(), __func__);
-    type.copy_to_uninitialized(value, value_);
-  }
-
-  ~ConstantReadAttribute() override
-  {
-    this->cpp_type_.destruct(value_);
-    MEM_freeN(value_);
-  }
-
-  void get_internal(const int64_t UNUSED(index), void *r_value) const override
-  {
-    this->cpp_type_.copy_to_uninitialized(value_, r_value);
-  }
-
-  void initialize_span() const override
-  {
-    const int element_size = cpp_type_.size();
-    array_buffer_ = MEM_mallocN_aligned(size_ * element_size, cpp_type_.alignment(), __func__);
-    array_is_temporary_ = true;
-    cpp_type_.fill_uninitialized(value_, array_buffer_, size_);
-  }
-};
-
-template<typename T> class ArrayReadAttribute final : public ReadAttribute {
- private:
-  Span<T> data_;
-
- public:
-  ArrayReadAttribute(AttributeDomain domain, Span<T> data)
-      : ReadAttribute(domain, CPPType::get<T>(), data.size()), data_(data)
-  {
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    new (r_value) T(data_[index]);
-  }
-
-  void initialize_span() const override
-  {
-    /* The data will not be modified, so this const_cast is fine. */
-    array_buffer_ = const_cast<T *>(data_.data());
-    array_is_temporary_ = false;
-  }
-};
-
-template<typename T> class OwnedArrayReadAttribute final : public ReadAttribute {
- private:
-  Array<T> data_;
-
- public:
-  OwnedArrayReadAttribute(AttributeDomain domain, Array<T> data)
-      : ReadAttribute(domain, CPPType::get<T>(), data.size()), data_(std::move(data))
-  {
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    new (r_value) T(data_[index]);
-  }
-
-  void initialize_span() const override
-  {
-    /* The data will not be modified, so this const_cast is fine. */
-    array_buffer_ = const_cast<T *>(data_.data());
-    array_is_temporary_ = false;
-  }
-};
-
-template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
-class DerivedArrayReadAttribute final : public ReadAttribute {
- private:
-  Span<StructT> data_;
-
- public:
-  DerivedArrayReadAttribute(AttributeDomain domain, Span<StructT> data)
-      : ReadAttribute(domain, CPPType::get<ElemT>(), data.size()), data_(data)
-  {
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    const StructT &struct_value = data_[index];
-    const ElemT value = GetFunc(struct_value);
-    new (r_value) ElemT(value);
-  }
-};
-
-template<typename T> class ArrayWriteAttribute final : public WriteAttribute {
- private:
-  MutableSpan<T> data_;
-
- public:
-  ArrayWriteAttribute(AttributeDomain domain, MutableSpan<T> data)
-      : WriteAttribute(domain, CPPType::get<T>(), data.size()), data_(data)
-  {
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    new (r_value) T(data_[index]);
-  }
-
-  void set_internal(const int64_t index, const void *value) override
-  {
-    data_[index] = *reinterpret_cast<const T *>(value);
-  }
-
-  void initialize_span(const bool UNUSED(write_only)) override
-  {
-    array_buffer_ = data_.data();
-    array_is_temporary_ = false;
-  }
-
-  void apply_span_if_necessary() override
-  {
-    /* Do nothing, because the span contains the attribute itself already. */
-  }
-};
-
-template<typename StructT,
-         typename ElemT,
-         ElemT (*GetFunc)(const StructT &),
-         void (*SetFunc)(StructT &, const ElemT &)>
-class DerivedArrayWriteAttribute final : public WriteAttribute {
- private:
-  MutableSpan<StructT> data_;
-
- public:
-  DerivedArrayWriteAttribute(AttributeDomain domain, MutableSpan<StructT> data)
-      : WriteAttribute(domain, CPPType::get<ElemT>(), data.size()), data_(data)
-  {
-  }
-
-  void get_internal(const int64_t index, void *r_value) const override
-  {
-    const StructT &struct_value = data_[index];
-    const ElemT value = GetFunc(struct_value);
-    new (r_value) ElemT(value);
-  }
-
-  void set_internal(const int64_t index, const void *value) override
-  {
-    StructT &struct_value = data_[index];
-    const ElemT &typed_value = *reinterpret_cast<const ElemT *>(value);
-    SetFunc(struct_value, typed_value);
-  }
-};
+using fn::GVArrayPtr;
+using fn::GVMutableArrayPtr;
 
 /**
  * Utility to group together multiple functions that are used to access custom data on geometry
@@ -244,10 +86,11 @@ class BuiltinAttributeProvider {
   {
   }
 
-  virtual ReadAttributePtr try_get_for_read(const GeometryComponent &component) const = 0;
-  virtual WriteAttributePtr try_get_for_write(GeometryComponent &component) const = 0;
+  virtual GVArrayPtr try_get_for_read(const GeometryComponent &component) const = 0;
+  virtual GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const = 0;
   virtual bool try_delete(GeometryComponent &component) const = 0;
-  virtual bool try_create(GeometryComponent &UNUSED(component)) const = 0;
+  virtual bool try_create(GeometryComponent &UNUSED(component),
+                          const AttributeInit &UNUSED(initializer)) const = 0;
   virtual bool exists(const GeometryComponent &component) const = 0;
 
   StringRefNull name() const
@@ -272,15 +115,16 @@ class BuiltinAttributeProvider {
  */
 class DynamicAttributesProvider {
  public:
-  virtual ReadAttributePtr try_get_for_read(const GeometryComponent &component,
-                                            const StringRef attribute_name) const = 0;
-  virtual WriteAttributePtr try_get_for_write(GeometryComponent &component,
-                                              const StringRef attribute_name) const = 0;
+  virtual ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
+                                               const StringRef attribute_name) const = 0;
+  virtual WriteAttributeLookup try_get_for_write(GeometryComponent &component,
+                                                 const StringRef attribute_name) const = 0;
   virtual bool try_delete(GeometryComponent &component, const StringRef attribute_name) const = 0;
   virtual bool try_create(GeometryComponent &UNUSED(component),
                           const StringRef UNUSED(attribute_name),
                           const AttributeDomain UNUSED(domain),
-                          const CustomDataType UNUSED(data_type)) const
+                          const CustomDataType UNUSED(data_type),
+                          const AttributeInit &UNUSED(initializer)) const
   {
     /* Some providers should not create new attributes. */
     return false;
@@ -309,18 +153,19 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   {
   }
 
-  ReadAttributePtr try_get_for_read(const GeometryComponent &component,
-                                    const StringRef attribute_name) const final;
+  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
+                                       const StringRef attribute_name) const final;
 
-  WriteAttributePtr try_get_for_write(GeometryComponent &component,
-                                      const StringRef attribute_name) const final;
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
+                                         const StringRef attribute_name) const final;
 
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final;
 
   bool try_create(GeometryComponent &component,
                   const StringRef attribute_name,
                   const AttributeDomain domain,
-                  const CustomDataType data_type) const final;
+                  const CustomDataType data_type,
+                  const AttributeInit &initializer) const final;
 
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
@@ -332,18 +177,21 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
 
  private:
   template<typename T>
-  ReadAttributePtr layer_to_read_attribute(const CustomDataLayer &layer,
-                                           const int domain_size) const
+  ReadAttributeLookup layer_to_read_attribute(const CustomDataLayer &layer,
+                                              const int domain_size) const
   {
-    return std::make_unique<ArrayReadAttribute<T>>(
-        domain_, Span(static_cast<const T *>(layer.data), domain_size));
+    return {std::make_unique<fn::GVArray_For_Span<T>>(
+                Span(static_cast<const T *>(layer.data), domain_size)),
+            domain_};
   }
 
   template<typename T>
-  WriteAttributePtr layer_to_write_attribute(CustomDataLayer &layer, const int domain_size) const
+  WriteAttributeLookup layer_to_write_attribute(CustomDataLayer &layer,
+                                                const int domain_size) const
   {
-    return std::make_unique<ArrayWriteAttribute<T>>(
-        domain_, MutableSpan(static_cast<T *>(layer.data), domain_size));
+    return {std::make_unique<fn::GVMutableArray_For_MutableSpan<T>>(
+                MutableSpan(static_cast<T *>(layer.data), domain_size)),
+            domain_};
   }
 
   bool type_is_supported(CustomDataType data_type) const
@@ -357,8 +205,8 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  */
 class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  private:
-  using AsReadAttribute = ReadAttributePtr (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = WriteAttributePtr (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArrayPtr (*)(const void *data, const int domain_size);
+  using AsWriteAttribute = GVMutableArrayPtr (*)(void *data, const int domain_size);
   const AttributeDomain domain_;
   const CustomDataType attribute_type_;
   const CustomDataType stored_type_;
@@ -382,10 +230,10 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   {
   }
 
-  ReadAttributePtr try_get_for_read(const GeometryComponent &component,
-                                    const StringRef attribute_name) const final;
-  WriteAttributePtr try_get_for_write(GeometryComponent &component,
-                                      const StringRef attribute_name) const final;
+  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
+                                       const StringRef attribute_name) const final;
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
+                                         const StringRef attribute_name) const final;
   bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final;
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
@@ -398,8 +246,8 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  * the #MVert struct, but is exposed as float3 attribute.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using AsReadAttribute = ReadAttributePtr (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = WriteAttributePtr (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArrayPtr (*)(const void *data, const int domain_size);
+  using AsWriteAttribute = GVMutableArrayPtr (*)(void *data, const int domain_size);
   using UpdateOnRead = void (*)(const GeometryComponent &component);
   using UpdateOnWrite = void (*)(GeometryComponent &component);
   const CustomDataType stored_type_;
@@ -430,10 +278,10 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  ReadAttributePtr try_get_for_read(const GeometryComponent &component) const final;
-  WriteAttributePtr try_get_for_write(GeometryComponent &component) const final;
+  GVArrayPtr try_get_for_read(const GeometryComponent &component) const final;
+  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const final;
   bool try_delete(GeometryComponent &component) const final;
-  bool try_create(GeometryComponent &component) const final;
+  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final;
   bool exists(const GeometryComponent &component) const final;
 };
 

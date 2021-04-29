@@ -2691,8 +2691,12 @@ static IMesh raycast_patches_boolean(const IMesh &tm,
  * each edge in the output triangles either matches the original edge
  * for the (identical) edge of f, or else is -1. So diagonals added
  * for triangulation can later be identified by having #NO_INDEX for original.
+ *
+ * This code uses Blenlib's BLI_polyfill_calc to do triangulation, and is therefore quite fast.
+ * Unfortunately, it can product degenerate triangles that mesh_intersect will remove, leaving
+ * the mesh non-PWN.
  */
-static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
+static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
 {
   /* Similar to loop body in BM_mesh_calc_tesselation. */
   int flen = f->size();
@@ -2743,6 +2747,113 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
   MEM_freeN(tris);
   MEM_freeN(projverts);
 
+  return ans;
+}
+
+/**
+ * Which CDT output edge index is for an edge between output verts
+ * v1 and v2 (in either order)?
+ * \return -1 if none.
+ */
+static int find_cdt_edge(const CDT_result<mpq_class> &cdt_out, int v1, int v2)
+{
+  for (int e : cdt_out.edge.index_range()) {
+    const std::pair<int, int> &edge = cdt_out.edge[e];
+    if ((edge.first == v1 && edge.second == v2) || (edge.first == v2 && edge.second == v1)) {
+      return e;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Tessellate face f into triangles and return an array of `const Face *`
+ * giving that triangulation.
+ * Care is taken so that the original edge index associated with
+ * each edge in the output triangles either matches the original edge
+ * for the (identical) edge of f, or else is -1. So diagonals added
+ * for triangulation can later be identified by having #NO_INDEX for original.
+ *
+ * The method used is to use the CDT triangulation. Usually that triangulation
+ * will only use the existing vertices. However, if the face self-intersects
+ * then the CDT triangulation will include the intersection points.
+ * If this happens, we use the polyfill triangulator instead. We don't
+ * use the polyfill triangulator by default because it can create degenerate
+ * triangles (which we can handle but they'll create non-manifold meshes).
+ */
+static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
+{
+  int flen = f->size();
+  CDT_input<mpq_class> cdt_in;
+  cdt_in.vert = Array<mpq2>(flen);
+  cdt_in.face = Array<Vector<int>>(1);
+  cdt_in.face[0].reserve(flen);
+  for (int i : f->index_range()) {
+    cdt_in.face[0].append(i);
+  }
+  /* Project poly along dominant axis of normal to get 2d coords. */
+  if (!f->plane_populated()) {
+    f->populate_plane(false);
+  }
+  const double3 &poly_normal = f->plane->norm;
+  int axis = double3::dominant_axis(poly_normal);
+  /* If project down y axis as opposed to x or z, the orientation
+   * of the polygon will be reversed.
+   * Yet another reversal happens if the poly normal in the dominant
+   * direction is opposite that of the positive dominant axis. */
+  bool rev1 = (axis == 1);
+  bool rev2 = poly_normal[axis] < 0;
+  bool rev = rev1 ^ rev2;
+  for (int i = 0; i < flen; ++i) {
+    int ii = rev ? flen - i - 1 : i;
+    mpq2 &p2d = cdt_in.vert[ii];
+    int k = 0;
+    for (int j = 0; j < 3; ++j) {
+      if (j != axis) {
+        p2d[k++] = (*f)[ii]->co_exact[j];
+      }
+    }
+  }
+  CDT_result<mpq_class> cdt_out = delaunay_2d_calc(cdt_in, CDT_INSIDE);
+  int n_tris = cdt_out.face.size();
+  Array<Face *> ans(n_tris);
+  for (int t = 0; t < n_tris; ++t) {
+    int i_v_out[3];
+    const Vert *v[3];
+    int eo[3];
+    bool needs_steiner = false;
+    for (int i = 0; i < 3; ++i) {
+      i_v_out[i] = cdt_out.face[t][i];
+      if (cdt_out.vert_orig[i_v_out[i]].size() == 0) {
+        needs_steiner = true;
+        break;
+      }
+      v[i] = (*f)[cdt_out.vert_orig[i_v_out[i]][0]];
+    }
+    if (needs_steiner) {
+      /* Fall back on the polyfill triangulator. */
+      return polyfill_triangulate_poly(f, arena);
+    }
+    for (int i = 0; i < 3; ++i) {
+      int e_out = find_cdt_edge(cdt_out, i_v_out[i], i_v_out[(i + 1) % 3]);
+      BLI_assert(e_out != -1);
+      eo[i] = NO_INDEX;
+      for (int orig : cdt_out.edge_orig[e_out]) {
+        if (orig != NO_INDEX) {
+          eo[i] = orig;
+          break;
+        }
+      }
+    }
+    if (rev) {
+      ans[t] = arena->add_face(
+          {v[0], v[2], v[1]}, f->orig, {eo[2], eo[1], eo[0]}, {false, false, false});
+    }
+    else {
+      ans[t] = arena->add_face(
+          {v[0], v[1], v[2]}, f->orig, {eo[0], eo[1], eo[2]}, {false, false, false});
+    }
+  }
   return ans;
 }
 

@@ -320,14 +320,44 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
   return WM_CURSOR_DEFAULT;
 }
 
-static void gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
+static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
   float rad = CIRCLE_RESOLUTION * U.dpi_fac / 2.0f;
-  r_bounding_box->xmin = gz->matrix_basis[3][0] + area->totrct.xmin - rad;
-  r_bounding_box->ymin = gz->matrix_basis[3][1] + area->totrct.ymin - rad;
-  r_bounding_box->xmax = r_bounding_box->xmin + rad;
-  r_bounding_box->ymax = r_bounding_box->ymin + rad;
+  const float *co = NULL;
+  float matrix_final[4][4];
+  float co_proj[3];
+  WM_gizmo_calc_matrix_final(gz, matrix_final);
+
+  if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
+    ARegion *region = CTX_wm_region(C);
+    if (ED_view3d_project_float_global(region, matrix_final[3], co_proj, V3D_PROJ_TEST_NOP) ==
+        V3D_PROJ_RET_OK) {
+      float matrix_final_no_offset[4][4];
+      const RegionView3D *rv3d = region->regiondata;
+      WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
+      const float factor = ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_final_no_offset[3]) /
+                           ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_final[3]);
+      /* It's possible (although unlikely) `matrix_final_no_offset` is behind the view.
+       * `matrix_final` has already been projected so both can't be negative. */
+      if (factor > 0.0f) {
+        rad *= factor;
+      }
+      co = co_proj;
+    }
+  }
+  else {
+    co = matrix_final[3];
+  }
+
+  if (co != NULL) {
+    r_bounding_box->xmin = co[0] + area->totrct.xmin - rad;
+    r_bounding_box->ymin = co[1] + area->totrct.ymin - rad;
+    r_bounding_box->xmax = r_bounding_box->xmin + rad;
+    r_bounding_box->ymax = r_bounding_box->ymin + rad;
+    return true;
+  }
+  return false;
 }
 
 static void gizmo_button2d_free(wmGizmo *gz)

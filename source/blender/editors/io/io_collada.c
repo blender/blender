@@ -402,10 +402,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_collada_export_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  PointerRNA ptr;
-
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-  uiCollada_exportSettings(op->layout, &ptr);
+  uiCollada_exportSettings(op->layout, op->ptr);
 }
 
 static bool wm_collada_export_check(bContext *UNUSED(C), wmOperator *op)
@@ -799,10 +796,7 @@ static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
 
 static void wm_collada_import_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  PointerRNA ptr;
-
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-  uiCollada_importSettings(op->layout, &ptr);
+  uiCollada_importSettings(op->layout, op->ptr);
 }
 
 void WM_OT_collada_import(wmOperatorType *ot)

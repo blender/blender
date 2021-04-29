@@ -22,6 +22,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_spreadsheet.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -44,6 +45,7 @@
 
 #include "spreadsheet_intern.hh"
 
+#include "spreadsheet_context.hh"
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
@@ -91,6 +93,9 @@ static void spreadsheet_free(SpaceLink *sl)
   LISTBASE_FOREACH_MUTABLE (SpreadsheetColumn *, column, &sspreadsheet->columns) {
     spreadsheet_column_free(column);
   }
+  LISTBASE_FOREACH_MUTABLE (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    spreadsheet_context_free(context);
+  }
 }
 
 static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
@@ -100,10 +105,6 @@ static void spreadsheet_init(wmWindowManager *UNUSED(wm), ScrArea *area)
     sspreadsheet->runtime = (SpaceSpreadsheet_Runtime *)MEM_callocN(
         sizeof(SpaceSpreadsheet_Runtime), __func__);
   }
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetColumn *, column, &sspreadsheet->columns) {
-    spreadsheet_column_free(column);
-  }
-  BLI_listbase_clear(&sspreadsheet->columns);
 }
 
 static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
@@ -118,11 +119,35 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
     BLI_addtail(&sspreadsheet_new->columns, new_column);
   }
 
+  BLI_listbase_clear(&sspreadsheet_new->context_path);
+  LISTBASE_FOREACH_MUTABLE (SpreadsheetContext *, src_context, &sspreadsheet_old->context_path) {
+    SpreadsheetContext *new_context = spreadsheet_context_copy(src_context);
+    BLI_addtail(&sspreadsheet_new->context_path, new_context);
+  }
+
   return (SpaceLink *)sspreadsheet_new;
 }
 
 static void spreadsheet_keymap(wmKeyConfig *UNUSED(keyconf))
 {
+}
+
+static void spreadsheet_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+{
+  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
+  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
+      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
+      if ((ID *)object_context->object == old_id) {
+        if (new_id && GS(new_id->name) == ID_OB) {
+          object_context->object = (Object *)new_id;
+        }
+        else {
+          object_context->object = nullptr;
+        }
+      }
+    }
+  }
 }
 
 static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -139,20 +164,90 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static ID *get_used_id(const bContext *C)
+ID *ED_spreadsheet_get_current_id(struct SpaceSpreadsheet *sspreadsheet)
+{
+  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+    return nullptr;
+  }
+  SpreadsheetContext *root_context = (SpreadsheetContext *)sspreadsheet->context_path.first;
+  if (root_context->type != SPREADSHEET_CONTEXT_OBJECT) {
+    return nullptr;
+  }
+  SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)root_context;
+  return (ID *)object_context->object;
+}
+
+/* Check if the pinned context still exists. If it doesn't try to find a new context. */
+static void update_pinned_context_path_if_outdated(const bContext *C)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (sspreadsheet->pinned_id != nullptr) {
-    return sspreadsheet->pinned_id;
+
+  /* Currently, this only checks if the object has been deleted. In the future we can have a more
+   * sophisticated check for the entire context (including modifier and nodes). */
+  LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
+    if (context->type == SPREADSHEET_CONTEXT_OBJECT) {
+      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)context;
+      if (object_context->object == nullptr) {
+        ED_spreadsheet_context_path_clear(sspreadsheet);
+        break;
+      }
+    }
   }
+  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+    Object *active_object = CTX_data_active_object(C);
+    if (active_object != nullptr) {
+      SpreadsheetContext *new_context = spreadsheet_context_new(SPREADSHEET_CONTEXT_OBJECT);
+      ((SpreadsheetContextObject *)new_context)->object = active_object;
+      BLI_addtail(&sspreadsheet->context_path, new_context);
+    }
+  }
+
+  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+    /* Don't pin empty context_path, that could be annoying. */
+    sspreadsheet->flag &= ~SPREADSHEET_FLAG_PINNED;
+  }
+}
+
+static void update_context_path_from_context(const bContext *C)
+{
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   Object *active_object = CTX_data_active_object(C);
-  return (ID *)active_object;
+  if (active_object == nullptr) {
+    ED_spreadsheet_context_path_clear(sspreadsheet);
+    return;
+  }
+  if (!BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+    SpreadsheetContext *root_context = (SpreadsheetContext *)sspreadsheet->context_path.first;
+    if (root_context->type == SPREADSHEET_CONTEXT_OBJECT) {
+      SpreadsheetContextObject *object_context = (SpreadsheetContextObject *)root_context;
+      if (object_context->object != active_object) {
+        ED_spreadsheet_context_path_clear(sspreadsheet);
+      }
+    }
+  }
+  if (BLI_listbase_is_empty(&sspreadsheet->context_path)) {
+    SpreadsheetContext *new_context = spreadsheet_context_new(SPREADSHEET_CONTEXT_OBJECT);
+    ((SpreadsheetContextObject *)new_context)->object = active_object;
+    BLI_addtail(&sspreadsheet->context_path, new_context);
+  }
+}
+
+static void update_context_path(const bContext *C)
+{
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
+    update_pinned_context_path_if_outdated(C);
+  }
+  else {
+    update_context_path_from_context(C);
+  }
 }
 
 static std::unique_ptr<DataSource> get_data_source(const bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  ID *used_id = get_used_id(C);
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
   if (used_id == nullptr) {
     return {};
   }
@@ -161,7 +256,7 @@ static std::unique_ptr<DataSource> get_data_source(const bContext *C)
     return {};
   }
   Object *object_orig = (Object *)used_id;
-  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD)) {
+  if (!ELEM(object_orig->type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
     return {};
   }
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
@@ -209,7 +304,12 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
       continue;
     }
 
-    used_ids.add(*column->id);
+    if (!used_ids.add(*column->id)) {
+      /* Remove duplicate columns for now. */
+      BLI_remlink(&columns, column);
+      spreadsheet_column_free(column);
+      continue;
+    }
   }
 
   data_source.foreach_default_column_ids([&](const SpreadsheetColumnID &column_id) {
@@ -227,6 +327,7 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  update_context_path(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(C);
   if (!data_source) {
@@ -303,6 +404,7 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
       }
       break;
     }
+    case NC_TEXTURE:
     case NC_GEOM: {
       ED_region_tag_redraw(region);
       break;
@@ -317,6 +419,7 @@ static void spreadsheet_header_region_init(wmWindowManager *UNUSED(wm), ARegion 
 
 static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
 {
+  update_context_path(C);
   ED_region_header(C, region);
 }
 
@@ -422,6 +525,7 @@ void ED_spacetype_spreadsheet(void)
   st->duplicate = spreadsheet_duplicate;
   st->operatortypes = spreadsheet_operatortypes;
   st->keymap = spreadsheet_keymap;
+  st->id_remap = spreadsheet_id_remap;
 
   /* regions: main window */
   art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype spreadsheet region");

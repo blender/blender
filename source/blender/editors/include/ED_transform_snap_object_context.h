@@ -39,11 +39,18 @@ struct View3D;
 
 /* ED_transform_snap_object_*** API */
 
-typedef enum eSnapSelect {
+typedef enum {
   SNAP_ALL = 0,
   SNAP_NOT_SELECTED = 1,
   SNAP_NOT_ACTIVE = 2,
+  SNAP_ONLY_ACTIVE = 3,
 } eSnapSelect;
+
+typedef enum {
+  SNAP_GEOM_FINAL = 0,
+  SNAP_GEOM_CAGE = 1,
+  SNAP_GEOM_EDIT = 2, /* Bmesh for mesh-type. */
+} eSnapEditType;
 
 /** used for storing multiple hits */
 struct SnapObjectHitDepth {
@@ -54,7 +61,7 @@ struct SnapObjectHitDepth {
   float no[3];
   int index;
 
-  struct Object *ob;
+  struct Object *ob_eval;
   float obmat[4][4];
 
   /* needed to tell which ray-cast this was part of,
@@ -64,10 +71,10 @@ struct SnapObjectHitDepth {
 
 /** parameters that define which objects will be used to snap. */
 struct SnapObjectParams {
-  /* special context sensitive handling for the active or selected object */
+  /* Special context sensitive handling for the active or selected object. */
   char snap_select;
-  /* use editmode cage */
-  unsigned int use_object_edit_cage : 1;
+  /* Geometry for snapping in edit mode. */
+  char edit_mode_type;
   /* snap to the closest element, use when using more than one snap type */
   unsigned int use_occlusion_test : 1;
   /* exclude back facing geometry from snapping */

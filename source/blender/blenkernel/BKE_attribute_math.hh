@@ -21,13 +21,17 @@
 
 #include "DNA_customdata_types.h"
 
+#include "FN_cpp_type.hh"
+
 namespace blender::attribute_math {
+
+using fn::CPPType;
 
 /**
  * Utility function that simplifies calling a templated function based on a custom data type.
  */
 template<typename Func>
-void convert_to_static_type(const CustomDataType data_type, const Func &func)
+inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
@@ -51,6 +55,32 @@ void convert_to_static_type(const CustomDataType data_type, const Func &func)
     default:
       BLI_assert_unreachable();
       break;
+  }
+}
+
+template<typename Func>
+inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func)
+{
+  if (cpp_type.is<float>()) {
+    func(float());
+  }
+  else if (cpp_type.is<float2>()) {
+    func(float2());
+  }
+  else if (cpp_type.is<float3>()) {
+    func(float3());
+  }
+  else if (cpp_type.is<int>()) {
+    func(int());
+  }
+  else if (cpp_type.is<bool>()) {
+    func(bool());
+  }
+  else if (cpp_type.is<Color4f>()) {
+    func(Color4f());
+  }
+  else {
+    BLI_assert_unreachable();
   }
 }
 

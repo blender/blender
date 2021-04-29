@@ -279,52 +279,80 @@ void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new)
   screen_new->do_draw = true;
 }
 
-/* with area as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
-/* -1 = not valid check */
-/* used with join operator */
-int area_getorientation(ScrArea *area, ScrArea *sb)
+/**
+ * with `sa_a` as center, `sa_b` is located at: 0=W, 1=N, 2=E, 3=S
+ * -1 = not valid check.
+ * used with join operator.
+ */
+int area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
 {
-  if (area == NULL || sb == NULL) {
+  if (sa_a == NULL || sa_b == NULL || sa_a == sa_b) {
     return -1;
   }
 
-  ScrVert *saBL = area->v1;
-  ScrVert *saTL = area->v2;
-  ScrVert *saTR = area->v3;
-  ScrVert *saBR = area->v4;
+  const vec2s *sa_bl = &sa_a->v1->vec;
+  const vec2s *sa_tl = &sa_a->v2->vec;
+  const vec2s *sa_tr = &sa_a->v3->vec;
+  const vec2s *sa_br = &sa_a->v4->vec;
 
-  ScrVert *sbBL = sb->v1;
-  ScrVert *sbTL = sb->v2;
-  ScrVert *sbTR = sb->v3;
-  ScrVert *sbBR = sb->v4;
+  const vec2s *sb_bl = &sa_b->v1->vec;
+  const vec2s *sb_tl = &sa_b->v2->vec;
+  const vec2s *sb_tr = &sa_b->v3->vec;
+  const vec2s *sb_br = &sa_b->v4->vec;
 
-  if (saBL->vec.x == sbBR->vec.x && saTL->vec.x == sbTR->vec.x) { /* area to right of sb = W */
-    if ((abs(saBL->vec.y - sbBR->vec.y) <= AREAJOINTOLERANCE) &&
-        (abs(saTL->vec.y - sbTR->vec.y) <= AREAJOINTOLERANCE)) {
+  if (sa_bl->x == sb_br->x && sa_tl->x == sb_tr->x) { /* sa_a to right of sa_b = W */
+    if ((MIN2(sa_tl->y, sb_tr->y) - MAX2(sa_bl->y, sb_br->y)) > AREAJOINTOLERANCEY) {
       return 0;
     }
   }
-  else if (saTL->vec.y == sbBL->vec.y &&
-           saTR->vec.y == sbBR->vec.y) { /* area to bottom of sb = N */
-    if ((abs(saTL->vec.x - sbBL->vec.x) <= AREAJOINTOLERANCE) &&
-        (abs(saTR->vec.x - sbBR->vec.x) <= AREAJOINTOLERANCE)) {
+  else if (sa_tl->y == sb_bl->y && sa_tr->y == sb_br->y) { /* sa_a to bottom of sa_b = N */
+    if ((MIN2(sa_tr->x, sb_br->x) - MAX2(sa_tl->x, sb_bl->x)) > AREAJOINTOLERANCEX) {
       return 1;
     }
   }
-  else if (saTR->vec.x == sbTL->vec.x && saBR->vec.x == sbBL->vec.x) { /* area to left of sb = E */
-    if ((abs(saTR->vec.y - sbTL->vec.y) <= AREAJOINTOLERANCE) &&
-        (abs(saBR->vec.y - sbBL->vec.y) <= AREAJOINTOLERANCE)) {
+  else if (sa_tr->x == sb_tl->x && sa_br->x == sb_bl->x) { /* sa_a to left of sa_b = E */
+    if ((MIN2(sa_tr->y, sb_tl->y) - MAX2(sa_br->y, sb_bl->y)) > AREAJOINTOLERANCEY) {
       return 2;
     }
   }
-  else if (saBL->vec.y == sbTL->vec.y && saBR->vec.y == sbTR->vec.y) { /* area on top of sb = S*/
-    if ((abs(saBL->vec.x - sbTL->vec.x) <= AREAJOINTOLERANCE) &&
-        (abs(saBR->vec.x - sbTR->vec.x) <= AREAJOINTOLERANCE)) {
+  else if (sa_bl->y == sb_tl->y && sa_br->y == sb_tr->y) { /* sa_a on top of sa_b = S */
+    if ((MIN2(sa_br->x, sb_tr->x) - MAX2(sa_bl->x, sb_tl->x)) > AREAJOINTOLERANCEX) {
       return 3;
     }
   }
 
   return -1;
+}
+
+/**
+ * Get alignment offset of adjacent areas. 'dir' value is like #area_getorientation().
+ */
+void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, const int dir, int *r_offset1, int *r_offset2)
+{
+  if (sa_a == NULL || sa_b == NULL) {
+    *r_offset1 = INT_MAX;
+    *r_offset2 = INT_MAX;
+  }
+  else if (dir == 0) { /* West: sa on right and sa_b to the left. */
+    *r_offset1 = sa_b->v3->vec.y - sa_a->v2->vec.y;
+    *r_offset2 = sa_b->v4->vec.y - sa_a->v1->vec.y;
+  }
+  else if (dir == 1) { /* North: sa below and sa_b above. */
+    *r_offset1 = sa_a->v2->vec.x - sa_b->v1->vec.x;
+    *r_offset2 = sa_a->v3->vec.x - sa_b->v4->vec.x;
+  }
+  else if (dir == 2) { /* East: sa on left and sa_b to the right. */
+    *r_offset1 = sa_b->v2->vec.y - sa_a->v3->vec.y;
+    *r_offset2 = sa_b->v1->vec.y - sa_a->v4->vec.y;
+  }
+  else if (dir == 3) { /* South: sa above and sa_b below. */
+    *r_offset1 = sa_a->v1->vec.x - sa_b->v2->vec.x;
+    *r_offset2 = sa_a->v4->vec.x - sa_b->v3->vec.x;
+  }
+  else {
+    *r_offset1 = INT_MAX;
+    *r_offset2 = INT_MAX;
+  }
 }
 
 /* Screen verts with horizontal position equal to from_x are moved to to_x. */
@@ -390,18 +418,24 @@ static void screen_areas_align(
   }
 }
 
-/* Helper function to join 2 areas, it has a return value, 0=failed 1=success
- * used by the split, join operators
- */
-int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
+/* Simple join of two areas without any splitting. Will return false if not possible. */
+static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
   int dir = area_getorientation(sa1, sa2);
-
   if (dir == -1) {
-    return 0;
+    return false;
   }
 
-  /* Align areas if they are not. Do sanity checking before getting here. */
+  int offset1;
+  int offset2;
+  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
+
+  int tolerance = ELEM(dir, 0, 2) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
+  if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
+    return false;
+  }
+
+  /* Align areas if they are not. */
   screen_areas_align(C, screen, sa1, sa2, dir);
 
   if (dir == 0) {      /* sa1 to right of sa2 = W */
@@ -434,7 +468,107 @@ int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
   /* Update preview thumbnail */
   BKE_icon_changed(screen->id.icon_id);
 
-  return 1;
+  return true;
+}
+
+/* Slice off and return new area. "Reverse" gives right/bottom, rather than left/top. */
+static ScrArea *screen_area_trim(
+    bContext *C, bScreen *screen, ScrArea **area, int size, int dir, bool reverse)
+{
+  bool vertical = ELEM(dir, 1, 3);
+  if (abs(size) < (vertical ? AREAJOINTOLERANCEX : AREAJOINTOLERANCEY)) {
+    return NULL;
+  }
+
+  /* Measurement with ScrVerts because winx and winy might not be correct at this time. */
+  float fac = abs(size) / (float)(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
+                                             ((*area)->v3->vec.y - (*area)->v1->vec.y));
+  fac = (reverse == vertical) ? 1.0f - fac : fac;
+  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, 1);
+
+  /* area_split always returns smallest of the two areas, so might have to swap. */
+  if (((fac > 0.5f) == vertical) != reverse) {
+    ScrArea *temp = *area;
+    *area = newsa;
+    newsa = temp;
+  }
+
+  return newsa;
+}
+
+/* Join any two neighboring areas. Might create new areas, kept if over min_remainder. */
+static bool screen_area_join_ex(
+    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, bool close_all_remainders)
+{
+  int dir = area_getorientation(sa1, sa2);
+  if (dir == -1) {
+    return false;
+  }
+
+  int offset1;
+  int offset2;
+  area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
+
+  /* Split Left/Top into new area if overhanging. */
+  ScrArea *side1 = screen_area_trim(C, screen, (offset1 > 0) ? &sa2 : &sa1, offset1, dir, false);
+
+  /* Split Right/Bottom into new area if overhanging. */
+  ScrArea *side2 = screen_area_trim(C, screen, (offset2 > 0) ? &sa1 : &sa2, offset2, dir, true);
+
+  /* The two areas now line up, so join them. */
+  screen_area_join_aligned(C, screen, sa1, sa2);
+
+  if (close_all_remainders || offset1 < 0 || offset2 > 0) {
+    /* Close both if trimming `sa1`. */
+    screen_area_close(C, screen, side1);
+    screen_area_close(C, screen, side2);
+  }
+
+  BKE_icon_changed(screen->id.icon_id);
+  return true;
+}
+
+/* Join any two neighboring areas. Might involve complex changes. */
+int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
+{
+  return screen_area_join_ex(C, screen, sa1, sa2, false);
+}
+
+/* Close a screen area, allowing any neighbor to take its place. */
+bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
+{
+  if (area == NULL) {
+    return false;
+  }
+
+  ScrArea *sa2 = NULL;
+
+  /* Find the most-aligned joinable area. Larger size breaks ties. */
+  int min_alignment = INT_MAX;
+  int max_size = 0;
+  LISTBASE_FOREACH (ScrArea *, ar, &screen->areabase) {
+    int dir = area_getorientation(area, ar);
+    if (dir != -1) {
+      int offset1;
+      int offset2;
+      area_getoffsets(area, ar, dir, &offset1, &offset2);
+      int area_alignment = abs(offset1) + abs(offset2);
+      if (area_alignment < min_alignment) {
+        min_alignment = area_alignment;
+        max_size = ar->winx * ar->winy;
+        sa2 = ar;
+      }
+      else if (area_alignment == min_alignment) {
+        int area_size = ar->winx * ar->winy;
+        if (area_size > max_size) {
+          max_size = area_size;
+          sa2 = ar;
+        }
+      }
+    }
+  }
+
+  return screen_area_join_ex(C, screen, sa2, area, true);
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */

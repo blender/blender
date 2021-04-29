@@ -58,10 +58,10 @@ static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C),
 namespace blender::nodes {
 
 static void do_mix_operation_float(const int blend_mode,
-                                   const FloatReadAttribute &factors,
-                                   const FloatReadAttribute &inputs_a,
-                                   const FloatReadAttribute &inputs_b,
-                                   FloatWriteAttribute results)
+                                   const VArray<float> &factors,
+                                   const VArray<float> &inputs_a,
+                                   const VArray<float> &inputs_b,
+                                   VMutableArray<float> &results)
 {
   const int size = results.size();
   for (const int i : IndexRange(size)) {
@@ -75,10 +75,10 @@ static void do_mix_operation_float(const int blend_mode,
 }
 
 static void do_mix_operation_float3(const int blend_mode,
-                                    const FloatReadAttribute &factors,
-                                    const Float3ReadAttribute &inputs_a,
-                                    const Float3ReadAttribute &inputs_b,
-                                    Float3WriteAttribute results)
+                                    const VArray<float> &factors,
+                                    const VArray<float3> &inputs_a,
+                                    const VArray<float3> &inputs_b,
+                                    VMutableArray<float3> &results)
 {
   const int size = results.size();
   for (const int i : IndexRange(size)) {
@@ -91,10 +91,10 @@ static void do_mix_operation_float3(const int blend_mode,
 }
 
 static void do_mix_operation_color4f(const int blend_mode,
-                                     const FloatReadAttribute &factors,
-                                     const Color4fReadAttribute &inputs_a,
-                                     const Color4fReadAttribute &inputs_b,
-                                     Color4fWriteAttribute results)
+                                     const VArray<float> &factors,
+                                     const VArray<Color4f> &inputs_a,
+                                     const VArray<Color4f> &inputs_b,
+                                     VMutableArray<Color4f> &results)
 {
   const int size = results.size();
   for (const int i : IndexRange(size)) {
@@ -108,22 +108,31 @@ static void do_mix_operation_color4f(const int blend_mode,
 
 static void do_mix_operation(const CustomDataType result_type,
                              int blend_mode,
-                             const FloatReadAttribute &attribute_factor,
-                             const ReadAttribute &attribute_a,
-                             const ReadAttribute &attribute_b,
-                             WriteAttribute &attribute_result)
+                             const VArray<float> &attribute_factor,
+                             const GVArray &attribute_a,
+                             const GVArray &attribute_b,
+                             GVMutableArray &attribute_result)
 {
   if (result_type == CD_PROP_FLOAT) {
-    do_mix_operation_float(
-        blend_mode, attribute_factor, attribute_a, attribute_b, attribute_result);
+    do_mix_operation_float(blend_mode,
+                           attribute_factor,
+                           attribute_a.typed<float>(),
+                           attribute_b.typed<float>(),
+                           attribute_result.typed<float>());
   }
   else if (result_type == CD_PROP_FLOAT3) {
-    do_mix_operation_float3(
-        blend_mode, attribute_factor, attribute_a, attribute_b, attribute_result);
+    do_mix_operation_float3(blend_mode,
+                            attribute_factor,
+                            attribute_a.typed<float3>(),
+                            attribute_b.typed<float3>(),
+                            attribute_result.typed<float3>());
   }
   else if (result_type == CD_PROP_COLOR) {
-    do_mix_operation_color4f(
-        blend_mode, attribute_factor, attribute_a, attribute_b, attribute_result);
+    do_mix_operation_color4f(blend_mode,
+                             attribute_factor,
+                             attribute_a.typed<Color4f>(),
+                             attribute_b.typed<Color4f>(),
+                             attribute_result.typed<Color4f>());
   }
 }
 
@@ -132,9 +141,9 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef result_name)
 {
   /* Use the domain of the result attribute if it already exists. */
-  ReadAttributePtr result_attribute = component.attribute_try_get_for_read(result_name);
-  if (result_attribute) {
-    return result_attribute->domain();
+  std::optional<AttributeMetaData> result_info = component.attribute_get_meta_data(result_name);
+  if (result_info) {
+    return result_info->domain;
   }
 
   /* Otherwise use the highest priority domain from existing input attributes, or the default. */
@@ -158,17 +167,17 @@ static void attribute_mix_calc(GeometryComponent &component, const GeoNodeExecPa
 
   const AttributeDomain result_domain = get_result_domain(component, params, result_name);
 
-  OutputAttributePtr attribute_result = component.attribute_try_get_for_output(
+  OutputAttribute attribute_result = component.attribute_try_get_for_output_only(
       result_name, result_domain, result_type);
   if (!attribute_result) {
     return;
   }
 
-  FloatReadAttribute attribute_factor = params.get_input_attribute<float>(
+  GVArray_Typed<float> attribute_factor = params.get_input_attribute<float>(
       "Factor", component, result_domain, 0.5f);
-  ReadAttributePtr attribute_a = params.get_input_attribute(
+  GVArrayPtr attribute_a = params.get_input_attribute(
       "A", component, result_domain, result_type, nullptr);
-  ReadAttributePtr attribute_b = params.get_input_attribute(
+  GVArrayPtr attribute_b = params.get_input_attribute(
       "B", component, result_domain, result_type, nullptr);
 
   do_mix_operation(result_type,

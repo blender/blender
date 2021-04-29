@@ -42,8 +42,6 @@ extern "C" {
 
 namespace blender::compositor {
 
-#ifdef COM_DEBUG
-
 int DebugInfo::m_file_index = 0;
 DebugInfo::NodeNameMap DebugInfo::m_node_names;
 DebugInfo::OpNameMap DebugInfo::m_op_names;
@@ -67,50 +65,6 @@ std::string DebugInfo::operation_name(const NodeOperation *op)
     return it->second;
   }
   return "";
-}
-
-void DebugInfo::convert_started()
-{
-  m_op_names.clear();
-}
-
-void DebugInfo::execute_started(const ExecutionSystem *system)
-{
-  m_file_index = 1;
-  m_group_states.clear();
-  for (ExecutionGroup *execution_group : system->m_groups) {
-    m_group_states[execution_group] = EG_WAIT;
-  }
-}
-
-void DebugInfo::node_added(const Node *node)
-{
-  m_node_names[node] = std::string(node->getbNode() ? node->getbNode()->name : "");
-}
-
-void DebugInfo::node_to_operations(const Node *node)
-{
-  m_current_node_name = m_node_names[node];
-}
-
-void DebugInfo::operation_added(const NodeOperation *operation)
-{
-  m_op_names[operation] = m_current_node_name;
-}
-
-void DebugInfo::operation_read_write_buffer(const NodeOperation *operation)
-{
-  m_current_op_name = m_op_names[operation];
-}
-
-void DebugInfo::execution_group_started(const ExecutionGroup *group)
-{
-  m_group_states[group] = EG_RUNNING;
-}
-
-void DebugInfo::execution_group_finished(const ExecutionGroup *group)
-{
-  m_group_states[group] = EG_FINISHED;
 }
 
 int DebugInfo::graphviz_operation(const ExecutionSystem *system,
@@ -442,6 +396,9 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
 void DebugInfo::graphviz(const ExecutionSystem *system)
 {
+  if (!COM_EXPORT_GRAPHVIZ) {
+    return;
+  }
   char str[1000000];
   if (graphviz_system(system, str, sizeof(str) - 1)) {
     char basename[FILE_MAX];
@@ -458,45 +415,5 @@ void DebugInfo::graphviz(const ExecutionSystem *system)
     fclose(fp);
   }
 }
-
-#else
-
-std::string DebugInfo::node_name(const Node * /*node*/)
-{
-  return "";
-}
-std::string DebugInfo::operation_name(const NodeOperation * /*op*/)
-{
-  return "";
-}
-void DebugInfo::convert_started()
-{
-}
-void DebugInfo::execute_started(const ExecutionSystem * /*system*/)
-{
-}
-void DebugInfo::node_added(const Node * /*node*/)
-{
-}
-void DebugInfo::node_to_operations(const Node * /*node*/)
-{
-}
-void DebugInfo::operation_added(const NodeOperation * /*operation*/)
-{
-}
-void DebugInfo::operation_read_write_buffer(const NodeOperation * /*operation*/)
-{
-}
-void DebugInfo::execution_group_started(const ExecutionGroup * /*group*/)
-{
-}
-void DebugInfo::execution_group_finished(const ExecutionGroup * /*group*/)
-{
-}
-void DebugInfo::graphviz(const ExecutionSystem * /*system*/)
-{
-}
-
-#endif
 
 }  // namespace blender::compositor

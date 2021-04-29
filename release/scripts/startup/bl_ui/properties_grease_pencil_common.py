@@ -821,6 +821,12 @@ class GreasePencilLayerMasksPanel:
             col2.menu("GPENCIL_MT_layer_mask_menu", icon='ADD', text="")
             col2.operator("gpencil.layer_mask_remove", icon='REMOVE', text="")
 
+            col2.separator()
+
+            sub = col2.column(align=True)
+            sub.operator("gpencil.layer_mask_move", icon='TRIA_UP', text="").type = 'UP'
+            sub.operator("gpencil.layer_mask_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+
 
 class GreasePencilLayerRelationsPanel:
 

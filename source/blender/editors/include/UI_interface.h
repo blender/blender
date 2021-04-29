@@ -186,17 +186,17 @@ enum {
   UI_RETURN_POPUP_OK = 1 << 5,
 };
 
-/* but->flag - general state flags. */
+/** #uiBut.flag general state flags. */
 enum {
-  /** Warning, the first 6 flags are internal. */
-  UI_BUT_ICON_SUBMENU = 1 << 6,
-  UI_BUT_ICON_PREVIEW = 1 << 7,
+  /* WARNING: the first 7 flags are internal (see #UI_SELECT definition). */
+  UI_BUT_ICON_SUBMENU = 1 << 7,
+  UI_BUT_ICON_PREVIEW = 1 << 8,
 
-  UI_BUT_NODE_LINK = 1 << 8,
-  UI_BUT_NODE_ACTIVE = 1 << 9,
-  UI_BUT_DRAG_LOCK = 1 << 10,
+  UI_BUT_NODE_LINK = 1 << 9,
+  UI_BUT_NODE_ACTIVE = 1 << 10,
+  UI_BUT_DRAG_LOCK = 1 << 11,
   /** Grayed out and un-editable. */
-  UI_BUT_DISABLED = 1 << 11,
+  UI_BUT_DISABLED = 1 << 12,
 
   UI_BUT_ANIMATED = 1 << 13,
   UI_BUT_ANIMATED_KEY = 1 << 14,
@@ -1729,7 +1729,7 @@ struct Panel *UI_panel_add_instanced(const struct bContext *C,
                                      struct PointerRNA *custom_data);
 void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 
-#define INSTANCED_PANEL_UNIQUE_STR_LEN 4
+#define INSTANCED_PANEL_UNIQUE_STR_LEN 16
 void UI_list_panel_unique_str(struct Panel *panel, char *r_name);
 
 typedef void (*uiListPanelIDFromDataFunc)(void *data_link, char *r_idname);
@@ -2137,7 +2137,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
                              struct PointerRNA *ptr,
                              const char *propname,
                              const char *name);
-void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float *color);
+void uiTemplateNodeSocket(uiLayout *layout, struct bContext *C, float color[4]);
 void uiTemplateCacheFile(uiLayout *layout,
                          const struct bContext *C,
                          struct PointerRNA *ptr,
@@ -2405,9 +2405,12 @@ void uiItemS_ex(uiLayout *layout, float factor);
 void uiItemSpacer(uiLayout *layout);
 
 void uiItemPopoverPanel_ptr(
-    uiLayout *layout, struct bContext *C, struct PanelType *pt, const char *name, int icon);
-void uiItemPopoverPanel(
-    uiLayout *layout, struct bContext *C, const char *panel_type, const char *name, int icon);
+    uiLayout *layout, const struct bContext *C, struct PanelType *pt, const char *name, int icon);
+void uiItemPopoverPanel(uiLayout *layout,
+                        const struct bContext *C,
+                        const char *panel_type,
+                        const char *name,
+                        int icon);
 void uiItemPopoverPanelFromGroup(uiLayout *layout,
                                  struct bContext *C,
                                  int space_id,

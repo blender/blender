@@ -604,6 +604,15 @@ TEST(map, GenericAlgorithms)
   EXPECT_EQ(std::count(map.keys().begin(), map.keys().end(), 7), 1);
 }
 
+TEST(map, AddAsVariadic)
+{
+  Map<int, StringRef> map;
+  map.add_as(3, "hello", 2);
+  map.add_as(2, "test", 1);
+  EXPECT_EQ(map.lookup(3), "he");
+  EXPECT_EQ(map.lookup(2), "t");
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

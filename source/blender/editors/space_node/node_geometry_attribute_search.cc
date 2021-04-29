@@ -46,8 +46,8 @@ using blender::Set;
 using blender::StringRef;
 
 struct AttributeSearchData {
-  const bNodeTree &node_tree;
-  const bNode &node;
+  AvailableAttributeInfo &dummy_info_for_search;
+  const NodeUIStorage &ui_storage;
   bNodeSocket &socket;
 };
 
@@ -82,37 +82,31 @@ static bool attribute_search_item_add(uiSearchItems *items, const AvailableAttri
       items, search_item_text.c_str(), (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
 }
 
-static void attribute_search_update_fn(
-    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+static void attribute_search_update_fn(const bContext *UNUSED(C),
+                                       void *arg,
+                                       const char *str,
+                                       uiSearchItems *items,
+                                       const bool is_first)
 {
   AttributeSearchData *data = static_cast<AttributeSearchData *>(arg);
-  NodeTreeUIStorage *tree_ui_storage = data->node_tree.ui_storage;
-  if (tree_ui_storage == nullptr) {
-    return;
-  }
-  const NodeUIStorage *ui_storage = BKE_node_tree_ui_storage_get_from_context(
-      C, data->node_tree, data->node);
-  if (ui_storage == nullptr) {
-    return;
-  }
 
-  const Set<AvailableAttributeInfo> &attribute_hints = ui_storage->attribute_hints;
+  const Set<AvailableAttributeInfo> &attribute_hints = data->ui_storage.attribute_hints;
 
   /* Any string may be valid, so add the current search string along with the hints. */
   if (str[0] != '\0') {
     /* Note that the attribute domain and data type are dummies, since
      * #AvailableAttributeInfo equality is only based on the string. */
     if (!attribute_hints.contains(AvailableAttributeInfo{str, ATTR_DOMAIN_AUTO, CD_PROP_BOOL})) {
-      tree_ui_storage->dummy_info_for_search.name = std::string(str);
-      UI_search_item_add(items, str, &tree_ui_storage->dummy_info_for_search, ICON_ADD, 0, 0);
+      data->dummy_info_for_search.name = std::string(str);
+      UI_search_item_add(items, str, &data->dummy_info_for_search, ICON_ADD, 0, 0);
     }
   }
 
   if (str[0] == '\0' && !is_first) {
     /* Allow clearing the text field when the string is empty, but not on the first pass,
      * or opening an attribute field for the first time would show this search item. */
-    tree_ui_storage->dummy_info_for_search.name = std::string(str);
-    UI_search_item_add(items, str, &tree_ui_storage->dummy_info_for_search, ICON_X, 0, 0);
+    data->dummy_info_for_search.name = std::string(str);
+    UI_search_item_add(items, str, &data->dummy_info_for_search, ICON_X, 0, 0);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
@@ -148,11 +142,22 @@ static void attribute_search_exec_fn(bContext *UNUSED(C), void *data_v, void *it
   BLI_strncpy(value->value, item->name.c_str(), MAX_NAME);
 }
 
-void node_geometry_add_attribute_search_button(const bNodeTree *node_tree,
+void node_geometry_add_attribute_search_button(const bContext *C,
+                                               const bNodeTree *node_tree,
                                                const bNode *node,
                                                PointerRNA *socket_ptr,
                                                uiLayout *layout)
 {
+  const NodeUIStorage *ui_storage = BKE_node_tree_ui_storage_get_from_context(
+      C, *node_tree, *node);
+
+  if (ui_storage == nullptr) {
+    uiItemR(layout, socket_ptr, "default_value", 0, "", 0);
+    return;
+  }
+
+  const NodeTreeUIStorage *tree_ui_storage = node_tree->ui_storage;
+
   uiBlock *block = uiLayoutGetBlock(layout);
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
@@ -172,8 +177,10 @@ void node_geometry_add_attribute_search_button(const bNodeTree *node_tree,
                                  0.0f,
                                  "");
 
-  AttributeSearchData *data = OBJECT_GUARDED_NEW(
-      AttributeSearchData, {*node_tree, *node, *static_cast<bNodeSocket *>(socket_ptr->data)});
+  AttributeSearchData *data = OBJECT_GUARDED_NEW(AttributeSearchData,
+                                                 {tree_ui_storage->dummy_info_for_search,
+                                                  *ui_storage,
+                                                  *static_cast<bNodeSocket *>(socket_ptr->data)});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, MENU_SEP);

@@ -1321,12 +1321,14 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   if (!ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
     return OPERATOR_CANCELLED;
   }
-  /* add new object if not currently editing a GP object,
-   * or if "empty" was chosen (i.e. user wants a blank GP canvas)
-   */
-  if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false) || (type == GP_EMPTY)) {
+  /* Add new object if not currently editing a GP object. */
+  if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false)) {
     const char *ob_name = NULL;
     switch (type) {
+      case GP_EMPTY: {
+        ob_name = "GPencil";
+        break;
+      }
       case GP_MONKEY: {
         ob_name = "Suzanne";
         break;
@@ -1356,6 +1358,13 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
   /* create relevant geometry */
   switch (type) {
+    case GP_EMPTY: {
+      float mat[4][4];
+
+      ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+      ED_gpencil_create_blank(C, ob, mat);
+      break;
+    }
     case GP_STROKE: {
       float radius = RNA_float_get(op->ptr, "radius");
       float mat[4][4];
@@ -1422,11 +1431,8 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
       /* Stroke object is drawn in front of meshes by default. */
       ob->dtx |= OB_DRAW_IN_FRONT;
-    }
-    case GP_EMPTY:
-      /* do nothing */
       break;
-
+    }
     default:
       BKE_report(op->reports, RPT_WARNING, "Not implemented");
       break;
@@ -3113,20 +3119,18 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 static void object_convert_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  PointerRNA ptr;
 
   uiLayoutSetPropSep(layout, true);
 
-  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-  uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "keep_original", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "target", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "keep_original", 0, NULL, ICON_NONE);
 
-  if (RNA_enum_get(&ptr, "target") == OB_GPENCIL) {
-    uiItemR(layout, &ptr, "thickness", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "angle", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "seams", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "faces", 0, NULL, ICON_NONE);
+  if (RNA_enum_get(op->ptr, "target") == OB_GPENCIL) {
+    uiItemR(layout, op->ptr, "thickness", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "angle", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "offset", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "seams", 0, NULL, ICON_NONE);
+    uiItemR(layout, op->ptr, "faces", 0, NULL, ICON_NONE);
   }
 }
 

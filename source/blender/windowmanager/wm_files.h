@@ -45,6 +45,9 @@ void wm_homefile_read(struct bContext *C,
 void wm_file_read_report(bContext *C, struct Main *bmain);
 
 void wm_close_file_dialog(bContext *C, struct wmGenericCallback *post_action);
+bool wm_operator_close_file_dialog_if_needed(bContext *C,
+                                             wmOperator *op,
+                                             wmGenericCallbackFn exec_fn);
 bool wm_file_or_image_is_modified(const Main *bmain, const wmWindowManager *wm);
 
 void WM_OT_save_homefile(struct wmOperatorType *ot);

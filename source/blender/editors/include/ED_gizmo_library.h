@@ -263,6 +263,11 @@ struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *sce
 
 typedef enum {
   ED_SNAPGIZMO_TOGGLE_ALWAYS_TRUE = 1 << 0,
+  ED_SNAPGIZMO_OCCLUSION_ALWAYS_TRUE = 1 << 1,
+  ED_SNAPGIZMO_OCCLUSION_ALWAYS_FALSE = 1 << 2, /* TODO. */
+  ED_SNAPGIZMO_SNAP_ONLY_ACTIVE = 1 << 3,
+  ED_SNAPGIZMO_SNAP_EDIT_GEOM_FINAL = 1 << 4,
+  ED_SNAPGIZMO_SNAP_EDIT_GEOM_CAGE = 1 << 5,
 } eSnapGizmo;
 
 void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *gz, eSnapGizmo flag);

@@ -1308,6 +1308,18 @@ typedef struct NodeGeometryMeshLine {
   uint8_t count_mode;
 } NodeGeometryMeshLine;
 
+typedef struct NodeSwitch {
+  /* NodeSwitch. */
+  uint8_t input_type;
+} NodeSwitch;
+
+typedef struct NodeGeometryAttributeTransfer {
+  /* AttributeDomain. */
+  int8_t domain;
+  /* GeometryNodeAttributeTransferMapMode. */
+  uint8_t mapping;
+} NodeGeometryAttributeTransfer;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1801,6 +1813,11 @@ typedef enum GeometryNodeMeshLineCountMode {
   GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
   GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
 } GeometryNodeMeshLineCountMode;
+
+typedef enum GeometryNodeAttributeTransferMapMode {
+  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
+  GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
+} GeometryNodeAttributeTransferMapMode;
 
 #ifdef __cplusplus
 }

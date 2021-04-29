@@ -77,17 +77,20 @@ struct wmTimer;
 /* popover width (multiplied by 'U.widget_unit') */
 #define UI_POPOVER_WIDTH_UNITS 10
 
-/* uiBut->flag */
+/** #uiBut.flag */
 enum {
-  UI_SELECT = (1 << 0),   /* use when the button is pressed */
-  UI_SCROLLED = (1 << 1), /* temp hidden, scrolled away */
+  /** Use when the button is pressed. */
+  UI_SELECT = (1 << 0),
+  /** Temporarily hidden (scrolled out of the view). */
+  UI_SCROLLED = (1 << 1),
   UI_ACTIVE = (1 << 2),
   UI_HAS_ICON = (1 << 3),
   UI_HIDDEN = (1 << 4),
-  UI_SELECT_DRAW = (1 << 5), /* Display selected, doesn't impact interaction. */
+  /** Display selected, doesn't impact interaction. */
+  UI_SELECT_DRAW = (1 << 5),
   /** Property search filter is active and the button does not match. */
-  UI_SEARCH_FILTER_NO_MATCH = (1 << 12),
-  /* warn: rest of uiBut->flag in UI_interface.h */
+  UI_SEARCH_FILTER_NO_MATCH = (1 << 6),
+  /* WARNING: rest of #uiBut.flag in UI_interface.h */
 };
 
 /* uiBut->dragflag */

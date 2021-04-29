@@ -149,10 +149,10 @@ static void determine_final_data_type_and_domain(Span<const GeometryComponent *>
   Vector<CustomDataType> data_types;
   Vector<AttributeDomain> domains;
   for (const GeometryComponent *component : components) {
-    ReadAttributePtr attribute = component->attribute_try_get_for_read(attribute_name);
+    ReadAttributeLookup attribute = component->attribute_try_get_for_read(attribute_name);
     if (attribute) {
-      data_types.append(attribute->custom_data_type());
-      domains.append(attribute->domain());
+      data_types.append(bke::cpp_type_to_custom_data_type(attribute.varray->type()));
+      domains.append(attribute.domain);
     }
   }
 
@@ -164,7 +164,7 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
                                StringRef attribute_name,
                                const CustomDataType data_type,
                                const AttributeDomain domain,
-                               fn::GMutableSpan dst_span)
+                               GMutableSpan dst_span)
 {
   const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type);
   BLI_assert(cpp_type != nullptr);
@@ -175,10 +175,10 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     if (domain_size == 0) {
       continue;
     }
-    ReadAttributePtr read_attribute = component->attribute_get_for_read(
+    GVArrayPtr read_attribute = component->attribute_get_for_read(
         attribute_name, domain, data_type, nullptr);
 
-    fn::GSpan src_span = read_attribute->get_span();
+    GVArray_GSpan src_span{*read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
     cpp_type->copy_to_initialized_n(src_buffer, dst_buffer, domain_size);
@@ -201,16 +201,14 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
     AttributeDomain domain;
     determine_final_data_type_and_domain(src_components, attribute_name, &data_type, &domain);
 
-    OutputAttributePtr write_attribute = result.attribute_try_get_for_output(
+    OutputAttribute write_attribute = result.attribute_try_get_for_output_only(
         attribute_name, domain, data_type);
-    if (!write_attribute ||
-        &write_attribute->cpp_type() != bke::custom_data_type_to_cpp_type(data_type) ||
-        write_attribute->domain() != domain) {
+    if (!write_attribute) {
       continue;
     }
-    fn::GMutableSpan dst_span = write_attribute->get_span_for_write_only();
+    GMutableSpan dst_span = write_attribute.as_span();
     fill_new_attribute(src_components, attribute_name, data_type, domain, dst_span);
-    write_attribute.apply_span_and_save();
+    write_attribute.save();
   }
 }
 
@@ -248,8 +246,9 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
     const int size = component->instances_amount();
     Span<InstancedData> instanced_data = component->instanced_data();
     Span<float4x4> transforms = component->transforms();
+    Span<int> ids = component->ids();
     for (const int i : IndexRange(size)) {
-      dst_component.add_instance(instanced_data[i], transforms[i]);
+      dst_component.add_instance(instanced_data[i], transforms[i], ids[i]);
     }
   }
 }

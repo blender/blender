@@ -1332,11 +1332,8 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
-  if (ob->type == OB_POINTCLOUD) {
+  if (ELEM(ob->type, OB_POINTCLOUD, OB_VOLUME)) {
     return (mti->modifyGeometrySet != NULL);
-  }
-  if (ob->type == OB_VOLUME) {
-    return (mti->modifyVolume != NULL);
   }
   if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
     if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {
@@ -1761,9 +1758,9 @@ void BKE_object_free_derived_caches(Object *ob)
     BKE_geometry_set_free(ob->runtime.geometry_set_eval);
     ob->runtime.geometry_set_eval = NULL;
   }
-  if (ob->runtime.geometry_set_preview != NULL) {
-    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
-    ob->runtime.geometry_set_preview = NULL;
+  if (ob->runtime.geometry_set_previews != NULL) {
+    BLI_ghash_free(ob->runtime.geometry_set_previews, NULL, (GHashValFreeFP)BKE_geometry_set_free);
+    ob->runtime.geometry_set_previews = NULL;
   }
 }
 
@@ -1816,14 +1813,20 @@ void BKE_object_free_caches(Object *object)
 }
 
 /* Can be called from multiple threads. */
-void BKE_object_set_preview_geometry_set(Object *ob, struct GeometrySet *geometry_set)
+void BKE_object_preview_geometry_set_add(Object *ob,
+                                         const uint64_t key,
+                                         struct GeometrySet *geometry_set)
 {
   static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
   BLI_mutex_lock(&mutex);
-  if (ob->runtime.geometry_set_preview != NULL) {
-    BKE_geometry_set_free(ob->runtime.geometry_set_preview);
+  if (ob->runtime.geometry_set_previews == NULL) {
+    ob->runtime.geometry_set_previews = BLI_ghash_int_new(__func__);
   }
-  ob->runtime.geometry_set_preview = geometry_set;
+  BLI_ghash_reinsert(ob->runtime.geometry_set_previews,
+                     POINTER_FROM_UINT(key),
+                     geometry_set,
+                     NULL,
+                     (GHashValFreeFP)BKE_geometry_set_free);
   BLI_mutex_unlock(&mutex);
 }
 
@@ -4129,7 +4132,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
                              const bool use_hidden)
 {
   bool ok = false;
-  if ((ob->transflag & OB_DUPLI) == 0) {
+  if ((ob->transflag & OB_DUPLI) == 0 && ob->runtime.geometry_set_eval == NULL) {
     return ok;
   }
 

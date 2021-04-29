@@ -92,16 +92,15 @@ class INFO_MT_area(Menu):
 
         layout.separator()
 
-        layout.operator("screen.area_dupli", icon='WINDOW')
-
-        layout.separator()
-
         layout.operator("screen.screen_full_area")
         layout.operator(
             "screen.screen_full_area",
-            text="Toggle Fullscreen Area",
-            icon='FULLSCREEN_ENTER',
-        ).use_hide_panels = True
+            text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.operator("screen.area_dupli")
+
+        layout.separator()
+
+        layout.operator("screen.area_close")
 
 
 class INFO_MT_context_menu(Menu):

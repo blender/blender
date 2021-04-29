@@ -58,6 +58,11 @@ class RuntimeBackup {
    * copy-on-write mechanism. */
   bool have_backup;
 
+  /* Struct members of the ID pointer. */
+  struct {
+    void *py_instance;
+  } id_data;
+
   AnimationBackup animation_backup;
   SceneBackup scene_backup;
   SoundBackup sound_backup;

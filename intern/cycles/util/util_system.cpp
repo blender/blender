@@ -145,7 +145,8 @@ int system_cpu_num_active_group_processors()
   return numaAPI_GetNumCurrentNodesProcessors();
 }
 
-#if !defined(_WIN32) || defined(FREE_WINDOWS)
+/* Equivalent of Windows __cpuid for x86 processors on other platforms. */
+#if (!defined(_WIN32) || defined(FREE_WINDOWS)) && (defined(__x86_64__) || defined(__i386__))
 static void __cpuid(int data[4], int selector)
 {
 #  if defined(__x86_64__)
@@ -166,24 +167,54 @@ static void __cpuid(int data[4], int selector)
 
 string system_cpu_brand_string()
 {
+#if defined(__APPLE__)
+  /* Get from system on macOS. */
+  char modelname[512] = "";
+  size_t bufferlen = 512;
+  if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, NULL, 0) == 0) {
+    return modelname;
+  }
+#elif defined(WIN32) || defined(__x86_64__) || defined(__i386__)
+  /* Get from intrinsics on Windows and x86. */
   char buf[49] = {0};
   int result[4] = {0};
 
   __cpuid(result, 0x80000000);
 
-  if (result[0] >= (int)0x80000004) {
+  if (result[0] != 0 && result[0] >= (int)0x80000004) {
     __cpuid((int *)(buf + 0), 0x80000002);
     __cpuid((int *)(buf + 16), 0x80000003);
     __cpuid((int *)(buf + 32), 0x80000004);
 
     string brand = buf;
 
-    /* make it a bit more presentable */
+    /* Make it a bit more presentable. */
     brand = string_remove_trademark(brand);
 
     return brand;
   }
+#else
+  /* Get from /proc/cpuinfo on Unix systems. */
+  FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
+  if (cpuinfo != nullptr) {
+    char cpuinfo_buf[513] = "";
+    fread(cpuinfo_buf, sizeof(cpuinfo_buf) - 1, 1, cpuinfo);
+    fclose(cpuinfo);
 
+    char *modelname = strstr(cpuinfo_buf, "model name");
+    if (modelname != nullptr) {
+      modelname = strchr(modelname, ':');
+      if (modelname != nullptr) {
+        modelname += 2;
+        char *modelname_end = strchr(modelname, '\n');
+        if (modelname_end != nullptr) {
+          *modelname_end = '\0';
+          return modelname;
+        }
+      }
+    }
+  }
+#endif
   return "Unknown CPU";
 }
 
@@ -192,7 +223,7 @@ int system_cpu_bits()
   return (sizeof(void *) * 8);
 }
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86)
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 
 struct CPUCapabilities {
   bool x64;

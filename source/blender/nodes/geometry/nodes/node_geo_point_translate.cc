@@ -42,24 +42,19 @@ namespace blender::nodes {
 
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)
 {
-  OutputAttributePtr position_attribute = component.attribute_try_get_for_output(
-      "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+  OutputAttribute_Typed<float3> position_attribute =
+      component.attribute_try_get_for_output<float3>("position", ATTR_DOMAIN_POINT, {0, 0, 0});
   if (!position_attribute) {
     return;
   }
-  ReadAttributePtr attribute = params.get_input_attribute(
-      "Translation", component, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, nullptr);
-  if (!attribute) {
-    return;
+  GVArray_Typed<float3> attribute = params.get_input_attribute<float3>(
+      "Translation", component, ATTR_DOMAIN_POINT, {0, 0, 0});
+
+  for (const int i : IndexRange(attribute.size())) {
+    position_attribute->set(i, position_attribute->get(i) + attribute[i]);
   }
 
-  Span<float3> data = attribute->get_span<float3>();
-  MutableSpan<float3> scale_span = position_attribute->get_span<float3>();
-  for (const int i : scale_span.index_range()) {
-    scale_span[i] = scale_span[i] + data[i];
-  }
-
-  position_attribute.apply_span_and_save();
+  position_attribute.save();
 }
 
 static void geo_node_point_translate_exec(GeoNodeExecParams params)

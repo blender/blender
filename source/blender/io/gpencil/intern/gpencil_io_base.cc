@@ -303,7 +303,7 @@ void GpencilIO::prepare_stroke_export_colors(Object *ob, bGPDstroke *gps)
 
   /* Stroke color. */
   copy_v4_v4(stroke_color_, gp_style->stroke_rgba);
-  avg_opacity_ = 0;
+  avg_opacity_ = 0.0f;
   /* Get average vertex color and apply. */
   float avg_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   for (const bGPDspoint &pt : Span(gps->points, gps->totpoints)) {

@@ -498,6 +498,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeSeparateXYZ"),
         NodeItem("GeometryNodeAttributeRemove"),
         NodeItem("GeometryNodeAttributeMapRange"),
+        NodeItem("GeometryNodeAttributeTransfer"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeValToRGB"),
@@ -550,6 +551,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeMath"),
         NodeItem("FunctionNodeBooleanMath"),
         NodeItem("FunctionNodeFloatCompare"),
+        NodeItem("GeometryNodeSwitch"),
     ]),
     GeometryNodeCategory("GEO_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeSeparateXYZ"),

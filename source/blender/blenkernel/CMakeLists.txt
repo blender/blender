@@ -117,7 +117,7 @@ set(SRC
   intern/customdata_file.c
   intern/data_transfer.c
   intern/deform.c
-  intern/displist.c
+  intern/displist.cc
   intern/displist_tangent.c
   intern/dynamicpaint.c
   intern/editlattice.c
@@ -190,6 +190,7 @@ set(SRC
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.c
   intern/mesh_runtime.c
+  intern/mesh_sample.cc
   intern/mesh_tangent.c
   intern/mesh_validate.c
   intern/mesh_validate.cc
@@ -380,6 +381,7 @@ set(SRC
   BKE_mesh_remap.h
   BKE_mesh_remesh_voxel.h
   BKE_mesh_runtime.h
+  BKE_mesh_sample.hh
   BKE_mesh_tangent.h
   BKE_mesh_types.h
   BKE_mesh_wrapper.h

@@ -1818,18 +1818,13 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
-  Scene *scene = CTX_data_scene(C);
   bGPDlayer *target_layer = NULL;
   ListBase strokes = {NULL, NULL};
   int layer_num = RNA_int_get(op->ptr, "layer");
   const bool use_autolock = (bool)(gpd->flag & GP_DATA_AUTOLOCK_LAYERS);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
-  if (GPENCIL_MULTIEDIT_SESSIONS_ON(gpd)) {
-    BKE_report(op->reports, RPT_ERROR, "Operator not supported in multiframe edition");
-    return OPERATOR_CANCELLED;
-  }
-
-  /* if autolock enabled, disabled now */
+  /* If autolock enabled, disabled now. */
   if (use_autolock) {
     gpd->flag &= ~GP_DATA_AUTOLOCK_LAYERS;
   }
@@ -1852,52 +1847,58 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Extract all strokes to move to this layer
-   * NOTE: We need to do this in a two-pass system to avoid conflicts with strokes
-   *       getting repeatedly moved
-   */
-  CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *gpf = gpl->actframe;
-
-    /* skip if no frame with strokes, or if this is the layer we're moving strokes to */
-    if ((gpl == target_layer) || (gpf == NULL)) {
+  /* Extract all strokes to move to this layer. */
+  CTX_DATA_BEGIN (C, bGPDlayer *, gpl_src, editable_gpencil_layers) {
+    /* Skip if this is the layer we're moving strokes to. */
+    if (gpl_src == target_layer) {
       continue;
     }
+    bGPDframe *init_gpf = (is_multiedit) ? gpl_src->frames.first : gpl_src->actframe;
+    for (bGPDframe *gpf_src = init_gpf; gpf_src; gpf_src = gpf_src->next) {
+      if ((gpf_src == gpl_src->actframe) ||
+          ((gpf_src->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf_src == NULL) {
+          continue;
+        }
 
-    /* make copies of selected strokes, and deselect these once we're done */
-    LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
+        bGPDstroke *gpsn = NULL;
+        BLI_listbase_clear(&strokes);
+        for (bGPDstroke *gps = gpf_src->strokes.first; gps; gps = gpsn) {
+          gpsn = gps->next;
+          /* Skip strokes that are invalid for current view. */
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
+            continue;
+          }
+          /* Check if the color is editable. */
+          if (ED_gpencil_stroke_material_editable(ob, gpl_src, gps) == false) {
+            continue;
+          }
 
-      /* skip strokes that are invalid for current view */
-      if (ED_gpencil_stroke_can_use(C, gps) == false) {
-        continue;
+          if (gps->flag & GP_STROKE_SELECT) {
+            BLI_remlink(&gpf_src->strokes, gps);
+            BLI_addtail(&strokes, gps);
+          }
+        }
+        /* Paste them all in one go. */
+        if (strokes.first) {
+          bGPDframe *gpf_dst = BKE_gpencil_layer_frame_get(
+              target_layer, gpf_src->framenum, GP_GETFRAME_ADD_NEW);
+
+          BLI_movelisttolist(&gpf_dst->strokes, &strokes);
+          BLI_assert((strokes.first == strokes.last) && (strokes.first == NULL));
+        }
       }
-
-      /* Check if the color is editable. */
-      if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
-        continue;
-      }
-
-      /* TODO: Don't just move entire strokes - instead, only copy the selected portions... */
-      if (gps->flag & GP_STROKE_SELECT) {
-        BLI_remlink(&gpf->strokes, gps);
-        BLI_addtail(&strokes, gps);
+      /* If not multi-edit, exit loop. */
+      if (!is_multiedit) {
+        break;
       }
     }
-
-    /* if new layer and autolock, lock old layer */
+    /* If new layer and autolock, lock old layer. */
     if ((layer_num == -1) && (use_autolock)) {
-      gpl->flag |= GP_LAYER_LOCKED;
+      gpl_src->flag |= GP_LAYER_LOCKED;
     }
   }
   CTX_DATA_END;
-
-  /* Paste them all in one go */
-  if (strokes.first) {
-    bGPDframe *gpf = BKE_gpencil_layer_frame_get(target_layer, CFRA, GP_GETFRAME_ADD_NEW);
-
-    BLI_movelisttolist(&gpf->strokes, &strokes);
-    BLI_assert((strokes.first == strokes.last) && (strokes.first == NULL));
-  }
 
   /* back autolock status */
   if (use_autolock) {
@@ -3762,6 +3763,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
   const eGP_ReprojectModes mode = RNA_enum_get(op->ptr, "type");
   const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
   /* Init snap context for geometry projection. */
   SnapObjectContext *sctx = NULL;
@@ -3774,36 +3776,55 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
   int cfra_prv = INT_MIN;
 
   /* Go through each editable + selected stroke, adjusting each of its points one by one... */
-  GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
-    bool curve_select = false;
-    if (is_curve_edit && gps->editcurve != NULL) {
-      curve_select = gps->editcurve->flag & GP_CURVE_SELECT;
-    }
+  CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
-    if (gps->flag & GP_STROKE_SELECT || curve_select) {
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
+          continue;
+        }
+        for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+          /* skip strokes that are invalid for current view */
+          if (ED_gpencil_stroke_can_use(C, gps) == false) {
+            continue;
+          }
+          bool curve_select = false;
+          if (is_curve_edit && gps->editcurve != NULL) {
+            curve_select = gps->editcurve->flag & GP_CURVE_SELECT;
+          }
 
-      /* update frame to get the new location of objects */
-      if ((mode == GP_REPROJECT_SURFACE) && (cfra_prv != gpf_->framenum)) {
-        cfra_prv = gpf_->framenum;
-        CFRA = gpf_->framenum;
-        BKE_scene_graph_update_for_newframe(depsgraph);
+          if (gps->flag & GP_STROKE_SELECT || curve_select) {
+
+            /* update frame to get the new location of objects */
+            if ((mode == GP_REPROJECT_SURFACE) && (cfra_prv != gpf->framenum)) {
+              cfra_prv = gpf->framenum;
+              CFRA = gpf->framenum;
+              BKE_scene_graph_update_for_newframe(depsgraph);
+            }
+
+            ED_gpencil_stroke_reproject(depsgraph, &gsc, sctx, gpl, gpf, gps, mode, keep_original);
+
+            if (is_curve_edit && gps->editcurve != NULL) {
+              BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
+              /* Update the selection from the stroke to the curve. */
+              BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
+
+              gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+              BKE_gpencil_stroke_geometry_update(gpd, gps);
+            }
+
+            changed = true;
+          }
+        }
       }
-
-      ED_gpencil_stroke_reproject(depsgraph, &gsc, sctx, gpl, gpf_, gps, mode, keep_original);
-
-      if (is_curve_edit && gps->editcurve != NULL) {
-        BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
-        /* Update the selection from the stroke to the curve. */
-        BKE_gpencil_editcurve_stroke_sync_selection(gpd, gps, gps->editcurve);
-
-        gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
-        BKE_gpencil_stroke_geometry_update(gpd, gps);
+      /* If not multi-edit, exit loop. */
+      if (!is_multiedit) {
+        break;
       }
-
-      changed = true;
     }
   }
-  GP_EDITABLE_STROKES_END(gpstroke_iter);
+  CTX_DATA_END;
 
   /* return frame state and DB to original state */
   CFRA = oldframe;
@@ -3832,7 +3853,8 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
        "VIEW",
        0,
        "View",
-       "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
+       "Reproject the strokes to end up on the same plane, as if drawn from the current "
+       "viewpoint "
        "using 'Cursor' Stroke Placement"},
       {GP_REPROJECT_SURFACE,
        "SURFACE",
@@ -3851,7 +3873,8 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
   ot->name = "Reproject Strokes";
   ot->idname = "GPENCIL_OT_reproject";
   ot->description =
-      "Reproject the selected strokes from the current viewpoint as if they had been newly drawn "
+      "Reproject the selected strokes from the current viewpoint as if they had been newly "
+      "drawn "
       "(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
       "or for matching deforming geometry)";
 
@@ -4208,7 +4231,8 @@ void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot)
   ot->name = "Subdivide Stroke";
   ot->idname = "GPENCIL_OT_stroke_subdivide";
   ot->description =
-      "Subdivide between continuous selected points of the stroke adding a point half way between "
+      "Subdivide between continuous selected points of the stroke adding a point half way "
+      "between "
       "them";
 
   /* api callbacks */

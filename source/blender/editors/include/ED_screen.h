@@ -162,7 +162,7 @@ void ED_area_tag_redraw_no_rebuild(ScrArea *area);
 void ED_area_tag_redraw_regiontype(ScrArea *area, int type);
 void ED_area_tag_refresh(ScrArea *area);
 void ED_area_do_refresh(struct bContext *C, ScrArea *area);
-struct AZone *ED_area_azones_update(ScrArea *area, const int mouse_xy[]);
+struct AZone *ED_area_azones_update(ScrArea *area, const int mouse_xy[2]);
 void ED_area_status_text(ScrArea *area, const char *str);
 void ED_area_newspace(struct bContext *C, ScrArea *area, int type, const bool skip_region_exit);
 void ED_area_prevspace(struct bContext *C, ScrArea *area);
@@ -200,7 +200,7 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
 /* screens */
 void ED_screens_init(struct Main *bmain, struct wmWindowManager *wm);
 void ED_screen_draw_edges(struct wmWindow *win);
-void ED_screen_draw_join_shape(struct ScrArea *sa1, struct ScrArea *sa2);
+void ED_screen_draw_join_highlight(struct ScrArea *sa1, struct ScrArea *sa2);
 void ED_screen_draw_split_preview(struct ScrArea *area, const int dir, const float fac);
 void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void ED_screen_ensure_updated(struct wmWindowManager *wm,

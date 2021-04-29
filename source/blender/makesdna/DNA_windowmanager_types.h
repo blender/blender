@@ -278,8 +278,14 @@ typedef struct wmWindow {
   char event_queue_check_click;
   /** Enable when #KM_PRESS events are not handled (keyboard/mouse-buttons only). */
   char event_queue_check_drag;
+  /**
+   * Enable when the drag was handled,
+   * to avoid mouse-motion continually triggering drag events which are not handled
+   * but add overhead to gizmo handling (for example), see T87511.
+   */
+  char event_queue_check_drag_handled;
 
-  char _pad0[2];
+  char _pad0[1];
 
   /** Internal, lock pie creation from this event until released. */
   short pie_event_type_lock;
@@ -374,7 +380,12 @@ typedef struct wmKeyMapItem {
   /** Unique identifier. Positive for kmi that override builtins, negative otherwise. */
   short id;
   char _pad[2];
-  /** Rna pointer to access properties. */
+  /**
+   * RNA pointer to access properties.
+   *
+   * \note The `ptr.owner_id` value must be NULL, as a signal not to use the context
+   * when running property callbacks such as ENUM item functions.
+   */
   struct PointerRNA *ptr;
 } wmKeyMapItem;
 

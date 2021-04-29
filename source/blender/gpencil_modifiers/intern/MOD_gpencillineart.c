@@ -335,7 +335,7 @@ static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (use_multiple_levels) {
     uiLayout *col = uiLayoutColumn(layout, true);
     uiItemR(col, ptr, "level_start", 0, NULL, ICON_NONE);
-    uiItemR(col, ptr, "level_end", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "level_end", 0, IFACE_("End"), ICON_NONE);
   }
   else {
     uiItemR(layout, ptr, "level_start", 0, IFACE_("Level"), ICON_NONE);
@@ -367,7 +367,7 @@ static void transparency_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, false);
-  uiLayout *sub = uiLayoutRow(row, true);
+  uiLayout *sub = uiLayoutRowWithHeading(row, true, IFACE_("Masks"));
   char text[2] = "0";
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_transparency_mask");

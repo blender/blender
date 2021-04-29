@@ -58,9 +58,11 @@ typedef struct bNodeLinkDrag {
   bool from_multi_input_socket;
   int in_out;
 
-  /** Temporarily stores the last picked link from multi input socket operator. */
+  /** Temporarily stores the last picked link from multi-input socket operator. */
   struct bNodeLink *last_picked_multi_input_socket_link;
 
+  /** Temporarily stores the last hovered socket for multi-input socket operator.
+   *  Store it to recalculate sorting after it is no longer hovered. */
   struct bNode *last_node_hovered_while_dragging_a_link;
 } bNodeLinkDrag;
 
@@ -308,7 +310,8 @@ void NODE_OT_cryptomatte_layer_add(struct wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_remove(struct wmOperatorType *ot);
 
 /* node_geometry_attribute_search.cc */
-void node_geometry_add_attribute_search_button(const struct bNodeTree *node_tree,
+void node_geometry_add_attribute_search_button(const struct bContext *C,
+                                               const struct bNodeTree *node_tree,
                                                const struct bNode *node,
                                                struct PointerRNA *socket_ptr,
                                                struct uiLayout *layout);

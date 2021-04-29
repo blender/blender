@@ -36,30 +36,42 @@ static void geometry_set_collect_recursive_collection(const Collection &collecti
                                                       const float4x4 &transform,
                                                       Vector<GeometryInstanceGroup> &r_sets);
 
+static void add_final_mesh_as_geometry_component(const Object &object, GeometrySet &geometry_set)
+{
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(&const_cast<Object &>(object),
+                                                                     false);
+
+  if (mesh != nullptr) {
+    BKE_mesh_wrapper_ensure_mdata(mesh);
+
+    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+    mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+    mesh_component.copy_vertex_group_names_from_object(object);
+  }
+}
+
 /**
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
 static GeometrySet object_get_geometry_set_for_read(const Object &object)
 {
-  /* Objects evaluated with a nodes modifier will have a geometry set already. */
+  if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
+    GeometrySet geometry_set;
+    if (object.runtime.geometry_set_eval != nullptr) {
+      /* `geometry_set_eval` only contains non-mesh components, see `editbmesh_build_data`. */
+      geometry_set = *object.runtime.geometry_set_eval;
+    }
+    add_final_mesh_as_geometry_component(object, geometry_set);
+    return geometry_set;
+  }
   if (object.runtime.geometry_set_eval != nullptr) {
     return *object.runtime.geometry_set_eval;
   }
 
   /* Otherwise, construct a new geometry set with the component based on the object type. */
-  GeometrySet new_geometry_set;
-
+  GeometrySet geometry_set;
   if (object.type == OB_MESH) {
-    Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(
-        &const_cast<Object &>(object), false);
-
-    if (mesh != nullptr) {
-      BKE_mesh_wrapper_ensure_mdata(mesh);
-
-      MeshComponent &mesh_component = new_geometry_set.get_component_for_write<MeshComponent>();
-      mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
-      mesh_component.copy_vertex_group_names_from_object(object);
-    }
+    add_final_mesh_as_geometry_component(object, geometry_set);
   }
 
   /* TODO: Cover the case of point-clouds without modifiers-- they may not be covered by the
@@ -68,7 +80,7 @@ static GeometrySet object_get_geometry_set_for_read(const Object &object)
   /* TODO: Add volume support. */
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
-  return new_geometry_set;
+  return geometry_set;
 }
 
 static void geometry_set_collect_recursive_collection_instance(
@@ -437,13 +449,15 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
     const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type_output);
     BLI_assert(cpp_type != nullptr);
 
-    result.attribute_try_create(entry.key, domain_output, data_type_output);
-    WriteAttributePtr write_attribute = result.attribute_try_get_for_write(name);
-    if (!write_attribute || &write_attribute->cpp_type() != cpp_type ||
-        write_attribute->domain() != domain_output) {
+    result.attribute_try_create(
+        entry.key, domain_output, data_type_output, AttributeInitDefault());
+    WriteAttributeLookup write_attribute = result.attribute_try_get_for_write(name);
+    if (!write_attribute || &write_attribute.varray->type() != cpp_type ||
+        write_attribute.domain != domain_output) {
       continue;
     }
-    fn::GMutableSpan dst_span = write_attribute->get_span_for_write_only();
+
+    fn::GVMutableArray_GSpan dst_span{*write_attribute.varray};
 
     int offset = 0;
     for (const GeometryInstanceGroup &set_group : set_groups) {
@@ -455,11 +469,11 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
           if (domain_size == 0) {
             continue; /* Domain size is 0, so no need to increment the offset. */
           }
-          ReadAttributePtr source_attribute = component.attribute_try_get_for_read(
+          GVArrayPtr source_attribute = component.attribute_try_get_for_read(
               name, domain_output, data_type_output);
 
           if (source_attribute) {
-            fn::GSpan src_span = source_attribute->get_span();
+            fn::GVArray_GSpan src_span{*source_attribute};
             const void *src_buffer = src_span.data();
             for (const int UNUSED(i) : set_group.transforms.index_range()) {
               void *dst_buffer = dst_span[offset];
@@ -474,7 +488,7 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
       }
     }
 
-    write_attribute->apply_span();
+    dst_span.save();
   }
 }
 

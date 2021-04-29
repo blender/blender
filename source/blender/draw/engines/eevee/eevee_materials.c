@@ -765,12 +765,15 @@ static void eevee_hair_cache_populate(EEVEE_Data *vedata,
 
   if (matcache.depth_grp) {
     *matcache.depth_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.depth_grp);
+    DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shading_grp) {
     *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.shading_grp);
+    DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
   }
   if (matcache.shadow_grp) {
     *matcache.shadow_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.shadow_grp);
+    DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
     *cast_shadow = true;
   }
 
@@ -1081,12 +1084,22 @@ void EEVEE_material_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
       }
     }
     if (pd->render_passes & EEVEE_RENDER_PASS_SPECULAR_COLOR) {
+      bool prev_ssr = sldata->common_data.ssr_toggle;
+      if (prev_ssr) {
+        /* We need to disable ssr here so output radiance is not directed to the ssr buffer. */
+        sldata->common_data.ssr_toggle = false;
+        GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
+      }
       material_renderpass_accumulate(fbl,
                                      material_accum_ps,
                                      NULL,
                                      pd,
                                      txl->spec_color_accum,
                                      sldata->renderpass_ubo.spec_color);
+      if (prev_ssr) {
+        sldata->common_data.ssr_toggle = prev_ssr;
+        GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
+      }
     }
     if (pd->render_passes & EEVEE_RENDER_PASS_SPECULAR_LIGHT) {
       material_renderpass_accumulate(fbl,

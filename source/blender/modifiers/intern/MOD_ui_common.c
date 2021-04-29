@@ -344,7 +344,32 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     }
   } /* Tessellation point for curve-typed objects. */
   else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-    if (mti->type != eModifierTypeType_Constructive) {
+    /* Some modifiers can work with pre-tessellated curves only. */
+    if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
+      /* Add button (appearing to be ON) and add tip why this cant be changed. */
+      sub = uiLayoutRow(row, true);
+      uiBlock *block = uiLayoutGetBlock(sub);
+      static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
+      uiBut *but = uiDefIconButBitI(block,
+                                    UI_BTYPE_TOGGLE,
+                                    eModifierMode_ApplyOnSpline,
+                                    0,
+                                    ICON_SURFACE_DATA,
+                                    0,
+                                    0,
+                                    UI_UNIT_X - 2,
+                                    UI_UNIT_Y,
+                                    &apply_on_spline_always_on_hack,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    TIP_("Apply on Spline"));
+      UI_but_disable(
+          but, TIP_("This modifier can only deform control points, not the filled curve/surface"));
+      buttons_number++;
+    }
+    else if (mti->type != eModifierTypeType_Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
       uiItemR(row, ptr, "use_apply_on_spline", 0, "", ICON_NONE);
       buttons_number++;

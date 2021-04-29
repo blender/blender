@@ -779,7 +779,7 @@ static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C
     RNA_enum_item_add(&item, &totitem, &new_item);
   }
 
-#  ifndef NDEBUG
+#  if !defined(NDEBUG) || !defined(WITH_AUDASPACE)
   if (i == 0) {
     EnumPropertyItem new_item = {i, "SOUND_NONE", 0, "No Sound", ""};
     RNA_enum_item_add(&item, &totitem, &new_item);
@@ -6160,7 +6160,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
       prop,
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with subdirectories: "
-      "startup, add-ons and modules (requires restart)");
+      "startup, addons, modules, and presets (requires restart)");
   /* TODO, editing should reset sys.path! */
 
   prop = RNA_def_property(srna, "i18n_branches_directory", PROP_STRING, PROP_DIRPATH);

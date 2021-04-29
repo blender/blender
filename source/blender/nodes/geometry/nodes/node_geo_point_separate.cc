@@ -58,27 +58,27 @@ static void copy_attributes_based_on_mask(const GeometryComponent &in_component,
                                           const bool invert)
 {
   for (const std::string &name : in_component.attribute_names()) {
-    ReadAttributePtr attribute = in_component.attribute_try_get_for_read(name);
-    const CustomDataType data_type = attribute->custom_data_type();
+    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(name);
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray->type());
 
     /* Only copy point attributes. Theoretically this could interpolate attributes on other
      * domains to the point domain, but that would conflict with attributes that are built-in
      * on other domains, which causes creating the attributes to fail. */
-    if (attribute->domain() != ATTR_DOMAIN_POINT) {
+    if (attribute.domain != ATTR_DOMAIN_POINT) {
       continue;
     }
 
-    OutputAttributePtr result_attribute = result_component.attribute_try_get_for_output(
+    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         name, ATTR_DOMAIN_POINT, data_type);
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      Span<T> span = attribute->get_span<T>();
-      MutableSpan<T> out_span = result_attribute->get_span_for_write_only<T>();
+      GVArray_Span<T> span{*attribute.varray};
+      MutableSpan<T> out_span = result_attribute.as_span<T>();
       copy_data_based_on_mask(span, masks, invert, out_span);
     });
 
-    result_attribute.apply_span_and_save();
+    result_attribute.save();
   }
 }
 
@@ -107,9 +107,9 @@ static void separate_points_from_component(const GeometryComponent &in_component
     return;
   }
 
-  const BooleanReadAttribute mask_attribute = in_component.attribute_get_for_read<bool>(
+  const GVArray_Typed<bool> mask_attribute = in_component.attribute_get_for_read<bool>(
       mask_name, ATTR_DOMAIN_POINT, false);
-  Span<bool> masks = mask_attribute.get_span();
+  VArray_Span<bool> masks{mask_attribute};
 
   const int total = masks.count(!invert);
   if (total == 0) {

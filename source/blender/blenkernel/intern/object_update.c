@@ -176,6 +176,13 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
+      /* Custom attributes should not be removed automatically. They might be used by the render
+       * engine or scripts. They can still be removed explicitly using geometry nodes. */
+      cddata_masks.vmask |= CD_MASK_PROP_ALL;
+      cddata_masks.emask |= CD_MASK_PROP_ALL;
+      cddata_masks.fmask |= CD_MASK_PROP_ALL;
+      cddata_masks.pmask |= CD_MASK_PROP_ALL;
+      cddata_masks.lmask |= CD_MASK_PROP_ALL;
       /* Make sure Freestyle edge/face marks appear in DM for render (see T40315).
        * Due to Line Art implementation, edge marks should also be shown in viewport. */
 #ifdef WITH_FREESTYLE

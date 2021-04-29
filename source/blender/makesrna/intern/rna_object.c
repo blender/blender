@@ -84,7 +84,7 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {OB_MODE_PAINT_GPENCIL,
      "PAINT_GPENCIL",
      ICON_GREASEPENCIL,
-     "Draw",
+     "Draw Mode",
      "Paint Grease Pencil Strokes"},
     {OB_MODE_WEIGHT_GPENCIL,
      "WEIGHT_GPENCIL",

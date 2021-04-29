@@ -421,6 +421,7 @@ void GPENCIL_OT_layer_duplicate_object(struct wmOperatorType *ot);
 
 void GPENCIL_OT_layer_mask_add(struct wmOperatorType *ot);
 void GPENCIL_OT_layer_mask_remove(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_mask_move(struct wmOperatorType *ot);
 
 void GPENCIL_OT_hide(struct wmOperatorType *ot);
 void GPENCIL_OT_reveal(struct wmOperatorType *ot);

@@ -21,17 +21,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Texture limits on devices. */
-#define TEX_NUM_MAX (INT_MAX >> 4)
-
 /* Color to use when textures are not found. */
 #define TEX_IMAGE_MISSING_R 1
 #define TEX_IMAGE_MISSING_G 0
 #define TEX_IMAGE_MISSING_B 1
 #define TEX_IMAGE_MISSING_A 1
-
-/* Texture type. */
-#define kernel_tex_type(tex) (tex & IMAGE_DATA_TYPE_MASK)
 
 /* Interpolation types for textures
  * cuda also use texture space to store other objects */
@@ -45,9 +39,6 @@ typedef enum InterpolationType {
   INTERPOLATION_NUM_TYPES,
 } InterpolationType;
 
-/* Texture types
- * Since we store the type in the lower bits of a flat index,
- * the shift and bit mask constant below need to be kept in sync. */
 typedef enum ImageDataType {
   IMAGE_DATA_TYPE_FLOAT4 = 0,
   IMAGE_DATA_TYPE_BYTE4 = 1,
@@ -74,9 +65,6 @@ typedef enum ImageAlphaType {
 
   IMAGE_ALPHA_NUM_TYPES,
 } ImageAlphaType;
-
-#define IMAGE_DATA_TYPE_SHIFT 4
-#define IMAGE_DATA_TYPE_MASK 0xF
 
 /* Extension types for textures.
  *

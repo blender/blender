@@ -2157,21 +2157,9 @@ static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
       C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
 }
 
-static void wm_free_operator_properties_callback(void *user_data)
-{
-  IDProperty *properties = (IDProperty *)user_data;
-  IDP_FreeProperty(properties);
-}
-
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
-    wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
-    callback->exec = wm_homefile_read_after_dialog_callback;
-    callback->user_data = IDP_CopyProperty(op->properties);
-    callback->free_user_data = wm_free_operator_properties_callback;
-    wm_close_file_dialog(C, callback);
+  if (wm_operator_close_file_dialog_if_needed(C, op, wm_homefile_read_after_dialog_callback)) {
     return OPERATOR_INTERFACE;
   }
   return wm_homefile_read_exec(C, op);
@@ -2331,13 +2319,7 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
     set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
   }
 
-  if (U.uiflag & USER_SAVE_PROMPT &&
-      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
-    wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
-    callback->exec = wm_open_mainfile_after_dialog_callback;
-    callback->user_data = IDP_CopyProperty(op->properties);
-    callback->free_user_data = wm_free_operator_properties_callback;
-    wm_close_file_dialog(C, callback);
+  if (wm_operator_close_file_dialog_if_needed(C, op, wm_open_mainfile_after_dialog_callback)) {
     return OPERATOR_INTERFACE;
   }
   return wm_open_mainfile_dispatch(C, op);
@@ -2637,12 +2619,25 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int wm_recover_last_session_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static void wm_recover_last_session_after_dialog_callback(bContext *C, void *user_data)
+{
+  WM_operator_name_call_with_properties(
+      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+}
+
+static int wm_recover_last_session_invoke(bContext *C,
+                                          wmOperator *op,
+                                          const wmEvent *UNUSED(event))
 {
   /* Keep the current setting instead of using the preferences since a file selector
    * doesn't give us the option to change the setting. */
   wm_open_init_use_scripts(op, false);
-  return WM_operator_confirm(C, op, event);
+
+  if (wm_operator_close_file_dialog_if_needed(
+          C, op, wm_recover_last_session_after_dialog_callback)) {
+    return OPERATOR_INTERFACE;
+  }
+  return wm_recover_last_session_exec(C, op);
 }
 
 void WM_OT_recover_last_session(wmOperatorType *ot)
@@ -3270,7 +3265,10 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL);
+    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL) &
+        OPERATOR_CANCELLED) {
+      execute_callback = false;
+    }
   }
   else {
     WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL);
@@ -3454,6 +3452,33 @@ void wm_close_file_dialog(bContext *C, wmGenericCallback *post_action)
   else {
     WM_generic_callback_free(post_action);
   }
+}
+
+static void wm_free_operator_properties_callback(void *user_data)
+{
+  IDProperty *properties = (IDProperty *)user_data;
+  IDP_FreeProperty(properties);
+}
+
+/**
+ * \return True if the dialog was created, the calling operator should return #OPERATOR_INTERFACE
+ *         then.
+ */
+bool wm_operator_close_file_dialog_if_needed(bContext *C,
+                                             wmOperator *op,
+                                             wmGenericCallbackFn post_action_fn)
+{
+  if (U.uiflag & USER_SAVE_PROMPT &&
+      wm_file_or_image_is_modified(CTX_data_main(C), CTX_wm_manager(C))) {
+    wmGenericCallback *callback = MEM_callocN(sizeof(*callback), __func__);
+    callback->exec = post_action_fn;
+    callback->user_data = IDP_CopyProperty(op->properties);
+    callback->free_user_data = wm_free_operator_properties_callback;
+    wm_close_file_dialog(C, callback);
+    return true;
+  }
+
+  return false;
 }
 
 /** \} */

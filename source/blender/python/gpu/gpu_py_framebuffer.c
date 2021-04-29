@@ -492,7 +492,7 @@ static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
      pygpu_framebuffer_viewport_set_doc},
     {"viewport_get",
      (PyCFunction)pygpu_framebuffer_viewport_get,
-     METH_VARARGS,
+     METH_NOARGS,
      pygpu_framebuffer_viewport_get_doc},
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
     {"free", (PyCFunction)pygpu_framebuffer_free, METH_NOARGS, pygpu_framebuffer_free_doc},

@@ -39,6 +39,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -1003,13 +1004,11 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 #endif
 }
 
-static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                         struct Scene *scene,
-                                         Object *object,
-                                         Volume *volume_input)
+static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
+                                      struct Scene *scene,
+                                      Object *object,
+                                      GeometrySet &geometry_set)
 {
-  Volume *volume = volume_input;
-
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
@@ -1030,25 +1029,10 @@ static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->modifyVolume) {
-      /* Ensure we are not modifying the input. */
-      if (volume == volume_input) {
-        volume = BKE_volume_copy_for_eval(volume, true);
-      }
-
-      Volume *volume_next = mti->modifyVolume(md, &mectx, volume);
-
-      if (volume_next && volume_next != volume) {
-        /* If the modifier returned a new volume, release the old one. */
-        if (volume != volume_input) {
-          BKE_id_free(nullptr, volume);
-        }
-        volume = volume_next;
-      }
+    if (mti->modifyGeometrySet) {
+      mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
   }
-
-  return volume;
 }
 
 void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
@@ -1072,6 +1056,24 @@ void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
   }
 }
 
+static Volume *take_volume_ownership_from_geometry_set(GeometrySet &geometry_set)
+{
+  if (!geometry_set.has<VolumeComponent>()) {
+    return nullptr;
+  }
+  VolumeComponent &volume_component = geometry_set.get_component_for_write<VolumeComponent>();
+  Volume *volume = volume_component.release();
+  if (volume != nullptr) {
+    /* Add back, but only as read-only non-owning component. */
+    volume_component.replace(volume, GeometryOwnershipType::ReadOnly);
+  }
+  else {
+    /* The component was empty, we can remove it. */
+    geometry_set.remove<VolumeComponent>();
+  }
+  return volume;
+}
+
 void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
 {
   /* Free any evaluated data and restore original data. */
@@ -1079,11 +1081,21 @@ void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Ob
 
   /* Evaluate modifiers. */
   Volume *volume = (Volume *)object->data;
-  Volume *volume_eval = volume_evaluate_modifiers(depsgraph, scene, object, volume);
+  GeometrySet geometry_set;
+  geometry_set.replace_volume(volume, GeometryOwnershipType::ReadOnly);
+  volume_evaluate_modifiers(depsgraph, scene, object, geometry_set);
+
+  Volume *volume_eval = take_volume_ownership_from_geometry_set(geometry_set);
+
+  /* If the geometry set did not contain a volume, we still create an empty one. */
+  if (volume_eval == nullptr) {
+    volume_eval = BKE_volume_new_for_eval(volume);
+  }
 
   /* Assign evaluated object. */
-  const bool is_owned = (volume != volume_eval);
-  BKE_object_eval_assign_data(object, &volume_eval->id, is_owned);
+  const bool eval_is_owned = (volume != volume_eval);
+  BKE_object_eval_assign_data(object, &volume_eval->id, eval_is_owned);
+  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
 }
 
 void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, const char *filepath)

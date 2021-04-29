@@ -1380,7 +1380,9 @@ static int editsource_exec(bContext *C, wmOperator *op)
 
     /* redraw and get active button python info */
     ED_region_do_layout(C, region);
+    WM_draw_region_viewport_bind(region);
     ED_region_do_draw(C, region);
+    WM_draw_region_viewport_unbind(region);
     region->do_draw = false;
 
     for (BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);

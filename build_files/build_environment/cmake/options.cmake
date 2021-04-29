@@ -137,6 +137,10 @@ else()
     endif()
     set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 
+    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+      set(BLENDER_PLATFORM_ARM ON)
+    endif()
+
     set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
     set(PLATFORM_CXXFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
     set(PLATFORM_LDFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
@@ -151,6 +155,10 @@ else()
       -DCMAKE_OSX_SYSROOT:PATH=${OSX_SYSROOT}
     )
   else()
+    if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+      set(BLENDER_PLATFORM_ARM ON)
+    endif()
+
     set(PLATFORM_CFLAGS "-fPIC")
     set(PLATFORM_CXXFLAGS "-std=c++11 -fPIC")
     set(PLATFORM_LDFLAGS)

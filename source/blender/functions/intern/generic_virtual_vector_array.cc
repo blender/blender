@@ -18,48 +18,48 @@
 
 namespace blender::fn {
 
-void GVArrayForGVVectorArrayIndex::get_impl(const int64_t index_in_vector, void *r_value) const
+void GVArray_For_GVVectorArrayIndex::get_impl(const int64_t index_in_vector, void *r_value) const
 {
   vector_array_.get_vector_element(index_, index_in_vector, r_value);
 }
 
-void GVArrayForGVVectorArrayIndex::get_to_uninitialized_impl(const int64_t index_in_vector,
-                                                             void *r_value) const
+void GVArray_For_GVVectorArrayIndex::get_to_uninitialized_impl(const int64_t index_in_vector,
+                                                               void *r_value) const
 {
   type_->construct_default(r_value);
   vector_array_.get_vector_element(index_, index_in_vector, r_value);
 }
 
-int64_t GVVectorArrayForSingleGVArray::get_vector_size_impl(const int64_t UNUSED(index)) const
+int64_t GVVectorArray_For_SingleGVArray::get_vector_size_impl(const int64_t UNUSED(index)) const
 {
   return array_.size();
 }
 
-void GVVectorArrayForSingleGVArray::get_vector_element_impl(const int64_t UNUSED(index),
-                                                            const int64_t index_in_vector,
-                                                            void *r_value) const
+void GVVectorArray_For_SingleGVArray::get_vector_element_impl(const int64_t UNUSED(index),
+                                                              const int64_t index_in_vector,
+                                                              void *r_value) const
 {
   array_.get(index_in_vector, r_value);
 }
 
-bool GVVectorArrayForSingleGVArray::is_single_vector_impl() const
+bool GVVectorArray_For_SingleGVArray::is_single_vector_impl() const
 {
   return true;
 }
 
-int64_t GVVectorArrayForSingleGSpan::get_vector_size_impl(const int64_t UNUSED(index)) const
+int64_t GVVectorArray_For_SingleGSpan::get_vector_size_impl(const int64_t UNUSED(index)) const
 {
   return span_.size();
 }
 
-void GVVectorArrayForSingleGSpan::get_vector_element_impl(const int64_t UNUSED(index),
-                                                          const int64_t index_in_vector,
-                                                          void *r_value) const
+void GVVectorArray_For_SingleGSpan::get_vector_element_impl(const int64_t UNUSED(index),
+                                                            const int64_t index_in_vector,
+                                                            void *r_value) const
 {
   type_->copy_to_initialized(span_[index_in_vector], r_value);
 }
 
-bool GVVectorArrayForSingleGSpan::is_single_vector_impl() const
+bool GVVectorArray_For_SingleGSpan::is_single_vector_impl() const
 {
   return true;
 }

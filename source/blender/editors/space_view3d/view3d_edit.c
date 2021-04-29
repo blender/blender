@@ -2507,7 +2507,7 @@ static void view_dolly_to_vector_3d(ARegion *region,
   madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
-static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const short zoom_invert)
+static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_invert)
 {
   float zfac = 1.0;
 
@@ -5065,7 +5065,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    SCE_SNAP_MODE_FACE,
                                                    &(const struct SnapObjectParams){
                                                        .snap_select = SNAP_ALL,
-                                                       .use_object_edit_cage = false,
+                                                       .edit_mode_type = SNAP_GEOM_FINAL,
                                                        .use_occlusion_test = true,
                                                    },
                                                    mval_fl,

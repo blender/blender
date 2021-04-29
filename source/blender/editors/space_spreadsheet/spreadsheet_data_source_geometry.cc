@@ -29,6 +29,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_spreadsheet.h"
+
 #include "bmesh.h"
 
 #include "spreadsheet_data_source_geometry.hh"
@@ -45,28 +47,7 @@ void GeometryDataSource::foreach_default_column_ids(
     }
     SpreadsheetColumnID column_id;
     column_id.name = (char *)name.c_str();
-    if (meta_data.data_type == CD_PROP_FLOAT3) {
-      for (const int i : {0, 1, 2}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else if (meta_data.data_type == CD_PROP_FLOAT2) {
-      for (const int i : {0, 1}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else if (meta_data.data_type == CD_PROP_COLOR) {
-      for (const int i : {0, 1, 2, 3}) {
-        column_id.index = i;
-        fn(column_id);
-      }
-    }
-    else {
-      column_id.index = -1;
-      fn(column_id);
-    }
+    fn(column_id);
     return true;
   });
 }
@@ -76,81 +57,70 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 {
   std::lock_guard lock{mutex_};
 
-  bke::ReadAttributePtr attribute_ptr = component_->attribute_try_get_for_read(column_id.name);
-  if (!attribute_ptr) {
+  bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
+  if (!attribute) {
     return {};
   }
-  const bke::ReadAttribute *attribute = scope_.add(std::move(attribute_ptr), __func__);
-  if (attribute->domain() != domain_) {
+  const fn::GVArray *varray = scope_.add(std::move(attribute.varray), __func__);
+  if (attribute.domain != domain_) {
     return {};
   }
-  int domain_size = attribute->size();
-  switch (attribute->custom_data_type()) {
+  int domain_size = varray->size();
+  const CustomDataType type = bke::cpp_type_to_custom_data_type(varray->type());
+  switch (type) {
     case CD_PROP_FLOAT:
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             float value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_float = value;
           });
     case CD_PROP_INT32:
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             int value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_int = value;
           });
     case CD_PROP_BOOL:
       return column_values_from_function(
-          column_id.name, domain_size, [attribute](int index, CellValue &r_cell_value) {
+          column_id.name, domain_size, [varray](int index, CellValue &r_cell_value) {
             bool value;
-            attribute->get(index, &value);
+            varray->get(index, &value);
             r_cell_value.value_bool = value;
           });
     case CD_PROP_FLOAT2: {
-      if (column_id.index < 0 || column_id.index > 1) {
-        return {};
-      }
-      const std::array<const char *, 2> suffixes = {" X", " Y"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [varray](int index, CellValue &r_cell_value) {
             float2 value;
-            attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            varray->get(index, &value);
+            r_cell_value.value_float2 = value;
+          },
+          default_float2_column_width);
     }
     case CD_PROP_FLOAT3: {
-      if (column_id.index < 0 || column_id.index > 2) {
-        return {};
-      }
-      const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [varray](int index, CellValue &r_cell_value) {
             float3 value;
-            attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            varray->get(index, &value);
+            r_cell_value.value_float3 = value;
+          },
+          default_float3_column_width);
     }
     case CD_PROP_COLOR: {
-      if (column_id.index < 0 || column_id.index > 3) {
-        return {};
-      }
-      const std::array<const char *, 4> suffixes = {" R", " G", " B", " A"};
-      const std::string name = StringRef(column_id.name) + suffixes[column_id.index];
       return column_values_from_function(
-          name,
+          column_id.name,
           domain_size,
-          [attribute, axis = column_id.index](int index, CellValue &r_cell_value) {
+          [varray](int index, CellValue &r_cell_value) {
             Color4f value;
-            attribute->get(index, &value);
-            r_cell_value.value_float = value[axis];
-          });
+            varray->get(index, &value);
+            r_cell_value.value_color = value;
+          },
+          default_color_column_width);
     }
     default:
       break;
@@ -289,15 +259,11 @@ void InstancesDataSource::foreach_default_column_ids(
   }
 
   SpreadsheetColumnID column_id;
-  column_id.index = -1;
   column_id.name = (char *)"Name";
   fn(column_id);
-  for (const char *name : {"Position", "Rotation", "Scale"}) {
-    for (const int i : {0, 1, 2}) {
-      column_id.name = (char *)name;
-      column_id.index = i;
-      fn(column_id);
-    }
+  for (const char *name : {"Position", "Rotation", "Scale", "ID"}) {
+    column_id.name = (char *)name;
+    fn(column_id);
   }
 }
 
@@ -308,7 +274,6 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
     return {};
   }
 
-  const std::array<const char *, 3> suffixes = {" X", " Y", " Z"};
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Name")) {
     Span<InstancedData> instance_data = component_->instanced_data();
@@ -329,30 +294,42 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
     values->default_width = 8.0f;
     return values;
   }
-  if (column_id.index < 0 || column_id.index > 2) {
-    return {};
-  }
   Span<float4x4> transforms = component_->transforms();
   if (STREQ(column_id.name, "Position")) {
-    std::string name = StringRef("Position") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].translation()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].translation();
+        },
+        default_float3_column_width);
   }
   if (STREQ(column_id.name, "Rotation")) {
-    std::string name = StringRef("Rotation") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].to_euler()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].to_euler();
+        },
+        default_float3_column_width);
   }
   if (STREQ(column_id.name, "Scale")) {
-    std::string name = StringRef("Scale") + suffixes[column_id.index];
     return column_values_from_function(
-        name, size, [transforms, axis = column_id.index](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float = transforms[index].scale()[axis];
-        });
+        column_id.name,
+        size,
+        [transforms](int index, CellValue &r_cell_value) {
+          r_cell_value.value_float3 = transforms[index].scale();
+        },
+        default_float3_column_width);
+  }
+  Span<int> ids = component_->ids();
+  if (STREQ(column_id.name, "ID")) {
+    /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
+    return column_values_from_function(
+        column_id.name,
+        size,
+        [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
+        5.5f);
   }
   return {};
 }
@@ -396,7 +373,7 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
   }
-  else {
+  else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED) {
     if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
       Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
       if (mesh == nullptr) {
@@ -408,14 +385,21 @@ static GeometrySet get_display_geometry_set(SpaceSpreadsheet *sspreadsheet,
       mesh_component.copy_vertex_group_names_from_object(*object_eval);
     }
     else {
-      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_NODE) {
-        if (object_eval->runtime.geometry_set_preview != nullptr) {
-          geometry_set = *object_eval->runtime.geometry_set_preview;
-        }
-      }
-      else if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_FINAL) {
+      if (BLI_listbase_count(&sspreadsheet->context_path) == 1) {
+        /* Use final evaluated object. */
         if (object_eval->runtime.geometry_set_eval != nullptr) {
           geometry_set = *object_eval->runtime.geometry_set_eval;
+        }
+      }
+      else {
+        if (object_eval->runtime.geometry_set_previews != nullptr) {
+          GHash *ghash = (GHash *)object_eval->runtime.geometry_set_previews;
+          const uint64_t key = ED_spreadsheet_context_path_hash(sspreadsheet);
+          GeometrySet *geometry_set_preview = (GeometrySet *)BLI_ghash_lookup_default(
+              ghash, POINTER_FROM_UINT(key), nullptr);
+          if (geometry_set_preview != nullptr) {
+            geometry_set = *geometry_set_preview;
+          }
         }
       }
     }

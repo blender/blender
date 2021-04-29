@@ -186,6 +186,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->addmousemove = true;
     win->event_queue_check_click = 0;
     win->event_queue_check_drag = 0;
+    win->event_queue_check_drag_handled = 0;
     BLO_read_data_address(reader, &win->stereo3d_format);
 
     /* Multi-view always fallback to anaglyph at file opening

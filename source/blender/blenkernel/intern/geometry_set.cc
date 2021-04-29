@@ -306,6 +306,13 @@ void GeometrySet::replace_pointcloud(PointCloud *pointcloud, GeometryOwnershipTy
   pointcloud_component.replace(pointcloud, ownership);
 }
 
+/* Clear the existing volume and replace with the given one. */
+void GeometrySet::replace_volume(Volume *volume, GeometryOwnershipType ownership)
+{
+  VolumeComponent &volume_component = this->get_component_for_write<VolumeComponent>();
+  volume_component.replace(volume, ownership);
+}
+
 /* Returns a mutable mesh or null. No ownership is transferred. */
 Mesh *GeometrySet::get_mesh_for_write()
 {

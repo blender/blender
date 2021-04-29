@@ -310,6 +310,8 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_GRID, 0, "MESH_PRIMITIVE_GRID", Me
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_MAP_RANGE, def_geo_attribute_map_range, "ATTRIBUTE_MAP_RANGE", AttributeMapRange, "Attribute Map Range", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "ATTRIBUTE_CLAMP", AttributeClamp, "Attribute Clamp", "")
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
+DefNode(GeometryNode, GEO_NODE_SWITCH, def_geo_switch, "SWITCH", Switch, "Switch", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_TRANSFER, def_geo_attribute_transfer, "ATTRIBUTE_TRANSFER", AttributeTransfer, "Attribute Transfer", "")
 
 /* undefine macros */
 #undef DefNode

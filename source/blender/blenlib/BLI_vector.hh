@@ -437,13 +437,17 @@ class Vector {
    */
   void append(const T &value)
   {
-    this->ensure_space_for_one();
-    this->append_unchecked(value);
+    this->append_as(value);
   }
   void append(T &&value)
   {
+    this->append_as(std::move(value));
+  }
+  /* This is similar to `std::vector::emplace_back`. */
+  template<typename... ForwardValue> void append_as(ForwardValue &&... value)
+  {
     this->ensure_space_for_one();
-    this->append_unchecked(std::move(value));
+    this->append_unchecked_as(std::forward<ForwardValue>(value)...);
   }
 
   /**
@@ -474,10 +478,18 @@ class Vector {
    * behavior when not enough capacity has been reserved beforehand. Only use this in performance
    * critical code.
    */
-  template<typename ForwardT> void append_unchecked(ForwardT &&value)
+  void append_unchecked(const T &value)
+  {
+    this->append_unchecked_as(value);
+  }
+  void append_unchecked(T &&value)
+  {
+    this->append_unchecked_as(std::move(value));
+  }
+  template<typename... ForwardT> void append_unchecked_as(ForwardT &&... value)
   {
     BLI_assert(end_ < capacity_end_);
-    new (end_) T(std::forward<ForwardT>(value));
+    new (end_) T(std::forward<ForwardT>(value)...);
     end_++;
     UPDATE_VECTOR_SIZE(this);
   }
@@ -657,6 +669,21 @@ class Vector {
   }
 
   /**
+   * Return a reference to the first element in the vector.
+   * This invokes undefined behavior when the vector is empty.
+   */
+  const T &first() const
+  {
+    BLI_assert(this->size() > 0);
+    return *begin_;
+  }
+  T &first()
+  {
+    BLI_assert(this->size() > 0);
+    return *begin_;
+  }
+
+  /**
    * Return how many values are currently stored in the vector.
    */
   int64_t size() const
@@ -713,11 +740,12 @@ class Vector {
     BLI_assert(index >= 0);
     BLI_assert(index < this->size());
     T *element_to_remove = begin_ + index;
-    if (element_to_remove < end_) {
-      *element_to_remove = std::move(*(end_ - 1));
+    T *last_element = end_ - 1;
+    if (element_to_remove < last_element) {
+      *element_to_remove = std::move(*last_element);
     }
-    end_--;
-    end_->~T();
+    end_ = last_element;
+    last_element->~T();
     UPDATE_VECTOR_SIZE(this);
   }
 

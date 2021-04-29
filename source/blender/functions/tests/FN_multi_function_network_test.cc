@@ -223,7 +223,7 @@ TEST(multi_function_network, Test2)
     Array<int> output_value_2(5, -1);
 
     MFParamsBuilder params(network_fn, 5);
-    GVVectorArrayForSingleGSpan inputs_1{input_value_1.as_span(), 5};
+    GVVectorArray_For_SingleGSpan inputs_1{input_value_1.as_span(), 5};
     params.add_readonly_vector_input(inputs_1);
     params.add_readonly_single_input(&input_value_2);
     params.add_vector_output(output_value_1);

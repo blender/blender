@@ -1114,6 +1114,13 @@ static void ui_apply_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
   if (data->str) {
+    double value;
+    /* Check if the string value is a number and cancel if it's equal to the startvalue. */
+    if (ui_but_string_eval_number(C, but, data->str, &value) && (value == data->startvalue)) {
+      data->cancel = true;
+      return;
+    }
+
     if (ui_but_string_set(C, but, data->str)) {
       data->value = ui_but_value_get(but);
     }

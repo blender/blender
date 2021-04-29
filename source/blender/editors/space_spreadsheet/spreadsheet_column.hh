@@ -24,7 +24,7 @@ namespace blender {
 template<> struct DefaultHash<SpreadsheetColumnID> {
   uint64_t operator()(const SpreadsheetColumnID &column_id) const
   {
-    return get_default_hash_2(StringRef(column_id.name), column_id.index);
+    return get_default_hash(StringRef(column_id.name));
   }
 };
 }  // namespace blender
@@ -32,7 +32,7 @@ template<> struct DefaultHash<SpreadsheetColumnID> {
 inline bool operator==(const SpreadsheetColumnID &a, const SpreadsheetColumnID &b)
 {
   using blender::StringRef;
-  return StringRef(a.name) == StringRef(b.name) && a.index == b.index;
+  return StringRef(a.name) == StringRef(b.name);
 }
 
 namespace blender::ed::spreadsheet {

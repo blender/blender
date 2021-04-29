@@ -1050,8 +1050,21 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
   normalize_v3(locx);
   normalize_v3(locy);
 
+  /* Calculate last point first. */
+  const bGPDspoint *pt_last = &points[totpoints - 1];
+  float tmp[3];
+  sub_v3_v3v3(tmp, &pt_last->x, &pt0->x);
+
+  points2d[totpoints - 1][0] = dot_v3v3(tmp, locx);
+  points2d[totpoints - 1][1] = dot_v3v3(tmp, locy);
+
+  /* Calculate the scalar cross product of the 2d points. */
+  float cross = 0.0f;
+  float *co_curr;
+  float *co_prev = (float *)&points2d[totpoints - 1];
+
   /* Get all points in local space */
-  for (int i = 0; i < totpoints; i++) {
+  for (int i = 0; i < totpoints - 1; i++) {
     const bGPDspoint *pt = &points[i];
     float loc[3];
 
@@ -1060,10 +1073,15 @@ void BKE_gpencil_stroke_2d_flat(const bGPDspoint *points,
 
     points2d[i][0] = dot_v3v3(loc, locx);
     points2d[i][1] = dot_v3v3(loc, locy);
+
+    /* Calculate cross product. */
+    co_curr = (float *)&points2d[i][0];
+    cross += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+    co_prev = (float *)&points2d[i][0];
   }
 
-  /* Concave (-1), Convex (1), or Auto-detect (0)? */
-  *r_direction = (int)locy[2];
+  /* Concave (-1), Convex (1) */
+  *r_direction = (cross >= 0.0f) ? 1 : -1;
 }
 
 /**
@@ -1670,6 +1688,7 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
 
   float vec1[3];
   float vec2[3];
+  float vec3[3];
 
   /* initial vector (p0 -> p1) */
   sub_v3_v3v3(vec1, &pt1->x, &pt0->x);
@@ -1678,7 +1697,8 @@ void BKE_gpencil_stroke_normal(const bGPDstroke *gps, float r_normal[3])
   sub_v3_v3v3(vec2, &pt3->x, &pt0->x);
 
   /* vector orthogonal to polygon plane */
-  cross_v3_v3v3(r_normal, vec1, vec2);
+  cross_v3_v3v3(vec3, vec1, vec2);
+  cross_v3_v3v3(r_normal, vec1, vec3);
 
   /* Normalize vector */
   normalize_v3(r_normal);
@@ -2433,7 +2453,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
         make_element_name(
             ob_mesh->id.name + 2, (ma != NULL) ? ma->id.name + 2 : "Fill", 64, element_name);
-        mat_idx = gpencil_material_find_index_by_name(ob_gp, element_name);
+        mat_idx = BKE_gpencil_material_find_index_by_name_prefix(ob_gp, element_name);
         if (mat_idx == -1) {
           float color[4];
           if (ma != NULL) {

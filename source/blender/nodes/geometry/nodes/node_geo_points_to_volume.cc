@@ -147,13 +147,15 @@ static void gather_point_data_from_component(const GeoNodeExecParams &params,
                                              Vector<float3> &r_positions,
                                              Vector<float> &r_radii)
 {
-  Float3ReadAttribute positions = component.attribute_get_for_read<float3>(
+  GVArray_Typed<float3> positions = component.attribute_get_for_read<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-  FloatReadAttribute radii = params.get_input_attribute<float>(
+  GVArray_Typed<float> radii = params.get_input_attribute<float>(
       "Radius", component, ATTR_DOMAIN_POINT, 0.0f);
 
-  r_positions.extend(positions.get_span());
-  r_radii.extend(radii.get_span());
+  for (const int i : IndexRange(positions.size())) {
+    r_positions.append(positions[i]);
+    r_radii.append(radii[i]);
+  }
 }
 
 static void convert_to_grid_index_space(const float voxel_size,
