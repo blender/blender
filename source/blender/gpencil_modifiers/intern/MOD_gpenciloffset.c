@@ -108,13 +108,7 @@ static void deformStroke(GpencilModifierData *md,
   float rand_offset = BLI_hash_int_01(seed);
 
   /* Get stroke index for random offset. */
-  int rnd_index = 0;
-  LISTBASE_FOREACH (bGPDstroke *, o_gps, &gpf->strokes) {
-    if (o_gps == gps) {
-      break;
-    }
-    rnd_index += 1;
-  }
+  int rnd_index = BLI_findindex(&gpf->strokes, gps);
   for (int j = 0; j < 3; j++) {
     const uint primes[3] = {2, 3, 7};
     double offset[3] = {0.0f, 0.0f, 0.0f};
