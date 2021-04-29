@@ -28,8 +28,8 @@
 
 #include "BLT_translation.h"
 
-#include "BLI_math.h"
 #include "BLI_hash.h"
+#include "BLI_math.h"
 #include "BLI_rand.h"
 
 #include "DNA_defaults.h"
@@ -117,21 +117,21 @@ static void deformStroke(GpencilModifierData *md,
   }
   for (int j = 0; j < 3; j++) {
     const uint primes[3] = {2, 3, 7};
-    double offset[3] = {0.0, 0.0, 0.0};
+    double offset[3] = {0.0f, 0.0f, 0.0f};
     double r[3];
     /* To ensure a nice distribution, we use halton sequence and offset using the seed. */
     BLI_halton_3d(primes, offset, rnd_index, r);
 
-   if ((mmd->flag & GP_OFFSET_UNIFORM_RANDOM_SCALE) && j == 2) {
+    if ((mmd->flag & GP_OFFSET_UNIFORM_RANDOM_SCALE) && j == 2) {
       float rand_value;
-      rand_value = fmodf(r[0] * 2.0 - 1.0 + rand_offset, 1.0f);
-      rand_value = fmodf(sin(rand_value * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+      rand_value = fmodf(r[0] * 2.0f - 1.0f + rand_offset, 1.0f);
+      rand_value = fmodf(sin(rand_value * 12.9898f + j * 78.233f) * 43758.5453f, 1.0f);
       copy_v3_fl(rand[j], rand_value);
     }
     else {
       for (int i = 0; i < 3; i++) {
-        rand[j][i] = fmodf(r[i] * 2.0 - 1.0 + rand_offset, 1.0f);
-        rand[j][i] = fmodf(sin(rand[j][i] * 12.9898 + j * 78.233) * 43758.5453, 1.0f);
+        rand[j][i] = fmodf(r[i] * 2.0f - 1.0f + rand_offset, 1.0f);
+        rand[j][i] = fmodf(sin(rand[j][i] * 12.9898f + j * 78.233f) * 43758.5453f, 1.0f);
       }
     }
   }
