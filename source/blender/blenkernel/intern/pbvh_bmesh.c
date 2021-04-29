@@ -193,7 +193,7 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
   } \
   ((void)0)
 
-ATTR_NO_OPT void surface_smooth_v_safe(BMVert *v)
+BLI_INLINE void surface_smooth_v_safe(BMVert *v)
 {
   float co[3];
   float tan[3];
