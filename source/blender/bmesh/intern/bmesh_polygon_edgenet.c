@@ -106,7 +106,7 @@ static void normalize_v2_m3_v3v3(float out[2],
 
 /**
  * \note Be sure to update #bm_face_split_edgenet_find_loop_pair_exists
- * when making changed to edge picking logic.
+ * when making changes to edge picking logic.
  */
 static bool bm_face_split_edgenet_find_loop_pair(BMVert *v_init,
                                                  const float face_normal[3],
@@ -456,8 +456,8 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
  * Splits a face into many smaller faces defined by an edge-net.
  * handle customdata and degenerate cases.
  *
- * - isolated holes or unsupported face configurations, will be ignored.
- * - customdata calculations aren't efficient
+ * - Isolated holes or unsupported face configurations, will be ignored.
+ * - Customdata calculations aren't efficient
  *   (need to calculate weights for each vert).
  */
 bool BM_face_split_edgenet(BMesh *bm,
@@ -593,7 +593,7 @@ bool BM_face_split_edgenet(BMesh *bm,
     BMIter iter;
     BMLoop *l_other;
 
-    /* see: #BM_loop_interp_from_face for similar logic  */
+    /* See: #BM_loop_interp_from_face for similar logic. */
     void **blocks = BLI_array_alloca(blocks, f->len);
     float(*cos_2d)[2] = BLI_array_alloca(cos_2d, f->len);
     float *w = BLI_array_alloca(w, f->len);
@@ -1064,7 +1064,7 @@ static int bm_face_split_edgenet_find_connection(const struct EdgeGroup_FindConn
 #ifdef USE_PARTIAL_CONNECT
 
 /**
- * Used to identify edges that  get split off when making island from partial connection.
+ * Used to identify edges that get split off when making island from partial connection.
  * fptr should be a BMFace*, but is a void* for general interface to BM_vert_separate_tested_edges
  */
 static bool test_tagged_and_notface(BMEdge *e, void *fptr)
@@ -1211,7 +1211,7 @@ static bool bm_vert_partial_connect_check_overlap(const int *remap,
                                                   const int v_a_index,
                                                   const int v_b_index)
 {
-  /* connected to eachother */
+  /* Connected to each other. */
   if (UNLIKELY((remap[v_a_index] == v_b_index) || (remap[v_b_index] == v_a_index))) {
     return true;
   }
@@ -1226,7 +1226,7 @@ static bool bm_vert_partial_connect_check_overlap(const int *remap,
  * \param use_partial_connect: Support for handling islands connected by only a single edge,
  * \note that this is quite slow so avoid using where possible.
  * \param mem_arena: Avoids many small allocs & should be cleared after each use.
- * take care since \a r_edge_net_new is stored in \a r_edge_net_new.
+ * take care since \a edge_net_new is stored in \a r_edge_net_new.
  */
 bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMFace *f,
@@ -1246,7 +1246,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
    *
    * Keep the first part fast since it will run very often for edge-nets that have no holes.
    *
-   * \note Don't use the mem_arena unless he have holes to fill.
+   * \note Don't use the mem_arena unless we have holes to fill.
    * (avoid thrashing the area when the initial check isn't so intensive on the stack).
    */
 
@@ -1572,7 +1572,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 
       if (g->has_prev_edge == false) {
         BMVert *v_origin = g->vert_span.min;
-
+        /* Index of BMVert for the edge group connection with `v_origin`. */
         const int index_other = bm_face_split_edgenet_find_connection(&args, v_origin, false);
         // BLI_assert(index_other >= 0 && index_other < (int)vert_arr_len);
 
@@ -1598,7 +1598,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
 
       {
         BMVert *v_origin = g->vert_span.max;
-
+        /* Index of BMVert for the edge group connection with `v_origin`. */
         const int index_other = bm_face_split_edgenet_find_connection(&args, v_origin, true);
         // BLI_assert(index_other >= 0 && index_other < (int)vert_arr_len);
 
@@ -1660,7 +1660,7 @@ finally:
     struct TempVertPair *tvp = temp_vert_pairs.list;
     do {
       /* its _very_ unlikely the edge exists,
-       * however splicing may case this. see: T48012 */
+       * however splicing may cause this. see: T48012 */
       if (!BM_edge_exists(tvp->v_orig, tvp->v_temp)) {
         BM_vert_splice(bm, tvp->v_orig, tvp->v_temp);
       }
