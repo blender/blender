@@ -34,6 +34,12 @@ namespace blender::fn {
 template<typename T> class GVArray_Typed;
 template<typename T> class GVMutableArray_Typed;
 
+class GVArray;
+class GVMutableArray;
+
+using GVArrayPtr = std::unique_ptr<GVArray>;
+using GVMutableArrayPtr = std::unique_ptr<GVMutableArray>;
+
 /* A generically typed version of `VArray<T>`. */
 class GVArray {
  protected:
@@ -143,6 +149,8 @@ class GVArray {
     return GVArray_Typed<T>(*this);
   }
 
+  GVArrayPtr shallow_copy() const;
+
  protected:
   virtual void get_impl(const int64_t index, void *r_value) const;
   virtual void get_to_uninitialized_impl(const int64_t index, void *r_value) const = 0;
@@ -214,9 +222,6 @@ class GVMutableArray : public GVArray {
 
   virtual void *try_get_internal_mutable_varray_impl();
 };
-
-using GVArrayPtr = std::unique_ptr<GVArray>;
-using GVMutableArrayPtr = std::unique_ptr<GVMutableArray>;
 
 class GVArray_For_GSpan : public GVArray {
  protected:
