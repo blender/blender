@@ -1431,6 +1431,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
       /* Stroke object is drawn in front of meshes by default. */
       ob->dtx |= OB_DRAW_IN_FRONT;
+      break;
     }
     default:
       BKE_report(op->reports, RPT_WARNING, "Not implemented");
