@@ -212,7 +212,7 @@ static void bm_face_bisect_verts(
     }
     else {
 
-      uint i;
+      uint i = 0;
 
       /* ---- */
       /* Check contiguous spans of centered vertices (skipping when necessary). */
