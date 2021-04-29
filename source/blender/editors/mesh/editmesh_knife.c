@@ -205,6 +205,12 @@ typedef struct KnifeTool_OpData {
 
   BLI_mempool *refs;
 
+  /**
+   * Use this instead of #Object.imat since it's calculated using #invert_m4_m4_safe_ortho
+   * to support objects with zero scale on a single axis.
+   */
+  float ob_imat[4][4];
+
   float projmat[4][4];
   float projmat_inv[4][4];
   /* vector along view z axis (object space, normalized) */
@@ -287,7 +293,7 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
       copy_v3_v3(co_depth, kcd->prev.cage);
       mul_m4_v3(kcd->ob->obmat, co_depth);
       ED_view3d_win_to_3d(kcd->vc.v3d, kcd->region, co_depth, kcd->curr.mval, curr_cage_adjust);
-      mul_m4_v3(kcd->ob->imat, curr_cage_adjust);
+      mul_m4_v3(kcd->ob_imat, curr_cage_adjust);
 
       sub_v3_v3v3(ray_dir, curr_cage_adjust, kcd->prev.cage);
     }
@@ -576,10 +582,8 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd,
   ED_view3d_unproject(kcd->vc.region, mval[0], mval[1], ofs, r_origin_ofs);
 
   /* transform into object space */
-  invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
-
-  mul_m4_v3(kcd->ob->imat, r_origin);
-  mul_m4_v3(kcd->ob->imat, r_origin_ofs);
+  mul_m4_v3(kcd->ob_imat, r_origin);
+  mul_m4_v3(kcd->ob_imat, r_origin_ofs);
 }
 
 static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
@@ -625,11 +629,11 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f)
 
 static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 {
-  invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
   ED_view3d_ob_project_mat_get(kcd->region->regiondata, kcd->ob, kcd->projmat);
   invert_m4_m4(kcd->projmat_inv, kcd->projmat);
 
-  mul_v3_mat3_m4v3(kcd->proj_zaxis, kcd->ob->imat, kcd->vc.rv3d->viewinv[2]);
+  invert_m4_m4_safe_ortho(kcd->ob_imat, kcd->ob->obmat);
+  mul_v3_mat3_m4v3(kcd->proj_zaxis, kcd->ob_imat, kcd->vc.rv3d->viewinv[2]);
   normalize_v3(kcd->proj_zaxis);
 
   kcd->is_ortho = ED_view3d_clip_range_get(
@@ -941,8 +945,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
     float ofs_local[3];
 
     negate_v3_v3(ofs_local, kcd->vc.rv3d->ofs);
-    invert_m4_m4(kcd->ob->imat, kcd->ob->obmat);
-    mul_m4_v3(kcd->ob->imat, ofs_local);
+    mul_m4_v3(kcd->ob_imat, ofs_local);
 
     knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
 
@@ -1744,7 +1747,7 @@ static bool point_is_visible(KnifeTool_OpData *kcd,
     /* TODO: I think there's a simpler way to get the required raycast ray */
     ED_view3d_unproject(kcd->vc.region, s[0], s[1], 0.0f, view);
 
-    mul_m4_v3(kcd->ob->imat, view);
+    mul_m4_v3(kcd->ob_imat, view);
 
     /* make p_ofs a little towards view, so ray doesn't hit p's face. */
     sub_v3_v3(view, p);
@@ -1875,10 +1878,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   ED_view3d_win_to_segment_clipped(kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s1, v1, v3, true);
   ED_view3d_win_to_segment_clipped(kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, s2, v2, v4, true);
 
-  mul_m4_v3(kcd->ob->imat, v1);
-  mul_m4_v3(kcd->ob->imat, v2);
-  mul_m4_v3(kcd->ob->imat, v3);
-  mul_m4_v3(kcd->ob->imat, v4);
+  mul_m4_v3(kcd->ob_imat, v1);
+  mul_m4_v3(kcd->ob_imat, v2);
+  mul_m4_v3(kcd->ob_imat, v3);
+  mul_m4_v3(kcd->ob_imat, v4);
 
   /* Numeric error, 'v1' -> 'v2', 'v2' -> 'v4'
    * can end up being ~2000 units apart with an orthogonal perspective.
@@ -2643,6 +2646,8 @@ static void knifetool_init(bContext *C,
   kcd->scene = scene;
   kcd->ob = obedit;
   kcd->region = CTX_wm_region(C);
+
+  invert_m4_m4_safe_ortho(kcd->ob_imat, kcd->ob->obmat);
 
   em_setup_viewcontext(C, &kcd->vc);
 
