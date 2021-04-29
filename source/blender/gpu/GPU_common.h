@@ -24,6 +24,7 @@
 #pragma once
 
 #define PROGRAM_NO_OPTI 0
+#define USE_PY_REFERENCES 1
 
 #if defined(NDEBUG)
 #  define TRUST_NO_ONE 0

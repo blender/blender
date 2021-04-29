@@ -33,4 +33,5 @@ typedef struct BPyGPUTexture {
 int bpygpu_ParseTexture(PyObject *o, void *p);
 PyObject *bpygpu_texture_init(void);
 
-PyObject *BPyGPUTexture_CreatePyObject(struct GPUTexture *tex) ATTR_NONNULL(1);
+PyObject *BPyGPUTexture_CreatePyObject(struct GPUTexture *tex, bool weak_reference)
+    ATTR_NONNULL(1);

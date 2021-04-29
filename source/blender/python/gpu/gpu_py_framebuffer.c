@@ -46,13 +46,7 @@
 static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 {
   if (UNLIKELY(bpygpu_fb->fb == NULL)) {
-    PyErr_SetString(PyExc_ReferenceError,
-#ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
-                    "GPU framebuffer was freed, no further access is valid"
-#else
-                    "GPU framebuffer: internal error"
-#endif
-    );
+    PyErr_SetString(PyExc_ReferenceError, "GPU framebuffer was freed, no further access is valid");
     return -1;
   }
   return 0;
@@ -68,15 +62,26 @@ static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 
 static void pygpu_framebuffer_free_if_possible(GPUFrameBuffer *fb)
 {
-  if (!fb) {
-    return;
-  }
-
   if (GPU_is_init()) {
     GPU_framebuffer_free(fb);
   }
   else {
     printf("PyFramebuffer freed after the context has been destroyed.\n");
+  }
+}
+
+static void pygpu_framebuffer_free_safe(BPyGPUFrameBuffer *self)
+{
+  if (self->fb) {
+#if GPU_USE_PY_REFERENCES
+    GPU_framebuffer_py_reference_set(self->fb, NULL);
+    if (!self->shared_reference)
+#endif
+    {
+      pygpu_framebuffer_free_if_possible(self->fb);
+    }
+
+    self->fb = NULL;
   }
 }
 
@@ -336,7 +341,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
   GPUFrameBuffer *fb_python = GPU_framebuffer_create("fb_python");
   GPU_framebuffer_config_array(fb_python, config, color_attachements_len + 1);
 
-  return BPyGPUFrameBuffer_CreatePyObject(fb_python);
+  return BPyGPUFrameBuffer_CreatePyObject(fb_python, false);
 }
 
 PyDoc_STRVAR(pygpu_framebuffer_is_bound_doc,
@@ -459,15 +464,14 @@ PyDoc_STRVAR(pygpu_framebuffer_free_doc,
 static PyObject *pygpu_framebuffer_free(BPyGPUFrameBuffer *self)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
-  pygpu_framebuffer_free_if_possible(self->fb);
-  self->fb = NULL;
+  pygpu_framebuffer_free_safe(self);
   Py_RETURN_NONE;
 }
 #endif
 
 static void BPyGPUFrameBuffer__tp_dealloc(BPyGPUFrameBuffer *self)
 {
-  pygpu_framebuffer_free_if_possible(self->fb);
+  pygpu_framebuffer_free_safe(self);
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -531,12 +535,34 @@ PyTypeObject BPyGPUFrameBuffer_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb)
+PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_reference)
 {
   BPyGPUFrameBuffer *self;
 
+#if GPU_USE_PY_REFERENCES
+  if (shared_reference) {
+    void **ref = GPU_framebuffer_py_reference_get(fb);
+    if (ref) {
+      /* Retrieve BPyGPUFrameBuffer reference. */
+      self = POINTER_OFFSET(ref, -offsetof(BPyGPUFrameBuffer, fb));
+      BLI_assert(self->fb == fb);
+      Py_INCREF(self);
+      return (PyObject *)self;
+    }
+  }
+#else
+  UNUSED_VARS(shared_reference);
+#endif
+
   self = PyObject_New(BPyGPUFrameBuffer, &BPyGPUFrameBuffer_Type);
   self->fb = fb;
+
+#if GPU_USE_PY_REFERENCES
+  self->shared_reference = shared_reference;
+
+  BLI_assert(GPU_framebuffer_py_reference_get(fb) == NULL);
+  GPU_framebuffer_py_reference_set(fb, &self->fb);
+#endif
 
   return (PyObject *)self;
 }
