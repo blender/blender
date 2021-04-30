@@ -443,10 +443,6 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C,
     return false;
   }
 
-  if (!mod) {
-    return false;
-  }
-
   if (!is_liboverride_allowed && BKE_gpencil_modifier_is_nonlocal_in_liboverride(ob, mod)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit modifiers coming from linked data in a library override");
