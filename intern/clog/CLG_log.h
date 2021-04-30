@@ -118,6 +118,7 @@ typedef struct CLG_LogType {
 typedef struct CLG_LogRef {
   const char *identifier;
   CLG_LogType *type;
+  struct CLG_LogRef *next;
 } CLG_LogRef;
 
 void CLG_log_str(CLG_LogType *lg,
