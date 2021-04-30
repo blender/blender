@@ -68,6 +68,7 @@ GLDrawList::GLDrawList(int length)
   batch_ = nullptr;
   buffer_id_ = 0;
   command_len_ = 0;
+  base_index_ = 0;
   command_offset_ = 0;
   data_size_ = 0;
   data_ = nullptr;
