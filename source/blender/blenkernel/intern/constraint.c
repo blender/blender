@@ -2836,7 +2836,7 @@ static void actcon_get_tarmat(struct Depsgraph *depsgraph,
        * including rotation order, otherwise this fails. */
       pchan = cob->pchan;
 
-      tchan = BKE_pose_channel_verify(&pose, pchan->name);
+      tchan = BKE_pose_channel_ensure(&pose, pchan->name);
       tchan->rotmode = pchan->rotmode;
 
       /* evaluate action using workob (it will only set the PoseChannel in question) */

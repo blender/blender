@@ -161,7 +161,7 @@ void BKE_pose_channel_session_uuid_generate(struct bPoseChannel *pchan);
 struct bPoseChannel *BKE_pose_channel_find_name(const struct bPose *pose, const char *name);
 struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);
 struct bPoseChannel *BKE_pose_channel_active_or_first_selected(struct Object *ob);
-struct bPoseChannel *BKE_pose_channel_verify(struct bPose *pose, const char *name);
+struct bPoseChannel *BKE_pose_channel_ensure(struct bPose *pose, const char *name);
 struct bPoseChannel *BKE_pose_channel_get_mirrored(const struct bPose *pose, const char *name);
 
 void BKE_pose_check_uuids_unique_and_report(const struct bPose *pose);
