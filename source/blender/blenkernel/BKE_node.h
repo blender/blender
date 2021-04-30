@@ -410,6 +410,9 @@ typedef struct bNodeTreeType {
 
   void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 
+  /* Check if the socket type is valid for this tree type. */
+  bool (*valid_socket_type)(enum eNodeSocketDatatype socket_type, struct bNodeTreeType *ntreetype);
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 } bNodeTreeType;

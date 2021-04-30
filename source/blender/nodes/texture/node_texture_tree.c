@@ -152,6 +152,12 @@ static void update(bNodeTree *ntree)
   }
 }
 
+static bool texture_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
+                                                bNodeTreeType *UNUSED(ntreetype))
+{
+  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+}
+
 bNodeTreeType *ntreeType_Texture;
 
 void register_node_tree_type_tex(void)
@@ -171,6 +177,7 @@ void register_node_tree_type_tex(void)
   tt->local_sync = local_sync;
   tt->local_merge = local_merge;
   tt->get_from_context = texture_get_from_context;
+  tt->valid_socket_type = texture_node_tree_socket_type_valid;
 
   tt->rna_ext.srna = &RNA_TextureNodeTree;
 
