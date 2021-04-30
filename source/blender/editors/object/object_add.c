@@ -117,6 +117,7 @@
 #include "ED_physics.h"
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
@@ -3430,7 +3431,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
-  ED_object_base_deselect_all(view_layer, NULL, BA_DESELECT);
+  ED_object_base_deselect_all(view_layer, NULL, SEL_DESELECT);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_activate(C, basen);
 
