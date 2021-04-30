@@ -1495,117 +1495,115 @@ static void edittranslation_find_po_file(const char *root,
 static int edittranslation_exec(bContext *C, wmOperator *op)
 {
   uiBut *but = UI_context_active_but_get(C);
-  int ret = OPERATOR_CANCELLED;
-
-  if (but) {
-    wmOperatorType *ot;
-    PointerRNA ptr;
-    char popath[FILE_MAX];
-    const char *root = U.i18ndir;
-    const char *uilng = BLT_lang_get();
-
-    uiStringInfo but_label = {BUT_GET_LABEL, NULL};
-    uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
-    uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
-    uiStringInfo but_tip = {BUT_GET_TIP, NULL};
-    uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
-    uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
-    uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
-    uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
-    uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
-    uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
-
-    if (!BLI_is_dir(root)) {
-      BKE_report(op->reports,
-                 RPT_ERROR,
-                 "Please set your Preferences' 'Translation Branches "
-                 "Directory' path to a valid directory");
-      return OPERATOR_CANCELLED;
-    }
-    ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0);
-    if (ot == NULL) {
-      BKE_reportf(op->reports,
-                  RPT_ERROR,
-                  "Could not find operator '%s'! Please enable ui_translate add-on "
-                  "in the User Preferences",
-                  EDTSRC_I18N_OP_NAME);
-      return OPERATOR_CANCELLED;
-    }
-    /* Try to find a valid po file for current language... */
-    edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-    /* printf("po path: %s\n", popath); */
-    if (popath[0] == '\0') {
-      BKE_reportf(
-          op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
-      return OPERATOR_CANCELLED;
-    }
-
-    UI_but_string_info_get(C,
-                           but,
-                           &but_label,
-                           &rna_label,
-                           &enum_label,
-                           &but_tip,
-                           &rna_tip,
-                           &enum_tip,
-                           &rna_struct,
-                           &rna_prop,
-                           &rna_enum,
-                           &rna_ctxt,
-                           NULL);
-
-    WM_operator_properties_create_ptr(&ptr, ot);
-    RNA_string_set(&ptr, "lang", uilng);
-    RNA_string_set(&ptr, "po_file", popath);
-    RNA_string_set(&ptr, "but_label", but_label.strinfo);
-    RNA_string_set(&ptr, "rna_label", rna_label.strinfo);
-    RNA_string_set(&ptr, "enum_label", enum_label.strinfo);
-    RNA_string_set(&ptr, "but_tip", but_tip.strinfo);
-    RNA_string_set(&ptr, "rna_tip", rna_tip.strinfo);
-    RNA_string_set(&ptr, "enum_tip", enum_tip.strinfo);
-    RNA_string_set(&ptr, "rna_struct", rna_struct.strinfo);
-    RNA_string_set(&ptr, "rna_prop", rna_prop.strinfo);
-    RNA_string_set(&ptr, "rna_enum", rna_enum.strinfo);
-    RNA_string_set(&ptr, "rna_ctxt", rna_ctxt.strinfo);
-    ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
-
-    /* Clean up */
-    if (but_label.strinfo) {
-      MEM_freeN(but_label.strinfo);
-    }
-    if (rna_label.strinfo) {
-      MEM_freeN(rna_label.strinfo);
-    }
-    if (enum_label.strinfo) {
-      MEM_freeN(enum_label.strinfo);
-    }
-    if (but_tip.strinfo) {
-      MEM_freeN(but_tip.strinfo);
-    }
-    if (rna_tip.strinfo) {
-      MEM_freeN(rna_tip.strinfo);
-    }
-    if (enum_tip.strinfo) {
-      MEM_freeN(enum_tip.strinfo);
-    }
-    if (rna_struct.strinfo) {
-      MEM_freeN(rna_struct.strinfo);
-    }
-    if (rna_prop.strinfo) {
-      MEM_freeN(rna_prop.strinfo);
-    }
-    if (rna_enum.strinfo) {
-      MEM_freeN(rna_enum.strinfo);
-    }
-    if (rna_ctxt.strinfo) {
-      MEM_freeN(rna_ctxt.strinfo);
-    }
-
-    return ret;
+  if (but == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "Active button not found");
+    return OPERATOR_CANCELLED;
   }
 
-  BKE_report(op->reports, RPT_ERROR, "Active button not found");
-  return OPERATOR_CANCELLED;
+  wmOperatorType *ot;
+  PointerRNA ptr;
+  char popath[FILE_MAX];
+  const char *root = U.i18ndir;
+  const char *uilng = BLT_lang_get();
+
+  uiStringInfo but_label = {BUT_GET_LABEL, NULL};
+  uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
+  uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
+  uiStringInfo but_tip = {BUT_GET_TIP, NULL};
+  uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
+  uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
+  uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
+  uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
+  uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
+  uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
+
+  if (!BLI_is_dir(root)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Please set your Preferences' 'Translation Branches "
+               "Directory' path to a valid directory");
+    return OPERATOR_CANCELLED;
+  }
+  ot = WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0);
+  if (ot == NULL) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Could not find operator '%s'! Please enable ui_translate add-on "
+                "in the User Preferences",
+                EDTSRC_I18N_OP_NAME);
+    return OPERATOR_CANCELLED;
+  }
+  /* Try to find a valid po file for current language... */
+  edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
+  /* printf("po path: %s\n", popath); */
+  if (popath[0] == '\0') {
+    BKE_reportf(
+        op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
+    return OPERATOR_CANCELLED;
+  }
+
+  UI_but_string_info_get(C,
+                         but,
+                         &but_label,
+                         &rna_label,
+                         &enum_label,
+                         &but_tip,
+                         &rna_tip,
+                         &enum_tip,
+                         &rna_struct,
+                         &rna_prop,
+                         &rna_enum,
+                         &rna_ctxt,
+                         NULL);
+
+  WM_operator_properties_create_ptr(&ptr, ot);
+  RNA_string_set(&ptr, "lang", uilng);
+  RNA_string_set(&ptr, "po_file", popath);
+  RNA_string_set(&ptr, "but_label", but_label.strinfo);
+  RNA_string_set(&ptr, "rna_label", rna_label.strinfo);
+  RNA_string_set(&ptr, "enum_label", enum_label.strinfo);
+  RNA_string_set(&ptr, "but_tip", but_tip.strinfo);
+  RNA_string_set(&ptr, "rna_tip", rna_tip.strinfo);
+  RNA_string_set(&ptr, "enum_tip", enum_tip.strinfo);
+  RNA_string_set(&ptr, "rna_struct", rna_struct.strinfo);
+  RNA_string_set(&ptr, "rna_prop", rna_prop.strinfo);
+  RNA_string_set(&ptr, "rna_enum", rna_enum.strinfo);
+  RNA_string_set(&ptr, "rna_ctxt", rna_ctxt.strinfo);
+  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+
+  /* Clean up */
+  if (but_label.strinfo) {
+    MEM_freeN(but_label.strinfo);
+  }
+  if (rna_label.strinfo) {
+    MEM_freeN(rna_label.strinfo);
+  }
+  if (enum_label.strinfo) {
+    MEM_freeN(enum_label.strinfo);
+  }
+  if (but_tip.strinfo) {
+    MEM_freeN(but_tip.strinfo);
+  }
+  if (rna_tip.strinfo) {
+    MEM_freeN(rna_tip.strinfo);
+  }
+  if (enum_tip.strinfo) {
+    MEM_freeN(enum_tip.strinfo);
+  }
+  if (rna_struct.strinfo) {
+    MEM_freeN(rna_struct.strinfo);
+  }
+  if (rna_prop.strinfo) {
+    MEM_freeN(rna_prop.strinfo);
+  }
+  if (rna_enum.strinfo) {
+    MEM_freeN(rna_enum.strinfo);
+  }
+  if (rna_ctxt.strinfo) {
+    MEM_freeN(rna_ctxt.strinfo);
+  }
+
+  return ret;
 }
 
 static void UI_OT_edittranslation_init(wmOperatorType *ot)
