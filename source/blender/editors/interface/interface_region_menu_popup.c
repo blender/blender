@@ -86,6 +86,17 @@ int ui_but_menu_step(uiBut *but, int direction)
   return 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Popup Menu Memory
+ *
+ * Support menu-memory, a feature that positions the cursor
+ * over the previously used menu item.
+ *
+ * \note This is stored for each unique menu title.
+ * \{ */
+
 static uint ui_popup_string_hash(const char *str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
