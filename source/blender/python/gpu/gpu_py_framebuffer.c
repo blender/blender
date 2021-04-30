@@ -654,6 +654,9 @@ PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_refer
   UNUSED_VARS(shared_reference);
 #endif
 
+  self = PyObject_New(BPyGPUFrameBuffer, &BPyGPUFrameBuffer_Type);
+  self->fb = fb;
+
 #if GPU_USE_PY_REFERENCES
   self->shared_reference = shared_reference;
 
