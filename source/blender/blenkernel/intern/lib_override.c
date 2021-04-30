@@ -1224,6 +1224,13 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
         }
         do_continue = true;
 
+        /* In complex non-supported cases, with several different override hierarchies sharing
+         * relations between each-other, we may end up not actually updating/replacing the given
+         * root id (see e.g. pro/shots/110_rextoria/110_0150_A/110_0150_A.anim.blend of sprites
+         * project repository, r2687).
+         * This can lead to infinite loop here, at least avoid this. */
+        id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+
         CLOG_INFO(&LOG, 2, "Resyncing %s...", id->name);
         const bool success = BKE_lib_override_library_resync(
             bmain, scene, view_layer, id, override_resync_residual_storage, false, false);
