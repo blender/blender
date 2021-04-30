@@ -1116,9 +1116,9 @@ static void curve_to_mesh_eval_ensure(Object *object)
     BKE_object_eval_assign_data(&remapped_object, &mesh_eval->id, true);
   }
 
-  BKE_object_runtime_free(&remapped_object);
-  BKE_object_runtime_free(&taper_object);
-  BKE_object_runtime_free(&taper_object);
+  BKE_object_runtime_free_data(&remapped_object);
+  BKE_object_runtime_free_data(&taper_object);
+  BKE_object_runtime_free_data(&taper_object);
 }
 
 static Mesh *mesh_new_from_curve_type_object(Object *object)

@@ -5116,12 +5116,15 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
 /**
  * The function frees memory used by the runtime data, but not the runtime field itself.
  *
- * The caller is expected to run #BKE_object_runtime_reset if the struct will be used again.
+ * All runtime data is cleared to ensure it's not used again,
+ * in keeping with other `_free_data(..)` functions.
  */
-void BKE_object_runtime_free(Object *object)
+void BKE_object_runtime_free_data(Object *object)
 {
   /* Currently this is all that's needed. */
   BKE_object_free_derived_caches(object);
+
+  BKE_object_runtime_reset(object);
 }
 
 /**
