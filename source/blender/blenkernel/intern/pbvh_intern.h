@@ -194,9 +194,9 @@ bool ray_face_intersection_quad(const float ray_start[3],
                                 float *depth);
 bool ray_face_intersection_tri(const float ray_start[3],
                                struct IsectRayPrecalc *isect_precalc,
-                               const float *t0,
-                               const float *t1,
-                               const float *t2,
+                               const float t0[3],
+                               const float t1[3],
+                               const float t2[3],
                                float *depth);
 
 bool ray_face_nearest_quad(const float ray_start[3],
