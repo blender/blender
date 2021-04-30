@@ -706,11 +706,6 @@ static bool edit_constraint_poll_generic(bContext *C,
     return false;
   }
 
-  if (!con) {
-    CTX_wm_operator_poll_msg_set(C, "Context missing active constraint");
-    return false;
-  }
-
   if (!is_liboverride_allowed && BKE_constraint_is_nonlocal_in_liboverride(ob, con)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit constraints coming from linked data in a library override");
