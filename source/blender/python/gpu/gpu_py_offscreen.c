@@ -274,8 +274,7 @@ static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void *
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
   GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
-  GPU_texture_ref(texture);
-  return BPyGPUTexture_CreatePyObject(texture);
+  return BPyGPUTexture_CreatePyObject(texture, true);
 }
 
 PyDoc_STRVAR(
