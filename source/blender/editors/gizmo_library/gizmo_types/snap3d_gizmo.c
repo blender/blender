@@ -614,8 +614,8 @@ static void snap_gizmo_draw(const bContext *C, wmGizmo *gz)
 
   GPU_line_width(1.0f);
 
-  const float *prev_point = snap_gizmo_snap_elements(snap_gizmo) &
-                                    SCE_SNAP_MODE_EDGE_PERPENDICULAR ?
+  const float *prev_point = (snap_gizmo_snap_elements(snap_gizmo) &
+                             SCE_SNAP_MODE_EDGE_PERPENDICULAR) ?
                                 snap_gizmo->prevpoint :
                                 NULL;
 

@@ -1805,7 +1805,7 @@ int BKE_ptcache_mem_pointers_seek(int point_index, PTCacheMem *pm, void *cur[BPH
   }
 
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    cur[i] = data_types & (1 << i) ? (char *)pm->data[i] + index * ptcache_data_size[i] : NULL;
+    cur[i] = (data_types & (1 << i)) ? (char *)pm->data[i] + index * ptcache_data_size[i] : NULL;
   }
 
   return 1;
