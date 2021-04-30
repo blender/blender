@@ -487,7 +487,7 @@ void **GPU_framebuffer_py_reference_get(GPUFrameBuffer *gpu_fb)
 
 void GPU_framebuffer_py_reference_set(GPUFrameBuffer *gpu_fb, void **py_ref)
 {
-  BLI_assert(ref == nullptr || unwrap(gpu_fb)->py_ref == nullptr);
+  BLI_assert(py_ref == nullptr || unwrap(gpu_fb)->py_ref == nullptr);
   unwrap(gpu_fb)->py_ref = py_ref;
 }
 #endif
