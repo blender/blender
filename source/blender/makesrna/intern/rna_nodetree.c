@@ -2047,6 +2047,7 @@ static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
 static bool attribute_convert_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
+              CD_AUTO_FROM_NAME,
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,
               CD_PROP_FLOAT3,
@@ -2058,7 +2059,8 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeConvert_type_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
   *r_free = true;
-  return itemf_function_check(rna_enum_attribute_type_items, attribute_convert_type_supported);
+  return itemf_function_check(rna_enum_attribute_type_with_auto_items,
+                              attribute_convert_type_supported);
 }
 
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
@@ -9017,9 +9019,9 @@ static void def_geo_attribute_convert(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeAttributeConvert", "storage");
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_with_auto_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeConvert_type_itemf");
-  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_enum_default(prop, CD_AUTO_FROM_NAME);
   RNA_def_property_ui_text(prop, "Data Type", "The data type to save the result attribute with");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 
