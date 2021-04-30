@@ -304,6 +304,7 @@ void ED_operatortypes_workspace(void);
 
 /* operators; context poll callbacks */
 bool ED_operator_screenactive(struct bContext *C);
+bool ED_operator_screenactive_nobackground(struct bContext *C);
 bool ED_operator_screen_mainwinactive(struct bContext *C);
 bool ED_operator_areaactive(struct bContext *C);
 bool ED_operator_regionactive(struct bContext *C);
