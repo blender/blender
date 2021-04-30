@@ -627,12 +627,23 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   wmWindowManager *wm = CTX_wm_manager(C);
+  ARegion *region = CTX_wm_region(C);
+
+  /* FIXME: this hack is to ignore drag events, otherwise drag events
+   * cause momentary snap gizmo re-positioning at the drag-start location, see: T87511. */
+  if (wm && wm->winactive) {
+    const wmEvent *event = wm->winactive->eventstate;
+    int mval_compare[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+    if (!equals_v2v2_int(mval_compare, mval)) {
+      return snap_gizmo->snap_elem ? 0 : -1;
+    }
+  }
+
   if (!eventstate_has_changed(snap_gizmo, wm)) {
     /* Performance, do not update. */
     return snap_gizmo->snap_elem ? 0 : -1;
   }
 
-  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   const float mval_fl[2] = {UNPACK2(mval)};
   short snap_elem = ED_gizmotypes_snap_3d_update(
