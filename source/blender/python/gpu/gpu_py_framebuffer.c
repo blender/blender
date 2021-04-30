@@ -644,7 +644,7 @@ PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_refer
     void **ref = GPU_framebuffer_py_reference_get(fb);
     if (ref) {
       /* Retrieve BPyGPUFrameBuffer reference. */
-      self = POINTER_OFFSET(ref, -offsetof(BPyGPUFrameBuffer, fb));
+      self = (BPyGPUFrameBuffer *)POINTER_OFFSET(ref, -offsetof(BPyGPUFrameBuffer, fb));
       BLI_assert(self->fb == fb);
       Py_INCREF(self);
       return (PyObject *)self;
@@ -661,7 +661,7 @@ PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_refer
   self->shared_reference = shared_reference;
 
   BLI_assert(GPU_framebuffer_py_reference_get(fb) == NULL);
-  GPU_framebuffer_py_reference_set(fb, &self->fb);
+  GPU_framebuffer_py_reference_set(fb, (void **)&self->fb);
 #endif
 
   return (PyObject *)self;

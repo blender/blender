@@ -604,7 +604,7 @@ PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
     void **ref = GPU_texture_py_reference_get(tex);
     if (ref) {
       /* Retrieve BPyGPUTexture reference. */
-      self = POINTER_OFFSET(ref, -offsetof(BPyGPUTexture, tex));
+      self = (BPyGPUTexture *)POINTER_OFFSET(ref, -offsetof(BPyGPUTexture, tex));
       BLI_assert(self->tex == tex);
       Py_INCREF(self);
       return (PyObject *)self;
@@ -619,7 +619,7 @@ PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
 
 #ifndef GPU_NO_USE_PY_REFERENCES
   BLI_assert(GPU_texture_py_reference_get(tex) == NULL);
-  GPU_texture_py_reference_set(tex, &self->tex);
+  GPU_texture_py_reference_set(tex, (void **)&self->tex);
 #endif
 
   return (PyObject *)self;
