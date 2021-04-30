@@ -140,7 +140,7 @@ void BKE_pose_channel_free_bbone_cache(struct bPoseChannel_Runtime *runtime);
 void BKE_pose_channels_free(struct bPose *pose);
 void BKE_pose_channels_free_ex(struct bPose *pose, bool do_id_user);
 
-void BKE_pose_channels_hash_make(struct bPose *pose);
+void BKE_pose_channels_hash_ensure(struct bPose *pose);
 void BKE_pose_channels_hash_free(struct bPose *pose);
 
 void BKE_pose_channels_remove(struct Object *ob,

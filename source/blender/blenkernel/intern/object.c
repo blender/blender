@@ -4343,7 +4343,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
   }
   /* Speed optimization for animation lookups. */
   if (ob->pose != NULL) {
-    BKE_pose_channels_hash_make(ob->pose);
+    BKE_pose_channels_hash_ensure(ob->pose);
     if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
       BKE_pose_update_constraint_flags(ob->pose);
     }

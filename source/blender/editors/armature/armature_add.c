@@ -339,7 +339,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
   }
 
   BKE_pose_channels_hash_free(ob->pose);
-  BKE_pose_channels_hash_make(ob->pose);
+  BKE_pose_channels_hash_ensure(ob->pose);
 
   GHash *name_map = BLI_ghash_str_new(__func__);
 

@@ -2562,7 +2562,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   /* and a check for garbage */
   BKE_pose_channels_clear_with_null_bone(pose, do_id_user);
 
-  BKE_pose_channels_hash_make(pose);
+  BKE_pose_channels_hash_ensure(pose);
 
   for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
     /* Find the custom B-Bone handles. */
