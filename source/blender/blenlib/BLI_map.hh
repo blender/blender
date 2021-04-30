@@ -857,6 +857,19 @@ class Map {
   }
 
   /**
+   * Remove the key-value-pair that the iterator is currently pointing at.
+   * It is valid to call this method while iterating over the map. However, after this method has
+   * been called, the removed element must not be accessed anymore.
+   */
+  void remove(const BaseIterator &iterator)
+  {
+    Slot &slot = iterator.current_slot();
+    BLI_assert(slot.is_occupied());
+    slot.remove();
+    removed_slots_++;
+  }
+
+  /**
    * Print common statistics like size and collision count. This is useful for debugging purposes.
    */
   void print_stats(StringRef name = "") const
