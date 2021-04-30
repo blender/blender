@@ -2378,6 +2378,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_MUTED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Muted", "Disable F-Curve Modifier evaluation");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, "rna_FCurve_update_eval");
 
