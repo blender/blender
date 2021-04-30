@@ -81,6 +81,8 @@ typedef struct CLG_IDFilter {
 typedef struct CLogContext {
   /** Single linked list of types.  */
   CLG_LogType *types;
+  /** Single linked list of references.  */
+  CLG_LogRef *refs;
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_t types_lock;
 #endif
@@ -673,6 +675,12 @@ static void CLG_ctx_free(CLogContext *ctx)
     MEM_freeN(item);
   }
 
+  while (ctx->refs != NULL) {
+    CLG_LogRef *item = ctx->refs;
+    ctx->refs = item->next;
+    item->type = NULL;
+  }
+
   for (uint i = 0; i < 2; i++) {
     while (ctx->filters[i] != NULL) {
       CLG_IDFilter *item = ctx->filters[i];
@@ -769,6 +777,10 @@ void CLG_logref_init(CLG_LogRef *clg_ref)
   pthread_mutex_lock(&g_ctx->types_lock);
 #endif
   if (clg_ref->type == NULL) {
+    /* Add to the refs list so we can NULL the pointers to 'type' when CLG_exit() is called. */
+    clg_ref->next = g_ctx->refs;
+    g_ctx->refs = clg_ref;
+
     CLG_LogType *clg_ty = clg_ctx_type_find_by_name(g_ctx, clg_ref->identifier);
     if (clg_ty == NULL) {
       clg_ty = clg_ctx_type_register(g_ctx, clg_ref->identifier);
