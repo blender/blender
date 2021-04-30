@@ -100,7 +100,7 @@ class FrameBuffer {
   bool scissor_test_ = false;
   bool dirty_state_ = true;
 
-#if USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
  public:
   /**
    * Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.

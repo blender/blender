@@ -61,7 +61,7 @@ Texture::~Texture()
     }
   }
 
-#if USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
   if (this->py_ref) {
     *this->py_ref = nullptr;
   }
@@ -587,7 +587,7 @@ bool GPU_texture_array(const GPUTexture *tex)
   return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_ARRAY) != 0;
 }
 
-#if USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
 void **GPU_texture_py_reference_get(GPUTexture *tex)
 {
   return unwrap(tex)->py_ref;

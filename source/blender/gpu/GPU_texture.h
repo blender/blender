@@ -270,7 +270,7 @@ bool GPU_texture_depth(const GPUTexture *tex);
 bool GPU_texture_stencil(const GPUTexture *tex);
 bool GPU_texture_integer(const GPUTexture *tex);
 
-#if USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
 void **GPU_texture_py_reference_get(GPUTexture *tex);
 void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref);
 #endif

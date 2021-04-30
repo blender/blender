@@ -75,7 +75,7 @@ static void pygpu_framebuffer_free_if_possible(GPUFrameBuffer *fb)
 static void pygpu_framebuffer_free_safe(BPyGPUFrameBuffer *self)
 {
   if (self->fb) {
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
     GPU_framebuffer_py_reference_set(self->fb, NULL);
     if (!self->shared_reference)
 #endif
@@ -639,7 +639,7 @@ PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_refer
 {
   BPyGPUFrameBuffer *self;
 
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
   if (shared_reference) {
     void **ref = GPU_framebuffer_py_reference_get(fb);
     if (ref) {
@@ -657,7 +657,7 @@ PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_refer
   self = PyObject_New(BPyGPUFrameBuffer, &BPyGPUFrameBuffer_Type);
   self->fb = fb;
 
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
   self->shared_reference = shared_reference;
 
   BLI_assert(GPU_framebuffer_py_reference_get(fb) == NULL);

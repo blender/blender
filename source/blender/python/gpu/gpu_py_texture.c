@@ -412,7 +412,7 @@ static PyObject *pygpu_texture_free(BPyGPUTexture *self)
 static void BPyGPUTexture__tp_dealloc(BPyGPUTexture *self)
 {
   if (self->tex) {
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
     GPU_texture_py_reference_set(self->tex, NULL);
 #endif
     GPU_texture_free(self->tex);
@@ -600,7 +600,7 @@ PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
   BPyGPUTexture *self;
 
   if (shared_reference) {
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
     void **ref = GPU_texture_py_reference_get(tex);
     if (ref) {
       /* Retrieve BPyGPUTexture reference. */
@@ -617,7 +617,7 @@ PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
   self = PyObject_New(BPyGPUTexture, &BPyGPUTexture_Type);
   self->tex = tex;
 
-#if GPU_USE_PY_REFERENCES
+#ifndef GPU_NO_USE_PY_REFERENCES
   BLI_assert(GPU_texture_py_reference_get(tex) == NULL);
   GPU_texture_py_reference_set(tex, &self->tex);
 #endif
