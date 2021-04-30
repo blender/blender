@@ -4,7 +4,6 @@ Mesh with Random Vertex Colors
 """
 import bpy
 import gpu
-import bgl
 import numpy as np
 from random import random
 from gpu_extras.batch import batch_for_shader
@@ -31,9 +30,10 @@ batch = batch_for_shader(
 
 
 def draw():
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    gpu.state.depth_test_set('LESS_EQUAL')
+    gpu.state.depth_mask_set(True)
     batch.draw(shader)
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
+    gpu.state.depth_mask_set(False)
 
 
 bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')

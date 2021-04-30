@@ -9,7 +9,6 @@ Generate a texture using Offscreen Rendering
 """
 import bpy
 import gpu
-import bgl
 from mathutils import Matrix
 from gpu_extras.batch import batch_for_shader
 from gpu_extras.presets import draw_circle_2d
@@ -20,8 +19,8 @@ from gpu_extras.presets import draw_circle_2d
 offscreen = gpu.types.GPUOffScreen(512, 512)
 
 with offscreen.bind():
-    bgl.glClearColor(0.0, 0.0, 0.0, 0.0)
-    bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+    fb = gpu.state.active_framebuffer_get()
+    fb.clear(color=(0.0, 0.0, 0.0, 0.0))
     with gpu.matrix.push_pop():
         # reset matrices -> use normalized device coordinates [-1, 1]
         gpu.matrix.load_matrix(Matrix.Identity(4))
@@ -75,13 +74,10 @@ batch = batch_for_shader(
 
 
 def draw():
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, offscreen.color_texture)
-
     shader.bind()
     shader.uniform_float("modelMatrix", Matrix.Translation((1, 2, 3)) @ Matrix.Scale(3, 4))
     shader.uniform_float("viewProjectionMatrix", bpy.context.region_data.perspective_matrix)
-    shader.uniform_float("image", 0)
+    shader.uniform_sampler("image", offscreen.texture_color)
     batch.draw(shader)
 
 

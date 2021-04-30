@@ -6,11 +6,11 @@ To use this example you have to provide an image that should be displayed.
 """
 import bpy
 import gpu
-import bgl
 from gpu_extras.batch import batch_for_shader
 
 IMAGE_NAME = "Untitled"
 image = bpy.data.images[IMAGE_NAME]
+texture = gpu.texture.from_image(image)
 
 shader = gpu.shader.from_builtin('2D_IMAGE')
 batch = batch_for_shader(
@@ -21,16 +21,9 @@ batch = batch_for_shader(
     },
 )
 
-if image.gl_load():
-    raise Exception()
-
-
 def draw():
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, image.bindcode)
-
     shader.bind()
-    shader.uniform_int("image", 0)
+    shader.uniform_sampler("image", texture)
     batch.draw(shader)
 
 
