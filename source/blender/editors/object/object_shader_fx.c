@@ -368,8 +368,12 @@ static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obt
     return false;
   }
 
+  if (!fx) {
+    return false;
+  }
+
   if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    if ((fx == NULL) || (fx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0) {
+    if ((fx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs coming from library override");
       return false;
     }
