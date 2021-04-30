@@ -248,7 +248,7 @@ eGPUWriteMask GPU_write_mask_get()
 
 uint GPU_stencil_mask_get()
 {
-  GPUStateMutable &state = Context::get()->state_manager->mutable_state;
+  const GPUStateMutable &state = Context::get()->state_manager->mutable_state;
   return state.stencil_write_mask;
 }
 
@@ -267,7 +267,7 @@ eGPUStencilTest GPU_stencil_test_get()
 /* NOTE: Already premultiplied by U.pixelsize. */
 float GPU_line_width_get()
 {
-  GPUStateMutable &state = Context::get()->state_manager->mutable_state;
+  const GPUStateMutable &state = Context::get()->state_manager->mutable_state;
   return state.line_width;
 }
 
@@ -292,7 +292,7 @@ void GPU_viewport_size_get_i(int coords[4])
 
 bool GPU_depth_mask_get()
 {
-  GPUState &state = Context::get()->state_manager->state;
+  const GPUState &state = Context::get()->state_manager->state;
   return (state.write_mask & GPU_WRITE_DEPTH) != 0;
 }
 
