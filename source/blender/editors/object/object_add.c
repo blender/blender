@@ -482,9 +482,7 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
   if (local_view_bits) {
     View3D *v3d = CTX_wm_view3d(C);
-    if (v3d && v3d->localvd) {
-      *local_view_bits = v3d->local_view_uuid;
-    }
+    *local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
   }
 
   /* Location! */
