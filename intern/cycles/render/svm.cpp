@@ -69,10 +69,10 @@ void SVMShaderManager::device_update_shader(Scene *scene,
           << summary.full_report();
 }
 
-void SVMShaderManager::device_update(Device *device,
-                                     DeviceScene *dscene,
-                                     Scene *scene,
-                                     Progress &progress)
+void SVMShaderManager::device_update_specific(Device *device,
+                                              DeviceScene *dscene,
+                                              Scene *scene,
+                                              Progress &progress)
 {
   if (!need_update())
     return;
@@ -776,7 +776,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
     add_node(NODE_ENTER_BUMP_EVAL, bump_state_offset);
   }
 
-  if (shader->used) {
+  if (shader->reference_count()) {
     CompilerState state(graph);
     if (clin->link) {
       bool generate = false;

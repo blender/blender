@@ -523,9 +523,6 @@ bool Scene::update(Progress &progress, bool &kernel_switch_needed)
 {
   /* update scene */
   if (need_update()) {
-    /* Updated used shader tag so we know which features are need for the kernel. */
-    shader_manager->update_shaders_used(this);
-
     /* Update max_closures. */
     KernelIntegrator *kintegrator = &dscene.data.integrator;
     if (params.background) {
@@ -606,7 +603,7 @@ int Scene::get_max_closure_count()
   int max_closures = 0;
   for (int i = 0; i < shaders.size(); i++) {
     Shader *shader = shaders[i];
-    if (shader->used) {
+    if (shader->reference_count()) {
       int num_closures = shader->graph->get_num_closures();
       max_closures = max(max_closures, num_closures);
     }
@@ -767,9 +764,10 @@ template<> void Scene::delete_node_impl(ParticleSystem *node)
   particle_system_manager->tag_update(this);
 }
 
-template<> void Scene::delete_node_impl(Shader * /*node*/)
+template<> void Scene::delete_node_impl(Shader *shader)
 {
   /* don't delete unused shaders, not supported */
+  shader->clear_reference_count();
 }
 
 template<> void Scene::delete_node_impl(Procedural *node)
@@ -836,9 +834,12 @@ template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const No
   particle_system_manager->tag_update(this);
 }
 
-template<> void Scene::delete_nodes(const set<Shader *> & /*nodes*/, const NodeOwner * /*owner*/)
+template<> void Scene::delete_nodes(const set<Shader *> &nodes, const NodeOwner * /*owner*/)
 {
   /* don't delete unused shaders, not supported */
+  for (Shader *shader : nodes) {
+    shader->clear_reference_count();
+  }
 }
 
 template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner)
