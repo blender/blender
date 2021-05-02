@@ -159,6 +159,7 @@ NODE_DEFINE(Light)
 
 Light::Light() : Node(get_node_type())
 {
+  dereference_all_used_nodes();
 }
 
 void Light::tag_update(Scene *scene)
