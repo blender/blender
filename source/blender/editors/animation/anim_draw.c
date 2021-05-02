@@ -168,6 +168,74 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   immUnbindProgram();
 }
 
+/**
+ * Draw manually set intended playback frame range guides for the action in the background.
+ * Allows specifying a subset of the Y range of the view.
+ */
+void ANIM_draw_action_framerange(
+    AnimData *adt, bAction *action, View2D *v2d, float ymin, float ymax)
+{
+  if ((action->flag & ACT_FRAME_RANGE) == 0) {
+    return;
+  }
+
+  /* Compute the dimensions. */
+  CLAMP_MIN(ymin, v2d->cur.ymin);
+  CLAMP_MAX(ymax, v2d->cur.ymax);
+
+  if (ymin > ymax) {
+    return;
+  }
+
+  const float sfra = BKE_nla_tweakedit_remap(adt, action->frame_start, NLATIME_CONVERT_MAP);
+  const float efra = BKE_nla_tweakedit_remap(adt, action->frame_end, NLATIME_CONVERT_MAP);
+
+  /* Diagonal stripe filled area outside of the frame range. */
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
+
+  float color[4];
+  UI_GetThemeColorShadeAlpha4fv(TH_BACK, -40, -50, color);
+
+  immUniform4f("color1", color[0], color[1], color[2], color[3]);
+  immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
+  immUniform1i("size1", 2 * U.dpi_fac);
+  immUniform1i("size2", 4 * U.dpi_fac);
+
+  if (sfra < efra) {
+    immRectf(pos, v2d->cur.xmin, ymin, sfra, ymax);
+    immRectf(pos, efra, ymin, v2d->cur.xmax, ymax);
+  }
+  else {
+    immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax, ymax);
+  }
+
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+
+  /* Thin lines where the actual frames are. */
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immUniformThemeColorShade(TH_BACK, -60);
+
+  GPU_line_width(1.0f);
+
+  immBegin(GPU_PRIM_LINES, 4);
+
+  immVertex2f(pos, sfra, ymin);
+  immVertex2f(pos, sfra, ymax);
+
+  immVertex2f(pos, efra, ymin);
+  immVertex2f(pos, efra, ymax);
+
+  immEnd();
+  immUnbindProgram();
+}
+
 /* *************************************************** */
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes). */
 

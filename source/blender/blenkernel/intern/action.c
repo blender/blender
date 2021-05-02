@@ -1573,6 +1573,24 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
   }
 }
 
+/* Retrieve the intended playback frame range, using the manually set range if available,
+ * or falling back to scanning F-Curves for their first & last frames otherwise. */
+void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float *r_end)
+{
+  if (act && (act->flag & ACT_FRAME_RANGE)) {
+    *r_start = act->frame_start;
+    *r_end = act->frame_end;
+  }
+  else {
+    calc_action_range(act, r_start, r_end, false);
+  }
+
+  /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */
+  if (*r_start >= *r_end) {
+    *r_end = *r_start + 1.0f;
+  }
+}
+
 /* Return flags indicating which transforms the given object/posechannel has
  * - if 'curves' is provided, a list of links to these curves are also returned
  */
