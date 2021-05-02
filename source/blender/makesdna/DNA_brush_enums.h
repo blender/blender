@@ -329,7 +329,7 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_BOUNDARY_EDGES = (1 << 2),
   BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
   BRUSH_AUTOMASKING_CONCAVITY = (1 << 4),
-  BRUSH_AUTOMASKING_INVERT_CONCAVITY = (1<<5)
+  BRUSH_AUTOMASKING_INVERT_CONCAVITY = (1 << 5)
 } eAutomasking_flag;
 
 typedef enum ePaintBrush_flag {
@@ -409,7 +409,10 @@ typedef enum eBrushFlags2 {
   BRUSH_CLOTH_USE_COLLISION = (1 << 6),
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
-  BRUSH_CURVATURE_RAKE = (1 << 9)
+  BRUSH_CURVATURE_RAKE = (1 << 9),
+  BRUSH_CUSTOM_AUTOSMOOTH_SPACING = (1 << 10),
+  BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING = (1 << 11),
+  BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF = (1 << 12),
 } eBrushFlags2;
 
 typedef enum {
@@ -475,10 +478,7 @@ typedef enum eBrushUVSculptTool {
   UV_SCULPT_TOOL_PINCH = 2,
 } eBrushUVSculptTool;
 
-#define SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(t) \
-  ELEM(t, \
-    SCULPT_TOOL_PAINT,\
-    SCULPT_TOOL_SMEAR)
+#define SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(t) ELEM(t, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
 
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \
@@ -615,31 +615,31 @@ enum {
   PAINT_FALLOFF_SHAPE_TUBE = 1,
 };
 
-//dyntopo flags
-//synced with PBVHTopologyUpdateMode
+// dyntopo flags
+// synced with PBVHTopologyUpdateMode
 enum {
-  DYNTOPO_SUBDIVIDE = 1<<0,
-  DYNTOPO_COLLAPSE = 1<<1,
-  DYNTOPO_DISABLED = 1<<2,
-  DYNTOPO_CLEANUP = 1<<3
+  DYNTOPO_SUBDIVIDE = 1 << 0,
+  DYNTOPO_COLLAPSE = 1 << 1,
+  DYNTOPO_DISABLED = 1 << 2,
+  DYNTOPO_CLEANUP = 1 << 3
 };
 
-//dyntopo override flags, copies all flags from dyntopo flags
+// dyntopo override flags, copies all flags from dyntopo flags
 enum {
-  DYNTOPO_INHERIT_ALL = 1<<10,
-  DYNTOPO_INHERIT_DETAIL_RANGE = 1<<11,
-  DYNTOPO_INHERIT_DETAIL_PERCENT = 1<<12,
-  DYNTOPO_INHERIT_MODE = 1<<13,
-  DYNTOPO_INHERIT_CONSTANT_DETAIL = 1<<14,
-  DYNTOPO_INHERIT_SPACING = 1<<15,
-  DYNTOPO_INHERIT_DETAIL_SIZE = 1<<16
-  //make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
+  DYNTOPO_INHERIT_ALL = 1 << 10,
+  DYNTOPO_INHERIT_DETAIL_RANGE = 1 << 11,
+  DYNTOPO_INHERIT_DETAIL_PERCENT = 1 << 12,
+  DYNTOPO_INHERIT_MODE = 1 << 13,
+  DYNTOPO_INHERIT_CONSTANT_DETAIL = 1 << 14,
+  DYNTOPO_INHERIT_SPACING = 1 << 15,
+  DYNTOPO_INHERIT_DETAIL_SIZE = 1 << 16
+  // make sure to update DYNTOPO_INHERIT_BITMASK when adding flags here
 };
 
-//represents all possible inherit flags
-#define DYNTOPO_INHERIT_BITMASK ((1<<17)-1)
+// represents all possible inherit flags
+#define DYNTOPO_INHERIT_BITMASK ((1 << 17) - 1)
 
-//dyntopo mode
+// dyntopo mode
 enum {
   DYNTOPO_DETAIL_RELATIVE = 0,
   DYNTOPO_DETAIL_MANUAL = 1,

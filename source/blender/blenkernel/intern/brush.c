@@ -251,6 +251,24 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
+  // detect old file data
+  if (brush->autosmooth_radius_factor == 0.0f) {
+    brush->autosmooth_radius_factor = 1.0f;
+  }
+
+  if (brush->topology_rake_radius_factor == 0.0f) {
+    brush->topology_rake_radius_factor = 1.0f;
+  }
+
+  if (brush->autosmooth_spacing == 0.0f) {
+    brush->autosmooth_spacing = 12;
+  }
+
+  if (brush->topology_rake_spacing == 0.0f) {
+    brush->topology_rake_spacing = 12;
+    brush->topology_rake_projection = 1.0f;
+  }
+
   /* Falloff curve. */
   BLO_read_data_address(reader, &brush->curve);
 
@@ -448,7 +466,12 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(hardness);
   FROM_DEFAULT(autosmooth_factor);
   FROM_DEFAULT(autosmooth_projection);
+  FROM_DEFAULT(autosmooth_radius_factor);
+  FROM_DEFAULT(autosmooth_spacing);
   FROM_DEFAULT(topology_rake_factor);
+  FROM_DEFAULT(topology_rake_radius_factor);
+  FROM_DEFAULT(topology_rake_projection);
+  FROM_DEFAULT(topology_rake_spacing);
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
   FROM_DEFAULT(wet_paint_radius_factor);
@@ -1653,6 +1676,7 @@ void BKE_brush_debug_print_state(Brush *br)
 
   BR_TEST(autosmooth_factor, f);
   BR_TEST(autosmooth_projection, f);
+  BR_TEST(autosmooth_radius_factor, f);
 
   BR_TEST(topology_rake_factor, f);
 

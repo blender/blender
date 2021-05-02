@@ -44,6 +44,14 @@ struct bContext;
 
 enum ePaintSymmetryFlags;
 
+/*
+maximum symmetry passes returned by SCULPT_get_symmetry_pass.
+enough for about ~30 radial symmetry passes, which seems like plenty
+
+used by various code that needs to statically store per-pass state. 
+*/
+#define SCULPT_MAX_SYMMETRY_PASSES 255
+
 bool SCULPT_mode_poll(struct bContext *C);
 bool SCULPT_mode_poll_view3d(struct bContext *C);
 /* checks for a brush, not just sculpt mode */
@@ -568,9 +576,10 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 /* Smear Brush. */
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
-/* Smooth Brush. */
-void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], struct BMVert *v);
+/* Topology rake */
+void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], struct BMVert *v, float projection);
 
+/* Smoothing api */
 void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     float result[3],
                                     SculptVertRef index,
@@ -842,6 +851,7 @@ typedef struct SculptThreadedTaskData {
   int cd_layer_disp;
 
   float smooth_projection;
+  float rake_projection;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1115,11 +1125,16 @@ typedef struct StrokeCache {
   rcti current_r;  /* current redraw rectangle */
 
   float stroke_distance;  // copy of PaintStroke->stroke_distance
-  float stroke_distance_t;
+  float stroke_distance_t; // copy of PaintStroke->stroke_distance_t
+  
   float last_dyntopo_t;
+  float last_smooth_t[SCULPT_MAX_SYMMETRY_PASSES];
+  float last_rake_t[SCULPT_MAX_SYMMETRY_PASSES];
 
   int layer_disp_map_size;
   BLI_bitmap *layer_disp_map;
+
+  struct PaintStroke *stroke;
 } StrokeCache;
 
 /* Sculpt Filters */
@@ -1483,3 +1498,7 @@ void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
 // these tools don't support dynamic pbvh splitting during the stroke
 #define DYNTOPO_HAS_DYNAMIC_SPLIT(tool) \
   (ELEM(tool, SCULPT_TOOL_DRAW_SHARP, SCULPT_TOOL_LAYER) == 0)
+
+/*get current symmetry pass index inclusive of both
+  mirror and radial symmetry*/
+int SCULPT_get_symmetry_pass(const SculptSession *ss);

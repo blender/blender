@@ -293,7 +293,7 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
       BMVert *v = (BMVert *)index.i;
       float(*no2)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_pers_no);
 
-      copy_v3_v3(no, (float*)no2);
+      copy_v3_v3(no, (float *)no2);
       return;
     }
 
@@ -1605,7 +1605,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush *brush)
 {
   return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(brush->sculpt_tool) &&
-         (brush->topology_rake_factor > 0.0f) && (ss->bm != NULL);
+            (brush->topology_rake_factor > 0.0f) && (ss->bm != NULL);
 }
 
 /**
@@ -3375,15 +3375,12 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     if (use_curvature) {
       SCULPT_curvature_dir_get(ss, vd.vertex, direction2, false);
-      // SculptCurvatureData cdata;
-      // SCULPT_calc_principle_curvatures(ss, vd.vertex, &cdata);
-      // copy_v3_v3(direction2, cdata.principle[0]);
     }
     else {
       copy_v3_v3(direction2, direction);
     }
 
-    SCULPT_bmesh_four_neighbor_average(avg, direction2, vd.bm_vert);
+    SCULPT_bmesh_four_neighbor_average(avg, direction2, vd.bm_vert, data->rake_projection);
 
     sub_v3_v3v3(val, avg, vd.co);
 
@@ -3404,8 +3401,20 @@ static void bmesh_topology_rake(
   Brush *brush = BKE_paint_brush(&sd->paint);
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
-  /* Interactions increase both strength and quality. */
-  const int iterations = 3;
+  Brush local_brush;
+
+  if (brush->flag2 & BRUSH_TOPOLOGY_RAKE_IGNORE_BRUSH_FALLOFF) {
+    local_brush = *brush;
+    brush = &local_brush;
+
+    brush->curve_preset = BRUSH_CURVE_SMOOTH;
+
+    /*note that brush hardness is calculated from ss->cache->paint_brush,
+      we can't override it by changing the brush here.
+      this seems desirably though?*/
+  }
+  /* Iterations increase both strength and quality. */
+  const int iterations = 3 + ((int)bstrength) * 2;
 
   int iteration;
   const int count = iterations * strength + 1;
@@ -3419,6 +3428,7 @@ static void bmesh_topology_rake(
         .brush = brush,
         .nodes = nodes,
         .strength = factor,
+        .rake_projection = brush->topology_rake_projection
     };
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -6350,6 +6360,16 @@ static void topology_undopush_cb(PBVHNode *node, void *data)
   BKE_pbvh_node_mark_update(node);
 }
 
+int SCULPT_get_symmetry_pass(const SculptSession *ss)
+{
+  int symidx = ss->cache->mirror_symmetry_pass + (ss->cache->radial_symmetry_pass * 8);
+
+  if (symidx >= SCULPT_MAX_SYMMETRY_PASSES) {
+    symidx = SCULPT_MAX_SYMMETRY_PASSES - 1;
+  }
+
+  return symidx;
+}
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
@@ -6360,11 +6380,21 @@ static void sculpt_topology_update(Sculpt *sd,
 {
   SculptSession *ss = ob->sculpt;
 
+  // build brush radius scale
+  float radius_scale = 1.0f;
+
+  if (brush->autosmooth_factor > 0.0f) {
+    radius_scale = MAX2(radius_scale, brush->autosmooth_radius_factor);
+  }
+
+  if (brush->topology_rake_factor > 0.0f) {
+    radius_scale = MAX2(radius_scale, brush->topology_rake_factor);
+  }
+
   int n, totnode;
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                              ss->cache->original;
-  const float radius_scale = 1.25f;
 
   /* Free index based vertex info as it will become invalid after modifying the topology during the
    * stroke. */
@@ -6379,8 +6409,7 @@ static void sculpt_topology_update(Sculpt *sd,
       mode |= PBVH_Subdivide;
     }
 
-    if ((brush->cached_dyntopo.flag & DYNTOPO_COLLAPSE)
-        /*||(brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY)*/) {
+    if (brush->cached_dyntopo.flag & DYNTOPO_COLLAPSE) {
       mode |= PBVH_Collapse;
     }
   }
@@ -6390,20 +6419,17 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   PBVHNode **nodes = NULL;
-  SculptSearchSphereData sdata = {.ss = ss,
-                                  .sd = sd,
-                                  .ob = ob,
-                                  .radius_squared = square_f(ss->cache->radius * radius_scale),
-                                  .original = use_original,
-                                  .ignore_fully_ineffective = brush->sculpt_tool !=
-                                                              SCULPT_TOOL_MASK,
-                                  .center = NULL,
-                                  .brush = brush};
+  SculptSearchSphereData sdata = {
+      .ss = ss,
+      .sd = sd,
+      .ob = ob,
+      .radius_squared = square_f(ss->cache->radius * radius_scale * 1.25f),
+      .original = use_original,
+      .ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK,
+      .center = NULL,
+      .brush = brush};
 
-  int symidx = ss->cache->mirror_symmetry_pass + (ss->cache->radial_symmetry_pass * 8);
-  if (symidx > 127) {
-    symidx = 127;
-  }
+  int symidx = SCULPT_get_symmetry_pass(ss);
 
   bool modified;
 
@@ -6416,7 +6442,7 @@ static void sculpt_topology_update(Sculpt *sd,
       mode,
       ss->cache->location,
       ss->cache->view_normal,
-      ss->cache->radius,
+      ss->cache->radius * radius_scale,
       (brush->flag & BRUSH_FRONTFACE) != 0,
       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
       symidx,
@@ -6472,6 +6498,17 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   int totnode;
   PBVHNode **nodes;
 
+  float radius_scale = 1.0f;
+
+  if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
+      brush->autosmooth_factor > 0 && brush->autosmooth_radius_factor != 1.0f) {
+    radius_scale = MAX2(radius_scale, brush->autosmooth_radius_factor);
+  }
+
+  if (sculpt_brush_use_topology_rake(ss, brush)) {
+    radius_scale = MAX2(radius_scale, brush->topology_rake_radius_factor);
+  }
+
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR) &&
@@ -6480,6 +6517,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
+  const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
+                                                                             ss->cache->original;
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
@@ -6489,13 +6528,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush, &totnode);
   }
   else {
-    const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
-                                                                               ss->cache->original;
-    float radius_scale = 1.0f;
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
-      radius_scale = 2.0f;
+      radius_scale = MAX2(radius_scale, 2.0f);
     }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
   }
@@ -6722,19 +6758,80 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       break;
   }
 
-  if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-      brush->autosmooth_factor > 0) {
+  bool apply_autosmooth = !ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
+                          brush->autosmooth_factor > 0;
+
+  if (brush->flag2 & BRUSH_CUSTOM_AUTOSMOOTH_SPACING) {
+    float spacing = (float)brush->autosmooth_spacing / 100.0f;
+
+    apply_autosmooth = apply_autosmooth &&
+                       paint_stroke_apply_subspacing(
+                           ss->cache->stroke,
+                           spacing,
+                           PAINT_MODE_SCULPT,
+                           &ss->cache->last_smooth_t[SCULPT_get_symmetry_pass(ss)]);
+  }
+
+  if (apply_autosmooth) {
+    float start_radius = ss->cache->radius;
+
+    if (brush->autosmooth_radius_factor != 1.0f) {
+      // note that we expanded the pbvh node search radius earlier in this function
+      // so we just have to adjust the brush radius that's inside ss->cache
+
+      ss->cache->radius *= brush->autosmooth_radius_factor;
+      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
+    }
+
     if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-      SCULPT_smooth(
-          sd, ob, nodes, totnode, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false, brush->autosmooth_projection);
+      SCULPT_smooth(sd,
+                    ob,
+                    nodes,
+                    totnode,
+                    brush->autosmooth_factor * (1.0f - ss->cache->pressure),
+                    false,
+                    brush->autosmooth_projection);
     }
     else {
-      SCULPT_smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false, brush->autosmooth_projection);
+      SCULPT_smooth(
+          sd, ob, nodes, totnode, brush->autosmooth_factor, false, brush->autosmooth_projection);
+    }
+
+    if (brush->autosmooth_radius_factor != 1.0f) {
+      ss->cache->radius = start_radius;
+      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
     }
   }
 
-  if (sculpt_brush_use_topology_rake(ss, brush)) {
+  bool use_topology_rake = sculpt_brush_use_topology_rake(ss, brush);
+
+  if (brush->flag2 & BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING) {
+    float spacing = (float)brush->topology_rake_spacing / 100.0f;
+
+    use_topology_rake = use_topology_rake &&
+         paint_stroke_apply_subspacing(ss->cache->stroke,
+                                       spacing,
+                                       PAINT_MODE_SCULPT,
+                                       &ss->cache->last_rake_t[SCULPT_get_symmetry_pass(ss)]);
+  }
+
+  if (use_topology_rake) {
+    float start_radius = ss->cache->radius;
+
+    if (brush->topology_rake_radius_factor != 1.0f) {
+      // note that we expanded the pbvh node search radius earlier in this function
+      // so we just have to adjust the brush radius that's inside ss->cache
+
+      ss->cache->radius *= brush->topology_rake_radius_factor;
+      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
+    }
+
     bmesh_topology_rake(sd, ob, nodes, totnode, brush->topology_rake_factor);
+
+    if (brush->topology_rake_radius_factor != 1.0f) {
+      ss->cache->radius = start_radius;
+      ss->cache->radius_squared = ss->cache->radius * ss->cache->radius;
+    }
   }
 
   /* The cloth brush adds the gravity as a regular force and it is processed in the solver. */
@@ -8569,6 +8666,13 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
   ss->cache->stroke_distance = stroke->stroke_distance;
   ss->cache->stroke_distance_t = stroke->stroke_distance_t;
+  ss->cache->stroke = stroke;
+
+  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    ss->cache->last_dyntopo_t = 0.0f;
+    memset((void *)ss->cache->last_smooth_t, 0, sizeof(ss->cache->last_smooth_t));
+    memset((void *)ss->cache->last_rake_t, 0, sizeof(ss->cache->last_rake_t));
+  }
 
   BKE_brush_get_dyntopo(brush, sd, &brush->cached_dyntopo);
 
@@ -8597,20 +8701,10 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   }
 
   if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
-    bool do_dyntopo = true;
+    float spacing = (float)brush->cached_dyntopo.spacing / 100.0f;
 
-    if (paint_space_stroke_enabled(brush, PAINT_MODE_SCULPT)) {
-      float spacing = (float)brush->cached_dyntopo.spacing / 100.0f;
-
-      if (ss->cache->stroke_distance_t < ss->cache->last_dyntopo_t + spacing) {
-        do_dyntopo = false;
-      }
-      else {
-        ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
-      }
-    }
-
-    if (do_dyntopo) {
+    if (paint_stroke_apply_subspacing(
+            ss->cache->stroke, spacing, PAINT_MODE_SCULPT, &ss->cache->last_dyntopo_t)) {
       do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups);
     }
   }

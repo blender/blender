@@ -280,14 +280,20 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[2];
+  char _pad1[6];
 
   float autosmooth_factor;
+  float autosmooth_radius_factor;
   float autosmooth_projection;
+  int autosmooth_spacing; //spacing for BRUSH_CUSTOM_AUTOSMOOTH_SPACING
 
   float tilt_strength_factor;
 
   float topology_rake_factor;
+  float topology_rake_radius_factor;
+  float topology_rake_projection;
+  int topology_rake_spacing;  // spacing for BRUSH_CUSTOM_TOPOLOGY_RAKE_SPACING
+
   float vcol_boundary_factor;
   float vcol_boundary_exponent;
 

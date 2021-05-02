@@ -51,9 +51,9 @@ typedef struct CoNo {
   float no[3];
 } CoNo;
 
-#include "ED_view3d.h"
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+#include "ED_view3d.h"
 
 /* paint_stroke.c */
 typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
@@ -63,7 +63,6 @@ typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct PointerRNA *itemptr);
 typedef void (*StrokeRedraw)(const struct bContext *C, struct PaintStroke *stroke, bool final);
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
-
 
 typedef struct PaintSample {
   float mouse[2];
@@ -96,7 +95,7 @@ typedef struct PaintStroke {
   bool stroke_over_mesh;
   /* space distance covered so far */
   float stroke_distance;
-  float stroke_distance_t; //divided by brush radius
+  float stroke_distance_t;  // divided by brush radius
 
   /* Set whether any stroke step has yet occurred
    * e.g. in sculpt mode, stroke doesn't start until cursor
@@ -169,6 +168,19 @@ void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
 bool paint_poll(struct bContext *C);
 void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 void paint_cursor_delete_textures(void);
+
+/**
+* used by various actions that have their own spacing that
+* is coarser then the brush spacing. e.g. sculpt dyntopo.
+*
+* \param state: pointer to a float used for internal state, should be initialized to zero at start of stroke
+* \return false if the action should be skipped.
+*
+*/
+bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
+                                   const float spacing,
+                                   const enum ePaintMode mode,
+                                   float *state);
 
 /* paint_vertex.c */
 bool weight_paint_poll(struct bContext *C);

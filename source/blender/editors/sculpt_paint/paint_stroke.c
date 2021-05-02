@@ -217,6 +217,26 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
   return true;
 }
 
+bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
+                                   const float spacing,
+                                   const enum ePaintMode mode,
+                                   float *state)
+{
+  if (!paint_space_stroke_enabled(stroke->brush, mode)) {
+    return true;
+  }
+
+  const float t = stroke->stroke_distance_t;
+
+  if (t != 0.0f && t < *state + spacing) {
+    return false;
+  }
+  else {
+    *state = t;
+    return true;
+  }
+}
+
 /* Initialize the stroke cache variants from operator properties */
 static bool paint_brush_update(bContext *C,
                                Brush *brush,

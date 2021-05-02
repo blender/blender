@@ -143,7 +143,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
 
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
  * Naturally converges to a quad-like structure. */
-void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
+void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v, float projection)
 {
 
   float avg_co[3] = {0.0f, 0.0f, 0.0f};
@@ -160,7 +160,8 @@ void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert
     BMVert *v_other = (e->v1 == v) ? e->v2 : e->v1;
     float vec[3];
     sub_v3_v3v3(vec, v_other->co, v->co);
-    madd_v3_v3fl(vec, v->no, -dot_v3v3(vec, v->no));
+
+    madd_v3_v3fl(vec, v->no, -dot_v3v3(vec, v->no)*projection);
     normalize_v3(vec);
 
     /* fac is a measure of how orthogonal or parallel the edge is
@@ -179,7 +180,7 @@ void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert
     /* Preserve volume. */
     float vec[3];
     sub_v3_v3(avg, v->co);
-    mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no));
+    mul_v3_v3fl(vec, v->no, dot_v3v3(avg, v->no)*projection);
     sub_v3_v3(avg, vec);
     add_v3_v3(avg, v->co);
   }

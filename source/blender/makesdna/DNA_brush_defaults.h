@@ -43,7 +43,12 @@
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
     .autosmooth_factor = 0.0f, \
     .autosmooth_projection = 0.0f,\
+    .autosmooth_radius_factor = 1.0f,\
+    .autosmooth_spacing = 12,\
     .topology_rake_factor = 0.0f, \
+    .topology_rake_projection = 1.0f,\
+    .topology_rake_radius_factor = 1.0f,\
+    .topology_rake_spacing = 12,\
     .crease_pinch_factor = 0.5f, \
     .normal_radius_factor = 0.5f, \
     .wet_paint_radius_factor = 0.5f, \

@@ -556,20 +556,40 @@ def brush_settings(layout, context, brush, popover=False):
 
         # auto_smooth_factor and use_inverse_smooth_pressure
         if capabilities.has_auto_smooth:
+            box = layout.box().column() #.column() is a bit more compact
+
             UnifiedPaintPanel.prop_unified(
-                layout,
+                box,
                 context,
                 brush,
                 "auto_smooth_factor",
                 pressure_name="use_inverse_smooth_pressure",
                 slider=True,
             )
+
+            box.prop(brush, "use_custom_auto_smooth_spacing", text="Custom Spacing")
+            if brush.use_custom_auto_smooth_spacing:
+               UnifiedPaintPanel.prop_unified(
+                    box,
+                    context,
+                    brush,
+                    "auto_smooth_spacing",
+                    slider=True,
+                    text="Spacing"
+                )                
             UnifiedPaintPanel.prop_unified(
-                layout,
+                box,
                 context,
                 brush,
                 "auto_smooth_projection",
-                slider=True,
+                slider=True
+            )
+            UnifiedPaintPanel.prop_unified(
+                box,
+                context,
+                brush,
+                "auto_smooth_radius_factor",
+                slider=True
             )
         elif brush.sculpt_tool == "SMOOTH":
             UnifiedPaintPanel.prop_unified(
@@ -577,7 +597,7 @@ def brush_settings(layout, context, brush, popover=False):
                 context,
                 brush,
                 "auto_smooth_projection",
-                slider=True,
+                slider=True
             )
         
 
@@ -588,10 +608,21 @@ def brush_settings(layout, context, brush, popover=False):
                 capabilities.has_topology_rake and
                 context.sculpt_object.use_dynamic_topology_sculpting
         ):
-            layout.prop(brush, "topology_rake_factor", slider=True)
-            layout.prop(brush, "use_curvature_rake")
+            box = layout.box().column() #.column() is a bit more compact
+            
+            box.prop(brush, "topology_rake_factor", slider=True)
+            box.prop(brush, "use_custom_topology_rake_spacing", text="Custom Spacing")
 
-            layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo");
+            if brush.use_custom_topology_rake_spacing:
+                box.prop(brush, "topology_rake_spacing", text="Spacing")
+            box.prop(brush, "topology_rake_projection");
+
+            box.prop(brush, "topology_rake_radius_factor", slider=True)
+            box.prop(brush, "use_curvature_rake")
+            box.prop(brush, "ignore_falloff_for_topology_rake")
+
+        if context.sculpt_object.use_dynamic_topology_sculpting:
+            layout.prop(brush.dyntopo, "disabled", text="Disable Dyntopo")
             
         # normal_weight
         if capabilities.has_normal_weight:
@@ -946,8 +977,8 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         col2 = col.column()
         col2.enabled = brush.use_automasking_concave
 
-        col2.prop(brush, "concave_mask_factor", text="Cavity Factor");
-        col2.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask");
+        col2.prop(brush, "concave_mask_factor", text="Cavity Factor")
+        col2.prop(brush, "invert_automasking_concavity", text="Invert Cavity Mask")
 
         # face masks automasking
         col.prop(brush, "use_automasking_face_sets", text="Face Sets")
