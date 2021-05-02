@@ -564,7 +564,22 @@ def brush_settings(layout, context, brush, popover=False):
                 pressure_name="use_inverse_smooth_pressure",
                 slider=True,
             )
-
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "auto_smooth_projection",
+                slider=True,
+            )
+        elif brush.sculpt_tool == "SMOOTH":
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "auto_smooth_projection",
+                slider=True,
+            )
+        
 
         if capabilities.has_vcol_boundary_smooth:
             layout.prop(brush, "vcol_boundary_factor", slider=True)

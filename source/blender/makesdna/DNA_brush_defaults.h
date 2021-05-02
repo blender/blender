@@ -42,6 +42,7 @@
     .size = 35,     /* radius of the brush in pixels */ \
     .alpha = 1.0f,  /* brush strength/intensity probably variable should be renamed? */ \
     .autosmooth_factor = 0.0f, \
+    .autosmooth_projection = 0.0f,\
     .topology_rake_factor = 0.0f, \
     .crease_pinch_factor = 0.5f, \
     .normal_radius_factor = 0.5f, \

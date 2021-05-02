@@ -447,6 +447,7 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(alpha);
   FROM_DEFAULT(hardness);
   FROM_DEFAULT(autosmooth_factor);
+  FROM_DEFAULT(autosmooth_projection);
   FROM_DEFAULT(topology_rake_factor);
   FROM_DEFAULT(crease_pinch_factor);
   FROM_DEFAULT(normal_radius_factor);
@@ -1651,6 +1652,7 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST(plane_offset, f);
 
   BR_TEST(autosmooth_factor, f);
+  BR_TEST(autosmooth_projection, f);
 
   BR_TEST(topology_rake_factor, f);
 

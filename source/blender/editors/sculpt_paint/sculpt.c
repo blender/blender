@@ -3493,7 +3493,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       do_mask_brush_draw(sd, ob, nodes, totnode);
       break;
     case BRUSH_MASK_SMOOTH:
-      SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true);
+      SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, true, 0.0f);
       break;
   }
 }
@@ -6614,7 +6614,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       break;
     case SCULPT_TOOL_SMOOTH:
       if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_LAPLACIAN) {
-        SCULPT_do_smooth_brush(sd, ob, nodes, totnode);
+        SCULPT_do_smooth_brush(sd, ob, nodes, totnode, brush->autosmooth_projection);
       }
       else if (brush->smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE) {
         SCULPT_do_surface_smooth_brush(sd, ob, nodes, totnode);
@@ -6726,10 +6726,10 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       brush->autosmooth_factor > 0) {
     if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
       SCULPT_smooth(
-          sd, ob, nodes, totnode, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false);
+          sd, ob, nodes, totnode, brush->autosmooth_factor * (1.0f - ss->cache->pressure), false, brush->autosmooth_projection);
     }
     else {
-      SCULPT_smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false);
+      SCULPT_smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, false, brush->autosmooth_projection);
     }
   }
 

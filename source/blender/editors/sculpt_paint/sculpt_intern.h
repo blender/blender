@@ -571,14 +571,18 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 /* Smooth Brush. */
 void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], struct BMVert *v);
 
-void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], SculptVertRef index);
+void SCULPT_neighbor_coords_average(SculptSession *ss,
+                                    float result[3],
+                                    SculptVertRef index,
+                                    float projection);
 float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index);
 
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
-                                             SculptVertRef index);
+                                             SculptVertRef index,
+                                             float projection);
 
 void SCULPT_smooth_vcol_boundary(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength);
@@ -588,8 +592,10 @@ void SCULPT_smooth(Sculpt *sd,
                    PBVHNode **nodes,
                    const int totnode,
                    float bstrength,
-                   const bool smooth_mask);
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+                   const bool smooth_mask,
+                   float projection);
+
+void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection);
 
 /* Surface Smooth Brush. */
 
@@ -599,7 +605,9 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float (*laplacian_disp)[3],
                                           const SculptVertRef v_index,
                                           const float origco[3],
-                                          const float alpha);
+                                          const float alpha,
+                                          const float projection);
+
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
                                          float (*laplacian_disp)[3],
@@ -832,6 +840,8 @@ typedef struct SculptThreadedTaskData {
   // Layer brush
   int cd_pers_co, cd_pers_no, cd_pers_disp;
   int cd_layer_disp;
+
+  float smooth_projection;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/

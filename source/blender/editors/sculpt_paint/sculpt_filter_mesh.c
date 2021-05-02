@@ -334,7 +334,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
         fade = clamp_f(fade, -1.0f, 1.0f);
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex, 0.0f);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
         sub_v3_v3v3(disp, val, orig_co);
@@ -399,7 +399,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
                                              ss->filter_cache->surface_smooth_laplacian_disp,
                                              vd.vertex,
                                              orig_data.co,
-                                             ss->filter_cache->surface_smooth_shape_preservation);
+                                             ss->filter_cache->surface_smooth_shape_preservation, 0.0f);
         break;
       }
       case MESH_FILTER_SHARPEN: {
@@ -424,7 +424,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
         float disp_avg[3];
         float avg_co[3];
-        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex);
+        SCULPT_neighbor_coords_average(ss, avg_co, vd.vertex, 0.0f);
         sub_v3_v3v3(disp_avg, avg_co, vd.co);
         mul_v3_v3fl(
             disp_avg, disp_avg, smooth_ratio * pow2f(ss->filter_cache->sharpen_factor[vd.index]));
@@ -489,7 +489,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
-    SCULPT_neighbor_coords_average(ss, avg, vertex);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
   }
 }
@@ -540,7 +540,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
     float avg[3];
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    SCULPT_neighbor_coords_average(ss, avg, vertex);
+    SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     filter_cache->sharpen_factor[i] = len_v3(filter_cache->detail_directions[i]);
   }
