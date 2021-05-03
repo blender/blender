@@ -30,6 +30,14 @@ namespace blender::compositor {
 class Device {
 
  public:
+  Device() = default;
+
+  Device(const Device &other) = delete;
+  Device(Device &&other) noexcept = default;
+
+  Device &operator=(const Device &other) = delete;
+  Device &operator=(Device &&other) = delete;
+
   /**
    * \brief Declaration of the virtual destructor
    * \note resolve warning gcc 4.7
