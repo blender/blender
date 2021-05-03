@@ -86,6 +86,55 @@ static void read_data_loop(AlembicProcedural *proc,
 
 /* Polygon Mesh Geometries. */
 
+/* Compute the vertex normals in case none are present in the IPolyMeshSchema, this is mostly used
+ * to avoid computing them in the GeometryManager in order to speed up data updates. */
+static void compute_vertex_normals(CachedData &cache, double current_time)
+{
+  if (cache.vertices.size() == 0) {
+    return;
+  }
+
+  CachedData::CachedAttribute &attr_normal = cache.add_attribute(
+      ustring("N"), cache.vertices.get_time_sampling());
+  attr_normal.std = ATTR_STD_VERTEX_NORMAL;
+  attr_normal.element = ATTR_ELEMENT_VERTEX;
+  attr_normal.type_desc = TypeNormal;
+
+  const array<float3> *vertices =
+      cache.vertices.data_for_time_no_check(current_time).get_data_or_null();
+  const array<int3> *triangles =
+      cache.triangles.data_for_time_no_check(current_time).get_data_or_null();
+
+  if (!vertices || !triangles) {
+    attr_normal.data.add_no_data(current_time);
+    return;
+  }
+
+  array<char> attr_data(vertices->size() * sizeof(float3));
+  float3 *attr_ptr = reinterpret_cast<float3 *>(attr_data.data());
+  memset(attr_ptr, 0, vertices->size() * sizeof(float3));
+
+  for (size_t t = 0; t < triangles->size(); ++t) {
+    const int3 tri_int3 = triangles->data()[t];
+    Mesh::Triangle tri{};
+    tri.v[0] = tri_int3[0];
+    tri.v[1] = tri_int3[1];
+    tri.v[2] = tri_int3[2];
+
+    const float3 tri_N = tri.compute_normal(vertices->data());
+
+    for (int v = 0; v < 3; ++v) {
+      attr_ptr[tri_int3[v]] += tri_N;
+    }
+  }
+
+  for (size_t v = 0; v < vertices->size(); ++v) {
+    attr_ptr[v] = normalize(attr_ptr[v]);
+  }
+
+  attr_normal.data.add_data(attr_data, current_time);
+}
+
 static void add_normals(const Int32ArraySamplePtr face_indices,
                         const IN3fGeomParam &normals,
                         double time,
@@ -326,6 +375,9 @@ static void read_poly_mesh_geometry(CachedData &cached_data,
 
   if (data.normals.valid()) {
     add_normals(face_indices, data.normals, time, cached_data);
+  }
+  else {
+    compute_vertex_normals(cached_data, time);
   }
 }
 
