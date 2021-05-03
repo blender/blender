@@ -1744,9 +1744,7 @@ static inline std::pair<int, int> sorted_int_pair(std::pair<int, int> pair)
   if (pair.first <= pair.second) {
     return pair;
   }
-  else {
-    return std::pair<int, int>(pair.second, pair.first);
-  }
+  return std::pair<int, int>(pair.second, pair.first);
 }
 
 /**
