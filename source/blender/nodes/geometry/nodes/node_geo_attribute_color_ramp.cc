@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "BKE_colorband.h"
 
 #include "UI_interface.h"
@@ -85,9 +87,11 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   MutableSpan<Color4f> results = attribute_result.as_span();
 
   ColorBand *color_ramp = &node_storage->color_ramp;
-  for (const int i : IndexRange(attribute_in.size())) {
-    BKE_colorband_evaluate(color_ramp, attribute_in[i], results[i]);
-  }
+  parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      BKE_colorband_evaluate(color_ramp, attribute_in[i], results[i]);
+    }
+  });
 
   attribute_result.save();
 }
