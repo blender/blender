@@ -70,6 +70,10 @@ static void geo_node_attribute_remove_exec(GeoNodeExecParams params)
     remove_attribute(
         geometry_set.get_component_for_write<PointCloudComponent>(), params, attribute_names);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    remove_attribute(
+        geometry_set.get_component_for_write<CurveComponent>(), params, attribute_names);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

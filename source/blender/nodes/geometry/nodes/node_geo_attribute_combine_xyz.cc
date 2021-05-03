@@ -127,6 +127,9 @@ static void geo_node_attribute_combine_xyz_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     combine_attributes(geometry_set.get_component_for_write<PointCloudComponent>(), params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    combine_attributes(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

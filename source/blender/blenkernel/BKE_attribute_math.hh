@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_float2.hh"

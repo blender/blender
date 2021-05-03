@@ -186,6 +186,10 @@ static void initialize_volume_component_from_points(const GeometrySet &geometry_
     gather_point_data_from_component(
         params, *geometry_set_in.get_component_for_read<PointCloudComponent>(), positions, radii);
   }
+  if (geometry_set_in.has<CurveComponent>()) {
+    gather_point_data_from_component(
+        params, *geometry_set_in.get_component_for_read<CurveComponent>(), positions, radii);
+  }
 
   const float max_radius = *std::max_element(radii.begin(), radii.end());
   const float voxel_size = compute_voxel_size(params, positions, max_radius);

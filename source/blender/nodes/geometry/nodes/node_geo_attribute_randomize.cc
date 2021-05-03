@@ -315,6 +315,14 @@ static void geo_node_random_attribute_exec(GeoNodeExecParams params)
                                      operation,
                                      seed);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    randomize_attribute_on_component(geometry_set.get_component_for_write<CurveComponent>(),
+                                     params,
+                                     attribute_name,
+                                     data_type,
+                                     operation,
+                                     seed);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

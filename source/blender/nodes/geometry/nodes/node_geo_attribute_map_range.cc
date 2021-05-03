@@ -410,6 +410,9 @@ static void geo_node_attribute_map_range_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     map_range_attribute(geometry_set.get_component_for_write<PointCloudComponent>(), params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    map_range_attribute(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

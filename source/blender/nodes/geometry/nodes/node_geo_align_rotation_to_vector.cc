@@ -188,6 +188,9 @@ static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)
     align_rotations_on_component(geometry_set.get_component_for_write<PointCloudComponent>(),
                                  params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    align_rotations_on_component(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

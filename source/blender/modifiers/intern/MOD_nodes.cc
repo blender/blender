@@ -182,7 +182,7 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
     if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
       add_collection_relation(ctx, *object.instance_collection);
     }
-    else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
+    else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME, OB_CURVE)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
       DEG_add_customdata_mask(ctx->node, &object, &dependency_data_mask);
     }

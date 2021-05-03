@@ -505,6 +505,9 @@ geometry_node_categories = [
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),
     ]),
+    GeometryNodeCategory("GEO_CURVE", "Curve", items=[
+        NodeItem("GeometryNodeCurveToMesh"),
+    ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=[
         NodeItem("GeometryNodeBoundBox"),
         NodeItem("GeometryNodeTransform"),

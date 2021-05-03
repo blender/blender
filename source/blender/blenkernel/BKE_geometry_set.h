@@ -36,6 +36,7 @@ typedef enum GeometryComponentType {
   GEO_COMPONENT_TYPE_POINT_CLOUD = 1,
   GEO_COMPONENT_TYPE_INSTANCES = 2,
   GEO_COMPONENT_TYPE_VOLUME = 3,
+  GEO_COMPONENT_TYPE_CURVE = 4,
 } GeometryComponentType;
 
 void BKE_geometry_set_free(struct GeometrySet *geometry_set);

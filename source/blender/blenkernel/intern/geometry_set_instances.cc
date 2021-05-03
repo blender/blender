@@ -19,6 +19,7 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcloud.h"
+#include "BKE_spline.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
@@ -50,6 +51,16 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
   }
 }
 
+static void add_curve_data_as_geometry_component(const Object &object, GeometrySet &geometry_set)
+{
+  BLI_assert(object.type == OB_CURVE);
+  if (object.data != nullptr) {
+    std::unique_ptr<CurveEval> curve = curve_eval_from_dna_curve(*(Curve *)object.data);
+    CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
+    curve_component.replace(curve.release(), GeometryOwnershipType::Owned);
+  }
+}
+
 /**
  * \note This doesn't extract instances from the "dupli" system for non-geometry-nodes instances.
  */
@@ -72,6 +83,9 @@ static GeometrySet object_get_geometry_set_for_read(const Object &object)
   GeometrySet geometry_set;
   if (object.type == OB_MESH) {
     add_final_mesh_as_geometry_component(object, geometry_set);
+  }
+  else if (object.type == OB_CURVE) {
+    add_curve_data_as_geometry_component(object, geometry_set);
   }
 
   /* TODO: Cover the case of point-clouds without modifiers-- they may not be covered by the
@@ -492,6 +506,28 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
+static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComponent &result)
+{
+  CurveEval *new_curve = new CurveEval();
+  for (const GeometryInstanceGroup &set_group : set_groups) {
+    const GeometrySet &set = set_group.geometry_set;
+    if (!set.has_curve()) {
+      continue;
+    }
+
+    const CurveEval &source_curve = *set.get_curve_for_read();
+    for (const SplinePtr &source_spline : source_curve.splines) {
+      for (const float4x4 &transform : set_group.transforms) {
+        SplinePtr new_spline = source_spline->copy();
+        new_spline->transform(transform);
+        new_curve->splines.append(std::move(new_spline));
+      }
+    }
+  }
+
+  result.replace(new_curve);
+}
+
 static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
                                       bool convert_points_to_vertices,
                                       GeometrySet &result)
@@ -558,6 +594,12 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
   UNUSED_VARS(set_groups, dst_component);
 }
 
+static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
+{
+  CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
+  join_curve_splines(set_groups, dst_component);
+}
+
 GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set)
 {
   if (!geometry_set.has_instances() && !geometry_set.has_pointcloud()) {
@@ -589,6 +631,7 @@ GeometrySet geometry_set_realize_instances(const GeometrySet &geometry_set)
   join_instance_groups_mesh(set_groups, false, new_geometry_set);
   join_instance_groups_pointcloud(set_groups, new_geometry_set);
   join_instance_groups_volume(set_groups, new_geometry_set);
+  join_instance_groups_curve(set_groups, new_geometry_set);
 
   return new_geometry_set;
 }

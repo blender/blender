@@ -167,6 +167,14 @@ static void geo_node_attribute_convert_exec(GeoNodeExecParams params)
                            data_type,
                            domain);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_convert_calc(geometry_set.get_component_for_write<CurveComponent>(),
+                           params,
+                           source_name,
+                           result_name,
+                           data_type,
+                           domain);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

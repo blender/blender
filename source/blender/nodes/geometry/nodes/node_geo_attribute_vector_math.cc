@@ -525,6 +525,9 @@ static void geo_node_attribute_vector_math_exec(GeoNodeExecParams params)
     attribute_vector_math_calc(geometry_set.get_component_for_write<PointCloudComponent>(),
                                params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_vector_math_calc(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }
