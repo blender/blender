@@ -372,7 +372,7 @@ void Node::copy_value(const SocketType &socket, const Node &other, const SocketT
 
         array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
 
-        for (Node *node: node_array) {
+        for (Node *node : node_array) {
           node->reference();
         }
 
