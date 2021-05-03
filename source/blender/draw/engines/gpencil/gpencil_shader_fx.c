@@ -427,7 +427,7 @@ static void gpencil_vfx_glow(GlowShaderFxData *fx, Object *UNUSED(ob), gpIterVfx
   float ref_col[4];
 
   if (fx->mode == eShaderFxGlowMode_Luminance) {
-    /* Only pass in the first value for luminace. */
+    /* Only pass in the first value for luminance. */
     ref_col[0] = fx->threshold;
     ref_col[1] = -1.0f;
     ref_col[2] = -1.0f;

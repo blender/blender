@@ -416,7 +416,10 @@ typedef enum {
   GHOST_kGrabNormal,
   /** Wrap the mouse location to prevent limiting screen bounds. */
   GHOST_kGrabWrap,
-  /** Hide the mouse while grabbing and restore the original location on release (numbuts). */
+  /**
+   * Hide the mouse while grabbing and restore the original location on release
+   * (used for number buttons and some other draggable UI elements).
+   */
   GHOST_kGrabHide,
 } GHOST_TGrabCursorMode;
 

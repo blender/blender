@@ -111,7 +111,7 @@ class FrameBuffer {
 
  public:
   /* Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
-   * Points to BPyGPUFrameBuffer::fb */
+   * Points to #BPyGPUFrameBuffer::fb */
   void **ref = nullptr;
 
  public:

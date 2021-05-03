@@ -35,7 +35,7 @@ using namespace Alembic::AbcGeom;
 
 CCL_NAMESPACE_BEGIN
 
-/* TODO(@kevindietrich): motion blur support */
+/* TODO(kevindietrich): motion blur support. */
 
 template<typename SchemaType>
 static vector<FaceSetShaderIndexPair> parse_face_sets_for_shader_assignment(
