@@ -50,6 +50,16 @@ OpenCLDevice::OpenCLDevice(cl_context context,
   this->m_queue = clCreateCommandQueue(this->m_context, this->m_device, 0, &error);
 }
 
+OpenCLDevice::OpenCLDevice(OpenCLDevice &&other) noexcept
+    : m_context(other.m_context),
+      m_device(other.m_device),
+      m_program(other.m_program),
+      m_queue(other.m_queue),
+      m_vendorID(other.m_vendorID)
+{
+  other.m_queue = nullptr;
+}
+
 OpenCLDevice::~OpenCLDevice()
 {
   if (this->m_queue) {
