@@ -441,7 +441,7 @@ static void build_pict_list_ex(
      */
 
     while (IMB_ispic(filepath) && totframes) {
-      bool hasevent;
+      bool has_event;
       size_t size;
       int file;
 
@@ -522,7 +522,7 @@ static void build_pict_list_ex(
       BLI_path_sequence_encode(
           filepath, fp_decoded.head, fp_decoded.tail, fp_decoded.digits, fp_framenr);
 
-      while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
+      while ((has_event = GHOST_ProcessEvents(g_WS.ghost_system, false))) {
         GHOST_DispatchEvents(g_WS.ghost_system);
         if (ps->loading == false) {
           return;
@@ -1389,7 +1389,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
     while (ps.picture) {
-      int hasevent;
+      bool has_event;
 #ifndef USE_IMB_CACHE
       if (ibuf != NULL && ibuf->ftype == IMB_FTYPE_NONE) {
         IMB_freeImBuf(ibuf);
@@ -1474,14 +1474,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
       ps.next_frame = ps.direction;
 
-      while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
+      while ((has_event = GHOST_ProcessEvents(g_WS.ghost_system, false))) {
         GHOST_DispatchEvents(g_WS.ghost_system);
       }
       if (ps.go == false) {
         break;
       }
       change_frame(&ps);
-      if (!hasevent) {
+      if (!has_event) {
         PIL_sleep_ms(1);
       }
       if (ps.wait2) {
