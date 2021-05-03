@@ -723,7 +723,7 @@ void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, cons
 static int g_shader_builtin_srgb_transform = 0;
 static bool g_shader_builtin_srgb_is_dirty = false;
 
-static bool gpu_shader_srgb_uniform_dirty_get(void)
+static bool gpu_shader_srgb_uniform_dirty_get()
 {
   return g_shader_builtin_srgb_is_dirty;
 }
