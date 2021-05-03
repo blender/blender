@@ -152,6 +152,10 @@ template<typename T> class DataStore {
   double last_loaded_time = std::numeric_limits<double>::max();
 
  public:
+  /* Keys used to compare values. */
+  Alembic::AbcCoreAbstract::ArraySample::Key key1;
+  Alembic::AbcCoreAbstract::ArraySample::Key key2;
+
   void set_time_sampling(Alembic::AbcCoreAbstract::TimeSampling time_sampling_)
   {
     time_sampling = time_sampling_;
@@ -225,6 +229,11 @@ template<typename T> class DataStore {
     index_data_map.push_back({time, data_index.source_time, data_index.index});
   }
 
+  void add_no_data(double time)
+  {
+    index_data_map.push_back({time, time, -1ul});
+  }
+
   bool is_constant() const
   {
     return data.size() <= 1;
@@ -284,7 +293,7 @@ struct CachedData {
   DataStore<array<int3>> triangles{};
   /* triangle "loops" are the polygons' vertices indices used for indexing face varying attributes
    * (like UVs) */
-  DataStore<array<int3>> triangles_loops{};
+  DataStore<array<int>> uv_loops{};
   DataStore<array<int>> shader{};
 
   /* subd data */
@@ -362,16 +371,18 @@ class AlembicObject : public Node {
   void set_object(Object *object);
   Object *get_object();
 
-  void load_all_data(AlembicProcedural *proc,
-                     Alembic::AbcGeom::IPolyMeshSchema &schema,
-                     Progress &progress);
-  void load_all_data(AlembicProcedural *proc,
-                     Alembic::AbcGeom::ISubDSchema &schema,
-                     Progress &progress);
-  void load_all_data(AlembicProcedural *proc,
-                     const Alembic::AbcGeom::ICurvesSchema &schema,
-                     Progress &progress,
-                     float default_radius);
+  void load_data_in_cache(CachedData &cached_data,
+                          AlembicProcedural *proc,
+                          Alembic::AbcGeom::IPolyMeshSchema &schema,
+                          Progress &progress);
+  void load_data_in_cache(CachedData &cached_data,
+                          AlembicProcedural *proc,
+                          Alembic::AbcGeom::ISubDSchema &schema,
+                          Progress &progress);
+  void load_data_in_cache(CachedData &cached_data,
+                          AlembicProcedural *proc,
+                          const Alembic::AbcGeom::ICurvesSchema &schema,
+                          Progress &progress);
 
   bool has_data_loaded() const;
 
@@ -397,33 +408,21 @@ class AlembicObject : public Node {
 
   CachedData &get_cached_data()
   {
-    return cached_data;
+    return cached_data_;
   }
 
   bool is_constant() const
   {
-    return cached_data.is_constant();
+    return cached_data_.is_constant();
   }
 
   Object *object = nullptr;
 
   bool data_loaded = false;
 
-  CachedData cached_data;
+  CachedData cached_data_;
 
-  void update_shader_attributes(const Alembic::AbcGeom::ICompoundProperty &arb_geom_params,
-                                Progress &progress);
-
-  void read_attribute(const Alembic::AbcGeom::ICompoundProperty &arb_geom_params,
-                      const ustring &attr_name,
-                      Progress &progress);
-
-  template<typename SchemaType>
-  void read_face_sets(SchemaType &schema,
-                      array<int> &polygon_to_shader,
-                      Alembic::AbcGeom::ISampleSelector sample_sel);
-
-  void setup_transform_cache(float scale);
+  void setup_transform_cache(CachedData &cached_data, float scale);
 
   AttributeRequestSet get_requested_attributes();
 };
