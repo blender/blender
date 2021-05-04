@@ -426,7 +426,7 @@ class PolySpline final : public Spline {
  private:
  public:
   SplinePtr copy() const final;
-  PolySpline() : Spline(Type::Bezier)
+  PolySpline() : Spline(Type::Poly)
   {
   }
   PolySpline(const PolySpline &other)
