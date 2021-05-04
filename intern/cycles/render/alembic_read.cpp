@@ -21,6 +21,8 @@
 
 #include "util/util_progress.h"
 
+#ifdef WITH_ALEMBIC
+
 using namespace Alembic::AbcGeom;
 
 CCL_NAMESPACE_BEGIN
@@ -997,3 +999,5 @@ void read_attributes(AlembicProcedural *proc,
 }
 
 CCL_NAMESPACE_END
+
+#endif
