@@ -101,7 +101,7 @@ static void transform_instances(InstancesComponent &instances,
                                 const float3 rotation,
                                 const float3 scale)
 {
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.instance_transforms();
 
   /* Use only translation if rotation and scale don't apply. */
   if (use_translate(rotation, scale)) {

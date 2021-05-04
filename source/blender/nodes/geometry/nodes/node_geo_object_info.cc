@@ -73,14 +73,15 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
 
     if (object != self_object) {
       InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
+      const int handle = instances.add_reference(*object);
 
       if (transform_space_relative) {
-        instances.add_instance(object, transform);
+        instances.add_instance(handle, transform);
       }
       else {
         float unit_transform[4][4];
         unit_m4(unit_transform);
-        instances.add_instance(object, unit_transform);
+        instances.add_instance(handle, unit_transform);
       }
     }
   }

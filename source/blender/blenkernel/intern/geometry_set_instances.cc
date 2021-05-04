@@ -149,21 +149,28 @@ static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
     const InstancesComponent &instances_component =
         *geometry_set.get_component_for_read<InstancesComponent>();
 
-    Span<float4x4> transforms = instances_component.transforms();
-    Span<InstancedData> instances = instances_component.instanced_data();
-    for (const int i : instances.index_range()) {
-      const InstancedData &data = instances[i];
+    Span<float4x4> transforms = instances_component.instance_transforms();
+    Span<int> handles = instances_component.instance_reference_handles();
+    Span<InstanceReference> references = instances_component.references();
+    for (const int i : transforms.index_range()) {
+      const InstanceReference &reference = references[handles[i]];
       const float4x4 instance_transform = transform * transforms[i];
 
-      if (data.type == INSTANCE_DATA_TYPE_OBJECT) {
-        BLI_assert(data.data.object != nullptr);
-        const Object &object = *data.data.object;
-        geometry_set_collect_recursive_object(object, instance_transform, r_sets);
-      }
-      else if (data.type == INSTANCE_DATA_TYPE_COLLECTION) {
-        BLI_assert(data.data.collection != nullptr);
-        const Collection &collection = *data.data.collection;
-        geometry_set_collect_recursive_collection_instance(collection, instance_transform, r_sets);
+      switch (reference.type()) {
+        case InstanceReference::Type::Object: {
+          Object &object = reference.object();
+          geometry_set_collect_recursive_object(object, instance_transform, r_sets);
+          break;
+        }
+        case InstanceReference::Type::Collection: {
+          Collection &collection = reference.collection();
+          geometry_set_collect_recursive_collection_instance(
+              collection, instance_transform, r_sets);
+          break;
+        }
+        case InstanceReference::Type::None: {
+          break;
+        }
       }
     }
   }
@@ -267,19 +274,24 @@ static bool instances_attribute_foreach_recursive(const GeometrySet &geometry_se
     return true;
   }
 
-  for (const InstancedData &data : instances_component->instanced_data()) {
-    if (data.type == INSTANCE_DATA_TYPE_OBJECT) {
-      BLI_assert(data.data.object != nullptr);
-      const Object &object = *data.data.object;
-      if (!object_instance_attribute_foreach(object, callback, limit, count)) {
-        return false;
+  for (const InstanceReference &reference : instances_component->references()) {
+    switch (reference.type()) {
+      case InstanceReference::Type::Object: {
+        const Object &object = reference.object();
+        if (!object_instance_attribute_foreach(object, callback, limit, count)) {
+          return false;
+        }
+        break;
       }
-    }
-    else if (data.type == INSTANCE_DATA_TYPE_COLLECTION) {
-      BLI_assert(data.data.collection != nullptr);
-      const Collection &collection = *data.data.collection;
-      if (!collection_instance_attribute_foreach(collection, callback, limit, count)) {
-        return false;
+      case InstanceReference::Type::Collection: {
+        const Collection &collection = reference.collection();
+        if (!collection_instance_attribute_foreach(collection, callback, limit, count)) {
+          return false;
+        }
+        break;
+      }
+      case InstanceReference::Type::None: {
+        break;
       }
     }
   }

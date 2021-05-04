@@ -243,13 +243,30 @@ static void join_components(Span<const PointCloudComponent *> src_components, Ge
 static void join_components(Span<const InstancesComponent *> src_components, GeometrySet &result)
 {
   InstancesComponent &dst_component = result.get_component_for_write<InstancesComponent>();
-  for (const InstancesComponent *component : src_components) {
-    const int size = component->instances_amount();
-    Span<InstancedData> instanced_data = component->instanced_data();
-    Span<float4x4> transforms = component->transforms();
-    Span<int> ids = component->ids();
-    for (const int i : IndexRange(size)) {
-      dst_component.add_instance(instanced_data[i], transforms[i], ids[i]);
+
+  int tot_instances = 0;
+  for (const InstancesComponent *src_component : src_components) {
+    tot_instances += src_component->instances_amount();
+  }
+  dst_component.reserve(tot_instances);
+
+  for (const InstancesComponent *src_component : src_components) {
+    Span<InstanceReference> src_references = src_component->references();
+    Array<int> handle_map(src_references.size());
+    for (const int src_handle : src_references.index_range()) {
+      handle_map[src_handle] = dst_component.add_reference(src_references[src_handle]);
+    }
+
+    Span<float4x4> src_transforms = src_component->instance_transforms();
+    Span<int> src_ids = src_component->instance_ids();
+    Span<int> src_reference_handles = src_component->instance_reference_handles();
+
+    for (const int i : src_transforms.index_range()) {
+      const int src_handle = src_reference_handles[i];
+      const int dst_handle = handle_map[src_handle];
+      const float4x4 &transform = src_transforms[i];
+      const int id = src_ids[i];
+      dst_component.add_instance(dst_handle, transform, id);
     }
   }
 }

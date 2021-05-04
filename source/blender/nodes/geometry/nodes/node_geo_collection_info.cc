@@ -58,10 +58,6 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
   const bool transform_space_relative = (node_storage->transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  InstancedData instance;
-  instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-  instance.data.collection = collection;
-
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
 
   float transform_mat[4][4];
@@ -73,7 +69,9 @@ static void geo_node_collection_info_exec(GeoNodeExecParams params)
 
     mul_m4_m4_pre(transform_mat, self_object->imat);
   }
-  instances.add_instance(instance, transform_mat, -1);
+
+  const int handle = instances.add_reference(*collection);
+  instances.add_instance(handle, transform_mat, -1);
 
   params.set_output("Geometry", geometry_set_out);
 }
