@@ -423,15 +423,22 @@ BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_fact
     const float index_factor) const
 {
   const int points_len = this->size();
-  const int index = std::floor(index_factor);
-  if (index == points_len) {
-    BLI_assert(is_cyclic_);
+
+  if (is_cyclic_) {
+    if (index_factor < points_len) {
+      const int index = std::floor(index_factor);
+      const int next_index = (index < points_len - 1) ? index + 1 : 0;
+      return InterpolationData{index, next_index, index_factor - index};
+    }
     return InterpolationData{points_len - 1, 0, 1.0f};
   }
-  if (index == points_len - 1) {
-    return InterpolationData{points_len - 2, points_len - 1, 1.0f};
+
+  if (index_factor < points_len - 1) {
+    const int index = std::floor(index_factor);
+    const int next_index = index + 1;
+    return InterpolationData{index, next_index, index_factor - index};
   }
-  return InterpolationData{index, index + 1, index_factor - index};
+  return InterpolationData{points_len - 2, points_len - 1, 1.0f};
 }
 
 /* Use a spline argument to avoid adding this to the header. */
