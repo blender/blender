@@ -1225,7 +1225,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row = layout.row(align=True)
         row.prop(gp_settings, "fill_factor")
         row = layout.row(align=True)
-        row.prop(gp_settings, "fill_leak", text="Leak Size")
+        row.prop(gp_settings, "dilate_pixels")
         row = layout.row(align=True)
         row.prop(brush, "size", text="Thickness")
         layout.use_property_split = use_property_split_prev

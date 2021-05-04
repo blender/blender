@@ -133,7 +133,8 @@ typedef struct BrushGpencilSettings {
 
   /** Factor to extend stroke extremes using fill tool. */
   float fill_extend_fac;
-  char _pad3[4];
+  /** Number of pixels to dilate fill area. */
+  int dilate_pixels;
 
   struct CurveMapping *curve_sensitivity;
   struct CurveMapping *curve_strength;

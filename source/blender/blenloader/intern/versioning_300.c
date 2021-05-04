@@ -23,6 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_genfile.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
@@ -71,6 +72,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             /* This was the previous hard-coded value. */
             mmd->bisect_threshold = 0.001f;
           }
+        }
+      }
+    }
+    /* Grease Pencil: Set default value for dilate pixels. */
+    if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "int", "dilate_pixels")) {
+      LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+        if (brush->gpencil_settings) {
+          brush->gpencil_settings->dilate_pixels = 1;
         }
       }
     }
