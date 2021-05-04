@@ -142,7 +142,9 @@ static void draw_left_column_content(const int scroll_offset_y,
                                      ARegion *region,
                                      const SpreadsheetDrawer &drawer)
 {
-  GPU_scissor_test(true);
+  int old_scissor[4];
+  GPU_scissor_get(old_scissor);
+
   GPU_scissor(0, 0, drawer.left_column_width, region->winy - drawer.top_row_height);
 
   uiBlock *left_column_block = UI_block_begin(C, region, __func__, UI_EMBOSS_NONE);
@@ -165,7 +167,7 @@ static void draw_left_column_content(const int scroll_offset_y,
   UI_block_end(C, left_column_block);
   UI_block_draw(C, left_column_block);
 
-  GPU_scissor_test(false);
+  GPU_scissor(UNPACK4(old_scissor));
 }
 
 static void draw_top_row_content(const bContext *C,
@@ -173,7 +175,9 @@ static void draw_top_row_content(const bContext *C,
                                  const SpreadsheetDrawer &drawer,
                                  const int scroll_offset_x)
 {
-  GPU_scissor_test(true);
+  int old_scissor[4];
+  GPU_scissor_get(old_scissor);
+
   GPU_scissor(drawer.left_column_width + 1,
               region->winy - drawer.top_row_height,
               region->winx - drawer.left_column_width,
@@ -200,7 +204,7 @@ static void draw_top_row_content(const bContext *C,
   UI_block_end(C, first_row_block);
   UI_block_draw(C, first_row_block);
 
-  GPU_scissor_test(false);
+  GPU_scissor(UNPACK4(old_scissor));
 }
 
 static void draw_cell_contents(const bContext *C,
@@ -209,7 +213,9 @@ static void draw_cell_contents(const bContext *C,
                                const int scroll_offset_x,
                                const int scroll_offset_y)
 {
-  GPU_scissor_test(true);
+  int old_scissor[4];
+  GPU_scissor_get(old_scissor);
+
   GPU_scissor(drawer.left_column_width + 1,
               0,
               region->winx - drawer.left_column_width,
@@ -248,7 +254,7 @@ static void draw_cell_contents(const bContext *C,
   UI_block_end(C, cells_block);
   UI_block_draw(C, cells_block);
 
-  GPU_scissor_test(false);
+  GPU_scissor(UNPACK4(old_scissor));
 }
 
 static void update_view2d_tot_rect(const SpreadsheetDrawer &drawer,
