@@ -2912,7 +2912,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         else if (sl->spacetype == SPACE_TEXT) {
           SpaceText *st = (SpaceText *)sl;
 
-          st->text = restore_pointer_by_name(id_map, (ID *)st->text, USER_REAL);
+          st->text = restore_pointer_by_name(id_map, (ID *)st->text, USER_IGNORE);
           if (st->text == NULL) {
             st->text = newmain->texts.first;
           }

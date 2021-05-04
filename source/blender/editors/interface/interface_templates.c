@@ -1110,7 +1110,7 @@ static void template_ID(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
 
-    if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS)) &&
+    if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_OB, ID_WS)) &&
         (hide_buttons == false)) {
       uiDefIconButR(block,
                     UI_BTYPE_ICON_TOGGLE,
