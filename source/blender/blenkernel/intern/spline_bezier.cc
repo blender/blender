@@ -296,6 +296,40 @@ Span<int> BezierSpline::control_point_offsets() const
   return offsets;
 }
 
+static void calculate_mappings_linear_resolution(Span<int> offsets,
+                                                 const int size,
+                                                 const int resolution,
+                                                 const bool is_cyclic,
+                                                 MutableSpan<float> r_mappings)
+{
+  const float first_segment_len_inv = 1.0f / offsets[1];
+  for (const int i : IndexRange(0, offsets[1])) {
+    r_mappings[i] = i * first_segment_len_inv;
+  }
+
+  const int grain_size = std::max(2048 / resolution, 1);
+  blender::parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
+    for (const int i_control_point : range) {
+      const int segment_len = offsets[i_control_point + 1] - offsets[i_control_point];
+      const float segment_len_inv = 1.0f / segment_len;
+      for (const int i : IndexRange(segment_len)) {
+        r_mappings[offsets[i_control_point] + i] = i_control_point + i * segment_len_inv;
+      }
+    }
+  });
+
+  if (is_cyclic) {
+    const int last_segment_len = offsets[size - 1] - offsets[size - 2];
+    const float last_segment_len_inv = 1.0f / last_segment_len;
+    for (const int i : IndexRange(last_segment_len)) {
+      r_mappings[offsets[size - 1] + i] = size - 1 + i * last_segment_len_inv;
+    }
+  }
+  else {
+    r_mappings.last() = size - 1;
+  }
+}
+
 /**
  * Returns non-owning access to an array of values containing the information necessary to
  * interpolate values from the original control points to evaluated points. The control point
@@ -325,49 +359,8 @@ Span<float> BezierSpline::evaluated_mappings() const
   }
 
   Span<int> offsets = this->control_point_offsets();
-  Span<float> lengths = this->evaluated_lengths();
 
-  /* Subtract one from the index into the lengths array to get the length
-   * at the start point rather than the length at the end of the edge. */
-
-  const float first_segment_len = lengths[offsets[1] - 1];
-  for (const int eval_index : IndexRange(0, offsets[1])) {
-    const float point_len = eval_index == 0 ? 0.0f : lengths[eval_index - 1];
-    const float length_factor = (first_segment_len == 0.0f) ? 0.0f : 1.0f / first_segment_len;
-
-    mappings[eval_index] = point_len * length_factor;
-  }
-
-  const int grain_size = std::max(512 / resolution_, 1);
-  blender::parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
-    for (const int i : range) {
-      const float segment_start_len = lengths[offsets[i] - 1];
-      const float segment_end_len = lengths[offsets[i + 1] - 1];
-      const float segment_len = segment_end_len - segment_start_len;
-      const float length_factor = (segment_len == 0.0f) ? 0.0f : 1.0f / segment_len;
-
-      for (const int eval_index : IndexRange(offsets[i], offsets[i + 1] - offsets[i])) {
-        const float factor = (lengths[eval_index - 1] - segment_start_len) * length_factor;
-        mappings[eval_index] = i + factor;
-      }
-    }
-  });
-
-  if (is_cyclic_) {
-    const float segment_start_len = lengths[offsets.last() - 1];
-    const float segment_end_len = this->length();
-    const float segment_len = segment_end_len - segment_start_len;
-    const float length_factor = (segment_len == 0.0f) ? 0.0f : 1.0f / segment_len;
-
-    for (const int eval_index : IndexRange(offsets.last(), eval_size - offsets.last())) {
-      const float factor = (lengths[eval_index - 1] - segment_start_len) * length_factor;
-      mappings[eval_index] = size - 1 + factor;
-    }
-    mappings.last() = 0.0f;
-  }
-  else {
-    mappings.last() = size - 1;
-  }
+  calculate_mappings_linear_resolution(offsets, size, resolution_, is_cyclic_, mappings);
 
   mapping_cache_dirty_ = false;
   return mappings;
