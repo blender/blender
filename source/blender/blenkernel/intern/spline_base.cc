@@ -17,6 +17,8 @@
 #include "BLI_array.hh"
 #include "BLI_span.hh"
 
+#include "FN_generic_virtual_array.hh"
+
 #include "BKE_spline.hh"
 
 using blender::float3;
@@ -183,6 +185,20 @@ Span<float3> Spline::evaluated_tangents() const
   return evaluated_tangents_cache_;
 }
 
+static float3 rotate_direction_around_axis(const float3 &direction,
+                                           const float3 &axis,
+                                           const float angle)
+{
+  BLI_ASSERT_UNIT_V3(direction);
+  BLI_ASSERT_UNIT_V3(axis);
+
+  const float3 axis_scaled = axis * float3::dot(direction, axis);
+  const float3 diff = direction - axis_scaled;
+  const float3 cross = float3::cross(axis, diff);
+
+  return axis_scaled + diff * std::cos(angle) + cross * std::sin(angle);
+}
+
 static void calculate_normals_z_up(Span<float3> tangents, MutableSpan<float3> normals)
 {
   for (const int i : normals.index_range()) {
@@ -193,8 +209,6 @@ static void calculate_normals_z_up(Span<float3> tangents, MutableSpan<float3> no
 /**
  * Return non-owning access to the direction vectors perpendicular to the tangents at every
  * evaluated point. The method used to generate the normal vectors depends on Spline.normal_mode.
- *
- * TODO: Support changing the normal based on tilts.
  */
 Span<float3> Spline::evaluated_normals() const
 {
@@ -211,9 +225,17 @@ Span<float3> Spline::evaluated_normals() const
   evaluated_normals_cache_.resize(eval_size);
 
   Span<float3> tangents = evaluated_tangents();
+  MutableSpan<float3> normals = evaluated_normals_cache_;
 
   /* Only Z up normals are supported at the moment. */
-  calculate_normals_z_up(tangents, evaluated_normals_cache_);
+  calculate_normals_z_up(tangents, normals);
+
+  /* Rotate the generated normals with the interpolated tilt data. */
+  blender::fn::GVArray_Typed<float> tilts{
+      this->interpolate_to_evaluated_points(blender::fn::GVArray_For_Span(this->tilts()))};
+  for (const int i : normals.index_range()) {
+    normals[i] = rotate_direction_around_axis(normals[i], tangents[i], tilts[i]);
+  }
 
   normal_cache_dirty_ = false;
   return evaluated_normals_cache_;
