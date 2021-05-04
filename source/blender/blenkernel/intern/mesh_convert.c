@@ -1061,6 +1061,9 @@ static Object *object_for_curve_to_mesh_create(Object *object)
   return temp_object;
 }
 
+/**
+ * Populate `object->runtime.curve_cache` which is then used to create the mesh.
+ */
 static void curve_to_mesh_eval_ensure(Object *object)
 {
   Curve *curve = (Curve *)object->data;
@@ -1070,9 +1073,12 @@ static void curve_to_mesh_eval_ensure(Object *object)
 
   remapped_object.data = &remapped_curve;
 
-  if (remapped_object.runtime.curve_cache == NULL) {
-    remapped_object.runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
+  if (object->runtime.curve_cache == NULL) {
+    object->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
   }
+
+  /* Temporarily share the curve-cache with the temporary object, owned by `object`. */
+  remapped_object.runtime.curve_cache = object->runtime.curve_cache;
 
   /* Clear all modifiers for the bevel object.
    *
@@ -1115,6 +1121,9 @@ static void curve_to_mesh_eval_ensure(Object *object)
   if (mesh_eval != NULL) {
     BKE_object_eval_assign_data(&remapped_object, &mesh_eval->id, true);
   }
+
+  /* Owned by `object` & needed by the caller to create the mesh. */
+  remapped_object.runtime.curve_cache = NULL;
 
   BKE_object_runtime_free_data(&remapped_object);
   BKE_object_runtime_free_data(&taper_object);
