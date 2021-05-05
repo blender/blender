@@ -623,6 +623,11 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
       /* This GPUShader has already been used by another material.
        * Add new shading group just after to avoid shader switching cost. */
       grp = DRW_shgroup_create_sub(*grp_p);
+
+      /* Per material uniforms. */
+      if (use_ssrefract) {
+        DRW_shgroup_uniform_float_copy(grp, "refractionDepth", ma->refract_depth);
+      }
     }
     else {
       *grp_p = grp = DRW_shgroup_create(sh, shading_pass);
