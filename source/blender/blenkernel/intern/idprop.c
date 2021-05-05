@@ -503,7 +503,7 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
 
 void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_arraylen)
 {
-  LISTBASE_FOREACH_MUTABLE (IDProperty *, prop_dst, &src->data.group) {
+  LISTBASE_FOREACH_MUTABLE (IDProperty *, prop_dst, &dest->data.group) {
     const IDProperty *prop_src = IDP_GetPropertyFromGroup((IDProperty *)src, prop_dst->name);
     if (prop_src != NULL) {
       /* check of we should replace? */
