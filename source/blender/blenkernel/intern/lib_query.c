@@ -56,11 +56,19 @@ typedef struct LibraryForeachIDData {
    */
   ID *self_id;
 
+  /** Flags controlling the bahaviour of the 'foreach id' looping code. */
   int flag;
+  /** Generic flags to be passed to all callback calls for current processed data. */
   int cb_flag;
+  /** Callback flags that are forbidden for all callback calls for current processed data. */
   int cb_flag_clear;
+
+  /* Function to call for every ID pointers of current processed data, and its opaque user data
+   * pointer. */
   LibraryIDLinkCallback callback;
   void *user_data;
+  /** Store the returned value from the callback, to decide how to continue the processing of ID
+   * pointers for current data. */
   int status;
 
   /* To handle recursion. */
