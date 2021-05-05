@@ -398,7 +398,7 @@ Span<float3> BezierSpline::evaluated_positions() const
     this->evaluate_bezier_segment(i_last, 0, positions.slice(offsets.last(), resolution_));
   }
   else {
-    /* Since evualating the bezier segment doesn't add the final point,
+    /* Since evaluating the bezier segment doesn't add the final point,
      * it must be added manually in the non-cyclic case. */
     positions.last() = positions_.last();
   }

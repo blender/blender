@@ -56,7 +56,7 @@ typedef struct LibraryForeachIDData {
    */
   ID *self_id;
 
-  /** Flags controlling the bahaviour of the 'foreach id' looping code. */
+  /** Flags controlling the behavior of the 'foreach id' looping code. */
   int flag;
   /** Generic flags to be passed to all callback calls for current processed data. */
   int cb_flag;

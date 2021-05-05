@@ -175,7 +175,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 /* Functions                                                 */
 /*-----------------------------------------------------------*/
 
-/* Scanconvert for strand triangles, calls func for each x, y coordinate
+/* Scan-convert for strand triangles, calls function for each x, y coordinate
  * and gives UV barycentrics and z. */
 
 void zspan_scanconvert(ZSpan *zspan,

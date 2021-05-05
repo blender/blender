@@ -362,7 +362,7 @@ ccl_device float fast_atan2f(float y, float x)
 ccl_device float fast_log2f(float x)
 {
   /* NOTE: clamp to avoid special cases and make result "safe" from large
-   * negative values/nans. */
+   * negative values/NAN's. */
   x = clamp(x, FLT_MIN, FLT_MAX);
   unsigned bits = __float_as_uint(x);
   int exponent = (int)(bits >> 23) - 127;
