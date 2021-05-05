@@ -480,10 +480,8 @@ static void lib_override_linked_group_tag_recursive(LibOverrideGroupTagData *dat
 
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
        to_id_entry = to_id_entry->next) {
-    if ((to_id_entry->usage_flag &
-         (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) != 0) {
-      /* Never consider 'loop back' relationships ('from', 'parents', 'owner' etc. pointers), nor
-       * override references or embedded ID pointers, as actual dependencies. */
+    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+      /* Never consider non-overridable relationships as actual dependencies. */
       continue;
     }
 
@@ -578,10 +576,8 @@ static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data
 
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
        to_id_entry = to_id_entry->next) {
-    if ((to_id_entry->usage_flag &
-         (IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) != 0) {
-      /* Never consider 'loop back' relationships ('from', 'parents', 'owner' etc. pointers), nor
-       * override references or embedded ID pointers, as actual dependencies. */
+    if ((to_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+      /* Never consider non-overridable relationships as actual dependencies. */
       continue;
     }
 
