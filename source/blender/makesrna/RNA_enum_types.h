@@ -237,6 +237,7 @@ extern const EnumPropertyItem rna_enum_curveprofile_preset_items[];
 extern const EnumPropertyItem rna_enum_preference_section_items[];
 
 extern const EnumPropertyItem rna_enum_attribute_type_items[];
+extern const EnumPropertyItem rna_enum_attribute_type_with_auto_items[];
 extern const EnumPropertyItem rna_enum_attribute_domain_items[];
 extern const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[];
 extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id, bool *r_free);

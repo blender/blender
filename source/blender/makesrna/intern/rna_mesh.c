@@ -958,13 +958,14 @@ static void rna_MeshPaintMaskLayer_data_begin(CollectionPropertyIterator *iter, 
 {
   Mesh *me = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), me->totvert, 0, NULL);
+  rna_iterator_array_begin(
+      iter, layer->data, sizeof(MFloatProperty), (me->edit_mesh) ? 0 : me->totvert, 0, NULL);
 }
 
 static int rna_MeshPaintMaskLayer_data_length(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
-  return me->totvert;
+  return (me->edit_mesh) ? 0 : me->totvert;
 }
 
 /* End paint mask */
@@ -987,13 +988,14 @@ static void rna_MeshFaceMapLayer_data_begin(CollectionPropertyIterator *iter, Po
 {
   Mesh *me = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter, layer->data, sizeof(int), me->totpoly, 0, NULL);
+  rna_iterator_array_begin(
+      iter, layer->data, sizeof(int), (me->edit_mesh) ? 0 : me->totpoly, 0, NULL);
 }
 
 static int rna_MeshFaceMapLayer_data_length(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
-  return me->totpoly;
+  return (me->edit_mesh) ? 0 : me->totpoly;
 }
 
 static PointerRNA rna_Mesh_face_map_new(struct Mesh *me, ReportList *reports, const char *name)

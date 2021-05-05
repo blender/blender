@@ -606,10 +606,10 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
     haystack += 16;
     int dep = drw_shader_library_search(lib, haystack);
     if (dep == -1) {
-      char dbg_name[32];
+      char dbg_name[33];
       int i = 0;
-      while ((haystack[0] != ')') && (i < 31)) {
-        dbg_name[i] = haystack[0];
+      while ((*haystack != ')') && (i < (sizeof(dbg_name) - 2))) {
+        dbg_name[i] = *haystack;
         haystack++;
         i++;
       }

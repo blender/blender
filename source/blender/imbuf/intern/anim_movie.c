@@ -817,7 +817,7 @@ static void ffmpeg_postprocess(struct anim *anim)
 
 #  if defined(__x86_64__) || defined(_M_X64)
   /* Scale and flip image over Y axis in one go, using negative strides.
-   * This doesn't work with arm/powerpc though and may be misusing the API.
+   * This doesn't work with ARM/PowerPC though and may be misusing the API.
    * Limit it x86_64 where it appears to work.
    * http://trac.ffmpeg.org/ticket/9060 */
   int *dstStride = anim->pFrameRGB->linesize;
@@ -881,12 +881,12 @@ static void ffmpeg_postprocess(struct anim *anim)
 #  endif
 
   if (need_aligned_ffmpeg_buffer(anim)) {
-    uint8_t *src = anim->pFrameRGB->data[0];
-    uint8_t *dst = (uint8_t *)ibuf->rect;
+    uint8_t *buf_src = anim->pFrameRGB->data[0];
+    uint8_t *buf_dst = (uint8_t *)ibuf->rect;
     for (int y = 0; y < anim->y; y++) {
-      memcpy(dst, src, anim->x * 4);
-      dst += anim->x * 4;
-      src += anim->pFrameRGB->linesize[0];
+      memcpy(buf_dst, buf_src, anim->x * 4);
+      buf_dst += anim->x * 4;
+      buf_src += anim->pFrameRGB->linesize[0];
     }
   }
 

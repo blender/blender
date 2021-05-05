@@ -91,10 +91,10 @@ void OSLShaderManager::reset(Scene * /*scene*/)
   shading_system_init();
 }
 
-void OSLShaderManager::device_update(Device *device,
-                                     DeviceScene *dscene,
-                                     Scene *scene,
-                                     Progress &progress)
+void OSLShaderManager::device_update_specific(Device *device,
+                                              DeviceScene *dscene,
+                                              Scene *scene,
+                                              Progress &progress)
 {
   if (!need_update())
     return;
@@ -1149,7 +1149,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     shader->has_integrator_dependency = false;
 
     /* generate surface shader */
-    if (shader->used && graph && output->input("Surface")->link) {
+    if (shader->reference_count() && graph && output->input("Surface")->link) {
       shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 
       if (has_bump)
@@ -1165,7 +1165,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
     }
 
     /* generate volume shader */
-    if (shader->used && graph && output->input("Volume")->link) {
+    if (shader->reference_count() && graph && output->input("Volume")->link) {
       shader->osl_volume_ref = compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
       shader->has_volume = true;
     }
@@ -1173,7 +1173,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
       shader->osl_volume_ref = OSL::ShaderGroupRef();
 
     /* generate displacement shader */
-    if (shader->used && graph && output->input("Displacement")->link) {
+    if (shader->reference_count() && graph && output->input("Displacement")->link) {
       shader->osl_displacement_ref = compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
       shader->has_displacement = true;
     }

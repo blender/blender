@@ -232,4 +232,30 @@ TEST(vector_set, PopExceptions)
   EXPECT_EQ(set.size(), 4);
 }
 
+TEST(vector_set, IndexOfOrAdd)
+{
+  VectorSet<int> set;
+  EXPECT_EQ(set.index_of_or_add(3), 0);
+  EXPECT_EQ(set.index_of_or_add(3), 0);
+  EXPECT_EQ(set.index_of_or_add(2), 1);
+  EXPECT_EQ(set.index_of_or_add(0), 2);
+  EXPECT_EQ(set.index_of_or_add(2), 1);
+  EXPECT_EQ(set.index_of_or_add(3), 0);
+  EXPECT_EQ(set.index_of_or_add(5), 3);
+  EXPECT_EQ(set.index_of_or_add(8), 4);
+  EXPECT_EQ(set.index_of_or_add(5), 3);
+}
+
+TEST(vector_set, Clear)
+{
+  VectorSet<int> set = {4, 6, 2, 4};
+  EXPECT_EQ(set.size(), 3);
+  set.clear();
+  EXPECT_EQ(set.size(), 0);
+  set.add_multiple({4, 1, 6, 8, 3, 6, 9, 3});
+  EXPECT_EQ(set.size(), 6);
+  set.clear();
+  EXPECT_EQ(set.size(), 0);
+}
+
 }  // namespace blender::tests

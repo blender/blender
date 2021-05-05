@@ -71,6 +71,16 @@ if(WITH_CYCLES_STANDALONE)
   target_link_libraries(cycles ${LIBRARIES})
   cycles_target_link_libraries(cycles)
 
+  if(APPLE)
+    if(WITH_OPENCOLORIO)
+      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework IOKit")
+    endif()
+    if(WITH_OPENIMAGEDENOISE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+      # OpenImageDenoise uses BNNS from the Accelerate framework.
+      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework Accelerate")
+    endif()
+  endif()
+
   if(UNIX AND NOT APPLE)
     set_target_properties(cycles PROPERTIES INSTALL_RPATH $ORIGIN/lib)
   endif()

@@ -247,7 +247,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
     return NULL;
   }
 
-  return BPyGPUTexture_CreatePyObject(tex);
+  return BPyGPUTexture_CreatePyObject(tex, false);
 }
 
 PyDoc_STRVAR(pygpu_texture_width_doc, "Width of the texture.\n\n:type: `int`");
@@ -412,6 +412,9 @@ static PyObject *pygpu_texture_free(BPyGPUTexture *self)
 static void BPyGPUTexture__tp_dealloc(BPyGPUTexture *self)
 {
   if (self->tex) {
+#ifndef GPU_NO_USE_PY_REFERENCES
+    GPU_texture_py_reference_set(self->tex, NULL);
+#endif
     GPU_texture_free(self->tex);
   }
   Py_TYPE(self)->tp_free((PyObject *)self);
@@ -535,10 +538,7 @@ static PyObject *pygpu_texture_from_image(PyObject *UNUSED(self), PyObject *arg)
   BKE_imageuser_default(&iuser);
   GPUTexture *tex = BKE_image_get_gpu_texture(ima, &iuser, NULL);
 
-  /* Increase the texture reference count. */
-  GPU_texture_ref(tex);
-
-  return BPyGPUTexture_CreatePyObject(tex);
+  return BPyGPUTexture_CreatePyObject(tex, true);
 }
 
 static struct PyMethodDef pygpu_texture__m_methods[] = {
@@ -595,12 +595,32 @@ PyObject *bpygpu_texture_init(void)
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex)
+PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
 {
   BPyGPUTexture *self;
 
+  if (shared_reference) {
+#ifndef GPU_NO_USE_PY_REFERENCES
+    void **ref = GPU_texture_py_reference_get(tex);
+    if (ref) {
+      /* Retrieve BPyGPUTexture reference. */
+      self = (BPyGPUTexture *)POINTER_OFFSET(ref, -offsetof(BPyGPUTexture, tex));
+      BLI_assert(self->tex == tex);
+      Py_INCREF(self);
+      return (PyObject *)self;
+    }
+#endif
+
+    GPU_texture_ref(tex);
+  }
+
   self = PyObject_New(BPyGPUTexture, &BPyGPUTexture_Type);
   self->tex = tex;
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+  BLI_assert(GPU_texture_py_reference_get(tex) == NULL);
+  GPU_texture_py_reference_set(tex, (void **)&self->tex);
+#endif
 
   return (PyObject *)self;
 }

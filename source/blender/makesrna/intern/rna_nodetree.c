@@ -971,6 +971,32 @@ static void rna_NodeTree_get_from_context(
   RNA_parameter_list_free(&list);
 }
 
+static bool rna_NodeTree_valid_socket_type(eNodeSocketDatatype socket_type,
+                                           bNodeTreeType *ntreetype)
+{
+  extern FunctionRNA rna_NodeTree_valid_socket_type_func;
+
+  PointerRNA ptr;
+  ParameterList list;
+  FunctionRNA *func;
+  void *ret;
+  bool valid;
+
+  RNA_pointer_create(NULL, ntreetype->rna_ext.srna, NULL, &ptr); /* dummy */
+  func = &rna_NodeTree_valid_socket_type_func;
+
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "type", &socket_type);
+  ntreetype->rna_ext.call(NULL, &ptr, func, &list);
+
+  RNA_parameter_get_lookup(&list, "valid", &ret);
+  valid = *(bool *)ret;
+
+  RNA_parameter_list_free(&list);
+
+  return valid;
+}
+
 static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
   bNodeTreeType *nt = RNA_struct_blender_type_get(type);
@@ -999,7 +1025,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   bNodeTreeType *nt, dummynt;
   bNodeTree dummyntree;
   PointerRNA dummyptr;
-  int have_function[3];
+  int have_function[4];
 
   /* setup dummy tree & tree type to store static properties in */
   memset(&dummynt, 0, sizeof(bNodeTreeType));
@@ -1045,6 +1071,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
   nt->poll = (have_function[0]) ? rna_NodeTree_poll : NULL;
   nt->update = (have_function[1]) ? rna_NodeTree_update_reg : NULL;
   nt->get_from_context = (have_function[2]) ? rna_NodeTree_get_from_context : NULL;
+  nt->valid_socket_type = (have_function[3]) ? rna_NodeTree_valid_socket_type : NULL;
 
   ntreeTypeAdd(nt);
 
@@ -2020,6 +2047,7 @@ static void rna_GeometryNodeAttributeRandomize_data_type_update(Main *bmain,
 static bool attribute_convert_type_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
+              CD_AUTO_FROM_NAME,
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,
               CD_PROP_FLOAT3,
@@ -2031,7 +2059,8 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeConvert_type_itemf(
     bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
   *r_free = true;
-  return itemf_function_check(rna_enum_attribute_type_items, attribute_convert_type_supported);
+  return itemf_function_check(rna_enum_attribute_type_with_auto_items,
+                              attribute_convert_type_supported);
 }
 
 static bool attribute_fill_type_supported(const EnumPropertyItem *item)
@@ -8990,9 +9019,9 @@ static void def_geo_attribute_convert(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeAttributeConvert", "storage");
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_with_auto_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeConvert_type_itemf");
-  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_enum_default(prop, CD_AUTO_FROM_NAME);
   RNA_def_property_ui_text(prop, "Data Type", "The data type to save the result attribute with");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 
@@ -11414,6 +11443,14 @@ static void rna_def_nodetree(BlenderRNA *brna)
   parm = RNA_def_pointer(
       func, "result_3", "ID", "From ID", "Original ID data-block selected from the context");
   RNA_def_function_output(func, parm);
+
+  /* Check for support of a socket type. */
+  func = RNA_def_function(srna, "valid_socket_type", NULL);
+  RNA_def_function_ui_description(func, "Check if the socket type is valid for the node tree");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  parm = RNA_def_enum(func, "type", node_socket_type_items, 0, "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_function_return(func, RNA_def_boolean(func, "valid", false, "", ""));
 }
 
 static void rna_def_composite_nodetree(BlenderRNA *brna)

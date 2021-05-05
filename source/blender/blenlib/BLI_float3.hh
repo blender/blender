@@ -245,6 +245,13 @@ struct float3 {
     return result;
   }
 
+  static float3 cross(const float3 &a, const float3 &b)
+  {
+    float3 result;
+    cross_v3_v3v3(result, a, b);
+    return result;
+  }
+
   static float3 project(const float3 &a, const float3 &b)
   {
     float3 result;

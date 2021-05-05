@@ -4947,6 +4947,7 @@ static void registerGeometryNodes()
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
+  register_node_type_geo_curve_to_mesh();
   register_node_type_geo_edge_split();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();

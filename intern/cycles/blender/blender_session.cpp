@@ -237,6 +237,9 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     sync->sync_recalc(b_depsgraph, b_v3d);
   }
 
+  BL::Object b_camera_override(b_engine.camera_override());
+  sync->sync_camera(b_render, b_camera_override, width, height, "");
+
   BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
   BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
   BufferParams buffer_params = BlenderSync::get_buffer_params(b_render,

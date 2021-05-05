@@ -294,7 +294,6 @@ void node_socket_init_default_value(bNodeSocket *sock)
 
       sock->default_value = dval;
       break;
-      break;
     }
   }
 }

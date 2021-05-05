@@ -35,8 +35,10 @@ static void geo_node_attribute_convert_layout(uiLayout *layout,
                                               bContext *UNUSED(C),
                                               PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  uiItemR(layout, ptr, "domain", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "data_type", 0, IFACE_("Type"), ICON_NONE);
 }
 
 static void geo_node_attribute_convert_init(bNodeTree *UNUSED(tree), bNode *node)
@@ -44,26 +46,27 @@ static void geo_node_attribute_convert_init(bNodeTree *UNUSED(tree), bNode *node
   NodeAttributeConvert *data = (NodeAttributeConvert *)MEM_callocN(sizeof(NodeAttributeConvert),
                                                                    __func__);
 
-  data->data_type = CD_PROP_FLOAT;
+  data->data_type = CD_AUTO_FROM_NAME;
   data->domain = ATTR_DOMAIN_AUTO;
   node->storage = data;
 }
 
 namespace blender::nodes {
 
-static AttributeDomain get_result_domain(const GeometryComponent &component,
-                                         StringRef source_name,
-                                         StringRef result_name)
+static AttributeMetaData get_result_domain_and_type(const GeometryComponent &component,
+                                                    const StringRef source_name,
+                                                    const StringRef result_name)
 {
   std::optional<AttributeMetaData> result_info = component.attribute_get_meta_data(result_name);
   if (result_info) {
-    return result_info->domain;
+    return *result_info;
   }
   std::optional<AttributeMetaData> source_info = component.attribute_get_meta_data(source_name);
   if (source_info) {
-    return source_info->domain;
+    return *source_info;
   }
-  return ATTR_DOMAIN_POINT;
+  /* The node won't do anything in this case, but we still have to return a value. */
+  return AttributeMetaData{ATTR_DOMAIN_POINT, CD_PROP_BOOL};
 }
 
 static bool conversion_can_be_skipped(const GeometryComponent &component,
@@ -92,13 +95,14 @@ static void attribute_convert_calc(GeometryComponent &component,
                                    const GeoNodeExecParams &params,
                                    const StringRef source_name,
                                    const StringRef result_name,
-                                   const CustomDataType result_type,
+                                   const CustomDataType data_type,
                                    const AttributeDomain domain)
 {
-  const AttributeDomain result_domain = (domain == ATTR_DOMAIN_AUTO) ?
-                                            get_result_domain(
-                                                component, source_name, result_name) :
-                                            domain;
+  const AttributeMetaData auto_info = get_result_domain_and_type(
+      component, source_name, result_name);
+  const AttributeDomain result_domain = (domain == ATTR_DOMAIN_AUTO) ? auto_info.domain : domain;
+  const CustomDataType result_type = (data_type == CD_AUTO_FROM_NAME) ? auto_info.data_type :
+                                                                        data_type;
 
   if (conversion_can_be_skipped(component, source_name, result_name, result_domain, result_type)) {
     return;
@@ -157,6 +161,14 @@ static void geo_node_attribute_convert_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<PointCloudComponent>()) {
     attribute_convert_calc(geometry_set.get_component_for_write<PointCloudComponent>(),
+                           params,
+                           source_name,
+                           result_name,
+                           data_type,
+                           domain);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_convert_calc(geometry_set.get_component_for_write<CurveComponent>(),
                            params,
                            source_name,
                            result_name,

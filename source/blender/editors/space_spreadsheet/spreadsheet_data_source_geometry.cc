@@ -276,25 +276,31 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
 
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Name")) {
-    Span<InstancedData> instance_data = component_->instanced_data();
+    Span<int> reference_handles = component_->instance_reference_handles();
+    Span<InstanceReference> references = component_->references();
     std::unique_ptr<ColumnValues> values = column_values_from_function(
-        "Name", size, [instance_data](int index, CellValue &r_cell_value) {
-          const InstancedData &data = instance_data[index];
-          if (data.type == INSTANCE_DATA_TYPE_OBJECT) {
-            if (data.data.object != nullptr) {
-              r_cell_value.value_object = ObjectCellValue{data.data.object};
+        "Name", size, [reference_handles, references](int index, CellValue &r_cell_value) {
+          const InstanceReference &reference = references[reference_handles[index]];
+          switch (reference.type()) {
+            case InstanceReference::Type::Object: {
+              Object &object = reference.object();
+              r_cell_value.value_object = ObjectCellValue{&object};
+              break;
             }
-          }
-          else if (data.type == INSTANCE_DATA_TYPE_COLLECTION) {
-            if (data.data.collection != nullptr) {
-              r_cell_value.value_collection = CollectionCellValue{data.data.collection};
+            case InstanceReference::Type::Collection: {
+              Collection &collection = reference.collection();
+              r_cell_value.value_collection = CollectionCellValue{&collection};
+              break;
+            }
+            case InstanceReference::Type::None: {
+              break;
             }
           }
         });
     values->default_width = 8.0f;
     return values;
   }
-  Span<float4x4> transforms = component_->transforms();
+  Span<float4x4> transforms = component_->instance_transforms();
   if (STREQ(column_id.name, "Position")) {
     return column_values_from_function(
         column_id.name,
@@ -322,7 +328,7 @@ std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
         },
         default_float3_column_width);
   }
-  Span<int> ids = component_->ids();
+  Span<int> ids = component_->instance_ids();
   if (STREQ(column_id.name, "ID")) {
     /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
     return column_values_from_function(

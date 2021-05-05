@@ -53,6 +53,8 @@
 #include "../generic/py_capi_utils.h"
 
 #include "gpu_py.h"
+#include "gpu_py_texture.h"
+
 #include "gpu_py_offscreen.h" /* own include */
 
 /* Define the free method to avoid breakage. */
@@ -264,6 +266,17 @@ static PyObject *pygpu_offscreen_color_texture_get(BPyGPUOffScreen *self, void *
   return PyLong_FromLong(GPU_texture_opengl_bindcode(texture));
 }
 
+PyDoc_STRVAR(pygpu_offscreen_texture_color_doc,
+             "The color texture attached.\n"
+             "\n"
+             ":type: :class:`gpu.types.GPUTexture`");
+static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void *UNUSED(type))
+{
+  BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
+  GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
+  return BPyGPUTexture_CreatePyObject(texture, true);
+}
+
 PyDoc_STRVAR(
     pygpu_offscreen_draw_view3d_doc,
     ".. method:: draw_view3d(scene, view_layer, view3d, region, view_matrix, projection_matrix)\n"
@@ -384,6 +397,11 @@ static PyGetSetDef pygpu_offscreen__tp_getseters[] = {
      (getter)pygpu_offscreen_color_texture_get,
      (setter)NULL,
      pygpu_offscreen_color_texture_doc,
+     NULL},
+    {"texture_color",
+     (getter)pygpu_offscreen_texture_color_get,
+     (setter)NULL,
+     pygpu_offscreen_texture_color_doc,
      NULL},
     {"width", (getter)pygpu_offscreen_width_get, (setter)NULL, pygpu_offscreen_width_doc, NULL},
     {"height", (getter)pygpu_offscreen_height_get, (setter)NULL, pygpu_offscreen_height_doc, NULL},

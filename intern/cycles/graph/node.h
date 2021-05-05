@@ -177,8 +177,32 @@ struct Node {
   const NodeOwner *get_owner() const;
   void set_owner(const NodeOwner *owner_);
 
+  int reference_count() const
+  {
+    return ref_count;
+  }
+
+  void reference()
+  {
+    ref_count += 1;
+  }
+
+  void dereference()
+  {
+    ref_count -= 1;
+  }
+
+  /* Set the reference count to zero. This should only be called when we know for sure that the
+   * Node is not used by anyone else. For now, this is only the case when "deleting" shaders, as
+   * they are never actually deleted. */
+  void clear_reference_count()
+  {
+    ref_count = 0;
+  }
+
  protected:
   const NodeOwner *owner;
+  int ref_count{0};
 
   template<typename T> static T &get_socket_value(const Node *node, const SocketType &socket)
   {
@@ -189,7 +213,19 @@ struct Node {
 
   template<typename T> void set_if_different(const SocketType &input, T value);
 
+  /* Explicit overload for Node sockets so we can handle reference counting. The old Node is
+   * dereferenced, and the new one is referenced. */
+  void set_if_different(const SocketType &input, Node *value);
+
   template<typename T> void set_if_different(const SocketType &input, array<T> &value);
+
+  /* Explicit overload for Node sockets so we can handle reference counting. The old Nodes are
+   * dereferenced, and the new ones are referenced. */
+  void set_if_different(const SocketType &input, array<Node *> &value);
+
+  /* Call this function in derived classes' destructors to ensure that used Nodes are dereferenced
+   * properly. */
+  void dereference_all_used_nodes();
 };
 
 CCL_NAMESPACE_END

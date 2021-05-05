@@ -266,8 +266,6 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
   PropertyRNA *prop;
 
   text = BKE_text_add(bmain, "Text");
-  /* Texts have no user by default... Only the 'real' user flag. */
-  id_us_min(&text->id);
 
   /* hook into UI */
   UI_context_active_but_prop_get_templateID(C, &ptr, &prop);

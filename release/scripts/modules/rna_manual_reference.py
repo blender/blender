@@ -2115,4 +2115,9 @@ url_manual_mapping = (
 	("bpy.ops.ed*", "interface/undo_redo.html#bpy-ops-ed"),
 	("bpy.ops.ui*", "interface/index.html#bpy-ops-ui"),
 	("bpy.ops.wm*", "interface/index.html#bpy-ops-wm"),
+	("bpy.ops.file.pack_all", "blend/packed_data#pack-resources"),
+	("bpy.ops.file.unpack_all", "blend/packed_data#unpack-resources"),
+	("bpy.ops.file.autopack_toggle", "blend/packed_data#automatically-pack-resources"),
+	("bpy.ops.file.pack_libraries", "blend/packed_data#pack-linked-libraries"),
+	("bpy.ops.file.unpack_libraries", "blend/packed_data#unpack-linked-libraries"),
 )

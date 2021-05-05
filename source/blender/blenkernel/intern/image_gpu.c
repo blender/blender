@@ -408,17 +408,19 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
                                   store_premultiplied,
                                   limit_gl_texture_size);
 
-    GPU_texture_wrap_mode(*tex, true, false);
+    if (*tex) {
+      GPU_texture_wrap_mode(*tex, true, false);
 
-    if (GPU_mipmap_enabled()) {
-      GPU_texture_generate_mipmap(*tex);
-      if (ima) {
-        ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+      if (GPU_mipmap_enabled()) {
+        GPU_texture_generate_mipmap(*tex);
+        if (ima) {
+          ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
+        }
+        GPU_texture_mipmap_mode(*tex, true, true);
       }
-      GPU_texture_mipmap_mode(*tex, true, true);
-    }
-    else {
-      GPU_texture_mipmap_mode(*tex, false, true);
+      else {
+        GPU_texture_mipmap_mode(*tex, false, true);
+      }
     }
   }
 
@@ -427,7 +429,9 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     BKE_image_release_ibuf(ima, ibuf_intern, NULL);
   }
 
-  GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+  if (*tex) {
+    GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+  }
 
   return *tex;
 }

@@ -16,7 +16,6 @@
 
 #include "device/device.h"
 
-#include "render/alembic.h"
 #include "render/background.h"
 #include "render/camera.h"
 #include "render/colorspace.h"
@@ -27,6 +26,7 @@
 #include "render/nodes.h"
 #include "render/object.h"
 #include "render/osl.h"
+#include "render/procedural.h"
 #include "render/scene.h"
 #include "render/shader.h"
 #include "render/svm.h"
@@ -218,7 +218,6 @@ Shader::Shader() : Node(get_node_type())
   displacement_method = DISPLACE_BUMP;
 
   id = -1;
-  used = false;
 
   need_update_uvs = true;
   need_update_attribute = true;
@@ -382,8 +381,9 @@ void Shader::tag_used(Scene *scene)
 {
   /* if an unused shader suddenly gets used somewhere, it needs to be
    * recompiled because it was skipped for compilation before */
-  if (!used) {
+  if (!reference_count()) {
     tag_modified();
+    /* We do not reference here as the shader will be referenced when added to a socket. */
     scene->shader_manager->tag_update(scene, ShaderManager::SHADER_MODIFIED);
   }
 }
@@ -461,52 +461,28 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::update_shaders_used(Scene *scene)
+void ShaderManager::device_update(Device *device,
+                                  DeviceScene *dscene,
+                                  Scene *scene,
+                                  Progress &progress)
 {
   if (!need_update()) {
     return;
   }
 
-  /* figure out which shaders are in use, so SVM/OSL can skip compiling them
-   * for speed and avoid loading image textures into memory */
   uint id = 0;
   foreach (Shader *shader, scene->shaders) {
-    shader->used = false;
     shader->id = id++;
   }
 
-  scene->default_surface->used = true;
-  scene->default_light->used = true;
-  scene->default_background->used = true;
-  scene->default_empty->used = true;
+  /* Those shaders should always be compiled as they are used as fallback if a shader cannot be
+   * found, e.g. bad shader index for the triangle shaders on a Mesh. */
+  assert(scene->default_surface->reference_count() != 0);
+  assert(scene->default_light->reference_count() != 0);
+  assert(scene->default_background->reference_count() != 0);
+  assert(scene->default_empty->reference_count() != 0);
 
-  if (scene->background->get_shader())
-    scene->background->get_shader()->used = true;
-
-#ifdef WITH_ALEMBIC
-  foreach (Procedural *procedural, scene->procedurals) {
-    AlembicProcedural *abc_proc = static_cast<AlembicProcedural *>(procedural);
-
-    foreach (Node *abc_node, abc_proc->get_objects()) {
-      AlembicObject *abc_object = static_cast<AlembicObject *>(abc_node);
-
-      foreach (Node *node, abc_object->get_used_shaders()) {
-        Shader *shader = static_cast<Shader *>(node);
-        shader->used = true;
-      }
-    }
-  }
-#endif
-
-  foreach (Geometry *geom, scene->geometry)
-    foreach (Node *node, geom->get_used_shaders()) {
-      Shader *shader = static_cast<Shader *>(node);
-      shader->used = true;
-    }
-
-  foreach (Light *light, scene->lights)
-    if (light->get_shader())
-      const_cast<Shader *>(light->get_shader())->used = true;
+  device_update_specific(device, dscene, scene, progress);
 }
 
 void ShaderManager::device_update_common(Device *device,
@@ -639,6 +615,7 @@ void ShaderManager::add_default(Scene *scene)
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_surface";
     shader->set_graph(graph);
+    shader->reference();
     scene->default_surface = shader;
     shader->tag_update(scene);
   }
@@ -657,6 +634,8 @@ void ShaderManager::add_default(Scene *scene)
     shader->set_graph(graph);
     scene->default_volume = shader;
     shader->tag_update(scene);
+    /* No default reference for the volume to avoid compiling volume kernels if there are no actual
+     * volumes in the scene */
   }
 
   /* default light */
@@ -673,6 +652,7 @@ void ShaderManager::add_default(Scene *scene)
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_light";
     shader->set_graph(graph);
+    shader->reference();
     scene->default_light = shader;
     shader->tag_update(scene);
   }
@@ -684,6 +664,7 @@ void ShaderManager::add_default(Scene *scene)
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_background";
     shader->set_graph(graph);
+    shader->reference();
     scene->default_background = shader;
     shader->tag_update(scene);
   }
@@ -695,6 +676,7 @@ void ShaderManager::add_default(Scene *scene)
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_empty";
     shader->set_graph(graph);
+    shader->reference();
     scene->default_empty = shader;
     shader->tag_update(scene);
   }
@@ -735,7 +717,7 @@ void ShaderManager::get_requested_features(Scene *scene,
   requested_features->nodes_features = 0;
   for (int i = 0; i < scene->shaders.size(); i++) {
     Shader *shader = scene->shaders[i];
-    if (!shader->used) {
+    if (!shader->reference_count()) {
       continue;
     }
 

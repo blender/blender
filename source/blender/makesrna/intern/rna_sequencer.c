@@ -990,18 +990,14 @@ static int colbalance_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
 
-  if (seq->modifiers.first) {
-    SequenceModifierData *smd = seq->modifiers.first;
+  for (SequenceModifierData *smd = seq->modifiers.first; smd; smd = smd->next) {
+    if (smd->type == seqModifierType_ColorBalance) {
+      ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
-    for (smd = seq->modifiers.first; smd; smd = smd->next) {
-      if (smd->type == seqModifierType_ColorBalance) {
-        ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
-
-        if (&cbmd->color_balance == data->data) {
-          data->seq = seq;
-          data->smd = smd;
-          return -1; /* done so bail out */
-        }
+      if (&cbmd->color_balance == data->data) {
+        data->seq = seq;
+        data->smd = smd;
+        return -1; /* done so bail out */
       }
     }
   }

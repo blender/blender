@@ -123,6 +123,7 @@ class GVArray {
     BLI_assert(this->is_single());
     if (size_ == 1) {
       this->get(0, r_value);
+      return;
     }
     this->get_internal_single_impl(r_value);
   }

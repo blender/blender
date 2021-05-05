@@ -209,6 +209,11 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
                                           void (*callback)(void *userData, int level),
                                           void *userData);
 
+#ifndef GPU_NO_USE_PY_REFERENCES
+void **GPU_framebuffer_py_reference_get(GPUFrameBuffer *gpu_fb);
+void GPU_framebuffer_py_reference_set(GPUFrameBuffer *gpu_fb, void **py_ref);
+#endif
+
 void GPU_framebuffer_push(GPUFrameBuffer *fb);
 GPUFrameBuffer *GPU_framebuffer_pop(void);
 uint GPU_framebuffer_stack_level_get(void);

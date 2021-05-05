@@ -37,6 +37,8 @@
 #include "gpu_py.h"
 #include "gpu_py_texture.h"
 
+#include "gpu_py.h"
+#include "gpu_py_buffer.h"
 #include "gpu_py_framebuffer.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -46,13 +48,7 @@
 static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 {
   if (UNLIKELY(bpygpu_fb->fb == NULL)) {
-    PyErr_SetString(PyExc_ReferenceError,
-#ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
-                    "GPU framebuffer was freed, no further access is valid"
-#else
-                    "GPU framebuffer: internal error"
-#endif
-    );
+    PyErr_SetString(PyExc_ReferenceError, "GPU framebuffer was freed, no further access is valid");
     return -1;
   }
   return 0;
@@ -68,15 +64,26 @@ static int pygpu_framebuffer_valid_check(BPyGPUFrameBuffer *bpygpu_fb)
 
 static void pygpu_framebuffer_free_if_possible(GPUFrameBuffer *fb)
 {
-  if (!fb) {
-    return;
-  }
-
   if (GPU_is_init()) {
     GPU_framebuffer_free(fb);
   }
   else {
     printf("PyFramebuffer freed after the context has been destroyed.\n");
+  }
+}
+
+static void pygpu_framebuffer_free_safe(BPyGPUFrameBuffer *self)
+{
+  if (self->fb) {
+#ifndef GPU_NO_USE_PY_REFERENCES
+    GPU_framebuffer_py_reference_set(self->fb, NULL);
+    if (!self->shared_reference)
+#endif
+    {
+      pygpu_framebuffer_free_if_possible(self->fb);
+    }
+
+    self->fb = NULL;
   }
 }
 
@@ -336,7 +343,7 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
   GPUFrameBuffer *fb_python = GPU_framebuffer_create("fb_python");
   GPU_framebuffer_config_array(fb_python, config, color_attachements_len + 1);
 
-  return BPyGPUFrameBuffer_CreatePyObject(fb_python);
+  return BPyGPUFrameBuffer_CreatePyObject(fb_python, false);
 }
 
 PyDoc_STRVAR(pygpu_framebuffer_is_bound_doc,
@@ -450,6 +457,100 @@ static PyObject *pygpu_framebuffer_viewport_get(BPyGPUFrameBuffer *self, void *U
   return ret;
 }
 
+PyDoc_STRVAR(
+    pygpu_framebuffer_read_color_doc,
+    ".. function:: read_color(x, y, xsize, ysize, channels, slot, format, data=data)\n"
+    "\n"
+    "   Read a block of pixels from the frame buffer.\n"
+    "\n"
+    "   :param x, y: Lower left corner of a rectangular block of pixels.\n"
+    "   :param xsize, ysize: Dimensions of the pixel rectangle.\n"
+    "   :type x, y, xsize, ysize: int\n"
+    "   :param channels: Number of components to read.\n"
+    "   :type channels: int\n"
+    "   :param slot: The framebuffer slot to read data from.\n"
+    "   :type slot: int\n"
+    "   :param format: The format that describes the content of a single channel.\n"
+    "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
+    "   :type type: str\n"
+    "   :arg data: Optional Buffer object to fill with the pixels values.\n"
+    "   :type data: :class:`gpu.types.Buffer`\n"
+    "   :return: The Buffer with the read pixels.\n"
+    "   :rtype: :class:`gpu.types.Buffer`\n");
+static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
+                                              PyObject *args,
+                                              PyObject *kwds)
+{
+  PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
+  int x, y, w, h, channels;
+  uint slot;
+  struct PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_RGBA8};
+  BPyGPUBuffer *py_buffer = NULL;
+
+  static const char *_keywords[] = {
+      "x", "y", "xsize", "ysize", "channels", "slot", "format", "data", NULL};
+  static _PyArg_Parser _parser = {"iiiiiIO&|$O!:GPUTexture.__new__", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        &x,
+                                        &y,
+                                        &w,
+                                        &h,
+                                        &channels,
+                                        &slot,
+                                        PyC_ParseStringEnum,
+                                        &pygpu_dataformat,
+                                        &BPyGPU_BufferType,
+                                        &py_buffer)) {
+    return NULL;
+  }
+
+  if (!IN_RANGE_INCL(channels, 1, 4)) {
+    PyErr_SetString(PyExc_AttributeError, "Color channels must be 1, 2, 3 or 4");
+    return NULL;
+  }
+
+  if (slot >= BPYGPU_FB_MAX_COLOR_ATTACHMENT) {
+    PyErr_SetString(PyExc_ValueError, "slot overflow");
+    return NULL;
+  }
+
+  if (py_buffer) {
+    if (pygpu_dataformat.value_found != py_buffer->format) {
+      PyErr_SetString(PyExc_AttributeError,
+                      "the format of the buffer is different from that specified");
+      return NULL;
+    }
+
+    size_t size_curr = bpygpu_Buffer_size(py_buffer);
+    size_t size_expected = w * h * channels *
+                           GPU_texture_dataformat_size(pygpu_dataformat.value_found);
+    if (size_curr < size_expected) {
+      PyErr_SetString(PyExc_BufferError, "the buffer size is smaller than expected");
+      return NULL;
+    }
+  }
+  else {
+    py_buffer = BPyGPU_Buffer_CreatePyObject(
+        pygpu_dataformat.value_found, (Py_ssize_t[3]){h, w, channels}, 3, NULL);
+    BLI_assert(bpygpu_Buffer_size(py_buffer) ==
+               w * h * channels * GPU_texture_dataformat_size(pygpu_dataformat.value_found));
+  }
+
+  GPU_framebuffer_read_color(self->fb,
+                             x,
+                             y,
+                             w,
+                             h,
+                             channels,
+                             (int)slot,
+                             pygpu_dataformat.value_found,
+                             py_buffer->buf.as_void);
+
+  return (PyObject *)py_buffer;
+}
+
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
 PyDoc_STRVAR(pygpu_framebuffer_free_doc,
              ".. method:: free()\n"
@@ -459,15 +560,14 @@ PyDoc_STRVAR(pygpu_framebuffer_free_doc,
 static PyObject *pygpu_framebuffer_free(BPyGPUFrameBuffer *self)
 {
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
-  pygpu_framebuffer_free_if_possible(self->fb);
-  self->fb = NULL;
+  pygpu_framebuffer_free_safe(self);
   Py_RETURN_NONE;
 }
 #endif
 
 static void BPyGPUFrameBuffer__tp_dealloc(BPyGPUFrameBuffer *self)
 {
-  pygpu_framebuffer_free_if_possible(self->fb);
+  pygpu_framebuffer_free_safe(self);
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -494,6 +594,10 @@ static struct PyMethodDef pygpu_framebuffer__tp_methods[] = {
      (PyCFunction)pygpu_framebuffer_viewport_get,
      METH_NOARGS,
      pygpu_framebuffer_viewport_get_doc},
+    {"read_color",
+     (PyCFunction)pygpu_framebuffer_read_color,
+     METH_VARARGS | METH_KEYWORDS,
+     pygpu_framebuffer_read_color_doc},
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
     {"free", (PyCFunction)pygpu_framebuffer_free, METH_NOARGS, pygpu_framebuffer_free_doc},
 #endif
@@ -531,12 +635,34 @@ PyTypeObject BPyGPUFrameBuffer_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb)
+PyObject *BPyGPUFrameBuffer_CreatePyObject(GPUFrameBuffer *fb, bool shared_reference)
 {
   BPyGPUFrameBuffer *self;
 
+#ifndef GPU_NO_USE_PY_REFERENCES
+  if (shared_reference) {
+    void **ref = GPU_framebuffer_py_reference_get(fb);
+    if (ref) {
+      /* Retrieve BPyGPUFrameBuffer reference. */
+      self = (BPyGPUFrameBuffer *)POINTER_OFFSET(ref, -offsetof(BPyGPUFrameBuffer, fb));
+      BLI_assert(self->fb == fb);
+      Py_INCREF(self);
+      return (PyObject *)self;
+    }
+  }
+#else
+  UNUSED_VARS(shared_reference);
+#endif
+
   self = PyObject_New(BPyGPUFrameBuffer, &BPyGPUFrameBuffer_Type);
   self->fb = fb;
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+  self->shared_reference = shared_reference;
+
+  BLI_assert(GPU_framebuffer_py_reference_get(fb) == NULL);
+  GPU_framebuffer_py_reference_set(fb, (void **)&self->fb);
+#endif
 
   return (PyObject *)self;
 }

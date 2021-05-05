@@ -621,19 +621,23 @@ class Map {
     }
   }
 
-  /**
-   * A utility iterator that reduces the amount of code when implementing the actual iterators.
-   * This uses the "curiously recurring template pattern" (CRTP).
-   */
-  template<typename SubIterator> struct BaseIterator {
+  /* Common base class for all iterators below. */
+  struct BaseIterator {
+   public:
     using iterator_category = std::forward_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
+   protected:
+    /* We could have separate base iterators for const and non-const iterators, but that would add
+     * more complexity than benefits right now. */
     Slot *slots_;
     int64_t total_slots_;
     int64_t current_slot_;
 
-    BaseIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
+    friend Map;
+
+   public:
+    BaseIterator(const Slot *slots, const int64_t total_slots, const int64_t current_slot)
         : slots_(const_cast<Slot *>(slots)), total_slots_(total_slots), current_slot_(current_slot)
     {
     }
@@ -667,11 +671,29 @@ class Map {
       return !(a != b);
     }
 
+   protected:
+    Slot &current_slot() const
+    {
+      return slots_[current_slot_];
+    }
+  };
+
+  /**
+   * A utility iterator that reduces the amount of code when implementing the actual iterators.
+   * This uses the "curiously recurring template pattern" (CRTP).
+   */
+  template<typename SubIterator> class BaseIteratorRange : public BaseIterator {
+   public:
+    BaseIteratorRange(const Slot *slots, int64_t total_slots, int64_t current_slot)
+        : BaseIterator(slots, total_slots, current_slot)
+    {
+    }
+
     SubIterator begin() const
     {
-      for (int64_t i = 0; i < total_slots_; i++) {
-        if (slots_[i].is_occupied()) {
-          return SubIterator(slots_, total_slots_, i);
+      for (int64_t i = 0; i < this->total_slots_; i++) {
+        if (this->slots_[i].is_occupied()) {
+          return SubIterator(this->slots_, this->total_slots_, i);
         }
       }
       return this->end();
@@ -679,23 +701,18 @@ class Map {
 
     SubIterator end() const
     {
-      return SubIterator(slots_, total_slots_, total_slots_);
-    }
-
-    Slot &current_slot() const
-    {
-      return slots_[current_slot_];
+      return SubIterator(this->slots_, this->total_slots_, this->total_slots_);
     }
   };
 
-  class KeyIterator final : public BaseIterator<KeyIterator> {
+  class KeyIterator final : public BaseIteratorRange<KeyIterator> {
    public:
     using value_type = Key;
     using pointer = const Key *;
     using reference = const Key &;
 
     KeyIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
-        : BaseIterator<KeyIterator>(slots, total_slots, current_slot)
+        : BaseIteratorRange<KeyIterator>(slots, total_slots, current_slot)
     {
     }
 
@@ -705,14 +722,14 @@ class Map {
     }
   };
 
-  class ValueIterator final : public BaseIterator<ValueIterator> {
+  class ValueIterator final : public BaseIteratorRange<ValueIterator> {
    public:
     using value_type = Value;
     using pointer = const Value *;
     using reference = const Value &;
 
     ValueIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
-        : BaseIterator<ValueIterator>(slots, total_slots, current_slot)
+        : BaseIteratorRange<ValueIterator>(slots, total_slots, current_slot)
     {
     }
 
@@ -722,14 +739,14 @@ class Map {
     }
   };
 
-  class MutableValueIterator final : public BaseIterator<MutableValueIterator> {
+  class MutableValueIterator final : public BaseIteratorRange<MutableValueIterator> {
    public:
     using value_type = Value;
     using pointer = Value *;
     using reference = Value &;
 
-    MutableValueIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
-        : BaseIterator<MutableValueIterator>(slots, total_slots, current_slot)
+    MutableValueIterator(Slot *slots, int64_t total_slots, int64_t current_slot)
+        : BaseIteratorRange<MutableValueIterator>(slots, total_slots, current_slot)
     {
     }
 
@@ -754,14 +771,14 @@ class Map {
     }
   };
 
-  class ItemIterator final : public BaseIterator<ItemIterator> {
+  class ItemIterator final : public BaseIteratorRange<ItemIterator> {
    public:
     using value_type = Item;
     using pointer = Item *;
     using reference = Item &;
 
     ItemIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
-        : BaseIterator<ItemIterator>(slots, total_slots, current_slot)
+        : BaseIteratorRange<ItemIterator>(slots, total_slots, current_slot)
     {
     }
 
@@ -772,14 +789,14 @@ class Map {
     }
   };
 
-  class MutableItemIterator final : public BaseIterator<MutableItemIterator> {
+  class MutableItemIterator final : public BaseIteratorRange<MutableItemIterator> {
    public:
     using value_type = MutableItem;
     using pointer = MutableItem *;
     using reference = MutableItem &;
 
-    MutableItemIterator(const Slot *slots, int64_t total_slots, int64_t current_slot)
-        : BaseIterator<MutableItemIterator>(slots, total_slots, current_slot)
+    MutableItemIterator(Slot *slots, int64_t total_slots, int64_t current_slot)
+        : BaseIteratorRange<MutableItemIterator>(slots, total_slots, current_slot)
     {
     }
 
@@ -837,6 +854,19 @@ class Map {
   MutableItemIterator items()
   {
     return MutableItemIterator(slots_.data(), slots_.size(), 0);
+  }
+
+  /**
+   * Remove the key-value-pair that the iterator is currently pointing at.
+   * It is valid to call this method while iterating over the map. However, after this method has
+   * been called, the removed element must not be accessed anymore.
+   */
+  void remove(const BaseIterator &iterator)
+  {
+    Slot &slot = iterator.current_slot();
+    BLI_assert(slot.is_occupied());
+    slot.remove();
+    removed_slots_++;
   }
 
   /**

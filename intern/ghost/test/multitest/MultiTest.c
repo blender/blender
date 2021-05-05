@@ -926,7 +926,7 @@ void multitestapp_exit(MultiTestApp *app)
 void multitestapp_run(MultiTestApp *app)
 {
   while (!app->exit) {
-    GHOST_ProcessEvents(app->sys, 1);
+    GHOST_ProcessEvents(app->sys, true);
     GHOST_DispatchEvents(app->sys);
   }
 }

@@ -560,10 +560,12 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   if (!cancel && !motion) {
     sync_background_light(b_v3d, use_portal);
 
-    /* handle removed data and modified pointers */
+    /* Handle removed data and modified pointers, as this may free memory, delete Nodes in the
+     * right order to ensure that dependent data is freed after their users. Objects should be
+     * freed before particle systems and geometries. */
     light_map.post_sync();
-    geometry_map.post_sync();
     object_map.post_sync();
+    geometry_map.post_sync();
     particle_system_map.post_sync();
   }
 

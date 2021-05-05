@@ -133,7 +133,7 @@ static struct WMInitStruct {
  * \{ */
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
-static int wm_window_timer(const bContext *C);
+static bool wm_window_timer(const bContext *C);
 
 /* XXX this one should correctly check for apple top header...
  * done for Cocoa : returns window contents (and not frame) max size*/
@@ -1498,12 +1498,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
  * Timer handlers should check for delta to decide if they just update, or follow real time.
  * Timer handlers can also set duration to match frames passed
  */
-static int wm_window_timer(const bContext *C)
+static bool wm_window_timer(const bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   double time = PIL_check_seconds_timer();
-  int retval = 0;
+  bool has_event = false;
 
   /* Mutable in case the timer gets removed. */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
@@ -1540,31 +1540,34 @@ static int wm_window_timer(const bContext *C)
         event.customdata = wt;
         wm_event_add(win, &event);
 
-        retval = 1;
+        has_event = true;
       }
     }
   }
-  return retval;
+  return has_event;
 }
 
 void wm_window_process_events(const bContext *C)
 {
   BLI_assert(BLI_thread_is_main());
 
-  int hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
+  bool has_event = GHOST_ProcessEvents(g_system, false); /* `false` is no wait. */
 
-  if (hasevent) {
+  if (has_event) {
     GHOST_DispatchEvents(g_system);
   }
-  hasevent |= wm_window_timer(C);
+  has_event |= wm_window_timer(C);
 #ifdef WITH_XR_OPENXR
   /* XR events don't use the regular window queues. So here we don't only trigger
    * processing/dispatching but also handling. */
-  hasevent |= wm_xr_events_handle(CTX_wm_manager(C));
+  has_event |= wm_xr_events_handle(CTX_wm_manager(C));
 #endif
 
-  /* no event, we sleep 5 milliseconds */
-  if (hasevent == 0) {
+  /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle.
+   *
+   * Skip sleeping when simulating events so tests don't idle unnecessarily as simulated
+   * events are typically generated from a timer that runs in the main loop. */
+  if ((has_event == false) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
     PIL_sleep_ms(5);
   }
 }

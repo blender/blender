@@ -1015,7 +1015,6 @@ void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
 {
   const float total_length = BKE_curveprofile_total_length(profile);
   const float segment_length = total_length / n_segments;
-  float length_travelled = 0.0f;
   float distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, 0);
   float distance_to_previous_table_point = 0.0f;
   int i_table = 0;
@@ -1029,7 +1028,6 @@ void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
   for (int i = 1; i < n_segments; i++) {
     /* Travel over all of the points that fit inside this segment. */
     while (distance_to_next_table_point < segment_left) {
-      length_travelled += distance_to_next_table_point;
       segment_left -= distance_to_next_table_point;
       i_table++;
       distance_to_next_table_point = curveprofile_distance_to_next_table_point(profile, i_table);
@@ -1057,7 +1055,6 @@ void BKE_curveprofile_create_samples_even_spacing(CurveProfile *profile,
     /* We sampled in between this table point and the next, so the next travel step is smaller. */
     distance_to_next_table_point -= segment_left;
     distance_to_previous_table_point += segment_left;
-    length_travelled += segment_left;
     segment_left = segment_length;
   }
 }

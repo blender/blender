@@ -1,5 +1,4 @@
 import bpy
-import bgl
 import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
@@ -17,16 +16,16 @@ def draw_callback_px(self, context):
 
     # 50% alpha, 2 pixel width line
     shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glLineWidth(2)
+    gpu.state.blend_set('ALPHA')
+    gpu.state.line_width_set(2.0)
     batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": self.mouse_path})
     shader.bind()
     shader.uniform_float("color", (0.0, 0.0, 0.0, 0.5))
     batch.draw(shader)
 
     # restore opengl defaults
-    bgl.glLineWidth(1)
-    bgl.glDisable(bgl.GL_BLEND)
+    gpu.state.line_width_set(1.0)
+    gpu.state.blend_set('NONE')
 
 
 class ModalDrawOperator(bpy.types.Operator):

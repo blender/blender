@@ -70,12 +70,15 @@ enum {
   /** That ID is used as library override's reference by its owner. */
   IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE = (1 << 5),
 
+  /** That ID pointer is not overridable. */
+  IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE = (1 << 6),
+
   /**
    * Indicates that this is an internal runtime ID pointer, like e.g. `ID.newid` or `ID.original`.
    * \note Those should be ignored in most cases, and won't be processed/generated anyway unless
    * `IDWALK_DO_INTERNAL_RUNTIME_POINTERS` option is enabled.
    */
-  IDWALK_CB_INTERNAL = (1 << 6),
+  IDWALK_CB_INTERNAL = (1 << 7),
 
   /**
    * This ID usage is fully refcounted.

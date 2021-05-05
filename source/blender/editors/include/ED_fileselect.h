@@ -110,7 +110,7 @@ struct FileAssetSelectParams *ED_fileselect_get_asset_params(const struct SpaceF
 
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
-                                     const int temp_win_size[],
+                                     const int temp_win_size[2],
                                      const bool is_maximized);
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);

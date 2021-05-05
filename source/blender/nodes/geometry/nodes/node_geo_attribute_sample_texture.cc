@@ -15,6 +15,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_task.hh"
 
 #include "DNA_texture_types.h"
 
@@ -95,14 +96,17 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
       mapping_name, result_domain, {0, 0, 0});
 
   MutableSpan<Color4f> colors = attribute_out.as_span();
-  for (const int i : IndexRange(mapping_attribute.size())) {
-    TexResult texture_result = {0};
-    const float3 position = mapping_attribute[i];
-    /* For legacy reasons we have to map [0, 1] to [-1, 1] to support uv mappings. */
-    const float3 remapped_position = position * 2.0f - float3(1.0f);
-    BKE_texture_get_value(nullptr, texture, remapped_position, &texture_result, false);
-    colors[i] = {texture_result.tr, texture_result.tg, texture_result.tb, texture_result.ta};
-  }
+  parallel_for(IndexRange(mapping_attribute.size()), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      TexResult texture_result = {0};
+      const float3 position = mapping_attribute[i];
+      /* For legacy reasons we have to map [0, 1] to [-1, 1] to support uv mappings. */
+      const float3 remapped_position = position * 2.0f - float3(1.0f);
+      BKE_texture_get_value(nullptr, texture, remapped_position, &texture_result, false);
+      colors[i] = {texture_result.tr, texture_result.tg, texture_result.tb, texture_result.ta};
+    }
+  });
+
   attribute_out.save();
 }
 
@@ -117,6 +121,9 @@ static void geo_node_attribute_sample_texture_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<PointCloudComponent>()) {
     execute_on_component(geometry_set.get_component_for_write<PointCloudComponent>(), params);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    execute_on_component(geometry_set.get_component_for_write<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", geometry_set);

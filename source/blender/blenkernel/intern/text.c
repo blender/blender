@@ -171,6 +171,9 @@ static void text_free_data(ID *id)
 
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
+  if (id->us < 1 && !BLO_write_is_undo(writer)) {
+    return;
+  }
   Text *text = (Text *)id;
 
   /* Note: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
@@ -231,8 +234,6 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   text->flags = (text->flags) & ~TXT_ISEXT;
-
-  id_us_ensure_real(&text->id);
 }
 
 IDTypeInfo IDType_ID_TXT = {
@@ -293,8 +294,10 @@ Text *BKE_text_add(Main *bmain, const char *name)
   Text *ta;
 
   ta = BKE_id_new(bmain, ID_TXT, name);
-  /* Texts always have 'real' user (see also read code). */
-  id_us_ensure_real(&ta->id);
+  /* Texts have no users by default... Set the fake user flag to ensure that this text block
+   * doesn't get deleted by default when cleaning up data blocks. */
+  id_us_min(&ta->id);
+  id_fake_user_set(&ta->id);
 
   return ta;
 }
@@ -468,7 +471,7 @@ bool BKE_text_reload(Text *text)
  * \param is_internal: If \a true, this text data-block only exists in memory,
  * not as a file on disk.
  *
- * \note text data-blocks have no user by default, only the 'real user' flag.
+ * \note text data-blocks have no real user but have 'fake user' enabled by default
  */
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
 {
@@ -489,9 +492,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   }
 
   ta = BKE_libblock_alloc(bmain, ID_TXT, BLI_path_basename(filepath_abs), 0);
-  /* Texts have no user by default... Only the 'real' user flag. */
-  id_us_ensure_real(&ta->id);
   id_us_min(&ta->id);
+  id_fake_user_set(&ta->id);
 
   BLI_listbase_clear(&ta->lines);
   ta->curl = ta->sell = NULL;

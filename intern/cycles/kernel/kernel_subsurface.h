@@ -606,10 +606,10 @@ ccl_device_noinline
       t = ray->t;
     }
     else if (bounce == 0) {
-      /* Restore original position if nothing was hit after the first bounce.
-       * Otherwise if the ray_offset() to avoid self-intersection is relatively
-       * large compared to the scattering radius, we go never backup high enough
-       * to exit the surface. */
+      /* Restore original position if nothing was hit after the first bounce,
+       * without the ray_offset() that was added to avoid self-intersection.
+       * Otherwise if that offset is relatively large compared to the scattering
+       * radius, we never go back up high enough to exit the surface. */
       ray->P = sd->P;
     }
 

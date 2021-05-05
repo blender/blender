@@ -141,6 +141,14 @@ bool ED_operator_screenactive(bContext *C)
   return true;
 }
 
+bool ED_operator_screenactive_nobackground(bContext *C)
+{
+  if (G.background) {
+    return false;
+  }
+  return ED_operator_screenactive(C);
+}
+
 /* XXX added this to prevent anim state to change during renders */
 static bool ED_operator_screenactive_norender(bContext *C)
 {
@@ -4959,7 +4967,7 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = userpref_show_exec;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
 }
 
 /** \} */
@@ -5036,7 +5044,7 @@ static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = drivers_editor_show_exec;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_screenactive_nobackground; /* Not in background as this opens a window. */
 }
 
 /** \} */
@@ -5080,7 +5088,7 @@ static void SCREEN_OT_info_log_show(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = info_log_show_exec;
-  ot->poll = ED_operator_screenactive;
+  ot->poll = ED_operator_screenactive_nobackground;
 }
 
 /** \} */

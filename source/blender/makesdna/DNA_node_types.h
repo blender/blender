@@ -1280,10 +1280,9 @@ typedef struct NodeAttributeSeparateXYZ {
 
 typedef struct NodeAttributeConvert {
   /* CustomDataType. */
-  uint8_t data_type;
-  char _pad[1];
+  int8_t data_type;
   /* AttributeDomain. */
-  int16_t domain;
+  int8_t domain;
 } NodeAttributeConvert;
 
 typedef struct NodeGeometryMeshCircle {

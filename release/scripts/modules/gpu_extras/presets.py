@@ -57,12 +57,12 @@ def draw_circle_2d(position, color, radius, segments=32):
         batch.draw()
 
 
-def draw_texture_2d(texture_id, position, width, height):
+def draw_texture_2d(texture, position, width, height):
     """
     Draw a 2d texture.
 
-    :arg texture_id: OpenGL id of the texture (e.g. :class:`bpy.types.Image.bindcode`).
-    :type texture_id: int
+    :arg texture: GPUTexture to draw (e.g. gpu.texture.from_image(image) for :class:`bpy.types.Image`).
+    :type texture: :class:`gpu.types.GPUTexture`
     :arg position: Position of the lower left corner.
     :type position: 2D Vector
     :arg width: Width of the image when drawn (not necessarily
@@ -72,7 +72,6 @@ def draw_texture_2d(texture_id, position, width, height):
     :type height: float
     """
     import gpu
-    import bgl
     from . batch import batch_for_shader
 
     coords = ((0, 0), (1, 0), (1, 1), (0, 1))
@@ -83,14 +82,20 @@ def draw_texture_2d(texture_id, position, width, height):
         {"pos": coords, "texCoord": coords},
     )
 
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
-
     with gpu.matrix.push_pop():
         gpu.matrix.translate(position)
         gpu.matrix.scale((width, height))
 
         shader = gpu.shader.from_builtin('2D_IMAGE')
         shader.bind()
-        shader.uniform_int("image", 0)
+
+        if isinstance(texture, int):
+            # Call the legacy bgl to not break the existing API
+            import bgl
+            bgl.glActiveTexture(bgl.GL_TEXTURE0)
+            bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture)
+            shader.uniform_int("image", 0)
+        else:
+            shader.uniform_sampler("image", texture)
+
         batch.draw(shader)

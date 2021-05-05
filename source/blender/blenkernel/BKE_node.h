@@ -410,6 +410,9 @@ typedef struct bNodeTreeType {
 
   void (*node_add_init)(struct bNodeTree *ntree, struct bNode *bnode);
 
+  /* Check if the socket type is valid for this tree type. */
+  bool (*valid_socket_type)(enum eNodeSocketDatatype socket_type, struct bNodeTreeType *ntreetype);
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 } bNodeTreeType;
@@ -1415,6 +1418,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_BOUNDING_BOX 1042
 #define GEO_NODE_SWITCH 1043
 #define GEO_NODE_ATTRIBUTE_TRANSFER 1044
+#define GEO_NODE_CURVE_TO_MESH 1045
 
 /** \} */
 

@@ -36,6 +36,7 @@ typedef enum eSeqLoadFlags {
   SEQ_LOAD_SOUND_CACHE = (1 << 1),
   SEQ_LOAD_SOUND_MONO = (1 << 2),
   SEQ_LOAD_MOVIE_SYNC_FPS = (1 << 3),
+  SEQ_LOAD_SET_VIEW_TRANSFORM = (1 << 4),
 } eSeqLoadFlags;
 
 /* Api for adding new sequence strips. */

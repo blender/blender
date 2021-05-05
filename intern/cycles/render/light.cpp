@@ -159,6 +159,7 @@ NODE_DEFINE(Light)
 
 Light::Light() : Node(get_node_type())
 {
+  dereference_all_used_nodes();
 }
 
 void Light::tag_update(Scene *scene)
@@ -864,7 +865,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
       const float min_spread_angle = 1.0f * M_PI_F / 180.0f;
       const float spread_angle = 0.5f * (M_PI_F - max(light->spread, min_spread_angle));
       /* Normalization computed using:
-       * integrate cos(x) (1 - tan(x) * tan(a)) * sin(x) from x = a to pi/2. */
+       * integrate cos(x) * (1 - tan(x) * tan(a)) * sin(x) from x = 0 to pi/2 - a. */
       const float tan_spread = tanf(spread_angle);
       const float normalize_spread = 2.0f / (2.0f + (2.0f * spread_angle - M_PI_F) * tan_spread);
 

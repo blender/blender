@@ -65,8 +65,8 @@ static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
       seed_socket, type == GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION && !use_whole_collection);
 }
 
-static void get_instanced_data__object(const GeoNodeExecParams &params,
-                                       MutableSpan<std::optional<InstancedData>> r_instances_data)
+static void get_instance_references__object(const GeoNodeExecParams &params,
+                                            MutableSpan<InstanceReference> r_references)
 {
   bke::PersistentObjectHandle object_handle = params.get_input<bke::PersistentObjectHandle>(
       "Object");
@@ -75,17 +75,13 @@ static void get_instanced_data__object(const GeoNodeExecParams &params,
     object = nullptr;
   }
   if (object != nullptr) {
-    InstancedData instance;
-    instance.type = INSTANCE_DATA_TYPE_OBJECT;
-    instance.data.object = object;
-    r_instances_data.fill(instance);
+    r_references.fill(*object);
   }
 }
 
-static void get_instanced_data__collection(
-    const GeoNodeExecParams &params,
-    const GeometryComponent &component,
-    MutableSpan<std::optional<InstancedData>> r_instances_data)
+static void get_instance_references__collection(const GeoNodeExecParams &params,
+                                                const GeometryComponent &component,
+                                                MutableSpan<InstanceReference> r_references)
 {
   const bNode &node = params.node();
   NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
@@ -106,62 +102,51 @@ static void get_instanced_data__collection(
   const bool use_whole_collection = (node_storage->flag &
                                      GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION) != 0;
   if (use_whole_collection) {
-    InstancedData instance;
-    instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-    instance.data.collection = collection;
-    r_instances_data.fill(instance);
+    r_references.fill(*collection);
   }
   else {
-    Vector<InstancedData> possible_instances;
+    Vector<InstanceReference> possible_references;
     /* Direct child objects are instanced as objects. */
     LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-      Object *object = cob->ob;
-      InstancedData instance;
-      instance.type = INSTANCE_DATA_TYPE_OBJECT;
-      instance.data.object = object;
-      possible_instances.append(instance);
+      possible_references.append(*cob->ob);
     }
     /* Direct child collections are instanced as collections. */
     LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-      Collection *child_collection = child->collection;
-      InstancedData instance;
-      instance.type = INSTANCE_DATA_TYPE_COLLECTION;
-      instance.data.collection = child_collection;
-      possible_instances.append(instance);
+      possible_references.append(*child->collection);
     }
 
-    if (!possible_instances.is_empty()) {
+    if (!possible_references.is_empty()) {
       const int seed = params.get_input<int>("Seed");
       Array<uint32_t> ids = get_geometry_element_ids_as_uints(component, ATTR_DOMAIN_POINT);
-      for (const int i : r_instances_data.index_range()) {
-        const int index = BLI_hash_int_2d(ids[i], seed) % possible_instances.size();
-        r_instances_data[i] = possible_instances[index];
+      for (const int i : r_references.index_range()) {
+        const int index = BLI_hash_int_2d(ids[i], seed) % possible_references.size();
+        r_references[i] = possible_references[index];
       }
     }
   }
 }
 
-static Array<std::optional<InstancedData>> get_instanced_data(const GeoNodeExecParams &params,
-                                                              const GeometryComponent &component,
-                                                              const int amount)
+static Array<InstanceReference> get_instance_references(const GeoNodeExecParams &params,
+                                                        const GeometryComponent &component,
+                                                        const int amount)
 {
   const bNode &node = params.node();
   NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
   const GeometryNodePointInstanceType type = (GeometryNodePointInstanceType)
                                                  node_storage->instance_type;
-  Array<std::optional<InstancedData>> instances_data(amount);
+  Array<InstanceReference> references(amount);
 
   switch (type) {
     case GEO_NODE_POINT_INSTANCE_TYPE_OBJECT: {
-      get_instanced_data__object(params, instances_data);
+      get_instance_references__object(params, references);
       break;
     }
     case GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION: {
-      get_instanced_data__collection(params, component, instances_data);
+      get_instance_references__collection(params, component, references);
       break;
     }
   }
-  return instances_data;
+  return references;
 }
 
 static void add_instances_from_geometry_component(InstancesComponent &instances,
@@ -171,8 +156,7 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
 
   const int domain_size = src_geometry.attribute_domain_size(domain);
-  Array<std::optional<InstancedData>> instances_data = get_instanced_data(
-      params, src_geometry, domain_size);
+  Array<InstanceReference> references = get_instance_references(params, src_geometry, domain_size);
 
   GVArray_Typed<float3> positions = src_geometry.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
@@ -183,9 +167,11 @@ static void add_instances_from_geometry_component(InstancesComponent &instances,
   GVArray_Typed<int> ids = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
   for (const int i : IndexRange(domain_size)) {
-    if (instances_data[i].has_value()) {
+    const InstanceReference &reference = references[i];
+    if (reference.type() != InstanceReference::Type::None) {
       const float4x4 matrix = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
-      instances.add_instance(*instances_data[i], matrix, ids[i]);
+      const int handle = instances.add_reference(reference);
+      instances.add_instance(handle, matrix, ids[i]);
     }
   }
 }
@@ -207,6 +193,11 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     add_instances_from_geometry_component(
         instances, *geometry_set.get_component_for_read<PointCloudComponent>(), params);
+  }
+
+  if (geometry_set.has<CurveComponent>()) {
+    add_instances_from_geometry_component(
+        instances, *geometry_set.get_component_for_read<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", std::move(geometry_set_out));

@@ -205,6 +205,12 @@ static void composite_node_add_init(bNodeTree *UNUSED(bnodetree), bNode *bnode)
   }
 }
 
+static bool composite_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
+                                                  bNodeTreeType *UNUSED(ntreetype))
+{
+  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+}
+
 bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp(void)
@@ -227,6 +233,7 @@ void register_node_tree_type_cmp(void)
   tt->update = update;
   tt->get_from_context = composite_get_from_context;
   tt->node_add_init = composite_node_add_init;
+  tt->valid_socket_type = composite_node_tree_socket_type_valid;
 
   tt->rna_ext.srna = &RNA_CompositorNodeTree;
 

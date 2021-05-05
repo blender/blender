@@ -148,6 +148,9 @@ static void geo_node_attribute_separate_xyz_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     separate_attribute(geometry_set.get_component_for_write<PointCloudComponent>(), params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    separate_attribute(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

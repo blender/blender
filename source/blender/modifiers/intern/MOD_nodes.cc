@@ -182,7 +182,7 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
     if (object.type == OB_EMPTY && object.instance_collection != nullptr) {
       add_collection_relation(ctx, *object.instance_collection);
     }
-    else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME)) {
+    else if (ELEM(object.type, OB_MESH, OB_POINTCLOUD, OB_VOLUME, OB_CURVE)) {
       DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_GEOMETRY, "Nodes Modifier");
       DEG_add_customdata_mask(ctx->node, &object, &dependency_data_mask);
     }
@@ -1084,36 +1084,37 @@ static void draw_property_for_socket(uiLayout *layout,
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
-  if (property != nullptr && property_type->is_correct_type(*property)) {
+  if (property == nullptr || !property_type->is_correct_type(*property)) {
+    return;
+  }
 
-    char socket_id_esc[sizeof(socket.identifier) * 2];
-    BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
+  char socket_id_esc[sizeof(socket.identifier) * 2];
+  BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
 
-    char rna_path[sizeof(socket_id_esc) + 4];
-    BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
+  char rna_path[sizeof(socket_id_esc) + 4];
+  BLI_snprintf(rna_path, ARRAY_SIZE(rna_path), "[\"%s\"]", socket_id_esc);
 
-    /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
-     * information about what type of ID to select for editing the values. This is because
-     * pointer IDProperties contain no information about their type. */
-    switch (socket.type) {
-      case SOCK_OBJECT: {
-        uiItemPointerR(
-            layout, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
-        break;
-      }
-      case SOCK_COLLECTION: {
-        uiItemPointerR(layout,
-                       md_ptr,
-                       rna_path,
-                       bmain_ptr,
-                       "collections",
-                       socket.name,
-                       ICON_OUTLINER_COLLECTION);
-        break;
-      }
-      default:
-        uiItemR(layout, md_ptr, rna_path, 0, socket.name, ICON_NONE);
+  /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
+   * information about what type of ID to select for editing the values. This is because
+   * pointer IDProperties contain no information about their type. */
+  switch (socket.type) {
+    case SOCK_OBJECT: {
+      uiItemPointerR(
+          layout, md_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      break;
     }
+    case SOCK_COLLECTION: {
+      uiItemPointerR(layout,
+                     md_ptr,
+                     rna_path,
+                     bmain_ptr,
+                     "collections",
+                     socket.name,
+                     ICON_OUTLINER_COLLECTION);
+      break;
+    }
+    default:
+      uiItemR(layout, md_ptr, rna_path, 0, socket.name, ICON_NONE);
   }
 }
 

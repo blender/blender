@@ -1029,9 +1029,15 @@ static void gpencil_invert_image(tGPDfill *tgpf)
     /* Red->Green */
     else if (color[0] == 1.0f) {
       set_pixel(ibuf, v, fill_col[1]);
-      /* Add thickness of 2 pixels to avoid too thin lines. */
-      int offset = (v % ibuf->x < center) ? 1 : -1;
-      set_pixel(ibuf, v + offset, fill_col[1]);
+      /* Add thickness of 2 pixels to avoid too thin lines, but avoid extremes of the pixel line.
+       */
+      int row = v / ibuf->x;
+      int lowpix = row * ibuf->x;
+      int highpix = lowpix + ibuf->x - 1;
+      if ((v > lowpix) && (v < highpix)) {
+        int offset = (v % ibuf->x < center) ? 1 : -1;
+        set_pixel(ibuf, v + offset, fill_col[1]);
+      }
     }
     else {
       /* Set to Transparent. */
@@ -1241,6 +1247,7 @@ static bool dilate_shape(ImBuf *ibuf)
 static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
 {
   ImBuf *ibuf;
+  Brush *brush = tgpf->brush;
   float rgba[4];
   void *lock;
   int v[2];
@@ -1273,7 +1280,9 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
 
   /* Dilate. */
   if (dilate) {
-    dilate_shape(ibuf);
+    for (int i = 0; i < brush->gpencil_settings->dilate_pixels; i++) {
+      dilate_shape(ibuf);
+    }
   }
 
   for (int idx = imagesize - 1; idx != 0; idx--) {

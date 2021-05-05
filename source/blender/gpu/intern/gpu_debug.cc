@@ -86,8 +86,8 @@ bool GPU_debug_group_match(const char *ref)
   if (ctx == nullptr) {
     return false;
   }
-  DebugStack &stack = ctx->debug_stack;
-  for (StringRef &name : stack) {
+  const DebugStack &stack = ctx->debug_stack;
+  for (const StringRef &name : stack) {
     if (name == ref) {
       return true;
     }

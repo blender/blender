@@ -67,6 +67,9 @@ class OpenCLDevice : public Device {
    * \param vendorID:
    */
   OpenCLDevice(cl_context context, cl_device_id device, cl_program program, cl_int vendorId);
+
+  OpenCLDevice(OpenCLDevice &&other) noexcept;
+
   ~OpenCLDevice();
 
   /**

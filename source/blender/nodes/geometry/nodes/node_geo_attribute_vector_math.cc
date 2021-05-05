@@ -15,6 +15,7 @@
  */
 
 #include "BLI_math_base_safe.h"
+#include "BLI_task.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -181,12 +182,14 @@ static void do_math_operation_fl3_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 a = span_a[i];
-          const float3 b = span_b[i];
-          const float3 out = math_function(a, b);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 a = span_a[i];
+            const float3 b = span_b[i];
+            const float3 out = math_function(a, b);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -211,13 +214,15 @@ static void do_math_operation_fl3_fl3_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 a = span_a[i];
-          const float3 b = span_b[i];
-          const float3 c = span_c[i];
-          const float3 out = math_function(a, b, c);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 a = span_a[i];
+            const float3 b = span_b[i];
+            const float3 c = span_c[i];
+            const float3 out = math_function(a, b, c);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -242,13 +247,15 @@ static void do_math_operation_fl3_fl3_fl_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_fl_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 a = span_a[i];
-          const float3 b = span_b[i];
-          const float c = span_c[i];
-          const float3 out = math_function(a, b, c);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 a = span_a[i];
+            const float3 b = span_b[i];
+            const float c = span_c[i];
+            const float3 out = math_function(a, b, c);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -271,12 +278,14 @@ static void do_math_operation_fl3_fl3_to_fl(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 a = span_a[i];
-          const float3 b = span_b[i];
-          const float out = math_function(a, b);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 a = span_a[i];
+            const float3 b = span_b[i];
+            const float out = math_function(a, b);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -299,12 +308,14 @@ static void do_math_operation_fl3_fl_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 a = span_a[i];
-          const float b = span_b[i];
-          const float3 out = math_function(a, b);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 a = span_a[i];
+            const float b = span_b[i];
+            const float3 out = math_function(a, b);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -325,11 +336,13 @@ static void do_math_operation_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 in = span_a[i];
-          const float3 out = math_function(in);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 in = span_a[i];
+            const float3 out = math_function(in);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -350,11 +363,13 @@ static void do_math_operation_fl3_to_fl(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(size)) {
-          const float3 in = span_a[i];
-          const float out = math_function(in);
-          span_result[i] = out;
-        }
+        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            const float3 in = span_a[i];
+            const float out = math_function(in);
+            span_result[i] = out;
+          }
+        });
       });
 
   span_result.save();
@@ -509,6 +524,9 @@ static void geo_node_attribute_vector_math_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     attribute_vector_math_calc(geometry_set.get_component_for_write<PointCloudComponent>(),
                                params);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_vector_math_calc(geometry_set.get_component_for_write<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", geometry_set);

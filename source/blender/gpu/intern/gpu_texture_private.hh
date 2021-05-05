@@ -80,6 +80,13 @@ class Texture {
   int refcount = 1;
   /** Width & Height (of source data), optional. */
   int src_w = 0, src_h = 0;
+#ifndef GPU_NO_USE_PY_REFERENCES
+  /**
+   * Reference of a pointer that needs to be cleaned when deallocating the texture.
+   * Points to #BPyGPUTexture.tex
+   */
+  void **py_ref = nullptr;
+#endif
 
  protected:
   /* ---- Texture format (immutable after init). ---- */

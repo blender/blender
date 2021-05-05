@@ -477,7 +477,7 @@ int main(int argc, char **argv)
 
     /* Enter main loop */
     while (!sExitRequested) {
-      if (!GHOST_ProcessEvents(shSystem, 0)) {
+      if (!GHOST_ProcessEvents(shSystem, false)) {
 #ifdef WIN32
         /* If there were no events, be nice to other applications */
         Sleep(10);

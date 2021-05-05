@@ -357,6 +357,9 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
                              bool use_self,
                              IMeshArena *arena);
 
+/** Return an IMesh that is a triangulation of a mesh with general polygonal faces. */
+IMesh triangulate_polymesh(IMesh &imesh, IMeshArena *arena);
+
 /** This has the side effect of populating verts in the #IMesh. */
 void write_obj_mesh(IMesh &m, const std::string &objname);
 

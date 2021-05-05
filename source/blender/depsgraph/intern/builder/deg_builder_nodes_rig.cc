@@ -169,7 +169,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object, bool is_object_visible)
   }
   /* Speed optimization for animation lookups. */
   if (object->pose != nullptr) {
-    BKE_pose_channels_hash_make(object->pose);
+    BKE_pose_channels_hash_ensure(object->pose);
     if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
       BKE_pose_update_constraint_flags(object->pose);
     }
@@ -318,7 +318,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object, bool is_object_visibl
   /* Armature. */
   build_armature(armature);
   /* speed optimization for animation lookups */
-  BKE_pose_channels_hash_make(object->pose);
+  BKE_pose_channels_hash_ensure(object->pose);
   if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
     BKE_pose_update_constraint_flags(object->pose);
   }

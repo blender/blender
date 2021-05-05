@@ -117,6 +117,7 @@
 #include "ED_physics.h"
 #include "ED_render.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
@@ -482,9 +483,7 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
   if (local_view_bits) {
     View3D *v3d = CTX_wm_view3d(C);
-    if (v3d && v3d->localvd) {
-      *local_view_bits = v3d->local_view_uuid;
-    }
+    *local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
   }
 
   /* Location! */
@@ -2628,6 +2627,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
   int a, mballConverted = 0;
   bool gpencilConverted = false;
+  bool gpencilCurveConverted = false;
 
   /* don't forget multiple users! */
 
@@ -2912,6 +2912,16 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         /* meshes doesn't use displist */
         BKE_object_free_curve_cache(newob);
       }
+      else if (target == OB_GPENCIL) {
+        ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+        Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
+        copy_v3_v3(ob_gpencil->rot, newob->rot);
+        copy_v3_v3(ob_gpencil->scale, newob->scale);
+        BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, newob, false, 1.0f, 0.0f);
+        gpencilConverted = true;
+        gpencilCurveConverted = true;
+        basen = NULL;
+      }
     }
     else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
       ob->flag |= OB_DONE;
@@ -3088,6 +3098,17 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           if (ob_delete->flag & OB_DONE) {
             ED_object_base_free_and_unlink(bmain, scene, ob_delete);
           }
+        }
+      }
+      FOREACH_SCENE_OBJECT_END;
+    }
+  }
+  else {
+    /* Remove Text curves converted to Grease Pencil object to avoid duplicated curves. */
+    if (gpencilCurveConverted) {
+      FOREACH_SCENE_OBJECT_BEGIN (scene, ob_delete) {
+        if (ELEM(ob_delete->type, OB_CURVE) && (ob_delete->flag & OB_DONE)) {
+          ED_object_base_free_and_unlink(bmain, scene, ob_delete);
         }
       }
       FOREACH_SCENE_OBJECT_END;
@@ -3410,7 +3431,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
 
   /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
    * BKE_view_layer_base_deselect_all(). */
-  ED_object_base_deselect_all(view_layer, NULL, BA_DESELECT);
+  ED_object_base_deselect_all(view_layer, NULL, SEL_DESELECT);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_activate(C, basen);
 

@@ -132,7 +132,6 @@ class Shader : public Node {
 
   /* determined before compiling */
   uint id;
-  bool used;
 
 #ifdef WITH_OSL
   /* osl shading state references */
@@ -187,10 +186,11 @@ class ShaderManager {
   }
 
   /* device update */
-  virtual void device_update(Device *device,
-                             DeviceScene *dscene,
-                             Scene *scene,
-                             Progress &progress) = 0;
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  virtual void device_update_specific(Device *device,
+                                      DeviceScene *dscene,
+                                      Scene *scene,
+                                      Progress &progress) = 0;
   virtual void device_free(Device *device, DeviceScene *dscene, Scene *scene) = 0;
 
   void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
@@ -208,7 +208,6 @@ class ShaderManager {
   static void add_default(Scene *scene);
 
   /* Selective nodes compilation. */
-  void update_shaders_used(Scene *scene);
   void get_requested_features(Scene *scene, DeviceRequestedFeatures *requested_features);
 
   static void free_memory();

@@ -84,6 +84,21 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
   func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
+static bool geometry_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
+                                                 bNodeTreeType *UNUSED(ntreetype))
+{
+  return ELEM(socket_type,
+              SOCK_FLOAT,
+              SOCK_VECTOR,
+              SOCK_RGBA,
+              SOCK_BOOLEAN,
+              SOCK_INT,
+              SOCK_STRING,
+              SOCK_OBJECT,
+              SOCK_GEOMETRY,
+              SOCK_COLLECTION);
+}
+
 void register_node_tree_type_geo(void)
 {
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
@@ -97,6 +112,7 @@ void register_node_tree_type_geo(void)
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;
   tt->foreach_nodeclass = foreach_nodeclass;
+  tt->valid_socket_type = geometry_node_tree_socket_type_valid;
 
   ntreeTypeAdd(tt);
 }
