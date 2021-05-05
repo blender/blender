@@ -6830,6 +6830,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
   uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
   uiBlock *block = uiLayoutGetBlock(ui_abs);
+  eUIEmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widgetlabel);
   int width = BLF_width(style->widgetlabel.uifont_id, report->message, report->len);
@@ -6904,6 +6905,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                   width + UI_UNIT_X,
                   UI_UNIT_Y,
                   "Show in Info Log");
+
+  UI_block_emboss_set(block, previous_emboss);
 }
 
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C)
