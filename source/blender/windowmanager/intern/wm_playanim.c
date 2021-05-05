@@ -1550,8 +1550,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
   BLI_freelistN(&picsbase);
+
+#ifdef USE_FRAME_CACHE_LIMIT
   BLI_freelistN(&inmempicsbase);
   added_images = 0;
+#endif
 
 #ifdef WITH_AUDASPACE
   if (playback_handle) {
