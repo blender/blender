@@ -73,8 +73,8 @@ void FILE_OT_pack_libraries(wmOperatorType *ot)
   ot->name = "Pack Linked Libraries";
   ot->idname = "FILE_OT_pack_libraries";
   ot->description =
-      "Store all data-blocks linked from other .blend files in the current .blend file. Library "
-      "references are preserved so the linked data-blocks can be unpacked again.";
+      "Store all data-blocks linked from other .blend files in the current .blend file. "
+      "Library references are preserved so the linked data-blocks can be unpacked again";
 
   /* api callbacks */
   ot->exec = pack_libraries_exec;
