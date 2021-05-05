@@ -73,13 +73,25 @@ bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   if (!(data->status & IDWALK_STOP)) {
     const int flag = data->flag;
     ID *old_id = *id_pp;
-    const int callback_return = data->callback(&(struct LibraryIDLinkCallbackData){
-        .user_data = data->user_data,
-        .bmain = data->bmain,
-        .id_owner = data->owner_id,
-        .id_self = data->self_id,
-        .id_pointer = id_pp,
-        .cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear)});
+
+    /* Update the callback flags with the ones defined (or forbidden) in `data` by the generic
+     * caller code.  */
+    cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
+
+    /* Update the callback flags with some extra information regarding overrides: all 'loopback',
+     * 'internal', 'embedded' etc. ID pointers are never overridable. */
+    if (cb_flag & (IDWALK_CB_INTERNAL | IDWALK_CB_EMBEDDED | IDWALK_CB_LOOPBACK |
+                   IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
+      cb_flag |= IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE;
+    }
+
+    const int callback_return = data->callback(
+        &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
+                                            .bmain = data->bmain,
+                                            .id_owner = data->owner_id,
+                                            .id_self = data->self_id,
+                                            .id_pointer = id_pp,
+                                            .cb_flag = cb_flag});
     if (flag & IDWALK_READONLY) {
       BLI_assert(*(id_pp) == old_id);
     }
