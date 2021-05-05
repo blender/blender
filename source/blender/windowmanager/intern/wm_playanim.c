@@ -237,6 +237,11 @@ typedef struct PlayAnimPict {
   struct anim *anim;
   int frame;
   int IB_flags;
+
+#ifdef USE_FRAME_CACHE_LIMIT
+  /** Back pointer to the #LinkData node for this struct in the #inmempicsbase list. */
+  LinkData *frame_cache_node;
+#endif
 } PlayAnimPict;
 
 static struct ListBase picsbase = {NULL, NULL};
@@ -1412,25 +1417,30 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       }
 
       if (ibuf) {
-#ifdef USE_FRAME_CACHE_LIMIT
-        LinkData *node;
-#endif
-
 #ifdef USE_IMB_CACHE
         ps.picture->ibuf = ibuf;
 #endif
 
 #ifdef USE_FRAME_CACHE_LIMIT
+        /* Don't free the current frame by moving it to the head of the list. */
+        if (ps.picture->frame_cache_node != NULL) {
+          BLI_assert(ps.picture->frame_cache_node->data == ps.picture);
+          BLI_remlink(&inmempicsbase, ps.picture->frame_cache_node);
+          BLI_addhead(&inmempicsbase, ps.picture->frame_cache_node);
+        }
+
         /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
-        node = inmempicsbase.last;
+        LinkData *node = inmempicsbase.last;
 
         while (node && added_images > PLAY_FRAME_CACHE_MAX) {
           PlayAnimPict *pic = node->data;
+          BLI_assert(pic->frame_cache_node == node);
 
           if (pic->ibuf && pic->ibuf != ibuf) {
             LinkData *node_tmp;
             IMB_freeImBuf(pic->ibuf);
             pic->ibuf = NULL;
+            pic->frame_cache_node = NULL;
             node_tmp = node->prev;
             BLI_freelinkN(&inmempicsbase, node);
             added_images--;
@@ -1441,8 +1451,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           }
         }
 
-        BLI_addhead(&inmempicsbase, BLI_genericNodeN(ps.picture));
-        added_images++;
+        if (ps.picture->frame_cache_node == NULL) {
+          ps.picture->frame_cache_node = BLI_genericNodeN(ps.picture);
+          BLI_addhead(&inmempicsbase, ps.picture->frame_cache_node);
+          added_images++;
+        }
 #endif /* USE_FRAME_CACHE_LIMIT */
 
         BLI_strncpy(ibuf->name, ps.picture->name, sizeof(ibuf->name));
@@ -1550,8 +1563,11 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #endif
 
   BLI_freelistN(&picsbase);
+
+#ifdef USE_FRAME_CACHE_LIMIT
   BLI_freelistN(&inmempicsbase);
   added_images = 0;
+#endif
 
 #ifdef WITH_AUDASPACE
   if (playback_handle) {
