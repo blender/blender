@@ -582,9 +582,6 @@ bool Scene::load_kernels(Progress &progress, bool lock_scene)
       return false;
     }
 
-    progress.add_skip_time(timer, false);
-    VLOG(1) << "Total time spent loading kernels: " << time_dt() - timer.get_start();
-
     kernels_loaded = true;
     loaded_kernel_features = requested_features;
     return true;
