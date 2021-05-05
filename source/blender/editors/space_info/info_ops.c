@@ -56,7 +56,9 @@
 
 #include "info_intern.h"
 
-/********************* pack blend file libraries operator *********************/
+/* -------------------------------------------------------------------- */
+/** \name Pack Blend File Libraries Operator
+ * \{ */
 
 static int pack_libraries_exec(bContext *C, wmOperator *op)
 {
@@ -92,6 +94,12 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unpack Blend File Libraries Operator
+ * \{ */
+
 static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   return WM_operator_confirm_message(
@@ -113,7 +121,11 @@ void FILE_OT_unpack_libraries(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* toggle auto-pack operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Toggle Auto-Pack Operator
+ * \{ */
 
 static int autopack_toggle_exec(bContext *C, wmOperator *op)
 {
@@ -144,7 +156,11 @@ void FILE_OT_autopack_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* pack all operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pack All Operator
+ * \{ */
 
 static int pack_all_exec(bContext *C, wmOperator *op)
 {
@@ -190,7 +206,11 @@ void FILE_OT_pack_all(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* unpack all operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unpack All Operator
+ * \{ */
 
 static const EnumPropertyItem unpack_all_method_items[] = {
     {PF_USE_LOCAL, "USE_LOCAL", 0, "Use files in current directory (create when necessary)", ""},
@@ -281,7 +301,11 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
       ot->srna, "method", unpack_all_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 }
 
-/********************* unpack single item operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unpack Single Item Operator
+ * \{ */
 
 static const EnumPropertyItem unpack_item_method_items[] = {
     {PF_USE_LOCAL, "USE_LOCAL", 0, "Use file from current directory (create when necessary)", ""},
@@ -375,7 +399,11 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
               INT_MAX);
 }
 
-/********************* make paths relative operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Paths Relative Operator
+ * \{ */
 
 static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
@@ -408,7 +436,11 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* make paths absolute operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Paths Absolute Operator
+ * \{ */
 
 static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
@@ -441,7 +473,11 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* report missing files operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Report Missing Files Operator
+ * \{ */
 
 static int report_missing_files_exec(bContext *C, wmOperator *op)
 {
@@ -467,7 +503,11 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
   ot->flag = 0; /* only reports so no need to undo/register */
 }
 
-/********************* find missing files operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Find Missing Files Operator
+ * \{ */
 
 static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
@@ -518,7 +558,11 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
                                  FILE_SORT_DEFAULT);
 }
 
-/********************* report box operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Report Box Operator
+ * \{ */
 
 /* Hard to decide whether to keep this as an operator,
  * or turn it into a hardcoded ui control feature,
@@ -623,3 +667,5 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
 }
 
 /* report operators */
+
+/** \} */
