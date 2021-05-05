@@ -536,6 +536,14 @@ void FILE_OT_select_box(wmOperatorType *ot)
 /** \name Select Pick Operator
  * \{ */
 
+static rcti file_select_mval_to_select_rect(const int mval[2])
+{
+  rcti rect;
+  rect.xmin = rect.xmax = mval[0];
+  rect.ymin = rect.ymax = mval[1];
+  return rect;
+}
+
 static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -551,8 +559,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  rect.xmin = rect.xmax = event->mval[0];
-  rect.ymin = rect.ymax = event->mval[1];
+  rect = file_select_mval_to_select_rect(event->mval);
 
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -1711,14 +1718,14 @@ bool file_draw_check_exists(SpaceFile *sfile)
 /** \name Execute File Window Operator
  * \{ */
 
-static int file_exec(bContext *C, wmOperator *exec_op)
+/**
+ * Execute the active file, as set in the file select params.
+ */
+static bool file_execute(bContext *C, SpaceFile *sfile)
 {
   Main *bmain = CTX_data_main(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
-  SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  struct FileDirEntry *file = filelist_file(sfile->files, params->active_file);
-  char filepath[FILE_MAX];
+  FileDirEntry *file = filelist_file(sfile->files, params->active_file);
 
   if (file && file->redirection_path) {
     /* redirection_path is an absolute path that takes precedence
@@ -1753,22 +1760,7 @@ static int file_exec(bContext *C, wmOperator *exec_op)
   /* opening file - sends events now, so things get handled on windowqueue level */
   else if (sfile->op) {
     wmOperator *op = sfile->op;
-
-    /* When used as a macro, for double-click, to prevent closing when double-clicking on item. */
-    if (RNA_boolean_get(exec_op->ptr, "need_active")) {
-      const int numfiles = filelist_files_ensure(sfile->files);
-      int i, active = 0;
-
-      for (i = 0; i < numfiles; i++) {
-        if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
-          active = 1;
-          break;
-        }
-      }
-      if (active == 0) {
-        return OPERATOR_CANCELLED;
-      }
-    }
+    char filepath[FILE_MAX];
 
     sfile->op = NULL;
 
@@ -1788,13 +1780,53 @@ static int file_exec(bContext *C, wmOperator *exec_op)
                      BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL),
                      BLENDER_BOOKMARK_FILE);
     fsmenu_write_file(ED_fsmenu_get(), filepath);
-    WM_event_fileselect_event(wm, op, EVT_FILESELECT_EXEC);
+    WM_event_fileselect_event(CTX_wm_manager(C), op, EVT_FILESELECT_EXEC);
   }
 
   return OPERATOR_FINISHED;
 }
 
-static int file_exec_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int file_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+
+  if (!file_execute(C, sfile)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_execute(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Execute File Window";
+  ot->description = "Execute selected file";
+  ot->idname = "FILE_OT_execute";
+
+  /* api callbacks */
+  ot->exec = file_exec;
+  /* Important since handler is on window level.
+   *
+   * Avoid using #file_operator_poll since this is also used for entering directories
+   * which is used even when the file manager doesn't have an operator. */
+  ot->poll = ED_operator_file_active;
+}
+
+/**
+ * \returns false if the mouse doesn't hover a selectable item.
+ */
+static bool file_ensure_hovered_is_active(bContext *C, const wmEvent *event)
+{
+  rcti rect = file_select_mval_to_select_rect(event->mval);
+  if (file_select(C, &rect, FILE_SEL_ADD, false, false) == FILE_SELECT_NOTHING) {
+    return false;
+  }
+
+  return true;
+}
+
+static int file_execute_mouse_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -1804,34 +1836,38 @@ static int file_exec_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  return file_exec(C, op);
+  /* Note that this isn't needed practically, because the keymap already activates the hovered item
+   * on mouse-press. This execute operator is called afterwards on the double-click event then.
+   * However relying on this would be fragile and could break with keymap changes, so better to
+   * have this mouse-execute operator that makes sure once more that the hovered file is active. */
+  if (!file_ensure_hovered_is_active(C, event)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!file_execute(C, sfile)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_FINISHED;
 }
 
-void FILE_OT_execute(struct wmOperatorType *ot)
+/**
+ * Variation of #FILE_OT_execute that accounts for some mouse specific handling. Otherwise calls
+ * the same logic.
+ */
+void FILE_OT_mouse_execute(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   /* identifiers */
-  ot->name = "Execute File Window";
-  ot->description = "Execute selected file";
-  ot->idname = "FILE_OT_execute";
+  ot->name = "Execute File";
+  ot->description =
+      "Perform the current execute action for the file under the cursor (e.g. open the file)";
+  ot->idname = "FILE_OT_mouse_execute";
 
   /* api callbacks */
-  ot->invoke = file_exec_invoke;
-  ot->exec = file_exec;
-  /* Important since handler is on window level.
-   *
-   * Avoid using #file_operator_poll since this is also used for entering directories
-   * which is used even when the file manager doesn't have an operator. */
+  ot->invoke = file_execute_mouse_invoke;
   ot->poll = ED_operator_file_active;
 
-  /* properties */
-  prop = RNA_def_boolean(ot->srna,
-                         "need_active",
-                         0,
-                         "Need Active",
-                         "Only execute if there's an active selected file in the file list");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 /** \} */
