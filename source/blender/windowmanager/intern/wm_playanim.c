@@ -239,7 +239,7 @@ typedef struct PlayAnimPict {
   int IB_flags;
 
 #ifdef USE_FRAME_CACHE_LIMIT
-  /** Back pointer to the #LinkData node for this struct in the #inmempicsbase list. */
+  /** Back pointer to the #LinkData node for this struct in the #g_frame_cache.pics list. */
   LinkData *frame_cache_node;
   size_t size_in_memory;
 #endif
@@ -254,13 +254,22 @@ static double fps_movie;
 #endif
 
 #ifdef USE_FRAME_CACHE_LIMIT
-static struct ListBase inmempicsbase = {NULL, NULL};
-/** Keep track of the memory used by #inmempicsbase when `frame_cache_memory_limit != 0`. */
-size_t inmempicsbase_size_in_memory = 0;
-static int added_images = 0;
-/** Limit the amount of memory used for cache (in bytes). */
-static size_t frame_cache_memory_limit = 0;
-#endif
+static struct {
+  /** A list of #LinkData nodes referencing #PlayAnimPict to track cached frames. */
+  struct ListBase pics;
+  /** Number if elements in `pics`. */
+  int pics_len;
+  /** Keep track of memory used by #g_frame_cache.pics when `g_frame_cache.memory_limit != 0`. */
+  size_t pics_size_in_memory;
+  /** Optionally limit the amount of memory used for cache (in bytes), ignored when zero. */
+  size_t memory_limit;
+} g_frame_cache = {
+    .pics = {NULL, NULL},
+    .pics_len = 0,
+    .pics_size_in_memory = 0,
+    .memory_limit = 0,
+};
+#endif /* USE_FRAME_CACHE_LIMIT */
 
 static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 {
@@ -1235,7 +1244,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
         case 'c': {
 #ifdef USE_FRAME_CACHE_LIMIT
           const int memory_in_mb = max_ii(0, atoi(argv[2]));
-          frame_cache_memory_limit = (size_t)memory_in_mb * (1024 * 1024);
+          g_frame_cache.memory_limit = (size_t)memory_in_mb * (1024 * 1024);
 #endif
           argc--;
           argv++;
@@ -1438,43 +1447,43 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #ifdef USE_FRAME_CACHE_LIMIT
         if (ps.picture->frame_cache_node == NULL) {
           ps.picture->frame_cache_node = BLI_genericNodeN(ps.picture);
-          BLI_addhead(&inmempicsbase, ps.picture->frame_cache_node);
-          added_images++;
+          BLI_addhead(&g_frame_cache.pics, ps.picture->frame_cache_node);
+          g_frame_cache.pics_len++;
 
-          if (frame_cache_memory_limit != 0) {
+          if (g_frame_cache.memory_limit != 0) {
             BLI_assert(ps.picture->size_in_memory == 0);
             ps.picture->size_in_memory = IMB_get_size_in_memory(ps.picture->ibuf);
-            inmempicsbase_size_in_memory += ps.picture->size_in_memory;
+            g_frame_cache.pics_size_in_memory += ps.picture->size_in_memory;
           }
         }
         else {
           /* Don't free the current frame by moving it to the head of the list. */
           BLI_assert(ps.picture->frame_cache_node->data == ps.picture);
-          BLI_remlink(&inmempicsbase, ps.picture->frame_cache_node);
-          BLI_addhead(&inmempicsbase, ps.picture->frame_cache_node);
+          BLI_remlink(&g_frame_cache.pics, ps.picture->frame_cache_node);
+          BLI_addhead(&g_frame_cache.pics, ps.picture->frame_cache_node);
         }
 
         /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
-        LinkData *node = inmempicsbase.last;
-        while (node && (frame_cache_memory_limit ?
-                            (inmempicsbase_size_in_memory > frame_cache_memory_limit) :
-                            (added_images > PLAY_FRAME_CACHE_MAX))) {
+        LinkData *node = g_frame_cache.pics.last;
+        while (node && (g_frame_cache.memory_limit ?
+                            (g_frame_cache.pics_size_in_memory > g_frame_cache.memory_limit) :
+                            (g_frame_cache.pics_len > PLAY_FRAME_CACHE_MAX))) {
           PlayAnimPict *pic = node->data;
           BLI_assert(pic->frame_cache_node == node);
 
           if (pic->ibuf && pic->ibuf != ibuf) {
             LinkData *node_tmp;
             IMB_freeImBuf(pic->ibuf);
-            if (frame_cache_memory_limit != 0) {
+            if (g_frame_cache.memory_limit != 0) {
               BLI_assert(pic->size_in_memory != 0);
-              inmempicsbase_size_in_memory -= pic->size_in_memory;
+              g_frame_cache.pics_size_in_memory -= pic->size_in_memory;
               pic->size_in_memory = 0;
             }
             pic->ibuf = NULL;
             pic->frame_cache_node = NULL;
             node_tmp = node->prev;
-            BLI_freelinkN(&inmempicsbase, node);
-            added_images--;
+            BLI_freelinkN(&g_frame_cache.pics, node);
+            g_frame_cache.pics_len--;
             node = node_tmp;
           }
           else {
@@ -1591,8 +1600,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   BLI_freelistN(&picsbase);
 
 #ifdef USE_FRAME_CACHE_LIMIT
-  BLI_freelistN(&inmempicsbase);
-  added_images = 0;
+  BLI_freelistN(&g_frame_cache.pics);
+  g_frame_cache.pics_len = 0;
 #endif
 
 #ifdef WITH_AUDASPACE
