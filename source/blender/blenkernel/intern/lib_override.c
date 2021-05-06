@@ -1068,6 +1068,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
         id->tag &= ~LIB_TAG_MISSING;
         CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
       }
+#if 0
       else {
         /* Otherwise, keep them, user needs to decide whether what to do with them. */
         BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
@@ -1075,6 +1076,16 @@ bool BKE_lib_override_library_resync(Main *bmain,
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
         CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
       }
+#else
+      else {
+        /* Delete them nevertheless, with fat warning, user needs to decide whether they want to
+         * save that version of the file (and accept the loss), or not. */
+        id->tag |= LIB_TAG_DOIT;
+        id->tag &= ~LIB_TAG_MISSING;
+        CLOG_WARN(
+            &LOG, "Old override %s is being deleted even though it was user-edited", id->name);
+      }
+#endif
     }
   }
   FOREACH_MAIN_ID_END;
