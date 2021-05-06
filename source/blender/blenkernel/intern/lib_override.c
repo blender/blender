@@ -719,8 +719,19 @@ static void lib_override_library_create_post_process(Main *bmain,
 
       if (BLI_gset_lookup(all_objects_in_scene, ob_new) == NULL) {
         if (id_root != NULL && default_instantiating_collection == NULL) {
-          switch (GS(id_root->name)) {
+          ID *id_ref = id_root->newid != NULL ? id_root->newid : id_root;
+          switch (GS(id_ref->name)) {
             case ID_GR: {
+              /* Adding the object to a specific collection outside of the root overridden one is a
+               * fairly bad idea (it breaks the override hierarchy concept). But htere is no other
+               * way to do this currently (we cannot add new collections to overridden root one,
+               * this is not currently supported).
+               * Since that will be fairly annoying and noisy, only do that in case the override
+               * object is not part of any existing collection (i.e. its user count is 0). In
+               * practice this should never happen I think. */
+              if (ID_REAL_USERS(ob_new) != 0) {
+                continue;
+              }
               default_instantiating_collection = BKE_collection_add(
                   bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
               /* Hide the collection from viewport and render. */
@@ -731,9 +742,9 @@ static void lib_override_library_create_post_process(Main *bmain,
             case ID_OB: {
               /* Add the other objects to one of the collections instantiating the
                * root object, or scene's master collection if none found. */
-              Object *ob_root = (Object *)id_root;
+              Object *ob_ref = (Object *)id_ref;
               LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-                if (BKE_collection_has_object(collection, ob_root) &&
+                if (BKE_collection_has_object(collection, ob_ref) &&
                     BKE_view_layer_has_collection(view_layer, collection) &&
                     !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
                   default_instantiating_collection = collection;
