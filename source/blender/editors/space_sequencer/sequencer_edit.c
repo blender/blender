@@ -1608,7 +1608,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
     for (; seq; seq = seq->next) {
-      SEQ_iterator_recursive_apply(seq, apply_unique_name_fn, scene);
+      SEQ_recursive_apply(seq, apply_unique_name_fn, scene);
     }
 
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -2465,7 +2465,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
     /* Make sure, that pasted strips have unique names. */
-    SEQ_iterator_recursive_apply(iseq, apply_unique_name_fn, scene);
+    SEQ_recursive_apply(iseq, apply_unique_name_fn, scene);
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
     SEQ_transform_translate_sequence(scene, iseq, ofs);

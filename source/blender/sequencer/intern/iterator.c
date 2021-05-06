@@ -138,31 +138,3 @@ void SEQ_iterator_end(SeqIterator *iter)
 
   iter->valid = 0;
 }
-
-int SEQ_iterator_seqbase_recursive_apply(ListBase *seqbase,
-                                         int (*apply_fn)(Sequence *seq, void *),
-                                         void *arg)
-{
-  Sequence *iseq;
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    if (SEQ_iterator_recursive_apply(iseq, apply_fn, arg) == -1) {
-      return -1; /* bail out */
-    }
-  }
-  return 1;
-}
-
-int SEQ_iterator_recursive_apply(Sequence *seq, int (*apply_fn)(Sequence *, void *), void *arg)
-{
-  int ret = apply_fn(seq, arg);
-
-  if (ret == -1) {
-    return -1; /* bail out */
-  }
-
-  if (ret && seq->seqbase.first) {
-    ret = SEQ_iterator_seqbase_recursive_apply(&seq->seqbase, apply_fn, arg);
-  }
-
-  return ret;
-}

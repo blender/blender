@@ -160,7 +160,7 @@ void SEQ_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
   while (sui.match) {
     sui.match = 0;
     seqbase_unique_name(seqbasep, &sui);
-    SEQ_iterator_seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
+    SEQ_seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
   BLI_strncpy(seq->name + 2, sui.name_dest, sizeof(seq->name) - 2);
@@ -583,4 +583,32 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
       transform->scale_y = 1.0f;
       break;
   }
+}
+
+int SEQ_seqbase_recursive_apply(ListBase *seqbase,
+                                int (*apply_fn)(Sequence *seq, void *),
+                                void *arg)
+{
+  Sequence *iseq;
+  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
+    if (SEQ_recursive_apply(iseq, apply_fn, arg) == -1) {
+      return -1; /* bail out */
+    }
+  }
+  return 1;
+}
+
+int SEQ_recursive_apply(Sequence *seq, int (*apply_fn)(Sequence *, void *), void *arg)
+{
+  int ret = apply_fn(seq, arg);
+
+  if (ret == -1) {
+    return -1; /* bail out */
+  }
+
+  if (ret && seq->seqbase.first) {
+    ret = SEQ_seqbase_recursive_apply(&seq->seqbase, apply_fn, arg);
+  }
+
+  return ret;
 }

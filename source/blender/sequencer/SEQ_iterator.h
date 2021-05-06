@@ -54,12 +54,6 @@ typedef struct SeqIterator {
 void SEQ_iterator_begin(struct Editing *ed, SeqIterator *iter, const bool use_current_sequences);
 void SEQ_iterator_next(SeqIterator *iter);
 void SEQ_iterator_end(SeqIterator *iter);
-int SEQ_iterator_seqbase_recursive_apply(struct ListBase *seqbase,
-                                         int (*apply_fn)(struct Sequence *seq, void *),
-                                         void *arg);
-int SEQ_iterator_recursive_apply(struct Sequence *seq,
-                                 int (*apply_fn)(struct Sequence *, void *),
-                                 void *arg);
 
 #ifdef __cplusplus
 }
