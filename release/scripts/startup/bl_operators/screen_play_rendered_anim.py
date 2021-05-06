@@ -130,6 +130,7 @@ class PlayRenderedAnim(Operator):
                 "-s", str(frame_start),
                 "-e", str(frame_end),
                 "-j", str(scene.frame_step),
+                "-c", str(prefs.system.memory_cache_limit),
                 file,
             ]
             cmd.extend(opts)
