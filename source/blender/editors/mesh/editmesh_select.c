@@ -2521,6 +2521,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
       changed = true;
     }
   }
+  MEM_freeN(objects);
 
   if (changed) {
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
