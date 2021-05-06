@@ -6191,10 +6191,7 @@ class VIEW3D_PT_overlay_geometry(Panel):
         sub.prop(overlay, "wireframe_opacity", text="Opacity")
 
         row = col.row(align=True)
-        if context.mode not in {
-                'EDIT_ARMATURE', 'POSE', 'OBJECT',
-                'PAINT_GPENCIL', 'VERTEX_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_GPENCIL', 'EDIT_GPENCIL',
-        }:
+        if context.mode != 'OBJECT':
             row.prop(overlay, "show_fade_inactive", text="")
             sub = row.row()
             sub.active = overlay.show_fade_inactive
