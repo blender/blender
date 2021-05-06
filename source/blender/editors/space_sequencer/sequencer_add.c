@@ -95,7 +95,7 @@ typedef struct SequencerAddData {
 #define SEQPROP_NOPATHS (1 << 2)
 #define SEQPROP_NOCHAN (1 << 3)
 #define SEQPROP_FIT_METHOD (1 << 4)
-#define SEQPROP_VIEW_TRANSFORM (1 << 4)
+#define SEQPROP_VIEW_TRANSFORM (1 << 5)
 
 static const EnumPropertyItem scale_fit_methods[] = {
     {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image to fit within the canvas"},
