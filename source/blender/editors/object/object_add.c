@@ -860,8 +860,9 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 
     float mat[4][4];
     ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+    mul_mat3_m4_fl(mat, dia);
     BLI_addtail(&cu->editnurb->nurbs,
-                ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, dia));
+                ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
     if (!enter_editmode) {
       ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
