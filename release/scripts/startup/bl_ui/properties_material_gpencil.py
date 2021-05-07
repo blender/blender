@@ -53,6 +53,10 @@ class GPENCIL_MT_material_context_menu(Menu):
         layout.operator("gpencil.material_to_vertex_color", text="Convert Materials to Vertex Color")
         layout.operator("gpencil.extract_palette_vertex", text="Extract Palette from Vertex Color")
 
+        layout.separator()
+        layout.menu("VIEW3D_MT_gpencil_append_active_material")
+        layout.menu("VIEW3D_MT_gpencil_append_all_materials")
+
 
 class GPENCIL_UL_matslots(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
