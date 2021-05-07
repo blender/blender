@@ -40,14 +40,16 @@ struct GSetIterator;
 
 #define SEQ_ALL_BEGIN(ed, var) \
   { \
-    SeqCollection *all_strips = SEQ_query_all_strips_recursive(&ed->seqbase); \
-    GSetIterator gsi; \
-    GSET_ITER (gsi, all_strips->set) { \
-      var = (Sequence *)(BLI_gsetIterator_getKey(&gsi));
+    if (ed != NULL) { \
+      SeqCollection *all_strips = SEQ_query_all_strips_recursive(&ed->seqbase); \
+      GSetIterator gsi; \
+      GSET_ITER (gsi, all_strips->set) { \
+        var = (Sequence *)(BLI_gsetIterator_getKey(&gsi));
 
 #define SEQ_ALL_END \
   } \
   SEQ_collection_free(all_strips); \
+  } \
   } \
   ((void)0)
 
