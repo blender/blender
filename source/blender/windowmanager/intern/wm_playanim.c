@@ -273,6 +273,28 @@ static struct {
 };
 #endif /* USE_FRAME_CACHE_LIMIT */
 
+static ImBuf *ibuf_from_picture(PlayAnimPict *pic)
+{
+  ImBuf *ibuf = NULL;
+
+  if (pic->ibuf) {
+    ibuf = pic->ibuf;
+  }
+  else if (pic->anim) {
+    ibuf = IMB_anim_absolute(pic->anim, pic->frame, IMB_TC_NONE, IMB_PROXY_NONE);
+  }
+  else if (pic->mem) {
+    /* use correct colorspace here */
+    ibuf = IMB_ibImageFromMemory(pic->mem, pic->size, pic->IB_flags, NULL, pic->name);
+  }
+  else {
+    /* use correct colorspace here */
+    ibuf = IMB_loadiffname(pic->name, pic->IB_flags, NULL);
+  }
+
+  return ibuf;
+}
+
 static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 {
   if (step > 0) {
@@ -641,14 +663,7 @@ static void build_pict_list_ex(
 
       if (ptottime > 1.0) {
         /* OCIO_TODO: support different input color space */
-        struct ImBuf *ibuf;
-        if (picture->mem) {
-          ibuf = IMB_ibImageFromMemory(
-              picture->mem, picture->size, picture->IB_flags, NULL, picture->name);
-        }
-        else {
-          ibuf = IMB_loadiffname(picture->name, picture->IB_flags, NULL);
-        }
+        ImBuf *ibuf = ibuf_from_picture(picture);
         if (ibuf) {
           playanim_toscreen(ps, picture, ibuf, fontid, fstep);
           IMB_freeImBuf(ibuf);
@@ -1549,21 +1564,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
         IMB_freeImBuf(ibuf);
       }
 #endif
-      if (ps.picture->ibuf) {
-        ibuf = ps.picture->ibuf;
-      }
-      else if (ps.picture->anim) {
-        ibuf = IMB_anim_absolute(ps.picture->anim, ps.picture->frame, IMB_TC_NONE, IMB_PROXY_NONE);
-      }
-      else if (ps.picture->mem) {
-        /* use correct colorspace here */
-        ibuf = IMB_ibImageFromMemory(
-            ps.picture->mem, ps.picture->size, ps.picture->IB_flags, NULL, ps.picture->name);
-      }
-      else {
-        /* use correct colorspace here */
-        ibuf = IMB_loadiffname(ps.picture->name, ps.picture->IB_flags, NULL);
-      }
+
+      ibuf = ibuf_from_picture(ps.picture);
 
       if (ibuf) {
 #ifdef USE_IMB_CACHE
