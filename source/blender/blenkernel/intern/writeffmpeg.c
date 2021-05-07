@@ -164,6 +164,7 @@ static int write_audio_frame(FFMpegContext *context)
   frame->pts = context->audio_time / av_q2d(c->time_base);
   frame->nb_samples = context->audio_input_samples;
   frame->format = c->sample_fmt;
+  frame->channels = c->channels;
 #      ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
   frame->channel_layout = c->channel_layout;
 #      endif
