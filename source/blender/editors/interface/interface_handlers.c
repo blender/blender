@@ -3934,7 +3934,7 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
   }
   else {
     ui_numedit_begin_set_values(but, data);
-    
+
     float softmin = but->softmin;
     float softmax = but->softmax;
     float softrange = softmax - softmin;
