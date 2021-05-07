@@ -80,9 +80,11 @@ int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame *picture)
   return pts;
 }
 
-/* --- Deinterlace code block begin --- */
-
-/* NOTE: The code in this block are from FFmpeg 2.6.4, which is licensed by LGPL. */
+/* -------------------------------------------------------------------- */
+/** \name Deinterlace code block
+ *
+ * NOTE: The code in this block are from FFmpeg 2.6.4, which is licensed by LGPL.
+ * \{ */
 
 #define MAX_NEG_CROP 1024
 
@@ -280,6 +282,6 @@ int av_image_deinterlace(
   return 0;
 }
 
-/* --- Deinterlace code block end --- */
+/** \} Deinterlace code block */
 
 #endif
