@@ -903,6 +903,15 @@ bool BKE_lib_override_library_resync(Main *bmain,
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    /* IDs that get fully removed from linked data remain as local overrides (using place-holder
+     * linked IDs as reference), but they are often not reachable from any current valid local
+     * override hierarchy anymore. This will ensure they get properly deleted at the end of this
+     * function. */
+    if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+        (id->override_library->reference->tag & LIB_TAG_MISSING) != 0) {
+      id->tag |= LIB_TAG_MISSING;
+    }
+
     if (id->tag & LIB_TAG_DOIT && !ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       /* While this should not happen in typical cases (and won't be properly supported here), user
        * is free to do all kind of very bad things, including having different local overrides of a
