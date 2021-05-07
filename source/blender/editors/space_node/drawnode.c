@@ -456,7 +456,9 @@ static void node_draw_frame(const bContext *C,
   }
 
   /* label */
-  node_draw_frame_label(ntree, node, snode->runtime->aspect);
+  if (node->label[0] != '\0') {
+    node_draw_frame_label(ntree, node, snode->runtime->aspect);
+  }
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
