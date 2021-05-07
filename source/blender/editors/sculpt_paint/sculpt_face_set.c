@@ -346,11 +346,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   const int mode = RNA_enum_get(op->ptr, "mode");
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
@@ -421,29 +416,44 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_SELECTION) {
+
     Mesh *mesh = ob->data;
     BMesh *bm;
-    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-    bm = BM_mesh_create(&allocsize,
-                        &((struct BMeshCreateParams){
-                            .use_toolflags = true,
-                        }));
 
-    BM_mesh_bm_from_me(NULL,
-                       bm,
-                       mesh,
-                       (&(struct BMeshFromMeshParams){
-                           .calc_face_normal = true,
-                       }));
-
-    BMIter iter;
-    BMFace *f;
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-        ss->face_sets[BM_elem_index_get(f)] = next_face_set;
+    if (ss->bm) {
+      bm = ss->bm;
+      BMIter iter;
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+          BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, next_face_set);
+        }
       }
     }
-    BM_mesh_free(bm);
+    else {
+      const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+      bm = BM_mesh_create(&allocsize,
+                          &((struct BMeshCreateParams){
+                              .use_toolflags = true,
+                          }));
+
+      BM_mesh_bm_from_me(NULL,
+                         bm,
+                         mesh,
+                         (&(struct BMeshFromMeshParams){
+                             .calc_face_normal = true,
+                         }));
+
+      BMIter iter;
+      BMFace *f;
+      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+          ss->face_sets[BM_elem_index_get(f)] = next_face_set;
+        }
+      }
+
+      BM_mesh_free(bm);
+    }
   }
 
   for (int i = 0; i < totnode; i++) {

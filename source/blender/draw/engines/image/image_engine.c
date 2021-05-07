@@ -31,6 +31,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_compiler_attrs.h"
+
 #include "IMB_imbuf_types.h"
 
 #include "ED_image.h"

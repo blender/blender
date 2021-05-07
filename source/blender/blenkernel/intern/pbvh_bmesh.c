@@ -2509,7 +2509,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
       continue;
     }
 #else
-    BLI_assert(calc_weighted_edge_split(eq_ctx, v1->co, v2->co) > eq_ctx->q->limit_len_squared);
+    //BLI_assert(calc_weighted_edge_split(eq_ctx, v1->co, v2->co) > eq_ctx->q->limit_len_squared);
 #endif
 
     /* Check that the edge's vertices are still in the PBVH. It's
