@@ -105,7 +105,7 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
   return ntree;
 }
 
-void  MaterialNode::update_material_nodetree()
+void MaterialNode::update_material_nodetree()
 {
   ntreeUpdateTree(CTX_data_main(mContext), ntree);
 }

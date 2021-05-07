@@ -24,8 +24,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -405,7 +405,7 @@ static char *track_markers_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op),
 {
   const bool backwards = RNA_boolean_get(ptr, "backwards");
   const bool sequence = RNA_boolean_get(ptr, "sequence");
-  
+
   if (backwards && sequence) {
     return BLI_strdup(TIP_("Track the selected markers backward for the entire clip"));
   }
