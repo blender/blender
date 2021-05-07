@@ -132,9 +132,6 @@ typedef struct PlayState {
   int ibufx, ibufy;
   int fontid;
 
-  /* saves passing args */
-  struct ImBuf *curframe_ibuf;
-
   /* restarts player for file drop */
   char dropped_file[FILE_MAX];
 
@@ -958,9 +955,9 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         case GHOST_kKeyNumpadSlash:
           if (val) {
             if (g_WS.qual & WS_QUAL_SHIFT) {
-              if (ps->curframe_ibuf) {
+              if (ps->picture && ps->picture->ibuf) {
                 printf(" Name: %s | Speed: %.2f frames/s\n",
-                       ps->curframe_ibuf->name,
+                       ps->picture->ibuf->name,
                        ps->fstep / swaptime);
               }
             }
@@ -1197,7 +1194,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       playanim_gl_matrix();
 
       ptottime = 0.0;
-      playanim_toscreen(ps, ps->picture, ps->curframe_ibuf, ps->fontid, ps->fstep);
+      playanim_toscreen(
+          ps, ps->picture, ps->picture ? ps->picture->ibuf : NULL, ps->fontid, ps->fstep);
 
       break;
     }
