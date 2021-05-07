@@ -271,6 +271,65 @@ static struct {
     .pics_size_in_memory = 0,
     .memory_limit = 0,
 };
+
+static void frame_cache_add(PlayAnimPict *pic)
+{
+  pic->frame_cache_node = BLI_genericNodeN(pic);
+  BLI_addhead(&g_frame_cache.pics, pic->frame_cache_node);
+  g_frame_cache.pics_len++;
+
+  if (g_frame_cache.memory_limit != 0) {
+    BLI_assert(pic->size_in_memory == 0);
+    pic->size_in_memory = IMB_get_size_in_memory(pic->ibuf);
+    g_frame_cache.pics_size_in_memory += pic->size_in_memory;
+  }
+}
+
+static void frame_cache_remove(PlayAnimPict *pic)
+{
+  LinkData *node = pic->frame_cache_node;
+  IMB_freeImBuf(pic->ibuf);
+  if (g_frame_cache.memory_limit != 0) {
+    BLI_assert(pic->size_in_memory != 0);
+    g_frame_cache.pics_size_in_memory -= pic->size_in_memory;
+    pic->size_in_memory = 0;
+  }
+  pic->ibuf = NULL;
+  pic->frame_cache_node = NULL;
+  BLI_freelinkN(&g_frame_cache.pics, node);
+  g_frame_cache.pics_len--;
+}
+
+/* Don't free the current frame by moving it to the head of the list. */
+static void frame_cache_touch(PlayAnimPict *pic)
+{
+  BLI_assert(pic->frame_cache_node->data == pic);
+  BLI_remlink(&g_frame_cache.pics, pic->frame_cache_node);
+  BLI_addhead(&g_frame_cache.pics, pic->frame_cache_node);
+}
+
+static bool frame_cache_limit_exceeded(void)
+{
+  return g_frame_cache.memory_limit ?
+             (g_frame_cache.pics_size_in_memory > g_frame_cache.memory_limit) :
+             (g_frame_cache.pics_len > PLAY_FRAME_CACHE_MAX);
+}
+
+static void frame_cache_limit_apply(ImBuf *ibuf_keep)
+{
+  /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
+  LinkData *node = g_frame_cache.pics.last;
+  while (node && frame_cache_limit_exceeded()) {
+    PlayAnimPict *pic = node->data;
+    BLI_assert(pic->frame_cache_node == node);
+
+    node = node->prev;
+    if (pic->ibuf && pic->ibuf != ibuf_keep) {
+      frame_cache_remove(pic);
+    }
+  }
+}
+
 #endif /* USE_FRAME_CACHE_LIMIT */
 
 static ImBuf *ibuf_from_picture(PlayAnimPict *pic)
@@ -1574,50 +1633,12 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 #ifdef USE_FRAME_CACHE_LIMIT
         if (ps.picture->frame_cache_node == NULL) {
-          ps.picture->frame_cache_node = BLI_genericNodeN(ps.picture);
-          BLI_addhead(&g_frame_cache.pics, ps.picture->frame_cache_node);
-          g_frame_cache.pics_len++;
-
-          if (g_frame_cache.memory_limit != 0) {
-            BLI_assert(ps.picture->size_in_memory == 0);
-            ps.picture->size_in_memory = IMB_get_size_in_memory(ps.picture->ibuf);
-            g_frame_cache.pics_size_in_memory += ps.picture->size_in_memory;
-          }
+          frame_cache_add(ps.picture);
         }
         else {
-          /* Don't free the current frame by moving it to the head of the list. */
-          BLI_assert(ps.picture->frame_cache_node->data == ps.picture);
-          BLI_remlink(&g_frame_cache.pics, ps.picture->frame_cache_node);
-          BLI_addhead(&g_frame_cache.pics, ps.picture->frame_cache_node);
+          frame_cache_touch(ps.picture);
         }
-
-        /* Really basic memory conservation scheme. Keep frames in a FIFO queue. */
-        LinkData *node = g_frame_cache.pics.last;
-        while (node && (g_frame_cache.memory_limit ?
-                            (g_frame_cache.pics_size_in_memory > g_frame_cache.memory_limit) :
-                            (g_frame_cache.pics_len > PLAY_FRAME_CACHE_MAX))) {
-          PlayAnimPict *pic = node->data;
-          BLI_assert(pic->frame_cache_node == node);
-
-          if (pic->ibuf && pic->ibuf != ibuf) {
-            LinkData *node_tmp;
-            IMB_freeImBuf(pic->ibuf);
-            if (g_frame_cache.memory_limit != 0) {
-              BLI_assert(pic->size_in_memory != 0);
-              g_frame_cache.pics_size_in_memory -= pic->size_in_memory;
-              pic->size_in_memory = 0;
-            }
-            pic->ibuf = NULL;
-            pic->frame_cache_node = NULL;
-            node_tmp = node->prev;
-            BLI_freelinkN(&g_frame_cache.pics, node);
-            g_frame_cache.pics_len--;
-            node = node_tmp;
-          }
-          else {
-            node = node->prev;
-          }
-        }
+        frame_cache_limit_apply(ibuf);
 
 #endif /* USE_FRAME_CACHE_LIMIT */
 
