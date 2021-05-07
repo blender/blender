@@ -1590,12 +1590,9 @@ static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
     return rna_enum_object_mode_items;
   }
 
-  Object *ob = CTX_data_active_object(C);
+  const Object *ob = CTX_data_active_object(C);
   if (ob) {
-    const bool use_mode_particle_edit = (BLI_listbase_is_empty(&ob->particlesystem) == false) ||
-                                        (ob->soft != NULL) ||
-                                        (BKE_modifiers_findby_type(ob, eModifierType_Cloth) !=
-                                         NULL);
+    const bool use_mode_particle_edit = ED_object_particle_edit_mode_supported(ob);
     while (input->identifier) {
       if ((input->value == OB_MODE_EDIT && OB_TYPE_SUPPORT_EDITMODE(ob->type)) ||
           (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||

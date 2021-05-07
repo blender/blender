@@ -446,8 +446,8 @@ bool BKE_modifier_is_preview(struct ModifierData *md);
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);
 void BKE_modifiers_foreach_tex_link(struct Object *ob, TexWalkFunc walk, void *userData);
 
-struct ModifierData *BKE_modifiers_findby_type(struct Object *ob, ModifierType type);
-struct ModifierData *BKE_modifiers_findby_name(struct Object *ob, const char *name);
+struct ModifierData *BKE_modifiers_findby_type(const struct Object *ob, ModifierType type);
+struct ModifierData *BKE_modifiers_findby_name(const struct Object *ob, const char *name);
 void BKE_modifiers_clear_errors(struct Object *ob);
 int BKE_modifiers_get_cage_index(const struct Scene *scene,
                                  struct Object *ob,
