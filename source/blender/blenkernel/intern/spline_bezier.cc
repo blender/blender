@@ -204,7 +204,7 @@ int BezierSpline::evaluated_points_size() const
 
   const int last_offset = this->control_point_offsets().last();
   if (is_cyclic_ && points_len > 1) {
-    return last_offset + (this->segment_is_vector(points_len - 1) ? 0 : resolution_);
+    return last_offset + (this->segment_is_vector(points_len - 1) ? 1 : resolution_);
   }
 
   return last_offset + 1;
