@@ -908,7 +908,11 @@ bool BKE_lib_override_library_resync(Main *bmain,
      * override hierarchy anymore. This will ensure they get properly deleted at the end of this
      * function. */
     if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
-        (id->override_library->reference->tag & LIB_TAG_MISSING) != 0) {
+        (id->override_library->reference->tag & LIB_TAG_MISSING) != 0 &&
+        /* Unfortunately deleting obdata means deleting their objects too. Since there is no
+         * guarantee that a valid override object using an obsolete override obdata gets properly
+         * updated, we ignore those here for now. In practice this should not be a big issue. */
+        !OB_DATA_SUPPORT_ID(GS(id->name))) {
       id->tag |= LIB_TAG_MISSING;
     }
 
