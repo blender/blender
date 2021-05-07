@@ -1622,9 +1622,9 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 }
 
 /* Query all effect strips that are directly or indirectly connected to seq_reference. */
-void query_strip_effect_chain(Sequence *seq_reference,
-                              ListBase *seqbase,
-                              SeqCollection *collection)
+static void query_strip_effect_chain(Sequence *seq_reference,
+                                     ListBase *seqbase,
+                                     SeqCollection *collection)
 {
   if (!SEQ_collection_append_strip(seq_reference, collection)) {
     return; /* Strip is already in set, so all effects connected to it are as well. */
