@@ -583,10 +583,6 @@ if(WITH_CODEC_FFMPEG)
     ${FFMPEG_LIBRARIES}
   )
   add_definitions(-DWITH_FFMPEG)
-
-  remove_strict_c_flags_file(
-    intern/writeffmpeg.c
-  )
 endif()
 
 if(WITH_PYTHON)

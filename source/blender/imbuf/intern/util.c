@@ -245,7 +245,6 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
 
 void IMB_ffmpeg_init(void)
 {
-  av_register_all();
   avdevice_register_all();
 
   ffmpeg_last_error[0] = '\0';
@@ -269,7 +268,6 @@ static int isffmpeg(const char *filepath)
   unsigned int i;
   int videoStream;
   AVCodec *pCodec;
-  AVCodecContext *pCodecCtx;
 
   if (BLI_path_extension_check_n(filepath,
                                  ".swf",
@@ -310,8 +308,8 @@ static int isffmpeg(const char *filepath)
   /* Find the first video stream */
   videoStream = -1;
   for (i = 0; i < pFormatCtx->nb_streams; i++) {
-    if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codec &&
-        (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)) {
+    if (pFormatCtx->streams[i] && pFormatCtx->streams[i]->codecpar &&
+        (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)) {
       videoStream = i;
       break;
     }
@@ -322,21 +320,15 @@ static int isffmpeg(const char *filepath)
     return 0;
   }
 
-  pCodecCtx = pFormatCtx->streams[videoStream]->codec;
+  AVCodecParameters *codec_par = pFormatCtx->streams[videoStream]->codecpar;
 
   /* Find the decoder for the video stream */
-  pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
+  pCodec = avcodec_find_decoder(codec_par->codec_id);
   if (pCodec == NULL) {
     avformat_close_input(&pFormatCtx);
     return 0;
   }
 
-  if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
-    avformat_close_input(&pFormatCtx);
-    return 0;
-  }
-
-  avcodec_close(pCodecCtx);
   avformat_close_input(&pFormatCtx);
 
   return 1;

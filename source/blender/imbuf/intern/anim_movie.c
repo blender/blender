@@ -79,6 +79,7 @@
 
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
+#  include <libavutil/imgutils.h>
 #  include <libavutil/rational.h>
 #  include <libswscale/swscale.h>
 
@@ -519,12 +520,10 @@ static int startffmpeg(struct anim *anim)
   double frs_den;
   int streamcount;
 
-#  ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
   /* The following for color space determination */
   int srcRange, dstRange, brightness, contrast, saturation;
   int *table;
   const int *inv_table;
-#  endif
 
   if (anim == NULL) {
     return (-1);
@@ -547,7 +546,7 @@ static int startffmpeg(struct anim *anim)
   video_stream_index = -1;
 
   for (i = 0; i < pFormatCtx->nb_streams; i++) {
-    if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
       if (streamcount > 0) {
         streamcount--;
         continue;
@@ -563,16 +562,17 @@ static int startffmpeg(struct anim *anim)
   }
 
   video_stream = pFormatCtx->streams[video_stream_index];
-  pCodecCtx = video_stream->codec;
 
   /* Find the decoder for the video stream */
-  pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
+  pCodec = avcodec_find_decoder(video_stream->codecpar->codec_id);
   if (pCodec == NULL) {
     avformat_close_input(&pFormatCtx);
     return -1;
   }
 
-  pCodecCtx->workaround_bugs = 1;
+  pCodecCtx = avcodec_alloc_context3(NULL);
+  avcodec_parameters_to_context(pCodecCtx, video_stream->codecpar);
+  pCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
 
   if (pCodec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
     pCodecCtx->thread_count = 0;
@@ -593,7 +593,7 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
   if (pCodecCtx->pix_fmt == AV_PIX_FMT_NONE) {
-    avcodec_close(anim->pCodecCtx);
+    avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&pFormatCtx);
     return -1;
   }
@@ -639,7 +639,7 @@ static int startffmpeg(struct anim *anim)
   anim->params = 0;
 
   anim->x = pCodecCtx->width;
-  anim->y = av_get_cropped_height_from_codec(pCodecCtx);
+  anim->y = pCodecCtx->height;
 
   anim->pFormatCtx = pFormatCtx;
   anim->pCodecCtx = pCodecCtx;
@@ -654,7 +654,8 @@ static int startffmpeg(struct anim *anim)
   anim->last_frame = 0;
   anim->last_pts = -1;
   anim->next_pts = -1;
-  anim->next_packet.stream_index = -1;
+  anim->next_packet = av_packet_alloc();
+  anim->next_packet->stream_index = -1;
 
   anim->pFrame = av_frame_alloc();
   anim->pFrameComplete = false;
@@ -668,8 +669,9 @@ static int startffmpeg(struct anim *anim)
 
     if (av_frame_get_buffer(anim->pFrameRGB, 32) < 0) {
       fprintf(stderr, "Could not allocate frame data.\n");
-      avcodec_close(anim->pCodecCtx);
+      avcodec_free_context(&anim->pCodecCtx);
       avformat_close_input(&anim->pFormatCtx);
+      av_packet_free(&anim->next_packet);
       av_frame_free(&anim->pFrameRGB);
       av_frame_free(&anim->pFrameDeinterlaced);
       av_frame_free(&anim->pFrame);
@@ -678,10 +680,11 @@ static int startffmpeg(struct anim *anim)
     }
   }
 
-  if (avpicture_get_size(AV_PIX_FMT_RGBA, anim->x, anim->y) != anim->x * anim->y * 4) {
+  if (av_image_get_buffer_size(AV_PIX_FMT_RGBA, anim->x, anim->y, 1) != anim->x * anim->y * 4) {
     fprintf(stderr, "ffmpeg has changed alloc scheme ... ARGHHH!\n");
-    avcodec_close(anim->pCodecCtx);
+    avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
+    av_packet_free(&anim->next_packet);
     av_frame_free(&anim->pFrameRGB);
     av_frame_free(&anim->pFrameDeinterlaced);
     av_frame_free(&anim->pFrame);
@@ -690,14 +693,17 @@ static int startffmpeg(struct anim *anim)
   }
 
   if (anim->ib_flags & IB_animdeinterlace) {
-    avpicture_fill((AVPicture *)anim->pFrameDeinterlaced,
-                   MEM_callocN(avpicture_get_size(anim->pCodecCtx->pix_fmt,
-                                                  anim->pCodecCtx->width,
-                                                  anim->pCodecCtx->height),
-                               "ffmpeg deinterlace"),
-                   anim->pCodecCtx->pix_fmt,
-                   anim->pCodecCtx->width,
-                   anim->pCodecCtx->height);
+    av_image_fill_arrays(anim->pFrameDeinterlaced->data,
+                         anim->pFrameDeinterlaced->linesize,
+                         MEM_callocN(av_image_get_buffer_size(anim->pCodecCtx->pix_fmt,
+                                                              anim->pCodecCtx->width,
+                                                              anim->pCodecCtx->height,
+                                                              1),
+                                     "ffmpeg deinterlace"),
+                         anim->pCodecCtx->pix_fmt,
+                         anim->pCodecCtx->width,
+                         anim->pCodecCtx->height,
+                         1);
   }
 
   if (pCodecCtx->has_b_frames) {
@@ -720,8 +726,9 @@ static int startffmpeg(struct anim *anim)
 
   if (!anim->img_convert_ctx) {
     fprintf(stderr, "Can't transform color space??? Bailing out...\n");
-    avcodec_close(anim->pCodecCtx);
+    avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
+    av_packet_free(&anim->next_packet);
     av_frame_free(&anim->pFrameRGB);
     av_frame_free(&anim->pFrameDeinterlaced);
     av_frame_free(&anim->pFrame);
@@ -729,7 +736,6 @@ static int startffmpeg(struct anim *anim)
     return -1;
   }
 
-#  ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
   /* Try do detect if input has 0-255 YCbCR range (JFIF Jpeg MotionJpeg) */
   if (!sws_getColorspaceDetails(anim->img_convert_ctx,
                                 (int **)&inv_table,
@@ -756,7 +762,6 @@ static int startffmpeg(struct anim *anim)
   else {
     fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
   }
-#  endif
 
   return 0;
 }
@@ -795,11 +800,11 @@ static void ffmpeg_postprocess(struct anim *anim)
          input->data[3]);
 
   if (anim->ib_flags & IB_animdeinterlace) {
-    if (avpicture_deinterlace((AVPicture *)anim->pFrameDeinterlaced,
-                              (const AVPicture *)anim->pFrame,
-                              anim->pCodecCtx->pix_fmt,
-                              anim->pCodecCtx->width,
-                              anim->pCodecCtx->height) < 0) {
+    if (av_image_deinterlace(anim->pFrameDeinterlaced,
+                             anim->pFrame,
+                             anim->pCodecCtx->pix_fmt,
+                             anim->pCodecCtx->width,
+                             anim->pCodecCtx->height) < 0) {
       filter_y = true;
     }
     else {
@@ -808,11 +813,13 @@ static void ffmpeg_postprocess(struct anim *anim)
   }
 
   if (!need_aligned_ffmpeg_buffer(anim)) {
-    avpicture_fill((AVPicture *)anim->pFrameRGB,
-                   (unsigned char *)ibuf->rect,
-                   AV_PIX_FMT_RGBA,
-                   anim->x,
-                   anim->y);
+    av_image_fill_arrays(anim->pFrameRGB->data,
+                         anim->pFrameRGB->linesize,
+                         (unsigned char *)ibuf->rect,
+                         AV_PIX_FMT_RGBA,
+                         anim->x,
+                         anim->y,
+                         1);
   }
 
 #  if defined(__x86_64__) || defined(_M_X64)
@@ -903,82 +910,70 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
 
-  if (anim->next_packet.stream_index == anim->videoStream) {
-    av_free_packet(&anim->next_packet);
-    anim->next_packet.stream_index = -1;
+  if (anim->next_packet->stream_index == anim->videoStream) {
+    av_packet_unref(anim->next_packet);
+    anim->next_packet->stream_index = -1;
   }
 
-  while ((rval = av_read_frame(anim->pFormatCtx, &anim->next_packet)) >= 0) {
+  while ((rval = av_read_frame(anim->pFormatCtx, anim->next_packet)) >= 0) {
     av_log(anim->pFormatCtx,
            AV_LOG_DEBUG,
            "%sREAD: strID=%d (VID: %d) dts=%" PRId64 " pts=%" PRId64 " %s\n",
-           (anim->next_packet.stream_index == anim->videoStream) ? "->" : "  ",
-           anim->next_packet.stream_index,
+           (anim->next_packet->stream_index == anim->videoStream) ? "->" : "  ",
+           anim->next_packet->stream_index,
            anim->videoStream,
-           (anim->next_packet.dts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet.dts,
-           (anim->next_packet.pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet.pts,
-           (anim->next_packet.flags & AV_PKT_FLAG_KEY) ? " KEY" : "");
-    if (anim->next_packet.stream_index == anim->videoStream) {
+           (anim->next_packet->dts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet->dts,
+           (anim->next_packet->pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->next_packet->pts,
+           (anim->next_packet->flags & AV_PKT_FLAG_KEY) ? " KEY" : "");
+    if (anim->next_packet->stream_index == anim->videoStream) {
       anim->pFrameComplete = 0;
 
-      avcodec_decode_video2(
-          anim->pCodecCtx, anim->pFrame, &anim->pFrameComplete, &anim->next_packet);
+      avcodec_send_packet(anim->pCodecCtx, anim->next_packet);
+      anim->pFrameComplete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
 
       if (anim->pFrameComplete) {
         anim->next_pts = av_get_pts_from_frame(anim->pFormatCtx, anim->pFrame);
 
         av_log(anim->pFormatCtx,
                AV_LOG_DEBUG,
-               "  FRAME DONE: next_pts=%" PRId64 " pkt_pts=%" PRId64 ", guessed_pts=%" PRId64 "\n",
+               "  FRAME DONE: next_pts=%" PRId64 ", guessed_pts=%" PRId64 "\n",
                (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pts,
-               (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pkt_pts,
                (int64_t)anim->next_pts);
         break;
       }
     }
-    av_free_packet(&anim->next_packet);
-    anim->next_packet.stream_index = -1;
+    av_packet_unref(anim->next_packet);
+    anim->next_packet->stream_index = -1;
   }
 
   if (rval == AVERROR_EOF) {
-    /* this sets size and data fields to zero,
-     * which is necessary to decode the remaining data
-     * in the decoder engine after EOF. It also prevents a memory
-     * leak, since av_read_frame spills out a full size packet even
-     * on EOF... (and: it's safe to call on NULL packets) */
-
-    av_free_packet(&anim->next_packet);
-
-    anim->next_packet.size = 0;
-    anim->next_packet.data = 0;
-
+    /* Flush any remaining frames out of the decoder. */
     anim->pFrameComplete = 0;
 
-    avcodec_decode_video2(
-        anim->pCodecCtx, anim->pFrame, &anim->pFrameComplete, &anim->next_packet);
+    avcodec_send_packet(anim->pCodecCtx, NULL);
+    anim->pFrameComplete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
 
     if (anim->pFrameComplete) {
       anim->next_pts = av_get_pts_from_frame(anim->pFormatCtx, anim->pFrame);
 
       av_log(anim->pFormatCtx,
              AV_LOG_DEBUG,
-             "  FRAME DONE (after EOF): next_pts=%" PRId64 " pkt_pts=%" PRId64
-             ", guessed_pts=%" PRId64 "\n",
+             "  FRAME DONE (after EOF): next_pts=%" PRId64 ", guessed_pts=%" PRId64 "\n",
              (anim->pFrame->pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pts,
-             (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ? -1 : (int64_t)anim->pFrame->pkt_pts,
              (int64_t)anim->next_pts);
       rval = 0;
     }
   }
 
   if (rval < 0) {
-    anim->next_packet.stream_index = -1;
+    av_packet_unref(anim->next_packet);
+    anim->next_packet->stream_index = -1;
 
     av_log(anim->pFormatCtx,
            AV_LOG_ERROR,
            "  DECODE READ FAILED: av_read_frame() "
-           "returned error: %d\n",
-           rval);
+           "returned error: %s\n",
+           av_err2str(rval));
   }
 
   return (rval >= 0);
@@ -1154,7 +1149,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim, int64_t requested_p
     /* Read first video stream packet. */
     AVPacket read_packet = {0};
     while (av_read_frame(anim->pFormatCtx, &read_packet) >= 0) {
-      if (anim->next_packet.stream_index == anim->videoStream) {
+      if (anim->next_packet->stream_index == anim->videoStream) {
         break;
       }
     }
@@ -1246,9 +1241,9 @@ static void ffmpeg_seek_and_decode(struct anim *anim, int position, struct anim_
 
   anim->next_pts = -1;
 
-  if (anim->next_packet.stream_index == anim->videoStream) {
-    av_free_packet(&anim->next_packet);
-    anim->next_packet.stream_index = -1;
+  if (anim->next_packet->stream_index == anim->videoStream) {
+    av_packet_unref(anim->next_packet);
+    anim->next_packet->stream_index = -1;
   }
 
   /* memset(anim->pFrame, ...) ?? */
@@ -1351,32 +1346,30 @@ static void free_anim_ffmpeg(struct anim *anim)
   }
 
   if (anim->pCodecCtx) {
-    avcodec_close(anim->pCodecCtx);
+    avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
+    av_packet_free(&anim->next_packet);
 
-    /* Special case here: pFrame could share pointers with codec,
-     * so in order to avoid double-free we don't use av_frame_free()
-     * to free the frame.
-     *
-     * Could it be a bug in FFmpeg?
-     */
-    av_free(anim->pFrame);
+    av_frame_free(&anim->pFrame);
 
     if (!need_aligned_ffmpeg_buffer(anim)) {
       /* If there's no need for own aligned buffer it means that FFmpeg's
        * frame shares the same buffer as temporary ImBuf. In this case we
        * should not free the buffer when freeing the FFmpeg buffer.
        */
-      avpicture_fill((AVPicture *)anim->pFrameRGB, NULL, AV_PIX_FMT_RGBA, anim->x, anim->y);
+      av_image_fill_arrays(anim->pFrameRGB->data,
+                           anim->pFrameRGB->linesize,
+                           NULL,
+                           AV_PIX_FMT_RGBA,
+                           anim->x,
+                           anim->y,
+                           1);
     }
     av_frame_free(&anim->pFrameRGB);
     av_frame_free(&anim->pFrameDeinterlaced);
 
     sws_freeContext(anim->img_convert_ctx);
     IMB_freeImBuf(anim->last_frame);
-    if (anim->next_packet.stream_index != -1) {
-      av_free_packet(&anim->next_packet);
-    }
   }
   anim->duration_in_frames = 0;
 }
