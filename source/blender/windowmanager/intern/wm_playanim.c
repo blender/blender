@@ -47,9 +47,11 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -138,6 +140,9 @@ typedef struct PlayState {
 
   bool need_frame_update;
   int frame_cursor_x;
+
+  ColorManagedViewSettings view_settings;
+  ColorManagedDisplaySettings display_settings;
 } PlayState;
 
 /* for debugging */
@@ -297,18 +302,149 @@ static int pupdate_time(void)
   return (ptottime < 0);
 }
 
+static void *ocio_transform_ibuf(PlayState *ps,
+                                 ImBuf *ibuf,
+                                 bool *r_glsl_used,
+                                 eGPUTextureFormat *r_format,
+                                 eGPUDataFormat *r_data,
+                                 void **r_buffer_cache_handle)
+{
+  void *display_buffer;
+  bool force_fallback = false;
+  *r_glsl_used = false;
+  force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
+  force_fallback |= (ibuf->dither != 0.0f);
+
+  /* Default */
+  *r_format = GPU_RGBA8;
+  *r_data = GPU_DATA_UBYTE;
+
+  /* Fallback to CPU based color space conversion. */
+  if (force_fallback) {
+    *r_glsl_used = false;
+    display_buffer = NULL;
+  }
+  else if (ibuf->rect_float) {
+    display_buffer = ibuf->rect_float;
+
+    *r_data = GPU_DATA_FLOAT;
+    if (ibuf->channels == 4) {
+      *r_format = GPU_RGBA16F;
+    }
+    else if (ibuf->channels == 3) {
+      /* Alpha is implicitly 1. */
+      *r_format = GPU_RGB16F;
+    }
+
+    if (ibuf->float_colorspace) {
+      *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
+                                                                    &ps->display_settings,
+                                                                    ibuf->float_colorspace,
+                                                                    ibuf->dither,
+                                                                    false,
+                                                                    false);
+    }
+    else {
+      *r_glsl_used = IMB_colormanagement_setup_glsl_draw(
+          &ps->view_settings, &ps->display_settings, ibuf->dither, false);
+    }
+  }
+  else if (ibuf->rect) {
+    display_buffer = ibuf->rect;
+    *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
+                                                                  &ps->display_settings,
+                                                                  ibuf->float_colorspace,
+                                                                  ibuf->dither,
+                                                                  false,
+                                                                  false);
+  }
+  else {
+    display_buffer = NULL;
+  }
+
+  /* There is data to be displayed, but GLSL is not initialized
+   * properly, in this case we fallback to CPU-based display transform. */
+  if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
+    display_buffer = IMB_display_buffer_acquire(
+        ibuf, &ps->view_settings, &ps->display_settings, r_buffer_cache_handle);
+    *r_format = GPU_RGBA8;
+    *r_data = GPU_DATA_UBYTE;
+  }
+
+  return display_buffer;
+}
+
+static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
+{
+  void *display_buffer;
+
+  /* Format needs to be created prior to any #immBindShader call.
+   * Do it here because OCIO binds its own shader. */
+  eGPUTextureFormat format;
+  eGPUDataFormat data;
+  bool glsl_used = false;
+  GPUVertFormat *imm_format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint texCoord = GPU_vertformat_attr_add(
+      imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  void *buffer_cache_handle = NULL;
+  display_buffer = ocio_transform_ibuf(ps, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
+
+  GPUTexture *texture = GPU_texture_create_2d("display_buf", ibuf->x, ibuf->y, 1, format, NULL);
+  GPU_texture_update(texture, data, display_buffer);
+  GPU_texture_filter_mode(texture, false);
+
+  GPU_texture_bind(texture, 0);
+
+  if (!glsl_used) {
+    immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+    immUniformColor3f(1.0f, 1.0f, 1.0f);
+    immUniform1i("image", 0);
+  }
+
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+
+  rctf preview;
+  rctf canvas;
+
+  BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
+  BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
+
+  immAttr2f(texCoord, canvas.xmin, canvas.ymin);
+  immVertex2f(pos, preview.xmin, preview.ymin);
+
+  immAttr2f(texCoord, canvas.xmin, canvas.ymax);
+  immVertex2f(pos, preview.xmin, preview.ymax);
+
+  immAttr2f(texCoord, canvas.xmax, canvas.ymax);
+  immVertex2f(pos, preview.xmax, preview.ymax);
+
+  immAttr2f(texCoord, canvas.xmax, canvas.ymin);
+  immVertex2f(pos, preview.xmax, preview.ymin);
+
+  immEnd();
+
+  GPU_texture_unbind(texture);
+  GPU_texture_free(texture);
+
+  if (!glsl_used) {
+    immUnbindProgram();
+  }
+  else {
+    IMB_colormanagement_finish_glsl_draw();
+  }
+
+  if (buffer_cache_handle) {
+    IMB_display_buffer_release(buffer_cache_handle);
+  }
+}
+
 static void playanim_toscreen(
     PlayState *ps, PlayAnimPict *picture, struct ImBuf *ibuf, int fontid, int fstep)
 {
   if (ibuf == NULL) {
     printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
-    return;
-  }
-  if (ibuf->rect == NULL && ibuf->rect_float) {
-    IMB_rect_from_float(ibuf);
-    imb_freerectfloatImBuf(ibuf);
-  }
-  if (ibuf->rect == NULL) {
     return;
   }
 
@@ -340,19 +476,7 @@ static void playanim_toscreen(
                                8);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-
-  immDrawPixelsTex(&state,
-                   offs_x + (ps->draw_flip[0] ? span_x : 0.0f),
-                   offs_y + (ps->draw_flip[1] ? span_y : 0.0f),
-                   ibuf->x,
-                   ibuf->y,
-                   GPU_RGBA8,
-                   false,
-                   ibuf->rect,
-                   ((ps->draw_flip[0] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_x),
-                   ((ps->draw_flip[1] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_y),
-                   NULL);
+  draw_display_buffer(ps, ibuf);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -1186,6 +1310,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.fstep = 1;
 
   ps.fontid = -1;
+
+  STRNCPY(ps.display_settings.display_device,
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+  IMB_colormanagement_init_default_view_settings(&ps.view_settings, &ps.display_settings);
 
   while (argc > 1) {
     if (argv[1][0] == '-') {
