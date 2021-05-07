@@ -71,7 +71,7 @@ struct Sequence *SEQ_iterator_yield(SeqIterator *iterator);
 
 SeqCollection *SEQ_collection_create(void);
 bool SEQ_collection_append_strip(struct Sequence *seq, SeqCollection *data);
-void SEQ_collection_free(SeqCollection *data);
+void SEQ_collection_free(SeqCollection *collection);
 void SEQ_collection_merge(SeqCollection *collection_dst, SeqCollection *collection_src);
 void SEQ_collection_expand(struct ListBase *seqbase,
                            SeqCollection *collection,
