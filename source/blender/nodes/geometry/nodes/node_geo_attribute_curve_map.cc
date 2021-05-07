@@ -15,6 +15,7 @@
  */
 
 #include "BLI_blenlib.h"
+#include "BLI_task.hh"
 
 #include "BKE_colortools.h"
 
@@ -143,9 +144,11 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
       GVArray_Typed<float> attribute_in = component.attribute_get_for_read<float>(
           input_name, result_domain, float(0.0f));
       MutableSpan<float> results = attribute_result.as_span<float>();
-      for (const int i : IndexRange(attribute_in.size())) {
-        results[i] = BKE_curvemapping_evaluateF(cumap, 3, attribute_in[i]);
-      }
+      parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          results[i] = BKE_curvemapping_evaluateF(cumap, 3, attribute_in[i]);
+        }
+      });
       break;
     }
     case CD_PROP_FLOAT3: {
@@ -153,9 +156,11 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
       GVArray_Typed<float3> attribute_in = component.attribute_get_for_read<float3>(
           input_name, result_domain, float3(0.0f));
       MutableSpan<float3> results = attribute_result.as_span<float3>();
-      for (const int i : IndexRange(attribute_in.size())) {
-        BKE_curvemapping_evaluate3F(cumap, results[i], attribute_in[i]);
-      }
+      parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          BKE_curvemapping_evaluate3F(cumap, results[i], attribute_in[i]);
+        }
+      });
       break;
     }
     case CD_PROP_COLOR: {
@@ -163,9 +168,11 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
       GVArray_Typed<Color4f> attribute_in = component.attribute_get_for_read<Color4f>(
           input_name, result_domain, Color4f(0.0f, 0.0f, 0.0f, 1.0f));
       MutableSpan<Color4f> results = attribute_result.as_span<Color4f>();
-      for (const int i : IndexRange(attribute_in.size())) {
-        BKE_curvemapping_evaluateRGBF(cumap, results[i], attribute_in[i]);
-      }
+      parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          BKE_curvemapping_evaluateRGBF(cumap, results[i], attribute_in[i]);
+        }
+      });
       break;
     }
     default: {
