@@ -634,6 +634,14 @@ static void build_pict_list_ex(
     }
   }
   else {
+    /* Load images into cache until the cache is full,
+     * this resolves choppiness for images that are slow to load, see: T81751. */
+#ifdef USE_FRAME_CACHE_LIMIT
+    bool fill_cache = true;
+#else
+    bool fill_cache = false;
+#endif
+
     int count = 0;
 
     int fp_framenr;
@@ -720,15 +728,33 @@ static void build_pict_list_ex(
 
       pupdate_time();
 
-      if (ptottime > 1.0) {
+      const bool display_imbuf = ptottime > 1.0;
+
+      if (display_imbuf || fill_cache) {
         /* OCIO_TODO: support different input color space */
         ImBuf *ibuf = ibuf_from_picture(picture);
+
         if (ibuf) {
-          playanim_toscreen(ps, picture, ibuf, fontid, fstep);
-          IMB_freeImBuf(ibuf);
+          if (display_imbuf) {
+            playanim_toscreen(ps, picture, ibuf, fontid, fstep);
+          }
+#ifdef USE_FRAME_CACHE_LIMIT
+          if (fill_cache) {
+            picture->ibuf = ibuf;
+            frame_cache_add(picture);
+            fill_cache = !frame_cache_limit_exceeded();
+          }
+          else
+#endif
+          {
+            IMB_freeImBuf(ibuf);
+          }
         }
-        pupdate_time();
-        ptottime = 0.0;
+
+        if (display_imbuf) {
+          pupdate_time();
+          ptottime = 0.0;
+        }
       }
 
       /* create a new filepath each time */
