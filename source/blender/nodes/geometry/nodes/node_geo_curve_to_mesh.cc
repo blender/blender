@@ -58,7 +58,7 @@ static void vert_extrude_to_mesh_data(const Spline &spline,
     edge.flag = ME_LOOSEEDGE;
   }
 
-  if (spline.is_cyclic()) {
+  if (spline.is_cyclic() && spline.evaluated_edges_size() > 1) {
     MEdge &edge = r_edges[edge_offset++];
     edge.v1 = vert_offset;
     edge.v2 = vert_offset + positions.size() - 1;
