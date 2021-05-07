@@ -78,6 +78,15 @@ void NURBSpline::add_point(const float3 position,
   this->mark_cache_invalid();
 }
 
+void NURBSpline::resize(const int size)
+{
+  positions_.resize(size);
+  radii_.resize(size);
+  tilts_.resize(size);
+  weights_.resize(size);
+  this->mark_cache_invalid();
+}
+
 MutableSpan<float3> NURBSpline::positions()
 {
   return positions_;

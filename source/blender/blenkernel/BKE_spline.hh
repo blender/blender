@@ -113,6 +113,7 @@ class Spline {
   bool is_cyclic() const;
   void set_cyclic(const bool value);
 
+  virtual void resize(const int size) = 0;
   virtual blender::MutableSpan<blender::float3> positions() = 0;
   virtual blender::Span<blender::float3> positions() const = 0;
   virtual blender::MutableSpan<float> radii() = 0;
@@ -162,6 +163,9 @@ class Spline {
   };
   LookupResult lookup_evaluated_factor(const float factor) const;
   LookupResult lookup_evaluated_length(const float length) const;
+
+  blender::Array<float> sample_uniform_index_factors(const int samples_size) const;
+  LookupResult lookup_data_from_index_factor(const float index_factor) const;
 
   /**
    * Interpolate a virtual array of data with the size of the number of control points to the
@@ -248,6 +252,7 @@ class BezierSpline final : public Spline {
                  const float radius,
                  const float tilt);
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -387,6 +392,7 @@ class NURBSpline final : public Spline {
   bool check_valid_size_and_order() const;
   int knots_size() const;
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -441,6 +447,7 @@ class PolySpline final : public Spline {
 
   void add_point(const blender::float3 position, const float radius, const float tilt);
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;

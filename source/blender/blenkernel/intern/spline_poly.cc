@@ -44,6 +44,14 @@ void PolySpline::add_point(const float3 position, const float radius, const floa
   this->mark_cache_invalid();
 }
 
+void PolySpline::resize(const int size)
+{
+  positions_.resize(size);
+  radii_.resize(size);
+  tilts_.resize(size);
+  this->mark_cache_invalid();
+}
+
 MutableSpan<float3> PolySpline::positions()
 {
   return positions_;

@@ -73,6 +73,18 @@ void BezierSpline::add_point(const float3 position,
   this->mark_cache_invalid();
 }
 
+void BezierSpline::resize(const int size)
+{
+  handle_types_left_.resize(size);
+  handle_positions_left_.resize(size);
+  positions_.resize(size);
+  handle_types_right_.resize(size);
+  handle_positions_right_.resize(size);
+  radii_.resize(size);
+  tilts_.resize(size);
+  this->mark_cache_invalid();
+}
+
 MutableSpan<float3> BezierSpline::positions()
 {
   return positions_;

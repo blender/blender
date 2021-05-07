@@ -50,6 +50,7 @@ void register_node_type_geo_boolean(void);
 void register_node_type_geo_bounding_box(void);
 void register_node_type_geo_collection_info(void);
 void register_node_type_geo_curve_to_mesh(void);
+void register_node_type_geo_curve_resample(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_is_viewport(void);
 void register_node_type_geo_join_geometry(void);
