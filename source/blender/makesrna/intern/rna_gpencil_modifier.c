@@ -68,6 +68,11 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_BUILD,
      "Build",
      "Create duplication of strokes"},
+    {eGpencilModifierType_Lineart,
+     "GP_LINEART",
+     ICON_MOD_EDGESPLIT, /* TODO: Use a proper icon. */
+     "Line Art",
+     "Generate line art strokes from selected source"},
     {eGpencilModifierType_Mirror,
      "GP_MIRROR",
      ICON_MOD_MIRROR,
@@ -88,11 +93,6 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_SUBSURF,
      "Subdivide",
      "Subdivide stroke adding more control points"},
-    {eGpencilModifierType_Lineart,
-     "GP_LINEART",
-     ICON_MOD_EDGESPLIT, /* TODO: Use a proper icon. */
-     "Line Art",
-     "Generate line art strokes from selected source"},
     {0, "", 0, N_("Deform"), ""},
     {eGpencilModifierType_Armature,
      "GP_ARMATURE",
