@@ -14,8 +14,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BKE_persistent_data_handle.hh"
-
 #include "DNA_collection_types.h"
 
 #include "BLI_hash.h"
@@ -68,9 +66,7 @@ static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
 static void get_instance_references__object(const GeoNodeExecParams &params,
                                             MutableSpan<InstanceReference> r_references)
 {
-  bke::PersistentObjectHandle object_handle = params.get_input<bke::PersistentObjectHandle>(
-      "Object");
-  Object *object = params.handle_map().lookup(object_handle);
+  Object *object = params.get_input<Object *>("Object");
   if (object == params.self_object()) {
     object = nullptr;
   }
@@ -86,9 +82,7 @@ static void get_instance_references__collection(const GeoNodeExecParams &params,
   const bNode &node = params.node();
   NodeGeometryPointInstance *node_storage = (NodeGeometryPointInstance *)node.storage;
 
-  bke::PersistentCollectionHandle collection_handle =
-      params.get_input<bke::PersistentCollectionHandle>("Collection");
-  Collection *collection = params.handle_map().lookup(collection_handle);
+  Collection *collection = params.get_input<Collection *>("Collection");
   if (collection == nullptr) {
     return;
   }

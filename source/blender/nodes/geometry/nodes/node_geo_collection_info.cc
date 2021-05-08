@@ -42,9 +42,7 @@ namespace blender::nodes {
 
 static void geo_node_collection_info_exec(GeoNodeExecParams params)
 {
-  bke::PersistentCollectionHandle collection_handle =
-      params.extract_input<bke::PersistentCollectionHandle>("Collection");
-  Collection *collection = params.handle_map().lookup(collection_handle);
+  Collection *collection = params.get_input<Collection *>("Collection");
 
   GeometrySet geometry_set_out;
 

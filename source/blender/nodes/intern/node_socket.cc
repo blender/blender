@@ -35,7 +35,6 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
-#include "BKE_persistent_data_handle.hh"
 
 #include "DNA_collection_types.h"
 
@@ -632,63 +631,15 @@ static bNodeSocketType *make_socket_type_string()
   return socktype;
 }
 
-class ObjectSocketMultiFunction : public blender::fn::MultiFunction {
- private:
-  Object *object_;
-
- public:
-  ObjectSocketMultiFunction(Object *object) : object_(object)
-  {
-    static blender::fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static blender::fn::MFSignature create_signature()
-  {
-    blender::fn::MFSignatureBuilder signature{"Object Socket"};
-    signature.depends_on_context();
-    signature.single_output<blender::bke::PersistentObjectHandle>("Object");
-    return signature.build();
-  }
-
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext context) const override
-  {
-    blender::MutableSpan output =
-        params.uninitialized_single_output<blender::bke::PersistentObjectHandle>(0, "Object");
-
-    /* Try to get a handle map, so that the object can be converted to a handle. */
-    const blender::bke::PersistentDataHandleMap *handle_map =
-        context.get_global_context<blender::bke::PersistentDataHandleMap>(
-            "PersistentDataHandleMap");
-
-    if (handle_map == nullptr) {
-      /* Return empty handles when there is no handle map. */
-      output.fill_indices(mask, blender::bke::PersistentObjectHandle());
-      return;
-    }
-
-    blender::bke::PersistentObjectHandle handle = handle_map->lookup(object_);
-    for (int64_t i : mask) {
-      output[i] = handle;
-    }
-  }
-};
-
-MAKE_CPP_TYPE(PersistentObjectHandle, blender::bke::PersistentObjectHandle);
-MAKE_CPP_TYPE(PersistentCollectionHandle, blender::bke::PersistentCollectionHandle);
+MAKE_CPP_TYPE(Object, Object *)
+MAKE_CPP_TYPE(Collection, Collection *)
 
 static bNodeSocketType *make_socket_type_object()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_OBJECT, PROP_NONE);
-  socktype->get_cpp_type = []() {
-    /* Objects are not passed along as raw pointers, but as handles. */
-    return &blender::fn::CPPType::get<blender::bke::PersistentObjectHandle>();
-  };
-  socktype->expand_in_mf_network = [](blender::nodes::SocketMFNetworkBuilder &builder) {
-    Object *object = builder.socket_default_value<bNodeSocketValueObject>()->value;
-    builder.construct_generator_fn<ObjectSocketMultiFunction>(object);
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<Object *>(); };
+  socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    *(Object **)r_value = ((bNodeSocketValueObject *)socket.default_value)->value;
   };
   return socktype;
 }
@@ -706,9 +657,9 @@ static bNodeSocketType *make_socket_type_geometry()
 static bNodeSocketType *make_socket_type_collection()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_COLLECTION, PROP_NONE);
-  socktype->get_cpp_type = []() {
-    /* Objects are not passed along as raw pointers, but as handles. */
-    return &blender::fn::CPPType::get<blender::bke::PersistentCollectionHandle>();
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<Collection *>(); };
+  socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    *(Collection **)r_value = ((bNodeSocketValueCollection *)socket.default_value)->value;
   };
   return socktype;
 }

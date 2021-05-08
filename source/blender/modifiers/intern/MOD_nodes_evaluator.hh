@@ -23,14 +23,11 @@
 
 #include "FN_generic_pointer.hh"
 
-#include "BKE_persistent_data_handle.hh"
-
 #include "DNA_modifier_types.h"
 
 namespace blender::modifiers::geometry_nodes {
 
 using namespace nodes::derived_node_tree_types;
-using bke::PersistentDataHandleMap;
 using fn::GMutablePointer;
 using fn::GPointer;
 
@@ -42,7 +39,6 @@ struct GeometryNodesEvaluationParams {
   Map<DOutputSocket, GMutablePointer> input_values;
   Vector<DInputSocket> output_sockets;
   nodes::MultiFunctionByNode *mf_by_node;
-  const PersistentDataHandleMap *handle_map;
   const NodesModifierData *modifier_;
   Depsgraph *depsgraph;
   Object *self_object;
