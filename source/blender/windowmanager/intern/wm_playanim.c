@@ -112,7 +112,6 @@ typedef struct PlayState {
 
   /** Playback once then wait. */
   bool once;
-  bool turbo;
   /** Play forwards/backwards. */
   bool pingpong;
   /** Disable frame skipping. */
@@ -162,7 +161,6 @@ static void print_ps(PlayState *ps)
   printf("ps:\n");
   printf("    direction=%d,\n", (int)ps->direction);
   printf("    once=%d,\n", ps->once);
-  printf("    turbo=%d,\n", ps->turbo);
   printf("    pingpong=%d,\n", ps->pingpong);
   printf("    noskip=%d,\n", ps->noskip);
   printf("    sstep=%d,\n", ps->sstep);
@@ -1407,7 +1405,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   ps.direction = true;
   ps.next_frame = 1;
   ps.once = false;
-  ps.turbo = false;
   ps.pingpong = false;
   ps.noskip = false;
   ps.sstep = false;
@@ -1750,7 +1747,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
             }
           }
 
-          if (ps.wait2 || ptottime < swaptime || ps.turbo || ps.noskip) {
+          if (ps.wait2 || ptottime < swaptime || ps.noskip) {
             break;
           }
           ptottime -= swaptime;
