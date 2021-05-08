@@ -489,6 +489,13 @@ static void draw_display_buffer(PlayState *ps, ImBuf *ibuf)
   BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
   BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
 
+  if (ps->draw_flip[0]) {
+    SWAP(float, canvas.xmin, canvas.xmax);
+  }
+  if (ps->draw_flip[1]) {
+    SWAP(float, canvas.ymin, canvas.ymax);
+  }
+
   immAttr2f(texCoord, canvas.xmin, canvas.ymin);
   immVertex2f(pos, preview.xmin, preview.ymin);
 
