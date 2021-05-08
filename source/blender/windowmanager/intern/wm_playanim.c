@@ -99,43 +99,56 @@ static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
 
 typedef struct PlayState {
 
-  /* window and viewport size */
+  /** Window and viewport size. */
   int win_x, win_y;
 
-  /* current zoom level */
+  /** Current zoom level. */
   float zoom;
 
-  /* playback state */
+  /** Playback direction (-1, 1). */
   short direction;
+  /** Set the next frame to implement frame stepping (using shortcuts). */
   short next_frame;
 
+  /** Playback once then wait. */
   bool once;
   bool turbo;
+  /** Play forwards/backwards. */
   bool pingpong;
+  /** Disable frame skipping. */
   bool noskip;
+  /** Display current frame over the window. */
   bool indicator;
+  /** Single-frame stepping has been enabled (frame loading and update pending). */
   bool sstep;
+  /** Playback has stopped the image has been displayed. */
   bool wait2;
+  /** Playback stopped state once stop/start variables have been handled. */
   bool stopped;
+  /** When disabled exit the player. */
   bool go;
-  /* waiting for images to load */
+  /** True when waiting for images to load. */
   bool loading;
-  /* x/y image flip */
+  /** X/Y image flip (set via key bindings). */
   bool draw_flip[2];
 
+  /** The number of frames to step each update (default to 1, command line argument). */
   int fstep;
 
-  /* current picture */
+  /** Current frame (picture). */
   struct PlayAnimPict *picture;
 
-  /* set once at the start */
+  /** Image size in pixels, set once at the start. */
   int ibufx, ibufy;
+  /** Mono-space font ID. */
   int fontid;
 
-  /* restarts player for file drop */
+  /** Restarts player for file drop (drag & drop). */
   char dropped_file[FILE_MAX];
 
+  /** Force update when scrubbing with the cursor. */
   bool need_frame_update;
+  /** The current frame calculated by scrubbing the mouse cursor. */
   int frame_cursor_x;
 
   ColorManagedViewSettings view_settings;
@@ -144,17 +157,15 @@ typedef struct PlayState {
 
 /* for debugging */
 #if 0
-void print_ps(PlayState *ps)
+static void print_ps(PlayState *ps)
 {
   printf("ps:\n");
   printf("    direction=%d,\n", (int)ps->direction);
-  printf("    next=%d,\n", ps->next);
   printf("    once=%d,\n", ps->once);
   printf("    turbo=%d,\n", ps->turbo);
   printf("    pingpong=%d,\n", ps->pingpong);
   printf("    noskip=%d,\n", ps->noskip);
   printf("    sstep=%d,\n", ps->sstep);
-  printf("    pause=%d,\n", ps->pause);
   printf("    wait2=%d,\n", ps->wait2);
   printf("    stopped=%d,\n", ps->stopped);
   printf("    go=%d,\n\n", ps->go);
@@ -869,15 +880,13 @@ static void change_frame(PlayState *ps)
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
   PlayState *ps = (PlayState *)ps_void;
-  GHOST_TEventType type = GHOST_GetEventType(evt);
-  int val;
+  const GHOST_TEventType type = GHOST_GetEventType(evt);
+  /* Convert ghost event into value keyboard or mouse. */
+  const int val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
 
   // print_ps(ps);
 
   playanim_event_qual_update();
-
-  /* convert ghost event into value keyboard or mouse */
-  val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
 
   /* first check if we're busy loading files */
   if (ps->loading) {
@@ -1727,7 +1736,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
       pupdate_time();
 
       if (ps.picture && ps.next_frame) {
-        /* always at least set one step */
+        /* Advance to the next frame, always at least set one step.
+         * Implement frame-skipping when enabled and playback is not fast enough. */
         while (ps.picture) {
           ps.picture = playanim_step(ps.picture, ps.next_frame);
 
