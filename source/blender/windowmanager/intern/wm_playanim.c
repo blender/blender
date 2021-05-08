@@ -1784,6 +1784,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #ifdef USE_FRAME_CACHE_LIMIT
   BLI_freelistN(&g_frame_cache.pics);
   g_frame_cache.pics_len = 0;
+  g_frame_cache.pics_size_in_memory = 0;
 #endif
 
 #ifdef WITH_AUDASPACE
