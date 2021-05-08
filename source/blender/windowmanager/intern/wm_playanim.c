@@ -909,8 +909,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     return 1;
   }
 
-  if (ps->wait2 && ps->stopped) {
-    ps->stopped = false;
+  if (ps->wait2 && ps->stopped == false) {
+    ps->stopped = true;
   }
 
   if (ps->wait2) {
@@ -1726,8 +1726,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
       ps.wait2 = ps.sstep;
 
-      if (ps.wait2 == false && ps.stopped == false) {
-        ps.stopped = true;
+      if (ps.wait2 == false && ps.stopped) {
+        ps.stopped = false;
       }
 
       pupdate_time();
