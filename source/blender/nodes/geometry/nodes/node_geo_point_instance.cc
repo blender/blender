@@ -17,6 +17,7 @@
 #include "DNA_collection_types.h"
 
 #include "BLI_hash.h"
+#include "BLI_task.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -159,26 +160,37 @@ static void add_instances_from_component(InstancesComponent &instances,
       "scale", domain, {1, 1, 1});
   GVArray_Typed<int> id_attribute = src_geometry.attribute_get_for_read<int>("id", domain, -1);
 
+  /* The initial size of the component might be non-zero if there are two component types. */
+  const int start_len = instances.instances_amount();
+  instances.resize(start_len + domain_size);
+  MutableSpan<int> handles = instances.instance_reference_handles().slice(start_len, domain_size);
+  MutableSpan<float4x4> transforms = instances.instance_transforms().slice(start_len, domain_size);
+  MutableSpan<int> instance_ids = instances.instance_ids().slice(start_len, domain_size);
+
   /* Skip all of the randomness handling if there is only a single possible instance
    * (anything except for collection mode with "Whole Collection" turned off). */
   if (possible_handles.size() == 1) {
     const int handle = possible_handles.first();
-    for (const int i : IndexRange(domain_size)) {
-      instances.add_instance(handle,
-                             float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]),
-                             id_attribute[i]);
-    }
+    parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
+      for (const int i : range) {
+        handles[i] = handle;
+        transforms[i] = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
+        instance_ids[i] = id_attribute[i];
+      }
+    });
   }
   else {
     const int seed = params.get_input<int>("Seed");
     Array<uint32_t> ids = get_geometry_element_ids_as_uints(src_geometry, ATTR_DOMAIN_POINT);
-    for (const int i : IndexRange(domain_size)) {
-      const int index = BLI_hash_int_2d(ids[i], seed) % possible_handles.size();
-      const int handle = possible_handles[index];
-      instances.add_instance(handle,
-                             float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]),
-                             id_attribute[i]);
-    }
+    parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
+      for (const int i : range) {
+        const int index = BLI_hash_int_2d(ids[i], seed) % possible_handles.size();
+        const int handle = possible_handles[index];
+        handles[i] = handle;
+        transforms[i] = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
+        instance_ids[i] = id_attribute[i];
+      }
+    });
   }
 }
 

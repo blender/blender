@@ -56,6 +56,19 @@ void InstancesComponent::reserve(int min_capacity)
   instance_ids_.reserve(min_capacity);
 }
 
+/**
+ * Resize the transform, handles, and ID vectors to the specified capacity.
+ *
+ * \note This function should be used carefully, only when it's guarenteed
+ * that the data will be filled.
+ */
+void InstancesComponent::resize(int capacity)
+{
+  instance_reference_handles_.resize(capacity);
+  instance_transforms_.resize(capacity);
+  instance_ids_.resize(capacity);
+}
+
 void InstancesComponent::clear()
 {
   instance_reference_handles_.clear();
@@ -77,6 +90,11 @@ void InstancesComponent::add_instance(const int instance_handle,
 }
 
 blender::Span<int> InstancesComponent::instance_reference_handles() const
+{
+  return instance_reference_handles_;
+}
+
+blender::MutableSpan<int> InstancesComponent::instance_reference_handles()
 {
   return instance_reference_handles_;
 }

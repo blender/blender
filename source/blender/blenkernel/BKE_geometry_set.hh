@@ -597,6 +597,7 @@ class InstancesComponent : public GeometryComponent {
   void clear();
 
   void reserve(int min_capacity);
+  void resize(int capacity);
 
   int add_reference(InstanceReference reference);
   void add_instance(int instance_handle, const blender::float4x4 &transform, const int id = -1);
@@ -604,6 +605,7 @@ class InstancesComponent : public GeometryComponent {
   blender::Span<InstanceReference> references() const;
 
   blender::Span<int> instance_reference_handles() const;
+  blender::MutableSpan<int> instance_reference_handles();
   blender::MutableSpan<blender::float4x4> instance_transforms();
   blender::Span<blender::float4x4> instance_transforms() const;
   blender::MutableSpan<int> instance_ids();
