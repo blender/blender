@@ -99,6 +99,13 @@ static SplinePtr resample_spline(const Spline &input_spline, const int count)
   std::unique_ptr<PolySpline> output_spline = std::make_unique<PolySpline>();
   output_spline->set_cyclic(input_spline.is_cyclic());
   output_spline->normal_mode = input_spline.normal_mode;
+
+  if (input_spline.evaluated_edges_size() < 1) {
+    output_spline->resize(1);
+    output_spline->positions().first() = input_spline.positions().first();
+    return output_spline;
+  }
+
   output_spline->resize(count);
 
   Array<float> uniform_samples = input_spline.sample_uniform_index_factors(count);
