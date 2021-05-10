@@ -1195,15 +1195,17 @@ static const char arg_handle_playback_mode_doc[] =
     "\t\tZero disables (clamping to a fixed number of frames instead).";
 static int arg_handle_playback_mode(int argc, const char **argv, void *UNUSED(data))
 {
-  /* not if -b was given first */
+  /* Ignore the animation player if `-b` was given first. */
   if (G.background == 0) {
 #  ifdef WITH_FFMPEG
     /* Setup FFmpeg with current debug flags. */
     IMB_ffmpeg_init();
 #  endif
 
-    WM_main_playanim(argc, argv); /* not the same argc and argv as before */
-    exit(0);                      /* 2.4x didn't do this */
+    /* This function knows to skip this argument ('-a'). */
+    WM_main_playanim(argc, argv);
+
+    exit(0);
   }
 
   return -2;

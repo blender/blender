@@ -97,6 +97,13 @@ static AUD_Device *audio_device = NULL;
 struct PlayState;
 static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
 
+/**
+ * The current state of the player.
+ *
+ * \warning Don't store results of parsing command-line arguments
+ * in this struct if they need to persist across playing back different
+ * files as these will be cleared when playing other files (drag & drop).
+ */
 typedef struct PlayState {
 
   /** Window and viewport size. */
@@ -124,7 +131,12 @@ typedef struct PlayState {
   bool wait2;
   /** Playback stopped state once stop/start variables have been handled. */
   bool stopped;
-  /** When disabled exit the player. */
+  /**
+   * When disabled the current animation will exit,
+   * after this either the application exits or a new animation window is opened.
+   *
+   * This is used so drag & drop can load new files which setup a newly created animation window.
+   */
   bool go;
   /** True when waiting for images to load. */
   bool loading;
@@ -1386,7 +1398,9 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
 }
 
-/* return path for restart */
+/**
+ * \return The a path used to restart the animation player or NULL to exit.
+ */
 static char *wm_main_playanim_intern(int argc, const char **argv)
 {
   struct ImBuf *ibuf = NULL;
@@ -1426,6 +1440,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
           IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
   IMB_colormanagement_init_default_view_settings(&ps.view_settings, &ps.display_settings);
 
+  /* Skip the first argument which is assumed to be '-a' (used to launch this player). */
   while (argc > 1) {
     if (argv[1][0] == '-') {
       switch (argv[1][1]) {
