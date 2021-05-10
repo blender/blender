@@ -3656,7 +3656,7 @@ static int gpencil_materials_append_to_object_exec(bContext *C, wmOperator *op)
   }
 
   /* Duplicate materials. */
-  for (short i = 0; i < ob_src->totcol; i++) {
+  for (int i = 0; i < ob_src->totcol; i++) {
     Material *ma_src = BKE_object_material_get(ob_src, i + 1);
     if (only_selected && ma_src != ma_active) {
       continue;
