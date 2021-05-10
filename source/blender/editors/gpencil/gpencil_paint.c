@@ -3677,14 +3677,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
        *   is essential for ensuring that they can quickly return to that view
        */
     }
-    else if ((event->type == EVT_BKEY) && (event->val == KM_RELEASE)) {
-      /* Add Blank Frame
-       * - Since this operator is non-modal, we can just call it here, and keep going...
-       * - This operator is especially useful when animating
-       */
-      WM_operator_name_call(C, "GPENCIL_OT_blank_frame_add", WM_OP_EXEC_DEFAULT, NULL);
-      estate = OPERATOR_RUNNING_MODAL;
-    }
     else if ((!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP))) {
       gpencil_guide_event_handling(C, op, event, p);
       estate = OPERATOR_RUNNING_MODAL;
