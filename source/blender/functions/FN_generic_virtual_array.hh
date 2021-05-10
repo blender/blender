@@ -135,6 +135,9 @@ class GVArray {
     this->get_internal_single(r_value);
   }
 
+  void materialize(void *dst) const;
+  void materialize(const IndexMask mask, void *dst) const;
+
   void materialize_to_uninitialized(void *dst) const;
   void materialize_to_uninitialized(const IndexMask mask, void *dst) const;
 
@@ -162,6 +165,7 @@ class GVArray {
   virtual bool is_single_impl() const;
   virtual void get_internal_single_impl(void *UNUSED(r_value)) const;
 
+  virtual void materialize_impl(const IndexMask mask, void *dst) const;
   virtual void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const;
 
   virtual const void *try_get_internal_varray_impl() const;
@@ -368,6 +372,11 @@ template<typename T> class GVArray_For_VArray : public GVArray {
   void get_internal_single_impl(void *r_value) const override
   {
     *(T *)r_value = varray_->get_internal_single();
+  }
+
+  void materialize_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_->materialize(mask, MutableSpan((T *)dst, mask.min_array_size()));
   }
 
   void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const override
