@@ -1892,13 +1892,22 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
  * The faces that were using the `delete_id` Face Set are filled
  * using the content from their neighbors.
  */
-static void sculpt_expand_delete_face_set_id(
-    int *r_face_sets, Mesh *mesh, MeshElemMap *pmap, const int totface, const int delete_id)
+static void sculpt_expand_delete_face_set_id(int *r_face_sets,
+                                             SculptSession *ss,
+                                             ExpandCache *expand_cache,
+                                             Mesh *mesh,
+                                             const int delete_id)
 {
+  const int totface = ss->totvert;
+  MeshElemMap *pmap = ss->pmap;
+
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
   bool all_same_id = true;
   for (int i = 0; i < totface; i++) {
+    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+      continue;
+    }
     if (r_face_sets[i] != delete_id) {
       all_same_id = false;
       break;
@@ -2070,9 +2079,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   if (ss->expand_cache->modify_active_face_set) {
     sculpt_expand_delete_face_set_id(ss->expand_cache->initial_face_sets,
+                                     ss,
+                                     ss->expand_cache,
                                      ob->data,
-                                     ss->pmap,
-                                     ss->totfaces,
                                      ss->expand_cache->next_face_set);
   }
 

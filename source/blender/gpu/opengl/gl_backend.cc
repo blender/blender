@@ -286,9 +286,10 @@ static void detect_workarounds()
         strstr(renderer, " RX 480 ") || strstr(renderer, " RX 490 ") ||
         strstr(renderer, " RX 560 ") || strstr(renderer, " RX 560X ") ||
         strstr(renderer, " RX 570 ") || strstr(renderer, " RX 580 ") ||
-        strstr(renderer, " RX 590 ") || strstr(renderer, " RX550/550 ") ||
-        strstr(renderer, " (TM) 520  ") || strstr(renderer, " (TM) 530  ") ||
-        strstr(renderer, " R5 ") || strstr(renderer, " R7 ") || strstr(renderer, " R9 ")) {
+        strstr(renderer, " RX 580X ") || strstr(renderer, " RX 590 ") ||
+        strstr(renderer, " RX550/550 ") || strstr(renderer, " (TM) 520  ") ||
+        strstr(renderer, " (TM) 530  ") || strstr(renderer, " R5 ") || strstr(renderer, " R7 ") ||
+        strstr(renderer, " R9 ")) {
       GCaps.use_hq_normals_workaround = true;
     }
   }
