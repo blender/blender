@@ -59,7 +59,7 @@ void InstancesComponent::reserve(int min_capacity)
 /**
  * Resize the transform, handles, and ID vectors to the specified capacity.
  *
- * \note This function should be used carefully, only when it's guarenteed
+ * \note This function should be used carefully, only when it's guaranteed
  * that the data will be filled.
  */
 void InstancesComponent::resize(int capacity)

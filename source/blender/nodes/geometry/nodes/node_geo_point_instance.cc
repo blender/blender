@@ -130,7 +130,7 @@ static Vector<InstanceReference> get_instance_references(GeoNodeExecParams &para
 /**
  * Add the instance references to the component as a separate step from actually creating the
  * instances in order to avoid a map lookup for every transform. While this might add some
- * unecessary references if they are not chosen while adding transforms, in the common cases
+ * unnecessary references if they are not chosen while adding transforms, in the common cases
  * there are many more transforms than there are references, so that isn't likely.
  */
 static Array<int> add_instance_references(InstancesComponent &instance_component,

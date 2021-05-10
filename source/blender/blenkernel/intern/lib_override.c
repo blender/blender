@@ -723,7 +723,7 @@ static void lib_override_library_create_post_process(Main *bmain,
           switch (GS(id_ref->name)) {
             case ID_GR: {
               /* Adding the object to a specific collection outside of the root overridden one is a
-               * fairly bad idea (it breaks the override hierarchy concept). But htere is no other
+               * fairly bad idea (it breaks the override hierarchy concept). But there is no other
                * way to do this currently (we cannot add new collections to overridden root one,
                * this is not currently supported).
                * Since that will be fairly annoying and noisy, only do that in case the override
