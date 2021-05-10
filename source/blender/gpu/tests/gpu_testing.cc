@@ -4,7 +4,6 @@
 
 #include "CLG_log.h"
 
-#include "CLG_log.h"
 #include "GPU_context.h"
 #include "GPU_init_exit.h"
 #include "gpu_testing.hh"
