@@ -285,10 +285,6 @@ static bool overlay_should_fade_object(Object *ob, Object *active_object)
     return false;
   }
 
-  if (ob->base_flag & BASE_FROM_DUPLI) {
-    return false;
-  }
-
   return true;
 }
 
