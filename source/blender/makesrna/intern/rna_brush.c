@@ -1618,7 +1618,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
   /* Number of pixels to dilate fill area. */
-  prop = RNA_def_property(srna, "dilate_pixels", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "dilate", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "dilate_pixels");
   RNA_def_property_range(prop, 0, 20);
   RNA_def_property_int_default(prop, 1);
