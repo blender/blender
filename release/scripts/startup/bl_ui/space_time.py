@@ -300,6 +300,8 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         col.label(text="New Keyframe Type")
         col.prop(tool_settings, "keyframe_type", text="")
 
+        layout.prop(tool_settings, "use_keyframe_cycle_aware")
+
 
 class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
     bl_label = "Auto Keyframing"
@@ -326,8 +328,6 @@ class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
         col.prop(tool_settings, "use_keyframe_insert_keyingset", text="Only Active Keying Set", toggle=False)
         if not prefs.edit.use_keyframe_insert_available:
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
-
-        col.prop(tool_settings, "use_keyframe_cycle_aware")
 
 
 ###################################
