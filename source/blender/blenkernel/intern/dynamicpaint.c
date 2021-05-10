@@ -1613,7 +1613,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   PaintSurfaceData *sData = surface->data;
   PaintPoint *pPoint = (PaintPoint *)sData->type_data;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  int i;
   const bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
   if (surface->type != MOD_DPAINT_SURFACE_T_PAINT) {
@@ -1627,7 +1626,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   /* Single color */
   if (surface->init_color_type == MOD_DPAINT_INITIAL_COLOR) {
     /* apply color to every surface point */
-    for (i = 0; i < sData->total_points; i++) {
+    for (int i = 0; i < sData->total_points; i++) {
       copy_v4_v4(pPoint[i].color, surface->init_color);
     }
   }
@@ -1700,8 +1699,8 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
         return;
       }
 
-      for (i = 0; i < totloop; i++) {
-        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[mloop[i].v].r);
+      for (int i = 0; i < totloop; i++) {
+        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[i].r);
       }
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
