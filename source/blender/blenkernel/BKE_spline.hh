@@ -291,7 +291,7 @@ class BezierSpline final : public Spline {
   InterpolationData interpolation_data_from_index_factor(const float index_factor) const;
 
   virtual blender::fn::GVArrayPtr interpolate_to_evaluated_points(
-      const blender::fn::GVArray &source_data) const;
+      const blender::fn::GVArray &source_data) const override;
 
  private:
   void correct_end_tangents() const final;
