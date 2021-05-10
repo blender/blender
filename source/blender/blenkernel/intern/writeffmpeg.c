@@ -1385,6 +1385,8 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
       context->audio_mixdown_device = NULL;
     }
   }
+#  else
+  UNUSED_VARS(is_autosplit);
 #  endif
 
   if (context->video_stream) {
