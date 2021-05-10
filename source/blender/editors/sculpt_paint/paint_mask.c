@@ -1895,7 +1895,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = paint_mask_gesture_lasso_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -1916,7 +1916,7 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->exec = paint_mask_gesture_box_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -1937,7 +1937,7 @@ void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_straightline_oneshot_modal;
   ot->exec = paint_mask_gesture_line_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -1958,6 +1958,8 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = face_set_gesture_lasso_exec;
 
+  ot->poll = SCULPT_mode_poll_view3d;
+
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   sculpt_gesture_operator_properties(ot);
@@ -1973,7 +1975,7 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->exec = face_set_gesture_box_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -1992,7 +1994,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = sculpt_trim_gesture_lasso_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -2013,7 +2015,7 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->exec = sculpt_trim_gesture_box_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 
@@ -2034,7 +2036,7 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_straightline_oneshot_modal;
   ot->exec = project_gesture_line_exec;
 
-  ot->poll = SCULPT_mode_poll;
+  ot->poll = SCULPT_mode_poll_view3d;
 
   ot->flag = OPTYPE_REGISTER;
 

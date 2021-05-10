@@ -58,7 +58,14 @@ struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain,
                                    struct NlaTrack *nlt,
                                    const bool use_same_actions,
                                    const int flag);
-void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, ListBase *src, const int flag);
+void BKE_nla_tracks_copy(struct Main *bmain, ListBase *dst, const ListBase *src, const int flag);
+
+/* Copy NLA tracks from #adt_source to #adt_dest, and update the active track/strip pointers to
+ * point at those copies. */
+void BKE_nla_tracks_copy_from_adt(struct Main *bmain,
+                                  struct AnimData *adt_dest,
+                                  const struct AnimData *adt_source,
+                                  int flag);
 
 struct NlaTrack *BKE_nlatrack_add(struct AnimData *adt,
                                   struct NlaTrack *prev,

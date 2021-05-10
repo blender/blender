@@ -1911,6 +1911,9 @@ static bool wm_operator_winactive_normal(bContext *C)
   if (!((screen = WM_window_get_active_screen(win)) && (screen->state == SCREENNORMAL))) {
     return 0;
   }
+  if (G.background) {
+    return 0;
+  }
 
   return 1;
 }

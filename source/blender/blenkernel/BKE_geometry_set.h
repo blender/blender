@@ -36,24 +36,12 @@ typedef enum GeometryComponentType {
   GEO_COMPONENT_TYPE_POINT_CLOUD = 1,
   GEO_COMPONENT_TYPE_INSTANCES = 2,
   GEO_COMPONENT_TYPE_VOLUME = 3,
+  GEO_COMPONENT_TYPE_CURVE = 4,
 } GeometryComponentType;
 
 void BKE_geometry_set_free(struct GeometrySet *geometry_set);
 
 bool BKE_geometry_set_has_instances(const struct GeometrySet *geometry_set);
-
-typedef enum InstancedDataType {
-  INSTANCE_DATA_TYPE_OBJECT = 0,
-  INSTANCE_DATA_TYPE_COLLECTION = 1,
-} InstancedDataType;
-
-typedef struct InstancedData {
-  InstancedDataType type;
-  union {
-    struct Object *object;
-    struct Collection *collection;
-  } data;
-} InstancedData;
 
 #ifdef __cplusplus
 }

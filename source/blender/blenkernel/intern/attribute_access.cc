@@ -143,10 +143,8 @@ CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_
 static int attribute_domain_priority(const AttributeDomain domain)
 {
   switch (domain) {
-#if 0
     case ATTR_DOMAIN_CURVE:
       return 0;
-#endif
     case ATTR_DOMAIN_FACE:
       return 1;
     case ATTR_DOMAIN_EDGE:

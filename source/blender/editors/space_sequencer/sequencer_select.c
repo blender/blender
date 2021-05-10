@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -1622,64 +1621,78 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
   return changed;
 }
 
-static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int channel)
+/* Query all effect strips that are directly or indirectly connected to seq_reference. */
+static void query_strip_effect_chain(Sequence *seq_reference,
+                                     ListBase *seqbase,
+                                     SeqCollection *collection)
 {
-  bool changed = false;
-  const bool is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
-  int startdisp = actseq->startdisp;
-  int enddisp = actseq->enddisp;
-  int machine = actseq->machine;
-  SeqIterator iter;
-
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-    seq->tmp = NULL;
+  if (!SEQ_collection_append_strip(seq_reference, collection)) {
+    return; /* Strip is already in set, so all effects connected to it are as well. */
   }
 
-  actseq->tmp = POINTER_FROM_INT(true);
-
-  Sequence *seq = NULL;
-  for (SEQ_iterator_begin(ed, &iter, true); iter.valid; SEQ_iterator_next(&iter)) {
-    seq = iter.seq;
-
-    /* Ignore all seqs already selected. */
-    /* Ignore all seqs not sharing some time with active one. */
-    /* Ignore all seqs of incompatible types (audio vs video). */
-    if (!SEQ_CHANNEL_CHECK(seq, channel) || (seq->flag & SELECT) || (seq->startdisp >= enddisp) ||
-        (seq->enddisp < startdisp) || (!is_audio && SEQ_IS_SOUND(seq)) ||
-        (is_audio && !((seq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(seq)))) {
-      continue;
+  /* Find all strips that seq_reference is connected to. */
+  if (seq_reference->type & SEQ_TYPE_EFFECT) {
+    if (seq_reference->seq1) {
+      query_strip_effect_chain(seq_reference->seq1, seqbase, collection);
     }
-
-    /* If the seq is an effect one, we need extra checking. */
-    if (SEQ_IS_EFFECT(seq) && ((seq->seq1 && seq->seq1->tmp) || (seq->seq2 && seq->seq2->tmp) ||
-                               (seq->seq3 && seq->seq3->tmp))) {
-      if (startdisp > seq->startdisp) {
-        startdisp = seq->startdisp;
-      }
-      if (enddisp < seq->enddisp) {
-        enddisp = seq->enddisp;
-      }
-      if (machine < seq->machine) {
-        machine = seq->machine;
-      }
-
-      seq->tmp = POINTER_FROM_INT(true);
-
-      seq->flag |= SELECT;
-      changed = true;
-
-      /* Unfortunately, we must restart checks from the beginning. */
-      SEQ_iterator_end(&iter);
-      SEQ_iterator_begin(ed, &iter, true);
+    if (seq_reference->seq2) {
+      query_strip_effect_chain(seq_reference->seq2, seqbase, collection);
     }
-
-    /* Video strips below active one, or any strip for audio (order doesn't matter here). */
-    else if (seq->machine < machine || is_audio) {
-      seq->flag |= SELECT;
-      changed = true;
+    if (seq_reference->seq3) {
+      query_strip_effect_chain(seq_reference->seq3, seqbase, collection);
     }
   }
-  SEQ_iterator_end(&iter);
+
+  /* Find all strips connected to seq_reference. */
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
+        seq_test->seq3 == seq_reference) {
+      query_strip_effect_chain(seq_test, seqbase, collection);
+    }
+  }
+}
+
+/* Query strips that are in lower channel and intersect in time with seq_reference. */
+static void query_lower_channel_strips(Sequence *seq_reference,
+                                       ListBase *seqbase,
+                                       SeqCollection *collection)
+{
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->machine > seq_reference->machine) {
+      continue; /* Not lower channel. */
+    }
+    if (seq_test->enddisp <= seq_reference->startdisp ||
+        seq_test->startdisp >= seq_reference->enddisp) {
+      continue; /* Not intersecting in time. */
+    }
+    SEQ_collection_append_strip(seq_test, collection);
+  }
+}
+
+/* Select all strips within time range and with lower channel of initial selection. Then select
+ * effect chains of these strips. */
+static bool select_grouped_effect_link(Editing *ed,
+                                       Sequence *UNUSED(actseq),
+                                       const int UNUSED(channel))
+{
+  ListBase *seqbase = SEQ_active_seqbase_get(ed);
+
+  /* Get collection of strips. */
+  SeqCollection *collection = SEQ_query_selected_strips(seqbase);
+  const int selected_strip_count = BLI_gset_len(collection->set);
+  SEQ_collection_expand(seqbase, collection, query_lower_channel_strips);
+  SEQ_collection_expand(seqbase, collection, query_strip_effect_chain);
+
+  /* Check if other strips will be affected. */
+  const bool changed = BLI_gset_len(collection->set) > selected_strip_count;
+
+  /* Actual logic. */
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    seq->flag |= SELECT;
+  }
+
+  SEQ_collection_free(collection);
 
   return changed;
 }

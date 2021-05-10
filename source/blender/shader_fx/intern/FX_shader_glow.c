@@ -71,12 +71,11 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 
-  if (mode == eShaderFxGlowMode_Luminance) {
-    uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
-  }
-  else {
+  uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
+  if (mode == eShaderFxGlowMode_Color) {
     uiItemR(layout, ptr, "select_color", 0, NULL, ICON_NONE);
   }
+
   uiItemR(layout, ptr, "glow_color", 0, NULL, ICON_NONE);
 
   uiItemS(layout);

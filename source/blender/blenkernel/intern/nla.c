@@ -254,7 +254,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
  * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_...
  * flags in BKE_lib_id.h
  */
-void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src, const int flag)
+void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const int flag)
 {
   NlaTrack *nlt, *nlt_d;
 
@@ -273,6 +273,54 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, ListBase *src, const int fl
     nlt_d = BKE_nlatrack_copy(bmain, nlt, true, flag);
     BLI_addtail(dst, nlt_d);
   }
+}
+
+/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
+static void update_active_strip(AnimData *adt_dest,
+                                NlaTrack *track_dest,
+                                const AnimData *adt_source,
+                                NlaTrack *track_source)
+{
+  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
+
+  NlaStrip *strip_dest = track_dest->strips.first;
+  LISTBASE_FOREACH (NlaStrip *, strip_source, &track_source->strips) {
+    if (strip_source == adt_source->actstrip) {
+      adt_dest->actstrip = strip_dest;
+    }
+
+    strip_dest = strip_dest->next;
+  }
+}
+
+/* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */
+static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
+{
+  BLI_assert(BLI_listbase_count(&adt_source->nla_tracks) ==
+             BLI_listbase_count(&adt_dest->nla_tracks));
+
+  NlaTrack *track_dest = adt_dest->nla_tracks.first;
+  LISTBASE_FOREACH (NlaTrack *, track_source, &adt_source->nla_tracks) {
+    if (track_source == adt_source->act_track) {
+      adt_dest->act_track = track_dest;
+      /* Assumption: the active strip is on the active track. */
+      update_active_strip(adt_dest, track_dest, adt_source, track_source);
+    }
+
+    track_dest = track_dest->next;
+  }
+}
+
+void BKE_nla_tracks_copy_from_adt(Main *bmain,
+                                  AnimData *adt_dest,
+                                  const AnimData *adt_source,
+                                  const int flag)
+{
+  adt_dest->act_track = NULL;
+  adt_dest->actstrip = NULL;
+
+  BKE_nla_tracks_copy(bmain, &adt_dest->nla_tracks, &adt_source->nla_tracks, flag);
+  update_active_track(adt_dest, adt_source);
 }
 
 /* Adding ------------------------------------------- */

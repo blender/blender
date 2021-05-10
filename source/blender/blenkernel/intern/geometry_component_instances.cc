@@ -42,72 +42,104 @@ InstancesComponent::InstancesComponent() : GeometryComponent(GEO_COMPONENT_TYPE_
 GeometryComponent *InstancesComponent::copy() const
 {
   InstancesComponent *new_component = new InstancesComponent();
-  new_component->transforms_ = transforms_;
-  new_component->instanced_data_ = instanced_data_;
-  new_component->ids_ = ids_;
+  new_component->instance_reference_handles_ = instance_reference_handles_;
+  new_component->instance_transforms_ = instance_transforms_;
+  new_component->instance_ids_ = instance_ids_;
+  new_component->references_ = references_;
   return new_component;
+}
+
+void InstancesComponent::reserve(int min_capacity)
+{
+  instance_reference_handles_.reserve(min_capacity);
+  instance_transforms_.reserve(min_capacity);
+  instance_ids_.reserve(min_capacity);
+}
+
+/**
+ * Resize the transform, handles, and ID vectors to the specified capacity.
+ *
+ * \note This function should be used carefully, only when it's guaranteed
+ * that the data will be filled.
+ */
+void InstancesComponent::resize(int capacity)
+{
+  instance_reference_handles_.resize(capacity);
+  instance_transforms_.resize(capacity);
+  instance_ids_.resize(capacity);
 }
 
 void InstancesComponent::clear()
 {
-  instanced_data_.clear();
-  transforms_.clear();
-  ids_.clear();
+  instance_reference_handles_.clear();
+  instance_transforms_.clear();
+  instance_ids_.clear();
+
+  references_.clear();
 }
 
-void InstancesComponent::add_instance(Object *object, float4x4 transform, const int id)
+void InstancesComponent::add_instance(const int instance_handle,
+                                      const float4x4 &transform,
+                                      const int id)
 {
-  InstancedData data;
-  data.type = INSTANCE_DATA_TYPE_OBJECT;
-  data.data.object = object;
-  this->add_instance(data, transform, id);
+  BLI_assert(instance_handle >= 0);
+  BLI_assert(instance_handle < references_.size());
+  instance_reference_handles_.append(instance_handle);
+  instance_transforms_.append(transform);
+  instance_ids_.append(id);
 }
 
-void InstancesComponent::add_instance(Collection *collection, float4x4 transform, const int id)
+blender::Span<int> InstancesComponent::instance_reference_handles() const
 {
-  InstancedData data;
-  data.type = INSTANCE_DATA_TYPE_COLLECTION;
-  data.data.collection = collection;
-  this->add_instance(data, transform, id);
+  return instance_reference_handles_;
 }
 
-void InstancesComponent::add_instance(InstancedData data, float4x4 transform, const int id)
+blender::MutableSpan<int> InstancesComponent::instance_reference_handles()
 {
-  instanced_data_.append(data);
-  transforms_.append(transform);
-  ids_.append(id);
+  return instance_reference_handles_;
 }
 
-Span<InstancedData> InstancesComponent::instanced_data() const
+blender::MutableSpan<blender::float4x4> InstancesComponent::instance_transforms()
 {
-  return instanced_data_;
+  return instance_transforms_;
+}
+blender::Span<blender::float4x4> InstancesComponent::instance_transforms() const
+{
+  return instance_transforms_;
 }
 
-Span<float4x4> InstancesComponent::transforms() const
+blender::MutableSpan<int> InstancesComponent::instance_ids()
 {
-  return transforms_;
+  return instance_ids_;
+}
+blender::Span<int> InstancesComponent::instance_ids() const
+{
+  return instance_ids_;
 }
 
-Span<int> InstancesComponent::ids() const
+/**
+ * Returns a handle for the given reference.
+ * If the reference exists already, the handle of the existing reference is returned.
+ * Otherwise a new handle is added.
+ */
+int InstancesComponent::add_reference(InstanceReference reference)
 {
-  return ids_;
+  return references_.index_of_or_add_as(reference);
 }
 
-MutableSpan<float4x4> InstancesComponent::transforms()
+blender::Span<InstanceReference> InstancesComponent::references() const
 {
-  return transforms_;
+  return references_;
 }
 
 int InstancesComponent::instances_amount() const
 {
-  const int size = instanced_data_.size();
-  BLI_assert(transforms_.size() == size);
-  return size;
+  return instance_transforms_.size();
 }
 
 bool InstancesComponent::is_empty() const
 {
-  return transforms_.size() == 0;
+  return this->instance_reference_handles_.size() == 0;
 }
 
 bool InstancesComponent::owns_direct_data() const
@@ -178,8 +210,8 @@ static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
 blender::Span<int> InstancesComponent::almost_unique_ids() const
 {
   std::lock_guard lock(almost_unique_ids_mutex_);
-  if (almost_unique_ids_.size() != ids_.size()) {
-    almost_unique_ids_ = generate_unique_instance_ids(ids_);
+  if (almost_unique_ids_.size() != instance_ids_.size()) {
+    almost_unique_ids_ = generate_unique_instance_ids(instance_ids_);
   }
   return almost_unique_ids_;
 }

@@ -1325,7 +1325,9 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
 
-  RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
+  prop = RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
+  /* Very small values are needed sometimes, similar area of small faces for e.g: see T87823 */
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 5);
 }
 
 /** \} */

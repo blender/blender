@@ -100,6 +100,20 @@ class FrameBuffer {
   bool scissor_test_ = false;
   bool dirty_state_ = true;
 
+#ifndef GPU_NO_USE_PY_REFERENCES
+ public:
+  /**
+   * Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
+   * Points to #BPyGPUFrameBuffer.fb
+   */
+  void **py_ref = nullptr;
+#endif
+
+ public:
+  /* Reference of a pointer that needs to be cleaned when deallocating the frame-buffer.
+   * Points to #BPyGPUFrameBuffer::fb */
+  void **ref = nullptr;
+
  public:
   FrameBuffer(const char *name);
   virtual ~FrameBuffer();

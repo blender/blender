@@ -15,6 +15,7 @@
  */
 
 #include "BLI_math_rotation.h"
+#include "BLI_task.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -55,42 +56,44 @@ static void align_rotations_auto_pivot(const VArray<float3> &vectors,
                                        const float3 local_main_axis,
                                        const MutableSpan<float3> rotations)
 {
-  for (const int i : IndexRange(vectors.size())) {
-    const float3 vector = vectors[i];
-    if (is_zero_v3(vector)) {
-      continue;
-    }
-
-    float old_rotation[3][3];
-    eul_to_mat3(old_rotation, rotations[i]);
-    float3 old_axis;
-    mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
-
-    const float3 new_axis = vector.normalized();
-    float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
-    if (is_zero_v3(rotation_axis)) {
-      /* The vectors are linearly dependent, so we fall back to another axis. */
-      rotation_axis = float3::cross_high_precision(old_axis, float3(1, 0, 0));
-      if (is_zero_v3(rotation_axis)) {
-        /* This is now guaranteed to not be zero. */
-        rotation_axis = float3::cross_high_precision(old_axis, float3(0, 1, 0));
+  parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      const float3 vector = vectors[i];
+      if (is_zero_v3(vector)) {
+        continue;
       }
+
+      float old_rotation[3][3];
+      eul_to_mat3(old_rotation, rotations[i]);
+      float3 old_axis;
+      mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
+
+      const float3 new_axis = vector.normalized();
+      float3 rotation_axis = float3::cross_high_precision(old_axis, new_axis);
+      if (is_zero_v3(rotation_axis)) {
+        /* The vectors are linearly dependent, so we fall back to another axis. */
+        rotation_axis = float3::cross_high_precision(old_axis, float3(1, 0, 0));
+        if (is_zero_v3(rotation_axis)) {
+          /* This is now guaranteed to not be zero. */
+          rotation_axis = float3::cross_high_precision(old_axis, float3(0, 1, 0));
+        }
+      }
+
+      const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
+      const float angle = factors[i] * full_angle;
+
+      float rotation[3][3];
+      axis_angle_to_mat3(rotation, rotation_axis, angle);
+
+      float new_rotation_matrix[3][3];
+      mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
+
+      float3 new_rotation;
+      mat3_to_eul(new_rotation, new_rotation_matrix);
+
+      rotations[i] = new_rotation;
     }
-
-    const float full_angle = angle_normalized_v3v3(old_axis, new_axis);
-    const float angle = factors[i] * full_angle;
-
-    float rotation[3][3];
-    axis_angle_to_mat3(rotation, rotation_axis, angle);
-
-    float new_rotation_matrix[3][3];
-    mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
-
-    float3 new_rotation;
-    mat3_to_eul(new_rotation, new_rotation_matrix);
-
-    rotations[i] = new_rotation;
-  }
+  });
 }
 
 static void align_rotations_fixed_pivot(const VArray<float3> &vectors,
@@ -104,37 +107,39 @@ static void align_rotations_fixed_pivot(const VArray<float3> &vectors,
     return;
   }
 
-  for (const int i : IndexRange(vectors.size())) {
-    const float3 vector = vectors[i];
-    if (is_zero_v3(vector)) {
-      continue;
+  parallel_for(IndexRange(vectors.size()), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      const float3 vector = vectors[i];
+      if (is_zero_v3(vector)) {
+        continue;
+      }
+
+      float old_rotation[3][3];
+      eul_to_mat3(old_rotation, rotations[i]);
+      float3 old_axis;
+      mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
+      float3 pivot_axis;
+      mul_v3_m3v3(pivot_axis, old_rotation, local_pivot_axis);
+
+      float full_angle = angle_signed_on_axis_v3v3_v3(vector, old_axis, pivot_axis);
+      if (full_angle > M_PI) {
+        /* Make sure the point is rotated as little as possible. */
+        full_angle -= 2.0f * M_PI;
+      }
+      const float angle = factors[i] * full_angle;
+
+      float rotation[3][3];
+      axis_angle_to_mat3(rotation, pivot_axis, angle);
+
+      float new_rotation_matrix[3][3];
+      mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
+
+      float3 new_rotation;
+      mat3_to_eul(new_rotation, new_rotation_matrix);
+
+      rotations[i] = new_rotation;
     }
-
-    float old_rotation[3][3];
-    eul_to_mat3(old_rotation, rotations[i]);
-    float3 old_axis;
-    mul_v3_m3v3(old_axis, old_rotation, local_main_axis);
-    float3 pivot_axis;
-    mul_v3_m3v3(pivot_axis, old_rotation, local_pivot_axis);
-
-    float full_angle = angle_signed_on_axis_v3v3_v3(vector, old_axis, pivot_axis);
-    if (full_angle > M_PI) {
-      /* Make sure the point is rotated as little as possible. */
-      full_angle -= 2.0f * M_PI;
-    }
-    const float angle = factors[i] * full_angle;
-
-    float rotation[3][3];
-    axis_angle_to_mat3(rotation, pivot_axis, angle);
-
-    float new_rotation_matrix[3][3];
-    mul_m3_m3m3(new_rotation_matrix, rotation, old_rotation);
-
-    float3 new_rotation;
-    mat3_to_eul(new_rotation, new_rotation_matrix);
-
-    rotations[i] = new_rotation;
-  }
+  });
 }
 
 static void align_rotations_on_component(GeometryComponent &component,
@@ -182,6 +187,9 @@ static void geo_node_align_rotation_to_vector_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     align_rotations_on_component(geometry_set.get_component_for_write<PointCloudComponent>(),
                                  params);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    align_rotations_on_component(geometry_set.get_component_for_write<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", geometry_set);

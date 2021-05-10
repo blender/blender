@@ -504,8 +504,6 @@ class TOPBAR_MT_file_external_data(Menu):
         icon = 'CHECKBOX_HLT' if bpy.data.use_autopack else 'CHECKBOX_DEHLT'
         layout.operator("file.autopack_toggle", icon=icon)
 
-        layout.separator()
-
         pack_all = layout.row()
         pack_all.operator("file.pack_all")
         pack_all.active = not bpy.data.use_autopack
@@ -516,8 +514,16 @@ class TOPBAR_MT_file_external_data(Menu):
 
         layout.separator()
 
+        layout.operator("file.pack_libraries")
+        layout.operator("file.unpack_libraries")
+
+        layout.separator()
+
         layout.operator("file.make_paths_relative")
         layout.operator("file.make_paths_absolute")
+
+        layout.separator()
+
         layout.operator("file.report_missing_files")
         layout.operator("file.find_missing_files")
 

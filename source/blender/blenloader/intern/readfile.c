@@ -111,6 +111,7 @@
 #include "SEQ_iterator.h"
 #include "SEQ_modifier.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_utils.h"
 
 #include "readfile.h"
 
@@ -2696,7 +2697,7 @@ static int lib_link_seq_clipboard_cb(Sequence *seq, void *arg_pt)
 static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 {
   /* update IDs stored in sequencer clipboard */
-  SEQ_iterator_seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
+  SEQ_seqbase_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
 static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
@@ -2912,7 +2913,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
         else if (sl->spacetype == SPACE_TEXT) {
           SpaceText *st = (SpaceText *)sl;
 
-          st->text = restore_pointer_by_name(id_map, (ID *)st->text, USER_REAL);
+          st->text = restore_pointer_by_name(id_map, (ID *)st->text, USER_IGNORE);
           if (st->text == NULL) {
             st->text = newmain->texts.first;
           }

@@ -557,12 +557,18 @@ static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache)
 static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 {
   FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.pos_nor);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.uv);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.tan);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.vcol);
     GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.orco);
   }
+  /* Discard batches using vbo.uv. */
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_stretch_area);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_faces_stretch_angle);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_edges);
+  GPU_BATCH_DISCARD_SAFE(cache->batch.edituv_verts);
+
   mesh_batch_cache_discard_surface_batches(cache);
   mesh_cd_layers_type_clear(&cache->cd_used);
 }
@@ -659,8 +665,17 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
         GPU_VERTBUF_DISCARD_SAFE(mbufcache->vbo.lnor);
       }
       GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
+      /* Discard batches using vbo.pos_nor. */
       GPU_BATCH_DISCARD_SAFE(cache->batch.wire_loops);
       GPU_BATCH_DISCARD_SAFE(cache->batch.wire_edges);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.all_verts);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.all_edges);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.loose_edges);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.edge_detection);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.surface_weights);
+      GPU_BATCH_DISCARD_SAFE(cache->batch.edit_mesh_analysis);
+      /* Discard batches using vbo.lnor. */
+      GPU_BATCH_DISCARD_SAFE(cache->batch.edit_lnor);
       mesh_batch_cache_discard_surface_batches(cache);
       cache->batch_ready &= ~(MBC_SURFACE | MBC_WIRE_EDGES | MBC_WIRE_LOOPS);
       break;

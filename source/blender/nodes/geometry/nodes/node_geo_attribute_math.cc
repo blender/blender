@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -157,9 +159,11 @@ static void do_math_operation(const VArray<float> &span_a,
 {
   bool success = try_dispatch_float_math_fl_fl_fl_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(span_result.size())) {
-          span_result[i] = math_function(span_a[i], span_b[i], span_c[i]);
-        }
+        parallel_for(IndexRange(span_result.size()), 512, [&](IndexRange range) {
+          for (const int i : range) {
+            span_result[i] = math_function(span_a[i], span_b[i], span_c[i]);
+          }
+        });
       });
   BLI_assert(success);
   UNUSED_VARS_NDEBUG(success);
@@ -172,9 +176,11 @@ static void do_math_operation(const VArray<float> &span_a,
 {
   bool success = try_dispatch_float_math_fl_fl_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(span_result.size())) {
-          span_result[i] = math_function(span_a[i], span_b[i]);
-        }
+        parallel_for(IndexRange(span_result.size()), 1024, [&](IndexRange range) {
+          for (const int i : range) {
+            span_result[i] = math_function(span_a[i], span_b[i]);
+          }
+        });
       });
   BLI_assert(success);
   UNUSED_VARS_NDEBUG(success);
@@ -186,9 +192,11 @@ static void do_math_operation(const VArray<float> &span_input,
 {
   bool success = try_dispatch_float_math_fl_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        for (const int i : IndexRange(span_result.size())) {
-          span_result[i] = math_function(span_input[i]);
-        }
+        parallel_for(IndexRange(span_result.size()), 1024, [&](IndexRange range) {
+          for (const int i : range) {
+            span_result[i] = math_function(span_input[i]);
+          }
+        });
       });
   BLI_assert(success);
   UNUSED_VARS_NDEBUG(success);
@@ -270,6 +278,9 @@ static void geo_node_attribute_math_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<PointCloudComponent>()) {
     attribute_math_calc(geometry_set.get_component_for_write<PointCloudComponent>(), params);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_math_calc(geometry_set.get_component_for_write<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", geometry_set);

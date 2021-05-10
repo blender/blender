@@ -68,4 +68,6 @@ class MaterialNode {
   void set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
                  COLLADAFW::ColorOrTexture &cot,
                  COLLADAFW::FloatOrParam &val);
+
+  void update_material_nodetree();
 };

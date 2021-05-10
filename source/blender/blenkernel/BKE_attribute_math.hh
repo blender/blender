@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#pragma once
+
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_float2.hh"
@@ -125,6 +127,48 @@ inline Color4f mix3(const float3 &weights, const Color4f &v0, const Color4f &v1,
 {
   Color4f result;
   interp_v4_v4v4v4(result, v0, v1, v2, weights);
+  return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mix two values of the same type.
+ *
+ * This is just basic linear interpolation.
+ * \{ */
+
+template<typename T> T mix2(const float factor, const T &a, const T &b);
+
+template<> inline bool mix2(const float factor, const bool &a, const bool &b)
+{
+  return ((1.0f - factor) * a + factor * b) >= 0.5f;
+}
+
+template<> inline int mix2(const float factor, const int &a, const int &b)
+{
+  return static_cast<int>((1.0f - factor) * a + factor * b);
+}
+
+template<> inline float mix2(const float factor, const float &a, const float &b)
+{
+  return (1.0f - factor) * a + factor * b;
+}
+
+template<> inline float2 mix2(const float factor, const float2 &a, const float2 &b)
+{
+  return float2::interpolate(a, b, factor);
+}
+
+template<> inline float3 mix2(const float factor, const float3 &a, const float3 &b)
+{
+  return float3::interpolate(a, b, factor);
+}
+
+template<> inline Color4f mix2(const float factor, const Color4f &a, const Color4f &b)
+{
+  Color4f result;
+  interp_v4_v4v4(result, a, b, factor);
   return result;
 }
 

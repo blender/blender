@@ -28,6 +28,11 @@ extern PyTypeObject BPyGPUFrameBuffer_Type;
 
 typedef struct BPyGPUFrameBuffer {
   PyObject_HEAD struct GPUFrameBuffer *fb;
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+  bool shared_reference;
+#endif
 } BPyGPUFrameBuffer;
 
-PyObject *BPyGPUFrameBuffer_CreatePyObject(struct GPUFrameBuffer *fb) ATTR_NONNULL(1);
+PyObject *BPyGPUFrameBuffer_CreatePyObject(struct GPUFrameBuffer *fb, bool shared_reference)
+    ATTR_NONNULL(1);

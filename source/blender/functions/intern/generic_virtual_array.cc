@@ -19,10 +19,70 @@
 namespace blender::fn {
 
 /* --------------------------------------------------------------------
+ * GVArray_For_ShallowCopy.
+ */
+
+class GVArray_For_ShallowCopy : public GVArray {
+ private:
+  const GVArray &varray_;
+
+ public:
+  GVArray_For_ShallowCopy(const GVArray &varray)
+      : GVArray(varray.type(), varray.size()), varray_(varray)
+  {
+  }
+
+ private:
+  void get_impl(const int64_t index, void *r_value) const override
+  {
+    varray_.get(index, r_value);
+  }
+
+  void get_to_uninitialized_impl(const int64_t index, void *r_value) const override
+  {
+    varray_.get_to_uninitialized(index, r_value);
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_.materialize_to_uninitialized(mask, dst);
+  }
+};
+
+/* --------------------------------------------------------------------
  * GVArray.
  */
 
+void GVArray::materialize(void *dst) const
+{
+  this->materialize(IndexMask(size_), dst);
+}
+
+void GVArray::materialize(const IndexMask mask, void *dst) const
+{
+  this->materialize_impl(mask, dst);
+}
+
+void GVArray::materialize_impl(const IndexMask mask, void *dst) const
+{
+  for (const int64_t i : mask) {
+    void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
+    this->get(i, elem_dst);
+  }
+}
+
+void GVArray::materialize_to_uninitialized(void *dst) const
+{
+  this->materialize_to_uninitialized(IndexMask(size_), dst);
+}
+
 void GVArray::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+{
+  BLI_assert(mask.min_array_size() <= size_);
+  this->materialize_to_uninitialized_impl(mask, dst);
+}
+
+void GVArray::materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const
 {
   for (const int64_t i : mask) {
     void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
@@ -60,6 +120,26 @@ void GVArray::get_internal_single_impl(void *UNUSED(r_value)) const
 const void *GVArray::try_get_internal_varray_impl() const
 {
   return nullptr;
+}
+
+/**
+ * Creates a new `std::unique_ptr<GVArray>` based on this `GVArray`.
+ * The lifetime of the returned virtual array must not be longer than the lifetime of this virtual
+ * array.
+ */
+GVArrayPtr GVArray::shallow_copy() const
+{
+  if (this->is_span()) {
+    return std::make_unique<GVArray_For_GSpan>(this->get_internal_span());
+  }
+  if (this->is_single()) {
+    BUFFER_FOR_CPP_TYPE_VALUE(*type_, buffer);
+    this->get_internal_single(buffer);
+    std::unique_ptr new_varray = std::make_unique<GVArray_For_SingleValue>(*type_, size_, buffer);
+    type_->destruct(buffer);
+    return new_varray;
+  }
+  return std::make_unique<GVArray_For_ShallowCopy>(*this);
 }
 
 /* --------------------------------------------------------------------

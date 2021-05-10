@@ -24,6 +24,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_mesh.h"
+#include "BKE_spline.hh"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph_query.h"
@@ -100,7 +101,7 @@ static void transform_instances(InstancesComponent &instances,
                                 const float3 rotation,
                                 const float3 scale)
 {
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.instance_transforms();
 
   /* Use only translation if rotation and scale don't apply. */
   if (use_translate(rotation, scale)) {
@@ -152,6 +153,21 @@ static void transform_volume(Volume *volume,
 #endif
 }
 
+static void transform_curve(CurveEval &curve,
+                            const float3 translation,
+                            const float3 rotation,
+                            const float3 scale)
+{
+
+  if (use_translate(rotation, scale)) {
+    curve.translate(translation);
+  }
+  else {
+    const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
+    curve.transform(matrix);
+  }
+}
+
 static void geo_node_transform_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -177,6 +193,11 @@ static void geo_node_transform_exec(GeoNodeExecParams params)
   if (geometry_set.has_volume()) {
     Volume *volume = geometry_set.get_volume_for_write();
     transform_volume(volume, translation, rotation, scale, params);
+  }
+
+  if (geometry_set.has_curve()) {
+    CurveEval *curve = geometry_set.get_curve_for_write();
+    transform_curve(*curve, translation, rotation, scale);
   }
 
   params.set_output("Geometry", std::move(geometry_set));

@@ -86,6 +86,17 @@ int ui_but_menu_step(uiBut *but, int direction)
   return 0;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Popup Menu Memory
+ *
+ * Support menu-memory, a feature that positions the cursor
+ * over the previously used menu item.
+ *
+ * \note This is stored for each unique menu title.
+ * \{ */
+
 static uint ui_popup_string_hash(const char *str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
@@ -392,7 +403,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
   pup->layout = UI_block_layout(
       pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
 
-  /* note, this intentionally differs from the menu & submenu default because many operators
+  /* note, this intentionally differs from the menu & sub-menu default because many operators
    * use popups like this to select one of their options -
    * where having invoke doesn't make sense */
   uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);

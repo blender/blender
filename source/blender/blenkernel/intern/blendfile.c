@@ -399,7 +399,8 @@ static void setup_app_data(bContext *C,
     BKE_lib_override_library_main_resync(
         bmain,
         curscene,
-        bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene));
+        bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene),
+        reports);
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
     BKE_lib_override_library_main_operations_create(bmain, true);
   }

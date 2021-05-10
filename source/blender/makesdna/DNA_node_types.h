@@ -1188,6 +1188,14 @@ typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
 
+typedef struct NodeAttributeCurveMap {
+  /* CustomDataType. */
+  uint8_t data_type;
+  char _pad[7];
+  CurveMapping *curve_vec;
+  CurveMapping *curve_rgb;
+} NodeAttributeCurveMap;
+
 typedef struct NodeInputVector {
   float vector[3];
 } NodeInputVector;
@@ -1280,10 +1288,9 @@ typedef struct NodeAttributeSeparateXYZ {
 
 typedef struct NodeAttributeConvert {
   /* CustomDataType. */
-  uint8_t data_type;
-  char _pad[1];
+  int8_t data_type;
   /* AttributeDomain. */
-  int16_t domain;
+  int8_t domain;
 } NodeAttributeConvert;
 
 typedef struct NodeGeometryMeshCircle {
@@ -1312,6 +1319,11 @@ typedef struct NodeSwitch {
   /* NodeSwitch. */
   uint8_t input_type;
 } NodeSwitch;
+
+typedef struct NodeGeometryCurveResample {
+  /* GeometryNodeCurveSampleMode. */
+  uint8_t mode;
+} NodeGeometryCurveResample;
 
 typedef struct NodeGeometryAttributeTransfer {
   /* AttributeDomain. */
@@ -1813,6 +1825,11 @@ typedef enum GeometryNodeMeshLineCountMode {
   GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
   GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
 } GeometryNodeMeshLineCountMode;
+
+typedef enum GeometryNodeCurveSampleMode {
+  GEO_NODE_CURVE_SAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
+} GeometryNodeCurveSampleMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,

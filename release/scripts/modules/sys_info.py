@@ -23,6 +23,7 @@
 
 def write_sysinfo(filepath):
     import sys
+    import platform
 
     import subprocess
 
@@ -63,7 +64,7 @@ def write_sysinfo(filepath):
                  ))
 
             output.write("build date: %s, %s\n" % (prepr(bpy.app.build_date), prepr(bpy.app.build_time)))
-            output.write("platform: %s\n" % prepr(bpy.app.build_platform))
+            output.write("platform: %s\n" % prepr(platform.platform()))
             output.write("binary path: %s\n" % prepr(bpy.app.binary_path))
             output.write("build cflags: %s\n" % prepr(bpy.app.build_cflags))
             output.write("build cxxflags: %s\n" % prepr(bpy.app.build_cxxflags))

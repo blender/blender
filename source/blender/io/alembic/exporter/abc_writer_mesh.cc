@@ -250,7 +250,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 
   UVSample uvs_and_indices;
 
-  if (!frame_has_been_written_ && args_.export_params->uvs) {
+  if (args_.export_params->uvs) {
     const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, &mesh->ldata);
 
     if (!uvs_and_indices.indices.empty() && !uvs_and_indices.uvs.empty()) {
@@ -312,7 +312,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
       V3fArraySample(points), Int32ArraySample(poly_verts), Int32ArraySample(loop_counts));
 
   UVSample sample;
-  if (!frame_has_been_written_ && args_.export_params->uvs) {
+  if (args_.export_params->uvs) {
     const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
 
     if (!sample.indices.empty() && !sample.uvs.empty()) {

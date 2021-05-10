@@ -34,6 +34,12 @@ namespace blender::fn {
 template<typename T> class GVArray_Typed;
 template<typename T> class GVMutableArray_Typed;
 
+class GVArray;
+class GVMutableArray;
+
+using GVArrayPtr = std::unique_ptr<GVArray>;
+using GVMutableArrayPtr = std::unique_ptr<GVMutableArray>;
+
 /* A generically typed version of `VArray<T>`. */
 class GVArray {
  protected:
@@ -117,6 +123,7 @@ class GVArray {
     BLI_assert(this->is_single());
     if (size_ == 1) {
       this->get(0, r_value);
+      return;
     }
     this->get_internal_single_impl(r_value);
   }
@@ -128,6 +135,10 @@ class GVArray {
     this->get_internal_single(r_value);
   }
 
+  void materialize(void *dst) const;
+  void materialize(const IndexMask mask, void *dst) const;
+
+  void materialize_to_uninitialized(void *dst) const;
   void materialize_to_uninitialized(const IndexMask mask, void *dst) const;
 
   template<typename T> const VArray<T> *try_get_internal_varray() const
@@ -142,6 +153,8 @@ class GVArray {
     return GVArray_Typed<T>(*this);
   }
 
+  GVArrayPtr shallow_copy() const;
+
  protected:
   virtual void get_impl(const int64_t index, void *r_value) const;
   virtual void get_to_uninitialized_impl(const int64_t index, void *r_value) const = 0;
@@ -151,6 +164,9 @@ class GVArray {
 
   virtual bool is_single_impl() const;
   virtual void get_internal_single_impl(void *UNUSED(r_value)) const;
+
+  virtual void materialize_impl(const IndexMask mask, void *dst) const;
+  virtual void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const;
 
   virtual const void *try_get_internal_varray_impl() const;
 };
@@ -211,9 +227,6 @@ class GVMutableArray : public GVArray {
 
   virtual void *try_get_internal_mutable_varray_impl();
 };
-
-using GVArrayPtr = std::unique_ptr<GVArray>;
-using GVMutableArrayPtr = std::unique_ptr<GVMutableArray>;
 
 class GVArray_For_GSpan : public GVArray {
  protected:
@@ -359,6 +372,16 @@ template<typename T> class GVArray_For_VArray : public GVArray {
   void get_internal_single_impl(void *r_value) const override
   {
     *(T *)r_value = varray_->get_internal_single();
+  }
+
+  void materialize_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_->materialize(mask, MutableSpan((T *)dst, mask.min_array_size()));
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_->materialize_to_uninitialized(mask, MutableSpan((T *)dst, mask.min_array_size()));
   }
 
   const void *try_get_internal_varray_impl() const override

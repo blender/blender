@@ -778,7 +778,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
       }
 
       /* draw */
-      immUniformThemeColorShade(TH_VIEW_OVERLAY, 100);
+      immUniformThemeColorShadeAlpha(TH_VIEW_OVERLAY, 100, 255);
 
       /* TODO Was using:
        * UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color);
@@ -1286,6 +1286,11 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 
   if (v3d->localvd) {
     name_array[name_array_len++] = IFACE_(" (Local)");
+  }
+
+  /* Indicate that clipping region is enabled. */
+  if (rv3d->rflag & RV3D_CLIPPING) {
+    name_array[name_array_len++] = IFACE_(" (Clipped)");
   }
 
   if (name_array_len > 1) {

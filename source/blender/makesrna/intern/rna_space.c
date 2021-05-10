@@ -3046,6 +3046,10 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main *UNUSED(bma
   if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
     sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
   }
+  if (sspreadsheet->geometry_component_type == GEO_COMPONENT_TYPE_CURVE &&
+      !ELEM(sspreadsheet->attribute_domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
+  }
 }
 
 const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UNUSED(C),
@@ -3088,6 +3092,11 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext *UN
     }
     if (component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
       if (item->value != ATTR_DOMAIN_POINT) {
+        continue;
+      }
+    }
+    if (component_type == GEO_COMPONENT_TYPE_CURVE) {
+      if (!ELEM(item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
         continue;
       }
     }
@@ -7485,6 +7494,11 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
        ICON_POINTCLOUD_DATA,
        "Point Cloud",
        "Point cloud component containing only point data"},
+      {GEO_COMPONENT_TYPE_CURVE,
+       "CURVE",
+       ICON_CURVE_DATA,
+       "Curve",
+       "Curve component containing spline and control point data"},
       {GEO_COMPONENT_TYPE_INSTANCES,
        "INSTANCES",
        ICON_EMPTY_AXIS,

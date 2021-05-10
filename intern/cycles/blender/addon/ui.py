@@ -552,7 +552,9 @@ class CYCLES_RENDER_PT_light_paths_fast_gi(CyclesButtonsPanel, Panel):
 
         if world:
           light = world.light_settings
-          layout.prop(light, "distance", text="AO Distance")
+          col = layout.column(align=True)
+          col.prop(light, "ao_factor", text="AO Factor")
+          col.prop(light, "distance", text="AO Distance")
 
 
 class CYCLES_RENDER_PT_motion_blur(CyclesButtonsPanel, Panel):

@@ -499,7 +499,6 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
     }
     MEM_freeN(ccdm->mima);
     MEM_freeN(ccdm);
-    ccdm = NULL;
   }
 }
 

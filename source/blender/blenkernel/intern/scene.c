@@ -742,7 +742,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS(data, view_layer->mat_override, IDWALK_CB_USER);
 
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-      BKE_LIB_FOREACHID_PROCESS(data, base->object, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS(
+          data, base->object, IDWALK_CB_NOP | IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
     }
 
     scene_foreach_layer_collection(data, &view_layer->layer_collections);

@@ -374,6 +374,7 @@ struct MovieClip *BKE_object_movieclip_get(struct Scene *scene,
 
 void BKE_object_runtime_reset(struct Object *object);
 void BKE_object_runtime_reset_on_copy(struct Object *object, const int flag);
+void BKE_object_runtime_free_data(struct Object *object);
 
 void BKE_object_batch_cache_dirty_tag(struct Object *ob);
 

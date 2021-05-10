@@ -1522,10 +1522,10 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
                                            ImBuf *ibuf,
                                            bool *r_glsl_used,
                                            eGPUTextureFormat *r_format,
-                                           eGPUDataFormat *r_data)
+                                           eGPUDataFormat *r_data,
+                                           void **r_buffer_cache_handle)
 {
   void *display_buffer;
-  void *cache_handle = NULL;
   bool force_fallback = false;
   *r_glsl_used = false;
   force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
@@ -1578,12 +1578,9 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
   /* There is data to be displayed, but GLSL is not initialized
    * properly, in this case we fallback to CPU-based display transform. */
   if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
-    display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+    display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, r_buffer_cache_handle);
     *r_format = GPU_RGBA8;
     *r_data = GPU_DATA_UBYTE;
-  }
-  if (cache_handle) {
-    IMB_display_buffer_release(cache_handle);
   }
 
   return display_buffer;
@@ -1658,6 +1655,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
                                           bool draw_backdrop)
 {
   void *display_buffer;
+  void *buffer_cache_handle = NULL;
 
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
     GPU_blend(GPU_BLEND_ALPHA);
@@ -1685,7 +1683,8 @@ static void sequencer_draw_display_buffer(const bContext *C,
     data = GPU_DATA_UBYTE;
   }
   else {
-    display_buffer = sequencer_OCIO_transform_ibuf(C, ibuf, &glsl_used, &format, &data);
+    display_buffer = sequencer_OCIO_transform_ibuf(
+        C, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
   }
 
   if (draw_backdrop) {
@@ -1743,6 +1742,10 @@ static void sequencer_draw_display_buffer(const bContext *C,
   }
   else {
     IMB_colormanagement_finish_glsl_draw();
+  }
+
+  if (buffer_cache_handle) {
+    IMB_display_buffer_release(buffer_cache_handle);
   }
 
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {

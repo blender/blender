@@ -95,6 +95,7 @@ typedef struct SequencerAddData {
 #define SEQPROP_NOPATHS (1 << 2)
 #define SEQPROP_NOCHAN (1 << 3)
 #define SEQPROP_FIT_METHOD (1 << 4)
+#define SEQPROP_VIEW_TRANSFORM (1 << 5)
 
 static const EnumPropertyItem scale_fit_methods[] = {
     {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image to fit within the canvas"},
@@ -151,6 +152,14 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                             SEQ_SCALE_TO_FIT,
                             "Fit Method",
                             "Scale fit method");
+  }
+
+  if (flag & SEQPROP_VIEW_TRANSFORM) {
+    ot->prop = RNA_def_boolean(ot->srna,
+                               "set_view_transform",
+                               true,
+                               "Set view transform",
+                               "Set appropriate view transform based on media colorspace");
   }
 }
 
@@ -284,6 +293,11 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
     load_data->flags |= SEQ_LOAD_MOVIE_SYNC_FPS;
   }
 
+  if ((prop = RNA_struct_find_property(op->ptr, "set_view_transform")) &&
+      RNA_property_boolean_get(op->ptr, prop)) {
+    load_data->flags |= SEQ_LOAD_SET_VIEW_TRANSFORM;
+  }
+
   if ((prop = RNA_struct_find_property(op->ptr, "use_multiview")) &&
       RNA_property_boolean_get(op->ptr, prop)) {
     if (op->customdata) {
@@ -368,8 +382,23 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void sequencer_disable_one_time_properties(bContext *C, wmOperator *op)
+{
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C), false);
+  /* Disable following properties if there are any existing strips, unless overridden by user. */
+  if (ed && ed->seqbasep && ed->seqbasep->first) {
+    if (RNA_struct_find_property(op->ptr, "use_framerate")) {
+      RNA_boolean_set(op->ptr, "use_framerate", false);
+    }
+    if (RNA_struct_find_property(op->ptr, "set_view_transform")) {
+      RNA_boolean_set(op->ptr, "set_view_transform", false);
+    }
+  }
+}
+
 static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  sequencer_disable_one_time_properties(C, op);
   if (!RNA_struct_property_is_set(op->ptr, "scene")) {
     return WM_enum_search_invoke(C, op, event);
   }
@@ -702,13 +731,9 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
 {
   PropertyRNA *prop;
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene, false);
 
-  /* Only enable "use_framerate" if there aren't any existing strips, unless overridden by user.
-   */
-  if (ed && ed->seqbasep && ed->seqbasep->first) {
-    RNA_boolean_set(op->ptr, "use_framerate", false);
-  }
+  sequencer_disable_one_time_properties(C, op);
+
   RNA_enum_set(op->ptr, "fit_method", SEQ_tool_settings_fit_method_get(scene));
 
   /* This is for drag and drop. */
@@ -775,7 +800,8 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
                                      WM_FILESEL_SHOW_PROPS | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
-  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_FIT_METHOD);
+  sequencer_generic_props__internal(
+      ot, SEQPROP_STARTFRAME | SEQPROP_FIT_METHOD | SEQPROP_VIEW_TRANSFORM);
   RNA_def_boolean(ot->srna, "sound", true, "Sound", "Load sound with the movie");
   RNA_def_boolean(ot->srna,
                   "use_framerate",
@@ -1053,6 +1079,8 @@ static int sequencer_add_image_strip_invoke(bContext *C,
   PropertyRNA *prop;
   Scene *scene = CTX_data_scene(C);
 
+  sequencer_disable_one_time_properties(C, op);
+
   const SequencerToolSettings *tool_settings = scene->toolsettings->sequencer_tool_settings;
   RNA_enum_set(op->ptr, "fit_method", tool_settings->fit_method);
 
@@ -1100,8 +1128,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
                                      WM_FILESEL_SHOW_PROPS | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
-  sequencer_generic_props__internal(ot,
-                                    SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_FIT_METHOD);
+  sequencer_generic_props__internal(
+      ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_FIT_METHOD | SEQPROP_VIEW_TRANSFORM);
 
   RNA_def_boolean(ot->srna,
                   "use_placeholders",

@@ -60,6 +60,12 @@ Texture::~Texture()
       fb_[i]->attachment_remove(fb_attachment_[i]);
     }
   }
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+  if (this->py_ref) {
+    *this->py_ref = nullptr;
+  }
+#endif
 }
 
 bool Texture::init_1D(int w, int layers, eGPUTextureFormat format)
@@ -580,6 +586,19 @@ bool GPU_texture_array(const GPUTexture *tex)
 {
   return (reinterpret_cast<const Texture *>(tex)->type_get() & GPU_TEXTURE_ARRAY) != 0;
 }
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+void **GPU_texture_py_reference_get(GPUTexture *tex)
+{
+  return unwrap(tex)->py_ref;
+}
+
+void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref)
+{
+  BLI_assert(py_ref == nullptr || unwrap(tex)->py_ref == nullptr);
+  unwrap(tex)->py_ref = py_ref;
+}
+#endif
 
 /* TODO remove */
 int GPU_texture_opengl_bindcode(const GPUTexture *tex)

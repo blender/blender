@@ -635,7 +635,7 @@ bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
  * \note Use with care, not on Armature poses but for temporal ones.
  * \note (currently used for action constraints and in rebuild_pose).
  */
-bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
+bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
 {
   bPoseChannel *chan;
 
@@ -815,7 +815,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
    */
   if (outPose->chanbase.first != outPose->chanbase.last) {
     outPose->chanhash = NULL;
-    BKE_pose_channels_hash_make(outPose);
+    BKE_pose_channels_hash_ensure(outPose);
   }
 
   outPose->iksolver = src->iksolver;
@@ -945,7 +945,7 @@ bool BKE_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
  * Removes the hash for quick lookup of channels, must
  * be done when adding/removing channels.
  */
-void BKE_pose_channels_hash_make(bPose *pose)
+void BKE_pose_channels_hash_ensure(bPose *pose)
 {
   if (!pose->chanhash) {
     bPoseChannel *pchan;
@@ -1191,7 +1191,7 @@ void BKE_pose_free(bPose *pose)
  * and ID-Props, used when duplicating bones in editmode.
  * (unlike copy_pose_channel_data which only does posing-related stuff).
  *
- * \note use when copying bones in editmode (on returned value from #BKE_pose_channel_verify)
+ * \note use when copying bones in editmode (on returned value from #BKE_pose_channel_ensure)
  */
 void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
 {
@@ -1774,7 +1774,7 @@ void what_does_obaction(Object *ob,
      * allocation and also will make lookup slower.
      */
     if (pose->chanbase.first != pose->chanbase.last) {
-      BKE_pose_channels_hash_make(pose);
+      BKE_pose_channels_hash_ensure(pose);
     }
     if (pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
       BKE_pose_update_constraint_flags(pose);

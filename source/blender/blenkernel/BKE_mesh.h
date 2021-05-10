@@ -577,9 +577,9 @@ void BKE_mesh_polygons_flip(struct MPoly *mpoly,
                             struct CustomData *ldata,
                             int totpoly);
 
-/* merge verts  */
-/* Enum for merge_mode of CDDM_merge_verts.
- * Refer to mesh.c for details. */
+/* Merge verts. */
+/* Enum for merge_mode of #BKE_mesh_merge_verts.
+ * Refer to mesh_merge.c for details. */
 enum {
   MESH_MERGE_VERTS_DUMP_IF_MAPPED,
   MESH_MERGE_VERTS_DUMP_IF_EQUAL,

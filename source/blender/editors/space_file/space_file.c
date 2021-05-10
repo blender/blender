@@ -467,6 +467,15 @@ static void file_listener(const wmSpaceTypeListenerParams *params)
           break;
       }
       break;
+    case NC_ID: {
+      switch (wmn->action) {
+        case NA_RENAME:
+          /* Force list to update sorting (with a full reset for now). */
+          file_reset_filelist_showing_main_data(area, sfile);
+          break;
+      }
+      break;
+    }
     case NC_ASSET: {
       switch (wmn->action) {
         case NA_SELECTED:
@@ -654,6 +663,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_highlight);
   WM_operatortype_append(FILE_OT_sort_column_ui_context);
   WM_operatortype_append(FILE_OT_execute);
+  WM_operatortype_append(FILE_OT_mouse_execute);
   WM_operatortype_append(FILE_OT_cancel);
   WM_operatortype_append(FILE_OT_parent);
   WM_operatortype_append(FILE_OT_previous);

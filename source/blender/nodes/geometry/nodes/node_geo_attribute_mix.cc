@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "BKE_material.h"
 
 #include "DNA_material_types.h"
@@ -64,14 +66,16 @@ static void do_mix_operation_float(const int blend_mode,
                                    VMutableArray<float> &results)
 {
   const int size = results.size();
-  for (const int i : IndexRange(size)) {
-    const float factor = factors[i];
-    float3 a{inputs_a[i]};
-    const float3 b{inputs_b[i]};
-    ramp_blend(blend_mode, a, factor, b);
-    const float result = a.x;
-    results.set(i, result);
-  }
+  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      const float factor = factors[i];
+      float3 a{inputs_a[i]};
+      const float3 b{inputs_b[i]};
+      ramp_blend(blend_mode, a, factor, b);
+      const float result = a.x;
+      results.set(i, result);
+    }
+  });
 }
 
 static void do_mix_operation_float3(const int blend_mode,
@@ -81,13 +85,15 @@ static void do_mix_operation_float3(const int blend_mode,
                                     VMutableArray<float3> &results)
 {
   const int size = results.size();
-  for (const int i : IndexRange(size)) {
-    const float factor = factors[i];
-    float3 a = inputs_a[i];
-    const float3 b = inputs_b[i];
-    ramp_blend(blend_mode, a, factor, b);
-    results.set(i, a);
-  }
+  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      const float factor = factors[i];
+      float3 a = inputs_a[i];
+      const float3 b = inputs_b[i];
+      ramp_blend(blend_mode, a, factor, b);
+      results.set(i, a);
+    }
+  });
 }
 
 static void do_mix_operation_color4f(const int blend_mode,
@@ -97,13 +103,15 @@ static void do_mix_operation_color4f(const int blend_mode,
                                      VMutableArray<Color4f> &results)
 {
   const int size = results.size();
-  for (const int i : IndexRange(size)) {
-    const float factor = factors[i];
-    Color4f a = inputs_a[i];
-    const Color4f b = inputs_b[i];
-    ramp_blend(blend_mode, a, factor, b);
-    results.set(i, a);
-  }
+  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      const float factor = factors[i];
+      Color4f a = inputs_a[i];
+      const Color4f b = inputs_b[i];
+      ramp_blend(blend_mode, a, factor, b);
+      results.set(i, a);
+    }
+  });
 }
 
 static void do_mix_operation(const CustomDataType result_type,
@@ -200,6 +208,9 @@ static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<PointCloudComponent>()) {
     attribute_mix_calc(geometry_set.get_component_for_write<PointCloudComponent>(), params);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_mix_calc(geometry_set.get_component_for_write<CurveComponent>(), params);
   }
 
   params.set_output("Geometry", geometry_set);

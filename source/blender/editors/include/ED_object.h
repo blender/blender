@@ -247,6 +247,7 @@ void ED_object_texture_paint_mode_enter(struct bContext *C);
 void ED_object_texture_paint_mode_exit_ex(struct Main *bmain, struct Scene *scene, Object *ob);
 void ED_object_texture_paint_mode_exit(struct bContext *C);
 
+bool ED_object_particle_edit_mode_supported(const Object *ob);
 void ED_object_particle_edit_mode_enter_ex(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            Object *ob);

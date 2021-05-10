@@ -269,6 +269,12 @@ bool GPU_texture_cube(const GPUTexture *tex);
 bool GPU_texture_depth(const GPUTexture *tex);
 bool GPU_texture_stencil(const GPUTexture *tex);
 bool GPU_texture_integer(const GPUTexture *tex);
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+void **GPU_texture_py_reference_get(GPUTexture *tex);
+void GPU_texture_py_reference_set(GPUTexture *tex, void **py_ref);
+#endif
+
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);

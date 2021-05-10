@@ -22,7 +22,6 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_node_ui_storage.hh"
-#include "BKE_persistent_data_handle.hh"
 
 #include "DNA_node_types.h"
 
@@ -36,8 +35,6 @@ namespace blender::nodes {
 using bke::geometry_set_realize_instances;
 using bke::OutputAttribute;
 using bke::OutputAttribute_Typed;
-using bke::PersistentDataHandleMap;
-using bke::PersistentObjectHandle;
 using bke::ReadAttributeLookup;
 using bke::WriteAttributeLookup;
 using fn::CPPType;
@@ -63,7 +60,6 @@ using fn::GVMutableArrayPtr;
 class GeoNodeExecParamsProvider {
  public:
   DNode dnode;
-  const PersistentDataHandleMap *handle_map = nullptr;
   const Object *self_object = nullptr;
   const ModifierData *modifier = nullptr;
   Depsgraph *depsgraph = nullptr;
@@ -188,11 +184,6 @@ class GeoNodeExecParams {
   const bNode &node() const
   {
     return *provider_->dnode->bnode();
-  }
-
-  const PersistentDataHandleMap &handle_map() const
-  {
-    return *provider_->handle_map;
   }
 
   const Object *self_object() const

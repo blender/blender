@@ -25,8 +25,6 @@ MaterialNode::MaterialNode(bContext *C, Material *ma, KeyImageMap &key_image_map
     shader_node = add_node(SH_NODE_BSDF_PRINCIPLED, 0, 300, "");
     output_node = add_node(SH_NODE_OUTPUT_MATERIAL, 300, 300, "");
     add_link(shader_node, 0, output_node, 0);
-
-    ntreeUpdateTree(CTX_data_main(C), ntree);
   }
 }
 
@@ -61,8 +59,6 @@ MaterialNode::MaterialNode(bContext *C,
   shader_node = add_node(SH_NODE_BSDF_PRINCIPLED, 0, 300, "");
   output_node = add_node(SH_NODE_OUTPUT_MATERIAL, 300, 300, "");
   add_link(shader_node, 0, output_node, 0);
-
-  ntreeUpdateTree(CTX_data_main(C), ntree);
 #endif
 }
 
@@ -107,6 +103,11 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
   material->use_nodes = true;
   ntree = material->nodetree;
   return ntree;
+}
+
+void MaterialNode::update_material_nodetree()
+{
+  ntreeUpdateTree(CTX_data_main(mContext), ntree);
 }
 
 bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string label)

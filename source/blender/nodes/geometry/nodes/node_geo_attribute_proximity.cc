@@ -253,6 +253,10 @@ static void geo_node_attribute_proximity_exec(GeoNodeExecParams params)
     attribute_calc_proximity(
         geometry_set.get_component_for_write<PointCloudComponent>(), geometry_set_target, params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    attribute_calc_proximity(
+        geometry_set.get_component_for_write<CurveComponent>(), geometry_set_target, params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }

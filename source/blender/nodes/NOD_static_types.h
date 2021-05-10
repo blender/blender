@@ -312,6 +312,9 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CLAMP, def_geo_attribute_clamp, "ATTRIB
 DefNode(GeometryNode, GEO_NODE_BOUNDING_BOX, 0, "BOUNDING_BOX", BoundBox, "Bounding Box", "")
 DefNode(GeometryNode, GEO_NODE_SWITCH, def_geo_switch, "SWITCH", Switch, "Switch", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_TRANSFER, def_geo_attribute_transfer, "ATTRIBUTE_TRANSFER", AttributeTransfer, "Attribute Transfer", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_CURVE_MAP, def_geo_attribute_curve_map, "ATTRIBUTE_CURVE_MAP", AttributeCurveMap, "Attribute Curve Map", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
 
 /* undefine macros */
 #undef DefNode

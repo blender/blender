@@ -39,12 +39,13 @@
 #include "BLI_utildefines_stack.h"
 
 #include "bmesh.h"
-#include "bmesh_bisect_plane.h" /* own include */
+#include "bmesh_bisect_plane.h" /* Own include. */
 
-#include "BLI_strict_flags.h" /* keep last */
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* -------------------------------------------------------------------- */
-/* Math utils */
+/** \name Math Functions
+ * \{ */
 
 static short plane_point_test_v3(const float plane[4],
                                  const float co[3],
@@ -63,10 +64,15 @@ static short plane_point_test_v3(const float plane[4],
   return 0;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Wrappers to hide internal data-structure abuse,
+/** \name BMesh Element Accessors
+ *
+ * Wrappers to hide internal data-structure abuse,
  * later we may want to move this into some hash lookup
- * to a separate struct, but for now we can store in BMesh data */
+ * to a separate struct, but for now we can store in #BMesh data.
+ * \{ */
 
 #define BM_VERT_DIR(v) ((short *)(&(v)->head.index))[0]  /* Direction -1/0/1 */
 #define BM_VERT_SKIP(v) ((short *)(&(v)->head.index))[1] /* Skip Vert 0/1 */
@@ -75,12 +81,16 @@ static short plane_point_test_v3(const float plane[4],
 #define BM_VERT_LOOPINDEX(v) /* The verts index within a face (temp var) */ \
   (*((uint *)(&(v)->no[2])))
 
-/**
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BMesh Flag Accessors
+ *
  * Hide flag access
- * (for more readable code since same flag is used differently for vert/edgeface)...
+ * (for more readable code since same flag is used differently for vert/edge-face).
  */
 
-/* enable when vertex is in the center and its faces have been added to the stack */
+/** Enable when vertex is in the center and its faces have been added to the stack. */
 BLI_INLINE void vert_is_center_enable(BMVert *v)
 {
   BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -94,7 +104,13 @@ BLI_INLINE bool vert_is_center_test(BMVert *v)
   return (BM_elem_flag_test(v, BM_ELEM_TAG) != 0);
 }
 
-/* enable when the edge can be cut */
+BLI_INLINE bool vert_pair_adjacent_in_orig_face(BMVert *v_a, BMVert *v_b, const uint f_len_orig)
+{
+  const uint delta = (uint)abs((int)BM_VERT_LOOPINDEX(v_a) - (int)BM_VERT_LOOPINDEX(v_b));
+  return ELEM(delta, 1, (uint)(f_len_orig - 1));
+}
+
+/** Enable when the edge can be cut. */
 BLI_INLINE void edge_is_cut_enable(BMEdge *e)
 {
   BM_elem_flag_enable(e, BM_ELEM_TAG);
@@ -108,7 +124,7 @@ BLI_INLINE bool edge_is_cut_test(BMEdge *e)
   return (BM_elem_flag_test(e, BM_ELEM_TAG) != 0);
 }
 
-/* enable when the faces are added to the stack */
+/** Enable when the faces are added to the stack. */
 BLI_INLINE void face_in_stack_enable(BMFace *f)
 {
   BM_elem_flag_disable(f, BM_ELEM_TAG);
@@ -122,8 +138,11 @@ BLI_INLINE bool face_in_stack_test(BMFace *f)
   return (BM_elem_flag_test(f, BM_ELEM_TAG) == 0);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* BMesh utils */
+/** \name BMesh Face Bisect
+ * \{ */
 
 static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
 {
@@ -142,32 +161,39 @@ static int bm_vert_sortval_cb(const void *v_a_v, const void *v_b_v)
 static void bm_face_bisect_verts(
     BMesh *bm, BMFace *f, const float plane[4], const short oflag_center, const short oflag_new)
 {
-  /* unlikely more than 2 verts are needed */
+  /* Unlikely more than 2 verts are needed. */
   const uint f_len_orig = (uint)f->len;
   BMVert **vert_split_arr = BLI_array_alloca(vert_split_arr, f_len_orig);
   STACK_DECLARE(vert_split_arr);
   BMLoop *l_iter, *l_first;
   bool use_dirs[3] = {false, false, false};
   bool is_inside = false;
+  /* True when the face contains one or more edges with both it's vertices on the plane.
+   * When set, centered loops are walked over to check if they need to be skipped. */
+  bool face_has_center_edge = false;
 
   STACK_INIT(vert_split_arr, f_len_orig);
 
   l_first = BM_FACE_FIRST_LOOP(f);
 
-  /* add plane-aligned verts to the stack
-   * and check we have verts from both sides in this face,
-   * ... that the face doesn't only have boundary verts on the plane for eg. */
+  /* Add plane-aligned verts to the stack and check we have verts from both sides in this face
+   * (that the face doesn't only have boundary verts on the plane for eg). */
   l_iter = l_first;
   do {
     if (vert_is_center_test(l_iter->v)) {
       BLI_assert(BM_VERT_DIR(l_iter->v) == 0);
 
-      /* if both are -1 or 1, or both are zero:
-       * don't flip 'inside' var while walking */
+      /* If both are -1 or 1, or both are zero: don't flip 'inside' var while walking. */
       BM_VERT_SKIP(l_iter->v) = (((BM_VERT_DIR(l_iter->prev->v) ^ BM_VERT_DIR(l_iter->next->v))) ==
                                  0);
 
       STACK_PUSH(vert_split_arr, l_iter->v);
+
+      if (face_has_center_edge == false) {
+        if (vert_is_center_test(l_iter->prev->v)) {
+          face_has_center_edge = true;
+        }
+      }
     }
     use_dirs[BM_VERT_DIR(l_iter->v) + 1] = true;
   } while ((l_iter = l_iter->next) != l_first);
@@ -180,7 +206,7 @@ static void bm_face_bisect_verts(
       l_a = BM_face_vert_share_loop(f, vert_split_arr[0]);
       l_b = BM_face_vert_share_loop(f, vert_split_arr[1]);
 
-      /* common case, just cut the face once */
+      /* Common case, just cut the face once. */
       BM_face_split(bm, f, l_a, l_b, &l_new, NULL, true);
       if (l_new) {
         if (oflag_center | oflag_new) {
@@ -192,7 +218,63 @@ static void bm_face_bisect_verts(
       }
     }
     else {
-      /* less common case, _complicated_ we need to calculate how to do multiple cuts */
+      /* Less common case, _complicated_ we need to calculate how to do multiple cuts. */
+
+      uint i = 0;
+
+      /* ---- */
+      /* Check contiguous spans of centered vertices (skipping when necessary). */
+      if (face_has_center_edge) {
+
+        /* Loop indices need to be set for adjacency checks. */
+        l_iter = l_first;
+        do {
+          BM_VERT_LOOPINDEX(l_iter->v) = i++;
+        } while ((l_iter = l_iter->next) != l_first);
+
+        /* Start out on a non-centered vertex so a span of centered vertices can be looped over
+         * without having to scan backwards as well as forwards. */
+        BMLoop *l_first_non_center = l_first;
+        while (vert_is_center_test(l_first_non_center->v)) {
+          l_first_non_center = l_first_non_center->next;
+        }
+
+        l_iter = l_first_non_center;
+        do {
+          if (BM_VERT_SKIP(l_iter->v)) {
+            continue;
+          }
+          /* No need to check the previous as the iteration starts on a non-centered vertex. */
+          if (!(vert_is_center_test(l_iter->v) && vert_is_center_test(l_iter->next->v))) {
+            continue;
+          }
+
+          /* Walk over the next loops as long as they are centered. */
+          BMLoop *l_prev = l_iter->prev;
+          BMLoop *l_next = l_iter->next->next;
+          /* No need to scan the previous vertices,
+           * these will have been dealt with in previous steps. */
+          BLI_assert(!vert_is_center_test(l_prev->v));
+          while (vert_is_center_test(l_next->v)) {
+            l_next = l_next->next;
+          }
+
+          /* Skip all vertices when the edges connected to the beginning/end
+           * of the range are on a different side of the bisecting plane. */
+          if (!(BM_VERT_DIR(l_prev->v) ^ BM_VERT_DIR(l_next->v))) {
+            BLI_assert(!vert_is_center_test(l_prev->v));
+            l_iter = l_prev->next;
+            while (l_iter != l_next) {
+              BLI_assert(vert_is_center_test(l_iter->v));
+              BM_VERT_SKIP(l_iter->v) = true;
+              l_iter = l_iter->next;
+            }
+          }
+          /* Step over the span already handled, even if skip wasn't set. */
+          l_iter = l_next->prev;
+        } while ((l_iter = l_iter->next) != l_first_non_center);
+      }
+
       float(*face_verts_proj_2d)[2] = BLI_array_alloca(face_verts_proj_2d, f_len_orig);
       float axis_mat[3][3];
 
@@ -200,15 +282,12 @@ static void bm_face_bisect_verts(
       STACK_DECLARE(face_split_arr);
 
       float sort_dir[3];
-      uint i;
 
       /* ---- */
       /* Calculate the direction to sort verts in the face intersecting the plane */
 
-      /* exact dir isn't so important,
-       * just need a dir for sorting verts across face,
-       * 'sort_dir' could be flipped either way, it not important, we only need to order the array
-       */
+      /* The exact direction isn't important, vertices just need to be sorted across the face.
+       * (`sort_dir` could be flipped either way). */
       cross_v3_v3v3(sort_dir, f->no, plane);
       if (UNLIKELY(normalize_v3(sort_dir) == 0.0f)) {
         /* find any 2 verts and get their direction */
@@ -219,8 +298,8 @@ static void bm_face_bisect_verts(
           }
         }
         if (UNLIKELY(i == STACK_SIZE(vert_split_arr))) {
-          /* ok, we can't do anything useful here,
-           * face has no area or so, bail out, this is highly unlikely but not impossible */
+          /* Ok, we can't do anything useful here,
+           * face has no area or so, bail out, this is highly unlikely but not impossible. */
           goto finally;
         }
       }
@@ -228,20 +307,19 @@ static void bm_face_bisect_verts(
       /* ---- */
       /* Calculate 2d coords to use for intersection checks */
 
-      /* get the faces 2d coords */
+      /* Get the faces 2d coords. */
       BLI_assert(BM_face_is_normal_valid(f));
       axis_dominant_v3_to_m3(axis_mat, f->no);
 
       l_iter = l_first;
       i = 0;
       do {
-        BM_VERT_LOOPINDEX(l_iter->v) = i;
         mul_v2_m3v3(face_verts_proj_2d[i], axis_mat, l_iter->v->co);
         i++;
       } while ((l_iter = l_iter->next) != l_first);
 
       /* ---- */
-      /* Sort the verts across the face from one side to another */
+      /* Sort the verts across the face from one side to another. */
       for (i = 0; i < STACK_SIZE(vert_split_arr); i++) {
         BMVert *v = vert_split_arr[i];
         BM_VERT_SORTVAL(v) = dot_v3v3(sort_dir, v->co);
@@ -251,9 +329,9 @@ static void bm_face_bisect_verts(
           vert_split_arr, STACK_SIZE(vert_split_arr), sizeof(*vert_split_arr), bm_vert_sortval_cb);
 
       /* ---- */
-      /* Split the face across sorted splits */
+      /* Split the face across sorted splits. */
 
-      /* note: we don't know which face gets which splits,
+      /* NOTE: we don't know which face gets which splits,
        * so at the moment we have to search all faces for the vert pair,
        * while not all that nice, typically there are < 5 resulting faces,
        * so its not _that_ bad. */
@@ -265,6 +343,12 @@ static void bm_face_bisect_verts(
         BMVert *v_a = vert_split_arr[i];
         BMVert *v_b = vert_split_arr[i + 1];
 
+        if (face_has_center_edge) {
+          if (vert_pair_adjacent_in_orig_face(v_a, v_b, f_len_orig)) {
+            continue;
+          }
+        }
+
         if (!BM_VERT_SKIP(v_a)) {
           is_inside = !is_inside;
         }
@@ -275,8 +359,8 @@ static void bm_face_bisect_verts(
           uint j;
 
           for (j = 0; j < STACK_SIZE(face_split_arr); j++) {
-            /* would be nice to avoid loop lookup here,
-             * but we need to know which face the verts are in */
+            /* It would be nice to avoid loop lookup here,
+             * but we need to know which face the verts are in. */
             if ((l_a = BM_face_vert_share_loop(face_split_arr[j], v_a)) &&
                 (l_b = BM_face_vert_share_loop(face_split_arr[j], v_b))) {
               found = true;
@@ -284,11 +368,10 @@ static void bm_face_bisect_verts(
             }
           }
 
-          /* ideally wont happen, but it can for self intersecting faces */
+          /* Ideally wont happen, but it can for self intersecting faces. */
           // BLI_assert(found == true);
 
-          /* in fact this simple test is good enough,
-           * test if the loops are adjacent */
+          /* In fact this simple test is good enough, test if the loops are adjacent. */
           if (found && !BM_loop_is_adjacent(l_a, l_b)) {
             BMLoop *l_new;
             BMFace *f_tmp;
@@ -322,8 +405,11 @@ finally:
   (void)vert_split_arr;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Main logic */
+/** \name Public BMesh Bisect Function
+ * \{ */
 
 /**
  * \param use_snap_center: Snap verts onto the plane.
@@ -350,25 +436,25 @@ void BM_mesh_bisect_plane(BMesh *bm,
   BMIter iter;
 
   if (use_tag) {
-    /* build tagged edge array */
+    /* Build tagged edge array. */
     BMEdge *e;
     einput_len = 0;
 
-    /* flush edge tags to verts */
+    /* Flush edge tags to verts. */
     BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-    /* keep face tags as is */
+    /* Keep face tags as is. */
     BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
       if (edge_is_cut_test(e)) {
         edges_arr[einput_len++] = e;
 
-        /* flush edge tags to verts */
+        /* Flush edge tags to verts. */
         BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
         BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
       }
     }
 
-    /* face tags are set by caller */
+    /* Face tags are set by caller. */
   }
   else {
     BMEdge *e;
@@ -388,7 +474,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
     if (use_tag && !BM_elem_flag_test(v, BM_ELEM_TAG)) {
       vert_is_center_disable(v);
 
-      /* these should never be accessed */
+      /* These should never be accessed. */
       BM_VERT_DIR(v) = 0;
       BM_VERT_DIST(v) = 0.0f;
 
@@ -408,11 +494,11 @@ void BM_mesh_bisect_plane(BMesh *bm,
     }
   }
 
-  /* store a stack of faces to be evaluated for splitting */
+  /* Store a stack of faces to be evaluated for splitting. */
   BLI_LINKSTACK_INIT(face_stack);
 
   for (i = 0; i < einput_len; i++) {
-    /* we could check edge_is_cut_test(e) but there is no point */
+    /* We could check `edge_is_cut_test(e)` but there is no point. */
     BMEdge *e = edges_arr[i];
     const int side[2] = {BM_VERT_DIR(e->v1), BM_VERT_DIR(e->v2)};
     const float dist[2] = {BM_VERT_DIST(e->v1), BM_VERT_DIST(e->v2)};
@@ -449,8 +535,8 @@ void BM_mesh_bisect_plane(BMesh *bm,
       BM_VERT_DIST(v_new) = 0.0f;
     }
     else if (side[0] == 0 || side[1] == 0) {
-      /* check if either edge verts are aligned,
-       * if so - tag and push all faces that use it into the stack */
+      /* Check if either edge verts are aligned,
+       * if so - tag and push all faces that use it into the stack. */
       uint j;
       BM_ITER_ELEM_INDEX (v, &iter, e, BM_VERTS_OF_EDGE, j) {
         if (side[j] == 0) {
@@ -470,7 +556,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
         }
       }
 
-      /* if both verts are on the center - tag it */
+      /* If both verts are on the center - tag it. */
       if (oflag_center) {
         if (side[0] == 0 && side[1] == 0) {
           BMO_edge_flag_enable(bm, e, oflag_center);
@@ -485,9 +571,11 @@ void BM_mesh_bisect_plane(BMesh *bm,
     bm_face_bisect_verts(bm, f, plane, oflag_center, oflag_new);
   }
 
-  /* Caused by access macros: BM_VERT_DIR, BM_VERT_SKIP. */
+  /* Caused by access macros: #BM_VERT_DIR, #BM_VERT_SKIP. */
   bm->elem_index_dirty |= BM_VERT;
 
-  /* now we have all faces to split in the stack */
+  /* Now we have all faces to split in the stack. */
   BLI_LINKSTACK_FREE(face_stack);
 }
+
+/** \} */

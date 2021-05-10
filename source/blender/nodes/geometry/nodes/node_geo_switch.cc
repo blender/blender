@@ -133,11 +133,11 @@ static void geo_node_switch_exec(GeoNodeExecParams params)
       break;
     }
     case SOCK_OBJECT: {
-      output_input<bke::PersistentObjectHandle>(params, input, "_007", "Output_007");
+      output_input<Object *>(params, input, "_007", "Output_007");
       break;
     }
     case SOCK_COLLECTION: {
-      output_input<bke::PersistentCollectionHandle>(params, input, "_008", "Output_008");
+      output_input<Collection *>(params, input, "_008", "Output_008");
       break;
     }
     default:

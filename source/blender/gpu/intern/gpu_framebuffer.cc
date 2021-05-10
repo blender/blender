@@ -71,6 +71,12 @@ FrameBuffer::~FrameBuffer()
       reinterpret_cast<Texture *>(attachment.tex)->detach_from(this);
     }
   }
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+  if (this->py_ref) {
+    *this->py_ref = nullptr;
+  }
+#endif
 }
 
 /** \} */
@@ -472,6 +478,19 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
 {
   unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, userData);
 }
+
+#ifndef GPU_NO_USE_PY_REFERENCES
+void **GPU_framebuffer_py_reference_get(GPUFrameBuffer *gpu_fb)
+{
+  return unwrap(gpu_fb)->py_ref;
+}
+
+void GPU_framebuffer_py_reference_set(GPUFrameBuffer *gpu_fb, void **py_ref)
+{
+  BLI_assert(py_ref == nullptr || unwrap(gpu_fb)->py_ref == nullptr);
+  unwrap(gpu_fb)->py_ref = py_ref;
+}
+#endif
 
 /** \} */
 

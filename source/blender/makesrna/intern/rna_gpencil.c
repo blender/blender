@@ -2571,7 +2571,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Auto-Lock Layers",
-      "Lock automatically all layers except active one to avoid accidental changes");
+      "Automatically lock all layers except the active one to avoid accidental changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_autolock");
 
   prop = RNA_def_property(srna, "edit_line_color", PROP_FLOAT, PROP_COLOR_GAMMA);

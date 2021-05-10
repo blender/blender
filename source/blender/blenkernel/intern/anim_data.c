@@ -354,7 +354,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
   }
 
   /* duplicate NLA data */
-  BKE_nla_tracks_copy(bmain, &dadt->nla_tracks, &adt->nla_tracks, flag);
+  BKE_nla_tracks_copy_from_adt(bmain, dadt, adt, flag);
 
   /* duplicate drivers (F-Curves) */
   BKE_fcurves_copy(&dadt->drivers, &adt->drivers);

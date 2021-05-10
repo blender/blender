@@ -38,6 +38,7 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_index_mask.hh"
 #include "BLI_span.hh"
 
 namespace blender {
@@ -127,14 +128,25 @@ template<typename T> class VArray {
   /* Copy the entire virtual array into a span. */
   void materialize(MutableSpan<T> r_span) const
   {
-    BLI_assert(size_ == r_span.size());
-    this->materialize_impl(r_span);
+    this->materialize(IndexMask(size_), r_span);
+  }
+
+  /* Copy some indices of the virtual array into a span. */
+  void materialize(IndexMask mask, MutableSpan<T> r_span) const
+  {
+    BLI_assert(mask.min_array_size() <= size_);
+    this->materialize_impl(mask, r_span);
   }
 
   void materialize_to_uninitialized(MutableSpan<T> r_span) const
   {
-    BLI_assert(size_ == r_span.size());
-    this->materialize_to_uninitialized_impl(r_span);
+    this->materialize_to_uninitialized(IndexMask(size_), r_span);
+  }
+
+  void materialize_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const
+  {
+    BLI_assert(mask.min_array_size() <= size_);
+    this->materialize_to_uninitialized_impl(mask, r_span);
   }
 
  protected:
@@ -164,40 +176,35 @@ template<typename T> class VArray {
     return T();
   }
 
-  virtual void materialize_impl(MutableSpan<T> r_span) const
+  virtual void materialize_impl(IndexMask mask, MutableSpan<T> r_span) const
   {
+    T *dst = r_span.data();
     if (this->is_span()) {
-      const Span<T> span = this->get_internal_span();
-      initialized_copy_n(span.data(), size_, r_span.data());
+      const T *src = this->get_internal_span().data();
+      mask.foreach_index([&](const int64_t i) { dst[i] = src[i]; });
     }
     else if (this->is_single()) {
       const T single = this->get_internal_single();
-      initialized_fill_n(r_span.data(), size_, single);
+      mask.foreach_index([&](const int64_t i) { dst[i] = single; });
     }
     else {
-      const int64_t size = size_;
-      for (int64_t i = 0; i < size; i++) {
-        r_span[i] = this->get(i);
-      }
+      mask.foreach_index([&](const int64_t i) { dst[i] = this->get(i); });
     }
   }
 
-  virtual void materialize_to_uninitialized_impl(MutableSpan<T> r_span) const
+  virtual void materialize_to_uninitialized_impl(IndexMask mask, MutableSpan<T> r_span) const
   {
+    T *dst = r_span.data();
     if (this->is_span()) {
-      const Span<T> span = this->get_internal_span();
-      uninitialized_copy_n(span.data(), size_, r_span.data());
+      const T *src = this->get_internal_span().data();
+      mask.foreach_index([&](const int64_t i) { new (dst + i) T(src[i]); });
     }
     else if (this->is_single()) {
       const T single = this->get_internal_single();
-      uninitialized_fill_n(r_span.data(), size_, single);
+      mask.foreach_index([&](const int64_t i) { new (dst + i) T(single); });
     }
     else {
-      const int64_t size = size_;
-      T *dst = r_span.data();
-      for (int64_t i = 0; i < size; i++) {
-        new (dst + i) T(this->get(i));
-      }
+      mask.foreach_index([&](const int64_t i) { new (dst + i) T(this->get(i)); });
     }
   }
 };
@@ -494,6 +501,18 @@ template<typename T, typename GetFunc> class VArray_For_Func final : public VArr
   {
     return get_func_(index);
   }
+
+  void materialize_impl(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    T *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { dst[i] = get_func_(i); });
+  }
+
+  void materialize_to_uninitialized_impl(IndexMask mask, MutableSpan<T> r_span) const override
+  {
+    T *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { new (dst + i) T(get_func_(i)); });
+  }
 };
 
 template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
@@ -510,6 +529,18 @@ class VArray_For_DerivedSpan : public VArray<ElemT> {
   ElemT get_impl(const int64_t index) const override
   {
     return GetFunc(data_[index]);
+  }
+
+  void materialize_impl(IndexMask mask, MutableSpan<ElemT> r_span) const override
+  {
+    ElemT *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { dst[i] = GetFunc(data_[i]); });
+  }
+
+  void materialize_to_uninitialized_impl(IndexMask mask, MutableSpan<ElemT> r_span) const override
+  {
+    ElemT *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { new (dst + i) ElemT(GetFunc(data_[i])); });
   }
 };
 
@@ -536,6 +567,18 @@ class VMutableArray_For_DerivedSpan : public VMutableArray<ElemT> {
   void set_impl(const int64_t index, ElemT value) override
   {
     SetFunc(data_[index], std::move(value));
+  }
+
+  void materialize_impl(IndexMask mask, MutableSpan<ElemT> r_span) const override
+  {
+    ElemT *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { dst[i] = GetFunc(data_[i]); });
+  }
+
+  void materialize_to_uninitialized_impl(IndexMask mask, MutableSpan<ElemT> r_span) const override
+  {
+    ElemT *dst = r_span.data();
+    mask.foreach_index([&](const int64_t i) { new (dst + i) ElemT(GetFunc(data_[i])); });
   }
 };
 

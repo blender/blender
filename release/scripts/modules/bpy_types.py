@@ -657,16 +657,14 @@ class Gizmo(StructRNA):
             use_blend = color[3] < 1.0
 
         if use_blend:
-            # TODO: wrap GPU_blend from GPU state.
-            from bgl import glEnable, glDisable, GL_BLEND
-            glEnable(GL_BLEND)
+            gpu.state.blend_set('ALPHA')
 
         with gpu.matrix.push_pop():
             gpu.matrix.multiply_matrix(matrix)
             batch.draw()
 
         if use_blend:
-            glDisable(GL_BLEND)
+            gpu.state.blend_set('NONE')
 
     @staticmethod
     def new_custom_shape(type, verts):

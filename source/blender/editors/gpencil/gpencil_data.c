@@ -557,6 +557,7 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
   if (name[0] == '\0') {
     return OPERATOR_CANCELLED;
   }
+  const bool only_active = RNA_boolean_get(op->ptr, "only_active");
 
   Object *ob_dst = (Object *)BKE_scene_object_find_by_name(scene, name);
 
@@ -564,10 +565,10 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 
   Object *ob_src = CTX_data_active_object(C);
   bGPdata *gpd_src = (bGPdata *)ob_src->data;
-  bGPDlayer *gpl_src = BKE_gpencil_layer_active_get(gpd_src);
+  bGPDlayer *gpl_active = BKE_gpencil_layer_active_get(gpd_src);
 
   /* Sanity checks. */
-  if (ELEM(NULL, gpd_src, gpl_src, ob_dst)) {
+  if (ELEM(NULL, gpd_src, ob_dst)) {
     return OPERATOR_CANCELLED;
   }
   /* Cannot copy itself and check destination type. */
@@ -576,47 +577,55 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
   }
 
   bGPdata *gpd_dst = (bGPdata *)ob_dst->data;
-
-  /* Create new layer. */
-  bGPDlayer *gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl_src->info, true);
-  /* Need to copy some variables (not all). */
-  gpl_dst->onion_flag = gpl_src->onion_flag;
-  gpl_dst->thickness = gpl_src->thickness;
-  gpl_dst->line_change = gpl_src->line_change;
-  copy_v4_v4(gpl_dst->tintcolor, gpl_src->tintcolor);
-  gpl_dst->opacity = gpl_src->opacity;
-
-  /* Create all frames. */
-  LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
-
-    if ((mode == GP_LAYER_COPY_OBJECT_ACT_FRAME) && (gpf_src != gpl_src->actframe)) {
-      continue;
-    }
-
-    /* Create new frame. */
-    bGPDframe *gpf_dst = BKE_gpencil_frame_addnew(gpl_dst, gpf_src->framenum);
-
-    /* Copy strokes. */
-    LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
-
-      /* Make copy of source stroke. */
-      bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
-
-      /* Check if material is in destination object,
-       * otherwise add the slot with the material. */
-      Material *ma_src = BKE_object_material_get(ob_src, gps_src->mat_nr + 1);
-      if (ma_src != NULL) {
-        int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
-
-        /* Reassign the stroke material to the right slot in destination object. */
-        gps_dst->mat_nr = idx;
-      }
-
-      /* Add new stroke to frame. */
-      BLI_addtail(&gpf_dst->strokes, gps_dst);
-    }
+  /* Disable destination active layer to keep order. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_dst->layers) {
+    gpl->flag &= ~GP_LAYER_ACTIVE;
   }
 
+  LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
+    if ((only_active) && (gpl_src != gpl_active)) {
+      continue;
+    }
+    /* Create new layer. */
+    bGPDlayer *gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl_src->info, true);
+    /* Need to copy some variables (not all). */
+    gpl_dst->onion_flag = gpl_src->onion_flag;
+    gpl_dst->thickness = gpl_src->thickness;
+    gpl_dst->line_change = gpl_src->line_change;
+    copy_v4_v4(gpl_dst->tintcolor, gpl_src->tintcolor);
+    gpl_dst->opacity = gpl_src->opacity;
+
+    /* Create all frames. */
+    LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
+
+      if ((mode == GP_LAYER_COPY_OBJECT_ACT_FRAME) && (gpf_src != gpl_src->actframe)) {
+        continue;
+      }
+
+      /* Create new frame. */
+      bGPDframe *gpf_dst = BKE_gpencil_frame_addnew(gpl_dst, gpf_src->framenum);
+
+      /* Copy strokes. */
+      LISTBASE_FOREACH (bGPDstroke *, gps_src, &gpf_src->strokes) {
+
+        /* Make copy of source stroke. */
+        bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src, true, true);
+
+        /* Check if material is in destination object,
+         * otherwise add the slot with the material. */
+        Material *ma_src = BKE_object_material_get(ob_src, gps_src->mat_nr + 1);
+        if (ma_src != NULL) {
+          int idx = BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
+
+          /* Reassign the stroke material to the right slot in destination object. */
+          gps_dst->mat_nr = idx;
+        }
+
+        /* Add new stroke to frame. */
+        BLI_addtail(&gpf_dst->strokes, gps_dst);
+      }
+    }
+  }
   /* notifiers */
   DEG_id_tag_update(&gpd_dst->id,
                     ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
@@ -628,6 +637,8 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   static const EnumPropertyItem copy_mode[] = {
       {GP_LAYER_COPY_OBJECT_ALL_FRAME, "ALL", 0, "All Frames", ""},
       {GP_LAYER_COPY_OBJECT_ACT_FRAME, "ACTIVE", 0, "Active Frame", ""},
@@ -651,6 +662,13 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   RNA_def_enum(ot->srna, "mode", copy_mode, GP_LAYER_COPY_OBJECT_ALL_FRAME, "Mode", "");
+
+  prop = RNA_def_boolean(ot->srna,
+                         "only_active",
+                         true,
+                         "Only Active",
+                         "Append only active Layer, uncheck to append all layers");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* ********************* Duplicate Frame ************************** */
@@ -3587,6 +3605,101 @@ void GPENCIL_OT_set_active_material(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ********************* Append Materials in a new object ************************** */
+static bool gpencil_materials_append_to_object_poll(bContext *C)
+{
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = CTX_data_active_object(C);
+  if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+    return false;
+  }
+  short *totcolp = BKE_object_material_len_p(ob);
+  if (*totcolp == 0) {
+    return false;
+  }
+
+  /* check there are more grease pencil objects */
+  LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
+    if ((base->object != ob) && (base->object->type == OB_GPENCIL)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static int gpencil_materials_append_to_object_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  char name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "object", name);
+
+  if (name[0] == '\0') {
+    return OPERATOR_CANCELLED;
+  }
+  const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
+
+  Object *ob_dst = (Object *)BKE_scene_object_find_by_name(scene, name);
+  Object *ob_src = CTX_data_active_object(C);
+  Material *ma_active = BKE_gpencil_material(ob_src, ob_src->actcol);
+
+  /* Sanity checks. */
+  if (ELEM(NULL, ob_src, ob_dst)) {
+    return OPERATOR_CANCELLED;
+  }
+  /* Cannot copy itself and check destination type. */
+  if ((ob_src == ob_dst) || (ob_dst->type != OB_GPENCIL)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Duplicate materials. */
+  for (int i = 0; i < ob_src->totcol; i++) {
+    Material *ma_src = BKE_object_material_get(ob_src, i + 1);
+    if (only_selected && ma_src != ma_active) {
+      continue;
+    }
+
+    if (ma_src != NULL) {
+      BKE_gpencil_object_material_ensure(bmain, ob_dst, ma_src);
+    }
+  }
+
+  /* notifiers */
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_materials_append_to_object(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Append Materials to New Object";
+  ot->idname = "GPENCIL_OT_materials_append_to_object";
+  ot->description = "Append Materials of the active Grease Pencil to other object";
+
+  /* callbacks */
+  ot->exec = gpencil_materials_append_to_object_exec;
+  ot->poll = gpencil_materials_append_to_object_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_string(
+      ot->srna, "object", NULL, MAX_ID_NAME - 2, "Object", "Name of the destination object");
+  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna,
+                         "only_selected",
+                         true,
+                         "Only Selected",
+                         "Append only selected material, uncheck to append all materials");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* Parent GPencil object to Lattice */

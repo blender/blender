@@ -4343,7 +4343,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
   }
   /* Speed optimization for animation lookups. */
   if (ob->pose != NULL) {
-    BKE_pose_channels_hash_make(ob->pose);
+    BKE_pose_channels_hash_ensure(ob->pose);
     if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
       BKE_pose_update_constraint_flags(ob->pose);
     }
@@ -5111,6 +5111,20 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
   runtime->object_as_temp_mesh = NULL;
   runtime->object_as_temp_curve = NULL;
   runtime->geometry_set_eval = NULL;
+}
+
+/**
+ * The function frees memory used by the runtime data, but not the runtime field itself.
+ *
+ * All runtime data is cleared to ensure it's not used again,
+ * in keeping with other `_free_data(..)` functions.
+ */
+void BKE_object_runtime_free_data(Object *object)
+{
+  /* Currently this is all that's needed. */
+  BKE_object_free_derived_caches(object);
+
+  BKE_object_runtime_reset(object);
 }
 
 /**

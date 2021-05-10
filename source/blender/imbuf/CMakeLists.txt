@@ -166,12 +166,6 @@ if(WITH_CODEC_FFMPEG)
     ${OPENJPEG_LIBRARIES}
   )
   add_definitions(-DWITH_FFMPEG)
-
-  remove_strict_c_flags_file(
-    intern/anim_movie.c
-    intern/indexer.c
-    intern/util.c
-  )
 endif()
 
 if(WITH_IMAGE_DDS)

@@ -183,6 +183,19 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     if (do_bisect) {
       copy_v3_v3(plane_co, itmp[3]);
       copy_v3_v3(plane_no, itmp[axis]);
+
+      /* Account for non-uniform scale in `ob`, see: T87592. */
+      float ob_scale[3] = {
+          len_squared_v3(ob->obmat[0]),
+          len_squared_v3(ob->obmat[1]),
+          len_squared_v3(ob->obmat[2]),
+      };
+      /* Scale to avoid precision loss with extreme values. */
+      const float ob_scale_max = max_fff(UNPACK3(ob_scale));
+      if (LIKELY(ob_scale_max != 0.0f)) {
+        mul_v3_fl(ob_scale, 1.0f / ob_scale_max);
+        mul_v3_v3(plane_no, ob_scale);
+      }
     }
   }
   else if (do_bisect) {

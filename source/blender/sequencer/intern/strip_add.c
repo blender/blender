@@ -50,6 +50,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
@@ -124,6 +125,24 @@ static void seq_add_set_name(Sequence *seq, SeqLoadData *load_data)
     else { /* Image, sound and movie. */
       BLI_strncpy_utf8(seq->name + 2, load_data->name, sizeof(seq->name) - 2);
       BLI_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
+    }
+  }
+}
+
+static void seq_add_set_view_transform(Scene *scene, Sequence *seq, SeqLoadData *load_data)
+{
+  const char *strip_colorspace = seq->strip->colorspace_settings.name;
+
+  if (load_data->flags & SEQ_LOAD_SET_VIEW_TRANSFORM) {
+    const char *role_colorspace_byte;
+    role_colorspace_byte = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+
+    if (STREQ(strip_colorspace, role_colorspace_byte)) {
+      struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+          scene->display_settings.display_device);
+      const char *default_view_transform =
+          IMB_colormanagement_display_get_default_view_transform_name(display);
+      STRNCPY(scene->view_settings.view_transform, default_view_transform);
     }
   }
 }
@@ -344,6 +363,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   /* Set Last active directory. */
   BLI_strncpy(scene->ed->act_imagedir, seq->strip->dir, sizeof(scene->ed->act_imagedir));
+  seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
 
@@ -559,6 +579,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   strip->stripdata->orig_height = orig_height;
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
+  seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
 

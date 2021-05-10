@@ -367,9 +367,17 @@ void Node::copy_value(const SocketType &socket, const Node &other, const SocketT
       case SocketType::TRANSFORM_ARRAY:
         copy_array<Transform>(this, socket, &other, other_socket);
         break;
-      case SocketType::NODE_ARRAY:
+      case SocketType::NODE_ARRAY: {
         copy_array<void *>(this, socket, &other, other_socket);
+
+        array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
+
+        for (Node *node : node_array) {
+          node->reference();
+        }
+
         break;
+      }
       default:
         assert(0);
         break;
@@ -379,6 +387,14 @@ void Node::copy_value(const SocketType &socket, const Node &other, const SocketT
     const void *src = ((char *)&other) + other_socket.struct_offset;
     void *dst = ((char *)this) + socket.struct_offset;
     memcpy(dst, src, socket.size());
+
+    if (socket.type == SocketType::NODE) {
+      Node *node = get_socket_value<Node *>(this, socket);
+
+      if (node) {
+        node->reference();
+      }
+    }
   }
 }
 
@@ -773,6 +789,26 @@ void Node::set_owner(const NodeOwner *owner_)
   owner = owner_;
 }
 
+void Node::dereference_all_used_nodes()
+{
+  foreach (const SocketType &socket, type->inputs) {
+    if (socket.type == SocketType::NODE) {
+      Node *node = get_socket_value<Node *>(this, socket);
+
+      if (node) {
+        node->dereference();
+      }
+    }
+    else if (socket.type == SocketType::NODE_ARRAY) {
+      const array<Node *> &nodes = get_socket_value<array<Node *>>(this, socket);
+
+      for (Node *node : nodes) {
+        node->dereference();
+      }
+    }
+  }
+}
+
 bool Node::socket_is_modified(const SocketType &input) const
 {
   return (socket_modified & input.modified_flag_bit) != 0;
@@ -803,6 +839,25 @@ template<typename T> void Node::set_if_different(const SocketType &input, T valu
   socket_modified |= input.modified_flag_bit;
 }
 
+void Node::set_if_different(const SocketType &input, Node *value)
+{
+  if (get_socket_value<Node *>(this, input) == value) {
+    return;
+  }
+
+  Node *old_node = get_socket_value<Node *>(this, input);
+  if (old_node) {
+    old_node->dereference();
+  }
+
+  if (value) {
+    value->reference();
+  }
+
+  get_socket_value<Node *>(this, input) = value;
+  socket_modified |= input.modified_flag_bit;
+}
+
 template<typename T> void Node::set_if_different(const SocketType &input, array<T> &value)
 {
   if (!socket_is_modified(input)) {
@@ -812,6 +867,27 @@ template<typename T> void Node::set_if_different(const SocketType &input, array<
   }
 
   get_socket_value<array<T>>(this, input).steal_data(value);
+  socket_modified |= input.modified_flag_bit;
+}
+
+void Node::set_if_different(const SocketType &input, array<Node *> &value)
+{
+  if (!socket_is_modified(input)) {
+    if (get_socket_value<array<Node *>>(this, input) == value) {
+      return;
+    }
+  }
+
+  array<Node *> &old_nodes = get_socket_value<array<Node *>>(this, input);
+  for (Node *old_node : old_nodes) {
+    old_node->dereference();
+  }
+
+  for (Node *new_node : value) {
+    new_node->reference();
+  }
+
+  get_socket_value<array<Node *>>(this, input).steal_data(value);
   socket_modified |= input.modified_flag_bit;
 }
 

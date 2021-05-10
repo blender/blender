@@ -630,6 +630,14 @@ typedef struct OffsetGpencilModifierData {
   float loc[3];
   float rot[3];
   float scale[3];
+  /** Random Offset. */
+  float rnd_offset[3];
+  /** Random Rotation. */
+  float rnd_rot[3];
+  /** Random Scales. */
+  float rnd_scale[3];
+  /** (first element is the index) random values. */
+  int seed;
   /** Custom index for passes. */
   int layer_pass;
 } OffsetGpencilModifierData;
@@ -640,6 +648,7 @@ typedef enum eOffsetGpencil_Flag {
   GP_OFFSET_INVERT_VGROUP = (1 << 2),
   GP_OFFSET_INVERT_LAYERPASS = (1 << 3),
   GP_OFFSET_INVERT_MATERIAL = (1 << 4),
+  GP_OFFSET_UNIFORM_RANDOM_SCALE = (1 << 5),
 } eOffsetGpencil_Flag;
 
 typedef struct SmoothGpencilModifierData {

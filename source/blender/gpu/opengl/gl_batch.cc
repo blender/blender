@@ -44,7 +44,7 @@
 using namespace blender::gpu;
 
 /* -------------------------------------------------------------------- */
-/** \name Vao cache
+/** \name VAO Cache
  *
  * Each #GLBatch has a small cache of VAO objects that are used to avoid VAO reconfiguration.
  * TODO(fclem): Could be revisited to avoid so much cross references.

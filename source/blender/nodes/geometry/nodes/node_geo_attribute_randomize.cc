@@ -16,6 +16,7 @@
 
 #include "BLI_hash.h"
 #include "BLI_rand.hh"
+#include "BLI_task.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -125,28 +126,36 @@ static void randomize_attribute(MutableSpan<T> span,
   /* The operations could be templated too, but it doesn't make the code much shorter. */
   switch (operation) {
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE:
-      for (const int i : span.index_range()) {
-        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
-        span[i] = random_value;
-      }
+      parallel_for(span.index_range(), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
+          span[i] = random_value;
+        }
+      });
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD:
-      for (const int i : span.index_range()) {
-        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
-        span[i] = span[i] + random_value;
-      }
+      parallel_for(span.index_range(), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
+          span[i] = span[i] + random_value;
+        }
+      });
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_SUBTRACT:
-      for (const int i : span.index_range()) {
-        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
-        span[i] = span[i] - random_value;
-      }
+      parallel_for(span.index_range(), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
+          span[i] = span[i] - random_value;
+        }
+      });
       break;
     case GEO_NODE_ATTRIBUTE_RANDOMIZE_MULTIPLY:
-      for (const int i : span.index_range()) {
-        const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
-        span[i] = span[i] * random_value;
-      }
+      parallel_for(span.index_range(), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          const T random_value = random_value_in_range<T>(ids[i], seed, min, max);
+          span[i] = span[i] * random_value;
+        }
+      });
       break;
     default:
       BLI_assert(false);
@@ -161,10 +170,12 @@ static void randomize_attribute_bool(MutableSpan<bool> span,
 {
   BLI_assert(operation == GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE);
   UNUSED_VARS_NDEBUG(operation);
-  for (const int i : span.index_range()) {
-    const bool random_value = BLI_hash_int_2d_to_float(ids[i], seed) > 0.5f;
-    span[i] = random_value;
-  }
+  parallel_for(span.index_range(), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      const bool random_value = BLI_hash_int_2d_to_float(ids[i], seed) > 0.5f;
+      span[i] = random_value;
+    }
+  });
 }
 
 Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
@@ -179,9 +190,11 @@ Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &compo
     BLI_assert(hashes.size() == hash_attribute->size());
     const CPPType &cpp_type = hash_attribute->type();
     GVArray_GSpan items{*hash_attribute};
-    for (const int i : hashes.index_range()) {
-      hashes[i] = cpp_type.hash(items[i]);
-    }
+    parallel_for(hashes.index_range(), 512, [&](IndexRange range) {
+      for (const int i : range) {
+        hashes[i] = cpp_type.hash(items[i]);
+      }
+    });
   }
   else {
     /* If there is no "id" attribute for per-point variation, just create it here. */
@@ -296,6 +309,14 @@ static void geo_node_random_attribute_exec(GeoNodeExecParams params)
   }
   if (geometry_set.has<PointCloudComponent>()) {
     randomize_attribute_on_component(geometry_set.get_component_for_write<PointCloudComponent>(),
+                                     params,
+                                     attribute_name,
+                                     data_type,
+                                     operation,
+                                     seed);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    randomize_attribute_on_component(geometry_set.get_component_for_write<CurveComponent>(),
                                      params,
                                      attribute_name,
                                      data_type,

@@ -5393,7 +5393,7 @@ void accumulate_vertex_normals_poly_v3(float **vertnos,
 
 void tangent_from_uv_v3(const float uv1[2],
                         const float uv2[2],
-                        const float uv3[3],
+                        const float uv3[2],
                         const float co1[3],
                         const float co2[3],
                         const float co3[3],

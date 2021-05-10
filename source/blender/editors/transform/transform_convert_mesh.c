@@ -952,6 +952,14 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
     BMEdge *e;
 
     BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+
+      /* Always clear to satisfy the assert, also predictable to leave in cleared state. */
+      BM_elem_flag_disable(e, tag_queued);
+
+      if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+        continue;
+      }
+
       BMVert *v1 = e->v1;
       BMVert *v2 = e->v2;
       int i1 = BM_elem_index_get(v1);
@@ -960,7 +968,6 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
       if (dists[i1] != FLT_MAX || dists[i2] != FLT_MAX) {
         BLI_LINKSTACK_PUSH(queue, e);
       }
-      BM_elem_flag_disable(e, tag_queued);
       BM_elem_flag_set(e, tag_loose, bmesh_test_loose_edge(e));
     }
   }
@@ -988,6 +995,7 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
           BMIter eiter;
           BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
             if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
+                !BM_elem_flag_test(e_other, BM_ELEM_HIDDEN) &&
                 (BM_elem_flag_test(e, tag_loose) || BM_elem_flag_test(e_other, tag_loose))) {
               BM_elem_flag_enable(e_other, tag_queued);
               BLI_LINKSTACK_PUSH(queue_next, e_other);
@@ -1001,6 +1009,11 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
         BMLoop *l;
         BMIter liter;
         BM_ITER_ELEM (l, &liter, e, BM_LOOPS_OF_EDGE) {
+          if (BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
+            continue;
+          }
+          /* Don't check hidden edges or vertices in this loop
+           * since any hidden edge causes the face to be hidden too. */
           for (BMLoop *l_other = l->next->next; l_other != l; l_other = l_other->next) {
             BMVert *v_other = l_other->v;
             BLI_assert(!ELEM(v_other, v1, v2));
@@ -1013,6 +1026,7 @@ void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
               BMIter eiter;
               BM_ITER_ELEM (e_other, &eiter, v_other, BM_EDGES_OF_VERT) {
                 if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
+                    !BM_elem_flag_test(e_other, BM_ELEM_HIDDEN) &&
                     (BM_elem_flag_test(e_other, tag_loose) ||
                      dists[BM_elem_index_get(BM_edge_other_vert(e_other, v_other))] != FLT_MAX)) {
                   BM_elem_flag_enable(e_other, tag_queued);

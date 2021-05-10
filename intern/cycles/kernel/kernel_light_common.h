@@ -200,12 +200,12 @@ ccl_device bool light_spread_clamp_area_light(const float3 P,
    * uv coordinates. */
   const float new_center_u = 0.5f * (min_u + max_u);
   const float new_center_v = 0.5f * (min_v + max_v);
-  const float new_len_u = 0.5f * (max_u - min_u);
-  const float new_len_v = 0.5f * (max_v - min_v);
+  const float new_len_u = max_u - min_u;
+  const float new_len_v = max_v - min_v;
 
   *lightP = *lightP + new_center_u * u + new_center_v * v;
-  *axisu = u * new_len_u * 2.0f;
-  *axisv = v * new_len_v * 2.0f;
+  *axisu = u * new_len_u;
+  *axisv = v * new_len_v;
 
   return true;
 }

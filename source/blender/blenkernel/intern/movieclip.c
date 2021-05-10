@@ -950,7 +950,7 @@ static void movieclip_load_get_size(MovieClip *clip)
   int width, height;
   MovieClipUser user = {0};
 
-  user.framenr = 1;
+  user.framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, 1);
   BKE_movieclip_get_size(clip, &user, &width, &height);
 
   if (width && height) {
