@@ -55,7 +55,6 @@ void *GHOST_XrContext::s_error_handler_customdata = nullptr;
 
 /* -------------------------------------------------------------------- */
 /** \name Create, Initialize and Destruct
- *
  * \{ */
 
 GHOST_XrContext::GHOST_XrContext(const GHOST_XrContextCreateInfo *create_info)
@@ -153,7 +152,6 @@ void GHOST_XrContext::storeInstanceProperties()
 
 /* -------------------------------------------------------------------- */
 /** \name Debug Printing
- *
  * \{ */
 
 void GHOST_XrContext::printInstanceInfo()
@@ -242,7 +240,6 @@ void GHOST_XrContext::initDebugMessenger()
 
 /* -------------------------------------------------------------------- */
 /** \name Error handling
- *
  * \{ */
 
 void GHOST_XrContext::dispatchErrorMessage(const GHOST_XrException *exception) const
@@ -273,7 +270,6 @@ void GHOST_XrContext::setErrorHandler(GHOST_XrErrorHandlerFn handler_fn, void *c
 
 /* -------------------------------------------------------------------- */
 /** \name OpenXR API-Layers and Extensions
- *
  * \{ */
 
 /**
@@ -564,7 +560,6 @@ bool GHOST_XrContext::needsUpsideDownDrawing() const
 
 /* -------------------------------------------------------------------- */
 /** \name Ghost Internal Accessors and Mutators
- *
  * \{ */
 
 GHOST_TXrOpenXRRuntimeID GHOST_XrContext::getOpenXRRuntimeID() const

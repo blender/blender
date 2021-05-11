@@ -59,7 +59,6 @@ struct GHOST_XrDrawInfo {
 
 /* -------------------------------------------------------------------- */
 /** \name Create, Initialize and Destruct
- *
  * \{ */
 
 GHOST_XrSession::GHOST_XrSession(GHOST_XrContext &xr_context)
@@ -110,7 +109,6 @@ void GHOST_XrSession::initSystem()
 
 /* -------------------------------------------------------------------- */
 /** \name State Management
- *
  * \{ */
 
 static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &base_pose)
@@ -245,7 +243,6 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
 
 /* -------------------------------------------------------------------- */
 /** \name Drawing
- *
  * \{ */
 
 void GHOST_XrSession::prepareDrawing()
@@ -457,7 +454,6 @@ bool GHOST_XrSession::needsUpsideDownDrawing() const
 
 /* -------------------------------------------------------------------- */
 /** \name State Queries
- *
  * \{ */
 
 bool GHOST_XrSession::isRunning() const
