@@ -136,6 +136,20 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
   return 0;
 }
 
+static CurveEval *get_curve_from_component_for_write(GeometryComponent &component)
+{
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
+  CurveComponent &curve_component = static_cast<CurveComponent &>(component);
+  return curve_component.get_for_write();
+}
+
+static const CurveEval *get_curve_from_component_for_read(const GeometryComponent &component)
+{
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
+  const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+  return curve_component.get_for_read();
+}
+
 namespace blender::bke {
 
 class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
@@ -164,8 +178,7 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
 
   GVArrayPtr try_get_for_read(const GeometryComponent &component) const final
   {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const CurveEval *curve = curve_component.get_for_read();
+    const CurveEval *curve = get_curve_from_component_for_read(component);
     if (curve == nullptr) {
       return {};
     }
@@ -178,8 +191,7 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
     if (writable_ != Writable) {
       return {};
     }
-    CurveComponent &curve_component = static_cast<CurveComponent &>(component);
-    CurveEval *curve = curve_component.get_for_write();
+    CurveEval *curve = get_curve_from_component_for_write(component);
     if (curve == nullptr) {
       return {};
     }
