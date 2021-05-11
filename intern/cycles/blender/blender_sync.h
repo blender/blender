@@ -150,6 +150,7 @@ class BlenderSync {
                       BlenderObjectCulling &culling,
                       bool *use_portal,
                       TaskPool *geom_task_pool);
+  void sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object);
 
   bool sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object);
 

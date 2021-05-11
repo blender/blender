@@ -25,8 +25,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float3
 subsurface_scatter_eval(ShaderData *sd, const ShaderClosure *sc, float disk_r, float r, bool all)
 {
-  /* this is the veach one-sample model with balance heuristic, some pdf
-   * factors drop out when using balance heuristic weighting */
+  /* This is the Veach one-sample model with balance heuristic, some pdf
+   * factors drop out when using balance heuristic weighting. For branched
+   * path tracing (all) we sample all closure and don't use MIS. */
   float3 eval_sum = zero_float3();
   float pdf_sum = 0.0f;
   float sample_weight_inv = 0.0f;
@@ -63,6 +64,30 @@ subsurface_scatter_eval(ShaderData *sd, const ShaderClosure *sc, float disk_r, f
   }
 
   return (pdf_sum > 0.0f) ? eval_sum / pdf_sum : zero_float3();
+}
+
+ccl_device_inline float3 subsurface_scatter_walk_eval(ShaderData *sd,
+                                                      const ShaderClosure *sc,
+                                                      float3 throughput,
+                                                      bool all)
+{
+  /* This is the Veach one-sample model with balance heuristic, some pdf
+   * factors drop out when using balance heuristic weighting. For branched
+   * path tracing (all) we sample all closure and don't use MIS. */
+  if (!all) {
+    float bssrdf_weight = 0.0f;
+    float weight = sc->sample_weight;
+
+    for (int i = 0; i < sd->num_closure; i++) {
+      sc = &sd->closure[i];
+
+      if (CLOSURE_IS_BSSRDF(sc->type)) {
+        bssrdf_weight += sc->sample_weight;
+      }
+    }
+    throughput *= bssrdf_weight / weight;
+  }
+  return throughput;
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
@@ -437,7 +462,8 @@ ccl_device_noinline
                            ccl_addr_space PathState *state,
                            const ShaderClosure *sc,
                            const float bssrdf_u,
-                           const float bssrdf_v)
+                           const float bssrdf_v,
+                           bool all)
 {
   /* Sample diffuse surface scatter into the object. */
   float3 D;
@@ -669,7 +695,7 @@ ccl_device_noinline
   /* TODO: gain back performance lost from merging with disk BSSRDF. We
    * only need to return on hit so this indirect ray push/pop overhead
    * is not actually needed, but it does keep the code simpler. */
-  ss_isect->weight[0] = throughput;
+  ss_isect->weight[0] = subsurface_scatter_walk_eval(sd, sc, throughput, all);
 #ifdef __SPLIT_KERNEL__
   ss_isect->ray = *ray;
 #endif
@@ -691,7 +717,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(KernelGlobals *kg,
     return subsurface_scatter_disk(kg, ss_isect, sd, sc, lcg_state, bssrdf_u, bssrdf_v, all);
   }
   else {
-    return subsurface_random_walk(kg, ss_isect, sd, state, sc, bssrdf_u, bssrdf_v);
+    return subsurface_random_walk(kg, ss_isect, sd, state, sc, bssrdf_u, bssrdf_v, all);
   }
 }
 
