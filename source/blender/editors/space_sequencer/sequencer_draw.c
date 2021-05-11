@@ -885,10 +885,12 @@ static void draw_seq_background(Scene *scene,
     immUniformColor4ubv(col);
 
     if (seq->startstill) {
-      immRectf(pos, seq->startdisp, y1, (float)(seq->start), y2);
+      const float content_start = min_ff(seq->enddisp, seq->start);
+      immRectf(pos, seq->startdisp, y1, content_start, y2);
     }
     if (seq->endstill) {
-      immRectf(pos, (float)(seq->start + seq->len), y1, seq->enddisp, y2);
+      const float content_end = max_ff(seq->startdisp, seq->start + seq->len);
+      immRectf(pos, content_end, y1, seq->enddisp, y2);
     }
   }
 
@@ -1104,6 +1106,10 @@ static void draw_seq_strip(const bContext *C,
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
   x2 = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
+
+  /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
+  x1 = min_ff(x1, seq->enddisp);
+  x2 = max_ff(x2, seq->startdisp);
 
   float text_margin_y;
   bool y_threshold;
