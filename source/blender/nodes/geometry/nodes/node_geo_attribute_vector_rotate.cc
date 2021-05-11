@@ -149,7 +149,6 @@ static void do_vector_rotate_around_axis(const VArray<float3> &vector,
                                          MutableSpan<float3> results,
                                          const bool invert)
 {
-  const int size = vector.size();
   VArray_Span<float3> span_vector{vector};
   VArray_Span<float3> span_center{center};
   VArray_Span<float3> span_axis{axis};
@@ -170,7 +169,6 @@ static void do_vector_rotate_around_fixed_axis(const VArray<float3> &vector,
                                                MutableSpan<float3> results,
                                                const bool invert)
 {
-  const int size = vector.size();
   VArray_Span<float3> span_vector{vector};
   VArray_Span<float3> span_center{center};
   VArray_Span<float> span_angle{angle};
@@ -189,7 +187,6 @@ static void do_vector_rotate_euler(const VArray<float3> &vector,
                                    MutableSpan<float3> results,
                                    const bool invert)
 {
-  const int size = vector.size();
   VArray_Span<float3> span_vector{vector};
   VArray_Span<float3> span_center{center};
   VArray_Span<float3> span_rotation{rotation};
