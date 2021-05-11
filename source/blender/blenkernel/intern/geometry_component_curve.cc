@@ -115,7 +115,7 @@ void CurveComponent::ensure_owns_direct_data()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Attribute Access
+/** \name Attribute Access Helper Functions
  * \{ */
 
 int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
@@ -150,12 +150,19 @@ static const CurveEval *get_curve_from_component_for_read(const GeometryComponen
   return curve_component.get_for_read();
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Builtin Spline Attributes
+ *
+ * Attributes with a value for every spline, stored contiguously or in every spline separately.
+ * \{ */
+
 namespace blender::bke {
 
 class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = GVArrayPtr (*)(const CurveEval &data);
   using AsWriteAttribute = GVMutableArrayPtr (*)(CurveEval &data);
-  using UpdateOnWrite = void (*)(Spline &spline);
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
 
@@ -182,7 +189,6 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
     if (curve == nullptr) {
       return {};
     }
-
     return as_read_attribute_(*curve);
   }
 
@@ -195,7 +201,6 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
     if (curve == nullptr) {
       return {};
     }
-
     return as_write_attribute_(*curve);
   }
 
@@ -277,6 +282,12 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
       fn::GVMutableArray_For_DerivedSpan<SplinePtr, bool, get_cyclic_value, set_cyclic_value>>(
       curve.splines.as_mutable_span());
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Attribute Provider Declaration
+ * \{ */
 
 /**
  * In this function all the attribute providers for a curve component are created. Most data
