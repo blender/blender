@@ -1898,7 +1898,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
                                              Mesh *mesh,
                                              const int delete_id)
 {
-  const int totface = ss->totvert;
+  const int totface = ss->totfaces;
   MeshElemMap *pmap = ss->pmap;
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
