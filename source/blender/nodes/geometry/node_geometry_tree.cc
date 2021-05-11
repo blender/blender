@@ -84,6 +84,16 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
   func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
+static bool geometry_node_tree_validate_link(bNodeTree *UNUSED(ntree), bNodeLink *link)
+{
+  /* Geometry, string, object and collection sockets can only be connected to themselves. */
+  if (ELEM(link->fromsock->type, SOCK_GEOMETRY, SOCK_STRING, SOCK_OBJECT, SOCK_COLLECTION) ||
+      ELEM(link->tosock->type, SOCK_GEOMETRY, SOCK_STRING, SOCK_OBJECT, SOCK_COLLECTION)) {
+    return (link->tosock->type == link->fromsock->type);
+  }
+  return true;
+}
+
 static bool geometry_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
                                                  bNodeTreeType *UNUSED(ntreetype))
 {
@@ -113,6 +123,7 @@ void register_node_tree_type_geo(void)
   tt->get_from_context = geometry_node_tree_get_from_context;
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->valid_socket_type = geometry_node_tree_socket_type_valid;
+  tt->validate_link = geometry_node_tree_validate_link;
 
   ntreeTypeAdd(tt);
 }
