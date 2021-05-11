@@ -198,14 +198,16 @@ class BezierSpline final : public Spline {
   };
 
  private:
-  blender::Vector<HandleType> handle_types_left_;
-  blender::Vector<blender::float3> handle_positions_left_;
   blender::Vector<blender::float3> positions_;
-  blender::Vector<HandleType> handle_types_right_;
-  blender::Vector<blender::float3> handle_positions_right_;
   blender::Vector<float> radii_;
   blender::Vector<float> tilts_;
   int resolution_;
+
+  blender::Vector<HandleType> handle_types_left_;
+  blender::Vector<HandleType> handle_types_right_;
+
+  blender::Vector<blender::float3> handle_positions_left_;
+  blender::Vector<blender::float3> handle_positions_right_;
 
   /** Start index in evaluated points array for every control point. */
   mutable blender::Vector<int> offset_cache_;
@@ -229,14 +231,14 @@ class BezierSpline final : public Spline {
   }
   BezierSpline(const BezierSpline &other)
       : Spline((Spline &)other),
-        handle_types_left_(other.handle_types_left_),
-        handle_positions_left_(other.handle_positions_left_),
         positions_(other.positions_),
-        handle_types_right_(other.handle_types_right_),
-        handle_positions_right_(other.handle_positions_right_),
         radii_(other.radii_),
         tilts_(other.tilts_),
-        resolution_(other.resolution_)
+        resolution_(other.resolution_),
+        handle_types_left_(other.handle_types_left_),
+        handle_types_right_(other.handle_types_right_),
+        handle_positions_left_(other.handle_positions_left_),
+        handle_positions_right_(other.handle_positions_right_)
   {
   }
 
@@ -299,7 +301,6 @@ class BezierSpline final : public Spline {
   void evaluate_bezier_segment(const int index,
                                const int next_index,
                                blender::MutableSpan<blender::float3> positions) const;
-  blender::Array<int> evaluated_point_offsets() const;
 };
 
 /**
