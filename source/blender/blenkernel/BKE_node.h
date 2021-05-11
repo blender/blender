@@ -1421,6 +1421,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_CURVE_TO_MESH 1045
 #define GEO_NODE_ATTRIBUTE_CURVE_MAP 1046
 #define GEO_NODE_CURVE_RESAMPLE 1047
+#define GEO_NODE_ATTRIBUTE_VECTOR_ROTATE 1048
 
 /** \} */
 

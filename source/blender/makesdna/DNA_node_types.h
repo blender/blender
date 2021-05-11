@@ -1184,6 +1184,19 @@ typedef struct NodeAttributeVectorMath {
   uint8_t input_type_c;
 } NodeAttributeVectorMath;
 
+typedef struct NodeAttributeVectorRotate {
+  /* GeometryNodeAttributeVectorRotateMode */
+  uint8_t mode;
+  
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_vector;
+  uint8_t input_type_center;
+  uint8_t input_type_axis;
+  uint8_t input_type_angle;
+  uint8_t input_type_rotation;
+  char _pad[2];
+} NodeAttributeVectorRotate;
+
 typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
@@ -1774,6 +1787,14 @@ typedef enum GeometryNodeRotatePointsType {
   GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
   GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,
 } GeometryNodeRotatePointsType;
+
+typedef enum GeometryNodeAttributeVectorRotateMode {
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Y = 2,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Z = 3,
+  GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ = 4,
+} GeometryNodeAttributeVectorRotateMode;
 
 typedef enum GeometryNodeAttributeRandomizeMode {
   GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE = 0,
