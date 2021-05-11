@@ -1278,12 +1278,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         if (ob->soft->physics_speed == 0.0f) {
           ob->soft->physics_speed = 1.0f;
         }
-
-        if (ob->soft->interval == 0) {
-          ob->soft->interval = 2;
-          ob->soft->sfra = 1;
-          ob->soft->efra = 100;
-        }
       }
       if (ob->soft && ob->soft->vertgroup == 0) {
         bDeformGroup *locGroup = BKE_object_defgroup_find_name(ob, "SOFTGOAL");

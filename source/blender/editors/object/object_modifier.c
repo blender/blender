@@ -210,7 +210,7 @@ ModifierData *ED_object_modifier_add(
     /* special cases */
     if (type == eModifierType_Softbody) {
       if (!ob->soft) {
-        ob->soft = sbNew(scene);
+        ob->soft = sbNew();
         ob->softflag |= OB_SB_GOAL | OB_SB_EDGES;
       }
     }
