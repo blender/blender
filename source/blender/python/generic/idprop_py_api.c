@@ -760,7 +760,6 @@ static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
   iter->group = self;
   iter->mode = IDPROP_ITER_KEYS;
   iter->cur = self->prop->data.group.first;
-  Py_XINCREF(iter);
   return (PyObject *)iter;
 }
 
@@ -933,7 +932,6 @@ static PyObject *BPy_IDGroup_iter_items(BPy_IDProperty *self)
   iter->group = self;
   iter->mode = IDPROP_ITER_ITEMS;
   iter->cur = self->prop->data.group.first;
-  Py_XINCREF(iter);
   return (PyObject *)iter;
 }
 
