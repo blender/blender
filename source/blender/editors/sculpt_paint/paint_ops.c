@@ -139,13 +139,14 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
+  const bool is_gpencil = (brush && brush->gpencil_settings != NULL);
   // Object *ob = CTX_data_active_object(C);
   float scalar = RNA_float_get(op->ptr, "scalar");
 
   if (brush) {
     /* pixel radius */
     {
-      const int old_size = BKE_brush_size_get(scene, brush);
+      const int old_size = (!is_gpencil) ? BKE_brush_size_get(scene, brush) : brush->size;
       int size = (int)(scalar * old_size);
 
       if (abs(old_size - size) < U.pixelsize) {
@@ -155,6 +156,12 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
         else if (scalar < 1) {
           size -= U.pixelsize;
         }
+      }
+      /* Grease Pencil does not use unified size. */
+      if (is_gpencil) {
+        brush->size = max_ii(size, 1);
+        WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
+        return OPERATOR_FINISHED;
       }
 
       BKE_brush_size_set(scene, brush, size);

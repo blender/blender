@@ -112,7 +112,7 @@ set(SRC
   intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
-  intern/curve_eval.cc  
+  intern/curve_eval.cc
   intern/curveprofile.c
   intern/customdata.c
   intern/customdata_file.c
@@ -407,7 +407,6 @@ set(SRC
   BKE_paint.h
   BKE_particle.h
   BKE_pbvh.h
-  BKE_persistent_data_handle.hh
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_preferences.h
@@ -593,10 +592,6 @@ if(WITH_CODEC_FFMPEG)
     ${FFMPEG_LIBRARIES}
   )
   add_definitions(-DWITH_FFMPEG)
-
-  remove_strict_c_flags_file(
-    intern/writeffmpeg.c
-  )
 endif()
 
 if(WITH_PYTHON)

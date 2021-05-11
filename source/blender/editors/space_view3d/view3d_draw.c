@@ -1288,6 +1288,11 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
     name_array[name_array_len++] = IFACE_(" (Local)");
   }
 
+  /* Indicate that clipping region is enabled. */
+  if (rv3d->rflag & RV3D_CLIPPING) {
+    name_array[name_array_len++] = IFACE_(" (Clipped)");
+  }
+
   if (name_array_len > 1) {
     BLI_string_join_array(tmpstr, sizeof(tmpstr), name_array, name_array_len);
     name = tmpstr;

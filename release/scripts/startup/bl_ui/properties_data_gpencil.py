@@ -113,7 +113,8 @@ class GPENCIL_MT_layer_context_menu(Menu):
         layout.operator("gpencil.layer_merge", icon='SORT_ASC', text="Merge Down")
 
         layout.separator()
-        layout.menu("VIEW3D_MT_gpencil_copy_layer")
+        layout.menu("VIEW3D_MT_gpencil_append_active_layer")
+        layout.menu("VIEW3D_MT_gpencil_append_all_layers")
 
 
 class DATA_PT_gpencil_layers(DataButtonsPanel, Panel):

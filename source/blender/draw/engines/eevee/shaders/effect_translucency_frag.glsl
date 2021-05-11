@@ -183,15 +183,69 @@ vec3 light_translucent(LightData ld, vec3 P, vec3 N, vec4 l_vector, vec2 rand, f
 #undef scube
 #undef scsmd
 
+/* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
+ * This samples the depth buffer 4 time for each direction to get the most correct
+ * implicit normal reconstruction out of the depth buffer. */
+vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float depth_center)
+{
+  vec2 uv1 = uvs - ofs * 2.0;
+  vec2 uv2 = uvs - ofs;
+  vec2 uv3 = uvs + ofs;
+  vec2 uv4 = uvs + ofs * 2.0;
+  vec4 H;
+  H.x = textureLod(depthBuffer, uv1, 0.0).r;
+  H.y = textureLod(depthBuffer, uv2, 0.0).r;
+  H.z = textureLod(depthBuffer, uv3, 0.0).r;
+  H.w = textureLod(depthBuffer, uv4, 0.0).r;
+  /* Fix issue with depth precision. Take even larger diff. */
+  vec4 diff = abs(vec4(depth_center, H.yzw) - H.x);
+  if (max_v4(diff) < 2.4e-7 && all(lessThan(diff.xyz, diff.www))) {
+    return 0.25 * (get_view_space_from_depth(uv3, H.w) - get_view_space_from_depth(uv1, H.x));
+  }
+  /* Simplified (H.xw + 2.0 * (H.yz - H.xw)) - depth_center */
+  vec2 deltas = abs((2.0 * H.yz - H.xw) - depth_center);
+  if (deltas.x < deltas.y) {
+    return vP - get_view_space_from_depth(uv2, H.y);
+  }
+  else {
+    return get_view_space_from_depth(uv3, H.z) - vP;
+  }
+}
+
+/* TODO(fclem) port to a common place for other effects to use. */
+bool reconstruct_view_position_and_normal_from_depth(vec2 uvs, out vec3 vP, out vec3 vNg)
+{
+  vec2 texel_size = vec2(abs(dFdx(uvs.x)), abs(dFdy(uvs.y)));
+  float depth_center = textureLod(depthBuffer, uvs, 0.0).r;
+
+  vP = get_view_space_from_depth(uvs, depth_center);
+
+  vec3 dPdx = view_position_derivative_from_depth(uvs, texel_size * vec2(1, 0), vP, depth_center);
+  vec3 dPdy = view_position_derivative_from_depth(uvs, texel_size * vec2(0, 1), vP, depth_center);
+
+  vNg = safe_normalize(cross(dPdx, dPdy));
+
+  /* Background case. */
+  if (depth_center == 1.0) {
+    return false;
+  }
+
+  return true;
+}
+
 void main(void)
 {
   vec2 uvs = uvcoordsvar.xy;
   float sss_scale = texture(sssRadius, uvs).r;
-  vec3 P = get_world_space_from_depth(uvs, texture(depthBuffer, uvs).r);
-  vec3 N = normalize(cross(dFdx(P), dFdy(P)));
 
   vec3 rand = texelfetch_noise_tex(gl_FragCoord.xy).zwy;
   rand.xy *= fast_sqrt(rand.z);
+
+  vec3 vP, vNg;
+  reconstruct_view_position_and_normal_from_depth(uvs, vP, vNg);
+
+  vec3 P = point_view_to_world(vP);
+  vec3 Ng = normal_view_to_world(vNg);
 
   vec3 accum = vec3(0.0);
   for (int i = 0; i < MAX_LIGHT && i < laNumLight; i++) {
@@ -211,7 +265,7 @@ void main(void)
       continue;
     }
 
-    accum += att * ld.l_color * light_translucent(ld, P, -N, l_vector, rand.xy, sss_scale);
+    accum += att * ld.l_color * light_translucent(ld, P, -Ng, l_vector, rand.xy, sss_scale);
   }
 
   FragColor = vec4(accum, 1.0);

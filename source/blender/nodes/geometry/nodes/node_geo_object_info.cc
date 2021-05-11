@@ -47,9 +47,7 @@ static void geo_node_object_info_exec(GeoNodeExecParams params)
   const bool transform_space_relative = (node_storage->transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  bke::PersistentObjectHandle object_handle = params.extract_input<bke::PersistentObjectHandle>(
-      "Object");
-  Object *object = params.handle_map().lookup(object_handle);
+  Object *object = params.get_input<Object *>("Object");
 
   float3 location = {0, 0, 0};
   float3 rotation = {0, 0, 0};

@@ -5375,8 +5375,7 @@ static bool particle_edit_toggle_poll(bContext *C)
     return 0;
   }
 
-  return (ob->particlesystem.first || BKE_modifiers_findby_type(ob, eModifierType_Cloth) ||
-          BKE_modifiers_findby_type(ob, eModifierType_Softbody));
+  return ED_object_particle_edit_mode_supported(ob);
 }
 
 static void free_all_psys_edit(Object *object)
@@ -5389,6 +5388,12 @@ static void free_all_psys_edit(Object *object)
       psys->edit = NULL;
     }
   }
+}
+
+bool ED_object_particle_edit_mode_supported(const Object *ob)
+{
+  return (ob->particlesystem.first || BKE_modifiers_findby_type(ob, eModifierType_Cloth) ||
+          BKE_modifiers_findby_type(ob, eModifierType_Softbody));
 }
 
 void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, Object *ob)

@@ -50,6 +50,25 @@ class MemoryProxy;
  * \brief a MemoryBuffer contains access to the data of a chunk
  */
 class MemoryBuffer {
+ public:
+  /**
+   * Offset between elements.
+   *
+   * Should always be used for the x dimension when calculating buffer offsets.
+   * It will be 0 when is_a_single_elem=true.
+   * e.g: buffer_index = y * buffer.row_stride + x * buffer.elem_stride
+   */
+  int elem_stride;
+
+  /**
+   * Offset between rows.
+   *
+   * Should always be used for the y dimension when calculating buffer offsets.
+   * It will be 0 when is_a_single_elem=true.
+   * e.g: buffer_index = y * buffer.row_stride + x * buffer.elem_stride
+   */
+  int row_stride;
+
  private:
   /**
    * \brief proxy of the memory (same for all chunks in the same buffer)
@@ -82,6 +101,11 @@ class MemoryBuffer {
    */
   uint8_t m_num_channels;
 
+  /**
+   * Whether buffer is a single element in memory.
+   */
+  bool m_is_a_single_elem;
+
  public:
   /**
    * \brief construct new temporarily MemoryBuffer for an area
@@ -91,7 +115,7 @@ class MemoryBuffer {
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
-  MemoryBuffer(DataType datatype, const rcti &rect);
+  MemoryBuffer(DataType datatype, const rcti &rect, bool is_a_single_elem = false);
 
   /**
    * Copy constructor
@@ -102,6 +126,102 @@ class MemoryBuffer {
    * \brief destructor
    */
   ~MemoryBuffer();
+
+  /**
+   * Whether buffer is a single element in memory independently of its resolution. True for set
+   * operations buffers.
+   */
+  bool is_a_single_elem() const
+  {
+    return m_is_a_single_elem;
+  }
+
+  float &operator[](int index)
+  {
+    BLI_assert(m_is_a_single_elem ? index < m_num_channels :
+                                    index < get_coords_offset(getWidth(), getHeight()));
+    return m_buffer[index];
+  }
+
+  const float &operator[](int index) const
+  {
+    BLI_assert(m_is_a_single_elem ? index < m_num_channels :
+                                    index < get_coords_offset(getWidth(), getHeight()));
+    return m_buffer[index];
+  }
+
+  /**
+   * Get offset needed to jump from buffer start to given coordinates.
+   */
+  int get_coords_offset(int x, int y) const
+  {
+    return (y - m_rect.ymin) * row_stride + (x - m_rect.xmin) * elem_stride;
+  }
+
+  /**
+   * Get buffer element at given coordinates.
+   */
+  float *get_elem(int x, int y)
+  {
+    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax);
+    return m_buffer + get_coords_offset(x, y);
+  }
+
+  /**
+   * Get buffer element at given coordinates.
+   */
+  const float *get_elem(int x, int y) const
+  {
+    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax);
+    return m_buffer + get_coords_offset(x, y);
+  }
+
+  /**
+   * Get channel value at given coordinates.
+   */
+  float &get_value(int x, int y, int channel)
+  {
+    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax &&
+               channel >= 0 && channel < m_num_channels);
+    return m_buffer[get_coords_offset(x, y) + channel];
+  }
+
+  /**
+   * Get channel value at given coordinates.
+   */
+  const float &get_value(int x, int y, int channel) const
+  {
+    BLI_assert(x >= m_rect.xmin && x < m_rect.xmax && y >= m_rect.ymin && y < m_rect.ymax &&
+               channel >= 0 && channel < m_num_channels);
+    return m_buffer[get_coords_offset(x, y) + channel];
+  }
+
+  /**
+   * Get the buffer row end.
+   */
+  const float *get_row_end(int y) const
+  {
+    BLI_assert(y >= 0 && y < getHeight());
+    return m_buffer + (is_a_single_elem() ? m_num_channels : get_coords_offset(getWidth(), y));
+  }
+
+  /**
+   * Get the number of elements in memory for a row. For single element buffers it will always
+   * be 1.
+   */
+  int get_memory_width() const
+  {
+    return is_a_single_elem() ? 1 : getWidth();
+  }
+
+  /**
+   * Get number of elements in memory for a column. For single element buffers it will
+   * always be 1.
+   */
+  int get_memory_height() const
+  {
+    return is_a_single_elem() ? 1 : getHeight();
+  }
 
   uint8_t get_num_channels()
   {
@@ -216,7 +336,7 @@ class MemoryBuffer {
       int u = x;
       int v = y;
       this->wrap_pixel(u, v, extend_x, extend_y);
-      const int offset = (getWidth() * y + x) * this->m_num_channels;
+      const int offset = get_coords_offset(u, v);
       float *buffer = &this->m_buffer[offset];
       memcpy(result, buffer, sizeof(float) * this->m_num_channels);
     }
@@ -232,7 +352,7 @@ class MemoryBuffer {
     int v = y;
 
     this->wrap_pixel(u, v, extend_x, extend_y);
-    const int offset = (getWidth() * v + u) * this->m_num_channels;
+    const int offset = get_coords_offset(u, v);
 
     BLI_assert(offset >= 0);
     BLI_assert(offset < this->buffer_len() * this->m_num_channels);
@@ -258,15 +378,20 @@ class MemoryBuffer {
       copy_vn_fl(result, this->m_num_channels, 0.0f);
       return;
     }
-    BLI_bilinear_interpolation_wrap_fl(this->m_buffer,
-                                       result,
-                                       getWidth(),
-                                       getHeight(),
-                                       this->m_num_channels,
-                                       u,
-                                       v,
-                                       extend_x == MemoryBufferExtend::Repeat,
-                                       extend_y == MemoryBufferExtend::Repeat);
+    if (m_is_a_single_elem) {
+      memcpy(result, m_buffer, sizeof(float) * this->m_num_channels);
+    }
+    else {
+      BLI_bilinear_interpolation_wrap_fl(this->m_buffer,
+                                         result,
+                                         getWidth(),
+                                         getHeight(),
+                                         this->m_num_channels,
+                                         u,
+                                         v,
+                                         extend_x == MemoryBufferExtend::Repeat,
+                                         extend_y == MemoryBufferExtend::Repeat);
+    }
   }
 
   void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
@@ -321,9 +446,10 @@ class MemoryBuffer {
   float get_max_value(const rcti &rect) const;
 
  private:
+  void set_strides();
   const int buffer_len() const
   {
-    return getWidth() * getHeight();
+    return get_memory_width() * get_memory_height();
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

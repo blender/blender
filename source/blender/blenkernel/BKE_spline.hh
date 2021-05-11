@@ -113,6 +113,7 @@ class Spline {
   bool is_cyclic() const;
   void set_cyclic(const bool value);
 
+  virtual void resize(const int size) = 0;
   virtual blender::MutableSpan<blender::float3> positions() = 0;
   virtual blender::Span<blender::float3> positions() const = 0;
   virtual blender::MutableSpan<float> radii() = 0;
@@ -163,6 +164,9 @@ class Spline {
   LookupResult lookup_evaluated_factor(const float factor) const;
   LookupResult lookup_evaluated_length(const float length) const;
 
+  blender::Array<float> sample_uniform_index_factors(const int samples_size) const;
+  LookupResult lookup_data_from_index_factor(const float index_factor) const;
+
   /**
    * Interpolate a virtual array of data with the size of the number of control points to the
    * evaluated points. For poly splines, the lifetime of the returned virtual array must not
@@ -194,14 +198,16 @@ class BezierSpline final : public Spline {
   };
 
  private:
-  blender::Vector<HandleType> handle_types_left_;
-  blender::Vector<blender::float3> handle_positions_left_;
   blender::Vector<blender::float3> positions_;
-  blender::Vector<HandleType> handle_types_right_;
-  blender::Vector<blender::float3> handle_positions_right_;
   blender::Vector<float> radii_;
   blender::Vector<float> tilts_;
   int resolution_;
+
+  blender::Vector<HandleType> handle_types_left_;
+  blender::Vector<HandleType> handle_types_right_;
+
+  blender::Vector<blender::float3> handle_positions_left_;
+  blender::Vector<blender::float3> handle_positions_right_;
 
   /** Start index in evaluated points array for every control point. */
   mutable blender::Vector<int> offset_cache_;
@@ -225,14 +231,14 @@ class BezierSpline final : public Spline {
   }
   BezierSpline(const BezierSpline &other)
       : Spline((Spline &)other),
-        handle_types_left_(other.handle_types_left_),
-        handle_positions_left_(other.handle_positions_left_),
         positions_(other.positions_),
-        handle_types_right_(other.handle_types_right_),
-        handle_positions_right_(other.handle_positions_right_),
         radii_(other.radii_),
         tilts_(other.tilts_),
-        resolution_(other.resolution_)
+        resolution_(other.resolution_),
+        handle_types_left_(other.handle_types_left_),
+        handle_types_right_(other.handle_types_right_),
+        handle_positions_left_(other.handle_positions_left_),
+        handle_positions_right_(other.handle_positions_right_)
   {
   }
 
@@ -248,6 +254,7 @@ class BezierSpline final : public Spline {
                  const float radius,
                  const float tilt);
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -286,7 +293,7 @@ class BezierSpline final : public Spline {
   InterpolationData interpolation_data_from_index_factor(const float index_factor) const;
 
   virtual blender::fn::GVArrayPtr interpolate_to_evaluated_points(
-      const blender::fn::GVArray &source_data) const;
+      const blender::fn::GVArray &source_data) const override;
 
  private:
   void correct_end_tangents() const final;
@@ -294,7 +301,6 @@ class BezierSpline final : public Spline {
   void evaluate_bezier_segment(const int index,
                                const int next_index,
                                blender::MutableSpan<blender::float3> positions) const;
-  blender::Array<int> evaluated_point_offsets() const;
 };
 
 /**
@@ -387,6 +393,7 @@ class NURBSpline final : public Spline {
   bool check_valid_size_and_order() const;
   int knots_size() const;
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;
@@ -441,6 +448,7 @@ class PolySpline final : public Spline {
 
   void add_point(const blender::float3 position, const float radius, const float tilt);
 
+  void resize(const int size) final;
   blender::MutableSpan<blender::float3> positions() final;
   blender::Span<blender::float3> positions() const final;
   blender::MutableSpan<float> radii() final;

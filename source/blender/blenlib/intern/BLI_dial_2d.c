@@ -78,7 +78,7 @@ float BLI_dial_angle(Dial *dial, const float current_position[2])
     cosval = dot_v2v2(current_direction, dial->initial_direction);
     sinval = cross_v2v2(current_direction, dial->initial_direction);
 
-    /* clamp to avoid nans in #acos */
+    /* Clamp to avoid NAN's in #acos */
     angle = atan2f(sinval, cosval);
 
     /* change of sign, we passed the 180 degree threshold. This means we need to add a turn.

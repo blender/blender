@@ -1702,7 +1702,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       }
 
       for (int i = 0; i < totloop; i++) {
-        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[mloop[i].v].r);
+        rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[i].r);
       }
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {

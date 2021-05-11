@@ -40,7 +40,6 @@ typedef struct BPy_IDProperty {
   struct ID *id;           /* can be NULL */
   struct IDProperty *prop; /* must be second member */
   struct IDProperty *parent;
-  PyObject *data_wrap;
 } BPy_IDProperty;
 
 typedef struct BPy_IDArray {

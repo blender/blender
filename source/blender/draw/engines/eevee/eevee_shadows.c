@@ -361,11 +361,7 @@ void EEVEE_shadow_output_init(EEVEE_ViewLayerData *sldata,
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_PassList *psl = vedata->psl;
-  EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_EffectsInfo *effects = stl->effects;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-
-  const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   /* Create FrameBuffer. */
   const eGPUTextureFormat texture_format = GPU_R32F;
@@ -373,12 +369,6 @@ void EEVEE_shadow_output_init(EEVEE_ViewLayerData *sldata,
 
   GPU_framebuffer_ensure_config(&fbl->shadow_accum_fb,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->shadow_accum)});
-
-  /* Clear texture. */
-  if (effects->taa_current_sample == 1) {
-    GPU_framebuffer_bind(fbl->shadow_accum_fb);
-    GPU_framebuffer_clear_color(fbl->shadow_accum_fb, clear);
-  }
 
   /* Create Pass and shgroup. */
   DRW_PASS_CREATE(psl->shadow_accum_pass,
@@ -404,9 +394,17 @@ void EEVEE_shadow_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_D
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_PassList *psl = vedata->psl;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   if (fbl->shadow_accum_fb != NULL) {
     GPU_framebuffer_bind(fbl->shadow_accum_fb);
+
+    /* Clear texture. */
+    if (effects->taa_current_sample == 1) {
+      const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(fbl->shadow_accum_fb, clear);
+    }
+
     DRW_draw_pass(psl->shadow_accum_pass);
 
     /* Restore */

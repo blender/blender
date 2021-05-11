@@ -24,7 +24,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -398,6 +401,28 @@ static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), const wmEven
   return OPERATOR_PASS_THROUGH;
 }
 
+static char *track_markers_desc(bContext *UNUSED(C), wmOperatorType *UNUSED(op), PointerRNA *ptr)
+{
+  const bool backwards = RNA_boolean_get(ptr, "backwards");
+  const bool sequence = RNA_boolean_get(ptr, "sequence");
+
+  if (backwards && sequence) {
+    return BLI_strdup(TIP_("Track the selected markers backward for the entire clip"));
+  }
+  if (backwards && !sequence) {
+    return BLI_strdup(TIP_("Track the selected markers backward by one frame"));
+  }
+  if (!backwards && sequence) {
+    return BLI_strdup(TIP_("Track the selected markers forward for the entire clip"));
+  }
+  if (!backwards && !sequence) {
+    return BLI_strdup(TIP_("Track the selected markers forward by one frame"));
+  }
+
+  /* Use default description. */
+  return NULL;
+}
+
 void CLIP_OT_track_markers(wmOperatorType *ot)
 {
   /* identifiers */
@@ -410,6 +435,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
   ot->invoke = track_markers_invoke;
   ot->modal = track_markers_modal;
   ot->poll = ED_space_clip_tracking_poll;
+  ot->get_description = track_markers_desc;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

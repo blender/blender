@@ -817,6 +817,8 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
   matNode.set_ambient(ef->getAmbient());
   matNode.set_specular(ef->getSpecular());
   matNode.set_reflective(ef->getReflective());
+
+  matNode.update_material_nodetree();
 }
 
 /**

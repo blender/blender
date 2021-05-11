@@ -860,8 +860,9 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 
     float mat[4][4];
     ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+    mul_mat3_m4_fl(mat, dia);
     BLI_addtail(&cu->editnurb->nurbs,
-                ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, dia));
+                ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
     if (!enter_editmode) {
       ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
@@ -1310,6 +1311,8 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? ob->data : NULL;
 
   const int type = RNA_enum_get(op->ptr, "type");
+  const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
+  const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
 
   ushort local_view_bits;
   float loc[3], rot[3];
@@ -1337,6 +1340,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
         break;
       }
       case GP_LRT_OBJECT:
+      case GP_LRT_SCENE:
       case GP_LRT_COLLECTION: {
         ob_name = "Line Art";
         break;
@@ -1429,7 +1433,15 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       }
 
       /* Stroke object is drawn in front of meshes by default. */
-      ob->dtx |= OB_DRAW_IN_FRONT;
+      if (use_in_front) {
+        ob->dtx |= OB_DRAW_IN_FRONT;
+      }
+      else {
+        if (stroke_depth_order == GP_DRAWMODE_3D) {
+          gpd->draw_mode = GP_DRAWMODE_3D;
+        }
+      }
+
       break;
     }
     default:
@@ -1448,6 +1460,38 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void object_add_ui(bContext *UNUSED(C), wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+
+  uiLayoutSetPropSep(layout, true);
+
+  uiItemR(layout, op->ptr, "radius", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "align", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "location", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "rotation", 0, NULL, ICON_NONE);
+  uiItemR(layout, op->ptr, "type", 0, NULL, ICON_NONE);
+
+  int type = RNA_enum_get(op->ptr, "type");
+  if (type == GP_LRT_COLLECTION || type == GP_LRT_OBJECT || type == GP_LRT_SCENE) {
+    uiItemR(layout, op->ptr, "use_in_front", 0, NULL, ICON_NONE);
+    bool in_front = RNA_boolean_get(op->ptr, "use_in_front");
+    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayoutSetActive(row, !in_front);
+    uiItemR(row, op->ptr, "stroke_depth_order", 0, NULL, ICON_NONE);
+  }
+}
+
+static EnumPropertyItem rna_enum_gpencil_add_stroke_depth_order_items[] = {
+    {GP_DRAWMODE_2D,
+     "2D",
+     0,
+     "2D Layers",
+     "Display strokes using grease pencil layers to define order"},
+    {GP_DRAWMODE_3D, "3D", 0, "3D Location", "Display strokes using real 3D position in 3D space"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 void OBJECT_OT_gpencil_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1463,11 +1507,26 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  /* ui */
+  ot->ui = object_add_ui;
+
   /* properties */
   ED_object_add_unit_props_radius(ot);
   ED_object_add_generic_props(ot, false);
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+  RNA_def_boolean(ot->srna,
+                  "use_in_front",
+                  false,
+                  "In Front",
+                  "Show line art grease pencil in front of everything");
+  RNA_def_enum(
+      ot->srna,
+      "stroke_depth_order",
+      rna_enum_gpencil_add_stroke_depth_order_items,
+      GP_DRAWMODE_3D,
+      "Stroke Depth Order",
+      "Defines how the strokes are ordered in 3D space for objects not displayed 'In Front'");
 }
 
 /** \} */

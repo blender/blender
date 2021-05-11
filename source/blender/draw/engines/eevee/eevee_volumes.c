@@ -800,8 +800,6 @@ void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, 
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_EffectsInfo *effects = stl->effects;
 
-  const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
   /* Create FrameBuffer. */
 
   /* Should be enough precision for many samples. */
@@ -813,12 +811,6 @@ void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, 
                                 {GPU_ATTACHMENT_NONE,
                                  GPU_ATTACHMENT_TEXTURE(txl->volume_scatter_accum),
                                  GPU_ATTACHMENT_TEXTURE(txl->volume_transmittance_accum)});
-
-  /* Clear texture. */
-  if (effects->taa_current_sample == 1) {
-    GPU_framebuffer_bind(fbl->volumetric_accum_fb);
-    GPU_framebuffer_clear_color(fbl->volumetric_accum_fb, clear);
-  }
 
   /* Create Pass and shgroup. */
   DRW_PASS_CREATE(psl->volumetric_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
@@ -843,10 +835,18 @@ void EEVEE_volumes_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_PassList *psl = vedata->psl;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   if (fbl->volumetric_accum_fb != NULL) {
     /* Accum pass */
     GPU_framebuffer_bind(fbl->volumetric_accum_fb);
+
+    /* Clear texture. */
+    if (effects->taa_current_sample == 1) {
+      const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(fbl->volumetric_accum_fb, clear);
+    }
+
     DRW_draw_pass(psl->volumetric_accum_ps);
 
     /* Restore */

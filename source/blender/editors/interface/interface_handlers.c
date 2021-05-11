@@ -477,6 +477,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
 static void ui_do_but_extra_operator_icons_mousemove(uiBut *but,
                                                      uiHandleButtonData *data,
                                                      const wmEvent *event);
+static void ui_numedit_begin_set_values(uiBut *but, uiHandleButtonData *data);
 
 #ifdef USE_DRAG_MULTINUM
 static void ui_multibut_restore(bContext *C, uiHandleButtonData *data, uiBlock *block);
@@ -3361,6 +3362,8 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   if (is_num_but) {
     BLI_assert(data->is_str_dynamic == false);
     ui_but_convert_to_unit_alt_name(but, data->str, data->maxlen);
+
+    ui_numedit_begin_set_values(but, data);
   }
 
   /* won't change from now on */
@@ -3897,6 +3900,14 @@ static void ui_do_but_textedit_select(
 /** \name Button Number Editing (various types)
  * \{ */
 
+static void ui_numedit_begin_set_values(uiBut *but, uiHandleButtonData *data)
+{
+  data->startvalue = ui_but_value_get(but);
+  data->origvalue = data->startvalue;
+  data->value = data->origvalue;
+  but->editval = &data->value;
+}
+
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
   if (but->type == UI_BTYPE_CURVE) {
@@ -3922,16 +3933,11 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
     but->editvec = data->vec;
   }
   else {
-    float softrange, softmin, softmax;
+    ui_numedit_begin_set_values(but, data);
 
-    data->startvalue = ui_but_value_get(but);
-    data->origvalue = data->startvalue;
-    data->value = data->origvalue;
-    but->editval = &data->value;
-
-    softmin = but->softmin;
-    softmax = but->softmax;
-    softrange = softmax - softmin;
+    float softmin = but->softmin;
+    float softmax = but->softmax;
+    float softrange = softmax - softmin;
 
     if ((but->type == UI_BTYPE_NUM) && (ui_but_is_cursor_warp(but) == false)) {
       uiButNumber *number_but = (uiButNumber *)but;

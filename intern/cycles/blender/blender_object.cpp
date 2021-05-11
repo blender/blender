@@ -96,7 +96,49 @@ bool BlenderSync::object_is_light(BL::Object &b_ob)
   return (b_ob_data && b_ob_data.is_a(&RNA_Light));
 }
 
-/* Object */
+void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob, Object *object)
+{
+  /* Initialize motion blur for object, detecting if it's enabled and creating motion
+   * steps array if so. */
+  array<Transform> motion;
+  object->set_motion(motion);
+
+  Scene::MotionType need_motion = scene->need_motion();
+  if (need_motion == Scene::MOTION_NONE || !object->get_geometry()) {
+    return;
+  }
+
+  Geometry *geom = object->get_geometry();
+  geom->set_use_motion_blur(false);
+  geom->set_motion_steps(0);
+
+  uint motion_steps;
+
+  if (need_motion == Scene::MOTION_BLUR) {
+    motion_steps = object_motion_steps(b_parent, b_ob, Object::MAX_MOTION_STEPS);
+    geom->set_motion_steps(motion_steps);
+    if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
+      geom->set_use_motion_blur(true);
+    }
+  }
+  else {
+    motion_steps = 3;
+    geom->set_motion_steps(motion_steps);
+  }
+
+  motion.resize(motion_steps, transform_empty());
+
+  if (motion_steps) {
+    motion[motion_steps / 2] = object->get_tfm();
+
+    /* update motion socket before trying to access object->motion_time */
+    object->set_motion(motion);
+
+    for (size_t step = 0; step < motion_steps; step++) {
+      motion_times.insert(object->motion_time(step));
+    }
+  }
+}
 
 Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                  BL::ViewLayer &b_view_layer,
@@ -277,43 +319,6 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     object->set_pass_id(b_ob.pass_index());
     object->set_color(get_float3(b_ob.color()));
     object->set_tfm(tfm);
-    array<Transform> motion;
-    object->set_motion(motion);
-
-    /* motion blur */
-    Scene::MotionType need_motion = scene->need_motion();
-    if (need_motion != Scene::MOTION_NONE && object->get_geometry()) {
-      Geometry *geom = object->get_geometry();
-      geom->set_use_motion_blur(false);
-      geom->set_motion_steps(0);
-
-      uint motion_steps;
-
-      if (need_motion == Scene::MOTION_BLUR) {
-        motion_steps = object_motion_steps(b_parent, b_ob, Object::MAX_MOTION_STEPS);
-        geom->set_motion_steps(motion_steps);
-        if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
-          geom->set_use_motion_blur(true);
-        }
-      }
-      else {
-        motion_steps = 3;
-        geom->set_motion_steps(motion_steps);
-      }
-
-      motion.resize(motion_steps, transform_empty());
-
-      if (motion_steps) {
-        motion[motion_steps / 2] = tfm;
-
-        /* update motion socket before trying to access object->motion_time */
-        object->set_motion(motion);
-
-        for (size_t step = 0; step < motion_steps; step++) {
-          motion_times.insert(object->motion_time(step));
-        }
-      }
-    }
 
     /* dupli texture coordinates and random_id */
     if (is_instance) {
@@ -330,6 +335,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
     object->tag_update(scene);
   }
+
+  sync_object_motion_init(b_parent, b_ob, object);
 
   if (is_instance) {
     /* Sync possible particle data. */
@@ -613,7 +620,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     if (b_cam) {
       sync_camera_motion(b_render, b_cam, width, height, 0.0f);
     }
-    sync_objects(b_depsgraph, b_v3d, 0.0f);
+    sync_objects(b_depsgraph, b_v3d);
   }
 
   /* Insert motion times from camera. Motion times from other objects

@@ -121,7 +121,7 @@ void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
   ViewLayer *view_layer = draw_ctx->view_layer;
 
   /* Cryptomatte is only rendered for final image renders */
-  if (!DRW_state_is_image_render()) {
+  if (!DRW_state_is_scene_render()) {
     return;
   }
   const eViewLayerCryptomatteFlags active_layers = eevee_cryptomatte_active_layers(view_layer);
@@ -158,9 +158,9 @@ void EEVEE_cryptomatte_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
   const ViewLayer *view_layer = draw_ctx->view_layer;
 
   const int num_cryptomatte_layers = eevee_cryptomatte_layers_count(view_layer);
-  eGPUTextureFormat format = (num_cryptomatte_layers == 1) ?
-                                 GPU_R32F :
-                                 (num_cryptomatte_layers == 2) ? GPU_RG32F : GPU_RGBA32F;
+  eGPUTextureFormat format = (num_cryptomatte_layers == 1) ? GPU_R32F :
+                             (num_cryptomatte_layers == 2) ? GPU_RG32F :
+                                                             GPU_RGBA32F;
   const float *viewport_size = DRW_viewport_size_get();
   const int buffer_size = viewport_size[0] * viewport_size[1];
 

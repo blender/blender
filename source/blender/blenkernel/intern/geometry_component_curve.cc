@@ -115,7 +115,7 @@ void CurveComponent::ensure_owns_direct_data()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Attribute Access
+/** \name Attribute Access Helper Functions
  * \{ */
 
 int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
@@ -136,12 +136,33 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
   return 0;
 }
 
+static CurveEval *get_curve_from_component_for_write(GeometryComponent &component)
+{
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
+  CurveComponent &curve_component = static_cast<CurveComponent &>(component);
+  return curve_component.get_for_write();
+}
+
+static const CurveEval *get_curve_from_component_for_read(const GeometryComponent &component)
+{
+  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
+  const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+  return curve_component.get_for_read();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Builtin Spline Attributes
+ *
+ * Attributes with a value for every spline, stored contiguously or in every spline separately.
+ * \{ */
+
 namespace blender::bke {
 
 class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
   using AsReadAttribute = GVArrayPtr (*)(const CurveEval &data);
   using AsWriteAttribute = GVMutableArrayPtr (*)(CurveEval &data);
-  using UpdateOnWrite = void (*)(Spline &spline);
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
 
@@ -164,12 +185,10 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
 
   GVArrayPtr try_get_for_read(const GeometryComponent &component) const final
   {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const CurveEval *curve = curve_component.get_for_read();
+    const CurveEval *curve = get_curve_from_component_for_read(component);
     if (curve == nullptr) {
       return {};
     }
-
     return as_read_attribute_(*curve);
   }
 
@@ -178,12 +197,10 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
     if (writable_ != Writable) {
       return {};
     }
-    CurveComponent &curve_component = static_cast<CurveComponent &>(component);
-    CurveEval *curve = curve_component.get_for_write();
+    CurveEval *curve = get_curve_from_component_for_write(component);
     if (curve == nullptr) {
       return {};
     }
-
     return as_write_attribute_(*curve);
   }
 
@@ -265,6 +282,12 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
       fn::GVMutableArray_For_DerivedSpan<SplinePtr, bool, get_cyclic_value, set_cyclic_value>>(
       curve.splines.as_mutable_span());
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Attribute Provider Declaration
+ * \{ */
 
 /**
  * In this function all the attribute providers for a curve component are created. Most data

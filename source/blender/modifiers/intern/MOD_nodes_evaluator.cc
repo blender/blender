@@ -26,8 +26,6 @@
 
 namespace blender::modifiers::geometry_nodes {
 
-using bke::PersistentCollectionHandle;
-using bke::PersistentObjectHandle;
 using fn::CPPType;
 using fn::GValueMap;
 using nodes::GeoNodeExecParams;
@@ -96,7 +94,6 @@ class GeometryNodesEvaluator {
   Vector<DInputSocket> group_outputs_;
   blender::nodes::MultiFunctionByNode &mf_by_node_;
   const blender::nodes::DataTypeConversions &conversions_;
-  const PersistentDataHandleMap &handle_map_;
   const Object *self_object_;
   const ModifierData *modifier_;
   Depsgraph *depsgraph_;
@@ -108,7 +105,6 @@ class GeometryNodesEvaluator {
         group_outputs_(std::move(params.output_sockets)),
         mf_by_node_(*params.mf_by_node),
         conversions_(blender::nodes::get_implicit_type_conversions()),
-        handle_map_(*params.handle_map),
         self_object_(params.self_object),
         modifier_(&params.modifier_->modifier),
         depsgraph_(params.depsgraph),
@@ -237,7 +233,6 @@ class GeometryNodesEvaluator {
     GValueMap<StringRef> node_outputs_map{allocator_};
     NodeParamsProvider params_provider;
     params_provider.dnode = node;
-    params_provider.handle_map = &handle_map_;
     params_provider.self_object = self_object_;
     params_provider.depsgraph = depsgraph_;
     params_provider.allocator = &allocator_;
@@ -412,20 +407,7 @@ class GeometryNodesEvaluator {
     bNodeSocket *bsocket = socket->bsocket();
     const CPPType &type = *blender::nodes::socket_cpp_type_get(*socket->typeinfo());
     void *buffer = allocator_.allocate(type.size(), type.alignment());
-
-    if (bsocket->type == SOCK_OBJECT) {
-      Object *object = socket->default_value<bNodeSocketValueObject>()->value;
-      PersistentObjectHandle object_handle = handle_map_.lookup(object);
-      new (buffer) PersistentObjectHandle(object_handle);
-    }
-    else if (bsocket->type == SOCK_COLLECTION) {
-      Collection *collection = socket->default_value<bNodeSocketValueCollection>()->value;
-      PersistentCollectionHandle collection_handle = handle_map_.lookup(collection);
-      new (buffer) PersistentCollectionHandle(collection_handle);
-    }
-    else {
-      blender::nodes::socket_cpp_value_get(*bsocket, buffer);
-    }
+    blender::nodes::socket_cpp_value_get(*bsocket, buffer);
 
     if (type == required_type) {
       return {type, buffer};

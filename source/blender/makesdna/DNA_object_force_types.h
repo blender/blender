@@ -267,10 +267,9 @@ typedef struct SoftBody {
   char namedVG_Spring_K[64];
 
   /* baking */
-  int sfra, efra;
-  int interval;
+  char _pad1[6];
   /** Local==1: use local coords for baking. */
-  short local, solverflags;
+  char local, solverflags;
 
   /* -- these must be kept for backwards compatibility -- */
   /** Array of size totpointkey. */

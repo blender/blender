@@ -112,8 +112,7 @@ GHOST_DropTargetX11::~GHOST_DropTargetX11()
   }
 }
 
-/* based on a code from Saul Rennison
- * http://stackoverflow.com/questions/2673207/c-c-url-decode-library */
+/* Based on: https://stackoverflow.com/a/2766963/432509 */
 
 typedef enum DecodeState_e {
   STATE_SEARCH = 0,  ///< searching for an ampersand to convert

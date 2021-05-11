@@ -73,6 +73,18 @@ void BezierSpline::add_point(const float3 position,
   this->mark_cache_invalid();
 }
 
+void BezierSpline::resize(const int size)
+{
+  handle_types_left_.resize(size);
+  handle_positions_left_.resize(size);
+  positions_.resize(size);
+  handle_types_right_.resize(size);
+  handle_positions_right_.resize(size);
+  radii_.resize(size);
+  tilts_.resize(size);
+  this->mark_cache_invalid();
+}
+
 MutableSpan<float3> BezierSpline::positions()
 {
   return positions_;
@@ -192,7 +204,7 @@ int BezierSpline::evaluated_points_size() const
 
   const int last_offset = this->control_point_offsets().last();
   if (is_cyclic_ && points_len > 1) {
-    return last_offset + (this->segment_is_vector(points_len - 1) ? 0 : resolution_);
+    return last_offset + (this->segment_is_vector(points_len - 1) ? 1 : resolution_);
   }
 
   return last_offset + 1;
@@ -398,7 +410,7 @@ Span<float3> BezierSpline::evaluated_positions() const
     this->evaluate_bezier_segment(i_last, 0, positions.slice(offsets.last(), resolution_));
   }
   else {
-    /* Since evualating the bezier segment doesn't add the final point,
+    /* Since evaluating the bezier segment doesn't add the final point,
      * it must be added manually in the non-cyclic case. */
     positions.last() = positions_.last();
   }

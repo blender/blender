@@ -120,19 +120,12 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   const eGPUTextureFormat texture_format = (tot_samples > 128) ? GPU_R32F : GPU_R16F;
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   /* Should be enough precision for many samples. */
   DRW_texture_ensure_fullscreen_2d(&txl->ao_accum, texture_format, 0);
 
   GPU_framebuffer_ensure_config(&fbl->ao_accum_fb,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->ao_accum)});
-
-  /* Clear texture. */
-  if (effects->taa_current_sample == 1) {
-    GPU_framebuffer_bind(fbl->ao_accum_fb);
-    GPU_framebuffer_clear_color(fbl->ao_accum_fb, clear);
-  }
 
   /* Accumulation pass */
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD;
@@ -246,6 +239,7 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_PassList *psl = vedata->psl;
+  EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   if (fbl->ao_accum_fb != NULL) {
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -255,6 +249,13 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
     EEVEE_occlusion_compute(sldata, vedata);
 
     GPU_framebuffer_bind(fbl->ao_accum_fb);
+
+    /* Clear texture. */
+    if (effects->taa_current_sample == 1) {
+      const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(fbl->ao_accum_fb, clear);
+    }
+
     DRW_draw_pass(psl->ao_accum_ps);
 
     /* Restore */

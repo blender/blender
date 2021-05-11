@@ -340,13 +340,22 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   float isect_1[3], isect_2[3];
 
   /* Calculate the intersection point. */
-  isect_line_sphere_v3(prev_bp->vec, bp->vec, head_pos, sphere_radius, isect_1, isect_2);
+  int ret = isect_line_sphere_v3(prev_bp->vec, bp->vec, head_pos, sphere_radius, isect_1, isect_2);
 
-  /* Because of how `isect_line_sphere_v3` works, we know that `isect_1` contains the
-   * intersection point we want. And it will always intersect as we go from inside to outside
-   * of the sphere.
-   */
-  copy_v3_v3(r_tail_pos, isect_1);
+  if (ret > 0) {
+    /* Because of how `isect_line_sphere_v3` works, we know that `isect_1` contains the
+     * intersection point we want. And it will always intersect as we go from inside to outside
+     * of the sphere.
+     */
+    copy_v3_v3(r_tail_pos, isect_1);
+  }
+  else {
+    /* Couldn't find an intersection point. This means that the floating point
+     * values are too small and thus the intersection check fails.
+     * So assume that the distance is so small that tail_pos == head_pos.
+     */
+    copy_v3_v3(r_tail_pos, head_pos);
+  }
 
   cur_seg_idx = bp_idx - 2;
   float prev_seg_len = 0;
@@ -360,7 +369,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   }
 
   /* Convert the point back into the 0-1 interpolation range. */
-  const float isect_seg_len = len_v3v3(prev_bp->vec, isect_1);
+  const float isect_seg_len = len_v3v3(prev_bp->vec, r_tail_pos);
   const float frac = isect_seg_len / len_v3v3(prev_bp->vec, bp->vec);
   *r_new_curve_pos = (prev_seg_len + isect_seg_len) / spline_len;
 
@@ -380,7 +389,7 @@ static void splineik_evaluate_bone(
 {
   bSplineIKConstraint *ik_data = tree->ik_data;
 
-  if (pchan->bone->length == 0.0f) {
+  if (pchan->bone->length < FLT_EPSILON) {
     /* Only move the bone position with zero length bones. */
     float bone_pos[4], dir[3], rad;
     BKE_where_on_path(ik_data->tar, state->curve_position, bone_pos, dir, NULL, &rad, NULL);
@@ -515,6 +524,25 @@ static void splineik_evaluate_bone(
      * current orientation of the bone, to the spline-imposed direction.
      */
     cross_v3_v3v3(raxis, rmat[1], spline_vec);
+
+    /* Check if the old and new bone direction is parallel to each other.
+     * If they are, then 'raxis' should be near zero and we will have to get the rotation axis in
+     * some other way.
+     */
+    float norm = normalize_v3(raxis);
+
+    if (norm < FLT_EPSILON) {
+      /* Can't use cross product! */
+      int order[3] = {0, 1, 2};
+      float tmp_axis[3];
+      zero_v3(tmp_axis);
+
+      axis_sort_v3(spline_vec, order);
+
+      /* Use the second largest axis as the basis for the rotation axis. */
+      tmp_axis[order[1]] = 1.0f;
+      cross_v3_v3v3(raxis, tmp_axis, spline_vec);
+    }
 
     rangle = dot_v3v3(rmat[1], spline_vec);
     CLAMP(rangle, -1.0f, 1.0f);

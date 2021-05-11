@@ -1711,7 +1711,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
         dx = [event scrollingDeltaX];
         dy = [event scrollingDeltaY];
 
-        /* However, wacom tablet (intuos5) needs old deltas,
+        /* However, Wacom tablet (intuos5) needs old deltas,
          * it then has momentum and phase at zero. */
         if (phase == NSEventPhaseNone && momentumPhase == NSEventPhaseNone) {
           dx = [event deltaX];

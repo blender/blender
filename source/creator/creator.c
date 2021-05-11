@@ -132,7 +132,6 @@ struct ApplicationState app_state = {
 /** \name Application Level Callbacks
  *
  * Initialize callbacks for the modules that need them.
- *
  * \{ */
 
 static void callback_mem_error(const char *errorStr)

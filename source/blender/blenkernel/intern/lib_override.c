@@ -719,8 +719,19 @@ static void lib_override_library_create_post_process(Main *bmain,
 
       if (BLI_gset_lookup(all_objects_in_scene, ob_new) == NULL) {
         if (id_root != NULL && default_instantiating_collection == NULL) {
-          switch (GS(id_root->name)) {
+          ID *id_ref = id_root->newid != NULL ? id_root->newid : id_root;
+          switch (GS(id_ref->name)) {
             case ID_GR: {
+              /* Adding the object to a specific collection outside of the root overridden one is a
+               * fairly bad idea (it breaks the override hierarchy concept). But there is no other
+               * way to do this currently (we cannot add new collections to overridden root one,
+               * this is not currently supported).
+               * Since that will be fairly annoying and noisy, only do that in case the override
+               * object is not part of any existing collection (i.e. its user count is 0). In
+               * practice this should never happen I think. */
+              if (ID_REAL_USERS(ob_new) != 0) {
+                continue;
+              }
               default_instantiating_collection = BKE_collection_add(
                   bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
               /* Hide the collection from viewport and render. */
@@ -731,9 +742,9 @@ static void lib_override_library_create_post_process(Main *bmain,
             case ID_OB: {
               /* Add the other objects to one of the collections instantiating the
                * root object, or scene's master collection if none found. */
-              Object *ob_root = (Object *)id_root;
+              Object *ob_ref = (Object *)id_ref;
               LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-                if (BKE_collection_has_object(collection, ob_root) &&
+                if (BKE_collection_has_object(collection, ob_ref) &&
                     BKE_view_layer_has_collection(view_layer, collection) &&
                     !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
                   default_instantiating_collection = collection;
@@ -867,7 +878,8 @@ bool BKE_lib_override_library_resync(Main *bmain,
                                      ID *id_root,
                                      Collection *override_resync_residual_storage,
                                      const bool do_hierarchy_enforce,
-                                     const bool do_post_process)
+                                     const bool do_post_process,
+                                     ReportList *reports)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
   BLI_assert(!ID_IS_LINKED(id_root));
@@ -891,6 +903,19 @@ bool BKE_lib_override_library_resync(Main *bmain,
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    /* IDs that get fully removed from linked data remain as local overrides (using place-holder
+     * linked IDs as reference), but they are often not reachable from any current valid local
+     * override hierarchy anymore. This will ensure they get properly deleted at the end of this
+     * function. */
+    if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+        (id->override_library->reference->tag & LIB_TAG_MISSING) != 0 &&
+        /* Unfortunately deleting obdata means deleting their objects too. Since there is no
+         * guarantee that a valid override object using an obsolete override obdata gets properly
+         * updated, we ignore those here for now. In practice this should not be a big issue. */
+        !OB_DATA_SUPPORT_ID(GS(id->name))) {
+      id->tag |= LIB_TAG_MISSING;
+    }
+
     if (id->tag & LIB_TAG_DOIT && !ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
       /* While this should not happen in typical cases (and won't be properly supported here), user
        * is free to do all kind of very bad things, including having different local overrides of a
@@ -1033,6 +1058,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
   /* Delete old override IDs.
    * Note that we have to use tagged group deletion here, since ID deletion also uses LIB_TAG_DOIT.
    * This improves performances anyway, so everything is fine. */
+  int user_edited_overrides_deletion_count = 0;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->tag & LIB_TAG_DOIT) {
       /* Note that this works because linked IDs are always after local ones (including overrides),
@@ -1057,6 +1083,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
         id->tag &= ~LIB_TAG_MISSING;
         CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
       }
+#if 0
       else {
         /* Otherwise, keep them, user needs to decide whether what to do with them. */
         BLI_assert((id->tag & LIB_TAG_DOIT) == 0);
@@ -1064,6 +1091,17 @@ bool BKE_lib_override_library_resync(Main *bmain,
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
         CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
       }
+#else
+      else {
+        /* Delete them nevertheless, with fat warning, user needs to decide whether they want to
+         * save that version of the file (and accept the loss), or not. */
+        id->tag |= LIB_TAG_DOIT;
+        id->tag &= ~LIB_TAG_MISSING;
+        CLOG_WARN(
+            &LOG, "Old override %s is being deleted even though it was user-edited", id->name);
+        user_edited_overrides_deletion_count++;
+      }
+#endif
     }
   }
   FOREACH_MAIN_ID_END;
@@ -1073,6 +1111,15 @@ bool BKE_lib_override_library_resync(Main *bmain,
    * version.
    */
   id_root = id_root_reference->newid;
+
+  if (user_edited_overrides_deletion_count > 0) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "During resync of data-block %s, %d obsolete overrides were deleted, that had "
+                "local changes defined by user",
+                id_root->name + 2,
+                user_edited_overrides_deletion_count);
+  }
 
   if (do_post_process) {
     /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
@@ -1112,7 +1159,10 @@ bool BKE_lib_override_library_resync(Main *bmain,
  * Then it will handle the resync of necessary IDs (through calls to
  * #BKE_lib_override_library_resync).
  */
-void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *view_layer)
+void BKE_lib_override_library_main_resync(Main *bmain,
+                                          Scene *scene,
+                                          ViewLayer *view_layer,
+                                          ReportList *reports)
 {
   /* We use a specific collection to gather/store all 'orphaned' override collections and objects
    * generated by re-sync-process. This avoids putting them in scene's master collection. */
@@ -1228,7 +1278,7 @@ void BKE_lib_override_library_main_resync(Main *bmain, Scene *scene, ViewLayer *
 
         CLOG_INFO(&LOG, 2, "Resyncing %s...", id->name);
         const bool success = BKE_lib_override_library_resync(
-            bmain, scene, view_layer, id, override_resync_residual_storage, false, false);
+            bmain, scene, view_layer, id, override_resync_residual_storage, false, false, reports);
         CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
         break;
       }

@@ -115,43 +115,46 @@ static const char *object_mode_op_string(eObjectMode mode)
  */
 bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 {
-  if (ob) {
-    if (mode == OB_MODE_OBJECT) {
-      return true;
-    }
+  if (mode == OB_MODE_OBJECT) {
+    return true;
+  }
 
-    switch (ob->type) {
-      case OB_MESH:
-        if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
-                    OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT)) {
+  switch (ob->type) {
+    case OB_MESH:
+      if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
+                  OB_MODE_TEXTURE_PAINT)) {
+        return true;
+      }
+      if (mode & OB_MODE_PARTICLE_EDIT) {
+        if (ED_object_particle_edit_mode_supported(ob)) {
           return true;
         }
-        break;
-      case OB_CURVE:
-      case OB_SURF:
-      case OB_FONT:
-      case OB_MBALL:
-        if (mode & OB_MODE_EDIT) {
-          return true;
-        }
-        break;
-      case OB_LATTICE:
-        if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT)) {
-          return true;
-        }
-        break;
-      case OB_ARMATURE:
-        if (mode & (OB_MODE_EDIT | OB_MODE_POSE)) {
-          return true;
-        }
-        break;
-      case OB_GPENCIL:
-        if (mode & (OB_MODE_EDIT | OB_MODE_EDIT_GPENCIL | OB_MODE_PAINT_GPENCIL |
-                    OB_MODE_SCULPT_GPENCIL | OB_MODE_WEIGHT_GPENCIL | OB_MODE_VERTEX_GPENCIL)) {
-          return true;
-        }
-        break;
-    }
+      }
+      break;
+    case OB_CURVE:
+    case OB_SURF:
+    case OB_FONT:
+    case OB_MBALL:
+      if (mode & OB_MODE_EDIT) {
+        return true;
+      }
+      break;
+    case OB_LATTICE:
+      if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT)) {
+        return true;
+      }
+      break;
+    case OB_ARMATURE:
+      if (mode & (OB_MODE_EDIT | OB_MODE_POSE)) {
+        return true;
+      }
+      break;
+    case OB_GPENCIL:
+      if (mode & (OB_MODE_EDIT_GPENCIL | OB_MODE_PAINT_GPENCIL | OB_MODE_SCULPT_GPENCIL |
+                  OB_MODE_WEIGHT_GPENCIL | OB_MODE_VERTEX_GPENCIL)) {
+        return true;
+      }
+      break;
   }
 
   return false;

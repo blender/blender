@@ -1184,9 +1184,30 @@ typedef struct NodeAttributeVectorMath {
   uint8_t input_type_c;
 } NodeAttributeVectorMath;
 
+typedef struct NodeAttributeVectorRotate {
+  /* GeometryNodeAttributeVectorRotateMode */
+  uint8_t mode;
+  
+  /* GeometryNodeAttributeInputMode */
+  uint8_t input_type_vector;
+  uint8_t input_type_center;
+  uint8_t input_type_axis;
+  uint8_t input_type_angle;
+  uint8_t input_type_rotation;
+  char _pad[2];
+} NodeAttributeVectorRotate;
+
 typedef struct NodeAttributeColorRamp {
   ColorBand color_ramp;
 } NodeAttributeColorRamp;
+
+typedef struct NodeAttributeCurveMap {
+  /* CustomDataType. */
+  uint8_t data_type;
+  char _pad[7];
+  CurveMapping *curve_vec;
+  CurveMapping *curve_rgb;
+} NodeAttributeCurveMap;
 
 typedef struct NodeInputVector {
   float vector[3];
@@ -1311,6 +1332,11 @@ typedef struct NodeSwitch {
   /* NodeSwitch. */
   uint8_t input_type;
 } NodeSwitch;
+
+typedef struct NodeGeometryCurveResample {
+  /* GeometryNodeCurveSampleMode. */
+  uint8_t mode;
+} NodeGeometryCurveResample;
 
 typedef struct NodeGeometryAttributeTransfer {
   /* AttributeDomain. */
@@ -1762,6 +1788,14 @@ typedef enum GeometryNodeRotatePointsType {
   GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,
 } GeometryNodeRotatePointsType;
 
+typedef enum GeometryNodeAttributeVectorRotateMode {
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Y = 2,
+  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Z = 3,
+  GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ = 4,
+} GeometryNodeAttributeVectorRotateMode;
+
 typedef enum GeometryNodeAttributeRandomizeMode {
   GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE = 0,
   GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD = 1,
@@ -1812,6 +1846,11 @@ typedef enum GeometryNodeMeshLineCountMode {
   GEO_NODE_MESH_LINE_COUNT_TOTAL = 0,
   GEO_NODE_MESH_LINE_COUNT_RESOLUTION = 1,
 } GeometryNodeMeshLineCountMode;
+
+typedef enum GeometryNodeCurveSampleMode {
+  GEO_NODE_CURVE_SAMPLE_COUNT = 0,
+  GEO_NODE_CURVE_SAMPLE_LENGTH = 1,
+} GeometryNodeCurveSampleMode;
 
 typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
