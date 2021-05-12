@@ -459,6 +459,22 @@ static int node_datatype_priority(eNodeSocketDatatype from, eNodeSocketDatatype 
           return -1;
       }
     }
+    case SOCK_TEXTURE: {
+      switch (from) {
+        case SOCK_TEXTURE:
+          return 1;
+        default:
+          return -1;
+      }
+    }
+    case SOCK_MATERIAL: {
+      switch (from) {
+        case SOCK_MATERIAL:
+          return 1;
+        default:
+          return -1;
+      }
+    }
     default:
       return -1;
   }

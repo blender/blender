@@ -303,6 +303,16 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
       BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
       break;
     }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
+      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
+      BKE_LIB_FOREACHID_PROCESS(data, default_value->value, IDWALK_CB_USER);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -433,6 +443,12 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
       break;
     case SOCK_COLLECTION:
       BLO_write_struct(writer, bNodeSocketValueCollection, sock->default_value);
+      break;
+    case SOCK_TEXTURE:
+      BLO_write_struct(writer, bNodeSocketValueTexture, sock->default_value);
+      break;
+    case SOCK_MATERIAL:
+      BLO_write_struct(writer, bNodeSocketValueMaterial, sock->default_value);
       break;
     case __SOCK_MESH:
     case SOCK_CUSTOM:
@@ -820,6 +836,16 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
       BLO_read_id_address(reader, lib, &default_value->value);
       break;
     }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
+      BLO_read_id_address(reader, lib, &default_value->value);
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
+      BLO_read_id_address(reader, lib, &default_value->value);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -902,6 +928,16 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
       case SOCK_COLLECTION: {
         bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                         sock->default_value;
+        BLO_expand(expander, default_value->value);
+        break;
+      }
+      case SOCK_TEXTURE: {
+        bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
+        BLO_expand(expander, default_value->value);
+        break;
+      }
+      case SOCK_MATERIAL: {
+        bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
         BLO_expand(expander, default_value->value);
         break;
       }
@@ -1472,6 +1508,16 @@ static void socket_id_user_increment(bNodeSocket *sock)
       id_us_plus((ID *)default_value->value);
       break;
     }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
+      id_us_plus((ID *)default_value->value);
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
+      id_us_plus((ID *)default_value->value);
+      break;
+    }
     case SOCK_FLOAT:
     case SOCK_VECTOR:
     case SOCK_RGBA:
@@ -1506,6 +1552,20 @@ static void socket_id_user_decrement(bNodeSocket *sock)
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *default_value = (bNodeSocketValueCollection *)
                                                       sock->default_value;
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
+      break;
+    }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *default_value = (bNodeSocketValueTexture *)sock->default_value;
+      if (default_value->value != nullptr) {
+        id_us_min(&default_value->value->id);
+      }
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *default_value = (bNodeSocketValueMaterial *)sock->default_value;
       if (default_value->value != nullptr) {
         id_us_min(&default_value->value->id);
       }
@@ -1654,6 +1714,10 @@ const char *nodeStaticSocketType(int type, int subtype)
       return "NodeSocketGeometry";
     case SOCK_COLLECTION:
       return "NodeSocketCollection";
+    case SOCK_TEXTURE:
+      return "NodeSocketTexture";
+    case SOCK_MATERIAL:
+      return "NodeSocketMaterial";
   }
   return nullptr;
 }
@@ -1725,6 +1789,10 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
       return "NodeSocketInterfaceGeometry";
     case SOCK_COLLECTION:
       return "NodeSocketInterfaceCollection";
+    case SOCK_TEXTURE:
+      return "NodeSocketInterfaceTexture";
+    case SOCK_MATERIAL:
+      return "NodeSocketInterfaceMaterial";
   }
   return nullptr;
 }
