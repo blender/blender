@@ -608,6 +608,11 @@ static void SCULPT_dynamic_topology_disable_ex(
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
+  if (ss->bm_log) {
+    BM_log_free(ss->bm_log, true);
+    ss->bm_log = NULL;
+  }
+
   /* Typically valid but with global-undo they can be NULL, see: T36234. */
   if (ss->bm) {
     // rebuild ss->persistent_base if necassary
@@ -615,10 +620,6 @@ static void SCULPT_dynamic_topology_disable_ex(
 
     BM_mesh_free(ss->bm);
     ss->bm = NULL;
-  }
-  if (ss->bm_log) {
-    BM_log_free(ss->bm_log, true);
-    ss->bm_log = NULL;
   }
 
   BKE_particlesystem_reset_all(ob);
