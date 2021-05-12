@@ -953,9 +953,8 @@ void startConstraint(TransInfo *t)
 
 void stopConstraint(TransInfo *t)
 {
-  if (t->orient_curr != 0) {
-    t->orient_curr = 0;
-    transform_orientations_current_set(t, t->orient_curr);
+  if (t->orient_curr != O_DEFAULT) {
+    transform_orientations_current_set(t, O_DEFAULT);
   }
 
   t->con.mode &= ~(CON_APPLY | CON_SELECT);
@@ -971,8 +970,8 @@ void stopConstraint(TransInfo *t)
 
 void initSelectConstraint(TransInfo *t)
 {
-  if (t->orient_curr == 0) {
-    transform_orientations_current_set(t, 1);
+  if (t->orient_curr == O_DEFAULT) {
+    transform_orientations_current_set(t, O_SCENE);
   }
 
   setUserConstraint(t, CON_APPLY | CON_SELECT, "%s");

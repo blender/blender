@@ -782,7 +782,7 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
     }
     else {
       short orient_index = 1;
-      if (t->orient_curr == 0 || ELEM(constraint_curr, -1, constraint_new)) {
+      if (t->orient_curr == O_DEFAULT || ELEM(constraint_curr, -1, constraint_new)) {
         /* Successive presses on existing axis, cycle orientation modes. */
         orient_index = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
       }
@@ -1426,7 +1426,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
       mat3_to_size(t->values_final, tmat);
     }
 
-    BLI_assert(t->orient_curr == 0);
+    BLI_assert(t->orient_curr == O_DEFAULT);
     unit_m3(t->spacemtx);
     t->orient[0].type = V3D_ORIENT_GLOBAL;
   }
