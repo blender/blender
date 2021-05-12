@@ -871,7 +871,7 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
   return log;
 }
 
-ATTR_NO_OPT BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
+BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
 {
   if (!entry || !entry->log) {
     return NULL;

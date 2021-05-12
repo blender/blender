@@ -651,7 +651,7 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
   MEM_freeN(deformed_verts);
 }
 
-ATTR_NO_OPT static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
+static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

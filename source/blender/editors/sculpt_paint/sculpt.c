@@ -9192,7 +9192,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   }
 }
 
-ATTR_NO_OPT void ED_object_sculptmode_enter_ex(Main *bmain,
+void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *ob,

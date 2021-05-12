@@ -438,7 +438,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-ATTR_NO_OPT static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
+static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;

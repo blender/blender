@@ -82,7 +82,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-ATTR_NO_OPT void SCULPT_dynamic_topology_triangulate(BMesh *bm)
+void SCULPT_dynamic_topology_triangulate(BMesh *bm)
 {
   if (bm->totloop == bm->totface * 3) {
     return;
