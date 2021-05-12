@@ -600,7 +600,12 @@ typedef struct TransInfo {
     short type;
     float matrix[3][3];
   } orient[3];
-  short orient_curr;
+
+  enum {
+    O_DEFAULT = 0,
+    O_SCENE,
+    O_SET,
+  } orient_curr;
 
   /** backup from view3d, to restore on end. */
   short gizmo_flag;
