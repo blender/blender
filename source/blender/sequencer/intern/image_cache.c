@@ -352,15 +352,18 @@ static void seq_disk_cache_update_file(SeqDiskCache *disk_cache, char *path)
 }
 
 /* Path format:
- * <cache dir>/<project name>/<scene name>-<timestamp>/<seq name>/DCACHE_FNAME_FORMAT
+ * <cache dir>/<project name>_seq_cache/<scene name>-<timestamp>/<seq name>/DCACHE_FNAME_FORMAT
  */
 
 static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache, char *path, size_t path_len)
 {
-  char main_name[FILE_MAX];
-  BLI_split_file_part(BKE_main_blendfile_path(disk_cache->bmain), main_name, sizeof(main_name));
+  char cache_dir[FILE_MAX];
+  BLI_split_file_part(BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
+  /* Use suffix, so that the cache directory name does not conflict with the bmain's blend file. */
+  const char *suffix = "_seq_cache";
+  strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir));
   BLI_strncpy(path, seq_disk_cache_base_dir(), path_len);
-  BLI_path_append(path, path_len, main_name);
+  BLI_path_append(path, path_len, cache_dir);
 }
 
 static void seq_disk_cache_get_dir(
@@ -421,7 +424,7 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
   BLI_strncpy(path_version_file, path, sizeof(path_version_file));
   BLI_path_append(path_version_file, sizeof(path_version_file), "cache_version");
 
-  if (BLI_exists(path)) {
+  if (BLI_exists(path) && BLI_is_dir(path)) {
     FILE *file = BLI_fopen(path_version_file, "r");
 
     if (file) {

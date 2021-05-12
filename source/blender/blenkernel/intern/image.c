@@ -735,6 +735,37 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
   return tile_number;
 }
 
+/**
+ * Return the tile_number for the closest UDIM tile.
+ */
+int BKE_image_find_nearest_tile(const Image *image, const float co[2])
+{
+  const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
+  /* Distance to the closest UDIM tile. */
+  float dist_best_sq = FLT_MAX;
+  int tile_number_best = -1;
+
+  LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
+    const int tile_index = tile->tile_number - 1001;
+    /* Coordinates of the current tile. */
+    const float tile_index_co[2] = {tile_index % 10, tile_index / 10};
+
+    if (equals_v2v2(co_floor, tile_index_co)) {
+      return tile->tile_number;
+    }
+
+    /* Distance between co[2] and UDIM tile. */
+    const float dist_sq = len_squared_v2v2(tile_index_co, co);
+
+    if (dist_sq < dist_best_sq) {
+      dist_best_sq = dist_sq;
+      tile_number_best = tile->tile_number;
+    }
+  }
+
+  return tile_number_best;
+}
+
 static void image_init_color_management(Image *ima)
 {
   ImBuf *ibuf;
