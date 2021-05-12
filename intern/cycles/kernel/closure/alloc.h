@@ -57,6 +57,8 @@ ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 
 ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 weight)
 {
+  kernel_assert(isfinite3_safe(weight));
+
   const float sample_weight = fabsf(average(weight));
 
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
@@ -81,6 +83,8 @@ ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd,
                                                 float3 weight,
                                                 void *data)
 {
+  kernel_assert(isfinite3_safe(weight));
+
   const float sample_weight = fabsf(average(weight));
 
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite

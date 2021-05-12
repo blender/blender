@@ -370,10 +370,13 @@ ccl_device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack
 
   if (direction_type == NODE_TANGENT_UVMAP) {
     /* UV map */
-    if (desc.offset == ATTR_STD_NOT_FOUND)
-      tangent = make_float3(0.0f, 0.0f, 0.0f);
-    else
+    if (desc.offset == ATTR_STD_NOT_FOUND) {
+      stack_store_float3(stack, tangent_offset, zero_float3());
+      return;
+    }
+    else {
       tangent = attribute_value;
+    }
   }
   else {
     /* radial */
