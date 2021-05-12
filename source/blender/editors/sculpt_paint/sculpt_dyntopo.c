@@ -26,11 +26,11 @@
 #include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_hash.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
-#include "BLI_compiler_attrs.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_task.h"
 
@@ -91,7 +91,7 @@ void SCULPT_dynamic_topology_triangulate(BMesh *bm)
   BMIter iter;
   BMFace *f;
 
-  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BM_elem_flag_enable(f, BM_ELEM_TAG);
   }
 
@@ -128,15 +128,15 @@ void SCULPT_dynamic_topology_triangulate(BMesh *bm)
     for (int i = 0; i < faces_array_tot; i++) {
       BMFace *f2 = faces_array[i];
 
-      //forcibly copy selection state
+      // forcibly copy selection state
       if (sel) {
         BM_face_select_set(bm, f2, true);
 
-        //restore original face selection state too, triangulate code unset it
+        // restore original face selection state too, triangulate code unset it
         BM_face_select_set(bm, f, true);
       }
 
-      //paranoia check that tag flag wasn't copied over
+      // paranoia check that tag flag wasn't copied over
       BM_elem_flag_disable(f2, BM_ELEM_TAG);
     }
   }
@@ -206,8 +206,10 @@ static char layer_id[] = "_dyntopo_node_id";
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
 {
   SCULPT_dyntopo_node_layers_add(ss);
-  BKE_pbvh_update_offsets(
-      ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
+  if (ss->pbvh) {
+    BKE_pbvh_update_offsets(
+        ss->pbvh, ss->cd_vert_node_offset, ss->cd_face_node_offset, ss->cd_dyn_vert);
+  }
 }
 
 bool SCULPT_dyntopo_has_templayer(SculptSession *ss, int type, const char *name)
@@ -608,15 +610,26 @@ static void SCULPT_dynamic_topology_disable_ex(
   /* Clear data. */
   me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
+  bool disp_saved = false;
+
   if (ss->bm_log) {
+    if (ss->bm) {
+      disp_saved = true;
+
+      // rebuild ss->persistent_base if necassary
+      SCULPT_dyntopo_save_persistent_base(ss);
+    }
+
     BM_log_free(ss->bm_log, true);
     ss->bm_log = NULL;
   }
 
   /* Typically valid but with global-undo they can be NULL, see: T36234. */
   if (ss->bm) {
-    // rebuild ss->persistent_base if necassary
-    SCULPT_dyntopo_save_persistent_base(ss);
+    if (!disp_saved) {
+      // rebuild ss->persistent_base if necassary
+      SCULPT_dyntopo_save_persistent_base(ss);
+    }
 
     BM_mesh_free(ss->bm);
     ss->bm = NULL;

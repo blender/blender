@@ -463,15 +463,21 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
-  /* Restore the BMLog using saved entries. */
-  ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+  ss->bm_log = BM_log_unfreeze(ss->bm, unode->bm_entry);
+
+  if (!ss->bm_log) {
+    /* Restore the BMLog using saved entries. */
+    ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+  }
+
+  SCULPT_dyntopo_node_layers_update_offsets(ss);
   BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
 }
 
-static void sculpt_undo_bmesh_restore_begin(bContext *C,
-                                            SculptUndoNode *unode,
-                                            Object *ob,
-                                            SculptSession *ss)
+ATTR_NO_OPT static void sculpt_undo_bmesh_restore_begin(bContext *C,
+                                                        SculptUndoNode *unode,
+                                                        Object *ob,
+                                                        SculptSession *ss)
 {
   if (unode->applied) {
     SCULPT_dynamic_topology_disable(C, unode);
@@ -487,10 +493,10 @@ static void sculpt_undo_bmesh_restore_begin(bContext *C,
   }
 }
 
-static void sculpt_undo_bmesh_restore_end(bContext *C,
-                                          SculptUndoNode *unode,
-                                          Object *ob,
-                                          SculptSession *ss)
+ATTR_NO_OPT static void sculpt_undo_bmesh_restore_end(bContext *C,
+                                                      SculptUndoNode *unode,
+                                                      Object *ob,
+                                                      SculptSession *ss)
 {
   if (unode->applied) {
     sculpt_undo_bmesh_enable(ob, unode);
@@ -506,7 +512,9 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
     unode->applied = true;
   }
 
-  BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  if (ss->bm) {
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+  }
 }
 
 static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Object *object)
@@ -593,10 +601,10 @@ static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
  *
  * Returns true if this was a dynamic-topology undo step, otherwise
  * returns false to indicate the non-dyntopo code should run. */
-static int sculpt_undo_bmesh_restore(bContext *C,
-                                     SculptUndoNode *unode,
-                                     Object *ob,
-                                     SculptSession *ss)
+ATTR_NO_OPT static int sculpt_undo_bmesh_restore(bContext *C,
+                                                 SculptUndoNode *unode,
+                                                 Object *ob,
+                                                 SculptSession *ss)
 {
   if (ss->bm_log && ss->bm) {
     SCULPT_dyntopo_node_layers_update_offsets(ss);
@@ -610,7 +618,9 @@ static int sculpt_undo_bmesh_restore(bContext *C,
       return true;
 
     case SCULPT_UNDO_DYNTOPO_END:
-      sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
+      if (ss->bm) {
+        sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
+      }
       SCULPT_vertex_random_access_ensure(ss);
       return true;
     default:
@@ -671,15 +681,19 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
       SCULPT_dynamic_topology_enable_ex(CTX_data_main(C), depsgraph, scene, ob);
 
-      //see if we have a saved log in the entry
-      ss->bm_log = BM_log_unfreeze(ss->bm, unode->bm_entry);
+      // see if we have a saved log in the entry
+      BMLog *log = BM_log_unfreeze(ss->bm, unode->bm_entry);
 
-      if (!ss->bm_log) {
-        /* Restore the BMLog using saved entries. */
-        ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+      if (log) {
+        if (ss->bm_log) {
+          BM_log_free(ss->bm_log, false);
+        }
+
+        ss->bm_log = log;
+
+        SCULPT_dyntopo_node_layers_update_offsets(ss);
+        BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
       }
-
-      BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
     }
 
     /* Restore pivot. */
@@ -1293,7 +1307,7 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
   return unode;
 }
 
-static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
+ATTR_NO_OPT static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;
@@ -1313,7 +1327,9 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
     if (type == SCULPT_UNDO_DYNTOPO_END) {
       unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
-      BM_log_before_all_removed(ss->bm, ss->bm_log);
+      BM_log_full_mesh(ss->bm, ss->bm_log);
+
+      // BM_log_before_all_removed(ss->bm, ss->bm_log);
     }
     else if (type == SCULPT_UNDO_DYNTOPO_BEGIN) {
       /* Store a copy of the mesh's current vertices, loops, and
@@ -1325,7 +1341,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       sculpt_undo_geometry_store_data(geometry, ob);
 
       unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
-      BM_log_all_added(ss->bm, ss->bm_log);
+      //BM_log_all_added(ss->bm, ss->bm_log);
+      BM_log_full_mesh(ss->bm, ss->bm_log);
     }
     else {
       unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
