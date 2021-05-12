@@ -1619,7 +1619,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
 
 /**
  * \note  caller needs to free 't' on a 0 return
- * \warning  \a event might be NULL (when tweaking from redo panel)
+ * \warning \a event might be NULL (when tweaking from redo panel)
  * \see #saveTransform which writes these values back.
  */
 bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)

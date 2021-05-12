@@ -322,9 +322,11 @@ typedef enum eLineartTriangleFlags {
   LRT_TRIANGLE_NO_INTERSECTION = (1 << 4),
 } eLineartTriangleFlags;
 
-/** Controls how many edges a worker thread is processing at one request.
+/**
+ * Controls how many edges a worker thread is processing at one request.
  * There's no significant performance impact on choosing different values.
- * Don't make it too small so that the worker thread won't request too many times. */
+ * Don't make it too small so that the worker thread won't request too many times.
+ */
 #define LRT_THREAD_EDGE_COUNT 1000
 
 typedef struct LineartRenderTaskInfo {
