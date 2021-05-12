@@ -125,13 +125,13 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
   }
   if (domain == ATTR_DOMAIN_POINT) {
     int total = 0;
-    for (const SplinePtr &spline : curve_->splines) {
+    for (const SplinePtr &spline : curve_->splines()) {
       total += spline->size();
     }
     return total;
   }
   if (domain == ATTR_DOMAIN_CURVE) {
-    return curve_->splines.size();
+    return curve_->splines().size();
   }
   return 0;
 }
@@ -245,7 +245,7 @@ static void set_spline_resolution(SplinePtr &spline, const int resolution)
 static GVArrayPtr make_resolution_read_attribute(const CurveEval &curve)
 {
   return std::make_unique<fn::GVArray_For_DerivedSpan<SplinePtr, int, get_spline_resolution>>(
-      curve.splines.as_span());
+      curve.splines());
 }
 
 static GVMutableArrayPtr make_resolution_write_attribute(CurveEval &curve)
@@ -254,7 +254,7 @@ static GVMutableArrayPtr make_resolution_write_attribute(CurveEval &curve)
                                                              int,
                                                              get_spline_resolution,
                                                              set_spline_resolution>>(
-      curve.splines.as_mutable_span());
+      curve.splines());
 }
 
 static bool get_cyclic_value(const SplinePtr &spline)
@@ -273,14 +273,14 @@ static void set_cyclic_value(SplinePtr &spline, const bool value)
 static GVArrayPtr make_cyclic_read_attribute(const CurveEval &curve)
 {
   return std::make_unique<fn::GVArray_For_DerivedSpan<SplinePtr, bool, get_cyclic_value>>(
-      curve.splines.as_span());
+      curve.splines());
 }
 
 static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
 {
   return std::make_unique<
       fn::GVMutableArray_For_DerivedSpan<SplinePtr, bool, get_cyclic_value, set_cyclic_value>>(
-      curve.splines.as_mutable_span());
+      curve.splines());
 }
 
 /** \} */
@@ -296,12 +296,13 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
 
 static Array<int> control_point_offsets(const CurveEval &curve)
 {
-  Array<int> offsets(curve.splines.size() + 1);
+  Span<SplinePtr> splines = curve.splines();
+  Array<int> offsets(splines.size() + 1);
 
   int size = 0;
-  for (const int spline_index : curve.splines.index_range()) {
+  for (const int spline_index : splines.index_range()) {
     offsets[spline_index] = size;
-    size += curve.splines[spline_index]->size();
+    size += splines[spline_index]->size();
   }
   offsets.last() = size;
 
@@ -584,14 +585,15 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return {};
     }
 
-    if (curve->splines.size() == 1) {
-      return std::make_unique<fn::GVArray_For_GSpan>(get_span_(*curve->splines.first()));
+    Span<SplinePtr> splines = curve->splines();
+    if (splines.size() == 1) {
+      return std::make_unique<fn::GVArray_For_GSpan>(get_span_(*splines.first()));
     }
 
     Array<int> offsets = control_point_offsets(*curve);
-    Array<Span<T>> spans(curve->splines.size());
-    for (const int i : curve->splines.index_range()) {
-      spans[i] = get_span_(*curve->splines[i]);
+    Array<Span<T>> spans(splines.size());
+    for (const int i : splines.index_range()) {
+      spans[i] = get_span_(*splines[i]);
     }
 
     return std::make_unique<fn::GVArray_For_EmbeddedVArray<T, VArray_For_SplinePoints<T>>>(
@@ -605,17 +607,18 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return {};
     }
 
-    if (curve->splines.size() == 1) {
+    MutableSpan<SplinePtr> splines = curve->splines();
+    if (splines.size() == 1) {
       return std::make_unique<fn::GVMutableArray_For_GMutableSpan>(
-          get_mutable_span_(*curve->splines.first()));
+          get_mutable_span_(*splines.first()));
     }
 
     Array<int> offsets = control_point_offsets(*curve);
-    Array<MutableSpan<T>> spans(curve->splines.size());
-    for (const int i : curve->splines.index_range()) {
-      spans[i] = get_mutable_span_(*curve->splines[i]);
+    Array<MutableSpan<T>> spans(splines.size());
+    for (const int i : splines.index_range()) {
+      spans[i] = get_mutable_span_(*splines[i]);
       if (update_on_write_) {
-        update_on_write_(*curve->splines[i]);
+        update_on_write_(*splines[i]);
       }
     }
 
@@ -668,7 +671,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     /* Changing the positions requires recalculation of cached evaluated data in many cases.
      * This could set more specific flags in the future to avoid unnecessary recomputation. */
     bool curve_has_bezier_spline = false;
-    for (SplinePtr &spline : curve->splines) {
+    for (SplinePtr &spline : curve->splines()) {
       if (spline->type() == Spline::Type::Bezier) {
         curve_has_bezier_spline = true;
         break;
@@ -681,14 +684,14 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
 
-    for (SplinePtr &spline : curve->splines) {
+    for (SplinePtr &spline : curve->splines()) {
       spline->mark_cache_invalid();
     }
 
     Array<int> offsets = control_point_offsets(*curve);
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
-        offsets.last(), curve->splines, std::move(offsets));
+        offsets.last(), curve->splines(), std::move(offsets));
   }
 };
 

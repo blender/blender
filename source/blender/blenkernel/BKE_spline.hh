@@ -478,8 +478,15 @@ class PolySpline final : public Spline {
  * more of the data is stored in the splines, but also just to be different than the name in DNA.
  */
 class CurveEval {
+ private:
+  blender::Vector<SplinePtr> splines_;
+
  public:
-  blender::Vector<SplinePtr> splines;
+  blender::Span<SplinePtr> splines() const;
+  blender::MutableSpan<SplinePtr> splines();
+
+  void add_spline(SplinePtr spline);
+  void remove_splines(blender::IndexMask mask);
 
   CurveEval *copy();
 

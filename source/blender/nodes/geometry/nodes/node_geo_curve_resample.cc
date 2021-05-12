@@ -139,16 +139,16 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
 {
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
 
-  for (const SplinePtr &spline : input_curve.splines) {
+  for (const SplinePtr &spline : input_curve.splines()) {
     if (mode_param.mode == GEO_NODE_CURVE_SAMPLE_COUNT) {
       BLI_assert(mode_param.count);
-      output_curve->splines.append(resample_spline(*spline, *mode_param.count));
+      output_curve->add_spline(resample_spline(*spline, *mode_param.count));
     }
     else if (mode_param.mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
       BLI_assert(mode_param.length);
       const float length = spline->length();
       const int count = length / *mode_param.length;
-      output_curve->splines.append(resample_spline(*spline, count));
+      output_curve->add_spline(resample_spline(*spline, count));
     }
   }
 
