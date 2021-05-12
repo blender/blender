@@ -1987,7 +1987,7 @@ static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
 }
 void sculpt_undo_print_nodes(void *active)
 {
-#if 1
+#if 0
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = ustack->steps.first;
   if (active == NULL) {
