@@ -3334,14 +3334,14 @@ static const float std_node_socket_colors[][4] = {
     {0.39, 0.78, 0.39, 1.0}, /* SOCK_SHADER */
     {0.80, 0.65, 0.84, 1.0}, /* SOCK_BOOLEAN */
     {0.0, 0.0, 0.0, 1.0},    /*__SOCK_MESH (deprecated) */
-    {0.25, 0.75, 0.26, 1.0}, /* SOCK_INT */
+    {0.35, 0.55, 0.36, 1.0}, /* SOCK_INT */
     {0.44, 0.70, 1.00, 1.0}, /* SOCK_STRING */
     {0.93, 0.62, 0.36, 1.0}, /* SOCK_OBJECT */
-    {0.89, 0.76, 0.43, 1.0}, /* SOCK_IMAGE */
+    {0.39, 0.22, 0.39, 1.0}, /* SOCK_IMAGE */
     {0.00, 0.84, 0.64, 1.0}, /* SOCK_GEOMETRY */
     {0.96, 0.96, 0.96, 1.0}, /* SOCK_COLLECTION */
-    {0.50, 0.00, 0.00, 1.0}, /* SOCK_TEXTURE, TODO: Choose color. */
-    {0.00, 0.50, 0.00, 1.0}, /* SOCK_MATERIAL, TODO: Choose color. */
+    {0.62, 0.31, 0.64, 1.0}, /* SOCK_TEXTURE */
+    {0.92, 0.46, 0.51, 1.0}, /* SOCK_MATERIAL */
 };
 
 /* common color callbacks for standard types */
