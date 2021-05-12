@@ -36,9 +36,11 @@ void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert);
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
 
 /* Free all the data in a BMLog including the log itself */
-void BM_log_free(BMLog *log);
+void BM_log_free(BMLog *log, bool safe_mode);
 
-/* Get the number of log entries */
+BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
+
+    /* Get the number of log entries */
 int BM_log_length(const BMLog *log);
 
 /* Apply a consistent ordering to BMesh vertices and faces */

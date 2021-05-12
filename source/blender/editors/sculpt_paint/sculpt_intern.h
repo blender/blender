@@ -48,7 +48,7 @@ enum ePaintSymmetryFlags;
 maximum symmetry passes returned by SCULPT_get_symmetry_pass.
 enough for about ~30 radial symmetry passes, which seems like plenty
 
-used by various code that needs to statically store per-pass state. 
+used by various code that needs to statically store per-pass state.
 */
 #define SCULPT_MAX_SYMMETRY_PASSES 255
 
@@ -105,6 +105,7 @@ char SCULPT_mesh_symmetry_xyz_get(Object *object);
 
 /* Sculpt PBVH abstraction API */
 void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
+void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 
 int SCULPT_vertex_count_get(struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
@@ -235,6 +236,13 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, SculptVertRef ind
 
 void SCULPT_face_sets_visibility_invert(SculptSession *ss);
 void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
+
+int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face);
+
+// returns previous face set
+int SCULPT_face_set_set(SculptSession *ss, SculptFaceRef face, int fset);
+int SCULPT_face_set_flag_get(SculptSession *ss, SculptFaceRef face, char flag);
+int SCULPT_face_set_flag_set(SculptSession *ss, SculptFaceRef face, char flag, bool state);
 
 bool SCULPT_stroke_is_main_symmetry_pass(struct StrokeCache *cache);
 bool SCULPT_stroke_is_first_brush_step(struct StrokeCache *cache);
@@ -577,7 +585,10 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Topology rake */
-void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], struct BMVert *v, float projection);
+void SCULPT_bmesh_four_neighbor_average(float avg[3],
+                                        float direction[3],
+                                        struct BMVert *v,
+                                        float projection);
 
 /* Smoothing api */
 void SCULPT_neighbor_coords_average(SculptSession *ss,
@@ -604,7 +615,8 @@ void SCULPT_smooth(Sculpt *sd,
                    const bool smooth_mask,
                    float projection);
 
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection);
+void SCULPT_do_smooth_brush(
+    Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float projection);
 
 /* Surface Smooth Brush. */
 
@@ -1124,9 +1136,9 @@ typedef struct StrokeCache {
   rcti previous_r; /* previous redraw rectangle */
   rcti current_r;  /* current redraw rectangle */
 
-  float stroke_distance;  // copy of PaintStroke->stroke_distance
-  float stroke_distance_t; // copy of PaintStroke->stroke_distance_t
-  
+  float stroke_distance;    // copy of PaintStroke->stroke_distance
+  float stroke_distance_t;  // copy of PaintStroke->stroke_distance_t
+
   float last_dyntopo_t;
   float last_smooth_t[SCULPT_MAX_SYMMETRY_PASSES];
   float last_rake_t[SCULPT_MAX_SYMMETRY_PASSES];
@@ -1502,3 +1514,5 @@ void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
 /*get current symmetry pass index inclusive of both
   mirror and radial symmetry*/
 int SCULPT_get_symmetry_pass(const SculptSession *ss);
+
+void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);

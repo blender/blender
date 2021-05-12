@@ -3174,6 +3174,17 @@ SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx)
 
   return BKE_pbvh_make_vref(idx);
 }
+
+SculptFaceRef BKE_pbvh_table_index_to_face(PBVH *pbvh, int idx)
+{
+  if (pbvh->type == PBVH_BMESH) {
+    SculptFaceRef ref = {(intptr_t)pbvh->bm->ftable[idx]};
+    return ref;
+  }
+
+  return BKE_pbvh_make_fref(idx);
+}
+
 bool pbvh_has_face_sets(PBVH *pbvh)
 {
   switch (pbvh->type) {

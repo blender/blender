@@ -113,6 +113,7 @@ typedef struct UndoSculpt {
   ListBase nodes;
 
   size_t undo_size;
+  BMLog *bm_restore;
 } UndoSculpt;
 
 static UndoSculpt *sculpt_undo_get_nodes(void);
@@ -400,7 +401,7 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   Mesh *me = BKE_object_get_original_mesh(ob);
   int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   for (int i = 0; i < me->totpoly; i++) {
-    face_sets[i] = unode->face_sets[i];
+    SWAP(int, face_sets[i], unode->face_sets[i]);
   }
   return false;
 }
@@ -650,7 +651,7 @@ static void sculpt_undo_refine_subdiv(Depsgraph *depsgraph,
   MEM_freeN(deformed_verts);
 }
 
-static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
+ATTR_NO_OPT static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase *lb)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -664,6 +665,23 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   bool need_refine_subdiv = false;
 
   for (unode = lb->first; unode; unode = unode->next) {
+    if (unode->bm_entry && !ss->bm) {
+      // file loading breaks undo because the stack isn't initialized
+      // detect that case and try to fix it
+
+      SCULPT_dynamic_topology_enable_ex(CTX_data_main(C), depsgraph, scene, ob);
+
+      //see if we have a saved log in the entry
+      ss->bm_log = BM_log_unfreeze(ss->bm, unode->bm_entry);
+
+      if (!ss->bm_log) {
+        /* Restore the BMLog using saved entries. */
+        ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+      }
+
+      BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
+    }
+
     /* Restore pivot. */
     copy_v3_v3(ss->pivot_pos, unode->pivot_pos);
     copy_v3_v3(ss->pivot_rot, unode->pivot_rot);
@@ -678,6 +696,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
+  sculpt_undo_print_nodes(NULL);
 
   if (!ss->bm && lb->first) {
     unode = lb->first;
@@ -782,7 +802,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-        BLI_assert(!"Dynamic topology should've already been handled");
+        printf("Dynamic topology should've already been handled\n");
         break;
     }
   }
@@ -1118,7 +1138,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, Sculpt
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      printf("Dynamic topology should've already been handled\n");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;
@@ -1370,14 +1390,14 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_GEOMETRY:
         break;
     }
-  } else {
+  }
+  else {
     switch (type) {
-    case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-    case SCULPT_UNDO_GEOMETRY:
-      BM_log_full_mesh(ss->bm, ss->bm_log);
-      break;
-      }
-
+      case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+      case SCULPT_UNDO_GEOMETRY:
+        BM_log_full_mesh(ss->bm, ss->bm_log);
+        break;
+    }
   }
 
   if (new_node) {
@@ -1513,7 +1533,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     case SCULPT_UNDO_DYNTOPO_BEGIN:
     case SCULPT_UNDO_DYNTOPO_END:
     case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
-      BLI_assert(!"Dynamic topology should've already been handled");
+      printf("Dynamic topology should've already been handled\n");
     case SCULPT_UNDO_GEOMETRY:
     case SCULPT_UNDO_FACE_SETS:
       break;
@@ -1797,6 +1817,10 @@ static UndoSculpt *sculpt_undo_get_nodes(void)
   return sculpt_undosys_step_get_nodes(us);
 }
 
+void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss)
+{
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1963,7 +1987,7 @@ static void print_sculpt_undo_step(UndoStep *us, UndoStep *active, int i)
 }
 void sculpt_undo_print_nodes(void *active)
 {
-#if 0
+#if 1
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = ustack->steps.first;
   if (active == NULL) {

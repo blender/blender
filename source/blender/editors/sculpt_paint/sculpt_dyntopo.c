@@ -23,10 +23,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
+#include "BLI_linklist.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
+#include "BLI_compiler_attrs.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -77,12 +82,79 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_dynamic_topology_triangulate(BMesh *bm)
+ATTR_NO_OPT void SCULPT_dynamic_topology_triangulate(BMesh *bm)
 {
-  if (bm->totloop != bm->totface * 3) {
-    BM_mesh_triangulate(
-        bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, NULL, NULL, NULL);
+  if (bm->totloop == bm->totface * 3) {
+    return;
   }
+
+  BMIter iter;
+  BMFace *f;
+
+  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+    BM_elem_flag_enable(f, BM_ELEM_TAG);
+  }
+
+  MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
+  LinkNode *f_double = NULL;
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (f->len <= 3) {
+      continue;
+    }
+
+    bool sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
+
+    int faces_array_tot = f->len;
+    BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
+
+    printf("%d: ", f->head.hflag);
+
+    BM_face_triangulate(bm,
+                        f,
+                        faces_array,
+                        &faces_array_tot,
+                        NULL,
+                        NULL,
+                        &f_double,
+                        MOD_TRIANGULATE_QUAD_BEAUTY,
+                        MOD_TRIANGULATE_NGON_EARCLIP,
+                        true,
+                        pf_arena,
+                        NULL);
+
+    printf("%d, ", f->head.hflag);
+
+    for (int i = 0; i < faces_array_tot; i++) {
+      BMFace *f2 = faces_array[i];
+
+      //forcibly copy selection state
+      if (sel) {
+        BM_face_select_set(bm, f2, true);
+
+        //restore original face selection state too, triangulate code unset it
+        BM_face_select_set(bm, f, true);
+      }
+
+      //paranoia check that tag flag wasn't copied over
+      BM_elem_flag_disable(f2, BM_ELEM_TAG);
+    }
+  }
+
+  printf("\n");
+
+  while (f_double) {
+    LinkNode *next = f_double->next;
+    BM_face_kill(bm, f_double->link);
+    MEM_freeN(f_double);
+    f_double = next;
+  }
+
+  BLI_memarena_free(pf_arena);
+
+  //  BM_mesh_triangulate(
+  //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, NULL, NULL,
+  //      NULL);
 }
 
 void SCULPT_pbvh_clear(Object *ob)
@@ -326,7 +398,7 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
           break;
         }
 
-        //based off of how CustomData_set_layer_XXXX_index works
+        // based off of how CustomData_set_layer_XXXX_index works
 
         cl3->active = (cl2->active + baseidx) - k;
         cl3->active_rnd = (cl2->active_rnd + baseidx) - k;
@@ -545,7 +617,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     ss->bm = NULL;
   }
   if (ss->bm_log) {
-    BM_log_free(ss->bm_log);
+    BM_log_free(ss->bm_log, true);
     ss->bm_log = NULL;
   }
 

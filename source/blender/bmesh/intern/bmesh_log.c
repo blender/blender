@@ -108,6 +108,10 @@ struct BMLog {
   /* Tree of free IDs */
   struct RangeTreeUInt *unused_ids;
 
+  BMLogEntry *frozen_full_mesh;
+
+  int refcount;
+
   /* Mapping from unique IDs to vertices and faces
    *
    * Each vertex and face in the log gets a unique uinteger
@@ -160,6 +164,9 @@ typedef struct {
 /* bypass actual hashing, the keys don't overlap */
 #define logkey_hash BLI_ghashutil_inthash_p_simple
 #define logkey_cmp BLI_ghashutil_intcmp
+
+static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry);
+static void bm_log_entry_free(BMLogEntry *entry);
 
 static void *log_ghash_lookup(BMLog *log, GHash *gh, const void *key)
 {
@@ -665,6 +672,15 @@ static BMLogEntry *bm_log_entry_create(void)
  * Note: does not free the log entry itself */
 static void bm_log_entry_free(BMLogEntry *entry)
 {
+  if (entry->log) {
+    entry->log->refcount--;
+
+    if (entry->log->refcount < 0) {
+      fprintf(stderr, "BMLog refcount error\n");
+      entry->log->refcount = 0;
+    }
+  }
+
   if (entry->full_copy_mesh) {
     BKE_mesh_free(entry->full_copy_mesh);
 
@@ -855,10 +871,40 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
   return log;
 }
 
-/* Free all the data in a BMLog including the log itself */
-void BM_log_free(BMLog *log)
+ATTR_NO_OPT BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
+{
+  if (!entry || !entry->log) {
+    return NULL;
+  }
+
+  if (!entry->log->frozen_full_mesh) {
+    return entry->log;
+  }
+
+  full_copy_swap(bm, entry->log, entry->log->frozen_full_mesh);
+
+  entry->log->frozen_full_mesh->log = NULL;
+  bm_log_entry_free(entry->log->frozen_full_mesh);
+  entry->log->frozen_full_mesh = NULL;
+
+  return entry->log;
+}
+
+/* Free all the data in a BMLog including the log itself
+ * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
+ */
+void BM_log_free(BMLog *log, bool safe_mode)
 {
   BMLogEntry *entry;
+
+  if (safe_mode && log->refcount) {
+    if (!log->frozen_full_mesh) {
+      log->frozen_full_mesh = bm_log_entry_create();
+      bm_log_full_mesh_intern(log->bm, log, log->frozen_full_mesh);
+    }
+
+    return;
+  }
 
   BLI_rw_mutex_end(&log->lock);
 
@@ -1009,6 +1055,8 @@ BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
   entry = bm_log_entry_create();
   BLI_addtail(&log->entries, entry);
   entry->log = log;
+
+  log->refcount++;
 
 #ifdef CUSTOMDATA
   if (combine_with_last) {
@@ -1162,7 +1210,7 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
     else {
       // eek, error!
       printf("bmlog error!\n");
-      log_ghash_remove(log, log->id_to_elem, (void*)id, NULL, NULL);
+      log_ghash_remove(log, log->id_to_elem, (void *)id, NULL, NULL);
     }
   }
 
@@ -1474,6 +1522,10 @@ void BM_log_face_removed(BMLog *log, BMFace *f)
 /* Log all vertices/faces in the BMesh as added */
 void BM_log_all_added(BMesh *bm, BMLog *log)
 {
+  if (!log->current_entry) {
+    BM_log_entry_add_ex(bm, log, false);
+  }
+
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   BMIter bm_iter;
   BMVert *v;
@@ -1524,6 +1576,10 @@ void BM_log_full_mesh(BMesh *bm, BMLog *log)
 /* Log all vertices/faces in the BMesh as removed */
 void BM_log_before_all_removed(BMesh *bm, BMLog *log)
 {
+  if (!log->current_entry) {
+    BM_log_entry_add_ex(bm, log, false);
+  }
+
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   BMIter bm_iter;
   BMVert *v;

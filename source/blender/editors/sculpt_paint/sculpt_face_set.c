@@ -74,6 +74,78 @@
 #include <math.h>
 #include <stdlib.h>
 
+int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
+{
+  if (ss->bm) {
+    BMFace *f = (BMFace *)face.i;
+    return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+  }
+
+  return ss->face_sets[face.i];
+}
+
+// returns previous face set
+int SCULPT_face_set_set(SculptSession *ss, SculptFaceRef face, int fset)
+{
+  int ret = 0;
+
+  if (ss->bm) {
+    BMFace *f = (BMFace *)face.i;
+    ret = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+    BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+  }
+  else {
+    ret = ss->face_sets[face.i];
+    ss->face_sets[face.i] = fset;
+  }
+
+  return ret;
+}
+
+int SCULPT_face_set_flag_get(SculptSession *ss, SculptFaceRef face, char flag)
+{
+  if (ss->bm) {
+    BMFace *f = (BMFace *)face.i;
+
+    flag = BM_face_flag_from_mflag(flag);
+    return f->head.hflag & flag;
+  }
+  else {
+    return ss->mpoly[face.i].flag & flag;
+  }
+}
+
+int SCULPT_face_set_flag_set(SculptSession *ss, SculptFaceRef face, char flag, bool state)
+{
+  int ret;
+
+  if (ss->bm) {
+    BMFace *f = (BMFace *)face.i;
+
+    flag = BM_face_flag_from_mflag(flag);
+    ret = f->head.hflag & flag;
+
+    if (state) {
+      f->head.hflag |= flag;
+    }
+    else {
+      f->head.hflag &= ~flag;
+    }
+  }
+  else {
+    ret = ss->mpoly[face.i].flag & flag;
+
+    if (state) {
+      ss->mpoly[face.i].flag |= flag;
+    }
+    else {
+      ss->mpoly[face.i].flag &= ~flag;
+    }
+  }
+
+  return ret;
+}
 /* Utils. */
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
@@ -118,6 +190,34 @@ int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const flo
   }
 
   return SCULPT_active_face_set_get(ss);
+}
+
+static BMesh *sculpt_faceset_bm_begin(SculptSession *ss, Mesh *mesh)
+{
+  if (ss->bm) {
+    return ss->bm;
+  }
+
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
+  BMesh *bm = BM_mesh_create(&allocsize,
+                             &((struct BMeshCreateParams){
+                                 .use_toolflags = true,
+                             }));
+
+  BM_mesh_bm_from_me(NULL,
+                     bm,
+                     mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+  return bm;
+}
+
+static void sculpt_faceset_bm_end(SculptSession *ss, BMesh *bm)
+{
+  if (bm != ss->bm) {
+    BM_mesh_free(bm);
+  }
 }
 
 /* Draw Face Sets Brush. */
@@ -338,7 +438,7 @@ static EnumPropertyItem prop_sculpt_face_set_create_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
+ATTR_NO_OPT static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -347,6 +447,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
+  SCULPT_face_random_access_ensure(ss);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   float threshold = 0.5f;
@@ -416,43 +517,22 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == SCULPT_FACE_SET_SELECTION) {
-
     Mesh *mesh = ob->data;
     BMesh *bm;
+    BMFace *f;
+    BMIter iter;
+    const totface = ss->totfaces;
 
-    if (ss->bm) {
-      bm = ss->bm;
-      BMIter iter;
-      BMFace *f;
-      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-          BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, next_face_set);
-        }
+    for (int i = 0; i < totface; i++) {
+      SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+
+      // XXX check hidden?
+      int ok = !SCULPT_face_set_flag_get(ss, fref, ME_HIDE);
+      ok = ok && SCULPT_face_set_flag_get(ss, fref, ME_FACE_SEL);
+
+      if (ok) {
+        SCULPT_face_set_set(ss, fref, next_face_set);
       }
-    }
-    else {
-      const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-      bm = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = true,
-                          }));
-
-      BM_mesh_bm_from_me(NULL,
-                         bm,
-                         mesh,
-                         (&(struct BMeshFromMeshParams){
-                             .calc_face_normal = true,
-                         }));
-
-      BMIter iter;
-      BMFace *f;
-      BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-        if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-          ss->face_sets[BM_elem_index_get(f)] = next_face_set;
-        }
-      }
-
-      BM_mesh_free(bm);
     }
   }
 
@@ -629,25 +709,16 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = ob->data;
   BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = true,
-                      }));
 
-  BM_mesh_bm_from_me(NULL,
-                     bm,
-                     mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
+  bm = sculpt_faceset_bm_begin(ss, mesh);
 
   BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
   const int totfaces = mesh->totpoly;
 
-  int *face_sets = ss->face_sets;
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
 
-  BM_mesh_elem_table_init(bm, BM_FACE);
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 
   int next_face_set = 1;
@@ -659,7 +730,9 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
     GSQueue *queue;
     queue = BLI_gsqueue_new(sizeof(int));
 
-    face_sets[i] = next_face_set;
+    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+    SCULPT_face_set_set(ss, fref, next_face_set);
+
     BLI_BITMAP_ENABLE(visited_faces, i);
     BLI_gsqueue_push(queue, &i);
 
@@ -686,7 +759,9 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
             continue;
           }
 
-          face_sets[neighbor_face_index] = next_face_set;
+          SculptFaceRef fref2 = BKE_pbvh_table_index_to_face(ss->pbvh, neighbor_face_index);
+          SCULPT_face_set_set(ss, fref2, next_face_set);
+
           BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
           BLI_gsqueue_push(queue, &neighbor_face_index);
         }
@@ -700,7 +775,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
 
   MEM_SAFE_FREE(visited_faces);
 
-  BM_mesh_free(bm);
+  sculpt_faceset_bm_end(ss, bm);
 }
 
 static void sculpt_face_sets_init_loop(Object *ob, const int mode)
@@ -748,11 +823,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
-
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 

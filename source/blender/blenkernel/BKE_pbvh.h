@@ -652,6 +652,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMVert *)(v.i)) : (v.i))
 SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx);
 
+#define BKE_pbvh_face_index_to_table(pbvh, v) \
+  (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMFace *)(v.i)) : (v.i))
+SculptFaceRef BKE_pbvh_table_index_to_face(PBVH *pbvh, int idx);
+
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);

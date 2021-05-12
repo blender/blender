@@ -51,6 +51,7 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_deform.h"
+#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -67,6 +68,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
+#include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -79,6 +81,7 @@
 
 // XXX todo: work our bad module cross ref
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
+void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 
 static void palette_init_data(ID *id)
 {
@@ -1380,12 +1383,6 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 
   if (ss->bm) {
     if (ob->data) {
-      BMIter iter;
-      BMFace *efa;
-      BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_set(efa, BM_ELEM_SMOOTH, ss->bm_smooth_shading);
-      }
-
       if (reorder) {
         BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
       }
@@ -1473,7 +1470,14 @@ void BKE_sculptsession_free(Object *ob)
   if (ob && ob->sculpt) {
     SculptSession *ss = ob->sculpt;
 
+    if (ss->bm_log) {
+      BM_log_free(ss->bm_log, true);
+    }
+
+    /*try to save current mesh*/
     if (ss->bm) {
+      SCULPT_on_sculptsession_bmesh_free(ss);
+
       BKE_sculptsession_bm_to_me(ob, true);
       BM_mesh_free(ss->bm);
     }
@@ -1488,10 +1492,6 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->vemap);
     MEM_SAFE_FREE(ss->vemap_mem);
-
-    if (ss->bm_log) {
-      BM_log_free(ss->bm_log);
-    }
 
     MEM_SAFE_FREE(ss->texcache);
 
@@ -1911,7 +1911,7 @@ void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene)
 
   if (!sd->detail_range) {
     sd->detail_range = 0.4f;
-    sd->flags |= SCULPT_DYNTOPO_CLEANUP; //should really do this in do_versions_290.c
+    sd->flags |= SCULPT_DYNTOPO_CLEANUP;  // should really do this in do_versions_290.c
   }
 
   if (!sd->detail_percent) {

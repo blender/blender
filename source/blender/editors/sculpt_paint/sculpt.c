@@ -117,6 +117,22 @@ void SCULPT_vertex_random_access_ensure(SculptSession *ss)
   }
 }
 
+
+/* Sculpt PBVH abstraction API
+ *
+ * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
+ * the indices used here.
+ *
+ * For multi-resolution, the same vertex in multiple grids is counted multiple times, with
+ * different index for each grid. */
+
+void SCULPT_face_random_access_ensure(SculptSession *ss)
+{
+  if (ss->bm) {
+    BM_mesh_elem_index_ensure(ss->bm, BM_FACE);
+    BM_mesh_elem_table_ensure(ss->bm, BM_FACE);
+  }
+}
 int SCULPT_vertex_count_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -9176,7 +9192,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   }
 }
 
-void ED_object_sculptmode_enter_ex(Main *bmain,
+ATTR_NO_OPT void ED_object_sculptmode_enter_ex(Main *bmain,
                                    Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *ob,
