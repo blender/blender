@@ -176,14 +176,16 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
                                                       const SculptFaceRef f)
 {
   if (ss->bm) {
-    BMFace *bf = (BMFace*)f.i;
+    BMFace *bf = (BMFace *)f.i;
     BMLoop *l = bf->l_first;
     SculptVertRef v = {(intptr_t)l->v};
 
     return sculpt_expand_is_vert_in_active_component(ss, expand_cache, v);
-  } else {
+  }
+  else {
     const MLoop *loop = &ss->mloop[ss->mpoly[f.i].loopstart];
-    return sculpt_expand_is_vert_in_active_component(ss, expand_cache, BKE_pbvh_table_index_to_vertex(ss->pbvh, loop->v));
+    return sculpt_expand_is_vert_in_active_component(
+        ss, expand_cache, BKE_pbvh_table_index_to_vertex(ss->pbvh, loop->v));
   }
 }
 
@@ -237,7 +239,9 @@ static float sculpt_expand_max_vertex_falloff_get(ExpandCache *expand_cache)
  * Main function to get the state of a vertex for the current state and settings of a #ExpandCache.
  * Returns true when the target data should be modified by expand.
  */
-static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache, const SculptVertRef v)
+static bool sculpt_expand_state_get(SculptSession *ss,
+                                    ExpandCache *expand_cache,
+                                    const SculptVertRef v)
 {
   if (!SCULPT_vertex_visible_get(ss, v)) {
     return false;
@@ -283,11 +287,14 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
  * Main function to get the state of a face for the current state and settings of a #ExpandCache.
  * Returns true when the target data should be modified by expand.
  */
-static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const SculptFaceRef f)
+static bool sculpt_expand_face_state_get(SculptSession *ss,
+                                         ExpandCache *expand_cache,
+                                         const SculptFaceRef f)
 {
   const int f_i = BKE_pbvh_face_index_to_table(ss->pbvh, f);
+  const int fset = SCULPT_face_set_get(ss, f);
 
-  if (ss->face_sets[f_i] <= 0) {
+  if (fset <= 0) {
     return false;
   }
 
@@ -315,7 +322,7 @@ static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_
   }
 
   if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_ACTIVE_FACE_SET) {
-    if (ss->face_sets[f_i] == expand_cache->initial_active_face_set) {
+    if (fset == expand_cache->initial_active_face_set) {
       enabled = false;
     }
   }
@@ -377,7 +384,8 @@ static BLI_bitmap *sculpt_expand_bitmap_from_enabled(SculptSession *ss, ExpandCa
   const int totvert = SCULPT_vertex_count_get(ss);
   BLI_bitmap *enabled_vertices = BLI_BITMAP_NEW(totvert, "enabled vertices");
   for (int i = 0; i < totvert; i++) {
-    const bool enabled = sculpt_expand_state_get(ss, expand_cache, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
+    const bool enabled = sculpt_expand_state_get(
+        ss, expand_cache, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
     BLI_BITMAP_SET(enabled_vertices, i, enabled);
   }
   return enabled_vertices;
@@ -639,7 +647,8 @@ static float *sculpt_expand_boundary_topology_falloff_create(Object *ob, const S
 
     for (int i = 0; i < boundary->num_vertices; i++) {
       BLI_gsqueue_push(queue, &boundary->vertices[i]);
-      BLI_BITMAP_ENABLE(visited_vertices, BKE_pbvh_vertex_index_to_table(ss->pbvh, boundary->vertices[i]));
+      BLI_BITMAP_ENABLE(visited_vertices,
+                        BKE_pbvh_vertex_index_to_table(ss->pbvh, boundary->vertices[i]));
     }
     SCULPT_boundary_data_free(boundary);
   }
@@ -686,10 +695,15 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
   float *dists = MEM_calloc_arrayN(sizeof(float), totvert, "spherical dist");
 
   /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
-   * Multires. It also does not make sense to implement it for dyntopo as the result will be the
-   * same as Topology falloff. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+   * Multires. Also supports non-tri PBVH_BMESH, though untested until we implement that properly*/
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES ||
+      (ss->bm && ss->bm->totloop != ss->bm->totvert * 3)) {
     return dists;
+  }
+
+  if (ss->bm) {
+    BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
+    BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
   }
 
   /* Search and mask as visited the initial vertices using the enabled symmetry passes. */
@@ -720,18 +734,45 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
 
     int v_next_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_next);
 
-    for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
-      MPoly *p = &ss->mpoly[ss->pmap[v_next_i].indices[j]];
-      for (int l = 0; l < p->totloop; l++) {
-        const int neighbor_v = mesh->mloop[p->loopstart + l].v;
+    if (ss->bm) {
+      BMIter iter;
+      BMFace *f;
+      BMVert *v = (BMVert*)v_next.i;
 
-        if (BLI_BITMAP_TEST(visited_vertices, neighbor_v)) {
-          continue;
+      BM_ITER_ELEM(f, &iter, v, BM_FACES_OF_VERT) {
+        BMLoop *l = f->l_first;
+
+        do {
+          BMVert *neighbor_v = l->next->v;
+          const int neighbor_v_i = BM_elem_index_get(neighbor_v);
+
+          if (BLI_BITMAP_TEST(visited_vertices, neighbor_v_i)) {
+            l = l->next;
+            continue;
+          }
+
+          dists[neighbor_v_i] = dists[v_next_i] + 1.0f;
+          BLI_BITMAP_ENABLE(visited_vertices, neighbor_v_i);
+          BLI_gsqueue_push(queue, &neighbor_v);
+
+          l = l->next;
+        } while (l != f->l_first);
+      }
+    }
+    else {
+      for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
+        MPoly *p = &ss->mpoly[ss->pmap[v_next_i].indices[j]];
+        for (int l = 0; l < p->totloop; l++) {
+          const int neighbor_v = mesh->mloop[p->loopstart + l].v;
+
+          if (BLI_BITMAP_TEST(visited_vertices, neighbor_v)) {
+            continue;
+          }
+
+          dists[neighbor_v] = dists[v_next_i] + 1.0f;
+          BLI_BITMAP_ENABLE(visited_vertices, neighbor_v);
+          BLI_gsqueue_push(queue, &neighbor_v);
         }
-
-        dists[neighbor_v] = dists[v_next_i] + 1.0f;
-        BLI_BITMAP_ENABLE(visited_vertices, neighbor_v);
-        BLI_gsqueue_push(queue, &neighbor_v);
       }
     }
   }
@@ -834,6 +875,23 @@ static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expan
   }
 }
 
+static void sculpt_expand_vertex_to_faces_falloff_bmesh(BMesh *bm, ExpandCache *expand_cache)
+{
+  BMIter iter;
+  BMFace *f;
+  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+    BMLoop *l = f->l_first;
+
+    float accum = 0.0f;
+
+    do {
+      accum += expand_cache->vert_falloff[BM_elem_index_get(l->v)];
+      l = l->next;
+    } while (l != f->l_first);
+
+    expand_cache->face_falloff[BM_elem_index_get(f)] = accum / f->len;
+  }
+}
 /**
  * Main function to update the faces falloff from a already calculated vertex falloff.
  */
@@ -848,14 +906,16 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
         mesh->totpoly, sizeof(float), "face falloff factors");
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    sculpt_expand_vertex_to_faces_falloff(mesh, expand_cache);
-  }
-  else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    sculpt_expand_grids_to_faces_falloff(ss, mesh, expand_cache);
-  }
-  else {
-    BLI_assert(false);
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      sculpt_expand_vertex_to_faces_falloff(mesh, expand_cache);
+      break;
+    case PBVH_GRIDS:
+      sculpt_expand_grids_to_faces_falloff(ss, mesh, expand_cache);
+      break;
+    case PBVH_BMESH:
+      sculpt_expand_vertex_to_faces_falloff_bmesh(ss->bm, expand_cache);
+      break;
   }
 }
 
@@ -871,7 +931,7 @@ static void sculpt_expand_geodesics_from_state_boundary(Object *ob,
                                                         BLI_bitmap *enabled_vertices)
 {
   SculptSession *ss = ob->sculpt;
-  BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_FACES);
+  BLI_assert(ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH));
 
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(ss, enabled_vertices, false);
@@ -914,7 +974,8 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
     if (!BLI_BITMAP_TEST(boundary_vertices, i)) {
       continue;
     }
-    SCULPT_floodfill_add_and_skip_initial(&flood, i);
+
+    SCULPT_floodfill_add_and_skip_initial(ss, &flood, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
   }
   MEM_freeN(boundary_vertices);
 
@@ -990,7 +1051,7 @@ static void sculpt_expand_initialize_from_face_set_boundary(Object *ob,
     BLI_BITMAP_ENABLE(enabled_vertices, i);
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+  if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH)) {
     sculpt_expand_geodesics_from_state_boundary(ob, expand_cache, enabled_vertices);
   }
   else {
@@ -1047,7 +1108,7 @@ static void sculpt_expand_falloff_factors_from_vertex_and_symm_create(
   expand_cache->falloff_type = falloff_type;
 
   SculptSession *ss = ob->sculpt;
-  const bool has_topology_info = BKE_pbvh_type(ss->pbvh) == PBVH_FACES;
+  const bool has_topology_info = ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH);
 
   switch (falloff_type) {
     case SCULPT_EXPAND_FALLOFF_GEODESIC:
@@ -1179,7 +1240,9 @@ static void sculpt_expand_restore_face_set_data(SculptSession *ss, ExpandCache *
   }
   MEM_freeN(nodes);
   for (int i = 0; i < ss->totfaces; i++) {
-    ss->face_sets[i] = expand_cache->original_face_sets[i];
+    SculptFaceRef f = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+
+    SCULPT_face_set_set(ss, f, expand_cache->original_face_sets[i]);
   }
 }
 
@@ -1315,20 +1378,21 @@ static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
  */
 static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expand_cache)
 {
-  const int totface = ss->totpoly;
+  const int totface = ss->totfaces;
 
   for (int f_i = 0; f_i < totface; f_i++) {
     SculptFaceRef f = BKE_pbvh_table_index_to_face(ss->pbvh, f_i);
+    int fset = SCULPT_face_set_get(ss, f);
 
     const bool enabled = sculpt_expand_face_state_get(ss, expand_cache, f);
     if (!enabled) {
       continue;
     }
     if (expand_cache->preserve) {
-      ss->face_sets[f_i] += expand_cache->next_face_set;
+      SCULPT_face_set_set(ss, f, fset + expand_cache->next_face_set);
     }
     else {
-      ss->face_sets[f_i] = expand_cache->next_face_set;
+      SCULPT_face_set_set(ss, f, expand_cache->next_face_set);
     }
   }
 
@@ -1422,9 +1486,13 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   /* Face Sets are always stored as they are needed for snapping. */
   expand_cache->initial_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "initial face set");
   expand_cache->original_face_sets = MEM_malloc_arrayN(totface, sizeof(int), "original face set");
+
   for (int i = 0; i < totface; i++) {
-    expand_cache->initial_face_sets[i] = ss->face_sets[i];
-    expand_cache->original_face_sets[i] = ss->face_sets[i];
+    const SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+    const int fset = SCULPT_face_set_get(ss, fref);
+
+    expand_cache->initial_face_sets[i] = fset;
+    expand_cache->original_face_sets[i] = fset;
   }
 
   if (expand_cache->target == SCULPT_EXPAND_TARGET_MASK) {
@@ -1454,7 +1522,7 @@ static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expa
     const int cd_faceset = ss->cd_faceset_offset;
 
     for (int i = 0; i < totfaces; i++) {
-      BMFace *f = (BMFace*)BKE_pbvh_table_index_to_face(ss->pbvh, i).i;
+      BMFace *f = (BMFace *)BKE_pbvh_table_index_to_face(ss->pbvh, i).i;
 
       BM_ELEM_CD_SET_INT(f, cd_faceset, expand_cache->initial_face_sets[i]);
     }
@@ -1557,7 +1625,7 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
   /* For boundary topology, position the pivot using only the boundary of the enabled vertices,
    * without taking mesh boundary into account. This allows to create deformations like bending the
    * mesh from the boundary of the mask that was just created. */
-  const float use_mesh_boundary = expand_cache->falloff_type !=
+  const bool use_mesh_boundary = expand_cache->falloff_type !=
                                   SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
 
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(
@@ -1746,16 +1814,14 @@ static void sculpt_expand_ensure_sculptsession_data(Object *ob)
 static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *expand_cache)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH:
     case PBVH_FACES:
-      return expand_cache->original_face_sets[BKE_pbvh_vertex_index_to_table(ss->pbvh, ss->active_face_index)];
+      return expand_cache
+          ->original_face_sets[BKE_pbvh_vertex_index_to_table(ss->pbvh, ss->active_face_index)];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
       return expand_cache->original_face_sets[face_index];
-    }
-    case PBVH_BMESH: {
-      /* Dyntopo does not support Face Set functionality. */
-      BLI_assert(false);
     }
   }
   return SCULPT_FACE_SET_NONE;
@@ -1960,7 +2026,6 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   return OPERATOR_RUNNING_MODAL;
 }
 
-
 /**
  * Deletes the `delete_id` Face Set ID from the mesh Face Sets
  * and stores the result in `r_face_set`.
@@ -1968,14 +2033,14 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
  * using the content from their neighbors.
  */
 static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
-                                             SculptSession *ss,
-                                             ExpandCache *expand_cache,
-                                             const int delete_id)
+                                                   SculptSession *ss,
+                                                   ExpandCache *expand_cache,
+                                                   const int delete_id)
 {
   BMIter iter;
   BMFace *f;
   int i = 0;
-  const int totface = ss->bm->totface;
+  const int totface = ss->totpoly;
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
@@ -2012,13 +2077,13 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
       BLI_LINKSTACK_PUSH(queue, POINTER_FROM_INT(fref.i));
     }
   }
-  
+
   while (BLI_LINKSTACK_SIZE(queue)) {
     while (BLI_LINKSTACK_SIZE(queue)) {
       const SculptFaceRef f = {(intptr_t)(BLI_LINKSTACK_POP(queue))};
-      BMFace *bf = (BMFace*)f.i;
+      BMFace *bf = (BMFace *)f.i;
       const int f_index = BM_elem_index_get(bf);
-      
+
       int other_id = delete_id;
       BMLoop *l = bf->l_first;
       do {
@@ -2032,6 +2097,7 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
 
           l2 = l2->radial_next;
         } while (l2 != l);
+
         l = l->next;
       } while (l != bf->l_first);
 
@@ -2039,7 +2105,7 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
         r_face_sets[f_index] = other_id;
       }
       else {
-        BLI_LINKSTACK_PUSH(queue_next,  bf);
+        BLI_LINKSTACK_PUSH(queue_next, bf);
       }
     }
 
@@ -2067,14 +2133,15 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     return;
   }
 
-  const int totface = ss->totvert;
+  const int totface = ss->totfaces;
   MeshElemMap *pmap = ss->pmap;
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
   bool all_same_id = true;
   for (int i = 0; i < totface; i++) {
-    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, BKE_pbvh_table_index_to_face(ss->pbvh, i))) {
+    if (!sculpt_expand_is_face_in_active_component(
+            ss, expand_cache, BKE_pbvh_table_index_to_face(ss->pbvh, i))) {
       continue;
     }
     if (r_face_sets[i] != delete_id) {
@@ -2199,6 +2266,9 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
+
   /* Create and configure the Expand Cache. */
   ss->expand_cache = MEM_callocN(sizeof(ExpandCache), "expand cache");
   sculpt_expand_cache_initial_config_set(C, op, ss->expand_cache);
@@ -2221,15 +2291,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
     sculpt_expand_cache_free(ss);
     return OPERATOR_CANCELLED;
   }
-
-#if 0
-  /* Face Set operations are not supported in dyntopo. */
-  if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS &&
-      BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    sculpt_expand_cache_free(ss);
-    return OPERATOR_CANCELLED;
-  }
-#endif
 
   sculpt_expand_ensure_sculptsession_data(ob);
 

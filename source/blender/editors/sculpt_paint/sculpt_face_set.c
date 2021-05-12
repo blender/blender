@@ -447,7 +447,9 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
   const int mode = RNA_enum_get(op->ptr, "mode");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
+
   SCULPT_face_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ss);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
   float threshold = 0.5f;
@@ -710,16 +712,18 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   Mesh *mesh = ob->data;
   BMesh *bm;
 
-  bm = sculpt_faceset_bm_begin(ss, mesh);
-
-  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
-  const int totfaces = mesh->totpoly;
-
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_mesh_elem_table_ensure(bm, BM_FACE);
+  bm = sculpt_faceset_bm_begin(ss, mesh);
+
+  BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
+  const int totfaces = ss->totfaces; //mesh->totpoly;
+
+  if (!ss->bm) {
+    BM_mesh_elem_index_ensure(bm, BM_FACE);
+    BM_mesh_elem_table_ensure(bm, BM_FACE);
+  }
 
   int next_face_set = 1;
 
@@ -782,38 +786,30 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
 {
   Mesh *mesh = ob->data;
   SculptSession *ss = ob->sculpt;
-  BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = true,
-                      }));
-
-  BM_mesh_bm_from_me(NULL,
-                     bm,
-                     mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
+  BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
+  
   BMIter iter;
   BMFace *f;
 
   const int cd_fmaps_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    SculptFaceRef fref = {(intptr_t) f};
+
     if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
-      ss->face_sets[BM_elem_index_get(f)] = (int)(f->mat_nr + 1);
+      SCULPT_face_set_set(ss, fref, (int)(f->mat_nr + 1));
     }
     else if (mode == SCULPT_FACE_SETS_FROM_FACE_MAPS) {
       if (cd_fmaps_offset != -1) {
-        ss->face_sets[BM_elem_index_get(f)] = BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2;
+        SCULPT_face_set_set(ss, fref, BM_ELEM_CD_GET_INT(f, cd_fmaps_offset) + 2);
       }
       else {
-        ss->face_sets[BM_elem_index_get(f)] = 1;
+        SCULPT_face_set_set(ss, fref, 1);
       }
     }
   }
-  BM_mesh_free(bm);
+
+  sculpt_faceset_bm_end(ss, bm);
 }
 
 static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
@@ -973,11 +969,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
-
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   const int tot_vert = SCULPT_vertex_count_get(ss);
@@ -1013,9 +1004,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
           break;
         }
       }
-    }
-
-    if (ss->bm) {
+    } else if (ss->bm) {
       BMIter iter;
       BMFace *f;
 
@@ -1138,22 +1127,21 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
-
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   int totnode;
   Mesh *mesh = ob->data;
 
+  SCULPT_face_random_access_ensure(ss);
+
   mesh->face_sets_color_seed += 1;
-  if (ss->face_sets) {
+  if (ss->face_sets || (ss->bm && ss->cd_faceset_offset >= 0)) {
     const int random_index = clamp_i(ss->totfaces * BLI_hash_int_01(mesh->face_sets_color_seed),
                                      0,
                                      max_ii(0, ss->totfaces - 1));
-    mesh->face_sets_color_default = ss->face_sets[random_index];
+
+    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, random_index);
+    mesh->face_sets_color_default = SCULPT_face_set_get(ss, fref);
   }
   BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
 
@@ -1396,20 +1384,28 @@ static void sculpt_face_set_shrink(Object *ob,
   }
 }
 
-static bool check_single_face_set(SculptSession *ss, int *face_sets, const bool check_visible_only)
+static bool check_single_face_set(SculptSession *ss, const bool check_visible_only)
 {
+  if (!ss->totfaces) {
+    return true;
+  }
 
   int first_face_set = SCULPT_FACE_SET_NONE;
+
   if (check_visible_only) {
     for (int f = 0; f < ss->totfaces; f++) {
-      if (face_sets[f] > 0) {
-        first_face_set = face_sets[f];
+      SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, f);
+      int fset = SCULPT_face_set_get(ss, fref);
+
+      if (fset > 0) {
+        first_face_set = fset;
         break;
       }
     }
   }
   else {
-    first_face_set = abs(face_sets[0]);
+    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, 0);
+    first_face_set = abs(SCULPT_face_set_get(ss, fref));
   }
 
   if (first_face_set == SCULPT_FACE_SET_NONE) {
@@ -1417,8 +1413,12 @@ static bool check_single_face_set(SculptSession *ss, int *face_sets, const bool 
   }
 
   for (int f = 0; f < ss->totfaces; f++) {
-    const int face_set_id = check_visible_only ? face_sets[f] : abs(face_sets[f]);
-    if (face_set_id != first_face_set) {
+    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, f);
+
+    int fset = SCULPT_face_set_get(ss, fref);
+    fset = check_visible_only ? abs(fset) : fset;
+
+    if (fset != first_face_set) {
       return false;
     }
   }
@@ -1563,6 +1563,9 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
                                                     const eSculptFaceSetEditMode mode,
                                                     const bool modify_hidden)
 {
+  SCULPT_vertex_random_access_ensure(ss);
+  SCULPT_face_random_access_ensure(ss);
+
   if (mode == SCULPT_FACE_SET_EDIT_DELETE_GEOMETRY) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       /* Modification of base mesh geometry requires special remapping of multires displacement,
@@ -1571,7 +1574,7 @@ static bool sculpt_face_set_edit_is_operation_valid(SculptSession *ss,
        * data remapping as what happens in the mesh edit mode. */
       return false;
     }
-    if (check_single_face_set(ss, ss->face_sets, !modify_hidden)) {
+    if (check_single_face_set(ss, !modify_hidden)) {
       /* Cancel the operator if the mesh only contains one Face Set to avoid deleting the
        * entire object. */
       return false;

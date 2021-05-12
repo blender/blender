@@ -474,7 +474,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
   BM_log_set_cd_offsets(ss->bm_log, ss->cd_dyn_vert);
 }
 
-ATTR_NO_OPT static void sculpt_undo_bmesh_restore_begin(bContext *C,
+static void sculpt_undo_bmesh_restore_begin(bContext *C,
                                                         SculptUndoNode *unode,
                                                         Object *ob,
                                                         SculptSession *ss)
@@ -493,7 +493,7 @@ ATTR_NO_OPT static void sculpt_undo_bmesh_restore_begin(bContext *C,
   }
 }
 
-ATTR_NO_OPT static void sculpt_undo_bmesh_restore_end(bContext *C,
+static void sculpt_undo_bmesh_restore_end(bContext *C,
                                                       SculptUndoNode *unode,
                                                       Object *ob,
                                                       SculptSession *ss)
@@ -601,7 +601,7 @@ static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
  *
  * Returns true if this was a dynamic-topology undo step, otherwise
  * returns false to indicate the non-dyntopo code should run. */
-ATTR_NO_OPT static int sculpt_undo_bmesh_restore(bContext *C,
+static int sculpt_undo_bmesh_restore(bContext *C,
                                                  SculptUndoNode *unode,
                                                  Object *ob,
                                                  SculptSession *ss)
@@ -1307,7 +1307,7 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
   return unode;
 }
 
-ATTR_NO_OPT static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
+static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptSession *ss = ob->sculpt;

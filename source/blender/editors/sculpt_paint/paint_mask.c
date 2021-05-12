@@ -1366,7 +1366,7 @@ static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *s
   sculpt_gesture_trim_geometry_free(sgcontext);
 
   if (sgcontext->ss && sgcontext->ss->bm) {
-    SCULPT_dynamic_topology_triangulate(sgcontext->ss->bm);
+    SCULPT_dynamic_topology_triangulate(sgcontext->ss, sgcontext->ss->bm);
   }
 
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);

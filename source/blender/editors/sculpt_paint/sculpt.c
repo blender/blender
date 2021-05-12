@@ -112,6 +112,9 @@
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
   if (ss->bm) {
+    ss->totfaces = ss->totpoly = ss->bm->totface;
+    ss->totvert = ss->bm->totvert;
+
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
     BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
   }
@@ -129,10 +132,14 @@ void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 void SCULPT_face_random_access_ensure(SculptSession *ss)
 {
   if (ss->bm) {
+    ss->totfaces = ss->totpoly = ss->bm->totface;
+    ss->totvert = ss->bm->totvert;
+
     BM_mesh_elem_index_ensure(ss->bm, BM_FACE);
     BM_mesh_elem_table_ensure(ss->bm, BM_FACE);
   }
 }
+
 int SCULPT_vertex_count_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -986,7 +993,7 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index)
         face_set = face_set2;
       }
 
-      return !first;
+      return true;
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
@@ -1468,15 +1475,15 @@ void SCULPT_floodfill_init(SculptSession *ss, SculptFloodFill *flood)
   flood->visited_vertices = BLI_BITMAP_NEW(vertex_count, "visited vertices");
 }
 
-void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef index)
+void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef vertex)
 {
-  BLI_gsqueue_push(flood->queue, &index);
+  BLI_gsqueue_push(flood->queue, &vertex);
 }
 
-void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index)
+void SCULPT_floodfill_add_and_skip_initial(SculptSession *ss, SculptFloodFill *flood, SculptVertRef vertex)
 {
-  BLI_gsqueue_push(flood->queue, &index);
-  BLI_BITMAP_ENABLE(flood->visited_vertices, index);
+  BLI_gsqueue_push(flood->queue, &vertex);
+  BLI_BITMAP_ENABLE(flood->visited_vertices, BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex));
 }
 
 void SCULPT_floodfill_add_initial_with_symmetry(Sculpt *sd,
@@ -6467,6 +6474,9 @@ static void sculpt_topology_update(Sculpt *sd,
   /* Update average stroke position. */
   copy_v3_v3(location, ss->cache->true_location);
   mul_m4_v3(ob->obmat, location);
+
+  ss->totfaces = ss->totpoly = ss->bm->totface;
+  ss->totvert = ss->bm->totvert;
 }
 
 static void do_brush_action_task_cb(void *__restrict userdata,
@@ -9093,7 +9103,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
                    sd->symmetrize_direction,
                    dist,
                    true);
-      SCULPT_dynamic_topology_triangulate(ss->bm);
+      SCULPT_dynamic_topology_triangulate(ss, ss->bm);
 
       /* Bisect operator flags edges (keep tags clean for edge queue). */
       BM_mesh_elem_hflag_disable_all(ss->bm, BM_EDGE, BM_ELEM_TAG, false);

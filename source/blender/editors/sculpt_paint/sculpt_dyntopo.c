@@ -82,9 +82,12 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_dynamic_topology_triangulate(BMesh *bm)
+void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
 {
   if (bm->totloop == bm->totface * 3) {
+    ss->totfaces = ss->totpoly = ss->bm->totface;
+    ss->totvert = ss->bm->totvert;
+
     return;
   }
 
@@ -151,6 +154,9 @@ void SCULPT_dynamic_topology_triangulate(BMesh *bm)
   }
 
   BLI_memarena_free(pf_arena);
+
+  ss->totfaces = ss->totpoly = ss->bm->totface;
+  ss->totvert = ss->bm->totvert;
 
   //  BM_mesh_triangulate(
   //      bm, MOD_TRIANGULATE_QUAD_BEAUTY, MOD_TRIANGULATE_NGON_EARCLIP, 4, false, NULL, NULL,
@@ -445,7 +451,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                          .use_shapekey = true,
                          .active_shapekey = ob->shapenr,
                      }));
-  SCULPT_dynamic_topology_triangulate(ss->bm);
+  SCULPT_dynamic_topology_triangulate(ss, ss->bm);
+
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 
   SCULPT_dyntopo_node_layers_add(ss);

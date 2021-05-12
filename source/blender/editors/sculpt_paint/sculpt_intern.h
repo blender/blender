@@ -330,7 +330,9 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
                                                 float radius);
 
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef index);
-void SCULPT_floodfill_add_and_skip_initial(SculptFloodFill *flood, int index);
+void SCULPT_floodfill_add_and_skip_initial(struct SculptSession *ss,
+                                           SculptFloodFill *flood,
+                                           SculptVertRef vertex);
 void SCULPT_floodfill_execute(struct SculptSession *ss,
                               SculptFloodFill *flood,
                               bool (*func)(SculptSession *ss,
@@ -367,7 +369,7 @@ void sculpt_dynamic_topology_disable_with_undo(struct Main *bmain,
 
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
 
-void SCULPT_dynamic_topology_triangulate(struct BMesh *bm);
+void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
 void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss);
 void SCULPT_dyntopo_save_origverts(struct SculptSession *ss);
 
@@ -405,7 +407,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
 /* Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
 in the initial vertex set. The caller is responsible for freeing the array.
-Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
+Geodesic distances will only work when used with PBVH_FACES or PBVH_BMESH, for other types of PBVH it will
 fallback to euclidean distances to one of the initial vertices in the set. */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         struct GSet *initial_vertices,
