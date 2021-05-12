@@ -206,8 +206,12 @@ class BezierSpline final : public Spline {
   blender::Vector<HandleType> handle_types_left_;
   blender::Vector<HandleType> handle_types_right_;
 
-  blender::Vector<blender::float3> handle_positions_left_;
-  blender::Vector<blender::float3> handle_positions_right_;
+  /* These are mutable to allow lazy recalculation of #Auto and #Vector handle positions. */
+  mutable blender::Vector<blender::float3> handle_positions_left_;
+  mutable blender::Vector<blender::float3> handle_positions_right_;
+
+  mutable std::mutex auto_handle_mutex_;
+  mutable bool auto_handles_dirty_ = true;
 
   /** Start index in evaluated points array for every control point. */
   mutable blender::Vector<int> offset_cache_;
@@ -296,6 +300,7 @@ class BezierSpline final : public Spline {
       const blender::fn::GVArray &source_data) const override;
 
  private:
+  void ensure_auto_handles() const;
   void correct_end_tangents() const final;
   bool segment_is_vector(const int start_index) const;
   void evaluate_bezier_segment(const int index,
