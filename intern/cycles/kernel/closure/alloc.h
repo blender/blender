@@ -57,14 +57,22 @@ ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 
 ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 weight)
 {
-  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  const float sample_weight = fabsf(average(weight));
 
-  if (sc == NULL)
-    return NULL;
+  /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
+   * we will not allocate new closure. */
+  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+    ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+    if (sc == NULL) {
+      return NULL;
+    }
 
-  float sample_weight = fabsf(average(weight));
-  sc->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+    sc->sample_weight = sample_weight;
+
+    return sc;
+  }
+
+  return NULL;
 }
 
 #ifdef __OSL__
@@ -73,17 +81,25 @@ ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd,
                                                 float3 weight,
                                                 void *data)
 {
-  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  const float sample_weight = fabsf(average(weight));
 
-  if (!sc)
-    return NULL;
+  /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
+   * we will not allocate new closure. */
+  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+    ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+    if (!sc) {
+      return NULL;
+    }
 
-  memcpy((void *)sc, data, size);
+    memcpy((void *)sc, data, size);
 
-  float sample_weight = fabsf(average(weight));
-  sc->weight = weight;
-  sc->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+    sc->weight = weight;
+    sc->sample_weight = sample_weight;
+
+    return sc;
+  }
+
+  return NULL;
 }
 #endif
 
