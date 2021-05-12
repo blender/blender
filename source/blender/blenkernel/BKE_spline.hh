@@ -64,11 +64,6 @@ class Spline {
     Poly,
   };
 
- protected:
-  Type type_;
-  bool is_cyclic_ = false;
-
- public:
   enum NormalCalculationMode {
     ZUp,
     Minimum,
@@ -78,6 +73,9 @@ class Spline {
   NormalCalculationMode normal_mode;
 
  protected:
+  Type type_;
+  bool is_cyclic_ = false;
+
   /** Direction of the spline at each evaluated point. */
   mutable blender::Vector<blender::float3> evaluated_tangents_cache_;
   mutable std::mutex tangent_cache_mutex_;
@@ -99,7 +97,7 @@ class Spline {
   {
   }
   Spline(Spline &other)
-      : type_(other.type_), is_cyclic_(other.is_cyclic_), normal_mode(other.normal_mode)
+      : normal_mode(other.normal_mode), type_(other.type_), is_cyclic_(other.is_cyclic_)
   {
   }
 
@@ -430,12 +428,10 @@ class NURBSpline final : public Spline {
  * points does not change it.
  */
 class PolySpline final : public Spline {
- public:
   blender::Vector<blender::float3> positions_;
   blender::Vector<float> radii_;
   blender::Vector<float> tilts_;
 
- private:
  public:
   SplinePtr copy() const final;
   PolySpline() : Spline(Type::Poly)
