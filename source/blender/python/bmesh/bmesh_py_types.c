@@ -1146,7 +1146,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
       return NULL;
     }
 
-    me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true);
+    me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true, false);
     need_free = true;
   }
   else {

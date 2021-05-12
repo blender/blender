@@ -1199,7 +1199,9 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
   return mesh_result;
 }
 
-static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph, Object *object)
+static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
+                                                   Object *object,
+                                                   const bool preserve_origindex)
 {
   if (DEG_is_original_id(&object->id)) {
     return mesh_new_from_mesh(object, (Mesh *)object->data);
@@ -1216,16 +1218,23 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph, Object 
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   CustomData_MeshMasks mask = CD_MASK_MESH;
+  if (preserve_origindex) {
+    mask.vmask |= CD_MASK_ORIGINDEX;
+    mask.emask |= CD_MASK_ORIGINDEX;
+    mask.lmask |= CD_MASK_ORIGINDEX;
+    mask.pmask |= CD_MASK_ORIGINDEX;
+  }
   Mesh *result = mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
   return result;
 }
 
 static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
                                        Object *object,
-                                       bool preserve_all_data_layers)
+                                       const bool preserve_all_data_layers,
+                                       const bool preserve_origindex)
 {
-  if (preserve_all_data_layers) {
-    return mesh_new_from_mesh_object_with_layers(depsgraph, object);
+  if (preserve_all_data_layers || preserve_origindex) {
+    return mesh_new_from_mesh_object_with_layers(depsgraph, object, preserve_origindex);
   }
   Mesh *mesh_input = object->data;
   /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
@@ -1236,7 +1245,10 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
   return mesh_new_from_mesh(object, mesh_input);
 }
 
-Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preserve_all_data_layers)
+Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
+                               Object *object,
+                               const bool preserve_all_data_layers,
+                               const bool preserve_origindex)
 {
   Mesh *new_mesh = NULL;
   switch (object->type) {
@@ -1249,7 +1261,8 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph, Object *object, bool preser
       new_mesh = mesh_new_from_mball_object(object);
       break;
     case OB_MESH:
-      new_mesh = mesh_new_from_mesh_object(depsgraph, object, preserve_all_data_layers);
+      new_mesh = mesh_new_from_mesh_object(
+          depsgraph, object, preserve_all_data_layers, preserve_origindex);
       break;
     default:
       /* Object does not have geometry data. */
@@ -1314,7 +1327,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
 {
   BLI_assert(ELEM(object->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_MESH));
 
-  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers);
+  Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, preserve_all_data_layers, false);
   if (mesh == NULL) {
     /* Unable to convert the object to a mesh, return an empty one. */
     Mesh *mesh_in_bmain = BKE_mesh_add(bmain, ((ID *)object->data)->name + 2);

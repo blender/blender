@@ -215,7 +215,8 @@ void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
  * ignored otherwise. */
 struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
                                       struct Object *object,
-                                      bool preserve_all_data_layers);
+                                      const bool preserve_all_data_layers,
+                                      const bool preserve_origindex);
 
 /* This is a version of BKE_mesh_new_from_object() which stores mesh in the given main database.
  * However, that function enforces object type to be a geometry one, and ensures a mesh is always
