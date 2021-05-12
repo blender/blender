@@ -1087,7 +1087,7 @@ PyDoc_STRVAR(
     "3.0.\n");
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-  static const char *kwlist[] = {"object", "depsgraph", "deform", "cage", "face_normals", NULL};
+  static const char *kwlist[] = {"object", "depsgraph", "cage", "face_normals", NULL};
   PyObject *py_object;
   PyObject *py_depsgraph;
   Object *ob, *ob_eval;
@@ -1095,7 +1095,6 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   struct Scene *scene_eval;
   Mesh *me_eval;
   BMesh *bm;
-  bool use_deform = true;
   bool use_cage = false;
   bool use_fnorm = true;
   const CustomData_MeshMasks data_masks = CD_MASK_BMESH;
@@ -1104,12 +1103,10 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "OO|O&O&O&:from_object",
+                                   "OO|O&O&:from_object",
                                    (char **)kwlist,
                                    &py_object,
                                    &py_depsgraph,
-                                   PyC_ParseBool,
-                                   &use_deform,
                                    PyC_ParseBool,
                                    &use_cage,
                                    PyC_ParseBool,
@@ -1123,13 +1120,6 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
     PyErr_SetString(PyExc_ValueError,
                     "from_object(...): currently only mesh objects are supported");
     return NULL;
-  }
-
-  if (use_deform == false) {
-    PyErr_WarnEx(PyExc_FutureWarning,
-                 "from_object(...): the deform parameter is deprecated, assumed to be True, and "
-                 "will be removed in version 3.0",
-                 1);
   }
 
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
