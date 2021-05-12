@@ -140,8 +140,8 @@ void node_math_update(bNodeTree *UNUSED(ntree), bNode *node)
 
   switch (node->custom1) {
     case NODE_MATH_WRAP:
-      node_sock_label(sock2, "Min");
-      node_sock_label(sock3, "Max");
+      node_sock_label(sock2, "Max");
+      node_sock_label(sock3, "Min");
       break;
     case NODE_MATH_MULTIPLY_ADD:
       node_sock_label(sock2, "Multiplier");
