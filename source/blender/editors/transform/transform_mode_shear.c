@@ -232,5 +232,7 @@ void initShear(TransInfo *t)
   t->num.unit_type[0] = B_UNIT_NONE; /* Don't think we have any unit here? */
 
   t->flag |= T_NO_CONSTRAINT;
+
+  transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
 /** \} */
