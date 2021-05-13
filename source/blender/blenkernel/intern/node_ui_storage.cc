@@ -152,6 +152,7 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
   node_error_message_log(ntree, node, message, type);
 
   NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
+  std::lock_guard lock{node_ui_storage.mutex};
   node_ui_storage.warnings.append({type, std::move(message)});
 }
 
@@ -163,6 +164,7 @@ void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
                                      const CustomDataType data_type)
 {
   NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
+  std::lock_guard lock{node_ui_storage.mutex};
   node_ui_storage.attribute_hints.add_as(
       AvailableAttributeInfo{attribute_name, domain, data_type});
 }
