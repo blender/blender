@@ -370,7 +370,7 @@ def module_names(path, recursive=False):
 
 def basename(path):
     """
-    Equivalent to os.path.basename, but skips a "//" prefix.
+    Equivalent to ``os.path.basename``, but skips a "//" prefix.
 
     Use for Windows compatibility.
     """
