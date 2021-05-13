@@ -133,7 +133,10 @@ void MaterialNode::add_link(bNode *from_node, int from_index, bNode *to_node, in
   nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
 }
 
-void MaterialNode::add_link(bNode *from_node, const char* from_label, bNode *to_node, const char* to_label)
+void MaterialNode::add_link(bNode *from_node,
+                            const char *from_label,
+                            bNode *to_node,
+                            const char *to_label)
 {
   bNodeSocket *from_socket = nodeFindSocket(from_node, SOCK_OUT, from_label);
   bNodeSocket *to_socket = nodeFindSocket(to_node, SOCK_IN, to_label);
