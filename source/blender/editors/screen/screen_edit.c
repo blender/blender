@@ -104,8 +104,12 @@ static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
   MEM_freeN(area);
 }
 
-ScrArea *area_split(
-    const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge)
+ScrArea *area_split(const wmWindow *win,
+                    bScreen *screen,
+                    ScrArea *area,
+                    char dir,
+                    const float fac,
+                    const bool merge)
 {
   ScrArea *newa = NULL;
 
@@ -484,7 +488,7 @@ static ScrArea *screen_area_trim(
   float fac = abs(size) / (float)(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
                                              ((*area)->v3->vec.y - (*area)->v1->vec.y));
   fac = (reverse == vertical) ? 1.0f - fac : fac;
-  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, 1);
+  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, true);
 
   /* area_split always returns smallest of the two areas, so might have to swap. */
   if (((fac > 0.5f) == vertical) != reverse) {

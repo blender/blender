@@ -2092,7 +2092,7 @@ static bool area_split_apply(bContext *C, wmOperator *op)
   float fac = RNA_float_get(op->ptr, "factor");
   int dir = RNA_enum_get(op->ptr, "direction");
 
-  sd->narea = area_split(win, screen, sd->sarea, dir, fac, 0); /* 0 = no merge */
+  sd->narea = area_split(win, screen, sd->sarea, dir, fac, false); /* false = no merge */
 
   if (sd->narea == NULL) {
     return false;
