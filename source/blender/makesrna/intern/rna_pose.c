@@ -1369,13 +1369,15 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "custom_shape_translation", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "custom_translation");
   RNA_def_property_flag(prop, PROP_PROPORTIONAL);
-  RNA_def_property_ui_text(prop, "Custom Shape Translation", "Adjust the location of the custom shape");
+  RNA_def_property_ui_text(
+      prop, "Custom Shape Translation", "Adjust the location of the custom shape");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "custom_shape_rotation_euler", PROP_FLOAT, PROP_EULER);
   RNA_def_property_float_sdna(prop, NULL, "custom_rotation_euler");
-  RNA_def_property_ui_text(prop, "Custom Shape Rotation", "Adjust the rotation of the custom shape");
+  RNA_def_property_ui_text(
+      prop, "Custom Shape Rotation", "Adjust the rotation of the custom shape");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   prop = RNA_def_property(srna, "use_custom_shape_bone_size", PROP_BOOLEAN, PROP_NONE);

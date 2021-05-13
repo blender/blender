@@ -1199,7 +1199,7 @@ typedef struct NodeAttributeVectorMath {
 typedef struct NodeAttributeVectorRotate {
   /* GeometryNodeAttributeVectorRotateMode */
   uint8_t mode;
-  
+
   /* GeometryNodeAttributeInputMode */
   uint8_t input_type_vector;
   uint8_t input_type_center;
