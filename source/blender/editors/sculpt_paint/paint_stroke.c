@@ -1462,7 +1462,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (paint_supports_smooth_stroke(br, mode)) {
       stroke->stroke_cursor = WM_paint_cursor_activate(
-          SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_poll, paint_draw_smooth_cursor, stroke);
+          SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_smooth_cursor, stroke);
     }
 
     stroke->stroke_init = true;
@@ -1489,7 +1489,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       if (br->flag & BRUSH_LINE) {
         stroke->stroke_cursor = WM_paint_cursor_activate(
-            SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_poll, paint_draw_line_cursor, stroke);
+            SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_line_cursor, stroke);
       }
 
       first_dab = true;
@@ -1659,7 +1659,7 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
   stroke->mode_data = mode_data;
 }
 
-bool paint_poll(bContext *C)
+bool PAINT_brush_tool_poll(bContext *C)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   Object *ob = CTX_data_active_object(C);

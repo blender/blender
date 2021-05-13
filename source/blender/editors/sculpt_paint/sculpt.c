@@ -6602,7 +6602,7 @@ bool SCULPT_poll_view3d(bContext *C)
 
 bool SCULPT_poll(bContext *C)
 {
-  return SCULPT_mode_poll(C) && paint_poll(C);
+  return SCULPT_mode_poll(C) && PAINT_brush_tool_poll(C);
 }
 
 static const char *sculpt_tool_name(Sculpt *sd)
