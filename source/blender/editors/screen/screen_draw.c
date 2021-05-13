@@ -237,23 +237,25 @@ void ED_screen_draw_edges(wmWindow *win)
  * \param sa1: Area from which the resultant originates.
  * \param sa2: Target area that will be replaced.
  */
-void ED_screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
+void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
 {
-  int dir = area_getorientation(sa1, sa2);
-  if (dir == -1) {
+  const eScreenDir dir = area_getorientation(sa1, sa2);
+  if (dir == SCREEN_DIR_NONE) {
     return;
   }
 
   /* Rect of the combined areas.*/
-  bool vertical = ELEM(dir, 1, 3);
-  rctf combined = {.xmin = vertical ? MAX2(sa1->totrct.xmin, sa2->totrct.xmin) :
-                                      MIN2(sa1->totrct.xmin, sa2->totrct.xmin),
-                   .xmax = vertical ? MIN2(sa1->totrct.xmax, sa2->totrct.xmax) :
-                                      MAX2(sa1->totrct.xmax, sa2->totrct.xmax),
-                   .ymin = vertical ? MIN2(sa1->totrct.ymin, sa2->totrct.ymin) :
-                                      MAX2(sa1->totrct.ymin, sa2->totrct.ymin),
-                   .ymax = vertical ? MAX2(sa1->totrct.ymax, sa2->totrct.ymax) :
-                                      MIN2(sa1->totrct.ymax, sa2->totrct.ymax)};
+  const bool vertical = SCREEN_DIR_IS_VERTICAL(dir);
+  const rctf combined = {
+      .xmin = vertical ? MAX2(sa1->totrct.xmin, sa2->totrct.xmin) :
+                         MIN2(sa1->totrct.xmin, sa2->totrct.xmin),
+      .xmax = vertical ? MIN2(sa1->totrct.xmax, sa2->totrct.xmax) :
+                         MAX2(sa1->totrct.xmax, sa2->totrct.xmax),
+      .ymin = vertical ? MIN2(sa1->totrct.ymin, sa2->totrct.ymin) :
+                         MAX2(sa1->totrct.ymin, sa2->totrct.ymin),
+      .ymax = vertical ? MAX2(sa1->totrct.ymax, sa2->totrct.ymax) :
+                         MIN2(sa1->totrct.ymax, sa2->totrct.ymax),
+  };
 
   uint pos_id = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -320,7 +322,7 @@ void ED_screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
   UI_draw_roundbox_4fv(&combined, false, 7 * U.pixelsize, (float[4]){1.0f, 1.0f, 1.0f, 0.8f});
 }
 
-void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
+void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const float fac)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -332,7 +334,7 @@ void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
 
   immBegin(GPU_PRIM_LINES, 2);
 
-  if (dir == 'h') {
+  if (dir_axis == SCREEN_AXIS_H) {
     const float y = (1 - fac) * area->totrct.ymin + fac * area->totrct.ymax;
 
     immVertex2f(pos, area->totrct.xmin, y);
@@ -350,7 +352,7 @@ void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
     immEnd();
   }
   else {
-    BLI_assert(dir == 'v');
+    BLI_assert(dir_axis == SCREEN_AXIS_V);
     const float x = (1 - fac) * area->totrct.xmin + fac * area->totrct.xmax;
 
     immVertex2f(pos, x, area->totrct.ymin);
