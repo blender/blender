@@ -578,7 +578,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   {
   }
 
-  GVArrayPtr try_get_for_read(const GeometryComponent &component) const
+  GVArrayPtr try_get_for_read(const GeometryComponent &component) const override
   {
     const CurveEval *curve = get_curve_from_component_for_read(component);
     if (curve == nullptr) {
@@ -600,7 +600,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
         offsets.last(), std::move(spans), std::move(offsets));
   }
 
-  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const
+  GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const override
   {
     CurveEval *curve = get_curve_from_component_for_write(component);
     if (curve == nullptr) {
