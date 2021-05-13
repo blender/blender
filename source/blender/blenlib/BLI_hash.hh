@@ -85,9 +85,12 @@
 namespace blender {
 
 /**
- * If there is no other specialization of #DefaultHash for a given type, try to call `hash()` on
- * the value. If there is no such method, this will result in a compiler error. Usually that means
- * that you have to implement a hash function using one of three strategies listed above.
+ * If there is no other specialization of #DefaultHash for a given type, look for a hash function
+ * on the type itself. Implementing a `hash()` method on a type is often significantly easier than
+ * specializing #DefaultHash.
+ *
+ * To support heterogeneous lookup, a type can also implement a static `hash_as(const OtherType &)`
+ * function.
  *
  * In the case of an enum type, the default hash is just to cast the enum value to an integer.
  */
@@ -95,11 +98,24 @@ template<typename T> struct DefaultHash {
   uint64_t operator()(const T &value) const
   {
     if constexpr (std::is_enum_v<T>) {
+      /* For enums use the value as hash directly. */
       return (uint64_t)value;
     }
     else {
+      /* Try to call the `hash()` function on the value. */
+      /* If this results in a compiler error, no hash function for the type has been found. */
       return value.hash();
     }
+  }
+
+  template<typename U> uint64_t operator()(const U &value) const
+  {
+    /* Try calling the static `T::hash_as(value)` function with the given value. The returned hash
+     * should be "compatible" with `T::hash()`. Usually that means that if `value` is converted to
+     * `T` its hash does not change. */
+    /* If this results in a compiler error, no hash function for the heterogeneous lookup has been
+     * found. */
+    return T::hash_as(value);
   }
 };
 
