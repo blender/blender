@@ -129,6 +129,21 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
   /**
+   * Construct multiple instances of a type in an array. The constructor of is called with the
+   * given arguments. The caller is responsible for calling the destructor (and not `delete`) on
+   * the constructed elements.
+   */
+  template<typename T, typename... Args>
+  MutableSpan<T> construct_array(int64_t size, Args &&... args)
+  {
+    MutableSpan<T> array = this->allocate_array<T>(size);
+    for (const int64_t i : IndexRange(size)) {
+      new (&array[i]) T(std::forward<Args>(args)...);
+    }
+    return array;
+  }
+
+  /**
    * Copy the given array into a memory buffer provided by this allocator.
    */
   template<typename T> MutableSpan<T> construct_array_copy(Span<T> src)
