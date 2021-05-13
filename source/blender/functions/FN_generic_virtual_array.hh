@@ -554,6 +554,16 @@ template<typename T> class GVMutableArray_For_VMutableArray : public GVMutableAr
     varray_->set(index, std::move(value_));
   }
 
+  void materialize_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_->materialize(mask, MutableSpan((T *)dst, mask.min_array_size()));
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask, void *dst) const override
+  {
+    varray_->materialize_to_uninitialized(mask, MutableSpan((T *)dst, mask.min_array_size()));
+  }
+
   const void *try_get_internal_varray_impl() const override
   {
     return (const VArray<T> *)varray_;

@@ -57,7 +57,8 @@ typedef struct MTex {
   short colormodel, pmapto, pmaptoneg;
   short normapspace, which_output;
   float r, g, b, k;
-  float def_var, rt;
+  float def_var;
+  char _pad1[4];
 
   /* common */
   float colfac, varfac;

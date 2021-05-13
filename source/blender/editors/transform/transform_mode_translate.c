@@ -470,5 +470,7 @@ void initTranslation(TransInfo *t)
     t->num.unit_type[1] = B_UNIT_NONE;
     t->num.unit_type[2] = B_UNIT_NONE;
   }
+
+  transform_mode_default_modal_orientation_set(t, V3D_ORIENT_GLOBAL);
 }
 /** \} */

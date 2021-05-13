@@ -1595,7 +1595,6 @@ static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(area))
 }
 
 const char *view3d_context_dir[] = {
-    "active_base",
     "active_object",
     NULL,
 };
@@ -1607,20 +1606,6 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, view3d_context_dir);
-  }
-  else if (CTX_data_equals(member, "active_base")) {
-    Scene *scene = CTX_data_scene(C);
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    if (view_layer->basact) {
-      Object *ob = view_layer->basact->object;
-      /* if hidden but in edit mode, we still display, can happen with animation */
-      if ((view_layer->basact->flag & BASE_VISIBLE_DEPSGRAPH) != 0 ||
-          (ob->mode != OB_MODE_OBJECT)) {
-        CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, view_layer->basact);
-      }
-    }
-
-    return 1;
   }
   else if (CTX_data_equals(member, "active_object")) {
     /* In most cases the active object is the `view_layer->basact->object`.

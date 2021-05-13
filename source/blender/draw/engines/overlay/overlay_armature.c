@@ -1031,7 +1031,7 @@ static void pchan_draw_data_init(bPoseChannel *pchan)
 static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *pchan)
 {
   float ebmat[4][4];
-  float length;
+  float bone_scale[3];
   float(*bone_mat)[4];
   float(*disp_mat)[4];
   float(*disp_tail_mat)[4];
@@ -1040,23 +1040,23 @@ static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *
    * and not be tight to the draw pass creation.
    * This would refresh armature without invalidating the draw cache */
   if (pchan) {
-    length = pchan->bone->length;
     bone_mat = pchan->pose_mat;
     disp_mat = pchan->disp_mat;
     disp_tail_mat = pchan->disp_tail_mat;
+    copy_v3_fl(bone_scale, pchan->bone->length);
   }
   else {
     eBone->length = len_v3v3(eBone->tail, eBone->head);
     ED_armature_ebone_to_mat4(eBone, ebmat);
 
-    length = eBone->length;
+    copy_v3_fl(bone_scale, eBone->length);
     bone_mat = ebmat;
     disp_mat = eBone->disp_mat;
     disp_tail_mat = eBone->disp_tail_mat;
   }
 
   copy_m4_m4(disp_mat, bone_mat);
-  rescale_m4(disp_mat, (float[3]){length, length, length});
+  rescale_m4(disp_mat, bone_scale);
   copy_m4_m4(disp_tail_mat, disp_mat);
   translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
@@ -1255,19 +1255,27 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 
 static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 {
-  float length;
+  float bone_scale[3];
   float(*bone_mat)[4];
   float(*disp_mat)[4];
   float(*disp_tail_mat)[4];
+  float rot_mat[3][3];
 
   /* See TODO above */
-  length = PCHAN_CUSTOM_DRAW_SIZE(pchan);
+  mul_v3_v3fl(bone_scale, pchan->custom_scale_xyz, PCHAN_CUSTOM_BONE_LENGTH(pchan));
   bone_mat = pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat;
   disp_mat = pchan->disp_mat;
   disp_tail_mat = pchan->disp_tail_mat;
 
+  eulO_to_mat3(rot_mat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
+
   copy_m4_m4(disp_mat, bone_mat);
-  rescale_m4(disp_mat, (float[3]){length, length, length});
+  translate_m4(disp_mat,
+               pchan->custom_translation[0],
+               pchan->custom_translation[1],
+               pchan->custom_translation[2]);
+  mul_m4_m4m3(disp_mat, disp_mat, rot_mat);
+  rescale_m4(disp_mat, bone_scale);
   copy_m4_m4(disp_tail_mat, disp_mat);
   translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }

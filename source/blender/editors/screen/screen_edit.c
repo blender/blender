@@ -104,8 +104,12 @@ static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
   MEM_freeN(area);
 }
 
-ScrArea *area_split(
-    const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge)
+ScrArea *area_split(const wmWindow *win,
+                    bScreen *screen,
+                    ScrArea *area,
+                    char dir,
+                    const float fac,
+                    const bool merge)
 {
   ScrArea *newa = NULL;
 
@@ -484,7 +488,7 @@ static ScrArea *screen_area_trim(
   float fac = abs(size) / (float)(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
                                              ((*area)->v3->vec.y - (*area)->v1->vec.y));
   fac = (reverse == vertical) ? 1.0f - fac : fac;
-  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, 1);
+  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, true);
 
   /* area_split always returns smallest of the two areas, so might have to swap. */
   if (((fac > 0.5f) == vertical) != reverse) {
@@ -534,7 +538,7 @@ int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
   return screen_area_join_ex(C, screen, sa1, sa2, false);
 }
 
-/* Close a screen area, allowing any neighbor to take its place. */
+/* Close a screen area, allowing most-aligned neighbor to take its place. */
 bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
 {
   if (area == NULL) {
@@ -542,32 +546,27 @@ bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
   }
 
   ScrArea *sa2 = NULL;
+  float best_alignment = 0.0f;
 
-  /* Find the most-aligned joinable area. Larger size breaks ties. */
-  int min_alignment = INT_MAX;
-  int max_size = 0;
-  LISTBASE_FOREACH (ScrArea *, ar, &screen->areabase) {
-    int dir = area_getorientation(area, ar);
-    if (dir != -1) {
-      int offset1;
-      int offset2;
-      area_getoffsets(area, ar, dir, &offset1, &offset2);
-      int area_alignment = abs(offset1) + abs(offset2);
-      if (area_alignment < min_alignment) {
-        min_alignment = area_alignment;
-        max_size = ar->winx * ar->winy;
-        sa2 = ar;
-      }
-      else if (area_alignment == min_alignment) {
-        int area_size = ar->winx * ar->winy;
-        if (area_size > max_size) {
-          max_size = area_size;
-          sa2 = ar;
-        }
+  LISTBASE_FOREACH (ScrArea *, neighbor, &screen->areabase) {
+    int dir = area_getorientation(area, neighbor);
+    /* Must at least partially share an edge and not be a global area. */
+    if (dir != -1 && !neighbor->global) {
+      /* Winx/Winy might not be updated yet, so get lengths from verts. */
+      int area_length = ELEM(dir, 1, 3) ? area->v3->vec.x - area->v1->vec.x :
+                                          area->v3->vec.y - area->v1->vec.y;
+      int ar_length = ELEM(dir, 1, 3) ? neighbor->v3->vec.x - neighbor->v1->vec.x :
+                                        neighbor->v3->vec.y - neighbor->v1->vec.y;
+      /* Calculate the ratio of the lengths of the shared edges. */
+      float alignment = MIN2(area_length, ar_length) / (float)MAX2(area_length, ar_length);
+      if (alignment > best_alignment) {
+        best_alignment = alignment;
+        sa2 = neighbor;
       }
     }
   }
 
+  /* Join from neighbor into this area to close it. */
   return screen_area_join_ex(C, screen, sa2, area, true);
 }
 

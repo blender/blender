@@ -829,13 +829,13 @@ static void calculate_collision_balls(Object *ob)
 }
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
-static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring)
+static void renew_softbody(Object *ob, int totpoint, int totspring)
 {
   SoftBody *sb;
   int i;
   short softflag;
   if (ob->soft == NULL) {
-    ob->soft = sbNew(scene);
+    ob->soft = sbNew();
   }
   else {
     free_softbody_intern(ob->soft);
@@ -2679,7 +2679,7 @@ static void springs_from_mesh(Object *ob)
 }
 
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Scene *scene, Object *ob)
+static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
@@ -2697,7 +2697,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
   }
 
   /* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-  renew_softbody(scene, ob, me->totvert, totedge);
+  renew_softbody(ob, me->totvert, totedge);
 
   /* we always make body points */
   sb = ob->soft;
@@ -2909,7 +2909,7 @@ static void makelatticesprings(Lattice *lt, BodySpring *bs, int dostiff, Object 
 }
 
 /* makes totally fresh start situation */
-static void lattice_to_softbody(Scene *scene, Object *ob)
+static void lattice_to_softbody(Object *ob)
 {
   Lattice *lt = ob->data;
   SoftBody *sb;
@@ -2929,7 +2929,7 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
   }
 
   /* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-  renew_softbody(scene, ob, totvert, totspring);
+  renew_softbody(ob, totvert, totspring);
   sb = ob->soft; /* can be created in renew_softbody() */
   bp = sb->bpoint;
 
@@ -2972,7 +2972,7 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 }
 
 /* makes totally fresh start situation */
-static void curve_surf_to_softbody(Scene *scene, Object *ob)
+static void curve_surf_to_softbody(Object *ob)
 {
   Curve *cu = ob->data;
   SoftBody *sb;
@@ -2993,7 +2993,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
   }
 
   /* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-  renew_softbody(scene, ob, totvert, totspring);
+  renew_softbody(ob, totvert, totspring);
   sb = ob->soft; /* can be created in renew_softbody() */
 
   /* set vars now */
@@ -3117,7 +3117,7 @@ static void sb_new_scratch(SoftBody *sb)
 /* ************ Object level, exported functions *************** */
 
 /* allocates and initializes general main data */
-SoftBody *sbNew(Scene *scene)
+SoftBody *sbNew(void)
 {
   SoftBody *sb;
 
@@ -3139,12 +3139,6 @@ SoftBody *sbNew(Scene *scene)
   sb->infrict = 0.5f;
   /*todo backward file compat should copy inspring to inpush while reading old files*/
   sb->inpush = 0.5f;
-
-  sb->interval = 10;
-  if (scene != NULL) {
-    sb->sfra = scene->r.sfra;
-    sb->efra = scene->r.efra;
-  }
 
   sb->colball = 0.49f;
   sb->balldamp = 0.50f;
@@ -3577,17 +3571,17 @@ void sbObjectStep(struct Depsgraph *depsgraph,
 
     switch (ob->type) {
       case OB_MESH:
-        mesh_to_softbody(scene, ob);
+        mesh_to_softbody(ob);
         break;
       case OB_LATTICE:
-        lattice_to_softbody(scene, ob);
+        lattice_to_softbody(ob);
         break;
       case OB_CURVE:
       case OB_SURF:
-        curve_surf_to_softbody(scene, ob);
+        curve_surf_to_softbody(ob);
         break;
       default:
-        renew_softbody(scene, ob, numVerts, 0);
+        renew_softbody(ob, numVerts, 0);
         break;
     }
 

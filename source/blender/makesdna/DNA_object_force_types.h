@@ -182,8 +182,8 @@ typedef struct EffectorWeights {
   /** Effector type specific weights. */
   float weight[14];
   float global_gravity;
-  short flag, rt[3];
-  char _pad[4];
+  short flag;
+  char _pad[2];
 } EffectorWeights;
 
 /* EffectorWeights->flag */
@@ -267,10 +267,9 @@ typedef struct SoftBody {
   char namedVG_Spring_K[64];
 
   /* baking */
-  int sfra, efra;
-  int interval;
+  char _pad1[6];
   /** Local==1: use local coords for baking. */
-  short local, solverflags;
+  char local, solverflags;
 
   /* -- these must be kept for backwards compatibility -- */
   /** Array of size totpointkey. */

@@ -107,7 +107,8 @@ typedef struct PointCache {
   int totpoint;
   /** Modifier stack index. */
   int index;
-  short compression, rt;
+  short compression;
+  char _pad0[2];
 
   char name[64];
   char prev_name[64];

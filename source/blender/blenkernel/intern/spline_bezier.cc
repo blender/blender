@@ -119,10 +119,12 @@ MutableSpan<BezierSpline::HandleType> BezierSpline::handle_types_left()
 }
 Span<float3> BezierSpline::handle_positions_left() const
 {
+  this->ensure_auto_handles();
   return handle_positions_left_;
 }
 MutableSpan<float3> BezierSpline::handle_positions_left()
 {
+  this->ensure_auto_handles();
   return handle_positions_left_;
 }
 Span<BezierSpline::HandleType> BezierSpline::handle_types_right() const
@@ -135,11 +137,88 @@ MutableSpan<BezierSpline::HandleType> BezierSpline::handle_types_right()
 }
 Span<float3> BezierSpline::handle_positions_right() const
 {
+  this->ensure_auto_handles();
   return handle_positions_right_;
 }
 MutableSpan<float3> BezierSpline::handle_positions_right()
 {
+  this->ensure_auto_handles();
   return handle_positions_right_;
+}
+
+static float3 previous_position(Span<float3> positions, const bool cyclic, const int i)
+{
+  if (i == 0) {
+    if (cyclic) {
+      return positions[positions.size() - 1];
+    }
+    return 2.0f * positions[i] - positions[i + 1];
+  }
+  return positions[i - 1];
+}
+
+static float3 next_position(Span<float3> positions, const bool cyclic, const int i)
+{
+  if (i == positions.size() - 1) {
+    if (cyclic) {
+      return positions[0];
+    }
+    return 2.0f * positions[i] - positions[i - 1];
+  }
+  return positions[i + 1];
+}
+
+void BezierSpline::ensure_auto_handles() const
+{
+  if (!auto_handles_dirty_) {
+    return;
+  }
+
+  std::lock_guard lock{auto_handle_mutex_};
+  if (!auto_handles_dirty_) {
+    return;
+  }
+
+  for (const int i : IndexRange(this->size())) {
+    if (ELEM(HandleType::Auto, handle_types_left_[i], handle_types_right_[i])) {
+      const float3 prev_diff = positions_[i] - previous_position(positions_, is_cyclic_, i);
+      const float3 next_diff = next_position(positions_, is_cyclic_, i) - positions_[i];
+      float prev_len = prev_diff.length();
+      float next_len = next_diff.length();
+      if (prev_len == 0.0f) {
+        prev_len = 1.0f;
+      }
+      if (next_len == 0.0f) {
+        next_len = 1.0f;
+      }
+      const float3 dir = next_diff / next_len + prev_diff / prev_len;
+
+      /* This magic number is unfortunate, but comes from elsewhere in Blender. */
+      const float len = dir.length() * 2.5614f;
+      if (len != 0.0f) {
+        if (handle_types_left_[i] == HandleType::Auto) {
+          const float prev_len_clamped = std::min(prev_len, next_len * 5.0f);
+          handle_positions_left_[i] = positions_[i] + dir * -(prev_len_clamped / len);
+        }
+        if (handle_types_right_[i] == HandleType::Auto) {
+          const float next_len_clamped = std::min(next_len, prev_len * 5.0f);
+          handle_positions_right_[i] = positions_[i] + dir * (next_len_clamped / len);
+        }
+      }
+    }
+
+    if (handle_types_left_[i] == HandleType::Vector) {
+      const float3 prev = previous_position(positions_, is_cyclic_, i);
+      handle_positions_left_[i] = float3::interpolate(positions_[i], prev, 1.0f / 3.0f);
+    }
+
+    if (handle_types_right_[i] == HandleType::Vector) {
+      const float3 next = next_position(positions_, is_cyclic_, i);
+      handle_positions_right_[i] = float3::interpolate(positions_[i], next, 1.0f / 3.0f);
+    }
+  }
+
+  auto_handles_dirty_ = false;
 }
 
 void BezierSpline::translate(const blender::float3 &translation)
@@ -195,6 +274,7 @@ void BezierSpline::mark_cache_invalid()
   tangent_cache_dirty_ = true;
   normal_cache_dirty_ = true;
   length_cache_dirty_ = true;
+  auto_handles_dirty_ = true;
 }
 
 int BezierSpline::evaluated_points_size() const
@@ -388,6 +468,8 @@ Span<float3> BezierSpline::evaluated_positions() const
   if (!position_cache_dirty_) {
     return evaluated_position_cache_;
   }
+
+  this->ensure_auto_handles();
 
   const int eval_size = this->evaluated_points_size();
   evaluated_position_cache_.resize(eval_size);

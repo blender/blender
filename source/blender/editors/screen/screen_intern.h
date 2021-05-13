@@ -56,8 +56,12 @@ void screen_change_prepare(bScreen *screen_old,
                            struct Main *bmain,
                            struct bContext *C,
                            wmWindow *win);
-ScrArea *area_split(
-    const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge);
+ScrArea *area_split(const wmWindow *win,
+                    bScreen *screen,
+                    ScrArea *area,
+                    char dir,
+                    const float fac,
+                    const bool merge);
 int screen_area_join(struct bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
 int area_getorientation(ScrArea *sa_a, ScrArea *sa_b);
 void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, const int dir, int *r_offset1, int *r_offset2);

@@ -64,7 +64,7 @@ typedef struct BoidParticle {
   struct BoidData data;
   float gravity[3];
   float wander[3];
-  float rt;
+  char _pad0[4];
 } BoidParticle;
 
 typedef struct ParticleSpring {
@@ -82,7 +82,7 @@ typedef struct ChildParticle {
   float w[4];
   /** Face vertex weights and offset. */
   float fuv[4], foffset;
-  float rt;
+  char _pad0[4];
 } ChildParticle;
 
 typedef struct ParticleTarget {
@@ -99,7 +99,8 @@ typedef struct ParticleDupliWeight {
   short count;
   short flag;
   /** Only updated on file save and used on file load. */
-  short index, rt;
+  short index;
+  char _pad0[2];
 } ParticleDupliWeight;
 
 typedef struct ParticleData {
@@ -191,7 +192,8 @@ typedef struct ParticleSettings {
   struct EffectorWeights *effector_weights;
   struct Collection *collision_group;
 
-  int flag, rt;
+  int flag;
+  char _pad1[4];
   short type, from, distr, texact;
   /* physics modes */
   short phystype, rotmode, avemode, reactevent;

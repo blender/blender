@@ -294,6 +294,22 @@ void node_socket_init_default_value(bNodeSocket *sock)
       sock->default_value = dval;
       break;
     }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *dval = (bNodeSocketValueTexture *)MEM_callocN(
+          sizeof(bNodeSocketValueTexture), "node socket value texture");
+      dval->value = nullptr;
+
+      sock->default_value = dval;
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *dval = (bNodeSocketValueMaterial *)MEM_callocN(
+          sizeof(bNodeSocketValueMaterial), "node socket value material");
+      dval->value = nullptr;
+
+      sock->default_value = dval;
+      break;
+    }
   }
 }
 
@@ -369,6 +385,13 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
     case SOCK_COLLECTION: {
       bNodeSocketValueCollection *toval = (bNodeSocketValueCollection *)to->default_value;
       bNodeSocketValueCollection *fromval = (bNodeSocketValueCollection *)from->default_value;
+      *toval = *fromval;
+      id_us_plus(&toval->value->id);
+      break;
+    }
+    case SOCK_TEXTURE: {
+      bNodeSocketValueTexture *toval = (bNodeSocketValueTexture *)to->default_value;
+      bNodeSocketValueTexture *fromval = (bNodeSocketValueTexture *)from->default_value;
       *toval = *fromval;
       id_us_plus(&toval->value->id);
       break;
@@ -633,6 +656,8 @@ static bNodeSocketType *make_socket_type_string()
 
 MAKE_CPP_TYPE(Object, Object *)
 MAKE_CPP_TYPE(Collection, Collection *)
+MAKE_CPP_TYPE(Texture, Tex *)
+MAKE_CPP_TYPE(Material, Material *)
 
 static bNodeSocketType *make_socket_type_object()
 {
@@ -660,6 +685,26 @@ static bNodeSocketType *make_socket_type_collection()
   socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<Collection *>(); };
   socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
     *(Collection **)r_value = ((bNodeSocketValueCollection *)socket.default_value)->value;
+  };
+  return socktype;
+}
+
+static bNodeSocketType *make_socket_type_texture()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_TEXTURE, PROP_NONE);
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<Tex *>(); };
+  socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    *(Tex **)r_value = ((bNodeSocketValueTexture *)socket.default_value)->value;
+  };
+  return socktype;
+}
+
+static bNodeSocketType *make_socket_type_material()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_MATERIAL, PROP_NONE);
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<Material *>(); };
+  socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
+    *(Material **)r_value = ((bNodeSocketValueMaterial *)socket.default_value)->value;
   };
   return socktype;
 }
@@ -704,6 +749,10 @@ void register_standard_node_socket_types(void)
   nodeRegisterSocketType(make_socket_type_geometry());
 
   nodeRegisterSocketType(make_socket_type_collection());
+
+  nodeRegisterSocketType(make_socket_type_texture());
+
+  nodeRegisterSocketType(make_socket_type_material());
 
   nodeRegisterSocketType(make_socket_type_virtual());
 }

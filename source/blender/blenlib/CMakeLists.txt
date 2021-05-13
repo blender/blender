@@ -185,6 +185,7 @@ set(SRC
   BLI_edgehash.h
   BLI_endian_switch.h
   BLI_endian_switch_inline.h
+  BLI_enumerable_thread_specific.hh
   BLI_expr_pylike_eval.h
   BLI_fileops.h
   BLI_fileops_types.h

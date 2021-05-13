@@ -227,8 +227,10 @@ template<typename T> class SimpleMixer {
   }
 };
 
-/** This mixer accumulates values in a type that is different from the one that is mixed. Some
- * types cannot encode the floating point weights in their values (e.g. int and bool). */
+/**
+ * This mixer accumulates values in a type that is different from the one that is mixed.
+ * Some types cannot encode the floating point weights in their values (e.g. int and bool).
+ */
 template<typename T, typename AccumulationT, T (*ConvertToT)(const AccumulationT &value)>
 class SimpleMixerWithAccumulationType {
  private:

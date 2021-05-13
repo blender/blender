@@ -265,9 +265,10 @@ typedef struct bPoseChannel {
    * since the alternative is highly complicated - campbell
    */
   struct bPoseChannel *custom_tx;
-  float custom_scale;
-
-  char _pad1[4];
+  float custom_scale; /* Deprecated */
+  float custom_scale_xyz[3];
+  float custom_translation[3];
+  float custom_rotation_euler[3];
 
   /** Transforms - written in by actions or transform. */
   float loc[3];
@@ -417,9 +418,9 @@ typedef enum ePchan_DrawFlag {
   PCHAN_DRAW_NO_CUSTOM_BONE_SIZE = (1 << 0),
 } ePchan_DrawFlag;
 
-#define PCHAN_CUSTOM_DRAW_SIZE(pchan) \
-  (pchan)->custom_scale *( \
-      ((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
+/* Note: It doesn't take custom_scale_xyz into account */
+#define PCHAN_CUSTOM_BONE_LENGTH(pchan) \
+  (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
 
 #ifdef DNA_DEPRECATED_ALLOW
 /* PoseChannel->bboneflag */

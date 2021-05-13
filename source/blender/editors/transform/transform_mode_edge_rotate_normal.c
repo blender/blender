@@ -148,5 +148,7 @@ void initNormalRotation(TransInfo *t)
 
     storeCustomLNorValue(tc, bm);
   }
+
+  transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
 /** \} */

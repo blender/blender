@@ -756,11 +756,12 @@ static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject
 
 static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
 {
-  BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &BPy_IDGroup_Iter_Type);
+  BPy_IDGroup_Iter *iter = PyObject_GC_New(BPy_IDGroup_Iter, &BPy_IDGroup_Iter_Type);
   iter->group = self;
+  Py_INCREF(self);
   iter->mode = IDPROP_ITER_KEYS;
   iter->cur = self->prop->data.group.first;
-  Py_XINCREF(iter);
+  PyObject_GC_Track(iter);
   return (PyObject *)iter;
 }
 
@@ -929,11 +930,12 @@ PyDoc_STRVAR(
     "   Iterate through the items in the dict; behaves like dictionary method iteritems.\n");
 static PyObject *BPy_IDGroup_iter_items(BPy_IDProperty *self)
 {
-  BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &BPy_IDGroup_Iter_Type);
+  BPy_IDGroup_Iter *iter = PyObject_GC_New(BPy_IDGroup_Iter, &BPy_IDGroup_Iter_Type);
   iter->group = self;
+  Py_INCREF(self);
   iter->mode = IDPROP_ITER_ITEMS;
   iter->cur = self->prop->data.group.first;
-  Py_XINCREF(iter);
+  PyObject_GC_Track(iter);
   return (PyObject *)iter;
 }
 
@@ -1684,6 +1686,25 @@ static PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
   return PyUnicode_FromFormat("(ID Property Group Iter \"%s\")", self->group->prop->name);
 }
 
+static void BPy_IDGroup_Iter_dealloc(BPy_IDGroup_Iter *self)
+{
+  PyObject_GC_UnTrack(self);
+  Py_CLEAR(self->group);
+  PyObject_GC_Del(self);
+}
+
+static int BPy_IDGroup_Iter_traverse(BPy_IDGroup_Iter *self, visitproc visit, void *arg)
+{
+  Py_VISIT(self->group);
+  return 0;
+}
+
+static int BPy_IDGroup_Iter_clear(BPy_IDGroup_Iter *self)
+{
+  Py_CLEAR(self->group);
+  return 0;
+}
+
 static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 {
 
@@ -1718,12 +1739,12 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
 
     /* Methods to implement standard operations */
 
-    NULL,                        /* destructor tp_dealloc; */
-    0,                           /* tp_vectorcall_offset */
-    NULL,                        /* getattrfunc tp_getattr; */
-    NULL,                        /* setattrfunc tp_setattr; */
-    NULL,                        /* cmpfunc tp_compare; */
-    (reprfunc)IDGroup_Iter_repr, /* reprfunc tp_repr; */
+    (destructor)BPy_IDGroup_Iter_dealloc, /* tp_dealloc */
+    0,                                    /* tp_vectorcall_offset */
+    NULL,                                 /* getattrfunc tp_getattr; */
+    NULL,                                 /* setattrfunc tp_setattr; */
+    NULL,                                 /* cmpfunc tp_compare; */
+    (reprfunc)IDGroup_Iter_repr,          /* reprfunc tp_repr; */
 
     /* Method suites for standard classes */
 
@@ -1743,15 +1764,15 @@ PyTypeObject BPy_IDGroup_Iter_Type = {
     NULL, /* PyBufferProcs *tp_as_buffer; */
 
     /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT, /* long tp_flags; */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* long tp_flags; */
 
     NULL, /*  char *tp_doc;  Documentation string */
     /*** Assigned meaning in release 2.0 ***/
     /* call function for all accessible objects */
-    NULL, /* traverseproc tp_traverse; */
+    (traverseproc)BPy_IDGroup_Iter_traverse, /* traverseproc tp_traverse; */
 
     /* delete references to contained objects */
-    NULL, /* inquiry tp_clear; */
+    (inquiry)BPy_IDGroup_Iter_clear, /* inquiry tp_clear; */
 
     /***  Assigned meaning in release 2.1 ***/
     /*** rich comparisons ***/

@@ -61,6 +61,7 @@ short getAnimEdit_SnapMode(TransInfo *t);
 void doAnimEdit_SnapFrame(
     TransInfo *t, TransData *td, TransData2D *td2d, struct AnimData *adt, short autosnap);
 void transform_mode_init(TransInfo *t, struct wmOperator *op, const int mode);
+void transform_mode_default_modal_orientation_set(TransInfo *t, int type);
 
 /* transform_mode_align.c */
 void initAlign(TransInfo *t);

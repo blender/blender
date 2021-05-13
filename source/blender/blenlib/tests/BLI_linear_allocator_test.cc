@@ -136,4 +136,17 @@ TEST(linear_allocator, ManyAllocations)
   }
 }
 
+TEST(linear_allocator, ConstructArray)
+{
+  LinearAllocator<> allocator;
+  MutableSpan<std::string> strings = allocator.construct_array<std::string>(4, "hello");
+  EXPECT_EQ(strings[0], "hello");
+  EXPECT_EQ(strings[1], "hello");
+  EXPECT_EQ(strings[2], "hello");
+  EXPECT_EQ(strings[3], "hello");
+  for (std::string &string : strings) {
+    string.~basic_string();
+  }
+}
+
 }  // namespace blender::tests

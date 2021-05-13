@@ -21,6 +21,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -95,5 +96,15 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->pose == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+          copy_v3_fl(pchan->custom_scale_xyz, pchan->custom_scale);
+        }
+      }
+    }
   }
 }

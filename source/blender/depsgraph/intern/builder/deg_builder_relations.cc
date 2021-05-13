@@ -2401,6 +2401,18 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
       build_collection(nullptr, nullptr, collection);
     }
   }
+  else if (socket->type == SOCK_TEXTURE) {
+    Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
+    if (texture != nullptr) {
+      build_texture(texture);
+    }
+  }
+  else if (socket->type == SOCK_MATERIAL) {
+    Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
+    if (material != nullptr) {
+      build_material(material);
+    }
+  }
 }
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)

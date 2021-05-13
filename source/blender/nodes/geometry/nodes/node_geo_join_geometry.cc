@@ -305,8 +305,8 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
   CurveEval *dst_curve = new CurveEval();
   for (CurveComponent *component : src_components) {
     CurveEval *src_curve = component->get_for_write();
-    for (SplinePtr &spline : src_curve->splines) {
-      dst_curve->splines.append(std::move(spline));
+    for (SplinePtr &spline : src_curve->splines()) {
+      dst_curve->add_spline(std::move(spline));
     }
   }
 

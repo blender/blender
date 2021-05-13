@@ -494,6 +494,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeProximity"),
         NodeItem("GeometryNodeAttributeColorRamp"),
         NodeItem("GeometryNodeAttributeVectorMath"),
+        NodeItem("GeometryNodeAttributeVectorRotate"),
         NodeItem("GeometryNodeAttributeSampleTexture"),
         NodeItem("GeometryNodeAttributeCombineXYZ"),
         NodeItem("GeometryNodeAttributeSeparateXYZ"),

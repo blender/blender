@@ -157,6 +157,7 @@ set(SRC
   geometry/nodes/node_geo_attribute_separate_xyz.cc
   geometry/nodes/node_geo_attribute_transfer.cc
   geometry/nodes/node_geo_attribute_vector_math.cc
+  geometry/nodes/node_geo_attribute_vector_rotate.cc
   geometry/nodes/node_geo_boolean.cc
   geometry/nodes/node_geo_bounding_box.cc
   geometry/nodes/node_geo_collection_info.cc

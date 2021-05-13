@@ -240,7 +240,10 @@ void InputSocketRef::foreach_logical_origin(FunctionRef<void(const OutputSocketR
     }
     const OutputSocketRef &origin = link->from();
     const NodeRef &origin_node = origin.node();
-    if (origin_node.is_reroute_node()) {
+    if (!origin.is_available()) {
+      /* Non available sockets are ignored. */
+    }
+    else if (origin_node.is_reroute_node()) {
       const InputSocketRef &reroute_input = origin_node.input(0);
       const OutputSocketRef &reroute_output = origin_node.output(0);
       skipped_fn.call_safe(reroute_input);
@@ -281,7 +284,10 @@ void OutputSocketRef::foreach_logical_target(
     }
     const InputSocketRef &target = link->to();
     const NodeRef &target_node = target.node();
-    if (target_node.is_reroute_node()) {
+    if (!target.is_available()) {
+      /* Non available sockets are ignored. */
+    }
+    else if (target_node.is_reroute_node()) {
       const OutputSocketRef &reroute_output = target_node.output(0);
       skipped_fn.call_safe(target);
       skipped_fn.call_safe(reroute_output);

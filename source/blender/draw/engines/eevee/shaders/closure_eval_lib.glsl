@@ -51,53 +51,72 @@
   closure_##t2##_##subroutine(in_##t2##_2, eval_##t2##_2, cl_common, sub_data, out_##t2##_2); \
   closure_##t3##_##subroutine(in_##t3##_3, eval_##t3##_3, cl_common, sub_data, out_##t3##_3);
 
+#ifndef DEPTH_SHADER
 /* Inputs are inout so that callers can get the final inputs used for evaluation. */
-#define CLOSURE_EVAL_FUNCTION_DECLARE(name, t0, t1, t2, t3) \
-  void closure_##name##_eval(ClosureInputCommon in_common, \
-                             inout ClosureInput##t0 in_##t0##_0, \
-                             inout ClosureInput##t1 in_##t1##_1, \
-                             inout ClosureInput##t2 in_##t2##_2, \
-                             inout ClosureInput##t3 in_##t3##_3, \
-                             out ClosureOutput##t0 out_##t0##_0, \
-                             out ClosureOutput##t1 out_##t1##_1, \
-                             out ClosureOutput##t2 out_##t2##_2, \
-                             out ClosureOutput##t3 out_##t3##_3) \
-  { \
-    CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
+#  define CLOSURE_EVAL_FUNCTION_DECLARE(name, t0, t1, t2, t3) \
+    void closure_##name##_eval(ClosureInputCommon in_common, \
+                               inout ClosureInput##t0 in_##t0##_0, \
+                               inout ClosureInput##t1 in_##t1##_1, \
+                               inout ClosureInput##t2 in_##t2##_2, \
+                               inout ClosureInput##t3 in_##t3##_3, \
+                               out ClosureOutput##t0 out_##t0##_0, \
+                               out ClosureOutput##t1 out_##t1##_1, \
+                               out ClosureOutput##t2 out_##t2##_2, \
+                               out ClosureOutput##t3 out_##t3##_3) \
+    { \
+      CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
 \
-    /* Starts at 1 because 0 is world cubemap. */ \
-    for (int i = 1; cl_common.specular_accum > 0.0 && i < prbNumRenderCube && i < MAX_PROBE; \
-         i++) { \
-      ClosureCubemapData cube = closure_cubemap_eval_init(i, cl_common); \
-      if (cube.attenuation > 1e-8) { \
-        CLOSURE_META_SUBROUTINE_DATA(cubemap_eval, cube, t0, t1, t2, t3); \
+      /* Starts at 1 because 0 is world cubemap. */ \
+      for (int i = 1; cl_common.specular_accum > 0.0 && i < prbNumRenderCube && i < MAX_PROBE; \
+           i++) { \
+        ClosureCubemapData cube = closure_cubemap_eval_init(i, cl_common); \
+        if (cube.attenuation > 1e-8) { \
+          CLOSURE_META_SUBROUTINE_DATA(cubemap_eval, cube, t0, t1, t2, t3); \
+        } \
       } \
-    } \
 \
-    /* Starts at 1 because 0 is world irradiance. */ \
-    for (int i = 1; cl_common.diffuse_accum > 0.0 && i < prbNumRenderGrid && i < MAX_GRID; i++) { \
-      ClosureGridData grid = closure_grid_eval_init(i, cl_common); \
-      if (grid.attenuation > 1e-8) { \
-        CLOSURE_META_SUBROUTINE_DATA(grid_eval, grid, t0, t1, t2, t3); \
+      /* Starts at 1 because 0 is world irradiance. */ \
+      for (int i = 1; cl_common.diffuse_accum > 0.0 && i < prbNumRenderGrid && i < MAX_GRID; \
+           i++) { \
+        ClosureGridData grid = closure_grid_eval_init(i, cl_common); \
+        if (grid.attenuation > 1e-8) { \
+          CLOSURE_META_SUBROUTINE_DATA(grid_eval, grid, t0, t1, t2, t3); \
+        } \
       } \
-    } \
 \
-    CLOSURE_META_SUBROUTINE(indirect_end, t0, t1, t2, t3); \
+      CLOSURE_META_SUBROUTINE(indirect_end, t0, t1, t2, t3); \
 \
-    ClosurePlanarData planar = closure_planar_eval_init(cl_common); \
-    if (planar.attenuation > 1e-8) { \
-      CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
-    } \
-\
-    for (int i = 0; i < laNumLight && i < MAX_LIGHT; i++) { \
-      ClosureLightData light = closure_light_eval_init(cl_common, i); \
-      if (light.vis > 1e-8) { \
-        CLOSURE_META_SUBROUTINE_DATA(light_eval, light, t0, t1, t2, t3); \
+      ClosurePlanarData planar = closure_planar_eval_init(cl_common); \
+      if (planar.attenuation > 1e-8) { \
+        CLOSURE_META_SUBROUTINE_DATA(planar_eval, planar, t0, t1, t2, t3); \
       } \
-    } \
 \
-    CLOSURE_META_SUBROUTINE(eval_end, t0, t1, t2, t3); \
-  }
+      for (int i = 0; i < laNumLight && i < MAX_LIGHT; i++) { \
+        ClosureLightData light = closure_light_eval_init(cl_common, i); \
+        if (light.vis > 1e-8) { \
+          CLOSURE_META_SUBROUTINE_DATA(light_eval, light, t0, t1, t2, t3); \
+        } \
+      } \
+\
+      CLOSURE_META_SUBROUTINE(eval_end, t0, t1, t2, t3); \
+    }
+
+#else
+/* Inputs are inout so that callers can get the final inputs used for evaluation. */
+#  define CLOSURE_EVAL_FUNCTION_DECLARE(name, t0, t1, t2, t3) \
+    void closure_##name##_eval(ClosureInputCommon in_common, \
+                               inout ClosureInput##t0 in_##t0##_0, \
+                               inout ClosureInput##t1 in_##t1##_1, \
+                               inout ClosureInput##t2 in_##t2##_2, \
+                               inout ClosureInput##t3 in_##t3##_3, \
+                               out ClosureOutput##t0 out_##t0##_0, \
+                               out ClosureOutput##t1 out_##t1##_1, \
+                               out ClosureOutput##t2 out_##t2##_2, \
+                               out ClosureOutput##t3 out_##t3##_3) \
+    { \
+      CLOSURE_EVAL_DECLARE(t0, t1, t2, t3); \
+    }
+#endif
 
 #define CLOSURE_EVAL_FUNCTION(name, t0, t1, t2, t3) \
   closure_##name##_eval(in_common, \

@@ -27,6 +27,7 @@
 
 #include "BLI_resource_scope.hh"
 
+#include "FN_generic_pointer.hh"
 #include "FN_generic_vector_array.hh"
 #include "FN_generic_virtual_vector_array.hh"
 #include "FN_multi_function_signature.hh"
@@ -62,6 +63,12 @@ class MFParamsBuilder {
   void add_readonly_single_input(const GSpan span, StringRef expected_name = "")
   {
     this->add_readonly_single_input(scope_.construct<GVArray_For_GSpan>(__func__, span),
+                                    expected_name);
+  }
+  void add_readonly_single_input(GPointer value, StringRef expected_name = "")
+  {
+    this->add_readonly_single_input(scope_.construct<GVArray_For_SingleValueRef>(
+                                        __func__, *value.type(), min_array_size_, value.get()),
                                     expected_name);
   }
   void add_readonly_single_input(const GVArray &ref, StringRef expected_name = "")

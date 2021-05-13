@@ -1669,7 +1669,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
-/** Check against potential  \a bmain. */
+/** Check against potential \a bmain. */
 void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *reports)
 {
   if (id->override_library == NULL) {
@@ -1703,7 +1703,7 @@ void BKE_lib_override_library_validate(Main *UNUSED(bmain), ID *id, ReportList *
   }
 }
 
-/** Check against potential  \a bmain. */
+/** Check against potential \a bmain. */
 void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)
 {
   ID *id;

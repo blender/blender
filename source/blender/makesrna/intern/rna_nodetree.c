@@ -76,6 +76,8 @@ static const EnumPropertyItem node_socket_data_type_items[] = {
     {SOCK_IMAGE, "IMAGE", 0, "Image", ""},
     {SOCK_GEOMETRY, "GEOMETRY", 0, "Geometry", ""},
     {SOCK_COLLECTION, "COLLECTION", 0, "Collection", ""},
+    {SOCK_TEXTURE, "TEXTURE", 0, "Texture", ""},
+    {SOCK_MATERIAL, "MATERIAL", 0, "Material", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -102,6 +104,8 @@ static const EnumPropertyItem node_socket_type_items[] = {
     {SOCK_IMAGE, "IMAGE", 0, "Image", ""},
     {SOCK_GEOMETRY, "GEOMETRY", 0, "Geometry", ""},
     {SOCK_COLLECTION, "COLLECTION", 0, "Collection", ""},
+    {SOCK_TEXTURE, "TEXTURE", 0, "Texture", ""},
+    {SOCK_MATERIAL, "MATERIAL", 0, "Material", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -9297,6 +9301,61 @@ static void def_geo_attribute_curve_map(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_attribute_vector_rotate(StructRNA *srna)
+{
+  static const EnumPropertyItem rotate_mode_items[] = {
+      {GEO_NODE_VECTOR_ROTATE_TYPE_AXIS,
+       "AXIS_ANGLE",
+       0,
+       "Axis Angle",
+       "Rotate a point using axis angle"},
+      {GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_X, "X_AXIS", 0, "X Axis", "Rotate a point using X axis"},
+      {GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Y, "Y_AXIS", 0, "Y Axis", "Rotate a point using Y axis"},
+      {GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Z, "Z_AXIS", 0, "Z Axis", "Rotate a point using Z axis"},
+      {GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ,
+       "EULER_XYZ",
+       0,
+       "Euler",
+       "Rotate a point using XYZ order"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeAttributeVectorRotate", "storage");
+
+  prop = RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "mode");
+  RNA_def_property_enum_items(prop, rotate_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "Type of rotation");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_vector", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Vector", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_center", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Center", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Axis", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_angle", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_float);
+  RNA_def_property_ui_text(prop, "Input Type Angle", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+
+  prop = RNA_def_property(srna, "input_type_rotation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_vector);
+  RNA_def_property_ui_text(prop, "Input Type Rotation", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_point_rotate(StructRNA *srna)
 {
   static const EnumPropertyItem type_items[] = {
@@ -10577,6 +10636,76 @@ static void rna_def_node_socket_collection(BlenderRNA *brna,
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
 }
 
+static void rna_def_node_socket_texture(BlenderRNA *brna,
+                                        const char *identifier,
+                                        const char *interface_idname)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
+  RNA_def_struct_ui_text(srna, "Texture Node Socket", "Texture socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueTexture", "default_value");
+
+  prop = RNA_def_property(srna, "default_value", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "value");
+  RNA_def_property_struct_type(prop, "Texture");
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(
+      prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+
+  /* socket interface */
+  srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
+  RNA_def_struct_ui_text(srna, "Texture Node Socket Interface", "Texture socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueTexture", "default_value");
+
+  prop = RNA_def_property(srna, "default_value", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "value");
+  RNA_def_property_struct_type(prop, "Texture");
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+}
+
+static void rna_def_node_socket_material(BlenderRNA *brna,
+                                         const char *identifier,
+                                         const char *interface_idname)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
+  RNA_def_struct_ui_text(srna, "Material Node Socket", "Material socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueMaterial", "default_value");
+
+  prop = RNA_def_property(srna, "default_value", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "value");
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(
+      prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_and_relation_update");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT | PROP_CONTEXT_UPDATE);
+
+  /* socket interface */
+  srna = RNA_def_struct(brna, interface_idname, "NodeSocketInterfaceStandard");
+  RNA_def_struct_ui_text(srna, "Material Node Socket Interface", "Material socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueMaterial", "default_value");
+
+  prop = RNA_def_property(srna, "default_value", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "value");
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+}
+
 static void rna_def_node_socket_standard_types(BlenderRNA *brna)
 {
   /* XXX Workaround: Registered functions are not exposed in python by bpy,
@@ -10721,6 +10850,10 @@ static void rna_def_node_socket_standard_types(BlenderRNA *brna)
   rna_def_node_socket_geometry(brna, "NodeSocketGeometry", "NodeSocketInterfaceGeometry");
 
   rna_def_node_socket_collection(brna, "NodeSocketCollection", "NodeSocketInterfaceCollection");
+
+  rna_def_node_socket_texture(brna, "NodeSocketTexture", "NodeSocketInterfaceTexture");
+
+  rna_def_node_socket_material(brna, "NodeSocketMaterial", "NodeSocketInterfaceMaterial");
 }
 
 static void rna_def_internal_node(BlenderRNA *brna)

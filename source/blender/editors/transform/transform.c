@@ -782,7 +782,7 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
     }
     else {
       short orient_index = 1;
-      if (t->orient_curr == 0 || ELEM(constraint_curr, -1, constraint_new)) {
+      if (t->orient_curr == O_DEFAULT || ELEM(constraint_curr, -1, constraint_new)) {
         /* Successive presses on existing axis, cycle orientation modes. */
         orient_index = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
       }
@@ -1412,25 +1412,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop;
 
-  if (!(t->con.mode & CON_APPLY) && (t->flag & T_MODAL) &&
-      ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE)) {
-    /* When redoing these modes the first time, it's more convenient to save
-     * in the Global orientation. */
-    if (t->mode == TFM_TRANSLATION) {
-      mul_m3_v3(t->spacemtx, t->values_final);
-    }
-    else {
-      float tmat[3][3], sizemat[3][3];
-      size_to_mat3(sizemat, t->values_final);
-      mul_m3_m3m3(tmat, t->spacemtx, sizemat);
-      mat3_to_size(t->values_final, tmat);
-    }
-
-    BLI_assert(t->orient_curr == 0);
-    unit_m3(t->spacemtx);
-    t->orient[0].type = V3D_ORIENT_GLOBAL;
-  }
-
   /* Save back mode in case we're in the generic operator */
   if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
     RNA_property_enum_set(op->ptr, prop, t->mode);
@@ -1638,7 +1619,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[2])
 
 /**
  * \note  caller needs to free 't' on a 0 return
- * \warning  \a event might be NULL (when tweaking from redo panel)
+ * \warning \a event might be NULL (when tweaking from redo panel)
  * \see #saveTransform which writes these values back.
  */
 bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event, int mode)
