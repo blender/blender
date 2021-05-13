@@ -101,13 +101,13 @@
 
 /* Disable optimization for a function (for debugging use only)*/
 #ifdef __clang__
-#define ATTR_NO_OPT __attribute__((optnone))
+#  define ATTR_NO_OPT __attribute__((optnone))
 #elif __MSC_VER
 #  define ATTR_NO_OPT __pragma(optimize("", off))
 #elif __GNUC__
-#define ATTR_NO_OPT _Pragma(optimize, "O0")
+#  define ATTR_NO_OPT __attribute__((optimize("O0")))
 #else
-#define ATTR_NO_OPT
+#  define ATTR_NO_OPT
 #endif
 
 /* Alignment directive */

@@ -216,7 +216,7 @@ static float fast_geodesic_distance_propagate_across_triangle(
           printf("%.7f : %.7f\n",
                  result*2.0,
                  geodesic_distance_propagate_across_triangle(v0, v1, v2, dist1, dist2));*/
-          return result*4.0;
+          return result * 4.0;
         }
       }
     }
