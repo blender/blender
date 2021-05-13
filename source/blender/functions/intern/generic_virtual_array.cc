@@ -160,6 +160,19 @@ void GVMutableArray::set_by_relocate_impl(const int64_t index, void *value)
   type_->destruct(value);
 }
 
+void GVMutableArray::set_all_impl(const void *src)
+{
+  if (this->is_span()) {
+    const GMutableSpan span = this->get_internal_span();
+    type_->copy_to_initialized_n(src, span.data(), size_);
+  }
+  else {
+    for (int64_t i : IndexRange(size_)) {
+      this->set_by_copy(i, POINTER_OFFSET(src, type_->size() * i));
+    }
+  }
+}
+
 void *GVMutableArray::try_get_internal_mutable_varray_impl()
 {
   return nullptr;
