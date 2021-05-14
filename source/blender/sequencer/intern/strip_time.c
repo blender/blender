@@ -187,7 +187,7 @@ static void seq_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
 {
   seq_time_update_meta_strip(scene, seq_meta);
 
-  /*  Prevent metastrip to move in timeline. */
+  /* Prevent meta-strip to move in timeline. */
   SEQ_transform_set_left_handle_frame(seq_meta, seq_meta->startdisp);
   SEQ_transform_set_right_handle_frame(seq_meta, seq_meta->enddisp);
 }
@@ -196,7 +196,7 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
 {
   Sequence *seqm;
 
-  /* check all metas recursively */
+  /* Check all meta-strips recursively. */
   seqm = seq->seqbase.first;
   while (seqm) {
     if (seqm->seqbase.first) {

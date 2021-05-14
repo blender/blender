@@ -12,22 +12,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
  */
 
-#include "COM_ChunkOrderHotspot.h"
-#include <cmath>
+/** \file
+ * \ingroup bpygpu
+ */
 
-namespace blender::compositor {
+#pragma once
 
-double ChunkOrderHotspot::calc_distance(int x, int y)
-{
-  int dx = this->x - x;
-  int dy = this->y - y;
-  double result = sqrt((double)(dx * dx + dy * dy));
-  result += (double)this->addition;
-  return result;
-}
-
-}  // namespace blender::compositor
+PyObject *bpygpu_platform_init(void);

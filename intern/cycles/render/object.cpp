@@ -220,6 +220,10 @@ void Object::tag_update(Scene *scene)
       flag |= ObjectManager::TRANSFORM_MODIFIED;
     }
 
+    if (visibility_is_modified()) {
+      flag |= ObjectManager::VISIBILITY_MODIFIED;
+    }
+
     foreach (Node *node, geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->get_use_mis() && shader->has_surface_emission)
@@ -912,6 +916,10 @@ void ObjectManager::tag_update(Scene *scene, uint32_t flag)
 
     if ((flag & TRANSFORM_MODIFIED) != 0) {
       geometry_flag |= GeometryManager::TRANSFORM_MODIFIED;
+    }
+
+    if ((flag & VISIBILITY_MODIFIED) != 0) {
+      geometry_flag |= GeometryManager::VISIBILITY_MODIFIED;
     }
 
     scene->geometry_manager->tag_update(scene, geometry_flag);

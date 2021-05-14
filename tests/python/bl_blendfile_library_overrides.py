@@ -75,7 +75,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         assert(override_operation.operation == 'REPLACE')
         # Setting location.y overridded all elements in the location array. -1 is a wildcard.
         assert(override_operation.subitem_local_index == -1)
-        
+
     def test_link_permissive(self):
         """
         Linked assets with a permissive template.

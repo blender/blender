@@ -801,7 +801,7 @@ bool ED_object_parent_set(ReportList *reports,
        *   so we check this by assuming that the parent is selected too.
        */
       /* XXX currently this should only happen for meshes, curves, surfaces,
-       * and lattices - this stuff isn't available for metas yet */
+       * and lattices - this stuff isn't available for meta-balls yet. */
       if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
         ModifierData *md;
 

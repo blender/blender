@@ -37,6 +37,15 @@ int GPU_max_textures(void);
 int GPU_max_textures_vert(void);
 int GPU_max_textures_geom(void);
 int GPU_max_textures_frag(void);
+int GPU_max_uniforms_vert(void);
+int GPU_max_uniforms_frag(void);
+int GPU_max_batch_indices(void);
+int GPU_max_batch_vertices(void);
+int GPU_max_vertex_attribs(void);
+int GPU_max_varying_floats(void);
+
+int GPU_extensions_len(void);
+const char *GPU_extension_get(int i);
 
 int GPU_texture_size_with_limit(int res, bool limit_gl_texture_size);
 

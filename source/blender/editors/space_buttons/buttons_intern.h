@@ -35,6 +35,7 @@ struct bContext;
 struct bContextDataResult;
 struct bNode;
 struct bNodeTree;
+struct bNodeSocket;
 struct wmOperatorType;
 
 struct SpaceProperties_Runtime {
@@ -66,6 +67,7 @@ typedef struct ButsTextureUser {
 
   struct bNodeTree *ntree;
   struct bNode *node;
+  struct bNodeSocket *socket;
 
   const char *category;
   int icon;

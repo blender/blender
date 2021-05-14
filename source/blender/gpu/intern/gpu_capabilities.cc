@@ -82,6 +82,46 @@ int GPU_max_textures(void)
   return GCaps.max_textures;
 }
 
+int GPU_max_uniforms_vert(void)
+{
+  return GCaps.max_uniforms_vert;
+}
+
+int GPU_max_uniforms_frag(void)
+{
+  return GCaps.max_uniforms_frag;
+}
+
+int GPU_max_batch_indices(void)
+{
+  return GCaps.max_batch_indices;
+}
+
+int GPU_max_batch_vertices(void)
+{
+  return GCaps.max_batch_vertices;
+}
+
+int GPU_max_vertex_attribs(void)
+{
+  return GCaps.max_vertex_attribs;
+}
+
+int GPU_max_varying_floats(void)
+{
+  return GCaps.max_varying_floats;
+}
+
+int GPU_extensions_len(void)
+{
+  return GCaps.extensions_len;
+}
+
+const char *GPU_extension_get(int i)
+{
+  return GCaps.extension_get ? GCaps.extension_get(i) : "\0";
+}
+
 bool GPU_mip_render_workaround(void)
 {
   return GCaps.mip_render_workaround;

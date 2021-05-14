@@ -2258,6 +2258,17 @@ bNodeTree *ntreeCopyTree_ex_new_pointers(const bNodeTree *ntree,
   return new_ntree;
 }
 
+static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)
+{
+  int count = 0;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (ELEM(socket, link->fromsock, link->tosock)) {
+      count++;
+    }
+  }
+  return count;
+}
+
 /* also used via rna api, so we check for proper input output direction */
 bNodeLink *nodeAddLink(
     bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock)
@@ -2292,6 +2303,10 @@ bNodeLink *nodeAddLink(
 
   if (ntree) {
     ntree->update |= NTREE_UPDATE_LINKS;
+  }
+
+  if (link->tosock->flag & SOCK_MULTI_INPUT) {
+    link->multi_input_socket_index = node_count_links(ntree, link->tosock) - 1;
   }
 
   return link;
@@ -4312,7 +4327,7 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
 
   if (GS(id->name) == ID_NT) {
     bNodeTree *ngroup = (bNodeTree *)id;
-    if (ngroup->type == NTREE_GEOMETRY) {
+    if (ngroup->type == NTREE_GEOMETRY && (ngroup->update & NTREE_UPDATE_GROUP)) {
       LISTBASE_FOREACH (Object *, object, &main->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Nodes) {

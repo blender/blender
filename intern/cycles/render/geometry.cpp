@@ -46,6 +46,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry */
 
+PackFlags operator|=(PackFlags &pack_flags, uint32_t value)
+{
+  pack_flags = (PackFlags)((uint32_t)pack_flags | value);
+  return pack_flags;
+}
+
 NODE_ABSTRACT_DEFINE(Geometry)
 {
   NodeType *type = NodeType::add("geometry_base", NULL);
@@ -1236,7 +1242,16 @@ void GeometryManager::device_update_bvh(Device *device,
 
   const bool can_refit = scene->bvh != nullptr &&
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX);
-  const bool pack_all = scene->bvh == nullptr;
+
+  PackFlags pack_flags = PackFlags::PACK_NONE;
+
+  if (scene->bvh == nullptr) {
+    pack_flags |= PackFlags::PACK_ALL;
+  }
+
+  if (dscene->prim_visibility.is_modified()) {
+    pack_flags |= PackFlags::PACK_VISIBILITY;
+  }
 
   BVH *bvh = scene->bvh;
   if (!scene->bvh) {
@@ -1274,10 +1289,14 @@ void GeometryManager::device_update_bvh(Device *device,
 
     pack.root_index = -1;
 
-    if (!pack_all) {
+    if (pack_flags != PackFlags::PACK_ALL) {
       /* if we do not need to recreate the BVH, then only the vertices are updated, so we can
        * safely retake the memory */
       dscene->prim_tri_verts.give_data(pack.prim_tri_verts);
+
+      if ((pack_flags & PackFlags::PACK_VISIBILITY) != 0) {
+        dscene->prim_visibility.give_data(pack.prim_visibility);
+      }
     }
     else {
       /* It is not strictly necessary to skip those resizes we if do not have to repack, as the OS
@@ -1306,13 +1325,21 @@ void GeometryManager::device_update_bvh(Device *device,
     // Iterate over scene mesh list instead of objects, since 'optix_prim_offset' was calculated
     // based on that list, which may be ordered differently from the object list.
     foreach (Geometry *geom, scene->geometry) {
-      if (!pack_all && !geom->is_modified()) {
+      /* Make a copy of the pack_flags so the current geometry's flags do not pollute the others'.
+       */
+      PackFlags geom_pack_flags = pack_flags;
+
+      if (geom->is_modified()) {
+        geom_pack_flags |= PackFlags::PACK_VERTICES;
+      }
+
+      if (geom_pack_flags == PACK_NONE) {
         continue;
       }
 
       const pair<int, uint> &info = geometry_to_object_info[geom];
       pool.push(function_bind(
-          &Geometry::pack_primitives, geom, &pack, info.first, info.second, pack_all));
+          &Geometry::pack_primitives, geom, &pack, info.first, info.second, geom_pack_flags));
     }
     pool.wait_work();
   }
@@ -1347,7 +1374,7 @@ void GeometryManager::device_update_bvh(Device *device,
     dscene->prim_type.steal_data(pack.prim_type);
     dscene->prim_type.copy_to_device();
   }
-  if (pack.prim_visibility.size() && (dscene->prim_visibility.need_realloc() || has_bvh2_layout)) {
+  if (pack.prim_visibility.size() && (dscene->prim_visibility.is_modified() || has_bvh2_layout)) {
     dscene->prim_visibility.steal_data(pack.prim_visibility);
     dscene->prim_visibility.copy_to_device();
   }
@@ -1593,6 +1620,10 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       dscene->curves.tag_realloc();
       dscene->curve_keys.tag_realloc();
     }
+  }
+
+  if ((update_flags & VISIBILITY_MODIFIED) != 0) {
+    dscene->prim_visibility.tag_modified();
   }
 
   if (device_update_flags & ATTR_FLOAT_NEEDS_REALLOC) {
@@ -1921,7 +1952,8 @@ void GeometryManager::device_update(Device *device,
    * Also update the BVH if the transformations change, we cannot rely on tagging the Geometry
    * as modified in this case, as we may accumulate displacement if the vertices do not also
    * change. */
-  bool need_update_scene_bvh = (scene->bvh == nullptr || (update_flags & TRANSFORM_MODIFIED) != 0);
+  bool need_update_scene_bvh = (scene->bvh == nullptr ||
+                                (update_flags & (TRANSFORM_MODIFIED | VISIBILITY_MODIFIED)) != 0);
   {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {

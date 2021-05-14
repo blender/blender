@@ -31,6 +31,7 @@
 
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
@@ -57,6 +58,30 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Use new texture socket in Attribute Sample Texture node. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE) {
+          continue;
+        }
+        if (node->id == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+          if (socket->type == SOCK_TEXTURE) {
+            bNodeSocketValueTexture *socket_value = (bNodeSocketValueTexture *)
+                                                        socket->default_value;
+            socket_value->value = (Tex *)node->id;
+            break;
+          }
+        }
+        node->id = NULL;
+      }
+    }
   }
 }
 

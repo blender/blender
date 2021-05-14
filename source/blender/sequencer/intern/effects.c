@@ -3033,10 +3033,9 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
     i = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->machine - 1, seqbasep);
   }
 
-  /* found nothing? so let's work the way up the metastrip stack, so
+  /* Found nothing? so let's work the way up the meta-strip stack, so
    * that it is possible to group a bunch of adjustment strips into
-   * a metastrip and have that work on everything below the metastrip
-   */
+   * a meta-strip and have that work on everything below the meta-strip. */
 
   if (!i) {
     Sequence *meta;

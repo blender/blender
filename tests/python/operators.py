@@ -316,13 +316,13 @@ def main():
         # normal case
         MeshTest("CubeFaceUnsubdivide", "testCubeUnsubdivide", "expectedCubeUnsubdivide",
                  [OperatorSpecEditMode("unsubdivide", {}, "FACE", {i for i in range(6)})]),
-        
+
         # T87259 - test cases
         MeshTest("CubeEdgeUnsubdivide", "testCubeEdgeUnsubdivide", "expectedCubeEdgeUnsubdivide",
                  [OperatorSpecEditMode("unsubdivide", {}, "EDGE", {i for i in range(6)})]),
         MeshTest("UVSphereUnsubdivide", "testUVSphereUnsubdivide", "expectedUVSphereUnsubdivide",
                 [OperatorSpecEditMode("unsubdivide", {'iterations': 9}, "FACE", {i for i in range(512)})]),
-        
+
         # vert connect path
         # Tip: It works only if there is an already existing face or more than 2 vertices.
         MeshTest("CubeVertConnectPath", "testCubeVertConnectPath", "expectedCubeVertConnectPath",

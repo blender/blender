@@ -133,6 +133,19 @@ void MaterialNode::add_link(bNode *from_node, int from_index, bNode *to_node, in
   nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
 }
 
+void MaterialNode::add_link(bNode *from_node,
+                            const char *from_label,
+                            bNode *to_node,
+                            const char *to_label)
+{
+  bNodeSocket *from_socket = nodeFindSocket(from_node, SOCK_OUT, from_label);
+  bNodeSocket *to_socket = nodeFindSocket(to_node, SOCK_IN, to_label);
+
+  if (from_socket && to_socket) {
+    nodeAddLink(ntree, from_node, from_socket, to_node, to_socket);
+  }
+}
+
 void MaterialNode::set_reflectivity(COLLADAFW::FloatOrParam &val)
 {
   float reflectivity = val.getFloatValue();
@@ -326,7 +339,7 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
   else if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Emission");
     if (texture_node != nullptr) {
-      add_link(texture_node, 0, shader_node, 0);
+      add_link(texture_node, "Color", shader_node, "Emission");
     }
   }
 
