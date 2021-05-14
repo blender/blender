@@ -6,6 +6,7 @@ namespace blender::draw {
 
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
 class DrawTest : public blender::gpu::GPUTest {
+ public:
   void SetUp() override;
 };
 
