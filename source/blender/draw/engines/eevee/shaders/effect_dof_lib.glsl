@@ -136,7 +136,7 @@ const float layer_offset_fg = 0.5 + 1.0;
 /* Extra offset for convolution layers to avoid light leaking from background. */
 const float layer_offset = 0.5 + 0.5;
 
-#define DOF_MAX_SLIGHT_FOCUS_RADIUS 5
+#define DOF_MAX_SLIGHT_FOCUS_RADIUS 16
 
 float dof_layer_weight(float coc, const bool is_foreground)
 {
