@@ -564,12 +564,14 @@ static bool ntree_shader_has_displacement(bNodeTree *ntree,
     /* Non-cycles node is used as an output. */
     return false;
   }
+
   if ((displacement->link != NULL) && !(displacement->link->flag & NODE_LINK_MUTED)) {
     *r_node = displacement->link->fromnode;
     *r_socket = displacement->link->fromsock;
     *r_link = displacement->link;
+    return true;
   }
-  return displacement->link != NULL;
+  return false;
 }
 
 static void ntree_shader_relink_node_normal(bNodeTree *ntree,

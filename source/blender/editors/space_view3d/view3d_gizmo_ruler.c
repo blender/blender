@@ -446,7 +446,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
 
   gpl = view3d_ruler_layer_get(gpd);
   if (gpl == NULL) {
-    gpl = BKE_gpencil_layer_addnew(gpd, ruler_name, false);
+    gpl = BKE_gpencil_layer_addnew(gpd, ruler_name, false, false);
     copy_v4_v4(gpl->color, U.gpencil_new_layer_col);
     gpl->thickness = 1;
     gpl->flag |= GP_LAYER_HIDE | GP_LAYER_IS_RULER;

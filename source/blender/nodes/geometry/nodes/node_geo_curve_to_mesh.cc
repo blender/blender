@@ -198,7 +198,7 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   if (profile_spline.type() == Spline::Type::Bezier) {
     const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile_spline);
     Span<int> control_point_offsets = bezier_spline.control_point_offsets();
-    for (const int i : control_point_offsets.index_range()) {
+    for (const int i : IndexRange(bezier_spline.size())) {
       if (bezier_spline.point_is_sharp(i)) {
         mark_edges_sharp(r_edges.slice(
             spline_edges_start + spline_edge_len * control_point_offsets[i], spline_edge_len));

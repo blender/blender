@@ -837,8 +837,8 @@ void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 
   /* layers */
   /* NOTE: For now, we just add new layers, to make it easier to separate out old/new instances */
-  bGPDlayer *Fills = BKE_gpencil_layer_addnew(gpd, "Fills", false);
-  bGPDlayer *Lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
+  bGPDlayer *Fills = BKE_gpencil_layer_addnew(gpd, "Fills", false, false);
+  bGPDlayer *Lines = BKE_gpencil_layer_addnew(gpd, "Lines", true, false);
 
   /* frames */
   /* NOTE: No need to check for existing, as this will take care of it for us */
