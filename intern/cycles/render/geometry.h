@@ -50,7 +50,7 @@ enum PackFlags : uint32_t {
   /* Pack the geometry information (e.g. triangle or curve keys indices). */
   PACK_GEOMETRY = (1u << 0),
 
-  /* Pack the vertice, for Meshes and Volumes' bouding meshes. */
+  /* Pack the vertices, for Meshes and Volumes' bounding meshes. */
   PACK_VERTICES = (1u << 1),
 
   /* Pack the visibility flags for each triangle or curve. */

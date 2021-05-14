@@ -448,8 +448,8 @@ static Sequence *seq_dupli(const Scene *scene_src,
     seqn->strip->stripdata = NULL;
 
     BLI_listbase_clear(&seqn->seqbase);
-    /* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
-    /* - seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);*/
+    /* WARNING: This meta-strip is not recursively duplicated here - do this after! */
+    // seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);
   }
   else if (seq->type == SEQ_TYPE_SCENE) {
     seqn->strip->stripdata = NULL;

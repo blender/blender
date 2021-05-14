@@ -1273,7 +1273,7 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
 }
 
 /**
- * When in modal nad not set, initializes a default orientation for the mode.
+ * When in modal and not set, initializes a default orientation for the mode.
  */
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
 {

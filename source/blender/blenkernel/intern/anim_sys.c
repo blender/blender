@@ -1794,7 +1794,7 @@ static void nlaevalchan_combine_quaternion(NlaEvalChannelSnapshot *lower_necs,
 }
 
 /**
- * Based on blendmode and mixmode, blend lower necs with upper necs into blended necs.
+ * Based on blend-mode and mix-mode, blend lower necs with upper necs into blended necs.
  *
  * Each upper value's blend domain determines whether to blend or to copy directly
  * from lower.
@@ -1879,7 +1879,7 @@ static void nlaevalchan_blend_value_get_inverted_upper_evalchan(
 }
 
 /**
- * Based on mixmode, solve for the upper values such that when lower combined with upper then we
+ * Based on mix-mode, solve for the upper values such that when lower combined with upper then we
  * get blended values as a result.
  *
  * Only processes blended values in the remap domain. Successfully remapped upper values are placed
@@ -2407,12 +2407,12 @@ static void nla_eval_domain_strips(PointerRNA *ptr,
                                    GSet *touched_actions)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    /* check strip's action */
+    /* Check strip's action. */
     if (strip->act) {
       nla_eval_domain_action(ptr, channels, strip->act, touched_actions);
     }
 
-    /* check sub-strips (if metas) */
+    /* Check sub-strips (if meta-strips). */
     nla_eval_domain_strips(ptr, channels, &strip->strips, touched_actions);
   }
 }
@@ -2859,9 +2859,9 @@ void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapsh
  * Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
  * to the given \a upper_blendmode and \a upper_influence.
  *
- * For \a upper_snapshot, blending limited to values in the \a blend_domain. For Replace blendmode,
- * this allows the upper snapshot to have a location XYZ channel where only a subset of values are
- * blended.
+ * For \a upper_snapshot, blending limited to values in the \a blend_domain.
+ * For Replace blend-mode, this allows the upper snapshot to have a location XYZ channel
+ * where only a subset of values are blended.
  */
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,

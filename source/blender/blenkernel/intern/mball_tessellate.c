@@ -162,7 +162,7 @@ static void make_box_from_metaelem(Box *r, const MetaElem *ml)
 }
 
 /**
- * Partitions part of mainb array [start, end) along axis s. Returns i,
+ * Partitions part of #process.mainb array [start, end) along axis s. Returns i,
  * where centroids of elements in the [start, i) segment lie "on the right side" of div,
  * and elements in the [i, end) segment lie "on the left"
  */
@@ -1170,8 +1170,9 @@ static void polygonize(PROCESS *process)
 
 /**
  * Iterates over ALL objects in the scene and all of its sets, including
- * making all duplis(not only metas). Copies metas to mainb array.
- * Computes bounding boxes for building BVH. */
+ * making all duplis (not only meta-elements). Copies meta-elements to #process.mainb array.
+ * Computes bounding boxes for building BVH.
+ */
 static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Object *ob)
 {
   Scene *sce_iter = scene;
