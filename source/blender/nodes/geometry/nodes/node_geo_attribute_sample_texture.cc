@@ -30,6 +30,7 @@
 
 static bNodeSocketTemplate geo_node_attribute_sample_texture_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
+    {SOCK_TEXTURE, N_("Texture")},
     {SOCK_STRING, N_("Mapping")},
     {SOCK_STRING, N_("Result")},
     {-1, ""},
@@ -39,13 +40,6 @@ static bNodeSocketTemplate geo_node_attribute_sample_texture_out[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
     {-1, ""},
 };
-
-static void geo_node_attribute_sample_texture_layout(uiLayout *layout,
-                                                     bContext *C,
-                                                     PointerRNA *ptr)
-{
-  uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
-}
 
 namespace blender::nodes {
 
@@ -71,8 +65,7 @@ static AttributeDomain get_result_domain(const GeometryComponent &component,
 
 static void execute_on_component(GeometryComponent &component, const GeoNodeExecParams &params)
 {
-  const bNode &node = params.node();
-  Tex *texture = reinterpret_cast<Tex *>(node.id);
+  Tex *texture = params.get_input<Tex *>("Texture");
   if (texture == nullptr) {
     return;
   }
@@ -144,6 +137,5 @@ void register_node_type_geo_sample_texture()
   node_type_socket_templates(
       &ntype, geo_node_attribute_sample_texture_in, geo_node_attribute_sample_texture_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_attribute_sample_texture_exec;
-  ntype.draw_buttons = geo_node_attribute_sample_texture_layout;
   nodeRegisterType(&ntype);
 }

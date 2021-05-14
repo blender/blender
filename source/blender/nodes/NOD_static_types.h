@@ -281,7 +281,7 @@ DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_MIX, def_geo_attribute_mix, "ATTRIBUTE_
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_PROXIMITY, def_geo_attribute_proximity, "ATTRIBUTE_PROXIMITY", AttributeProximity, "Attribute Proximity", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_RANDOMIZE, def_geo_attribute_randomize, "ATTRIBUTE_RANDOMIZE", AttributeRandomize, "Attribute Randomize", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_REMOVE, 0, "ATTRIBUTE_REMOVE", AttributeRemove, "Attribute Remove", "")
-DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE, def_geo_attribute_sample_texture, "ATTRIBUTE_SAMPLE_TEXTURE", AttributeSampleTexture, "Attribute Sample Texture", "")
+DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE, 0, "ATTRIBUTE_SAMPLE_TEXTURE", AttributeSampleTexture, "Attribute Sample Texture", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_SEPARATE_XYZ, def_geo_attribute_separate_xyz, "ATTRIBUTE_SEPARATE_XYZ", AttributeSeparateXYZ, "Attribute Separate XYZ", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_TRANSFER, def_geo_attribute_transfer, "ATTRIBUTE_TRANSFER", AttributeTransfer, "Attribute Transfer", "")
 DefNode(GeometryNode, GEO_NODE_ATTRIBUTE_VECTOR_MATH, def_geo_attribute_vector_math, "ATTRIBUTE_VECTOR_MATH", AttributeVectorMath, "Attribute Vector Math", "")
