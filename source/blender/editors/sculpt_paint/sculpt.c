@@ -780,6 +780,10 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
 
   for (int i = 0; i < ss->pmap[index].count; i++) {
+    if (ss->face_sets[vert_map->indices[i]] < 0) {
+      /* Skip connectivity from hidden faces. */
+      continue;
+    }
     const MPoly *p = &ss->mpoly[vert_map->indices[i]];
     uint f_adj_v[2];
     if (poly_get_adj_loops_from_vert(p, ss->mloop, index, f_adj_v) != -1) {
