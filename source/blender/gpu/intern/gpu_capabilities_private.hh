@@ -41,6 +41,15 @@ struct GPUCapabilities {
   int max_textures_vert = 0;
   int max_textures_geom = 0;
   int max_textures_frag = 0;
+  int max_uniforms_vert = 0;
+  int max_uniforms_frag = 0;
+  int max_batch_indices = 0;
+  int max_batch_vertices = 0;
+  int max_vertex_attribs = 0;
+  int max_varying_floats = 0;
+  int extensions_len = 0;
+  const char *(*extension_get)(int);
+
   bool mem_stats_support = false;
   bool shader_image_load_store_support = false;
   /* OpenGL related workarounds. */

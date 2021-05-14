@@ -142,9 +142,9 @@ void GLBackend::platform_init()
         GPG.support_level = GPU_SUPPORT_LEVEL_LIMITED;
       }
     }
+    GPG.create_key(GPG.support_level, vendor, renderer, version);
+    GPG.create_gpu_name(vendor, renderer, version);
   }
-  GPG.create_key(GPG.support_level, vendor, renderer, version);
-  GPG.create_gpu_name(vendor, renderer, version);
 }
 
 void GLBackend::platform_exit()
@@ -202,6 +202,11 @@ static bool detect_mip_render_workaround()
   debug::check_gl_error("Cubemap Workaround End9");
 
   return enable_workaround;
+}
+
+const char *gl_extension_get(int i)
+{
+  return (char *)glGetStringi(GL_EXTENSIONS, i);
 }
 
 static void detect_workarounds()
@@ -419,6 +424,16 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &GCaps.max_textures_vert);
   glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &GCaps.max_textures_geom);
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &GCaps.max_textures);
+  glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &GCaps.max_uniforms_vert);
+  glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &GCaps.max_uniforms_frag);
+  glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &GCaps.max_batch_indices);
+  glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &GCaps.max_batch_vertices);
+  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &GCaps.max_vertex_attribs);
+  glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
+
+  glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
+  GCaps.extension_get = gl_extension_get;
+
   GCaps.mem_stats_support = GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo;
   GCaps.shader_image_load_store_support = GLEW_ARB_shader_image_load_store;
   /* GL specific capabilities. */

@@ -30,6 +30,7 @@
 
 #include "../generic/python_utildefines.h"
 
+#include "gpu_py_capabilities.h"
 #include "gpu_py_matrix.h"
 #include "gpu_py_select.h"
 #include "gpu_py_state.h"
@@ -59,6 +60,9 @@ PyObject *BPyInit_gpu(void)
   mod = PyModule_Create(&pygpu_module_def);
 
   PyModule_AddObject(mod, "types", (submodule = bpygpu_types_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "capabilities", (submodule = bpygpu_capabilities_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "matrix", (submodule = bpygpu_matrix_init()));
