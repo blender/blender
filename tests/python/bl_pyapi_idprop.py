@@ -15,12 +15,12 @@ class TestHelper:
 
     def setUp(self):
         self._id = bpy.context.scene
-        assert(len(self._id.keys()) == 0 or self._id.keys() == ["cycles"])
+        self._id.pop("cycles", None)
+        assert(len(self._id.keys()) == 0)
 
     def tearDown(self):
         for key in list(self._id.keys()):
-            if key != "cycles":
-                del self._id[key]
+            del self._id[key]
 
     def assertAlmostEqualSeq(self, list1, list2):
         self.assertEqual(len(list1), len(list2))

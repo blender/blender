@@ -766,7 +766,7 @@ static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
 }
 
 /* for simple, non nested types this is the same as BPy_IDGroup_WrapData */
-static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
+PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
   switch (prop->type) {
     case IDP_STRING:
@@ -919,7 +919,7 @@ static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
     return NULL;
   }
 
-  IDP_RemoveFromGroup(self->prop, idprop);
+  IDP_FreeFromGroup(self->prop, idprop);
   return pyform;
 }
 
