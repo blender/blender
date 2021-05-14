@@ -852,8 +852,6 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
   }
   ntree->is_updating = false;
 
-  do_tag_update |= ED_node_is_geometry(snode);
-
   ntreeUpdateTree(bmain, ntree);
   snode_notify(C, snode);
   if (do_tag_update) {
@@ -1291,8 +1289,6 @@ static int cut_links_exec(bContext *C, wmOperator *op)
       }
     }
 
-    do_tag_update |= ED_node_is_geometry(snode);
-
     if (found) {
       ntreeUpdateTree(CTX_data_main(C), snode->edittree);
       snode_notify(C, snode);
@@ -1398,8 +1394,6 @@ static int mute_links_exec(bContext *C, wmOperator *op)
       }
       link->flag &= ~NODE_LINK_TEST;
     }
-
-    do_tag_update |= ED_node_is_geometry(snode);
 
     ntreeUpdateTree(CTX_data_main(C), snode->edittree);
     snode_notify(C, snode);

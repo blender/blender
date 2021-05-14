@@ -4327,7 +4327,7 @@ void ntreeUpdateAllUsers(Main *main, ID *id)
 
   if (GS(id->name) == ID_NT) {
     bNodeTree *ngroup = (bNodeTree *)id;
-    if (ngroup->type == NTREE_GEOMETRY) {
+    if (ngroup->type == NTREE_GEOMETRY && (ngroup->update & NTREE_UPDATE_GROUP)) {
       LISTBASE_FOREACH (Object *, object, &main->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_Nodes) {
