@@ -25,7 +25,6 @@
 
 #include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
-#include "BLI_function_ref.hh"
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -56,79 +55,6 @@ class ComponentAttributeProviders;
 }
 
 class GeometryComponent;
-
-/**
- * Contains information about an attribute in a geometry component.
- * More information can be added in the future. E.g. whether the attribute is builtin and how it is
- * stored (uv map, vertex group, ...).
- */
-struct AttributeMetaData {
-  AttributeDomain domain;
-  CustomDataType data_type;
-};
-
-/* Returns false when the iteration should be stopped. */
-using AttributeForeachCallback = blender::FunctionRef<bool(blender::StringRefNull attribute_name,
-                                                           const AttributeMetaData &meta_data)>;
-
-/**
- * Base class for the attribute intializer types described below.
- */
-struct AttributeInit {
-  enum class Type {
-    Default,
-    VArray,
-    MoveArray,
-  };
-  Type type;
-  AttributeInit(const Type type) : type(type)
-  {
-  }
-};
-
-/**
- * Create an attribute using the default value for the data type.
- * The default values may depend on the attribute provider implementation.
- */
-struct AttributeInitDefault : public AttributeInit {
-  AttributeInitDefault() : AttributeInit(Type::Default)
-  {
-  }
-};
-
-/**
- * Create an attribute by copying data from an existing virtual array. The virtual array
- * must have the same type as the newly created attribute.
- *
- * Note that this can be used to fill the new attribute with the default
- */
-struct AttributeInitVArray : public AttributeInit {
-  const blender::fn::GVArray *varray;
-
-  AttributeInitVArray(const blender::fn::GVArray *varray)
-      : AttributeInit(Type::VArray), varray(varray)
-  {
-  }
-};
-
-/**
- * Create an attribute with a by passing ownership of a pre-allocated contiguous array of data.
- * Sometimes data is created before a geometry component is available. In that case, it's
- * preferable to move data directly to the created attribute to avoid a new allocation and a copy.
- *
- * Note that this will only have a benefit for attributes that are stored directly as contiguous
- * arrays, so not for some built-in attributes.
- *
- * The array must be allocated with MEM_*, since `attribute_try_create` will free the array if it
- * can't be used directly, and that is generally how Blender expects custom data to be allocated.
- */
-struct AttributeInitMove : public AttributeInit {
-  void *data = nullptr;
-
-  AttributeInitMove(void *data) : AttributeInit(Type::MoveArray), data(data)
-  {
-  }
-};
 
 /**
  * This is the base class for specialized geometry component types.
