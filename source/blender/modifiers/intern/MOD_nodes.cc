@@ -684,8 +684,11 @@ static void reset_tree_ui_storage(Span<const blender::nodes::NodeTreeRef *> tree
 
 static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
 {
-  Vector<SpaceSpreadsheet *> spreadsheets;
   wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return {};
+  }
+  Vector<SpaceSpreadsheet *> spreadsheets;
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
