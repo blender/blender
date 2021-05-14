@@ -68,6 +68,9 @@ extern "C" {
 
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver);
 eGPUSupportLevel GPU_platform_support_level(void);
+const char *GPU_platform_vendor(void);
+const char *GPU_platform_renderer(void);
+const char *GPU_platform_version(void);
 const char *GPU_platform_support_level_key(void);
 const char *GPU_platform_gpu_name(void);
 

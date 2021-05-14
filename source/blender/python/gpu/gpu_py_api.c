@@ -32,6 +32,7 @@
 
 #include "gpu_py_capabilities.h"
 #include "gpu_py_matrix.h"
+#include "gpu_py_platform.h"
 #include "gpu_py_select.h"
 #include "gpu_py_state.h"
 #include "gpu_py_types.h"
@@ -66,6 +67,9 @@ PyObject *BPyInit_gpu(void)
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "matrix", (submodule = bpygpu_matrix_init()));
+  PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+
+  PyModule_AddObject(mod, "platform", (submodule = bpygpu_platform_init()));
   PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 
   PyModule_AddObject(mod, "select", (submodule = bpygpu_select_init()));
