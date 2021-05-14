@@ -478,6 +478,7 @@ add_dependencies(bf_draw bf_dna)
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
+      tests/draw_testing.cc
       tests/shaders_test.cc
     )
     set(TEST_INC
