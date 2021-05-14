@@ -5006,8 +5006,13 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
     idprop = IDP_GetPropertyFromGroup(group, key);
 
     if (idprop) {
-      PyObject *ret = BPy_IDGroup_WrapData(self->ptr.owner_id, idprop, group);
-      IDP_RemoveFromGroup(group, idprop);
+      /* Don't use #BPy_IDGroup_WrapData as the id-property is being removed from the ID. */
+      PyObject *ret = BPy_IDGroup_MapDataToPy(idprop);
+      /* Internal error. */
+      if (UNLIKELY(ret == NULL)) {
+        return NULL;
+      }
+      IDP_FreeFromGroup(group, idprop);
       return ret;
     }
   }
