@@ -17,9 +17,9 @@
 
 set(INC
   ../include
+  ../../blenfont
   ../../blenkernel
   ../../blenlib
-  ../../blenfont
   ../../blentranslation
   ../../depsgraph
   ../../gpu
