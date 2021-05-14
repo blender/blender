@@ -1689,7 +1689,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   tgpf->gpd = gpd;
   tgpf->gpl = BKE_gpencil_layer_active_get(gpd);
   if (tgpf->gpl == NULL) {
-    tgpf->gpl = BKE_gpencil_layer_addnew(tgpf->gpd, DATA_("GP_Layer"), true);
+    tgpf->gpl = BKE_gpencil_layer_addnew(tgpf->gpd, DATA_("GP_Layer"), true, false);
   }
 
   tgpf->lock_axis = ts->gp_sculpt.lock_axis;

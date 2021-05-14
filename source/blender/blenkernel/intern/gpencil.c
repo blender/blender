@@ -653,9 +653,13 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
  * \param gpd: Grease pencil data-block
  * \param name: Name of the layer
  * \param setactive: Set as active
+ * \param add_to_header: Used to force the layer added at header
  * \return Pointer to new layer
  */
-bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setactive)
+bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
+                                    const char *name,
+                                    const bool setactive,
+                                    const bool add_to_header)
 {
   bGPDlayer *gpl = NULL;
   bGPDlayer *gpl_active = NULL;
@@ -671,14 +675,18 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
   gpl_active = BKE_gpencil_layer_active_get(gpd);
 
   /* Add to data-block. */
-  if (gpl_active == NULL) {
-    BLI_addtail(&gpd->layers, gpl);
+  if (add_to_header) {
+    BLI_addhead(&gpd->layers, gpl);
   }
   else {
-    /* if active layer, add after that layer */
-    BLI_insertlinkafter(&gpd->layers, gpl_active, gpl);
+    if (gpl_active == NULL) {
+      BLI_addtail(&gpd->layers, gpl);
+    }
+    else {
+      /* if active layer, add after that layer */
+      BLI_insertlinkafter(&gpd->layers, gpl_active, gpl);
+    }
   }
-
   /* annotation vs GP Object behavior is slightly different */
   if (gpd->flag & GP_DATA_ANNOTATIONS) {
     /* set default color of new strokes for this layer */

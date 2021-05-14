@@ -108,7 +108,10 @@ void BKE_gpencil_stroke_select_index_reset(struct bGPDstroke *gps);
 
 struct bGPDframe *BKE_gpencil_frame_addnew(struct bGPDlayer *gpl, int cframe);
 struct bGPDframe *BKE_gpencil_frame_addcopy(struct bGPDlayer *gpl, int cframe);
-struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd, const char *name, bool setactive);
+struct bGPDlayer *BKE_gpencil_layer_addnew(struct bGPdata *gpd,
+                                           const char *name,
+                                           const bool setactive,
+                                           const bool add_to_header);
 struct bGPdata *BKE_gpencil_data_addnew(struct Main *bmain, const char name[]);
 
 struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src,

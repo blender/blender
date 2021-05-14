@@ -1677,7 +1677,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
 
   if (gpl == NULL) {
     /* no active layer - let's just create one */
-    gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+    gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true, false);
   }
   else if ((BKE_gpencil_layer_is_editable(gpl) == false) && (type == GP_COPY_TO_ACTIVE)) {
     BKE_report(
@@ -1835,7 +1835,7 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Create a new layer. */
-    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true);
+    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
   }
 
   if (target_layer == NULL) {
@@ -4600,7 +4600,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
             if (gps->flag & GP_STROKE_SELECT) {
               /* add layer if not created before */
               if (gpl_dst == NULL) {
-                gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false);
+                gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false, false);
               }
 
               /* add frame if not created before */

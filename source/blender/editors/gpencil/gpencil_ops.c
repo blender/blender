@@ -651,7 +651,7 @@ void ED_operatortypes_gpencil(void)
 
   WM_operatortype_append(GPENCIL_OT_material_to_vertex_color);
   WM_operatortype_append(GPENCIL_OT_extract_palette_vertex);
-  WM_operatortype_append(GPENCIL_OT_materials_append_to_object);
+  WM_operatortype_append(GPENCIL_OT_materials_copy_to_object);
 
   WM_operatortype_append(GPENCIL_OT_transform_fill);
   WM_operatortype_append(GPENCIL_OT_reset_transform_fill);

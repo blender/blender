@@ -515,7 +515,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
     if (collection != NULL) {
       gpl = BKE_gpencil_layer_named_get(gpd, collection->id.name + 2);
       if (gpl == NULL) {
-        gpl = BKE_gpencil_layer_addnew(gpd, collection->id.name + 2, true);
+        gpl = BKE_gpencil_layer_addnew(gpd, collection->id.name + 2, true, false);
       }
     }
   }
@@ -523,7 +523,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   if (gpl == NULL) {
     gpl = BKE_gpencil_layer_active_get(gpd);
     if (gpl == NULL) {
-      gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+      gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true, false);
     }
   }
 

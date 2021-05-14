@@ -207,7 +207,7 @@ static void trace_initialize_job_data(TraceJob *trace_job)
   trace_job->gpd = (bGPdata *)trace_job->ob_gpencil->data;
   trace_job->gpl = BKE_gpencil_layer_active_get(trace_job->gpd);
   if (trace_job->gpl == NULL) {
-    trace_job->gpl = BKE_gpencil_layer_addnew(trace_job->gpd, DATA_("Trace"), true);
+    trace_job->gpl = BKE_gpencil_layer_addnew(trace_job->gpd, DATA_("Trace"), true, false);
   }
 }
 
