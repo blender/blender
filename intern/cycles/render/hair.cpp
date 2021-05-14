@@ -522,7 +522,8 @@ void Hair::pack_primitives(PackedBVH *pack, int object, uint visibility, PackFla
     uint type = has_motion_blur() ?
                     ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
                                                      PRIMITIVE_MOTION_CURVE_THICK) :
-                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON : PRIMITIVE_CURVE_THICK);
+                    ((curve_shape == CURVE_RIBBON) ? PRIMITIVE_CURVE_RIBBON :
+                                                     PRIMITIVE_CURVE_THICK);
 
     size_t index = 0;
     for (size_t j = 0; j < num_curves(); ++j) {

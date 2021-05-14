@@ -59,7 +59,7 @@ enum PackFlags : uint32_t {
   PACK_ALL = (PACK_GEOMETRY | PACK_VERTICES | PACK_VISIBILITY),
 };
 
-PackFlags operator |= (PackFlags &pack_flags, uint32_t value);
+PackFlags operator|=(PackFlags &pack_flags, uint32_t value);
 
 /* Geometry
  *
@@ -144,7 +144,10 @@ class Geometry : public Node {
                    int n,
                    int total);
 
-  virtual void pack_primitives(PackedBVH *pack, int object, uint visibility, PackFlags pack_flags) = 0;
+  virtual void pack_primitives(PackedBVH *pack,
+                               int object,
+                               uint visibility,
+                               PackFlags pack_flags) = 0;
 
   /* Check whether the geometry should have own BVH built separately. Briefly,
    * own BVH is needed for geometry, if:
