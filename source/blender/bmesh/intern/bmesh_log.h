@@ -36,9 +36,11 @@ void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert);
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
 
 /* Free all the data in a BMLog including the log itself */
-void BM_log_free(BMLog *log, bool safe_mode);
+bool BM_log_free(BMLog *log, bool safe_mode);
 
 BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
+
+void BM_log_set_bm(BMesh *bm, BMLog *log);
 
     /* Get the number of log entries */
 int BM_log_length(const BMLog *log);

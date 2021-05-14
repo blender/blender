@@ -82,6 +82,43 @@
 #include <math.h>
 #include <stdlib.h>
 
+/*
+Copies the bmesh, but orders the elements
+according to PBVH node to improve memory locality
+*/
+void SCULPT_reorder_bmesh(SculptSession *ss)
+{
+#if 0
+  SCULPT_face_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  int actv = ss->active_vertex_index.i ? BKE_pbvh_vertex_index_to_table(ss->pbvh, ss->active_vertex_index) : -1;
+  int actf =ss->active_face_index.i ? BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index) : -1;
+
+  if (ss->bm_log) {
+    BM_log_full_mesh(ss->bm, ss->bm_log);
+  }
+
+  ss->bm = BKE_pbvh_reorder_bmesh(ss->pbvh);
+
+  SCULPT_face_random_access_ensure(ss);
+  SCULPT_vertex_random_access_ensure(ss);
+
+  if (actv >= 0) {
+    ss->active_vertex_index = BKE_pbvh_table_index_to_vertex(ss->pbvh, actv);
+  }
+  if (actf >= 0) {
+    ss->active_face_index = BKE_pbvh_table_index_to_face(ss->pbvh, actf);
+  }
+  
+  SCULPT_dyntopo_node_layers_update_offsets(ss);
+
+  if (ss->bm_log) {
+    BM_log_set_bm(ss->bm, ss->bm_log);
+  }
+#endif
+}
+
 void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
 {
   if (bm->totloop == bm->totface * 3) {

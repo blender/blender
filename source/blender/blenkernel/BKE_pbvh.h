@@ -715,6 +715,8 @@ struct BMVert *BKE_pbvh_vert_create_bmesh(
     PBVH *pbvh, float co[3], float no[3], PBVHNode *node, struct BMVert *v_example);
 PBVHNode *BKE_pbvh_node_from_face_bmesh(PBVH *pbvh, struct BMFace *f);
 
+struct BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh);
+
 #ifdef __cplusplus
 }
 #endif

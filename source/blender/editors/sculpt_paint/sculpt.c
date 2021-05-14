@@ -167,6 +167,10 @@ const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
 
 const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
 {
+  if (ss->bm) {
+    return ((BMVert*)index.i)->co;
+  }
+
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       if (ss->shapekey_active || ss->deform_modifiers_active) {
@@ -1091,6 +1095,34 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
   iter->size++;
 }
 
+
+static void sculpt_vertex_neighbor_add_nocheck(SculptVertexNeighborIter *iter,
+                                       SculptVertRef neighbor,
+                                       int neighbor_index)
+{
+  if (iter->size >= iter->capacity) {
+    iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
+
+    if (iter->neighbors == iter->neighbors_fixed) {
+      iter->neighbors = MEM_mallocN(iter->capacity * sizeof(SculptVertRef), "neighbor array");
+      iter->neighbor_indices = MEM_mallocN(iter->capacity * sizeof(int), "neighbor array");
+
+      memcpy(iter->neighbors, iter->neighbors_fixed, sizeof(SculptVertRef) * iter->size);
+      memcpy(iter->neighbor_indices, iter->neighbor_indices_fixed, sizeof(int) * iter->size);
+    }
+    else {
+      iter->neighbors = MEM_reallocN_id(
+          iter->neighbors, iter->capacity * sizeof(SculptVertRef), "neighbor array");
+      iter->neighbor_indices = MEM_reallocN_id(
+          iter->neighbor_indices, iter->capacity * sizeof(int), "neighbor array");
+    }
+  }
+
+  iter->neighbors[iter->size] = neighbor;
+  iter->neighbor_indices[iter->size] = neighbor_index;
+  iter->size++;
+}
+
 static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
                                               SculptVertRef index,
                                               SculptVertexNeighborIter *iter)
@@ -1107,7 +1139,22 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->i = 0;
 
-#if 1  // note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
+#if 1
+  BMEdge *e = v->e;
+  do {
+    if (v == e->v1) {
+      sculpt_vertex_neighbor_add_nocheck(
+          iter, BKE_pbvh_make_vref((intptr_t)e->v2), BM_elem_index_get(e->v2));
+
+      e = e->v1_disk_link.next;
+    } else {
+      sculpt_vertex_neighbor_add_nocheck(
+          iter, BKE_pbvh_make_vref((intptr_t)e->v1), BM_elem_index_get(e->v1));
+
+      e = e->v2_disk_link.next;
+    }
+  } while (e != v->e);
+#elif 0  // note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
   BMEdge *e;
   BM_ITER_ELEM (e, &liter, v, BM_EDGES_OF_VERT) {
     BMVert *v_other = BM_edge_other_vert(e, v);

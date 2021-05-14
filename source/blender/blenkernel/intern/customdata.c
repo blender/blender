@@ -35,6 +35,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_endian_switch.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
@@ -2943,15 +2944,17 @@ bool CustomData_is_referenced_layer(struct CustomData *data, int type)
   return (layer->flag & CD_FLAG_NOFREE) != 0;
 }
 
-void CustomData_unmark_temporary_nocopy(CustomData *data) {
-  for (int i=0; i<data->totlayer; i++) {
+void CustomData_unmark_temporary_nocopy(CustomData *data)
+{
+  for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
       data->layers[i].flag &= ~CD_FLAG_NOCOPY;
     }
   }
 }
 
-void CustomData_mark_temporary_nocopy(CustomData *data) {
+void CustomData_mark_temporary_nocopy(CustomData *data)
+{
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
       data->layers[i].flag |= CD_FLAG_NOCOPY;
@@ -3915,7 +3918,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     }
   }
 
-  for (int dest_i=0; dest_i < dest->totlayer; dest_i++) {
+  for (int dest_i = 0; dest_i < dest->totlayer; dest_i++) {
     CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
     dest_i++;
   }

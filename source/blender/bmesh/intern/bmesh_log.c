@@ -782,6 +782,10 @@ void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert)
   log->cd_dyn_vert = cd_dyn_vert;
 }
 
+void BM_log_set_bm(BMesh *bm, BMLog *log) {
+  log->bm = bm;
+}
+
 /* Allocate, initialize, and assign a new BMLog */
 BMLog *BM_log_create(BMesh *bm, int cd_dyn_vert)
 {
@@ -913,7 +917,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
 /* Free all the data in a BMLog including the log itself
  * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
  */
-void BM_log_free(BMLog *log, bool safe_mode)
+bool BM_log_free(BMLog *log, bool safe_mode)
 {
   BMLogEntry *entry;
 
@@ -927,7 +931,7 @@ void BM_log_free(BMLog *log, bool safe_mode)
 
     bm_log_full_mesh_intern(log->bm, log, log->frozen_full_mesh);
 
-    return;
+    return false;
   }
 
   BLI_rw_mutex_end(&log->lock);
@@ -951,6 +955,8 @@ void BM_log_free(BMLog *log, bool safe_mode)
   }
 
   MEM_freeN(log);
+
+  return true;
 }
 
 /* Get the number of log entries */
@@ -1635,6 +1641,10 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 void BM_log_full_mesh(BMesh *bm, BMLog *log)
 {
   BMLogEntry *entry = log->current_entry;
+
+  if (!entry) {
+    entry = BM_log_entry_add_ex(bm, log, false);
+  }
 
   bool add = BLI_ghash_len(entry->added_faces) > 0;
   add |= BLI_ghash_len(entry->modified_verts) > 0;

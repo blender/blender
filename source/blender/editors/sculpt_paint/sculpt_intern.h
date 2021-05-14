@@ -407,8 +407,8 @@ float *SCULPT_boundary_automasking_init(Object *ob,
 
 /* Returns an array indexed by vertex index containing the geodesic distance to the closest vertex
 in the initial vertex set. The caller is responsible for freeing the array.
-Geodesic distances will only work when used with PBVH_FACES or PBVH_BMESH, for other types of PBVH it will
-fallback to euclidean distances to one of the initial vertices in the set. */
+Geodesic distances will only work when used with PBVH_FACES or PBVH_BMESH, for other types of PBVH
+it will fallback to euclidean distances to one of the initial vertices in the set. */
 float *SCULPT_geodesic_distances_create(struct Object *ob,
                                         struct GSet *initial_vertices,
                                         const float limit_radius);
@@ -1518,3 +1518,4 @@ void SCULPT_dyntopo_save_persistent_base(SculptSession *ss);
 int SCULPT_get_symmetry_pass(const SculptSession *ss);
 
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
+void SCULPT_reorder_bmesh(SculptSession *ss);

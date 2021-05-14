@@ -82,6 +82,7 @@
 // XXX todo: work our bad module cross ref
 void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
+void SCULPT_reorder_bmesh(SculptSession *ss);
 
 static void palette_init_data(ID *id)
 {
@@ -1383,9 +1384,10 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 
   if (ss->bm) {
     if (ob->data) {
-      if (reorder) {
+      if (reorder && ss->bm_log) {
         BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
       }
+
       BM_mesh_bm_to_me(NULL,
                        NULL,
                        ss->bm,
@@ -1470,8 +1472,8 @@ void BKE_sculptsession_free(Object *ob)
   if (ob && ob->sculpt) {
     SculptSession *ss = ob->sculpt;
 
-    if (ss->bm_log) {
-      BM_log_free(ss->bm_log, true);
+    if (ss->bm_log && BM_log_free(ss->bm_log, true)) {
+      ss->bm_log = NULL;
     }
 
     /*try to save current mesh*/
@@ -2229,6 +2231,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   if (ob->sculpt->bm != NULL) {
     /* Sculpting on a BMesh (dynamic-topology) gets a special PBVH. */
     pbvh = build_pbvh_for_dynamic_topology(ob);
+
+    ob->sculpt->pbvh = pbvh;
+    //reorder mesh elements to improve memory cache performance
+    SCULPT_reorder_bmesh(ob->sculpt);
   }
   else {
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);

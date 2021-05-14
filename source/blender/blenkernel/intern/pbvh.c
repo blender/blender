@@ -711,6 +711,10 @@ void BKE_pbvh_free(PBVH *pbvh)
         BLI_table_gset_free(node->bm_other_verts, NULL);
       }
 
+      if (node->tribuf) {
+        BKE_pbvh_bmesh_free_tris(pbvh, node);
+      }
+
 #ifdef PROXY_ADVANCED
       BKE_pbvh_free_proxyarray(pbvh, node);
 #endif
