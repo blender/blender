@@ -258,9 +258,13 @@ bool BezierSpline::point_is_sharp(const int index) const
 bool BezierSpline::segment_is_vector(const int index) const
 {
   if (index == this->size() - 1) {
-    BLI_assert(is_cyclic_);
-    return handle_types_right_.last() == HandleType::Vector &&
-           handle_types_left_.first() == HandleType::Vector;
+    if (is_cyclic_) {
+      return handle_types_right_.last() == HandleType::Vector &&
+             handle_types_left_.first() == HandleType::Vector;
+    }
+    /* There is actually no segment in this case, but it's nice to avoid
+     * having a special case for the last segment in calling code. */
+    return true;
   }
   return handle_types_right_[index] == HandleType::Vector &&
          handle_types_left_[index + 1] == HandleType::Vector;
@@ -279,15 +283,8 @@ void BezierSpline::mark_cache_invalid()
 
 int BezierSpline::evaluated_points_size() const
 {
-  const int points_len = this->size();
-  BLI_assert(points_len > 0);
-
-  const int last_offset = this->control_point_offsets().last();
-  if (is_cyclic_ && points_len > 1) {
-    return last_offset + (this->segment_is_vector(points_len - 1) ? 1 : resolution_);
-  }
-
-  return last_offset + 1;
+  BLI_assert(this->size() > 0);
+  return this->control_point_offsets().last();
 }
 
 /**
@@ -358,8 +355,12 @@ void BezierSpline::evaluate_bezier_segment(const int index,
 
 /**
  * Returns access to a cache of offsets into the evaluated point array for each control point.
- * This is important because while most control point edges generate the number of edges specified
- * by the resolution, vector segments only generate one edge.
+ * While most control point edges generate the number of edges specified by the resolution, vector
+ * segments only generate one edge.
+ *
+ * \note The length of the result is one greater than the number of points, so that the last item
+ * is the total number of evaluated points. This is useful to avoid recalculating the size of the
+ * last segment everywhere.
  */
 Span<int> BezierSpline::control_point_offsets() const
 {
@@ -373,12 +374,12 @@ Span<int> BezierSpline::control_point_offsets() const
   }
 
   const int points_len = this->size();
-  offset_cache_.resize(points_len);
+  offset_cache_.resize(points_len + 1);
 
   MutableSpan<int> offsets = offset_cache_;
 
   int offset = 0;
-  for (const int i : IndexRange(points_len - 1)) {
+  for (const int i : IndexRange(points_len)) {
     offsets[i] = offset;
     offset += this->segment_is_vector(i) ? 1 : resolution_;
   }
@@ -400,7 +401,7 @@ static void calculate_mappings_linear_resolution(Span<int> offsets,
   }
 
   const int grain_size = std::max(2048 / resolution, 1);
-  blender::parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
+  parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
     for (const int i_control_point : range) {
       const int segment_len = offsets[i_control_point + 1] - offsets[i_control_point];
       const float segment_len_inv = 1.0f / segment_len;
@@ -411,7 +412,7 @@ static void calculate_mappings_linear_resolution(Span<int> offsets,
   });
 
   if (is_cyclic) {
-    const int last_segment_len = offsets[size - 1] - offsets[size - 2];
+    const int last_segment_len = offsets[size] - offsets[size - 1];
     const float last_segment_len_inv = 1.0f / last_segment_len;
     for (const int i : IndexRange(last_segment_len)) {
       r_mappings[offsets[size - 1] + i] = size - 1 + i * last_segment_len_inv;
@@ -471,25 +472,24 @@ Span<float3> BezierSpline::evaluated_positions() const
 
   this->ensure_auto_handles();
 
+  const int size = this->size();
   const int eval_size = this->evaluated_points_size();
   evaluated_position_cache_.resize(eval_size);
 
   MutableSpan<float3> positions = evaluated_position_cache_;
 
   Span<int> offsets = this->control_point_offsets();
-  BLI_assert(offsets.last() <= eval_size);
 
   const int grain_size = std::max(512 / resolution_, 1);
-  blender::parallel_for(IndexRange(this->size() - 1), grain_size, [&](IndexRange range) {
+  parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
     for (const int i : range) {
       this->evaluate_bezier_segment(
           i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
     }
   });
-
-  const int i_last = this->size() - 1;
   if (is_cyclic_) {
-    this->evaluate_bezier_segment(i_last, 0, positions.slice(offsets.last(), resolution_));
+    this->evaluate_bezier_segment(
+        size - 1, 0, positions.slice(offsets[size - 1], offsets[size] - offsets[size - 1]));
   }
   else {
     /* Since evaluating the bezier segment doesn't add the final point,
