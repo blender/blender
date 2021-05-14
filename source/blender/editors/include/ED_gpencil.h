@@ -144,6 +144,8 @@ bool ED_gpencil_data_owner_is_annotation(struct PointerRNA *owner_ptr);
 bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfra);
 
 /* ----------- Stroke Editing Utilities ---------------- */
+bool ED_gpencil_frame_has_selected_stroke(const struct bGPDframe *gpf);
+bool ED_gpencil_layer_has_selected_stroke(const struct bGPDlayer *gpl, const bool is_multiedit);
 
 bool ED_gpencil_stroke_can_use_direct(const struct ScrArea *area, const struct bGPDstroke *gps);
 bool ED_gpencil_stroke_can_use(const struct bContext *C, const struct bGPDstroke *gps);
