@@ -28,7 +28,7 @@ def write_sysinfo(filepath):
     import subprocess
 
     import bpy
-    import bgl
+    import gpu
 
     # pretty repr
     def prepr(v):
@@ -190,46 +190,29 @@ def write_sysinfo(filepath):
             if bpy.app.background:
                 output.write("\nOpenGL: missing, background mode\n")
             else:
-                output.write(title("OpenGL"))
-                version = bgl.glGetString(bgl.GL_RENDERER)
-                output.write("renderer:\t%r\n" % version)
-                output.write("vendor:\t\t%r\n" % (bgl.glGetString(bgl.GL_VENDOR)))
-                output.write("version:\t%r\n" % (bgl.glGetString(bgl.GL_VERSION)))
+                output.write(title("GPU"))
+                output.write("renderer:\t%r\n" % gpu.platform.renderer_get())
+                output.write("vendor:\t\t%r\n" % gpu.platform.vendor_get())
+                output.write("version:\t%r\n" % gpu.platform.version_get())
                 output.write("extensions:\n")
 
-                limit = bgl.Buffer(bgl.GL_INT, 1)
-                bgl.glGetIntegerv(bgl.GL_NUM_EXTENSIONS, limit)
-
-                glext = []
-                for i in range(limit[0]):
-                    glext.append(bgl.glGetStringi(bgl.GL_EXTENSIONS, i))
-
-                glext = sorted(glext)
+                glext = sorted(gpu.capabilities.extensions_get())
 
                 for l in glext:
                     output.write("\t%s\n" % l)
 
-                output.write(title("Implementation Dependent OpenGL Limits"))
-                bgl.glGetIntegerv(bgl.GL_MAX_ELEMENTS_VERTICES, limit)
-                output.write("Maximum DrawElements Vertices:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_ELEMENTS_INDICES, limit)
-                output.write("Maximum DrawElements Indices:\t%d\n" % limit[0])
+                output.write(title("Implementation Dependent GPU Limits"))
+                output.write("Maximum Batch Vertices:\t%d\n" % gpu.capabilities.max_batch_vertices_get())
+                output.write("Maximum Batch Indices:\t%d\n" % gpu.capabilities.max_batch_indices_get())
 
                 output.write("\nGLSL:\n")
-                bgl.glGetIntegerv(bgl.GL_MAX_VARYING_FLOATS, limit)
-                output.write("Maximum Varying Floats:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_ATTRIBS, limit)
-                output.write("Maximum Vertex Attributes:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_UNIFORM_COMPONENTS, limit)
-                output.write("Maximum Vertex Uniform Components:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, limit)
-                output.write("Maximum Fragment Uniform Components:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, limit)
-                output.write("Maximum Vertex Image Units:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_TEXTURE_IMAGE_UNITS, limit)
-                output.write("Maximum Fragment Image Units:\t%d\n" % limit[0])
-                bgl.glGetIntegerv(bgl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, limit)
-                output.write("Maximum Pipeline Image Units:\t%d\n" % limit[0])
+                output.write("Maximum Varying Floats:\t%d\n" % gpu.capabilities.max_varying_floats_get())
+                output.write("Maximum Vertex Attributes:\t%d\n" % gpu.capabilities.max_vertex_attribs_get())
+                output.write("Maximum Vertex Uniform Components:\t%d\n" % gpu.capabilities.max_uniforms_vert_get())
+                output.write("Maximum Fragment Uniform Components:\t%d\n" % gpu.capabilities.max_uniforms_frag_get())
+                output.write("Maximum Vertex Image Units:\t%d\n" % gpu.capabilities.max_textures_vert_get())
+                output.write("Maximum Fragment Image Units:\t%d\n" % gpu.capabilities.max_textures_frag_get())
+                output.write("Maximum Pipeline Image Units:\t%d\n" % gpu.capabilities.max_textures_get())
 
             if bpy.app.build_options.cycles:
                 import cycles
