@@ -1876,28 +1876,63 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
   }
 }
 
-/* assumes sockets in list */
-static bNodeSocket *socket_best_match(ListBase *sockets)
+static int get_main_socket_priority(const bNodeSocket *socket)
 {
-  /* find type range */
-  int maxtype = 0;
+  switch ((eNodeSocketDatatype)socket->type) {
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+      return -1;
+    case SOCK_BOOLEAN:
+      return 0;
+    case SOCK_INT:
+      return 1;
+    case SOCK_FLOAT:
+      return 2;
+    case SOCK_VECTOR:
+      return 3;
+    case SOCK_RGBA:
+      return 4;
+    case SOCK_STRING:
+    case SOCK_SHADER:
+    case SOCK_OBJECT:
+    case SOCK_IMAGE:
+    case SOCK_GEOMETRY:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_MATERIAL:
+      return 5;
+  }
+  return -1;
+}
+
+/** Get the "main" socket of a socket list using a heuristic based on socket types. */
+static bNodeSocket *get_main_socket(ListBase *sockets)
+{
+  /* find priority range */
+  int maxpriority = -1;
   LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    maxtype = max_ii(sock->type, maxtype);
+    if (sock->flag & SOCK_UNAVAIL) {
+      continue;
+    }
+    maxpriority = max_ii(get_main_socket_priority(sock), maxpriority);
   }
 
-  /* try all types, starting from 'highest' (i.e. colors, vectors, values) */
-  for (int type = maxtype; type >= 0; type--) {
+  /* try all priorities, starting from 'highest' */
+  for (int priority = maxpriority; priority >= 0; priority--) {
     LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-      if (!nodeSocketIsHidden(sock) && type == sock->type) {
+      if (!nodeSocketIsHidden(sock) && priority == get_main_socket_priority(sock)) {
         return sock;
       }
     }
   }
 
-  /* no visible sockets, unhide first of highest type */
-  for (int type = maxtype; type >= 0; type--) {
+  /* no visible sockets, unhide first of highest priority */
+  for (int priority = maxpriority; priority >= 0; priority--) {
     LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-      if (type == sock->type) {
+      if (sock->flag & SOCK_UNAVAIL) {
+        continue;
+      }
+      if (priority == get_main_socket_priority(sock)) {
         sock->flag &= ~SOCK_HIDDEN;
         return sock;
       }
@@ -2242,8 +2277,8 @@ void ED_node_link_insert(Main *bmain, ScrArea *area)
   }
 
   if (link) {
-    bNodeSocket *best_input = socket_best_match(&select->inputs);
-    bNodeSocket *best_output = socket_best_match(&select->outputs);
+    bNodeSocket *best_input = get_main_socket(&select->inputs);
+    bNodeSocket *best_output = get_main_socket(&select->outputs);
 
     if (best_input && best_output) {
       bNode *node = link->tonode;
