@@ -52,6 +52,7 @@
 #include <limits.h>
 
 #define LEAF_LIMIT 4000
+#define LEAF_DEPTH_LIMIT 18
 
 //#define PERFCNTRS
 
@@ -485,13 +486,15 @@ static bool leaf_needs_material_split(PBVH *pbvh, int offset, int count)
  * offset and start indicate a range in the array of primitive indices
  */
 
-static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int offset, int count)
+static void build_sub(
+    PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int offset, int count, int depth)
 {
   int end;
   BB cb_backing;
 
   /* Decide whether this is a leaf or not */
-  const bool below_leaf_limit = count <= pbvh->leaf_limit;
+  const bool below_leaf_limit = count <= pbvh->leaf_limit || depth >= pbvh->depth_limit;
+
   if (below_leaf_limit) {
     if (!leaf_needs_material_split(pbvh, offset, count)) {
       build_leaf(pbvh, node_index, prim_bbc, offset, count);
@@ -531,13 +534,20 @@ static void build_sub(PBVH *pbvh, int node_index, BB *cb, BBC *prim_bbc, int off
   }
 
   /* Build children */
-  build_sub(pbvh, pbvh->nodes[node_index].children_offset, NULL, prim_bbc, offset, end - offset);
+  build_sub(pbvh,
+            pbvh->nodes[node_index].children_offset,
+            NULL,
+            prim_bbc,
+            offset,
+            end - offset,
+            depth + 1);
   build_sub(pbvh,
             pbvh->nodes[node_index].children_offset + 1,
             NULL,
             prim_bbc,
             end,
-            offset + count - end);
+            offset + count - end,
+            depth + 1);
 }
 
 static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
@@ -562,7 +572,7 @@ static void pbvh_build(PBVH *pbvh, BB *cb, BBC *prim_bbc, int totprim)
   }
 
   pbvh->totnode = 1;
-  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim);
+  build_sub(pbvh, 0, cb, prim_bbc, 0, totprim, 0);
 }
 
 /**
@@ -595,6 +605,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
   pbvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
   pbvh->totvert = totvert;
   pbvh->leaf_limit = LEAF_LIMIT;
+  pbvh->depth_limit = LEAF_DEPTH_LIMIT;
+
   pbvh->vdata = vdata;
   pbvh->ldata = ldata;
   pbvh->pdata = pdata;

@@ -3263,7 +3263,36 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   TGSET_ITER_END
 
   TGSET_ITER (v, node->bm_unique_verts) {
-    BM_vert_normal_update(v);
+    // BM_vert_normal_update(v);
+    // optimized loop
+    BMEdge *e = v->e;
+
+    zero_v3(v->no);
+
+    if (!e) {
+      continue;
+    }
+
+    do {
+      BMLoop *l = e->l;
+
+      if (!l) {
+        e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+        continue;
+      }
+
+      do {
+        v->no[0] += l->f->no[0];
+        v->no[1] += l->f->no[1];
+        v->no[2] += l->f->no[2];
+
+        l = l->radial_next;
+      } while (l != e->l);
+
+      e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+    } while (e != v->e);
+
+    normalize_v3(v->no);
   }
   TGSET_ITER_END
 
@@ -3556,6 +3585,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->bm_log = log;
   pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
   pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
+  pbvh->depth_limit = 18;
 
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 1000;

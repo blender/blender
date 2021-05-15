@@ -138,6 +138,7 @@ struct PBVH {
   int totvert;
 
   int leaf_limit;
+  int depth_limit;
 
   /* Mesh data */
   const struct Mesh *mesh;
