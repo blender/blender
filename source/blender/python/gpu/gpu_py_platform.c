@@ -33,17 +33,17 @@
 /** \name Functions
  * \{ */
 
-static PyObject *pygpu_platform_vendor_get(PyObject *UNUSED(self), PyObject *value)
+static PyObject *pygpu_platform_vendor_get(PyObject *UNUSED(self))
 {
   return PyUnicode_FromString(GPU_platform_vendor());
 }
 
-static PyObject *pygpu_platform_renderer_get(PyObject *UNUSED(self), PyObject *value)
+static PyObject *pygpu_platform_renderer_get(PyObject *UNUSED(self))
 {
   return PyUnicode_FromString(GPU_platform_renderer());
 }
 
-static PyObject *pygpu_platform_version_get(PyObject *UNUSED(self), PyObject *value)
+static PyObject *pygpu_platform_version_get(PyObject *UNUSED(self))
 {
   return PyUnicode_FromString(GPU_platform_version());
 }
