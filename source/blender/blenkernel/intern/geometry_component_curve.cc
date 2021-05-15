@@ -294,21 +294,6 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
  * array implementations try to make it workable in common situations.
  * \{ */
 
-static Array<int> control_point_offsets(const CurveEval &curve)
-{
-  Span<SplinePtr> splines = curve.splines();
-  Array<int> offsets(splines.size() + 1);
-
-  int size = 0;
-  for (const int spline_index : splines.index_range()) {
-    offsets[spline_index] = size;
-    size += splines[spline_index]->size();
-  }
-  offsets.last() = size;
-
-  return offsets;
-}
-
 namespace {
 struct PointIndices {
   int spline_index;
@@ -590,7 +575,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return std::make_unique<fn::GVArray_For_GSpan>(get_span_(*splines.first()));
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     Array<Span<T>> spans(splines.size());
     for (const int i : splines.index_range()) {
       spans[i] = get_span_(*splines[i]);
@@ -613,7 +598,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
           get_mutable_span_(*splines.first()));
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     Array<MutableSpan<T>> spans(splines.size());
     for (const int i : splines.index_range()) {
       spans[i] = get_mutable_span_(*splines[i]);
@@ -688,7 +673,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
       spline->mark_cache_invalid();
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
         offsets.last(), curve->splines(), std::move(offsets));
