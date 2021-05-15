@@ -235,5 +235,3 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
 
   return curve;
 }
-
-/** \} */
