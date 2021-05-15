@@ -1630,7 +1630,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
-  const Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *me = BKE_object_get_original_mesh(ob);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
@@ -1683,6 +1683,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
     ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    ss->vdata = &me->vdata;
+    ss->edata = &me->edata;
+    ss->ldata = &me->ldata;
+    ss->pdata = &me->pdata;
   }
 
   /* Sculpt Face Sets. */
@@ -2233,7 +2238,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     pbvh = build_pbvh_for_dynamic_topology(ob);
 
     ob->sculpt->pbvh = pbvh;
-    //reorder mesh elements to improve memory cache performance
+    // reorder mesh elements to improve memory cache performance
     SCULPT_reorder_bmesh(ob->sculpt);
   }
   else {

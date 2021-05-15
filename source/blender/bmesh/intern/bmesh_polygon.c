@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
@@ -1105,20 +1106,20 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
  * \note use_tag tags new flags and edges.
  */
 void BM_face_triangulate(BMesh *bm,
-                         BMFace *f,
-                         BMFace **r_faces_new,
-                         int *r_faces_new_tot,
-                         BMEdge **r_edges_new,
-                         int *r_edges_new_tot,
-                         LinkNode **r_faces_double,
-                         const int quad_method,
-                         const int ngon_method,
-                         const bool use_tag,
-                         /* use for ngons only! */
-                         MemArena *pf_arena,
+                                     BMFace *f,
+                                     BMFace **r_faces_new,
+                                     int *r_faces_new_tot,
+                                     BMEdge **r_edges_new,
+                                     int *r_edges_new_tot,
+                                     LinkNode **r_faces_double,
+                                     const int quad_method,
+                                     const int ngon_method,
+                                     const bool use_tag,
+                                     /* use for ngons only! */
+                                     MemArena *pf_arena,
 
-                         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-                         struct Heap *pf_heap)
+                                     /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
+                                     struct Heap *pf_heap)
 {
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
   const bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
@@ -1466,7 +1467,6 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
   l = l->next;
   r_verts[3] = l->v;
 }
-
 
 /**
  * faster alternative to:

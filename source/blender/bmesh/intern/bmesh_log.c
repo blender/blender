@@ -782,7 +782,8 @@ void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert)
   log->cd_dyn_vert = cd_dyn_vert;
 }
 
-void BM_log_set_bm(BMesh *bm, BMLog *log) {
+void BM_log_set_bm(BMesh *bm, BMLog *log)
+{
   log->bm = bm;
 }
 

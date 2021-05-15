@@ -46,6 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -120,7 +121,6 @@ void SCULPT_vertex_random_access_ensure(SculptSession *ss)
   }
 }
 
-
 /* Sculpt PBVH abstraction API
  *
  * This is read-only, for writing use PBVH vertex iterators. There vd.index matches
@@ -168,7 +168,7 @@ const float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex)
 const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
 {
   if (ss->bm) {
-    return ((BMVert*)index.i)->co;
+    return ((BMVert *)index.i)->co;
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -335,6 +335,132 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss,
   SCULPT_vertex_normal_get(ss, index, no);
 }
 
+static bool sculpt_temp_customlayer_get(SculptSession *ss,
+                                        AttributeDomain domain,
+                                        int proptype,
+                                        char *name,
+                                        SculptCustomLayer *out,
+                                        bool autocreate)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_BMESH: {
+      CustomData *cdata = NULL;
+
+      if (!ss->bm) {
+        return false;
+      }
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          cdata = &ss->bm->vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          cdata = &ss->bm->pdata;
+          break;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        BM_data_layer_add_named(ss->bm, cdata, proptype, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+        cdata->layers[idx].flag |= CD_FLAG_TEMPORARY;
+        SCULPT_dyntopo_node_layers_update_offsets(ss);
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = out->layer->offset;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+
+      break;
+    }
+    case PBVH_FACES: {
+      CustomData *cdata = NULL;
+      int totelem = 0;
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          totelem = ss->totvert;
+          cdata = ss->vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          totelem = ss->totfaces;
+          cdata = ss->pdata;
+          break;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+        cdata->layers[idx].flag |= CD_FLAG_TEMPORARY;
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = -1;
+      out->data = out->layer->data;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+      break;
+    }
+    case PBVH_GRIDS: {
+      CustomData *cdata = NULL;
+      int totelem = 0;
+
+      switch (domain) {
+        case ATTR_DOMAIN_POINT:
+          totelem = BKE_pbvh_get_grid_num_vertices(ss->pbvh);
+          cdata = &ss->temp_vdata;
+          break;
+        case ATTR_DOMAIN_FACE:
+          // not supported
+          return false;
+        default:
+          return false;
+      }
+
+      int idx = CustomData_get_named_layer_index(cdata, proptype, name);
+
+      if (idx < 0) {
+        if (!autocreate) {
+          return false;
+        }
+
+        CustomData_add_layer_named(cdata, proptype, CD_CALLOC, NULL, totelem, name);
+        idx = CustomData_get_named_layer_index(cdata, proptype, name);
+      }
+
+      out->data = NULL;
+      out->is_cdlayer = true;
+      out->layer = cdata->layers + idx;
+      out->cd_offset = -1;
+      out->data = out->layer->data;
+      out->elemsize = CustomData_get_elem_size(out->layer);
+
+      break;
+    }
+  }
+
+  return true;
+}
+
 float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
 {
   BMVert *v;
@@ -356,6 +482,21 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
   }
 
   return 0.0f;
+}
+
+bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    AttributeDomain domain,
+                                    int proptype,
+                                    char *name)
+{
+  SculptCustomLayer scl;
+  return sculpt_temp_customlayer_get(ss, domain, proptype, name, &scl, true);
+}
+
+bool SCULPT_temp_customlayer_get(
+    SculptSession *ss, AttributeDomain domain, int proptype, char *name, SculptCustomLayer *scl)
+{
+  return sculpt_temp_customlayer_get(ss, domain, proptype, name, scl, true);
 }
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss)
@@ -1095,10 +1236,9 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
   iter->size++;
 }
 
-
 static void sculpt_vertex_neighbor_add_nocheck(SculptVertexNeighborIter *iter,
-                                       SculptVertRef neighbor,
-                                       int neighbor_index)
+                                               SculptVertRef neighbor,
+                                               int neighbor_index)
 {
   if (iter->size >= iter->capacity) {
     iter->capacity += SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY;
@@ -1147,7 +1287,8 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
           iter, BKE_pbvh_make_vref((intptr_t)e->v2), BM_elem_index_get(e->v2));
 
       e = e->v1_disk_link.next;
-    } else {
+    }
+    else {
       sculpt_vertex_neighbor_add_nocheck(
           iter, BKE_pbvh_make_vref((intptr_t)e->v1), BM_elem_index_get(e->v1));
 
@@ -1527,7 +1668,9 @@ void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef vertex)
   BLI_gsqueue_push(flood->queue, &vertex);
 }
 
-void SCULPT_floodfill_add_and_skip_initial(SculptSession *ss, SculptFloodFill *flood, SculptVertRef vertex)
+void SCULPT_floodfill_add_and_skip_initial(SculptSession *ss,
+                                           SculptFloodFill *flood,
+                                           SculptVertRef vertex)
 {
   BLI_gsqueue_push(flood->queue, &vertex);
   BLI_BITMAP_ENABLE(flood->visited_vertices, BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex));
@@ -1675,7 +1818,7 @@ static bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush *brush)
 {
   return SCULPT_TOOL_HAS_TOPOLOGY_RAKE(brush->sculpt_tool) &&
-            (brush->topology_rake_factor > 0.0f) && (ss->bm != NULL);
+         (brush->topology_rake_factor > 0.0f) && (ss->bm != NULL);
 }
 
 /**
@@ -3492,14 +3635,12 @@ static void bmesh_topology_rake(
 
   for (iteration = 0; iteration <= count; iteration++) {
 
-    SculptThreadedTaskData data = {
-        .sd = sd,
-        .ob = ob,
-        .brush = brush,
-        .nodes = nodes,
-        .strength = factor,
-        .rake_projection = brush->topology_rake_projection
-    };
+    SculptThreadedTaskData data = {.sd = sd,
+                                   .ob = ob,
+                                   .brush = brush,
+                                   .nodes = nodes,
+                                   .strength = factor,
+                                   .rake_projection = brush->topology_rake_projection};
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
 
@@ -6882,10 +7023,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     float spacing = (float)brush->topology_rake_spacing / 100.0f;
 
     use_topology_rake = use_topology_rake &&
-         paint_stroke_apply_subspacing(ss->cache->stroke,
-                                       spacing,
-                                       PAINT_MODE_SCULPT,
-                                       &ss->cache->last_rake_t[SCULPT_get_symmetry_pass(ss)]);
+                        paint_stroke_apply_subspacing(
+                            ss->cache->stroke,
+                            spacing,
+                            PAINT_MODE_SCULPT,
+                            &ss->cache->last_rake_t[SCULPT_get_symmetry_pass(ss)]);
   }
 
   if (use_topology_rake) {

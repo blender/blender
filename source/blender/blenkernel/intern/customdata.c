@@ -2107,6 +2107,11 @@ static const LayerTypeInfo *layerType_getInfo(int type)
   return &LAYERTYPEINFO[type];
 }
 
+int CustomData_get_elem_size(CustomDataLayer *layer)
+{
+  return layerType_getInfo(layer->type)->size;
+}
+
 static const char *layerType_getName(int type)
 {
   if (type < 0 || type >= CD_NUMTYPES) {

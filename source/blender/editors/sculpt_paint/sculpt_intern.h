@@ -30,11 +30,15 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
 
+#include "BKE_attribute.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+
+#include "bmesh.h"
 
 struct AutomaskingCache;
 struct KeyBlock;
@@ -747,6 +751,14 @@ struct SculptRakeData {
   float follow_co[3];
 };
 
+typedef struct SculptCustomLayer {
+  bool is_cdlayer;  // false for multires data
+  void *data;       // only valid for multires and face
+  int elemsize;
+  int cd_offset;           // for bmesh
+  CustomDataLayer *layer;  // not for multires
+} SculptCustomLayer;
+
 /* Single struct used by all BLI_task threaded callbacks, let's avoid adding 10's of those... */
 typedef struct SculptThreadedTaskData {
   struct bContext *C;
@@ -866,6 +878,7 @@ typedef struct SculptThreadedTaskData {
 
   float smooth_projection;
   float rake_projection;
+  SculptCustomLayer *scl;
 } SculptThreadedTaskData;
 
 /*************** Brush testing declarations ****************/
@@ -1519,3 +1532,31 @@ int SCULPT_get_symmetry_pass(const SculptSession *ss);
 
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss);
 void SCULPT_reorder_bmesh(SculptSession *ss);
+
+static inline void *SCULPT_temp_cdata_get(SculptVertRef vertex, SculptCustomLayer *scl)
+{
+  if (scl->data) {
+    char *p = (char *)scl->data;
+    return p + scl->elemsize * (int)vertex.i;
+  }
+  else {
+    BMVert *v = (BMVert *)vertex.i;
+    return BM_ELEM_CD_GET_VOID_P(v, scl->cd_offset);
+  }
+}
+
+/*
+create a custom vertex or face attribute.
+always create all of your attributes together with SCULPT_temp_customlayer_ensure,
+
+then initialize their SculptCustomLayer's with SCULPT_temp_customlayer_get
+afterwards.  Otherwise customdata offsets will be wrong (for PBVH_BMESH).
+
+return true on success.  if false layer was not created.
+*/
+bool SCULPT_temp_customlayer_ensure(SculptSession *ss,
+                                    AttributeDomain domain,
+                                    int proptype,
+                                    char *name);
+bool SCULPT_temp_customlayer_get(
+    SculptSession *ss, AttributeDomain domain, int proptype, char *name, SculptCustomLayer *scl);

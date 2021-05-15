@@ -27,6 +27,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 #include "DNA_brush_enums.h"
+#include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 
 #ifdef __cplusplus
@@ -470,6 +471,12 @@ typedef struct SculptSession {
   struct MVert *mvert;
   struct MPoly *mpoly;
   struct MLoop *mloop;
+
+  // only assigned in PBVH_FACES and PBVH_GRIDS
+  CustomData *vdata, *edata, *ldata, *pdata;
+
+  // for grids
+  CustomData temp_vdata, temp_pdata;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;

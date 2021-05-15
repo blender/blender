@@ -605,6 +605,8 @@ void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *da
 void CustomData_unmark_temporary_nocopy(struct CustomData *data);
 void CustomData_mark_temporary_nocopy(struct CustomData *data);
 
+int CustomData_get_elem_size(CustomDataLayer *layer);
+
 #ifdef __cplusplus
 }
 #endif

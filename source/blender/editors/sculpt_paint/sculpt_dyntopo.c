@@ -138,6 +138,9 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
   LinkNode *f_double = NULL;
 
+  BMFace **faces_array = NULL;
+  BLI_array_declare(faces_array);
+
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     if (f->len <= 3) {
       continue;
@@ -146,9 +149,9 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
     bool sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
 
     int faces_array_tot = f->len;
-    BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
-
-    printf("%d: ", f->head.hflag);
+    BLI_array_clear(faces_array);
+    BLI_array_grow_items(faces_array, faces_array_tot);
+    // BMFace **faces_array = BLI_array_alloca(faces_array, faces_array_tot);
 
     BM_face_triangulate(bm,
                         f,
@@ -162,8 +165,6 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
                         true,
                         pf_arena,
                         NULL);
-
-    printf("%d, ", f->head.hflag);
 
     for (int i = 0; i < faces_array_tot; i++) {
       BMFace *f2 = faces_array[i];
@@ -181,8 +182,6 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
     }
   }
 
-  printf("\n");
-
   while (f_double) {
     LinkNode *next = f_double->next;
     BM_face_kill(bm, f_double->link);
@@ -191,6 +190,7 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   }
 
   BLI_memarena_free(pf_arena);
+  MEM_SAFE_FREE(faces_array);
 
   ss->totfaces = ss->totpoly = ss->bm->totface;
   ss->totvert = ss->bm->totvert;
