@@ -40,7 +40,7 @@ void dof_slight_focus_gather(float radius, out vec4 out_color, out float out_wei
   DofGatherData fg_accum = GATHER_DATA_INIT;
   DofGatherData bg_accum = GATHER_DATA_INIT;
 
-  int i_radius = clamp(int(radius), 0, int(layer_threshold));
+  int i_radius = clamp(int(radius + 0.5), 0, int(layer_threshold));
   const int resolve_ring_density = DOF_SLIGHT_FOCUS_DENSITY;
   ivec2 texel = ivec2(gl_FragCoord.xy);
 
