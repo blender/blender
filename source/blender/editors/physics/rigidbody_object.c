@@ -520,6 +520,26 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static bool mass_calculate_poll_property(const bContext *UNUSED(C),
+                                         wmOperator *op,
+                                         const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+
+  /* Disable density input when not using the 'Custom' preset. */
+  if (STREQ(prop_id, "density")) {
+    int material = RNA_enum_get(op->ptr, "material");
+    if (material >= 0) {
+      RNA_def_property_clear_flag((PropertyRNA *)prop, PROP_EDITABLE);
+    }
+    else {
+      RNA_def_property_flag((PropertyRNA *)prop, PROP_EDITABLE);
+    }
+  }
+
+  return true;
+}
+
 void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -533,6 +553,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   ot->invoke = WM_menu_invoke; /* XXX */
   ot->exec = rigidbody_objects_calc_mass_exec;
   ot->poll = ED_operator_rigidbody_active_poll;
+  ot->poll_property = mass_calculate_poll_property;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -554,7 +575,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
                 FLT_MIN,
                 FLT_MAX,
                 "Density",
-                "Custom density value (kg/m^3) to use instead of material preset",
+                "Density value (kg/m^3), allows custom value if the 'Custom' preset is used",
                 1.0f,
                 2500.0f);
 }
