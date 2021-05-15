@@ -496,6 +496,11 @@ static void pbvh_bmesh_node_split(
     MEM_freeN(n->layer_disp);
   }
 
+  if (n->tribuf) {
+    BKE_pbvh_bmesh_free_tris(pbvh, n);
+    n->tribuf = NULL;
+  }
+
   n->bm_faces = NULL;
   n->bm_unique_verts = NULL;
   n->bm_other_verts = NULL;
