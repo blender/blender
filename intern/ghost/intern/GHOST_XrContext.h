@@ -35,6 +35,7 @@ struct GHOST_XrCustomFuncs {
   /** Function to release (possibly free) a graphics context. */
   GHOST_XrGraphicsContextUnbindFn gpu_ctx_unbind_fn = nullptr;
 
+  GHOST_XrSessionCreateFn session_create_fn = nullptr;
   GHOST_XrSessionExitFn session_exit_fn = nullptr;
   void *session_exit_customdata = nullptr;
 
@@ -71,6 +72,10 @@ class GHOST_XrContext : public GHOST_IXrContext {
   void endSession() override;
   bool isSessionRunning() const override;
   void drawSessionViews(void *draw_customdata) override;
+
+  /** Needed for the GHOST C api. */
+  GHOST_XrSession *getSession() override;
+  const GHOST_XrSession *getSession() const override;
 
   static void setErrorHandler(GHOST_XrErrorHandlerFn handler_fn, void *customdata);
   void dispatchErrorMessage(const class GHOST_XrException *exception) const override;

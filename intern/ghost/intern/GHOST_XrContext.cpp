@@ -246,7 +246,7 @@ void GHOST_XrContext::dispatchErrorMessage(const GHOST_XrException *exception) c
 {
   GHOST_XrError error;
 
-  error.user_message = exception->m_msg;
+  error.user_message = exception->m_msg.data();
   error.customdata = s_error_handler_customdata;
 
   if (isDebugMode()) {
@@ -374,7 +374,7 @@ void GHOST_XrContext::getAPILayersToEnable(std::vector<const char *> &r_ext_name
 
   for (const std::string &layer : try_layers) {
     if (openxr_layer_is_available(m_oxr->layers, layer)) {
-      r_ext_names.push_back(layer.c_str());
+      r_ext_names.push_back(layer.data());
     }
   }
 }
@@ -484,6 +484,7 @@ GHOST_TXrGraphicsBinding GHOST_XrContext::determineGraphicsBindingTypeToUse(
 
 void GHOST_XrContext::startSession(const GHOST_XrSessionBeginInfo *begin_info)
 {
+  m_custom_funcs.session_create_fn = begin_info->create_fn;
   m_custom_funcs.session_exit_fn = begin_info->exit_fn;
   m_custom_funcs.session_exit_customdata = begin_info->exit_customdata;
 
@@ -533,6 +534,16 @@ void GHOST_XrContext::handleSessionStateChange(const XrEventDataSessionStateChan
  *
  * Public as in, exposed in the Ghost API.
  * \{ */
+
+GHOST_XrSession *GHOST_XrContext::getSession()
+{
+  return m_session.get();
+}
+
+const GHOST_XrSession *GHOST_XrContext::getSession() const
+{
+  return m_session.get();
+}
 
 void GHOST_XrContext::setGraphicsContextBindFuncs(GHOST_XrGraphicsContextBindFn bind_fn,
                                                   GHOST_XrGraphicsContextUnbindFn unbind_fn)

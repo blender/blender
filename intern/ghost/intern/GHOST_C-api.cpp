@@ -33,6 +33,7 @@
 #include "intern/GHOST_Debug.h"
 #ifdef WITH_XR_OPENXR
 #  include "GHOST_IXrContext.h"
+#  include "intern/GHOST_XrSession.h"
 #endif
 #include "intern/GHOST_CallbackEventConsumer.h"
 #include "intern/GHOST_XrException.h"
@@ -953,4 +954,145 @@ int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context
   return 0; /* Only reached if exception is thrown. */
 }
 
-#endif
+int GHOST_XrCreateActionSet(GHOST_XrContextHandle xr_contexthandle,
+                            const GHOST_XrActionSetInfo *info)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->createActionSet(*info), xr_context);
+  return 0;
+}
+
+void GHOST_XrDestroyActionSet(GHOST_XrContextHandle xr_contexthandle, const char *action_set_name)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL(xr_session->destroyActionSet(action_set_name), xr_context);
+}
+
+int GHOST_XrCreateActions(GHOST_XrContextHandle xr_contexthandle,
+                          const char *action_set_name,
+                          GHOST_TUns32 count,
+                          const GHOST_XrActionInfo *infos)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->createActions(action_set_name, count, infos), xr_context);
+  return 0;
+}
+
+void GHOST_XrDestroyActions(GHOST_XrContextHandle xr_contexthandle,
+                            const char *action_set_name,
+                            GHOST_TUns32 count,
+                            const char *const *action_names)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL(xr_session->destroyActions(action_set_name, count, action_names), xr_context);
+}
+
+int GHOST_XrCreateActionSpaces(GHOST_XrContextHandle xr_contexthandle,
+                               const char *action_set_name,
+                               GHOST_TUns32 count,
+                               const GHOST_XrActionSpaceInfo *infos)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->createActionSpaces(action_set_name, count, infos),
+                         xr_context);
+  return 0;
+}
+
+void GHOST_XrDestroyActionSpaces(GHOST_XrContextHandle xr_contexthandle,
+                                 const char *action_set_name,
+                                 GHOST_TUns32 count,
+                                 const GHOST_XrActionSpaceInfo *infos)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL(xr_session->destroyActionSpaces(action_set_name, count, infos), xr_context);
+}
+
+int GHOST_XrCreateActionBindings(GHOST_XrContextHandle xr_contexthandle,
+                                 const char *action_set_name,
+                                 GHOST_TUns32 count,
+                                 const GHOST_XrActionProfileInfo *infos)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->createActionBindings(action_set_name, count, infos),
+                         xr_context);
+  return 0;
+}
+
+void GHOST_XrDestroyActionBindings(GHOST_XrContextHandle xr_contexthandle,
+                                   const char *action_set_name,
+                                   GHOST_TUns32 count,
+                                   const GHOST_XrActionProfileInfo *infos)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL(xr_session->destroyActionBindings(action_set_name, count, infos), xr_context);
+}
+
+int GHOST_XrAttachActionSets(GHOST_XrContextHandle xr_contexthandle)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->attachActionSets(), xr_context);
+  return 0;
+}
+
+int GHOST_XrSyncActions(GHOST_XrContextHandle xr_contexthandle, const char *action_set_name)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->syncActions(action_set_name), xr_context);
+  return 0;
+}
+
+int GHOST_XrApplyHapticAction(GHOST_XrContextHandle xr_contexthandle,
+                              const char *action_set_name,
+                              const char *action_name,
+                              const GHOST_TInt64 *duration,
+                              const float *frequency,
+                              const float *amplitude)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->applyHapticAction(
+                             action_set_name, action_name, *duration, *frequency, *amplitude),
+                         xr_context);
+  return 0;
+}
+
+void GHOST_XrStopHapticAction(GHOST_XrContextHandle xr_contexthandle,
+                              const char *action_set_name,
+                              const char *action_name)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL(xr_session->stopHapticAction(action_set_name, action_name), xr_context);
+}
+
+void *GHOST_XrGetActionSetCustomdata(GHOST_XrContextHandle xr_contexthandle,
+                                     const char *action_set_name)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->getActionSetCustomdata(action_set_name), xr_context);
+  return 0;
+}
+
+void *GHOST_XrGetActionCustomdata(GHOST_XrContextHandle xr_contexthandle,
+                                  const char *action_set_name,
+                                  const char *action_name)
+{
+  GHOST_IXrContext *xr_context = (GHOST_IXrContext *)xr_contexthandle;
+  GHOST_XrSession *xr_session = xr_context->getSession();
+  GHOST_XR_CAPI_CALL_RET(xr_session->getActionCustomdata(action_set_name, action_name),
+                         xr_context);
+  return 0;
+}
+
+#endif /* WITH_XR_OPENXR */

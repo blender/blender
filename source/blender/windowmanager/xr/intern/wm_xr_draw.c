@@ -45,6 +45,12 @@ void wm_xr_pose_to_viewmat(const GHOST_XrPose *pose, float r_viewmat[4][4])
   translate_m4(r_viewmat, -pose->position[0], -pose->position[1], -pose->position[2]);
 }
 
+void wm_xr_controller_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4])
+{
+  quat_to_mat4(r_mat, pose->orientation_quat);
+  copy_v3_v3(r_mat[3], pose->position);
+}
+
 static void wm_xr_draw_matrices_create(const wmXrDrawData *draw_data,
                                        const GHOST_XrDrawViewInfo *draw_view,
                                        const XrSessionSettings *session_settings,
