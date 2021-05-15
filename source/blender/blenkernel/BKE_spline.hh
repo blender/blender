@@ -493,6 +493,9 @@ class CurveEval {
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
   void bounds_min_max(blender::float3 &min, blender::float3 &max, const bool use_evaluated) const;
+
+  blender::Array<int> control_point_offsets() const;
+  blender::Array<int> evaluated_point_offsets() const;
 };
 
 std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &curve);
