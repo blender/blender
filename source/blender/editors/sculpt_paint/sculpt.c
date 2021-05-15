@@ -1281,6 +1281,11 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
 
 #if 1
   BMEdge *e = v->e;
+
+  if (!v->e) {
+    return;
+  }
+
   do {
     if (v == e->v1) {
       sculpt_vertex_neighbor_add_nocheck(
