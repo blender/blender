@@ -35,7 +35,7 @@ struct GSet;
 struct GSetIterator;
 
 #define SEQ_ITERATOR_FOREACH(var, collection) \
-  for (SeqIterator iter = {NULL}; SEQ_iterator_ensure(collection, &iter, &var) && var != NULL; \
+  for (SeqIterator iter = {{NULL}}; SEQ_iterator_ensure(collection, &iter, &var) && var != NULL; \
        var = SEQ_iterator_yield(&iter))
 
 #define SEQ_ALL_BEGIN(ed, var) \
