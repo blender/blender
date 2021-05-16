@@ -89,7 +89,9 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
 /** if active_vcol_only is true, only the active (not render!) layer will
     be uploaded to GPU*/
-void GPU_pbvh_update_attribute_names(struct CustomData *vdata, struct CustomData *ldata, bool active_vcol_only);
+void GPU_pbvh_update_attribute_names(struct CustomData *vdata,
+                                     struct CustomData *ldata,
+                                     bool active_vcol_only);
 
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
@@ -126,8 +128,8 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers);
 struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast, bool wires);
 
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
-
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
+float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers);
 
 #ifdef __cplusplus
 }

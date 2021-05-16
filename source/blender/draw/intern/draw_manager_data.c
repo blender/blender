@@ -514,10 +514,10 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                    DST.dupli_source->random_id :
-                    /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
-                     * put it in ob->runtime and make depsgraph ensure it is up to date. */
-                    BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
+                     DST.dupli_source->random_id :
+                     /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
+                      * put it in ob->runtime and make depsgraph ensure it is up to date. */
+                     BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
   ob_infos->ob_random = random * (1.0f / (float)0xFFFFFFFF);
   /* Object State. */
   ob_infos->ob_flag = 1.0f; /* Required to have a correct sign */
@@ -933,9 +933,23 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd, GPU_PBVH_Buffers *buffers
       DRW_shgroup_uniform_vec3(
           shgrp, "materialDiffuseColor", SCULPT_DEBUG_COLOR(scd->debug_node_nr++), 1);
     }
+#if 0
+    float extramat[4][4], mat[4][4];
+    float *extra = GPU_pbvh_get_extra_matrix(buffers);
+
+    if (extra) {
+      memcpy(extramat, GPU_pbvh_get_extra_matrix(buffers), sizeof(float) * 16);
+      mul_m4_m4m4(mat, scd->ob->obmat, extramat);
+    }
+    else {
+      copy_m4_m4(mat, scd->ob->obmat);
+    }
+    DRW_shgroup_call_obmat(shgrp, geom, mat);
+#else
     /* DRW_shgroup_call_no_cull reuses matrices calculations for all the drawcalls of this
      * object. */
     DRW_shgroup_call_no_cull(shgrp, geom, scd->ob);
+#endif
   }
 }
 
@@ -1042,7 +1056,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    &update_frustum,
                    &draw_frustum,
                    (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
-                   scd, scd->active_vcol_only);
+                   scd,
+                   scd->active_vcol_only);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
@@ -1057,15 +1072,13 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 
 void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup, Object *ob, bool use_wire, bool use_mask)
 {
-  DRWSculptCallbackData scd = {
-      .ob = ob,
-      .shading_groups = &shgroup,
-      .num_shading_groups = 1,
-      .use_wire = use_wire,
-      .use_mats = false,
-      .use_mask = use_mask,
-      .active_vcol_only = true
-  };
+  DRWSculptCallbackData scd = {.ob = ob,
+                               .shading_groups = &shgroup,
+                               .num_shading_groups = 1,
+                               .use_wire = use_wire,
+                               .use_mats = false,
+                               .use_mask = use_mask,
+                               .active_vcol_only = true};
   drw_sculpt_generate_calls(&scd);
 }
 
@@ -1073,15 +1086,13 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
                                             int num_shgroups,
                                             Object *ob)
 {
-  DRWSculptCallbackData scd = {
-      .ob = ob,
-      .shading_groups = shgroups,
-      .num_shading_groups = num_shgroups,
-      .use_wire = false,
-      .use_mats = true,
-      .use_mask = false,
-      .active_vcol_only = false
-  };
+  DRWSculptCallbackData scd = {.ob = ob,
+                               .shading_groups = shgroups,
+                               .num_shading_groups = num_shgroups,
+                               .use_wire = false,
+                               .use_mats = true,
+                               .use_mask = false,
+                               .active_vcol_only = false};
   drw_sculpt_generate_calls(&scd);
 }
 

@@ -1021,11 +1021,14 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
 {
   /* never match for first time */
   int f_node_index_prev = DYNTOPO_NODE_NONE;
+  const int updateflag = PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris |
+                         PBVH_UpdateNormals;
 
   PBVHNode *v_node = pbvh_bmesh_node_from_vert(pbvh, v);
 
   if (v_node) {
     BLI_table_gset_remove(v_node->bm_unique_verts, v, NULL);
+    v_node->flag |= updateflag;
   }
 
   BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
@@ -1045,7 +1048,7 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
       f_node_index_prev = f_node_index;
 
       PBVHNode *f_node = &pbvh->nodes[f_node_index];
-      f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateBB | PBVH_UpdateTris;
+      f_node->flag |= updateflag;
 
       /* Remove current ownership */
       BLI_table_gset_remove(f_node->bm_other_verts, v, NULL);
@@ -1057,15 +1060,16 @@ static void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
   BM_FACES_OF_VERT_ITER_END;
 }
 
-static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
+static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f, bool log_face)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
 
-  if (!f_node) {
+  if (!f_node || !(f_node->flag & PBVH_Leaf)) {
     printf("pbvh corruption\n");
     fflush(stdout);
     return;
   }
+
   /* Check if any of this face's vertices need to be removed
    * from the node */
   BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
@@ -1083,6 +1087,10 @@ static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
         if (new_node) {
           pbvh_bmesh_vert_ownership_transfer(pbvh, new_node, v);
         }
+        else {
+          BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+          BLI_table_gset_remove(f_node->bm_unique_verts, v, NULL);
+        }
       }
       else {
         /* Remove from other verts */
@@ -1096,16 +1104,204 @@ static void pbvh_bmesh_face_remove(PBVH *pbvh, BMFace *f)
   BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, DYNTOPO_NODE_NONE);
 
   /* Log removed face */
-  BM_log_face_removed(pbvh->bm_log, f);
+  if (log_face) {
+    BM_log_face_removed(pbvh->bm_log, f);
+  }
 
   /* mark node for update */
   f_node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateNormals | PBVH_UpdateTris;
 }
 
-void BKE_pbvh_bmesh_face_kill(PBVH *pbvh, BMFace *f)
+void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
 {
-  pbvh_bmesh_face_remove(pbvh, f);
-  BM_face_kill(pbvh->bm, f);
+  pbvh_bmesh_face_remove(pbvh, f, log_face);
+}
+
+void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, BMVert *v, bool log_vert)
+{
+  pbvh_bmesh_vert_remove(pbvh, v);
+
+  if (log_vert) {
+    BM_log_vert_removed(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+  }
+}
+
+static bool point_in_node(const PBVHNode *node, const float co[3])
+{
+  return co[0] >= node->vb.bmin[0] && co[0] <= node->vb.bmax[0] && co[1] >= node->vb.bmin[1] &&
+         co[1] <= node->vb.bmax[1] && co[2] >= node->vb.bmin[2] && co[2] <= node->vb.bmax[2];
+}
+
+static void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni)
+{
+  PBVHNode *node = pbvh->nodes + ni;
+  BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
+
+  BLI_table_gset_add(node->bm_faces, f);
+
+  int updateflag = PBVH_UpdateTris | PBVH_UpdateBB | PBVH_UpdateDrawBuffers |
+                   PBVH_UpdateCurvatureDir;
+  updateflag |= PBVH_UpdateColor | PBVH_UpdateMask | PBVH_UpdateNormals | PBVH_UpdateOriginalBB;
+  updateflag |= PBVH_UpdateVisibility | PBVH_UpdateRedraw;
+
+  node->flag |= updateflag;
+
+  // ensure verts are in pbvh
+  BMLoop *l = f->l_first;
+  do {
+    const int ni2 = BM_ELEM_CD_GET_INT(l->v, pbvh->cd_vert_node_offset);
+    MDynTopoVert *mv = BKE_PBVH_DYNVERT(pbvh->cd_dyn_vert, l->v);
+
+    BB_expand(&node->vb, l->v->co);
+    BB_expand(&node->orig_vb, mv->origco);
+
+    if (ni2 == DYNTOPO_NODE_NONE) {
+      BM_ELEM_CD_SET_INT(l->v, pbvh->cd_vert_node_offset, ni);
+      BLI_table_gset_add(node->bm_unique_verts, l->v);
+    }
+    else {
+      PBVHNode *node2 = pbvh->nodes + ni2;
+
+      BLI_table_gset_add(node->bm_other_verts, l->v);
+
+      node2->flag |= updateflag;
+
+      BB_expand(&node2->vb, l->v->co);
+      BB_expand(&node2->orig_vb, mv->origco);
+    }
+    l = l->next;
+  } while (l != f->l_first);
+}
+
+static void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f)
+{
+  int i = 0;
+  bool ok = false;
+  int ni = -1;
+
+#if 1
+  while (i < pbvh->totnode) {
+    PBVHNode *node = pbvh->nodes + i;
+    bool ok2 = false;
+
+    if (node->flag & PBVH_Leaf) {
+      ok = true;
+      ni = i;
+      break;
+    }
+
+    if (node->children_offset == 0) {
+      continue;
+    }
+
+    for (int j = 0; j < 2; j++) {
+      int ni2 = node->children_offset + j;
+      if (ni2 == 0) {
+        continue;
+      }
+
+      PBVHNode *node2 = pbvh->nodes + ni2;
+      BMLoop *l = f->l_first;
+
+      do {
+        if (point_in_node(node2, l->v->co)) {
+          i = ni2;
+          ok2 = true;
+          break;
+        }
+
+        l = l->next;
+      } while (l != f->l_first);
+
+      if (ok2) {
+        break;
+      }
+    }
+
+    if (!ok2) {
+      break;
+    }
+  }
+#endif
+
+  if (!ok) {
+    // find closest node
+    float co[3];
+    int tot = 0;
+    BMLoop *l = f->l_first;
+
+    zero_v3(co);
+
+    do {
+      add_v3_v3(co, l->v->co);
+      l = l->next;
+      tot++;
+    } while (l != f->l_first);
+
+    mul_v3_fl(co, 1.0f / (float)tot);
+    float mindis = 1e17;
+
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+
+      if (!(node->flag & PBVH_Leaf)) {
+        continue;
+      }
+
+      float cent[3];
+      add_v3_v3v3(cent, node->vb.bmin, node->vb.bmax);
+      mul_v3_fl(cent, 0.5f);
+
+      float dis = len_squared_v3v3(co, cent);
+      if (dis < mindis) {
+        mindis = dis;
+        ni = i;
+      }
+    }
+  }
+
+  if (ni < 0) {
+    fprintf(stderr, "pbvh error!\n");
+    fflush(stderr);
+    return;
+  }
+
+  bke_pbvh_insert_face_finalize(pbvh, f, ni);
+}
+
+void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk)
+{
+  int ni = -1;
+
+  // look for node in surrounding geometry
+  BMLoop *l = f->l_first;
+  do {
+    ni = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
+
+    if (ni >= 0 && (!(pbvh->nodes[ni].flag & PBVH_Leaf) || ni >= pbvh->totnode)) {
+      printf("EEK! ni: %d totnode: %d\n", ni, pbvh->totnode);
+      l = l->next;
+      continue;
+    }
+
+    if (ni >= 0 && (pbvh->nodes[ni].flag & PBVH_Leaf)) {
+      break;
+    }
+
+    l = l->next;
+  } while (l != f->l_first);
+
+  if (ni < 0 || force_tree_walk) {
+    bke_pbvh_insert_face(pbvh, f);
+  }
+  else {
+    BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, ni);
+    bke_pbvh_insert_face_finalize(pbvh, f, ni);
+  }
+
+  if (log_face) {
+    BM_log_face_added(pbvh->bm_log, f);
+  }
 }
 
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
@@ -1770,7 +1966,7 @@ static void long_edge_queue_edge_add_recursive(EdgeQueueContext *eq_ctx,
     BMLoop *l_iter = l_edge;
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
-      for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
+      for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
         float len_sq_other = BM_edge_calc_length_squared(l_adjacent[i]->e);
         if (len_sq_other > max_ff(len_sq_cmp, limit_len_sq)) {
           //                  edge_queue_insert(eq_ctx, l_adjacent[i]->e, -len_sq_other);
@@ -1892,7 +2088,7 @@ static void short_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
     BMLoop *l_iter = l_edge;
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
-      for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
+      for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
 
         float len_sq_other = calc_weighted_edge_collapse(
             tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
@@ -1948,7 +2144,7 @@ static void long_edge_queue_edge_add_recursive_2(EdgeQueueThreadData *tdata,
     BMLoop *l_iter = l_edge;
     do {
       BMLoop *l_adjacent[2] = {l_iter->next, l_iter->prev};
-      for (int i = 0; i < ARRAY_SIZE(l_adjacent); i++) {
+      for (int i = 0; i < (int)ARRAY_SIZE(l_adjacent); i++) {
 
         float len_sq_other = calc_weighted_edge_split(
             tdata->eq_ctx, l_adjacent[i]->e->v1, l_adjacent[i]->e->v2);
@@ -2337,7 +2533,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   }
 
   /* For each face, add two new triangles and delete the original */
-  for (int i = 0; i < edge_loops->count; i++) {
+  for (int i = 0; i < (int)edge_loops->count; i++) {
     BMLoop *l_adj = BLI_buffer_at(edge_loops, BMLoop *, i);
     BMFace *f_adj = l_adj->f;
     BMFace *f_new;
@@ -2464,7 +2660,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
         &pbvh->bm->ldata, (const void **)lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
 
     /* Delete original */
-    pbvh_bmesh_face_remove(pbvh, f_adj);
+    pbvh_bmesh_face_remove(pbvh, f_adj, true);
     BM_face_kill(pbvh->bm, f_adj);
 
     /* Ensure new vertex is in the node */
@@ -2645,7 +2841,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       l = l->next;
     } while (l != f_adj->l_first);
 
-    pbvh_bmesh_face_remove(pbvh, f_adj);
+    pbvh_bmesh_face_remove(pbvh, f_adj, true);
     BM_face_kill(pbvh->bm, f_adj);
   }
 
@@ -2660,7 +2856,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
    * really buy anything. */
   BLI_buffer_clear(deleted_faces);
 
-  BMLoop *l;
+  BMLoop *l = NULL;
   BMLoop **ls = NULL;
   void **blocks = NULL;
   float *ws = NULL;
@@ -2741,7 +2937,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       bool ok = true;
 
       // check we're not already in deleted_faces
-      for (int i = 0; i < deleted_faces->count; i++) {
+      for (int i = 0; i < (int)deleted_faces->count; i++) {
         if (BLI_buffer_at(deleted_faces, BMFace *, i) == existing_face) {
           ok = false;
           break;
@@ -2788,7 +2984,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_LOOPS_OF_VERT_ITER_END;
 
   /* Delete the tagged faces */
-  for (int i = 0; i < deleted_faces->count; i++) {
+  for (int i = 0; i < (int)deleted_faces->count; i++) {
     BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
 
     /* Get vertices and edges of face */
@@ -2809,17 +3005,17 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     do {
       if (!l1->e) {
         printf("bmesh error!\n");
-        l1->e = BM_edge_exists(l->v, l->next->v);
+        l1->e = BM_edge_exists(l1->v, l1->next->v);
         if (!l1->e) {
           // create
-          l1->e = BM_edge_create(pbvh->bm, l->v, l->next->v, NULL, 0);
+          l1->e = BM_edge_create(pbvh->bm, l1->v, l1->next->v, NULL, 0);
         }
       }
       l1 = l1->next;
     } while (l1 != f_del->l_first);
 
     /* Remove the face */
-    pbvh_bmesh_face_remove(pbvh, f_del);
+    pbvh_bmesh_face_remove(pbvh, f_del, true);
     BM_face_kill(pbvh->bm, f_del);
 
     /* Check if any of the face's edges are now unused by any
@@ -3826,7 +4022,7 @@ static bool cleanup_valence_3_4(PBVH *pbvh,
           BLI_table_gset_remove(node2->bm_unique_verts, v, NULL);
           BLI_table_gset_remove(node2->bm_other_verts, v, NULL);
 
-          pbvh_bmesh_face_remove(pbvh, f);
+          pbvh_bmesh_face_remove(pbvh, f, true);
         }
       }
 
@@ -4259,6 +4455,10 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   GHash *vmap = BLI_ghash_ptr_new("pbvh_bmesh.c vmap");
   BMFace *f;
 
+  float min[3], max[3];
+
+  INIT_MINMAX(min, max);
+
   TGSET_ITER (f, node->bm_faces) {
     BMVert *v1 = f->l_first->v;
     BMVert *v2 = f->l_first->next->v;
@@ -4274,6 +4474,8 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       if (!BLI_ghash_ensure_p(vmap, l->v, &val)) {
         SculptVertRef sv = {(intptr_t)l->v};
+
+        minmax_v3v3_v3(min, max, l->v->co);
 
         *val = (void *)BLI_array_len(verts);
         BLI_array_append(verts, sv);
@@ -4303,6 +4505,15 @@ void BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   node->tribuf->tottri = BLI_array_len(tris);
   node->tribuf->verts = verts;
   node->tribuf->totvert = BLI_array_len(verts);
+
+  if (node->tribuf->totvert) {
+    copy_v3_v3(node->tribuf->min, min);
+    copy_v3_v3(node->tribuf->max, max);
+  }
+  else {
+    zero_v3(node->tribuf->min);
+    zero_v3(node->tribuf->max);
+  }
 
   BLI_ghash_free(vmap, NULL, NULL);
 }
@@ -4368,16 +4579,14 @@ static void pbvh_bmesh_join_subnodes(PBVH *pbvh, PBVHNode *node, PBVHNode *paren
   TGSET_ITER_END
 }
 
-static void BKE_pbvh_bmesh_corect_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *parent)
+static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *parent)
 {
   const int size_lower = pbvh->leaf_limit - (pbvh->leaf_limit >> 1);
   const int size_higher = pbvh->leaf_limit + (pbvh->leaf_limit >> 1);
 
   if (node->flag & PBVH_Leaf) {
-    // pbvh_trimesh_node_limit_ensure(pbvh, (int)(node - pbvh->nodes));
+    // pbvh_bmesh_node_limit_ensure(pbvh, (int)(node - pbvh->nodes));
     return;
-
-    // join nodes if subtree lacks verts, unless node is root
   }
 
   if (node->subtree_tottri < size_lower && node != pbvh->nodes) {
@@ -4443,7 +4652,7 @@ static void BKE_pbvh_bmesh_corect_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *par
 
   for (int i = 0; i < 2; i++, ni++) {
     PBVHNode *child = pbvh->nodes + ni;
-    BKE_pbvh_bmesh_corect_tree(pbvh, child, node);
+    BKE_pbvh_bmesh_correct_tree(pbvh, child, node);
   }
 }
 
@@ -4454,7 +4663,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   }
 
   pbvh_count_subtree_verts(bvh, bvh->nodes);
-  BKE_pbvh_bmesh_corect_tree(bvh, bvh->nodes, NULL);
+  BKE_pbvh_bmesh_correct_tree(bvh, bvh->nodes, NULL);
 
   // compact nodes
   int totnode = 0;
@@ -5027,7 +5236,7 @@ static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
       f2->head.data = BLI_mempool_alloc(bm->ldata.pool);
 
       BMLoop *prev = NULL;
-      BMLoop *l2;
+      BMLoop *l2 = NULL;
 
       for (int j = 0; j < 3; j++) {
         l2 = BLI_mempool_alloc(bm->lpool);

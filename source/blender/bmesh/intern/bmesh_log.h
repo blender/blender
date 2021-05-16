@@ -28,6 +28,19 @@ struct RangeTreeUInt;
 typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
 
+typedef struct BMLogCallbacks {
+  void (*on_vert_add)(struct BMVert *v, void *userdata);
+  void (*on_vert_kill)(struct BMVert *v, void *userdata);
+  void (*on_vert_change)(struct BMVert *v, void *userdata, void *old_customdata);
+
+  void (*on_face_add)(struct BMFace *f, void *userdata);
+  void (*on_face_kill)(struct BMFace *f, void *userdata);
+  void (*on_face_change)(struct BMFace *f, void *userdata, void *old_customdata);
+
+  void (*on_full_mesh_load)(void *userdata);
+  void *userdata;
+} BMLogCallbacks;
+
 /* Allocate and initialize a new BMLog */
 BMLog *BM_log_create(BMesh *bm, int cd_dyn_vert);
 void BM_log_set_cd_offsets(BMLog *log, int cd_dyn_vert);
@@ -42,7 +55,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry);
 
 void BM_log_set_bm(BMesh *bm, BMLog *log);
 
-    /* Get the number of log entries */
+/* Get the number of log entries */
 int BM_log_length(const BMLog *log);
 
 /* Apply a consistent ordering to BMesh vertices and faces */
@@ -60,11 +73,12 @@ void BM_log_cleanup_entry(BMLogEntry *entry);
 /* Remove an entry from the log */
 void BM_log_entry_drop(BMLogEntry *entry);
 
-/* Undo one BMLogEntry */
-void BM_log_undo(BMesh *bm, BMLog *log);
+/* Undo one BMLogEntry.  node_layer_id is necassary to preserve node idxs with customdata, whose
+ * layout might have changed */
+void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id);
 
 /* Redo one BMLogEntry */
-void BM_log_redo(BMesh *bm, BMLog *log);
+void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id);
 
 /* Log a vertex before it is modified */
 void BM_log_vert_before_modified(BMLog *log,

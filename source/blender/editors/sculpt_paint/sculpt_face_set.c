@@ -718,7 +718,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
   bm = sculpt_faceset_bm_begin(ss, mesh);
 
   BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
-  const int totfaces = ss->totfaces; //mesh->totpoly;
+  const int totfaces = ss->totfaces;  // mesh->totpoly;
 
   if (!ss->bm) {
     BM_mesh_elem_index_ensure(bm, BM_FACE);
@@ -787,14 +787,14 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
   Mesh *mesh = ob->data;
   SculptSession *ss = ob->sculpt;
   BMesh *bm = sculpt_faceset_bm_begin(ss, mesh);
-  
+
   BMIter iter;
   BMFace *f;
 
   const int cd_fmaps_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
 
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    SculptFaceRef fref = {(intptr_t) f};
+    SculptFaceRef fref = {(intptr_t)f};
 
     if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
       SCULPT_face_set_set(ss, fref, (int)(f->mat_nr + 1));
@@ -1004,7 +1004,8 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
           break;
         }
       }
-    } else if (ss->bm) {
+    }
+    else if (ss->bm) {
       BMIter iter;
       BMFace *f;
 
@@ -1450,7 +1451,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
     }
 
     for (int i = 0; i < BLI_array_len(faces); i++) {
-      BKE_pbvh_bmesh_face_kill(ss->pbvh, faces[i]);
+      BKE_pbvh_bmesh_remove_face(ss->pbvh, faces[i], true);
     }
 
     BLI_array_free(faces);

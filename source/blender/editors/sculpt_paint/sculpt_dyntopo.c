@@ -248,7 +248,7 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   }
 }
 
-static char layer_id[] = "_dyntopo_node_id";
+char dyntopop_node_idx_layer_id[] = "_dyntopo_node_id";
 
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
 {
@@ -303,21 +303,23 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
     ss->bm->vdata.layers[cd_dyn_vert].flag |= CD_FLAG_TEMPORARY;
   }
 
-  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
+  cd_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, layer_id);
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   }
 
   cd_face_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, layer_id);
+      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   if (cd_face_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, layer_id);
+    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   }
 
   // get indices again, as they might have changed after adding new layers
-  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
+  cd_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
   cd_face_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, layer_id);
+      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
 
   ss->cd_origvcol_offset = -1;
 

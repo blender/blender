@@ -68,6 +68,7 @@ typedef struct PBVHTriBuf {
   // private field
   intptr_t *loops;
   int totloop;
+  float min[3], max[3];
 } PBVHTriBuf;
 
 struct BMLog;
@@ -702,7 +703,10 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
 /*recalculates boundary flags for *all* vertices.  used by
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
-void BKE_pbvh_bmesh_face_kill(PBVH *pbvh, struct BMFace *f);
+
+void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, struct BMFace *f, bool log_face);
+void BKE_pbvh_bmesh_remove_vertex(PBVH *pbvh, struct BMVert *v, bool log_vert);
+void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool force_tree_walk);
 
 // note that e_tri and f_example are allowed to be NULL
 struct BMFace *BKE_pbvh_face_create_bmesh(PBVH *pbvh,

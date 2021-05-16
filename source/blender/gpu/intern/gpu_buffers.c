@@ -60,6 +60,17 @@
 /* XXX: the rest of the code in this file is used for optimized PBVH
  * drawing and doesn't interact at all with the buffer code above */
 
+/*
+this tests a low-data draw mode.  faceset and mask overlays must be disabled,
+meshes cannot have uv layers, and DynTopo must be on, along with "draw smooth."
+
+Normalizes coordinates to 16 bit integers, normals to 8-bit bytes, and skips
+all other attributes.
+
+To test, enable #if 0 branch in sculpt_draw_cb in draw_manager_data.c
+*/
+//#define QUANTIZED_PERF_TEST
+
 struct GPU_PBVH_Buffers {
   GPUIndexBuf *index_buf, *index_buf_fast;
   GPUIndexBuf *index_lines_buf, *index_lines_buf_fast;
@@ -99,6 +110,9 @@ struct GPU_PBVH_Buffers {
   bool smooth;
 
   bool show_overlay;
+#ifdef QUANTIZED_PERF_TEST
+  float matrix[4][4];
+#endif
 };
 
 static struct {
@@ -156,8 +170,23 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
   return GPU_vertbuf_get_data(buffers->vert_buf) != NULL;
 }
 
+float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers)
+{
+#ifdef QUANTIZED_PERF_TEST
+  return (float *)buffers->matrix;
+#else
+  return NULL;
+#endif
+}
+
 static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
 {
+#ifdef QUANTIZED_PERF_TEST
+  memset(buffers->matrix, 0, sizeof(buffers->matrix));
+  buffers->matrix[0][0] = buffers->matrix[1][1] = buffers->matrix[2][2] = buffers->matrix[3][3] =
+      1.0f;
+#endif
+
   if (buffers->triangles == NULL) {
     buffers->triangles = GPU_batch_create(prim,
                                           buffers->vert_buf,
@@ -959,11 +988,24 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata, bool 
 
   /* Initialize vertex buffer (match 'VertexBufferFormat'). */
   if (g_vbo_id.format.attr_len == 0) {
+#ifdef QUANTIZED_PERF_TEST
+    g_vbo_id.pos = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "pos", GPU_COMP_U16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    g_vbo_id.nor = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "nor", GPU_COMP_I8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+#else
     g_vbo_id.pos = GPU_vertformat_attr_add(
         &g_vbo_id.format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     g_vbo_id.nor = GPU_vertformat_attr_add(
         &g_vbo_id.format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+#endif
+
     /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
+
+#ifdef QUANTIZED_PERF_TEST
+    return;
+#endif
+
     g_vbo_id.msk = GPU_vertformat_attr_add(
         &g_vbo_id.format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
@@ -1288,7 +1330,6 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   const bool indexed = buffers->smooth && tribuf && !have_uv;
   tottri = indexed ? tribuf->tottri : gpu_bmesh_face_visible_count(bm_faces);
 
-  // XXX disable indexed verts for now
   if (indexed) {
     /* Count visible vertices */
     totvert = tribuf->totvert;
@@ -1331,10 +1372,69 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
     GHash *bm_vert_to_index = BLI_ghash_int_new_ex("bm_vert_to_index", totvert);
     BMFace *f;
+    GPUVertBuf *vert_buf = buffers->vert_buf;
+
+#ifdef QUANTIZED_PERF_TEST
+    float min[3];
+    float max[3];
+    float mat[4][4];
+    float imat[4][4];
+    float scale[3];
+
+    INIT_MINMAX(min, max);
+    for (int i = 0; i < tribuf->totvert; i++) {
+      BMVert *v = (BMVert *)tribuf->verts[i].i;
+
+      minmax_v3v3_v3(min, max, v->co);
+    }
+
+    sub_v3_v3v3(scale, max, min);
+
+    scale[0] = scale[0] != 0.0f ? 1.0f / scale[0] : 0.0f;
+    scale[1] = scale[1] != 0.0f ? 1.0f / scale[1] : 0.0f;
+    scale[2] = scale[2] != 0.0f ? 1.0f / scale[2] : 0.0f;
+
+    memset((float *)mat, 0, sizeof(float) * 16);
+
+    mat[0][0] = scale[0];
+    mat[1][1] = scale[1];
+    mat[2][2] = scale[2];
+
+    mat[3][0] = -min[0] * scale[0];
+    mat[3][1] = -min[1] * scale[1];
+    mat[3][2] = -min[2] * scale[2];
+
+    mat[3][3] = 1.0f;
+
+    invert_m4_m4(imat, mat);
+#endif
 
     for (int i = 0; i < tribuf->totvert; i++) {
       BMVert *v = (BMVert *)tribuf->verts[i].i;
 
+#ifdef QUANTIZED_PERF_TEST
+      float co[3];
+      copy_v3_v3(co, v->co);
+      mul_v3_m4v3(co, mat, co);
+      // sub_v3_v3(co, tribuf->min);
+      // mul_v3_v3(co, scale);
+
+      // normal_float_to_short_
+      unsigned short co_short[3];
+      co_short[0] = (unsigned short)(co[0] * 65535.0f);
+      co_short[1] = (unsigned short)(co[1] * 65535.0f);
+      co_short[2] = (unsigned short)(co[2] * 65535.0f);
+
+      GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, i, co_short);
+
+      signed char no_short[3];
+      // normal_float_to_short_v3(no_short, v->no);
+      no_short[0] = (signed char)(v->no[0] * 127.0f);
+      no_short[1] = (signed char)(v->no[1] * 127.0f);
+      no_short[2] = (signed char)(v->no[2] * 127.0f);
+
+      GPU_vertbuf_attr_set(vert_buf, g_vbo_id.nor, i, no_short);
+#else
       gpu_bmesh_vert_to_buffer_copy(v,
                                     buffers->vert_buf,
                                     i,
@@ -1347,6 +1447,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                     &empty_mask,
                                     cd_vcols,
                                     cd_vcol_count);
+#endif
     }
 
     for (int i = 0; i < tribuf->tottri; i++) {
@@ -1354,9 +1455,11 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
       GPU_indexbuf_add_tri_verts(&elb, tri->v[0], tri->v[1], tri->v[2]);
 
+#ifndef QUANTIZED_PERF_TEST
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[0], tri->v[1]);
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[1], tri->v[2]);
       GPU_indexbuf_add_line_verts(&elb_lines, tri->v[2], tri->v[0]);
+#endif
     }
 
     buffers->tot_tri = tottri;
@@ -1368,6 +1471,16 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
       GPU_indexbuf_build_in_place(&elb, buffers->index_buf);
     }
     buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
+
+    /* Get material index from the last face we iterated on. */
+    buffers->material_index = (f) ? f->mat_nr : 0;
+    buffers->show_overlay = !empty_mask || !default_face_set;
+
+    gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
+
+#ifdef QUANTIZED_PERF_TEST
+    copy_m4_m4(buffers->matrix, imat);
+#endif
   }
   else {
     GPUIndexBufBuilder elb_lines;
@@ -1468,14 +1581,13 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
     buffers->index_lines_buf = GPU_indexbuf_build(&elb_lines);
     buffers->tot_tri = tottri;
+
+    /* Get material index from the last face we iterated on. */
+    buffers->material_index = (f) ? f->mat_nr : 0;
+    buffers->show_overlay = !empty_mask || !default_face_set;
+
+    gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
   }
-
-  /* Get material index from the last face we iterated on. */
-  buffers->material_index = (f) ? f->mat_nr : 0;
-
-  buffers->show_overlay = !empty_mask || !default_face_set;
-
-  gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 }
 
 /* -------------------------------------------------------------------- */
