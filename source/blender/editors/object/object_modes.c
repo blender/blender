@@ -30,6 +30,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
@@ -438,6 +440,13 @@ static void object_transfer_mode_reposition_view_pivot(bContext *C, const int mv
   ups->last_stroke_valid = true;
 }
 
+static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob_dst)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob_dst_eval = DEG_get_evaluated_object(depsgraph, ob_dst);
+  ob_dst_eval->runtime.overlay_mode_transfer_start_time = PIL_check_seconds_timer();
+}
+
 static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)
 {
   Scene *scene = CTX_data_scene(C);
@@ -474,6 +483,8 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
 
     ob_dst_orig = DEG_get_original_object(ob_dst);
     ED_object_mode_set_ex(C, last_mode, true, op->reports);
+
+    object_overlay_mode_transfer_animation_start(C, ob_dst);
 
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);

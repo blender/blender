@@ -149,6 +149,7 @@ set(SRC
   engines/overlay/overlay_image.c
   engines/overlay/overlay_lattice.c
   engines/overlay/overlay_metaball.c
+  engines/overlay/overlay_mode_transfer.c
   engines/overlay/overlay_motion_path.c
   engines/overlay/overlay_outline.c
   engines/overlay/overlay_paint.c

@@ -107,6 +107,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *gpencil_canvas_ps;
   DRWPass *facing_ps[2];
   DRWPass *fade_ps[2];
+  DRWPass *mode_transfer_ps[2];
   DRWPass *grid_ps;
   DRWPass *image_background_ps;
   DRWPass *image_background_scene_ps;
@@ -282,6 +283,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *extra_grid_grp;
   DRWShadingGroup *facing_grp[2];
   DRWShadingGroup *fade_grp[2];
+  DRWShadingGroup *flash_grp[2];
   DRWShadingGroup *motion_path_lines_grp;
   DRWShadingGroup *motion_path_points_grp;
   DRWShadingGroup *outlines_grp;
@@ -414,6 +416,10 @@ typedef struct OVERLAY_PrivateData {
   struct {
     DRWCallBuffer *handle[2];
   } mball;
+  struct {
+    double time;
+    bool any_animated;
+  } mode_transfer;
 } OVERLAY_PrivateData; /* Transient data */
 
 typedef struct OVERLAY_StorageList {
@@ -606,6 +612,12 @@ void OVERLAY_fade_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_fade_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_fade_draw(OVERLAY_Data *vedata);
 void OVERLAY_fade_infront_draw(OVERLAY_Data *vedata);
+
+void OVERLAY_mode_transfer_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_mode_transfer_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_mode_transfer_draw(OVERLAY_Data *vedata);
+void OVERLAY_mode_transfer_infront_draw(OVERLAY_Data *vedata);
+void OVERLAY_mode_transfer_cache_finish(OVERLAY_Data *vedata);
 
 void OVERLAY_grid_init(OVERLAY_Data *vedata);
 void OVERLAY_grid_cache_init(OVERLAY_Data *vedata);
