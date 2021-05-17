@@ -669,9 +669,11 @@ static void bake_targets_clear(Main *bmain, const bool is_tangent)
 }
 
 /* create new mesh with edit mode changes and modifiers applied */
-static Mesh *bake_mesh_new_from_object(Object *object)
+static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
+                                       Object *object,
+                                       const bool preserve_origindex)
 {
-  Mesh *me = BKE_mesh_new_from_object(NULL, object, false);
+  Mesh *me = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
   if (me->flag & ME_AUTOSMOOTH) {
     BKE_mesh_split_faces(me, true);
@@ -961,10 +963,39 @@ static bool bake_targets_init_vertex_colors(BakeTargets *targets, Object *ob, Re
   return true;
 }
 
+static int find_original_loop(const Mesh *me_orig,
+                              const int *vert_origindex,
+                              const int *poly_origindex,
+                              const int poly_eval,
+                              const int vert_eval)
+{
+  /* Get original vertex and polygon index. There is currently no loop mapping
+   * in modifier stack evaluation. */
+  const int vert_orig = vert_origindex[vert_eval];
+  const int poly_orig = poly_origindex[poly_eval];
+
+  if (vert_orig == ORIGINDEX_NONE || poly_orig == ORIGINDEX_NONE) {
+    return ORIGINDEX_NONE;
+  }
+
+  /* Find matching loop with original vertex in original polygon. */
+  MPoly *mpoly_orig = me_orig->mpoly + poly_orig;
+  MLoop *mloop_orig = me_orig->mloop + mpoly_orig->loopstart;
+  for (int j = 0; j < mpoly_orig->totloop; ++j, ++mloop_orig) {
+    if (mloop_orig->v == vert_orig) {
+      return mpoly_orig->loopstart + j;
+    }
+  }
+
+  return ORIGINDEX_NONE;
+}
+
 static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
-                                                       Mesh *me,
+                                                       Object *ob,
+                                                       Mesh *me_eval,
                                                        BakePixel *pixel_array)
 {
+  Mesh *me = ob->data;
   const int num_pixels = targets->num_pixels;
 
   /* Initialize blank pixels. */
@@ -983,16 +1014,31 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
-  const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
+  const int tottri = poly_to_tri_count(me_eval->totpoly, me_eval->totloop);
   MLoopTri *looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
 
-  BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
+  BKE_mesh_recalc_looptri(
+      me_eval->mloop, me_eval->mpoly, me_eval->mvert, me_eval->totloop, me_eval->totpoly, looptri);
+
+  /* For mapping back to original mesh in case there are modifiers. */
+  const int *vert_origindex = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+  const int *poly_origindex = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
 
     for (int j = 0; j < 3; j++) {
-      const unsigned int l = lt->tri[j];
+      unsigned int l = lt->tri[j];
+      unsigned int v = me_eval->mloop[l].v;
+
+      /* Map back to original loop if there are modifiers. */
+      if (vert_origindex != NULL && poly_origindex != NULL) {
+        l = find_original_loop(me, vert_origindex, poly_origindex, lt->poly, v);
+        if (l == ORIGINDEX_NONE || l >= me->totloop) {
+          continue;
+        }
+      }
+
       BakePixel *pixel = &pixel_array[l];
 
       if (pixel->primitive_id != -1) {
@@ -1004,7 +1050,7 @@ static void bake_targets_populate_pixels_vertex_colors(BakeTargets *targets,
       /* Seed is the vertex, so that sampling noise is coherent for the same
        * vertex, but different corners can still have different normals,
        * materials and UVs. */
-      pixel->seed = me->mloop[l].v;
+      pixel->seed = v;
 
       /* Barycentric coordinates, nudged a bit to avoid precision issues that
        * may happen when exactly at the vertex coordinate. */
@@ -1043,7 +1089,7 @@ static void bake_result_add_to_rgba(float rgba[4], const float *result, const in
   }
 }
 
-static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, Mesh *me_split)
+static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
   Mesh *me = ob->data;
   MPropCol *mcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
@@ -1051,11 +1097,6 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, 
   MLoopCol *mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
   const int num_channels = targets->num_channels;
   const float *result = targets->result;
-
-  /* We bake using a mesh with additional vertices for split normals, but the
-   * number of loops must match to be able to transfer the vertex colors. */
-  BLI_assert(me->totloop == me_split->totloop);
-  UNUSED_VARS_NDEBUG(me_split);
 
   if (mcol_valid) {
     const int totvert = me->totvert;
@@ -1111,16 +1152,17 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob, 
 static bool bake_targets_init(const BakeAPIRender *bkr,
                               BakeTargets *targets,
                               Object *ob,
+                              Object *ob_eval,
                               ReportList *reports)
 {
   if (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES) {
     if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
-      if (!bake_targets_init_internal(bkr, targets, ob, reports)) {
+      if (!bake_targets_init_internal(bkr, targets, ob_eval, reports)) {
         return false;
       }
     }
     else if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
-      if (!bake_targets_init_external(bkr, targets, ob, reports)) {
+      if (!bake_targets_init_external(bkr, targets, ob_eval, reports)) {
         return false;
       }
     }
@@ -1145,14 +1187,15 @@ static bool bake_targets_init(const BakeAPIRender *bkr,
 
 static void bake_targets_populate_pixels(const BakeAPIRender *bkr,
                                          BakeTargets *targets,
-                                         Mesh *me,
+                                         Object *ob,
+                                         Mesh *me_eval,
                                          BakePixel *pixel_array)
 {
   if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
-    bake_targets_populate_pixels_vertex_colors(targets, me, pixel_array);
+    bake_targets_populate_pixels_vertex_colors(targets, ob, me_eval, pixel_array);
   }
   else {
-    RE_bake_pixels_populate(me, pixel_array, targets->num_pixels, targets, bkr->uv_layer);
+    RE_bake_pixels_populate(me_eval, pixel_array, targets->num_pixels, targets, bkr->uv_layer);
   }
 }
 
@@ -1160,7 +1203,7 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
                                 BakeTargets *targets,
                                 Object *ob,
                                 Object *ob_eval,
-                                Mesh *me,
+                                Mesh *me_eval,
                                 BakePixel *pixel_array,
                                 ReportList *reports)
 {
@@ -1169,11 +1212,12 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
       return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports);
     }
     if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
-      return bake_targets_output_external(bkr, targets, ob, ob_eval, me, pixel_array, reports);
+      return bake_targets_output_external(
+          bkr, targets, ob, ob_eval, me_eval, pixel_array, reports);
     }
   }
   else if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
-    return bake_targets_output_vertex_colors(targets, ob, me);
+    return bake_targets_output_vertex_colors(targets, ob);
   }
 
   return false;
@@ -1213,8 +1257,8 @@ static int bake(const BakeAPIRender *bkr,
   BakeHighPolyData *highpoly = NULL;
   int tot_highpoly = 0;
 
-  Mesh *me_low = NULL;
-  Mesh *me_cage = NULL;
+  Mesh *me_low_eval = NULL;
+  Mesh *me_cage_eval = NULL;
 
   MultiresModifierData *mmd_low = NULL;
   int mmd_flags_low = 0;
@@ -1223,6 +1267,8 @@ static int bake(const BakeAPIRender *bkr,
   BakePixel *pixel_array_high = NULL;
 
   BakeTargets targets = {NULL};
+
+  const bool preserve_origindex = (bkr->target == R_BAKE_TARGET_VERTEX_COLORS);
 
   RE_bake_engine_set_engine_parameters(re, bmain, scene);
 
@@ -1287,10 +1333,10 @@ static int bake(const BakeAPIRender *bkr,
   ob_low_eval = DEG_get_evaluated_object(depsgraph, ob_low);
 
   /* get the mesh as it arrives in the renderer */
-  me_low = bake_mesh_new_from_object(ob_low_eval);
+  me_low_eval = bake_mesh_new_from_object(depsgraph, ob_low_eval, preserve_origindex);
 
   /* Initialize bake targets. */
-  if (!bake_targets_init(bkr, &targets, ob_low_eval, reports)) {
+  if (!bake_targets_init(bkr, &targets, ob_low, ob_low_eval, reports)) {
     goto cleanup;
   }
 
@@ -1298,7 +1344,7 @@ static int bake(const BakeAPIRender *bkr,
    * it is populated later with the cage mesh (smoothed version of the mesh). */
   pixel_array_low = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels, "bake pixels low poly");
   if ((bkr->is_selected_to_active && (ob_cage == NULL) && bkr->is_cage) == false) {
-    bake_targets_populate_pixels(bkr, &targets, me_low, pixel_array_low);
+    bake_targets_populate_pixels(bkr, &targets, ob_low, me_low_eval, pixel_array_low);
   }
 
   if (bkr->is_selected_to_active) {
@@ -1307,8 +1353,9 @@ static int bake(const BakeAPIRender *bkr,
 
     /* prepare cage mesh */
     if (ob_cage) {
-      me_cage = bake_mesh_new_from_object(ob_cage_eval);
-      if ((me_low->totpoly != me_cage->totpoly) || (me_low->totloop != me_cage->totloop)) {
+      me_cage_eval = bake_mesh_new_from_object(depsgraph, ob_cage_eval, preserve_origindex);
+      if ((me_low_eval->totpoly != me_cage_eval->totpoly) ||
+          (me_low_eval->totloop != me_cage_eval->totloop)) {
         BKE_report(reports,
                    RPT_ERROR,
                    "Invalid cage object, the cage mesh must have the same number "
@@ -1348,8 +1395,8 @@ static int bake(const BakeAPIRender *bkr,
         BKE_object_handle_data_update(depsgraph, scene, ob_low_eval);
       }
 
-      me_cage = BKE_mesh_new_from_object(NULL, ob_low_eval, false);
-      bake_targets_populate_pixels(bkr, &targets, me_cage, pixel_array_low);
+      me_cage_eval = BKE_mesh_new_from_object(NULL, ob_low_eval, false, preserve_origindex);
+      bake_targets_populate_pixels(bkr, &targets, ob_low, me_cage_eval, pixel_array_low);
     }
 
     highpoly = MEM_callocN(sizeof(BakeHighPolyData) * tot_highpoly, "bake high poly objects");
@@ -1367,7 +1414,7 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
       highpoly[i].ob_eval->restrictflag &= ~OB_RESTRICT_RENDER;
       highpoly[i].ob_eval->base_flag |= (BASE_VISIBLE_DEPSGRAPH | BASE_ENABLED_RENDER);
-      highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false);
+      highpoly[i].me = BKE_mesh_new_from_object(NULL, highpoly[i].ob_eval, false, false);
 
       /* Low-poly to high-poly transformation matrix. */
       copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->obmat);
@@ -1391,7 +1438,7 @@ static int bake(const BakeAPIRender *bkr,
     pixel_array_high = MEM_mallocN(sizeof(BakePixel) * targets.num_pixels,
                                    "bake pixels high poly");
 
-    if (!RE_bake_pixels_populate_from_objects(me_low,
+    if (!RE_bake_pixels_populate_from_objects(me_low_eval,
                                               pixel_array_low,
                                               pixel_array_high,
                                               highpoly,
@@ -1402,7 +1449,7 @@ static int bake(const BakeAPIRender *bkr,
                                               bkr->max_ray_distance,
                                               ob_low_eval->obmat,
                                               (ob_cage ? ob_cage->obmat : ob_low_eval->obmat),
-                                              me_cage)) {
+                                              me_cage_eval)) {
       BKE_report(reports, RPT_ERROR, "Error handling selected objects");
       goto cleanup;
     }
@@ -1478,7 +1525,7 @@ static int bake(const BakeAPIRender *bkr,
                                           targets.num_pixels,
                                           targets.num_channels,
                                           targets.result,
-                                          me_low,
+                                          me_low_eval,
                                           bkr->normal_swizzle,
                                           ob_low_eval->obmat);
         }
@@ -1497,8 +1544,8 @@ static int bake(const BakeAPIRender *bkr,
           }
 
           /* Evaluate modifiers again. */
-          me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false);
-          bake_targets_populate_pixels(bkr, &targets, me_nores, pixel_array_low);
+          me_nores = BKE_mesh_new_from_object(NULL, ob_low_eval, false, false);
+          bake_targets_populate_pixels(bkr, &targets, ob_low, me_nores, pixel_array_low);
 
           RE_bake_normal_world_to_tangent(pixel_array_low,
                                           targets.num_pixels,
@@ -1527,7 +1574,7 @@ static int bake(const BakeAPIRender *bkr,
   else {
     /* save the results */
     if (bake_targets_output(
-            bkr, &targets, ob_low, ob_low_eval, me_low, pixel_array_low, reports)) {
+            bkr, &targets, ob_low, ob_low_eval, me_low_eval, pixel_array_low, reports)) {
       op_result = OPERATOR_FINISHED;
     }
     else {
@@ -1562,12 +1609,12 @@ cleanup:
 
   bake_targets_free(&targets);
 
-  if (me_low != NULL) {
-    BKE_id_free(NULL, &me_low->id);
+  if (me_low_eval != NULL) {
+    BKE_id_free(NULL, &me_low_eval->id);
   }
 
-  if (me_cage != NULL) {
-    BKE_id_free(NULL, &me_cage->id);
+  if (me_cage_eval != NULL) {
+    BKE_id_free(NULL, &me_cage_eval->id);
   }
 
   DEG_graph_free(depsgraph);

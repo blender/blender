@@ -569,6 +569,11 @@ class OpenCLSplitKernel : public DeviceSplitKernel {
     size_t num_elements = max_elements_for_max_buffer_size(kg, data, max_buffer_size);
     int2 global_size = make_int2(max(round_down((int)sqrt(num_elements), 64), 64),
                                  (int)sqrt(num_elements));
+
+    if (device->info.description.find("Intel") != string::npos) {
+      global_size = make_int2(min(512, global_size.x), min(512, global_size.y));
+    }
+
     VLOG(1) << "Global size: " << global_size << ".";
     return global_size;
   }
