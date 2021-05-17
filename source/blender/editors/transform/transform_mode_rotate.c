@@ -249,5 +249,7 @@ void initRotation(TransInfo *t)
   if (t->flag & T_2D_EDIT) {
     t->flag |= T_NO_CONSTRAINT;
   }
+
+  transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }
 /** \} */

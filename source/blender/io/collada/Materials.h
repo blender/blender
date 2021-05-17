@@ -48,6 +48,7 @@ class MaterialNode {
   bNodeTree *prepare_material_nodetree();
   bNode *add_node(int node_type, int locx, int locy, std::string label);
   void add_link(bNode *from_node, int from_index, bNode *to_node, int to_index);
+  void add_link(bNode *from_node, const char *from_label, bNode *to_node, const char *to_label);
   bNode *add_texture_node(COLLADAFW::ColorOrTexture &cot, int locx, int locy, std::string label);
   void setShaderType();
 

@@ -538,7 +538,7 @@ void GPENCIL_OT_material_lock_unused(struct wmOperatorType *ot);
 void GPENCIL_OT_material_select(struct wmOperatorType *ot);
 void GPENCIL_OT_material_set(struct wmOperatorType *ot);
 void GPENCIL_OT_set_active_material(struct wmOperatorType *ot);
-void GPENCIL_OT_materials_append_to_object(struct wmOperatorType *ot);
+void GPENCIL_OT_materials_copy_to_object(struct wmOperatorType *ot);
 
 /* convert old 2.7 files to 2.8 */
 void GPENCIL_OT_convert_old_files(struct wmOperatorType *ot);

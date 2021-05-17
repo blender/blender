@@ -684,8 +684,11 @@ static void reset_tree_ui_storage(Span<const blender::nodes::NodeTreeRef *> tree
 
 static Vector<SpaceSpreadsheet *> find_spreadsheet_editors(Main *bmain)
 {
-  Vector<SpaceSpreadsheet *> spreadsheets;
   wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
+  if (wm == nullptr) {
+    return {};
+  }
+  Vector<SpaceSpreadsheet *> spreadsheets;
   LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -911,6 +914,7 @@ static GeometrySet compute_geometry(const DerivedNodeTree &tree,
   eval_params.modifier_ = nmd;
   eval_params.depsgraph = ctx->depsgraph;
   eval_params.self_object = ctx->object;
+  eval_params.is_main_eval = ctx->is_main_eval;
   eval_params.log_socket_value_fn = log_socket_value;
   blender::modifiers::geometry_nodes::evaluate_geometry_nodes(eval_params);
 

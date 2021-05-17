@@ -414,8 +414,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     int orient_type_set = -1;
     int orient_type_matrix_set = -1;
 
-    bool use_orient_axis = false;
-
     if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
       TransformOrientationSlot *orient_slot = &t->scene->orientation_slots[SCE_ORIENT_DEFAULT];
       orient_type_scene = orient_slot->type;
@@ -435,7 +433,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis"))) {
       t->orient_axis = RNA_property_enum_get(op->ptr, prop);
-      use_orient_axis = true;
     }
 
     if (op && (prop = RNA_struct_find_property(op->ptr, "orient_axis_ortho"))) {
@@ -457,27 +454,22 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (orient_type_set != -1) {
       orient_type_default = orient_type_set;
+      t->is_orient_set = true;
     }
     else if (orient_type_matrix_set != -1) {
       orient_type_default = orient_type_set = orient_type_matrix_set;
+      t->is_orient_set = true;
     }
     else if (t->con.mode & CON_APPLY) {
       orient_type_default = orient_type_set = orient_type_scene;
     }
     else {
+      orient_type_default = orient_type_scene;
       if (orient_type_scene == V3D_ORIENT_GLOBAL) {
         orient_type_set = V3D_ORIENT_LOCAL;
       }
       else {
         orient_type_set = V3D_ORIENT_GLOBAL;
-      }
-
-      if ((t->flag & T_MODAL) && (use_orient_axis || transform_mode_is_changeable(t->mode)) &&
-          (t->mode != TFM_ALIGN)) {
-        orient_type_default = V3D_ORIENT_VIEW;
-      }
-      else {
-        orient_type_default = orient_type_scene;
       }
     }
 
@@ -487,9 +479,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
     }
 
-    orient_types[0] = (short)orient_type_default;
-    orient_types[1] = (short)orient_type_scene;
-    orient_types[2] = (short)orient_type_set;
+    orient_types[O_DEFAULT] = (short)orient_type_default;
+    orient_types[O_SCENE] = (short)orient_type_scene;
+    orient_types[O_SET] = (short)orient_type_set;
 
     for (int i = 0; i < 3; i++) {
       /* For efficiency, avoid calculating the same orientation twice. */
@@ -506,9 +498,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    /* Set orient_curr to -1 in order to force the update in
-     * `transform_orientations_current_set`. */
-    t->orient_curr = -1;
     transform_orientations_current_set(t, (t->con.mode & CON_APPLY) ? 2 : 0);
   }
 

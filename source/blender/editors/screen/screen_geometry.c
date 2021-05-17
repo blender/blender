@@ -304,7 +304,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
  */
 short screen_geom_find_area_split_point(const ScrArea *area,
                                         const rcti *window_rect,
-                                        char dir,
+                                        const eScreenAxis dir_axis,
                                         float fac)
 {
   const int cur_area_width = screen_geom_area_width(area);
@@ -313,17 +313,21 @@ short screen_geom_find_area_split_point(const ScrArea *area,
   const short area_min_y = ED_area_headersize();
 
   /* area big enough? */
-  if ((dir == 'v') && (cur_area_width <= 2 * area_min_x)) {
-    return 0;
+  if (dir_axis == SCREEN_AXIS_V) {
+    if (cur_area_width <= 2 * area_min_x) {
+      return 0;
+    }
   }
-  if ((dir == 'h') && (cur_area_height <= 2 * area_min_y)) {
-    return 0;
+  else if (dir_axis == SCREEN_AXIS_H) {
+    if (cur_area_height <= 2 * area_min_y) {
+      return 0;
+    }
   }
 
   /* to be sure */
   CLAMP(fac, 0.0f, 1.0f);
 
-  if (dir == 'h') {
+  if (dir_axis == SCREEN_AXIS_H) {
     short y = area->v1->vec.y + round_fl_to_short(fac * cur_area_height);
 
     int area_min = area_min_y;
@@ -373,13 +377,13 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
 {
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* 'dir' is the direction of EDGE */
-  char dir;
+  /* 'dir_axis' is the direction of EDGE */
+  eScreenAxis dir_axis;
   if (edge->v1->vec.x == edge->v2->vec.x) {
-    dir = 'v';
+    dir_axis = SCREEN_AXIS_V;
   }
   else {
-    dir = 'h';
+    dir_axis = SCREEN_AXIS_H;
   }
 
   ED_screen_verts_iter(win, screen, sv)
@@ -396,13 +400,13 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
     oneselected = false;
     LISTBASE_FOREACH (ScrEdge *, se, &screen->edgebase) {
       if (se->v1->flag + se->v2->flag == 1) {
-        if (dir == 'h') {
+        if (dir_axis == SCREEN_AXIS_H) {
           if (se->v1->vec.y == se->v2->vec.y) {
             se->v1->flag = se->v2->flag = 1;
             oneselected = true;
           }
         }
-        if (dir == 'v') {
+        else if (dir_axis == SCREEN_AXIS_V) {
           if (se->v1->vec.x == se->v2->vec.x) {
             se->v1->flag = se->v2->flag = 1;
             oneselected = true;

@@ -98,6 +98,7 @@ class GeometryNodesEvaluator {
   const ModifierData *modifier_;
   Depsgraph *depsgraph_;
   LogSocketValueFn log_socket_value_fn_;
+  bool is_main_eval_;
 
  public:
   GeometryNodesEvaluator(GeometryNodesEvaluationParams &params)
@@ -108,7 +109,8 @@ class GeometryNodesEvaluator {
         self_object_(params.self_object),
         modifier_(&params.modifier_->modifier),
         depsgraph_(params.depsgraph),
-        log_socket_value_fn_(std::move(params.log_socket_value_fn))
+        log_socket_value_fn_(std::move(params.log_socket_value_fn)),
+        is_main_eval_(params.is_main_eval)
   {
     for (auto item : params.input_values.items()) {
       this->log_socket_value(item.key, item.value);
@@ -235,7 +237,7 @@ class GeometryNodesEvaluator {
     params_provider.dnode = node;
     params_provider.self_object = self_object_;
     params_provider.depsgraph = depsgraph_;
-    params_provider.allocator = &allocator_;
+    params_provider.is_main_eval = is_main_eval_;
     params_provider.input_values = &node_inputs_map;
     params_provider.output_values = &node_outputs_map;
     params_provider.modifier = modifier_;

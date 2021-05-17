@@ -590,7 +590,7 @@ class PREFERENCES_OT_addon_install(Operator):
         name="Target Path",
         items=(
             ('DEFAULT', "Default", ""),
-            ('PREFS', "User Prefs", ""),
+            ('PREFS', "Preferences", ""),
         ),
     )
 

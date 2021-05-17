@@ -61,4 +61,3 @@ def main():
 
 if not inside_blender and __name__ == "__main__":
     main()
-

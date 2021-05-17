@@ -2,6 +2,7 @@
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop.py -- --verbose
 import bpy
+import idprop
 import unittest
 import numpy as np
 from array import array
@@ -15,12 +16,12 @@ class TestHelper:
 
     def setUp(self):
         self._id = bpy.context.scene
-        assert(len(self._id.keys()) == 0 or self._id.keys() == ["cycles"])
+        self._id.pop("cycles", None)
+        assert(len(self._id.keys()) == 0)
 
     def tearDown(self):
         for key in list(self._id.keys()):
-            if key != "cycles":
-                del self._id[key]
+            del self._id[key]
 
     def assertAlmostEqualSeq(self, list1, list2):
         self.assertEqual(len(list1), len(list2))
@@ -138,6 +139,51 @@ class TestIdPropertyCreation(TestHelper, unittest.TestCase):
     def test_invalid_type(self):
         with self.assertRaises(TypeError):
             self.id["a"] = self
+
+class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
+
+    def test_type(self):
+        self.assertEqual(type(self.id.keys()), idprop.types.IDPropertyGroupViewKeys)
+        self.assertEqual(type(self.id.values()), idprop.types.IDPropertyGroupViewValues)
+        self.assertEqual(type(self.id.items()), idprop.types.IDPropertyGroupViewItems)
+
+        self.assertEqual(type(iter(self.id.keys())), idprop.types.IDPropertyGroupIterKeys)
+        self.assertEqual(type(iter(self.id.values())), idprop.types.IDPropertyGroupIterValues)
+        self.assertEqual(type(iter(self.id.items())), idprop.types.IDPropertyGroupIterItems)
+
+    def test_basic(self):
+        text = ["A", "B", "C"]
+        for i, ch in enumerate(text):
+            self.id[ch] = i
+        self.assertEqual(len(self.id.keys()), len(text))
+        self.assertEqual(list(self.id.keys()), text)
+        self.assertEqual(list(reversed(self.id.keys())), list(reversed(text)))
+
+        self.assertEqual(len(self.id.values()), len(text))
+        self.assertEqual(list(self.id.values()), list(range(len(text))))
+        self.assertEqual(list(reversed(self.id.values())), list(reversed(range(len(text)))))
+
+        self.assertEqual(len(self.id.items()), len(text))
+        self.assertEqual(list(self.id.items()), [(k, v) for v, k in enumerate(text)])
+        self.assertEqual(list(reversed(self.id.items())), list(reversed([(k, v) for v, k in enumerate(text)])))
+
+    def test_contains(self):
+        # Check `idprop.types.IDPropertyGroupView{Keys/Values/Items}.__contains__`
+        text = ["A", "B", "C"]
+        for i, ch in enumerate(text):
+            self.id[ch] = i
+
+        self.assertIn("A", self.id)
+        self.assertNotIn("D", self.id)
+
+        self.assertIn("A", self.id.keys())
+        self.assertNotIn("D", self.id.keys())
+
+        self.assertIn(2, self.id.values())
+        self.assertNotIn(3, self.id.values())
+
+        self.assertIn(("A", 0), self.id.items())
+        self.assertNotIn(("D", 3), self.id.items())
 
 
 class TestBufferProtocol(TestHelper, unittest.TestCase):

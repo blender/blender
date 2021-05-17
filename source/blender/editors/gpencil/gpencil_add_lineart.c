@@ -96,7 +96,7 @@ void ED_gpencil_create_lineart(bContext *C, Object *ob)
   ob->actcol = color_black + 1;
 
   /* layers */
-  bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
+  bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true, false);
 
   /* frames */
   BKE_gpencil_frame_addnew(lines, 0);

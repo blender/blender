@@ -707,7 +707,7 @@ static void flushTransSeq(TransInfo *t)
 
   /* originally TFM_TIME_EXTEND, transform changes */
   if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) {
-    /* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
+    /* Special annoying case here, need to calc meta-strips with TFM_TIME_EXTEND only */
 
     /* calc all meta's then effects T27953. */
     for (seq = seqbasep->first; seq; seq = seq->next) {

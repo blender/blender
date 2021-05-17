@@ -149,7 +149,7 @@ void SEQ_edit_update_muting(Editing *ed)
 static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq)
 {
   LISTBASE_FOREACH (Sequence *, user_seq, seqbase) {
-    /* Look in metas for usage of seq. */
+    /* Look in meta-strips for usage of seq. */
     if (user_seq->type == SEQ_TYPE_META) {
       sequencer_flag_users_for_removal(scene, &user_seq->seqbase, seq);
     }

@@ -200,8 +200,6 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
 /* screens */
 void ED_screens_init(struct Main *bmain, struct wmWindowManager *wm);
 void ED_screen_draw_edges(struct wmWindow *win);
-void ED_screen_draw_join_highlight(struct ScrArea *sa1, struct ScrArea *sa2);
-void ED_screen_draw_split_preview(struct ScrArea *area, const int dir, const float fac);
 void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void ED_screen_ensure_updated(struct wmWindowManager *wm,
                               struct wmWindow *win,
@@ -450,10 +448,10 @@ enum {
 };
 
 /* SCREEN_OT_space_context_cycle direction */
-enum {
+typedef enum eScreenCycle {
   SPACE_CONTEXT_CYCLE_PREV,
   SPACE_CONTEXT_CYCLE_NEXT,
-};
+} eScreenCycle;
 
 #ifdef __cplusplus
 }

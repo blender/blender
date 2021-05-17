@@ -325,6 +325,7 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
                                 const float uv[2],
                                 float r_uv[2],
                                 float r_ofs[2]);
+int BKE_image_find_nearest_tile(const struct Image *image, const float co[2]);
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *r_width, int *r_height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float r_size[2]);

@@ -182,8 +182,8 @@ typedef struct EffectorWeights {
   /** Effector type specific weights. */
   float weight[14];
   float global_gravity;
-  short flag, rt[3];
-  char _pad[4];
+  short flag;
+  char _pad[2];
 } EffectorWeights;
 
 /* EffectorWeights->flag */

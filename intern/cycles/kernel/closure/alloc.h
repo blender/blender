@@ -57,14 +57,24 @@ ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 
 ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 weight)
 {
-  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  kernel_assert(isfinite3_safe(weight));
 
-  if (sc == NULL)
-    return NULL;
+  const float sample_weight = fabsf(average(weight));
 
-  float sample_weight = fabsf(average(weight));
-  sc->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+  /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
+   * we will not allocate new closure. */
+  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+    ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+    if (sc == NULL) {
+      return NULL;
+    }
+
+    sc->sample_weight = sample_weight;
+
+    return sc;
+  }
+
+  return NULL;
 }
 
 #ifdef __OSL__
@@ -73,17 +83,27 @@ ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd,
                                                 float3 weight,
                                                 void *data)
 {
-  ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+  kernel_assert(isfinite3_safe(weight));
 
-  if (!sc)
-    return NULL;
+  const float sample_weight = fabsf(average(weight));
 
-  memcpy((void *)sc, data, size);
+  /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
+   * we will not allocate new closure. */
+  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+    ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
+    if (!sc) {
+      return NULL;
+    }
 
-  float sample_weight = fabsf(average(weight));
-  sc->weight = weight;
-  sc->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? sc : NULL;
+    memcpy((void *)sc, data, size);
+
+    sc->weight = weight;
+    sc->sample_weight = sample_weight;
+
+    return sc;
+  }
+
+  return NULL;
 }
 #endif
 

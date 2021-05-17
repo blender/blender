@@ -258,4 +258,17 @@ TEST(vector_set, Clear)
   EXPECT_EQ(set.size(), 0);
 }
 
+TEST(vector_set, LookupKey)
+{
+  VectorSet<std::string> set;
+  set.add("a");
+  set.add("b");
+  set.add("c");
+  EXPECT_EQ(set.lookup_key("a"), "a");
+  EXPECT_EQ(set.lookup_key_as("c"), "c");
+  EXPECT_EQ(set.lookup_key_ptr_as("d"), nullptr);
+  EXPECT_EQ(set.lookup_key_ptr_as("b")->size(), 1);
+  EXPECT_EQ(set.lookup_key_ptr("a"), set.lookup_key_ptr_as("a"));
+}
+
 }  // namespace blender::tests

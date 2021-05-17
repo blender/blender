@@ -1677,7 +1677,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
 
   if (gpl == NULL) {
     /* no active layer - let's just create one */
-    gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true);
+    gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true, false);
   }
   else if ((BKE_gpencil_layer_is_editable(gpl) == false) && (type == GP_COPY_TO_ACTIVE)) {
     BKE_report(
@@ -1835,7 +1835,7 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Create a new layer. */
-    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true);
+    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
   }
 
   if (target_layer == NULL) {
@@ -4544,6 +4544,9 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
 
   eGP_SeparateModes mode = RNA_enum_get(op->ptr, "mode");
 
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_src);
+  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_src);
+
   /* sanity checks */
   if (ELEM(NULL, gpd_src)) {
     return OPERATOR_CANCELLED;
@@ -4554,8 +4557,22 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_src);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_src);
+  /* Cancel if nothing selected. */
+  if (ELEM(mode, GP_SEPARATE_POINT, GP_SEPARATE_STROKE)) {
+    bool has_selected = false;
+    CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
+      if (ED_gpencil_layer_has_selected_stroke(gpl, is_multiedit)) {
+        has_selected = true;
+        break;
+      }
+    }
+    CTX_DATA_END;
+
+    if (!has_selected) {
+      BKE_report(op->reports, RPT_ERROR, "Nothing selected");
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   /* Create a new object. */
   /* Take into account user preferences for duplicating actions. */
@@ -4600,7 +4617,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
             if (gps->flag & GP_STROKE_SELECT) {
               /* add layer if not created before */
               if (gpl_dst == NULL) {
-                gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false);
+                gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false, false);
               }
 
               /* add frame if not created before */

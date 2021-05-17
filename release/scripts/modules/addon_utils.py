@@ -543,22 +543,6 @@ def module_bl_info(mod, info_basis=None):
     if not addon_info["name"]:
         addon_info["name"] = mod.__name__
 
-    # Replace 'wiki_url' with 'doc_url'.
-    doc_url = addon_info.pop("wiki_url", None)
-    if doc_url is not None:
-        # Unlikely, but possible that both are set.
-        if not addon_info["doc_url"]:
-            addon_info["doc_url"] = doc_url
-        if _bpy.app.debug:
-            print(
-                "Warning: add-on \"%s\": 'wiki_url' in 'bl_info' "
-                "is deprecated please use 'doc_url' instead!\n"
-                "         %s" % (
-                    addon_info['name'],
-                    getattr(mod, "__file__", None),
-                )
-            )
-
     doc_url = addon_info["doc_url"]
     if doc_url:
         doc_url_prefix = "{BLENDER_MANUAL_URL}"

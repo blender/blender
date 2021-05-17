@@ -452,7 +452,7 @@ static void *ocio_transform_ibuf(PlayState *ps,
     display_buffer = ibuf->rect;
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
                                                                   &ps->display_settings,
-                                                                  ibuf->float_colorspace,
+                                                                  ibuf->rect_colorspace,
                                                                   ibuf->dither,
                                                                   false,
                                                                   false);

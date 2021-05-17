@@ -783,7 +783,7 @@ static bool modifier_apply_obdata(
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Curve *curve = ob->data;
     Curve *curve_eval = (Curve *)object_eval->data;
-    ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+    ModifierEvalContext mectx = {depsgraph, object_eval, 0, false};
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(
@@ -807,7 +807,7 @@ static bool modifier_apply_obdata(
   else if (ob->type == OB_LATTICE) {
     Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
     Lattice *lattice = ob->data;
-    ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+    ModifierEvalContext mectx = {depsgraph, object_eval, 0, false};
 
     if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
       BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");

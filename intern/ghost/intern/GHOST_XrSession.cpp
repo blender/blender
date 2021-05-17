@@ -28,6 +28,7 @@
 #include "GHOST_C-api.h"
 
 #include "GHOST_IXrGraphicsBinding.h"
+#include "GHOST_XrAction.h"
 #include "GHOST_XrContext.h"
 #include "GHOST_XrException.h"
 #include "GHOST_XrSwapchain.h"
@@ -46,6 +47,8 @@ struct OpenXRSessionData {
   XrSpace view_space;
   std::vector<XrView> views;
   std::vector<GHOST_XrSwapchain> swapchains;
+
+  std::map<std::string, GHOST_XrActionSet> action_sets;
 };
 
 struct GHOST_XrDrawInfo {
@@ -71,6 +74,7 @@ GHOST_XrSession::~GHOST_XrSession()
   unbindGraphicsContext();
 
   m_oxr->swapchains.clear();
+  m_oxr->action_sets.clear();
 
   if (m_oxr->reference_space != XR_NULL_HANDLE) {
     CHECK_XR_ASSERT(xrDestroySpace(m_oxr->reference_space));
@@ -177,7 +181,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
     std::ostringstream strstream;
     strstream << "Available graphics context version does not meet the following requirements: "
               << requirement_str;
-    throw GHOST_XrException(strstream.str().c_str());
+    throw GHOST_XrException(strstream.str().data());
   }
   m_gpu_binding->initFromGhostContext(*m_gpu_ctx);
 
@@ -194,6 +198,9 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
 
   prepareDrawing();
   create_reference_spaces(*m_oxr, begin_info->base_pose);
+
+  /* Create and bind actions here. */
+  m_context->getCustomFuncs().session_create_fn();
 }
 
 void GHOST_XrSession::requestEnd()
@@ -223,10 +230,9 @@ GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
   assert(m_oxr->session == XR_NULL_HANDLE || m_oxr->session == lifecycle.session);
 
   switch (lifecycle.state) {
-    case XR_SESSION_STATE_READY: {
+    case XR_SESSION_STATE_READY:
       beginSession();
       break;
-    }
     case XR_SESSION_STATE_STOPPING:
       endSession();
       break;
@@ -347,18 +353,6 @@ void GHOST_XrSession::draw(void *draw_customdata)
   }
 
   endFrameDrawing(layers);
-}
-
-static void copy_openxr_pose_to_ghost_pose(const XrPosef &oxr_pose, GHOST_XrPose &r_ghost_pose)
-{
-  /* Set and convert to Blender coordinate space. */
-  r_ghost_pose.position[0] = oxr_pose.position.x;
-  r_ghost_pose.position[1] = oxr_pose.position.y;
-  r_ghost_pose.position[2] = oxr_pose.position.z;
-  r_ghost_pose.orientation_quat[0] = oxr_pose.orientation.w;
-  r_ghost_pose.orientation_quat[1] = oxr_pose.orientation.x;
-  r_ghost_pose.orientation_quat[2] = oxr_pose.orientation.y;
-  r_ghost_pose.orientation_quat[3] = oxr_pose.orientation.z;
 }
 
 static void ghost_xr_draw_view_info_from_view(const XrView &view, GHOST_XrDrawViewInfo &r_info)
@@ -501,3 +495,340 @@ void GHOST_XrSession::unbindGraphicsContext()
 }
 
 /** \} */ /* Graphics Context Injection */
+
+/* -------------------------------------------------------------------- */
+/** \name Actions
+ *
+ * \{ */
+
+static GHOST_XrActionSet *find_action_set(OpenXRSessionData *oxr, const char *action_set_name)
+{
+  std::map<std::string, GHOST_XrActionSet>::iterator it = oxr->action_sets.find(action_set_name);
+  if (it == oxr->action_sets.end()) {
+    return nullptr;
+  }
+  return &it->second;
+}
+
+bool GHOST_XrSession::createActionSet(const GHOST_XrActionSetInfo &info)
+{
+  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+  if (action_sets.find(info.name) != action_sets.end()) {
+    return false;
+  }
+
+  XrInstance instance = m_context->getInstance();
+
+  action_sets.emplace(
+      std::piecewise_construct, std::make_tuple(info.name), std::make_tuple(instance, info));
+
+  return true;
+}
+
+void GHOST_XrSession::destroyActionSet(const char *action_set_name)
+{
+  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+  if (action_sets.find(action_set_name) != action_sets.end()) {
+    action_sets.erase(action_set_name);
+  }
+}
+
+bool GHOST_XrSession::createActions(const char *action_set_name,
+                                    uint32_t count,
+                                    const GHOST_XrActionInfo *infos)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return false;
+  }
+
+  XrInstance instance = m_context->getInstance();
+
+  for (uint32_t i = 0; i < count; ++i) {
+    if (!action_set->createAction(instance, infos[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void GHOST_XrSession::destroyActions(const char *action_set_name,
+                                     uint32_t count,
+                                     const char *const *action_names)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < count; ++i) {
+    action_set->destroyAction(action_names[i]);
+  }
+}
+
+bool GHOST_XrSession::createActionSpaces(const char *action_set_name,
+                                         uint32_t count,
+                                         const GHOST_XrActionSpaceInfo *infos)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return false;
+  }
+
+  XrInstance instance = m_context->getInstance();
+  XrSession session = m_oxr->session;
+
+  for (uint32_t action_idx = 0; action_idx < count; ++action_idx) {
+    const GHOST_XrActionSpaceInfo &info = infos[action_idx];
+
+    GHOST_XrAction *action = action_set->findAction(info.action_name);
+    if (action == nullptr) {
+      continue;
+    }
+
+    if (!action->createSpace(instance, session, info)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void GHOST_XrSession::destroyActionSpaces(const char *action_set_name,
+                                          uint32_t count,
+                                          const GHOST_XrActionSpaceInfo *infos)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return;
+  }
+
+  for (uint32_t action_idx = 0; action_idx < count; ++action_idx) {
+    const GHOST_XrActionSpaceInfo &info = infos[action_idx];
+
+    GHOST_XrAction *action = action_set->findAction(info.action_name);
+    if (action == nullptr) {
+      continue;
+    }
+
+    for (uint32_t subaction_idx = 0; subaction_idx < info.count_subaction_paths; ++subaction_idx) {
+      action->destroySpace(info.subaction_paths[subaction_idx]);
+    }
+  }
+}
+
+bool GHOST_XrSession::createActionBindings(const char *action_set_name,
+                                           uint32_t count,
+                                           const GHOST_XrActionProfileInfo *infos)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return false;
+  }
+
+  XrInstance instance = m_context->getInstance();
+
+  for (uint32_t profile_idx = 0; profile_idx < count; ++profile_idx) {
+    const GHOST_XrActionProfileInfo &info = infos[profile_idx];
+    const char *profile_path = info.profile_path;
+
+    for (uint32_t binding_idx = 0; binding_idx < info.count_bindings; ++binding_idx) {
+      const GHOST_XrActionBindingInfo &binding = info.bindings[binding_idx];
+
+      GHOST_XrAction *action = action_set->findAction(binding.action_name);
+      if (action == nullptr) {
+        continue;
+      }
+
+      action->createBinding(instance, profile_path, binding);
+    }
+  }
+
+  return true;
+}
+
+void GHOST_XrSession::destroyActionBindings(const char *action_set_name,
+                                            uint32_t count,
+                                            const GHOST_XrActionProfileInfo *infos)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return;
+  }
+
+  for (uint32_t profile_idx = 0; profile_idx < count; ++profile_idx) {
+    const GHOST_XrActionProfileInfo &info = infos[profile_idx];
+    const char *profile_path = info.profile_path;
+
+    for (uint32_t binding_idx = 0; binding_idx < info.count_bindings; ++binding_idx) {
+      const GHOST_XrActionBindingInfo &binding = info.bindings[binding_idx];
+
+      GHOST_XrAction *action = action_set->findAction(binding.action_name);
+      if (action == nullptr) {
+        continue;
+      }
+
+      action->destroyBinding(profile_path);
+    }
+  }
+}
+
+bool GHOST_XrSession::attachActionSets()
+{
+  /* Suggest action bindings for all action sets. */
+  std::map<XrPath, std::vector<XrActionSuggestedBinding>> profile_bindings;
+  for (auto &[name, action_set] : m_oxr->action_sets) {
+    action_set.getBindings(profile_bindings);
+  }
+
+  if (profile_bindings.size() < 1) {
+    return false;
+  }
+
+  XrInteractionProfileSuggestedBinding bindings_info{
+      XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+  XrInstance instance = m_context->getInstance();
+
+  for (auto &[profile, bindings] : profile_bindings) {
+    bindings_info.interactionProfile = profile;
+    bindings_info.countSuggestedBindings = (uint32_t)bindings.size();
+    bindings_info.suggestedBindings = bindings.data();
+
+    CHECK_XR(xrSuggestInteractionProfileBindings(instance, &bindings_info),
+             "Failed to suggest interaction profile bindings.");
+  }
+
+  /* Attach action sets. */
+  XrSessionActionSetsAttachInfo attach_info{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+  attach_info.countActionSets = (uint32_t)m_oxr->action_sets.size();
+
+  /* Create an aligned copy of the action sets to pass to xrAttachSessionActionSets(). */
+  std::vector<XrActionSet> action_sets(attach_info.countActionSets);
+  uint32_t i = 0;
+  for (auto &[name, action_set] : m_oxr->action_sets) {
+    action_sets[i++] = action_set.getActionSet();
+  }
+  attach_info.actionSets = action_sets.data();
+
+  CHECK_XR(xrAttachSessionActionSets(m_oxr->session, &attach_info),
+           "Failed to attach XR action sets.");
+
+  return true;
+}
+
+bool GHOST_XrSession::syncActions(const char *action_set_name)
+{
+  std::map<std::string, GHOST_XrActionSet> &action_sets = m_oxr->action_sets;
+
+  XrActionsSyncInfo sync_info{XR_TYPE_ACTIONS_SYNC_INFO};
+  sync_info.countActiveActionSets = (action_set_name != nullptr) ? 1 :
+                                                                   (uint32_t)action_sets.size();
+  if (sync_info.countActiveActionSets < 1) {
+    return false;
+  }
+
+  std::vector<XrActiveActionSet> active_action_sets(sync_info.countActiveActionSets);
+  GHOST_XrActionSet *action_set = nullptr;
+
+  if (action_set_name != nullptr) {
+    action_set = find_action_set(m_oxr.get(), action_set_name);
+    if (action_set == nullptr) {
+      return false;
+    }
+
+    XrActiveActionSet &active_action_set = active_action_sets[0];
+    active_action_set.actionSet = action_set->getActionSet();
+    active_action_set.subactionPath = XR_NULL_PATH;
+  }
+  else {
+    uint32_t i = 0;
+    for (auto &[name, action_set] : action_sets) {
+      XrActiveActionSet &active_action_set = active_action_sets[i++];
+      active_action_set.actionSet = action_set.getActionSet();
+      active_action_set.subactionPath = XR_NULL_PATH;
+    }
+  }
+  sync_info.activeActionSets = active_action_sets.data();
+
+  CHECK_XR(xrSyncActions(m_oxr->session, &sync_info), "Failed to synchronize XR actions.");
+
+  /* Update action states (i.e. Blender custom data). */
+  XrSession session = m_oxr->session;
+  XrSpace reference_space = m_oxr->reference_space;
+  const XrTime &predicted_display_time = m_draw_info->frame_state.predictedDisplayTime;
+
+  if (action_set != nullptr) {
+    action_set->updateStates(session, reference_space, predicted_display_time);
+  }
+  else {
+    for (auto &[name, action_set] : action_sets) {
+      action_set.updateStates(session, reference_space, predicted_display_time);
+    }
+  }
+
+  return true;
+}
+
+bool GHOST_XrSession::applyHapticAction(const char *action_set_name,
+                                        const char *action_name,
+                                        const GHOST_TInt64 &duration,
+                                        const float &frequency,
+                                        const float &amplitude)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return false;
+  }
+
+  GHOST_XrAction *action = action_set->findAction(action_name);
+  if (action == nullptr) {
+    return false;
+  }
+
+  action->applyHapticFeedback(m_oxr->session, action_name, duration, frequency, amplitude);
+
+  return true;
+}
+
+void GHOST_XrSession::stopHapticAction(const char *action_set_name, const char *action_name)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return;
+  }
+
+  GHOST_XrAction *action = action_set->findAction(action_name);
+  if (action == nullptr) {
+    return;
+  }
+
+  action->stopHapticFeedback(m_oxr->session, action_name);
+}
+
+void *GHOST_XrSession::getActionSetCustomdata(const char *action_set_name)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return nullptr;
+  }
+
+  return action_set->getCustomdata();
+}
+
+void *GHOST_XrSession::getActionCustomdata(const char *action_set_name, const char *action_name)
+{
+  GHOST_XrActionSet *action_set = find_action_set(m_oxr.get(), action_set_name);
+  if (action_set == nullptr) {
+    return nullptr;
+  }
+
+  GHOST_XrAction *action = action_set->findAction(action_name);
+  if (action == nullptr) {
+    return nullptr;
+  }
+
+  return action->getCustomdata();
+}
+
+/** \} */ /* Actions */

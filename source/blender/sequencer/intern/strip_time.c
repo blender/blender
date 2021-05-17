@@ -39,6 +39,7 @@
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 #include "strip_time.h"
 #include "utils.h"
@@ -161,11 +162,41 @@ void SEQ_time_update_sequence_bounds(Scene *scene, Sequence *seq)
   }
 }
 
+static void seq_time_update_meta_strip(Scene *scene, Sequence *seq_meta)
+{
+  if (BLI_listbase_is_empty(&seq_meta->seqbase)) {
+    return;
+  }
+
+  int min = MAXFRAME * 2;
+  int max = -MAXFRAME * 2;
+  LISTBASE_FOREACH (Sequence *, seq, &seq_meta->seqbase) {
+    min = min_ii(seq->startdisp, min);
+    max = max_ii(seq->enddisp, max);
+  }
+
+  seq_meta->start = min + seq_meta->anim_startofs;
+  seq_meta->len = max - min;
+  seq_meta->len -= seq_meta->anim_startofs;
+  seq_meta->len -= seq_meta->anim_endofs;
+
+  seq_update_sound_bounds_recursive(scene, seq_meta);
+}
+
+static void seq_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
+{
+  seq_time_update_meta_strip(scene, seq_meta);
+
+  /* Prevent meta-strip to move in timeline. */
+  SEQ_transform_set_left_handle_frame(seq_meta, seq_meta->startdisp);
+  SEQ_transform_set_right_handle_frame(seq_meta, seq_meta->enddisp);
+}
+
 void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
 {
   Sequence *seqm;
 
-  /* check all metas recursively */
+  /* Check all meta-strips recursively. */
   seqm = seq->seqbase.first;
   while (seqm) {
     if (seqm->seqbase.first) {
@@ -211,6 +242,16 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
     }
   }
   else {
+    if (seq->type == SEQ_TYPE_META) {
+      seq_time_update_meta_strip(scene, seq);
+    }
+
+    Editing *ed = SEQ_editing_get(scene, false);
+    MetaStack *ms = SEQ_meta_stack_active_get(ed);
+    if (ms != NULL) {
+      seq_time_update_meta_strip_range(scene, ms->parseq);
+    }
+
     SEQ_time_update_sequence_bounds(scene, seq);
   }
 }

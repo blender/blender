@@ -232,7 +232,10 @@ class Mesh : public Geometry {
                   size_t tri_offset);
   void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
 
-  void pack_primitives(PackedBVH *pack, int object, uint visibility, bool pack_all) override;
+  void pack_primitives(PackedBVH *pack,
+                       int object,
+                       uint visibility,
+                       PackFlags pack_flags) override;
 
   void tessellate(DiagSplit *split);
 

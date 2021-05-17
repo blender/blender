@@ -3562,7 +3562,7 @@ PyDoc_STRVAR(pyrna_struct_keys_doc,
              "   dictionary function of the same name).\n"
              "\n"
              "   :return: custom property keys.\n"
-             "   :rtype: list of strings\n"
+             "   :rtype: :class:`idprop.type.IDPropertyGroupViewKeys`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
@@ -3573,13 +3573,9 @@ static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
     return NULL;
   }
 
+  /* `group` may be NULL. */
   group = RNA_struct_idprops(&self->ptr, 0);
-
-  if (group == NULL) {
-    return PyList_New(0);
-  }
-
-  return BPy_Wrap_GetKeys(group);
+  return BPy_Wrap_GetKeys_View_WithID(self->ptr.owner_id, group);
 }
 
 PyDoc_STRVAR(pyrna_struct_items_doc,
@@ -3589,7 +3585,7 @@ PyDoc_STRVAR(pyrna_struct_items_doc,
              "   dictionary function of the same name).\n"
              "\n"
              "   :return: custom property key, value pairs.\n"
-             "   :rtype: list of key, value tuples\n"
+             "   :rtype: :class:`idprop.type.IDPropertyGroupViewItems`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
@@ -3600,13 +3596,9 @@ static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
     return NULL;
   }
 
+  /* `group` may be NULL. */
   group = RNA_struct_idprops(&self->ptr, 0);
-
-  if (group == NULL) {
-    return PyList_New(0);
-  }
-
-  return BPy_Wrap_GetItems(self->ptr.owner_id, group);
+  return BPy_Wrap_GetItems_View_WithID(self->ptr.owner_id, group);
 }
 
 PyDoc_STRVAR(pyrna_struct_values_doc,
@@ -3616,7 +3608,7 @@ PyDoc_STRVAR(pyrna_struct_values_doc,
              "   dictionary function of the same name).\n"
              "\n"
              "   :return: custom property values.\n"
-             "   :rtype: list\n"
+             "   :rtype: :class:`idprop.type.IDPropertyGroupViewValues`\n"
              "\n" BPY_DOC_ID_PROP_TYPE_NOTE);
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
@@ -3628,13 +3620,9 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
     return NULL;
   }
 
+  /* `group` may be NULL. */
   group = RNA_struct_idprops(&self->ptr, 0);
-
-  if (group == NULL) {
-    return PyList_New(0);
-  }
-
-  return BPy_Wrap_GetValues(self->ptr.owner_id, group);
+  return BPy_Wrap_GetValues_View_WithID(self->ptr.owner_id, group);
 }
 
 PyDoc_STRVAR(pyrna_struct_is_property_set_doc,
@@ -5006,8 +4994,13 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
     idprop = IDP_GetPropertyFromGroup(group, key);
 
     if (idprop) {
-      PyObject *ret = BPy_IDGroup_WrapData(self->ptr.owner_id, idprop, group);
-      IDP_RemoveFromGroup(group, idprop);
+      /* Don't use #BPy_IDGroup_WrapData as the id-property is being removed from the ID. */
+      PyObject *ret = BPy_IDGroup_MapDataToPy(idprop);
+      /* Internal error. */
+      if (UNLIKELY(ret == NULL)) {
+        return NULL;
+      }
+      IDP_FreeFromGroup(group, idprop);
       return ret;
     }
   }

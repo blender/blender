@@ -1043,7 +1043,7 @@ static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *
     bone_mat = pchan->pose_mat;
     disp_mat = pchan->disp_mat;
     disp_tail_mat = pchan->disp_tail_mat;
-    mul_v3_v3fl(bone_scale, pchan->custom_scale_xyz, pchan->bone->length);
+    copy_v3_fl(bone_scale, pchan->bone->length);
   }
   else {
     eBone->length = len_v3v3(eBone->tail, eBone->head);
@@ -1271,9 +1271,9 @@ static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 
   copy_m4_m4(disp_mat, bone_mat);
   translate_m4(disp_mat,
-              pchan->custom_translation[0],
-              pchan->custom_translation[1],
-              pchan->custom_translation[2]);
+               pchan->custom_translation[0],
+               pchan->custom_translation[1],
+               pchan->custom_translation[2]);
   mul_m4_m4m3(disp_mat, disp_mat, rot_mat);
   rescale_m4(disp_mat, bone_scale);
   copy_m4_m4(disp_tail_mat, disp_mat);

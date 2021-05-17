@@ -43,8 +43,9 @@ struct GeometryNodesEvaluationParams {
   Depsgraph *depsgraph;
   Object *self_object;
   LogSocketValueFn log_socket_value_fn;
-
   Vector<GMutablePointer> r_output_values;
+
+  bool is_main_eval;
 };
 
 void evaluate_geometry_nodes(GeometryNodesEvaluationParams &params);

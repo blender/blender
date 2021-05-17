@@ -528,11 +528,11 @@ static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComp
     }
 
     const CurveEval &source_curve = *set.get_curve_for_read();
-    for (const SplinePtr &source_spline : source_curve.splines) {
+    for (const SplinePtr &source_spline : source_curve.splines()) {
       for (const float4x4 &transform : set_group.transforms) {
         SplinePtr new_spline = source_spline->copy();
         new_spline->transform(transform);
-        new_curve->splines.append(std::move(new_spline));
+        new_curve->add_spline(std::move(new_spline));
       }
     }
   }

@@ -266,7 +266,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
   }
   else if (strip->type == NLASTRIP_TYPE_META) {
     /* Meta Clip */
-    /* TODO: should temporary metas get different colors too? */
+    /* TODO: should temporary meta-strips get different colors too? */
     if (strip->flag & NLASTRIP_FLAG_SELECT) {
       /* selected - use a bold purple color */
       UI_GetThemeColor3fv(TH_NLA_META_SEL, color);

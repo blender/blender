@@ -45,6 +45,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_orientations.h"
 #include "transform_snap.h"
 
 /* Own include. */
@@ -1271,4 +1272,38 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
    * BLI_assert(t->mode == mode); */
 }
 
+/**
+ * When in modal and not set, initializes a default orientation for the mode.
+ */
+void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
+{
+  /* Currently only these types are supported. */
+  BLI_assert(ELEM(type, V3D_ORIENT_GLOBAL, V3D_ORIENT_VIEW));
+
+  if (t->is_orient_set) {
+    return;
+  }
+
+  if (!(t->flag & T_MODAL)) {
+    return;
+  }
+
+  if (t->orient[O_DEFAULT].type == type) {
+    return;
+  }
+
+  RegionView3D *rv3d = NULL;
+  if ((type == V3D_ORIENT_VIEW) && (t->spacetype == SPACE_VIEW3D) && t->region &&
+      (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    rv3d = t->region->regiondata;
+  }
+
+  t->orient[O_DEFAULT].type = ED_transform_calc_orientation_from_type_ex(
+      NULL, t->orient[O_DEFAULT].matrix, NULL, rv3d, NULL, NULL, type, 0);
+
+  if (t->orient_curr == O_DEFAULT) {
+    /* Update Orientation. */
+    transform_orientations_current_set(t, O_DEFAULT);
+  }
+}
 /** \} */

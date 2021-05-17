@@ -225,8 +225,8 @@ void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
   ob->actcol = color_black + 1;
 
   /* layers */
-  bGPDlayer *colors = BKE_gpencil_layer_addnew(gpd, "Colors", false);
-  bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
+  bGPDlayer *colors = BKE_gpencil_layer_addnew(gpd, "Colors", false, false);
+  bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true, false);
 
   /* frames */
   bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, CFRA);

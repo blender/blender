@@ -1857,7 +1857,7 @@ static int image_to_gpencil_exec(bContext *C, wmOperator *op)
 
   /* Add layer and frame. */
   bGPdata *gpd = (bGPdata *)ob->data;
-  bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, "Image Layer", true);
+  bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, "Image Layer", true, false);
   bGPDframe *gpf = BKE_gpencil_frame_addnew(gpl, CFRA);
   done = BKE_gpencil_from_image(sima, gpd, gpf, size, is_mask);
 

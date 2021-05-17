@@ -90,7 +90,7 @@ void ED_gpencil_create_blank(bContext *C, Object *ob, float UNUSED(mat[4][4]))
   ob->actcol = color_black + 1;
 
   /* layers */
-  bGPDlayer *layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true);
+  bGPDlayer *layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
 
   /* frames */
   BKE_gpencil_frame_addnew(layer, CFRA);

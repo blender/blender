@@ -640,6 +640,19 @@ TEST(map, RemoveDuringIteration)
   EXPECT_EQ(map.lookup(3), 3);
 }
 
+TEST(map, LookupKey)
+{
+  Map<std::string, int> map;
+  map.add("a", 0);
+  map.add("b", 1);
+  map.add("c", 2);
+  EXPECT_EQ(map.lookup_key("a"), "a");
+  EXPECT_EQ(map.lookup_key_as("c"), "c");
+  EXPECT_EQ(map.lookup_key_ptr_as("d"), nullptr);
+  EXPECT_EQ(map.lookup_key_ptr_as("b")->size(), 1);
+  EXPECT_EQ(map.lookup_key_ptr("a"), map.lookup_key_ptr_as("a"));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

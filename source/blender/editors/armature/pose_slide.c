@@ -33,6 +33,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -50,14 +51,27 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 #include "ED_markers.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
+
+#include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
+#include "GPU_state.h"
 
 #include "armature_intern.h"
+
+#include "BLF_api.h"
+
+/* Pixel distance from 0% to 100%. */
+#define SLIDE_PIXEL_DISTANCE (300 * U.pixelsize)
+#define OVERSHOOT_RANGE_DELTA 0.2f
 
 /* **************************************************** */
 /* == POSE 'SLIDING' TOOLS ==
@@ -110,15 +124,36 @@ typedef struct tPoseSlideOp {
   /** unused for now, but can later get used for storing runtime settings.... */
   short flag;
 
+  /* Store overlay settings when invoking the operator. Bones will be temporarily hidden. */
+  int overlay_flag;
+
   /** which transforms/channels are affected (ePoseSlide_Channels) */
   short channels;
   /** axis-limits for transforms (ePoseSlide_AxisLock) */
   short axislock;
 
-  /** 0-1 value for determining the influence of whatever is relevant */
+  /* Allow overshoot or clamp between 0% and 100%. */
+  bool overshoot;
+
+  /* Reduces percentage delta from mouse movement. */
+  bool precision;
+
+  /* Move percentage in 10% steps. */
+  bool increments;
+
+  /* Draw callback handler. */
+  void *draw_handle;
+
+  /* Accumulative, unclamped and unrounded percentage. */
+  float raw_percentage;
+
+  /* 0-1 value for determining the influence of whatever is relevant. */
   float percentage;
 
-  /** numeric input */
+  /* Last cursor position in screen space used for mouse movement delta calculation. */
+  int last_cursor_x;
+
+  /* Numeric input. */
   NumInput num;
 
   struct tPoseSlideObject *ob_data_array;
@@ -187,6 +222,240 @@ static const EnumPropertyItem prop_axis_lock_types[] = {
 
 /* ------------------------------------ */
 
+static void draw_overshoot_triangle(const uint8_t color[4],
+                                    const bool facing_right,
+                                    const float x,
+                                    const float y)
+{
+  const uint shdr_pos_2d = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_polygon_smooth(true);
+  immUniformColor3ubvAlpha(color, 225);
+  const float triangle_side_length = facing_right ? 6 * U.pixelsize : -6 * U.pixelsize;
+  const float triangle_offset = facing_right ? 2 * U.pixelsize : -2 * U.pixelsize;
+
+  immBegin(GPU_PRIM_TRIS, 3);
+  immVertex2f(shdr_pos_2d, x + triangle_offset + triangle_side_length, y);
+  immVertex2f(shdr_pos_2d, x + triangle_offset, y + triangle_side_length / 2);
+  immVertex2f(shdr_pos_2d, x + triangle_offset, y - triangle_side_length / 2);
+  immEnd();
+
+  GPU_polygon_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
+  immUnbindProgram();
+}
+
+static void draw_ticks(const float start_percentage,
+                       const float end_percentage,
+                       const struct vec2f line_start,
+                       const float base_tick_height,
+                       const float line_width,
+                       const uint8_t color_overshoot[4],
+                       const uint8_t color_line[4])
+{
+  /* Use percentage represented as 0-100 int to avoid floating point precision problems. */
+  const int tick_increment = 10;
+
+  /* Round initial_tick_percentage up to the next tick_increment. */
+  int tick_percentage = ceil((start_percentage * 100) / tick_increment) * tick_increment;
+  float tick_height = base_tick_height;
+
+  while (tick_percentage <= (int)(end_percentage * 100)) {
+    /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
+     * smaller and the rest is the minimum size. */
+    if (tick_percentage % 100 == 0) {
+      tick_height = base_tick_height;
+    }
+    else if (tick_percentage % 50 == 0) {
+      tick_height = base_tick_height * 0.8;
+    }
+    else {
+      tick_height = base_tick_height * 0.5;
+    }
+
+    const float x = line_start.x +
+                    (((float)tick_percentage / 100) - start_percentage) * SLIDE_PIXEL_DISTANCE;
+    const struct rctf tick_rect = {.xmin = x - (line_width / 2),
+                                   .xmax = x + (line_width / 2),
+                                   .ymin = line_start.y - (tick_height / 2),
+                                   .ymax = line_start.y + (tick_height / 2)};
+
+    if (tick_percentage < 0 || tick_percentage > 100) {
+      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
+    }
+    else {
+      UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_line, 255);
+    }
+    tick_percentage += tick_increment;
+  }
+}
+
+static void draw_main_line(const struct rctf main_line_rect, 
+                           const float percentage,
+                           const bool overshoot,
+                           const uint8_t color_overshoot[4],
+                           const uint8_t color_line[4])
+{
+  if (overshoot) {
+    /* In overshoot mode, draw the 0-100% range differently to provide a visual reference. */
+    const float line_zero_percent = main_line_rect.xmin -
+                                    ((percentage - 0.5f - OVERSHOOT_RANGE_DELTA) *
+                                     SLIDE_PIXEL_DISTANCE);
+
+    const float clamped_line_zero_percent = clamp_f(
+        line_zero_percent, main_line_rect.xmin, main_line_rect.xmax);
+    const float clamped_line_hundred_percent = clamp_f(
+        line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect.xmin, main_line_rect.xmax);
+
+    const struct rctf left_overshoot_line_rect = {.xmin = main_line_rect.xmin,
+                                                  .xmax = clamped_line_zero_percent,
+                                                  .ymin = main_line_rect.ymin,
+                                                  .ymax = main_line_rect.ymax};
+    const struct rctf right_overshoot_line_rect = {.xmin = clamped_line_hundred_percent,
+                                                   .xmax = main_line_rect.xmax,
+                                                   .ymin = main_line_rect.ymin,
+                                                   .ymax = main_line_rect.ymax};
+    UI_draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
+    UI_draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
+
+    const struct rctf non_overshoot_line_rect = {.xmin = clamped_line_zero_percent,
+                                                 .xmax = clamped_line_hundred_percent,
+                                                 .ymin = main_line_rect.ymin,
+                                                 .ymax = main_line_rect.ymax};
+    UI_draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
+  }
+  else {
+    UI_draw_roundbox_3ub_alpha(&main_line_rect, true, 0, color_line, 255);
+  }
+}
+
+static void draw_backdrop(const int fontid,
+                          const struct rctf main_line_rect,
+                          const float color_bg[4],
+                          const short region_y_size,
+                          const float base_tick_height)
+{
+  float string_pixel_size[2];
+  const char *percentage_placeholder = "000%%";
+  BLF_width_and_height(fontid,
+                       percentage_placeholder,
+                       sizeof(percentage_placeholder),
+                       &string_pixel_size[0],
+                       &string_pixel_size[1]);
+  const struct vec2f pad = {.x = (region_y_size - base_tick_height) / 2, .y = 2.0f * U.pixelsize};
+  const struct rctf backdrop_rect = {.xmin = main_line_rect.xmin - string_pixel_size[0] - pad.x,
+                                     .xmax = main_line_rect.xmax + pad.x,
+                                     .ymin = pad.y,
+                                     .ymax = region_y_size - pad.y};
+  UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
+}
+
+/* Draw an on screen Slider for a Pose Slide Operator. */
+static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion *region, void *arg)
+{
+  tPoseSlideOp *pso = arg;
+
+  /* Only draw in region from which the Operator was started. */
+  if (region != pso->region) {
+    return;
+  }
+
+  uint8_t color_text[4];
+  uint8_t color_line[4];
+  uint8_t color_handle[4];
+  uint8_t color_overshoot[4];
+  float color_bg[4];
+
+  /* Get theme colors. */
+  UI_GetThemeColor4ubv(TH_TEXT, color_text);
+  UI_GetThemeColor4ubv(TH_TEXT, color_line);
+  UI_GetThemeColor4ubv(TH_TEXT, color_overshoot);
+  UI_GetThemeColor4ubv(TH_ACTIVE, color_handle);
+  UI_GetThemeColor3fv(TH_BACK, color_bg);
+
+  color_bg[3] = 0.5f;
+  color_overshoot[0] = color_overshoot[0] * 0.7;
+  color_overshoot[1] = color_overshoot[1] * 0.7;
+  color_overshoot[2] = color_overshoot[2] * 0.7;
+
+  /* Get the default font. */
+  const uiStyle *style = UI_style_get();
+  const uiFontStyle *fstyle = &style->widget;
+  const int fontid = fstyle->uifont_id;
+  BLF_color3ubv(fontid, color_text);
+  BLF_rotation(fontid, 0.0f);
+
+  const float line_width = 1.5 * U.pixelsize;
+  const float base_tick_height = 12.0 * U.pixelsize;
+  const float line_y = region->winy / 2;
+  
+  struct rctf main_line_rect = {.xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
+                                .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
+                                .ymin = line_y - line_width / 2,
+                                .ymax = line_y + line_width / 2};
+  float line_start_percentage = 0;
+  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * pso->percentage;
+
+  if (pso->overshoot) {
+    main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
+    main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
+    line_start_percentage = pso->percentage - 0.5f - OVERSHOOT_RANGE_DELTA;
+    handle_pos_x = region->winx / 2;
+  }
+
+  draw_backdrop(fontid, main_line_rect, color_bg, pso->region->winy, base_tick_height);
+
+  draw_main_line(main_line_rect, pso->percentage, pso->overshoot, color_overshoot, color_line);
+
+  const float percentage_range = pso->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
+  const struct vec2f line_start_position = {.x = main_line_rect.xmin, .y = line_y};
+  draw_ticks(line_start_percentage,
+             line_start_percentage + percentage_range,
+             line_start_position,
+             base_tick_height,
+             line_width,
+             color_overshoot,
+             color_line);
+
+  /* Draw triangles at the ends of the line in overshoot mode to indicate direction of 0-100%
+   * range.*/
+  if (pso->overshoot) {
+    if (pso->percentage > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
+      draw_overshoot_triangle(color_line, false, main_line_rect.xmin, line_y);
+    }
+    if (pso->percentage < 0 - OVERSHOOT_RANGE_DELTA - 0.5) {
+      draw_overshoot_triangle(color_line, true, main_line_rect.xmax, line_y);
+    }
+  }
+
+  char percentage_string[256];
+
+  /* Draw handle indicating current percentage. */
+  const struct rctf handle_rect = {.xmin = handle_pos_x - (line_width),
+                                   .xmax = handle_pos_x + (line_width),
+                                   .ymin = line_y - (base_tick_height / 2),
+                                   .ymax = line_y + (base_tick_height / 2)};
+
+  UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
+  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", pso->percentage * 100);
+
+  /* Draw percentage string. */
+  float percentage_pixel_size[2];
+  BLF_width_and_height(fontid,
+                       percentage_string,
+                       sizeof(percentage_string),
+                       &percentage_pixel_size[0],
+                       &percentage_pixel_size[1]);
+                       
+  BLF_position(fontid,
+               main_line_rect.xmin - 24.0 * U.pixelsize - percentage_pixel_size[0] / 2,
+               (region->winy / 2) - percentage_pixel_size[1] / 2,
+               0.0f);
+  BLF_draw(fontid, percentage_string, sizeof(percentage_string));
+}
+
 /* operator init */
 static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 {
@@ -205,6 +474,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* set range info from property values - these may get overridden for the invoke() */
   pso->percentage = RNA_float_get(op->ptr, "percentage");
+  pso->raw_percentage = pso->percentage;
   pso->prevFrame = RNA_int_get(op->ptr, "prev_frame");
   pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
 
@@ -257,6 +527,17 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->num.val_flag[0] |= NUM_NO_NEGATIVE;
   pso->num.unit_type[0] = B_UNIT_NONE; /* percentages don't have any units... */
 
+  /* Register UI drawing callback. */
+  /* pso->draw_handle = ED_region_draw_cb_activate(
+      pso->region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL); */
+  LISTBASE_FOREACH (ARegion *, region, &pso->area->regionbase) {
+    if (region->regiontype == RGN_TYPE_HEADER) {
+      pso->region = region;
+      pso->draw_handle = ED_region_draw_cb_activate(
+          region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
+    }
+  }
+
   /* return status is whether we've got all the data we were requested to get */
   return 1;
 }
@@ -265,6 +546,13 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 static void pose_slide_exit(wmOperator *op)
 {
   tPoseSlideOp *pso = op->customdata;
+
+  /* Hide Bone Overlay. */
+  View3D *v3d = pso->area->spacedata.first;
+  v3d->overlay.flag = pso->overlay_flag;
+
+  /* Remove UI drawing callback. */
+  ED_region_draw_cb_exit(pso->region->type, pso->draw_handle);
 
   /* if data exists, clear its data and exit */
   if (pso) {
@@ -602,7 +890,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
 static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], float default_value)
 {
-  /* We only slide to the rest pose. So only use the default rest pose value */
+  /* We only slide to the rest pose. So only use the default rest pose value. */
   const int lock = pso->axislock;
   for (int idx = 0; idx < 3; idx++) {
     if ((lock == 0) || ((lock & PS_LOCK_X) && (idx == 0)) || ((lock & PS_LOCK_Y) && (idx == 1)) ||
@@ -621,7 +909,7 @@ static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], flo
 
 static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4], bool quat)
 {
-  /* We only slide to the rest pose. So only use the default rest pose value */
+  /* We only slide to the rest pose. So only use the default rest pose value. */
   float default_values[] = {1.0f, 0.0f, 0.0f, 0.0f};
   if (!quat) {
     /* Axis Angle */
@@ -789,14 +1077,18 @@ static void pose_slide_reset(tPoseSlideOp *pso)
 
 /* ------------------------------------ */
 
-/* draw percentage indicator in header */
+/* Draw percentage indicator in workspace footer. */
 /* TODO: Include hints about locks here... */
-static void pose_slide_draw_status(tPoseSlideOp *pso)
+static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 {
   char status_str[UI_MAX_DRAW_STR];
   char limits_str[UI_MAX_DRAW_STR];
   char axis_str[50];
   char mode_str[32];
+  char overshoot_str[50];
+  char precision_str[50];
+  char increments_str[50];
+  char bone_vis_str[50];
 
   switch (pso->mode) {
     case POSESLIDE_PUSH:
@@ -871,25 +1163,51 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
       break;
   }
 
+  if (pso->overshoot) {
+    BLI_strncpy(overshoot_str, TIP_("[E] - Disable overshoot"), sizeof(overshoot_str));
+  }
+  else {
+    BLI_strncpy(overshoot_str, TIP_("E - Enable overshoot"), sizeof(overshoot_str));
+  }
+
+  if (pso->precision) {
+    BLI_strncpy(precision_str, TIP_("[Shift] - Precision active"), sizeof(precision_str));
+  }
+  else {
+    BLI_strncpy(precision_str, TIP_("Shift - Hold for precision"), sizeof(precision_str));
+  }
+
+  if (pso->increments) {
+    BLI_strncpy(increments_str, TIP_("[Ctrl] - Increments active"), sizeof(increments_str));
+  }
+  else {
+    BLI_strncpy(increments_str, TIP_("Ctrl - Hold for 10% increments"), sizeof(increments_str));
+  }
+
+  BLI_strncpy(bone_vis_str, TIP_("[H] - Toggle bone visibility"), sizeof(increments_str));
+
   if (hasNumInput(&pso->num)) {
     Scene *scene = pso->scene;
-    char str_ofs[NUM_STR_REP_LEN];
+    char str_offs[NUM_STR_REP_LEN];
 
-    outputNumInput(&pso->num, str_ofs, &scene->unit);
+    outputNumInput(&pso->num, str_offs, &scene->unit);
 
-    BLI_snprintf(
-        status_str, sizeof(status_str), "%s: %s     |   %s", mode_str, str_ofs, limits_str);
+    BLI_snprintf(status_str, sizeof(status_str), "%s: %s | %s", mode_str, str_offs, limits_str);
   }
   else {
     BLI_snprintf(status_str,
-                 sizeof(status_str),
-                 "%s: %d %%     |   %s",
-                 mode_str,
-                 (int)(pso->percentage * 100.0f),
-                 limits_str);
+                  sizeof(status_str),
+                  "%s: %s | %s | %s | %s | %s",
+                  mode_str,
+                  limits_str,
+                  overshoot_str,
+                  precision_str,
+                  increments_str,
+                  bone_vis_str);
   }
 
-  ED_area_status_text(pso->area, status_str);
+  ED_workspace_status_text(C, status_str);
+  ED_area_status_text(pso->area, "");
 }
 
 /* common code for invoke() methods */
@@ -975,21 +1293,40 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
   WM_cursor_modal_set(win, WM_CURSOR_EW_SCROLL);
 
   /* header print */
-  pose_slide_draw_status(pso);
+  pose_slide_draw_status(C, pso);
 
   /* add a modal handler for this operator */
   WM_event_add_modal_handler(C, op);
+
+  /* Hide Bone Overlay. */
+  View3D *v3d = pso->area->spacedata.first;
+  pso->overlay_flag = v3d->overlay.flag;
+  v3d->overlay.flag |= V3D_OVERLAY_HIDE_BONES;
+
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* calculate percentage based on position of mouse (we only use x-axis for now.
- * since this is more convenient for users to do), and store new percentage value
+/* Calculate percentage based on mouse movement, clamp or round to increments if
+ * enabled by the user. Store the new percentage value.
  */
 static void pose_slide_mouse_update_percentage(tPoseSlideOp *pso,
                                                wmOperator *op,
                                                const wmEvent *event)
 {
-  pso->percentage = (event->x - pso->region->winrct.xmin) / ((float)pso->region->winx);
+  const float percentage_delta = (event->x - pso->last_cursor_x) / ((float)(SLIDE_PIXEL_DISTANCE));
+  /* Reduced percentage delta in precision mode (shift held). */
+  pso->raw_percentage += pso->precision ? (percentage_delta / 8) : percentage_delta;
+  pso->percentage = pso->raw_percentage;
+  pso->last_cursor_x = event->x;
+
+  if (!pso->overshoot) {
+    pso->percentage = clamp_f(pso->percentage, 0, 1);
+  }
+
+  if (pso->increments) {
+    pso->percentage = round(pso->percentage * 10) / 10;
+  }
+
   RNA_float_set(op->ptr, "percentage", pso->percentage);
 }
 
@@ -1056,8 +1393,12 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case EVT_PADENTER: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
+        ED_workspace_status_text(C, NULL);
         ED_area_status_text(pso->area, NULL);
         WM_cursor_modal_restore(win);
+
+        /* Depsgraph updates + redraws. Redraw needed to remove UI. */
+        pose_slide_refresh(C, pso);
 
         /* insert keyframes as required... */
         pose_slide_autoKeyframe(C, pso);
@@ -1073,13 +1414,14 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case RIGHTMOUSE: {
       if (event->val == KM_PRESS) {
         /* return to normal cursor and header status */
+        ED_workspace_status_text(C, NULL);
         ED_area_status_text(pso->area, NULL);
         WM_cursor_modal_restore(win);
 
         /* reset transforms back to original state */
         pose_slide_reset(pso);
 
-        /* depsgraph updates + redraws */
+        /* Depsgraph updates + redraws.*/
         pose_slide_refresh(C, pso);
 
         /* clean up temp data */
@@ -1178,7 +1520,55 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
             break;
           }
 
+          /* Overshoot. */
+          case EVT_EKEY: {
+            pso->overshoot = !pso->overshoot;
+            do_pose_update = true;
+            break;
+          }
+
+          /* Precision mode. */
+          case EVT_LEFTSHIFTKEY:
+          case EVT_RIGHTSHIFTKEY: {
+            pso->precision = true;
+            do_pose_update = true;
+            break;
+          }
+
+          /* Increments mode. */
+          case EVT_LEFTCTRLKEY:
+          case EVT_RIGHTCTRLKEY: {
+            pso->increments = true;
+            do_pose_update = true;
+            break;
+          }
+
+          /* Toggle Bone visibility. */
+          case EVT_HKEY: {
+            View3D *v3d = pso->area->spacedata.first;
+            v3d->overlay.flag ^= V3D_OVERLAY_HIDE_BONES;
+          }
+
           default: /* Some other unhandled key... */
+            break;
+        }
+      }
+      /* Precision and stepping only active while button is held. */
+      else if (event->val == KM_RELEASE) {
+        switch (event->type) {
+          case EVT_LEFTSHIFTKEY:
+          case EVT_RIGHTSHIFTKEY: {
+            pso->precision = false;
+            do_pose_update = true;
+            break;
+          }
+          case EVT_LEFTCTRLKEY:
+          case EVT_RIGHTCTRLKEY: {
+            pso->increments = false;
+            do_pose_update = true;
+            break;
+          }
+          default:
             break;
         }
       }
@@ -1193,8 +1583,10 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* Perform pose updates - in response to some user action
    * (e.g. pressing a key or moving the mouse). */
   if (do_pose_update) {
+    pose_slide_mouse_update_percentage(pso, op, event);
+
     /* update percentage indicator in header */
-    pose_slide_draw_status(pso);
+    pose_slide_draw_status(C, pso);
 
     /* reset transforms (to avoid accumulation errors) */
     pose_slide_reset(pso);
@@ -1247,11 +1639,11 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_float_factor(ot->srna,
-                              "factor",
+                              "percentage",
                               0.5f,
                               0.0f,
                               1.0f,
-                              "Factor",
+                              "Percentage",
                               "Weighting factor for which keyframe is favored more",
                               0.0,
                               1.0);
@@ -1310,6 +1702,8 @@ static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   pso = op->customdata;
 
+  pso->last_cursor_x = event->x;
+
   /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
 
@@ -1349,7 +1743,7 @@ void POSE_OT_push(wmOperatorType *ot)
   ot->poll = ED_operator_posemode;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   pose_slide_opdef_properties(ot);
@@ -1369,6 +1763,8 @@ static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *e
   }
 
   pso = op->customdata;
+
+  pso->last_cursor_x = event->x;
 
   /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1409,7 +1805,7 @@ void POSE_OT_relax(wmOperatorType *ot)
   ot->poll = ED_operator_posemode;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   pose_slide_opdef_properties(ot);
@@ -1428,6 +1824,8 @@ static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   pso = op->customdata;
+
+  pso->last_cursor_x = event->x;
 
   /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1468,7 +1866,7 @@ void POSE_OT_push_rest(wmOperatorType *ot)
   ot->poll = ED_operator_posemode;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   pose_slide_opdef_properties(ot);
@@ -1488,6 +1886,8 @@ static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   pso = op->customdata;
+
+  pso->last_cursor_x = event->x;
 
   /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1528,7 +1928,7 @@ void POSE_OT_relax_rest(wmOperatorType *ot)
   ot->poll = ED_operator_posemode;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   pose_slide_opdef_properties(ot);
@@ -1548,6 +1948,8 @@ static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   pso = op->customdata;
+
+  pso->last_cursor_x = event->x;
 
   /* Initialize percentage so that it won't pop on first mouse move. */
   pose_slide_mouse_update_percentage(pso, op, event);
@@ -1588,7 +1990,7 @@ void POSE_OT_breakdown(wmOperatorType *ot)
   ot->poll = ED_operator_posemode;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
 
   /* Properties */
   pose_slide_opdef_properties(ot);

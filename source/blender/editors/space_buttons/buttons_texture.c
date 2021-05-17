@@ -75,15 +75,16 @@ static SpaceProperties *find_space_properties(const bContext *C);
 
 /************************* Texture User **************************/
 
-static void buttons_texture_user_node_property_add(ListBase *users,
-                                                   ID *id,
-                                                   PointerRNA ptr,
-                                                   PropertyRNA *prop,
-                                                   bNodeTree *ntree,
-                                                   bNode *node,
-                                                   const char *category,
-                                                   int icon,
-                                                   const char *name)
+static void buttons_texture_user_socket_property_add(ListBase *users,
+                                                     ID *id,
+                                                     PointerRNA ptr,
+                                                     PropertyRNA *prop,
+                                                     bNodeTree *ntree,
+                                                     bNode *node,
+                                                     bNodeSocket *socket,
+                                                     const char *category,
+                                                     int icon,
+                                                     const char *name)
 {
   ButsTextureUser *user = MEM_callocN(sizeof(ButsTextureUser), "ButsTextureUser");
 
@@ -92,6 +93,7 @@ static void buttons_texture_user_node_property_add(ListBase *users,
   user->prop = prop;
   user->ntree = ntree;
   user->node = node;
+  user->socket = socket;
   user->category = category;
   user->icon = icon;
   user->name = name;
@@ -181,25 +183,29 @@ static void buttons_texture_modifier_geonodes_users_add(Object *ob,
       /* Recurse into the node group */
       buttons_texture_modifier_geonodes_users_add(ob, nmd, (bNodeTree *)node->id, users);
     }
-    else if (node->type == GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE) {
-      RNA_pointer_create(&node_tree->id, &RNA_Node, node, &ptr);
-      prop = RNA_struct_find_property(&ptr, "texture");
-      if (prop == NULL) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      if (socket->flag & SOCK_UNAVAIL) {
         continue;
       }
+      if (socket->type != SOCK_TEXTURE) {
+        continue;
+      }
+      RNA_pointer_create(&node_tree->id, &RNA_NodeSocket, socket, &ptr);
+      prop = RNA_struct_find_property(&ptr, "default_value");
 
       PointerRNA texptr = RNA_property_pointer_get(&ptr, prop);
       Tex *tex = (RNA_struct_is_a(texptr.type, &RNA_Texture)) ? (Tex *)texptr.data : NULL;
       if (tex != NULL) {
-        buttons_texture_user_node_property_add(users,
-                                               &ob->id,
-                                               ptr,
-                                               prop,
-                                               node_tree,
-                                               node,
-                                               N_("Geometry Nodes"),
-                                               RNA_struct_ui_icon(ptr.type),
-                                               nmd->modifier.name);
+        buttons_texture_user_socket_property_add(users,
+                                                 &ob->id,
+                                                 ptr,
+                                                 prop,
+                                                 node_tree,
+                                                 node,
+                                                 socket,
+                                                 N_("Geometry Nodes"),
+                                                 RNA_struct_ui_icon(ptr.type),
+                                                 nmd->modifier.name);
       }
     }
   }

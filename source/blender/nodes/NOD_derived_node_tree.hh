@@ -92,6 +92,9 @@ class DNode {
   operator bool() const;
 
   uint64_t hash() const;
+
+  DInputSocket input(int index) const;
+  DOutputSocket output(int index) const;
 };
 
 /* A (nullable) reference to a socket and the context it is in. It is unique within an entire
@@ -272,6 +275,16 @@ inline const NodeRef *DNode::operator->() const
 inline uint64_t DNode::hash() const
 {
   return get_default_hash_2(context_, node_ref_);
+}
+
+inline DInputSocket DNode::input(int index) const
+{
+  return {context_, &node_ref_->input(index)};
+}
+
+inline DOutputSocket DNode::output(int index) const
+{
+  return {context_, &node_ref_->output(index)};
 }
 
 /* --------------------------------------------------------------------

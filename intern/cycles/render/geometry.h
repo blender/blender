@@ -43,6 +43,24 @@ class Shader;
 class Volume;
 struct PackedBVH;
 
+/* Flags used to determine which geometry data need to be packed. */
+enum PackFlags : uint32_t {
+  PACK_NONE = 0u,
+
+  /* Pack the geometry information (e.g. triangle or curve keys indices). */
+  PACK_GEOMETRY = (1u << 0),
+
+  /* Pack the vertices, for Meshes and Volumes' bounding meshes. */
+  PACK_VERTICES = (1u << 1),
+
+  /* Pack the visibility flags for each triangle or curve. */
+  PACK_VISIBILITY = (1u << 2),
+
+  PACK_ALL = (PACK_GEOMETRY | PACK_VERTICES | PACK_VISIBILITY),
+};
+
+PackFlags operator|=(PackFlags &pack_flags, uint32_t value);
+
 /* Geometry
  *
  * Base class for geometric types like Mesh and Hair. */
@@ -126,7 +144,10 @@ class Geometry : public Node {
                    int n,
                    int total);
 
-  virtual void pack_primitives(PackedBVH *pack, int object, uint visibility, bool pack_all) = 0;
+  virtual void pack_primitives(PackedBVH *pack,
+                               int object,
+                               uint visibility,
+                               PackFlags pack_flags) = 0;
 
   /* Check whether the geometry should have own BVH built separately. Briefly,
    * own BVH is needed for geometry, if:
@@ -190,6 +211,8 @@ class GeometryManager {
     GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED,
 
     TRANSFORM_MODIFIED = (1 << 10),
+
+    VISIBILITY_MODIFIED = (1 << 11),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,

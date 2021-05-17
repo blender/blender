@@ -198,7 +198,7 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   if (profile_spline.type() == Spline::Type::Bezier) {
     const BezierSpline &bezier_spline = static_cast<const BezierSpline &>(profile_spline);
     Span<int> control_point_offsets = bezier_spline.control_point_offsets();
-    for (const int i : control_point_offsets.index_range()) {
+    for (const int i : IndexRange(bezier_spline.size())) {
       if (bezier_spline.point_is_sharp(i)) {
         mark_edges_sharp(r_edges.slice(
             spline_edges_start + spline_edge_len * control_point_offsets[i], spline_edge_len));
@@ -211,7 +211,7 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
 {
   int profile_vert_total = 0;
   int profile_edge_total = 0;
-  for (const SplinePtr &profile_spline : profile_curve.splines) {
+  for (const SplinePtr &profile_spline : profile_curve.splines()) {
     profile_vert_total += profile_spline->evaluated_points_size();
     profile_edge_total += profile_spline->evaluated_edges_size();
   }
@@ -219,7 +219,7 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   int vert_total = 0;
   int edge_total = 0;
   int poly_total = 0;
-  for (const SplinePtr &spline : curve.splines) {
+  for (const SplinePtr &spline : curve.splines()) {
     const int spline_vert_len = spline->evaluated_points_size();
     const int spline_edge_len = spline->evaluated_edges_size();
     vert_total += spline_vert_len * profile_vert_total;
@@ -247,8 +247,8 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   int edge_offset = 0;
   int loop_offset = 0;
   int poly_offset = 0;
-  for (const SplinePtr &spline : curve.splines) {
-    for (const SplinePtr &profile_spline : profile_curve.splines) {
+  for (const SplinePtr &spline : curve.splines()) {
+    for (const SplinePtr &profile_spline : profile_curve.splines()) {
       spline_extrude_to_mesh_data(*spline,
                                   *profile_spline,
                                   verts,
@@ -272,7 +272,7 @@ static CurveEval get_curve_single_vert()
   CurveEval curve;
   std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
   spline->add_point(float3(0), 0, 0.0f);
-  curve.splines.append(std::move(spline));
+  curve.add_spline(std::move(spline));
 
   return curve;
 }

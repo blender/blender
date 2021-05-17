@@ -556,6 +556,11 @@ static void eevee_render_to_image(void *vedata,
       EEVEE_renderpasses_output_init(
           sldata, vedata, g_data->render_sample_count_per_timestep * time_steps_tot);
 
+      if (scene->world) {
+        /* Update world in case of animated world material. */
+        eevee_id_world_update(vedata, scene->world);
+      }
+
       EEVEE_temporal_sampling_create_view(vedata);
       EEVEE_render_draw(vedata, engine, render_layer, rect);
 

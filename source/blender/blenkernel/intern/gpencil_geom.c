@@ -2439,7 +2439,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       /* Create Layer and Frame. */
       bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, element_name);
       if (gpl_fill == NULL) {
-        gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true);
+        gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
       }
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
           gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
@@ -2492,7 +2492,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   /* Create Layer and Frame. */
   bGPDlayer *gpl_stroke = BKE_gpencil_layer_named_get(gpd, element_name);
   if (gpl_stroke == NULL) {
-    gpl_stroke = BKE_gpencil_layer_addnew(gpd, element_name, true);
+    gpl_stroke = BKE_gpencil_layer_addnew(gpd, element_name, true, false);
   }
   bGPDframe *gpf_stroke = BKE_gpencil_layer_frame_get(
       gpl_stroke, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);

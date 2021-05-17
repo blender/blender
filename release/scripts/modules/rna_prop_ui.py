@@ -235,7 +235,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
 
     assert(isinstance(rna_item, property_type))
 
-    items = rna_item.items()
+    items = list(rna_item.items())
     items.sort()
 
     # TODO: Allow/support adding new custom props to overrides.

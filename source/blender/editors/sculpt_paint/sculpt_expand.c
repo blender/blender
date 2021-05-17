@@ -737,9 +737,9 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
     if (ss->bm) {
       BMIter iter;
       BMFace *f;
-      BMVert *v = (BMVert*)v_next.i;
+      BMVert *v = (BMVert *)v_next.i;
 
-      BM_ITER_ELEM(f, &iter, v, BM_FACES_OF_VERT) {
+      BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
         BMLoop *l = f->l_first;
 
         do {
@@ -879,7 +879,7 @@ static void sculpt_expand_vertex_to_faces_falloff_bmesh(BMesh *bm, ExpandCache *
 {
   BMIter iter;
   BMFace *f;
-  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMLoop *l = f->l_first;
 
     float accum = 0.0f;
@@ -1626,7 +1626,7 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
    * without taking mesh boundary into account. This allows to create deformations like bending the
    * mesh from the boundary of the mask that was just created. */
   const bool use_mesh_boundary = expand_cache->falloff_type !=
-                                  SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
+                                 SCULPT_EXPAND_FALLOFF_BOUNDARY_TOPOLOGY;
 
   BLI_bitmap *boundary_vertices = sculpt_expand_boundary_from_enabled(
       ss, enabled_vertices, use_mesh_boundary);

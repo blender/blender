@@ -104,8 +104,12 @@ static void screen_delarea(bContext *C, bScreen *screen, ScrArea *area)
   MEM_freeN(area);
 }
 
-ScrArea *area_split(
-    const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge)
+ScrArea *area_split(const wmWindow *win,
+                    bScreen *screen,
+                    ScrArea *area,
+                    const eScreenAxis dir_axis,
+                    const float fac,
+                    const bool merge)
 {
   ScrArea *newa = NULL;
 
@@ -116,7 +120,7 @@ ScrArea *area_split(
   rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  short split = screen_geom_find_area_split_point(area, &window_rect, dir, fac);
+  short split = screen_geom_find_area_split_point(area, &window_rect, dir_axis, fac);
   if (split == 0) {
     return NULL;
   }
@@ -125,7 +129,7 @@ ScrArea *area_split(
    * normally it shouldn't matter which is used since the copy should match the original
    * however with viewport rendering and python console this isn't the case. - campbell */
 
-  if (dir == 'h') {
+  if (dir_axis == SCREEN_AXIS_H) {
     /* new vertices */
     ScrVert *sv1 = screen_geom_vertex_add(screen, area->v1->vec.x, split);
     ScrVert *sv2 = screen_geom_vertex_add(screen, area->v4->vec.x, split);
@@ -284,10 +288,10 @@ void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new)
  * -1 = not valid check.
  * used with join operator.
  */
-int area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
+eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
 {
   if (sa_a == NULL || sa_b == NULL || sa_a == sa_b) {
-    return -1;
+    return SCREEN_DIR_NONE;
   }
 
   const vec2s *sa_bl = &sa_a->v1->vec;
@@ -327,29 +331,31 @@ int area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
 /**
  * Get alignment offset of adjacent areas. 'dir' value is like #area_getorientation().
  */
-void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, const int dir, int *r_offset1, int *r_offset2)
+void area_getoffsets(
+    ScrArea *sa_a, ScrArea *sa_b, const eScreenDir dir, int *r_offset1, int *r_offset2)
 {
   if (sa_a == NULL || sa_b == NULL) {
     *r_offset1 = INT_MAX;
     *r_offset2 = INT_MAX;
   }
-  else if (dir == 0) { /* West: sa on right and sa_b to the left. */
+  else if (dir == SCREEN_DIR_W) { /* West: sa on right and sa_b to the left. */
     *r_offset1 = sa_b->v3->vec.y - sa_a->v2->vec.y;
     *r_offset2 = sa_b->v4->vec.y - sa_a->v1->vec.y;
   }
-  else if (dir == 1) { /* North: sa below and sa_b above. */
+  else if (dir == SCREEN_DIR_N) { /* North: sa below and sa_b above. */
     *r_offset1 = sa_a->v2->vec.x - sa_b->v1->vec.x;
     *r_offset2 = sa_a->v3->vec.x - sa_b->v4->vec.x;
   }
-  else if (dir == 2) { /* East: sa on left and sa_b to the right. */
+  else if (dir == SCREEN_DIR_E) { /* East: sa on left and sa_b to the right. */
     *r_offset1 = sa_b->v2->vec.y - sa_a->v3->vec.y;
     *r_offset2 = sa_b->v1->vec.y - sa_a->v4->vec.y;
   }
-  else if (dir == 3) { /* South: sa above and sa_b below. */
+  else if (dir == SCREEN_DIR_S) { /* South: sa above and sa_b below. */
     *r_offset1 = sa_a->v1->vec.x - sa_b->v2->vec.x;
     *r_offset2 = sa_a->v4->vec.x - sa_b->v3->vec.x;
   }
   else {
+    BLI_assert(dir == SCREEN_DIR_NONE);
     *r_offset1 = INT_MAX;
     *r_offset2 = INT_MAX;
   }
@@ -386,11 +392,11 @@ static void screen_verts_valign(const wmWindow *win,
 /* Adjust all screen edges to allow joining two areas. 'dir' value is like area_getorientation().
  */
 static void screen_areas_align(
-    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const int dir)
+    bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, const eScreenDir dir)
 {
   wmWindow *win = CTX_wm_window(C);
 
-  if (ELEM(dir, 0, 2)) {
+  if (SCREEN_DIR_IS_HORIZONTAL(dir)) {
     /* horizontal join, use average for new top and bottom. */
     int top = (sa1->v2->vec.y + sa2->v2->vec.y) / 2;
     int bottom = (sa1->v4->vec.y + sa2->v4->vec.y) / 2;
@@ -421,8 +427,8 @@ static void screen_areas_align(
 /* Simple join of two areas without any splitting. Will return false if not possible. */
 static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
 {
-  int dir = area_getorientation(sa1, sa2);
-  if (dir == -1) {
+  const eScreenDir dir = area_getorientation(sa1, sa2);
+  if (dir == SCREEN_DIR_NONE) {
     return false;
   }
 
@@ -430,7 +436,7 @@ static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1,
   int offset2;
   area_getoffsets(sa1, sa2, dir, &offset1, &offset2);
 
-  int tolerance = ELEM(dir, 0, 2) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
+  int tolerance = SCREEN_DIR_IS_HORIZONTAL(dir) ? AREAJOINTOLERANCEY : AREAJOINTOLERANCEX;
   if ((abs(offset1) >= tolerance) || (abs(offset2) >= tolerance)) {
     return false;
   }
@@ -438,27 +444,27 @@ static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1,
   /* Align areas if they are not. */
   screen_areas_align(C, screen, sa1, sa2, dir);
 
-  if (dir == 0) {      /* sa1 to right of sa2 = W */
-    sa1->v1 = sa2->v1; /* BL */
-    sa1->v2 = sa2->v2; /* TL */
+  if (dir == SCREEN_DIR_W) { /* sa1 to right of sa2 = West. */
+    sa1->v1 = sa2->v1;       /* BL */
+    sa1->v2 = sa2->v2;       /* TL */
     screen_geom_edge_add(screen, sa1->v2, sa1->v3);
     screen_geom_edge_add(screen, sa1->v1, sa1->v4);
   }
-  else if (dir == 1) { /* sa1 to bottom of sa2 = N */
-    sa1->v2 = sa2->v2; /* TL */
-    sa1->v3 = sa2->v3; /* TR */
+  else if (dir == SCREEN_DIR_N) { /* sa1 to bottom of sa2 = North. */
+    sa1->v2 = sa2->v2;            /* TL */
+    sa1->v3 = sa2->v3;            /* TR */
     screen_geom_edge_add(screen, sa1->v1, sa1->v2);
     screen_geom_edge_add(screen, sa1->v3, sa1->v4);
   }
-  else if (dir == 2) { /* sa1 to left of sa2 = E */
-    sa1->v3 = sa2->v3; /* TR */
-    sa1->v4 = sa2->v4; /* BR */
+  else if (dir == SCREEN_DIR_E) { /* sa1 to left of sa2 = East. */
+    sa1->v3 = sa2->v3;            /* TR */
+    sa1->v4 = sa2->v4;            /* BR */
     screen_geom_edge_add(screen, sa1->v2, sa1->v3);
     screen_geom_edge_add(screen, sa1->v1, sa1->v4);
   }
-  else if (dir == 3) { /* sa1 on top of sa2 = S */
-    sa1->v1 = sa2->v1; /* BL */
-    sa1->v4 = sa2->v4; /* BR */
+  else if (dir == SCREEN_DIR_S) { /* sa1 on top of sa2 = South. */
+    sa1->v1 = sa2->v1;            /* BL */
+    sa1->v4 = sa2->v4;            /* BR */
     screen_geom_edge_add(screen, sa1->v1, sa1->v2);
     screen_geom_edge_add(screen, sa1->v3, sa1->v4);
   }
@@ -473,9 +479,9 @@ static bool screen_area_join_aligned(bContext *C, bScreen *screen, ScrArea *sa1,
 
 /* Slice off and return new area. "Reverse" gives right/bottom, rather than left/top. */
 static ScrArea *screen_area_trim(
-    bContext *C, bScreen *screen, ScrArea **area, int size, int dir, bool reverse)
+    bContext *C, bScreen *screen, ScrArea **area, int size, eScreenDir dir, bool reverse)
 {
-  bool vertical = ELEM(dir, 1, 3);
+  const bool vertical = SCREEN_DIR_IS_VERTICAL(dir);
   if (abs(size) < (vertical ? AREAJOINTOLERANCEX : AREAJOINTOLERANCEY)) {
     return NULL;
   }
@@ -484,7 +490,8 @@ static ScrArea *screen_area_trim(
   float fac = abs(size) / (float)(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
                                              ((*area)->v3->vec.y - (*area)->v1->vec.y));
   fac = (reverse == vertical) ? 1.0f - fac : fac;
-  ScrArea *newsa = area_split(CTX_wm_window(C), screen, *area, vertical ? 'v' : 'h', fac, 1);
+  ScrArea *newsa = area_split(
+      CTX_wm_window(C), screen, *area, vertical ? SCREEN_AXIS_V : SCREEN_AXIS_H, fac, true);
 
   /* area_split always returns smallest of the two areas, so might have to swap. */
   if (((fac > 0.5f) == vertical) != reverse) {
@@ -500,8 +507,8 @@ static ScrArea *screen_area_trim(
 static bool screen_area_join_ex(
     bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2, bool close_all_remainders)
 {
-  int dir = area_getorientation(sa1, sa2);
-  if (dir == -1) {
+  const eScreenDir dir = area_getorientation(sa1, sa2);
+  if (dir == SCREEN_DIR_NONE) {
     return false;
   }
 
@@ -534,7 +541,7 @@ int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2)
   return screen_area_join_ex(C, screen, sa1, sa2, false);
 }
 
-/* Close a screen area, allowing any neighbor to take its place. */
+/* Close a screen area, allowing most-aligned neighbor to take its place. */
 bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
 {
   if (area == NULL) {
@@ -542,32 +549,28 @@ bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area)
   }
 
   ScrArea *sa2 = NULL;
+  float best_alignment = 0.0f;
 
-  /* Find the most-aligned joinable area. Larger size breaks ties. */
-  int min_alignment = INT_MAX;
-  int max_size = 0;
-  LISTBASE_FOREACH (ScrArea *, ar, &screen->areabase) {
-    int dir = area_getorientation(area, ar);
-    if (dir != -1) {
-      int offset1;
-      int offset2;
-      area_getoffsets(area, ar, dir, &offset1, &offset2);
-      int area_alignment = abs(offset1) + abs(offset2);
-      if (area_alignment < min_alignment) {
-        min_alignment = area_alignment;
-        max_size = ar->winx * ar->winy;
-        sa2 = ar;
-      }
-      else if (area_alignment == min_alignment) {
-        int area_size = ar->winx * ar->winy;
-        if (area_size > max_size) {
-          max_size = area_size;
-          sa2 = ar;
-        }
+  LISTBASE_FOREACH (ScrArea *, neighbor, &screen->areabase) {
+    const eScreenDir dir = area_getorientation(area, neighbor);
+    /* Must at least partially share an edge and not be a global area. */
+    if ((dir != SCREEN_DIR_NONE) && (neighbor->global == NULL)) {
+      /* Winx/Winy might not be updated yet, so get lengths from verts. */
+      const bool vertical = SCREEN_DIR_IS_VERTICAL(dir);
+      const int area_length = vertical ? (area->v3->vec.x - area->v1->vec.x) :
+                                         (area->v3->vec.y - area->v1->vec.y);
+      const int ar_length = vertical ? (neighbor->v3->vec.x - neighbor->v1->vec.x) :
+                                       (neighbor->v3->vec.y - neighbor->v1->vec.y);
+      /* Calculate the ratio of the lengths of the shared edges. */
+      float alignment = MIN2(area_length, ar_length) / (float)MAX2(area_length, ar_length);
+      if (alignment > best_alignment) {
+        best_alignment = alignment;
+        sa2 = neighbor;
       }
     }
   }
 
+  /* Join from neighbor into this area to close it. */
   return screen_area_join_ex(C, screen, sa2, area, true);
 }
 
