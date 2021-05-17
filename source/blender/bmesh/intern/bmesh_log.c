@@ -154,6 +154,7 @@ typedef struct {
 
 typedef struct {
   uint v_ids[3];
+  float no[3];
   void *customdata[3];
   void *customdata_f;
   char hflag;
@@ -401,6 +402,8 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
   // BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
   BM_face_as_array_vert_tri(f, v);
 
+  copy_v3_v3(lf->no, f->no);
+
   lf->v_ids[0] = bm_log_vert_id_get(log, v[0]);
   lf->v_ids[1] = bm_log_vert_id_get(log, v[1]);
   lf->v_ids[2] = bm_log_vert_id_get(log, v[2]);
@@ -533,6 +536,8 @@ static void bm_log_faces_restore(
 
     f = BM_face_create_verts(bm, v, 3, NULL, BM_CREATE_NOP, true);
     f->head.hflag = lf->hflag;
+
+    copy_v3_v3(f->no, lf->no);
     bm_log_face_id_set(log, f, POINTER_AS_UINT(key));
 
 #ifdef CUSTOMDATA
@@ -617,6 +622,7 @@ static void bm_log_face_values_swap(BMLog *log,
     uint id = POINTER_AS_UINT(key);
     BMFace *f = bm_log_face_from_id(log, id);
 
+    swap_v3_v3(f->no, lf->no);
     SWAP(char, f->head.hflag, lf->hflag);
 
     void *old_cdata = NULL;
@@ -1555,8 +1561,8 @@ void BM_log_face_modified(BMLog *log, BMFace *f)
   void *key = POINTER_FROM_UINT(f_id);
 
   lf = bm_log_face_alloc(log, f);
-  log_ghash_insert(log, log->current_entry->modified_faces, key, lf);
 
+  log_ghash_insert(log, log->current_entry->modified_faces, key, lf);
   bm_log_face_customdata(log->bm, log, f, lf);
 }
 
@@ -1576,6 +1582,7 @@ void BM_log_face_added(BMLog *log, BMFace *f)
   BLI_assert(f->len == 3);
 
   bm_log_face_id_set(log, f, f_id);
+
   lf = bm_log_face_alloc(log, f);
   log_ghash_insert(log, log->current_entry->added_faces, key, lf);
 
