@@ -545,6 +545,13 @@ def range_str(val):
 
 
 def example_extract_docstring(filepath):
+    '''
+    Return (text, line_no, line_no_has_content) where:
+    - ``text`` is the doc-string text.
+    - ``line_no`` is the line the doc-string text ends.
+    - ``line_no_has_content`` when False, this file only contains a doc-string.
+      There is no need to include the remainder.
+    '''
     file = open(filepath, "r", encoding="utf-8")
     line = file.readline()
     line_no = 0
@@ -553,7 +560,7 @@ def example_extract_docstring(filepath):
         line_no += 1
     else:
         file.close()
-        return "", 0, False
+        return "", 0, True
 
     for line in file:
         line_no += 1
