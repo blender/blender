@@ -3291,6 +3291,11 @@ void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnod
   BKE_pbvh_search_gather(pbvh, update_search_cb, POINTER_FROM_INT(flag), r_array, r_totnode);
 }
 
+PBVHNode *BKE_pbvh_node_from_index(PBVH *pbvh, int node_i)
+{
+  return pbvh->nodes + node_i;
+}
+
 #ifdef PROXY_ADVANCED
 // TODO: if this really works, make sure to pull the neighbor iterator out of sculpt.c and put it
 // here

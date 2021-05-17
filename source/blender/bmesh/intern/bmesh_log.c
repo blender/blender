@@ -608,10 +608,10 @@ static void bm_log_vert_values_swap(
   }
 }
 
-static void bm_log_face_values_swap(BMLog *log,
-                                    GHash *faces,
-                                    BMLogEntry *entry,
-                                    BMLogCallbacks *callbacks)
+ATTR_NO_OPT static void bm_log_face_values_swap(BMLog *log,
+                                                GHash *faces,
+                                                BMLogEntry *entry,
+                                                BMLogCallbacks *callbacks)
 {
   void *scratch = log->bm->pdata.pool ? BLI_mempool_alloc(log->bm->pdata.pool) : NULL;
 
