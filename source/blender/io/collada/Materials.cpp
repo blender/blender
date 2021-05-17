@@ -376,17 +376,33 @@ void MaterialNode::set_opacity(COLLADAFW::ColorOrTexture &cot)
 
 void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
 {
+  bool is_zero = false;
   int locy = -300 * (node_map.size() - 2);
   if (cot.isColor()) {
     COLLADAFW::Color col = cot.getColor();
-    bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
-    set_color(node, col);
-    /* TODO: Connect node */
+
+    if (col.getRed() == 0 && col.getGreen() == 0 && col.getBlue() == 0) {
+      is_zero = true;
+    }
+    else {
+      bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
+      set_color(node, col);
+      /* TODO: Connect node */
+    }
   }
   /* texture */
   else if (cot.isTexture()) {
     add_texture_node(cot, -300, locy, "Specular");
     /* TODO: Connect node */
+  }
+  /* not specified (no specular term) */
+  else {
+    is_zero = true;
+  }
+
+  if (is_zero) {
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular");
+    ((bNodeSocketValueFloat *)socket->default_value)->value = 0.0f;
   }
 }
 
