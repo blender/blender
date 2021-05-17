@@ -562,7 +562,7 @@ template<typename T> class GVMutableArray_For_VMutableArray : public GVMutableAr
     varray_->set(index, std::move(value_));
   }
 
-  void set_all_impl(const void *src)
+  void set_all_impl(const void *src) override
   {
     varray_->set_all(Span((T *)src, size_));
   }

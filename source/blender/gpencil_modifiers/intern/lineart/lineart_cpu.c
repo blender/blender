@@ -1510,7 +1510,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
       use_mesh = DEG_get_evaluated_object(dg, ob)->data;
     }
     else {
-      use_mesh = BKE_mesh_new_from_object(NULL, ob, false);
+      use_mesh = BKE_mesh_new_from_object(NULL, ob, false, false);
     }
 
     /* In case we can not get any mesh geometry data from the object */

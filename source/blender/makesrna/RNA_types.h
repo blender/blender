@@ -95,6 +95,32 @@ typedef enum PropertyUnit {
   PROP_UNIT_TEMPERATURE = (11 << 16), /* C */
 } PropertyUnit;
 
+/**
+ * Use values besides #PROP_SCALE_LINEAR
+ * so the movement of the mouse doesn't map linearly to the value of the slider.
+ *
+ * For some settings it's useful to space motion in a non-linear way, see T77868.
+ *
+ * NOTE: The scale types are available for all float sliders.
+ * For integer sliders they are only available if they use the visible value bar.
+ * Sliders with logarithmic scale and value bar must have a range > 0
+ * while logarithmic sliders without the value bar can have a range of >= 0.
+ */
+typedef enum PropertyScaleType {
+  /** Linear scale (default). */
+  PROP_SCALE_LINEAR = 0,
+  /**
+   * Logarithmic scale
+   * - Maximum range: `0 <= x < inf`
+   */
+  PROP_SCALE_LOG = 1,
+  /**
+   * Cubic scale.
+   * - Maximum range: `-inf < x < inf`
+   */
+  PROP_SCALE_CUBIC = 2,
+} PropertyScaleType;
+
 #define RNA_SUBTYPE_UNIT(subtype) ((subtype)&0x00FF0000)
 #define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
 #define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype) >> 16)

@@ -969,6 +969,104 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
   return Matrix_CreatePyObject(mat, matSize, matSize, (PyTypeObject *)cls);
 }
 
+PyDoc_STRVAR(
+    C_Matrix_LocRotScale_doc,
+    ".. classmethod:: LocRotScale(location, rotation, scale)\n"
+    "\n"
+    "   Create a matrix combining translation, rotation and scale,\n"
+    "   acting as the inverse of the decompose() method.\n"
+    "\n"
+    "   Any of the inputs may be replaced with None if not needed.\n"
+    "\n"
+    "   :arg location: The translation component.\n"
+    "   :type location: :class:`Vector` or None\n"
+    "   :arg rotation: The rotation component.\n"
+    "   :type rotation: 3x3 :class:`Matrix`, :class:`Quaternion`, :class:`Euler` or None\n"
+    "   :arg scale: The scale component.\n"
+    "   :type scale: :class:`Vector` or None\n"
+    "   :return: Combined transformation matrix. \n"
+    "   :rtype: 4x4 :class:`Matrix`\n");
+static PyObject *C_Matrix_LocRotScale(PyObject *cls, PyObject *args)
+{
+  PyObject *loc_obj, *rot_obj, *scale_obj;
+  float mat[4][4], loc[3];
+
+  if (!PyArg_ParseTuple(args, "OOO:Matrix.LocRotScale", &loc_obj, &rot_obj, &scale_obj)) {
+    return NULL;
+  }
+
+  /* Decode location. */
+  if (loc_obj == Py_None) {
+    zero_v3(loc);
+  }
+  else if (mathutils_array_parse(
+               loc, 3, 3, loc_obj, "Matrix.LocRotScale(), invalid location argument") == -1) {
+    return NULL;
+  }
+
+  /* Decode rotation. */
+  if (rot_obj == Py_None) {
+    unit_m4(mat);
+  }
+  else if (QuaternionObject_Check(rot_obj)) {
+    QuaternionObject *quat_obj = (QuaternionObject *)rot_obj;
+
+    if (BaseMath_ReadCallback(quat_obj) == -1) {
+      return NULL;
+    }
+
+    quat_to_mat4(mat, quat_obj->quat);
+  }
+  else if (EulerObject_Check(rot_obj)) {
+    EulerObject *eul_obj = (EulerObject *)rot_obj;
+
+    if (BaseMath_ReadCallback(eul_obj) == -1) {
+      return NULL;
+    }
+
+    eulO_to_mat4(mat, eul_obj->eul, eul_obj->order);
+  }
+  else if (MatrixObject_Check(rot_obj)) {
+    MatrixObject *mat_obj = (MatrixObject *)rot_obj;
+
+    if (BaseMath_ReadCallback(mat_obj) == -1) {
+      return NULL;
+    }
+
+    if (mat_obj->num_col == 3 && mat_obj->num_row == 3) {
+      copy_m4_m3(mat, (float(*)[3])mat_obj->matrix);
+    }
+    else {
+      PyErr_SetString(PyExc_ValueError,
+                      "Matrix.LocRotScale(): "
+                      "inappropriate rotation matrix size - expects 3x3 matrix");
+      return NULL;
+    }
+  }
+  else {
+    PyErr_SetString(PyExc_ValueError,
+                    "Matrix.LocRotScale(): "
+                    "rotation argument must be Matrix, Quaternion, Euler or None");
+    return NULL;
+  }
+
+  /* Decode scale. */
+  if (scale_obj != Py_None) {
+    float scale[3];
+
+    if (mathutils_array_parse(
+            scale, 3, 3, scale_obj, "Matrix.LocRotScale(), invalid scale argument") == -1) {
+      return NULL;
+    }
+
+    rescale_m4(mat, scale);
+  }
+
+  copy_v3_v3(mat[3], loc);
+
+  return Matrix_CreatePyObject(&mat[0][0], 4, 4, (PyTypeObject *)cls);
+}
+
 void matrix_as_3x3(float mat[3][3], MatrixObject *self)
 {
   copy_v3_v3(mat[0], MATRIX_COL_PTR(self, 0));
@@ -3111,6 +3209,10 @@ static struct PyMethodDef Matrix_methods[] = {
      (PyCFunction)C_Matrix_OrthoProjection,
      METH_VARARGS | METH_CLASS,
      C_Matrix_OrthoProjection_doc},
+    {"LocRotScale",
+     (PyCFunction)C_Matrix_LocRotScale,
+     METH_VARARGS | METH_CLASS,
+     C_Matrix_LocRotScale_doc},
     {NULL, NULL, 0, NULL},
 };
 

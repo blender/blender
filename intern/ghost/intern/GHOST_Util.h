@@ -20,24 +20,26 @@
 
 #pragma once
 
-#include <exception>
-#include <string>
+#include <functional>
 
-class GHOST_XrException : public std::exception {
-  friend class GHOST_XrContext;
+/**
+ * RAII wrapper for typical C `void *` custom data.
+ * Used for exception safe custom-data handling during constructor calls.
+ */
+struct GHOST_C_CustomDataWrapper {
+  using FreeFn = std::function<void(void *)>;
 
- public:
-  GHOST_XrException(const char *msg, int result = 0)
-      : std::exception(), m_msg(msg), m_result(result)
+  void *custom_data_;
+  FreeFn free_fn_;
+
+  GHOST_C_CustomDataWrapper(void *custom_data, FreeFn free_fn)
+      : custom_data_(custom_data), free_fn_(free_fn)
   {
   }
-
-  const char *what() const noexcept override
+  ~GHOST_C_CustomDataWrapper()
   {
-    return m_msg.data();
+    if (free_fn_ != nullptr && custom_data_ != nullptr) {
+      free_fn_(custom_data_);
+    }
   }
-
- private:
-  std::string m_msg;
-  int m_result;
 };

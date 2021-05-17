@@ -121,6 +121,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
 
       CFRA = i;
       BKE_scene_graph_update_for_newframe(depsgraph);
+      exporter->prepare_camera_params(iparams);
       exporter->frame_number_set(i);
       exporter->add_newpage();
       exporter->add_body();
@@ -132,6 +133,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
   else {
+    exporter->prepare_camera_params(iparams);
     exporter->add_newpage();
     exporter->add_body();
     result = exporter->write();
@@ -151,6 +153,8 @@ static bool gpencil_io_export_frame_svg(GpencilExporterSVG *exporter,
 {
   bool result = false;
   exporter->frame_number_set(iparams->frame_cur);
+  exporter->prepare_camera_params(iparams);
+
   if (newpage) {
     result |= exporter->add_newpage();
   }

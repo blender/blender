@@ -1553,13 +1553,9 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
 void BlenderSync::sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)
 {
   /* for auto refresh images */
-  bool auto_refresh_update = false;
-
-  if (preview) {
-    ImageManager *image_manager = scene->image_manager;
-    int frame = b_scene.frame_current();
-    auto_refresh_update = image_manager->set_animation_frame_update(frame);
-  }
+  ImageManager *image_manager = scene->image_manager;
+  const int frame = b_scene.frame_current();
+  const bool auto_refresh_update = image_manager->set_animation_frame_update(frame);
 
   shader_map.pre_sync();
 

@@ -632,6 +632,8 @@ void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  ot->prop = RNA_def_enum(ot->srna, "mode", copy_mode, GP_LAYER_COPY_OBJECT_ALL_FRAME, "Mode", "");
+
   prop = RNA_def_boolean(ot->srna,
                          "only_active",
                          true,

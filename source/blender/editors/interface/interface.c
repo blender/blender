@@ -2327,6 +2327,14 @@ bool ui_but_is_float(const uiBut *but)
   return false;
 }
 
+PropertyScaleType ui_but_scale_type(const uiBut *but)
+{
+  if (but->rnaprop) {
+    return RNA_property_ui_scale(but->rnaprop);
+  }
+  return PROP_SCALE_LINEAR;
+}
+
 bool ui_but_is_bool(const uiBut *but)
 {
   if (ELEM(but->type,

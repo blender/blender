@@ -259,7 +259,7 @@ static void calculate_basis_for_point(const float parameter,
                                       MutableSpan<float> basis_buffer,
                                       NURBSpline::BasisCache &basis_cache)
 {
-  /* Clamp parameter due to floating point inaccuracy. TODO: Look into using doubles. */
+  /* Clamp parameter due to floating point inaccuracy. */
   const float t = std::clamp(parameter, knots[0], knots[points_len + order - 1]);
 
   int start = 0;

@@ -168,6 +168,10 @@ static float3 next_position(Span<float3> positions, const bool cyclic, const int
   return positions[i + 1];
 }
 
+/**
+ * Recalculate all #Auto and #Vector handles with positions automatically
+ * derived from the neighboring control points.
+ */
 void BezierSpline::ensure_auto_handles() const
 {
   if (!auto_handles_dirty_) {
@@ -504,7 +508,7 @@ Span<float3> BezierSpline::evaluated_positions() const
 /**
  * Convert the data encoded in #evaulated_mappings into its parts-- the information necessary
  * to interpolate data from control points to evaluated points between them. The next control
- * point index result will not overflow the size of the vector.
+ * point index result will not overflow the size of the control point vectors.
  */
 BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_factor(
     const float index_factor) const

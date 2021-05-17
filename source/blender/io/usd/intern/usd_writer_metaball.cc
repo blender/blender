@@ -62,7 +62,7 @@ Mesh *USDMetaballWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
     return mesh_eval;
   }
   r_needsfree = true;
-  return BKE_mesh_new_from_object(usd_export_context_.depsgraph, object_eval, false);
+  return BKE_mesh_new_from_object(usd_export_context_.depsgraph, object_eval, false, false);
 }
 
 void USDMetaballWriter::free_export_mesh(Mesh *mesh)

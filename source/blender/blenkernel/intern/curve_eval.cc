@@ -23,6 +23,7 @@
 #include "BKE_curve.h"
 #include "BKE_spline.hh"
 
+using blender::Array;
 using blender::float3;
 using blender::float4x4;
 using blender::Span;
@@ -80,6 +81,40 @@ void CurveEval::bounds_min_max(float3 &min, float3 &max, const bool use_evaluate
   for (const SplinePtr &spline : this->splines()) {
     spline->bounds_min_max(min, max, use_evaluated);
   }
+}
+
+/**
+ * Return the start indices for each of the curve spline's evaluated points, as if they were part
+ * of a flattened array. This can be used to facilitate parallelism by avoiding the need to
+ * accumulate an offset while doing more complex calculations.
+ *
+ * \note The result array is one longer than the spline count; the last element is the total size.
+ */
+blender::Array<int> CurveEval::control_point_offsets() const
+{
+  Array<int> offsets(splines_.size() + 1);
+  int offset = 0;
+  for (const int i : splines_.index_range()) {
+    offsets[i] = offset;
+    offset += splines_[i]->size();
+  }
+  offsets.last() = offset;
+  return offsets;
+}
+
+/**
+ * Exactly like #control_point_offsets, but uses the number of evaluated points instead.
+ */
+blender::Array<int> CurveEval::evaluated_point_offsets() const
+{
+  Array<int> offsets(splines_.size() + 1);
+  int offset = 0;
+  for (const int i : splines_.index_range()) {
+    offsets[i] = offset;
+    offset += splines_[i]->evaluated_points_size();
+  }
+  offsets.last() = offset;
+  return offsets;
 }
 
 static BezierSpline::HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_type)
@@ -200,5 +235,3 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
 
   return curve;
 }
-
-/** \} */

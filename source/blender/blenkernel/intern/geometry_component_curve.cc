@@ -294,21 +294,6 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
  * array implementations try to make it workable in common situations.
  * \{ */
 
-static Array<int> control_point_offsets(const CurveEval &curve)
-{
-  Span<SplinePtr> splines = curve.splines();
-  Array<int> offsets(splines.size() + 1);
-
-  int size = 0;
-  for (const int spline_index : splines.index_range()) {
-    offsets[spline_index] = size;
-    size += splines[spline_index]->size();
-  }
-  offsets.last() = size;
-
-  return offsets;
-}
-
 namespace {
 struct PointIndices {
   int spline_index;
@@ -462,8 +447,8 @@ template<typename T> class VMutableArray_For_SplinePoints final : public VMutabl
 
 /**
  * Virtual array implementation specifically for control point positions. This is only needed for
- * Bezier splines, where adjusting the position also needs to adjust handle positions depending on
- * the handle types. We pay a small price for this when other spline types are mixed with Bezier.
+ * Bezier splines, where adjusting the position also requires adjusting handle positions depending
+ * on handle types. We pay a small price for this when other spline types are mixed with Bezier.
  *
  * \note There is no need to check the handle type to avoid changing auto handles, since
  * retrieving write access to the position data will mark them for recomputation anyway.
@@ -549,7 +534,7 @@ class VMutableArray_For_SplinePosition final : public VMutableArray<float3> {
 
 /**
  * Provider for any builtin control point attribute that doesn't need
- * special handling such as access to other arrays in the spline.
+ * special handling like access to other arrays in the spline.
  */
 template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttributeProvider {
  protected:
@@ -590,7 +575,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       return std::make_unique<fn::GVArray_For_GSpan>(get_span_(*splines.first()));
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     Array<Span<T>> spans(splines.size());
     for (const int i : splines.index_range()) {
       spans[i] = get_span_(*splines[i]);
@@ -613,7 +598,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
           get_mutable_span_(*splines.first()));
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     Array<MutableSpan<T>> spans(splines.size());
     for (const int i : splines.index_range()) {
       spans[i] = get_mutable_span_(*splines[i]);
@@ -645,7 +630,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
 };
 
 /**
- * Special attribute provider for the position attribute. Having this separate means we don't
+ * Special attribute provider for the position attribute. Keeping this separate means we don't
  * need to make #BuiltinPointAttributeProvider overly generic, and the special handling for the
  * positions is more clear.
  */
@@ -668,8 +653,6 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
       return {};
     }
 
-    /* Changing the positions requires recalculation of cached evaluated data in many cases.
-     * This could set more specific flags in the future to avoid unnecessary recomputation. */
     bool curve_has_bezier_spline = false;
     for (SplinePtr &spline : curve->splines()) {
       if (spline->type() == Spline::Type::Bezier) {
@@ -678,17 +661,19 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
       }
     }
 
-    /* Use the regular position virtual array there are any bezier splines to potentially avoid
-     * using the special position virtual array when there are no Bezier splines anyway. */
+    /* Use the regular position virtual array when there aren't any Bezier splines
+     * to avoid the overhead of thecking the spline type for every point. */
     if (!curve_has_bezier_spline) {
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
 
+    /* Changing the positions requires recalculation of cached evaluated data in many cases.
+     * This could set more specific flags in the future to avoid unnecessary recomputation. */
     for (SplinePtr &spline : curve->splines()) {
       spline->mark_cache_invalid();
     }
 
-    Array<int> offsets = control_point_offsets(*curve);
+    Array<int> offsets = curve->control_point_offsets();
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
         offsets.last(), curve->splines(), std::move(offsets));
@@ -702,8 +687,8 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
  * \{ */
 
 /**
- * In this function all the attribute providers for a curve component are created. Most data
- * in this function is statically allocated, because it does not change over time.
+ * In this function all the attribute providers for a curve component are created.
+ * Most data in this function is statically allocated, because it does not change over time.
  */
 static ComponentAttributeProviders create_attribute_providers_for_curve()
 {

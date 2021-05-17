@@ -2781,7 +2781,8 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
   prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "double_threshold");
   RNA_def_property_range(prop, 0, 1.0f);
-  RNA_def_property_ui_range(prop, 0, 1, 0.0001, 6);
+  RNA_def_property_ui_range(prop, 0, 1, 1.0, 6);
+  RNA_def_property_ui_scale_type(prop, PROP_SCALE_LOG);
   RNA_def_property_ui_text(
       prop, "Overlap Threshold", "Threshold for checking overlapping geometry");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -5530,6 +5531,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "voxel_size");
   RNA_def_property_range(prop, 0.0001f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0001, 2, 0.1, 3);
+  RNA_def_property_ui_scale_type(prop, PROP_SCALE_LOG);
   RNA_def_property_ui_text(prop,
                            "Voxel Size",
                            "Size of the voxel in object space used for volume evaluation. Lower "

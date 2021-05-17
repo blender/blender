@@ -634,7 +634,9 @@ typedef enum GHOST_TXrGraphicsBinding {
 
 typedef void (*GHOST_XrErrorHandlerFn)(const struct GHOST_XrError *);
 
+typedef void (*GHOST_XrSessionCreateFn)(void);
 typedef void (*GHOST_XrSessionExitFn)(void *customdata);
+typedef void (*GHOST_XrCustomdataFreeFn)(void *customdata);
 
 typedef void *(*GHOST_XrGraphicsContextBindFn)(void);
 typedef void (*GHOST_XrGraphicsContextUnbindFn)(GHOST_ContextHandle graphics_context);
@@ -665,6 +667,7 @@ typedef struct {
 typedef struct {
   GHOST_XrPose base_pose;
 
+  GHOST_XrSessionCreateFn create_fn;
   GHOST_XrSessionExitFn exit_fn;
   void *exit_customdata;
 } GHOST_XrSessionBeginInfo;
@@ -691,4 +694,54 @@ typedef struct GHOST_XrError {
   void *customdata;
 } GHOST_XrError;
 
-#endif
+typedef struct GHOST_XrActionSetInfo {
+  const char *name;
+
+  GHOST_XrCustomdataFreeFn customdata_free_fn;
+  void *customdata; /* wmXrActionSet */
+} GHOST_XrActionSetInfo;
+
+/** XR action type. Enum values match those in OpenXR's
+ * XrActionType enum for consistency. */
+typedef enum GHOST_XrActionType {
+  GHOST_kXrActionTypeBooleanInput = 1,
+  GHOST_kXrActionTypeFloatInput = 2,
+  GHOST_kXrActionTypeVector2fInput = 3,
+  GHOST_kXrActionTypePoseInput = 4,
+  GHOST_kXrActionTypeVibrationOutput = 100,
+} GHOST_XrActionType;
+
+typedef struct GHOST_XrActionInfo {
+  const char *name;
+  GHOST_XrActionType type;
+  GHOST_TUns32 count_subaction_paths;
+  const char **subaction_paths;
+  /** States for each subaction path. */
+  void *states;
+
+  GHOST_XrCustomdataFreeFn customdata_free_fn;
+  void *customdata; /* wmXrAction */
+} GHOST_XrActionInfo;
+
+typedef struct GHOST_XrActionSpaceInfo {
+  const char *action_name;
+  GHOST_TUns32 count_subaction_paths;
+  const char **subaction_paths;
+  /** Poses for each subaction path. */
+  const GHOST_XrPose *poses;
+} GHOST_XrActionSpaceInfo;
+
+typedef struct GHOST_XrActionBindingInfo {
+  const char *action_name;
+  GHOST_TUns32 count_interaction_paths;
+  /** Interaction path: User (subaction) path + component path. */
+  const char **interaction_paths;
+} GHOST_XrActionBindingInfo;
+
+typedef struct GHOST_XrActionProfileInfo {
+  const char *profile_path;
+  GHOST_TUns32 count_bindings;
+  const GHOST_XrActionBindingInfo *bindings;
+} GHOST_XrActionProfileInfo;
+
+#endif /* WITH_XR_OPENXR */

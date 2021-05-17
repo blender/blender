@@ -58,6 +58,21 @@ typedef enum eXRSessionBasePoseType {
   XR_BASE_POSE_CUSTOM = 2,
 } eXRSessionBasePoseType;
 
+/** XR action type. Enum values match those in GHOST_XrActionType enum for consistency. */
+typedef enum eXrActionType {
+  XR_BOOLEAN_INPUT = 1,
+  XR_FLOAT_INPUT = 2,
+  XR_VECTOR2F_INPUT = 3,
+  XR_POSE_INPUT = 4,
+  XR_VIBRATION_OUTPUT = 100,
+} eXrActionType;
+
+typedef enum eXrOpFlag {
+  XR_OP_PRESS = 0,
+  XR_OP_RELEASE = 1,
+  XR_OP_MODAL = 2,
+} eXrOpFlag;
+
 #ifdef __cplusplus
 }
 #endif
