@@ -2369,17 +2369,19 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 
   //  printf("Re-queueing previews...\n");
 
-  /* Note we try to preview first images around given index - i.e. assumed visible ones. */
   if (cache->flags & FLC_PREVIEWS_ACTIVE) {
-    for (i = 0; ((index + i) < end_index) || ((index - i) >= start_index); i++) {
-      if ((index - i) >= start_index) {
-        const int idx = (cache->block_cursor + (index - start_index) - i) % cache_size;
-        filelist_cache_previews_push(filelist, cache->block_entries[idx], index - i);
-      }
-      if ((index + i) < end_index) {
-        const int idx = (cache->block_cursor + (index - start_index) + i) % cache_size;
-        filelist_cache_previews_push(filelist, cache->block_entries[idx], index + i);
-      }
+    /* Note we try to preview first images around given index - i.e. assumed visible ones. */
+    int block_index = cache->block_cursor + (index - start_index);
+    int offs_max = max_ii(end_index - index, index - start_index);
+    for (i = 0; i <= offs_max; i++) {
+      int offs = i;
+      do {
+        int offs_idx = index + offs;
+        if (start_index <= offs_idx && offs_idx < end_index) {
+          int offs_block_idx = (block_index + offs) % (int)cache_size;
+          filelist_cache_previews_push(filelist, cache->block_entries[offs_block_idx], offs_idx);
+        }
+      } while ((offs = -offs) < 0); /* Switch between negative and positive offset. */
     }
   }
 
