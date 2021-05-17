@@ -231,20 +231,30 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
 void MaterialNode::set_diffuse(COLLADAFW::ColorOrTexture &cot)
 {
   int locy = -300 * (node_map.size() - 2);
-  if (cot.isColor()) {
-    COLLADAFW::Color col = cot.getColor();
-    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Base Color");
-    float *fcol = (float *)socket->default_value;
 
-    fcol[0] = material->r = col.getRed();
-    fcol[1] = material->g = col.getGreen();
-    fcol[2] = material->b = col.getBlue();
-    fcol[3] = material->a = col.getAlpha();
-  }
-  else if (cot.isTexture()) {
+  if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Base Color");
     if (texture_node != nullptr) {
       add_link(texture_node, 0, shader_node, 0);
+    }
+  }
+  else {
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Base Color");
+    float *fcol = (float *)socket->default_value;
+
+    if (cot.isColor()) {
+      COLLADAFW::Color col = cot.getColor();
+      fcol[0] = material->r = col.getRed();
+      fcol[1] = material->g = col.getGreen();
+      fcol[2] = material->b = col.getBlue();
+      fcol[3] = material->a = col.getAlpha();
+    }
+    else {
+      /* no diffuse term = same as black */
+      fcol[0] = material->r = 0.0f;
+      fcol[1] = material->g = 0.0f;
+      fcol[2] = material->b = 0.0f;
+      fcol[3] = material->a = 1.0f;
     }
   }
 }
