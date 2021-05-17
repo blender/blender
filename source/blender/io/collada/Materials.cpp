@@ -376,13 +376,13 @@ void MaterialNode::set_opacity(COLLADAFW::ColorOrTexture &cot)
 
 void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
 {
-  bool is_zero = false;
+  bool has_specularity = true;
   int locy = -300 * (node_map.size() - 2);
   if (cot.isColor()) {
     COLLADAFW::Color col = cot.getColor();
 
     if (col.getRed() == 0 && col.getGreen() == 0 && col.getBlue() == 0) {
-      is_zero = true;
+      has_specularity = false;
     }
     else {
       bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
@@ -390,17 +390,21 @@ void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
       /* TODO: Connect node */
     }
   }
-  /* texture */
   else if (cot.isTexture()) {
     add_texture_node(cot, -300, locy, "Specular");
     /* TODO: Connect node */
   }
-  /* not specified (no specular term) */
   else {
-    is_zero = true;
+    /* no specular term) */
+    has_specularity = false;
   }
 
-  if (is_zero) {
+  if (!has_specularity) {
+    /* If specularity is black or not defined reset the Specular value to 0
+       TODO: This is a solution only for a corner case. We must find a better
+       way to handle specularity in general. Also note that currently we
+       do not export specularity values, see EffectExporter::operator()
+    */
     bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular");
     ((bNodeSocketValueFloat *)socket->default_value)->value = 0.0f;
   }
