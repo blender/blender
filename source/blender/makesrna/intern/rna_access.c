@@ -1189,6 +1189,24 @@ PropertyUnit RNA_property_unit(PropertyRNA *prop)
   return RNA_SUBTYPE_UNIT(RNA_property_subtype(prop));
 }
 
+PropertyScaleType RNA_property_ui_scale(PropertyRNA *prop)
+{
+  PropertyRNA *rna_prop = rna_ensure_property(prop);
+
+  switch (rna_prop->type) {
+    case PROP_INT: {
+      IntPropertyRNA *iprop = (IntPropertyRNA *)rna_prop;
+      return iprop->ui_scale_type;
+    }
+    case PROP_FLOAT: {
+      FloatPropertyRNA *fprop = (FloatPropertyRNA *)rna_prop;
+      return fprop->ui_scale_type;
+    }
+    default:
+      return PROP_SCALE_LINEAR;
+  }
+}
+
 int RNA_property_flag(PropertyRNA *prop)
 {
   return rna_ensure_property(prop)->flag;

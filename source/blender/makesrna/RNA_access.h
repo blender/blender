@@ -845,6 +845,7 @@ const char *RNA_property_description(PropertyRNA *prop);
 PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
+PropertyScaleType RNA_property_ui_scale(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
 int RNA_property_override_flag(PropertyRNA *prop);
 int RNA_property_tags(PropertyRNA *prop);
