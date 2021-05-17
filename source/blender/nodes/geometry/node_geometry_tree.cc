@@ -86,12 +86,13 @@ static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCa
 
 static bool geometry_node_tree_validate_link(bNodeTree *UNUSED(ntree), bNodeLink *link)
 {
-  /* Geometry, string, object and collection sockets can only be connected to themselves. */
-  if (ELEM(link->fromsock->type, SOCK_GEOMETRY, SOCK_STRING, SOCK_OBJECT, SOCK_COLLECTION) ||
-      ELEM(link->tosock->type, SOCK_GEOMETRY, SOCK_STRING, SOCK_OBJECT, SOCK_COLLECTION)) {
-    return (link->tosock->type == link->fromsock->type);
+  /* Geometry, string, object, material, texture and collection sockets can only be connected to
+   * themselves. The other types can be converted between each other. */
+  if (ELEM(link->fromsock->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT) &&
+      ELEM(link->tosock->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT)) {
+    return true;
   }
-  return true;
+  return (link->tosock->type == link->fromsock->type);
 }
 
 static bool geometry_node_tree_socket_type_valid(eNodeSocketDatatype socket_type,
@@ -106,7 +107,9 @@ static bool geometry_node_tree_socket_type_valid(eNodeSocketDatatype socket_type
               SOCK_STRING,
               SOCK_OBJECT,
               SOCK_GEOMETRY,
-              SOCK_COLLECTION);
+              SOCK_COLLECTION,
+              SOCK_TEXTURE,
+              SOCK_MATERIAL);
 }
 
 void register_node_tree_type_geo(void)
