@@ -205,7 +205,7 @@ static bool detect_mip_render_workaround()
   return enable_workaround;
 }
 
-const char *gl_extension_get(int i)
+static const char *gl_extension_get(int i)
 {
   return (char *)glGetStringi(GL_EXTENSIONS, i);
 }
