@@ -500,7 +500,7 @@ void AlembicObject::load_data_in_cache(CachedData &cached_data,
    */
   read_attributes(proc,
                   cached_data,
-                  schema.getArbGeomParams(),
+                  schema,
                   schema.getUVsParam(),
                   get_requested_attributes(),
                   progress);
