@@ -894,6 +894,10 @@ static void parse_requested_attributes_recursive(const AttributeRequestSet &requ
                                                  const ICompoundProperty &arb_geom_params,
                                                  vector<PropHeaderAndParent> &requested_properties)
 {
+  if (!arb_geom_params.valid()) {
+    return;
+  }
+
   for (const AttributeRequest &req : requested_attributes.requests) {
     const PropertyHeader *property_header = arb_geom_params.getPropertyHeader(req.name.c_str());
 
