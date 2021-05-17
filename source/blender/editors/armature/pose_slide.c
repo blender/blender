@@ -42,6 +42,7 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_unit.h"
 
 #include "RNA_access.h"
@@ -528,14 +529,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->num.unit_type[0] = B_UNIT_NONE; /* percentages don't have any units... */
 
   /* Register UI drawing callback. */
-  /* pso->draw_handle = ED_region_draw_cb_activate(
-      pso->region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL); */
-  LISTBASE_FOREACH (ARegion *, region, &pso->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_HEADER) {
-      pso->region = region;
-      pso->draw_handle = ED_region_draw_cb_activate(
-          region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
-    }
+  ARegion *region_header = BKE_area_find_region_type(pso->area, RGN_TYPE_HEADER);
+  if (region_header != NULL) {
+    pso->region = region_header;
+    pso->draw_handle = ED_region_draw_cb_activate(
+        region_header->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
   }
 
   /* return status is whether we've got all the data we were requested to get */
