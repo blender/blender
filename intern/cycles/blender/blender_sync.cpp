@@ -69,7 +69,8 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
       experimental(false),
       dicing_rate(1.0f),
       max_subdivisions(12),
-      progress(progress)
+      progress(progress),
+      has_updates_(true)
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
@@ -84,7 +85,9 @@ BlenderSync::~BlenderSync()
 void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
 {
   /* Update data and scene pointers in case they change in session reset,
-   * for example after undo. */
+   * for example after undo.
+   * Note that we do not modify the `has_updates_` flag here because the sync
+   * reset is also used during viewport navigation. */
   this->b_data = b_data;
   this->b_scene = b_scene;
 }
@@ -117,6 +120,8 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
 
     if (dicing_prop_changed) {
+      has_updates_ = true;
+
       for (const pair<const GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
         Geometry *geom = iter.second;
         if (geom->is_mesh()) {
@@ -133,6 +138,12 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
 
   /* Iterate over all IDs in this depsgraph. */
   for (BL::DepsgraphUpdate &b_update : b_depsgraph.updates) {
+    /* TODO(sergey): Can do more selective filter here. For example, ignore changes made to
+     * screen datablock. Note that sync_data() needs to be called after object deletion, and
+     * currently this is ensured by the scene ID tagged for update, which sets the `has_updates_`
+     * flag. */
+    has_updates_ = true;
+
     BL::ID b_id(b_update.id());
 
     /* Material */
@@ -227,6 +238,10 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             int height,
                             void **python_thread_state)
 {
+  if (!has_updates_) {
+    return;
+  }
+
   scoped_timer timer;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
@@ -254,6 +269,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   free_data_after_sync(b_depsgraph);
 
   VLOG(1) << "Total time spent synchronizing data: " << timer.get_time();
+
+  has_updates_ = false;
 }
 
 /* Integrator */
