@@ -273,7 +273,7 @@ static bool sculpt_expand_state_get(SculptSession *ss, ExpandCache *expand_cache
  */
 static bool sculpt_expand_face_state_get(SculptSession *ss, ExpandCache *expand_cache, const int f)
 {
-  if (ss->face_sets[f] <= 0) {
+  if (expand_cache->original_face_sets[f] <= 0) {
     return false;
   }
 
@@ -1398,6 +1398,13 @@ static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expa
 {
   const int totfaces = ss->totfaces;
   for (int i = 0; i < totfaces; i++) {
+    if (expand_cache->original_face_sets[i] <= 0) {
+      /* Do not modify hidden Face Sets, even when restoring the IDs state. */
+      continue;
+    }
+    if (!sculpt_expand_is_face_in_active_component(ss, expand_cache, i)) {
+      continue;
+    }
     ss->face_sets[i] = expand_cache->initial_face_sets[i];
   }
 }
@@ -1930,6 +1937,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   }
 
   while (BLI_LINKSTACK_SIZE(queue)) {
+    bool any_updated = false;
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
@@ -1940,6 +1948,10 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
         for (int i = 0; i < vert_map->count; i++) {
 
           const int neighbor_face_index = vert_map->indices[i];
+          if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
+            /* Skip picking IDs from hidden Face Sets. */
+            continue;
+          }
           if (r_face_sets[neighbor_face_index] != delete_id) {
             other_id = r_face_sets[neighbor_face_index];
           }
@@ -1947,11 +1959,18 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
       }
 
       if (other_id != delete_id) {
+        any_updated = true;
         r_face_sets[f_index] = other_id;
       }
       else {
         BLI_LINKSTACK_PUSH(queue_next, POINTER_FROM_INT(f_index));
       }
+    }
+    if (!any_updated) {
+      /* No Face Sets where updated in this iteration, which means that no more content to keep
+       * filling the polys of the deleted Face Set was found. Break to avoid entering an infinite
+       * loop trying to search for those polys again. */
+      break;
     }
 
     BLI_LINKSTACK_SWAP(queue, queue_next);
@@ -1959,6 +1978,17 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 
   BLI_LINKSTACK_FREE(queue);
   BLI_LINKSTACK_FREE(queue_next);
+
+  /* Ensure that the visibility state of the modified Face Sets is the same as the original ones.
+   */
+  for (int i = 0; i < totface; i++) {
+    if (expand_cache->original_face_sets[i] >= 0) {
+      r_face_sets[i] = abs(r_face_sets[i]);
+    }
+    else {
+      r_face_sets[i] = -abs(r_face_sets[i]);
+    }
+  }
 }
 
 static void sculpt_expand_cache_initial_config_set(bContext *C,
