@@ -240,17 +240,14 @@ add_blender_test(
   --run-all-tests
 )
 
-# disabled on macOS arm64 until updated & working
-if(NOT (APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")))
-  if(WITH_MOD_OCEANSIM)
-    add_blender_test(
-      physics_ocean
-      ${TEST_SRC_DIR}/physics/ocean_test.blend
-      --python ${TEST_PYTHON_DIR}/physics_ocean.py
-      --
-      --run-all-tests
-    )
-  endif()
+if(WITH_MOD_OCEANSIM)
+  add_blender_test(
+    physics_ocean
+    ${TEST_SRC_DIR}/physics/ocean_test.blend
+    --python ${TEST_PYTHON_DIR}/physics_ocean.py
+    --
+    --run-all-tests
+  )
 endif()
 
 
