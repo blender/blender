@@ -35,8 +35,52 @@ device_memory::device_memory(Device *device, const char *name, MemoryType type)
       device_pointer(0),
       host_pointer(0),
       shared_pointer(0),
-      shared_counter(0)
+      shared_counter(0),
+      original_device_ptr(0),
+      original_device_size(0),
+      original_device(0),
+      need_realloc_(false),
+      modified(false)
 {
+}
+
+device_memory::device_memory(device_memory &&other) noexcept
+    : data_type(other.data_type),
+      data_elements(other.data_elements),
+      data_size(other.data_size),
+      device_size(other.device_size),
+      data_width(other.data_width),
+      data_height(other.data_height),
+      data_depth(other.data_depth),
+      type(other.type),
+      name(other.name),
+      device(other.device),
+      device_pointer(other.device_pointer),
+      host_pointer(other.host_pointer),
+      shared_pointer(other.shared_pointer),
+      shared_counter(other.shared_counter),
+      original_device_ptr(other.original_device_ptr),
+      original_device_size(other.original_device_size),
+      original_device(other.original_device),
+      need_realloc_(other.need_realloc_),
+      modified(other.modified)
+{
+  other.data_elements = 0;
+  other.data_size = 0;
+  other.device_size = 0;
+  other.data_width = 0;
+  other.data_height = 0;
+  other.data_depth = 0;
+  other.device = 0;
+  other.device_pointer = 0;
+  other.host_pointer = 0;
+  other.shared_pointer = 0;
+  other.shared_counter = 0;
+  other.original_device_ptr = 0;
+  other.original_device_size = 0;
+  other.original_device = 0;
+  other.need_realloc_ = false;
+  other.modified = false;
 }
 
 device_memory::~device_memory()

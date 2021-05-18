@@ -238,6 +238,7 @@ class device_memory {
 
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);
+  device_memory(device_memory &&other) noexcept;
 
   /* No copying allowed. */
   device_memory(const device_memory &) = delete;
@@ -275,6 +276,10 @@ template<typename T> class device_only_memory : public device_memory {
   {
     data_type = device_type_traits<T>::data_type;
     data_elements = max(device_type_traits<T>::num_elements, 1);
+  }
+
+  device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other))
+  {
   }
 
   virtual ~device_only_memory()
