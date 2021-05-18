@@ -31,7 +31,7 @@ def main():
     test = [
         # World coordinates of test and expected object should be same.
         MeshTest("PlaneOcean", "testObjPlaneOcean", "expObjPlaneOcean",
-                 [ModifierSpec('Ocean', 'OCEAN', {})], threshold=1e-1),
+                 [ModifierSpec('Ocean', 'OCEAN', {})]),
     ]
     ocean_test = RunTest(test)
 
