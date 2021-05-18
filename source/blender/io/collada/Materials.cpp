@@ -231,20 +231,30 @@ void MaterialNode::set_alpha(COLLADAFW::EffectCommon::OpaqueMode mode,
 void MaterialNode::set_diffuse(COLLADAFW::ColorOrTexture &cot)
 {
   int locy = -300 * (node_map.size() - 2);
-  if (cot.isColor()) {
-    COLLADAFW::Color col = cot.getColor();
-    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Base Color");
-    float *fcol = (float *)socket->default_value;
 
-    fcol[0] = material->r = col.getRed();
-    fcol[1] = material->g = col.getGreen();
-    fcol[2] = material->b = col.getBlue();
-    fcol[3] = material->a = col.getAlpha();
-  }
-  else if (cot.isTexture()) {
+  if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Base Color");
     if (texture_node != nullptr) {
       add_link(texture_node, 0, shader_node, 0);
+    }
+  }
+  else {
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Base Color");
+    float *fcol = (float *)socket->default_value;
+
+    if (cot.isColor()) {
+      COLLADAFW::Color col = cot.getColor();
+      fcol[0] = material->r = col.getRed();
+      fcol[1] = material->g = col.getGreen();
+      fcol[2] = material->b = col.getBlue();
+      fcol[3] = material->a = col.getAlpha();
+    }
+    else {
+      /* no diffuse term = same as black */
+      fcol[0] = material->r = 0.0f;
+      fcol[1] = material->g = 0.0f;
+      fcol[2] = material->b = 0.0f;
+      fcol[3] = material->a = 1.0f;
     }
   }
 }
@@ -376,17 +386,37 @@ void MaterialNode::set_opacity(COLLADAFW::ColorOrTexture &cot)
 
 void MaterialNode::set_specular(COLLADAFW::ColorOrTexture &cot)
 {
+  bool has_specularity = true;
   int locy = -300 * (node_map.size() - 2);
   if (cot.isColor()) {
     COLLADAFW::Color col = cot.getColor();
-    bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
-    set_color(node, col);
-    /* TODO: Connect node */
+
+    if (col.getRed() == 0 && col.getGreen() == 0 && col.getBlue() == 0) {
+      has_specularity = false;
+    }
+    else {
+      bNode *node = add_node(SH_NODE_RGB, -300, locy, "Specular");
+      set_color(node, col);
+      /* TODO: Connect node */
+    }
   }
-  /* texture */
   else if (cot.isTexture()) {
     add_texture_node(cot, -300, locy, "Specular");
     /* TODO: Connect node */
+  }
+  else {
+    /* no specular term) */
+    has_specularity = false;
+  }
+
+  if (!has_specularity) {
+    /* If specularity is black or not defined reset the Specular value to 0
+       TODO: This is a solution only for a corner case. We must find a better
+       way to handle specularity in general. Also note that currently we
+       do not export specularity values, see EffectExporter::operator()
+    */
+    bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Specular");
+    ((bNodeSocketValueFloat *)socket->default_value)->value = 0.0f;
   }
 }
 

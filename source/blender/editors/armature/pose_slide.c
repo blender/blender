@@ -42,6 +42,7 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_unit.h"
 
 #include "RNA_access.h"
@@ -292,7 +293,7 @@ static void draw_ticks(const float start_percentage,
   }
 }
 
-static void draw_main_line(const struct rctf main_line_rect, 
+static void draw_main_line(const struct rctf main_line_rect,
                            const float percentage,
                            const bool overshoot,
                            const uint8_t color_overshoot[4],
@@ -390,7 +391,7 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
   const float line_width = 1.5 * U.pixelsize;
   const float base_tick_height = 12.0 * U.pixelsize;
   const float line_y = region->winy / 2;
-  
+
   struct rctf main_line_rect = {.xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
                                 .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
                                 .ymin = line_y - line_width / 2,
@@ -448,7 +449,7 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
                        sizeof(percentage_string),
                        &percentage_pixel_size[0],
                        &percentage_pixel_size[1]);
-                       
+
   BLF_position(fontid,
                main_line_rect.xmin - 24.0 * U.pixelsize - percentage_pixel_size[0] / 2,
                (region->winy / 2) - percentage_pixel_size[1] / 2,
@@ -528,14 +529,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->num.unit_type[0] = B_UNIT_NONE; /* percentages don't have any units... */
 
   /* Register UI drawing callback. */
-  /* pso->draw_handle = ED_region_draw_cb_activate(
-      pso->region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL); */
-  LISTBASE_FOREACH (ARegion *, region, &pso->area->regionbase) {
-    if (region->regiontype == RGN_TYPE_HEADER) {
-      pso->region = region;
-      pso->draw_handle = ED_region_draw_cb_activate(
-          region->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
-    }
+  ARegion *region_header = BKE_area_find_region_type(pso->area, RGN_TYPE_HEADER);
+  if (region_header != NULL) {
+    pso->region = region_header;
+    pso->draw_handle = ED_region_draw_cb_activate(
+        region_header->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
   }
 
   /* return status is whether we've got all the data we were requested to get */
@@ -1196,14 +1194,14 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
   }
   else {
     BLI_snprintf(status_str,
-                  sizeof(status_str),
-                  "%s: %s | %s | %s | %s | %s",
-                  mode_str,
-                  limits_str,
-                  overshoot_str,
-                  precision_str,
-                  increments_str,
-                  bone_vis_str);
+                 sizeof(status_str),
+                 "%s: %s | %s | %s | %s | %s",
+                 mode_str,
+                 limits_str,
+                 overshoot_str,
+                 precision_str,
+                 increments_str,
+                 bone_vis_str);
   }
 
   ED_workspace_status_text(C, status_str);

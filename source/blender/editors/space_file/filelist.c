@@ -1601,37 +1601,46 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
   BLI_assert(cache->flags & FLC_PREVIEWS_ACTIVE);
 
-  if (!entry->preview_icon_id && !(entry->flags & FILE_ENTRY_INVALID_PREVIEW) &&
-      (entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
-                          FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))) {
-    FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
-    FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
-
-    if (entry->redirection_path) {
-      BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
-    }
-    else {
-      BLI_join_dirfile(
-          preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
-    }
-
-    preview->index = index;
-    preview->flags = entry->typeflag;
-    preview->in_memory_preview = intern_entry->local_data.preview_image;
-    preview->icon_id = 0;
-    //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-
-    filelist_cache_preview_ensure_running(cache);
-
-    FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
-                                                                 __func__);
-    preview_taskdata->preview = preview;
-    BLI_task_pool_push(cache->previews_pool,
-                       filelist_cache_preview_runf,
-                       preview_taskdata,
-                       true,
-                       filelist_cache_preview_freef);
+  if (entry->preview_icon_id) {
+    return;
   }
+
+  if (entry->flags & FILE_ENTRY_INVALID_PREVIEW) {
+    return;
+  }
+
+  if (!(entry->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
+                           FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))) {
+    return;
+  }
+
+  FileListEntryPreview *preview = MEM_mallocN(sizeof(*preview), __func__);
+  FileListInternEntry *intern_entry = filelist->filelist_intern.filtered[index];
+
+  if (entry->redirection_path) {
+    BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+  }
+  else {
+    BLI_join_dirfile(
+        preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+  }
+
+  preview->index = index;
+  preview->flags = entry->typeflag;
+  preview->in_memory_preview = intern_entry->local_data.preview_image;
+  preview->icon_id = 0;
+  //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+
+  filelist_cache_preview_ensure_running(cache);
+
+  FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
+                                                               __func__);
+  preview_taskdata->preview = preview;
+  BLI_task_pool_push(cache->previews_pool,
+                     filelist_cache_preview_runf,
+                     preview_taskdata,
+                     true,
+                     filelist_cache_preview_freef);
 }
 
 static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
@@ -2360,17 +2369,19 @@ bool filelist_file_cache_block(struct FileList *filelist, const int index)
 
   //  printf("Re-queueing previews...\n");
 
-  /* Note we try to preview first images around given index - i.e. assumed visible ones. */
   if (cache->flags & FLC_PREVIEWS_ACTIVE) {
-    for (i = 0; ((index + i) < end_index) || ((index - i) >= start_index); i++) {
-      if ((index - i) >= start_index) {
-        const int idx = (cache->block_cursor + (index - start_index) - i) % cache_size;
-        filelist_cache_previews_push(filelist, cache->block_entries[idx], index - i);
-      }
-      if ((index + i) < end_index) {
-        const int idx = (cache->block_cursor + (index - start_index) + i) % cache_size;
-        filelist_cache_previews_push(filelist, cache->block_entries[idx], index + i);
-      }
+    /* Note we try to preview first images around given index - i.e. assumed visible ones. */
+    int block_index = cache->block_cursor + (index - start_index);
+    int offs_max = max_ii(end_index - index, index - start_index);
+    for (i = 0; i <= offs_max; i++) {
+      int offs = i;
+      do {
+        int offs_idx = index + offs;
+        if (start_index <= offs_idx && offs_idx < end_index) {
+          int offs_block_idx = (block_index + offs) % (int)cache_size;
+          filelist_cache_previews_push(filelist, cache->block_entries[offs_block_idx], offs_idx);
+        }
+      } while ((offs = -offs) < 0); /* Switch between negative and positive offset. */
     }
   }
 

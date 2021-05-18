@@ -6169,6 +6169,12 @@ class VIEW3D_PT_overlay_geometry(Panel):
         sub.prop(overlay, "wireframe_opacity", text="Opacity")
 
         row = col.row(align=True)
+
+        # These properties should be always available in the UI for all modes
+        # other than Object.
+        # Even when the Fade Inactive Geometry overlay is not affecting the
+        # current active object depending on its mode, it will always affect
+        # the rest of the scene.
         if context.mode != 'OBJECT':
             row.prop(overlay, "show_fade_inactive", text="")
             sub = row.row()

@@ -725,7 +725,7 @@ class CYCLES_RENDER_PT_performance_tiles(CyclesButtonsPanel, Panel):
         col.prop(cscene, "tile_order", text="Order")
 
         sub = col.column()
-        sub.active = not rd.use_save_buffers
+        sub.active = not rd.use_save_buffers and not cscene.use_adaptive_sampling
         sub.prop(cscene, "use_progressive_refine")
 
 

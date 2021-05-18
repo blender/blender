@@ -2,7 +2,7 @@
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
-from mathutils import Matrix, Vector, Quaternion
+from mathutils import Matrix, Vector, Quaternion, Euler
 from mathutils import kdtree, geometry
 import math
 
@@ -232,6 +232,27 @@ class MatrixTesting(unittest.TestCase):
                            (16, -14, 26, -13)))
 
         self.assertEqual(mat @ mat, prod_mat)
+
+    def test_loc_rot_scale(self):
+        euler = Euler((math.radians(90), 0, math.radians(90)), 'ZYX')
+        expected = Matrix(((0, -5, 0, 1),
+                           (0, 0, -6, 2),
+                           (4, 0, 0, 3),
+                           (0, 0, 0, 1)))
+
+        result = Matrix.LocRotScale((1, 2, 3), euler, (4, 5, 6))
+        self.assertAlmostEqualMatrix(result, expected, 4)
+
+        result = Matrix.LocRotScale((1, 2, 3), euler.to_quaternion(), (4, 5, 6))
+        self.assertAlmostEqualMatrix(result, expected, 4)
+
+        result = Matrix.LocRotScale((1, 2, 3), euler.to_matrix(), (4, 5, 6))
+        self.assertAlmostEqualMatrix(result, expected, 4)
+
+    def assertAlmostEqualMatrix(self, first, second, size, *, places=6, msg=None, delta=None):
+        for i in range(size):
+            for j in range(size):
+                self.assertAlmostEqual(first[i][j], second[i][j], places=places, msg=msg, delta=delta)
 
 
 class VectorTesting(unittest.TestCase):

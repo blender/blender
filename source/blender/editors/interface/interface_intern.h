@@ -660,6 +660,7 @@ bool ui_but_context_poll_operator(struct bContext *C, struct wmOperatorType *ot,
 
 extern void ui_but_update(uiBut *but);
 extern void ui_but_update_edited(uiBut *but);
+extern PropertyScaleType ui_but_scale_type(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_float(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_bool(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_but_is_unit(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

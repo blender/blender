@@ -3752,12 +3752,35 @@ static void widget_numslider(
     float factor, factor_ui;
     float factor_discard = 1.0f; /* No discard. */
     const float value = (float)ui_but_value_get(but);
+    const float softmin = but->softmin;
+    const float softmax = but->softmax;
+    const float softrange = softmax - softmin;
+    const PropertyScaleType scale_type = ui_but_scale_type(but);
 
-    if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PERCENTAGE)) {
-      factor = value / but->softmax;
-    }
-    else {
-      factor = (value - but->softmin) / (but->softmax - but->softmin);
+    switch (scale_type) {
+      case PROP_SCALE_LINEAR: {
+        if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PERCENTAGE)) {
+          factor = value / softmax;
+        }
+        else {
+          factor = (value - softmin) / softrange;
+        }
+        break;
+      }
+      case PROP_SCALE_LOG: {
+        const float logmin = fmaxf(softmin, 0.5e-8f);
+        const float base = softmax / logmin;
+        factor = logf(value / logmin) / logf(base);
+        break;
+      }
+      case PROP_SCALE_CUBIC: {
+        const float cubicmin = cube_f(softmin);
+        const float cubicmax = cube_f(softmax);
+        const float cubicrange = cubicmax - cubicmin;
+        const float f = (value - softmin) * cubicrange / softrange + cubicmin;
+        factor = (cbrtf(f) - softmin) / softrange;
+        break;
+      }
     }
 
     const float width = (float)BLI_rcti_size_x(rect);

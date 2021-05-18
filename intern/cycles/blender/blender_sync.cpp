@@ -875,6 +875,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   /* Clamp samples. */
   params.samples = min(params.samples, Integrator::MAX_SAMPLES);
 
+  /* Adaptive sampling. */
+  params.adaptive_sampling = RNA_boolean_get(&cscene, "use_adaptive_sampling");
+
   /* tiles */
   const bool is_cpu = (params.device.type == DEVICE_CPU);
   if (!is_cpu && !background) {
@@ -927,7 +930,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
   BL::RenderSettings b_r = b_scene.render();
   params.progressive_refine = b_engine.is_preview() ||
                               get_boolean(cscene, "use_progressive_refine");
-  if (b_r.use_save_buffers())
+  if (b_r.use_save_buffers() || params.adaptive_sampling)
     params.progressive_refine = false;
 
   if (background) {
@@ -962,8 +965,6 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
 
   params.use_profiling = params.device.has_profiling && !b_engine.is_preview() && background &&
                          BlenderSession::print_render_stats;
-
-  params.adaptive_sampling = RNA_boolean_get(&cscene, "use_adaptive_sampling");
 
   return params;
 }
