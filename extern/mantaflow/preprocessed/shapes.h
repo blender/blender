@@ -269,6 +269,7 @@ class Shape : public PbClass {
 
  protected:
   GridType mType;
+
  public:
   PbArgs _args;
 }
@@ -319,6 +320,7 @@ class NullShape : public Shape {
   {
     gridSetConst<Real>(phi, 1000.0f);
   }
+
  public:
   PbArgs _args;
 }
@@ -394,6 +396,7 @@ class Box : public Shape {
 
  protected:
   Vec3 mP0, mP1;
+
  public:
   PbArgs _args;
 }
@@ -455,6 +458,7 @@ class Sphere : public Shape {
  protected:
   Vec3 mCenter, mScale;
   Real mRadius;
+
  public:
   PbArgs _args;
 }
@@ -579,6 +583,7 @@ class Cylinder : public Shape {
  protected:
   Vec3 mCenter, mZDir;
   Real mRadius, mZ;
+
  public:
   PbArgs _args;
 }
@@ -655,6 +660,7 @@ class Slope : public Shape {
   Real mAnglexy, mAngleyz;
   Real mOrigin;
   Vec3 mGs;
+
  public:
   PbArgs _args;
 }

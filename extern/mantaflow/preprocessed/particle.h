@@ -205,6 +205,7 @@ class ParticleBase : public PbClass {
   //! custom seed for particle systems, used by plugins
   int mSeed;  //! fix global random seed storage, used mainly by functions in this class
   static int globalSeed;
+
  public:
   PbArgs _args;
 }
@@ -628,6 +629,7 @@ template<class S> class ParticleSystem : public ParticleBase {
   std::vector<S> mData;
   //! reduce storage , called by doCompress
   virtual void compress();
+
  public:
   PbArgs _args;
 }
@@ -918,6 +920,7 @@ class ParticleIndexSystem : public ParticleSystem<ParticleIndexData> {
       return -1;
     }
   };
+
  public:
   PbArgs _args;
 }
@@ -982,6 +985,7 @@ template<class DATA, class CON> class ConnectedParticleSystem : public ParticleS
  protected:
   std::vector<CON> mSegments;
   virtual void compress();
+
  public:
   PbArgs _args;
 }
@@ -1071,6 +1075,7 @@ class ParticleDataBase : public PbClass {
 
  protected:
   ParticleBase *mpParticleSys;
+
  public:
   PbArgs _args;
 }
@@ -1843,6 +1848,7 @@ template<class T> class ParticleDataImpl : public ParticleDataBase {
   //! optionally , we might have an associated grid from which to grab new data
   Grid<T> *mpGridSource;  //! unfortunately , we need to distinguish mac vs regular vec3
   bool mGridSourceMAC;
+
  public:
   PbArgs _args;
 }

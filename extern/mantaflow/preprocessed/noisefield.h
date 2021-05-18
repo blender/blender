@@ -236,6 +236,7 @@ class WaveletNoiseField : public PbClass {
   static int randomSeed;
   // global reference count for noise tile
   static std::atomic<int> mNoiseReferenceCount;
+
  public:
   PbArgs _args;
 }

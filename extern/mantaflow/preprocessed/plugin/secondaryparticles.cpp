@@ -2287,9 +2287,10 @@ struct knFlipComputePotentialTrappedAir : public KernelBase {
           const Vec3 &vj = scaleFromManta * v.getCentered(x, y, z);
           const Vec3 xij = xi - xj;
           const Vec3 vij = vi - vj;
-          Real h = !pot.is3D() ? 1.414 * radius :
-                                 1.732 * radius;  // estimate sqrt(2)*radius resp. sqrt(3)*radius
-                                                  // for h, due to squared resp. cubic neighbor area
+          Real h = !pot.is3D() ?
+                       1.414 * radius :
+                       1.732 * radius;  // estimate sqrt(2)*radius resp. sqrt(3)*radius for h, due
+                                        // to squared resp. cubic neighbor area
           vdiff += norm(vij) * (1 - dot(getNormalized(vij), getNormalized(xij))) *
                    (1 - norm(xij) / h);
         }

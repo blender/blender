@@ -326,6 +326,7 @@ class Grid4dBase : public PbClass {
   // precomputed Z,T shift: to ensure 2D compatibility, always use this instead of sx*sy !
   IndexInt mStrideZ;
   IndexInt mStrideT;
+
  public:
   PbArgs _args;
 }
@@ -950,6 +951,7 @@ template<class T> class Grid4d : public Grid4dBase {
 
  protected:
   T *mData;
+
  public:
   PbArgs _args;
 }
