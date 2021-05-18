@@ -796,6 +796,7 @@ class Mesh : public PbClass {
   std::vector<MeshDataImpl<int> *>
       mMdataInt;  //! indicate that mdata of this mesh is copied, and needs to be freed
   bool mFreeMdata;
+
  public:
   PbArgs _args;
 }
@@ -881,6 +882,7 @@ class MeshDataBase : public PbClass {
 
  protected:
   Mesh *mMesh;
+
  public:
   PbArgs _args;
 }
@@ -1645,6 +1647,7 @@ template<class T> class MeshDataImpl : public MeshDataBase {
   //! optionally , we might have an associated grid from which to grab new data
   Grid<T> *mpGridSource;  //! unfortunately , we need to distinguish mac vs regular vec3
   bool mGridSourceMAC;
+
  public:
   PbArgs _args;
 }

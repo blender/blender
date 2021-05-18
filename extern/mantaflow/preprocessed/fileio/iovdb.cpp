@@ -29,10 +29,10 @@
 
 #if OPENVDB == 1
 #  include "openvdb/openvdb.h"
-#  include <openvdb/points/PointConversion.h>
-#  include <openvdb/points/PointCount.h>
-#  include <openvdb/tools/Clip.h>
-#  include <openvdb/tools/Dense.h>
+#  include "openvdb/points/PointConversion.h"
+#  include "openvdb/points/PointCount.h"
+#  include "openvdb/tools/Clip.h"
+#  include "openvdb/tools/Dense.h"
 #endif
 
 #define POSITION_NAME "P"
@@ -519,7 +519,7 @@ int writeObjectsVDB(const string &filename,
     }
   }
 
-  // Write only if the is at least one grid, optionally write with compression.
+  // Write only if there is at least one grid, optionally write with compression.
   if (gridsVDB.size()) {
     int vdb_flags = openvdb::io::COMPRESS_ACTIVE_MASK;
     switch (compression) {
@@ -534,7 +534,8 @@ int writeObjectsVDB(const string &filename,
       }
       case COMPRESSION_BLOSC: {
 #  if OPENVDB_BLOSC == 1
-        vdb_flags |= openvdb::io::COMPRESS_BLOSC;
+        // Cannot use |= here, causes segfault with blosc 1.5.0 (== recommended version)
+        vdb_flags = openvdb::io::COMPRESS_BLOSC;
 #  else
         debMsg("OpenVDB was built without Blosc support, using Zip compression instead", 1);
         vdb_flags |= openvdb::io::COMPRESS_ZIP;

@@ -389,6 +389,7 @@ class GridBase : public PbClass {
   Real mDx;
   bool m3D;  // precomputed Z shift: to ensure 2D compatibility, always use this instead of sx*sy !
   IndexInt mStrideZ;
+
  public:
   PbArgs _args;
 }
