@@ -88,7 +88,7 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 #  define MAKE_ID3(a, b, c) (((a) << 24) | ((b) << 16) | ((c) << 8))
 #endif
 
-    switch (*((PY_INT32_T *)str)) {
+    switch (*((const PY_INT32_T *)str)) {
       case MAKE_ID3('X', 'Y', 'Z'):
         return EULER_ORDER_XYZ;
       case MAKE_ID3('X', 'Z', 'Y'):
