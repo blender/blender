@@ -200,6 +200,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
   }
 
   m_custom_data_config.pack_uvs = args_.export_params->packuv;
+  m_custom_data_config.mesh = mesh;
   m_custom_data_config.mpoly = mesh->mpoly;
   m_custom_data_config.mloop = mesh->mloop;
   m_custom_data_config.totpoly = mesh->totpoly;
@@ -279,6 +280,10 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
     mesh_sample.setNormals(normals_sample);
   }
 
+  if (args_.export_params->orcos) {
+    write_generated_coordinates(abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config);
+  }
+
   if (liquid_sim_modifier_ != nullptr) {
     get_velocities(mesh, velocities);
     mesh_sample.setVelocities(V3fArraySample(velocities));
@@ -327,6 +332,10 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
 
     write_custom_data(
         abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_MLOOPUV);
+  }
+
+  if (args_.export_params->orcos) {
+    write_generated_coordinates(abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config);
   }
 
   if (!crease_indices.empty()) {
