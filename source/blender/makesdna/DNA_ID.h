@@ -555,8 +555,15 @@ enum {
   /* RESET_AFTER_USE tag existing data before linking so we know what is new. */
   LIB_TAG_PRE_EXISTING = 1 << 11,
 
-  /* The data-block is a copy-on-write/localized version. */
+  /**
+   * The data-block is a copy-on-write/localized version.
+   *
+   * \warning This should not be cleared on existing data.
+   * If support for this is needed, see T88026 as this flag controls memory ownership
+   * of physics *shared* pointers.
+   */
   LIB_TAG_COPIED_ON_WRITE = 1 << 12,
+
   LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 13,
   LIB_TAG_LOCALIZED = 1 << 14,
 
