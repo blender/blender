@@ -654,8 +654,7 @@ static void update_attributes(AttributeSet &attributes, CachedData &cached_data,
   list<Attribute>::iterator it;
   for (it = attributes.attributes.begin(); it != attributes.attributes.end();) {
     if (cached_attributes.find(&(*it)) == cached_attributes.end()) {
-      attributes.attributes.erase(it++);
-      attributes.modified = true;
+      attributes.remove(it++);
       continue;
     }
 
