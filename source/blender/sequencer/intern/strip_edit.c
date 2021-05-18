@@ -39,6 +39,7 @@
 #include "BKE_sound.h"
 
 #include "strip_time.h"
+#include "utils.h"
 
 #include "SEQ_add.h"
 #include "SEQ_edit.h"
@@ -348,6 +349,29 @@ static void seq_split_set_left_offset(Sequence *seq, int timeline_frame)
   SEQ_transform_set_left_handle_frame(seq, timeline_frame);
 }
 
+static void seq_edit_split_handle_strip_offsets(Main *bmain,
+                                                Scene *scene,
+                                                Sequence *left_seq,
+                                                Sequence *right_seq,
+                                                const int timeline_frame,
+                                                const eSeqSplitMethod method)
+{
+  switch (method) {
+    case SEQ_SPLIT_SOFT:
+      seq_split_set_left_offset(right_seq, timeline_frame);
+      seq_split_set_right_offset(left_seq, timeline_frame);
+      break;
+    case SEQ_SPLIT_HARD:
+      seq_split_set_right_hold_offset(left_seq, timeline_frame);
+      seq_split_set_left_hold_offset(right_seq, timeline_frame);
+      SEQ_add_reload_new_file(bmain, scene, left_seq, false);
+      SEQ_add_reload_new_file(bmain, scene, right_seq, false);
+      break;
+  }
+  SEQ_time_update_sequence(scene, left_seq);
+  SEQ_time_update_sequence(scene, right_seq);
+}
+
 /**
  * Split Sequence at timeline_frame in two.
  *
@@ -370,33 +394,44 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     return NULL;
   }
 
-  if (method == SEQ_SPLIT_HARD) {
-    /* Precaution, needed because the length saved on-disk may not match the length saved in the
-     * blend file, or our code may have minor differences reading file length between versions.
-     * This causes hard-split to fail, see: T47862. */
-    SEQ_add_reload_new_file(bmain, scene, seq, true);
-    SEQ_time_update_sequence(scene, seq);
+  SeqCollection *collection = SEQ_collection_create();
+  SEQ_collection_append_strip(seq, collection);
+  SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
+
+  /* Move strips in collection from seqbase to new ListBase. */
+  ListBase left_strips = {NULL, NULL};
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    BLI_remlink(seqbase, seq);
+    BLI_addtail(&left_strips, seq);
   }
 
-  Sequence *left_seq = seq;
-  Sequence *right_seq = SEQ_sequence_dupli_recursive(
-      scene, scene, seqbase, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+  /* Sort list, so that no strip can depend on next strip in list.
+   * This is important for SEQ_time_update_sequence functionality. */
+  seq_sort_seqbase(&left_strips);
 
-  switch (method) {
-    case SEQ_SPLIT_SOFT:
-      seq_split_set_left_offset(right_seq, timeline_frame);
-      seq_split_set_right_offset(left_seq, timeline_frame);
-      break;
-    case SEQ_SPLIT_HARD:
-      seq_split_set_right_hold_offset(left_seq, timeline_frame);
-      seq_split_set_left_hold_offset(right_seq, timeline_frame);
-      SEQ_add_reload_new_file(bmain, scene, left_seq, false);
-      SEQ_add_reload_new_file(bmain, scene, right_seq, false);
-      break;
+  /* Duplicate ListBase. */
+  ListBase right_strips = {NULL, NULL};
+  SEQ_sequence_base_dupli_recursive(
+      scene, scene, &right_strips, &left_strips, SEQ_DUPE_ANIM | SEQ_DUPE_ALL, 0);
+
+  /* Split strips. */
+  Sequence *left_seq = left_strips.first;
+  Sequence *right_seq = right_strips.first;
+  Sequence *return_seq = right_strips.first;
+  while (left_seq && right_seq) {
+    seq_edit_split_handle_strip_offsets(bmain, scene, left_seq, right_seq, timeline_frame, method);
+    left_seq = left_seq->next;
+    right_seq = right_seq->next;
   }
-  SEQ_time_update_sequence(scene, left_seq);
-  SEQ_time_update_sequence(scene, right_seq);
-  return right_seq;
+
+  /* Move strips back to seqbase. Move right strips first, so left strips don't change name. */
+  BLI_movelisttolist(seqbase, &right_strips);
+  BLI_movelisttolist(seqbase, &left_strips);
+  LISTBASE_FOREACH (Sequence *, seq_iter, seqbase) {
+    SEQ_ensure_unique_name(seq_iter, scene);
+  }
+
+  return return_seq;
 }
 
 /**
