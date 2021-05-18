@@ -525,7 +525,13 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
   /* Increase used IDs refcount if needed and required. */
   if ((data->flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && (cb_flag & IDWALK_CB_USER)) {
-    id_us_plus(id);
+    if ((data->flag & LIB_ID_CREATE_NO_MAIN) != 0) {
+      BLI_assert(cb_data->id_self->tag & LIB_TAG_NO_MAIN);
+      id_us_plus_no_lib(id);
+    }
+    else {
+      id_us_plus(id);
+    }
   }
 
   return IDWALK_RET_NOP;
