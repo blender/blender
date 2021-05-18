@@ -99,27 +99,23 @@ CCL_NAMESPACE_BEGIN
 #define __AO__
 #define __PASSES__
 #define __HAIR__
-
-/* Without these we get an AO render, used by OpenCL preview kernel. */
-#ifndef __KERNEL_AO_PREVIEW__
-#  define __SVM__
-#  define __EMISSION__
-#  define __HOLDOUT__
-#  define __MULTI_CLOSURE__
-#  define __TRANSPARENT_SHADOWS__
-#  define __BACKGROUND_MIS__
-#  define __LAMP_MIS__
-#  define __CAMERA_MOTION__
-#  define __OBJECT_MOTION__
-#  define __BAKING__
-#  define __PRINCIPLED__
-#  define __SUBSURFACE__
-#  define __VOLUME__
-#  define __VOLUME_SCATTER__
-#  define __CMJ__
-#  define __SHADOW_RECORD_ALL__
-#  define __BRANCHED_PATH__
-#endif
+#define __SVM__
+#define __EMISSION__
+#define __HOLDOUT__
+#define __MULTI_CLOSURE__
+#define __TRANSPARENT_SHADOWS__
+#define __BACKGROUND_MIS__
+#define __LAMP_MIS__
+#define __CAMERA_MOTION__
+#define __OBJECT_MOTION__
+#define __BAKING__
+#define __PRINCIPLED__
+#define __SUBSURFACE__
+#define __VOLUME__
+#define __VOLUME_SCATTER__
+#define __CMJ__
+#define __SHADOW_RECORD_ALL__
+#define __BRANCHED_PATH__
 
 /* Device specific features */
 #ifdef __KERNEL_CPU__

@@ -232,10 +232,6 @@ class MultiDevice : public Device {
     foreach (SubDevice &sub, devices) {
       DeviceKernelStatus subresult = sub.device->get_active_kernel_switch_state();
       switch (subresult) {
-        case DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL:
-          result = subresult;
-          break;
-
         case DEVICE_KERNEL_FEATURE_KERNEL_INVALID:
         case DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE:
           return subresult;
