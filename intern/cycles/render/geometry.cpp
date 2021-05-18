@@ -46,7 +46,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry */
 
-PackFlags operator |=(PackFlags &pack_flags, uint32_t value)
+PackFlags operator|=(PackFlags &pack_flags, uint32_t value)
 {
   pack_flags = (PackFlags)((uint32_t)pack_flags | value);
   return pack_flags;
@@ -1324,7 +1324,8 @@ void GeometryManager::device_update_bvh(Device *device,
     // Iterate over scene mesh list instead of objects, since 'optix_prim_offset' was calculated
     // based on that list, which may be ordered differently from the object list.
     foreach (Geometry *geom, scene->geometry) {
-      /* Make a copy of the pack_flags so the current geometry's flags do not pollute the others'. */
+      /* Make a copy of the pack_flags so the current geometry's flags do not pollute the others'.
+       */
       PackFlags geom_pack_flags = pack_flags;
 
       if (geom->is_modified()) {
@@ -1950,7 +1951,8 @@ void GeometryManager::device_update(Device *device,
    * Also update the BVH if the transformations change, we cannot rely on tagging the Geometry
    * as modified in this case, as we may accumulate displacement if the vertices do not also
    * change. */
-  bool need_update_scene_bvh = (scene->bvh == nullptr || (update_flags & (TRANSFORM_MODIFIED | VISIBILITY_MODIFIED)) != 0);
+  bool need_update_scene_bvh = (scene->bvh == nullptr ||
+                                (update_flags & (TRANSFORM_MODIFIED | VISIBILITY_MODIFIED)) != 0);
   {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
