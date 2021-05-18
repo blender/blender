@@ -230,3 +230,42 @@ SeqCollection *SEQ_query_selected_strips(ListBase *seqbase)
   }
   return collection;
 }
+
+/**
+ * Query all effect strips that are directly or indirectly connected to seq_reference.
+ * This includes all effects of seq_reference, strips used by another inputs and their effects, so
+ * that whole chain is fully independent of other strips.
+ *
+ * \param seq_reference: reference strip
+ * \param seqbase: ListBase in which strips are queried
+ * \param collection: collection to be filled
+ */
+void SEQ_query_strip_effect_chain(Sequence *seq_reference,
+                                  ListBase *seqbase,
+                                  SeqCollection *collection)
+{
+  if (!SEQ_collection_append_strip(seq_reference, collection)) {
+    return; /* Strip is already in set, so all effects connected to it are as well. */
+  }
+
+  /* Find all strips that seq_reference is connected to. */
+  if (seq_reference->type & SEQ_TYPE_EFFECT) {
+    if (seq_reference->seq1) {
+      SEQ_query_strip_effect_chain(seq_reference->seq1, seqbase, collection);
+    }
+    if (seq_reference->seq2) {
+      SEQ_query_strip_effect_chain(seq_reference->seq2, seqbase, collection);
+    }
+    if (seq_reference->seq3) {
+      SEQ_query_strip_effect_chain(seq_reference->seq3, seqbase, collection);
+    }
+  }
+
+  /* Find all strips connected to seq_reference. */
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
+        seq_test->seq3 == seq_reference) {
+      SEQ_query_strip_effect_chain(seq_test, seqbase, collection);
+    }
+  }
+}

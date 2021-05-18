@@ -43,6 +43,7 @@
 #include "SEQ_add.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -251,21 +252,25 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  /* Remove users of src_seq. Ideally these could be moved into meta as well, but this would be
-   * best to do with generalized iterator as described in D10337. */
-  sequencer_flag_users_for_removal(scene, seqbase, src_seq);
-  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+  SeqCollection *collection = SEQ_collection_create();
+  SEQ_collection_append_strip(src_seq, collection);
+  SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
 
-  /* Move to meta. */
-  BLI_remlink(seqbase, src_seq);
-  BLI_addtail(&dst_seqm->seqbase, src_seq);
-  SEQ_relations_invalidate_cache_preprocessed(scene, src_seq);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    /* Move to meta. */
+    BLI_remlink(seqbase, seq);
+    BLI_addtail(&dst_seqm->seqbase, seq);
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
 
-  /* Update meta. */
-  SEQ_time_update_sequence(scene, dst_seqm);
-  if (SEQ_transform_test_overlap(&dst_seqm->seqbase, src_seq)) {
-    SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, src_seq, scene);
+    /* Update meta. */
+    SEQ_time_update_sequence(scene, dst_seqm);
+    if (SEQ_transform_test_overlap(&dst_seqm->seqbase, seq)) {
+      SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, seq, scene);
+    }
   }
+
+  SEQ_collection_free(collection);
 
   return true;
 }
