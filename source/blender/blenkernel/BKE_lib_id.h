@@ -104,6 +104,10 @@ enum {
    * specific code in some copy cases (mostly for node trees). */
   LIB_ID_CREATE_LOCAL = 1 << 9,
 
+  /** Create for the depsgraph, when set #LIB_TAG_COPIED_ON_WRITE must be set.
+   * Internally this is used to share some pointers instead of duplicating them. */
+  LIB_ID_COPY_SET_COPIED_ON_WRITE = 1 << 10,
+
   /* *** Specific options to some ID types or usages. *** */
   /* *** May be ignored by unrelated ID copying functions. *** */
   /** Object only, needed by make_local code. */

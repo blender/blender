@@ -1245,6 +1245,13 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   }
   BLI_assert(new_id != NULL);
 
+  if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
+    new_id->tag |= LIB_TAG_COPIED_ON_WRITE;
+  }
+  else {
+    new_id->tag &= ~LIB_TAG_COPIED_ON_WRITE;
+  }
+
   const size_t id_len = BKE_libblock_get_alloc_info(GS(new_id->name), NULL);
   const size_t id_offset = sizeof(ID);
   if ((int)id_len - (int)id_offset > 0) { /* signed to allow neg result */ /* XXX ????? */
