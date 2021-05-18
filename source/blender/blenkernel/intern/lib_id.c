@@ -578,7 +578,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
     }
   }
 
-  /* Early output is source is NULL. */
+  /* Early output if source is NULL. */
   if (id == NULL) {
     return NULL;
   }
