@@ -88,6 +88,10 @@ typedef enum eMRExtractType {
 
 BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 {
+  /* In edit mode, the displayed mesh is stored in the edit-mesh. */
+  if (me->edit_mesh && me->edit_mesh->mesh_eval_final) {
+    return MAX2(1, me->edit_mesh->mesh_eval_final->totcol);
+  }
   return MAX2(1, me->totcol);
 }
 

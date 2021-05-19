@@ -48,7 +48,7 @@ static bool paint_object_is_rendered_transparent(View3D *v3d, Object *ob)
         v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
       Mesh *me = ob->data;
       for (int i = 0; i < me->totcol; i++) {
-        Material *mat = me->mat[i];
+        Material *mat = BKE_object_material_get_eval(ob, i + 1);
         if (mat && mat->a < 1.0f) {
           return true;
         }
