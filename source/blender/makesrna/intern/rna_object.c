@@ -1257,7 +1257,8 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 
 static int rna_MaterialSlot_index(PointerRNA *ptr)
 {
-  return POINTER_AS_INT(ptr->data);
+  /* There is an offset of one, so that `ptr->data` is not null. */
+  return POINTER_AS_INT(ptr->data) - 1;
 }
 
 static int rna_MaterialSlot_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -1422,7 +1423,8 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   PointerRNA ptr;
   RNA_pointer_create((ID *)iter->internal.count.ptr,
                      &RNA_MaterialSlot,
-                     POINTER_FROM_INT(iter->internal.count.item),
+                     /* Add one, so that `ptr->data` is not null. */
+                     POINTER_FROM_INT(iter->internal.count.item + 1),
                      &ptr);
   return ptr;
 }
