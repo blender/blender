@@ -293,7 +293,7 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
   if (SEQ_transform_test_overlap(seqbase, seq)) {
     SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX - BROKEN!, uses context seqbasep */
   }
-  SEQ_sort(scene);
+  SEQ_sort(seqbase);
 }
 
 /* A simple wrapper around above func, directly usable as prop update func.
@@ -476,7 +476,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
     /* XXX - BROKEN!, uses context seqbasep */
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
   }
-  SEQ_sort(scene);
+  SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 

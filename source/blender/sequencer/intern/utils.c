@@ -59,9 +59,12 @@
  *
  * \param seqbase: ListBase with strips
  */
-
-void seq_sort_seqbase(ListBase *seqbase)
+void SEQ_sort(ListBase *seqbase)
 {
+  if (seqbase == NULL) {
+    return;
+  }
+
   /* all strips together per kind, and in order of y location ("machine") */
   ListBase inputbase, effbase;
   Sequence *seq, *seqt;
@@ -101,24 +104,6 @@ void seq_sort_seqbase(ListBase *seqbase)
 
   BLI_movelisttolist(seqbase, &inputbase);
   BLI_movelisttolist(seqbase, &effbase);
-}
-
-/**
- * Sort strips in active seqbase. Effect strips are trailing the list and they are sorted by
- * channel position as well.
- * This is important for SEQ_time_update_sequence to work properly
- *
- * \param scene: Scene to look for active seqbase in
- */
-void SEQ_sort(Scene *scene)
-{
-  Editing *ed = SEQ_editing_get(scene, false);
-
-  if (ed == NULL) {
-    return;
-  }
-
-  seq_sort_seqbase(SEQ_active_seqbase_get(ed));
 }
 
 typedef struct SeqUniqueInfo {

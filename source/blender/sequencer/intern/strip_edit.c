@@ -407,7 +407,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
 
   /* Sort list, so that no strip can depend on next strip in list.
    * This is important for SEQ_time_update_sequence functionality. */
-  seq_sort_seqbase(&left_strips);
+  SEQ_sort(&left_strips);
 
   /* Duplicate ListBase. */
   ListBase right_strips = {NULL, NULL};

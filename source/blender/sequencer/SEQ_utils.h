@@ -35,7 +35,7 @@ struct Scene;
 struct Sequence;
 struct StripElem;
 
-void SEQ_sort(struct Scene *scene);
+void SEQ_sort(struct ListBase *seqbase);
 void SEQ_sequence_base_unique_name_recursive(struct ListBase *seqbasep, struct Sequence *seq);
 const char *SEQ_sequence_give_name(struct Sequence *seq);
 struct ListBase *SEQ_get_seqbase_from_sequence(struct Sequence *seq, int *r_offset);

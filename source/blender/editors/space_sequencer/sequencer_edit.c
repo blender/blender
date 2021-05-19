@@ -348,7 +348,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(SEQ_active_seqbase_get(ed));
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1443,7 +1443,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
       }
     }
 
-    SEQ_sort(scene);
+    SEQ_sort(SEQ_active_seqbase_get(ed));
   }
   if (changed) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1818,7 +1818,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(SEQ_active_seqbase_get(ed));
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2003,7 +2003,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(active_seqbase);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2226,7 +2226,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
       }
     }
 
-    SEQ_sort(scene);
+    SEQ_sort(SEQ_active_seqbase_get(ed));
 
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 

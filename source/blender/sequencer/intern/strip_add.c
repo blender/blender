@@ -100,7 +100,7 @@ static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *se
 {
   SEQ_sequence_base_unique_name_recursive(seqbase, seq);
   SEQ_time_update_sequence_bounds(scene, seq);
-  SEQ_sort(scene);
+  SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
