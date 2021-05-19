@@ -411,8 +411,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
 
   /* Duplicate ListBase. */
   ListBase right_strips = {NULL, NULL};
-  SEQ_sequence_base_dupli_recursive(
-      scene, scene, &right_strips, &left_strips, SEQ_DUPE_ANIM | SEQ_DUPE_ALL, 0);
+  SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, SEQ_DUPE_ALL, 0);
 
   /* Split strips. */
   Sequence *left_seq = left_strips.first;
@@ -424,11 +423,12 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     right_seq = right_seq->next;
   }
 
-  /* Move strips back to seqbase. Move right strips first, so left strips don't change name. */
-  BLI_movelisttolist(seqbase, &right_strips);
+  seq = right_strips.first;
   BLI_movelisttolist(seqbase, &left_strips);
-  LISTBASE_FOREACH (Sequence *, seq_iter, seqbase) {
-    SEQ_ensure_unique_name(seq_iter, scene);
+  BLI_movelisttolist(seqbase, &right_strips);
+
+  for (; seq; seq = seq->next) {
+    SEQ_ensure_unique_name(seq, scene);
   }
 
   return return_seq;
