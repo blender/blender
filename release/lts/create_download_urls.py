@@ -27,12 +27,11 @@ class Version:
     def __str__(self) -> str:
         return self.version
 
-
 def get_download_file_names(version: Version):
-    yield f"blender-{version}-linux-x86_64.tar.xz"
-    yield f"blender-{version}-darwin-x86_64.dmg"
-    yield f"blender-{version}-windows-amd64.msi"
-    yield f"blender-{version}-windows-amd64.zip"
+    yield f"blender-{version}-linux-x64.tar.xz"
+    yield f"blender-{version}-macos-x64.dmg"
+    yield f"blender-{version}-windows-x64.msi"
+    yield f"blender-{version}-windows-x64.zip"
 
 
 def get_download_url(version: Version, file_name: str) -> str:
