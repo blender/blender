@@ -130,14 +130,19 @@ void eyedropper_draw_cursor_text_region(const struct bContext *C,
                                         const char *name)
 {
   wmWindow *win = CTX_wm_window(C);
-  const int x = win->eventstate->x - region->winrct.xmin;
-  const int y = win->eventstate->y - region->winrct.ymin;
+  const int x = win->eventstate->x;
+  const int y = win->eventstate->y;
 
   if ((name[0] == '\0') || (BLI_rcti_isect_pt(&region->winrct, x, y) == false)) {
     return;
   }
 
-  eyedropper_draw_cursor_text_ex(x, y, name);
+  const int mval[2] = {
+    x - region->winrct.xmin,
+    y - region->winrct.ymin,
+  };
+
+  eyedropper_draw_cursor_text_ex(mval[0], mval[1], name);
 }
 
 /**
