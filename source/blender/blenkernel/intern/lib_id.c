@@ -1366,8 +1366,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 
     ID *id_sorting_hint_next = id_sorting_hint->next;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) < 0 &&
-        (id_sorting_hint_next == NULL ||
-         id_sorting_hint_next->lib != id->lib ||
+        (id_sorting_hint_next == NULL || id_sorting_hint_next->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_next->name, id->name) > 0)) {
       BLI_insertlinkafter(lb, id_sorting_hint, id);
       return;
@@ -1375,8 +1374,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 
     ID *id_sorting_hint_prev = id_sorting_hint->prev;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) > 0 &&
-        (id_sorting_hint_prev == NULL ||
-         id_sorting_hint_prev->lib != id->lib ||
+        (id_sorting_hint_prev == NULL || id_sorting_hint_prev->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_prev->name, id->name) < 0)) {
       BLI_insertlinkbefore(lb, id_sorting_hint, id);
       return;
@@ -1716,12 +1714,14 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
  */
 bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 {
-  bool result;
+  bool result = false;
   char name[MAX_ID_NAME - 2];
 
-  /* if library, don't rename */
+  /* If library, don't rename, but do ensure proper sorting. */
   if (ID_IS_LINKED(id)) {
-    return false;
+    id_sort_by_name(lb, id, NULL);
+
+    return result;
   }
 
   /* if no name given, use name of current ID
