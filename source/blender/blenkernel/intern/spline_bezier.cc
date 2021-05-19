@@ -560,6 +560,10 @@ blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated_points(
 {
   BLI_assert(source_data.size() == this->size());
 
+  if (source_data.is_single()) {
+    return source_data.shallow_copy();
+  }
+
   const int eval_size = this->evaluated_points_size();
   if (eval_size == 1) {
     return source_data.shallow_copy();

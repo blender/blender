@@ -389,6 +389,10 @@ blender::fn::GVArrayPtr NURBSpline::interpolate_to_evaluated_points(
 {
   BLI_assert(source_data.size() == this->size());
 
+  if (source_data.is_single()) {
+    return source_data.shallow_copy();
+  }
+
   this->calculate_basis_cache();
   Span<BasisCache> weights(basis_cache_);
 
