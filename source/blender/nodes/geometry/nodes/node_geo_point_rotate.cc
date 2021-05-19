@@ -176,6 +176,9 @@ static void geo_node_point_rotate_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     point_rotate_on_component(geometry_set.get_component_for_write<PointCloudComponent>(), params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    point_rotate_on_component(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
 }
