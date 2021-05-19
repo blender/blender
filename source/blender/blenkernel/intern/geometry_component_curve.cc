@@ -39,7 +39,7 @@ GeometryComponent *CurveComponent::copy() const
 {
   CurveComponent *new_component = new CurveComponent();
   if (curve_ != nullptr) {
-    new_component->curve_ = curve_->copy();
+    new_component->curve_ = new CurveEval(*curve_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -87,7 +87,7 @@ CurveEval *CurveComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    curve_ = curve_->copy();
+    curve_ = new CurveEval(*curve_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return curve_;
@@ -107,7 +107,7 @@ void CurveComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    curve_ = curve_->copy();
+    curve_ = new CurveEval(*curve_);
     ownership_ = GeometryOwnershipType::Owned;
   }
 }

@@ -50,17 +50,6 @@ void CurveEval::remove_splines(blender::IndexMask mask)
   }
 }
 
-CurveEval *CurveEval::copy()
-{
-  CurveEval *new_curve = new CurveEval();
-
-  for (SplinePtr &spline : this->splines()) {
-    new_curve->add_spline(spline->copy());
-  }
-
-  return new_curve;
-}
-
 void CurveEval::translate(const float3 &translation)
 {
   for (SplinePtr &spline : this->splines()) {

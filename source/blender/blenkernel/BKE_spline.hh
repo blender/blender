@@ -482,13 +482,19 @@ class CurveEval {
   blender::Vector<SplinePtr> splines_;
 
  public:
+  CurveEval() = default;
+  CurveEval(const CurveEval &other)
+  {
+    for (const SplinePtr &spline : other.splines()) {
+      this->add_spline(spline->copy());
+    }
+  }
+
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
 
   void add_spline(SplinePtr spline);
   void remove_splines(blender::IndexMask mask);
-
-  CurveEval *copy();
 
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
