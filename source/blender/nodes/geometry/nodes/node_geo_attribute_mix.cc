@@ -59,6 +59,28 @@ static void geo_node_attribute_mix_layout(uiLayout *layout, bContext *UNUSED(C),
 
 namespace blender::nodes {
 
+static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeAttributeMix *data = (NodeAttributeMix *)MEM_callocN(sizeof(NodeAttributeMix),
+                                                           "attribute mix node");
+  data->blend_type = MA_RAMP_BLEND;
+  data->input_type_factor = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
+  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
+  node->storage = data;
+}
+
+static void geo_node_attribute_mix_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeAttributeMix *node_storage = (NodeAttributeMix *)node->storage;
+  update_attribute_input_socket_availabilities(
+      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage->input_type_factor);
+  update_attribute_input_socket_availabilities(
+      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
+  update_attribute_input_socket_availabilities(
+      *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
+}
+
 static void do_mix_operation_float(const int blend_mode,
                                    const VArray<float> &factors,
                                    const VArray<float> &inputs_a,
@@ -214,28 +236,6 @@ static void geo_node_attribute_mix_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Geometry", geometry_set);
-}
-
-static void geo_node_attribute_mix_init(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeAttributeMix *data = (NodeAttributeMix *)MEM_callocN(sizeof(NodeAttributeMix),
-                                                           "attribute mix node");
-  data->blend_type = MA_RAMP_BLEND;
-  data->input_type_factor = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
-  data->input_type_a = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  data->input_type_b = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-  node->storage = data;
-}
-
-static void geo_node_attribute_mix_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeAttributeMix *node_storage = (NodeAttributeMix *)node->storage;
-  update_attribute_input_socket_availabilities(
-      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage->input_type_factor);
-  update_attribute_input_socket_availabilities(
-      *node, "A", (GeometryNodeAttributeInputMode)node_storage->input_type_a);
-  update_attribute_input_socket_availabilities(
-      *node, "B", (GeometryNodeAttributeInputMode)node_storage->input_type_b);
 }
 
 }  // namespace blender::nodes

@@ -70,20 +70,6 @@ static void geo_node_switch_init(bNodeTree *UNUSED(tree), bNode *node)
 
 namespace blender::nodes {
 
-template<typename T>
-void output_input(GeoNodeExecParams &params,
-                  const bool input,
-                  const StringRef input_suffix,
-                  const StringRef output_identifier)
-{
-  if (input) {
-    params.set_output(output_identifier, params.extract_input<T>("B" + input_suffix));
-  }
-  else {
-    params.set_output(output_identifier, params.extract_input<T>("A" + input_suffix));
-  }
-}
-
 static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeSwitch *node_storage = (NodeSwitch *)node->storage;
@@ -96,6 +82,20 @@ static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
     nodeSetSocketAvailability(socket,
                               socket->type == (eNodeSocketDatatype)node_storage->input_type);
+  }
+}
+
+template<typename T>
+void output_input(GeoNodeExecParams &params,
+                  const bool input,
+                  const StringRef input_suffix,
+                  const StringRef output_identifier)
+{
+  if (input) {
+    params.set_output(output_identifier, params.extract_input<T>("B" + input_suffix));
+  }
+  else {
+    params.set_output(output_identifier, params.extract_input<T>("A" + input_suffix));
   }
 }
 

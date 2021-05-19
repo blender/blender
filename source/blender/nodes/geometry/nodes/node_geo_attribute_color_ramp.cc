@@ -44,6 +44,14 @@ static void geo_node_attribute_color_ramp_layout(uiLayout *layout,
 
 namespace blender::nodes {
 
+static void geo_node_attribute_color_ramp_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)MEM_callocN(
+      sizeof(NodeAttributeColorRamp), __func__);
+  BKE_colorband_init(&node_storage->color_ramp, true);
+  node->storage = node_storage;
+}
+
 static AttributeDomain get_result_domain(const GeometryComponent &component,
                                          StringRef input_name,
                                          StringRef result_name)
@@ -113,14 +121,6 @@ static void geo_node_attribute_color_ramp_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Geometry", std::move(geometry_set));
-}
-
-static void geo_node_attribute_color_ramp_init(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeAttributeColorRamp *node_storage = (NodeAttributeColorRamp *)MEM_callocN(
-      sizeof(NodeAttributeColorRamp), __func__);
-  BKE_colorband_init(&node_storage->color_ramp, true);
-  node->storage = node_storage;
 }
 
 }  // namespace blender::nodes

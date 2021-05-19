@@ -44,6 +44,7 @@ static bNodeSocketTemplate geo_node_edge_split_out[] = {
 };
 
 namespace blender::nodes {
+
 static void geo_node_edge_split_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
@@ -82,6 +83,7 @@ static void geo_node_edge_split_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set));
 }
+
 }  // namespace blender::nodes
 
 void register_node_type_geo_edge_split()
