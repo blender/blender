@@ -2022,7 +2022,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
     source_shading_settings = shading_override;
   }
   memcpy(&v3d.shading, source_shading_settings, sizeof(View3DShading));
-  v3d.shading.type = drawtype;
 
   if (drawtype == OB_MATERIAL) {
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD | V3D_SHADING_SCENE_LIGHTS;
@@ -2032,6 +2031,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
     v3d.shading.flag = V3D_SHADING_SCENE_WORLD_RENDER | V3D_SHADING_SCENE_LIGHTS_RENDER;
     v3d.shading.render_pass = SCE_PASS_COMBINED;
   }
+  else if (drawtype == OB_TEXTURE) {
+    drawtype = OB_SOLID;
+    v3d.shading.light = V3D_LIGHTING_STUDIO;
+    v3d.shading.color_type = V3D_SHADING_TEXTURE_COLOR;
+  }
+  v3d.shading.type = drawtype;
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;
 
@@ -2072,7 +2077,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   return ED_view3d_draw_offscreen_imbuf(depsgraph,
                                         scene,
-                                        drawtype,
+                                        v3d.shading.type,
                                         &v3d,
                                         &region,
                                         width,

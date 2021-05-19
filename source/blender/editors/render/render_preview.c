@@ -70,6 +70,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
 
@@ -776,16 +777,21 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   U.pixelsize = 2.0f;
 
+  View3DShading shading;
+  BKE_screen_view3d_shading_init(&shading);
+  /* Enable shadows, makes it a bit easier to see the shape. */
+  shading.flag |= V3D_SHADING_SHADOW;
+
   ImBuf *ibuf = ED_view3d_draw_offscreen_imbuf_simple(
       depsgraph,
       DEG_get_evaluated_scene(depsgraph),
-      NULL,
-      OB_SOLID,
+      &shading,
+      OB_TEXTURE,
       DEG_get_evaluated_object(depsgraph, scene->camera),
       preview_sized->sizex,
       preview_sized->sizey,
       IB_rect,
-      V3D_OFSDRAW_NONE,
+      V3D_OFSDRAW_OVERRIDE_SCENE_SETTINGS,
       R_ALPHAPREMUL,
       NULL,
       NULL,
