@@ -109,6 +109,7 @@ void BKE_id_material_clear(struct Main *bmain, struct ID *id);
 /* eval api */
 struct Material *BKE_object_material_get_eval(struct Object *ob, short act);
 int BKE_object_material_count_eval(struct Object *ob);
+void BKE_id_material_eval_assign(struct ID *id, int slot, struct Material *material);
 
 /* rendering */
 

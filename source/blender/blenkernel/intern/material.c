@@ -768,6 +768,31 @@ int BKE_object_material_count_eval(Object *ob)
   return len_p ? *len_p : 0;
 }
 
+void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
+{
+  Material ***materials_ptr = BKE_id_material_array_p(id);
+  short *len_ptr = BKE_id_material_len_p(id);
+  if (ELEM(NULL, materials_ptr, len_ptr)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  const int slot_index = slot - 1;
+  const int old_length = *len_ptr;
+
+  if (slot_index >= old_length) {
+    /* Need to grow slots array. */
+    const int new_length = slot_index + 1;
+    *materials_ptr = MEM_reallocN(*materials_ptr, sizeof(void *) * new_length);
+    *len_ptr = new_length;
+    for (int i = old_length; i < new_length; i++) {
+      (*materials_ptr)[i] = NULL;
+    }
+  }
+
+  (*materials_ptr)[slot_index] = material;
+}
+
 Material *BKE_gpencil_material(Object *ob, short act)
 {
   Material *ma = BKE_object_material_get(ob, act);

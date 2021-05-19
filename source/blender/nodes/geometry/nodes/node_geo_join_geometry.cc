@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_pointcloud.h"
@@ -57,6 +58,8 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
   int64_t cd_dirty_edge = 0;
   int64_t cd_dirty_loop = 0;
 
+  VectorSet<Material *> materials;
+
   for (const MeshComponent *mesh_component : src_components) {
     const Mesh *mesh = mesh_component->get_for_read();
     totverts += mesh->totvert;
@@ -67,11 +70,21 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
     cd_dirty_poly |= mesh->runtime.cd_dirty_poly;
     cd_dirty_edge |= mesh->runtime.cd_dirty_edge;
     cd_dirty_loop |= mesh->runtime.cd_dirty_loop;
+
+    for (const int slot_index : IndexRange(mesh->totcol)) {
+      Material *material = mesh->mat[slot_index];
+      materials.add(material);
+    }
   }
 
   const Mesh *first_input_mesh = src_components[0]->get_for_read();
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
   BKE_mesh_copy_settings(new_mesh, first_input_mesh);
+
+  for (const int i : IndexRange(materials.size())) {
+    Material *material = materials[i];
+    BKE_id_material_eval_assign(&new_mesh->id, i + 1, material);
+  }
 
   new_mesh->runtime.cd_dirty_vert = cd_dirty_vert;
   new_mesh->runtime.cd_dirty_poly = cd_dirty_poly;
@@ -86,6 +99,13 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
     const Mesh *mesh = mesh_component->get_for_read();
     if (mesh == nullptr) {
       continue;
+    }
+
+    Array<int> material_index_map(mesh->totcol);
+    for (const int i : IndexRange(mesh->totcol)) {
+      Material *material = mesh->mat[i];
+      const int new_material_index = materials.index_of(material);
+      material_index_map[i] = new_material_index;
     }
 
     for (const int i : IndexRange(mesh->totvert)) {
@@ -113,6 +133,13 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
       MPoly &new_poly = new_mesh->mpoly[poly_offset + i];
       new_poly = old_poly;
       new_poly.loopstart += loop_offset;
+      if (old_poly.mat_nr >= 0 && old_poly.mat_nr < mesh->totcol) {
+        new_poly.mat_nr = material_index_map[new_poly.mat_nr];
+      }
+      else {
+        /* The material index was invalid before. */
+        new_poly.mat_nr = 0;
+      }
     }
 
     vert_offset += mesh->totvert;
