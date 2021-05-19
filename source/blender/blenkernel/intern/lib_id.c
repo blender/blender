@@ -1361,12 +1361,13 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   BLI_remlink(lb, id);
 
   /* Check if we can actually insert id before or after id_sorting_hint, if given. */
-  if (!ELEM(id_sorting_hint, NULL, id)) {
+  if (!ELEM(id_sorting_hint, NULL, id) && id_sorting_hint->lib == id->lib) {
     BLI_assert(BLI_findindex(lb, id_sorting_hint) >= 0);
 
     ID *id_sorting_hint_next = id_sorting_hint->next;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) < 0 &&
         (id_sorting_hint_next == NULL ||
+         id_sorting_hint_next->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_next->name, id->name) > 0)) {
       BLI_insertlinkafter(lb, id_sorting_hint, id);
       return;
@@ -1375,6 +1376,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
     ID *id_sorting_hint_prev = id_sorting_hint->prev;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) > 0 &&
         (id_sorting_hint_prev == NULL ||
+         id_sorting_hint_prev->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_prev->name, id->name) < 0)) {
       BLI_insertlinkbefore(lb, id_sorting_hint, id);
       return;
@@ -1389,16 +1391,33 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
    * once using the same base name), newly inserted items will generally be towards the end
    * (higher extension numbers). */
-  for (idtest = lb->last, item_array_index = ID_SORT_STEP_SIZE - 1; idtest != NULL;
-       idtest = idtest->prev, item_array_index--) {
+  bool is_in_library = false;
+  item_array_index = ID_SORT_STEP_SIZE - 1;
+  for (idtest = lb->last; idtest != NULL; idtest = idtest->prev) {
+    if (is_in_library) {
+      if (idtest->lib != id->lib) {
+        /* We got out of expected library 'range' in the list, so we are done here and can move on
+         * to the next step. */
+        break;
+      }
+    }
+    else if (idtest->lib == id->lib) {
+      /* We are entering the expected library 'range' of IDs in the list. */
+      is_in_library = true;
+    }
+
+    if (!is_in_library) {
+      continue;
+    }
+
     item_array[item_array_index] = idtest;
     if (item_array_index == 0) {
-      if ((idtest->lib == NULL && id->lib != NULL) ||
-          BLI_strcasecmp(idtest->name, id->name) <= 0) {
+      if (BLI_strcasecmp(idtest->name, id->name) <= 0) {
         break;
       }
       item_array_index = ID_SORT_STEP_SIZE;
     }
+    item_array_index--;
   }
 
   /* Step two: we go forward in the selected chunk of items and check all of them, as we know
@@ -1410,7 +1429,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
    * So we can increment that index in any case. */
   for (item_array_index++; item_array_index < ID_SORT_STEP_SIZE; item_array_index++) {
     idtest = item_array[item_array_index];
-    if ((idtest->lib != NULL && id->lib == NULL) || BLI_strcasecmp(idtest->name, id->name) > 0) {
+    if (BLI_strcasecmp(idtest->name, id->name) > 0) {
       BLI_insertlinkbefore(lb, idtest, id);
       break;
     }
@@ -1418,12 +1437,18 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   if (item_array_index == ID_SORT_STEP_SIZE) {
     if (idtest == NULL) {
       /* If idtest is NULL here, it means that in the first loop, the last comparison was
-       * performed exactly on the first item of the list, and that it also failed. In other
-       * words, all items in the list are greater than inserted one, so we can put it at the
-       * start of the list. */
-      /* Note that BLI_insertlinkafter() would have same behavior in that case, but better be
-       * explicit here. */
-      BLI_addhead(lb, id);
+       * performed exactly on the first item of the list, and that it also failed. And that the
+       * second loop was not walked at all.
+       *
+       * In other words, if `id` is local, all the items in the list are greater than the inserted
+       * one, so we can put it at the start of the list. Or, if `id` is linked, it is the first one
+       * of its library, and we can put it at the very end of the list. */
+      if (ID_IS_LINKED(id)) {
+        BLI_addtail(lb, id);
+      }
+      else {
+        BLI_addhead(lb, id);
+      }
     }
     else {
       BLI_insertlinkafter(lb, idtest, id);
