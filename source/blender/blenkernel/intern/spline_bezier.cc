@@ -55,6 +55,9 @@ void BezierSpline::set_resolution(const int value)
   this->mark_cache_invalid();
 }
 
+/**
+ * \warning Call #reallocate on the spline's attributes after adding all points.
+ */
 void BezierSpline::add_point(const float3 position,
                              const HandleType handle_type_start,
                              const float3 handle_position_start,
@@ -83,6 +86,7 @@ void BezierSpline::resize(const int size)
   radii_.resize(size);
   tilts_.resize(size);
   this->mark_cache_invalid();
+  attributes.reallocate(size);
 }
 
 MutableSpan<float3> BezierSpline::positions()

@@ -337,6 +337,14 @@ static void join_curve_components(MutableSpan<GeometrySet> src_geometry_sets, Ge
     }
   }
 
+  /* For now, remove all custom attributes, since they might have different types,
+   * or an attribute might not exist on all splines. */
+  dst_curve->attributes.reallocate(dst_curve->splines().size());
+  CustomData_reset(&dst_curve->attributes.data);
+  for (SplinePtr &spline : dst_curve->splines()) {
+    CustomData_reset(&spline->attributes.data);
+  }
+
   dst_component.replace(dst_curve);
 }
 

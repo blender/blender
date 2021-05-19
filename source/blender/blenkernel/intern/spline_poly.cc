@@ -36,6 +36,9 @@ int PolySpline::size() const
   return size;
 }
 
+/**
+ * \warning Call #reallocate on the spline's attributes after adding all points.
+ */
 void PolySpline::add_point(const float3 position, const float radius, const float tilt)
 {
   positions_.append(position);
@@ -50,6 +53,7 @@ void PolySpline::resize(const int size)
   radii_.resize(size);
   tilts_.resize(size);
   this->mark_cache_invalid();
+  attributes.reallocate(size);
 }
 
 MutableSpan<float3> PolySpline::positions()

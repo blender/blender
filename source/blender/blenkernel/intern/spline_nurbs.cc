@@ -65,6 +65,9 @@ void NURBSpline::set_order(const uint8_t value)
   this->mark_cache_invalid();
 }
 
+/**
+ * \warning Call #reallocate on the spline's attributes after adding all points.
+ */
 void NURBSpline::add_point(const float3 position,
                            const float radius,
                            const float tilt,
@@ -85,6 +88,7 @@ void NURBSpline::resize(const int size)
   tilts_.resize(size);
   weights_.resize(size);
   this->mark_cache_invalid();
+  attributes.reallocate(size);
 }
 
 MutableSpan<float3> NURBSpline::positions()
