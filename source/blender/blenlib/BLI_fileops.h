@@ -87,7 +87,7 @@ typedef enum eFileAttributes {
   FILE_ATTR_RESTRICTED = 1 << 6,      /* Protected by OS. */
   FILE_ATTR_TEMPORARY = 1 << 7,       /* Used for temporary storage. */
   FILE_ATTR_SPARSE_FILE = 1 << 8,     /* Sparse File. */
-  FILE_ATTR_OFFLINE = 1 << 9,         /* Data is not immediately available. */
+  FILE_ATTR_OFFLINE = 1 << 9,         /* Contents available after a short delay. */
   FILE_ATTR_ALIAS = 1 << 10,          /* Mac Alias or Windows LNK. File-based redirection. */
   FILE_ATTR_REPARSE_POINT = 1 << 11,  /* File has associated re-parse point. */
   FILE_ATTR_SYMLINK = 1 << 12,        /* Reference to another file. */
