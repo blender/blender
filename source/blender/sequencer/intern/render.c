@@ -65,6 +65,7 @@
 #include "RE_pipeline.h"
 
 #include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 #include "SEQ_modifier.h"
 #include "SEQ_proxy.h"
 #include "SEQ_render.h"
@@ -259,120 +260,132 @@ StripElem *SEQ_render_give_stripelem(Sequence *seq, int timeline_frame)
   return se;
 }
 
-static int evaluate_seq_frame_gen(Sequence **seq_arr,
-                                  ListBase *seqbase,
-                                  int timeline_frame,
-                                  int chanshown)
+static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibly_input)
 {
-  /* Use arbitrary sized linked list, the size could be over MAXSEQ. */
-  LinkNodePair effect_inputs = {NULL, NULL};
-  int totseq = 0;
+  if (seq_effect->seq1 == possibly_input || seq_effect->seq2 == possibly_input ||
+      seq_effect->seq3 == possibly_input) {
+    return true;
+  }
+  return false;
+}
 
-  memset(seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
+/* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
+ * Order of applying these conditions is important. */
+static bool must_render_strip(const Sequence *seq, SeqCollection *strips_under_playhead)
+{
+  /* Sound strips are not rendered. */
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    return false;
+  }
+  /* Muted strips are not rendered. */
+  if ((seq->flag & SEQ_MUTE) != 0) {
+    return false;
+  }
+
+  bool seq_have_effect_in_stack = false;
+  Sequence *seq_iter;
+  SEQ_ITERATOR_FOREACH (seq_iter, strips_under_playhead) {
+    /* Strips is below another strip with replace blending are not rendered. */
+    if (seq_iter->blend_mode == SEQ_BLEND_REPLACE && seq->machine < seq_iter->machine) {
+      return false;
+    }
+
+    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && seq_is_effect_of(seq_iter, seq)) {
+      /* Strips in same channel or higher than its effect are rendered. */
+      if (seq->machine >= seq_iter->machine) {
+        return true;
+      }
+      /* Mark that this strip has effect in stack, that is above the strip. */
+      seq_have_effect_in_stack = true;
+    }
+  }
+
+  /* All effects are rendered (with respect to conditions above). */
+  if ((seq->type & SEQ_TYPE_EFFECT) != 0) {
+    return true;
+  }
+
+  /* If strip has effects in stack, and all effects are above this strip, it it not rendered. */
+  if (seq_have_effect_in_stack) {
+    return false;
+  }
+
+  return true;
+}
+
+static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timeline_frame)
+{
+  SeqCollection *collection = SEQ_collection_create();
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame)) {
-      if ((seq->type & SEQ_TYPE_EFFECT) && !(seq->flag & SEQ_MUTE)) {
-
-        if (seq->seq1) {
-          BLI_linklist_append_alloca(&effect_inputs, seq->seq1);
-        }
-
-        if (seq->seq2) {
-          BLI_linklist_append_alloca(&effect_inputs, seq->seq2);
-        }
-
-        if (seq->seq3) {
-          BLI_linklist_append_alloca(&effect_inputs, seq->seq3);
-        }
-      }
-
-      seq_arr[seq->machine] = seq;
-      totseq++;
+      SEQ_collection_append_strip(seq, collection);
     }
   }
+  return collection;
+}
 
-  /* Drop strips which are used for effect inputs, we don't want
-   * them to blend into render stack in any other way than effect
-   * string rendering. */
-  for (LinkNode *seq_item = effect_inputs.list; seq_item; seq_item = seq_item->next) {
-    Sequence *seq = seq_item->link;
-    /* It's possible that effect strip would be placed to the same
-     * 'machine' as its inputs. We don't want to clear such strips
-     * from the stack. */
-    if (seq_arr[seq->machine] && seq_arr[seq->machine]->type & SEQ_TYPE_EFFECT) {
+static void collection_filter_channel_up_to_incl(SeqCollection *collection, const int channel)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (seq->machine <= channel) {
       continue;
     }
-    /* If we're shown a specified channel, then we want to see the strips
-     * which belongs to this machine. */
-    if (chanshown != 0 && chanshown <= seq->machine) {
-      continue;
-    }
-    seq_arr[seq->machine] = NULL;
+    SEQ_collection_remove_strip(seq, collection);
   }
-
-  return totseq;
 }
 
-/**
- * Count number of strips in timeline at timeline_frame
- *
- * \param seqbase: ListBase in which strips are located
- * \param timeline_frame: frame on timeline from where gaps are searched for
- * \return number of strips
- */
-int SEQ_render_evaluate_frame(ListBase *seqbase, int timeline_frame)
+/* Remove strips we don't want to render from collection. */
+static void collection_filter_rendered_strips(SeqCollection *collection)
 {
-  Sequence *seq_arr[MAXSEQ + 1];
-  return evaluate_seq_frame_gen(seq_arr, seqbase, timeline_frame, 0);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (must_render_strip(seq, collection)) {
+      continue;
+    }
+    SEQ_collection_remove_strip(seq, collection);
+  }
 }
 
-static bool video_seq_is_rendered(Sequence *seq)
+static int seq_channel_cmp_fn(const void *a, const void *b)
 {
-  return (seq && !(seq->flag & SEQ_MUTE) && seq->type != SEQ_TYPE_SOUND_RAM);
+  return (*(Sequence **)a)->machine - (*(Sequence **)b)->machine;
 }
 
-int seq_get_shown_sequences(ListBase *seqbasep,
-                            int timeline_frame,
-                            int chanshown,
-                            Sequence **seq_arr_out)
+int seq_get_shown_sequences(ListBase *seqbase,
+                            const int timeline_frame,
+                            const int chanshown,
+                            Sequence **r_seq_arr)
 {
-  Sequence *seq_arr[MAXSEQ + 1];
-  int b = chanshown;
-  int cnt = 0;
+  SeqCollection *collection = query_strips_at_frame(seqbase, timeline_frame);
 
-  if (b > MAXSEQ) {
+  if (chanshown != 0) {
+    collection_filter_channel_up_to_incl(collection, chanshown);
+  }
+  collection_filter_rendered_strips(collection);
+
+  const int strip_count = BLI_gset_len(collection->set);
+
+  if (strip_count > MAXSEQ) {
+    BLI_assert(!"Too many strips, this shouldn't happen");
     return 0;
   }
 
-  if (evaluate_seq_frame_gen(seq_arr, seqbasep, timeline_frame, chanshown)) {
-    if (b == 0) {
-      b = MAXSEQ;
-    }
-    for (; b > 0; b--) {
-      if (video_seq_is_rendered(seq_arr[b])) {
-        break;
-      }
-    }
+  /* Copy collection elements into array. */
+  memset(r_seq_arr, 0, sizeof(Sequence *) * (MAXSEQ + 1));
+  Sequence *seq;
+  int index = 0;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    r_seq_arr[index] = seq;
+    index++;
   }
+  SEQ_collection_free(collection);
 
-  chanshown = b;
+  /* Sort array by channel. */
+  qsort(r_seq_arr, strip_count, sizeof(Sequence *), seq_channel_cmp_fn);
 
-  for (; b > 0; b--) {
-    if (video_seq_is_rendered(seq_arr[b])) {
-      if (seq_arr[b]->blend_mode == SEQ_BLEND_REPLACE) {
-        break;
-      }
-    }
-  }
-
-  for (; b <= chanshown && b >= 0; b++) {
-    if (video_seq_is_rendered(seq_arr[b])) {
-      seq_arr_out[cnt++] = seq_arr[b];
-    }
-  }
-
-  return cnt;
+  return strip_count;
 }
 
 /** \} */

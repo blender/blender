@@ -149,6 +149,18 @@ bool SEQ_collection_append_strip(Sequence *seq, SeqCollection *collection)
 }
 
 /**
+ * Remove strip from collection.
+ *
+ * \param seq: strip to be removed
+ * \param collection: collection from which strip will be removed
+ * \return true if strip exists in set and it was removed from set, otherwise false
+ */
+bool SEQ_collection_remove_strip(Sequence *seq, SeqCollection *collection)
+{
+  return BLI_gset_remove(collection->set, seq, NULL);
+}
+
+/**
  * Move strips from collection_src to collection_dst. Source collection will be freed.
  *
  * \param collection_dst: destination collection
@@ -208,6 +220,21 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase)
     if (seq->type == SEQ_TYPE_META) {
       SEQ_collection_merge(collection, SEQ_query_all_strips_recursive(&seq->seqbase));
     }
+    SEQ_collection_append_strip(seq, collection);
+  }
+  return collection;
+}
+
+/**
+ * Query all strips in seqbase. This does not include strips nested in meta strips.
+ *
+ * \param seqbase: ListBase in which strips are queried
+ * \return strip collection
+ */
+SeqCollection *SEQ_query_all_strips(ListBase *seqbase)
+{
+  SeqCollection *collection = SEQ_collection_create();
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SEQ_collection_append_strip(seq, collection);
   }
   return collection;
