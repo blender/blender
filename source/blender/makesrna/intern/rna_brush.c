@@ -136,7 +136,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_DISPLACEMENT_ERASER, "DISPLACEMENT_ERASER", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Eraser", ""},
     {SCULPT_TOOL_DISPLACEMENT_SMEAR, "DISPLACEMENT_SMEAR", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Smear", ""},
     {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_PAINT, "Paint", ""},
-    {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
+    {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_SMEAR, "Smear", ""},
     {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
     {SCULPT_TOOL_VCOL_BOUNDARY, "VCOL_BOUNDARY", ICON_BRUSH_VCOL_BOUNDARY, "Sharpen Color Boundary", ""},
         {0, NULL, 0, NULL, NULL},

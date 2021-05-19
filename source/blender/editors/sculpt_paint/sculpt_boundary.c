@@ -161,10 +161,10 @@ static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
 static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
 static void sculpt_boundary_index_add(SculptSession *ss,
-                                                  SculptBoundary *boundary,
-                                                  const SculptVertRef new_index,
-                                                  const float distance,
-                                                  GSet *included_vertices)
+                                      SculptBoundary *boundary,
+                                      const SculptVertRef new_index,
+                                      const float distance,
+                                      GSet *included_vertices)
 {
 
   boundary->vertices[boundary->num_vertices] = new_index;
@@ -346,9 +346,9 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
  * the closest one.
  */
 static void sculpt_boundary_edit_data_init(SculptSession *ss,
-                                                       SculptBoundary *boundary,
-                                                       const SculptVertRef initial_vertex,
-                                                       const float radius)
+                                           SculptBoundary *boundary,
+                                           const SculptVertRef initial_vertex,
+                                           const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -559,7 +559,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
     return NULL;
   }
 
-  // XXX
+  // XXX force update of BMVert->head.index
   if (ss->bm) {
     ss->bm->elem_index_dirty |= BM_VERT;
   }
@@ -647,24 +647,6 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
       sub_v3_v3v3(dir,
                   SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
                   SCULPT_vertex_co_get(ss, vertex));
-
-#if 0
-    /*strategy to increase accuracy for non-quad topologies:
-      use principle curvature direction.  Since SCULPT_curvature_dir_get
-      can also be somewhat noisy we average it with dir.
-     */
-
-    float cdir[3];
-    SCULPT_curvature_dir_get(ss, vertex, cdir);
-    normalize_v3(dir);
-    normalize_v3(cdir);
-
-    if (dot_v3v3(dir, cdir) < 0.0f) {
-      negate_v3(cdir);
-    }
-
-    add_v3_v3(dir, cdir);
-#endif
 
       cross_v3_v3v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i],
                     dir,
@@ -772,10 +754,10 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
         SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
         const float *co = SCULPT_vertex_co_get(ss, vertex);
 
-        //boundary->bend.pivot_positions[i][0] = co[0];
-        //boundary->bend.pivot_positions[i][1] = co[1];
-        //boundary->bend.pivot_positions[i][2] = co[2];
-        //boundary->bend.pivot_positions[i][3] = 0.0f;
+        // boundary->bend.pivot_positions[i][0] = co[0];
+        // boundary->bend.pivot_positions[i][1] = co[1];
+        // boundary->bend.pivot_positions[i][2] = co[2];
+        // boundary->bend.pivot_positions[i][3] = 0.0f;
       }
     }
 
