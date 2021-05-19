@@ -2362,7 +2362,12 @@ static void nsvg__pathArcTo(NSVGparser *p, float *cpx, float *cpy, float *args, 
   // The loop assumes an iteration per end point (including start and end), this +1.
   ndivs = (int)(fabsf(da) / (NSVG_PI * 0.5f) + 1.0f);
   hda = (da / (float)ndivs) / 2.0f;
-  kappa = fabsf(4.0f / 3.0f * (1.0f - cosf(hda)) / sinf(hda));
+  // Fix for ticket #179: division by 0: avoid cotangens around 0 (infinite)
+  if ((hda < 1e-3f) && (hda > -1e-3f))
+    hda *= 0.5f;
+  else
+    hda = (1.0f - cosf(hda)) / sinf(hda);
+  kappa = fabsf(4.0f / 3.0f * hda);
   if (da < 0.0f)
     kappa = -kappa;
 
