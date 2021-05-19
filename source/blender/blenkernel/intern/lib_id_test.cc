@@ -74,8 +74,6 @@ TEST(lib_id_main_sort, local_ids_1)
   test_lib_id_main_sort_free(&ctx);
 }
 
-/* Disabled as this is failing in master currently, fix incomming. */
-#if 0
 TEST(lib_id_main_sort, linked_ids_1)
 {
   LibIDMainSortTestContext ctx = {nullptr};
@@ -110,5 +108,5 @@ TEST(lib_id_main_sort, linked_ids_1)
 
   test_lib_id_main_sort_free(&ctx);
 }
-#endif
+
 }  // namespace blender::bke::tests
