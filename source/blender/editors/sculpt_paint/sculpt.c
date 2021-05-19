@@ -872,7 +872,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, SculptVertRef index)
         }
       }
 
-      return ret < 0 ? 0 : ret;
+      return ret;
     }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
@@ -925,6 +925,54 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, SculptVertRef index, int face
   return true;
 }
 
+/*
+calcs visibility state based on face sets.
+todo: also calc a face set boundary flag.
+*/
+void sculpt_vertex_faceset_update_bmesh(SculptSession *ss, SculptVertRef vert)
+{
+  if (!ss->bm) {
+    return;
+  }
+
+  BMVert *v = (BMVert *)vert.i;
+  BMEdge *e = v->e;
+  bool ok = false;
+  const int cd_faceset_offset = ss->cd_faceset_offset;
+
+  if (!e) {
+    return;
+  }
+
+  do {
+    BMLoop *l = e->l;
+    if (l) {
+      do {
+        if (BM_ELEM_CD_GET_INT(l->f, cd_faceset_offset) > 0) {
+          ok = true;
+          break;
+        }
+
+        l = l->radial_next;
+      } while (l != e->l);
+
+      if (ok) {
+        break;
+      }
+    }
+    e = v == e->v1 ? e->v1_disk_link.next : e->v2_disk_link.next;
+  } while (e != v->e);
+
+  MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, ss->cd_dyn_vert);
+
+  if (ok) {
+    mv->flag &= ~DYNVERT_VERT_FSET_HIDDEN;
+  }
+  else {
+    mv->flag |= DYNVERT_VERT_FSET_HIDDEN;
+  }
+}
+
 void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -956,6 +1004,8 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
       }
 
       BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        MDynTopoVert *mv = BM_ELEM_CD_GET_VOID_P(v, ss->cd_dyn_vert);
+
         BMIter iter2;
         BMLoop *l;
 
@@ -969,9 +1019,11 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
         }
 
         if (!visible) {
+          mv->flag |= DYNVERT_VERT_FSET_HIDDEN;
           BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
         }
         else {
+          mv->flag &= ~DYNVERT_VERT_FSET_HIDDEN;
           BM_elem_flag_disable(v, BM_ELEM_HIDDEN);
         }
       }
@@ -1279,49 +1331,57 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
   iter->neighbor_indices = iter->neighbor_indices_fixed;
   iter->i = 0;
 
-#if 1
+  // cache profiling revealed a hotspot here, don't use BM_ITER
   BMEdge *e = v->e;
 
   if (!v->e) {
     return;
   }
 
-  do {
-    if (v == e->v1) {
-      sculpt_vertex_neighbor_add_nocheck(
-          iter, BKE_pbvh_make_vref((intptr_t)e->v2), BM_elem_index_get(e->v2));
+  const bool have_facesets = ss->cd_faceset_offset >= 0;
+  const int cd_faceset_offset = ss->cd_faceset_offset;
 
-      e = e->v1_disk_link.next;
+  do {
+    BMVert *v2;
+    BMEdge *e2;
+
+    if (v == e->v1) {
+      v2 = e->v2;
+      e2 = e->v1_disk_link.next;
     }
     else {
-      sculpt_vertex_neighbor_add_nocheck(
-          iter, BKE_pbvh_make_vref((intptr_t)e->v1), BM_elem_index_get(e->v1));
+      v2 = e->v1;
+      e2 = e->v2_disk_link.next;
+    }
 
-      e = e->v2_disk_link.next;
+    // TODO: cache this in MDynTopoVert to avoid excessive DRAM fetches
+    BMLoop *l = e->l;
+    bool ok = false;
+
+#if 0
+    if (l && have_facesets) {
+      do {
+        if (BM_ELEM_CD_GET_INT(l->f, cd_faceset_offset) > 0) {
+          ok = true;
+          break;
+        }
+
+        l = l->radial_next;
+      } while (l != e->l);
+    }
+    else {
+      ok = true;
+    }
+#else
+    ok = true;
+#endif
+
+    e = e2;
+    if (ok) {
+      sculpt_vertex_neighbor_add_nocheck(
+          iter, BKE_pbvh_make_vref((intptr_t)v2), BM_elem_index_get(v2));
     }
   } while (e != v->e);
-#elif 0  // note that BM_EDGES_OF_VERT should be faster then BM_LOOPS_OF_VERT
-  BMEdge *e;
-  BM_ITER_ELEM (e, &liter, v, BM_EDGES_OF_VERT) {
-    BMVert *v_other = BM_edge_other_vert(e, v);
-
-    sculpt_vertex_neighbor_add(
-        iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
-  }
-#else
-
-  BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-    const BMVert *adj_v[2] = {l->prev->v, l->next->v};
-    for (int i = 0; i < ARRAY_SIZE(adj_v); i++) {
-      const BMVert *v_other = adj_v[i];
-
-      if (v_other != (BMVert *)index.i) {
-        sculpt_vertex_neighbor_add(
-            iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
-      }
-    }
-  }
-#endif
 }
 
 static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,

@@ -488,8 +488,10 @@ static void bmesh_undo_on_vert_change(BMVert *v, void *userdata, void *old_custo
 
   BM_ELEM_CD_SET_INT(v, data->cd_vert_node_offset, oldnode_i);
 
-  PBVHNode *node = BKE_pbvh_node_from_index(data->pbvh, oldnode_i);
-  BKE_pbvh_node_mark_update(node);
+  if (oldnode_i >= 0) {
+    PBVHNode *node = BKE_pbvh_node_from_index(data->pbvh, oldnode_i);
+    BKE_pbvh_node_mark_update(node);
+  }
 }
 
 static void bmesh_undo_on_face_change(BMFace *f, void *userdata, void *old_customdata)

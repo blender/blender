@@ -543,7 +543,7 @@ typedef struct MDynTopoVert {
 } MDynTopoVert;
 
 /*MDynTopoVert->flag*/
-enum { DYNVERT_BOUNDARY = (1 << 0) };
+enum { DYNVERT_BOUNDARY = (1 << 0), DYNVERT_VERT_FSET_HIDDEN = (1 << 1) };
 
 #ifdef __cplusplus
 }

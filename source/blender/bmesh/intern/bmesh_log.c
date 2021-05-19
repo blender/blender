@@ -57,12 +57,6 @@
 
 struct Mesh;
 
-typedef struct BMLogEdge {
-  uint v1, v2;
-  void *data;
-  int flag;
-} BMLogEdge;
-
 struct BMLogEntry {
   struct BMLogEntry *next, *prev;
 
@@ -142,6 +136,7 @@ struct BMLog {
   BMLogEntry *current_entry;
 
   int cd_dyn_vert;
+  bool dead;
 };
 
 typedef struct {
@@ -168,8 +163,8 @@ typedef struct {
 
 static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry);
 static void full_copy_load(BMesh *bm, BMLog *log, BMLogEntry *entry);
-
 static void bm_log_entry_free(BMLogEntry *entry);
+static bool bm_log_free_direct(BMLog *log, bool safe_mode);
 
 static void *log_ghash_lookup(BMLog *log, GHash *gh, const void *key)
 {
@@ -608,10 +603,10 @@ static void bm_log_vert_values_swap(
   }
 }
 
-ATTR_NO_OPT static void bm_log_face_values_swap(BMLog *log,
-                                                GHash *faces,
-                                                BMLogEntry *entry,
-                                                BMLogCallbacks *callbacks)
+static void bm_log_face_values_swap(BMLog *log,
+                                    GHash *faces,
+                                    BMLogEntry *entry,
+                                    BMLogCallbacks *callbacks)
 {
   void *scratch = log->bm->pdata.pool ? BLI_mempool_alloc(log->bm->pdata.pool) : NULL;
 
@@ -737,13 +732,18 @@ static BMLogEntry *bm_log_entry_create(void)
  * Note: does not free the log entry itself */
 static void bm_log_entry_free(BMLogEntry *entry)
 {
-  if (entry->log) {
-    entry->log->refcount--;
+  BMLog *log = entry->log;
+  bool kill_log = false;
 
-    if (entry->log->refcount < 0) {
+  if (log) {
+    log->refcount--;
+
+    if (log->refcount < 0) {
       fprintf(stderr, "BMLog refcount error\n");
-      entry->log->refcount = 0;
+      log->refcount = 0;
     }
+
+    kill_log = !log->refcount;
   }
 
   if (entry->full_copy_mesh) {
@@ -781,6 +781,10 @@ static void bm_log_entry_free(BMLogEntry *entry)
   CustomData_free(&entry->edata, 0);
   CustomData_free(&entry->ldata, 0);
   CustomData_free(&entry->pdata, 0);
+
+  if (kill_log) {
+    bm_log_free_direct(log, true);
+  }
 }
 
 static void bm_log_id_ghash_retake(RangeTreeUInt *unused_ids, GHash *id_ghash)
@@ -981,7 +985,7 @@ BMLog *BM_log_unfreeze(BMesh *bm, BMLogEntry *entry)
 /* Free all the data in a BMLog including the log itself
  * safe_mode means log->refcount will be checked, and if nonzero log will not be freed
  */
-bool BM_log_free(BMLog *log, bool safe_mode)
+static bool bm_log_free_direct(BMLog *log, bool safe_mode)
 {
   BMLogEntry *entry;
 
@@ -997,6 +1001,8 @@ bool BM_log_free(BMLog *log, bool safe_mode)
 
     return false;
   }
+
+  log->dead = true;
 
   BLI_rw_mutex_end(&log->lock);
 
@@ -1018,9 +1024,22 @@ bool BM_log_free(BMLog *log, bool safe_mode)
     entry->log = NULL;
   }
 
-  MEM_freeN(log);
-
   return true;
+}
+
+bool BM_log_free(BMLog *log, bool safe_mode)
+{
+  if (log->dead) {
+    MEM_freeN(log);
+    return true;
+  }
+
+  if (bm_log_free_direct(log, safe_mode)) {
+    MEM_freeN(log);
+    return true;
+  }
+
+  return false;
 }
 
 /* Get the number of log entries */
@@ -1127,6 +1146,12 @@ BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log)
 
 BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
 {
+  if (log->dead) {
+    fprintf(stderr, "BMLog Error: log is dead\n");
+    fflush(stderr);
+    return NULL;
+  }
+
   log->bm = bm;
 
   /* WARNING: this is now handled by the UndoSystem: BKE_UNDOSYS_TYPE_SCULPT
