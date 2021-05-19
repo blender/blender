@@ -466,6 +466,11 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
   }
 }
 
+BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
+                                   Object *ob,
+                                   const Mesh *me,
+                                   const struct BMeshFromMeshParams *params);
+
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
@@ -481,6 +486,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BKE_mesh_mselect_clear(me);
 
   /* Create triangles-only BMesh. */
+#if 1
   ss->bm = BM_mesh_create(&allocsize,
                           &((struct BMeshCreateParams){
                               .use_toolflags = false,
@@ -494,6 +500,16 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                          .use_shapekey = true,
                          .active_shapekey = ob->shapenr,
                      }));
+#else
+  ss->bm = BM_mesh_bm_from_me_threaded(NULL,
+                                       NULL,
+                                       me,
+                                       (&(struct BMeshFromMeshParams){
+                                           .calc_face_normal = true,
+                                           .use_shapekey = true,
+                                           .active_shapekey = ob->shapenr,
+                                       }));
+#endif
   SCULPT_dynamic_topology_triangulate(ss, ss->bm);
 
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
@@ -578,6 +594,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+
+  // TODO: this line here is being slow, do we need it? - joeedh
   BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 

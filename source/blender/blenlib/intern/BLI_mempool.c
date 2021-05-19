@@ -261,12 +261,34 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
                                           const unsigned int pchunk,
                                           void ***r_chunks,
                                           unsigned int *r_totchunk,
+                                          unsigned int *r_esize,
                                           unsigned int flag)
 {
-  BLI_mempool *pool = BLI_mempool_create(esize, totelem, pchunk, flag);
+  BLI_mempool *pool = BLI_mempool_create(esize, 0, pchunk, flag);
 
-  BLI_mempool_chunk **chunks = MEM_callocN(sizeof(void *) * pool->maxchunks,
-                                           "BLI_mempool_create_for_tasks r_chunks");
+  // override pchunk, may not be a power of 2
+  pool->pchunk = pchunk;
+  pool->csize = pchunk * pool->esize;
+
+  if (totelem % pchunk == 0) {
+    pool->maxchunks = totelem / pchunk;
+  }
+  else {
+    pool->maxchunks = totelem / pchunk + 1;
+  }
+
+  if (totelem) {
+    BLI_freenode *last_tail = NULL;
+
+    /* Allocate the actual chunks. */
+    for (int i = 0; i < pool->maxchunks; i++) {
+      BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
+      last_tail = mempool_chunk_add(pool, mpchunk, last_tail);
+    }
+  }
+
+  void **chunks = MEM_callocN(sizeof(void *) * pool->maxchunks,
+                              "BLI_mempool_create_for_tasks r_chunks");
 
   unsigned int totalloc = 0;
   *r_totchunk = 0;
@@ -274,9 +296,9 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   BLI_mempool_chunk *chunk = pool->chunks, *lastchunk = NULL;
 
   while (chunk) {
-    chunk = chunk->next;
-    totalloc += pool->pchunk;
     lastchunk = chunk;
+    totalloc += pool->pchunk;
+    chunk = chunk->next;
   }
 
   pool->totused = totalloc;
@@ -307,6 +329,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
     BLI_mempool_free(pool, elem);
 
     totalloc--;
+    i--;
   }
 
   unsigned int ci = 0;
@@ -322,6 +345,8 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   }
 
   *r_totchunk = ci;
+  *r_chunks = (void **)chunks;
+  *r_esize = pool->esize;
 
   return pool;
 }
