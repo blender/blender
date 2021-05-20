@@ -3285,6 +3285,10 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
     ctime = cu->ctime;
   }
 
+  if (cu->flag & CU_PATH_CLAMP) {
+    CLAMP(ctime, 0.0f, 1.0f);
+  }
+
   unit_m4(r_mat);
 
   /* vec: 4 items! */
