@@ -325,6 +325,7 @@ typedef struct bNodeType {
 
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
+  bool geometry_node_execute_supports_lazyness;
 
   /* RNA integration */
   ExtensionRNA rna_ext;

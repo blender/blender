@@ -135,15 +135,27 @@ static GeometrySet separate_geometry_set(const GeometrySet &set_in,
 
 static void geo_node_point_separate_exec(GeoNodeExecParams params)
 {
-  const std::string mask_attribute_name = params.extract_input<std::string>("Mask");
-  GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+  bool wait_for_inputs = false;
+  wait_for_inputs |= params.lazy_require_input("Geometry");
+  wait_for_inputs |= params.lazy_require_input("Mask");
+  if (wait_for_inputs) {
+    return;
+  }
+  const std::string mask_attribute_name = params.get_input<std::string>("Mask");
+  GeometrySet geometry_set = params.get_input<GeometrySet>("Geometry");
 
   /* TODO: This is not necessary-- the input geometry set can be read only,
    * but it must be rewritten to handle instance groups. */
   geometry_set = geometry_set_realize_instances(geometry_set);
 
-  params.set_output("Geometry 1", separate_geometry_set(geometry_set, mask_attribute_name, true));
-  params.set_output("Geometry 2", separate_geometry_set(geometry_set, mask_attribute_name, false));
+  if (params.lazy_output_is_required("Geometry 1")) {
+    params.set_output("Geometry 1",
+                      separate_geometry_set(geometry_set, mask_attribute_name, true));
+  }
+  if (params.lazy_output_is_required("Geometry 2")) {
+    params.set_output("Geometry 2",
+                      separate_geometry_set(geometry_set, mask_attribute_name, false));
+  }
 }
 
 }  // namespace blender::nodes
@@ -155,5 +167,6 @@ void register_node_type_geo_point_separate()
   geo_node_type_base(&ntype, GEO_NODE_POINT_SEPARATE, "Point Separate", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_separate_exec;
+  ntype.geometry_node_execute_supports_lazyness = true;
   nodeRegisterType(&ntype);
 }
