@@ -165,6 +165,7 @@ set(SRC
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_resample.cc
   geometry/nodes/node_geo_edge_split.cc
+  geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
