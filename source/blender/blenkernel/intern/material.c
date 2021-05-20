@@ -1121,6 +1121,43 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
   BLI_ghash_free(gh_mat_map, NULL, NULL);
 }
 
+/**
+ * Copy materials from evaluated geometry to the original geometry of an object.
+ */
+void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_eval)
+{
+  ID *data_orig = ob_orig->data;
+
+  short *orig_totcol = BKE_id_material_len_p(data_orig);
+  Material ***orig_mat = BKE_id_material_array_p(data_orig);
+
+  short *eval_totcol = BKE_id_material_len_p(data_eval);
+  Material ***eval_mat = BKE_id_material_array_p(data_eval);
+
+  if (ELEM(NULL, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
+    return;
+  }
+
+  /* Remove old materials from original geometry. */
+  for (int i = 0; i < *orig_totcol; i++) {
+    id_us_min(&(*orig_mat)[i]->id);
+  }
+  MEM_SAFE_FREE(*orig_mat);
+
+  /* Create new material slots based on materials on evaluated geometry. */
+  *orig_totcol = *eval_totcol;
+  *orig_mat = MEM_callocN(sizeof(void *) * (*eval_totcol), __func__);
+  for (int i = 0; i < *eval_totcol; i++) {
+    Material *material_eval = (*eval_mat)[i];
+    if (material_eval != NULL) {
+      Material *material_orig = (Material *)DEG_get_original_id(&material_eval->id);
+      (*orig_mat)[i] = material_orig;
+      id_us_plus(&material_orig->id);
+    }
+  }
+  BKE_object_materials_test(bmain, ob_orig, data_orig);
+}
+
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
 void BKE_object_material_array_assign(Main *bmain,
                                       struct Object *ob,
