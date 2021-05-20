@@ -45,7 +45,7 @@ struct AttributeMetaData {
 };
 
 /**
- * Base class for the attribute intializer types described below.
+ * Base class for the attribute initializer types described below.
  */
 struct AttributeInit {
   enum class Type {

@@ -565,9 +565,9 @@ static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComp
 
   for (SplinePtr &spline : new_curve->splines()) {
     /* Spline instances should have no custom attributes, since they always come
-     * from original objects which currenty do not support custom attributes.
+     * from original objects which currently do not support custom attributes.
      *
-     * This is only true as long as a GeometrySet cannot be instanced directly. */
+     * This is only true as long as a #GeometrySet cannot be instanced directly. */
     BLI_assert(spline->attributes.data.totlayer == 0);
     UNUSED_VARS_NDEBUG(spline);
   }

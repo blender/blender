@@ -679,7 +679,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     }
 
     /* Use the regular position virtual array when there aren't any Bezier splines
-     * to avoid the overhead of thecking the spline type for every point. */
+     * to avoid the overhead of checking the spline type for every point. */
     if (!curve_has_bezier_spline) {
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
