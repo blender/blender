@@ -517,8 +517,8 @@ enum {
   SEQ_AUDIO_PAN_ANIMATED = (1 << 26),
   SEQ_AUDIO_DRAW_WAVEFORM = (1 << 27),
 
-  /* don't include Grease Pencil in OpenGL previews of Scene strips */
-  SEQ_SCENE_NO_GPENCIL = (1 << 28),
+  /* don't include Annotations in OpenGL previews of Scene strips */
+  SEQ_SCENE_NO_ANNOTATION = (1 << 28),
   SEQ_USE_VIEWS = (1 << 29),
 
   /* Access scene strips directly (like a meta-strip). */

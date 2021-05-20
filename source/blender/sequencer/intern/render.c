@@ -1508,7 +1508,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
     goto finally;
   }
 
-  if (seq->flag & SEQ_SCENE_NO_GPENCIL) {
+  if (seq->flag & SEQ_SCENE_NO_ANNOTATION) {
     use_gpencil = false;
   }
 

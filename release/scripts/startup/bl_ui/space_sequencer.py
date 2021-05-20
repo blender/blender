@@ -1453,7 +1453,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
 
         if strip.scene_input == 'CAMERA':
             layout = layout.column(heading="Show")
-            layout.prop(strip, "use_grease_pencil", text="Grease Pencil")
+            layout.prop(strip, "use_annotations", text="Annotations")
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.

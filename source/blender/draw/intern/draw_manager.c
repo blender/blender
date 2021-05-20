@@ -1473,6 +1473,14 @@ void DRW_draw_callbacks_post_scene(void)
 
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
+  else {
+    if (v3d && ((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0)) {
+      GPU_depth_test(GPU_DEPTH_NONE);
+      /* XXX: as scene->gpd is not copied for COW yet */
+      ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
+      GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+    }
+  }
 }
 
 struct DRWTextStore *DRW_text_cache_ensure(void)
