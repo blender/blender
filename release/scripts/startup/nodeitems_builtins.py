@@ -525,6 +525,9 @@ geometry_node_categories = [
         NodeItem("FunctionNodeInputVector"),
         NodeItem("GeometryNodeIsViewport"),
     ]),
+    GeometryNodeCategory("GEO_MATERIAL", "Material", items=[
+        NodeItem("GeometryNodeMaterialAssign"),
+    ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
         NodeItem("GeometryNodeBoolean"),
         NodeItem("GeometryNodeTriangulate"),
