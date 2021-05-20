@@ -242,7 +242,7 @@ typedef enum {
 } GHOST_MouseCaptureEventWin32;
 
 /**
- * GHOST window on M$ Windows OSs.
+ * GHOST window on MS Windows OSs.
  */
 class GHOST_WindowWin32 : public GHOST_Window {
  public:
