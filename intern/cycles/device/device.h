@@ -61,7 +61,6 @@ enum DeviceTypeMask {
 };
 
 enum DeviceKernelStatus {
-  DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL = 0,
   DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE,
   DEVICE_KERNEL_USING_FEATURE_KERNEL,
   DEVICE_KERNEL_FEATURE_KERNEL_INVALID,
@@ -426,6 +425,9 @@ class Device {
 
   /* acceleration structure building */
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);
+
+  /* OptiX specific destructor. */
+  virtual void release_optix_bvh(BVH *){};
 
 #ifdef WITH_NETWORK
   /* networking */

@@ -296,7 +296,7 @@ def bake_action_iter(
                     pbone.keyframe_insert("rotation_axis_angle", index=-1, frame=f, group=name)
                 else:  # euler, XYZ, ZXY etc
                     if euler_prev is not None:
-                        euler = pbone.matrix_basis.to_euler(obj.rotation_mode, euler_prev)
+                        euler = pbone.matrix_basis.to_euler(pbone.rotation_mode, euler_prev)
                         pbone.rotation_euler = euler
                         del euler
                     euler_prev = pbone.rotation_euler.copy()
