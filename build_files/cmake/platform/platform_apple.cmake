@@ -20,12 +20,6 @@
 
 # Libraries configuration for Apple.
 
-if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-  set(MACOSX_DEPLOYMENT_TARGET 11.00)
-else()
-  set(MACOSX_DEPLOYMENT_TARGET 10.13)
-endif()
-
 macro(find_package_wrapper)
 # do nothing, just satisfy the macro
 endmacro()
