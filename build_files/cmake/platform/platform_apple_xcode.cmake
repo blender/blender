@@ -134,14 +134,7 @@ endif()
 unset(OSX_SDKROOT)
 
 # 10.11 is our min. target, if you use higher sdk, weak linking happens
-if(CMAKE_OSX_DEPLOYMENT_TARGET)
-  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.11)
-    message(STATUS "Setting deployment target to 10.11, lower versions are not supported")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
-  endif()
-else()
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
-endif()
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
 
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
   # Force CMAKE_OSX_DEPLOYMENT_TARGET for makefiles, will not work else (CMake bug?)
