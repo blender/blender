@@ -1209,7 +1209,7 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
   static const EnumPropertyItem sequencer_select_left_right_types[] = {
       {-1, "LEFT", 0, "Left", "Select to the left of the current frame"},
       {1, "RIGHT", 0, "Right", "Select to the right of the current frame"},
-      {2, "CURRENT", 0, "Current frame", "Select intersecting with the current frame"},
+      {2, "CURRENT", 0, "Current Frame", "Select intersecting with the current frame"},
       {0, NULL, 0, NULL, NULL},
   };
 
