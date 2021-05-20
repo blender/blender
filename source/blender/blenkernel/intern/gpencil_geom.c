@@ -530,14 +530,23 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
 
 /**
  * Backbone stretch similar to Freestyle.
- * \param gps: Stroke to sample
- * \param dist: Distance of one segment
- * \param tip_length: Ignore tip jittering, set zero to use default value.
+ * \param gps: Stroke to sample.
+ * \param dist: Distance of one segment.
+ * \param overshoot_fac: How exact is the follow curve algorithm.
+ * \param mode: Affect to Start, End or Both extremes (0->Both, 1->Start, 2->End)
  */
-bool BKE_gpencil_stroke_stretch(bGPDstroke *gps, const float dist, const float tip_length)
+bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
+                                const float dist,
+                                const float overshoot_fac,
+                                const short mode)
 {
+#define BOTH 0
+#define START 1
+#define END 2
+
   bGPDspoint *pt = gps->points, *last_pt, *second_last, *next_pt;
-  float threshold = (tip_length == 0 ? 0.001f : tip_length);
+  int i;
+  float threshold = (overshoot_fac == 0 ? 0.001f : overshoot_fac);
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
     return false;
@@ -547,33 +556,36 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps, const float dist, const float t
   second_last = &pt[gps->totpoints - 2];
   next_pt = &pt[1];
 
-  float len1 = 0.0f;
-  float len2 = 0.0f;
+  if (mode == BOTH || mode == START) {
+    float len1 = 0.0f;
+    i = 1;
+    while (len1 < threshold && gps->totpoints > i) {
+      next_pt = &pt[i];
+      len1 = len_v3v3(&next_pt->x, &pt->x);
+      i++;
+    }
+    float extend1 = (len1 + dist) / len1;
+    float result1[3];
 
-  int i = 1;
-  while (len1 < threshold && gps->totpoints > i) {
-    next_pt = &pt[i];
-    len1 = len_v3v3(&next_pt->x, &pt->x);
-    i++;
+    interp_v3_v3v3(result1, &next_pt->x, &pt->x, extend1);
+    copy_v3_v3(&pt->x, result1);
   }
 
-  i = 2;
-  while (len2 < threshold && gps->totpoints >= i) {
-    second_last = &pt[gps->totpoints - i];
-    len2 = len_v3v3(&last_pt->x, &second_last->x);
-    i++;
+  if (mode == BOTH || mode == END) {
+    float len2 = 0.0f;
+    i = 2;
+    while (len2 < threshold && gps->totpoints >= i) {
+      second_last = &pt[gps->totpoints - i];
+      len2 = len_v3v3(&last_pt->x, &second_last->x);
+      i++;
+    }
+
+    float extend2 = (len2 + dist) / len2;
+    float result2[3];
+    interp_v3_v3v3(result2, &second_last->x, &last_pt->x, extend2);
+
+    copy_v3_v3(&last_pt->x, result2);
   }
-
-  float extend1 = (len1 + dist) / len1;
-  float extend2 = (len2 + dist) / len2;
-
-  float result1[3], result2[3];
-
-  interp_v3_v3v3(result1, &next_pt->x, &pt->x, extend1);
-  interp_v3_v3v3(result2, &second_last->x, &last_pt->x, extend2);
-
-  copy_v3_v3(&pt->x, result1);
-  copy_v3_v3(&last_pt->x, result2);
 
   return true;
 }
@@ -702,48 +714,64 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
  * Shrink the stroke by length.
  * \param gps: Stroke to shrink
  * \param dist: delta length
+ * \param mode: 1->Start, 2->End
  */
-bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist)
+bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist, const short mode)
 {
+#define START 1
+#define END 2
+
   bGPDspoint *pt = gps->points, *second_last;
   int i;
 
-  if (gps->totpoints < 2 || dist < FLT_EPSILON) {
+  if (gps->totpoints < 2) {
+    if (gps->totpoints == 1) {
+      second_last = &pt[1];
+      if (len_v3v3(&second_last->x, &pt->x) < dist) {
+        BKE_gpencil_stroke_trim_points(gps, 0, 0);
+        return true;
+      }
+    }
+
     return false;
   }
 
   second_last = &pt[gps->totpoints - 2];
 
-  float len1, this_len1, cut_len1;
-  float len2, this_len2, cut_len2;
-  int index_start, index_end;
+  float len1, cut_len1;
+  float len2, cut_len2;
+  len1 = len2 = cut_len1 = cut_len2 = 0.0f;
 
-  len1 = len2 = this_len1 = this_len2 = cut_len1 = cut_len2 = 0.0f;
-
-  i = 1;
-  while (len1 < dist && gps->totpoints > i - 1) {
-    this_len1 = len_v3v3(&pt[i].x, &pt[i + 1].x);
-    len1 += this_len1;
-    cut_len1 = len1 - dist;
-    i++;
+  int index_start = 0;
+  int index_end = 0;
+  if (mode == START) {
+    i = 0;
+    index_end = gps->totpoints - 1;
+    while (len1 < dist && gps->totpoints > i + 1) {
+      len1 += len_v3v3(&pt[i].x, &pt[i + 1].x);
+      cut_len1 = len1 - dist;
+      i++;
+    }
+    index_start = i - 1;
   }
-  index_start = i - 2;
 
-  i = 2;
-  while (len2 < dist && gps->totpoints >= i) {
-    second_last = &pt[gps->totpoints - i];
-    this_len2 = len_v3v3(&second_last[1].x, &second_last->x);
-    len2 += this_len2;
-    cut_len2 = len2 - dist;
-    i++;
+  if (mode == END) {
+    index_start = 0;
+    i = 2;
+    while (len2 < dist && gps->totpoints >= i) {
+      second_last = &pt[gps->totpoints - i];
+      len2 += len_v3v3(&second_last[1].x, &second_last->x);
+      cut_len2 = len2 - dist;
+      i++;
+    }
+    index_end = gps->totpoints - i + 2;
   }
-  index_end = gps->totpoints - i + 2;
 
-  if (len1 < dist || len2 < dist || index_end <= index_start) {
+  if (index_end <= index_start) {
     index_start = index_end = 0; /* empty stroke */
   }
 
-  if ((index_end == index_start + 1) && (cut_len1 + cut_len2 > 1.0f)) {
+  if ((index_end == index_start + 1) && (cut_len1 + cut_len2 < dist)) {
     index_start = index_end = 0; /* no length left to cut */
   }
 
@@ -753,22 +781,8 @@ bool BKE_gpencil_stroke_shrink(bGPDstroke *gps, const float dist)
     return false;
   }
 
-  pt = gps->points;
-
-  float cut1 = cut_len1 / this_len1;
-  float cut2 = cut_len2 / this_len2;
-
-  float result1[3], result2[3];
-
-  interp_v3_v3v3(result1, &pt[1].x, &pt[0].x, cut1);
-  interp_v3_v3v3(result2, &pt[gps->totpoints - 2].x, &pt[gps->totpoints - 1].x, cut2);
-
-  copy_v3_v3(&pt[0].x, result1);
-  copy_v3_v3(&pt[gps->totpoints - 1].x, result2);
-
   return true;
 }
-
 /**
  * Apply smooth position to stroke point.
  * \param gps: Stroke to smooth
