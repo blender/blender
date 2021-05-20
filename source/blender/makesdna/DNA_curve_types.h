@@ -328,7 +328,7 @@ enum {
   CU_BACK = 1 << 2,
   CU_PATH = 1 << 3,
   CU_FOLLOW = 1 << 4,
-  /* CU_UV_ORCO = 1 << 5, */ /* DEPRECATED */
+  CU_PATH_CLAMP = 1 << 5,
   CU_DEFORM_BOUNDS_OFF = 1 << 6,
   CU_STRETCH = 1 << 7,
   /* CU_OFFS_PATHDIST   = 1 << 8, */  /* DEPRECATED */
