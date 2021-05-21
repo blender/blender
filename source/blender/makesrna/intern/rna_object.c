@@ -1502,11 +1502,6 @@ static PointerRNA rna_Object_field_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
 
-  /* weak */
-  if (!ob->pd) {
-    ob->pd = BKE_partdeflect_new(0);
-  }
-
   return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
 }
 
@@ -1516,11 +1511,6 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 
   if (ob->type != OB_MESH) {
     return PointerRNA_NULL;
-  }
-
-  /* weak */
-  if (!ob->pd) {
-    ob->pd = BKE_partdeflect_new(0);
   }
 
   return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
