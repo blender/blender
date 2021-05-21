@@ -427,7 +427,7 @@ class Device {
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);
 
   /* OptiX specific destructor. */
-  virtual void release_optix_bvh(BVH *){};
+  virtual void release_optix_bvh(BVH * /*bvh*/){};
 
 #ifdef WITH_NETWORK
   /* networking */
