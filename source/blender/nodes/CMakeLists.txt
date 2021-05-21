@@ -169,6 +169,7 @@ set(SRC
   geometry/nodes/node_geo_is_viewport.cc
   geometry/nodes/node_geo_join_geometry.cc
   geometry/nodes/node_geo_material_assign.cc
+  geometry/nodes/node_geo_material_replace.cc
   geometry/nodes/node_geo_mesh_primitive_circle.cc
   geometry/nodes/node_geo_mesh_primitive_cone.cc
   geometry/nodes/node_geo_mesh_primitive_cube.cc

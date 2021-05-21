@@ -1425,6 +1425,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_ATTRIBUTE_VECTOR_ROTATE 1048
 #define GEO_NODE_MATERIAL_ASSIGN 1049
 #define GEO_NODE_INPUT_MATERIAL 1050
+#define GEO_NODE_MATERIAL_REPLACE 1051
 
 /** \} */
 
