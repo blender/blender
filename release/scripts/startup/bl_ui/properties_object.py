@@ -262,6 +262,11 @@ class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
     bl_label = "Instancing"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return (ob.type in {'MESH', 'EMPTY', 'POINTCLOUD'})
+
     def draw(self, context):
         layout = self.layout
 
