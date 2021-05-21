@@ -377,7 +377,7 @@ void DepsgraphNodeBuilder::begin_build()
 int DepsgraphNodeBuilder::foreach_id_cow_detect_need_for_update_callback(ID *id_cow_self,
                                                                          ID *id_pointer)
 {
-  if (id_pointer->orig_id == NULL) {
+  if (id_pointer->orig_id == nullptr) {
     /* `id_cow_self` uses a non-cow ID, if that ID has a COW copy in current depsgraph its owner
      * needs to be remapped, i.e. COW-flushed. */
     IDNode *id_node = find_id_node(id_pointer);
