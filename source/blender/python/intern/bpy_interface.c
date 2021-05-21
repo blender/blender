@@ -400,7 +400,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 
     /* Needed for Python's initialization for portable Python installations.
      * We could use #Py_SetPath, but this overrides Python's internal logic
-     * for calculating it's own module search paths.
+     * for calculating its own module search paths.
      *
      * `sys.executable` is overwritten after initialization to the Python binary. */
     {

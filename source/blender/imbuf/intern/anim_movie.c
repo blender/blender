@@ -1123,7 +1123,7 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
   }
 }
 
-/* Wrapper over av_seek_frame(), for formats that doesn't have it's own read_seek() or read_seek2()
+/* Wrapper over av_seek_frame(), for formats that doesn't have its own read_seek() or read_seek2()
  * functions defined. When seeking in these formats, rule to seek to last necessary I-frame is not
  * honored. It is not even guaranteed that I-frame, that must be decoded will be read. See
  * https://trac.ffmpeg.org/ticket/1607 and https://developer.blender.org/T86944. */

@@ -79,7 +79,7 @@ if(EXISTS ${SOURCE_DIR}/.git)
                     ERROR_QUIET)
     if(NOT _git_below_check STREQUAL "")
       # If there're commits between HEAD and upstream this means
-      # that we're reset-ed to older revision. Use it's hash then.
+      # that we're reset-ed to older revision. Use its hash then.
       execute_process(COMMAND git rev-parse --short=12 HEAD
                       WORKING_DIRECTORY ${SOURCE_DIR}
                       OUTPUT_VARIABLE MY_WC_HASH

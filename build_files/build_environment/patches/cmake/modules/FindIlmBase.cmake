@@ -20,7 +20,7 @@
 # ILMBASE_LIBRARIES   - list of libraries to link against when using IlmBase.
 # ILMBASE_FOUND       - True if IlmBase was found.
 
-# Other standarnd issue macros
+# Other standard issue macros
 include(FindPackageHandleStandardArgs)
 include(FindPackageMessage)
 include(SelectLibraryConfigurations)

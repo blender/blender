@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-#  Filename : ignore_small_oclusions.py
+#  Filename : ignore_small_occlusions.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : The strokes are drawn through small occlusions

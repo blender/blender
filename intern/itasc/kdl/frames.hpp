@@ -364,7 +364,7 @@ public:
 
     //! Along an arbitrary axes.  It is not necessary to normalize rotaxis.
     //! returns identity rotation matrix in the case that the norm of rotaxis
-    //! is to small to be used.
+    //! is too small to be used.
     // @see Rot2 if you want to handle this error in another way.
     static Rotation Rot(const Vector& rotaxis,double angle);
 

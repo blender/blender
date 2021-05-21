@@ -74,7 +74,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
 static LineartLineChain *lineart_chain_create(LineartRenderBuffer *rb)
 {
   LineartLineChain *rlc;
-  rlc = lineart_mem_aquire(&rb->render_data_pool, sizeof(LineartLineChain));
+  rlc = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartLineChain));
 
   BLI_addtail(&rb->chains, rlc);
 
@@ -119,7 +119,7 @@ static LineartLineChainItem *lineart_chain_append_point(LineartRenderBuffer *rb,
     return old_rlci;
   }
 
-  rlci = lineart_mem_aquire(&rb->render_data_pool, sizeof(LineartLineChainItem));
+  rlci = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartLineChainItem));
 
   copy_v2_v2(rlci->pos, fbcoord);
   copy_v3_v3(rlci->gpos, gpos);
@@ -149,7 +149,7 @@ static LineartLineChainItem *lineart_chain_prepend_point(LineartRenderBuffer *rb
     return rlc->chain.first;
   }
 
-  rlci = lineart_mem_aquire(&rb->render_data_pool, sizeof(LineartLineChainItem));
+  rlci = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartLineChainItem));
 
   copy_v2_v2(rlci->pos, fbcoord);
   copy_v3_v3(rlci->gpos, gpos);

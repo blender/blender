@@ -54,8 +54,8 @@ void lineart_list_remove_pointer_item_no_free(ListBase *h, LinkData *lip);
 
 struct LineartStaticMemPoolNode *lineart_mem_new_static_pool(struct LineartStaticMemPool *smp,
                                                              size_t size);
-void *lineart_mem_aquire(struct LineartStaticMemPool *smp, size_t size);
-void *lineart_mem_aquire_thread(struct LineartStaticMemPool *smp, size_t size);
+void *lineart_mem_acquire(struct LineartStaticMemPool *smp, size_t size);
+void *lineart_mem_acquire_thread(struct LineartStaticMemPool *smp, size_t size);
 void lineart_mem_destroy(struct LineartStaticMemPool *smp);
 
 void lineart_prepend_edge_direct(struct LineartEdge **first, void *node);

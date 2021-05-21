@@ -1974,7 +1974,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
 /**
  * \return The image buffer or NULL.
  *
- * \note The returned #ImBuf is has it's reference increased, free after usage!
+ * \note The returned #ImBuf has its reference increased, free after usage!
  */
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown)
 {
