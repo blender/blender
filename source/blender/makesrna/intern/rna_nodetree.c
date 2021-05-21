@@ -3133,7 +3133,7 @@ static void rna_NodeSocketStandard_draw(ID *id,
 }
 
 static void rna_NodeSocketStandard_draw_color(
-    ID *id, bNodeSocket *sock, struct bContext *C, PointerRNA *nodeptr, float *r_color)
+    ID *id, bNodeSocket *sock, struct bContext *C, PointerRNA *nodeptr, float r_color[4])
 {
   PointerRNA ptr;
   RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);
@@ -3153,7 +3153,7 @@ static void rna_NodeSocketInterfaceStandard_draw(ID *id,
 static void rna_NodeSocketInterfaceStandard_draw_color(ID *id,
                                                        bNodeSocket *sock,
                                                        struct bContext *C,
-                                                       float *r_color)
+                                                       float r_color[4])
 {
   PointerRNA ptr;
   RNA_pointer_create(id, &RNA_NodeSocket, sock, &ptr);

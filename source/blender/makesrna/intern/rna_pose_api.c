@@ -47,7 +47,7 @@
 
 #  include "BLI_ghash.h"
 
-static float rna_PoseBone_do_envelope(bPoseChannel *chan, float *vec)
+static float rna_PoseBone_do_envelope(bPoseChannel *chan, float vec[3])
 {
   Bone *bone = chan->bone;
 

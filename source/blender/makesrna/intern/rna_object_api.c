@@ -296,8 +296,8 @@ static bool rna_Object_visible_in_viewport_get(Object *ob, View3D *v3d)
 static void rna_Object_mat_convert_space(Object *ob,
                                          ReportList *reports,
                                          bPoseChannel *pchan,
-                                         float *mat,
-                                         float *mat_ret,
+                                         float mat[16],
+                                         float mat_ret[16],
                                          int from,
                                          int to)
 {

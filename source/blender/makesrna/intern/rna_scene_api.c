@@ -98,7 +98,7 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
   }
 }
 
-static void rna_Scene_uvedit_aspect(Scene *UNUSED(scene), Object *ob, float *aspect)
+static void rna_Scene_uvedit_aspect(Scene *UNUSED(scene), Object *ob, float aspect[2])
 {
   if ((ob->type == OB_MESH) && (ob->mode == OB_MODE_EDIT)) {
     BMEditMesh *em;

@@ -137,7 +137,7 @@ static void rna_CurveProfile_remove_point(CurveProfile *profile,
 static void rna_CurveProfile_evaluate(struct CurveProfile *profile,
                                       ReportList *reports,
                                       float length_portion,
-                                      float *location)
+                                      float location[2])
 {
   if (!profile->table) {
     BKE_report(reports, RPT_ERROR, "CurveProfile table not initialized, call initialize()");
