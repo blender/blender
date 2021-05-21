@@ -60,11 +60,6 @@ typedef struct SkyModelPreetham {
   float radiance[3];
 } SkyModelPreetham;
 
-typedef struct XYZ_to_RGB /* transposed imbuf_xyz_to_rgb, passed as 3x vec3 */
-{
-  float r[3], g[3], b[3];
-} XYZ_to_RGB;
-
 static float sky_perez_function(const float *lam, float theta, float gamma)
 {
   float ctheta = cosf(theta);
@@ -117,20 +112,6 @@ static void sky_precompute_old(SkyModelPreetham *sunsky, const float sun_angles[
   sunsky->radiance[0] /= sky_perez_function(sunsky->config_Y, 0, theta);
   sunsky->radiance[1] /= sky_perez_function(sunsky->config_x, 0, theta);
   sunsky->radiance[2] /= sky_perez_function(sunsky->config_y, 0, theta);
-}
-
-static void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data)
-{
-  const float *xyz_to_rgb = IMB_colormangement_get_xyz_to_rgb();
-  data->r[0] = xyz_to_rgb[0];
-  data->r[1] = xyz_to_rgb[3];
-  data->r[2] = xyz_to_rgb[6];
-  data->g[0] = xyz_to_rgb[1];
-  data->g[1] = xyz_to_rgb[4];
-  data->g[2] = xyz_to_rgb[7];
-  data->b[0] = xyz_to_rgb[2];
-  data->b[1] = xyz_to_rgb[5];
-  data->b[2] = xyz_to_rgb[8];
 }
 
 static int node_shader_gpu_tex_sky(GPUMaterial *mat,
