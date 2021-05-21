@@ -606,20 +606,12 @@ void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 
 void update_mesh_edit_mode_pointers(const ID *id_orig, ID *id_cow)
 {
-  /* For meshes we need to update edit_mesh to make it to point
-   * to the CoW version of object.
-   *
-   * This is kind of confusing, because actual bmesh is not owned by
-   * the CoW object, so need to be accurate about using link from
-   * edit_mesh to object. */
   const Mesh *mesh_orig = (const Mesh *)id_orig;
   Mesh *mesh_cow = (Mesh *)id_cow;
   if (mesh_orig->edit_mesh == nullptr) {
     return;
   }
-  mesh_cow->edit_mesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_mesh);
-  mesh_cow->edit_mesh->mesh_eval_cage = nullptr;
-  mesh_cow->edit_mesh->mesh_eval_final = nullptr;
+  mesh_cow->edit_mesh = mesh_orig->edit_mesh;
 }
 
 /* Edit data is stored and owned by original datablocks, copied ones
@@ -1001,11 +993,6 @@ void discard_lattice_edit_mode_pointers(ID *id_cow)
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
   Mesh *mesh_cow = (Mesh *)id_cow;
-  if (mesh_cow->edit_mesh == nullptr) {
-    return;
-  }
-  BKE_editmesh_free_derivedmesh(mesh_cow->edit_mesh);
-  MEM_freeN(mesh_cow->edit_mesh);
   mesh_cow->edit_mesh = nullptr;
 }
 
