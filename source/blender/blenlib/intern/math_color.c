@@ -765,7 +765,7 @@ static void wavelength_to_xyz(float xyz[3], float lambda_nm)
     xyz[2] = 0.0f;
   }
   else {
-    ii -= i;
+    ii -= (float)i;
     const float *c = cie_colour_match[i];
     xyz[0] = c[0] + ii * (c[3] - c[0]);
     xyz[1] = c[1] + ii * (c[4] - c[1]);
