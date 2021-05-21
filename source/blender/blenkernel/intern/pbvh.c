@@ -662,6 +662,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), 1);
+  pbvh->depth_limit = LEAF_DEPTH_LIMIT;
 
   BB cb;
   BB_reset(&cb);
