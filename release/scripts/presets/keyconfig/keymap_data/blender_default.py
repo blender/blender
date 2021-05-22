@@ -5026,32 +5026,30 @@ def km_object_non_modal(params):
              {"properties": [("mode", 'VERTEX_PAINT'), ("toggle", True)]}),
             ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
              {"properties": [("mode", 'WEIGHT_PAINT'), ("toggle", True)]}),
-        ])
-    elif params.use_pie_click_drag:
-        items.extend([
-            ("object.mode_set", {"type": 'TAB', "value": 'CLICK'},
-             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-            op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'TAB', "value": 'CLICK_DRAG'}),
-            ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
-        ])
-    elif not params.use_v3d_tab_menu:
-        items.extend([
-            ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
-             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-            ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
-        ])
-    else:
-        # Swap Tab/Ctrl-Tab
-        items.extend([
-            ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
-             {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
-            op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'TAB', "value": 'PRESS'}),
-        ])
 
-    if params.legacy:
-        items.extend([
             ("object.origin_set", {"type": 'C', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
         ])
+    else:
+        if params.use_pie_click_drag:
+            items.extend([
+                ("object.mode_set", {"type": 'TAB', "value": 'CLICK'},
+                 {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+                op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'TAB', "value": 'CLICK_DRAG'}),
+                ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
+            ])
+        elif params.use_v3d_tab_menu:
+            # Swap Tab/Ctrl-Tab
+            items.extend([
+                ("object.mode_set", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+                 {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+                op_menu_pie("VIEW3D_MT_object_mode_pie", {"type": 'TAB', "value": 'PRESS'}),
+            ])
+        else:
+            items.extend([
+                ("object.mode_set", {"type": 'TAB', "value": 'PRESS'},
+                 {"properties": [("mode", 'EDIT'), ("toggle", True)]}),
+                ("view3d.object_mode_pie_or_toggle", {"type": 'TAB', "value": 'PRESS', "ctrl": True}, None),
+            ])
 
     return keymap
 
