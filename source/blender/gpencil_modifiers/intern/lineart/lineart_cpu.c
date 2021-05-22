@@ -3656,6 +3656,8 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph, LineartGpencilModif
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   int intersections_only = 0; /* Not used right now, but preserve for future. */
 
+  BKE_scene_camera_switch_update(scene);
+
   if (!scene->camera) {
     return false;
   }
