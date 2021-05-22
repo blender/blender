@@ -4485,8 +4485,7 @@ def km_sculpt(params):
 
     items.extend([
         # Transfer Sculpt Mode (release to avoid conflict with grease pencil drawing).
-        ("object.transfer_mode", {"type": 'D', "value": 'RELEASE'},
-         {"properties": [("use_eyedropper", False)]}),
+        ("object.transfer_mode", {"type": 'D', "value": 'RELEASE'}, None),
         # Brush strokes
         ("sculpt.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("mode", 'NORMAL')]}),
