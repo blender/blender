@@ -1739,6 +1739,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   wl_surface *surface)
 {
+  /* ignore, if the required protocols are not supported */
+  if (!d->relative_pointer_manager || !d->pointer_constraints) {
+    return GHOST_kFailure;
+  }
+
   if (d->inputs.empty()) {
     return GHOST_kFailure;
   }
