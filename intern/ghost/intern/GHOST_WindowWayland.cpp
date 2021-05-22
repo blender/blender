@@ -40,6 +40,8 @@ struct window_t {
   int scale = 1;
   struct xdg_surface *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
+  struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
+  enum zxdg_toplevel_decoration_v1_mode decoration_mode;
   wl_egl_window *egl_window;
   int32_t pending_width, pending_height;
   bool is_maximised;
@@ -97,6 +99,18 @@ static void toplevel_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 static const xdg_toplevel_listener toplevel_listener = {
     toplevel_configure,
     toplevel_close,
+};
+
+static void toplevel_decoration_configure(
+    void *data,
+    struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
+    uint32_t mode)
+{
+  static_cast<window_t *>(data)->decoration_mode = zxdg_toplevel_decoration_v1_mode(mode);
+}
+
+static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
+    toplevel_decoration_configure,
 };
 
 static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
@@ -220,6 +234,15 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
+
+  if (m_system->decoration_manager()) {
+    w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+        m_system->decoration_manager(), w->xdg_toplevel);
+    zxdg_toplevel_decoration_v1_add_listener(
+        w->xdg_toplevel_decoration, &toplevel_decoration_v1_listener, w);
+    zxdg_toplevel_decoration_v1_set_mode(w->xdg_toplevel_decoration,
+                                         ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+  }
 
   wl_surface_set_user_data(w->surface, this);
 
@@ -393,6 +416,9 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   releaseNativeHandles();
 
   wl_egl_window_destroy(w->egl_window);
+  if (w->xdg_toplevel_decoration) {
+    zxdg_toplevel_decoration_v1_destroy(w->xdg_toplevel_decoration);
+  }
   xdg_toplevel_destroy(w->xdg_toplevel);
   xdg_surface_destroy(w->xdg_surface);
   wl_surface_destroy(w->surface);

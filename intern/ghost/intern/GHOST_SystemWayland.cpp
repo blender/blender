@@ -140,6 +140,7 @@ struct display_t {
   struct wl_display *display;
   struct wl_compositor *compositor = nullptr;
   struct xdg_wm_base *xdg_shell = nullptr;
+  struct zxdg_decoration_manager_v1 *xdg_decoration_manager = nullptr;
   struct wl_shm *shm = nullptr;
   std::vector<output_t *> outputs;
   std::vector<input_t *> inputs;
@@ -238,6 +239,10 @@ static void display_destroy(display_t *d)
 
   if (d->compositor) {
     wl_compositor_destroy(d->compositor);
+  }
+
+  if (d->xdg_decoration_manager) {
+    zxdg_decoration_manager_v1_destroy(d->xdg_decoration_manager);
   }
 
   if (d->xdg_shell) {
@@ -1331,6 +1336,10 @@ static void global_add(void *data,
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
     xdg_wm_base_add_listener(display->xdg_shell, &shell_listener, nullptr);
   }
+  else if (!strcmp(interface, zxdg_decoration_manager_v1_interface.name)) {
+    display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
+        wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
+  }
   else if (!strcmp(interface, wl_output_interface.name)) {
     output_t *output = new output_t;
     output->scale = 1;
@@ -1664,6 +1673,11 @@ wl_compositor *GHOST_SystemWayland::compositor()
 xdg_wm_base *GHOST_SystemWayland::shell()
 {
   return d->xdg_shell;
+}
+
+zxdg_decoration_manager_v1 *GHOST_SystemWayland::decoration_manager()
+{
+  return d->xdg_decoration_manager;
 }
 
 const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
