@@ -523,7 +523,12 @@ geometry_node_categories = [
         NodeItem("ShaderNodeValue"),
         NodeItem("FunctionNodeInputString"),
         NodeItem("FunctionNodeInputVector"),
+        NodeItem("GeometryNodeInputMaterial"),
         NodeItem("GeometryNodeIsViewport"),
+    ]),
+    GeometryNodeCategory("GEO_MATERIAL", "Material", items=[
+        NodeItem("GeometryNodeMaterialAssign"),
+        NodeItem("GeometryNodeMaterialReplace"),
     ]),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=[
         NodeItem("GeometryNodeBoolean"),

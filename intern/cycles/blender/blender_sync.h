@@ -264,6 +264,12 @@ class BlenderSync {
   } view_layer;
 
   Progress &progress;
+
+ protected:
+  /* Indicates that `sync_recalc()` detected changes in the scene.
+   * If this flag is false then the data is considered to be up-to-date and will not be
+   * synchronized at all. */
+  bool has_updates_ = true;
 };
 
 CCL_NAMESPACE_END

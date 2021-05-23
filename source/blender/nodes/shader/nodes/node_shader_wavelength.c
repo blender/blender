@@ -30,6 +30,33 @@ static bNodeSocketTemplate sh_node_wavelength_out[] = {
     {-1, ""},
 };
 
+static int node_shader_gpu_wavelength(GPUMaterial *mat,
+                                      bNode *node,
+                                      bNodeExecData *UNUSED(execdata),
+                                      GPUNodeStack *in,
+                                      GPUNodeStack *out)
+{
+  const int size = CM_TABLE + 1;
+  float *data = MEM_mallocN(sizeof(float) * size * 4, "cie_xyz texture");
+
+  wavelength_to_xyz_table(data, size);
+
+  float layer;
+  GPUNodeLink *ramp_texture = GPU_color_band(mat, size, data, &layer);
+  XYZ_to_RGB xyz_to_rgb;
+  get_XYZ_to_RGB_for_gpu(&xyz_to_rgb);
+  return GPU_stack_link(mat,
+                        node,
+                        "node_wavelength",
+                        in,
+                        out,
+                        ramp_texture,
+                        GPU_constant(&layer),
+                        GPU_uniform(xyz_to_rgb.r),
+                        GPU_uniform(xyz_to_rgb.g),
+                        GPU_uniform(xyz_to_rgb.b));
+}
+
 /* node type definition */
 void register_node_type_sh_wavelength(void)
 {
@@ -40,6 +67,7 @@ void register_node_type_sh_wavelength(void)
   node_type_socket_templates(&ntype, sh_node_wavelength_in, sh_node_wavelength_out);
   node_type_init(&ntype, NULL);
   node_type_storage(&ntype, "", NULL, NULL);
+  node_type_gpu(&ntype, node_shader_gpu_wavelength);
 
   nodeRegisterType(&ntype);
 }

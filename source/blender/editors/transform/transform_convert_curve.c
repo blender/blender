@@ -449,7 +449,7 @@ void recalcData_curve(TransInfo *t)
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
     Nurb *nu = nurbs->first;
 
-    DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
 
     if (t->state == TRANS_CANCEL) {
       while (nu) {

@@ -819,7 +819,10 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
     }
 
     GPENCIL_tLayer *mask_layer = gpencil_layer_cache_get(ob, i);
-    BLI_assert(mask_layer);
+    /* When filtering by viewlayer, the mask could be null and must be ignored. */
+    if (mask_layer == NULL) {
+      continue;
+    }
 
     DRW_draw_pass(mask_layer->geom_ps);
   }

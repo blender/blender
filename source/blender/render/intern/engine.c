@@ -546,7 +546,7 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, bool us
 void RE_engine_get_camera_model_matrix(RenderEngine *engine,
                                        Object *camera,
                                        bool use_spherical_stereo,
-                                       float *r_modelmat)
+                                       float r_modelmat[16])
 {
   /* When using spherical stereo, get model matrix without multiview,
    * leaving stereo to be handled by the engine. */

@@ -911,8 +911,12 @@ void BKE_ocean_init(struct Ocean *o,
   for (i = 0; i < o->_M; i++) {
     for (j = 0; j < o->_N; j++) {
       /* This ensures we get a value tied to the surface location, avoiding dramatic surface
-       * change with changing resolution. */
-      int new_seed = seed + BLI_hash_int_2d(o->_kx[i] * 360.0f, o->_kz[j] * 360.0f);
+       * change with changing resolution.
+       * Explicitly cast to signed int first to ensure consistent behavior on all processors,
+       * since behavior of float to unsigned int cast is undefined in C. */
+      const int hash_x = o->_kx[i] * 360.0f;
+      const int hash_z = o->_kz[j] * 360.0f;
+      int new_seed = seed + BLI_hash_int_2d(hash_x, hash_z);
 
       BLI_rng_seed(rng, new_seed);
       float r1 = gaussRand(rng);

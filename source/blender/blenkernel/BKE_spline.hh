@@ -28,6 +28,7 @@
 #include "BLI_float4x4.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 
 struct Curve;
@@ -74,6 +75,8 @@ class Spline {
   /* Only #Zup is supported at the moment. */
   NormalCalculationMode normal_mode;
 
+  blender::bke::CustomDataAttributes attributes;
+
  protected:
   Type type_;
   bool is_cyclic_ = false;
@@ -99,7 +102,10 @@ class Spline {
   {
   }
   Spline(Spline &other)
-      : normal_mode(other.normal_mode), type_(other.type_), is_cyclic_(other.is_cyclic_)
+      : normal_mode(other.normal_mode),
+        attributes(other.attributes),
+        type_(other.type_),
+        is_cyclic_(other.is_cyclic_)
   {
   }
 
@@ -482,13 +488,21 @@ class CurveEval {
   blender::Vector<SplinePtr> splines_;
 
  public:
+  blender::bke::CustomDataAttributes attributes;
+
+  CurveEval() = default;
+  CurveEval(const CurveEval &other) : attributes(other.attributes)
+  {
+    for (const SplinePtr &spline : other.splines()) {
+      this->add_spline(spline->copy());
+    }
+  }
+
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
 
   void add_spline(SplinePtr spline);
   void remove_splines(blender::IndexMask mask);
-
-  CurveEval *copy();
 
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
@@ -496,6 +510,8 @@ class CurveEval {
 
   blender::Array<int> control_point_offsets() const;
   blender::Array<int> evaluated_point_offsets() const;
+
+  void assert_valid_point_attributes() const;
 };
 
 std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &curve);

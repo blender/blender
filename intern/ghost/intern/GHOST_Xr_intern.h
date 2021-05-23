@@ -48,7 +48,7 @@
 
 inline void copy_ghost_pose_to_openxr_pose(const GHOST_XrPose &ghost_pose, XrPosef &r_oxr_pose)
 {
-  /* Set and convert to OpenXR coodinate space. */
+  /* Set and convert to OpenXR coordinate space. */
   r_oxr_pose.position.x = ghost_pose.position[0];
   r_oxr_pose.position.y = ghost_pose.position[1];
   r_oxr_pose.position.z = ghost_pose.position[2];

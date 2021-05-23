@@ -4674,7 +4674,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
     DEG_id_tag_update(ale_setting->id, ID_RECALC_ANIMATION);
   }
   if (ale_setting->adt && ale_setting->adt->action) {
-    /* Action is it's own datablock, so has to be tagged specifically. */
+    /* Action is its own datablock, so has to be tagged specifically. */
     DEG_id_tag_update(&ale_setting->adt->action->id, ID_RECALC_ANIMATION);
   }
 

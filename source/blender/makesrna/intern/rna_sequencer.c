@@ -293,7 +293,7 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
   if (SEQ_transform_test_overlap(seqbase, seq)) {
     SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX - BROKEN!, uses context seqbasep */
   }
-  SEQ_sort(scene);
+  SEQ_sort(seqbase);
 }
 
 /* A simple wrapper around above func, directly usable as prop update func.
@@ -476,7 +476,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
     /* XXX - BROKEN!, uses context seqbasep */
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
   }
-  SEQ_sort(scene);
+  SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
@@ -2390,11 +2390,10 @@ static void rna_def_scene(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Input", "Input type to use for the Scene strip");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_use_sequence");
 
-  prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_SCENE_NO_GPENCIL);
-  RNA_def_property_ui_text(
-      prop, "Use Grease Pencil", "Show Grease Pencil strokes in OpenGL previews");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  prop = RNA_def_property(srna, "use_annotations", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_SCENE_NO_ANNOTATION);
+  RNA_def_property_ui_text(prop, "Use Annotations", "Show Annotations in OpenGL previews");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   rna_def_filter_video(srna);
   rna_def_proxy(srna);

@@ -185,7 +185,7 @@ if(WITH_BUILDINFO)
 
   # --------------------------------------------------------------------------
   # write header for values that change each build
-  # note, generaed file is in build dir's source/creator
+  # note, generated file is in build dir's source/creator
   #       except when used as an include path.
 
   add_definitions(-DWITH_BUILDINFO_HEADER)

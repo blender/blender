@@ -16,7 +16,9 @@
 
 #include "BLI_array.hh"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_curve_types.h"
 
@@ -26,7 +28,9 @@
 using blender::Array;
 using blender::float3;
 using blender::float4x4;
+using blender::Map;
 using blender::Span;
+using blender::StringRefNull;
 
 blender::Span<SplinePtr> CurveEval::splines() const
 {
@@ -38,6 +42,9 @@ blender::MutableSpan<SplinePtr> CurveEval::splines()
   return splines_;
 }
 
+/**
+ * \warning Call #reallocate on the spline's attributes after adding all splines.
+ */
 void CurveEval::add_spline(SplinePtr spline)
 {
   splines_.append(std::move(spline));
@@ -48,17 +55,6 @@ void CurveEval::remove_splines(blender::IndexMask mask)
   for (int i = mask.size() - 1; i >= 0; i--) {
     splines_.remove_and_reorder(mask.indices()[i]);
   }
-}
-
-CurveEval *CurveEval::copy()
-{
-  CurveEval *new_curve = new CurveEval();
-
-  for (SplinePtr &spline : this->splines()) {
-    new_curve->add_spline(spline->copy());
-  }
-
-  return new_curve;
 }
 
 void CurveEval::translate(const float3 &translation)
@@ -189,7 +185,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
                             bezt.radius,
                             bezt.tilt);
         }
-
+        spline->attributes.reallocate(spline->size());
         curve->add_spline(std::move(spline));
         break;
       }
@@ -203,7 +199,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
         for (const BPoint &bp : Span(nurb->bp, nurb->pntsu)) {
           spline->add_point(bp.vec, bp.radius, bp.tilt, bp.vec[3]);
         }
-
+        spline->attributes.reallocate(spline->size());
         curve->add_spline(std::move(spline));
         break;
       }
@@ -214,7 +210,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
         for (const BPoint &bp : Span(nurb->bp, nurb->pntsu)) {
           spline->add_point(bp.vec, bp.radius, bp.tilt);
         }
-
+        spline->attributes.reallocate(spline->size());
         curve->add_spline(std::move(spline));
         break;
       }
@@ -225,6 +221,9 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
     }
   }
 
+  /* Though the curve has no attributes, this is necessary to properly set the custom data size. */
+  curve->attributes.reallocate(curve->splines().size());
+
   /* Note: Normal mode is stored separately in each spline to facilitate combining splines
    * from multiple curve objects, where the value may be different. */
   const Spline::NormalCalculationMode normal_mode = normal_mode_from_dna_curve(
@@ -234,4 +233,40 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve)
   }
 
   return curve;
+}
+
+/**
+ * Check the invariants that curve control point attributes should always uphold, necessary
+ * because attributes are stored on splines rather than in a flat array on the curve:
+ *  - The same set of attributes exists on every spline.
+ *  - Attributes with the same name have the same type on every spline.
+ */
+void CurveEval::assert_valid_point_attributes() const
+{
+#ifdef DEBUG
+  if (splines_.size() == 0) {
+    return;
+  }
+  const int layer_len = splines_.first()->attributes.data.totlayer;
+  Map<StringRefNull, AttributeMetaData> map;
+  for (const SplinePtr &spline : splines_) {
+    BLI_assert(spline->attributes.data.totlayer == layer_len);
+    spline->attributes.foreach_attribute(
+        [&](StringRefNull name, const AttributeMetaData &meta_data) {
+          map.add_or_modify(
+              name,
+              [&](AttributeMetaData *map_data) {
+                /* All unique attribute names should be added on the first spline. */
+                BLI_assert(spline == splines_.first());
+                *map_data = meta_data;
+              },
+              [&](AttributeMetaData *map_data) {
+                /* Attributes on different splines should all have the same type. */
+                BLI_assert(meta_data == *map_data);
+              });
+          return true;
+        },
+        ATTR_DOMAIN_POINT);
+  }
+#endif
 }

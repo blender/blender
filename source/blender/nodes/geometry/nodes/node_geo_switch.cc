@@ -70,20 +70,6 @@ static void geo_node_switch_init(bNodeTree *UNUSED(tree), bNode *node)
 
 namespace blender::nodes {
 
-template<typename T>
-void output_input(GeoNodeExecParams &params,
-                  const bool input,
-                  const StringRef input_suffix,
-                  const StringRef output_identifier)
-{
-  if (input) {
-    params.set_output(output_identifier, params.extract_input<T>("B" + input_suffix));
-  }
-  else {
-    params.set_output(output_identifier, params.extract_input<T>("A" + input_suffix));
-  }
-}
-
 static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   NodeSwitch *node_storage = (NodeSwitch *)node->storage;
@@ -99,10 +85,37 @@ static void geo_node_switch_update(bNodeTree *UNUSED(ntree), bNode *node)
   }
 }
 
+template<typename T>
+static void output_input(GeoNodeExecParams &params,
+                         const bool input,
+                         const StringRef input_suffix,
+                         const StringRef output_identifier)
+{
+  const std::string name_a = "A" + input_suffix;
+  const std::string name_b = "B" + input_suffix;
+  if (input) {
+    params.set_input_unused(name_a);
+    if (params.lazy_require_input(name_b)) {
+      return;
+    }
+    params.set_output(output_identifier, params.extract_input<T>(name_b));
+  }
+  else {
+    params.set_input_unused(name_b);
+    if (params.lazy_require_input(name_a)) {
+      return;
+    }
+    params.set_output(output_identifier, params.extract_input<T>(name_a));
+  }
+}
+
 static void geo_node_switch_exec(GeoNodeExecParams params)
 {
+  if (params.lazy_require_input("Switch")) {
+    return;
+  }
   const NodeSwitch &storage = *(const NodeSwitch *)params.node().storage;
-  const bool input = params.extract_input<bool>("Switch");
+  const bool input = params.get_input<bool>("Switch");
   switch ((eNodeSocketDatatype)storage.input_type) {
     case SOCK_FLOAT: {
       output_input<float>(params, input, "", "Output");
@@ -158,6 +171,7 @@ void register_node_type_geo_switch()
   node_type_update(&ntype, blender::nodes::geo_node_switch_update);
   node_type_storage(&ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_switch_exec;
+  ntype.geometry_node_execute_supports_lazyness = true;
   ntype.draw_buttons = geo_node_switch_layout;
   nodeRegisterType(&ntype);
 }

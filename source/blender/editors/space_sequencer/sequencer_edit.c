@@ -348,7 +348,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(SEQ_active_seqbase_get(ed));
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1443,7 +1443,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
       }
     }
 
-    SEQ_sort(scene);
+    SEQ_sort(SEQ_active_seqbase_get(ed));
   }
   if (changed) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1577,17 +1577,6 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
-static int apply_unique_name_fn(Sequence *seq, void *arg_pt)
-{
-  Scene *scene = (Scene *)arg_pt;
-  char name[sizeof(seq->name) - 2];
-
-  BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
-  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
-  SEQ_dupe_animdata(scene, name, seq->name + 2);
-  return 1;
-}
-
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1608,7 +1597,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
     BLI_movelisttolist(ed->seqbasep, &nseqbase);
 
     for (; seq; seq = seq->next) {
-      SEQ_recursive_apply(seq, apply_unique_name_fn, scene);
+      SEQ_ensure_unique_name(seq, scene);
     }
 
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -1829,7 +1818,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(SEQ_active_seqbase_get(ed));
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2014,7 +2003,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  SEQ_sort(scene);
+  SEQ_sort(active_seqbase);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2237,7 +2226,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
       }
     }
 
-    SEQ_sort(scene);
+    SEQ_sort(SEQ_active_seqbase_get(ed));
 
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2465,7 +2454,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 
   for (iseq = iseq_first; iseq; iseq = iseq->next) {
     /* Make sure, that pasted strips have unique names. */
-    SEQ_recursive_apply(iseq, apply_unique_name_fn, scene);
+    SEQ_ensure_unique_name(iseq, scene);
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
     SEQ_transform_translate_sequence(scene, iseq, ofs);

@@ -84,6 +84,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
@@ -114,6 +115,7 @@
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/node/deg_node.h"
@@ -360,7 +362,103 @@ void DepsgraphNodeBuilder::begin_build()
   graph_->entry_tags.clear();
 }
 
-void DepsgraphNodeBuilder::end_build()
+/* Util callbacks for `BKE_library_foreach_ID_link`, used to detect when a COW ID is using ID
+ * pointers that are either:
+ *  - COW ID pointers that do not exist anymore in current depsgraph.
+ *  - Orig ID pointers that do have now a COW version in current depsgraph.
+ * In both cases, it means the COW ID user needs to be flushed, to ensure its pointers are properly
+ * remapped.
+ *
+ * NOTE: This is split in two, a static function and a public method of the node builder, to allow
+ * the code to access the builder's data more easily. */
+
+/* `id_cow_self` is the user of `id_pointer`, see also `LibraryIDLinkCallbackData` struct
+ * definition. */
+int DepsgraphNodeBuilder::foreach_id_cow_detect_need_for_update_callback(ID *id_cow_self,
+                                                                         ID *id_pointer)
+{
+  if (id_pointer->orig_id == nullptr) {
+    /* `id_cow_self` uses a non-cow ID, if that ID has a COW copy in current depsgraph its owner
+     * needs to be remapped, i.e. COW-flushed. */
+    IDNode *id_node = find_id_node(id_pointer);
+    if (id_node != nullptr && id_node->id_cow != nullptr) {
+      graph_id_tag_update(bmain_,
+                          graph_,
+                          id_cow_self->orig_id,
+                          ID_RECALC_COPY_ON_WRITE,
+                          DEG_UPDATE_SOURCE_RELATIONS);
+      return IDWALK_RET_STOP_ITER;
+    }
+  }
+  else {
+    /* `id_cow_self` uses a COW ID, if that COW copy is removed from current depsgraph its owner
+     * needs to be remapped, i.e. COW-flushed. */
+    /* NOTE: at that stage, old existing COW copies that are to be removed from current state of
+     * evaluated depsgraph are still valid pointers, they are freed later (typically during
+     * destruction of the builder itself). */
+    IDNode *id_node = find_id_node(id_pointer->orig_id);
+    if (id_node == nullptr) {
+      graph_id_tag_update(bmain_,
+                          graph_,
+                          id_cow_self->orig_id,
+                          ID_RECALC_COPY_ON_WRITE,
+                          DEG_UPDATE_SOURCE_RELATIONS);
+      return IDWALK_RET_STOP_ITER;
+    }
+  }
+  return IDWALK_RET_NOP;
+}
+
+static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackData *cb_data)
+{
+  ID *id = *cb_data->id_pointer;
+  if (id == nullptr) {
+    return IDWALK_RET_NOP;
+  }
+
+  DepsgraphNodeBuilder *builder = static_cast<DepsgraphNodeBuilder *>(cb_data->user_data);
+  ID *id_cow_self = cb_data->id_self;
+
+  return builder->foreach_id_cow_detect_need_for_update_callback(id_cow_self, id);
+}
+
+/* Check for IDs that need to be flushed (COW-updated) because the depsgraph itself created or
+ * removed some of their evaluated dependencies.
+ *
+ * NOTE: Currently the only ID types that depsgraph may decide to not evaluate/generate COW
+ * copies for, even though they are referenced by other data-blocks, are Collections and Objects
+ * (through their various visbility flags, and the ones from LayerCollections too). However, this
+ * code is kept generic as it makes it more future-proof, and optimization here would give
+ * neglectable performance improvements in typical cases.
+ *
+ * NOTE: This mechanism may also 'fix' some missing update tagging from non-depsgraph code in
+ * some cases. This is slightly unfortunate (as it may hide issues in other parts of Blender
+ * code), but cannot really be avoided currently.
+ */
+void DepsgraphNodeBuilder::update_invalid_cow_pointers()
+{
+  for (const IDNode *id_node : graph_->id_nodes) {
+    if (id_node->previously_visible_components_mask == 0) {
+      /* Newly added node/ID, no need to check it. */
+      continue;
+    }
+    if (ELEM(id_node->id_cow, id_node->id_orig, nullptr)) {
+      /* Node/ID with no COW data, no need to check it. */
+      continue;
+    }
+    if ((id_node->id_cow->recalc & ID_RECALC_COPY_ON_WRITE) != 0) {
+      /* Node/ID already tagged for COW flush, no need to check it. */
+      continue;
+    }
+    BKE_library_foreach_ID_link(nullptr,
+                                id_node->id_cow,
+                                deg::foreach_id_cow_detect_need_for_update_callback,
+                                this,
+                                IDWALK_IGNORE_EMBEDDED_ID | IDWALK_READONLY);
+  }
+}
+
+void DepsgraphNodeBuilder::tag_previously_tagged_nodes()
 {
   for (const SavedEntryTag &entry_tag : saved_entry_tags_) {
     IDNode *id_node = find_id_node(entry_tag.id_orig);
@@ -380,6 +478,12 @@ void DepsgraphNodeBuilder::end_build()
      * that originally node was explicitly tagged for user update. */
     op_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
   }
+}
+
+void DepsgraphNodeBuilder::end_build()
+{
+  tag_previously_tagged_nodes();
+  update_invalid_cow_pointers();
 }
 
 void DepsgraphNodeBuilder::build_id(ID *id)

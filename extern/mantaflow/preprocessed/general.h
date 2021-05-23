@@ -42,7 +42,7 @@ inline void updateQtGui(bool full, int frame, float time, const std::string &cur
 #  ifdef _DEBUG
 #    define DEBUG 1
 #  endif  // _DEBUG
-#endif  // DEBUG
+#endif    // DEBUG
 
 // Standard exception
 class Error : public std::exception {

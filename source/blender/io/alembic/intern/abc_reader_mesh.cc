@@ -439,6 +439,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0) {
     read_mverts(config, abc_mesh_data);
+    read_generated_coordinates(schema.getArbGeomParams(), config, selector);
   }
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
@@ -558,7 +559,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
     /* XXX fixme after 2.80; mesh->flag isn't copied by BKE_mesh_nomain_to_mesh() */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
     short autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
     mesh->flag |= autosmooth;
   }
 
@@ -868,7 +869,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 
   Mesh *read_mesh = this->read_mesh(mesh, sample_sel, MOD_MESHSEQ_READ_ALL, nullptr);
   if (read_mesh != mesh) {
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_MESH, true);
+    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
   }
 
   ISubDSchema::Sample sample;

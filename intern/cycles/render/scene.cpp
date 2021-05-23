@@ -542,9 +542,6 @@ bool Scene::update(Progress &progress, bool &kernel_switch_needed)
     DeviceKernelStatus kernel_switch_status = device->get_active_kernel_switch_state();
     kernel_switch_needed = kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE ||
                            kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_INVALID;
-    if (kernel_switch_status == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
-      progress.set_kernel_status("Compiling render kernels");
-    }
     if (new_kernels_needed || kernel_switch_needed) {
       progress.set_kernel_status("Compiling render kernels");
       device->wait_for_availability(loaded_kernel_features);

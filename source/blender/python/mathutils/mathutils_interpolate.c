@@ -54,22 +54,13 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject *UNUSED(self), PyObject *ar
   PyObject *point, *veclist, *ret;
   int i;
 
-  if (!PyArg_ParseTuple(args, "OO!:poly_3d_calc", &veclist, &vector_Type, &point)) {
+  if (!PyArg_ParseTuple(args, "OO:poly_3d_calc", &veclist, &point)) {
     return NULL;
   }
 
-  if (BaseMath_ReadCallback((VectorObject *)point) == -1) {
+  if (mathutils_array_parse(
+          fp, 2, 3 | MU_ARRAY_ZERO, point, "pt must be a 2-3 dimensional vector") == -1) {
     return NULL;
-  }
-
-  fp[0] = ((VectorObject *)point)->vec[0];
-  fp[1] = ((VectorObject *)point)->vec[1];
-  if (((VectorObject *)point)->size > 2) {
-    fp[2] = ((VectorObject *)point)->vec[2];
-  }
-  else {
-    /* if its a 2d vector then set the z to be zero */
-    fp[2] = 0.0f;
   }
 
   len = mathutils_array_parse_alloc_v(((float **)&vecs), 3, veclist, __func__);

@@ -121,6 +121,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .uvs = RNA_boolean_get(op->ptr, "uvs"),
       .normals = RNA_boolean_get(op->ptr, "normals"),
       .vcolors = RNA_boolean_get(op->ptr, "vcolors"),
+      .orcos = RNA_boolean_get(op->ptr, "orcos"),
       .apply_subdiv = RNA_boolean_get(op->ptr, "apply_subdiv"),
       .curves_as_mesh = RNA_boolean_get(op->ptr, "curves_as_mesh"),
       .flatten_hierarchy = RNA_boolean_get(op->ptr, "flatten"),
@@ -210,6 +211,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   uiItemR(col, imfptr, "normals", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "vcolors", 0, NULL, ICON_NONE);
+  uiItemR(col, imfptr, "orcos", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "face_sets", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "curves_as_mesh", 0, NULL, ICON_NONE);
 
@@ -377,6 +379,12 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "normals", 1, "Normals", "Export normals");
 
   RNA_def_boolean(ot->srna, "vcolors", 0, "Vertex Colors", "Export vertex colors");
+
+  RNA_def_boolean(ot->srna,
+                  "orcos",
+                  true,
+                  "Generated Coordinates",
+                  "Export undeformed mesh vertex coordinates");
 
   RNA_def_boolean(
       ot->srna, "face_sets", 0, "Face Sets", "Export per face shading group assignments");

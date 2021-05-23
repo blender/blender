@@ -346,7 +346,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Screen) {
     return ID_SCR;
   }
-#  ifdef WITH_GEOMETRY_NODES
+#  ifdef WITH_SIMULATION_DATABLOCK
   if (base_type == &RNA_Simulation) {
     return ID_SIM;
   }
@@ -454,7 +454,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_SCR:
       return &RNA_Screen;
     case ID_SIM:
-#  ifdef WITH_GEOMETRY_NODES
+#  ifdef WITH_SIMULATION_DATABLOCK
       return &RNA_Simulation;
 #  else
       return &RNA_ID;

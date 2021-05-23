@@ -59,6 +59,40 @@ static void geo_node_point_rotate_layout(uiLayout *layout, bContext *UNUSED(C), 
 
 namespace blender::nodes {
 
+static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)MEM_callocN(
+      sizeof(NodeGeometryRotatePoints), __func__);
+
+  node_storage->type = GEO_NODE_POINT_ROTATE_TYPE_EULER;
+  node_storage->space = GEO_NODE_POINT_ROTATE_SPACE_OBJECT;
+  node_storage->input_type_axis = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
+  node_storage->input_type_angle = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
+  node_storage->input_type_rotation = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
+
+  node->storage = node_storage;
+}
+
+static void geo_node_point_rotate_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)node->storage;
+  update_attribute_input_socket_availabilities(
+      *node,
+      "Axis",
+      (GeometryNodeAttributeInputMode)node_storage->input_type_axis,
+      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
+  update_attribute_input_socket_availabilities(
+      *node,
+      "Angle",
+      (GeometryNodeAttributeInputMode)node_storage->input_type_angle,
+      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
+  update_attribute_input_socket_availabilities(
+      *node,
+      "Rotation",
+      (GeometryNodeAttributeInputMode)node_storage->input_type_rotation,
+      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_EULER);
+}
+
 static void point_rotate__axis_angle__object_space(const int domain_size,
                                                    const VArray<float3> &axis,
                                                    const VArray<float> &angles,
@@ -176,42 +210,11 @@ static void geo_node_point_rotate_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     point_rotate_on_component(geometry_set.get_component_for_write<PointCloudComponent>(), params);
   }
+  if (geometry_set.has<CurveComponent>()) {
+    point_rotate_on_component(geometry_set.get_component_for_write<CurveComponent>(), params);
+  }
 
   params.set_output("Geometry", geometry_set);
-}
-
-static void geo_node_point_rotate_init(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)MEM_callocN(
-      sizeof(NodeGeometryRotatePoints), __func__);
-
-  node_storage->type = GEO_NODE_POINT_ROTATE_TYPE_EULER;
-  node_storage->space = GEO_NODE_POINT_ROTATE_SPACE_OBJECT;
-  node_storage->input_type_axis = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
-  node_storage->input_type_angle = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
-  node_storage->input_type_rotation = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
-
-  node->storage = node_storage;
-}
-
-static void geo_node_point_rotate_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryRotatePoints *node_storage = (NodeGeometryRotatePoints *)node->storage;
-  update_attribute_input_socket_availabilities(
-      *node,
-      "Axis",
-      (GeometryNodeAttributeInputMode)node_storage->input_type_axis,
-      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
-  update_attribute_input_socket_availabilities(
-      *node,
-      "Angle",
-      (GeometryNodeAttributeInputMode)node_storage->input_type_angle,
-      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE);
-  update_attribute_input_socket_availabilities(
-      *node,
-      "Rotation",
-      (GeometryNodeAttributeInputMode)node_storage->input_type_rotation,
-      node_storage->type == GEO_NODE_POINT_ROTATE_TYPE_EULER);
 }
 
 }  // namespace blender::nodes

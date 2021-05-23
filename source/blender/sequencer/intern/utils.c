@@ -33,10 +33,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#include "BLI_blenlib.h"
 
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -55,21 +52,27 @@
 #include "proxy.h"
 #include "utils.h"
 
-void SEQ_sort(Scene *scene)
+/**
+ * Sort strips in provided seqbase. Effect strips are trailing the list and they are sorted by
+ * channel position as well.
+ * This is important for SEQ_time_update_sequence to work properly
+ *
+ * \param seqbase: ListBase with strips
+ */
+void SEQ_sort(ListBase *seqbase)
 {
-  /* all strips together per kind, and in order of y location ("machine") */
-  ListBase seqbase, effbase;
-  Editing *ed = SEQ_editing_get(scene, false);
-  Sequence *seq, *seqt;
-
-  if (ed == NULL) {
+  if (seqbase == NULL) {
     return;
   }
 
-  BLI_listbase_clear(&seqbase);
+  /* all strips together per kind, and in order of y location ("machine") */
+  ListBase inputbase, effbase;
+  Sequence *seq, *seqt;
+
+  BLI_listbase_clear(&inputbase);
   BLI_listbase_clear(&effbase);
 
-  while ((seq = BLI_pophead(ed->seqbasep))) {
+  while ((seq = BLI_pophead(seqbase))) {
 
     if (seq->type & SEQ_TYPE_EFFECT) {
       seqt = effbase.first;
@@ -85,22 +88,22 @@ void SEQ_sort(Scene *scene)
       }
     }
     else {
-      seqt = seqbase.first;
+      seqt = inputbase.first;
       while (seqt) {
         if (seqt->machine >= seq->machine) {
-          BLI_insertlinkbefore(&seqbase, seqt, seq);
+          BLI_insertlinkbefore(&inputbase, seqt, seq);
           break;
         }
         seqt = seqt->next;
       }
       if (seqt == NULL) {
-        BLI_addtail(&seqbase, seq);
+        BLI_addtail(&inputbase, seq);
       }
     }
   }
 
-  BLI_movelisttolist(&seqbase, &effbase);
-  *(ed->seqbasep) = seqbase;
+  BLI_movelisttolist(seqbase, &inputbase);
+  BLI_movelisttolist(seqbase, &effbase);
 }
 
 typedef struct SeqUniqueInfo {
@@ -611,4 +614,26 @@ int SEQ_recursive_apply(Sequence *seq, int (*apply_fn)(Sequence *, void *), void
   }
 
   return ret;
+}
+
+/**
+ * Ensure, that provided Sequence has unique name. If animation data exists for this Sequence, it
+ * will be duplicated and mapped onto new name
+ *
+ * \param seq: Sequence which name will be ensured to be unique
+ * \param scene: Scene in which name must be unique
+ */
+void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
+{
+  char name[SEQ_NAME_MAXSTR];
+
+  BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
+  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+  SEQ_dupe_animdata(scene, name, seq->name + 2);
+
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
+      SEQ_ensure_unique_name(seq_child, scene);
+    }
+  }
 }

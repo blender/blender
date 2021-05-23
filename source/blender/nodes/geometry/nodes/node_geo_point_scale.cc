@@ -43,6 +43,23 @@ static void geo_node_point_scale_layout(uiLayout *layout, bContext *UNUSED(C), P
 
 namespace blender::nodes {
 
+static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
+      sizeof(NodeGeometryPointScale), __func__);
+
+  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
+  node->storage = data;
+}
+
+static void geo_node_point_scale_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryPointScale &node_storage = *(NodeGeometryPointScale *)node->storage;
+
+  update_attribute_input_socket_availabilities(
+      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage.input_type);
+}
+
 static void execute_on_component(GeoNodeExecParams params, GeometryComponent &component)
 {
   /* Note that scale doesn't necessarily need to be created with a vector type-- it could also use
@@ -100,23 +117,6 @@ static void geo_node_point_scale_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Geometry", std::move(geometry_set));
-}
-
-static void geo_node_point_scale_init(bNodeTree *UNUSED(tree), bNode *node)
-{
-  NodeGeometryPointScale *data = (NodeGeometryPointScale *)MEM_callocN(
-      sizeof(NodeGeometryPointScale), __func__);
-
-  data->input_type = GEO_NODE_ATTRIBUTE_INPUT_VECTOR;
-  node->storage = data;
-}
-
-static void geo_node_point_scale_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryPointScale &node_storage = *(NodeGeometryPointScale *)node->storage;
-
-  update_attribute_input_socket_availabilities(
-      *node, "Factor", (GeometryNodeAttributeInputMode)node_storage.input_type);
 }
 
 }  // namespace blender::nodes

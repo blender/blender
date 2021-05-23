@@ -1436,7 +1436,7 @@ void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBa
   if (process.totelem > 0) {
     build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
 
-    /* Don't polygonize meta-balls with too high resolution (base mball to small)
+    /* Don't polygonize meta-balls with too high resolution (base mball too small)
      * note: Eps was 0.0001f but this was giving problems for blood animation for
      * the open movie "Sintel", using 0.00001f. */
     if (ob->scale[0] > 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||

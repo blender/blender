@@ -332,3 +332,17 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat,
     }
   }
 }
+
+void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data)
+{
+  const float *xyz_to_rgb = IMB_colormanagement_get_xyz_to_rgb();
+  data->r[0] = xyz_to_rgb[0];
+  data->r[1] = xyz_to_rgb[3];
+  data->r[2] = xyz_to_rgb[6];
+  data->g[0] = xyz_to_rgb[1];
+  data->g[1] = xyz_to_rgb[4];
+  data->g[2] = xyz_to_rgb[7];
+  data->b[0] = xyz_to_rgb[2];
+  data->b[1] = xyz_to_rgb[5];
+  data->b[2] = xyz_to_rgb[8];
+}

@@ -43,8 +43,8 @@ class vector : public std::vector<value_type, allocator_type> {
   /* Try as hard as possible to use zero memory. */
   void free_memory()
   {
-    BaseClass::resize(0);
-    BaseClass::shrink_to_fit();
+    vector<value_type, allocator_type> empty;
+    BaseClass::swap(empty);
   }
 
   /* Some external API might demand working with std::vector. */

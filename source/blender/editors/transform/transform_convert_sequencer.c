@@ -491,7 +491,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
         }
       }
 
-      SEQ_sort(t->scene);
+      SEQ_sort(seqbasep);
     }
     else {
       /* Canceled, need to update the strips display */

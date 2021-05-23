@@ -323,9 +323,9 @@ static PyObject *pygpu_framebuffer__tp_new(PyTypeObject *UNUSED(self),
         return NULL;
       }
 
-      for (int i = 1; i <= color_attachements_len; i++) {
+      for (int i = 0; i < color_attachements_len; i++) {
         PyObject *o = PySequence_GetItem(color_attachements, i);
-        bool ok = pygpu_framebuffer_new_parse_arg(o, &config[i]);
+        bool ok = pygpu_framebuffer_new_parse_arg(o, &config[i + 1]);
         Py_DECREF(o);
         if (!ok) {
           return NULL;

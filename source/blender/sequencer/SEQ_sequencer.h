@@ -44,8 +44,6 @@ enum {
   SEQ_SIDE_NO_CHANGE,
 };
 
-#define SEQ_CACHE_COST_MAX 10.0f
-
 /* seq_dupli' flags */
 #define SEQ_DUPE_UNIQUE_NAME (1 << 0)
 #define SEQ_DUPE_CONTEXT (1 << 1)

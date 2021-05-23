@@ -179,22 +179,18 @@ static void geo_node_transform_exec(GeoNodeExecParams params)
     Mesh *mesh = geometry_set.get_mesh_for_write();
     transform_mesh(mesh, translation, rotation, scale);
   }
-
   if (geometry_set.has_pointcloud()) {
     PointCloud *pointcloud = geometry_set.get_pointcloud_for_write();
     transform_pointcloud(pointcloud, translation, rotation, scale);
   }
-
   if (geometry_set.has_instances()) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
     transform_instances(instances, translation, rotation, scale);
   }
-
   if (geometry_set.has_volume()) {
     Volume *volume = geometry_set.get_volume_for_write();
     transform_volume(volume, translation, rotation, scale, params);
   }
-
   if (geometry_set.has_curve()) {
     CurveEval *curve = geometry_set.get_curve_for_write();
     transform_curve(*curve, translation, rotation, scale);

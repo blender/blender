@@ -208,7 +208,8 @@ class VIEW3D_OT_transform_gizmo_set(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.area.type == 'VIEW_3D'
+        area = context.area
+        return area and (area.type == 'VIEW_3D')
 
     def execute(self, context):
         space_data = context.space_data

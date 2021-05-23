@@ -445,7 +445,7 @@ int BIF_countTransformOrientation(const bContext *C)
   return BLI_listbase_count(transform_orientations);
 }
 
-void applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3], char *r_name)
+void applyTransformOrientation(const TransformOrientation *ts, float r_mat[3][3], char r_name[64])
 {
   if (r_name) {
     BLI_strncpy(r_name, ts->name, MAX_NAME);

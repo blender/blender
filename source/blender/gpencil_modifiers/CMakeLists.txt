@@ -54,6 +54,7 @@ set(SRC
   intern/MOD_gpencilcolor.c
   intern/MOD_gpencilhook.c
   intern/MOD_gpencillattice.c
+  intern/MOD_gpencillength.c
   intern/MOD_gpencillineart.c
   intern/MOD_gpencilmirror.c
   intern/MOD_gpencilmultiply.c

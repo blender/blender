@@ -55,6 +55,9 @@ void BezierSpline::set_resolution(const int value)
   this->mark_cache_invalid();
 }
 
+/**
+ * \warning Call #reallocate on the spline's attributes after adding all points.
+ */
 void BezierSpline::add_point(const float3 position,
                              const HandleType handle_type_start,
                              const float3 handle_position_start,
@@ -83,6 +86,7 @@ void BezierSpline::resize(const int size)
   radii_.resize(size);
   tilts_.resize(size);
   this->mark_cache_invalid();
+  attributes.reallocate(size);
 }
 
 MutableSpan<float3> BezierSpline::positions()
@@ -555,6 +559,10 @@ blender::fn::GVArrayPtr BezierSpline::interpolate_to_evaluated_points(
     const blender::fn::GVArray &source_data) const
 {
   BLI_assert(source_data.size() == this->size());
+
+  if (source_data.is_single()) {
+    return source_data.shallow_copy();
+  }
 
   const int eval_size = this->evaluated_points_size();
   if (eval_size == 1) {

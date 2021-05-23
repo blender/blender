@@ -1030,6 +1030,14 @@ static void rna_def_path(BlenderRNA *UNUSED(brna), StructRNA *srna)
   RNA_def_property_ui_text(prop, "Follow", "Make curve path children to rotate along the path");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
+  prop = RNA_def_property(srna, "use_path_clamp", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_PATH_CLAMP);
+  RNA_def_property_ui_text(
+      prop,
+      "Clamp",
+      "Clamp the curve path children so they can't travel past the start/end point of the curve");
+  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
   prop = RNA_def_property(srna, "use_stretch", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_STRETCH);
   RNA_def_property_ui_text(prop,

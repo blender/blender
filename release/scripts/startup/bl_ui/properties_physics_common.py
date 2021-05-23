@@ -79,7 +79,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
 
         col = flow.column()
 
-        if obj.field.type == 'NONE':
+        if not obj.field or obj.field.type == 'NONE':
             col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
         else:
             col.operator("object.forcefield_toggle", text="Force Field", icon='X')

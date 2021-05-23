@@ -887,37 +887,43 @@ class GreasePencilFlipTintColors(Operator):
     bl_idname = "gpencil.tint_flip"
     bl_description = "Switch tint colors"
 
+    @classmethod
+    def poll(cls, context):
+        ts = context.tool_settings
+        settings = None
+        if context.mode == 'PAINT_GPENCIL':
+            settings = ts.gpencil_paint
+        if context.mode == 'SCULPT_GPENCIL':
+            settings = ts.gpencil_sculpt_paint
+        elif context.mode == 'WEIGHT_GPENCIL':
+            settings = ts.gpencil_weight_paint
+        elif context.mode == 'VERTEX_GPENCIL':
+            settings = ts.gpencil_vertex_paint
+
+        return settings and settings.brush
+
     def execute(self, context):
-        try:
-            ts = context.tool_settings
-            settings = None
-            if context.mode == 'PAINT_GPENCIL':
-                settings = ts.gpencil_paint
-            if context.mode == 'SCULPT_GPENCIL':
-                settings = ts.gpencil_sculpt_paint
-            elif context.mode == 'WEIGHT_GPENCIL':
-                settings = ts.gpencil_weight_paint
-            elif context.mode == 'VERTEX_GPENCIL':
-                settings = ts.gpencil_vertex_paint
+        ts = context.tool_settings
+        settings = None
+        if context.mode == 'PAINT_GPENCIL':
+            settings = ts.gpencil_paint
+        if context.mode == 'SCULPT_GPENCIL':
+            settings = ts.gpencil_sculpt_paint
+        elif context.mode == 'WEIGHT_GPENCIL':
+            settings = ts.gpencil_weight_paint
+        elif context.mode == 'VERTEX_GPENCIL':
+            settings = ts.gpencil_vertex_paint
 
-            brush = settings.brush
-            if brush is not None:
-                color = brush.color
-                secondary_color = brush.secondary_color
+        brush = settings.brush
+        color = brush.color
+        secondary_color = brush.secondary_color
 
-                orig_prim = color.hsv
-                orig_sec = secondary_color.hsv
+        orig_prim = color.hsv
+        orig_sec = secondary_color.hsv
 
-                color.hsv = orig_sec
-                secondary_color.hsv = orig_prim
-
-            return {'FINISHED'}
-
-        except Exception as e:
-            utils_core.error_handlers(self, "gpencil.tint_flip", e,
-                                      "Flip Colors could not be completed")
-
-            return {'CANCELLED'}
+        color.hsv = orig_sec
+        secondary_color.hsv = orig_prim
+        return {'FINISHED'}
 
 
 classes = (

@@ -361,7 +361,7 @@ static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache, char *path,
   BLI_split_file_part(BKE_main_blendfile_path(disk_cache->bmain), cache_dir, sizeof(cache_dir));
   /* Use suffix, so that the cache directory name does not conflict with the bmain's blend file. */
   const char *suffix = "_seq_cache";
-  strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir));
+  strncat(cache_dir, suffix, sizeof(cache_dir) - strlen(cache_dir) - 1);
   BLI_strncpy(path, seq_disk_cache_base_dir(), path_len);
   BLI_path_append(path, path_len, cache_dir);
 }

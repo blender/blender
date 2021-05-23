@@ -158,7 +158,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
     ot->prop = RNA_def_boolean(ot->srna,
                                "set_view_transform",
                                true,
-                               "Set view transform",
+                               "Set View Transform",
                                "Set appropriate view transform based on media colorspace");
   }
 }

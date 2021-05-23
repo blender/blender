@@ -806,7 +806,7 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
   return volume;
 }
 
-#  ifdef WITH_GEOMETRY_NODES
+#  ifdef WITH_SIMULATION_DATABLOCK
 static Simulation *rna_Main_simulations_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -870,7 +870,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(hairs, hairs, ID_HA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
 #  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
-#  ifdef WITH_GEOMETRY_NODES
+#  ifdef WITH_SIMULATION_DATABLOCK
 RNA_MAIN_ID_TAG_FUNCS_DEF(simulations, simulations, ID_SIM)
 #  endif
 
@@ -2412,7 +2412,7 @@ void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-#  ifdef WITH_GEOMETRY_NODES
+#  ifdef WITH_SIMULATION_DATABLOCK
 void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;

@@ -161,7 +161,7 @@ class Error_MotionPlanning : public Error {};
 
 class Error_MotionPlanning_Circle_ToSmall : public Error_MotionPlanning {
 public:
-    virtual const char* Description() const { return "Circle : radius is to small";}
+    virtual const char* Description() const { return "Circle : radius is too small";}
     virtual int GetType() const {return 3001;}
 };
 

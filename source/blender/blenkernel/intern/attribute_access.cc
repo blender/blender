@@ -45,6 +45,7 @@ using blender::Set;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::fn::GMutableSpan;
+using blender::fn::GSpan;
 
 namespace blender::bke {
 
@@ -588,6 +589,105 @@ void NamedLegacyCustomDataProvider::foreach_domain(
     const FunctionRef<void(AttributeDomain)> callback) const
 {
   callback(domain_);
+}
+
+CustomDataAttributes::CustomDataAttributes()
+{
+  CustomData_reset(&data);
+  size_ = 0;
+}
+
+CustomDataAttributes::~CustomDataAttributes()
+{
+  CustomData_free(&data, size_);
+}
+
+CustomDataAttributes::CustomDataAttributes(const CustomDataAttributes &other)
+{
+  size_ = other.size_;
+  CustomData_copy(&other.data, &data, CD_MASK_ALL, CD_DUPLICATE, size_);
+}
+
+CustomDataAttributes::CustomDataAttributes(CustomDataAttributes &&other)
+{
+  size_ = other.size_;
+  data = other.data;
+  CustomData_reset(&other.data);
+}
+
+std::optional<GSpan> CustomDataAttributes::get_for_read(const StringRef name) const
+{
+  BLI_assert(size_ != 0);
+  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    if (layer.name == name) {
+      const CPPType *cpp_type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+      BLI_assert(cpp_type != nullptr);
+      return GSpan(*cpp_type, layer.data, size_);
+    }
+  }
+  return {};
+}
+
+std::optional<GMutableSpan> CustomDataAttributes::get_for_write(const StringRef name)
+{
+  BLI_assert(size_ != 0);
+  for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
+    if (layer.name == name) {
+      const CPPType *cpp_type = custom_data_type_to_cpp_type((CustomDataType)layer.type);
+      BLI_assert(cpp_type != nullptr);
+      return GMutableSpan(*cpp_type, layer.data, size_);
+    }
+  }
+  return {};
+}
+
+bool CustomDataAttributes::create(const StringRef name, const CustomDataType data_type)
+{
+  char name_c[MAX_NAME];
+  name.copy(name_c);
+  void *result = CustomData_add_layer_named(&data, data_type, CD_DEFAULT, nullptr, size_, name_c);
+  return result != nullptr;
+}
+
+bool CustomDataAttributes::create_by_move(const blender::StringRef name,
+                                          const CustomDataType data_type,
+                                          void *buffer)
+{
+  char name_c[MAX_NAME];
+  name.copy(name_c);
+  void *result = CustomData_add_layer_named(&data, data_type, CD_ASSIGN, buffer, size_, name_c);
+  return result != nullptr;
+}
+
+bool CustomDataAttributes::remove(const blender::StringRef name)
+{
+  bool result = false;
+  for (const int i : IndexRange(data.totlayer)) {
+    const CustomDataLayer &layer = data.layers[i];
+    if (layer.name == name) {
+      CustomData_free_layer(&data, layer.type, size_, i);
+      result = true;
+    }
+  }
+  return result;
+}
+
+void CustomDataAttributes::reallocate(const int size)
+{
+  size_ = size;
+  CustomData_realloc(&data, size);
+}
+
+bool CustomDataAttributes::foreach_attribute(const AttributeForeachCallback callback,
+                                             const AttributeDomain domain) const
+{
+  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    AttributeMetaData meta_data{domain, (CustomDataType)layer.type};
+    if (!callback(layer.name, meta_data)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace blender::bke

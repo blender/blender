@@ -43,6 +43,10 @@ struct bGPdata;
 
 #include "BKE_mesh_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Expose via BKE callbacks */
 void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void DRW_mball_batch_cache_validate(struct MetaBall *mb);
@@ -262,3 +266,7 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(struct Object *
 struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *object,
                                                                struct ParticleSystem *psys,
                                                                struct PTCacheEdit *edit);
+
+#ifdef __cplusplus
+}
+#endif

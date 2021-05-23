@@ -37,7 +37,7 @@ if [ $USE_DEBUG_TRAP -ne 0 ]; then
   trap 'err_report $LINENO' ERR
 fi
 
-# Noisy, show every line that runs with it's line number.
+# Noisy, show every line that runs with its line number.
 if [ $USE_DEBUG_LOG -ne 0 ]; then
   PS4='\e[0;33m$(printf %4d ${LINENO}):\e\033[0m '
   set -x

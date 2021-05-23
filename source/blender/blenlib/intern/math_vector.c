@@ -412,7 +412,7 @@ bool is_finite_v4(const float v[4])
  * this would return the angle at the elbow.
  *
  * note that when v1/v2/v3 represent 3 points along a straight line
- * that the angle returned will be pi (180deg), rather then 0.0
+ * that the angle returned will be pi (180deg), rather than 0.0
  */
 float angle_v3v3v3(const float a[3], const float b[3], const float c[3])
 {

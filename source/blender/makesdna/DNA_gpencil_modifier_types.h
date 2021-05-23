@@ -54,6 +54,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Multiply = 17,
   eGpencilModifierType_Texture = 18,
   eGpencilModifierType_Lineart = 19,
+  eGpencilModifierType_Length = 20,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -483,6 +484,39 @@ typedef enum eLatticeGpencil_Flag {
   GP_LATTICE_INVERT_LAYERPASS = (1 << 3),
   GP_LATTICE_INVERT_MATERIAL = (1 << 4),
 } eLatticeGpencil_Flag;
+
+typedef struct LengthGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Material for filtering. */
+  struct Material *material;
+  /** Layer name. */
+  char layername[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Custom index for passes. */
+  int layer_pass;
+  /** Length. */
+  float start_fac, end_fac;
+  /** Overshoot trajectory factor. */
+  float overshoot_fac;
+  /** Modifier mode. */
+  int mode;
+  char _pad[4];
+} LengthGpencilModifierData;
+
+typedef enum eLengthGpencil_Flag {
+  GP_LENGTH_INVERT_LAYER = (1 << 0),
+  GP_LENGTH_INVERT_PASS = (1 << 1),
+  GP_LENGTH_INVERT_LAYERPASS = (1 << 2),
+  GP_LENGTH_INVERT_MATERIAL = (1 << 3),
+} eLengthGpencil_Flag;
+
+typedef enum eLengthGpencil_Type {
+  GP_LENGTH_RELATIVE = 0,
+  GP_LENGTH_ABSOLUTE = 1,
+} eLengthGpencil_Type;
 
 typedef struct MirrorGpencilModifierData {
   GpencilModifierData modifier;

@@ -421,7 +421,7 @@ def draw_keymaps(context, layout):
     rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
 
     if not filter_text:
-        # When the keyconfig defines it's own preferences.
+        # When the keyconfig defines its own preferences.
         kc_prefs = kc_active.preferences
         if kc_prefs is not None:
             box = col.box()

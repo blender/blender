@@ -1601,6 +1601,11 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
 
   BLI_assert(cache->flags & FLC_PREVIEWS_ACTIVE);
 
+  if (!entry->preview_icon_id && (entry->attributes & FILE_ATTR_OFFLINE)) {
+    entry->flags |= FILE_ENTRY_INVALID_PREVIEW;
+    return;
+  }
+
   if (entry->preview_icon_id) {
     return;
   }

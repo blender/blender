@@ -349,11 +349,12 @@ PyDoc_STRVAR(pygpu_texture_read_doc,
 static PyObject *pygpu_texture_read(BPyGPUTexture *self)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
+  eGPUTextureFormat tex_format = GPU_texture_format(self->tex);
 
   /* #GPU_texture_read is restricted in combining 'data_format' with 'tex_format'.
    * So choose data_format here. */
   eGPUDataFormat best_data_format;
-  switch (GPU_texture_format(self->tex)) {
+  switch (tex_format) {
     case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
     case GPU_DEPTH_COMPONENT32F:
@@ -389,8 +390,12 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
   }
 
   void *buf = GPU_texture_read(self->tex, best_data_format, 0);
-  const Py_ssize_t shape[2] = {GPU_texture_height(self->tex), GPU_texture_width(self->tex)};
-  return (PyObject *)BPyGPU_Buffer_CreatePyObject(best_data_format, shape, ARRAY_SIZE(shape), buf);
+  const Py_ssize_t shape[3] = {GPU_texture_height(self->tex),
+                               GPU_texture_width(self->tex),
+                               GPU_texture_component_len(tex_format)};
+
+  int shape_len = (shape[2] == 1) ? 2 : 3;
+  return (PyObject *)BPyGPU_Buffer_CreatePyObject(best_data_format, shape, shape_len, buf);
 }
 
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD

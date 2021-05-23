@@ -757,7 +757,7 @@ typedef struct v2dViewZoomData {
 } v2dViewZoomData;
 
 /**
- * Clamp by convention rather then locking flags,
+ * Clamp by convention rather than locking flags,
  * for ndof and +/- keys
  */
 static void view_zoom_axis_lock_defaults(bContext *C, bool r_do_zoom_xy[2])

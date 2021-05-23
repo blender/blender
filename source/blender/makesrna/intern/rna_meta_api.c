@@ -35,7 +35,7 @@
 #include "rna_internal.h" /* own include */
 
 #ifdef RNA_RUNTIME
-static void rna_Meta_transform(struct MetaBall *mb, float *mat)
+static void rna_Meta_transform(struct MetaBall *mb, float mat[16])
 {
   BKE_mball_transform(mb, (float(*)[4])mat, true);
 

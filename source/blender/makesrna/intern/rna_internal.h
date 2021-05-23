@@ -476,7 +476,7 @@ void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_GEOMETRY_NODES
+#ifdef WITH_SIMULATION_DATABLOCK
 void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 
