@@ -479,7 +479,9 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 static std::string read_pipe(data_offer_t *data_offer, const std::string mime_receive)
 {
   int pipefd[2];
-  pipe(pipefd);
+  if (pipe(pipefd) != 0) {
+    return {};
+  }
   wl_data_offer_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
   close(pipefd[1]);
 
@@ -514,7 +516,9 @@ static void data_source_send(void *data,
                              int32_t fd)
 {
   const char *const buffer = static_cast<char *>(data);
-  write(fd, buffer, strlen(buffer) + 1);
+  if (write(fd, buffer, strlen(buffer) + 1) < 0) {
+    GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
+  }
   close(fd);
 }
 
