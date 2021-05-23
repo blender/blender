@@ -171,7 +171,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   xdg_surface_add_listener(w->xdg_surface, &surface_listener, w);
   xdg_toplevel_add_listener(w->xdg_toplevel, &toplevel_listener, w);
 
-  if (parentWindow) {
+  if (parentWindow && is_dialog) {
     xdg_toplevel_set_parent(
         w->xdg_toplevel, dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->w->xdg_toplevel);
   }
