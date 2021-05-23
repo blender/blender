@@ -25,16 +25,20 @@
 
 #include <limits.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
@@ -69,7 +73,10 @@ all other attributes.
 
 To test, enable #if 0 branch in sculpt_draw_cb in draw_manager_data.c
 */
+
 //#define QUANTIZED_PERF_TEST
+
+//#define NEW_ATTR_SYSTEM
 
 struct GPU_PBVH_Buffers {
   GPUIndexBuf *index_buf, *index_buf_fast;
@@ -115,12 +122,227 @@ struct GPU_PBVH_Buffers {
 #endif
 };
 
+#ifdef NEW_ATTR_SYSTEM
+typedef struct CDLayerType {
+  int type;
+  char gpu_attr_name[32];
+  GPUVertCompType source_type;
+  GPUVertCompType comp_type;
+  uint comp_len;
+  GPUVertFetchMode fetch_mode;
+  char gpu_attr_code[8];
+} CDLayerType;
+
+typedef struct CDAttrLayers {
+  CDLayerType type;
+  uint totlayer;
+  uint *layers;
+  int *offsets;
+  uint *attrs;
+} CDAttrLayers;
+#endif
+
 static struct {
   GPUVertFormat format;
   uint pos, nor, msk, fset, uv;
   uint col[MAX_MCOL];
   int totcol;
+
+#ifdef NEW_ATTR_SYSTEM
+  CDAttrLayers *vertex_attrs;
+  CDAttrLayers *loop_attrs;
+  int vertex_attrs_len;
+  int loop_attrs_len;
+#endif
 } g_vbo_id = {{0}};
+
+#ifdef NEW_ATTR_SYSTEM
+static CDLayerType cd_vert_layers[] = {
+    {CD_PROP_COLOR, "c", GPU_COMP_F32, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT, "c"}};
+static CDLayerType cd_loop_layers[] = {
+    {CD_MLOOPUV, "uvs", GPU_COMP_F32, GPU_COMP_F32, 2, GPU_FETCH_FLOAT, "u"}};
+
+static void build_cd_layers(GPUVertFormat *format,
+                            CDAttrLayers *cdattr,
+                            CustomData *cd,
+                            CDLayerType *type)
+{
+  uint *layers = NULL;
+  int *offsets = NULL;
+  uint *attrs = NULL;
+
+  BLI_array_declare(layers);
+  BLI_array_declare(offsets);
+  BLI_array_declare(attrs);
+
+  cdattr->type = *type;
+  cdattr->totlayer = 0;
+
+  int act = 0;
+  int actidx = CustomData_get_active_layer_index(cd, type->type);
+
+  for (int i = 0; i < cd->totlayer; i++) {
+    CustomDataLayer *cl = cd->layers + i;
+
+    if (cl->type != type->type || (cl->flag & CD_FLAG_TEMPORARY)) {
+      continue;
+    }
+
+    cdattr->totlayer++;
+
+    /*
+              g_vbo_id.col[ci++] = GPU_vertformat_attr_add(
+              &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+          g_vbo_id.totcol++;
+
+          DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", vdata, cl);
+
+          if (idx == act) {
+            GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
+          }
+
+    */
+
+    uint attr = GPU_vertformat_attr_add(
+        format, type->gpu_attr_name, type->comp_type, type->comp_len, type->fetch_mode);
+
+    BLI_array_append(layers, i);
+    BLI_array_append(offsets, cl->offset);
+    BLI_array_append(attrs, attr);
+
+    DRW_make_cdlayer_attr_aliases(format, type->gpu_attr_code, cd, cl);
+
+    if (i == actidx) {
+      char buf[128];
+
+      BLI_snprintf(buf, sizeof(buf), "a%s", type->gpu_attr_code);
+      GPU_vertformat_alias_add(&g_vbo_id.format, buf);
+    }
+  }
+
+  cdattr->offsets = offsets;
+  cdattr->layers = layers;
+  cdattr->attrs = attrs;
+}
+
+/*must match GPUVertCompType*/
+static int gpu_comp_map[] = {
+    1,  //  GPU_COMP_I8 = 0,
+    1,  // GPU_COMP_U8,
+    2,  // GPU_COMP_I16,
+    2,  // GPU_COMP_U16,
+    4,  // GPU_COMP_I32,
+    4,  // GPU_COMP_U32,
+
+    4,  // GPU_COMP_F32,
+
+    4  // GPU_COMP_I10,
+};
+
+ATTR_NO_OPT static void convert_gpu_data(void *src,
+                                         void *dst,
+                                         GPUVertCompType srcType,
+                                         GPUVertCompType dstType)
+{
+  if (srcType == dstType) {
+    memcpy(dst, src, gpu_comp_map[(int)srcType]);
+    return;
+  }
+
+  double val = 0;
+
+  switch (srcType) {
+    case GPU_COMP_I8:
+      val = ((float)*((signed char *)(src))) / 127.0;
+      break;
+    case GPU_COMP_U8:
+      val = ((float)*((unsigned char *)(src))) / 255.0;
+      break;
+    case GPU_COMP_I16:
+      val = ((float)*((unsigned short *)(src))) / 32767.0;
+      break;
+    case GPU_COMP_U16:
+      val = ((float)*((signed short *)(src))) / 65535.0;
+      break;
+    case GPU_COMP_I32:
+      val = ((float)*((signed int *)(src))) / 2147483647.0;
+      break;
+    case GPU_COMP_U32:
+      val = ((float)*((unsigned int *)(src))) / 4294967295.0;
+      break;
+    case GPU_COMP_F32:
+      val = *(float *)src;
+      break;
+    case GPU_COMP_I10:  // handle elsewhere
+      break;
+  }
+
+  switch (dstType) {
+    case GPU_COMP_I8:
+      *((signed char *)dst) = (signed char)(val * 127.0);
+      break;
+    case GPU_COMP_U8:
+      *((unsigned char *)dst) = (unsigned char)(val * 255.0);
+      break;
+    case GPU_COMP_I16:
+      *((signed short *)dst) = (signed short)(val * 32767.0);
+      break;
+    case GPU_COMP_U16:
+      *((unsigned short *)dst) = (unsigned short)(val * 65535.0);
+      break;
+    case GPU_COMP_I32:
+      *((signed int *)dst) = (signed int)(val * 2147483647.0);
+      break;
+    case GPU_COMP_U32:
+      *((unsigned int *)dst) = (unsigned int)(val * 4294967295.0);
+      break;
+    case GPU_COMP_F32:
+      *((float *)dst) = (float)val;
+      break;
+    case GPU_COMP_I10:  // handle elsewhere
+      break;
+  }
+}
+
+/*
+  GPUVertBuf *vert_buf
+  GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, v->co);
+*/
+
+ATTR_NO_OPT static void set_cd_data_bmesh(
+    GPUVertBuf *vert_buf, CDAttrLayers *attr_array, int attr_array_len, BMElem *elem, int vertex)
+{
+  for (int i = 0; i < attr_array_len; i++) {
+    CDAttrLayers *attr = attr_array + i;
+
+    int dst_size = gpu_comp_map[(int)attr->type.comp_type];
+    int src_size = gpu_comp_map[(int)attr->type.source_type];
+    void *dest = alloca(dst_size *
+                        attr->type.comp_len);  // ensure proper alignment by making this a
+    void *dest2 = dest;
+
+    for (int j = 0; j < attr->totlayer; j++) {
+      void *data = BM_ELEM_CD_GET_VOID_P(elem, attr->offsets[j]);
+
+      for (int k = 0; k < attr->type.comp_len; k++) {
+        convert_gpu_data(data, dest2, attr->type.source_type, attr->type.comp_type);
+
+        data = (void *)(((char *)data) + src_size);
+        dest2 = (void *)(((char *)dest2) + dst_size);
+      }
+
+      GPU_vertbuf_attr_set(vert_buf, attr->attrs[j], vertex, dest);
+    }
+  }
+}
+
+static void free_cd_layers(CDAttrLayers *cdattr)
+{
+  MEM_SAFE_FREE(cdattr->layers);
+  MEM_SAFE_FREE(cdattr->offsets);
+  MEM_SAFE_FREE(cdattr->attrs);
+}
+#endif
 
 /** \} */
 
@@ -825,6 +1047,13 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
   /* Vertex should always be visible if it's used by a visible face. */
   BLI_assert(!BM_elem_flag_test(v, BM_ELEM_HIDDEN));
 
+#ifdef NEW_ATTR_SYSTEM
+  // static void set_cd_data_bmesh(GPUVertBuf *vert_buf, CDAttrLayers *attr, BMElem *elem, int
+  // vertex)
+  set_cd_data_bmesh(
+      vert_buf, g_vbo_id.vertex_attrs, g_vbo_id.vertex_attrs_len, (BMElem *)v, v_index);
+#endif
+
   /* Set coord, normal, and mask */
   GPU_vertbuf_attr_set(vert_buf, g_vbo_id.pos, v_index, v->co);
 
@@ -846,6 +1075,7 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
     *empty_mask = *empty_mask && (cmask == 0);
   }
 
+#ifndef NEW_ATTR_SYSTEM
   if (show_vcol && totvcol > 0) {
     for (int i = 0; i < totvcol; i++) {
       ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
@@ -865,6 +1095,12 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
     const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[0], v_index, vcol);
   }
+#else
+  if (show_vcol && totvcol == 0) {  // ensure first vcol attribute is not zero
+    const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+    GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col[0], v_index, vcol);
+  }
+#endif
 
   /* Add default face sets color to avoid artifacts. */
   const uchar face_set[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
@@ -986,6 +1222,7 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata, bool 
 {
   GPU_vertformat_clear(&g_vbo_id.format);
 
+  // g_vbo_id.loop_attrs = build_cd_layers(vdata, )
   /* Initialize vertex buffer (match 'VertexBufferFormat'). */
   if (g_vbo_id.format.attr_len == 0) {
 #ifdef QUANTIZED_PERF_TEST
@@ -1011,6 +1248,45 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata, bool 
 
     g_vbo_id.totcol = 0;
 
+#ifdef NEW_ATTR_SYSTEM
+    if (g_vbo_id.loop_attrs) {
+      free_cd_layers(g_vbo_id.loop_attrs);
+    }
+    if (g_vbo_id.vertex_attrs) {
+      free_cd_layers(g_vbo_id.vertex_attrs);
+    }
+
+    CDAttrLayers *vattr = NULL, *lattr = NULL;
+    BLI_array_declare(vattr);
+    BLI_array_declare(lattr);
+
+    for (int i = 0; vdata && i < ARRAY_SIZE(cd_vert_layers); i++) {
+      if (!CustomData_has_layer(vdata, cd_vert_layers[i].type)) {
+        continue;
+      }
+
+      CDAttrLayers attr;
+      build_cd_layers(&g_vbo_id.format, &attr, vdata, cd_vert_layers + i);
+      BLI_array_append(vattr, attr);
+    }
+
+    for (int i = 0; ldata && i < ARRAY_SIZE(cd_loop_layers); i++) {
+      if (!CustomData_has_layer(ldata, cd_loop_layers[i].type)) {
+        continue;
+      }
+
+      CDAttrLayers attr;
+      build_cd_layers(&g_vbo_id.format, &attr, ldata, cd_loop_layers + i);
+      BLI_array_append(lattr, attr);
+    }
+
+    g_vbo_id.vertex_attrs = vattr;
+    g_vbo_id.loop_attrs = lattr;
+    g_vbo_id.vertex_attrs_len = BLI_array_len(vattr);
+    g_vbo_id.loop_attrs_len = BLI_array_len(lattr);
+#endif
+
+#ifndef NEW_ATTR_SYSTEM
     if (vdata && CustomData_has_layer(vdata, CD_PROP_COLOR)) {
       const int cd_vcol_index = CustomData_get_layer_index(vdata, CD_PROP_COLOR);
       const int act = CustomData_get_active_layer_index(vdata, CD_PROP_COLOR);
@@ -1047,7 +1323,17 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata, bool 
 
       GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
     }
+#else
+    // ensure at least one vertex color layer
+    if (!vdata || !CustomData_has_layer(vdata, CD_PROP_COLOR)) {
+      g_vbo_id.col[0] = GPU_vertformat_attr_add(
+          &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      g_vbo_id.totcol = 1;
 
+      GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
+    }
+
+#endif
     g_vbo_id.fset = GPU_vertformat_attr_add(
         &g_vbo_id.format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
