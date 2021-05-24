@@ -529,9 +529,8 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
-  /* Both contain edge indices encoded as *void. */
-  BLI_LINKSTACK_DECLARE(queue, void *);
-  BLI_LINKSTACK_DECLARE(queue_next, void *);
+  BLI_LINKSTACK_DECLARE(queue, BMEdge *);
+  BLI_LINKSTACK_DECLARE(queue_next, BMEdge *);
 
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
@@ -596,7 +595,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
       continue;
     }
     if (dists[v1_i] != FLT_MAX || dists[v2_i] != FLT_MAX) {
-      BLI_LINKSTACK_PUSH(queue, (void *)e);
+      BLI_LINKSTACK_PUSH(queue, e);
     }
 
     i++;
@@ -664,7 +663,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
 
                 if (ok) {
                   BLI_BITMAP_ENABLE(edge_tag, e_other_i);
-                  BLI_LINKSTACK_PUSH(queue_next, (void *)e_other);
+                  BLI_LINKSTACK_PUSH(queue_next, e_other);
                 }
               }
             }

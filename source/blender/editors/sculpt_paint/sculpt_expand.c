@@ -2061,8 +2061,8 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
     return;
   }
 
-  BLI_LINKSTACK_DECLARE(queue, void *);
-  BLI_LINKSTACK_DECLARE(queue_next, void *);
+  BLI_LINKSTACK_DECLARE(queue, BMFace *);
+  BLI_LINKSTACK_DECLARE(queue_next, BMFace *);
 
   BLI_LINKSTACK_INIT(queue);
   BLI_LINKSTACK_INIT(queue_next);
@@ -2110,7 +2110,7 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
         r_face_sets[f_index] = other_id;
       }
       else {
-        BLI_LINKSTACK_PUSH(queue_next, (void *)bf);
+        BLI_LINKSTACK_PUSH(queue_next, bf);
       }
     }
 
