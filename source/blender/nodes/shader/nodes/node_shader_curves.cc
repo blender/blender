@@ -47,7 +47,7 @@ static void node_shader_exec_curve_vec(void *UNUSED(data),
   /* stack order input:  vec */
   /* stack order output: vec */
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluate3F((CurveMapping *)node->storage, out[0]->vec, vec);
 }
 
 static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
@@ -64,7 +64,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
   float *array, layer;
   int size;
 
-  CurveMapping *cumap = node->storage;
+  CurveMapping *cumap = (CurveMapping *)node->storage;
 
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
@@ -145,7 +145,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data),
   /* stack order output: vec */
   nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluateRGBF((CurveMapping *)node->storage, out[0]->vec, vec);
   if (fac != 1.0f) {
     interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, fac);
   }
@@ -166,7 +166,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
   int size;
   bool use_opti = true;
 
-  CurveMapping *cumap = node->storage;
+  CurveMapping *cumap = (CurveMapping *)node->storage;
 
   BKE_curvemapping_init(cumap);
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
