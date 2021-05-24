@@ -51,7 +51,6 @@
 #    pragma clang diagnostic error "-Wimplicit-float-conversion"
 #    pragma clang diagnostic error "-Wimplicit-int-conversion"
 #    pragma clang diagnostic error "-Wimplicit-int"
-#    pragma clang diagnostic error "-Wimplicit-function-declaration"
 #  else
 #    pragma warning(error : 4018) /* signed/unsigned mismatch */
 #    pragma warning(error : 4244) /* conversion from 'type1' to 'type2', possible loss of data */
