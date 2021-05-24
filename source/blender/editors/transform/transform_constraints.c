@@ -975,7 +975,6 @@ void initSelectConstraint(TransInfo *t)
   }
 
   setUserConstraint(t, CON_APPLY | CON_SELECT, "%s");
-  setNearestAxis(t);
 }
 
 void selectConstraint(TransInfo *t)
