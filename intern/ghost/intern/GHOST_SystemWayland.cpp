@@ -800,7 +800,11 @@ static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
   cursor_t *cursor = static_cast<cursor_t *>(data);
 
   wl_buffer_destroy(wl_buffer);
-  cursor->buffer = nullptr;
+
+  if (wl_buffer == cursor->buffer) {
+    /* the mapped buffer was from a custom cursor */
+    cursor->buffer = nullptr;
+  }
 }
 
 const struct wl_buffer_listener cursor_buffer_listener = {
@@ -1697,23 +1701,20 @@ void GHOST_SystemWayland::setSelection(const std::string &selection)
 
 static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
 {
-  input->cursor.visible = (buffer != nullptr);
+  cursor_t *c = &input->cursor;
 
-  wl_surface_attach(input->cursor.surface, buffer, 0, 0);
-  wl_surface_commit(input->cursor.surface);
+  c->visible = (buffer != nullptr);
 
-  if (input->cursor.visible) {
-    wl_surface_damage(input->cursor.surface,
-                      0,
-                      0,
-                      int32_t(input->cursor.image.width),
-                      int32_t(input->cursor.image.height));
-    wl_pointer_set_cursor(input->pointer,
-                          input->pointer_serial,
-                          input->cursor.surface,
-                          int32_t(input->cursor.image.hotspot_x) / input->cursor.scale,
-                          int32_t(input->cursor.image.hotspot_y) / input->cursor.scale);
-  }
+  wl_surface_attach(c->surface, buffer, 0, 0);
+
+  wl_surface_damage(c->surface, 0, 0, int32_t(c->image.width), int32_t(c->image.height));
+  wl_pointer_set_cursor(input->pointer,
+                        input->pointer_serial,
+                        c->visible ? c->surface : nullptr,
+                        int32_t(c->image.hotspot_x) / c->scale,
+                        int32_t(c->image.hotspot_y) / c->scale);
+
+  wl_surface_commit(c->surface);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
