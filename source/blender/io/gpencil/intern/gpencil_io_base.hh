@@ -50,7 +50,7 @@ class GpencilIO {
   GpencilIO(const GpencilIOParams *iparams);
 
   void frame_number_set(const int value);
-  void prepare_camera_params(const GpencilIOParams *iparams);
+  void prepare_camera_params(Scene *scene, const GpencilIOParams *iparams);
 
  protected:
   GpencilIOParams params_;
