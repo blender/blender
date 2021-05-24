@@ -31,6 +31,31 @@
 
 namespace blender::compositor {
 
+PlaneDistortBaseOperation::PlaneDistortBaseOperation()
+    : m_motion_blur_samples(1), m_motion_blur_shutter(0.5f)
+{
+}
+
+void PlaneDistortBaseOperation::calculateCorners(const float corners[4][2],
+                                                 bool normalized,
+                                                 int sample)
+{
+  BLI_assert(sample < this->m_motion_blur_samples);
+  MotionSample *sample_data = &this->m_samples[sample];
+  if (normalized) {
+    for (int i = 0; i < 4; i++) {
+      sample_data->frameSpaceCorners[i][0] = corners[i][0] * this->getWidth();
+      sample_data->frameSpaceCorners[i][1] = corners[i][1] * this->getHeight();
+    }
+  }
+  else {
+    for (int i = 0; i < 4; i++) {
+      sample_data->frameSpaceCorners[i][0] = corners[i][0];
+      sample_data->frameSpaceCorners[i][1] = corners[i][1];
+    }
+  }
+}
+
 /* ******** PlaneDistort WarpImage ******** */
 
 BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], float deriv[2][2])
@@ -46,13 +71,11 @@ BLI_INLINE void warpCoord(float x, float y, float matrix[3][3], float uv[2], flo
   deriv[1][1] = (matrix[1][1] - matrix[1][2] * uv[1]) / vec[2];
 }
 
-PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation()
+PlaneDistortWarpImageOperation::PlaneDistortWarpImageOperation() : PlaneDistortBaseOperation()
 {
   this->addInputSocket(DataType::Color, ResizeMode::None);
   this->addOutputSocket(DataType::Color);
   this->m_pixelReader = nullptr;
-  this->m_motion_blur_samples = 1;
-  this->m_motion_blur_shutter = 0.5f;
   this->flags.complex = true;
 }
 
@@ -60,24 +83,13 @@ void PlaneDistortWarpImageOperation::calculateCorners(const float corners[4][2],
                                                       bool normalized,
                                                       int sample)
 {
-  BLI_assert(sample < this->m_motion_blur_samples);
+  PlaneDistortBaseOperation::calculateCorners(corners, normalized, sample);
+
   const int width = this->m_pixelReader->getWidth();
   const int height = this->m_pixelReader->getHeight();
   float frame_corners[4][2] = {
       {0.0f, 0.0f}, {(float)width, 0.0f}, {(float)width, (float)height}, {0.0f, (float)height}};
   MotionSample *sample_data = &this->m_samples[sample];
-  if (normalized) {
-    for (int i = 0; i < 4; i++) {
-      sample_data->frameSpaceCorners[i][0] = corners[i][0] * this->getWidth();
-      sample_data->frameSpaceCorners[i][1] = corners[i][1] * this->getHeight();
-    }
-  }
-  else {
-    for (int i = 0; i < 4; i++) {
-      sample_data->frameSpaceCorners[i][0] = corners[i][0];
-      sample_data->frameSpaceCorners[i][1] = corners[i][1];
-    }
-  }
   BKE_tracking_homography_between_two_quads(
       sample_data->frameSpaceCorners, frame_corners, sample_data->perspectiveMatrix);
 }
@@ -147,34 +159,12 @@ bool PlaneDistortWarpImageOperation::determineDependingAreaOfInterest(
 
 /* ******** PlaneDistort Mask ******** */
 
-PlaneDistortMaskOperation::PlaneDistortMaskOperation()
+PlaneDistortMaskOperation::PlaneDistortMaskOperation() : PlaneDistortBaseOperation()
 {
   addOutputSocket(DataType::Value);
 
   /* Currently hardcoded to 8 samples. */
   m_osa = 8;
-  this->m_motion_blur_samples = 1;
-  this->m_motion_blur_shutter = 0.5f;
-}
-
-void PlaneDistortMaskOperation::calculateCorners(const float corners[4][2],
-                                                 bool normalized,
-                                                 int sample)
-{
-  BLI_assert(sample < this->m_motion_blur_samples);
-  MotionSample *sample_data = &this->m_samples[sample];
-  if (normalized) {
-    for (int i = 0; i < 4; i++) {
-      sample_data->frameSpaceCorners[i][0] = corners[i][0] * this->getWidth();
-      sample_data->frameSpaceCorners[i][1] = corners[i][1] * this->getHeight();
-    }
-  }
-  else {
-    for (int i = 0; i < 4; i++) {
-      sample_data->frameSpaceCorners[i][0] = corners[i][0];
-      sample_data->frameSpaceCorners[i][1] = corners[i][1];
-    }
-  }
 }
 
 void PlaneDistortMaskOperation::initExecution()
