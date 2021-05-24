@@ -465,7 +465,7 @@ static void bm_log_faces_unmake(
 
     BMLoop *ls[3] = {f->l_first, f->l_first->next, f->l_first->prev};
 
-    for (int i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
       if (lf->customdata[i]) {
         CustomData_bmesh_copy_data(
             &bm->ldata, &entry->ldata, ls[i]->head.data, &lf->customdata[i]);

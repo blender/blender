@@ -1504,14 +1504,14 @@ static bool layerValidate_propfloat2(void *data, const uint totitems, const bool
   return has_errors;
 }
 
-void layerDynTopoVert_copy(const void *source, void *dest, int count)
+static void layerDynTopoVert_copy(const void *source, void *dest, int count)
 {
   const MDynTopoVert *mv = (MDynTopoVert *)dest;
 
   memcpy(dest, source, count * sizeof(MDynTopoVert));
 }
 
-void layerDynTopoVert_interp(
+static void layerDynTopoVert_interp(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest)
 {
   float co[3], no[3], origmask, color[4];
