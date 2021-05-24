@@ -1883,6 +1883,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       break;
 
     case GHOST_kGrabNormal:
+      break;
     case GHOST_kGrabWrap:
       input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
           d->relative_pointer_manager, input->pointer);
