@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
@@ -49,6 +50,11 @@ static void subdiv_ccg_average_all_boundaries_and_corners(SubdivCCG *subdiv_ccg,
 static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
                                                 CCGKey *key,
                                                 SubdivCCGFace *face);
+
+void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
+                                                     CCGKey *key,
+                                                     struct CCGFace **effected_faces,
+                                                     int num_effected_faces);
 
 /** \} */
 
@@ -889,11 +895,12 @@ void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
     return;
   }
   subdiv_ccg_recalc_modified_inner_grid_normals(subdiv_ccg, effected_faces, num_effected_faces);
-  /* TODO(sergey): Only average elements which are adjacent to modified
-   * faces. */
+
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
-  subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
+
+  subdiv_ccg_average_faces_boundaries_and_corners(
+      subdiv_ccg, &key, effected_faces, num_effected_faces);
 }
 
 /** \} */
@@ -1032,6 +1039,9 @@ static void subdiv_ccg_average_inner_grids_task(void *__restrict userdata_v,
 typedef struct AverageGridsBoundariesData {
   SubdivCCG *subdiv_ccg;
   CCGKey *key;
+
+  /* Optional lookup table. Maps task range index to index in subdiv_ccg->adjacent_edges*/
+  int *idxmap;
 } AverageGridsBoundariesData;
 
 typedef struct AverageGridsBoundariesTLSData {
@@ -1079,10 +1089,12 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
 }
 
 static void subdiv_ccg_average_grids_boundaries_task(void *__restrict userdata_v,
-                                                     const int adjacent_edge_index,
+                                                     const int n,
                                                      const TaskParallelTLS *__restrict tls_v)
 {
   AverageGridsBoundariesData *data = userdata_v;
+  const int adjacent_edge_index = data->idxmap ? data->idxmap[n] : n;
+
   AverageGridsBoundariesTLSData *tls = tls_v->userdata_chunk;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   CCGKey *key = data->key;
@@ -1100,6 +1112,9 @@ static void subdiv_ccg_average_grids_boundaries_free(const void *__restrict UNUS
 typedef struct AverageGridsCornerData {
   SubdivCCG *subdiv_ccg;
   CCGKey *key;
+
+  /* Optional lookup table. Maps task range index to index in subdiv_ccg->adjacent_vertices*/
+  int *idxmap;
 } AverageGridsCornerData;
 
 static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
@@ -1128,10 +1143,11 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
 }
 
 static void subdiv_ccg_average_grids_corners_task(void *__restrict userdata_v,
-                                                  const int adjacent_vertex_index,
+                                                  const int n,
                                                   const TaskParallelTLS *__restrict UNUSED(tls_v))
 {
   AverageGridsCornerData *data = userdata_v;
+  const int adjacent_vertex_index = data->idxmap ? data->idxmap[n] : n;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   CCGKey *key = data->key;
   SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[adjacent_vertex_index];
@@ -1143,9 +1159,7 @@ static void subdiv_ccg_average_all_boundaries(SubdivCCG *subdiv_ccg, CCGKey *key
   TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   AverageGridsBoundariesData boundaries_data = {
-      .subdiv_ccg = subdiv_ccg,
-      .key = key,
-  };
+      .subdiv_ccg = subdiv_ccg, .key = key, .idxmap = NULL};
   AverageGridsBoundariesTLSData tls_data = {NULL};
   parallel_range_settings.userdata_chunk = &tls_data;
   parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
@@ -1161,10 +1175,7 @@ static void subdiv_ccg_average_all_corners(SubdivCCG *subdiv_ccg, CCGKey *key)
 {
   TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
-  AverageGridsCornerData corner_data = {
-      .subdiv_ccg = subdiv_ccg,
-      .key = key,
-  };
+  AverageGridsCornerData corner_data = {.subdiv_ccg = subdiv_ccg, .key = key, .idxmap = NULL};
   BLI_task_parallel_range(0,
                           subdiv_ccg->num_adjacent_vertices,
                           &corner_data,
@@ -1196,6 +1207,108 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
                           subdiv_ccg_average_inner_grids_task,
                           &parallel_range_settings);
   subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
+}
+
+void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
+                                                     CCGKey *key,
+                                                     struct CCGFace **effected_faces,
+                                                     int num_effected_faces)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  GSet *adjacent_verts = BLI_gset_ptr_new(__func__);
+  GSet *adjacent_edges = BLI_gset_ptr_new(__func__);
+  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  GSetIterator gi;
+
+  StaticOrHeapIntStorage face_vertices_storage;
+  StaticOrHeapIntStorage face_edges_storage;
+  static_or_heap_storage_init(&face_vertices_storage);
+  static_or_heap_storage_init(&face_edges_storage);
+
+  for (int i = 0; i < num_effected_faces; i++) {
+    SubdivCCGFace *face = (SubdivCCGFace *)effected_faces[i];
+    int face_index = face - subdiv_ccg->faces;
+    const int num_face_grids = face->num_grids;
+    const int num_face_edges = num_face_grids;
+    int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_edges);
+    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
+
+    /* Note that order of edges is same as order of MLoops, which also
+     * means it's the same as order of grids. */
+    int *face_edges = static_or_heap_storage_get(&face_edges_storage, num_face_edges);
+    topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges);
+    for (int corner = 0; corner < num_face_edges; corner++) {
+      const int vertex_index = face_vertices[corner];
+      const int edge_index = face_edges[corner];
+
+      int edge_vertices[2];
+      topology_refiner->getEdgeVertices(topology_refiner, edge_index, edge_vertices);
+      const bool is_edge_flipped = (edge_vertices[0] != vertex_index);
+      /* Grid which is adjacent to the current corner. */
+      const int current_grid_index = face->start_grid_index + corner;
+      /* Grid which is adjacent to the next corner. */
+      const int next_grid_index = face->start_grid_index + (corner + 1) % num_face_grids;
+
+      SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[edge_index];
+
+      BLI_gset_add(adjacent_edges, adjacent_edge);
+
+      /* Grid which is adjacent to the current corner. */
+      const int grid_index = face->start_grid_index + corner;
+
+      SubdivCCGAdjacentVertex *adjacent_vertex = &subdiv_ccg->adjacent_vertices[vertex_index];
+      BLI_gset_add(adjacent_verts, adjacent_vertex);
+    }
+  }
+
+  static_or_heap_storage_free(&face_vertices_storage);
+  static_or_heap_storage_free(&face_edges_storage);
+
+  /* first do boundaries */
+  int *idxmap = MEM_mallocN(sizeof(*idxmap) * BLI_gset_len(adjacent_edges), "idxmap");
+  int i = 0;
+
+  GSET_ITER_INDEX (gi, adjacent_edges, i) {
+    SubdivCCGAdjacentEdge *adjacent_edge = BLI_gsetIterator_getKey(&gi);
+    idxmap[i] = adjacent_edge - subdiv_ccg->adjacent_edges;
+  }
+
+  TaskParallelSettings parallel_range_settings;
+  BLI_parallel_range_settings_defaults(&parallel_range_settings);
+  AverageGridsBoundariesData boundaries_data = {
+      .subdiv_ccg = subdiv_ccg, .key = key, .idxmap = idxmap};
+  AverageGridsBoundariesTLSData tls_data = {NULL};
+  parallel_range_settings.userdata_chunk = &tls_data;
+  parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
+  parallel_range_settings.func_free = subdiv_ccg_average_grids_boundaries_free;
+  BLI_task_parallel_range(0,
+                          BLI_gset_len(adjacent_edges),
+                          &boundaries_data,
+                          subdiv_ccg_average_grids_boundaries_task,
+                          &parallel_range_settings);
+
+  /*now do corners*/
+  MEM_SAFE_FREE(idxmap);
+
+  idxmap = MEM_mallocN(sizeof(*idxmap) * BLI_gset_len(adjacent_verts), "idxmap");
+
+  GSET_ITER_INDEX (gi, adjacent_verts, i) {
+    SubdivCCGAdjacentVertex *adjacent_vertex = BLI_gsetIterator_getKey(&gi);
+    idxmap[i] = adjacent_vertex - subdiv_ccg->adjacent_vertices;
+  }
+
+  AverageGridsCornerData corner_data = {.subdiv_ccg = subdiv_ccg, .key = key, .idxmap = idxmap};
+
+  BLI_parallel_range_settings_defaults(&parallel_range_settings);
+  BLI_task_parallel_range(0,
+                          BLI_gset_len(adjacent_verts),
+                          &corner_data,
+                          subdiv_ccg_average_grids_corners_task,
+                          &parallel_range_settings);
+
+  BLI_gset_free(adjacent_verts, NULL);
+  BLI_gset_free(adjacent_edges, NULL);
+  MEM_SAFE_FREE(idxmap);
 }
 
 typedef struct StitchFacesInnerGridsData {

@@ -342,8 +342,8 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
 {
   if (ts->cur >= ts->size) {
     uint newsize = (uint)(ts->cur + 1);
-    newsize = (newsize << 1) - (newsize >> 1);
-    newsize = MAX2(newsize, 8);
+    newsize = (newsize << 1U) - (newsize >> 1U);
+    newsize = MAX2(newsize, 8U);
 
     if (!ts->elems) {
       ts->elems = (void *)MEM_mallocN(sizeof(void *) * newsize, "ts->elems");

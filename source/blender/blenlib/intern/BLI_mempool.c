@@ -281,7 +281,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
     BLI_freenode *last_tail = NULL;
 
     /* Allocate the actual chunks. */
-    for (int i = 0; i < pool->maxchunks; i++) {
+    for (uint i = 0; i < pool->maxchunks; i++) {
       BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
       last_tail = mempool_chunk_add(pool, mpchunk, last_tail);
     }
@@ -304,7 +304,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   pool->totused = totalloc;
   pool->free = NULL;
 
-  int i = pool->pchunk - 1;
+  int i = (int)pool->pchunk - 1;
 
   while (lastchunk && totalloc > totelem) {
     if (i < 0) {

@@ -587,7 +587,7 @@ static void bm_log_vert_values_swap(
     if (lv->customdata) {
       if (v->head.data) {
         old_cdata = scratch;
-        memcpy(old_cdata, v->head.data, bm->vdata.totsize);
+        memcpy(old_cdata, v->head.data, (size_t)bm->vdata.totsize);
       }
       CustomData_bmesh_swap_data(&entry->vdata, &bm->vdata, lv->customdata, &v->head.data);
     }
@@ -625,7 +625,7 @@ static void bm_log_face_values_swap(BMLog *log,
 #ifdef CUSTOMDATA
     if (f->head.data) {
       old_cdata = scratch;
-      memcpy(old_cdata, f->head.data, log->bm->pdata.totsize);
+      memcpy(old_cdata, f->head.data, (size_t)log->bm->pdata.totsize);
     }
 
     if (lf->customdata_f) {
@@ -678,7 +678,8 @@ static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
 {
   CustomData_MeshMasks cd_mask_extra = {CD_MASK_DYNTOPO_VERT, 0, 0, 0, 0};
 
-  entry->full_copy_idmap = BLI_ghash_ptr_new_ex("bmlog", bm->totvert + bm->totface);
+  entry->full_copy_idmap = BLI_ghash_ptr_new_ex("bmlog",
+                                                (unsigned int)(bm->totvert + bm->totface));
 
   BM_mesh_elem_index_ensure(bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -693,7 +694,7 @@ static void bm_log_full_mesh_intern(BMesh *bm, BMLog *log, BMLogEntry *entry)
       }
 
       uint id = POINTER_AS_UINT(*val);
-      uintptr_t key = elem->index;
+      uintptr_t key = (size_t)elem->index;
       key |= ((uintptr_t)elem->htype) << 31L;
 
       BLI_ghash_insert(entry->full_copy_idmap, POINTER_FROM_UINT(id), (void *)key);
