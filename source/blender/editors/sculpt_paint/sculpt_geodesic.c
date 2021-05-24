@@ -596,7 +596,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
       continue;
     }
     if (dists[v1_i] != FLT_MAX || dists[v2_i] != FLT_MAX) {
-      BLI_LINKSTACK_PUSH(queue, e);
+      BLI_LINKSTACK_PUSH(queue, (void *)e);
     }
 
     i++;
@@ -664,7 +664,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
 
                 if (ok) {
                   BLI_BITMAP_ENABLE(edge_tag, e_other_i);
-                  BLI_LINKSTACK_PUSH(queue_next, e_other);
+                  BLI_LINKSTACK_PUSH(queue_next, (void *)e_other);
                 }
               }
             }
