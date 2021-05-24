@@ -273,15 +273,6 @@ static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibl
  * Order of applying these conditions is important. */
 static bool must_render_strip(const Sequence *seq, SeqCollection *strips_under_playhead)
 {
-  /* Sound strips are not rendered. */
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    return false;
-  }
-  /* Muted strips are not rendered. */
-  if ((seq->flag & SEQ_MUTE) != 0) {
-    return false;
-  }
-
   bool seq_have_effect_in_stack = false;
   Sequence *seq_iter;
   SEQ_ITERATOR_FOREACH (seq_iter, strips_under_playhead) {
@@ -340,6 +331,15 @@ static void collection_filter_channel_up_to_incl(SeqCollection *collection, cons
 static void collection_filter_rendered_strips(SeqCollection *collection)
 {
   Sequence *seq;
+
+  /* Remove sound strips and muted strips from collection, because these are not rendered.
+   * Function must_render_strip() don't have to check for these strips anymore. */
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
+      SEQ_collection_remove_strip(seq, collection);
+    }
+  }
+
   SEQ_ITERATOR_FOREACH (seq, collection) {
     if (must_render_strip(seq, collection)) {
       continue;
