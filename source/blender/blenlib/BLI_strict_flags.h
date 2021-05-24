@@ -45,6 +45,8 @@
 #endif
 
 #ifdef _MSC_VER
+/* While regular clang defines __GNUC__ and is handled by the code above, clang-cl does not and
+ * needs to be handled separately. */
 #  ifdef __clang__
 #    pragma clang diagnostic error "-Wsign-conversion"
 #    pragma clang diagnostic error "-Wsign-compare"
@@ -52,6 +54,7 @@
 #    pragma clang diagnostic error "-Wimplicit-int-conversion"
 #    pragma clang diagnostic error "-Wimplicit-int"
 #    pragma clang diagnostic error "-Wshadow"
+/* Normal MSVC */
 #  else
 #    pragma warning(error : 4018) /* signed/unsigned mismatch */
 #    pragma warning(error : 4244) /* conversion from 'type1' to 'type2', possible loss of data */

@@ -52,7 +52,7 @@
 #define BLI_LINKSTACK_SIZE(var) BLI_mempool_len(var##_pool_)
 
 /* check for typeof() */
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 #  define BLI_LINKSTACK_PUSH(var, ptr) \
     (CHECK_TYPE_INLINE(ptr, typeof(var##_type_)), \
      BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))

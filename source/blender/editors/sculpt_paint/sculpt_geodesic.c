@@ -175,42 +175,42 @@ static float fast_geodesic_distance_propagate_across_triangle(
 
         xintercept =
             -(0.5 * (dist2 * dist2 - v2lensqr - (dist1 * dist1)) *
-                  fabsf((double)(((v2lensqr - (v2z * v2z)) * v0z - (2 * v0y * v2y * v2z)) * v0z +
-                                 (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
-                                 ((2 * (v0y * v2y + v0z * v2z) * v2x -
-                                   ((v2y * v2y + v2z * v2z) * v0x)) *
-                                  v0x))) -
+                  fabsf((float)(((v2lensqr - (v2z * v2z)) * v0z - (2 * v0y * v2y * v2z)) * v0z +
+                                (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
+                                ((2 * (v0y * v2y + v0z * v2z) * v2x -
+                                  ((v2y * v2y + v2z * v2z) * v0x)) *
+                                 v0x))) -
               ((v0y * v2y + v0z * v2z + v0x * v2x) * the_hh_sqrt * v2len)) /
             ((fabsf(
-                  (double)(((v2lensqr - (v2z * v2z)) * v0z - (2 * v0y * v2y * v2z)) * v0z +
-                           (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
-                           ((2 * (v0y * v2y + v0z * v2z) * v2x - ((v2y * v2y + v2z * v2z) * v0x)) *
-                            v0x))) +
+                  (float)(((v2lensqr - (v2z * v2z)) * v0z - (2 * v0y * v2y * v2z)) * v0z +
+                          (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
+                          ((2 * (v0y * v2y + v0z * v2z) * v2x - ((v2y * v2y + v2z * v2z) * v0x)) *
+                           v0x))) +
               the_hh_sqrt * v2len) *
              v2len);
 
         if (xintercept >= 0.0 && xintercept <= v2len) {
           float result =
-              (0.5 * sqrt((double)((2.0 * (v0y * v2y + v0z * v2z + v0x * v2x) - (dist1 * dist1) +
-                                    (dist2 + v2len) * (dist2 - v2len)) *
-                                       (2.0 * (v0y * v2y + v0z * v2z + v0x * v2x) -
-                                        (dist1 * dist1) + (dist2 + v2len) * (dist2 - v2len)) +
-                                   4.0 * ((fabsf((double)(((v2lensqr - (v2z * v2z)) * v0z -
-                                                           (2 * v0y * v2y * v2z)) *
-                                                              v0z +
-                                                          (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
-                                                          ((2 * (v0y * v2y + v0z * v2z) * v2x -
-                                                            ((v2y * v2y + v2z * v2z) * v0x)) *
-                                                           v0x))) +
-                                           the_hh_sqrt * v2len) *
-                                          (fabsf((double)(((v2lensqr - (v2z * v2z)) * v0z -
-                                                           (2 * v0y * v2y * v2z)) *
-                                                              v0z +
-                                                          (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
-                                                          ((2 * (v0y * v2y + v0z * v2z) * v2x -
-                                                            ((v2y * v2y + v2z * v2z) * v0x)) *
-                                                           v0x))) +
-                                           the_hh_sqrt * v2len))))) /
+              (0.5 * sqrt((float)((2.0 * (v0y * v2y + v0z * v2z + v0x * v2x) - (dist1 * dist1) +
+                                   (dist2 + v2len) * (dist2 - v2len)) *
+                                      (2.0 * (v0y * v2y + v0z * v2z + v0x * v2x) -
+                                       (dist1 * dist1) + (dist2 + v2len) * (dist2 - v2len)) +
+                                  4.0 * ((fabsf((float)(((v2lensqr - (v2z * v2z)) * v0z -
+                                                         (2 * v0y * v2y * v2z)) *
+                                                            v0z +
+                                                        (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
+                                                        ((2 * (v0y * v2y + v0z * v2z) * v2x -
+                                                          ((v2y * v2y + v2z * v2z) * v0x)) *
+                                                         v0x))) +
+                                          the_hh_sqrt * v2len) *
+                                         (fabsf((float)(((v2lensqr - (v2z * v2z)) * v0z -
+                                                         (2 * v0y * v2y * v2z)) *
+                                                            v0z +
+                                                        (v2lensqr - (v2y * v2y)) * (v0y * v0y) -
+                                                        ((2 * (v0y * v2y + v0z * v2z) * v2x -
+                                                          ((v2y * v2y + v2z * v2z) * v0x)) *
+                                                         v0x))) +
+                                          the_hh_sqrt * v2len))))) /
               v2len;
           /*
           printf("%.7f : %.7f\n",

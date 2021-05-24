@@ -2071,7 +2071,7 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
     SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
 
     if (r_face_sets[i] == delete_id) {
-      BLI_LINKSTACK_PUSH(queue, POINTER_FROM_INT(fref.i));
+      BLI_LINKSTACK_PUSH(queue, (BMFace *)(fref.i));
     }
   }
 
