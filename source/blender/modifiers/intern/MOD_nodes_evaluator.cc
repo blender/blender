@@ -1025,7 +1025,7 @@ class GeometryNodesEvaluator {
     /* Get all origin sockets, because we have to tag those as required as well. */
     Vector<DSocket> origin_sockets;
     input_socket.foreach_origin_socket(
-        [&, this](const DSocket origin_socket) { origin_sockets.append(origin_socket); });
+        [&](const DSocket origin_socket) { origin_sockets.append(origin_socket); });
 
     if (origin_sockets.is_empty()) {
       /* If there are no origin sockets, just load the value from the socket directly. */
@@ -1078,7 +1078,7 @@ class GeometryNodesEvaluator {
     }
 
     /* Notify origin nodes that might want to set its inputs as unused as well. */
-    socket.foreach_origin_socket([&, this](const DSocket origin_socket) {
+    socket.foreach_origin_socket([&](const DSocket origin_socket) {
       if (origin_socket->is_input()) {
         /* Values from these sockets are loaded directly from the sockets, so there is no node to
          * notify. */
