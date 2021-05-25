@@ -293,8 +293,8 @@ class CurveRGBFunction : public blender::fn::MultiFunction {
   {
     blender::fn::MFSignatureBuilder signature{"Curve RGB"};
     signature.single_input<float>("Fac");
-    signature.single_input<blender::Color4f>("Color");
-    signature.single_output<blender::Color4f>("Color");
+    signature.single_input<blender::ColorGeometry4f>("Color");
+    signature.single_output<blender::ColorGeometry4f>("Color");
     return signature.build();
   }
 
@@ -303,10 +303,10 @@ class CurveRGBFunction : public blender::fn::MultiFunction {
             blender::fn::MFContext UNUSED(context)) const override
   {
     const blender::VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
-    const blender::VArray<blender::Color4f> &col_in =
-        params.readonly_single_input<blender::Color4f>(1, "Color");
-    blender::MutableSpan<blender::Color4f> col_out =
-        params.uninitialized_single_output<blender::Color4f>(2, "Color");
+    const blender::VArray<blender::ColorGeometry4f> &col_in =
+        params.readonly_single_input<blender::ColorGeometry4f>(1, "Color");
+    blender::MutableSpan<blender::ColorGeometry4f> col_out =
+        params.uninitialized_single_output<blender::ColorGeometry4f>(2, "Color");
 
     for (int64_t i : mask) {
       BKE_curvemapping_evaluateRGBF(&cumap_, col_out[i], col_in[i]);

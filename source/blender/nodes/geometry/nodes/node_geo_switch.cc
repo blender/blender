@@ -134,7 +134,7 @@ static void geo_node_switch_exec(GeoNodeExecParams params)
       break;
     }
     case SOCK_RGBA: {
-      output_input<Color4f>(params, input, "_004", "Output_004");
+      output_input<ColorGeometry4f>(params, input, "_004", "Output_004");
       break;
     }
     case SOCK_STRING: {

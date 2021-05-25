@@ -39,6 +39,7 @@ set(SRC
   intern/BLI_args.c
   intern/BLI_array.c
   intern/BLI_assert.c
+  intern/BLI_color.cc
   intern/BLI_dial_2d.c
   intern/BLI_dynstr.c
   intern/BLI_filelist.c
@@ -389,6 +390,7 @@ if(WITH_GTESTS)
     tests/BLI_array_store_test.cc
     tests/BLI_array_test.cc
     tests/BLI_array_utils_test.cc
+    tests/BLI_color_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
     tests/BLI_edgehash_test.cc

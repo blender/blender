@@ -165,9 +165,10 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
     }
     case CD_PROP_COLOR: {
       const CurveMapping *cumap = (CurveMapping *)node_storage.curve_rgb;
-      GVArray_Typed<Color4f> attribute_in = component.attribute_get_for_read<Color4f>(
-          input_name, result_domain, Color4f(0.0f, 0.0f, 0.0f, 1.0f));
-      MutableSpan<Color4f> results = attribute_result.as_span<Color4f>();
+      GVArray_Typed<ColorGeometry4f> attribute_in =
+          component.attribute_get_for_read<ColorGeometry4f>(
+              input_name, result_domain, ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
+      MutableSpan<ColorGeometry4f> results = attribute_result.as_span<ColorGeometry4f>();
       parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {
         for (const int i : range) {
           BKE_curvemapping_evaluateRGBF(cumap, results[i], attribute_in[i]);

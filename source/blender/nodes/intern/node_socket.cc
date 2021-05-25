@@ -637,9 +637,9 @@ static bNodeSocketType *make_socket_type_vector(PropertySubType subtype)
 static bNodeSocketType *make_socket_type_rgba()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_RGBA, PROP_NONE);
-  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<blender::Color4f>(); };
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<blender::ColorGeometry4f>(); };
   socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
-    *(blender::Color4f *)r_value = ((bNodeSocketValueRGBA *)socket.default_value)->value;
+    *(blender::ColorGeometry4f *)r_value = ((bNodeSocketValueRGBA *)socket.default_value)->value;
   };
   return socktype;
 }
