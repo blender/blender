@@ -113,7 +113,7 @@ void register_node_type_sh_curve_vec(void)
   node_type_init(&ntype, node_shader_init_curve_vec);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_vec);
+  node_type_exec(&ntype, node_initexec_curves, nullptr, node_shader_exec_curve_vec);
   node_type_gpu(&ntype, gpu_shader_curve_vec);
 
   nodeRegisterType(&ntype);
@@ -239,7 +239,7 @@ void register_node_type_sh_curve_rgb(void)
   node_type_init(&ntype, node_shader_init_curve_rgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_rgb);
+  node_type_exec(&ntype, node_initexec_curves, nullptr, node_shader_exec_curve_rgb);
   node_type_gpu(&ntype, gpu_shader_curve_rgb);
 
   nodeRegisterType(&ntype);
