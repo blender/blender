@@ -52,6 +52,7 @@ enum {
 #define SEQ_DUPE_IS_RECURSIVE_CALL (1 << 4)
 
 struct SequencerToolSettings *SEQ_tool_settings_init(void);
+struct SequencerToolSettings *SEQ_tool_settings_ensure(struct Scene *scene);
 void SEQ_tool_settings_free(struct SequencerToolSettings *tool_settings);
 eSeqImageFitMethod SEQ_tool_settings_fit_method_get(struct Scene *scene);
 void SEQ_tool_settings_fit_method_set(struct Scene *scene, eSeqImageFitMethod fit_method);
