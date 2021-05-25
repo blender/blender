@@ -2369,7 +2369,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
   BLI_listbase_clear(&psysn->pathcachebufs);
   BLI_listbase_clear(&psysn->childcachebufs);
 
-  if (flag & LIB_ID_CREATE_NO_MAIN) {
+  if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
     /* XXX Disabled, fails when evaluating depsgraph after copying ID with no main for preview
      * creation. */
     // BLI_assert((psys->flag & PSYS_SHARED_CACHES) == 0);
