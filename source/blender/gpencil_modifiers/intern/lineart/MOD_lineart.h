@@ -93,8 +93,8 @@ typedef struct LineartElementLinkNode {
   float crease_threshold;
 } LineartElementLinkNode;
 
-typedef struct LineartLineSegment {
-  struct LineartLineSegment *next, *prev;
+typedef struct LineartEdgeSegment {
+  struct LineartEdgeSegment *next, *prev;
   /** at==0: left  at==1: right  (this is in 2D projected space) */
   double at;
   /** Occlusion level after "at" point */
@@ -107,7 +107,7 @@ typedef struct LineartLineSegment {
    * enough for most cases.
    */
   unsigned char transparency_mask;
-} LineartLineSegment;
+} LineartEdgeSegment;
 
 typedef struct LineartVert {
   double gloc[3];
@@ -163,8 +163,8 @@ typedef struct LineartEdge {
   struct Object *object_ref;
 } LineartEdge;
 
-typedef struct LineartLineChain {
-  struct LineartLineChain *next, *prev;
+typedef struct LineartEdgeChain {
+  struct LineartEdgeChain *next, *prev;
   ListBase chain;
 
   /** Calculated before draw command. */
@@ -179,10 +179,10 @@ typedef struct LineartLineChain {
   unsigned char transparency_mask;
 
   struct Object *object_ref;
-} LineartLineChain;
+} LineartEdgeChain;
 
-typedef struct LineartLineChainItem {
-  struct LineartLineChainItem *next, *prev;
+typedef struct LineartEdgeChainItem {
+  struct LineartEdgeChainItem *next, *prev;
   /** Need z value for fading */
   float pos[3];
   /** For restoring position to 3d space */
@@ -192,12 +192,12 @@ typedef struct LineartLineChainItem {
   char occlusion;
   unsigned char transparency_mask;
   size_t index;
-} LineartLineChainItem;
+} LineartEdgeChainItem;
 
 typedef struct LineartChainRegisterEntry {
   struct LineartChainRegisterEntry *next, *prev;
-  LineartLineChain *rlc;
-  LineartLineChainItem *rlci;
+  LineartEdgeChain *ec;
+  LineartEdgeChainItem *eci;
   char picked;
 
   /* left/right mark.
@@ -390,7 +390,7 @@ typedef struct LineartBoundingArea {
   short triangle_count;
 
   ListBase linked_triangles;
-  ListBase linked_lines;
+  ListBase linked_edges;
 
   /** Reserved for image space reduction && multi-thread chaining. */
   ListBase linked_chains;
@@ -529,7 +529,7 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
 void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float threshold);
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 
-int MOD_lineart_chain_count(const LineartLineChain *rlc);
+int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(struct LineartRenderBuffer *rb);
 
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
@@ -565,6 +565,6 @@ void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
                                   const char *vgname,
                                   int modifier_flags);
 
-float MOD_lineart_chain_compute_length(LineartLineChain *rlc);
+float MOD_lineart_chain_compute_length(LineartEdgeChain *ec);
 
 void ED_operatortypes_lineart(void);
