@@ -37,6 +37,7 @@ struct LibIDMainSortTestContext {
 
 static void test_lib_id_main_sort_init(LibIDMainSortTestContext *ctx)
 {
+  BKE_idtype_init();
   ctx->bmain = BKE_main_new();
 }
 
