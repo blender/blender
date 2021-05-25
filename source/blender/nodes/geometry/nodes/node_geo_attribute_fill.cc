@@ -110,7 +110,7 @@ static void fill_attribute(GeometryComponent &component, const GeoNodeExecParams
       break;
     }
     case CD_PROP_COLOR: {
-      const ColorGeometry4f value = params.get_input<ColorGeometry4f>("Value_002");
+      const Color4f value = params.get_input<Color4f>("Value_002");
       attribute->fill(&value);
       break;
     }
