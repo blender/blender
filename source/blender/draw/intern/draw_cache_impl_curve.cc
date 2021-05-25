@@ -796,7 +796,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
 
     if (bezt) {
       for (int a = 0; a < nu->pntsu; a++, bezt++) {
-        if (bezt->hide == true) {
+        if (bezt->hide != 0) {
           continue;
         }
         const bool handle_selected = BEZT_ISSEL_ANY(bezt);
@@ -831,7 +831,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
     else if (bp) {
       int pt_len = nu->pntsu * nu->pntsv;
       for (int a = 0; a < pt_len; a++, bp++, vbo_len_used += 1) {
-        if (bp->hide == true) {
+        if (bp->hide != 0) {
           continue;
         }
         int u = (a % nu->pntsu);
