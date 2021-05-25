@@ -83,8 +83,8 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
    * currently. */
   const AttributeDomain result_domain = get_result_domain(component, input_name, result_name);
 
-  OutputAttribute_Typed<Color4f> attribute_result =
-      component.attribute_try_get_for_output_only<Color4f>(result_name, result_domain);
+  OutputAttribute_Typed<ColorGeometry4f> attribute_result =
+      component.attribute_try_get_for_output_only<ColorGeometry4f>(result_name, result_domain);
   if (!attribute_result) {
     return;
   }
@@ -92,7 +92,7 @@ static void execute_on_component(const GeoNodeExecParams &params, GeometryCompon
   GVArray_Typed<float> attribute_in = component.attribute_get_for_read<float>(
       input_name, result_domain, 0.0f);
 
-  MutableSpan<Color4f> results = attribute_result.as_span();
+  MutableSpan<ColorGeometry4f> results = attribute_result.as_span();
 
   ColorBand *color_ramp = &node_storage->color_ramp;
   parallel_for(IndexRange(attribute_in.size()), 512, [&](IndexRange range) {

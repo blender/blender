@@ -14,29 +14,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "FN_cpp_type_make.hh"
-
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
-#include "BLI_float4x4.hh"
 
-namespace blender::fn {
+namespace blender {
 
-MAKE_CPP_TYPE(bool, bool)
+std::ostream &operator<<(std::ostream &stream, const eAlpha &space)
+{
+  switch (space) {
+    case eAlpha::Straight: {
+      stream << "Straight";
+      break;
+    }
+    case eAlpha::Premultiplied: {
+      stream << "Premultiplied";
+      break;
+    }
+  }
+  return stream;
+}
 
-MAKE_CPP_TYPE(float, float)
-MAKE_CPP_TYPE(float2, blender::float2)
-MAKE_CPP_TYPE(float3, blender::float3)
-MAKE_CPP_TYPE(float4x4, blender::float4x4)
+std::ostream &operator<<(std::ostream &stream, const eSpace &space)
+{
+  switch (space) {
+    case eSpace::Theme: {
+      stream << "Theme";
+      break;
+    }
+    case eSpace::SceneLinear: {
+      stream << "SceneLinear";
+      break;
+    }
+    case eSpace::SceneLinearByteEncoded: {
+      stream << "SceneLinearByteEncoded";
+      break;
+    }
+  }
+  return stream;
+}
 
-MAKE_CPP_TYPE(int32, int32_t)
-MAKE_CPP_TYPE(uint32, uint32_t)
-MAKE_CPP_TYPE(uint8, uint8_t)
-
-MAKE_CPP_TYPE(ColorGeometry4f, blender::ColorGeometry4f)
-MAKE_CPP_TYPE(ColorGeometry4b, blender::ColorGeometry4b)
-
-MAKE_CPP_TYPE(string, std::string)
-
-}  // namespace blender::fn
+}  // namespace blender

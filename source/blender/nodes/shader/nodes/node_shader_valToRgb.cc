@@ -140,7 +140,7 @@ class ColorBandFunction : public blender::fn::MultiFunction {
   {
     blender::fn::MFSignatureBuilder signature{"Color Band"};
     signature.single_input<float>("Value");
-    signature.single_output<blender::Color4f>("Color");
+    signature.single_output<blender::ColorGeometry4f>("Color");
     signature.single_output<float>("Alpha");
     return signature.build();
   }
@@ -150,12 +150,12 @@ class ColorBandFunction : public blender::fn::MultiFunction {
             blender::fn::MFContext UNUSED(context)) const override
   {
     const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    blender::MutableSpan<blender::Color4f> colors =
-        params.uninitialized_single_output<blender::Color4f>(1, "Color");
+    blender::MutableSpan<blender::ColorGeometry4f> colors =
+        params.uninitialized_single_output<blender::ColorGeometry4f>(1, "Color");
     blender::MutableSpan<float> alphas = params.uninitialized_single_output<float>(2, "Alpha");
 
     for (int64_t i : mask) {
-      blender::Color4f color;
+      blender::ColorGeometry4f color;
       BKE_colorband_evaluate(&color_band_, values[i], color);
       colors[i] = color;
       alphas[i] = color.a;

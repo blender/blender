@@ -773,18 +773,20 @@ static void set_loop_uv(MLoopUV &uv, float2 co)
   copy_v2_v2(uv.uv, co);
 }
 
-static Color4f get_loop_color(const MLoopCol &col)
+static ColorGeometry4f get_loop_color(const MLoopCol &col)
 {
-  Color4f srgb_color;
-  rgba_uchar_to_float(srgb_color, &col.r);
-  Color4f linear_color;
-  srgb_to_linearrgb_v4(linear_color, srgb_color);
+  ColorGeometry4b encoded_color = ColorGeometry4b(col.r, col.g, col.b, col.a);
+  ColorGeometry4f linear_color = encoded_color.decode();
   return linear_color;
 }
 
-static void set_loop_color(MLoopCol &col, Color4f linear_color)
+static void set_loop_color(MLoopCol &col, ColorGeometry4f linear_color)
 {
-  linearrgb_to_srgb_uchar4(&col.r, linear_color);
+  ColorGeometry4b encoded_color = linear_color.encode();
+  col.r = encoded_color.r;
+  col.g = encoded_color.g;
+  col.b = encoded_color.b;
+  col.a = encoded_color.a;
 }
 
 static float get_crease(const MEdge &edge)
@@ -1121,8 +1123,8 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       CD_PROP_COLOR,
       CD_MLOOPCOL,
       corner_access,
-      make_derived_read_attribute<MLoopCol, Color4f, get_loop_color>,
-      make_derived_write_attribute<MLoopCol, Color4f, get_loop_color, set_loop_color>);
+      make_derived_read_attribute<MLoopCol, ColorGeometry4f, get_loop_color>,
+      make_derived_write_attribute<MLoopCol, ColorGeometry4f, get_loop_color, set_loop_color>);
 
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);

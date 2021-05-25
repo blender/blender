@@ -170,7 +170,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       this->draw_float_vector(params, Span(&value.x, 3));
     }
     else if (cell_value.value_color.has_value()) {
-      const Color4f value = *cell_value.value_color;
+      const ColorGeometry4f value = *cell_value.value_color;
       this->draw_float_vector(params, Span(&value.r, 4));
     }
     else if (cell_value.value_object.has_value()) {
