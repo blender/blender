@@ -632,7 +632,8 @@ static bool is_static_object(Object *ob)
              eModifierType_Explode,
              eModifierType_Ocean,
              eModifierType_ShapeKey,
-             eModifierType_Softbody)) {
+             eModifierType_Softbody,
+             eModifierType_Nodes)) {
       return false;
     }
   }
