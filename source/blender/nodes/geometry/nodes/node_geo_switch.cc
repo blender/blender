@@ -171,7 +171,7 @@ void register_node_type_geo_switch()
   node_type_update(&ntype, blender::nodes::geo_node_switch_update);
   node_type_storage(&ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_switch_exec;
-  ntype.geometry_node_execute_supports_lazyness = true;
+  ntype.geometry_node_execute_supports_laziness = true;
   ntype.draw_buttons = geo_node_switch_layout;
   nodeRegisterType(&ntype);
 }

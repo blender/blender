@@ -167,6 +167,6 @@ void register_node_type_geo_point_separate()
   geo_node_type_base(&ntype, GEO_NODE_POINT_SEPARATE, "Point Separate", NODE_CLASS_GEOMETRY, 0);
   node_type_socket_templates(&ntype, geo_node_point_instance_in, geo_node_point_instance_out);
   ntype.geometry_node_execute = blender::nodes::geo_node_point_separate_exec;
-  ntype.geometry_node_execute_supports_lazyness = true;
+  ntype.geometry_node_execute_supports_laziness = true;
   nodeRegisterType(&ntype);
 }

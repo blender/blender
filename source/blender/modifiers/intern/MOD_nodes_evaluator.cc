@@ -175,7 +175,7 @@ enum class NodeScheduleState {
 
 struct NodeState {
   /**
-   * Needs to be locked when any data in this state is accessed that is not explicitely marked as
+   * Needs to be locked when any data in this state is accessed that is not explicitly marked as
    * otherwise.
    */
   std::mutex mutex;
@@ -192,12 +192,12 @@ struct NodeState {
   MutableSpan<OutputState> outputs;
 
   /**
-   * Nodes that don't support lazyness have some special handling the first time they are executed.
+   * Nodes that don't support laziness have some special handling the first time they are executed.
    */
   bool non_lazy_node_is_initialized = false;
 
   /**
-   * Used to check that nodes that don't support lazyness do not run more than once.
+   * Used to check that nodes that don't support laziness do not run more than once.
    */
   bool has_been_executed = false;
 
@@ -309,9 +309,9 @@ static const CPPType *get_socket_cpp_type(const SocketRef &socket)
   return nodes::socket_cpp_type_get(*socket.typeinfo());
 }
 
-static bool node_supports_lazyness(const DNode node)
+static bool node_supports_laziness(const DNode node)
 {
-  return node->typeinfo()->geometry_node_execute_supports_lazyness;
+  return node->typeinfo()->geometry_node_execute_supports_laziness;
 }
 
 /** Implements the callbacks that might be called when a node is executed. */
@@ -644,10 +644,10 @@ class GeometryNodesEvaluator {
     if (!this->prepare_node_outputs_for_execution(locked_node)) {
       return false;
     }
-    /* Initialize nodes that don't support lazyness. This is done after at least one output is
+    /* Initialize nodes that don't support laziness. This is done after at least one output is
      * required and before we check that all required inputs are provided. This reduces the
      * number of "round-trips" through the task pool by one for most nodes. */
-    if (!node_state.non_lazy_node_is_initialized && !node_supports_lazyness(node)) {
+    if (!node_state.non_lazy_node_is_initialized && !node_supports_laziness(node)) {
       this->initialize_non_lazy_node(locked_node);
       node_state.non_lazy_node_is_initialized = true;
     }
@@ -722,7 +722,7 @@ class GeometryNodesEvaluator {
         /* Ignore unavailable/non-data sockets. */
         continue;
       }
-      /* Nodes that don't support lazyness require all inputs. */
+      /* Nodes that don't support laziness require all inputs. */
       const DInputSocket input_socket = locked_node.node.input(i);
       this->set_input_required(locked_node, input_socket);
     }
@@ -789,8 +789,8 @@ class GeometryNodesEvaluator {
     const bNode &bnode = *node->bnode();
 
     if (node_state.has_been_executed) {
-      if (!node_supports_lazyness(node)) {
-        /* Nodes that don't support lazyness must not be executed more than once. */
+      if (!node_supports_laziness(node)) {
+        /* Nodes that don't support laziness must not be executed more than once. */
         BLI_assert_unreachable();
       }
     }
@@ -923,12 +923,12 @@ class GeometryNodesEvaluator {
       return;
     }
 
-    const bool supports_lazyness = node_supports_lazyness(locked_node.node);
+    const bool supports_laziness = node_supports_laziness(locked_node.node);
     /* Iterating over sockets instead of the states directly, because that makes it easier to
      * figure out which socket is missing when one of the asserts is hit. */
     for (const OutputSocketRef *socket_ref : locked_node.node->outputs()) {
       OutputState &output_state = locked_node.node_state.outputs[socket_ref->index()];
-      if (supports_lazyness) {
+      if (supports_laziness) {
         /* Expected that at least all required sockets have been computed. If more outputs become
          * required later, the node will be executed again. */
         if (output_state.output_usage_for_execution == ValueUsage::Required) {
@@ -1511,7 +1511,7 @@ void NodeParamsProvider::set_output(StringRef identifier, GMutablePointer value)
 
 bool NodeParamsProvider::lazy_require_input(StringRef identifier)
 {
-  BLI_assert(node_supports_lazyness(this->dnode));
+  BLI_assert(node_supports_laziness(this->dnode));
   const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
   BLI_assert(socket);
 
@@ -1547,7 +1547,7 @@ bool NodeParamsProvider::output_is_required(StringRef identifier) const
 
 bool NodeParamsProvider::lazy_output_is_required(StringRef identifier) const
 {
-  BLI_assert(node_supports_lazyness(this->dnode));
+  BLI_assert(node_supports_laziness(this->dnode));
   const DOutputSocket socket = get_output_by_identifier(this->dnode, identifier);
   BLI_assert(socket);
 

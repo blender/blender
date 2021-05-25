@@ -427,9 +427,9 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
  *
  * NOTE: Currently the only ID types that depsgraph may decide to not evaluate/generate COW
  * copies for, even though they are referenced by other data-blocks, are Collections and Objects
- * (through their various visbility flags, and the ones from LayerCollections too). However, this
+ * (through their various visibility flags, and the ones from LayerCollections too). However, this
  * code is kept generic as it makes it more future-proof, and optimization here would give
- * neglectable performance improvements in typical cases.
+ * negligible performance improvements in typical cases.
  *
  * NOTE: This mechanism may also 'fix' some missing update tagging from non-depsgraph code in
  * some cases. This is slightly unfortunate (as it may hide issues in other parts of Blender
