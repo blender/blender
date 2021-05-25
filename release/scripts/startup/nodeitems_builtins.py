@@ -472,14 +472,6 @@ texture_node_categories = [
     ]),
 ]
 
-
-def not_implemented_node(idname):
-    NodeType = getattr(bpy.types, idname)
-    name = NodeType.bl_rna.name
-    label = "%s (mockup)" % name
-    return NodeItem(idname, label=label)
-
-
 geometry_node_categories = [
     # Geometry Nodes
     GeometryNodeCategory("GEO_ATTRIBUTE", "Attribute", items=[
