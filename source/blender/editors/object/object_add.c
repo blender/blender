@@ -1312,6 +1312,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
+  const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
   const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
 
   ushort local_view_bits;
@@ -1432,6 +1433,13 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
         id_us_plus(&md->target_material->id);
       }
 
+      if (use_lights) {
+        ob->dtx |= OB_USE_GPENCIL_LIGHTS;
+      }
+      else {
+        ob->dtx &= ~OB_USE_GPENCIL_LIGHTS;
+      }
+
       /* Stroke object is drawn in front of meshes by default. */
       if (use_in_front) {
         ob->dtx |= OB_DRAW_IN_FRONT;
@@ -1474,6 +1482,7 @@ static void object_add_ui(bContext *UNUSED(C), wmOperator *op)
 
   int type = RNA_enum_get(op->ptr, "type");
   if (type == GP_LRT_COLLECTION || type == GP_LRT_OBJECT || type == GP_LRT_SCENE) {
+    uiItemR(layout, op->ptr, "use_lights", 0, NULL, ICON_NONE);
     uiItemR(layout, op->ptr, "use_in_front", 0, NULL, ICON_NONE);
     bool in_front = RNA_boolean_get(op->ptr, "use_in_front");
     uiLayout *row = uiLayoutRow(layout, false);
@@ -1520,6 +1529,8 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
                   false,
                   "In Front",
                   "Show line art grease pencil in front of everything");
+  RNA_def_boolean(
+      ot->srna, "use_lights", false, "Use Lights", "Use lights for this grease pencil object");
   RNA_def_enum(
       ot->srna,
       "stroke_depth_order",
