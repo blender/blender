@@ -82,16 +82,6 @@ int GPU_max_textures(void)
   return GCaps.max_textures;
 }
 
-int GPU_max_work_group_count(int index)
-{
-  return GCaps.max_work_group_count[index];
-}
-
-int GPU_max_work_group_size(int index)
-{
-  return GCaps.max_work_group_size[index];
-}
-
 int GPU_max_uniforms_vert(void)
 {
   return GCaps.max_uniforms_vert;
