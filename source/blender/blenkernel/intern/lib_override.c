@@ -80,6 +80,19 @@ static void lib_override_library_property_clear(IDOverrideLibraryProperty *op);
 static void lib_override_library_property_operation_clear(
     IDOverrideLibraryPropertyOperation *opop);
 
+/** Get override data for a given ID. Needed because of our beloved shape keys snowflake. */
+BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id)
+{
+  if (id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    if (id_type->owner_get != NULL) {
+      return id_type->owner_get(bmain, id)->override_library;
+    }
+    BLI_assert(!"IDTypeInfo of liboverride-embedded ID with no owner getter");
+  }
+  return id->override_library;
+}
+
 /** Initialize empty overriding of \a reference_id by \a local_id. */
 IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
 {
@@ -592,19 +605,14 @@ static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data
     /* Do not tag 'virtual' overrides (shape keys here, as we already rejected embedded case
      * above). */
     if (ID_IS_OVERRIDE_LIBRARY_REAL(to_id)) {
-      Library *reference_lib = NULL;
-      if (GS(id_owner->name) == ID_KE) {
-        reference_lib = ((Key *)id_owner)->from->override_library->reference->lib;
-      }
-      else {
-        reference_lib = id_owner->override_library->reference->lib;
-      }
-      if (to_id->override_library->reference->lib != reference_lib) {
+      Library *reference_lib = lib_override_get(bmain, id_owner)->reference->lib;
+      ID *to_id_reference = lib_override_get(bmain, to_id)->reference;
+      if (to_id_reference->lib != reference_lib) {
         /* We do not override data-blocks from other libraries, nor do we process them. */
         continue;
       }
 
-      if (to_id->override_library->reference->tag & LIB_TAG_MISSING) {
+      if (to_id_reference->tag & LIB_TAG_MISSING) {
         to_id->tag |= missing_tag;
       }
       else {
