@@ -64,7 +64,7 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 
   size_to_mat3(mat, t->values_final);
 
-  headerResize(t, t->values_final, str);
+  headerResize(t, t->values_final, str, sizeof(str));
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
