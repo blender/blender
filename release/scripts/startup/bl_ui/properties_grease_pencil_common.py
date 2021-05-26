@@ -856,11 +856,11 @@ class GreasePencilLayerRelationsPanel:
 
         col = layout.row(align=True)
         col.prop_search(gpl, "viewlayer_render", scene, "view_layers", text="View Layer")
-        
+
         col = layout.row(align=True)
         # Only enable this property when a view layer is selected.
         col.enabled = bool(gpl.viewlayer_render)
-        col.prop(gpl, "disable_masks_viewlayer")
+        col.prop(gpl, "use_viewlayer_masks")
 
 class GreasePencilLayerDisplayPanel:
 
