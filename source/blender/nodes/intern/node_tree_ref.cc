@@ -297,6 +297,12 @@ void OutputSocketRef::foreach_logical_target(
       skipped_fn.call_safe(target);
       for (const InternalLinkRef *internal_link : target_node.internal_links()) {
         if (&internal_link->from() == &target) {
+          /* The internal link only forwards the first incoming link. */
+          if (target.is_multi_input_socket()) {
+            if (target.directly_linked_links()[0] != link) {
+              continue;
+            }
+          }
           const OutputSocketRef &mute_output = internal_link->to();
           skipped_fn.call_safe(target);
           skipped_fn.call_safe(mute_output);
