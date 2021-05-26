@@ -282,6 +282,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${wayland-egl_INCLUDE_DIRS}
       ${xkbcommon_INCLUDE_DIRS}
       ${wayland-cursor_INCLUDE_DIRS}
+      ${dbus_INCLUDE_DIRS}
     )
 
     list(APPEND SRC

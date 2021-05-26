@@ -575,6 +575,7 @@ if(WITH_GHOST_WAYLAND)
   pkg_check_modules(wayland-scanner REQUIRED wayland-scanner)
   pkg_check_modules(xkbcommon REQUIRED xkbcommon)
   pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
+  pkg_check_modules(dbus REQUIRED dbus-1)
 
   set(WITH_GL_EGL ON)
 
@@ -583,6 +584,7 @@ if(WITH_GHOST_WAYLAND)
     ${wayland-egl_LINK_LIBRARIES}
     ${xkbcommon_LINK_LIBRARIES}
     ${wayland-cursor_LINK_LIBRARIES}
+    ${dbus_LINK_LIBRARIES}
   )
 endif()
 

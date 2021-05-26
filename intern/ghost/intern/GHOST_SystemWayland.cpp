@@ -40,6 +40,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "GHOST_WaylandCursorSettings.h"
 #include <pointer-constraints-client-protocol.h>
 #include <relative-pointer-client-protocol.h>
 #include <wayland-cursor.h>
@@ -1336,11 +1337,14 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
     }
   }
 
-  const char *theme = std::getenv("XCURSOR_THEME");
-  const char *size = std::getenv("XCURSOR_SIZE");
-  const int sizei = size ? std::stoi(size) : default_cursor_size;
+  std::string theme;
+  int size;
+  if (!get_cursor_settings(theme, size)) {
+    theme = std::string();
+    size = default_cursor_size;
+  }
 
-  d->cursor_theme = wl_cursor_theme_load(theme, sizei, d->shm);
+  d->cursor_theme = wl_cursor_theme_load(theme.c_str(), size, d->shm);
   if (!d->cursor_theme) {
     display_destroy(d);
     throw std::runtime_error("Wayland: unable to access cursor themes!");
