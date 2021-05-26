@@ -2964,7 +2964,8 @@ static void outliner_draw_iconrow(bContext *C,
     te->flag &= ~(TE_ICONROW | TE_ICONROW_MERGED);
 
     /* object hierarchy always, further constrained on level */
-    if ((level < 1) || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB))) {
+    if ((level < 1) || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) ||
+        ELEM(tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL)) {
       /* active blocks get white circle */
       if (tselem->type == TSE_SOME_ID) {
         if (te->idcode == ID_OB) {
