@@ -59,6 +59,26 @@
 
 #include "gpencil_intern.h"
 
+const EnumPropertyItem rna_gpencil_reproject_type_items[] = {
+    {GP_REPROJECT_KEEP, "KEEP", 0, "No Reproject", ""},
+    {GP_REPROJECT_FRONT, "FRONT", 0, "Front", "Reproject the strokes using the X-Z plane"},
+    {GP_REPROJECT_SIDE, "SIDE", 0, "Side", "Reproject the strokes using the Y-Z plane"},
+    {GP_REPROJECT_TOP, "TOP", 0, "Top", "Reproject the strokes using the X-Y plane"},
+    {GP_REPROJECT_VIEW,
+     "VIEW",
+     0,
+     "View",
+     "Reproject the strokes to end up on the same plane, as if drawn from the current "
+     "viewpoint "
+     "using 'Cursor' Stroke Placement"},
+    {GP_REPROJECT_CURSOR,
+     "CURSOR",
+     0,
+     "Cursor",
+     "Reproject the strokes using the orientation of 3D cursor"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Check frame_end is always > start frame! */
 static void gpencil_bake_set_frame_end(struct Main *UNUSED(main),
                                        struct Scene *UNUSED(scene),
@@ -314,8 +334,8 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           gps->mat_nr = BKE_gpencil_object_material_index_get(ob_gpencil, ma_src);
 
           /* Update point location to new object space. */
-          for (int i = 0; i < gps->totpoints; i++) {
-            bGPDspoint *pt = &gps->points[i];
+          for (int j = 0; j < gps->totpoints; j++) {
+            bGPDspoint *pt = &gps->points[j];
             mul_m4_v3(matrix, &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }
@@ -419,5 +439,10 @@ void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
   RNA_def_int(
       ot->srna, "frame_target", 1, 1, 100000, "Target Frame", "Destination frame", 1, 100000);
 
-  RNA_def_enum(ot->srna, "project_type", reproject_type, GP_REPROJECT_KEEP, "Projection Type", "");
+  RNA_def_enum(ot->srna,
+               "project_type",
+               rna_gpencil_reproject_type_items,
+               GP_REPROJECT_KEEP,
+               "Projection Type",
+               "");
 }

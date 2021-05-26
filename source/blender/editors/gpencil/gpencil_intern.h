@@ -752,24 +752,6 @@ struct GP_EditableStrokes_Iter {
   (void)0
 
 /* Reused items for bake operators. */
-static const EnumPropertyItem reproject_type[] = {
-    {GP_REPROJECT_KEEP, "KEEP", 0, "No Reproject", ""},
-    {GP_REPROJECT_FRONT, "FRONT", 0, "Front", "Reproject the strokes using the X-Z plane"},
-    {GP_REPROJECT_SIDE, "SIDE", 0, "Side", "Reproject the strokes using the Y-Z plane"},
-    {GP_REPROJECT_TOP, "TOP", 0, "Top", "Reproject the strokes using the X-Y plane"},
-    {GP_REPROJECT_VIEW,
-     "VIEW",
-     0,
-     "View",
-     "Reproject the strokes to end up on the same plane, as if drawn from the current "
-     "viewpoint "
-     "using 'Cursor' Stroke Placement"},
-    {GP_REPROJECT_CURSOR,
-     "CURSOR",
-     0,
-     "Cursor",
-     "Reproject the strokes using the orientation of 3D cursor"},
-    {0, NULL, 0, NULL, NULL},
-};
+extern const EnumPropertyItem rna_gpencil_reproject_type_items[];
 
 /* ****************************************************** */
