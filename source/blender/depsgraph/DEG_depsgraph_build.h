@@ -189,6 +189,8 @@ void DEG_add_customdata_mask(struct DepsNodeHandle *handle,
 struct ID *DEG_get_id_from_handle(struct DepsNodeHandle *node_handle);
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);
 
+bool DEG_object_has_geometry_component(struct Object *object);
+
 /* ************************************************ */
 
 #ifdef __cplusplus
