@@ -29,6 +29,8 @@
 
 #include "gl_shader_interface.hh"
 
+#include "GPU_capabilities.h"
+
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -125,6 +127,18 @@ static inline int image_binding(int32_t program,
       return -1;
   }
 }
+
+static inline int ssbo_binding(int32_t program, uint32_t ssbo_index)
+{
+  GLint binding = -1;
+  GLenum property = GL_BUFFER_BINDING;
+  GLint values_written = 0;
+  glGetProgramResourceiv(
+      program, GL_SHADER_STORAGE_BLOCK, ssbo_index, 1, &property, 1, &values_written, &binding);
+
+  return binding;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -149,6 +163,13 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &active_uniform_len);
   uniform_len = active_uniform_len;
 
+  GLint max_ssbo_name_len = 0, ssbo_len = 0;
+  if (GPU_shader_storage_buffer_objects_support()) {
+    glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_len);
+    glGetProgramInterfaceiv(
+        program, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &max_ssbo_name_len);
+  }
+
   BLI_assert(ubo_len <= 16 && "enabled_ubo_mask_ is uint16_t");
 
   /* Work around driver bug with Intel HD 4600 on Windows 7/8, where
@@ -161,6 +182,9 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   }
   if (uniform_len > 0 && max_uniform_name_len == 0) {
     max_uniform_name_len = 256;
+  }
+  if (ssbo_len > 0 && max_ssbo_name_len == 0) {
+    max_ssbo_name_len = 256;
   }
 
   /* GL_ACTIVE_UNIFORMS lied to us! Remove the UBO uniforms from the total before
@@ -186,11 +210,12 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   }
   MEM_freeN(ubo_uni_ids);
 
-  int input_tot_len = attr_len + ubo_len + uniform_len;
+  int input_tot_len = attr_len + ubo_len + uniform_len + ssbo_len;
   inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
 
   const uint32_t name_buffer_len = attr_len * max_attr_name_len + ubo_len * max_ubo_name_len +
-                                   uniform_len * max_uniform_name_len;
+                                   uniform_len * max_uniform_name_len +
+                                   ssbo_len * max_ssbo_name_len;
   name_buffer_ = (char *)MEM_mallocN(name_buffer_len, "name_buffer");
   uint32_t name_buffer_offset = 0;
 
@@ -255,6 +280,22 @@ GLShaderInterface::GLShaderInterface(GLuint program)
 
       enabled_ima_mask_ |= (input->binding != -1) ? (1lu << input->binding) : 0lu;
     }
+  }
+
+  /* SSBOs */
+  for (int i = 0; i < ssbo_len; i++) {
+    char *name = name_buffer_ + name_buffer_offset;
+    GLsizei remaining_buffer = name_buffer_len - name_buffer_offset;
+    GLsizei name_len = 0;
+    glGetProgramResourceName(
+        program, GL_SHADER_STORAGE_BLOCK, i, remaining_buffer, &name_len, name);
+
+    const GLint binding = ssbo_binding(program, i);
+
+    ShaderInput *input = &inputs_[attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_++];
+    input->binding = input->location = binding;
+
+    name_buffer_offset += this->set_input_name(input, name, name_len);
   }
 
   /* Builtin Uniforms */

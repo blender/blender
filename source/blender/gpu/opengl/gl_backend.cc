@@ -437,6 +437,8 @@ void GLBackend::capabilities_init()
 
   GCaps.mem_stats_support = GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo;
   GCaps.shader_image_load_store_support = GLEW_ARB_shader_image_load_store;
+  GCaps.compute_shader_support = GLEW_ARB_compute_shader;
+  GCaps.shader_storage_buffer_objects_support = GLEW_ARB_shader_storage_buffer_object;
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);

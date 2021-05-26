@@ -47,12 +47,19 @@ class GLVertBuf : public VertBuf {
 
   void update_sub(uint start, uint len, void *data) override;
 
+  const void *read() const override;
+  void *unmap(const void *mapped_data) const override;
+
  protected:
   void acquire_data(void) override;
   void resize_data(void) override;
   void release_data(void) override;
   void upload_data(void) override;
   void duplicate_data(VertBuf *dst) override;
+  void bind_as_ssbo(uint binding) override;
+
+ private:
+  bool is_active() const;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLVertBuf");
 };
@@ -65,6 +72,7 @@ static inline GLenum to_gl(GPUUsageType type)
     case GPU_USAGE_DYNAMIC:
       return GL_DYNAMIC_DRAW;
     case GPU_USAGE_STATIC:
+    case GPU_USAGE_DEVICE_ONLY:
       return GL_STATIC_DRAW;
     default:
       BLI_assert(0);

@@ -148,6 +148,16 @@ bool GPU_use_hq_normals_workaround(void)
   return GCaps.use_hq_normals_workaround;
 }
 
+bool GPU_compute_shader_support(void)
+{
+  return GCaps.compute_shader_support;
+}
+
+bool GPU_shader_storage_buffer_objects_support(void)
+{
+  return GCaps.shader_storage_buffer_objects_support;
+}
+
 bool GPU_shader_image_load_store_support(void)
 {
   return GCaps.shader_image_load_store_support;

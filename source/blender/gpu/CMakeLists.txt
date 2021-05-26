@@ -62,6 +62,7 @@ set(SRC
   intern/gpu_buffers.c
   intern/gpu_capabilities.cc
   intern/gpu_codegen.c
+  intern/gpu_compute.cc
   intern/gpu_context.cc
   intern/gpu_debug.cc
   intern/gpu_drawlist.cc
@@ -91,6 +92,7 @@ set(SRC
 
   opengl/gl_backend.cc
   opengl/gl_batch.cc
+  opengl/gl_compute.cc
   opengl/gl_context.cc
   opengl/gl_debug.cc
   opengl/gl_debug_layer.cc
@@ -113,6 +115,7 @@ set(SRC
   GPU_buffers.h
   GPU_capabilities.h
   GPU_common.h
+  GPU_compute.h
   GPU_context.h
   GPU_debug.h
   GPU_drawlist.h
@@ -163,6 +166,7 @@ set(SRC
 
   opengl/gl_backend.hh
   opengl/gl_batch.hh
+  opengl/gl_compute.hh
   opengl/gl_context.hh
   opengl/gl_debug.hh
   opengl/gl_drawlist.hh
@@ -390,6 +394,7 @@ if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
       tests/gpu_testing.cc
+      tests/gpu_shader_test.cc
 
       tests/gpu_testing.hh
     )

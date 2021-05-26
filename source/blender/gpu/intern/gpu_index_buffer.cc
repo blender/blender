@@ -31,6 +31,8 @@
 
 #include "gpu_index_buffer_private.hh"
 
+#include <cstring>
+
 #define KEEP_SINGLE_COPY 1
 
 #define RESTART_INDEX 0xFFFFFFFF
@@ -64,6 +66,14 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
   assert(verts_per_prim != -1);
 #endif
   GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len);
+}
+
+GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
+{
+  GPUIndexBuf *elem_ = GPU_indexbuf_calloc();
+  IndexBuf *elem = unwrap(elem_);
+  elem->init_build_on_device(index_len);
+  return elem_;
 }
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
@@ -241,6 +251,15 @@ void IndexBuf::init(uint indices_len, uint32_t *indices)
 #endif
 }
 
+void IndexBuf::init_build_on_device(uint index_len)
+{
+  is_init_ = true;
+  index_start_ = 0;
+  index_len_ = index_len;
+  index_type_ = GPU_INDEX_U32;
+  data_ = nullptr;
+}
+
 void IndexBuf::init_subrange(IndexBuf *elem_src, uint start, uint length)
 {
   /* We don't support nested subranges. */
@@ -307,6 +326,14 @@ void IndexBuf::squeeze_indices_short(uint min_idx, uint max_idx)
   }
 }
 
+uint32_t *IndexBuf::unmap(const uint32_t *mapped_memory) const
+{
+  size_t size = size_get();
+  uint32_t *result = static_cast<uint32_t *>(MEM_mallocN(size, __func__));
+  memcpy(result, mapped_memory, size);
+  return result;
+}
+
 }  // namespace blender::gpu
 
 /** \} */
@@ -351,6 +378,16 @@ void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
   unwrap(elem)->init_subrange(unwrap(elem_src), start, length);
 }
 
+const uint32_t *GPU_indexbuf_read(GPUIndexBuf *elem)
+{
+  return unwrap(elem)->read();
+}
+
+uint32_t *GPU_indexbuf_unmap(const GPUIndexBuf *elem, const uint32_t *mapped_buffer)
+{
+  return unwrap(elem)->unmap(mapped_buffer);
+}
+
 void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
   delete unwrap(elem);
@@ -364,6 +401,11 @@ bool GPU_indexbuf_is_init(GPUIndexBuf *elem)
 int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
 {
   return indices_per_primitive(prim_type);
+}
+
+void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding)
+{
+  unwrap(elem)->bind_as_ssbo(binding);
 }
 
 /** \} */

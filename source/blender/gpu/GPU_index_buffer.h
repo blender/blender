@@ -49,6 +49,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uin
 
 /* supports only GPU_PRIM_POINTS, GPU_PRIM_LINES and GPU_PRIM_TRIS. */
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
+GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *, uint v);
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *);
@@ -70,12 +71,23 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem);
 GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
+void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding);
+
 /* Create a sub-range of an existing index-buffer. */
 GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length);
 void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
                                            GPUIndexBuf *elem_src,
                                            uint start,
                                            uint length);
+
+/**
+ * (Download and) return a pointer containing the data of an index buffer.
+ *
+ * Note that the returned pointer is still owned by the driver. To get an
+ * local copy, use `GPU_indexbuf_unmap` after calling `GPU_indexbuf_read`.
+ */
+const uint32_t *GPU_indexbuf_read(GPUIndexBuf *elem);
+uint32_t *GPU_indexbuf_unmap(const GPUIndexBuf *elem, const uint32_t *mapped_data);
 
 void GPU_indexbuf_discard(GPUIndexBuf *elem);
 
