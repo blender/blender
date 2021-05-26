@@ -18,6 +18,8 @@
 
 #include "COM_ConvertOperation.h"
 
+#include "BLI_color.hh"
+
 #include "IMB_colormanagement.h"
 
 namespace blender::compositor {
@@ -355,21 +357,10 @@ void ConvertPremulToStraightOperation::executePixelSampled(float output[4],
                                                            float y,
                                                            PixelSampler sampler)
 {
-  float inputValue[4];
-  float alpha;
-
-  this->m_inputOperation->readSampled(inputValue, x, y, sampler);
-  alpha = inputValue[3];
-
-  if (fabsf(alpha) < 1e-5f) {
-    zero_v3(output);
-  }
-  else {
-    mul_v3_v3fl(output, inputValue, 1.0f / alpha);
-  }
-
-  /* never touches the alpha */
-  output[3] = alpha;
+  ColorSceneLinear4f<eAlpha::Premultiplied> input;
+  this->m_inputOperation->readSampled(input, x, y, sampler);
+  ColorSceneLinear4f<eAlpha::Straight> converted = input.unpremultiply_alpha();
+  copy_v4_v4(output, converted);
 }
 
 /* ******** Straight to Premul ******** */
@@ -385,16 +376,10 @@ void ConvertStraightToPremulOperation::executePixelSampled(float output[4],
                                                            float y,
                                                            PixelSampler sampler)
 {
-  float inputValue[4];
-  float alpha;
-
-  this->m_inputOperation->readSampled(inputValue, x, y, sampler);
-  alpha = inputValue[3];
-
-  mul_v3_v3fl(output, inputValue, alpha);
-
-  /* never touches the alpha */
-  output[3] = alpha;
+  ColorSceneLinear4f<eAlpha::Straight> input;
+  this->m_inputOperation->readSampled(input, x, y, sampler);
+  ColorSceneLinear4f<eAlpha::Premultiplied> converted = input.premultiply_alpha();
+  copy_v4_v4(output, converted);
 }
 
 /* ******** Separate Channels ******** */
