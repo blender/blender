@@ -36,14 +36,27 @@
 #include "BKE_duplilist.h"
 
 #include "GPU_batch.h"
+#include "GPU_capabilities.h"
+#include "GPU_compute.h"
 #include "GPU_shader.h"
+#include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
 #include "draw_hair_private.h"
 
 #ifndef __APPLE__
 #  define USE_TRANSFORM_FEEDBACK
+#  define USE_COMPUTE_SHADERS
 #endif
+
+BLI_INLINE bool drw_hair_use_compute_shaders(void)
+{
+#ifdef USE_COMPUTE_SHADERS
+  return GPU_compute_shader_support();
+#else
+  return false;
+#endif
+}
 
 typedef enum ParticleRefineShader {
   PART_REFINE_CATMULL_ROM = 0,
@@ -71,6 +84,7 @@ static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in t
 
 extern char datatoc_common_hair_lib_glsl[];
 extern char datatoc_common_hair_refine_vert_glsl[];
+extern char datatoc_common_hair_refine_comp_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 static GPUShader *hair_refine_shader_get(ParticleRefineShader sh)
@@ -79,15 +93,26 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader sh)
     return g_refine_shaders[sh];
   }
 
-  char *vert_with_lib = BLI_string_joinN(datatoc_common_hair_lib_glsl,
-                                         datatoc_common_hair_refine_vert_glsl);
+#ifdef USE_COMPUTE_SHADERS
+  const bool do_compute = drw_hair_use_compute_shaders();
+  if (do_compute) {
+    g_refine_shaders[sh] = GPU_shader_create_compute(datatoc_common_hair_refine_comp_glsl,
+                                                     datatoc_common_hair_lib_glsl,
+                                                     "#define HAIR_PHASE_SUBDIV\n",
+                                                     __func__);
+    return g_refine_shaders[sh];
+  }
+#endif
 
 #ifdef USE_TRANSFORM_FEEDBACK
+  char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
+                                      datatoc_common_hair_refine_vert_glsl);
   const char *var_names[1] = {"finalColor"};
   g_refine_shaders[sh] = DRW_shader_create_with_transform_feedback(
-      vert_with_lib, NULL, "#define HAIR_PHASE_SUBDIV\n", GPU_SHADER_TFB_POINTS, var_names, 1);
+      shader_src, NULL, "#define HAIR_PHASE_SUBDIV\n", GPU_SHADER_TFB_POINTS, var_names, 1);
+
 #else
-  g_refine_shaders[sh] = DRW_shader_create(vert_with_lib,
+  g_refine_shaders[sh] = DRW_shader_create(shader_src,
                                            NULL,
                                            datatoc_gpu_shader_3D_smooth_color_frag_glsl,
                                            "#define blender_srgb_to_framebuffer_space(a) a\n"
@@ -95,14 +120,14 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader sh)
                                            "#define TF_WORKAROUND\n");
 #endif
 
-  MEM_freeN(vert_with_lib);
+  MEM_freeN(shader_src);
 
   return g_refine_shaders[sh];
 }
 
 void DRW_hair_init(void)
 {
-#ifdef USE_TRANSFORM_FEEDBACK
+#if defined(USE_TRANSFORM_FEEDBACK) || defined(USE_COMPUTE_SHADERS)
   g_tf_pass = DRW_pass_create("Update Hair Pass", 0);
 #else
   g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_WRITE_COLOR);
@@ -125,6 +150,67 @@ void DRW_hair_init(void)
   }
 }
 
+static void drw_hair_particle_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
+                                                           ParticleHairCache *cache,
+                                                           const int subdiv)
+{
+  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", cache->point_tex);
+  DRW_shgroup_uniform_texture(shgrp, "hairStrandBuffer", cache->strand_tex);
+  DRW_shgroup_uniform_texture(shgrp, "hairStrandSegBuffer", cache->strand_seg_tex);
+  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
+}
+
+static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, const int subdiv)
+{
+  const int strands_len = cache->strands_len;
+  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+  if (final_points_len > 0) {
+    GPUShader *shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
+    DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
+    drw_hair_particle_cache_shgrp_attach_resources(shgrp, cache, subdiv);
+    DRW_shgroup_vertex_buffer(shgrp, "hairPointOutputBuffer", cache->final[subdiv].proc_buf);
+
+    const int max_strands_per_call = GPU_max_work_group_count(0);
+    int strands_start = 0;
+    while (strands_start < strands_len) {
+      int batch_strands_len = MIN2(strands_len - strands_start, max_strands_per_call);
+      DRWShadingGroup *subgroup = DRW_shgroup_create_sub(shgrp);
+      DRW_shgroup_uniform_int_copy(subgroup, "hairStrandOffset", strands_start);
+      DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].strands_res, 1);
+      strands_start += batch_strands_len;
+    }
+  }
+}
+
+static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache *cache,
+                                                              const int subdiv)
+{
+  const int final_points_len = cache->final[subdiv].strands_res * cache->strands_len;
+  if (final_points_len > 0) {
+    GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
+
+#ifdef USE_TRANSFORM_FEEDBACK
+    DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(
+        tf_shader, g_tf_pass, cache->final[subdiv].proc_buf);
+#else
+    DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
+
+    ParticleRefineCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
+    pr_call->next = g_tf_calls;
+    pr_call->vbo = cache->final[subdiv].proc_buf;
+    pr_call->shgrp = tf_shgrp;
+    pr_call->vert_len = final_points_len;
+    g_tf_calls = pr_call;
+    DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
+    DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
+    DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
+#endif
+
+    drw_hair_particle_cache_shgrp_attach_resources(tf_shgrp, cache, subdiv);
+    DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
+  }
+}
+
 static ParticleHairCache *drw_hair_particle_cache_get(
     Object *object, ParticleSystem *psys, ModifierData *md, int subdiv, int thickness_res)
 {
@@ -140,32 +226,11 @@ static ParticleHairCache *drw_hair_particle_cache_get(
   }
 
   if (update) {
-    int final_points_len = cache->final[subdiv].strands_res * cache->strands_len;
-    if (final_points_len > 0) {
-      GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
-
-#ifdef USE_TRANSFORM_FEEDBACK
-      DRWShadingGroup *tf_shgrp = DRW_shgroup_transform_feedback_create(
-          tf_shader, g_tf_pass, cache->final[subdiv].proc_buf);
-#else
-      DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
-
-      ParticleRefineCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
-      pr_call->next = g_tf_calls;
-      pr_call->vbo = cache->final[subdiv].proc_buf;
-      pr_call->shgrp = tf_shgrp;
-      pr_call->vert_len = final_points_len;
-      g_tf_calls = pr_call;
-      DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
-      DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
-      DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
-#endif
-
-      DRW_shgroup_uniform_texture(tf_shgrp, "hairPointBuffer", cache->point_tex);
-      DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandBuffer", cache->strand_tex);
-      DRW_shgroup_uniform_texture(tf_shgrp, "hairStrandSegBuffer", cache->strand_seg_tex);
-      DRW_shgroup_uniform_int(tf_shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
-      DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
+    if (drw_hair_use_compute_shaders()) {
+      drw_hair_particle_cache_update_compute(cache, subdiv);
+    }
+    else {
+      drw_hair_particle_cache_update_transform_feedback(cache, subdiv);
     }
   }
   return cache;
@@ -367,9 +432,11 @@ void DRW_hair_update(void)
   MEM_freeN(data);
   GPU_framebuffer_free(fb);
 #else
-  /* TODO(fclem): replace by compute shader. */
-  /* Just render using transform feedback. */
+  /* Just render the pass when using compute shaders or transform feedback. */
   DRW_draw_pass(g_tf_pass);
+  if (drw_hair_use_compute_shaders()) {
+    GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+  }
 #endif
 }
 

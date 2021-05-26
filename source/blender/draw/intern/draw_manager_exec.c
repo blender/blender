@@ -29,6 +29,7 @@
 
 #include "BKE_global.h"
 
+#include "GPU_compute.h"
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -672,6 +673,9 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
                                                                 ((GPUVertBuf *)uni->pvalue));
           break;
+        case DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE:
+          GPU_vertbuf_bind_as_ssbo((GPUVertBuf *)uni->pvalue, uni->location);
+          break;
           /* Legacy/Fallback support. */
         case DRW_UNIFORM_BASE_INSTANCE:
           state->baseinst_loc = uni->location;
@@ -1049,6 +1053,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               cmd->instance_range.inst_first,
                               cmd->instance_range.inst_count,
                               false);
+          break;
+        case DRW_CMD_COMPUTE:
+          GPU_compute_dispatch(shgroup->shader,
+                               cmd->compute.groups_x_len,
+                               cmd->compute.groups_y_len,
+                               cmd->compute.groups_z_len);
           break;
       }
     }
