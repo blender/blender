@@ -41,6 +41,7 @@ set(SRC
   gpencil_add_monkey.c
   gpencil_add_stroke.c
   gpencil_armature.c
+  gpencil_bake_animation.c
   gpencil_convert.c
   gpencil_data.c
   gpencil_edit.c

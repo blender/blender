@@ -13,9 +13,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008, Blender Foundation
+ * The Original Code is Copyright (C) 2021 Blender Foundation
  * This is a new part of Blender
- * Operator for converting Grease Pencil data to geometry
  */
 
 /** \file
@@ -30,12 +29,14 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_duplilist.h"
+#include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -72,9 +73,15 @@ static void gpencil_bake_set_frame_end(struct Main *UNUSED(main),
 }
 
 /* Extract mesh animation to Grease Pencil. */
-static bool gpencil_bake_mesh_animation_poll(bContext *C)
+static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
 {
+  Object *obact = CTX_data_active_object(C);
   if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
+    return false;
+  }
+
+  /* Check if grease pencil or empty for dupli groups. */
+  if ((obact == NULL) || ((obact->type != OB_GPENCIL) && (obact->type != OB_EMPTY))) {
     return false;
   }
 
@@ -124,9 +131,10 @@ static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *o
   DupliObject *dob;
   lb = object_duplilist(depsgraph, scene, ob);
   for (dob = lb->first; dob; dob = dob->next) {
-    if (dob->ob->type != OB_MESH) {
+    if (dob->ob->type != OB_GPENCIL) {
       continue;
     }
+
     elem = MEM_callocN(sizeof(GpBakeOb), __func__);
     elem->ob = dob->ob;
     BLI_addtail(list, elem);
@@ -135,15 +143,14 @@ static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *o
   free_object_duplilist(lb);
 }
 
-static bool gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene, ListBase *list)
+static void gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene, ListBase *list)
 {
   GpBakeOb *elem = NULL;
-  bool simple_material = false;
 
   /* Add active object. In some files this could not be in selected array. */
   Object *obact = CTX_data_active_object(C);
 
-  if (obact->type == OB_MESH) {
+  if (obact->type == OB_GPENCIL) {
     elem = MEM_callocN(sizeof(GpBakeOb), __func__);
     elem->ob = obact;
     BLI_addtail(list, elem);
@@ -151,7 +158,6 @@ static bool gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
   /* Add duplilist. */
   else if (obact->type == OB_EMPTY) {
     gpencil_bake_duplilist(depsgraph, scene, obact, list);
-    simple_material |= true;
   }
 
   /* Add other selected objects. */
@@ -159,8 +165,8 @@ static bool gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
     if (ob == obact) {
       continue;
     }
-    /* Add selected meshes.*/
-    if (ob->type == OB_MESH) {
+    /* Add selected objects.*/
+    if (ob->type == OB_GPENCIL) {
       elem = MEM_callocN(sizeof(GpBakeOb), __func__);
       elem->ob = ob;
       BLI_addtail(list, elem);
@@ -168,12 +174,10 @@ static bool gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
 
     /* Add duplilist. */
     if (ob->type == OB_EMPTY) {
-      gpencil_bake_duplilist(depsgraph, scene, obact, list);
+      gpencil_bake_duplilist(depsgraph, scene, ob, list);
     }
   }
   CTX_DATA_END;
-
-  return simple_material;
 }
 
 static void gpencil_bake_free_ob_list(ListBase *list)
@@ -183,7 +187,7 @@ static void gpencil_bake_free_ob_list(ListBase *list)
   }
 }
 
-static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
+static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -193,13 +197,6 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
 
   ListBase ob_selected_list = {NULL, NULL};
   gpencil_bake_ob_list(C, depsgraph, scene, &ob_selected_list);
-
-  /* Cannot check this in poll because the active object changes. */
-  if (ob_selected_list.first == NULL) {
-    BKE_report(op->reports, RPT_INFO, "No valid object selected");
-    gpencil_bake_free_ob_list(&ob_selected_list);
-    return OPERATOR_CANCELLED;
-  }
 
   /* Grab all relevant settings. */
   const int step = RNA_int_get(op->ptr, "step");
@@ -212,43 +209,19 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
                             scene->r.efra :
                             RNA_int_get(op->ptr, "frame_end");
 
-  const float angle = RNA_float_get(op->ptr, "angle");
-  const int thickness = RNA_int_get(op->ptr, "thickness");
-  const bool use_seams = RNA_boolean_get(op->ptr, "seams");
-  const bool use_faces = RNA_boolean_get(op->ptr, "faces");
   const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
-  const float offset = RNA_float_get(op->ptr, "offset");
   const int frame_offset = RNA_int_get(op->ptr, "frame_target") - frame_start;
   const int project_type = RNA_enum_get(op->ptr, "project_type");
-  eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
 
-  /* Create a new grease pencil object in origin or reuse selected. */
+  /* Create a new grease pencil object. */
   Object *ob_gpencil = NULL;
-  bool newob = false;
+  ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+  ob_gpencil = ED_gpencil_add_object(C, scene->cursor.location, local_view_bits);
+  float invmat[4][4];
+  invert_m4_m4(invmat, ob_gpencil->obmat);
 
-  if (target == GP_TARGET_OB_SELECTED) {
-    ob_gpencil = BKE_view_layer_non_active_selected_object(CTX_data_view_layer(C), v3d);
-    if (ob_gpencil != NULL) {
-      if (ob_gpencil->type != OB_GPENCIL) {
-        BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
-        ob_gpencil = NULL;
-      }
-      else if (BKE_object_obdata_is_libdata(ob_gpencil)) {
-        BKE_report(op->reports, RPT_WARNING, "Target object library-data, ignoring!");
-        ob_gpencil = NULL;
-      }
-    }
-  }
-
-  if (ob_gpencil == NULL) {
-    ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
-    const float loc[3] = {0.0f, 0.0f, 0.0f};
-    ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
-    newob = true;
-  }
-
-  bGPdata *gpd = (bGPdata *)ob_gpencil->data;
-  gpd->draw_mode = (project_type == GP_REPROJECT_KEEP) ? GP_DRAWMODE_3D : GP_DRAWMODE_2D;
+  bGPdata *gpd_dst = (bGPdata *)ob_gpencil->data;
+  gpd_dst->draw_mode = GP_DRAWMODE_2D;
 
   /* Set cursor to indicate working. */
   WM_cursor_wait(true);
@@ -263,15 +236,6 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
 
     /* Init snap context for geometry projection. */
     sctx = ED_transform_snap_object_context_create_view3d(scene, 0, region, CTX_wm_view3d(C));
-
-    /* Tag all existing strokes to avoid reprojections. */
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          gps->flag |= GP_STROKE_TAG;
-        }
-      }
-    }
   }
 
   /* Loop all frame range. */
@@ -303,68 +267,74 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
     /* Loop all objects in the list. */
     LISTBASE_FOREACH (GpBakeOb *, elem, &ob_selected_list) {
       Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, elem->ob);
+      bGPdata *gpd_src = ob_eval->data;
 
-      /* Generate strokes. */
-      BKE_gpencil_convert_mesh(bmain,
-                               depsgraph,
-                               scene,
-                               ob_gpencil,
-                               elem->ob,
-                               angle,
-                               thickness,
-                               offset,
-                               ob_eval->obmat,
-                               frame_offset,
-                               use_seams,
-                               use_faces);
+      LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
+        /* Create destination layer. */
+        char *layer_name;
+        layer_name = BLI_sprintfN("%s_%s", elem->ob->id.name + 2, gpl_src->info);
+        bGPDlayer *gpl_dst = BKE_gpencil_layer_named_get(gpd_dst, layer_name);
+        if (gpl_dst == NULL) {
+          gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, layer_name, true, false);
+        }
+        MEM_freeN(layer_name);
 
-      /* Reproject all un-tagged created strokes. */
-      if (project_type != GP_REPROJECT_KEEP) {
-        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-          bGPDframe *gpf = gpl->actframe;
-          if (gpf == NULL) {
-            continue;
-          }
-          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-            if ((gps->flag & GP_STROKE_TAG) == 0) {
-              ED_gpencil_stroke_reproject(
-                  depsgraph, &gsc, sctx, gpl, gpf, gps, project_type, false);
-              gps->flag |= GP_STROKE_TAG;
+        /* Layer Transform matrix. */
+        float matrix[4][4];
+        BKE_gpencil_layer_transform_matrix_get(depsgraph, elem->ob, gpl_src, matrix);
+
+        /* Duplicate frame. */
+        bGPDframe *gpf_src = BKE_gpencil_layer_frame_get(gpl_src, CFRA, GP_GETFRAME_USE_PREV);
+        if (gpf_src == NULL) {
+          continue;
+        }
+        bGPDframe *gpf_dst = BKE_gpencil_frame_duplicate(gpf_src, true);
+        gpf_dst->framenum = CFRA + frame_offset;
+        gpf_dst->flag &= ~GP_FRAME_SELECT;
+        BLI_addtail(&gpl_dst->frames, gpf_dst);
+
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf_dst->strokes) {
+          /* Create material of the stroke. */
+          Material *ma_src = BKE_object_material_get(elem->ob, gps->mat_nr + 1);
+          bool found = false;
+          for (int index = 0; index < ob_gpencil->totcol; index++) {
+            Material *ma_dst = BKE_object_material_get(ob_gpencil, index + 1);
+            if (ma_src == ma_dst) {
+              found = true;
+              break;
             }
+          }
+          if (!found) {
+            BKE_object_material_slot_add(bmain, ob_gpencil);
+            BKE_object_material_assign(
+                bmain, ob_gpencil, ma_src, ob_gpencil->totcol, BKE_MAT_ASSIGN_USERPREF);
+          }
+
+          /* Set new material index. */
+          gps->mat_nr = BKE_gpencil_object_material_index_get(ob_gpencil, ma_src);
+
+          /* Update point location to new object space. */
+          for (int i = 0; i < gps->totpoints; i++) {
+            bGPDspoint *pt = &gps->points[i];
+            mul_m4_v3(matrix, &pt->x);
+            mul_m4_v3(invmat, &pt->x);
+          }
+
+          /* Reproject stroke. */
+          if (project_type != GP_REPROJECT_KEEP) {
+            ED_gpencil_stroke_reproject(
+                depsgraph, &gsc, sctx, gpl_dst, gpf_dst, gps, project_type, false);
+          }
+          else {
+            BKE_gpencil_stroke_geometry_update(gpd_dst, gps);
           }
         }
       }
     }
   }
-
   /* Return scene frame state and DB to original state. */
   CFRA = oldframe;
   BKE_scene_graph_update_for_newframe(depsgraph);
-
-  /* Remove unused materials. */
-  int actcol = ob_gpencil->actcol;
-  for (int slot = 1; slot <= ob_gpencil->totcol; slot++) {
-    while (slot <= ob_gpencil->totcol && !BKE_object_material_slot_used(ob_gpencil->data, slot)) {
-      ob_gpencil->actcol = slot;
-      BKE_object_material_slot_remove(CTX_data_main(C), ob_gpencil);
-
-      if (actcol >= slot) {
-        actcol--;
-      }
-    }
-  }
-  ob_gpencil->actcol = actcol;
-
-  /* Untag all strokes. */
-  if (project_type != GP_REPROJECT_KEEP) {
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          gps->flag &= ~GP_STROKE_TAG;
-        }
-      }
-    }
-  }
 
   /* Free memory. */
   gpencil_bake_free_ob_list(&ob_selected_list);
@@ -376,11 +346,10 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
     BLI_ghash_free(keyframe_list, NULL, NULL);
   }
 
-  /* notifiers */
-  if (newob) {
-    DEG_relations_tag_update(bmain);
-  }
+  /* Notifiers. */
+  DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  DEG_id_tag_update(&gpd_dst->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, NULL);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -391,47 +360,51 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gpencil_bake_mesh_animation_invoke(bContext *C,
-                                              wmOperator *op,
-                                              const wmEvent *UNUSED(event))
+static int gpencil_bake_grease_pencil_animation_invoke(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *UNUSED(event))
 {
+  PropertyRNA *prop;
+  Scene *scene = CTX_data_scene(C);
+
+  prop = RNA_struct_find_property(op->ptr, "frame_start");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    const int frame_start = RNA_property_int_get(op->ptr, prop);
+    if (frame_start < scene->r.sfra) {
+      RNA_property_int_set(op->ptr, prop, scene->r.sfra);
+    }
+  }
+
+  prop = RNA_struct_find_property(op->ptr, "frame_end");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    const int frame_end = RNA_property_int_get(op->ptr, prop);
+    if (frame_end > scene->r.efra) {
+      RNA_property_int_set(op->ptr, prop, scene->r.efra);
+    }
+  }
+
   /* Show popup dialog to allow editing. */
-  /* FIXME: hard-coded dimensions here are just arbitrary. */
   return WM_operator_props_dialog_popup(C, op, 250);
 }
 
-void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
+void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
 {
-  static const EnumPropertyItem target_object_modes[] = {
-      {GP_TARGET_OB_NEW, "NEW", 0, "New Object", ""},
-      {GP_TARGET_OB_SELECTED, "SELECTED", 0, "Selected Object", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Bake Mesh Animation to Grease Pencil";
-  ot->idname = "GPENCIL_OT_bake_mesh_animation";
-  ot->description = "Bake mesh animation to grease pencil strokes";
+  ot->name = "Bake Object Transform to Grease Pencil";
+  ot->idname = "GPENCIL_OT_bake_grease_pencil_animation";
+  ot->description = "Bake grease pencil object transform to grease pencil keyframes";
 
   /* callbacks */
-  ot->invoke = gpencil_bake_mesh_animation_invoke;
-  ot->exec = gpencil_bake_mesh_animation_exec;
-  ot->poll = gpencil_bake_mesh_animation_poll;
+  ot->invoke = gpencil_bake_grease_pencil_animation_invoke;
+  ot->exec = gpencil_bake_grease_pencil_animation_exec;
+  ot->poll = gpencil_bake_grease_pencil_animation_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna,
-                          "target",
-                          target_object_modes,
-                          GP_TARGET_OB_NEW,
-                          "Target Object",
-                          "Target grease pencil");
-  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-
   prop = RNA_def_int(
       ot->srna, "frame_start", 1, 1, 100000, "Start Frame", "The start frame", 1, 100000);
 
@@ -441,36 +414,10 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
 
   prop = RNA_def_int(ot->srna, "step", 1, 1, 100, "Step", "Step between generated frames", 1, 100);
 
-  RNA_def_int(ot->srna, "thickness", 1, 1, 100, "Thickness", "", 1, 100);
-
-  prop = RNA_def_float_rotation(ot->srna,
-                                "angle",
-                                0,
-                                NULL,
-                                DEG2RADF(0.0f),
-                                DEG2RADF(180.0f),
-                                "Threshold Angle",
-                                "Threshold to determine ends of the strokes",
-                                DEG2RADF(0.0f),
-                                DEG2RADF(180.0f));
-  RNA_def_property_float_default(prop, DEG2RADF(70.0f));
-
-  RNA_def_float_distance(ot->srna,
-                         "offset",
-                         0.001f,
-                         0.0,
-                         100.0,
-                         "Stroke Offset",
-                         "Offset strokes from fill",
-                         0.0,
-                         100.00);
-
-  RNA_def_boolean(ot->srna, "seams", 0, "Only Seam Edges", "Convert only seam edges");
-  RNA_def_boolean(ot->srna, "faces", 1, "Export Faces", "Export faces as filled strokes");
   RNA_def_boolean(
       ot->srna, "only_selected", 0, "Only Selected Keyframes", "Convert only selected keyframes");
   RNA_def_int(
       ot->srna, "frame_target", 1, 1, 100000, "Target Frame", "Destination frame", 1, 100000);
 
-  RNA_def_enum(ot->srna, "project_type", reproject_type, GP_REPROJECT_VIEW, "Projection Type", "");
+  RNA_def_enum(ot->srna, "project_type", reproject_type, GP_REPROJECT_KEEP, "Projection Type", "");
 }

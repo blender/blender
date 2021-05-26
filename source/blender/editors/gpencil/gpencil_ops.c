@@ -622,6 +622,7 @@ void ED_operatortypes_gpencil(void)
 
   WM_operatortype_append(GPENCIL_OT_convert);
   WM_operatortype_append(GPENCIL_OT_bake_mesh_animation);
+  WM_operatortype_append(GPENCIL_OT_bake_grease_pencil_animation);
 
   WM_operatortype_append(GPENCIL_OT_image_to_grease_pencil);
 #ifdef WITH_POTRACE
