@@ -37,6 +37,7 @@
 #include "BKE_node.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_material_types.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
@@ -392,6 +393,13 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
     case SOCK_TEXTURE: {
       bNodeSocketValueTexture *toval = (bNodeSocketValueTexture *)to->default_value;
       bNodeSocketValueTexture *fromval = (bNodeSocketValueTexture *)from->default_value;
+      *toval = *fromval;
+      id_us_plus(&toval->value->id);
+      break;
+    }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *toval = (bNodeSocketValueMaterial *)to->default_value;
+      bNodeSocketValueMaterial *fromval = (bNodeSocketValueMaterial *)from->default_value;
       *toval = *fromval;
       id_us_plus(&toval->value->id);
       break;
