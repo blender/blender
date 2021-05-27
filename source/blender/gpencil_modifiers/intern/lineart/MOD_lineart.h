@@ -155,7 +155,7 @@ typedef struct LineartEdge {
 
   /**
    * Still need this entry because culled lines will not add to object
-   * #LineartElementLinkNode node (known as `reln` internally).
+   * #LineartElementLinkNode node (known as `eln` internally).
    *
    * TODO: If really need more savings, we can allocate this in a "extended" way too, but we need
    * another bit in flags to be able to show the difference.

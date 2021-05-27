@@ -629,55 +629,55 @@ static bool lineart_point_inside_triangle3d(double v[3], double v0[3], double v1
  */
 static LineartElementLinkNode *lineart_memory_get_triangle_space(LineartRenderBuffer *rb)
 {
-  LineartElementLinkNode *reln;
+  LineartElementLinkNode *eln;
 
   /* We don't need to allocate a whole bunch of triangles because the amount of clipped triangles
    * are relatively small. */
   LineartTriangle *render_triangles = lineart_mem_acquire(&rb->render_data_pool,
                                                           64 * rb->triangle_size);
 
-  reln = lineart_list_append_pointer_pool_sized(&rb->triangle_buffer_pointers,
-                                                &rb->render_data_pool,
-                                                render_triangles,
-                                                sizeof(LineartElementLinkNode));
-  reln->element_count = 64;
-  reln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
+  eln = lineart_list_append_pointer_pool_sized(&rb->triangle_buffer_pointers,
+                                               &rb->render_data_pool,
+                                               render_triangles,
+                                               sizeof(LineartElementLinkNode));
+  eln->element_count = 64;
+  eln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
 
-  return reln;
+  return eln;
 }
 
 static LineartElementLinkNode *lineart_memory_get_vert_space(LineartRenderBuffer *rb)
 {
-  LineartElementLinkNode *reln;
+  LineartElementLinkNode *eln;
 
   LineartVert *render_vertices = lineart_mem_acquire(&rb->render_data_pool,
                                                      sizeof(LineartVert) * 64);
 
-  reln = lineart_list_append_pointer_pool_sized(&rb->vertex_buffer_pointers,
-                                                &rb->render_data_pool,
-                                                render_vertices,
-                                                sizeof(LineartElementLinkNode));
-  reln->element_count = 64;
-  reln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
+  eln = lineart_list_append_pointer_pool_sized(&rb->vertex_buffer_pointers,
+                                               &rb->render_data_pool,
+                                               render_vertices,
+                                               sizeof(LineartElementLinkNode));
+  eln->element_count = 64;
+  eln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
 
-  return reln;
+  return eln;
 }
 
 static LineartElementLinkNode *lineart_memory_get_edge_space(LineartRenderBuffer *rb)
 {
-  LineartElementLinkNode *reln;
+  LineartElementLinkNode *eln;
 
   LineartEdge *render_edges = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartEdge) * 64);
 
-  reln = lineart_list_append_pointer_pool_sized(&rb->line_buffer_pointers,
-                                                &rb->render_data_pool,
-                                                render_edges,
-                                                sizeof(LineartElementLinkNode));
-  reln->element_count = 64;
-  reln->crease_threshold = rb->crease_threshold;
-  reln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
+  eln = lineart_list_append_pointer_pool_sized(&rb->line_buffer_pointers,
+                                               &rb->render_data_pool,
+                                               render_edges,
+                                               sizeof(LineartElementLinkNode));
+  eln->element_count = 64;
+  eln->crease_threshold = rb->crease_threshold;
+  eln->flags |= LRT_ELEMENT_IS_ADDITIONAL;
 
-  return reln;
+  return eln;
 }
 
 static void lineart_triangle_post(LineartTriangle *tri, LineartTriangle *orig)
@@ -1254,14 +1254,14 @@ static void lineart_main_cull_triangles(LineartRenderBuffer *rb, bool clip_far)
   }
 
   /* Then go through all the other triangles. */
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->triangle_buffer_pointers) {
-    if (reln->flags & LRT_ELEMENT_IS_ADDITIONAL) {
+  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->triangle_buffer_pointers) {
+    if (eln->flags & LRT_ELEMENT_IS_ADDITIONAL) {
       continue;
     }
-    ob = reln->object_ref;
-    for (i = 0; i < reln->element_count; i++) {
+    ob = eln->object_ref;
+    for (i = 0; i < eln->element_count; i++) {
       /* Select the triangle in the array. */
-      tri = (void *)(((uchar *)reln->pointer) + rb->triangle_size * i);
+      tri = (void *)(((uchar *)eln->pointer) + rb->triangle_size * i);
 
       LRT_CULL_DECIDE_INSIDE
       LRT_CULL_ENSURE_MEMORY
@@ -1300,10 +1300,10 @@ static void lineart_main_free_adjacent_data(LineartRenderBuffer *rb)
   while ((ld = BLI_pophead(&rb->triangle_adjacent_pointers)) != NULL) {
     MEM_freeN(ld->data);
   }
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->triangle_buffer_pointers) {
-    LineartTriangle *tri = reln->pointer;
+  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->triangle_buffer_pointers) {
+    LineartTriangle *tri = eln->pointer;
     int i;
-    for (i = 0; i < reln->element_count; i++) {
+    for (i = 0; i < eln->element_count; i++) {
       /* See definition of tri->intersecting_verts and the usage in
        * lineart_geometry_object_load() for detailed. */
       tri->intersecting_verts = NULL;
@@ -1321,9 +1321,9 @@ static void lineart_main_perspective_division(LineartRenderBuffer *rb)
     return;
   }
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->vertex_buffer_pointers) {
-    vt = reln->pointer;
-    for (i = 0; i < reln->element_count; i++) {
+  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->vertex_buffer_pointers) {
+    vt = eln->pointer;
+    for (i = 0; i < eln->element_count; i++) {
       /* Do not divide Z, we use Z to back transform cut points in later chaining process. */
       vt[i].fbcoord[0] /= vt[i].fbcoord[3];
       vt[i].fbcoord[1] /= vt[i].fbcoord[3];
@@ -1483,7 +1483,7 @@ static void lineart_geometry_object_load(Depsgraph *dg,
   LineartTriangleAdjacent *orta;
   double new_mvp[4][4], new_mv[4][4], normal[4][4];
   float imat[4][4];
-  LineartElementLinkNode *reln;
+  LineartElementLinkNode *eln;
   LineartVert *orv;
   LineartEdge *o_la_e;
   LineartTriangle *ort;
@@ -1583,10 +1583,10 @@ static void lineart_geometry_object_load(Depsgraph *dg,
 
     orig_ob = ob->id.orig_id ? (Object *)ob->id.orig_id : ob;
 
-    reln = lineart_list_append_pointer_pool_sized(
+    eln = lineart_list_append_pointer_pool_sized(
         &rb->vertex_buffer_pointers, &rb->render_data_pool, orv, sizeof(LineartElementLinkNode));
-    reln->element_count = bm->totvert;
-    reln->object_ref = orig_ob;
+    eln->element_count = bm->totvert;
+    eln->object_ref = orig_ob;
 
     if (ob->lineart.flags & OBJECT_LRT_OWN_CREASE) {
       use_crease = cosf(M_PI - ob->lineart.crease_threshold);
@@ -1598,14 +1598,14 @@ static void lineart_geometry_object_load(Depsgraph *dg,
     /* FIXME(Yiming): Hack for getting clean 3D text, the seam that extruded text object creates
      * erroneous detection on creases. Future configuration should allow options. */
     if (ob->type == OB_FONT) {
-      reln->flags |= LRT_ELEMENT_BORDER_ONLY;
+      eln->flags |= LRT_ELEMENT_BORDER_ONLY;
     }
 
-    reln = lineart_list_append_pointer_pool_sized(
+    eln = lineart_list_append_pointer_pool_sized(
         &rb->triangle_buffer_pointers, &rb->render_data_pool, ort, sizeof(LineartElementLinkNode));
-    reln->element_count = bm->totface;
-    reln->object_ref = orig_ob;
-    reln->flags |= (usage == OBJECT_LRT_NO_INTERSECTION ? LRT_ELEMENT_NO_INTERSECTION : 0);
+    eln->element_count = bm->totface;
+    eln->object_ref = orig_ob;
+    eln->flags |= (usage == OBJECT_LRT_NO_INTERSECTION ? LRT_ELEMENT_NO_INTERSECTION : 0);
 
     /* Note this memory is not from pool, will be deleted after culling. */
     orta = MEM_callocN(sizeof(LineartTriangleAdjacent) * bm->totface, "LineartTriangleAdjacent");
@@ -1678,10 +1678,10 @@ static void lineart_geometry_object_load(Depsgraph *dg,
     }
 
     o_la_e = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartEdge) * allocate_la_e);
-    reln = lineart_list_append_pointer_pool_sized(
+    eln = lineart_list_append_pointer_pool_sized(
         &rb->line_buffer_pointers, &rb->render_data_pool, o_la_e, sizeof(LineartElementLinkNode));
-    reln->element_count = allocate_la_e;
-    reln->object_ref = orig_ob;
+    eln->element_count = allocate_la_e;
+    eln->object_ref = orig_ob;
 
     la_e = o_la_e;
     for (i = 0; i < bm->totedge; i++) {
@@ -3349,9 +3349,9 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
   int x1, x2, y1, y2;
   int r, co;
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->triangle_buffer_pointers) {
-    tri = reln->pointer;
-    lim = reln->element_count;
+  LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->triangle_buffer_pointers) {
+    tri = eln->pointer;
+    lim = eln->element_count;
     for (i = 0; i < lim; i++) {
       if ((tri->flags & LRT_CULL_USED) || (tri->flags & LRT_CULL_DISCARD)) {
         tri = (void *)(((uchar *)tri) + rb->triangle_size);
