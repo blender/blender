@@ -230,12 +230,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
       has_updates_ = true;
     }
 
-    if (!has_updates_) {
-      Film *film = scene->film;
-
-      const PassType new_display_pass = new_viewport_parameters.get_render_pass(b_v3d);
-      has_updates_ |= film->get_display_pass() != new_display_pass;
-    }
+    has_updates_ |= viewport_parameters.modified(new_viewport_parameters);
   }
 }
 

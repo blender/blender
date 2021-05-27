@@ -37,19 +37,24 @@ class BlenderViewportParameters {
   float studiolight_background_alpha;
   ustring studiolight_path;
 
+  /* Film. */
+  PassType display_pass;
+
   BlenderViewportParameters();
   explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
 
   /* Check whether any of shading related settings are different from the given parameters. */
   bool shader_modified(const BlenderViewportParameters &other) const;
 
+  /* Check whether any of film related settings are different from the given parameters. */
+  bool film_modified(const BlenderViewportParameters &other) const;
+
+  /* Check whether any of settings are different from the given parameters. */
+  bool modified(const BlenderViewportParameters &other) const;
+
   /* Returns truth when a custom shader defined by the viewport is to be used instead of the
    * regular background shader or scene light. */
   bool use_custom_shader() const;
-
-  /* Retrieve the render pass type that needs to be displayed on the given `SpaceView3D`
-   * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
-  static PassType get_render_pass(BL::SpaceView3D &b_v3d);
 };
 
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes);

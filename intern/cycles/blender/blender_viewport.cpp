@@ -25,7 +25,8 @@ BlenderViewportParameters::BlenderViewportParameters()
       use_scene_lights(true),
       studiolight_rotate_z(0.0f),
       studiolight_intensity(1.0f),
-      studiolight_background_alpha(1.0f)
+      studiolight_background_alpha(1.0f),
+      display_pass(PASS_COMBINED)
 {
 }
 
@@ -37,22 +38,24 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
   }
 
   BL::View3DShading shading = b_v3d.shading();
+  PointerRNA cshading = RNA_pointer_get(&shading.ptr, "cycles");
 
-  /* We only copy the parameters if we are in look dev mode. otherwise
+  /* We only copy the shading parameters if we are in look dev mode. otherwise
    * defaults are being used. These defaults mimic normal render settings */
-  if (shading.type() != BL::View3DShading::type_RENDERED) {
-    return;
+  if (shading.type() == BL::View3DShading::type_RENDERED) {
+    use_scene_world = shading.use_scene_world_render();
+    use_scene_lights = shading.use_scene_lights_render();
+
+    if (!use_scene_world) {
+      studiolight_rotate_z = shading.studiolight_rotate_z();
+      studiolight_intensity = shading.studiolight_intensity();
+      studiolight_background_alpha = shading.studiolight_background_alpha();
+      studiolight_path = shading.selected_studio_light().path();
+    }
   }
 
-  use_scene_world = shading.use_scene_world_render();
-  use_scene_lights = shading.use_scene_lights_render();
-
-  if (!use_scene_world) {
-    studiolight_rotate_z = shading.studiolight_rotate_z();
-    studiolight_intensity = shading.studiolight_intensity();
-    studiolight_background_alpha = shading.studiolight_background_alpha();
-    studiolight_path = shading.selected_studio_light().path();
-  }
+  /* Film. */
+  display_pass = (PassType)get_enum(cshading, "render_pass", -1, -1);
 }
 
 bool BlenderViewportParameters::shader_modified(const BlenderViewportParameters &other) const
@@ -64,26 +67,26 @@ bool BlenderViewportParameters::shader_modified(const BlenderViewportParameters 
          studiolight_path != other.studiolight_path;
 }
 
+bool BlenderViewportParameters::film_modified(const BlenderViewportParameters &other) const
+{
+  return display_pass != other.display_pass;
+}
+
+bool BlenderViewportParameters::modified(const BlenderViewportParameters &other) const
+{
+  return shader_modified(other) || film_modified(other);
+}
+
 bool BlenderViewportParameters::use_custom_shader() const
 {
   return !(use_scene_world && use_scene_lights);
 }
 
-PassType BlenderViewportParameters::get_render_pass(BL::SpaceView3D &b_v3d)
-{
-  PassType display_pass = PASS_NONE;
-  if (b_v3d) {
-    BL::View3DShading b_view3dshading = b_v3d.shading();
-    PointerRNA cshading = RNA_pointer_get(&b_view3dshading.ptr, "cycles");
-    display_pass = (PassType)get_enum(cshading, "render_pass", -1, -1);
-  }
-  return display_pass;
-}
-
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes)
 {
   if (b_v3d) {
-    PassType display_pass = BlenderViewportParameters::get_render_pass(b_v3d);
+    const BlenderViewportParameters viewport_parameters(b_v3d);
+    const PassType display_pass = viewport_parameters.display_pass;
 
     passes.clear();
     Pass::add(display_pass, passes);
