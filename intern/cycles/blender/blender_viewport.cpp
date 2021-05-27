@@ -25,8 +25,7 @@ BlenderViewportParameters::BlenderViewportParameters()
       use_scene_lights(true),
       studiolight_rotate_z(0.0f),
       studiolight_intensity(1.0f),
-      studiolight_background_alpha(1.0f),
-      studiolight_path(ustring())
+      studiolight_background_alpha(1.0f)
 {
 }
 
