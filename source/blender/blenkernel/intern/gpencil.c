@@ -2688,7 +2688,7 @@ void BKE_gpencil_visible_stroke_iter(ViewLayer *view_layer,
      * This is used only in final render and never in Viewport. */
     if ((view_layer != NULL) && (gpl->viewlayername[0] != '\0') &&
         (!STREQ(view_layer->name, gpl->viewlayername))) {
-      /* Do not skip masks when rendering the viewlayer so that it can still be used to clip
+      /* Do not skip masks when rendering the view-layer so that it can still be used to clip
        * other layers. Instead set their opacity to zero. */
       if (gpencil_is_layer_mask(view_layer, gpd, gpl)) {
         gpl->opacity = 0.0f;

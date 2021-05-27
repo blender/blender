@@ -357,9 +357,9 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     /* If `newid` is already set, assume it has been handled by calling code.
      * Only current use case: re-using proxy ID when converting to liboverride. */
     if (reference_id->newid == NULL) {
-      /* Note: `no main` case is used during resync procedure, to support recursive resync. This
-       * requires extra care further odwn the resync process, see
-       * `BKE_lib_override_library_resync`. */
+      /* Note: `no main` case is used during resync procedure, to support recursive resync.
+       * This requires extra care further down the resync process,
+       * see: #BKE_lib_override_library_resync. */
       reference_id->newid = lib_override_library_create_from(
           bmain, reference_id, do_no_main ? LIB_ID_CREATE_NO_MAIN : 0);
       if (reference_id->newid == NULL) {
@@ -408,7 +408,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
          * loop, but we can get to them through their reference's `newid` pointer. */
         if (do_no_main && id->lib == reference_id->lib && id->newid != NULL) {
           other_id = id->newid;
-          /* Otherwise we cannot properly dinstinguish between IDs that are actually from the
+          /* Otherwise we cannot properly distinguish between IDs that are actually from the
            * linked library (and should not be remapped), and IDs that are overrides re-generated
            * from the reference from the linked library, and must therefore be remapped.
            *
