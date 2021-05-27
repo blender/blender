@@ -6115,13 +6115,25 @@ char *RNA_path_full_ID_py(Main *bmain, ID *id)
     path = "";
   }
 
-  char id_esc[(sizeof(id->name) - 2) * 2];
+  char lib_filepath_esc[(sizeof(id->lib->filepath) * 2) + 4];
+  if (id->lib != NULL) {
+    int ofs = 0;
+    memcpy(lib_filepath_esc, ", \"", 3);
+    ofs += 3;
+    ofs += BLI_str_escape(lib_filepath_esc + ofs, id->lib->filepath, sizeof(lib_filepath_esc));
+    memcpy(lib_filepath_esc + ofs, "\"", 2);
+  }
+  else {
+    lib_filepath_esc[0] = '\0';
+  }
 
+  char id_esc[(sizeof(id->name) - 2) * 2];
   BLI_str_escape(id_esc, id->name + 2, sizeof(id_esc));
 
-  return BLI_sprintfN("bpy.data.%s[\"%s\"]%s%s",
+  return BLI_sprintfN("bpy.data.%s[\"%s\"%s]%s%s",
                       BKE_idtype_idcode_to_name_plural(GS(id->name)),
                       id_esc,
+                      lib_filepath_esc,
                       path[0] ? "." : "",
                       path);
 }
