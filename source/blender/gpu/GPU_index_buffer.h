@@ -87,7 +87,7 @@ void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
  * local copy, use `GPU_indexbuf_unmap` after calling `GPU_indexbuf_read`.
  */
 const uint32_t *GPU_indexbuf_read(GPUIndexBuf *elem);
-uint32_t *GPU_indexbuf_unmap(const GPUIndexBuf *elem, const uint32_t *mapped_data);
+uint32_t *GPU_indexbuf_unmap(const GPUIndexBuf *elem, const uint32_t *mapped_buffer);
 
 void GPU_indexbuf_discard(GPUIndexBuf *elem);
 
