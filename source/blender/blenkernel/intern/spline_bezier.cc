@@ -59,18 +59,18 @@ void BezierSpline::set_resolution(const int value)
  * \warning Call #reallocate on the spline's attributes after adding all points.
  */
 void BezierSpline::add_point(const float3 position,
-                             const HandleType handle_type_start,
-                             const float3 handle_position_start,
-                             const HandleType handle_type_end,
-                             const float3 handle_position_end,
+                             const HandleType handle_type_left,
+                             const float3 handle_position_left,
+                             const HandleType handle_type_right,
+                             const float3 handle_position_right,
                              const float radius,
                              const float tilt)
 {
-  handle_types_left_.append(handle_type_start);
-  handle_positions_left_.append(handle_position_start);
+  handle_types_left_.append(handle_type_left);
+  handle_positions_left_.append(handle_position_left);
   positions_.append(position);
-  handle_types_right_.append(handle_type_end);
-  handle_positions_right_.append(handle_position_end);
+  handle_types_right_.append(handle_type_right);
+  handle_positions_right_.append(handle_position_right);
   radii_.append(radius);
   tilts_.append(tilt);
   this->mark_cache_invalid();

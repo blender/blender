@@ -257,10 +257,10 @@ class BezierSpline final : public Spline {
   void set_resolution(const int value);
 
   void add_point(const blender::float3 position,
-                 const HandleType handle_type_start,
-                 const blender::float3 handle_position_start,
-                 const HandleType handle_type_end,
-                 const blender::float3 handle_position_end,
+                 const HandleType handle_type_left,
+                 const blender::float3 handle_position_left,
+                 const HandleType handle_type_right,
+                 const blender::float3 handle_position_right,
                  const float radius,
                  const float tilt);
 
