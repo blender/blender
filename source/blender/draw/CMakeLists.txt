@@ -31,6 +31,7 @@ set(INC
   ../depsgraph
   ../editors/include
   ../editors/space_view3d
+  ../functions
   ../gpu
   ../imbuf
   ../makesdna

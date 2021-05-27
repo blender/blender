@@ -25,8 +25,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
+#include "BLI_float3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
@@ -34,6 +37,8 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
+#include "BKE_geometry_set.hh"
+#include "BKE_spline.hh"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
@@ -47,6 +52,11 @@
 #include "draw_cache_inline.h"
 
 #include "draw_cache_impl.h" /* own include */
+
+using blender::Array;
+using blender::float3;
+using blender::IndexRange;
+using blender::Span;
 
 /* See: edit_curve_point_vert.glsl for duplicate includes. */
 #define SELECT 1
@@ -139,6 +149,21 @@ static void curve_render_wire_verts_edges_len_get(const CurveCache *ob_curve_cac
   }
 }
 
+static void curve_eval_render_wire_verts_edges_len_get(const CurveEval &curve_eval,
+                                                       int *r_curve_len,
+                                                       int *r_vert_len,
+                                                       int *r_edge_len)
+{
+  Span<SplinePtr> splines = curve_eval.splines();
+  *r_curve_len = splines.size();
+  *r_vert_len = 0;
+  *r_edge_len = 0;
+  for (const SplinePtr &spline : splines) {
+    *r_vert_len += spline->evaluated_points_size();
+    *r_edge_len += spline->evaluated_edges_size();
+  }
+}
+
 static int curve_render_normal_len_get(const ListBase *lb, const CurveCache *ob_curve_cache)
 {
   int normal_len = 0;
@@ -192,6 +217,9 @@ struct CurveRenderData {
   /* borrow from 'Object' */
   CurveCache *ob_curve_cache;
 
+  /* Owned by the evaluated object's geometry set (#geometry_set_eval). */
+  const CurveEval *curve_eval;
+
   /* borrow from 'Curve' */
   ListBase *nurbs;
 
@@ -230,11 +258,21 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
 
   rdata->ob_curve_cache = ob_curve_cache;
 
+  rdata->curve_eval = cu->curve_eval;
+
   if (types & CU_DATATYPE_WIRE) {
-    curve_render_wire_verts_edges_len_get(rdata->ob_curve_cache,
-                                          &rdata->wire.curve_len,
-                                          &rdata->wire.vert_len,
-                                          &rdata->wire.edge_len);
+    if (rdata->curve_eval != nullptr) {
+      curve_eval_render_wire_verts_edges_len_get(*rdata->curve_eval,
+                                                 &rdata->wire.curve_len,
+                                                 &rdata->wire.vert_len,
+                                                 &rdata->wire.edge_len);
+    }
+    else {
+      curve_render_wire_verts_edges_len_get(rdata->ob_curve_cache,
+                                            &rdata->wire.curve_len,
+                                            &rdata->wire.vert_len,
+                                            &rdata->wire.edge_len);
+    }
   }
 
   if (cu->editnurb) {
@@ -556,8 +594,6 @@ void DRW_curve_batch_cache_free(Curve *cu)
 /* GPUBatch cache usage. */
 static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curves_pos)
 {
-  BLI_assert(rdata->ob_curve_cache != nullptr);
-
   static GPUVertFormat format = {0};
   static struct {
     uint pos;
@@ -570,30 +606,46 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  int v_idx = 0;
-  LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
-    if (bl->nr <= 0) {
-      continue;
-    }
-    const int i_end = v_idx + bl->nr;
-    for (const BevPoint *bevp = bl->bevpoints; v_idx < i_end; v_idx++, bevp++) {
-      GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, bevp->vec);
-    }
-  }
-  LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
-    if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
-      for (int i = 0; i < dl->nr; v_idx++, i++) {
-        GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, &((float(*)[3])dl->verts)[i]);
+  if (rdata->curve_eval != nullptr) {
+    const CurveEval &curve_eval = *rdata->curve_eval;
+    Span<SplinePtr> splines = curve_eval.splines();
+    Array<int> offsets = curve_eval.evaluated_point_offsets();
+    BLI_assert(offsets.last() == vert_len);
+
+    for (const int i_spline : splines.index_range()) {
+      Span<float3> positions = splines[i_spline]->evaluated_positions();
+      for (const int i_point : positions.index_range()) {
+        GPU_vertbuf_attr_set(
+            vbo_curves_pos, attr_id.pos, offsets[i_spline] + i_point, positions[i_point]);
       }
     }
   }
-  BLI_assert(v_idx == vert_len);
+  else {
+    BLI_assert(rdata->ob_curve_cache != nullptr);
+
+    int v_idx = 0;
+    LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
+      if (bl->nr <= 0) {
+        continue;
+      }
+      const int i_end = v_idx + bl->nr;
+      for (const BevPoint *bevp = bl->bevpoints; v_idx < i_end; v_idx++, bevp++) {
+        GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, bevp->vec);
+      }
+    }
+    LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
+      if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
+        for (int i = 0; i < dl->nr; v_idx++, i++) {
+          GPU_vertbuf_attr_set(vbo_curves_pos, attr_id.pos, v_idx, &((float(*)[3])dl->verts)[i]);
+        }
+      }
+    }
+    BLI_assert(v_idx == vert_len);
+  }
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
 {
-  BLI_assert(rdata->ob_curve_cache != nullptr);
-
   const int vert_len = curve_render_data_wire_verts_len_get(rdata);
   const int edge_len = curve_render_data_wire_edges_len_get(rdata);
   const int curve_len = curve_render_data_wire_curve_len_get(rdata);
@@ -603,34 +655,56 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  int v_idx = 0;
-  LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
-    if (bl->nr <= 0) {
-      continue;
-    }
-    const bool is_cyclic = bl->poly != -1;
-    if (is_cyclic) {
-      GPU_indexbuf_add_generic_vert(&elb, v_idx + (bl->nr - 1));
-    }
-    for (int i = 0; i < bl->nr; i++) {
-      GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
-    }
-    GPU_indexbuf_add_primitive_restart(&elb);
-    v_idx += bl->nr;
-  }
-  LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
-    if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
-      const bool is_cyclic = dl->type == DL_POLY;
-      if (is_cyclic) {
-        GPU_indexbuf_add_generic_vert(&elb, v_idx + (dl->nr - 1));
+  if (rdata->curve_eval != nullptr) {
+    const CurveEval &curve_eval = *rdata->curve_eval;
+    Span<SplinePtr> splines = curve_eval.splines();
+    Array<int> offsets = curve_eval.evaluated_point_offsets();
+    BLI_assert(offsets.last() == vert_len);
+
+    for (const int i_spline : splines.index_range()) {
+      const int eval_size = splines[i_spline]->evaluated_points_size();
+      if (splines[i_spline]->is_cyclic()) {
+        GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
       }
-      for (int i = 0; i < dl->nr; i++) {
+      for (const int i_point : IndexRange(eval_size)) {
+        GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + i_point);
+      }
+      GPU_indexbuf_add_primitive_restart(&elb);
+    }
+  }
+  else {
+    BLI_assert(rdata->ob_curve_cache != nullptr);
+
+    int v_idx = 0;
+    LISTBASE_FOREACH (const BevList *, bl, &rdata->ob_curve_cache->bev) {
+      if (bl->nr <= 0) {
+        continue;
+      }
+      const bool is_cyclic = bl->poly != -1;
+      if (is_cyclic) {
+        GPU_indexbuf_add_generic_vert(&elb, v_idx + (bl->nr - 1));
+      }
+      for (int i = 0; i < bl->nr; i++) {
         GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
       }
       GPU_indexbuf_add_primitive_restart(&elb);
-      v_idx += dl->nr;
+      v_idx += bl->nr;
+    }
+    LISTBASE_FOREACH (const DispList *, dl, &rdata->ob_curve_cache->disp) {
+      if (ELEM(dl->type, DL_SEGM, DL_POLY)) {
+        const bool is_cyclic = dl->type == DL_POLY;
+        if (is_cyclic) {
+          GPU_indexbuf_add_generic_vert(&elb, v_idx + (dl->nr - 1));
+        }
+        for (int i = 0; i < dl->nr; i++) {
+          GPU_indexbuf_add_generic_vert(&elb, v_idx + i);
+        }
+        GPU_indexbuf_add_primitive_restart(&elb);
+        v_idx += dl->nr;
+      }
     }
   }
+
   GPU_indexbuf_build_in_place(&elb, ibo_curve_lines);
 }
 
@@ -1070,8 +1144,11 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
 
   CurveRenderData *rdata = curve_render_data_create(cu, ob->runtime.curve_cache, mr_flag);
 
-  /* DispLists */
-  ListBase *lb = &rdata->ob_curve_cache->disp;
+  /* The object's curve cache can be empty (in one case because we use #CurveEval's cache instead),
+   * If so, point to an empty DispList list to avoid the need to check for null in the following
+   * functions. */
+  ListBase empty_lb = {nullptr, nullptr};
+  ListBase *lb = rdata->ob_curve_cache == nullptr ? &empty_lb : &rdata->ob_curve_cache->disp;
 
   /* Generate VBOs */
   if (DRW_vbo_requested(cache->ordered.pos_nor)) {

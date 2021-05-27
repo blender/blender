@@ -14,9 +14,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "DNA_ID_enums.h"
+#include "DNA_curve_types.h"
+
 #include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_curve.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_lib_id.h"
 #include "BKE_spline.hh"
 
 #include "attribute_access_intern.hh"
@@ -58,6 +63,11 @@ void CurveComponent::clear()
     if (ownership_ == GeometryOwnershipType::Owned) {
       delete curve_;
     }
+    if (curve_for_render_ != nullptr) {
+      BKE_id_free(nullptr, curve_for_render_);
+      curve_for_render_ = nullptr;
+    }
+
     curve_ = nullptr;
   }
 }
@@ -116,6 +126,29 @@ void CurveComponent::ensure_owns_direct_data()
     curve_ = new CurveEval(*curve_);
     ownership_ = GeometryOwnershipType::Owned;
   }
+}
+
+/**
+ * Create empty curve data used for rendering the spline's wire edges.
+ * \note See comment on #curve_for_render_ for further explanation.
+ */
+const Curve *CurveComponent::get_curve_for_render() const
+{
+  if (curve_ == nullptr) {
+    return nullptr;
+  }
+  if (curve_for_render_ != nullptr) {
+    return curve_for_render_;
+  }
+  std::lock_guard lock{curve_for_render_mutex_};
+  if (curve_for_render_ != nullptr) {
+    return curve_for_render_;
+  }
+
+  curve_for_render_ = (Curve *)BKE_id_new_nomain(ID_CU, nullptr);
+  curve_for_render_->curve_eval = curve_;
+
+  return curve_for_render_;
 }
 
 /** \} */
