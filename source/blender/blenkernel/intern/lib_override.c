@@ -1329,7 +1329,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
 
     if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
       CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
-      if (id->lib->temp_index > library_indirect_level) {
+      if (id->lib != NULL && id->lib->temp_index > library_indirect_level) {
         CLOG_ERROR(
             &LOG,
             "While processing indirect level %d, ID %s from lib %s of indirect level %d detected "
@@ -1363,7 +1363,7 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                   id->lib,
                   id_to->name,
                   id_to->lib);
-        if (id->lib->temp_index > library_indirect_level) {
+        if (id->lib != NULL && id->lib->temp_index > library_indirect_level) {
           CLOG_ERROR(&LOG,
                      "While processing indirect level %d, ID %s from lib %s of indirect level %d "
                      "detected "
