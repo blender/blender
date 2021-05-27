@@ -2380,7 +2380,7 @@ static void float_array_to_string(float *values,
   current_index++;
 
   for (int i = 0; i < array_length; i++) {
-    int length = BLI_snprintf(
+    int length = BLI_snprintf_rlen(
         output + current_index, output_len_max - current_index, "%f", values[i]);
     current_index += length;
 

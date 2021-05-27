@@ -216,10 +216,10 @@ size_t BLI_timecode_string_from_time_simple(char *str,
   const int hun = ((int)(fmod(time_seconds, 1.0) * 100));
 
   if (hr) {
-    rlen = BLI_snprintf(str, maxncpy, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
+    rlen = BLI_snprintf_rlen(str, maxncpy, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
   }
   else {
-    rlen = BLI_snprintf(str, maxncpy, "%.2d:%.2d.%.2d", min, sec, hun);
+    rlen = BLI_snprintf_rlen(str, maxncpy, "%.2d:%.2d.%.2d", min, sec, hun);
   }
 
   return rlen;

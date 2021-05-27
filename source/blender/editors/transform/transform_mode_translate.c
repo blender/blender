@@ -141,67 +141,67 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf(str + ofs,
-                            UI_MAX_DRAW_STR - ofs,
-                            "D: %s (%s)%s %s  %s",
-                            &tvec[0],
-                            distvec,
-                            t->con.text,
-                            t->proptext,
-                            autoik);
+        ofs += BLI_snprintf_rlen(str + ofs,
+                                 UI_MAX_DRAW_STR - ofs,
+                                 "D: %s (%s)%s %s  %s",
+                                 &tvec[0],
+                                 distvec,
+                                 t->con.text,
+                                 t->proptext,
+                                 autoik);
         break;
       case 1:
-        ofs += BLI_snprintf(str + ofs,
-                            UI_MAX_DRAW_STR - ofs,
-                            "D: %s   D: %s (%s)%s %s  %s",
-                            &tvec[0],
-                            &tvec[NUM_STR_REP_LEN],
-                            distvec,
-                            t->con.text,
-                            t->proptext,
-                            autoik);
+        ofs += BLI_snprintf_rlen(str + ofs,
+                                 UI_MAX_DRAW_STR - ofs,
+                                 "D: %s   D: %s (%s)%s %s  %s",
+                                 &tvec[0],
+                                 &tvec[NUM_STR_REP_LEN],
+                                 distvec,
+                                 t->con.text,
+                                 t->proptext,
+                                 autoik);
         break;
       case 2:
-        ofs += BLI_snprintf(str + ofs,
-                            UI_MAX_DRAW_STR - ofs,
-                            "D: %s   D: %s  D: %s (%s)%s %s  %s",
-                            &tvec[0],
-                            &tvec[NUM_STR_REP_LEN],
-                            &tvec[NUM_STR_REP_LEN * 2],
-                            distvec,
-                            t->con.text,
-                            t->proptext,
-                            autoik);
+        ofs += BLI_snprintf_rlen(str + ofs,
+                                 UI_MAX_DRAW_STR - ofs,
+                                 "D: %s   D: %s  D: %s (%s)%s %s  %s",
+                                 &tvec[0],
+                                 &tvec[NUM_STR_REP_LEN],
+                                 &tvec[NUM_STR_REP_LEN * 2],
+                                 distvec,
+                                 t->con.text,
+                                 t->proptext,
+                                 autoik);
         break;
     }
   }
   else {
     if (t->flag & T_2D_EDIT) {
-      ofs += BLI_snprintf(str + ofs,
-                          UI_MAX_DRAW_STR - ofs,
-                          "Dx: %s   Dy: %s (%s)%s %s",
-                          &tvec[0],
-                          &tvec[NUM_STR_REP_LEN],
-                          distvec,
-                          t->con.text,
-                          t->proptext);
+      ofs += BLI_snprintf_rlen(str + ofs,
+                               UI_MAX_DRAW_STR - ofs,
+                               "Dx: %s   Dy: %s (%s)%s %s",
+                               &tvec[0],
+                               &tvec[NUM_STR_REP_LEN],
+                               distvec,
+                               t->con.text,
+                               t->proptext);
     }
     else {
-      ofs += BLI_snprintf(str + ofs,
-                          UI_MAX_DRAW_STR - ofs,
-                          "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s",
-                          &tvec[0],
-                          &tvec[NUM_STR_REP_LEN],
-                          &tvec[NUM_STR_REP_LEN * 2],
-                          distvec,
-                          t->con.text,
-                          t->proptext,
-                          autoik);
+      ofs += BLI_snprintf_rlen(str + ofs,
+                               UI_MAX_DRAW_STR - ofs,
+                               "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s",
+                               &tvec[0],
+                               &tvec[NUM_STR_REP_LEN],
+                               &tvec[NUM_STR_REP_LEN * 2],
+                               distvec,
+                               t->con.text,
+                               t->proptext,
+                               autoik);
     }
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf(
+    ofs += BLI_snprintf_rlen(
         str + ofs, UI_MAX_DRAW_STR - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 
@@ -217,12 +217,12 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       WM_modalkeymap_items_to_string(
           t->keymap, TFM_MODAL_INSERTOFS_TOGGLE_DIR, true, str_km, sizeof(str_km));
 
-      ofs += BLI_snprintf(str,
-                          UI_MAX_DRAW_STR,
-                          TIP_("Auto-offset set to %s - press %s to toggle direction  |  %s"),
-                          str_dir,
-                          str_km,
-                          str_old);
+      ofs += BLI_snprintf_rlen(str,
+                               UI_MAX_DRAW_STR,
+                               TIP_("Auto-offset set to %s - press %s to toggle direction  |  %s"),
+                               str_dir,
+                               str_km,
+                               str_old);
 
       MEM_freeN((void *)str_old);
     }

@@ -102,24 +102,24 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    ofs += BLI_snprintf(str + ofs,
-                        sizeof(str) - ofs,
-                        TIP_("Trackball: %s %s %s"),
-                        &c[0],
-                        &c[NUM_STR_REP_LEN],
-                        t->proptext);
+    ofs += BLI_snprintf_rlen(str + ofs,
+                             sizeof(str) - ofs,
+                             TIP_("Trackball: %s %s %s"),
+                             &c[0],
+                             &c[NUM_STR_REP_LEN],
+                             t->proptext);
   }
   else {
-    ofs += BLI_snprintf(str + ofs,
-                        sizeof(str) - ofs,
-                        TIP_("Trackball: %.2f %.2f %s"),
-                        RAD2DEGF(phi[0]),
-                        RAD2DEGF(phi[1]),
-                        t->proptext);
+    ofs += BLI_snprintf_rlen(str + ofs,
+                             sizeof(str) - ofs,
+                             TIP_("Trackball: %.2f %.2f %s"),
+                             RAD2DEGF(phi[0]),
+                             RAD2DEGF(phi[1]),
+                             t->proptext);
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf(
+    ofs += BLI_snprintf_rlen(
         str + ofs, sizeof(str) - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 

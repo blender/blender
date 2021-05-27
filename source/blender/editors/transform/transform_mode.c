@@ -533,20 +533,21 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    ofs += BLI_snprintf(
+    ofs += BLI_snprintf_rlen(
         str + ofs, str_size - ofs, TIP_("Rotation: %s %s %s"), &c[0], t->con.text, t->proptext);
   }
   else {
-    ofs += BLI_snprintf(str + ofs,
-                        str_size - ofs,
-                        TIP_("Rotation: %.2f%s %s"),
-                        RAD2DEGF(final),
-                        t->con.text,
-                        t->proptext);
+    ofs += BLI_snprintf_rlen(str + ofs,
+                             str_size - ofs,
+                             TIP_("Rotation: %.2f%s %s"),
+                             RAD2DEGF(final),
+                             t->con.text,
+                             t->proptext);
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf(str + ofs, str_size - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
+    ofs += BLI_snprintf_rlen(
+        str + ofs, str_size - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 }
 
@@ -822,54 +823,55 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf(
+        ofs += BLI_snprintf_rlen(
             str + ofs, str_size - ofs, TIP_("Scale: %s%s %s"), &tvec[0], t->con.text, t->proptext);
         break;
       case 1:
-        ofs += BLI_snprintf(str + ofs,
-                            str_size - ofs,
-                            TIP_("Scale: %s : %s%s %s"),
-                            &tvec[0],
-                            &tvec[NUM_STR_REP_LEN],
-                            t->con.text,
-                            t->proptext);
+        ofs += BLI_snprintf_rlen(str + ofs,
+                                 str_size - ofs,
+                                 TIP_("Scale: %s : %s%s %s"),
+                                 &tvec[0],
+                                 &tvec[NUM_STR_REP_LEN],
+                                 t->con.text,
+                                 t->proptext);
         break;
       case 2:
-        ofs += BLI_snprintf(str + ofs,
-                            str_size - ofs,
-                            TIP_("Scale: %s : %s : %s%s %s"),
-                            &tvec[0],
-                            &tvec[NUM_STR_REP_LEN],
-                            &tvec[NUM_STR_REP_LEN * 2],
-                            t->con.text,
-                            t->proptext);
+        ofs += BLI_snprintf_rlen(str + ofs,
+                                 str_size - ofs,
+                                 TIP_("Scale: %s : %s : %s%s %s"),
+                                 &tvec[0],
+                                 &tvec[NUM_STR_REP_LEN],
+                                 &tvec[NUM_STR_REP_LEN * 2],
+                                 t->con.text,
+                                 t->proptext);
         break;
     }
   }
   else {
     if (t->flag & T_2D_EDIT) {
-      ofs += BLI_snprintf(str + ofs,
-                          str_size - ofs,
-                          TIP_("Scale X: %s   Y: %s%s %s"),
-                          &tvec[0],
-                          &tvec[NUM_STR_REP_LEN],
-                          t->con.text,
-                          t->proptext);
+      ofs += BLI_snprintf_rlen(str + ofs,
+                               str_size - ofs,
+                               TIP_("Scale X: %s   Y: %s%s %s"),
+                               &tvec[0],
+                               &tvec[NUM_STR_REP_LEN],
+                               t->con.text,
+                               t->proptext);
     }
     else {
-      ofs += BLI_snprintf(str + ofs,
-                          str_size - ofs,
-                          TIP_("Scale X: %s   Y: %s  Z: %s%s %s"),
-                          &tvec[0],
-                          &tvec[NUM_STR_REP_LEN],
-                          &tvec[NUM_STR_REP_LEN * 2],
-                          t->con.text,
-                          t->proptext);
+      ofs += BLI_snprintf_rlen(str + ofs,
+                               str_size - ofs,
+                               TIP_("Scale X: %s   Y: %s  Z: %s%s %s"),
+                               &tvec[0],
+                               &tvec[NUM_STR_REP_LEN],
+                               &tvec[NUM_STR_REP_LEN * 2],
+                               t->con.text,
+                               t->proptext);
     }
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf(str + ofs, str_size - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
+    ofs += BLI_snprintf_rlen(
+        str + ofs, str_size - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 }
 
