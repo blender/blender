@@ -1286,6 +1286,17 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   ID *id = *cb_data->id_pointer;
   if (id != NULL && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
     const int owner_library_indirect_level = id_owner->lib != NULL ? id_owner->lib->temp_index : 0;
+    if (owner_library_indirect_level > 10000) {
+      CLOG_ERROR(
+          &LOG,
+          "Levels of indirect usages of libraries is way too high, skipping further building "
+          "loops (Involves at least '%s' and '%s')",
+          id_owner->lib->filepath,
+          id->lib->filepath);
+      BLI_assert(0);
+      return IDWALK_RET_NOP;
+    }
+
     if (owner_library_indirect_level >= id->lib->temp_index) {
       id->lib->temp_index = owner_library_indirect_level + 1;
       *(bool *)cb_data->user_data = true;
