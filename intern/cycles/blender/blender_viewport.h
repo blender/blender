@@ -44,9 +44,9 @@ class BlenderViewportParameters {
   friend class BlenderSync;
 
  public:
-  /* Retrieve the render pass that needs to be displayed on the given `SpaceView3D`
+  /* Retrieve the render pass type that needs to be displayed on the given `SpaceView3D`
    * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
-  static PassType get_viewport_display_render_pass(BL::SpaceView3D &b_v3d);
+  static PassType get_render_pass(BL::SpaceView3D &b_v3d);
 };
 
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes);
