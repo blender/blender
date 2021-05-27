@@ -75,6 +75,7 @@ void FFMPEGWriter::encode()
 	m_frame->nb_samples = m_input_samples;
 	m_frame->format = m_codecCtx->sample_fmt;
 	m_frame->channel_layout = m_codecCtx->channel_layout;
+	m_frame->channels = m_specs.channels;
 
 	if(avcodec_fill_audio_frame(m_frame, m_specs.channels, m_codecCtx->sample_fmt, reinterpret_cast<data_t*>(data), m_input_buffer.getSize(), 0) < 0)
 		AUD_THROW(FileException, "File couldn't be written, filling the audio frame failed with ffmpeg.");
