@@ -225,7 +225,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
   if (b_v3d) {
     BlenderViewportParameters new_viewport_parameters(b_v3d);
 
-    if (viewport_parameters.modified(new_viewport_parameters)) {
+    if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
       has_updates_ = true;
     }

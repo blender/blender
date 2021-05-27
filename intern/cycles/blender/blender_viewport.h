@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 
 class BlenderViewportParameters {
  public:
+  /* Shader. */
   bool use_scene_world;
   bool use_scene_lights;
   float studiolight_rotate_z;
@@ -39,8 +40,12 @@ class BlenderViewportParameters {
   BlenderViewportParameters();
   explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
 
-  bool modified(const BlenderViewportParameters &other) const;
-  bool custom_viewport_parameters() const;
+  /* Check whether any of shading related settings are different from the given parameters. */
+  bool shader_modified(const BlenderViewportParameters &other) const;
+
+  /* Returns truth when a custom shader defined by the viewport is to be used instead of the
+   * regular background shader or scene light. */
+  bool use_custom_shader() const;
 
   /* Retrieve the render pass type that needs to be displayed on the given `SpaceView3D`
    * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */

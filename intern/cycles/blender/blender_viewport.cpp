@@ -56,8 +56,7 @@ BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
   }
 }
 
-/* Check if two instances are different. */
-bool BlenderViewportParameters::modified(const BlenderViewportParameters &other) const
+bool BlenderViewportParameters::shader_modified(const BlenderViewportParameters &other) const
 {
   return use_scene_world != other.use_scene_world || use_scene_lights != other.use_scene_lights ||
          studiolight_rotate_z != other.studiolight_rotate_z ||
@@ -66,7 +65,7 @@ bool BlenderViewportParameters::modified(const BlenderViewportParameters &other)
          studiolight_path != other.studiolight_path;
 }
 
-bool BlenderViewportParameters::custom_viewport_parameters() const
+bool BlenderViewportParameters::use_custom_shader() const
 {
   return !(use_scene_world && use_scene_lights);
 }
