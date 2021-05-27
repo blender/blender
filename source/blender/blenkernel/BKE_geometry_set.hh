@@ -420,6 +420,10 @@ class CurveComponent : public GeometryComponent {
   CurveEval *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
+  std::unique_ptr<blender::fn::GVArray> attribute_try_adapt_domain(
+      std::unique_ptr<blender::fn::GVArray> varray,
+      const AttributeDomain from_domain,
+      const AttributeDomain to_domain) const final;
 
   bool is_empty() const final;
 
