@@ -28,7 +28,7 @@
 CCL_NAMESPACE_BEGIN
 
 class BlenderViewportParameters {
- private:
+ public:
   bool use_scene_world;
   bool use_scene_lights;
   float studiolight_rotate_z;
@@ -37,13 +37,11 @@ class BlenderViewportParameters {
   ustring studiolight_path;
 
   BlenderViewportParameters();
-  BlenderViewportParameters(BL::SpaceView3D &b_v3d);
+  explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
 
   const bool modified(const BlenderViewportParameters &other) const;
   const bool custom_viewport_parameters() const;
-  friend class BlenderSync;
 
- public:
   /* Retrieve the render pass type that needs to be displayed on the given `SpaceView3D`
    * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
   static PassType get_render_pass(BL::SpaceView3D &b_v3d);
