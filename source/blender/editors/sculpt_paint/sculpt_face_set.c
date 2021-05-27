@@ -523,7 +523,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     BMesh *bm;
     BMFace *f;
     BMIter iter;
-    const totface = ss->totfaces;
+    const int totface = ss->totfaces;
 
     for (int i = 0; i < totface; i++) {
       SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
