@@ -380,7 +380,8 @@ class GeometryNodesEvaluator {
 
   void execute()
   {
-    task_pool_ = BLI_task_pool_create(this, TASK_PRIORITY_HIGH);
+    /* Disable threading until T88598 is resolved. */
+    task_pool_ = BLI_task_pool_create_no_threads(this);
 
     this->create_states_for_reachable_nodes();
     this->forward_group_inputs();
