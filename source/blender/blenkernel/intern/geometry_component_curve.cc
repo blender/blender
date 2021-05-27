@@ -476,14 +476,12 @@ static void point_attribute_materialize(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      initialized_copy_n(data[spline_index].data(), next_offset - offset, r_span.data() + offset);
+      r_span.slice(offset, next_offset - offset).copy_from(data[spline_index]);
     }
   }
   else {
     int spline_index = 0;
-    for (const int i : r_span.index_range()) {
-      const int dst_index = mask[i];
-
+    for (const int dst_index : mask) {
       while (offsets[spline_index] < dst_index) {
         spline_index++;
       }
@@ -511,9 +509,7 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
   }
   else {
     int spline_index = 0;
-    for (const int i : r_span.index_range()) {
-      const int dst_index = mask[i];
-
+    for (const int dst_index : mask) {
       while (offsets[spline_index] < dst_index) {
         spline_index++;
       }
