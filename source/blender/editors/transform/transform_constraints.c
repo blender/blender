@@ -975,7 +975,6 @@ void initSelectConstraint(TransInfo *t)
   }
 
   setUserConstraint(t, CON_APPLY | CON_SELECT, "%s");
-  setNearestAxis(t);
 }
 
 void selectConstraint(TransInfo *t)
@@ -1062,7 +1061,7 @@ static void setNearestAxis3d(TransInfo *t)
   }
 
   if (len[0] <= len[1] && len[0] <= len[2]) {
-    if (t->modifiers & MOD_CONSTRAINT_PLANE) {
+    if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS1 | CON_AXIS2);
       BLI_snprintf(t->con.text, sizeof(t->con.text), TIP_(" locking %s X axis"), t->spacename);
     }
@@ -1072,7 +1071,7 @@ static void setNearestAxis3d(TransInfo *t)
     }
   }
   else if (len[1] <= len[0] && len[1] <= len[2]) {
-    if (t->modifiers & MOD_CONSTRAINT_PLANE) {
+    if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS2);
       BLI_snprintf(t->con.text, sizeof(t->con.text), TIP_(" locking %s Y axis"), t->spacename);
     }
@@ -1082,7 +1081,7 @@ static void setNearestAxis3d(TransInfo *t)
     }
   }
   else if (len[2] <= len[1] && len[2] <= len[0]) {
-    if (t->modifiers & MOD_CONSTRAINT_PLANE) {
+    if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS1);
       BLI_snprintf(t->con.text, sizeof(t->con.text), TIP_(" locking %s Z axis"), t->spacename);
     }

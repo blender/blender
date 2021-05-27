@@ -37,8 +37,13 @@ void node_geometry(vec3 I,
   normal = (toworld * vec4(N, 0.0)).xyz;
   true_normal = normal;
 #  endif
+
+#  ifdef HAIR_SHADER
+  tangent = -hairTangent;
+#  else
   tangent_orco_z(orco, orco);
   node_tangent(N, orco, objmat, tangent);
+#  endif
 
   parametric = vec3(barycentric, 0.0);
   backfacing = (gl_FrontFacing) ? 0.0 : 1.0;

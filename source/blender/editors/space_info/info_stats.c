@@ -505,14 +505,14 @@ static void get_stats_string(
   LayerCollection *layer_collection = view_layer->active_collection;
 
   if (object_mode == OB_MODE_OBJECT) {
-    *ofs += BLI_snprintf(info + *ofs,
-                         len - *ofs,
-                         "%s | ",
-                         BKE_collection_ui_name_get(layer_collection->collection));
+    *ofs += BLI_snprintf_rlen(info + *ofs,
+                              len - *ofs,
+                              "%s | ",
+                              BKE_collection_ui_name_get(layer_collection->collection));
   }
 
   if (ob) {
-    *ofs += BLI_snprintf(info + *ofs, len - *ofs, "%s | ", ob->id.name + 2);
+    *ofs += BLI_snprintf_rlen(info + *ofs, len - *ofs, "%s | ", ob->id.name + 2);
   }
 
   if (obedit) {
@@ -521,72 +521,72 @@ static void get_stats_string(
     }
 
     if (obedit->type == OB_MESH) {
-      *ofs += BLI_snprintf(info + *ofs,
-                           len - *ofs,
-                           TIP_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
-                           stats_fmt->totvertsel,
-                           stats_fmt->totvert,
-                           stats_fmt->totedgesel,
-                           stats_fmt->totedge,
-                           stats_fmt->totfacesel,
-                           stats_fmt->totface,
-                           stats_fmt->tottri);
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                TIP_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
+                                stats_fmt->totvertsel,
+                                stats_fmt->totvert,
+                                stats_fmt->totedgesel,
+                                stats_fmt->totedge,
+                                stats_fmt->totfacesel,
+                                stats_fmt->totface,
+                                stats_fmt->tottri);
     }
     else if (obedit->type == OB_ARMATURE) {
-      *ofs += BLI_snprintf(info + *ofs,
-                           len - *ofs,
-                           TIP_("Joints:%s/%s | Bones:%s/%s"),
-                           stats_fmt->totvertsel,
-                           stats_fmt->totvert,
-                           stats_fmt->totbonesel,
-                           stats_fmt->totbone);
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                TIP_("Joints:%s/%s | Bones:%s/%s"),
+                                stats_fmt->totvertsel,
+                                stats_fmt->totvert,
+                                stats_fmt->totbonesel,
+                                stats_fmt->totbone);
     }
     else {
-      *ofs += BLI_snprintf(
+      *ofs += BLI_snprintf_rlen(
           info + *ofs, len - *ofs, TIP_("Verts:%s/%s"), stats_fmt->totvertsel, stats_fmt->totvert);
     }
   }
   else if (ob && (object_mode & OB_MODE_POSE)) {
-    *ofs += BLI_snprintf(
+    *ofs += BLI_snprintf_rlen(
         info + *ofs, len - *ofs, TIP_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
   else if ((ob) && (ob->type == OB_GPENCIL)) {
-    *ofs += BLI_snprintf(info + *ofs,
-                         len - *ofs,
-                         TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
-                         stats_fmt->totgplayer,
-                         stats_fmt->totgpframe,
-                         stats_fmt->totgpstroke,
-                         stats_fmt->totgppoint);
+    *ofs += BLI_snprintf_rlen(info + *ofs,
+                              len - *ofs,
+                              TIP_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
+                              stats_fmt->totgplayer,
+                              stats_fmt->totgpframe,
+                              stats_fmt->totgpstroke,
+                              stats_fmt->totgppoint);
   }
   else if (ob && (object_mode & OB_MODE_SCULPT)) {
     if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      *ofs += BLI_snprintf(info + *ofs,
-                           len - *ofs,
-                           TIP_("Verts:%s | Tris:%s"),
-                           stats_fmt->totvert,
-                           stats_fmt->tottri);
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                TIP_("Verts:%s | Tris:%s"),
+                                stats_fmt->totvert,
+                                stats_fmt->tottri);
     }
     else {
-      *ofs += BLI_snprintf(info + *ofs,
-                           len - *ofs,
-                           TIP_("Verts:%s/%s | Faces:%s/%s"),
-                           stats_fmt->totvertsculpt,
-                           stats_fmt->totvert,
-                           stats_fmt->totfacesculpt,
-                           stats_fmt->totface);
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                TIP_("Verts:%s/%s | Faces:%s/%s"),
+                                stats_fmt->totvertsculpt,
+                                stats_fmt->totvert,
+                                stats_fmt->totfacesculpt,
+                                stats_fmt->totface);
     }
   }
   else {
-    *ofs += BLI_snprintf(info + *ofs,
-                         len - *ofs,
-                         TIP_("Verts:%s | Faces:%s | Tris:%s"),
-                         stats_fmt->totvert,
-                         stats_fmt->totface,
-                         stats_fmt->tottri);
+    *ofs += BLI_snprintf_rlen(info + *ofs,
+                              len - *ofs,
+                              TIP_("Verts:%s | Faces:%s | Tris:%s"),
+                              stats_fmt->totvert,
+                              stats_fmt->totface,
+                              stats_fmt->tottri);
   }
 
-  *ofs += BLI_snprintf(
+  *ofs += BLI_snprintf_rlen(
       info + *ofs, len - *ofs, TIP_(" | Objects:%s/%s"), stats_fmt->totobjsel, stats_fmt->totobj);
 }
 
@@ -613,11 +613,11 @@ static const char *info_statusbar_string(Main *bmain,
   /* Memory status. */
   if (statusbar_flag & STATUSBAR_SHOW_MEMORY) {
     if (info[0]) {
-      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
     }
     uintptr_t mem_in_use = MEM_get_memory_in_use();
     BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
-    ofs += BLI_snprintf(info + ofs, len, TIP_("Memory: %s"), formatted_mem);
+    ofs += BLI_snprintf_rlen(info + ofs, len, TIP_("Memory: %s"), formatted_mem);
   }
 
   /* GPU VRAM status. */
@@ -627,27 +627,27 @@ static const char *info_statusbar_string(Main *bmain,
     float gpu_total_gb = gpu_tot_mem_kb / 1048576.0f;
     float gpu_free_gb = gpu_free_mem_kb / 1048576.0f;
     if (info[0]) {
-      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
     }
     if (gpu_free_mem_kb && gpu_tot_mem_kb) {
-      ofs += BLI_snprintf(info + ofs,
-                          len - ofs,
-                          TIP_("VRAM: %.1f/%.1f GiB"),
-                          gpu_total_gb - gpu_free_gb,
-                          gpu_total_gb);
+      ofs += BLI_snprintf_rlen(info + ofs,
+                               len - ofs,
+                               TIP_("VRAM: %.1f/%.1f GiB"),
+                               gpu_total_gb - gpu_free_gb,
+                               gpu_total_gb);
     }
     else {
       /* Can only show amount of GPU VRAM available. */
-      ofs += BLI_snprintf(info + ofs, len - ofs, TIP_("VRAM: %.1f GiB Free"), gpu_free_gb);
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, TIP_("VRAM: %.1f GiB Free"), gpu_free_gb);
     }
   }
 
   /* Blender version. */
   if (statusbar_flag & STATUSBAR_SHOW_VERSION) {
     if (info[0]) {
-      ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
     }
-    ofs += BLI_snprintf(info + ofs, len - ofs, TIP_("%s"), BKE_blender_version_string());
+    ofs += BLI_snprintf_rlen(info + ofs, len - ofs, TIP_("%s"), BKE_blender_version_string());
   }
 
   return info;

@@ -402,25 +402,6 @@ static int gpencil_bake_mesh_animation_invoke(bContext *C,
 
 void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
 {
-  static const EnumPropertyItem reproject_type[] = {
-      {GP_REPROJECT_KEEP, "KEEP", 0, "No Reproject", ""},
-      {GP_REPROJECT_FRONT, "FRONT", 0, "Front", "Reproject the strokes using the X-Z plane"},
-      {GP_REPROJECT_SIDE, "SIDE", 0, "Side", "Reproject the strokes using the Y-Z plane"},
-      {GP_REPROJECT_TOP, "TOP", 0, "Top", "Reproject the strokes using the X-Y plane"},
-      {GP_REPROJECT_VIEW,
-       "VIEW",
-       0,
-       "View",
-       "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
-       "using 'Cursor' Stroke Placement"},
-      {GP_REPROJECT_CURSOR,
-       "CURSOR",
-       0,
-       "Cursor",
-       "Reproject the strokes using the orientation of 3D cursor"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem target_object_modes[] = {
       {GP_TARGET_OB_NEW, "NEW", 0, "New Object", ""},
       {GP_TARGET_OB_SELECTED, "SELECTED", 0, "Selected Object", ""},
@@ -491,5 +472,10 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
   RNA_def_int(
       ot->srna, "frame_target", 1, 1, 100000, "Target Frame", "Destination frame", 1, 100000);
 
-  RNA_def_enum(ot->srna, "project_type", reproject_type, GP_REPROJECT_VIEW, "Projection Type", "");
+  RNA_def_enum(ot->srna,
+               "project_type",
+               rna_gpencil_reproject_type_items,
+               GP_REPROJECT_VIEW,
+               "Projection Type",
+               "");
 }

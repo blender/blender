@@ -70,6 +70,7 @@
  \
     .gpencil_paper_opacity = 0.5f, \
     .gpencil_grid_opacity = 0.9f, \
+    .gpencil_vertex_paint_opacity = 1.0f, \
   }
 
 #define _DNA_DEFAULT_View3DCursor \

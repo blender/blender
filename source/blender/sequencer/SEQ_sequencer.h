@@ -44,8 +44,6 @@ enum {
   SEQ_SIDE_NO_CHANGE,
 };
 
-#define SEQ_CACHE_COST_MAX 10.0f
-
 /* seq_dupli' flags */
 #define SEQ_DUPE_UNIQUE_NAME (1 << 0)
 #define SEQ_DUPE_CONTEXT (1 << 1)
@@ -54,6 +52,7 @@ enum {
 #define SEQ_DUPE_IS_RECURSIVE_CALL (1 << 4)
 
 struct SequencerToolSettings *SEQ_tool_settings_init(void);
+struct SequencerToolSettings *SEQ_tool_settings_ensure(struct Scene *scene);
 void SEQ_tool_settings_free(struct SequencerToolSettings *tool_settings);
 eSeqImageFitMethod SEQ_tool_settings_fit_method_get(struct Scene *scene);
 void SEQ_tool_settings_fit_method_set(struct Scene *scene, eSeqImageFitMethod fit_method);

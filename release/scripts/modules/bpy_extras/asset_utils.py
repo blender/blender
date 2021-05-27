@@ -34,7 +34,7 @@ __all__ = (
 class SpaceAssetInfo:
     @classmethod
     def is_asset_browser(cls, space_data: bpy.types.Space):
-        return space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'ASSETS'
+        return space_data and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'ASSETS'
 
     @classmethod
     def is_asset_browser_poll(cls, context: Context):

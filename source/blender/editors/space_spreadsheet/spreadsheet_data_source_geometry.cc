@@ -116,7 +116,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
           column_id.name,
           domain_size,
           [varray](int index, CellValue &r_cell_value) {
-            Color4f value;
+            ColorGeometry4f value;
             varray->get(index, &value);
             r_cell_value.value_color = value;
           },

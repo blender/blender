@@ -94,9 +94,9 @@ void BLI_windows_register_blend_extension(const bool background)
   GetModuleFileName(0, BlPath, MAX_PATH);
 
   /* Replace the actual app name with the wrapper. */
-  blender_app = strstr(BlPath, "blender-app.exe");
+  blender_app = strstr(BlPath, "blender.exe");
   if (blender_app != NULL) {
-    strcpy(blender_app, "blender.exe");
+    strcpy(blender_app, "blender-launcher.exe");
   }
 
   /* root is HKLM by default */

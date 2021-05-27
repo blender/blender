@@ -43,7 +43,7 @@ void *lineart_list_append_pointer_pool(ListBase *h, LineartStaticMemPool *smp, v
   if (h == NULL) {
     return 0;
   }
-  lip = lineart_mem_aquire(smp, sizeof(LinkData));
+  lip = lineart_mem_acquire(smp, sizeof(LinkData));
   lip->data = data;
   BLI_addtail(h, lip);
   return lip;
@@ -57,7 +57,7 @@ void *lineart_list_append_pointer_pool_sized(ListBase *h,
   if (h == NULL) {
     return 0;
   }
-  lip = lineart_mem_aquire(smp, size);
+  lip = lineart_mem_acquire(smp, size);
   lip->data = data;
   BLI_addtail(h, lip);
   return lip;
@@ -92,7 +92,7 @@ LineartStaticMemPoolNode *lineart_mem_new_static_pool(LineartStaticMemPool *smp,
   BLI_addhead(&smp->pools, smpn);
   return smpn;
 }
-void *lineart_mem_aquire(LineartStaticMemPool *smp, size_t size)
+void *lineart_mem_acquire(LineartStaticMemPool *smp, size_t size)
 {
   LineartStaticMemPoolNode *smpn = smp->pools.first;
   void *ret;
@@ -107,7 +107,7 @@ void *lineart_mem_aquire(LineartStaticMemPool *smp, size_t size)
 
   return ret;
 }
-void *lineart_mem_aquire_thread(LineartStaticMemPool *smp, size_t size)
+void *lineart_mem_acquire_thread(LineartStaticMemPool *smp, size_t size)
 {
   void *ret;
 
@@ -135,16 +135,16 @@ void lineart_mem_destroy(LineartStaticMemPool *smp)
   }
 }
 
-void lineart_prepend_edge_direct(LineartEdge **first, void *node)
+void lineart_prepend_edge_direct(void **list_head, void *node)
 {
   LineartEdge *e_n = (LineartEdge *)node;
-  e_n->next = (*first);
-  (*first) = e_n;
+  e_n->next = (*list_head);
+  (*list_head) = e_n;
 }
 
 void lineart_prepend_pool(LinkNode **first, LineartStaticMemPool *smp, void *link)
 {
-  LinkNode *ln = lineart_mem_aquire_thread(smp, sizeof(LinkNode));
+  LinkNode *ln = lineart_mem_acquire_thread(smp, sizeof(LinkNode));
   ln->next = (*first);
   ln->link = link;
   (*first) = ln;

@@ -93,6 +93,12 @@ typedef struct BArrayCustomData {
 #endif
 
 typedef struct UndoMesh {
+  /**
+   * This undo-meshes in `um_arraystore.local_links`.
+   * Not to be confused with the next and previous undo steps.
+   */
+  struct UndoMesh *local_next, *local_prev;
+
   Mesh me;
   int selectmode;
 
@@ -128,7 +134,10 @@ static struct {
   struct BArrayStore_AtSize bs_stride;
   int users;
 
-  /* We could have the undo API pass in the previous state, for now store a local list */
+  /**
+   * A list of #UndoMesh items ordered from oldest to newest
+   * used to access previous undo data for a mesh.
+   */
   ListBase local_links;
 
 #  ifdef USE_ARRAY_STORE_THREAD
@@ -520,11 +529,63 @@ static void um_arraystore_free(UndoMesh *um)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Array Store Utilities
+ * \{ */
+
+/**
+ * Create an array of #UndoMesh from `objects`.
+ *
+ * where each element in the resulting array is the most recently created
+ * undo-mesh for the object's mesh.
+ * When no undo-mesh can be found that array index is NULL.
+ *
+ * This is used for de-duplicating memory between undo steps,
+ * failure to find the undo step will store a full duplicate in memory.
+ * define `DEBUG_PRINT` to check memory is de-duplicating as expected.
+ */
+static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, int object_len)
+{
+  /* Map: `Mesh.id.session_uuid` -> `UndoMesh`. */
+  GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
+  UndoMesh **um_references = MEM_callocN(sizeof(UndoMesh *) * object_len, __func__);
+  for (int i = 0; i < object_len; i++) {
+    const Mesh *me = object[i]->data;
+    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(me->id.session_uuid), &um_references[i]);
+  }
+  int uuid_map_len = object_len;
+
+  /* Loop backwards over all previous mesh undo data until either:
+   * - All elements have been found (where `um_references` we'll have every element set).
+   * - There are no undo steps left to look for. */
+  UndoMesh *um_iter = um_arraystore.local_links.last;
+  while (um_iter && (uuid_map_len != 0)) {
+    UndoMesh **um_p;
+    if ((um_p = BLI_ghash_popkey(uuid_map, POINTER_FROM_INT(um_iter->me.id.session_uuid), NULL))) {
+      *um_p = um_iter;
+      uuid_map_len--;
+    }
+    um_iter = um_iter->local_prev;
+  }
+  BLI_assert(uuid_map_len == BLI_ghash_len(uuid_map));
+  BLI_ghash_free(uuid_map, NULL, NULL);
+  if (uuid_map_len == object_len) {
+    MEM_freeN(um_references);
+    um_references = NULL;
+  }
+  return um_references;
+}
+
+/** \} */
+
 #endif /* USE_ARRAY_STORE */
 
 /* for callbacks */
 /* undo simply makes copies of a bmesh */
-static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
+/**
+ * \param um_ref: The reference to use for de-duplicating memory between undo-steps.
+ */
+static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, UndoMesh *um_ref)
 {
   BLI_assert(BLI_array_is_zeroed(um, 1));
 #ifdef USE_ARRAY_STORE_THREAD
@@ -560,14 +621,8 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
 
 #ifdef USE_ARRAY_STORE
   {
-    /* We could be more clever here,
-     * the previous undo state may be from a separate mesh. */
-    const UndoMesh *um_ref = um_arraystore.local_links.last ?
-                                 ((LinkData *)um_arraystore.local_links.last)->data :
-                                 NULL;
-
     /* Add ourselves. */
-    BLI_addtail(&um_arraystore.local_links, BLI_genericNodeN(um));
+    BLI_addtail(&um_arraystore.local_links, um);
 
 #  ifdef USE_ARRAY_STORE_THREAD
     if (um_arraystore.task_pool == NULL) {
@@ -583,6 +638,8 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
     um_arraystore_compact_with_info(um, um_ref);
 #  endif
   }
+#else
+  UNUSED_VARS(um_ref);
 #endif
 
   return um;
@@ -682,11 +739,9 @@ static void undomesh_free_data(UndoMesh *um)
   /* we need to expand so any allocations in custom-data are freed with the mesh */
   um_arraystore_expand(um);
 
-  {
-    LinkData *link = BLI_findptr(&um_arraystore.local_links, um, offsetof(LinkData, data));
-    BLI_remlink(&um_arraystore.local_links, link);
-    MEM_freeN(link);
-  }
+  BLI_assert(BLI_findindex(&um_arraystore.local_links, um) != -1);
+  BLI_remlink(&um_arraystore.local_links, um);
+
   um_arraystore_free(um);
 #endif
 
@@ -720,7 +775,6 @@ static Object *editmesh_object_from_context(bContext *C)
  * \{ */
 
 typedef struct MeshUndoStep_Elem {
-  struct MeshUndoStep_Elem *next, *prev;
   UndoRefID_Object obedit_ref;
   UndoMesh data;
 } MeshUndoStep_Elem;
@@ -749,6 +803,12 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *bmain, Und
   us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
   us->elems_len = objects_len;
 
+  UndoMesh **um_references = NULL;
+
+#ifdef USE_ARRAY_STORE
+  um_references = mesh_undostep_reference_elems_from_objects(objects, objects_len);
+#endif
+
   for (uint i = 0; i < objects_len; i++) {
     Object *ob = objects[i];
     MeshUndoStep_Elem *elem = &us->elems[i];
@@ -756,11 +816,21 @@ static bool mesh_undosys_step_encode(struct bContext *C, struct Main *bmain, Und
     elem->obedit_ref.ptr = ob;
     Mesh *me = elem->obedit_ref.ptr->data;
     BMEditMesh *em = me->edit_mesh;
-    undomesh_from_editmesh(&elem->data, me->edit_mesh, me->key);
+    undomesh_from_editmesh(
+        &elem->data, me->edit_mesh, me->key, um_references ? um_references[i] : NULL);
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
+
+#ifdef USE_ARRAY_STORE
+    /** As this is only data storage it is safe to set the session ID here. */
+    elem->data.me.id.session_uuid = me->id.session_uuid;
+#endif
   }
   MEM_freeN(objects);
+
+  if (um_references != NULL) {
+    MEM_freeN(um_references);
+  }
 
   bmain->is_memfile_undo_flush_needed = true;
 

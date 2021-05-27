@@ -72,11 +72,15 @@ struct CDStreamConfig {
 
   const char **modifier_error_message;
 
-  /* Alembic needs Blender to keep references to C++ objects (the destructors
-   * finalize the writing to ABC). This map stores OV2fGeomParam objects for the
-   * 2nd and subsequent UV maps; the primary UV map is kept alive by the Alembic
-   * mesh sample itself. */
+  /* Alembic needs Blender to keep references to C++ objects (the destructors finalize the writing
+   * to ABC). The following fields are all used to keep these references. */
+
+  /* Mapping from UV map name to its ABC property, for the 2nd and subsequent UV maps; the primary
+   * UV map is kept alive by the Alembic mesh sample itself. */
   std::map<std::string, Alembic::AbcGeom::OV2fGeomParam> abc_uv_maps;
+
+  /* OCRO coordinates, aka Generated Coordinates. */
+  Alembic::AbcGeom::OV3fGeomParam abc_ocro;
 
   CDStreamConfig()
       : mloop(NULL),
@@ -101,6 +105,12 @@ struct CDStreamConfig {
  *
  * For now the active layer is used, maybe needs a better way to choose this. */
 const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, CustomData *data);
+
+void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config);
+
+void read_generated_coordinates(const ICompoundProperty &prop,
+                                const CDStreamConfig &config,
+                                const Alembic::Abc::ISampleSelector &iss);
 
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,

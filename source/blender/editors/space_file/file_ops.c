@@ -2263,23 +2263,24 @@ void FILE_OT_filepath_drop(wmOperatorType *ot)
  * \{ */
 
 /**
- * Create a new, non-existing folder name, returns 1 if successful, 0 if name couldn't be created.
+ * Create a new, non-existing folder name, returns true if successful,
+ * false if name couldn't be created.
  * The actual name is returned in 'name', 'folder' contains the complete path,
  * including the new folder name.
  */
-static int new_folder_path(const char *parent, char *folder, char *name)
+static bool new_folder_path(const char *parent, char folder[FILE_MAX], char name[FILE_MAXFILE])
 {
   int i = 1;
   int len = 0;
 
   BLI_strncpy(name, "New Folder", FILE_MAXFILE);
-  BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
+  BLI_join_dirfile(folder, FILE_MAX, parent, name);
   /* check whether folder with the name already exists, in this case
    * add number to the name. Check length of generated name to avoid
    * crazy case of huge number of folders each named 'New Folder (x)' */
   while (BLI_exists(folder) && (len < FILE_MAXFILE)) {
     len = BLI_snprintf(name, FILE_MAXFILE, "New Folder(%d)", i);
-    BLI_join_dirfile(folder, FILE_MAX, parent, name); /* XXX, not real length */
+    BLI_join_dirfile(folder, FILE_MAX, parent, name);
     i++;
   }
 

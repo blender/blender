@@ -498,12 +498,8 @@ void AlembicObject::load_data_in_cache(CachedData &cached_data,
 
   /* Use the schema as the base compound property to also be able to look for top level properties.
    */
-  read_attributes(proc,
-                  cached_data,
-                  schema.getArbGeomParams(),
-                  schema.getUVsParam(),
-                  get_requested_attributes(),
-                  progress);
+  read_attributes(
+      proc, cached_data, schema, schema.getUVsParam(), get_requested_attributes(), progress);
 
   cached_data.invalidate_last_loaded_time(true);
   data_loaded = true;
@@ -658,8 +654,7 @@ static void update_attributes(AttributeSet &attributes, CachedData &cached_data,
   list<Attribute>::iterator it;
   for (it = attributes.attributes.begin(); it != attributes.attributes.end();) {
     if (cached_attributes.find(&(*it)) == cached_attributes.end()) {
-      attributes.attributes.erase(it++);
-      attributes.modified = true;
+      attributes.remove(it++);
       continue;
     }
 

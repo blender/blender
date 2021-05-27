@@ -55,6 +55,35 @@ static void geo_node_points_to_volume_layout(uiLayout *layout,
 
 namespace blender::nodes {
 
+static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)MEM_callocN(
+      sizeof(NodeGeometryPointsToVolume), __func__);
+  data->resolution_mode = GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT;
+  data->input_type_radius = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
+  node->storage = data;
+
+  bNodeSocket *radius_attribute_socket = nodeFindSocket(node, SOCK_IN, "Radius");
+  bNodeSocketValueString *radius_attribute_socket_value =
+      (bNodeSocketValueString *)radius_attribute_socket->default_value;
+  STRNCPY(radius_attribute_socket_value->value, "radius");
+}
+
+static void geo_node_points_to_volume_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+  NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
+  bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
+  bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
+  nodeSetSocketAvailability(voxel_amount_socket,
+                            data->resolution_mode ==
+                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
+  nodeSetSocketAvailability(
+      voxel_size_socket, data->resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
+
+  update_attribute_input_socket_availabilities(
+      *node, "Radius", (GeometryNodeAttributeInputMode)data->input_type_radius);
+}
+
 #ifdef WITH_OPENVDB
 namespace {
 /* Implements the interface required by #openvdb::tools::ParticlesToLevelSet. */
@@ -229,35 +258,6 @@ static void geo_node_points_to_volume_exec(GeoNodeExecParams params)
 #endif
 
   params.set_output("Geometry", std::move(geometry_set_out));
-}
-
-static void geo_node_points_to_volume_init(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)MEM_callocN(
-      sizeof(NodeGeometryPointsToVolume), __func__);
-  data->resolution_mode = GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT;
-  data->input_type_radius = GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
-  node->storage = data;
-
-  bNodeSocket *radius_attribute_socket = nodeFindSocket(node, SOCK_IN, "Radius");
-  bNodeSocketValueString *radius_attribute_socket_value =
-      (bNodeSocketValueString *)radius_attribute_socket->default_value;
-  STRNCPY(radius_attribute_socket_value->value, "radius");
-}
-
-static void geo_node_points_to_volume_update(bNodeTree *UNUSED(ntree), bNode *node)
-{
-  NodeGeometryPointsToVolume *data = (NodeGeometryPointsToVolume *)node->storage;
-  bNodeSocket *voxel_size_socket = nodeFindSocket(node, SOCK_IN, "Voxel Size");
-  bNodeSocket *voxel_amount_socket = nodeFindSocket(node, SOCK_IN, "Voxel Amount");
-  nodeSetSocketAvailability(voxel_amount_socket,
-                            data->resolution_mode ==
-                                GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
-  nodeSetSocketAvailability(
-      voxel_size_socket, data->resolution_mode == GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE);
-
-  update_attribute_input_socket_availabilities(
-      *node, "Radius", (GeometryNodeAttributeInputMode)data->input_type_radius);
 }
 
 }  // namespace blender::nodes

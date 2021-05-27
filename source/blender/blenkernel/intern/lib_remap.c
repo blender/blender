@@ -137,6 +137,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
                                 (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
     const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_OVERRIDE_LIBRARY) != 0;
     const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
+    const bool force_user_refcount = (id_remap_data->flag & ID_REMAP_FORCE_USER_REFCOUNT) != 0;
 
 #ifdef DEBUG_PRINT
     printf(
@@ -203,16 +204,16 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
         }
       }
       if (cb_flag & IDWALK_CB_USER) {
-        /* NOTE: We don't user-count IDs which are not in the main database.
+        /* NOTE: by default we don't user-count IDs which are not in the main database.
          * This is because in certain conditions we can have data-blocks in
          * the main which are referencing data-blocks outside of it.
          * For example, BKE_mesh_new_from_object() called on an evaluated
          * object will cause such situation.
          */
-        if ((old_id->tag & LIB_TAG_NO_MAIN) == 0) {
+        if (force_user_refcount || (old_id->tag & LIB_TAG_NO_MAIN) == 0) {
           id_us_min(old_id);
         }
-        if (new_id != NULL && (new_id->tag & LIB_TAG_NO_MAIN) == 0) {
+        if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
           /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
           new_id->us++;
         }

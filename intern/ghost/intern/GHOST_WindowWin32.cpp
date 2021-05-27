@@ -121,22 +121,30 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   monitor.dwFlags = 0;
   GetMonitorInfo(MonitorFromRect(&win_rect, MONITOR_DEFAULTTONEAREST), &monitor);
 
-  /* Adjust our requested size to allow for caption and borders and constrain to monitor. */
-  AdjustWindowRectEx(&win_rect, WS_CAPTION, FALSE, 0);
+  /* Constrain requested size and position to fit within this monitor. */
   width = min(monitor.rcWork.right - monitor.rcWork.left, win_rect.right - win_rect.left);
-  left = min(max(monitor.rcWork.left, win_rect.left), monitor.rcWork.right - width);
   height = min(monitor.rcWork.bottom - monitor.rcWork.top, win_rect.bottom - win_rect.top);
-  top = min(max(monitor.rcWork.top, win_rect.top), monitor.rcWork.bottom - height);
+  win_rect.left = min(max(monitor.rcWork.left, win_rect.left), monitor.rcWork.right - width);
+  win_rect.right = win_rect.left + width;
+  win_rect.top = min(max(monitor.rcWork.top, win_rect.top), monitor.rcWork.bottom - height);
+  win_rect.bottom = win_rect.top + height;
 
-  m_hWnd = ::CreateWindowExW(extended_style,        // window extended style
-                             s_windowClassName,     // pointer to registered class name
-                             title_16,              // pointer to window name
-                             style,                 // window style
-                             left,                  // horizontal position of window
-                             top,                   // vertical position of window
-                             width,                 // window width
-                             height,                // window height
-                             m_parentWindowHwnd,    // handle to parent or owner window
+  /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
+   * correctly outside of monitor bounds. Note: You cannot specify WS_OVERLAPPED when calling. */
+  AdjustWindowRectEx(&win_rect, style & ~WS_OVERLAPPED, FALSE, extended_style);
+
+  /* But never allow a top position that can hide part of the title bar. */
+  win_rect.top = max(monitor.rcWork.top, win_rect.top);
+
+  m_hWnd = ::CreateWindowExW(extended_style,                  // window extended style
+                             s_windowClassName,               // pointer to registered class name
+                             title_16,                        // pointer to window name
+                             style,                           // window style
+                             win_rect.left,                   // horizontal position of window
+                             win_rect.top,                    // vertical position of window
+                             win_rect.right - win_rect.left,  // window width
+                             win_rect.bottom - win_rect.top,  // window height
+                             m_parentWindowHwnd,              // handle to parent or owner window
                              0,                     // handle to menu or child-window identifier
                              ::GetModuleHandle(0),  // handle to application instance
                              0);                    // pointer to window-creation data

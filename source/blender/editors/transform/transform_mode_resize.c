@@ -113,10 +113,10 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
         pvec[j++] = t->values_final[i];
       }
     }
-    headerResize(t, pvec, str);
+    headerResize(t, pvec, str, sizeof(str));
   }
   else {
-    headerResize(t, t->values_final, str);
+    headerResize(t, t->values_final, str, sizeof(str));
   }
 
   copy_m3_m3(t->mat, mat); /* used in gizmo */

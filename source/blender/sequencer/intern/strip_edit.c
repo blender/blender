@@ -39,10 +39,12 @@
 #include "BKE_sound.h"
 
 #include "strip_time.h"
+#include "utils.h"
 
 #include "SEQ_add.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
+#include "SEQ_iterator.h"
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -251,21 +253,25 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  /* Remove users of src_seq. Ideally these could be moved into meta as well, but this would be
-   * best to do with generalized iterator as described in D10337. */
-  sequencer_flag_users_for_removal(scene, seqbase, src_seq);
-  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+  SeqCollection *collection = SEQ_collection_create();
+  SEQ_collection_append_strip(src_seq, collection);
+  SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
 
-  /* Move to meta. */
-  BLI_remlink(seqbase, src_seq);
-  BLI_addtail(&dst_seqm->seqbase, src_seq);
-  SEQ_relations_invalidate_cache_preprocessed(scene, src_seq);
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    /* Move to meta. */
+    BLI_remlink(seqbase, seq);
+    BLI_addtail(&dst_seqm->seqbase, seq);
+    SEQ_relations_invalidate_cache_preprocessed(scene, seq);
 
-  /* Update meta. */
-  SEQ_time_update_sequence(scene, dst_seqm);
-  if (SEQ_transform_test_overlap(&dst_seqm->seqbase, src_seq)) {
-    SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, src_seq, scene);
+    /* Update meta. */
+    SEQ_time_update_sequence(scene, dst_seqm);
+    if (SEQ_transform_test_overlap(&dst_seqm->seqbase, seq)) {
+      SEQ_transform_seqbase_shuffle(&dst_seqm->seqbase, seq, scene);
+    }
   }
+
+  SEQ_collection_free(collection);
 
   return true;
 }
@@ -343,6 +349,29 @@ static void seq_split_set_left_offset(Sequence *seq, int timeline_frame)
   SEQ_transform_set_left_handle_frame(seq, timeline_frame);
 }
 
+static void seq_edit_split_handle_strip_offsets(Main *bmain,
+                                                Scene *scene,
+                                                Sequence *left_seq,
+                                                Sequence *right_seq,
+                                                const int timeline_frame,
+                                                const eSeqSplitMethod method)
+{
+  switch (method) {
+    case SEQ_SPLIT_SOFT:
+      seq_split_set_left_offset(right_seq, timeline_frame);
+      seq_split_set_right_offset(left_seq, timeline_frame);
+      break;
+    case SEQ_SPLIT_HARD:
+      seq_split_set_right_hold_offset(left_seq, timeline_frame);
+      seq_split_set_left_hold_offset(right_seq, timeline_frame);
+      SEQ_add_reload_new_file(bmain, scene, left_seq, false);
+      SEQ_add_reload_new_file(bmain, scene, right_seq, false);
+      break;
+  }
+  SEQ_time_update_sequence(scene, left_seq);
+  SEQ_time_update_sequence(scene, right_seq);
+}
+
 /**
  * Split Sequence at timeline_frame in two.
  *
@@ -365,33 +394,44 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     return NULL;
   }
 
-  if (method == SEQ_SPLIT_HARD) {
-    /* Precaution, needed because the length saved on-disk may not match the length saved in the
-     * blend file, or our code may have minor differences reading file length between versions.
-     * This causes hard-split to fail, see: T47862. */
-    SEQ_add_reload_new_file(bmain, scene, seq, true);
-    SEQ_time_update_sequence(scene, seq);
+  SeqCollection *collection = SEQ_collection_create();
+  SEQ_collection_append_strip(seq, collection);
+  SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
+
+  /* Move strips in collection from seqbase to new ListBase. */
+  ListBase left_strips = {NULL, NULL};
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    BLI_remlink(seqbase, seq);
+    BLI_addtail(&left_strips, seq);
   }
 
-  Sequence *left_seq = seq;
-  Sequence *right_seq = SEQ_sequence_dupli_recursive(
-      scene, scene, seqbase, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
+  /* Sort list, so that no strip can depend on next strip in list.
+   * This is important for SEQ_time_update_sequence functionality. */
+  SEQ_sort(&left_strips);
 
-  switch (method) {
-    case SEQ_SPLIT_SOFT:
-      seq_split_set_left_offset(right_seq, timeline_frame);
-      seq_split_set_right_offset(left_seq, timeline_frame);
-      break;
-    case SEQ_SPLIT_HARD:
-      seq_split_set_right_hold_offset(left_seq, timeline_frame);
-      seq_split_set_left_hold_offset(right_seq, timeline_frame);
-      SEQ_add_reload_new_file(bmain, scene, left_seq, false);
-      SEQ_add_reload_new_file(bmain, scene, right_seq, false);
-      break;
+  /* Duplicate ListBase. */
+  ListBase right_strips = {NULL, NULL};
+  SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, SEQ_DUPE_ALL, 0);
+
+  /* Split strips. */
+  Sequence *left_seq = left_strips.first;
+  Sequence *right_seq = right_strips.first;
+  Sequence *return_seq = right_strips.first;
+  while (left_seq && right_seq) {
+    seq_edit_split_handle_strip_offsets(bmain, scene, left_seq, right_seq, timeline_frame, method);
+    left_seq = left_seq->next;
+    right_seq = right_seq->next;
   }
-  SEQ_time_update_sequence(scene, left_seq);
-  SEQ_time_update_sequence(scene, right_seq);
-  return right_seq;
+
+  seq = right_strips.first;
+  BLI_movelisttolist(seqbase, &left_strips);
+  BLI_movelisttolist(seqbase, &right_strips);
+
+  for (; seq; seq = seq->next) {
+    SEQ_ensure_unique_name(seq, scene);
+  }
+
+  return return_seq;
 }
 
 /**

@@ -444,6 +444,7 @@ void GPENCIL_OT_frame_clean_duplicate(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
 void GPENCIL_OT_bake_mesh_animation(struct wmOperatorType *ot);
+void GPENCIL_OT_bake_grease_pencil_animation(struct wmOperatorType *ot);
 
 void GPENCIL_OT_image_to_grease_pencil(struct wmOperatorType *ot);
 void GPENCIL_OT_trace_image(struct wmOperatorType *ot);
@@ -749,5 +750,8 @@ struct GP_EditableStrokes_Iter {
   } \
   } \
   (void)0
+
+/* Reused items for bake operators. */
+extern const EnumPropertyItem rna_gpencil_reproject_type_items[];
 
 /* ****************************************************** */

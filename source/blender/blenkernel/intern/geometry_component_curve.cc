@@ -14,13 +14,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "BKE_spline.hh"
-
 #include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_spline.hh"
 
 #include "attribute_access_intern.hh"
+
+using blender::fn::GMutableSpan;
+using blender::fn::GSpan;
+using blender::fn::GVArray_For_GSpan;
+using blender::fn::GVArray_GSpan;
+using blender::fn::GVArrayPtr;
+using blender::fn::GVMutableArray_For_GMutableSpan;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -39,7 +45,7 @@ GeometryComponent *CurveComponent::copy() const
 {
   CurveComponent *new_component = new CurveComponent();
   if (curve_ != nullptr) {
-    new_component->curve_ = curve_->copy();
+    new_component->curve_ = new CurveEval(*curve_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -87,7 +93,7 @@ CurveEval *CurveComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    curve_ = curve_->copy();
+    curve_ = new CurveEval(*curve_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return curve_;
@@ -107,7 +113,7 @@ void CurveComponent::ensure_owns_direct_data()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ != GeometryOwnershipType::Owned) {
-    curve_ = curve_->copy();
+    curve_ = new CurveEval(*curve_);
     ownership_ = GeometryOwnershipType::Owned;
   }
 }
@@ -134,6 +140,171 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
     return curve_->splines().size();
   }
   return 0;
+}
+
+namespace blender::bke {
+
+namespace {
+struct PointIndices {
+  int spline_index;
+  int point_index;
+};
+}  // namespace
+static PointIndices lookup_point_indices(Span<int> offsets, const int index)
+{
+  const int spline_index = std::upper_bound(offsets.begin(), offsets.end(), index) -
+                           offsets.begin() - 1;
+  const int index_in_spline = index - offsets[spline_index];
+  return {spline_index, index_in_spline};
+}
+
+/**
+ * Mix together all of a spline's control point values.
+ *
+ * \note Theoretically this interpolation does not need to compute all values at once.
+ * However, doing that makes the implementation simpler, and this can be optimized in the future if
+ * only some values are required.
+ */
+template<typename T>
+static void adapt_curve_domain_point_to_spline_impl(const CurveEval &curve,
+                                                    const VArray<T> &old_values,
+                                                    MutableSpan<T> r_values)
+{
+  const int splines_len = curve.splines().size();
+  Array<int> offsets = curve.control_point_offsets();
+  BLI_assert(r_values.size() == splines_len);
+  attribute_math::DefaultMixer<T> mixer(r_values);
+
+  for (const int i_spline : IndexRange(splines_len)) {
+    const int spline_offset = offsets[i_spline];
+    const int spline_point_len = offsets[i_spline + 1] - spline_offset;
+    for (const int i_point : IndexRange(spline_point_len)) {
+      const T value = old_values[spline_offset + i_point];
+      mixer.mix_in(i_spline, value);
+    }
+  }
+
+  mixer.finalize();
+}
+
+static GVArrayPtr adapt_curve_domain_point_to_spline(const CurveEval &curve, GVArrayPtr varray)
+{
+  GVArrayPtr new_varray;
+  attribute_math::convert_to_static_type(varray->type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
+      Array<T> values(curve.splines().size());
+      adapt_curve_domain_point_to_spline_impl<T>(curve, varray->typed<T>(), values);
+      new_varray = std::make_unique<fn::GVArray_For_ArrayContainer<Array<T>>>(std::move(values));
+    }
+  });
+  return new_varray;
+}
+
+/**
+ * A virtual array implementation for the conversion of spline attributes to control point
+ * attributes. The goal is to avoid copying the spline value for every one of its control points
+ * unless it is necessary (in that case the materialize functions will be called).
+ */
+template<typename T> class VArray_For_SplineToPoint final : public VArray<T> {
+  /* Store existing data materialized if it was not already a span. This is expected
+   * to be worth it because a single spline's value will likely be accessed many times. */
+  VArray_Span<T> original_data_;
+  Array<int> offsets_;
+
+ public:
+  VArray_For_SplineToPoint(const VArray<T> &original_varray, Array<int> offsets)
+      : VArray<T>(offsets.last()), original_data_(original_varray), offsets_(std::move(offsets))
+  {
+  }
+
+  T get_impl(const int64_t index) const final
+  {
+    const PointIndices indices = lookup_point_indices(offsets_, index);
+    return original_data_[indices.spline_index];
+  }
+
+  void materialize_impl(const IndexMask mask, MutableSpan<T> r_span) const final
+  {
+    const int total_size = offsets_.last();
+    if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+      for (const int spline_index : original_data_.index_range()) {
+        const int offset = offsets_[spline_index];
+        const int next_offset = offsets_[spline_index + 1];
+        r_span.slice(offset, next_offset - offset).fill(original_data_[spline_index]);
+      }
+    }
+    else {
+      int spline_index = 0;
+      for (const int dst_index : mask) {
+        while (offsets_[spline_index] < dst_index) {
+          spline_index++;
+        }
+        r_span[dst_index] = original_data_[spline_index];
+      }
+    }
+  }
+
+  void materialize_to_uninitialized_impl(const IndexMask mask, MutableSpan<T> r_span) const final
+  {
+    T *dst = r_span.data();
+    const int total_size = offsets_.last();
+    if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+      for (const int spline_index : original_data_.index_range()) {
+        const int offset = offsets_[spline_index];
+        const int next_offset = offsets_[spline_index + 1];
+        uninitialized_fill_n(dst + offset, next_offset - offset, original_data_[spline_index]);
+      }
+    }
+    else {
+      int spline_index = 0;
+      for (const int dst_index : mask) {
+        while (offsets_[spline_index] < dst_index) {
+          spline_index++;
+        }
+        new (dst + dst_index) T(original_data_[spline_index]);
+      }
+    }
+  }
+};
+
+static GVArrayPtr adapt_curve_domain_spline_to_point(const CurveEval &curve, GVArrayPtr varray)
+{
+  GVArrayPtr new_varray;
+  attribute_math::convert_to_static_type(varray->type(), [&](auto dummy) {
+    using T = decltype(dummy);
+
+    Array<int> offsets = curve.control_point_offsets();
+    new_varray = std::make_unique<fn::GVArray_For_EmbeddedVArray<T, VArray_For_SplineToPoint<T>>>(
+        offsets.last(), *varray->typed<T>(), std::move(offsets));
+  });
+  return new_varray;
+}
+
+}  // namespace blender::bke
+
+GVArrayPtr CurveComponent::attribute_try_adapt_domain(GVArrayPtr varray,
+                                                      const AttributeDomain from_domain,
+                                                      const AttributeDomain to_domain) const
+{
+  if (!varray) {
+    return {};
+  }
+  if (varray->size() == 0) {
+    return {};
+  }
+  if (from_domain == to_domain) {
+    return varray;
+  }
+
+  if (from_domain == ATTR_DOMAIN_POINT && to_domain == ATTR_DOMAIN_CURVE) {
+    return blender::bke::adapt_curve_domain_point_to_spline(*curve_, std::move(varray));
+  }
+  if (from_domain == ATTR_DOMAIN_CURVE && to_domain == ATTR_DOMAIN_POINT) {
+    return blender::bke::adapt_curve_domain_spline_to_point(*curve_, std::move(varray));
+  }
+
+  return {};
 }
 
 static CurveEval *get_curve_from_component_for_write(GeometryComponent &component)
@@ -294,20 +465,6 @@ static GVMutableArrayPtr make_cyclic_write_attribute(CurveEval &curve)
  * array implementations try to make it workable in common situations.
  * \{ */
 
-namespace {
-struct PointIndices {
-  int spline_index;
-  int point_index;
-};
-}  // namespace
-static PointIndices lookup_point_indices(Span<int> offsets, const int index)
-{
-  const int spline_index = std::upper_bound(offsets.begin(), offsets.end(), index) -
-                           offsets.begin() - 1;
-  const int index_in_spline = index - offsets[spline_index];
-  return {spline_index, index_in_spline};
-}
-
 template<typename T>
 static void point_attribute_materialize(Span<Span<T>> data,
                                         Span<int> offsets,
@@ -319,14 +476,12 @@ static void point_attribute_materialize(Span<Span<T>> data,
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
-      initialized_copy_n(data[spline_index].data(), next_offset - offset, r_span.data() + offset);
+      r_span.slice(offset, next_offset - offset).copy_from(data[spline_index]);
     }
   }
   else {
     int spline_index = 0;
-    for (const int i : r_span.index_range()) {
-      const int dst_index = mask[i];
-
+    for (const int dst_index : mask) {
       while (offsets[spline_index] < dst_index) {
         spline_index++;
       }
@@ -354,9 +509,7 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
   }
   else {
     int spline_index = 0;
-    for (const int i : r_span.index_range()) {
-      const int dst_index = mask[i];
-
+    for (const int dst_index : mask) {
       while (offsets[spline_index] < dst_index) {
         spline_index++;
       }
@@ -444,6 +597,20 @@ template<typename T> class VMutableArray_For_SplinePoints final : public VMutabl
         {(Span<T> *)data_.data(), data_.size()}, offsets_, mask, r_span);
   }
 };
+
+template<typename T> GVArrayPtr point_data_gvarray(Array<Span<T>> spans, Array<int> offsets)
+{
+  return std::make_unique<fn::GVArray_For_EmbeddedVArray<T, VArray_For_SplinePoints<T>>>(
+      offsets.last(), std::move(spans), std::move(offsets));
+}
+
+template<typename T>
+GVMutableArrayPtr point_data_gvarray(Array<MutableSpan<T>> spans, Array<int> offsets)
+{
+  return std::make_unique<
+      fn::GVMutableArray_For_EmbeddedVMutableArray<T, VMutableArray_For_SplinePoints<T>>>(
+      offsets.last(), std::move(spans), std::move(offsets));
+}
 
 /**
  * Virtual array implementation specifically for control point positions. This is only needed for
@@ -581,8 +748,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       spans[i] = get_span_(*splines[i]);
     }
 
-    return std::make_unique<fn::GVArray_For_EmbeddedVArray<T, VArray_For_SplinePoints<T>>>(
-        offsets.last(), std::move(spans), std::move(offsets));
+    return point_data_gvarray(spans, offsets);
   }
 
   GVMutableArrayPtr try_get_for_write(GeometryComponent &component) const override
@@ -607,9 +773,7 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
       }
     }
 
-    return std::make_unique<
-        fn::GVMutableArray_For_EmbeddedVMutableArray<T, VMutableArray_For_SplinePoints<T>>>(
-        offsets.last(), std::move(spans), std::move(offsets));
+    return point_data_gvarray(spans, offsets);
   }
 
   bool try_delete(GeometryComponent &UNUSED(component)) const final
@@ -662,7 +826,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     }
 
     /* Use the regular position virtual array when there aren't any Bezier splines
-     * to avoid the overhead of thecking the spline type for every point. */
+     * to avoid the overhead of checking the spline type for every point. */
     if (!curve_has_bezier_spline) {
       return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
     }
@@ -677,6 +841,256 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     return std::make_unique<
         fn::GVMutableArray_For_EmbeddedVMutableArray<float3, VMutableArray_For_SplinePosition>>(
         offsets.last(), curve->splines(), std::move(offsets));
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dynamic Control Point Attributes
+ *
+ * The dynamic control point attribute implementation is very similar to the builtin attribute
+ * implementation-- it uses the same virtual array types. In order to work, this code depends on
+ * the fact that all a curve's splines will have the same attributes and they all have the same
+ * type.
+ * \{ */
+
+class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
+ private:
+  static constexpr uint64_t supported_types_mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 |
+                                                   CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
+                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL;
+
+ public:
+  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
+                                       const StringRef attribute_name) const final
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr || curve->splines().size() == 0) {
+      return {};
+    }
+
+    Span<SplinePtr> splines = curve->splines();
+    Vector<GSpan> spans; /* GSpan has no default constructor. */
+    spans.reserve(splines.size());
+    std::optional<GSpan> first_span = splines[0]->attributes.get_for_read(attribute_name);
+    if (!first_span) {
+      return {};
+    }
+    spans.append(*first_span);
+    for (const int i : IndexRange(1, splines.size() - 1)) {
+      std::optional<GSpan> span = splines[i]->attributes.get_for_read(attribute_name);
+      if (!span) {
+        /* All splines should have the same set of data layers. It would be possible to recover
+         * here and return partial data instead, but that would add a lot of complexity for a
+         * situation we don't even expect to encounter. */
+        BLI_assert_unreachable();
+        return {};
+      }
+      if (span->type() != spans.last().type()) {
+        /* Data layer types on separate splines do not match. */
+        BLI_assert_unreachable();
+        return {};
+      }
+      spans.append(*span);
+    }
+
+    /* First check for the simpler situation when we can return a simpler span virtual array. */
+    if (spans.size() == 1) {
+      return {std::make_unique<GVArray_For_GSpan>(spans.first()), ATTR_DOMAIN_POINT};
+    }
+
+    ReadAttributeLookup attribute = {};
+    Array<int> offsets = curve->control_point_offsets();
+    attribute_math::convert_to_static_type(spans[0].type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      Array<Span<T>> data(splines.size());
+      for (const int i : splines.index_range()) {
+        data[i] = spans[i].typed<T>();
+        BLI_assert(data[i].data() != nullptr);
+      }
+      attribute = {point_data_gvarray(data, offsets), ATTR_DOMAIN_POINT};
+    });
+    return attribute;
+  }
+
+  /* This function is almost the same as #try_get_for_read, but without const. */
+  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
+                                         const StringRef attribute_name) const final
+  {
+    CurveEval *curve = get_curve_from_component_for_write(component);
+    if (curve == nullptr || curve->splines().size() == 0) {
+      return {};
+    }
+
+    MutableSpan<SplinePtr> splines = curve->splines();
+    Vector<GMutableSpan> spans; /* GMutableSpan has no default constructor. */
+    spans.reserve(splines.size());
+    std::optional<GMutableSpan> first_span = splines[0]->attributes.get_for_write(attribute_name);
+    if (!first_span) {
+      return {};
+    }
+    spans.append(*first_span);
+    for (const int i : IndexRange(1, splines.size() - 1)) {
+      std::optional<GMutableSpan> span = splines[i]->attributes.get_for_write(attribute_name);
+      if (!span) {
+        /* All splines should have the same set of data layers. It would be possible to recover
+         * here and return partial data instead, but that would add a lot of complexity for a
+         * situation we don't even expect to encounter. */
+        BLI_assert_unreachable();
+        return {};
+      }
+      if (span->type() != spans.last().type()) {
+        /* Data layer types on separate splines do not match. */
+        BLI_assert_unreachable();
+        return {};
+      }
+      spans.append(*span);
+    }
+
+    /* First check for the simpler situation when we can return a simpler span virtual array. */
+    if (spans.size() == 1) {
+      return {std::make_unique<GVMutableArray_For_GMutableSpan>(spans.first()), ATTR_DOMAIN_POINT};
+    }
+
+    WriteAttributeLookup attribute = {};
+    Array<int> offsets = curve->control_point_offsets();
+    attribute_math::convert_to_static_type(spans[0].type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      Array<MutableSpan<T>> data(splines.size());
+      for (const int i : splines.index_range()) {
+        data[i] = spans[i].typed<T>();
+        BLI_assert(data[i].data() != nullptr);
+      }
+      attribute = {point_data_gvarray(data, offsets), ATTR_DOMAIN_POINT};
+    });
+    return attribute;
+  }
+
+  bool try_delete(GeometryComponent &component, const StringRef attribute_name) const final
+  {
+    CurveEval *curve = get_curve_from_component_for_write(component);
+    if (curve == nullptr) {
+      return false;
+    }
+
+    bool layer_freed = false;
+    for (SplinePtr &spline : curve->splines()) {
+      spline->attributes.remove(attribute_name);
+    }
+    return layer_freed;
+  }
+
+  static GVArrayPtr varray_from_initializer(const AttributeInit &initializer,
+                                            const CustomDataType data_type,
+                                            const int total_size)
+  {
+    switch (initializer.type) {
+      case AttributeInit::Type::Default:
+        /* This function shouldn't be called in this case, since there
+         * is no need to copy anything to the new custom data array. */
+        BLI_assert_unreachable();
+        return {};
+      case AttributeInit::Type::VArray:
+        return static_cast<const AttributeInitVArray &>(initializer).varray->shallow_copy();
+      case AttributeInit::Type::MoveArray:
+        return std::make_unique<fn::GVArray_For_GSpan>(
+            GSpan(*bke::custom_data_type_to_cpp_type(data_type),
+                  static_cast<const AttributeInitMove &>(initializer).data,
+                  total_size));
+    }
+    BLI_assert_unreachable();
+    return {};
+  }
+
+  bool try_create(GeometryComponent &component,
+                  const StringRef attribute_name,
+                  const AttributeDomain domain,
+                  const CustomDataType data_type,
+                  const AttributeInit &initializer) const final
+  {
+    BLI_assert(this->type_is_supported(data_type));
+    if (domain != ATTR_DOMAIN_POINT) {
+      return false;
+    }
+    CurveEval *curve = get_curve_from_component_for_write(component);
+    if (curve == nullptr || curve->splines().size() == 0) {
+      return false;
+    }
+
+    MutableSpan<SplinePtr> splines = curve->splines();
+
+    /* First check the one case that allows us to avoid copying the input data. */
+    if (splines.size() == 1 && initializer.type == AttributeInit::Type::MoveArray) {
+      void *source_data = static_cast<const AttributeInitMove &>(initializer).data;
+      if (!splines[0]->attributes.create_by_move(attribute_name, data_type, source_data)) {
+        MEM_freeN(source_data);
+        return false;
+      }
+      return true;
+    }
+
+    /* Otherwise just create a custom data layer on each of the splines. */
+    for (const int i : splines.index_range()) {
+      if (!splines[i]->attributes.create(attribute_name, data_type)) {
+        /* If attribute creation fails on one of the splines, we cannot leave the custom data
+         * layers in the previous splines around, so delete them before returning. However,
+         * this is not an expected case. */
+        BLI_assert_unreachable();
+        return false;
+      }
+    }
+
+    /* With a default initializer type, we can keep the values at their initial values. */
+    if (initializer.type == AttributeInit::Type::Default) {
+      return true;
+    }
+
+    WriteAttributeLookup write_attribute = this->try_get_for_write(component, attribute_name);
+    /* We just created the attribute, it should exist. */
+    BLI_assert(write_attribute);
+
+    const int total_size = curve->control_point_offsets().last();
+    GVArrayPtr source_varray = varray_from_initializer(initializer, data_type, total_size);
+    /* TODO: When we can call a variant of #set_all with a virtual array argument,
+     * this theoretically unnecessary materialize step could be removed. */
+    GVArray_GSpan source_varray_span{*source_varray};
+    write_attribute.varray->set_all(source_varray_span.data());
+
+    if (initializer.type == AttributeInit::Type::MoveArray) {
+      MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
+    }
+
+    return true;
+  }
+
+  bool foreach_attribute(const GeometryComponent &component,
+                         const AttributeForeachCallback callback) const final
+  {
+    const CurveEval *curve = get_curve_from_component_for_read(component);
+    if (curve == nullptr || curve->splines().size() == 0) {
+      return false;
+    }
+
+    Span<SplinePtr> splines = curve->splines();
+
+    /* In a debug build, check that all corresponding custom data layers have the same type. */
+    curve->assert_valid_point_attributes();
+
+    /* Use the first spline as a representative for all the others. */
+    splines.first()->attributes.foreach_attribute(callback, ATTR_DOMAIN_POINT);
+
+    return true;
+  }
+
+  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
+  {
+    callback(ATTR_DOMAIN_POINT);
+  }
+
+  bool type_is_supported(CustomDataType data_type) const
+  {
+    return ((1ULL << data_type) & supported_types_mask) != 0;
   }
 };
 
@@ -704,6 +1118,20 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                make_cyclic_read_attribute,
                                                make_cyclic_write_attribute);
 
+  static CustomDataAccessInfo spline_custom_data_access = {
+      [](GeometryComponent &component) -> CustomData * {
+        CurveEval *curve = get_curve_from_component_for_write(component);
+        return curve ? &curve->attributes.data : nullptr;
+      },
+      [](const GeometryComponent &component) -> const CustomData * {
+        const CurveEval *curve = get_curve_from_component_for_read(component);
+        return curve ? &curve->attributes.data : nullptr;
+      },
+      nullptr};
+
+  static CustomDataAttributeProvider spline_custom_data(ATTR_DOMAIN_CURVE,
+                                                        spline_custom_data_access);
+
   static PositionAttributeProvider position;
 
   static BuiltinPointAttributeProvider<float> radius(
@@ -720,7 +1148,10 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
       [](Spline &spline) { return spline.tilts(); },
       [](Spline &spline) { spline.mark_cache_invalid(); });
 
-  return ComponentAttributeProviders({&position, &radius, &tilt, &resolution, &cyclic}, {});
+  static DynamicPointAttributeProvider point_custom_data;
+
+  return ComponentAttributeProviders({&position, &radius, &tilt, &resolution, &cyclic},
+                                     {&spline_custom_data, &point_custom_data});
 }
 
 }  // namespace blender::bke

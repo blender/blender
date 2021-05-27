@@ -33,6 +33,8 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
+#include "ED_undo.h"
+
 #include "BLT_translation.h"
 
 #include "UI_interface.h"
@@ -132,7 +134,7 @@ static void attribute_search_update_fn(const bContext *UNUSED(C),
   BLI_string_search_free(search);
 }
 
-static void attribute_search_exec_fn(bContext *UNUSED(C), void *data_v, void *item_v)
+static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
 {
   AttributeSearchData *data = static_cast<AttributeSearchData *>(data_v);
   AvailableAttributeInfo *item = static_cast<AvailableAttributeInfo *>(item_v);
@@ -140,6 +142,8 @@ static void attribute_search_exec_fn(bContext *UNUSED(C), void *data_v, void *it
   bNodeSocket &socket = data->socket;
   bNodeSocketValueString *value = static_cast<bNodeSocketValueString *>(socket.default_value);
   BLI_strncpy(value->value, item->name.c_str(), MAX_NAME);
+
+  ED_undo_push(C, "Assign Attribute Name");
 }
 
 void node_geometry_add_attribute_search_button(const bContext *C,

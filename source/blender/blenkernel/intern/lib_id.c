@@ -525,7 +525,13 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
   /* Increase used IDs refcount if needed and required. */
   if ((data->flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0 && (cb_flag & IDWALK_CB_USER)) {
-    id_us_plus(id);
+    if ((data->flag & LIB_ID_CREATE_NO_MAIN) != 0) {
+      BLI_assert(cb_data->id_self->tag & LIB_TAG_NO_MAIN);
+      id_us_plus_no_lib(id);
+    }
+    else {
+      id_us_plus(id);
+    }
   }
 
   return IDWALK_RET_NOP;
@@ -578,7 +584,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
     }
   }
 
-  /* Early output is source is NULL. */
+  /* Early output if source is NULL. */
   if (id == NULL) {
     return NULL;
   }
@@ -1215,14 +1221,6 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_LOCAL) == 0);
-  if (!is_private_id_data) {
-    /* When we are handling private ID data, we might still want to manage usercounts, even
-     * though that ID data-block is actually outside of Main... */
-    BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 ||
-               (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0);
-  }
-  /* Never implicitly copy shapekeys when generating temp data outside of Main database. */
-  BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_COPY_SHAPEKEY) == 0);
 
   /* 'Private ID' data handling. */
   if ((bmain != NULL) && is_private_id_data) {
@@ -1244,6 +1242,13 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     new_id = BKE_libblock_alloc(bmain, GS(id->name), id->name + 2, flag);
   }
   BLI_assert(new_id != NULL);
+
+  if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
+    new_id->tag |= LIB_TAG_COPIED_ON_WRITE;
+  }
+  else {
+    new_id->tag &= ~LIB_TAG_COPIED_ON_WRITE;
+  }
 
   const size_t id_len = BKE_libblock_get_alloc_info(GS(new_id->name), NULL);
   const size_t id_offset = sizeof(ID);
@@ -1348,12 +1353,12 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   BLI_remlink(lb, id);
 
   /* Check if we can actually insert id before or after id_sorting_hint, if given. */
-  if (!ELEM(id_sorting_hint, NULL, id)) {
+  if (!ELEM(id_sorting_hint, NULL, id) && id_sorting_hint->lib == id->lib) {
     BLI_assert(BLI_findindex(lb, id_sorting_hint) >= 0);
 
     ID *id_sorting_hint_next = id_sorting_hint->next;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) < 0 &&
-        (id_sorting_hint_next == NULL ||
+        (id_sorting_hint_next == NULL || id_sorting_hint_next->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_next->name, id->name) > 0)) {
       BLI_insertlinkafter(lb, id_sorting_hint, id);
       return;
@@ -1361,7 +1366,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
 
     ID *id_sorting_hint_prev = id_sorting_hint->prev;
     if (BLI_strcasecmp(id_sorting_hint->name, id->name) > 0 &&
-        (id_sorting_hint_prev == NULL ||
+        (id_sorting_hint_prev == NULL || id_sorting_hint_prev->lib != id->lib ||
          BLI_strcasecmp(id_sorting_hint_prev->name, id->name) < 0)) {
       BLI_insertlinkbefore(lb, id_sorting_hint, id);
       return;
@@ -1376,16 +1381,33 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   /* Note: We start from the end, because in typical 'heavy' case (insertion of lots of IDs at
    * once using the same base name), newly inserted items will generally be towards the end
    * (higher extension numbers). */
-  for (idtest = lb->last, item_array_index = ID_SORT_STEP_SIZE - 1; idtest != NULL;
-       idtest = idtest->prev, item_array_index--) {
+  bool is_in_library = false;
+  item_array_index = ID_SORT_STEP_SIZE - 1;
+  for (idtest = lb->last; idtest != NULL; idtest = idtest->prev) {
+    if (is_in_library) {
+      if (idtest->lib != id->lib) {
+        /* We got out of expected library 'range' in the list, so we are done here and can move on
+         * to the next step. */
+        break;
+      }
+    }
+    else if (idtest->lib == id->lib) {
+      /* We are entering the expected library 'range' of IDs in the list. */
+      is_in_library = true;
+    }
+
+    if (!is_in_library) {
+      continue;
+    }
+
     item_array[item_array_index] = idtest;
     if (item_array_index == 0) {
-      if ((idtest->lib == NULL && id->lib != NULL) ||
-          BLI_strcasecmp(idtest->name, id->name) <= 0) {
+      if (BLI_strcasecmp(idtest->name, id->name) <= 0) {
         break;
       }
       item_array_index = ID_SORT_STEP_SIZE;
     }
+    item_array_index--;
   }
 
   /* Step two: we go forward in the selected chunk of items and check all of them, as we know
@@ -1397,7 +1419,7 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
    * So we can increment that index in any case. */
   for (item_array_index++; item_array_index < ID_SORT_STEP_SIZE; item_array_index++) {
     idtest = item_array[item_array_index];
-    if ((idtest->lib != NULL && id->lib == NULL) || BLI_strcasecmp(idtest->name, id->name) > 0) {
+    if (BLI_strcasecmp(idtest->name, id->name) > 0) {
       BLI_insertlinkbefore(lb, idtest, id);
       break;
     }
@@ -1405,12 +1427,18 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint)
   if (item_array_index == ID_SORT_STEP_SIZE) {
     if (idtest == NULL) {
       /* If idtest is NULL here, it means that in the first loop, the last comparison was
-       * performed exactly on the first item of the list, and that it also failed. In other
-       * words, all items in the list are greater than inserted one, so we can put it at the
-       * start of the list. */
-      /* Note that BLI_insertlinkafter() would have same behavior in that case, but better be
-       * explicit here. */
-      BLI_addhead(lb, id);
+       * performed exactly on the first item of the list, and that it also failed. And that the
+       * second loop was not walked at all.
+       *
+       * In other words, if `id` is local, all the items in the list are greater than the inserted
+       * one, so we can put it at the start of the list. Or, if `id` is linked, it is the first one
+       * of its library, and we can put it at the very end of the list. */
+      if (ID_IS_LINKED(id)) {
+        BLI_addtail(lb, id);
+      }
+      else {
+        BLI_addhead(lb, id);
+      }
     }
     else {
       BLI_insertlinkafter(lb, idtest, id);
@@ -1678,12 +1706,14 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
  */
 bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 {
-  bool result;
+  bool result = false;
   char name[MAX_ID_NAME - 2];
 
-  /* if library, don't rename */
+  /* If library, don't rename, but do ensure proper sorting. */
   if (ID_IS_LINKED(id)) {
-    return false;
+    id_sort_by_name(lb, id, NULL);
+
+    return result;
   }
 
   /* if no name given, use name of current ID

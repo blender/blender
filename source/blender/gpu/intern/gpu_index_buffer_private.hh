@@ -75,13 +75,14 @@ class IndexBuf {
 
   void init(uint indices_len, uint32_t *indices);
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
+  void init_build_on_device(uint index_len);
 
   uint32_t index_len_get(void) const
   {
     return index_len_;
   }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
-  size_t size_get(void)
+  size_t size_get(void) const
   {
     return index_len_ * to_bytesize(index_type_);
   };
@@ -90,6 +91,11 @@ class IndexBuf {
   {
     return is_init_;
   };
+
+  virtual void bind_as_ssbo(uint binding) = 0;
+
+  virtual const uint32_t *read() const = 0;
+  uint32_t *unmap(const uint32_t *mapped_memory) const;
 
  private:
   inline void squeeze_indices_short(uint min_idx, uint max_idx);
@@ -104,6 +110,10 @@ static inline GPUIndexBuf *wrap(IndexBuf *indexbuf)
 static inline IndexBuf *unwrap(GPUIndexBuf *indexbuf)
 {
   return reinterpret_cast<IndexBuf *>(indexbuf);
+}
+static inline const IndexBuf *unwrap(const GPUIndexBuf *indexbuf)
+{
+  return reinterpret_cast<const IndexBuf *>(indexbuf);
 }
 
 static inline int indices_per_primitive(GPUPrimType prim_type)

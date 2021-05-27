@@ -2353,7 +2353,7 @@ bool isect_planes_v3_fn(
         for (i_test = 0; i_test < planes_len; i_test++) {
           const float *np_test = planes[i_test];
           if (((dot_v3v3(np_test, co_test) + np_test[3]) > eps_isect)) {
-            /* For low epsilon values the point could intersect it's own plane. */
+            /* For low epsilon values the point could intersect its own plane. */
             if (!ELEM(i_test, i, j, k)) {
               break;
             }

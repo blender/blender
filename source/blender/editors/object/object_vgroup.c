@@ -3985,6 +3985,10 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
                                             PropertyRNA *UNUSED(prop),
                                             bool *r_free)
 {
+  if (C == NULL) {
+    return DummyRNA_NULL_items;
+  }
+
   Object *ob = ED_object_context(C);
   EnumPropertyItem tmp = {0, "", 0, "", ""};
   EnumPropertyItem *item = NULL;

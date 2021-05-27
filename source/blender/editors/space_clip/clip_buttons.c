@@ -809,12 +809,12 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
   char str[1024];
   size_t ofs = 0;
-  ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, TIP_("%d x %d"), width, height);
+  ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, TIP_("%d x %d"), width, height);
 
   if (ibuf) {
     if (ibuf->rect_float) {
       if (ibuf->channels != 4) {
-        ofs += BLI_snprintf(
+        ofs += BLI_snprintf_rlen(
             str + ofs, sizeof(str) - ofs, TIP_(", %d float channel(s)"), ibuf->channels);
       }
       else if (ibuf->planes == R_IMF_PLANES_RGBA) {
@@ -837,7 +837,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
       short frs_sec;
       float frs_sec_base;
       if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
-        ofs += BLI_snprintf(
+        ofs += BLI_snprintf_rlen(
             str + ofs, sizeof(str) - ofs, TIP_(", %.2f fps"), (float)frs_sec / frs_sec_base);
       }
     }

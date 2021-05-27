@@ -39,6 +39,21 @@ class Hair;
 class Mesh;
 struct Transform;
 
+/* AttrKernelDataType.
+ *
+ * The data type of the device arrays storing the attribute's data. Those data types are different
+ * than the ones for attributes as some attribute types are stored in the same array, e.g. Point,
+ * Vector, and Transform are all stored as float3 in the kernel.
+ *
+ * The values of this enumeration are also used as flags to detect changes in AttributeSet. */
+
+enum AttrKernelDataType {
+  FLOAT = 0,
+  FLOAT2 = 1,
+  FLOAT3 = 2,
+  UCHAR4 = 3,
+};
+
 /* Attribute
  *
  * Arbitrary data layers on meshes.
@@ -167,6 +182,8 @@ class Attribute {
   static const char *standard_name(AttributeStandard std);
   static AttributeStandard name_standard(const char *name);
 
+  static AttrKernelDataType kernel_type(const Attribute &attr);
+
   void get_uv_tiles(Geometry *geom, AttributePrimitive prim, unordered_set<int> &tiles) const;
 };
 
@@ -175,11 +192,12 @@ class Attribute {
  * Set of attributes on a mesh. */
 
 class AttributeSet {
+  uint32_t modified_flag;
+
  public:
   Geometry *geometry;
   AttributePrimitive prim;
   list<Attribute> attributes;
-  bool modified = true;
 
   AttributeSet(Geometry *geometry, AttributePrimitive prim);
   AttributeSet(AttributeSet &&) = default;
@@ -197,6 +215,8 @@ class AttributeSet {
 
   void remove(Attribute *attribute);
 
+  void remove(list<Attribute>::iterator it);
+
   void resize(bool reserve_only = false);
   void clear(bool preserve_voxel_data = false);
 
@@ -204,7 +224,18 @@ class AttributeSet {
    * and remove any attribute not found on the new set from this. */
   void update(AttributeSet &&new_attributes);
 
+  /* Return whether the attributes of the given kernel_type are modified, where "modified" means
+   * that some attributes of the given type were added or removed from this AttributeSet. This does
+   * not mean that the data of the remaining attributes in this AttributeSet were also modified. To
+   * check this, use Attribute.modified. */
+  bool modified(AttrKernelDataType kernel_type) const;
+
   void clear_modified();
+
+ private:
+  /* Set the relevant modified flag for the attribute. Only attributes that are stored in device
+   * arrays will be considered for tagging this AttributeSet as modified. */
+  void tag_modified(const Attribute &attr);
 };
 
 /* AttributeRequest

@@ -47,6 +47,7 @@ struct ID;
 struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
+struct Library;
 struct Main;
 struct Object;
 struct PointerRNA;
@@ -68,7 +69,9 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id);
 struct ID *BKE_lib_override_library_create_from_id(struct Main *bmain,
                                                    struct ID *reference_id,
                                                    const bool do_tagged_remap);
-bool BKE_lib_override_library_create_from_tag(struct Main *bmain);
+bool BKE_lib_override_library_create_from_tag(struct Main *bmain,
+                                              const struct Library *reference_library,
+                                              const bool do_no_main);
 bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,

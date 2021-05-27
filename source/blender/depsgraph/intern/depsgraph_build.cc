@@ -62,6 +62,7 @@
 
 #include "intern/depsgraph_registry.h"
 #include "intern/depsgraph_relation.h"
+#include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 
 /* ****************** */
@@ -107,6 +108,11 @@ void DEG_add_object_relation(DepsNodeHandle *node_handle,
   deg::ComponentKey comp_key(&object->id, type);
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
   deg_node_handle->builder->add_node_handle_relation(comp_key, deg_node_handle, description);
+}
+
+bool DEG_object_has_geometry_component(Object *object)
+{
+  return deg::geometry_tag_to_component(&object->id) != deg::NodeType::UNDEFINED;
 }
 
 void DEG_add_collection_geometry_relation(DepsNodeHandle *node_handle,

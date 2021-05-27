@@ -23,8 +23,8 @@ void node_subsurface_scattering(vec4 color,
   /* Not perfect for texture_blur values between 0.0 and 1.0.
    * Interpolate between separated color and color applied on irradiance. */
   float one_minus_texture_blur = 1.0 - texture_blur;
-  vec3 sss_albedo = color.rgb * texture_blur + one_minus_texture_blur;
-  vec3 radiance_tint = color.rgb * one_minus_texture_blur + texture_blur;
+  vec3 sss_albedo = color.rgb * one_minus_texture_blur + texture_blur;
+  vec3 radiance_tint = color.rgb * texture_blur + one_minus_texture_blur;
   /* Consider output radiance as irradiance. */
   out_Diffuse_0.radiance *= radiance_tint;
 

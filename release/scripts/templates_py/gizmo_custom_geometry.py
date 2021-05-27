@@ -1,4 +1,4 @@
-# Example of a custom widget that defines it's own geometry.
+# Example of a custom widget that defines its own geometry.
 #
 # Usage: Select a light in the 3D view and drag the arrow at it's rear
 # to change it's energy value.

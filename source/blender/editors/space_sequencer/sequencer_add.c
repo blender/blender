@@ -158,7 +158,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
     ot->prop = RNA_def_boolean(ot->srna,
                                "set_view_transform",
                                true,
-                               "Set view transform",
+                               "Set View Transform",
                                "Set appropriate view transform based on media colorspace");
   }
 }
@@ -1081,8 +1081,7 @@ static int sequencer_add_image_strip_invoke(bContext *C,
 
   sequencer_disable_one_time_properties(C, op);
 
-  const SequencerToolSettings *tool_settings = scene->toolsettings->sequencer_tool_settings;
-  RNA_enum_set(op->ptr, "fit_method", tool_settings->fit_method);
+  RNA_enum_set(op->ptr, "fit_method", SEQ_tool_settings_fit_method_get(scene));
 
   /* Name set already by drag and drop. */
   if (RNA_struct_property_is_set(op->ptr, "files") && RNA_collection_length(op->ptr, "files")) {

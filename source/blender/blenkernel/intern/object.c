@@ -2289,7 +2289,7 @@ Object *BKE_object_add_for_data(
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, const int flag)
 {
   SoftBody *sb = ob_src->soft;
-  bool tagged_no_main = ob_dst->id.tag & LIB_TAG_NO_MAIN;
+  const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
 
   ob_dst->softflag = ob_src->softflag;
   if (sb == NULL) {
@@ -2330,7 +2330,7 @@ void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, const int fl
 
   sbn->scratch = NULL;
 
-  if (!tagged_no_main) {
+  if (is_orig) {
     sbn->shared = MEM_dupallocN(sb->shared);
     sbn->shared->pointcache = BKE_ptcache_copy_list(
         &sbn->shared->ptcaches, &sb->shared->ptcaches, flag);
@@ -2369,7 +2369,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
   BLI_listbase_clear(&psysn->pathcachebufs);
   BLI_listbase_clear(&psysn->childcachebufs);
 
-  if (flag & LIB_ID_CREATE_NO_MAIN) {
+  if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
     /* XXX Disabled, fails when evaluating depsgraph after copying ID with no main for preview
      * creation. */
     // BLI_assert((psys->flag & PSYS_SHARED_CACHES) == 0);
@@ -3283,6 +3283,10 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   }
   else {
     ctime = cu->ctime;
+  }
+
+  if (cu->flag & CU_PATH_CLAMP) {
+    CLAMP(ctime, 0.0f, 1.0f);
   }
 
   unit_m4(r_mat);

@@ -266,7 +266,8 @@ eFileAttributes BLI_file_attributes(const char *path)
   if (attr & FILE_ATTRIBUTE_SPARSE_FILE) {
     ret |= FILE_ATTR_SPARSE_FILE;
   }
-  if (attr & FILE_ATTRIBUTE_OFFLINE) {
+  if (attr & FILE_ATTRIBUTE_OFFLINE || attr & FILE_ATTRIBUTE_RECALL_ON_OPEN ||
+      attr & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS) {
     ret |= FILE_ATTR_OFFLINE;
   }
   if (attr & FILE_ATTRIBUTE_REPARSE_POINT) {

@@ -516,7 +516,8 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
          * The first "Blender" is a simple identify to help
          * in the read process.
          */
-        text_len = BLI_snprintf(text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
+        text_len = BLI_snprintf_rlen(
+            text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
         jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, text_len + 1);
 
         /* TODO(sergey): Ideally we will try to re-use allocation as

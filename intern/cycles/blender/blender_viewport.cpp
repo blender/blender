@@ -32,17 +32,26 @@ BlenderViewportParameters::BlenderViewportParameters()
 BlenderViewportParameters::BlenderViewportParameters(BL::SpaceView3D &b_v3d)
     : BlenderViewportParameters()
 {
+  if (!b_v3d) {
+    return;
+  }
+
+  BL::View3DShading shading = b_v3d.shading();
+
   /* We only copy the parameters if we are in look dev mode. otherwise
    * defaults are being used. These defaults mimic normal render settings */
-  if (b_v3d && b_v3d.shading().type() == BL::View3DShading::type_RENDERED) {
-    use_scene_world = b_v3d.shading().use_scene_world_render();
-    use_scene_lights = b_v3d.shading().use_scene_lights_render();
-    if (!use_scene_world) {
-      studiolight_rotate_z = b_v3d.shading().studiolight_rotate_z();
-      studiolight_intensity = b_v3d.shading().studiolight_intensity();
-      studiolight_background_alpha = b_v3d.shading().studiolight_background_alpha();
-      studiolight_path = b_v3d.shading().selected_studio_light().path();
-    }
+  if (shading.type() != BL::View3DShading::type_RENDERED) {
+    return;
+  }
+
+  use_scene_world = shading.use_scene_world_render();
+  use_scene_lights = shading.use_scene_lights_render();
+
+  if (!use_scene_world) {
+    studiolight_rotate_z = shading.studiolight_rotate_z();
+    studiolight_intensity = shading.studiolight_intensity();
+    studiolight_background_alpha = shading.studiolight_background_alpha();
+    studiolight_path = shading.selected_studio_light().path();
   }
 }
 

@@ -79,8 +79,9 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
   const AttributeDomain result_domain = get_result_domain(
       component, result_attribute_name, mapping_name);
 
-  OutputAttribute_Typed<Color4f> attribute_out =
-      component.attribute_try_get_for_output_only<Color4f>(result_attribute_name, result_domain);
+  OutputAttribute_Typed<ColorGeometry4f> attribute_out =
+      component.attribute_try_get_for_output_only<ColorGeometry4f>(result_attribute_name,
+                                                                   result_domain);
   if (!attribute_out) {
     return;
   }
@@ -88,7 +89,7 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
   GVArray_Typed<float3> mapping_attribute = component.attribute_get_for_read<float3>(
       mapping_name, result_domain, {0, 0, 0});
 
-  MutableSpan<Color4f> colors = attribute_out.as_span();
+  MutableSpan<ColorGeometry4f> colors = attribute_out.as_span();
   parallel_for(IndexRange(mapping_attribute.size()), 128, [&](IndexRange range) {
     for (const int i : range) {
       TexResult texture_result = {0};

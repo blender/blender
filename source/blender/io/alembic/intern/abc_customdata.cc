@@ -22,12 +22,14 @@
  */
 
 #include "abc_customdata.h"
+#include "abc_axis_conversion.h"
 
 #include <Alembic/AbcGeom/All.h>
 #include <algorithm>
 #include <unordered_map>
 
 #include "DNA_customdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_base.h"
@@ -50,7 +52,12 @@ using Alembic::Abc::V2fArraySample;
 
 using Alembic::AbcGeom::OC4fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
+using Alembic::AbcGeom::OV3fGeomParam;
 namespace blender::io::alembic {
+
+/* ORCO, Generated Coordinates, and Reference Points ("Pref") are all terms for the same thing.
+ * Other applications (Maya, Houdini) write these to a property called "Pref". */
+static const std::string propNameOriginalCoordinates("Pref");
 
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
@@ -222,6 +229,32 @@ static void write_mcol(const OCompoundProperty &prop,
   param.set(sample);
 }
 
+void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config)
+{
+  const void *customdata = CustomData_get_layer(&config.mesh->vdata, CD_ORCO);
+  if (customdata == nullptr) {
+    /* Data not available, so don't even bother creating an Alembic property for it. */
+    return;
+  }
+  const float(*orcodata)[3] = static_cast<const float(*)[3]>(customdata);
+
+  /* Convert 3D vertices from float[3] z=up to V3f y=up. */
+  std::vector<Imath::V3f> coords(config.totvert);
+  float orco_yup[3];
+  for (int vertex_idx = 0; vertex_idx < config.totvert; vertex_idx++) {
+    copy_yup_from_zup(orco_yup, orcodata[vertex_idx]);
+    coords[vertex_idx].setValue(orco_yup[0], orco_yup[1], orco_yup[2]);
+  }
+
+  if (!config.abc_ocro.valid()) {
+    /* Create the Alembic property and keep a reference so future frames can reuse it. */
+    config.abc_ocro = OV3fGeomParam(prop, propNameOriginalCoordinates, false, kVertexScope, 1);
+  }
+
+  OV3fGeomParam::Sample sample(coords, kVertexScope);
+  config.abc_ocro.set(sample);
+}
+
 void write_custom_data(const OCompoundProperty &prop,
                        CDStreamConfig &config,
                        CustomData *data,
@@ -263,6 +296,7 @@ using Alembic::Abc::PropertyHeader;
 using Alembic::AbcGeom::IC3fGeomParam;
 using Alembic::AbcGeom::IC4fGeomParam;
 using Alembic::AbcGeom::IV2fGeomParam;
+using Alembic::AbcGeom::IV3fGeomParam;
 
 static void read_uvs(const CDStreamConfig &config,
                      void *data,
@@ -446,6 +480,44 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
   void *cd_data = config.add_customdata_cb(config.mesh, prop_header.getName().c_str(), CD_MLOOPUV);
 
   read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
+}
+
+void read_generated_coordinates(const ICompoundProperty &prop,
+                                const CDStreamConfig &config,
+                                const Alembic::Abc::ISampleSelector &iss)
+{
+  if (prop.getPropertyHeader(propNameOriginalCoordinates) == nullptr) {
+    /* The ORCO property isn't there, so don't bother trying to process it. */
+    return;
+  }
+
+  IV3fGeomParam param(prop, propNameOriginalCoordinates);
+  if (!param.valid() || param.isIndexed()) {
+    /* Invalid or indexed coordinates aren't supported. */
+    return;
+  }
+  if (param.getScope() != kVertexScope) {
+    /* These are original vertex coordinates, so must be vertex-scoped. */
+    return;
+  }
+
+  IV3fGeomParam::Sample sample = param.getExpandedValue(iss);
+  Alembic::AbcGeom::V3fArraySamplePtr abc_ocro = sample.getVals();
+  const size_t totvert = abc_ocro.get()->size();
+
+  void *cd_data;
+  if (CustomData_has_layer(&config.mesh->vdata, CD_ORCO)) {
+    cd_data = CustomData_get_layer(&config.mesh->vdata, CD_ORCO);
+  }
+  else {
+    cd_data = CustomData_add_layer(&config.mesh->vdata, CD_ORCO, CD_CALLOC, nullptr, totvert);
+  }
+
+  float(*orcodata)[3] = static_cast<float(*)[3]>(cd_data);
+  for (int vertex_idx = 0; vertex_idx < totvert; ++vertex_idx) {
+    const Imath::V3f &abc_coords = (*abc_ocro)[vertex_idx];
+    copy_zup_from_yup(orcodata[vertex_idx], abc_coords.getValue());
+  }
 }
 
 void read_custom_data(const std::string &iobject_full_name,

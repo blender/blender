@@ -53,13 +53,13 @@ BLI_INLINE GPUBatch *DRW_batch_request(GPUBatch **batch)
   return *batch;
 }
 
-BLI_INLINE bool DRW_batch_requested(GPUBatch *batch, int prim_type)
+BLI_INLINE bool DRW_batch_requested(GPUBatch *batch, GPUPrimType prim_type)
 {
   /* Batch has been requested if it has been created but not initialized. */
   if (batch != NULL && batch->verts[0] == NULL) {
     /* HACK. We init without a valid VBO and let the first vbo binding
      * fill verts[0]. */
-    GPU_batch_init_ex(batch, prim_type, (GPUVertBuf *)1, NULL, 0);
+    GPU_batch_init_ex(batch, prim_type, (GPUVertBuf *)1, NULL, (eGPUBatchFlag)0);
     batch->verts[0] = NULL;
     return true;
   }

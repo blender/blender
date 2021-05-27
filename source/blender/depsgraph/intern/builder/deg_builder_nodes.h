@@ -101,6 +101,8 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void begin_build();
   virtual void end_build();
 
+  int foreach_id_cow_detect_need_for_update_callback(ID *id_cow_self, ID *id_pointer);
+
   IDNode *add_id_node(ID *id);
   IDNode *find_id_node(ID *id);
   TimeSourceNode *add_time_source();
@@ -275,6 +277,9 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                               ID **idpoin,
                               bool is_reference,
                               void *user_data);
+
+  void tag_previously_tagged_nodes();
+  void update_invalid_cow_pointers();
 
   /* State which demotes currently built entities. */
   Scene *scene_;

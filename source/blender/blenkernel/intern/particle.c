@@ -101,6 +101,8 @@ static void particle_settings_init(ID *id)
   MEMCPY_STRUCT_AFTER(particle_settings, DNA_struct_default_get(ParticleSettings), id);
 
   particle_settings->effector_weights = BKE_effector_add_weights(NULL);
+  particle_settings->pd = BKE_partdeflect_new(PFIELD_NULL);
+  particle_settings->pd2 = BKE_partdeflect_new(PFIELD_NULL);
 }
 
 static void particle_settings_copy_data(Main *UNUSED(bmain),

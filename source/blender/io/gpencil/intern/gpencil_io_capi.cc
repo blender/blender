@@ -121,7 +121,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
 
       CFRA = i;
       BKE_scene_graph_update_for_newframe(depsgraph);
-      exporter->prepare_camera_params(iparams);
+      exporter->prepare_camera_params(scene, iparams);
       exporter->frame_number_set(i);
       exporter->add_newpage();
       exporter->add_body();
@@ -130,10 +130,11 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
     /* Back to original frame. */
     exporter->frame_number_set(iparams->frame_cur);
     CFRA = iparams->frame_cur;
+    BKE_scene_camera_switch_update(scene);
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
   else {
-    exporter->prepare_camera_params(iparams);
+    exporter->prepare_camera_params(scene, iparams);
     exporter->add_newpage();
     exporter->add_body();
     result = exporter->write();
@@ -146,6 +147,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
 /* Export current frame in SVG. */
 #ifdef WITH_PUGIXML
 static bool gpencil_io_export_frame_svg(GpencilExporterSVG *exporter,
+                                        Scene *scene,
                                         const GpencilIOParams *iparams,
                                         const bool newpage,
                                         const bool body,
@@ -153,7 +155,7 @@ static bool gpencil_io_export_frame_svg(GpencilExporterSVG *exporter,
 {
   bool result = false;
   exporter->frame_number_set(iparams->frame_cur);
-  exporter->prepare_camera_params(iparams);
+  exporter->prepare_camera_params(scene, iparams);
 
   if (newpage) {
     result |= exporter->add_newpage();
@@ -189,7 +191,7 @@ bool gpencil_io_export(const char *filename, GpencilIOParams *iparams)
 #ifdef WITH_PUGIXML
     case GP_EXPORT_TO_SVG: {
       GpencilExporterSVG exporter = GpencilExporterSVG(filename, iparams);
-      return gpencil_io_export_frame_svg(&exporter, iparams, true, true, true);
+      return gpencil_io_export_frame_svg(&exporter, scene_, iparams, true, true, true);
       break;
     }
 #endif

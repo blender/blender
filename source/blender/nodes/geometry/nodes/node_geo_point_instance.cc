@@ -47,6 +47,15 @@ static void geo_node_point_instance_layout(uiLayout *layout, bContext *UNUSED(C)
 
 namespace blender::nodes {
 
+static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
+{
+  NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
+      sizeof(NodeGeometryPointInstance), __func__);
+  data->instance_type = GEO_NODE_POINT_INSTANCE_TYPE_OBJECT;
+  data->flag |= GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION;
+  node->storage = data;
+}
+
 static void geo_node_point_instance_update(bNodeTree *UNUSED(tree), bNode *node)
 {
   bNodeSocket *object_socket = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
@@ -232,15 +241,6 @@ static void geo_node_point_instance_exec(GeoNodeExecParams params)
   }
 
   params.set_output("Geometry", std::move(geometry_set_out));
-}
-
-static void geo_node_point_instance_init(bNodeTree *UNUSED(tree), bNode *node)
-{
-  NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
-      sizeof(NodeGeometryPointInstance), __func__);
-  data->instance_type = GEO_NODE_POINT_INSTANCE_TYPE_OBJECT;
-  data->flag |= GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION;
-  node->storage = data;
 }
 
 }  // namespace blender::nodes

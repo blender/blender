@@ -90,6 +90,46 @@
 
 #include "bmesh.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Generic BMesh Utilities
+ * \{ */
+
+static void vert_face_normal_mark_set(BMVert *v)
+{
+  BMIter iter;
+  BMFace *f;
+  BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+    f->no[0] = FLT_MAX;
+  }
+}
+
+static void vert_face_normal_mark_update(BMVert *v)
+{
+  BMIter iter;
+  BMFace *f;
+  BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+    if (f->no[0] == FLT_MAX) {
+      BM_face_normal_update(f);
+    }
+  }
+}
+
+/**
+ * Recalculate the normals of all faces connected to `verts`.
+ */
+static void vert_array_face_normal_update(BMVert **verts, int verts_len)
+{
+  for (int i = 0; i < verts_len; i++) {
+    vert_face_normal_mark_set(verts[i]);
+  }
+
+  for (int i = 0; i < verts_len; i++) {
+    vert_face_normal_mark_update(verts[i]);
+  }
+}
+
+/** \} */
+
 typedef struct {
   float mat[3][3];
   /* Vert that edge is pointing away from, no relation to
@@ -1352,12 +1392,24 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
     split_face = collapse_face_corners(bm, split_face, 4, vert_buf);
   }
 
-  /* Done with dynamic array, split_face must now be a quad */
-  BLI_array_free(vert_buf);
+  /* `split_face` should now be a quad. */
   BLI_assert(split_face->len == 4);
+
+  /* Account for the highly unlikely case that it's not a quad. */
   if (split_face->len != 4) {
+    /* Reuse `vert_buf` for updating normals. */
+    BLI_array_clear(vert_buf);
+    BLI_array_grow_items(vert_buf, split_face->len);
+
+    BM_iter_as_array(bm, BM_FACES_OF_VERT, split_face, (void **)vert_buf, split_face->len);
+
+    vert_array_face_normal_update(vert_buf, split_face->len);
+    BLI_array_free(vert_buf);
     return;
   }
+
+  /* Done with dynamic array. */
+  BLI_array_free(vert_buf);
 
   /* Get split face's verts */
   // BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)verts, 4);
@@ -1373,6 +1425,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
   }
   BMO_op_exec(bm, &op);
   BMO_op_finish(bm, &op);
+
+  vert_array_face_normal_update(frame->verts, 4);
 }
 
 /* If the frame has some vertices that are inside the hull (detached)
@@ -1731,6 +1785,11 @@ static void skin_smooth_hulls(BMesh *bm,
 
   /* Done with original coordinates */
   BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
+
+  BMFace *f;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BM_face_normal_update(f);
+  }
 }
 
 /* Returns true if all hulls are successfully built, false otherwise */

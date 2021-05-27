@@ -323,6 +323,7 @@ static void file_draw_preview(uiBlock *block,
   int ex, ey;
   bool show_outline = !is_icon &&
                       (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
+  const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
 
   BLI_assert(imb != NULL);
 
@@ -419,14 +420,14 @@ static void file_draw_preview(uiBlock *block,
         icon_x, icon_y, icon, icon_aspect / U.dpi_fac, icon_opacity, 0.0f, icon_color, false);
   }
 
-  if (is_link) {
-    /* Arrow icon to indicate it is a shortcut, link, or alias. */
+  if (is_link || is_offline) {
+    /* Icon at bottom to indicate it is a shortcut, link, alias, or offline. */
     float icon_x, icon_y;
     icon_x = xco + (2.0f * UI_DPI_FAC);
     icon_y = yco + (2.0f * UI_DPI_FAC);
-    const int arrow = ICON_LOOP_FORWARDS;
+    const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_URL;
     if (!is_icon) {
-      /* Arrow at very bottom-left if preview style. */
+      /* At very bottom-left if preview style. */
       const uchar dark[4] = {0, 0, 0, 255};
       const uchar light[4] = {255, 255, 255, 255};
       UI_icon_draw_ex(icon_x + 1, icon_y - 1, arrow, 1.0f / U.dpi_fac, 0.2f, 0.0f, dark, false);

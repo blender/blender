@@ -267,6 +267,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         # these are for paths only
         col.separator()
 
+        col.prop(curve, "use_path_clamp")
         col.prop(curve, "use_path_follow")
 
 

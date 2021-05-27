@@ -66,9 +66,9 @@ static bool float_to_bool(const float &a)
 {
   return a > 0.0f;
 }
-static Color4f float_to_color(const float &a)
+static ColorGeometry4f float_to_color(const float &a)
 {
-  return Color4f(a, a, a, 1.0f);
+  return ColorGeometry4f(a, a, a, 1.0f);
 }
 
 static float3 float2_to_float3(const float2 &a)
@@ -87,9 +87,9 @@ static bool float2_to_bool(const float2 &a)
 {
   return !is_zero_v2(a);
 }
-static Color4f float2_to_color(const float2 &a)
+static ColorGeometry4f float2_to_color(const float2 &a)
 {
-  return Color4f(a.x, a.y, 0.0f, 1.0f);
+  return ColorGeometry4f(a.x, a.y, 0.0f, 1.0f);
 }
 
 static bool float3_to_bool(const float3 &a)
@@ -108,9 +108,9 @@ static float2 float3_to_float2(const float3 &a)
 {
   return float2(a);
 }
-static Color4f float3_to_color(const float3 &a)
+static ColorGeometry4f float3_to_color(const float3 &a)
 {
-  return Color4f(a.x, a.y, a.z, 1.0f);
+  return ColorGeometry4f(a.x, a.y, a.z, 1.0f);
 }
 
 static bool int_to_bool(const int32_t &a)
@@ -129,9 +129,9 @@ static float3 int_to_float3(const int32_t &a)
 {
   return float3((float)a);
 }
-static Color4f int_to_color(const int32_t &a)
+static ColorGeometry4f int_to_color(const int32_t &a)
 {
-  return Color4f((float)a, (float)a, (float)a, 1.0f);
+  return ColorGeometry4f((float)a, (float)a, (float)a, 1.0f);
 }
 
 static float bool_to_float(const bool &a)
@@ -150,28 +150,28 @@ static float3 bool_to_float3(const bool &a)
 {
   return (a) ? float3(1.0f) : float3(0.0f);
 }
-static Color4f bool_to_color(const bool &a)
+static ColorGeometry4f bool_to_color(const bool &a)
 {
-  return (a) ? Color4f(1.0f, 1.0f, 1.0f, 1.0f) : Color4f(0.0f, 0.0f, 0.0f, 1.0f);
+  return (a) ? ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f) : ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-static bool color_to_bool(const Color4f &a)
+static bool color_to_bool(const ColorGeometry4f &a)
 {
   return rgb_to_grayscale(a) > 0.0f;
 }
-static float color_to_float(const Color4f &a)
+static float color_to_float(const ColorGeometry4f &a)
 {
   return rgb_to_grayscale(a);
 }
-static int32_t color_to_int(const Color4f &a)
+static int32_t color_to_int(const ColorGeometry4f &a)
 {
   return (int)rgb_to_grayscale(a);
 }
-static float2 color_to_float2(const Color4f &a)
+static float2 color_to_float2(const ColorGeometry4f &a)
 {
   return float2(a.r, a.g);
 }
-static float3 color_to_float3(const Color4f &a)
+static float3 color_to_float3(const ColorGeometry4f &a)
 {
   return float3(a.r, a.g, a.b);
 }
@@ -184,37 +184,37 @@ static DataTypeConversions create_implicit_conversions()
   add_implicit_conversion<float, float3, float_to_float3>(conversions);
   add_implicit_conversion<float, int32_t, float_to_int>(conversions);
   add_implicit_conversion<float, bool, float_to_bool>(conversions);
-  add_implicit_conversion<float, Color4f, float_to_color>(conversions);
+  add_implicit_conversion<float, ColorGeometry4f, float_to_color>(conversions);
 
   add_implicit_conversion<float2, float3, float2_to_float3>(conversions);
   add_implicit_conversion<float2, float, float2_to_float>(conversions);
   add_implicit_conversion<float2, int32_t, float2_to_int>(conversions);
   add_implicit_conversion<float2, bool, float2_to_bool>(conversions);
-  add_implicit_conversion<float2, Color4f, float2_to_color>(conversions);
+  add_implicit_conversion<float2, ColorGeometry4f, float2_to_color>(conversions);
 
   add_implicit_conversion<float3, bool, float3_to_bool>(conversions);
   add_implicit_conversion<float3, float, float3_to_float>(conversions);
   add_implicit_conversion<float3, int32_t, float3_to_int>(conversions);
   add_implicit_conversion<float3, float2, float3_to_float2>(conversions);
-  add_implicit_conversion<float3, Color4f, float3_to_color>(conversions);
+  add_implicit_conversion<float3, ColorGeometry4f, float3_to_color>(conversions);
 
   add_implicit_conversion<int32_t, bool, int_to_bool>(conversions);
   add_implicit_conversion<int32_t, float, int_to_float>(conversions);
   add_implicit_conversion<int32_t, float2, int_to_float2>(conversions);
   add_implicit_conversion<int32_t, float3, int_to_float3>(conversions);
-  add_implicit_conversion<int32_t, Color4f, int_to_color>(conversions);
+  add_implicit_conversion<int32_t, ColorGeometry4f, int_to_color>(conversions);
 
   add_implicit_conversion<bool, float, bool_to_float>(conversions);
   add_implicit_conversion<bool, int32_t, bool_to_int>(conversions);
   add_implicit_conversion<bool, float2, bool_to_float2>(conversions);
   add_implicit_conversion<bool, float3, bool_to_float3>(conversions);
-  add_implicit_conversion<bool, Color4f, bool_to_color>(conversions);
+  add_implicit_conversion<bool, ColorGeometry4f, bool_to_color>(conversions);
 
-  add_implicit_conversion<Color4f, bool, color_to_bool>(conversions);
-  add_implicit_conversion<Color4f, float, color_to_float>(conversions);
-  add_implicit_conversion<Color4f, int32_t, color_to_int>(conversions);
-  add_implicit_conversion<Color4f, float2, color_to_float2>(conversions);
-  add_implicit_conversion<Color4f, float3, color_to_float3>(conversions);
+  add_implicit_conversion<ColorGeometry4f, bool, color_to_bool>(conversions);
+  add_implicit_conversion<ColorGeometry4f, float, color_to_float>(conversions);
+  add_implicit_conversion<ColorGeometry4f, int32_t, color_to_int>(conversions);
+  add_implicit_conversion<ColorGeometry4f, float2, color_to_float2>(conversions);
+  add_implicit_conversion<ColorGeometry4f, float3, color_to_float3>(conversions);
 
   return conversions;
 }

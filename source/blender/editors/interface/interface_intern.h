@@ -934,9 +934,7 @@ extern void ui_but_execute_end(struct bContext *C,
                                void *active_back);
 extern void ui_but_active_free(const struct bContext *C, uiBut *but);
 extern int ui_but_menu_direction(uiBut *but);
-extern void ui_but_text_password_hide(char password_str[UI_MAX_DRAW_STR],
-                                      uiBut *but,
-                                      const bool restore);
+extern void ui_but_text_password_hide(char password_str[128], uiBut *but, const bool restore);
 extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
 bool ui_but_is_editing(const uiBut *but);
 float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);

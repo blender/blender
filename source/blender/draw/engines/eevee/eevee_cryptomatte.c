@@ -265,8 +265,7 @@ void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
                                                   Object *ob)
 {
   BLI_assert(ob->type == OB_HAIR);
-  Hair *hair = ob->data;
-  Material *material = hair->mat ? hair->mat[HAIR_MATERIAL_NR - 1] : NULL;
+  Material *material = BKE_object_material_get_eval(ob, HAIR_MATERIAL_NR);
   eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, NULL, NULL, material);
 }
 
@@ -291,8 +290,7 @@ void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
         if (draw_as != PART_DRAW_PATH) {
           continue;
         }
-        Mesh *mesh = ob->data;
-        Material *material = part->omat - 1 < mesh->totcol ? NULL : mesh->mat[part->omat - 1];
+        Material *material = BKE_object_material_get_eval(ob, part->omat);
         eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, psys, md, material);
       }
     }
@@ -318,7 +316,7 @@ void EEVEE_cryptomatte_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *s
         if (geom == NULL) {
           continue;
         }
-        Material *material = BKE_object_material_get(ob, i + 1);
+        Material *material = BKE_object_material_get_eval(ob, i + 1);
         DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
             vedata, sldata, ob, material, false);
         DRW_shgroup_call(grp, geom, ob);

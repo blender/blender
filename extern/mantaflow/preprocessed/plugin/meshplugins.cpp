@@ -234,10 +234,10 @@ void subdivideMesh(
       normalize(ne2);
 
       // Real thisArea = sqrMag(cross(-e2,e0));
-      // small angle approximation says sin(x) = arcsin(x) = x,
-      // arccos(x) = pi/2 - arcsin(x),
-      // cos(x) = dot(A,B),
-      // so angle is approximately 1 - dot(A,B).
+      //  small angle approximation says sin(x) = arcsin(x) = x,
+      //  arccos(x) = pi/2 - arcsin(x),
+      //  cos(x) = dot(A,B),
+      //  so angle is approximately 1 - dot(A,B).
       Real angle[3];
       angle[0] = 1.0 - dot(ne0, -ne2);
       angle[1] = 1.0 - dot(ne1, -ne0);

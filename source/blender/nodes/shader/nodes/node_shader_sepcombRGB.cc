@@ -70,7 +70,7 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
   static blender::fn::MFSignature create_signature()
   {
     blender::fn::MFSignatureBuilder signature{"Separate RGB"};
-    signature.single_input<blender::Color4f>("Color");
+    signature.single_input<blender::ColorGeometry4f>("Color");
     signature.single_output<float>("R");
     signature.single_output<float>("G");
     signature.single_output<float>("B");
@@ -81,14 +81,14 @@ class SeparateRGBFunction : public blender::fn::MultiFunction {
             blender::fn::MFParams params,
             blender::fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<blender::Color4f> &colors =
-        params.readonly_single_input<blender::Color4f>(0, "Color");
+    const blender::VArray<blender::ColorGeometry4f> &colors =
+        params.readonly_single_input<blender::ColorGeometry4f>(0, "Color");
     blender::MutableSpan<float> rs = params.uninitialized_single_output<float>(1, "R");
     blender::MutableSpan<float> gs = params.uninitialized_single_output<float>(2, "G");
     blender::MutableSpan<float> bs = params.uninitialized_single_output<float>(3, "B");
 
     for (int64_t i : mask) {
-      blender::Color4f color = colors[i];
+      blender::ColorGeometry4f color = colors[i];
       rs[i] = color.r;
       gs[i] = color.g;
       bs[i] = color.b;
@@ -155,8 +155,9 @@ static int gpu_shader_combrgb(GPUMaterial *mat,
 
 static void sh_node_combrgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, blender::Color4f> fn{
-      "Combine RGB", [](float r, float g, float b) { return blender::Color4f(r, g, b, 1.0f); }};
+  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, blender::ColorGeometry4f> fn{
+      "Combine RGB",
+      [](float r, float g, float b) { return blender::ColorGeometry4f(r, g, b, 1.0f); }};
   builder.set_matching_fn(fn);
 }
 

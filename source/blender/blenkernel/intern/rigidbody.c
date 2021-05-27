@@ -260,10 +260,12 @@ static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
   RigidBodyOb *rboN = NULL;
 
   if (ob->rigidbody_object) {
+    const bool is_orig = (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0;
+
     /* just duplicate the whole struct first (to catch all the settings) */
     rboN = MEM_dupallocN(ob->rigidbody_object);
 
-    if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
+    if (is_orig) {
       /* This is a regular copy, and not a CoW copy for depsgraph evaluation */
       rboN->shared = MEM_callocN(sizeof(*rboN->shared), "RigidBodyOb_Shared");
     }

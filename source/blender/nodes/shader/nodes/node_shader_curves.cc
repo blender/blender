@@ -47,7 +47,7 @@ static void node_shader_exec_curve_vec(void *UNUSED(data),
   /* stack order input:  vec */
   /* stack order output: vec */
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluate3F((CurveMapping *)node->storage, out[0]->vec, vec);
 }
 
 static void node_shader_init_curve_vec(bNodeTree *UNUSED(ntree), bNode *node)
@@ -64,7 +64,7 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
   float *array, layer;
   int size;
 
-  CurveMapping *cumap = node->storage;
+  CurveMapping *cumap = (CurveMapping *)node->storage;
 
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
@@ -104,17 +104,65 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
                         GPU_uniform(ext_xyz[2]));
 }
 
+class CurveVecFunction : public blender::fn::MultiFunction {
+ private:
+  const CurveMapping &cumap_;
+
+ public:
+  CurveVecFunction(const CurveMapping &cumap) : cumap_(cumap)
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Curve Vec"};
+    signature.single_input<float>("Fac");
+    signature.single_input<blender::float3>("Vector");
+    signature.single_output<blender::float3>("Vector");
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
+    const blender::VArray<blender::float3> &vec_in = params.readonly_single_input<blender::float3>(
+        1, "Vector");
+    blender::MutableSpan<blender::float3> vec_out =
+        params.uninitialized_single_output<blender::float3>(2, "Vector");
+
+    for (int64_t i : mask) {
+      BKE_curvemapping_evaluate3F(&cumap_, vec_out[i], vec_in[i]);
+      if (fac[i] != 1.0f) {
+        interp_v3_v3v3(vec_out[i], vec_in[i], vec_out[i], fac[i]);
+      }
+    }
+  }
+};
+
+static void sh_node_curve_vec_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+{
+  bNode &bnode = builder.bnode();
+  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  BKE_curvemapping_init(cumap);
+  builder.construct_and_set_matching_fn<CurveVecFunction>(*cumap);
+}
+
 void register_node_type_sh_curve_vec(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
   node_type_socket_templates(&ntype, sh_node_curve_vec_in, sh_node_curve_vec_out);
   node_type_init(&ntype, node_shader_init_curve_vec);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_vec);
+  node_type_exec(&ntype, node_initexec_curves, nullptr, node_shader_exec_curve_vec);
   node_type_gpu(&ntype, gpu_shader_curve_vec);
+  ntype.expand_in_mf_network = sh_node_curve_vec_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }
@@ -145,7 +193,7 @@ static void node_shader_exec_curve_rgb(void *UNUSED(data),
   /* stack order output: vec */
   nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
   nodestack_get_vec(vec, SOCK_VECTOR, in[1]);
-  BKE_curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
+  BKE_curvemapping_evaluateRGBF((CurveMapping *)node->storage, out[0]->vec, vec);
   if (fac != 1.0f) {
     interp_v3_v3v3(out[0]->vec, vec, out[0]->vec, fac);
   }
@@ -166,7 +214,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
   int size;
   bool use_opti = true;
 
-  CurveMapping *cumap = node->storage;
+  CurveMapping *cumap = (CurveMapping *)node->storage;
 
   BKE_curvemapping_init(cumap);
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
@@ -230,17 +278,65 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                         GPU_uniform(ext_rgba[3]));
 }
 
+class CurveRGBFunction : public blender::fn::MultiFunction {
+ private:
+  const CurveMapping &cumap_;
+
+ public:
+  CurveRGBFunction(const CurveMapping &cumap) : cumap_(cumap)
+  {
+    static blender::fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static blender::fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Curve RGB"};
+    signature.single_input<float>("Fac");
+    signature.single_input<blender::ColorGeometry4f>("Color");
+    signature.single_output<blender::ColorGeometry4f>("Color");
+    return signature.build();
+  }
+
+  void call(blender::IndexMask mask,
+            blender::fn::MFParams params,
+            blender::fn::MFContext UNUSED(context)) const override
+  {
+    const blender::VArray<float> &fac = params.readonly_single_input<float>(0, "Fac");
+    const blender::VArray<blender::ColorGeometry4f> &col_in =
+        params.readonly_single_input<blender::ColorGeometry4f>(1, "Color");
+    blender::MutableSpan<blender::ColorGeometry4f> col_out =
+        params.uninitialized_single_output<blender::ColorGeometry4f>(2, "Color");
+
+    for (int64_t i : mask) {
+      BKE_curvemapping_evaluateRGBF(&cumap_, col_out[i], col_in[i]);
+      if (fac[i] != 1.0f) {
+        interp_v3_v3v3(col_out[i], col_in[i], col_out[i], fac[i]);
+      }
+    }
+  }
+};
+
+static void sh_node_curve_rgb_expand_in_mf_network(blender::nodes::NodeMFNetworkBuilder &builder)
+{
+  bNode &bnode = builder.bnode();
+  CurveMapping *cumap = (CurveMapping *)bnode.storage;
+  BKE_curvemapping_init(cumap);
+  builder.construct_and_set_matching_fn<CurveRGBFunction>(*cumap);
+}
+
 void register_node_type_sh_curve_rgb(void)
 {
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
+  sh_fn_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
   node_type_socket_templates(&ntype, sh_node_curve_rgb_in, sh_node_curve_rgb_out);
   node_type_init(&ntype, node_shader_init_curve_rgb);
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-  node_type_exec(&ntype, node_initexec_curves, NULL, node_shader_exec_curve_rgb);
+  node_type_exec(&ntype, node_initexec_curves, nullptr, node_shader_exec_curve_rgb);
   node_type_gpu(&ntype, gpu_shader_curve_rgb);
+  ntype.expand_in_mf_network = sh_node_curve_rgb_expand_in_mf_network;
 
   nodeRegisterType(&ntype);
 }

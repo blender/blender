@@ -199,6 +199,7 @@ class TurbulenceParticleSystem : public ParticleSystem<TurbulenceParticleData> {
 
  private:
   WaveletNoiseField &noise;
+
  public:
   PbArgs _args;
 }

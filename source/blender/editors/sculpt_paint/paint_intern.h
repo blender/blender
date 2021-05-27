@@ -304,7 +304,7 @@ bool paint_curve_poll(struct bContext *C);
 
 bool facemask_paint_poll(struct bContext *C);
 void flip_v3_v3(float out[3], const float in[3], const enum ePaintSymmetryFlags symm);
-void flip_qt_qt(float out[3], const float in[3], const enum ePaintSymmetryFlags symm);
+void flip_qt_qt(float out[4], const float in[4], const enum ePaintSymmetryFlags symm);
 
 /* stroke operator */
 typedef enum BrushStrokeMode {

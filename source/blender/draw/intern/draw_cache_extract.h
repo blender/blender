@@ -88,6 +88,10 @@ typedef enum eMRExtractType {
 
 BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 {
+  /* In edit mode, the displayed mesh is stored in the edit-mesh. */
+  if (me->edit_mesh && me->edit_mesh->mesh_eval_final) {
+    return MAX2(1, me->edit_mesh->mesh_eval_final->totcol);
+  }
   return MAX2(1, me->totcol);
 }
 
@@ -259,6 +263,10 @@ typedef struct MeshBatchCache {
 
   bool no_loose_wire;
 } MeshBatchCache;
+
+#define MBC_BATCH_LEN (sizeof(((MeshBatchCache){0}).batch) / sizeof(void *))
+#define MBC_VBO_LEN (sizeof(((MeshBufferCache){0}).vbo) / sizeof(void *))
+#define MBC_IBO_LEN (sizeof(((MeshBufferCache){0}).ibo) / sizeof(void *))
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,

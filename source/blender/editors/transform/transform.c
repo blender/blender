@@ -724,81 +724,92 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 
 static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
 {
-  if (!(t->flag & T_NO_CONSTRAINT)) {
-    if (t->flag & T_2D_EDIT && ELEM(modal_type, TFM_MODAL_AXIS_Z, TFM_MODAL_PLANE_Z)) {
+  if (t->flag & T_NO_CONSTRAINT) {
+    return false;
+  }
+
+  if (t->flag & T_2D_EDIT && ELEM(modal_type, TFM_MODAL_AXIS_Z, TFM_MODAL_PLANE_Z)) {
+    return false;
+  }
+
+  int constraint_curr = -1;
+
+  if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
+    t->modifiers &= ~(MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE);
+
+    /* Avoid changing orientation in this case. */
+    constraint_curr = -2;
+  }
+  else if (t->con.mode & CON_APPLY) {
+    constraint_curr = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
+  }
+
+  int constraint_new;
+  const char *msg_2d = "", *msg_3d = "";
+
+  /* Initialize */
+  switch (modal_type) {
+    case TFM_MODAL_AXIS_X:
+      msg_2d = TIP_("along X");
+      msg_3d = TIP_("along %s X");
+      constraint_new = CON_AXIS0;
+      break;
+    case TFM_MODAL_AXIS_Y:
+      msg_2d = TIP_("along Y");
+      msg_3d = TIP_("along %s Y");
+      constraint_new = CON_AXIS1;
+      break;
+    case TFM_MODAL_AXIS_Z:
+      msg_2d = TIP_("along Z");
+      msg_3d = TIP_("along %s Z");
+      constraint_new = CON_AXIS2;
+      break;
+    case TFM_MODAL_PLANE_X:
+      msg_3d = TIP_("locking %s X");
+      constraint_new = CON_AXIS1 | CON_AXIS2;
+      break;
+    case TFM_MODAL_PLANE_Y:
+      msg_3d = TIP_("locking %s Y");
+      constraint_new = CON_AXIS0 | CON_AXIS2;
+      break;
+    case TFM_MODAL_PLANE_Z:
+      msg_3d = TIP_("locking %s Z");
+      constraint_new = CON_AXIS0 | CON_AXIS1;
+      break;
+    default:
+      /* Invalid key */
+      return false;
+  }
+
+  if (t->flag & T_2D_EDIT) {
+    BLI_assert(modal_type < TFM_MODAL_PLANE_X);
+    if (constraint_new == CON_AXIS2) {
       return false;
     }
-    int constraint_curr = (t->con.mode & CON_APPLY) ?
-                              t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2) :
-                              -1;
-    int constraint_new;
-    const char *msg_2d = "", *msg_3d = "";
-
-    /* Initialize */
-    switch (modal_type) {
-      case TFM_MODAL_AXIS_X:
-        msg_2d = TIP_("along X");
-        msg_3d = TIP_("along %s X");
-        constraint_new = CON_AXIS0;
-        break;
-      case TFM_MODAL_AXIS_Y:
-        msg_2d = TIP_("along Y");
-        msg_3d = TIP_("along %s Y");
-        constraint_new = CON_AXIS1;
-        break;
-      case TFM_MODAL_AXIS_Z:
-        msg_2d = TIP_("along Z");
-        msg_3d = TIP_("along %s Z");
-        constraint_new = CON_AXIS2;
-        break;
-      case TFM_MODAL_PLANE_X:
-        msg_3d = TIP_("locking %s X");
-        constraint_new = CON_AXIS1 | CON_AXIS2;
-        break;
-      case TFM_MODAL_PLANE_Y:
-        msg_3d = TIP_("locking %s Y");
-        constraint_new = CON_AXIS0 | CON_AXIS2;
-        break;
-      case TFM_MODAL_PLANE_Z:
-        msg_3d = TIP_("locking %s Z");
-        constraint_new = CON_AXIS0 | CON_AXIS1;
-        break;
-      default:
-        /* Invalid key */
-        return false;
-    }
-
-    if (t->flag & T_2D_EDIT) {
-      BLI_assert(modal_type < TFM_MODAL_PLANE_X);
-      if (constraint_new == CON_AXIS2) {
-        return false;
-      }
-      if (constraint_curr == constraint_new) {
-        stopConstraint(t);
-      }
-      else {
-        setUserConstraint(t, constraint_new, msg_2d);
-      }
+    if (constraint_curr == constraint_new) {
+      stopConstraint(t);
     }
     else {
-      short orient_index = 1;
-      if (t->orient_curr == O_DEFAULT || ELEM(constraint_curr, -1, constraint_new)) {
-        /* Successive presses on existing axis, cycle orientation modes. */
-        orient_index = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
-      }
-
-      transform_orientations_current_set(t, orient_index);
-      if (orient_index == 0) {
-        stopConstraint(t);
-      }
-      else {
-        setUserConstraint(t, constraint_new, msg_3d);
-      }
+      setUserConstraint(t, constraint_new, msg_2d);
     }
-    t->redraw |= TREDRAW_HARD;
-    return true;
   }
-  return false;
+  else {
+    short orient_index = 1;
+    if (t->orient_curr == O_DEFAULT || ELEM(constraint_curr, -1, constraint_new)) {
+      /* Successive presses on existing axis, cycle orientation modes. */
+      orient_index = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
+    }
+
+    transform_orientations_current_set(t, orient_index);
+    if (orient_index == 0) {
+      stopConstraint(t);
+    }
+    else {
+      setUserConstraint(t, constraint_new, msg_3d);
+    }
+  }
+  t->redraw |= TREDRAW_HARD;
+  return true;
 }
 
 int transformEvent(TransInfo *t, const wmEvent *event)
@@ -814,7 +825,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (event->type == MOUSEMOVE) {
-    if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
+    if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
       t->con.mode |= CON_SELECT;
     }
 
@@ -1062,10 +1073,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->state = TRANS_CONFIRM;
         }
         else if ((t->flag & T_NO_CONSTRAINT) == 0) {
-          if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
+          if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
             /* Confirm. */
             postSelectConstraint(t);
-            t->modifiers &= ~(MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE);
+            t->modifiers &= ~(MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE);
           }
           else {
             if (t->options & CTX_CAMERA) {
@@ -1079,8 +1090,9 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               }
             }
             else {
-              t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ? MOD_CONSTRAINT_SELECT :
-                                                                         MOD_CONSTRAINT_PLANE;
+              t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ?
+                                  MOD_CONSTRAINT_SELECT_AXIS :
+                                  MOD_CONSTRAINT_SELECT_PLANE;
               if (t->con.mode & CON_APPLY) {
                 stopConstraint(t);
               }

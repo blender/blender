@@ -623,7 +623,8 @@ static void clamp_bounds_in_domain(FluidDomainSettings *fds,
 static bool is_static_object(Object *ob)
 {
   /* Check if the object has modifiers that might make the object "dynamic". */
-  ModifierData *md = ob->modifiers.first;
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
   for (; md; md = md->next) {
     if (ELEM(md->type,
              eModifierType_Cloth,
@@ -631,7 +632,8 @@ static bool is_static_object(Object *ob)
              eModifierType_Explode,
              eModifierType_Ocean,
              eModifierType_ShapeKey,
-             eModifierType_Softbody)) {
+             eModifierType_Softbody,
+             eModifierType_Nodes)) {
       return false;
     }
   }

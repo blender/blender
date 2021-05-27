@@ -168,21 +168,15 @@ endif()
 unset(OSX_SDKROOT)
 
 
-# 10.13 is our min. target, if you use higher sdk, weak linking happens
 if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+  # M1 chips run Big Sur onwards.
   set(OSX_MIN_DEPLOYMENT_TARGET 11.00)
 else()
+  # 10.13 is our min. target, if you use higher sdk, weak linking happens
   set(OSX_MIN_DEPLOYMENT_TARGET 10.13)
 endif()
 
-if(CMAKE_OSX_DEPLOYMENT_TARGET)
-  if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS ${OSX_MIN_DEPLOYMENT_TARGET})
-    message(STATUS "Setting deployment target to ${OSX_MIN_DEPLOYMENT_TARGET}, lower versions are not supported")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
-  endif()
-else()
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
-endif()
+set(CMAKE_OSX_DEPLOYMENT_TARGET "${OSX_MIN_DEPLOYMENT_TARGET}" CACHE STRING "" FORCE)
 
 if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
   # Force CMAKE_OSX_DEPLOYMENT_TARGET for makefiles, will not work else (CMake bug?)

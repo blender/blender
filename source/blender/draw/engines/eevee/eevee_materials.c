@@ -723,7 +723,7 @@ BLI_INLINE Material *eevee_object_material_get(Object *ob, int slot, bool holdou
   if (holdout) {
     return BKE_material_default_holdout();
   }
-  Material *ma = BKE_object_material_get(ob, slot + 1);
+  Material *ma = BKE_object_material_get_eval(ob, slot + 1);
   if (ma == NULL) {
     if (ob->type == OB_VOLUME) {
       ma = BKE_material_default_volume();

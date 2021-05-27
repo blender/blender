@@ -122,7 +122,7 @@ void recalcData_lattice(TransInfo *t)
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Lattice *la = tc->obedit->data;
-    DEG_id_tag_update(tc->obedit->data, 0); /* sets recalc flags */
+    DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
     if (la->editlatt->latt->flag & LT_OUTSIDE) {
       outside_lattice(la->editlatt->latt);
     }

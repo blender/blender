@@ -186,7 +186,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
 {
   GPENCIL_MaterialPool *matpool = pd->last_material_pool;
 
-  int mat_len = max_ii(1, ob->totcol);
+  int mat_len = max_ii(1, BKE_object_material_count_eval(ob));
 
   bool reuse_matpool = matpool && ((matpool->used_count + mat_len) <= GP_MATERIAL_BUFFER_LEN);
 
