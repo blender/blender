@@ -483,7 +483,7 @@ class PolySpline final : public Spline {
  * A #CurveEval corresponds to the #Curve object data. The name is different for clarity, since
  * more of the data is stored in the splines, but also just to be different than the name in DNA.
  */
-class CurveEval {
+struct CurveEval {
  private:
   blender::Vector<SplinePtr> splines_;
 
