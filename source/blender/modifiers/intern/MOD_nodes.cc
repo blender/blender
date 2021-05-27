@@ -207,8 +207,6 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
       }
     }
   }
-
-  /* TODO: Add dependency for adding and removing objects in collections. */
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
