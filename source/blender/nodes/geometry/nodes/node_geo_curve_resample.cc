@@ -182,6 +182,8 @@ static std::unique_ptr<CurveEval> resample_curve(const CurveEval &input_curve,
     }
   }
 
+  output_curve->attributes.reallocate(output_curve->splines().size());
+
   return output_curve;
 }
 
