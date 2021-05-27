@@ -264,6 +264,10 @@ typedef struct MeshBatchCache {
   bool no_loose_wire;
 } MeshBatchCache;
 
+#define MBC_BATCH_LEN (sizeof(((MeshBatchCache){0}).batch) / sizeof(void *))
+#define MBC_VBO_LEN (sizeof(((MeshBufferCache){0}).vbo) / sizeof(void *))
+#define MBC_IBO_LEN (sizeof(((MeshBufferCache){0}).ibo) / sizeof(void *))
+
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache mbc,
