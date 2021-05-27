@@ -1279,6 +1279,9 @@ bool BKE_lib_override_library_resync(Main *bmain,
 
 static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
 {
+  if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
+    return IDWALK_RET_NOP;
+  }
   ID *id_owner = cb_data->id_owner;
   ID *id = *cb_data->id_pointer;
   if (id != NULL && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
