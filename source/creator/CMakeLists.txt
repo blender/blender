@@ -287,7 +287,7 @@ else()
   add_executable(blender ${EXETYPE} ${SRC})
   if(WIN32)
       add_executable(blender-launcher WIN32
-        blender-launcher.c
+        blender_launcher_win32.c
         ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc
         ${CMAKE_BINARY_DIR}/blender.exe.manifest
       )
