@@ -127,6 +127,10 @@ static GeometrySet separate_geometry_set(const GeometrySet &set_in,
 {
   GeometrySet set_out;
   for (const GeometryComponent *component : set_in.get_components_for_read()) {
+    if (component->type() == GEO_COMPONENT_TYPE_CURVE) {
+      /* Don't support the curve component for now, even though it has a point domain. */
+      continue;
+    }
     GeometryComponent &out_component = set_out.get_component_for_write(component->type());
     separate_points_from_component(*component, out_component, mask_name, invert);
   }
