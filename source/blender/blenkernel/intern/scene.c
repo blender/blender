@@ -1985,7 +1985,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     const bool is_subprocess = false;
 
     if (!is_subprocess) {
-      BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
       BKE_main_id_clear_newpoins(bmain);
       /* In case root duplicated ID is linked, assume we want to get a local copy of it and
        * duplicate all expected linked data. */
@@ -2027,7 +2026,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 #endif
 
       /* Cleanup. */
-      BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
       BKE_main_id_clear_newpoins(bmain);
 
       BKE_main_collection_sync(bmain);

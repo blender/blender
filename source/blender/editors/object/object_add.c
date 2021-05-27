@@ -2148,7 +2148,6 @@ static void copy_object_set_idnew(bContext *C)
   FOREACH_MAIN_ID_END;
 #endif
 
-  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
   BKE_main_id_clear_newpoins(bmain);
 }
 
@@ -3386,7 +3385,6 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
   /* We need to handle that here ourselves, because we may duplicate several objects, in which case
    * we also want to remap pointers between those... */
-  BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
   BKE_main_id_clear_newpoins(bmain);
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
