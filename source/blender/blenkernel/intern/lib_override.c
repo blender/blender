@@ -1277,6 +1277,150 @@ bool BKE_lib_override_library_resync(Main *bmain,
   return success;
 }
 
+/* Ensure resync of all overrides at one level of indirect usage.
+ *
+ * We need to handle each level independently, since an override at level n may be affected by
+ * other overrides from level n + 1 etc. (i.e. from linked overrides it may use).
+ */
+static void lib_override_library_main_resync_on_library_indirect_level(
+    Main *bmain,
+    Scene *scene,
+    ViewLayer *view_layer,
+    Collection *override_resync_residual_storage,
+    const int library_indirect_level,
+    ReportList *reports)
+{
+  BKE_main_relations_create(bmain, 0);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* NOTE: in code below, the order in which `FOREACH_MAIN_ID_BEGIN` processes ID types ensures
+   * that we always process 'higher-level' overrides first (i.e. scenes, then collections, then
+   * objects, then other types). */
+
+  /* Detect all linked data that would need to be overridden if we had to create an override from
+   * those used by current existing overrides. */
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+    if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
+      /* We already processed that ID as part of another ID's hierarchy. */
+      continue;
+    }
+
+    LibOverrideGroupTagData data = {.bmain = bmain,
+                                    .id_root = id->override_library->reference,
+                                    .tag = LIB_TAG_DOIT,
+                                    .missing_tag = LIB_TAG_MISSING};
+    lib_override_linked_group_tag(&data);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+    lib_override_hierarchy_dependencies_recursive_tag(&data);
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Now check existing overrides, those needing resync will be the one either already tagged as
+   * such, or the one using linked data that is now tagged as needing override. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      continue;
+    }
+
+    if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
+      CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
+      if (id->lib->temp_index > library_indirect_level) {
+        CLOG_ERROR(
+            &LOG,
+            "While processing indirect level %d, ID %s from lib %s of indirect level %d detected "
+            "as needing resync.",
+            library_indirect_level,
+            id->name,
+            id->lib ? id->lib->filepath : "<LOCAL>",
+            id->lib ? id->lib->temp_index : 0);
+      }
+      continue;
+    }
+
+    MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
+    BLI_assert(entry != NULL);
+
+    for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != NULL;
+         entry_item = entry_item->next) {
+      if (entry_item->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) {
+        continue;
+      }
+      ID *id_to = *entry_item->id_pointer.to;
+
+      /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
+      if (ID_IS_LINKED(id_to) && (id_to->lib != id->lib) && (id_to->tag & LIB_TAG_DOIT) != 0) {
+        id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+        CLOG_INFO(&LOG,
+                  3,
+                  "ID %s (%p) now tagged as needing resync because they use linked %s (%p) that "
+                  "now needs to be overridden",
+                  id->name,
+                  id->lib,
+                  id_to->name,
+                  id_to->lib);
+        if (id->lib->temp_index > library_indirect_level) {
+          CLOG_ERROR(&LOG,
+                     "While processing indirect level %d, ID %s from lib %s of indirect level %d "
+                     "detected "
+                     "as needing resync.",
+                     library_indirect_level,
+                     id->name,
+                     id->lib ? id->lib->filepath : "<LOCAL>",
+                     id->lib ? id->lib->temp_index : 0);
+        }
+        break;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_main_relations_free(bmain);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  /* And do the actual resync for all IDs detected as needing it.
+   * NOTE: Since this changes `bmain` (adding **and** removing IDs), we cannot use
+   * `FOREACH_MAIN_ID_BEGIN/END` here, and need special multi-loop processing. */
+  bool do_continue = true;
+  while (do_continue) {
+    do_continue = false;
+    ListBase *lb;
+    FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+      FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
+        if ((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0 ||
+            (ID_IS_LINKED(id) && id->lib->temp_index < library_indirect_level) ||
+            (!ID_IS_LINKED(id) && library_indirect_level != 0)) {
+          continue;
+        }
+        BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
+        do_continue = true;
+
+        /* In complex non-supported cases, with several different override hierarchies sharing
+         * relations between each-other, we may end up not actually updating/replacing the given
+         * root id (see e.g. pro/shots/110_rextoria/110_0150_A/110_0150_A.anim.blend of sprites
+         * project repository, r2687).
+         * This can lead to infinite loop here, at least avoid this. */
+        id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+
+        CLOG_INFO(&LOG, 2, "Resyncing %s (%p)...", id->name, id->lib);
+        const bool success = BKE_lib_override_library_resync(
+            bmain, scene, view_layer, id, override_resync_residual_storage, false, false, reports);
+        CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
+        break;
+      }
+      FOREACH_MAIN_LISTBASE_ID_END;
+      if (do_continue) {
+        break;
+      }
+    }
+    FOREACH_MAIN_LISTBASE_END;
+  }
+}
+
 static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
 {
   if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
@@ -1371,123 +1515,16 @@ void BKE_lib_override_library_main_resync(Main *bmain,
                                               COLLECTION_RESTRICT_RENDER;
   }
 
-  BKE_main_relations_create(bmain, 0);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
-
-  /* NOTE: in code below, the order in which `FOREACH_MAIN_ID_BEGIN` processes ID types ensures
-   * that we always process 'higher-level' overrides first (i.e. scenes, then collections, then
-   * objects, then other types). */
-
-  /* Detect all linked data that would need to be overridden if we had to create an override from
-   * those used by current existing overrides. */
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-      continue;
-    }
-    if (id->tag & (LIB_TAG_DOIT | LIB_TAG_MISSING)) {
-      /* We already processed that ID as part of another ID's hierarchy. */
-      continue;
-    }
-
-    LibOverrideGroupTagData data = {.bmain = bmain,
-                                    .id_root = id->override_library->reference,
-                                    .tag = LIB_TAG_DOIT,
-                                    .missing_tag = LIB_TAG_MISSING};
-    lib_override_linked_group_tag(&data);
-    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
-    lib_override_hierarchy_dependencies_recursive_tag(&data);
-    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
-  }
-  FOREACH_MAIN_ID_END;
-
-  /* Now check existing overrides, those needing resync will be the one either already tagged as
-   * such, or the one using linked data that is now tagged as needing override. */
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-      continue;
-    }
-
-    if (id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) {
-      CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
-      continue;
-    }
-
-    MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers, id);
-    BLI_assert(entry != NULL);
-
-    for (MainIDRelationsEntryItem *entry_item = entry->to_ids; entry_item != NULL;
-         entry_item = entry_item->next) {
-      if (entry_item->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) {
-        continue;
-      }
-      ID *id_to = *entry_item->id_pointer.to;
-
-      /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
-      if (ID_IS_LINKED(id_to) && (id_to->lib != id->lib) && (id_to->tag & LIB_TAG_DOIT) != 0) {
-        id->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
-        CLOG_INFO(&LOG,
-                  3,
-                  "ID %s (%p) now tagged as needing resync because they use linked %s (%p) that "
-                  "now needs to be overridden",
-                  id->name,
-                  id->lib,
-                  id_to->name,
-                  id_to->lib);
-        break;
-      }
-    }
-  }
-  FOREACH_MAIN_ID_END;
-
-  BKE_main_relations_free(bmain);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
-
   int library_indirect_level = lib_override_libraries_index_define(bmain);
-
-  /* And do the actual resync for all IDs detected as needing it.
-   * NOTE: Since this changes `bmain` (adding **and** removing IDs), we cannot use
-   * `FOREACH_MAIN_ID_BEGIN/END` here, and need special multi-loop processing. */
-  bool do_continue = true;
-  while (do_continue) {
-    ListBase *lb;
-    do_continue = false;
-    FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
-      FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id) {
-        if ((id->tag & LIB_TAG_LIB_OVERRIDE_NEED_RESYNC) == 0 ||
-            (ID_IS_LINKED(id) && id->lib->temp_index < library_indirect_level) ||
-            (!ID_IS_LINKED(id) && library_indirect_level != 0)) {
-          continue;
-        }
-        BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
-        do_continue = true;
-
-        /* In complex non-supported cases, with several different override hierarchies sharing
-         * relations between each-other, we may end up not actually updating/replacing the given
-         * root id (see e.g. pro/shots/110_rextoria/110_0150_A/110_0150_A.anim.blend of sprites
-         * project repository, r2687).
-         * This can lead to infinite loop here, at least avoid this. */
-        id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
-
-        CLOG_INFO(&LOG, 2, "Resyncing %s (%p)...", id->name, id->lib);
-        const bool success = BKE_lib_override_library_resync(
-            bmain, scene, view_layer, id, override_resync_residual_storage, false, false, reports);
-        CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
-        break;
-      }
-      FOREACH_MAIN_LISTBASE_ID_END;
-      if (do_continue) {
-        break;
-      }
-    }
-    FOREACH_MAIN_LISTBASE_END;
-
-    if (!do_continue && library_indirect_level != 0) {
-      /* We are done with overrides from that level of indirect linking, we can keep going with
-       * those 'less' indirectly linked now. */
-      library_indirect_level--;
-      do_continue = true;
-    }
+  while (library_indirect_level >= 0) {
+    /* Update overrides from each indirect level separately. */
+    lib_override_library_main_resync_on_library_indirect_level(bmain,
+                                                               scene,
+                                                               view_layer,
+                                                               override_resync_residual_storage,
+                                                               library_indirect_level,
+                                                               reports);
+    library_indirect_level--;
   }
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
