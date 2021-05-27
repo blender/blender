@@ -1501,7 +1501,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
     background->set_transparent_roughness_threshold(0.0f);
   }
 
-  background->set_use_shader(view_layer.use_background_shader |
+  background->set_use_shader(view_layer.use_background_shader ||
                              viewport_parameters.custom_viewport_parameters());
   background->set_use_ao(background->get_use_ao() && view_layer.use_background_ao);
 
