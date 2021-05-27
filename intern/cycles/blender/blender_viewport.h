@@ -39,8 +39,8 @@ class BlenderViewportParameters {
   BlenderViewportParameters();
   explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
 
-  const bool modified(const BlenderViewportParameters &other) const;
-  const bool custom_viewport_parameters() const;
+  bool modified(const BlenderViewportParameters &other) const;
+  bool custom_viewport_parameters() const;
 
   /* Retrieve the render pass type that needs to be displayed on the given `SpaceView3D`
    * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
