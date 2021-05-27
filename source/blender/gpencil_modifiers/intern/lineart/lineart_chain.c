@@ -40,8 +40,8 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
                                                LineartVert **new_vt,
                                                int match_flag)
 {
-  LISTBASE_FOREACH (LinkData *, lip, &ba->linked_edges) {
-    LineartEdge *n_e = lip->data;
+  for (int i = 0; i < ba->line_count; i++) {
+    LineartEdge *n_e = ba->linked_lines[i];
 
     if ((!(n_e->flags & LRT_EDGE_FLAG_ALL_TYPE)) || (n_e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
       continue;

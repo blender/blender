@@ -314,6 +314,36 @@ BLI_INLINE bool lineart_occlusion_is_adjacent_intersection(LineartEdge *e, Linea
           (v2->base.flag && v2->intersecting_with == tri));
 }
 
+static void lineart_bounding_area_triangle_add(LineartRenderBuffer *rb,
+                                               LineartBoundingArea *ba,
+                                               LineartTriangle *tri)
+{
+  if (ba->triangle_count >= ba->max_triangle_count) {
+    LineartTriangle **new_array = lineart_mem_acquire(
+        &rb->render_data_pool, sizeof(LineartTriangle *) * ba->max_triangle_count * 2);
+    memcpy(new_array, ba->linked_triangles, sizeof(LineartTriangle *) * ba->max_triangle_count);
+    ba->max_triangle_count *= 2;
+    ba->linked_triangles = new_array;
+  }
+  ba->linked_triangles[ba->triangle_count] = tri;
+  ba->triangle_count++;
+}
+
+static void lineart_bounding_area_line_add(LineartRenderBuffer *rb,
+                                           LineartBoundingArea *ba,
+                                           LineartEdge *e)
+{
+  if (ba->line_count >= ba->max_line_count) {
+    LineartEdge **new_array = lineart_mem_acquire(&rb->render_data_pool,
+                                                  sizeof(LineartEdge *) * ba->max_line_count * 2);
+    memcpy(new_array, ba->linked_lines, sizeof(LineartEdge *) * ba->max_line_count);
+    ba->max_line_count *= 2;
+    ba->linked_lines = new_array;
+  }
+  ba->linked_lines[ba->line_count] = e;
+  ba->line_count++;
+}
+
 static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *e, int thread_id)
 {
   double x = e->v1->fbcoord[0], y = e->v1->fbcoord[1];
@@ -334,8 +364,8 @@ static void lineart_occlusion_single_line(LineartRenderBuffer *rb, LineartEdge *
 
   while (nba) {
 
-    LISTBASE_FOREACH (LinkData *, lip, &nba->linked_triangles) {
-      tri = lip->data;
+    for (int i = 0; i < nba->triangle_count; i++) {
+      tri = (LineartTriangleThread *)nba->linked_triangles[i];
       /* If we are already testing the line in this thread, then don't do it. */
       if (tri->testing_e[thread_id] == e || (tri->base.flags & LRT_TRIANGLE_INTERSECTION_ONLY) ||
           lineart_occlusion_is_adjacent_intersection(e, (LineartTriangle *)tri)) {
@@ -2499,6 +2529,7 @@ static LineartEdge *lineart_triangle_intersect(LineartRenderBuffer *rb,
   BLI_addtail(&result->segments, es);
   /* Don't need to OR flags right now, just a type mark. */
   result->flags = LRT_EDGE_FLAG_INTERSECTION;
+
   lineart_prepend_edge_direct(&rb->intersection.first, result);
   int r1, r2, c1, c2, row, col;
   if (lineart_get_edge_bounding_areas(rb, result, &r1, &r2, &c1, &c2)) {
@@ -2521,7 +2552,6 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
    * See definition of LineartTriangleThread for more info. */
   LineartTriangle *testing_triangle;
   LineartTriangleThread *tt;
-  LinkData *lip, *next_lip;
 
   double *G0 = tri->v[0]->gloc, *G1 = tri->v[1]->gloc, *G2 = tri->v[2]->gloc;
 
@@ -2535,9 +2565,8 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
   }
 
   /* If this _is_ the smallest subdiv bounding area, then do the intersections there. */
-  for (lip = ba->linked_triangles.first; lip; lip = next_lip) {
-    next_lip = lip->next;
-    testing_triangle = lip->data;
+  for (int i = 0; i < ba->triangle_count; i++) {
+    testing_triangle = ba->linked_triangles[i];
     tt = (LineartTriangleThread *)testing_triangle;
 
     if (testing_triangle == tri || tt->testing_e[0] == (LineartEdge *)tri) {
@@ -2660,6 +2689,13 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   rb->w = scene->r.xsch;
   rb->h = scene->r.ysch;
 
+  if (rb->cam_is_persp) {
+    rb->tile_recursive_level = LRT_TILE_RECURSIVE_PERSPECTIVE;
+  }
+  else {
+    rb->tile_recursive_level = LRT_TILE_RECURSIVE_ORTHO;
+  }
+
   double asp = ((double)rb->w / (double)rb->h);
   rb->shift_x = (asp >= 1) ? c->shiftx : c->shiftx * asp;
   rb->shift_y = (asp <= 1) ? c->shifty : c->shifty * asp;
@@ -2734,6 +2770,14 @@ static void lineart_main_bounding_area_make_initial(LineartRenderBuffer *rb)
 
       ba->cx = (ba->l + ba->r) / 2;
       ba->cy = (ba->u + ba->b) / 2;
+
+      /* Init linked_triangles array. */
+      ba->max_triangle_count = LRT_TILE_SPLITTING_TRIANGLE_LIMIT;
+      ba->max_line_count = LRT_TILE_EDGE_COUNT_INITIAL;
+      ba->linked_triangles = lineart_mem_acquire(
+          &rb->render_data_pool, sizeof(LineartTriangle *) * ba->max_triangle_count);
+      ba->linked_lines = lineart_mem_acquire(&rb->render_data_pool,
+                                             sizeof(LineartEdge *) * ba->max_line_count);
 
       /* Link adjacent ones. */
       if (row) {
@@ -2949,7 +2993,18 @@ static void lineart_bounding_area_split(LineartRenderBuffer *rb,
 
   lineart_bounding_areas_connect_new(rb, root);
 
-  while ((tri = lineart_list_pop_pointer_no_free(&root->linked_triangles)) != NULL) {
+  /* Init linked_triangles array. */
+  for (int i = 0; i < 4; i++) {
+    ba[i].max_triangle_count = LRT_TILE_SPLITTING_TRIANGLE_LIMIT;
+    ba[i].max_line_count = LRT_TILE_EDGE_COUNT_INITIAL;
+    ba[i].linked_triangles = lineart_mem_acquire(
+        &rb->render_data_pool, sizeof(LineartTriangle *) * LRT_TILE_SPLITTING_TRIANGLE_LIMIT);
+    ba[i].linked_lines = lineart_mem_acquire(&rb->render_data_pool,
+                                             sizeof(LineartEdge *) * LRT_TILE_EDGE_COUNT_INITIAL);
+  }
+
+  for (int i = 0; i < root->triangle_count; i++) {
+    tri = root->linked_triangles[i];
     LineartBoundingArea *cba = root->child;
     double b[4];
     b[0] = MIN3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
@@ -2970,7 +3025,8 @@ static void lineart_bounding_area_split(LineartRenderBuffer *rb,
     }
   }
 
-  while ((e = lineart_list_pop_pointer_no_free(&root->linked_edges)) != NULL) {
+  for (int i = 0; i < root->line_count; i++) {
+    e = root->linked_lines[i];
     lineart_bounding_area_link_edge(rb, root, e);
   }
 
@@ -3070,13 +3126,13 @@ static void lineart_bounding_area_link_triangle(LineartRenderBuffer *rb,
     return;
   }
   if (root_ba->child == NULL) {
-    lineart_list_append_pointer_pool(&root_ba->linked_triangles, &rb->render_data_pool, tri);
-    root_ba->triangle_count++;
+    lineart_bounding_area_triangle_add(rb, root_ba, tri);
     /* If splitting doesn't improve triangle separation, then shouldn't allow splitting anymore.
      * Here we use recursive limit. This is especially useful in orthographic render,
      * where a lot of faces could easily line up perfectly in image space,
      * which can not be separated by simply slicing the image tile. */
-    if (root_ba->triangle_count > 200 && recursive && recursive_level < 10) {
+    if (root_ba->triangle_count >= LRT_TILE_SPLITTING_TRIANGLE_LIMIT && recursive &&
+        recursive_level < rb->tile_recursive_level) {
       lineart_bounding_area_split(rb, root_ba, recursive_level);
     }
     if (recursive && do_intersection && rb->use_intersections) {
@@ -3118,7 +3174,7 @@ static void lineart_bounding_area_link_edge(LineartRenderBuffer *rb,
                                             LineartEdge *e)
 {
   if (root_ba->child == NULL) {
-    lineart_list_append_pointer_pool(&root_ba->linked_edges, &rb->render_data_pool, e);
+    lineart_bounding_area_line_add(rb, root_ba, e);
   }
   else {
     if (lineart_bounding_area_edge_intersect(
