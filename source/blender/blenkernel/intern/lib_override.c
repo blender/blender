@@ -845,7 +845,7 @@ bool BKE_lib_override_library_create(
       bmain, scene, view_layer, id_root, id_reference, NULL, false);
 
   /* Cleanup. */
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
@@ -1271,7 +1271,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
   }
 
   /* Cleanup. */
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
 
   return success;

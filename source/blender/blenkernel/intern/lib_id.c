@@ -1754,7 +1754,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
-void BKE_main_id_clear_newpoins(Main *bmain)
+void BKE_main_id_newptr_and_tag_clear(Main *bmain)
 {
   ID *id;
 
@@ -2168,7 +2168,7 @@ void BKE_library_make_local(Main *bmain,
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
   BLI_memarena_free(linklist_mem);
 
 #ifdef DEBUG_TIME

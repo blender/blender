@@ -694,7 +694,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
 
   if (!is_subprocess) {
-    BKE_main_id_clear_newpoins(bmain);
+    BKE_main_id_newptr_and_tag_clear(bmain);
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
      * all expected linked data. */
     if (ID_IS_LINKED(collection)) {
@@ -725,7 +725,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 #endif
 
     /* Cleanup. */
-    BKE_main_id_clear_newpoins(bmain);
+    BKE_main_id_newptr_and_tag_clear(bmain);
 
     BKE_main_collection_sync(bmain);
   }
