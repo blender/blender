@@ -40,7 +40,7 @@ struct Object;
 struct PointCloud;
 struct Volume;
 struct Curve;
-class CurveEval;
+struct CurveEval;
 
 enum class GeometryOwnershipType {
   /* The geometry is owned. This implies that it can be changed. */
