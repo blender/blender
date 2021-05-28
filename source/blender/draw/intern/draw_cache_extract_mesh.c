@@ -5956,12 +5956,14 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   eMRDataType data_flag = 0;
 
   const bool do_lines_loose_subbuffer = mbc.ibo.lines_loose != NULL;
+  bool do_extract = false;
 
 #define TEST_ASSIGN(type, type_lowercase, name) \
   do { \
     if (DRW_TEST_ASSIGN_##type(mbc.type_lowercase.name)) { \
       iter_flag |= mesh_extract_iter_type(&extract_##name); \
       data_flag |= extract_##name.data_flag; \
+      do_extract = true; \
     } \
   } while (0)
 
@@ -5999,6 +6001,10 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   TEST_ASSIGN(IBO, ibo, edituv_lines);
   TEST_ASSIGN(IBO, ibo, edituv_points);
   TEST_ASSIGN(IBO, ibo, edituv_fdots);
+
+  if (!do_extract) {
+    return;
+  }
 
   if (do_lines_loose_subbuffer) {
     iter_flag |= MR_ITER_LEDGE;
