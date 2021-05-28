@@ -119,6 +119,10 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
+if(WITH_OPENCOLORIO)
+  add_definitions(-DWITH_OCIO)
+endif()
+
 # Setup the exe sources and buildinfo
 set(SRC
   creator.c
