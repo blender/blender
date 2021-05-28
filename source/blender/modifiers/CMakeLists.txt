@@ -195,7 +195,11 @@ endif()
 
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)
-
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
   list(APPEND INC_SYS
     ${TBB_INCLUDE_DIRS}
   )
