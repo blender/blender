@@ -252,6 +252,13 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id)
     return false;
   }
 
+  /* A bit weird, but those embedded IDs are handled by their owner ID anyway, so we can just
+   * assume they are never user-edited, actual proper detection will happen from their owner check.
+   */
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    return false;
+  }
+
   LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
     LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
       if ((opop->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
