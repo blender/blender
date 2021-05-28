@@ -466,13 +466,6 @@ struct proxy_output_ctx {
   struct anim *anim;
 };
 
-// work around stupid swscaler 16 bytes alignment bug...
-
-static int round_up(int x, int mod)
-{
-  return x + ((mod - (x % mod)) % mod);
-}
-
 static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     struct anim *anim, AVStream *st, int proxy_size, int width, int height, int quality)
 {
@@ -595,15 +588,19 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   if (st->codecpar->width != width || st->codecpar->height != height ||
       st->codecpar->format != rv->c->pix_fmt) {
     rv->frame = av_frame_alloc();
-    av_image_fill_arrays(
-        rv->frame->data,
-        rv->frame->linesize,
-        MEM_mallocN(av_image_get_buffer_size(rv->c->pix_fmt, round_up(width, 16), height, 1),
-                    "alloc proxy output frame"),
-        rv->c->pix_fmt,
-        round_up(width, 16),
-        height,
-        1);
+
+    av_image_fill_arrays(rv->frame->data,
+                         rv->frame->linesize,
+                         MEM_mallocN(av_image_get_buffer_size(rv->c->pix_fmt, width, height, 1),
+                                     "alloc proxy output frame"),
+                         rv->c->pix_fmt,
+                         width,
+                         height,
+                         1);
+
+    rv->frame->format = rv->c->pix_fmt;
+    rv->frame->width = width;
+    rv->frame->height = height;
 
     rv->sws_ctx = sws_getContext(st->codecpar->width,
                                  rv->orig_height,
