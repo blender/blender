@@ -1,9 +1,10 @@
 Pipeline Config
 ===============
 
-Scripts have been moved to own git repo
-This branched based confiration is used by the new build pipeline for the `update-code` step
+Scripts have been moved to own git repo.
 
-It will soon be user ../utils/make_update.py script
+This configuration file is used by buildbot new pipeline for the `update-code` step.
 
-Both buildbot and developers will use the same conconfigurations.
+It will soon be used by the ../utils/make_update.py script.
+
+Both buildbot and developers will eventually use the same configuration file.
