@@ -373,14 +373,15 @@ typedef struct BMVertsCalcNormalsData {
   float (*vnos)[3];
 } BMVertsCalcNormalsData;
 
-static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp_f)
+static void mesh_verts_calc_normals_accum(
+    BMFace *f,
+    const float *f_no,
+    const float (*edgevec)[3],
+
+    /* Read-write data, protected by an atomic-based fake spin-lock like system. */
+    float (*vnos)[3])
 {
 #define FLT_EQ_NONAN(_fa, _fb) (*((const uint32_t *)&_fa) == *((const uint32_t *)&_fb))
-
-  BMVertsCalcNormalsData *data = userdata;
-  BMFace *f = (BMFace *)mp_f;
-
-  const float *f_no = data->fnos ? data->fnos[BM_elem_index_get(f)] : f->no;
 
   BMLoop *l_first, *l_iter;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -391,8 +392,8 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 
     /* calculate the dot product of the two edges that
      * meet at the loop's vertex */
-    e1diff = data->edgevec[BM_elem_index_get(l_iter->prev->e)];
-    e2diff = data->edgevec[BM_elem_index_get(l_iter->e)];
+    e1diff = edgevec[BM_elem_index_get(l_iter->prev->e)];
+    e2diff = edgevec[BM_elem_index_get(l_iter->e)];
     dotprod = dot_v3v3(e1diff, e2diff);
 
     /* edge vectors are calculated from e->v1 to e->v2, so
@@ -410,7 +411,7 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
     }
 
     /* accumulate weighted face normal into the vertex's normal */
-    float *v_no = data->vnos ? data->vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
+    float *v_no = vnos ? vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
 
     /* This block is a lockless threadsafe madd_v3_v3fl.
      * It uses the first float of the vector as a sort of cheap spin-lock,
@@ -445,6 +446,14 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
   } while ((l_iter = l_iter->next) != l_first);
 
 #undef FLT_EQ_NONAN
+}
+
+static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp_f)
+{
+  BMVertsCalcNormalsData *data = userdata;
+  BMFace *f = (BMFace *)mp_f;
+  const float *f_no = data->fnos ? data->fnos[BM_elem_index_get(f)] : f->no;
+  mesh_verts_calc_normals_accum(f, f_no, data->edgevec, data->vnos);
 }
 
 static void mesh_verts_calc_normals_normalize_cb(void *userdata, MempoolIterData *mp_v)
@@ -526,6 +535,130 @@ void BM_mesh_normals_update(BMesh *bm)
 
   /* Add weighted face normals to vertices, and normalize vert normals. */
   bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, NULL, NULL, NULL);
+  MEM_freeN(edgevec);
+}
+
+static void mesh_faces_parallel_range_calc_normals_cb(
+    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  BMFace *f = ((BMFace **)userdata)[iter];
+  BM_face_normal_update(f);
+}
+
+static void mesh_edges_parallel_range_calc_vectors_cb(
+    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  BMEdge *e = ((BMEdge **)((void **)userdata)[0])[iter];
+  float *r_edgevec = ((float(*)[3])((void **)userdata)[1])[iter];
+  sub_v3_v3v3(r_edgevec, e->v1->co, e->v2->co);
+  normalize_v3(r_edgevec);
+}
+
+static void mesh_verts_parallel_range_calc_normals_accum_cb(
+    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  BMFace *f = ((BMFace **)((void **)userdata)[0])[iter];
+  const float(*edgevec)[3] = (float(*)[3])((void **)userdata)[1];
+  mesh_verts_calc_normals_accum(f, f->no, edgevec, NULL);
+}
+
+static void mesh_verts_parallel_range_calc_normals_normalize_cb(
+    void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  BMVert *v = ((BMVert **)userdata)[iter];
+  if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
+    normalize_v3_v3(v->no, v->co);
+  }
+}
+
+/**
+ * A version of #BM_mesh_normals_update that updates a subset of geometry,
+ * used to avoid the overhead of updating everything.
+ */
+void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo)
+{
+  BLI_assert(bmpinfo->params.do_normals);
+
+  BMVert **verts = bmpinfo->verts;
+  BMEdge **edges = bmpinfo->edges;
+  BMFace **faces = bmpinfo->faces;
+  const int verts_len = bmpinfo->verts_len;
+  const int edges_len = bmpinfo->edges_len;
+  const int faces_len = bmpinfo->faces_len;
+  const int faces_len_normal_calc_accumulate = bmpinfo->faces_len_normal_calc_accumulate;
+
+  float(*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * edges_len, __func__);
+
+  for (int i = 0; i < verts_len; i++) {
+    zero_v3(verts[i]->no);
+  }
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  {
+    /* Faces. */
+    BLI_task_parallel_range(
+        0, faces_len, faces, mesh_faces_parallel_range_calc_normals_cb, &settings);
+  }
+
+  /* Temporarily override the edge indices,
+   * storing the correct indices in the case they're not dirty.
+   *
+   * \note in most cases indices are modified and #BMesh.elem_index_dirty is set.
+   * This is an exceptional case where indices are restored because the worst case downside
+   * of marking the edge indices dirty would require a full loop over all edges to
+   * correct the indices in other functions which need them to be valid.
+   * When moving a few vertices on a high poly mesh setting and restoring connected
+   * edges has very little overhead compared with restoring all edge indices. */
+  int *edge_index_value = NULL;
+  if ((bm->elem_index_dirty & BM_EDGE) == 0) {
+    edge_index_value = MEM_mallocN(sizeof(*edge_index_value) * edges_len, __func__);
+
+    for (int i = 0; i < edges_len; i++) {
+      BMEdge *e = edges[i];
+      edge_index_value[i] = BM_elem_index_get(e);
+      BM_elem_index_set(e, i); /* set_dirty! (restore before this function exits). */
+    }
+  }
+  else {
+    for (int i = 0; i < edges_len; i++) {
+      BMEdge *e = edges[i];
+      BM_elem_index_set(e, i); /* set_dirty! (already dirty) */
+    }
+  }
+
+  {
+    /* Verts. */
+
+    /* Compute normalized direction vectors for each edge.
+     * Directions will be used for calculating the weights of the face normals on the vertex
+     * normals. */
+    void *data[2] = {edges, edgevec};
+    BLI_task_parallel_range(
+        0, edges_len, data, mesh_edges_parallel_range_calc_vectors_cb, &settings);
+
+    /* Add weighted face normals to vertices. */
+    data[0] = faces;
+    BLI_task_parallel_range(0,
+                            faces_len_normal_calc_accumulate,
+                            data,
+                            mesh_verts_parallel_range_calc_normals_accum_cb,
+                            &settings);
+
+    /* Normalize the accumulated vertex normals. */
+    BLI_task_parallel_range(
+        0, verts_len, verts, mesh_verts_parallel_range_calc_normals_normalize_cb, &settings);
+  }
+
+  if (edge_index_value != NULL) {
+    for (int i = 0; i < edges_len; i++) {
+      BMEdge *e = edges[i];
+      BM_elem_index_set(e, edge_index_value[i]); /* set_ok (restore) */
+    }
+
+    MEM_freeN(edge_index_value);
+  }
+
   MEM_freeN(edgevec);
 }
 

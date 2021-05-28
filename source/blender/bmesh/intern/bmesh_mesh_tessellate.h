@@ -20,5 +20,11 @@
  * \ingroup bmesh
  */
 
+struct BMPartialUpdate;
+
 void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3]);
 void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3]);
+
+void BM_mesh_calc_tessellation_with_partial(BMesh *bm,
+                                            BMLoop *(*looptris)[3],
+                                            const struct BMPartialUpdate *bmpinfo);

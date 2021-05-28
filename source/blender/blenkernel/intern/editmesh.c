@@ -149,6 +149,14 @@ void BKE_editmesh_looptri_calc(BMEditMesh *em)
 #endif
 }
 
+void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, struct BMPartialUpdate *bmpinfo)
+{
+  BLI_assert(em->tottri == poly_to_tri_count(em->bm->totface, em->bm->totloop));
+  BLI_assert(em->looptris != NULL);
+
+  BM_mesh_calc_tessellation_with_partial(em->bm, em->looptris, bmpinfo);
+}
+
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
 {
   if (em->mesh_eval_cage) {

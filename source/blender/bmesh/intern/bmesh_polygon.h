@@ -21,6 +21,7 @@
  */
 
 struct Heap;
+struct BMPartialUpdate;
 
 #include "BLI_compiler_attrs.h"
 

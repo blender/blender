@@ -32,6 +32,7 @@
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
+#include "BLI_task.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -147,6 +148,105 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
   }
 
   BLI_assert(i <= looptris_tot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default Tessellation (Partial Updates)
+ * \{ */
+
+struct PartialTessellationUserData {
+  BMFace **faces;
+  BMLoop *(*looptris)[3];
+};
+
+struct PartialTessellationUserTLS {
+  MemArena *pf_arena;
+};
+
+static void mesh_calc_tessellation_for_face_partial_fn(void *__restrict userdata,
+                                                       const int index,
+                                                       const TaskParallelTLS *__restrict tls)
+{
+  struct PartialTessellationUserTLS *tls_data = tls->userdata_chunk;
+  struct PartialTessellationUserData *data = userdata;
+  BMFace *f = data->faces[index];
+  BMLoop *l = BM_FACE_FIRST_LOOP(f);
+  const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
+  mesh_calc_tessellation_for_face(data->looptris + offset, f, &tls_data->pf_arena);
+}
+
+static void mesh_calc_tessellation_for_face_partial_free_fn(
+    const void *__restrict UNUSED(userdata), void *__restrict tls_v)
+{
+  struct PartialTessellationUserTLS *tls_data = tls_v;
+  if (tls_data->pf_arena) {
+    BLI_memarena_free(tls_data->pf_arena);
+  }
+}
+
+static void bm_mesh_calc_tessellation_with_partial__multi_threaded(BMLoop *(*looptris)[3],
+                                                                   const BMPartialUpdate *bmpinfo)
+{
+  const int faces_len = bmpinfo->faces_len;
+  BMFace **faces = bmpinfo->faces;
+
+  struct PartialTessellationUserData data = {
+      .faces = faces,
+      .looptris = looptris,
+  };
+  struct PartialTessellationUserTLS tls_dummy = {NULL};
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.use_threading = true;
+  settings.userdata_chunk = &tls_dummy;
+  settings.userdata_chunk_size = sizeof(tls_dummy);
+  settings.func_free = mesh_calc_tessellation_for_face_partial_free_fn;
+
+  BLI_task_parallel_range(
+      0, faces_len, &data, mesh_calc_tessellation_for_face_partial_fn, &settings);
+}
+
+static void bm_mesh_calc_tessellation_with_partial__single_threaded(BMLoop *(*looptris)[3],
+                                                                    const BMPartialUpdate *bmpinfo)
+{
+  const int faces_len = bmpinfo->faces_len;
+  BMFace **faces = bmpinfo->faces;
+
+  MemArena *pf_arena = NULL;
+
+  for (int index = 0; index < faces_len; index++) {
+    BMFace *f = faces[index];
+    BMLoop *l = BM_FACE_FIRST_LOOP(f);
+    const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
+    mesh_calc_tessellation_for_face(looptris + offset, f, &pf_arena);
+  }
+
+  if (pf_arena) {
+    BLI_memarena_free(pf_arena);
+  }
+}
+
+void BM_mesh_calc_tessellation_with_partial(BMesh *bm,
+                                            BMLoop *(*looptris)[3],
+                                            const BMPartialUpdate *bmpinfo)
+{
+  BLI_assert(bmpinfo->params.do_tessellate);
+
+  BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
+
+  /* On systems with 32+ cores,
+   * only a very small number of faces has any advantage single threading (in the 100's).
+   * Note that between 500-2000 quads, the difference isn't so much
+   * (tessellation isn't a bottleneck in this case anyway).
+   * Avoid the slight overhead of using threads in this case. */
+  if (bmpinfo->faces_len < 1024) {
+    bm_mesh_calc_tessellation_with_partial__single_threaded(looptris, bmpinfo);
+  }
+  else {
+    bm_mesh_calc_tessellation_with_partial__multi_threaded(looptris, bmpinfo);
+  }
 }
 
 /** \} */

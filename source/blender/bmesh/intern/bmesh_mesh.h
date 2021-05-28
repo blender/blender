@@ -25,6 +25,7 @@
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
 struct MLoopNorSpaceArray;
+struct BMPartialUpdate;
 
 void BM_mesh_elem_toolflags_ensure(BMesh *bm);
 void BM_mesh_elem_toolflags_clear(BMesh *bm);
@@ -41,6 +42,8 @@ void BM_mesh_data_free(BMesh *bm);
 void BM_mesh_clear(BMesh *bm);
 
 void BM_mesh_normals_update(BMesh *bm);
+void BM_mesh_normals_update_with_partial(BMesh *bm, const struct BMPartialUpdate *bmpinfo);
+
 void BM_verts_calc_normal_vcos(BMesh *bm,
                                const float (*fnos)[3],
                                const float (*vcos)[3],
