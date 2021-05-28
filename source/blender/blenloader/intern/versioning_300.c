@@ -22,6 +22,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -85,6 +86,32 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   }
 }
 
+static void version_switch_node_input_prefix(Main *bmain)
+{
+  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+    if (ntree->type == NTREE_GEOMETRY) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_SWITCH) {
+          LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+            /* Skip the "switch" socket. */
+            if (socket == node->inputs.first) {
+              continue;
+            }
+            strcpy(socket->name, socket->name[0] == 'A' ? "False" : "True");
+
+            /* Replace "A" and "B", but keep the unique number suffix at the end. */
+            char number_suffix[8];
+            BLI_strncpy(number_suffix, socket->identifier + 1, sizeof(number_suffix));
+            strcpy(socket->identifier, socket->name);
+            strcat(socket->identifier, number_suffix);
+          }
+        }
+      }
+    }
+  }
+  FOREACH_NODETREE_END;
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
@@ -110,6 +137,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 2)) {
+    version_switch_node_input_prefix(bmain);
+
+    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->pose == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+          copy_v3_fl(pchan->custom_scale_xyz, pchan->custom_scale);
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -121,15 +164,5 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "float", "custom_scale_xyz[3]")) {
-      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->pose == NULL) {
-          continue;
-        }
-        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-          copy_v3_fl(pchan->custom_scale_xyz, pchan->custom_scale);
-        }
-      }
-    }
   }
 }
