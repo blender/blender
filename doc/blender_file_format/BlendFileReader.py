@@ -85,7 +85,7 @@ def openBlendFile(filename):
     '''
     handle = open(filename, 'rb')
     magic = ReadString(handle, 7)
-    if magic in ("BLENDER", "BULLETf"):
+    if magic in {"BLENDER", "BULLETf"}:
         log.debug("normal blendfile detected")
         handle.seek(0, os.SEEK_SET)
         return handle
@@ -137,7 +137,7 @@ class BlendFile:
         fileblock = BlendFileBlock(handle, self)
         found_dna_block = False
         while not found_dna_block:
-            if fileblock.Header.Code in ("DNA1", "SDNA"):
+            if fileblock.Header.Code in {"DNA1", "SDNA"}:
                 self.Catalog = DNACatalog(self.Header, handle)
                 found_dna_block = True
             else:

@@ -164,7 +164,7 @@ class _defs_annotate:
             gpl = context.active_annotation_layer
             if gpl is not None:
                 layout.label(text="Annotation:")
-                if context.space_data.type in ('VIEW_3D', 'SEQUENCE_EDITOR'):
+                if context.space_data.type in {'VIEW_3D', 'SEQUENCE_EDITOR'}:
                     if region_type == 'TOOL_HEADER':
                         sub = layout.split(align=True, factor=0.5)
                         sub.ui_units_x = 6.5
