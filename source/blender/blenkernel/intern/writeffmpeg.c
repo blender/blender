@@ -205,12 +205,11 @@ static int write_audio_frame(FFMpegContext *context)
       success = -1;
     }
 
-    av_packet_rescale_ts(pkt, c->time_base, context->audio_stream->time_base);
-    if (pkt->duration > 0) {
-      pkt->duration = av_rescale_q(pkt->duration, c->time_base, context->audio_stream->time_base);
-    }
-
     pkt->stream_index = context->audio_stream->index;
+    av_packet_rescale_ts(pkt, c->time_base, context->audio_stream->time_base);
+#    ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->audio_stream, pkt);
+#    endif
 
     pkt->flags |= AV_PKT_FLAG_KEY;
 
@@ -349,6 +348,10 @@ static int write_video_frame(FFMpegContext *context, int cfra, AVFrame *frame, R
 
     packet->stream_index = context->video_stream->index;
     av_packet_rescale_ts(packet, c->time_base, context->video_stream->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->video_stream, packet);
+#  endif
+
     if (av_interleaved_write_frame(context->outfile, packet) != 0) {
       success = -1;
       break;
@@ -1181,6 +1184,9 @@ static void flush_ffmpeg(FFMpegContext *context)
 
     packet->stream_index = context->video_stream->index;
     av_packet_rescale_ts(packet, c->time_base, context->video_stream->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->video_stream, packet);
+#  endif
 
     int write_ret = av_interleaved_write_frame(context->outfile, packet);
     if (write_ret != 0) {

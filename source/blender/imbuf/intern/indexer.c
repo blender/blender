@@ -683,6 +683,9 @@ static void add_to_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, AVFrame *fr
 
     packet->stream_index = ctx->st->index;
     av_packet_rescale_ts(packet, ctx->c->time_base, ctx->st->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(ctx->of, ctx->st, packet);
+#  endif
 
     int write_ret = av_interleaved_write_frame(ctx->of, packet);
     if (write_ret != 0) {

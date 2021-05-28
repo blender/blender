@@ -43,6 +43,55 @@
 #  define FFMPEG_INLINE static inline
 #endif
 
+#if (LIBAVFORMAT_VERSION_MAJOR < 58) || \
+    ((LIBAVFORMAT_VERSION_MAJOR == 58) && (LIBAVFORMAT_VERSION_MINOR < 76))
+#  define FFMPEG_USE_DURATION_WORKAROUND 1
+
+/* Before ffmpeg 4.4, package duration calculation used depricated variables to calculate the
+ * packet duration. Use the function from commit
+ * github.com/FFmpeg/FFmpeg/commit/1c0885334dda9ee8652e60c586fa2e3674056586
+ * to calculate the correct framerate for ffmpeg < 4.4.
+ */
+
+FFMPEG_INLINE
+void my_guess_pkt_duration(AVFormatContext *s, AVStream *st, AVPacket *pkt)
+{
+  if (pkt->duration < 0 && st->codecpar->codec_type != AVMEDIA_TYPE_SUBTITLE) {
+    av_log(s,
+           AV_LOG_WARNING,
+           "Packet with invalid duration %" PRId64 " in stream %d\n",
+           pkt->duration,
+           pkt->stream_index);
+    pkt->duration = 0;
+  }
+
+  if (pkt->duration) {
+    return;
+  }
+
+  switch (st->codecpar->codec_type) {
+    case AVMEDIA_TYPE_VIDEO:
+      if (st->avg_frame_rate.num > 0 && st->avg_frame_rate.den > 0) {
+        pkt->duration = av_rescale_q(1, av_inv_q(st->avg_frame_rate), st->time_base);
+      }
+      else if (st->time_base.num * 1000LL > st->time_base.den) {
+        pkt->duration = 1;
+      }
+      break;
+    case AVMEDIA_TYPE_AUDIO: {
+      int frame_size = av_get_audio_frame_duration2(st->codecpar, pkt->size);
+      if (frame_size && st->codecpar->sample_rate) {
+        pkt->duration = av_rescale_q(
+            frame_size, (AVRational){1, st->codecpar->sample_rate}, st->time_base);
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+#endif
+
 FFMPEG_INLINE
 void my_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 {
