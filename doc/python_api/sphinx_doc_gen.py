@@ -1246,7 +1246,7 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
             "%s.\n" % (
                 identifier,
                 # Account for multi-line enum descriptions, allowing this to be a block of text.
-                indent(", ".join(escape_rst(val) for val in (name, description) if val) or "Undocumented", "  "),
+                indent(" -- ".join(escape_rst(val) for val in (name, description) if val) or "Undocumented", "  "),
             )
             for identifier, name, description in prop.enum_items
         ])
