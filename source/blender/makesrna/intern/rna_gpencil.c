@@ -1625,7 +1625,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
   /* Material Index */
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "mat_nr");
-  RNA_def_property_ui_text(prop, "Material Index", "Index of material used in this stroke");
+  RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this stroke");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* Settings */
