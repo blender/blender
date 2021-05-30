@@ -954,7 +954,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
             fw(".. data:: %s\n\n" % attribute)
-            write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
+            write_indented_lines("   ", fw, "Constant value %s" % repr(value), False)
             fw("\n")
         else:
             BPY_LOGGER.debug("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
