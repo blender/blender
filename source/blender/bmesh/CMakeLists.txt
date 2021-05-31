@@ -182,10 +182,6 @@ set(LIB
   extern_rangetree
 )
 
-if(MSVC AND NOT MSVC_CLANG)
-  string(APPEND CMAKE_C_FLAGS " /WX /wd4101")
-endif()
-
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
@@ -224,6 +220,10 @@ if(WITH_GMP)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(MSVC AND NOT MSVC_CLANG)
+  target_compile_options(bf_bmesh PRIVATE /WX /wd4101)
+endif()
 
 if(WITH_GTESTS)
   set(TEST_SRC
