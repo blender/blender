@@ -1373,7 +1373,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
   BlenderViewportParameters new_viewport_parameters(b_v3d);
 
   if (world_recalc || update_all || b_world.ptr.data != world_map ||
-      viewport_parameters.modified(new_viewport_parameters)) {
+      viewport_parameters.shader_modified(new_viewport_parameters)) {
     Shader *shader = scene->default_background;
     ShaderGraph *graph = new ShaderGraph();
 
@@ -1501,8 +1501,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
     background->set_transparent_roughness_threshold(0.0f);
   }
 
-  background->set_use_shader(view_layer.use_background_shader |
-                             viewport_parameters.custom_viewport_parameters());
+  background->set_use_shader(view_layer.use_background_shader ||
+                             viewport_parameters.use_custom_shader());
   background->set_use_ao(background->get_use_ao() && view_layer.use_background_ao);
 
   background->tag_update(scene);

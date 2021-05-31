@@ -155,7 +155,7 @@ typedef struct LineartEdge {
 
   /**
    * Still need this entry because culled lines will not add to object
-   * #LineartElementLinkNode node (known as `reln` internally).
+   * #LineartElementLinkNode node (known as `eln` internally).
    *
    * TODO: If really need more savings, we can allocate this in a "extended" way too, but we need
    * another bit in flags to be able to show the difference.
@@ -205,6 +205,17 @@ typedef struct LineartChainRegisterEntry {
   char is_left;
 } LineartChainRegisterEntry;
 
+enum eLineArtTileRecursiveLimit {
+  /* If tile gets this small, it's already much smaller than a pixel. No need to continue
+   * splitting. */
+  LRT_TILE_RECURSIVE_PERSPECTIVE = 30,
+  /* This is a tried-and-true safe value for high poly models that also needed ortho rendering. */
+  LRT_TILE_RECURSIVE_ORTHO = 10,
+};
+
+#define LRT_TILE_SPLITTING_TRIANGLE_LIMIT 100
+#define LRT_TILE_EDGE_COUNT_INITIAL 32
+
 typedef struct LineartRenderBuffer {
   struct LineartRenderBuffer *prev, *next;
 
@@ -218,6 +229,11 @@ typedef struct LineartRenderBuffer {
 
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
+
+  /* When splitting bounding areas, if there's an ortho camera placed at a straight angle, there
+   * will be a lot of triangles aligned in line which can not be separated by continue subdividing
+   * the tile. So we set a strict limit when using ortho camera. See eLineArtTileRecursiveLimit. */
+  int tile_recursive_level;
 
   ListBase vertex_buffer_pointers;
   ListBase line_buffer_pointers;
@@ -363,10 +379,14 @@ typedef struct LineartBoundingArea {
   ListBase up;
   ListBase bp;
 
-  short triangle_count;
+  int16_t triangle_count;
+  int16_t max_triangle_count;
+  int16_t line_count;
+  int16_t max_line_count;
 
-  ListBase linked_triangles;
-  ListBase linked_edges;
+  /* Use array for speeding up multiple accesses. */
+  struct LineartTriangle **linked_triangles;
+  struct LineartEdge **linked_lines;
 
   /** Reserved for image space reduction && multi-thread chaining. */
   ListBase linked_chains;

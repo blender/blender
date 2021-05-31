@@ -134,79 +134,85 @@ typedef struct MeshRenderData {
   int *lverts, *ledges;
 } MeshRenderData;
 
-static void mesh_render_data_update_loose_geom(MeshRenderData *mr,
-                                               const eMRIterType iter_type,
-                                               const eMRDataType UNUSED(data_flag))
+static void mesh_render_data_loose_geom_load(MeshRenderData *mr, MeshBufferExtractionCache *cache)
 {
+  mr->ledges = cache->ledges;
+  mr->lverts = cache->lverts;
+  mr->vert_loose_len = cache->vert_loose_len;
+  mr->edge_loose_len = cache->edge_loose_len;
+
+  mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
+}
+
+static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr,
+                                               MeshBufferExtractionCache *cache)
+{
+  /* Early exit: Are loose geometry already available. Only checking for loose verts as loose edges
+   * and verts are calculated at the same time.*/
+  if (cache->lverts) {
+    return;
+  }
+
+  cache->vert_loose_len = 0;
+  cache->edge_loose_len = 0;
+
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
-      mr->vert_loose_len = 0;
-      mr->edge_loose_len = 0;
 
-      BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
+    BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
 
-      mr->ledges = MEM_mallocN(mr->edge_len * sizeof(int), __func__);
-      const MEdge *med = mr->medge;
-      for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
-        if (med->flag & ME_LOOSEEDGE) {
-          mr->ledges[mr->edge_loose_len++] = med_index;
-        }
-        /* Tag verts as not loose. */
-        BLI_BITMAP_ENABLE(lvert_map, med->v1);
-        BLI_BITMAP_ENABLE(lvert_map, med->v2);
+    cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
+    const MEdge *med = mr->medge;
+    for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
+      if (med->flag & ME_LOOSEEDGE) {
+        cache->ledges[cache->edge_loose_len++] = med_index;
       }
-      if (mr->edge_loose_len < mr->edge_len) {
-        mr->ledges = MEM_reallocN(mr->ledges, mr->edge_loose_len * sizeof(*mr->ledges));
-      }
-
-      mr->lverts = MEM_mallocN(mr->vert_len * sizeof(*mr->lverts), __func__);
-      for (int v = 0; v < mr->vert_len; v++) {
-        if (!BLI_BITMAP_TEST(lvert_map, v)) {
-          mr->lverts[mr->vert_loose_len++] = v;
-        }
-      }
-      if (mr->vert_loose_len < mr->vert_len) {
-        mr->lverts = MEM_reallocN(mr->lverts, mr->vert_loose_len * sizeof(*mr->lverts));
-      }
-
-      MEM_freeN(lvert_map);
-
-      mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
+      /* Tag verts as not loose. */
+      BLI_BITMAP_ENABLE(lvert_map, med->v1);
+      BLI_BITMAP_ENABLE(lvert_map, med->v2);
     }
+    if (cache->edge_loose_len < mr->edge_len) {
+      cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
+    }
+
+    cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*mr->lverts), __func__);
+    for (int v = 0; v < mr->vert_len; v++) {
+      if (!BLI_BITMAP_TEST(lvert_map, v)) {
+        cache->lverts[cache->vert_loose_len++] = v;
+      }
+    }
+    if (cache->vert_loose_len < mr->vert_len) {
+      cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
+    }
+
+    MEM_freeN(lvert_map);
   }
   else {
     /* #BMesh */
     BMesh *bm = mr->bm;
-    if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
-      int elem_id;
-      BMIter iter;
-      BMVert *eve;
-      BMEdge *ede;
-      mr->vert_loose_len = 0;
-      mr->edge_loose_len = 0;
+    int elem_id;
+    BMIter iter;
+    BMVert *eve;
+    BMEdge *ede;
 
-      mr->lverts = MEM_mallocN(mr->vert_len * sizeof(*mr->lverts), __func__);
-      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
-        if (eve->e == NULL) {
-          mr->lverts[mr->vert_loose_len++] = elem_id;
-        }
+    cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*cache->lverts), __func__);
+    BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
+      if (eve->e == NULL) {
+        cache->lverts[cache->vert_loose_len++] = elem_id;
       }
-      if (mr->vert_loose_len < mr->vert_len) {
-        mr->lverts = MEM_reallocN(mr->lverts, mr->vert_loose_len * sizeof(*mr->lverts));
-      }
+    }
+    if (cache->vert_loose_len < mr->vert_len) {
+      cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
+    }
 
-      mr->ledges = MEM_mallocN(mr->edge_len * sizeof(*mr->ledges), __func__);
-      BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
-        if (ede->l == NULL) {
-          mr->ledges[mr->edge_loose_len++] = elem_id;
-        }
+    cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
+    BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
+      if (ede->l == NULL) {
+        cache->ledges[cache->edge_loose_len++] = elem_id;
       }
-      if (mr->edge_loose_len < mr->edge_len) {
-        mr->ledges = MEM_reallocN(mr->ledges, mr->edge_loose_len * sizeof(*mr->ledges));
-      }
-
-      mr->loop_loose_len = mr->vert_loose_len + mr->edge_loose_len * 2;
+    }
+    if (cache->edge_loose_len < mr->edge_len) {
+      cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
     }
   }
 }
@@ -317,6 +323,7 @@ static void mesh_render_data_update_normals(MeshRenderData *mr,
  * otherwise don't use modifiers as they are not from this object.
  */
 static MeshRenderData *mesh_render_data_create(Mesh *me,
+                                               MeshBufferExtractionCache *cache,
                                                const bool is_editmode,
                                                const bool is_paint_mode,
                                                const bool is_mode_active,
@@ -325,8 +332,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
                                                const bool do_uvedit,
                                                const DRW_MeshCDMask *UNUSED(cd_used),
                                                const ToolSettings *ts,
-                                               const eMRIterType iter_type,
-                                               const eMRDataType data_flag)
+                                               const eMRIterType iter_type)
 {
   MeshRenderData *mr = MEM_callocN(sizeof(*mr), __func__);
   mr->toolsettings = ts;
@@ -435,7 +441,11 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     mr->poly_len = bm->totface;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
   }
-  mesh_render_data_update_loose_geom(mr, iter_type, data_flag);
+
+  if (iter_type & (MR_ITER_LEDGE | MR_ITER_LVERT)) {
+    mesh_render_data_loose_geom_ensure(mr, cache);
+    mesh_render_data_loose_geom_load(mr, cache);
+  }
 
   return mr;
 }
@@ -446,8 +456,9 @@ static void mesh_render_data_free(MeshRenderData *mr)
   MEM_SAFE_FREE(mr->poly_normals);
   MEM_SAFE_FREE(mr->loop_normals);
 
-  MEM_SAFE_FREE(mr->lverts);
-  MEM_SAFE_FREE(mr->ledges);
+  /* Loose geometry are owned by MeshBufferExtractionCache. */
+  mr->ledges = NULL;
+  mr->lverts = NULL;
 
   MEM_freeN(mr);
 }
@@ -5908,6 +5919,7 @@ static void extract_task_create(struct TaskGraph *task_graph,
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache mbc,
+                                        MeshBufferExtractionCache *extraction_cache,
                                         Mesh *me,
 
                                         const bool is_editmode,
@@ -5956,12 +5968,14 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   eMRDataType data_flag = 0;
 
   const bool do_lines_loose_subbuffer = mbc.ibo.lines_loose != NULL;
+  bool do_extract = false;
 
 #define TEST_ASSIGN(type, type_lowercase, name) \
   do { \
     if (DRW_TEST_ASSIGN_##type(mbc.type_lowercase.name)) { \
       iter_flag |= mesh_extract_iter_type(&extract_##name); \
       data_flag |= extract_##name.data_flag; \
+      do_extract = true; \
     } \
   } while (0)
 
@@ -6000,6 +6014,10 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   TEST_ASSIGN(IBO, ibo, edituv_points);
   TEST_ASSIGN(IBO, ibo, edituv_fdots);
 
+  if (!do_extract) {
+    return;
+  }
+
   if (do_lines_loose_subbuffer) {
     iter_flag |= MR_ITER_LEDGE;
   }
@@ -6011,6 +6029,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #endif
 
   MeshRenderData *mr = mesh_render_data_create(me,
+                                               extraction_cache,
                                                is_editmode,
                                                is_paint_mode,
                                                is_mode_active,
@@ -6019,8 +6038,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                do_uvedit,
                                                cd_layer_used,
                                                ts,
-                                               iter_flag,
-                                               data_flag);
+                                               iter_flag);
   mr->use_hide = use_hide;
   mr->use_subsurf_fdots = use_subsurf_fdots;
   mr->use_final_mesh = do_final;

@@ -1471,7 +1471,7 @@ static int uv_hide_exec(bContext *C, wmOperator *op)
       if (EDBM_mesh_hide(em, swap)) {
         EDBM_update_generic(ob->data, true, false);
       }
-      return OPERATOR_FINISHED;
+      continue;
     }
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1609,7 +1609,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *op)
       if (EDBM_mesh_reveal(em, select)) {
         EDBM_update_generic(ob->data, true, false);
       }
-      return OPERATOR_FINISHED;
+      continue;
     }
     if (use_face_center) {
       if (em->selectmode == SCE_SELECT_FACE) {

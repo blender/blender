@@ -544,9 +544,9 @@ static void join_attributes(Span<GeometryInstanceGroup> set_groups,
   }
 }
 
-static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComponent &result)
+static CurveEval *join_curve_splines(Span<GeometryInstanceGroup> set_groups)
 {
-  CurveEval *new_curve = new CurveEval();
+  Vector<SplinePtr> new_splines;
   for (const GeometryInstanceGroup &set_group : set_groups) {
     const GeometrySet &set = set_group.geometry_set;
     if (!set.has_curve()) {
@@ -558,9 +558,17 @@ static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComp
       for (const float4x4 &transform : set_group.transforms) {
         SplinePtr new_spline = source_spline->copy();
         new_spline->transform(transform);
-        new_curve->add_spline(std::move(new_spline));
+        new_splines.append(std::move(new_spline));
       }
     }
+  }
+  if (new_splines.is_empty()) {
+    return nullptr;
+  }
+
+  CurveEval *new_curve = new CurveEval();
+  for (SplinePtr &new_spline : new_splines) {
+    new_curve->add_spline(std::move(new_spline));
   }
 
   for (SplinePtr &spline : new_curve->splines()) {
@@ -573,8 +581,7 @@ static void join_curve_splines(Span<GeometryInstanceGroup> set_groups, CurveComp
   }
 
   new_curve->attributes.reallocate(new_curve->splines().size());
-
-  result.replace(new_curve);
+  return new_curve;
 }
 
 static void join_instance_groups_mesh(Span<GeometryInstanceGroup> set_groups,
@@ -639,14 +646,17 @@ static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
 {
   /* Not yet supported. Joining volume grids with the same name requires resampling of at least
    * one of the grids. The cell size of the resulting volume has to be determined somehow. */
-  VolumeComponent &dst_component = result.get_component_for_write<VolumeComponent>();
-  UNUSED_VARS(set_groups, dst_component);
+  UNUSED_VARS(set_groups, result);
 }
 
 static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
 {
+  CurveEval *curve = join_curve_splines(set_groups);
+  if (curve == nullptr) {
+    return;
+  }
   CurveComponent &dst_component = result.get_component_for_write<CurveComponent>();
-  join_curve_splines(set_groups, dst_component);
+  dst_component.replace(curve);
 }
 
 GeometrySet geometry_set_realize_mesh_for_modifier(const GeometrySet &geometry_set)

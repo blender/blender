@@ -86,6 +86,8 @@ float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
 vec2 safe_rcp(vec2 a) { return mix(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
 vec4 safe_rcp(vec4 a) { return mix(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
 
+float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
+
 float sqr(float a) { return a * a; }
 vec2 sqr(vec2 a) { return a * a; }
 vec3 sqr(vec3 a) { return a * a; }

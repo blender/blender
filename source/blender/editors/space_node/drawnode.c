@@ -2753,11 +2753,10 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext *UNUSED(C), Po
 #else
   /* Always supported through Accelerate framework BNNS on macOS. */
 #  ifndef __APPLE__
-  if (!BLI_cpu_support_sse41())
-#  endif
-  {
+  if (!BLI_cpu_support_sse41()) {
     uiItemL(layout, IFACE_("Disabled, CPU with SSE4.1 is required"), ICON_ERROR);
   }
+#  endif
 #endif
 
   uiItemR(layout, ptr, "use_hdr", DEFAULT_FLAGS, NULL, ICON_NONE);

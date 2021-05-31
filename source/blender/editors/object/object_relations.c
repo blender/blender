@@ -1944,7 +1944,7 @@ void ED_object_single_user(Main *bmain, Scene *scene, Object *ob)
   ob->flag |= OB_DONE;
 
   single_object_users(bmain, scene, NULL, OB_DONE, false);
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
 }
 
 static void single_obdata_users(
@@ -2644,7 +2644,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
     single_object_action_users(bmain, scene, view_layer, v3d, flag);
   }
 
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
 
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 

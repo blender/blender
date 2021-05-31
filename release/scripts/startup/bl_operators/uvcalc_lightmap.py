@@ -628,7 +628,7 @@ class LightMapPack(Operator):
         name="New Image",
         description=(
             "Assign new images for every mesh (only one if "
-            "shared tex space enabled)"
+            "Share Texture Space is enabled)"
         ),
         default=False,
     )

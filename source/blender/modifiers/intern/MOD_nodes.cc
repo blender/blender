@@ -36,6 +36,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -123,6 +124,18 @@ static void addIdsUsedBySocket(const ListBase *sockets, Set<ID *> &ids)
         ids.add(&collection->id);
       }
     }
+    else if (socket->type == SOCK_MATERIAL) {
+      Material *material = ((bNodeSocketValueMaterial *)socket->default_value)->value;
+      if (material != nullptr) {
+        ids.add(&material->id);
+      }
+    }
+    else if (socket->type == SOCK_TEXTURE) {
+      Tex *texture = ((bNodeSocketValueTexture *)socket->default_value)->value;
+      if (texture != nullptr) {
+        ids.add(&texture->id);
+      }
+    }
   }
 }
 
@@ -197,13 +210,25 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     find_used_ids_from_settings(nmd->settings, used_ids);
     find_used_ids_from_nodes(*nmd->node_group, used_ids);
     for (ID *id : used_ids) {
-      if (GS(id->name) == ID_OB) {
-        Object *object = reinterpret_cast<Object *>(id);
-        add_object_relation(ctx, *object);
-      }
-      if (GS(id->name) == ID_GR) {
-        Collection *collection = reinterpret_cast<Collection *>(id);
-        add_collection_relation(ctx, *collection);
+      switch ((ID_Type)GS(id->name)) {
+        case ID_OB: {
+          Object *object = reinterpret_cast<Object *>(id);
+          add_object_relation(ctx, *object);
+          break;
+        }
+        case ID_GR: {
+          Collection *collection = reinterpret_cast<Collection *>(id);
+          add_collection_relation(ctx, *collection);
+          break;
+        }
+        case ID_TE: {
+          DEG_add_generic_id_relation(ctx->node, id, "Nodes Modifier");
+        }
+        default: {
+          /* Purposefully don't add relations for materials. While there are material sockets,
+           * the pointers are only passed around as handles rather than dereferenced. */
+          break;
+        }
       }
     }
   }
@@ -554,6 +579,48 @@ static const SocketPropertyType *get_socket_property_type(const bNodeSocket &bso
             ID *id = IDP_Id(&property);
             Collection *collection = (id && GS(id->name) == ID_GR) ? (Collection *)id : nullptr;
             *(Collection **)r_value = collection;
+          },
+      };
+      return &collection_type;
+    }
+    case SOCK_TEXTURE: {
+      static const SocketPropertyType collection_type = {
+          [](const bNodeSocket &socket, const char *name) {
+            bNodeSocketValueTexture *value = (bNodeSocketValueTexture *)socket.default_value;
+            IDPropertyTemplate idprop = {0};
+            idprop.id = (ID *)value->value;
+            return IDP_New(IDP_ID, &idprop, name);
+          },
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          [](const IDProperty &property) { return property.type == IDP_ID; },
+          [](const IDProperty &property, void *r_value) {
+            ID *id = IDP_Id(&property);
+            Tex *texture = (id && GS(id->name) == ID_TE) ? (Tex *)id : nullptr;
+            *(Tex **)r_value = texture;
+          },
+      };
+      return &collection_type;
+    }
+    case SOCK_MATERIAL: {
+      static const SocketPropertyType collection_type = {
+          [](const bNodeSocket &socket, const char *name) {
+            bNodeSocketValueMaterial *value = (bNodeSocketValueMaterial *)socket.default_value;
+            IDPropertyTemplate idprop = {0};
+            idprop.id = (ID *)value->value;
+            return IDP_New(IDP_ID, &idprop, name);
+          },
+          nullptr,
+          nullptr,
+          nullptr,
+          nullptr,
+          [](const IDProperty &property) { return property.type == IDP_ID; },
+          [](const IDProperty &property, void *r_value) {
+            ID *id = IDP_Id(&property);
+            Material *material = (id && GS(id->name) == ID_MA) ? (Material *)id : nullptr;
+            *(Material **)r_value = material;
           },
       };
       return &collection_type;
@@ -1083,6 +1150,14 @@ static void draw_property_for_socket(uiLayout *layout,
                      "collections",
                      socket.name,
                      ICON_OUTLINER_COLLECTION);
+      break;
+    }
+    case SOCK_MATERIAL: {
+      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      break;
+    }
+    case SOCK_TEXTURE: {
+      uiItemPointerR(layout, md_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
       break;
     }
     default:

@@ -1376,7 +1376,7 @@ static void rna_def_charinfo(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
   // RNA_def_property_int_sdna(prop, NULL, "mat_nr");
-  RNA_def_property_ui_text(prop, "Material Index", "");
+  RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this character");
   RNA_def_property_int_funcs(prop,
                              "rna_ChariInfo_material_index_get",
                              "rna_ChariInfo_material_index_set",
@@ -2068,7 +2068,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "mat_nr");
-  RNA_def_property_ui_text(prop, "Material Index", "");
+  RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this curve");
   RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_material_index_range");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 

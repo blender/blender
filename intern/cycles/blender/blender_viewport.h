@@ -18,17 +18,18 @@
 #define __BLENDER_VIEWPORT_H__
 
 #include "MEM_guardedalloc.h"
+
 #include "RNA_access.h"
 #include "RNA_blender_cpp.h"
 #include "RNA_types.h"
 
 #include "render/film.h"
-#include "util/util_param.h"
 
 CCL_NAMESPACE_BEGIN
 
 class BlenderViewportParameters {
- private:
+ public:
+  /* Shader. */
   bool use_scene_world;
   bool use_scene_lights;
   float studiolight_rotate_z;
@@ -36,17 +37,24 @@ class BlenderViewportParameters {
   float studiolight_background_alpha;
   ustring studiolight_path;
 
+  /* Film. */
+  PassType display_pass;
+
   BlenderViewportParameters();
-  BlenderViewportParameters(BL::SpaceView3D &b_v3d);
+  explicit BlenderViewportParameters(BL::SpaceView3D &b_v3d);
 
-  const bool modified(const BlenderViewportParameters &other) const;
-  const bool custom_viewport_parameters() const;
-  friend class BlenderSync;
+  /* Check whether any of shading related settings are different from the given parameters. */
+  bool shader_modified(const BlenderViewportParameters &other) const;
 
- public:
-  /* Retrieve the render pass that needs to be displayed on the given `SpaceView3D`
-   * When the `b_v3d` parameter is not given `PASS_NONE` will be returned. */
-  static PassType get_viewport_display_render_pass(BL::SpaceView3D &b_v3d);
+  /* Check whether any of film related settings are different from the given parameters. */
+  bool film_modified(const BlenderViewportParameters &other) const;
+
+  /* Check whether any of settings are different from the given parameters. */
+  bool modified(const BlenderViewportParameters &other) const;
+
+  /* Returns truth when a custom shader defined by the viewport is to be used instead of the
+   * regular background shader or scene light. */
+  bool use_custom_shader() const;
 };
 
 PassType update_viewport_display_passes(BL::SpaceView3D &b_v3d, vector<Pass> &passes);

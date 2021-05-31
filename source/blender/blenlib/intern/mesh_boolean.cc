@@ -41,12 +41,17 @@
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"
 #  include "BLI_stack.hh"
+#  include "BLI_task.hh"
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 
 #  include "PIL_time.h"
 
 #  include "BLI_mesh_boolean.hh"
+
+#  ifdef WITH_TBB
+#    include "tbb/spin_mutex.h"
+#  endif
 
 // #  define PERFDEBUG
 
@@ -2567,47 +2572,58 @@ static IMesh raycast_tris_boolean(const IMesh &tm,
   BVHTree *tree = raycast_tree(tm);
   Vector<Face *> out_faces;
   out_faces.reserve(tm.face_size());
-  Array<float> in_shape(nshapes, 0);
-  Array<int> winding(nshapes, 0);
-  for (int t : tm.face_index_range()) {
-    Face &tri = *tm.face(t);
-    int shape = shape_fn(tri.orig);
-    if (dbg_level > 0) {
-      std::cout << "process triangle " << t << " = " << &tri << "\n";
-      std::cout << "shape = " << shape << "\n";
-    }
-    test_tri_inside_shapes(tm, shape_fn, nshapes, t, tree, in_shape);
-    for (int other_shape = 0; other_shape < nshapes; ++other_shape) {
-      if (other_shape == shape) {
-        continue;
-      }
-      /* The in_shape array has a confidence value for "insideness".
-       * For most operations, even a hint of being inside
-       * gives good results, but when shape is a cutter in a Difference
-       * operation, we want to be pretty sure that the point is inside other_shape.
-       * E.g., T75827.
-       * Also, when the operation is intersection, we also want high confidence.
-       */
-      bool need_high_confidence = (op == BoolOpType::Difference && shape != 0) ||
-                                  op == BoolOpType::Intersect;
-      bool inside = in_shape[other_shape] >= (need_high_confidence ? 0.5f : 0.1f);
+#  ifdef WITH_TBB
+  tbb::spin_mutex mtx;
+#  endif
+  const int grainsize = 256;
+  parallel_for(IndexRange(tm.face_size()), grainsize, [&](IndexRange range) {
+    Array<float> in_shape(nshapes, 0);
+    Array<int> winding(nshapes, 0);
+    for (int t : range) {
+      Face &tri = *tm.face(t);
+      int shape = shape_fn(tri.orig);
       if (dbg_level > 0) {
-        std::cout << "test point is " << (inside ? "inside" : "outside") << " other_shape "
-                  << other_shape << " val = " << in_shape[other_shape] << "\n";
+        std::cout << "process triangle " << t << " = " << &tri << "\n";
+        std::cout << "shape = " << shape << "\n";
       }
-      winding[other_shape] = inside;
+      test_tri_inside_shapes(tm, shape_fn, nshapes, t, tree, in_shape);
+      for (int other_shape = 0; other_shape < nshapes; ++other_shape) {
+        if (other_shape == shape) {
+          continue;
+        }
+        /* The in_shape array has a confidence value for "insideness".
+         * For most operations, even a hint of being inside
+         * gives good results, but when shape is a cutter in a Difference
+         * operation, we want to be pretty sure that the point is inside other_shape.
+         * E.g., T75827.
+         * Also, when the operation is intersection, we also want high confidence.
+         */
+        bool need_high_confidence = (op == BoolOpType::Difference && shape != 0) ||
+                                    op == BoolOpType::Intersect;
+        bool inside = in_shape[other_shape] >= (need_high_confidence ? 0.5f : 0.1f);
+        if (dbg_level > 0) {
+          std::cout << "test point is " << (inside ? "inside" : "outside") << " other_shape "
+                    << other_shape << " val = " << in_shape[other_shape] << "\n";
+        }
+        winding[other_shape] = inside;
+      }
+      bool do_flip;
+      bool do_remove = raycast_test_remove(op, winding, shape, &do_flip);
+      {
+#  ifdef WITH_TBB
+        tbb::spin_mutex::scoped_lock lock(mtx);
+#  endif
+        if (!do_remove) {
+          if (!do_flip) {
+            out_faces.append(&tri);
+          }
+          else {
+            raycast_add_flipped(out_faces, tri, arena);
+          }
+        }
+      }
     }
-    bool do_flip;
-    bool do_remove = raycast_test_remove(op, winding, shape, &do_flip);
-    if (!do_remove) {
-      if (!do_flip) {
-        out_faces.append(&tri);
-      }
-      else {
-        raycast_add_flipped(out_faces, tri, arena);
-      }
-    }
-  }
+  });
   BLI_bvhtree_free(tree);
   ans.set_faces(out_faces);
   return ans;
