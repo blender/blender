@@ -286,7 +286,7 @@ typedef struct MeshBatchCache {
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
-                                        MeshBufferCache mbc,
+                                        MeshBufferCache *mbc,
                                         MeshBufferExtractionCache *extraction_cache,
                                         Mesh *me,
                                         const bool is_editmode,
