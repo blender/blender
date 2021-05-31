@@ -846,20 +846,30 @@ static bool modifier_apply_obdata(
   return true;
 }
 
-bool ED_object_modifier_apply(Main *bmain,
-                              ReportList *reports,
-                              Depsgraph *depsgraph,
-                              Scene *scene,
-                              Object *ob,
-                              ModifierData *md,
-                              int mode,
-                              bool keep_modifier)
+ATTR_NO_OPT bool ED_object_modifier_apply(Main *bmain,
+                                          ReportList *reports,
+                                          Depsgraph *depsgraph,
+                                          Scene *scene,
+                                          Object *ob,
+                                          ModifierData *md,
+                                          int mode,
+                                          bool keep_modifier)
 {
   if (BKE_object_is_in_editmode(ob)) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
     return false;
   }
-  if (mode != MODIFIER_APPLY_SHAPE && ID_REAL_USERS(ob->data) > 1) {
+
+  bool allow_multi_user = mode == MODIFIER_APPLY_SHAPE;
+  if (md) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+
+    allow_multi_user |= ELEM(
+        mti->type, eModifierTypeType_NonGeometrical, eModifierTypeType_OnlyDeform);
+  }
+
+  // bool allow_multi_user = md && md->type == eModifierType_DataTransfer || md->flag & ;
+  if (!allow_multi_user && ID_REAL_USERS(ob->data) > 1) {
     BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
     return false;
   }
@@ -1385,7 +1395,8 @@ void OBJECT_OT_modifier_move_to_index(wmOperatorType *ot)
 /** \name Apply Modifier Operator
  * \{ */
 
-static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
+#include "BLI_compiler_attrs.h"
+ATTR_NO_OPT static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
 {
   if (!edit_modifier_poll_generic(C, &RNA_Modifier, 0, false, false)) {
     return false;
@@ -1395,6 +1406,9 @@ static bool modifier_apply_poll_ex(bContext *C, bool allow_shared)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_Modifier);
   Object *ob = (ptr.owner_id != NULL) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *md = ptr.data; /* May be NULL. */
+
+  allow_shared = true;
+  // allow_shared = allow_shared || (md && md->type == eModifierType_DataTransfer);
 
   if (ID_IS_OVERRIDE_LIBRARY(ob) || ((ob->data != NULL) && ID_IS_OVERRIDE_LIBRARY(ob->data))) {
     CTX_wm_operator_poll_msg_set(C, "Modifiers cannot be applied on override data");
