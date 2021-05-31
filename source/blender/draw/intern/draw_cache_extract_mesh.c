@@ -6327,6 +6327,10 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
     return;
   }
 
+#ifdef DEBUG_TIME
+  double rdata_start = PIL_check_seconds_timer();
+#endif
+
   eMRIterType iter_type;
   eMRDataType data_flag;
   extracts_flags_get(&extractors, &iter_type, &data_flag);
@@ -6347,7 +6351,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   mr->use_final_mesh = do_final;
 
 #ifdef DEBUG_TIME
-  rdata_end = PIL_check_seconds_timer();
+  double rdata_end = PIL_check_seconds_timer();
 #endif
 
   struct TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
