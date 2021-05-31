@@ -1,0 +1,91 @@
+{
+    "update-code": {
+        "git": {
+            "submodules": [
+                {
+                    "path": "release/scripts/addons",
+                    "branch": "blender-v2.93-release",
+                    "commit_id": "HEAD"
+                },
+                {
+                    "path": "release/scripts/addons_contrib",
+                    "branch": "blender-v2.93-release",
+                    "commit_id": "HEAD"
+                },
+                {
+                    "path": "release/datafiles/locale",
+                    "branch": "blender-v2.93-release",
+                    "commit_id": "HEAD"
+                },
+                {
+                    "path": "source/tools",
+                    "branch": "blender-v2.93-release",
+                    "commit_id": "HEAD"
+                }
+            ]
+        },
+        "svn": {
+            "tests": {
+                "path": "lib/tests",
+                "branch": "tags/blender-2.93-release",
+                "commit_id": "HEAD"
+            },
+            "libraries": {
+                "darwin-x86_64": {
+                    "path": "lib/darwin",
+                    "branch": "tags/blender-2.93-release",
+                    "commit_id": "HEAD"
+                },
+                "darwin-arm64": {
+                    "path": "lib/darwin_arm64",
+                    "branch": "tags/blender-2.93-release",
+                    "commit_id": "HEAD"
+                },
+                "linux-x86_64": {
+                    "path": "lib/linux_centos7_x86_64",
+                    "branch": "tags/blender-2.93-release",
+                    "commit_id": "HEAD"
+                },
+                "windows-amd64": {
+                    "path": "lib/win64_vc15",
+                    "branch": "tags/blender-2.93-release",
+                    "commit_id": "HEAD"
+                }
+            }
+        }
+    },
+    "buildbot": {
+        "gcc": {
+            "version": "9.0"
+        },
+        "sdks": {
+            "optix": {
+                "version": "7.1.0"
+            },
+            "cuda10": {
+                "version": "10.1"
+            },
+            "cuda11": {
+                "version": "11.3"
+            }
+        },
+        "cmake": {
+            "default": {
+                "version": "any",
+                "overrides": {}
+            },
+            "darwin-x86_64": {
+                "overrides": {}
+            },
+            "darwin-arm64": {
+                "overrides": {}
+            },
+            "linux-x86_64": {
+                "overrides": {}
+            },
+            "windows-amd64": {
+                "overrides": {}
+            }
+        }
+    }
+}
