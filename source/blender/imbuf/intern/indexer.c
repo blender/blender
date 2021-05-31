@@ -492,13 +492,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->c = avcodec_alloc_context3(NULL);
   rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
   rv->c->codec_id = AV_CODEC_ID_H264;
-  rv->c->width = width;
-  rv->c->height = height;
-  rv->c->gop_size = 10;
-  rv->c->max_b_frames = 0;
-  /* Correct wrong default ffmpeg param which crash x264. */
-  rv->c->qmin = 10;
-  rv->c->qmax = 51;
 
   rv->of->oformat->video_codec = rv->c->codec_id;
   rv->codec = avcodec_find_encoder(rv->c->codec_id);
@@ -512,6 +505,13 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     MEM_freeN(rv);
     return NULL;
   }
+
+  avcodec_get_context_defaults3(rv->c, rv->codec);
+
+  rv->c->width = width;
+  rv->c->height = height;
+  rv->c->gop_size = 10;
+  rv->c->max_b_frames = 0;
 
   if (rv->codec->pix_fmts) {
     rv->c->pix_fmt = rv->codec->pix_fmts[0];
