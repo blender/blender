@@ -1695,9 +1695,24 @@ static int find_containing_cell(const Vert *v,
  * If the closest point is on an edge, return 0, 1, or 2
  * for edges ab, bc, or ca in *r_edge; else -1.
  * (Adapted from #closest_on_tri_to_point_v3()).
+ * The arguments ab, ac, ..., r are used as temporaries
+ * in this routine. Passing them in from the caller can
+ * avoid many allocs and frees of temporary mpq3 values
+ * and the mpq_class values within them.
  */
-static mpq_class closest_on_tri_to_point(
-    const mpq3 &p, const mpq3 &a, const mpq3 &b, const mpq3 &c, int *r_edge, int *r_vert)
+static mpq_class closest_on_tri_to_point(const mpq3 &p,
+                                         const mpq3 &a,
+                                         const mpq3 &b,
+                                         const mpq3 &c,
+                                         mpq3 &ab,
+                                         mpq3 &ac,
+                                         mpq3 &ap,
+                                         mpq3 &bp,
+                                         mpq3 &cp,
+                                         mpq3 &m,
+                                         mpq3 &r,
+                                         int *r_edge,
+                                         int *r_vert)
 {
   constexpr int dbg_level = 0;
   if (dbg_level > 0) {
@@ -1705,11 +1720,15 @@ static mpq_class closest_on_tri_to_point(
     std::cout << " a = " << a << ", b = " << b << ", c = " << c << "\n";
   }
   /* Check if p in vertex region outside a. */
-  mpq3 ab = b - a;
-  mpq3 ac = c - a;
-  mpq3 ap = p - a;
-  mpq_class d1 = mpq3::dot(ab, ap);
-  mpq_class d2 = mpq3::dot(ac, ap);
+  ab = b;
+  ab -= a;
+  ac = c;
+  ac -= a;
+  ap = p;
+  ap -= a;
+
+  mpq_class d1 = mpq3::dot_with_buffer(ab, ap, m);
+  mpq_class d2 = mpq3::dot_with_buffer(ac, ap, m);
   if (d1 <= 0 && d2 <= 0) {
     /* Barycentric coordinates (1,0,0). */
     *r_edge = -1;
@@ -1717,12 +1736,13 @@ static mpq_class closest_on_tri_to_point(
     if (dbg_level > 0) {
       std::cout << "  answer = a\n";
     }
-    return mpq3::distance_squared(p, a);
+    return mpq3::distance_squared_with_buffer(p, a, m);
   }
   /* Check if p in vertex region outside b. */
-  mpq3 bp = p - b;
-  mpq_class d3 = mpq3::dot(ab, bp);
-  mpq_class d4 = mpq3::dot(ac, bp);
+  bp = p;
+  bp -= b;
+  mpq_class d3 = mpq3::dot_with_buffer(ab, bp, m);
+  mpq_class d4 = mpq3::dot_with_buffer(ac, bp, m);
   if (d3 >= 0 && d4 <= d3) {
     /* Barycentric coordinates (0,1,0). */
     *r_edge = -1;
@@ -1730,25 +1750,28 @@ static mpq_class closest_on_tri_to_point(
     if (dbg_level > 0) {
       std::cout << "  answer = b\n";
     }
-    return mpq3::distance_squared(p, b);
+    return mpq3::distance_squared_with_buffer(p, b, m);
   }
   /* Check if p in region of ab. */
   mpq_class vc = d1 * d4 - d3 * d2;
   if (vc <= 0 && d1 >= 0 && d3 <= 0) {
     mpq_class v = d1 / (d1 - d3);
     /* Barycentric coordinates (1-v,v,0). */
-    mpq3 r = a + v * ab;
+    r = ab;
+    r *= v;
+    r += a;
     *r_vert = -1;
     *r_edge = 0;
     if (dbg_level > 0) {
       std::cout << "  answer = on ab at " << r << "\n";
     }
-    return mpq3::distance_squared(p, r);
+    return mpq3::distance_squared_with_buffer(p, r, m);
   }
   /* Check if p in vertex region outside c. */
-  mpq3 cp = p - c;
-  mpq_class d5 = mpq3::dot(ab, cp);
-  mpq_class d6 = mpq3::dot(ac, cp);
+  cp = p;
+  cp -= c;
+  mpq_class d5 = mpq3::dot_with_buffer(ab, cp, m);
+  mpq_class d6 = mpq3::dot_with_buffer(ac, cp, m);
   if (d6 >= 0 && d5 <= d6) {
     /* Barycentric coordinates (0,0,1). */
     *r_edge = -1;
@@ -1756,49 +1779,54 @@ static mpq_class closest_on_tri_to_point(
     if (dbg_level > 0) {
       std::cout << "  answer = c\n";
     }
-    return mpq3::distance_squared(p, c);
+    return mpq3::distance_squared_with_buffer(p, c, m);
   }
   /* Check if p in edge region of ac. */
   mpq_class vb = d5 * d2 - d1 * d6;
   if (vb <= 0 && d2 >= 0 && d6 <= 0) {
     mpq_class w = d2 / (d2 - d6);
     /* Barycentric coordinates (1-w,0,w). */
-    mpq3 r = a + w * ac;
+    r = ac;
+    r *= w;
+    r += a;
     *r_vert = -1;
     *r_edge = 2;
     if (dbg_level > 0) {
       std::cout << "  answer = on ac at " << r << "\n";
     }
-    return mpq3::distance_squared(p, r);
+    return mpq3::distance_squared_with_buffer(p, r, m);
   }
   /* Check if p in edge region of bc. */
   mpq_class va = d3 * d6 - d5 * d4;
   if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
     mpq_class w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
     /* Barycentric coordinates (0,1-w,w). */
-    mpq3 r = c - b;
-    r = w * r;
-    r = r + b;
+    r = c;
+    r -= b;
+    r *= w;
+    r += b;
     *r_vert = -1;
     *r_edge = 1;
     if (dbg_level > 0) {
       std::cout << "  answer = on bc at " << r << "\n";
     }
-    return mpq3::distance_squared(p, r);
+    return mpq3::distance_squared_with_buffer(p, r, m);
   }
   /* p inside face region. Compute barycentric coordinates (u,v,w). */
   mpq_class denom = 1 / (va + vb + vc);
   mpq_class v = vb * denom;
   mpq_class w = vc * denom;
-  ac = w * ac;
-  mpq3 r = a + v * ab;
-  r = r + ac;
+  ac *= w;
+  r = ab;
+  r *= v;
+  r += a;
+  r += ac;
   *r_vert = -1;
   *r_edge = -1;
   if (dbg_level > 0) {
     std::cout << "  answer = inside at " << r << "\n";
   }
-  return mpq3::distance_squared(p, r);
+  return mpq3::distance_squared_with_buffer(p, r, m);
 }
 
 struct ComponentContainer {
@@ -1837,6 +1865,9 @@ static Vector<ComponentContainer> find_component_containers(int comp,
   if (dbg_level > 0) {
     std::cout << "test vertex in comp: " << test_v << "\n";
   }
+
+  mpq3 buf[7];
+
   for (int comp_other : components.index_range()) {
     if (comp == comp_other) {
       continue;
@@ -1861,6 +1892,13 @@ static Vector<ComponentContainer> find_component_containers(int comp,
                                                tri[0]->co_exact,
                                                tri[1]->co_exact,
                                                tri[2]->co_exact,
+                                               buf[0],
+                                               buf[1],
+                                               buf[2],
+                                               buf[3],
+                                               buf[4],
+                                               buf[5],
+                                               buf[6],
                                                &close_edge,
                                                &close_vert);
         if (dbg_level > 1) {
