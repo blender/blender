@@ -2063,7 +2063,7 @@ void GeometryManager::device_update(Device *device,
      * for meshes with correct bounding boxes.
      *
      * This wouldn't cause wrong results, just true
-     * displacement might be less optimal ot calculate.
+     * displacement might be less optimal to calculate.
      */
     scene->object_manager->need_flags_update = old_need_object_flags_update;
   }
