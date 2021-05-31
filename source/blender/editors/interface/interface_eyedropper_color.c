@@ -316,7 +316,7 @@ static bool eyedropper_cryptomatte_sample_fl(
   if (node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER) {
     return eyedropper_cryptomatte_sample_render_fl(node, prefix, fpos, r_col);
   }
-  else if (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) {
+  if (node->custom1 == CMP_CRYPTOMATTE_SRC_IMAGE) {
     return eyedropper_cryptomatte_sample_image_fl(node, crypto, prefix, fpos, r_col);
   }
   return false;
