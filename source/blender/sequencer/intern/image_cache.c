@@ -518,7 +518,7 @@ static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntr
 
 static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
 {
-  fseek(file, 0, 0);
+  BLI_fseek(file, 0LL, SEEK_SET);
   const size_t num_items_read = fread(header, sizeof(*header), 1, file);
   if (num_items_read < 1) {
     BLI_assert(!"unable to read disk cache header");
@@ -540,7 +540,7 @@ static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
 
 static size_t seq_disk_cache_write_header(FILE *file, DiskCacheHeader *header)
 {
-  fseek(file, 0, 0);
+  BLI_fseek(file, 0LL, SEEK_SET);
   return fwrite(header, sizeof(*header), 1, file);
 }
 
