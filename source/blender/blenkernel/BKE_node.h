@@ -1301,15 +1301,18 @@ void ntreeCompositOutputFileUniqueLayer(struct ListBase *list,
 void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
 void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
 
-void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
+void ntreeCompositCryptomatteSyncFromAdd(const Scene *scene, bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
 int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
-void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_len);
+void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
+                                         const bNode *node,
+                                         char *r_prefix,
+                                         size_t prefix_len);
 /* Update the runtime layer names with the cryptomatte layer names of the references
  * render layer or image. */
-void ntreeCompositCryptomatteUpdateLayerNames(bNode *node);
-struct CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node);
+void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node);
+struct CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node);
 
 /** \} */
 

@@ -3892,7 +3892,7 @@ static void rna_NodeCryptomatte_layer_name_set(PointerRNA *ptr, int new_value)
   }
 }
 
-static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext *UNUSED(C),
+static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext *C,
                                                                     PointerRNA *ptr,
                                                                     PropertyRNA *UNUSED(prop),
                                                                     bool *r_free)
@@ -3903,7 +3903,7 @@ static const EnumPropertyItem *rna_NodeCryptomatte_layer_name_itemf(bContext *UN
   EnumPropertyItem template = {0, "", 0, "", ""};
   int totitem = 0;
 
-  ntreeCompositCryptomatteUpdateLayerNames(node);
+  ntreeCompositCryptomatteUpdateLayerNames(CTX_data_scene(C), node);
   int layer_index;
   LISTBASE_FOREACH_INDEX (CryptomatteLayer *, layer, &storage->runtime.layers, layer_index) {
     template.value = layer_index;
@@ -3995,7 +3995,7 @@ static void rna_NodeCryptomatte_matte_set(PointerRNA *ptr, const char *value)
 
 static void rna_NodeCryptomatte_update_add(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  ntreeCompositCryptomatteSyncFromAdd(ptr->data);
+  ntreeCompositCryptomatteSyncFromAdd(scene, ptr->data);
   rna_Node_update(bmain, scene, ptr);
 }
 
