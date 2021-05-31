@@ -1,8 +1,6 @@
 Pipeline Config
 ===============
 
-Scripts have been moved to own git repo.
-
 This configuration file is used by buildbot new pipeline for the `update-code` step.
 
 It will soon be used by the ../utils/make_update.py script.

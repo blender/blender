@@ -1,5 +1,5 @@
-Moved Scripts
-=============
+Buildbot Configuration
+======================
 
-Scripts have been moved to own git repo
-Only configurations remain here and is used with new pipeline
+Files used by Buildbot's `package-code-binaires` step for the darwin platform.
+
