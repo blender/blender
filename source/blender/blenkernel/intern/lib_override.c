@@ -1473,16 +1473,16 @@ static void lib_override_library_main_resync_on_library_indirect_level(
         }
 
         int level = 0;
-        id = lib_override_library_main_resync_find_root_recurse(id, &level);
-        BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
-        do_continue = true;
-
         /* In complex non-supported cases, with several different override hierarchies sharing
          * relations between each-other, we may end up not actually updating/replacing the given
          * root id (see e.g. pro/shots/110_rextoria/110_0150_A/110_0150_A.anim.blend of sprites
          * project repository, r2687).
          * This can lead to infinite loop here, at least avoid this. */
         id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+        id = lib_override_library_main_resync_find_root_recurse(id, &level);
+        id->tag &= ~LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
+        BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id));
+        do_continue = true;
 
         CLOG_INFO(&LOG, 2, "Resyncing %s (%p)...", id->name, id->lib);
         const bool success = BKE_lib_override_library_resync(
