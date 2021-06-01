@@ -619,7 +619,7 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
   }
 }
 
-static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data)
+static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
   ID *id_owner = data->id_root;
@@ -672,12 +672,12 @@ static void lib_override_local_group_tag_recursive(LibOverrideGroupTagData *data
     /* Recursively process the dependencies. */
     LibOverrideGroupTagData sub_data = *data;
     sub_data.id_root = to_id;
-    lib_override_local_group_tag_recursive(&sub_data);
+    lib_override_overrides_group_tag_recursive(&sub_data);
   }
 }
 
 /* This will tag all override IDs of an override group defined by the given `id_root`. */
-static void lib_override_local_group_tag(LibOverrideGroupTagData *data)
+static void lib_override_overrides_group_tag(LibOverrideGroupTagData *data)
 {
   ID *id_root = data->id_root;
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
@@ -691,7 +691,7 @@ static void lib_override_local_group_tag(LibOverrideGroupTagData *data)
   }
 
   /* Tag all local overrides in id_root's group. */
-  lib_override_local_group_tag_recursive(data);
+  lib_override_overrides_group_tag_recursive(data);
 }
 
 static bool lib_override_library_create_do(Main *bmain, ID *id_root)
@@ -957,7 +957,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
                                   .is_override = true};
-  lib_override_local_group_tag(&data);
+  lib_override_overrides_group_tag(&data);
 
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
   data.id_root = id_root_reference;
@@ -1633,7 +1633,7 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
                                   .tag = LIB_TAG_DOIT,
                                   .missing_tag = LIB_TAG_MISSING,
                                   .is_override = true};
-  lib_override_local_group_tag(&data);
+  lib_override_overrides_group_tag(&data);
 
   BKE_main_relations_free(bmain);
 
