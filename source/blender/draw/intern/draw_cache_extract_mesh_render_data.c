@@ -151,7 +151,6 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 }
 
 void mesh_render_data_update_normals(MeshRenderData *mr,
-                                     const eMRIterType UNUSED(iter_type),
                                      const eMRDataType data_flag)
 {
   Mesh *me = mr->me;

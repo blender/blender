@@ -455,7 +455,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const eMRIterType iter_type);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr,
-                                     const eMRIterType iter_type,
                                      const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,

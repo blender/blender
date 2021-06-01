@@ -563,7 +563,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   const eMRIterType iter_type = update_task_data->iter_type;
   const eMRDataType data_flag = update_task_data->data_flag;
 
-  mesh_render_data_update_normals(mr, iter_type, data_flag);
+  mesh_render_data_update_normals(mr, data_flag);
   mesh_render_data_update_looptris(mr, iter_type, data_flag);
 }
 
