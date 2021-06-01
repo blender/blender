@@ -451,7 +451,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const DRW_MeshCDMask *cd_used,
                                         const ToolSettings *ts,
                                         const eMRIterType iter_type);
 void mesh_render_data_free(MeshRenderData *mr);
