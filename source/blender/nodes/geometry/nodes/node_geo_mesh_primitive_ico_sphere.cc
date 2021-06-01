@@ -17,6 +17,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_lib_id.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 
 #include "bmesh.h"
@@ -67,6 +68,7 @@ static void geo_node_mesh_primitive_ico_sphere_exec(GeoNodeExecParams params)
   const float radius = params.extract_input<float>("Radius");
 
   Mesh *mesh = create_ico_sphere_mesh(subdivisions, radius);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 

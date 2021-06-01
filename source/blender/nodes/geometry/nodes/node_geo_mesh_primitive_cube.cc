@@ -17,6 +17,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_lib_id.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 
 #include "bmesh.h"
@@ -64,6 +65,7 @@ static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
   const float size = params.extract_input<float>("Size");
 
   Mesh *mesh = create_cube_mesh(size);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 

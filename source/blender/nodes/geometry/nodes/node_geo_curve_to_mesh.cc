@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_spline.hh"
 
@@ -296,6 +297,7 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
 
   Mesh *mesh = curve_to_mesh_calculate(*curve_set.get_curve_for_read(),
                                        (profile_curve == nullptr) ? vert_curve : *profile_curve);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
