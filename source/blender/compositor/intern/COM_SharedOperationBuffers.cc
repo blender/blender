@@ -22,11 +22,8 @@
 
 namespace blender::compositor {
 
-SharedOperationBuffers::SharedOperationBuffers() : buffers_()
-{
-}
 SharedOperationBuffers::BufferData::BufferData()
-    : buffer(nullptr), render_areas(), registered_reads(0), received_reads(0)
+    : buffer(nullptr), registered_reads(0), received_reads(0)
 {
 }
 

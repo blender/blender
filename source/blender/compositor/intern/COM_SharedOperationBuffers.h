@@ -46,7 +46,6 @@ class SharedOperationBuffers {
   blender::Map<NodeOperation *, BufferData> buffers_;
 
  public:
-  SharedOperationBuffers();
   bool is_area_registered(NodeOperation *op, const rcti &area_to_render);
   void register_area(NodeOperation *op, const rcti &area_to_render);
 

@@ -20,7 +20,7 @@
 
 namespace blender::compositor {
 
-BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type) : NodeOperation()
+BufferOperation::BufferOperation(MemoryBuffer *buffer, DataType data_type)
 {
   buffer_ = buffer;
   /* TODO: Implement a MemoryBuffer get_size() method returning a Size2d type. Shorten following

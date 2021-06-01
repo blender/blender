@@ -36,7 +36,6 @@ FullFrameExecutionModel::FullFrameExecutionModel(CompositorContext &context,
     : ExecutionModel(context, operations),
       active_buffers_(shared_buffers),
       num_operations_finished_(0),
-      priorities_(),
       work_mutex_(),
       work_finished_cond_()
 {
