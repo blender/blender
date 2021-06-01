@@ -24,6 +24,10 @@
 
 struct TaskGraph;
 
+#include "GPU_batch.h"
+#include "GPU_index_buffer.h"
+#include "GPU_vertex_buffer.h"
+
 /* Vertex Group Selection and display options */
 typedef struct DRW_MeshWeightState {
   int defgroup_active;
@@ -79,12 +83,6 @@ typedef enum eMRDataType {
   /** Force loop normals calculation.  */
   MR_DATA_TAN_LOOP_NOR = 1 << 4,
 } eMRDataType;
-
-typedef enum eMRExtractType {
-  MR_EXTRACT_BMESH,
-  MR_EXTRACT_MAPPED,
-  MR_EXTRACT_MESH,
-} eMRExtractType;
 
 BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 {
