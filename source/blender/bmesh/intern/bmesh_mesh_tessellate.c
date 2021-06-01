@@ -36,43 +36,29 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
-/**
- * \brief BM_mesh_calc_tessellation get the looptris and its number from a certain bmesh
- * \param looptris:
- *
- * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
- */
-void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
+/* -------------------------------------------------------------------- */
+/** \name Default Mesh Tessellation
+ * \{ */
+
+static int mesh_calc_tessellation_for_face(BMLoop *(*looptris)[3],
+                                           BMFace *efa,
+                                           MemArena **pf_arena_p)
 {
-  /* Avoid polygon filling logic for 3-4 sided faces. */
-#define USE_TESSFACE_SPEEDUP
-
-#ifndef NDEBUG
-  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-#endif
-
-  BMIter iter;
-  BMFace *efa;
-  int i = 0;
-
-  MemArena *arena = NULL;
-
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    BLI_assert(efa->len >= 3);
-#ifdef USE_TESSFACE_SPEEDUP
-    if (efa->len == 3) {
+  switch (efa->len) {
+    case 3: {
       /* `0 1 2` -> `0 1 2` */
       BMLoop *l;
-      BMLoop **l_ptr = looptris[i++];
+      BMLoop **l_ptr = looptris[0];
       l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
       l_ptr[1] = l = l->next;
       l_ptr[2] = l->next;
+      return 1;
     }
-    else if (efa->len == 4) {
+    case 4: {
       /* `0 1 2 3` -> (`0 1 2`, `0 2 3`) */
       BMLoop *l;
-      BMLoop **l_ptr_a = looptris[i++];
-      BMLoop **l_ptr_b = looptris[i++];
+      BMLoop **l_ptr_a = looptris[0];
+      BMLoop **l_ptr_b = looptris[1];
       (l_ptr_a[0] = l_ptr_b[0] = l = BM_FACE_FIRST_LOOP(efa));
       (l_ptr_a[1] = l = l->next);
       (l_ptr_a[2] = l_ptr_b[1] = l = l->next);
@@ -80,73 +66,65 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
 
       if (UNLIKELY(is_quad_flip_v3_first_third_fast(
               l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co))) {
-        /* flip out of degenerate 0-2 state. */
+        /* Flip out of degenerate 0-2 state. */
         l_ptr_a[2] = l_ptr_b[2];
         l_ptr_b[0] = l_ptr_a[1];
       }
+      return 2;
     }
-    else
-#endif /* USE_TESSFACE_SPEEDUP */
-    {
-      int j;
-
-      BMLoop *l_iter;
-      BMLoop *l_first;
+    default: {
+      BMLoop *l_iter, *l_first;
       BMLoop **l_arr;
 
       float axis_mat[3][3];
       float(*projverts)[2];
       uint(*tris)[3];
 
-      const int totfilltri = efa->len - 2;
+      const int tris_len = efa->len - 2;
 
-      if (UNLIKELY(arena == NULL)) {
-        arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+      MemArena *pf_arena = *pf_arena_p;
+      if (UNLIKELY(pf_arena == NULL)) {
+        pf_arena = *pf_arena_p = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
       }
 
-      tris = BLI_memarena_alloc(arena, sizeof(*tris) * totfilltri);
-      l_arr = BLI_memarena_alloc(arena, sizeof(*l_arr) * efa->len);
-      projverts = BLI_memarena_alloc(arena, sizeof(*projverts) * efa->len);
+      tris = BLI_memarena_alloc(pf_arena, sizeof(*tris) * tris_len);
+      l_arr = BLI_memarena_alloc(pf_arena, sizeof(*l_arr) * efa->len);
+      projverts = BLI_memarena_alloc(pf_arena, sizeof(*projverts) * efa->len);
 
       axis_dominant_v3_to_m3_negate(axis_mat, efa->no);
 
-      j = 0;
+      int i = 0;
       l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
       do {
-        l_arr[j] = l_iter;
-        mul_v2_m3v3(projverts[j], axis_mat, l_iter->v->co);
-        j++;
+        l_arr[i] = l_iter;
+        mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
+        i++;
       } while ((l_iter = l_iter->next) != l_first);
 
-      BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, arena);
+      BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, pf_arena);
 
-      for (j = 0; j < totfilltri; j++) {
-        BMLoop **l_ptr = looptris[i++];
-        uint *tri = tris[j];
+      for (i = 0; i < tris_len; i++) {
+        BMLoop **l_ptr = looptris[i];
+        uint *tri = tris[i];
 
         l_ptr[0] = l_arr[tri[0]];
         l_ptr[1] = l_arr[tri[1]];
         l_ptr[2] = l_arr[tri[2]];
       }
 
-      BLI_memarena_clear(arena);
+      BLI_memarena_clear(pf_arena);
+      return tris_len;
     }
   }
-
-  if (arena) {
-    BLI_memarena_free(arena);
-    arena = NULL;
-  }
-
-  BLI_assert(i <= looptris_tot);
-
-#undef USE_TESSFACE_SPEEDUP
 }
 
 /**
- * A version of #BM_mesh_calc_tessellation that avoids degenerate triangles.
+ * \brief BM_mesh_calc_tessellation get the looptris and its number from a certain bmesh
+ * \param looptris:
+ *
+ * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */
-void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
+void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
 {
 #ifndef NDEBUG
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
@@ -158,20 +136,42 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
 
   MemArena *pf_arena = NULL;
 
-  /* use_beauty */
-  Heap *pf_heap = NULL;
-
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     BLI_assert(efa->len >= 3);
+    i += mesh_calc_tessellation_for_face(looptris + i, efa, &pf_arena);
+  }
 
-    if (efa->len == 3) {
+  if (pf_arena) {
+    BLI_memarena_free(pf_arena);
+    pf_arena = NULL;
+  }
+
+  BLI_assert(i <= looptris_tot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Beauty Mesh Tessellation
+ *
+ * Avoid degenerate triangles.
+ * \{ */
+
+static int mesh_calc_tessellation_for_face_beauty(BMLoop *(*looptris)[3],
+                                                  BMFace *efa,
+                                                  MemArena **pf_arena_p,
+                                                  Heap **pf_heap_p)
+{
+  switch (efa->len) {
+    case 3: {
       BMLoop *l;
-      BMLoop **l_ptr = looptris[i++];
+      BMLoop **l_ptr = looptris[0];
       l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
       l_ptr[1] = l = l->next;
       l_ptr[2] = l->next;
+      return 1;
     }
-    else if (efa->len == 4) {
+    case 4: {
       BMLoop *l_v1 = BM_FACE_FIRST_LOOP(efa);
       BMLoop *l_v2 = l_v1->next;
       BMLoop *l_v3 = l_v2->next;
@@ -197,8 +197,8 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
                                 v_quad[0], v_quad[1], v_quad[2], v_quad[3]) < 0.0f;
 #endif
 
-      BMLoop **l_ptr_a = looptris[i++];
-      BMLoop **l_ptr_b = looptris[i++];
+      BMLoop **l_ptr_a = looptris[0];
+      BMLoop **l_ptr_b = looptris[1];
       if (split_13) {
         l_ptr_a[0] = l_v1;
         l_ptr_a[1] = l_v2;
@@ -217,46 +217,46 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
         l_ptr_b[1] = l_v3;
         l_ptr_b[2] = l_v4;
       }
+      return 2;
     }
-    else {
-      int j;
+    default: {
+      MemArena *pf_arena = *pf_arena_p;
+      Heap *pf_heap = *pf_heap_p;
+      if (UNLIKELY(pf_arena == NULL)) {
+        pf_arena = *pf_arena_p = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+        pf_heap = *pf_heap_p = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
+      }
 
-      BMLoop *l_iter;
-      BMLoop *l_first;
+      BMLoop *l_iter, *l_first;
       BMLoop **l_arr;
 
       float axis_mat[3][3];
       float(*projverts)[2];
-      unsigned int(*tris)[3];
+      uint(*tris)[3];
 
-      const int totfilltri = efa->len - 2;
+      const int tris_len = efa->len - 2;
 
-      if (UNLIKELY(pf_arena == NULL)) {
-        pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-        pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-      }
-
-      tris = BLI_memarena_alloc(pf_arena, sizeof(*tris) * totfilltri);
+      tris = BLI_memarena_alloc(pf_arena, sizeof(*tris) * tris_len);
       l_arr = BLI_memarena_alloc(pf_arena, sizeof(*l_arr) * efa->len);
       projverts = BLI_memarena_alloc(pf_arena, sizeof(*projverts) * efa->len);
 
       axis_dominant_v3_to_m3_negate(axis_mat, efa->no);
 
-      j = 0;
+      int i = 0;
       l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
       do {
-        l_arr[j] = l_iter;
-        mul_v2_m3v3(projverts[j], axis_mat, l_iter->v->co);
-        j++;
+        l_arr[i] = l_iter;
+        mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
+        i++;
       } while ((l_iter = l_iter->next) != l_first);
 
       BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, pf_arena);
 
       BLI_polyfill_beautify(projverts, efa->len, tris, pf_arena, pf_heap);
 
-      for (j = 0; j < totfilltri; j++) {
-        BMLoop **l_ptr = looptris[i++];
-        unsigned int *tri = tris[j];
+      for (i = 0; i < tris_len; i++) {
+        BMLoop **l_ptr = looptris[i];
+        uint *tri = tris[i];
 
         l_ptr[0] = l_arr[tri[0]];
         l_ptr[1] = l_arr[tri[1]];
@@ -264,7 +264,33 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
       }
 
       BLI_memarena_clear(pf_arena);
+
+      return tris_len;
     }
+  }
+}
+
+/**
+ * A version of #BM_mesh_calc_tessellation that avoids degenerate triangles.
+ */
+void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
+{
+#ifndef NDEBUG
+  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+#endif
+
+  BMIter iter;
+  BMFace *efa;
+  int i = 0;
+
+  MemArena *pf_arena = NULL;
+
+  /* use_beauty */
+  Heap *pf_heap = NULL;
+
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    BLI_assert(efa->len >= 3);
+    i += mesh_calc_tessellation_for_face_beauty(looptris + i, efa, &pf_arena, &pf_heap);
   }
 
   if (pf_arena) {
@@ -275,3 +301,5 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
 
   BLI_assert(i <= looptris_tot);
 }
+
+/** \} */
