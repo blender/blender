@@ -151,7 +151,6 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 }
 
 void mesh_render_data_update_normals(MeshRenderData *mr,
-                                     const eMRIterType UNUSED(iter_type),
                                      const eMRDataType data_flag)
 {
   Mesh *me = mr->me;
@@ -238,7 +237,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const DRW_MeshCDMask *UNUSED(cd_used),
                                         const ToolSettings *ts,
                                         const eMRIterType iter_type)
 {

@@ -34,6 +34,10 @@
 
 #include "draw_cache_extract.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum eMRExtractType {
   MR_EXTRACT_BMESH,
   MR_EXTRACT_MAPPED,
@@ -426,7 +430,7 @@ typedef struct MeshExtract {
   /** Executed on one worker thread after all elements iterations. */
   ExtractFinishFn *finish;
   /** Used to request common data. */
-  const eMRDataType data_flag;
+  const eMRDataType data_type;
   /** Used to know if the element callbacks are thread-safe and can be parallelized. */
   const bool use_threading;
   /**
@@ -447,12 +451,10 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const DRW_MeshCDMask *cd_used,
                                         const ToolSettings *ts,
                                         const eMRIterType iter_type);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr,
-                                     const eMRIterType iter_type,
                                      const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
@@ -507,3 +509,7 @@ extern const MeshExtract extract_poly_idx;
 extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
+
+#ifdef __cplusplus
+}
+#endif

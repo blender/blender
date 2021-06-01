@@ -246,7 +246,7 @@ const MeshExtract extract_tris = {.init = extract_tris_init,
                                   .iter_looptri_bm = extract_tris_iter_looptri_bm,
                                   .iter_looptri_mesh = extract_tris_iter_looptri_mesh,
                                   .finish = extract_tris_finish,
-                                  .data_flag = 0,
+                                  .data_type = 0,
                                   .use_threading = false,
                                   .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris)};
 
@@ -375,7 +375,7 @@ const MeshExtract extract_lines = {.init = extract_lines_init,
                                    .iter_ledge_bm = extract_lines_iter_ledge_bm,
                                    .iter_ledge_mesh = extract_lines_iter_ledge_mesh,
                                    .finish = extract_lines_finish,
-                                   .data_flag = 0,
+                                   .data_type = 0,
                                    .use_threading = false,
                                    .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines)};
 
@@ -414,7 +414,7 @@ const MeshExtract extract_lines_with_lines_loose = {
     .iter_ledge_bm = extract_lines_iter_ledge_bm,
     .iter_ledge_mesh = extract_lines_iter_ledge_mesh,
     .finish = extract_lines_with_lines_loose_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines)};
 
@@ -542,7 +542,7 @@ const MeshExtract extract_points = {.init = extract_points_init,
                                     .iter_lvert_bm = extract_points_iter_lvert_bm,
                                     .iter_lvert_mesh = extract_points_iter_lvert_mesh,
                                     .finish = extract_points_finish,
-                                    .data_flag = 0,
+                                    .data_type = 0,
                                     .use_threading = false,
                                     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.points)};
 
@@ -617,7 +617,7 @@ const MeshExtract extract_fdots = {.init = extract_fdots_init,
                                    .iter_poly_bm = extract_fdots_iter_poly_bm,
                                    .iter_poly_mesh = extract_fdots_iter_poly_mesh,
                                    .finish = extract_fdots_finish,
-                                   .data_flag = 0,
+                                   .data_type = 0,
                                    .use_threading = false,
                                    .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.fdots)};
 
@@ -700,7 +700,7 @@ const MeshExtract extract_lines_paint_mask = {
     .init = extract_lines_paint_mask_init,
     .iter_poly_mesh = extract_lines_paint_mask_iter_poly_mesh,
     .finish = extract_lines_paint_mask_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_paint_mask)};
 
@@ -852,7 +852,7 @@ const MeshExtract extract_lines_adjacency = {
     .iter_looptri_bm = extract_lines_adjacency_iter_looptri_bm,
     .iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh,
     .finish = extract_lines_adjacency_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_adjacency)};
 
@@ -928,7 +928,7 @@ const MeshExtract extract_edituv_tris = {
     .iter_looptri_bm = extract_edituv_tris_iter_looptri_bm,
     .iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh,
     .finish = extract_edituv_tris_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_tris)};
 
@@ -1012,7 +1012,7 @@ const MeshExtract extract_edituv_lines = {
     .iter_poly_bm = extract_edituv_lines_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_lines_iter_poly_mesh,
     .finish = extract_edituv_lines_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_lines)};
 
@@ -1091,7 +1091,7 @@ const MeshExtract extract_edituv_points = {
     .iter_poly_bm = extract_edituv_points_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_points_iter_poly_mesh,
     .finish = extract_edituv_points_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_points)};
 
@@ -1182,7 +1182,7 @@ const MeshExtract extract_edituv_fdots = {
     .iter_poly_bm = extract_edituv_fdots_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_fdots_iter_poly_mesh,
     .finish = extract_edituv_fdots_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_fdots)};
 
@@ -1362,7 +1362,7 @@ const MeshExtract extract_pos_nor = {.init = extract_pos_nor_init,
                                      .iter_lvert_bm = extract_pos_nor_iter_lvert_bm,
                                      .iter_lvert_mesh = extract_pos_nor_iter_lvert_mesh,
                                      .finish = extract_pos_nor_finish,
-                                     .data_flag = 0,
+                                     .data_type = 0,
                                      .use_threading = true,
                                      .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.pos_nor)};
 
@@ -1550,7 +1550,7 @@ const MeshExtract extract_pos_nor_hq = {
     .iter_lvert_bm = extract_pos_nor_hq_iter_lvert_bm,
     .iter_lvert_mesh = extract_pos_nor_hq_iter_lvert_mesh,
     .finish = extract_pos_nor_hq_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.pos_nor)};
 
@@ -1641,7 +1641,7 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
 const MeshExtract extract_lnor_hq = {.init = extract_lnor_hq_init,
                                      .iter_poly_bm = extract_lnor_hq_iter_poly_bm,
                                      .iter_poly_mesh = extract_lnor_hq_iter_poly_mesh,
-                                     .data_flag = MR_DATA_LOOP_NOR,
+                                     .data_type = MR_DATA_LOOP_NOR,
                                      .use_threading = true,
                                      .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.lnor)};
 
@@ -1730,7 +1730,7 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
 const MeshExtract extract_lnor = {.init = extract_lnor_init,
                                   .iter_poly_bm = extract_lnor_iter_poly_bm,
                                   .iter_poly_mesh = extract_lnor_iter_poly_mesh,
-                                  .data_flag = MR_DATA_LOOP_NOR,
+                                  .data_type = MR_DATA_LOOP_NOR,
                                   .use_threading = true,
                                   .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.lnor)};
 
@@ -1825,7 +1825,7 @@ static void *extract_uv_init(const MeshRenderData *mr, struct MeshBatchCache *ca
 }
 
 const MeshExtract extract_uv = {.init = extract_uv_init,
-                                .data_flag = 0,
+                                .data_type = 0,
                                 .use_threading = false,
                                 .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.uv)};
 
@@ -2014,7 +2014,7 @@ static void *extract_tan_init(const MeshRenderData *mr, struct MeshBatchCache *c
 }
 
 const MeshExtract extract_tan = {.init = extract_tan_init,
-                                 .data_flag = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR |
+                                 .data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR |
                                               MR_DATA_LOOPTRI,
                                  .use_threading = false,
                                  .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.tan)};
@@ -2033,7 +2033,7 @@ static void *extract_tan_hq_init(const MeshRenderData *mr, struct MeshBatchCache
 
 const MeshExtract extract_tan_hq = {
     .init = extract_tan_hq_init,
-    .data_flag = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
+    .data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
     .use_threading = false,
 };
 
@@ -2132,7 +2132,7 @@ static void *extract_sculpt_data_init(const MeshRenderData *mr,
 
 const MeshExtract extract_sculpt_data = {
     .init = extract_sculpt_data_init,
-    .data_flag = 0,
+    .data_type = 0,
     /* TODO: enable threading. */
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.sculpt_data)};
@@ -2280,7 +2280,7 @@ static void *extract_vcol_init(const MeshRenderData *mr, struct MeshBatchCache *
 }
 
 const MeshExtract extract_vcol = {.init = extract_vcol_init,
-                                  .data_flag = 0,
+                                  .data_type = 0,
                                   .use_threading = false,
                                   .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.vcol)};
 
@@ -2366,7 +2366,7 @@ const MeshExtract extract_orco = {.init = extract_orco_init,
                                   .iter_poly_bm = extract_orco_iter_poly_bm,
                                   .iter_poly_mesh = extract_orco_iter_poly_mesh,
                                   .finish = extract_orco_finish,
-                                  .data_flag = 0,
+                                  .data_type = 0,
                                   .use_threading = true,
                                   .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.orco)};
 
@@ -2567,7 +2567,7 @@ const MeshExtract extract_edge_fac = {
     .iter_ledge_bm = extract_edge_fac_iter_ledge_bm,
     .iter_ledge_mesh = extract_edge_fac_iter_ledge_mesh,
     .finish = extract_edge_fac_finish,
-    .data_flag = MR_DATA_POLY_NOR,
+    .data_type = MR_DATA_POLY_NOR,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edge_fac)};
 
@@ -2721,7 +2721,7 @@ const MeshExtract extract_weights = {.init = extract_weights_init,
                                      .iter_poly_bm = extract_weights_iter_poly_bm,
                                      .iter_poly_mesh = extract_weights_iter_poly_mesh,
                                      .finish = extract_weights_finish,
-                                     .data_flag = 0,
+                                     .data_type = 0,
                                      .use_threading = true,
                                      .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.weights)};
 
@@ -3000,7 +3000,7 @@ const MeshExtract extract_edit_data = {
     .iter_ledge_mesh = extract_edit_data_iter_ledge_mesh,
     .iter_lvert_bm = extract_edit_data_iter_lvert_bm,
     .iter_lvert_mesh = extract_edit_data_iter_lvert_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edit_data)};
 
@@ -3111,7 +3111,7 @@ const MeshExtract extract_edituv_data = {
     .iter_poly_bm = extract_edituv_data_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_data_iter_poly_mesh,
     .finish = extract_edituv_data_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_data)};
 
@@ -3227,7 +3227,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
 const MeshExtract extract_edituv_stretch_area = {
     .init = extract_edituv_stretch_area_init,
     .finish = extract_edituv_stretch_area_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_stretch_area)};
 
@@ -3430,7 +3430,7 @@ const MeshExtract extract_edituv_stretch_angle = {
     .iter_poly_bm = extract_edituv_stretch_angle_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_stretch_angle_iter_poly_mesh,
     .finish = extract_edituv_stretch_angle_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_stretch_angle)};
 
@@ -4037,7 +4037,7 @@ const MeshExtract extract_mesh_analysis = {
     .finish = extract_analysis_iter_finish_mesh,
     /* This is not needed for all visualization types.
      * * Maybe split into different extract. */
-    .data_flag = MR_DATA_POLY_NOR | MR_DATA_LOOPTRI,
+    .data_type = MR_DATA_POLY_NOR | MR_DATA_LOOPTRI,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.mesh_analysis)};
 
@@ -4117,7 +4117,7 @@ const MeshExtract extract_fdots_pos = {
     .init = extract_fdots_pos_init,
     .iter_poly_bm = extract_fdots_pos_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_pos_iter_poly_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_pos)};
 
@@ -4199,7 +4199,7 @@ static void extract_fdots_nor_finish(const MeshRenderData *mr,
 const MeshExtract extract_fdots_nor = {
     .init = extract_fdots_nor_init,
     .finish = extract_fdots_nor_finish,
-    .data_flag = MR_DATA_POLY_NOR,
+    .data_type = MR_DATA_POLY_NOR,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor)};
 
@@ -4276,7 +4276,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData *mr,
 const MeshExtract extract_fdots_nor_hq = {
     .init = extract_fdots_nor_hq_init,
     .finish = extract_fdots_nor_hq_finish,
-    .data_flag = MR_DATA_POLY_NOR,
+    .data_type = MR_DATA_POLY_NOR,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor)};
 
@@ -4375,7 +4375,7 @@ const MeshExtract extract_fdots_uv = {
     .iter_poly_bm = extract_fdots_uv_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_uv_iter_poly_mesh,
     .finish = extract_fdots_uv_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_uv)};
 
@@ -4447,7 +4447,7 @@ const MeshExtract extract_fdots_edituv_data = {
     .iter_poly_bm = extract_fdots_edituv_data_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_edituv_data_iter_poly_mesh,
     .finish = extract_fdots_edituv_data_finish,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_edituv_data)};
 
@@ -4504,7 +4504,7 @@ static void *extract_skin_roots_init(const MeshRenderData *mr,
 
 const MeshExtract extract_skin_roots = {
     .init = extract_skin_roots_init,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.skin_roots)};
 
@@ -4676,7 +4676,7 @@ const MeshExtract extract_poly_idx = {
     .init = extract_select_idx_init,
     .iter_poly_bm = extract_poly_idx_iter_poly_bm,
     .iter_poly_mesh = extract_poly_idx_iter_poly_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.poly_idx)};
 
@@ -4686,7 +4686,7 @@ const MeshExtract extract_edge_idx = {
     .iter_poly_mesh = extract_edge_idx_iter_poly_mesh,
     .iter_ledge_bm = extract_edge_idx_iter_ledge_bm,
     .iter_ledge_mesh = extract_edge_idx_iter_ledge_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edge_idx)};
 
@@ -4698,7 +4698,7 @@ const MeshExtract extract_vert_idx = {
     .iter_ledge_mesh = extract_vert_idx_iter_ledge_mesh,
     .iter_lvert_bm = extract_vert_idx_iter_lvert_bm,
     .iter_lvert_mesh = extract_vert_idx_iter_lvert_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.vert_idx)};
 
@@ -4743,6 +4743,6 @@ const MeshExtract extract_fdot_idx = {
     .init = extract_fdot_idx_init,
     .iter_poly_bm = extract_fdot_idx_iter_poly_bm,
     .iter_poly_mesh = extract_fdot_idx_iter_poly_mesh,
-    .data_flag = 0,
+    .data_type = 0,
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdot_idx)};
