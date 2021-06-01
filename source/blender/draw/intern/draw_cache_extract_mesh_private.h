@@ -430,7 +430,7 @@ typedef struct MeshExtract {
   /** Executed on one worker thread after all elements iterations. */
   ExtractFinishFn *finish;
   /** Used to request common data. */
-  const eMRDataType data_flag;
+  const eMRDataType data_type;
   /** Used to know if the element callbacks are thread-safe and can be parallelized. */
   const bool use_threading;
   /**
