@@ -2210,6 +2210,7 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
  */
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
+  BLI_assert(!ID_IS_LINKED(id));
   ListBase *lb = which_libbase(bmain, GS(id->name));
   if (BKE_id_new_name_validate(lb, id, name, false)) {
     bmain->is_memfile_undo_written = false;
