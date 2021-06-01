@@ -1191,7 +1191,7 @@ static void paint_line_strokes_spacing(bContext *C,
 
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
 
-  float mouse[2], dmouse[2];
+  float mouse[3], dmouse[2];
   float length;
   float d_world_space_position[3] = {0.0f};
   float world_space_position_old[3], world_space_position_new[3];
