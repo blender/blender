@@ -1164,7 +1164,7 @@ static void paint_line_strokes_spacing(bContext *C,
 {
   UnifiedPaintSettings *ups = stroke->ups;
 
-  float mouse[2], dmouse[2];
+  float mouse[3], dmouse[2];
   float length;
 
   sub_v2_v2v2(dmouse, new_pos, old_pos);
