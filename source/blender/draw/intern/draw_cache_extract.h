@@ -68,13 +68,13 @@ typedef struct DRW_MeshCDMask {
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
 BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint64_t), "DRW_MeshCDMask exceeds 64 bits")
-
 typedef enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
   MR_ITER_LEDGE = 1 << 2,
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
+ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
 
 typedef enum eMRDataType {
   MR_DATA_POLY_NOR = 1 << 1,
@@ -83,6 +83,11 @@ typedef enum eMRDataType {
   /** Force loop normals calculation.  */
   MR_DATA_TAN_LOOP_NOR = 1 << 4,
 } eMRDataType;
+ENUM_OPERATORS(eMRDataType, MR_DATA_TAN_LOOP_NOR)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 {
@@ -298,3 +303,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide);
+
+#ifdef __cplusplus
+}
+#endif

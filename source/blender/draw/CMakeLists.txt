@@ -53,7 +53,7 @@ set(SRC
   intern/draw_cache.c
   intern/draw_cache_extract_mesh_extractors.c
   intern/draw_cache_extract_mesh_render_data.c
-  intern/draw_cache_extract_mesh.c
+  intern/draw_cache_extract_mesh.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c

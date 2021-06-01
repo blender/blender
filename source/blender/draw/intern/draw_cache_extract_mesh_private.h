@@ -34,6 +34,10 @@
 
 #include "draw_cache_extract.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum eMRExtractType {
   MR_EXTRACT_BMESH,
   MR_EXTRACT_MAPPED,
@@ -507,3 +511,7 @@ extern const MeshExtract extract_poly_idx;
 extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
+
+#ifdef __cplusplus
+}
+#endif
