@@ -281,6 +281,11 @@ class CompositorContext {
   {
     return m_rd->size * 0.01f;
   }
+
+  /**
+   * Get active execution model.
+   */
+  eExecutionModel get_execution_model() const;
 };
 
 }  // namespace blender::compositor

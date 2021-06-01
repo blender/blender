@@ -846,7 +846,7 @@ static int paint_space_stroke(bContext *C,
   while (length > 0.0f) {
     float spacing = paint_space_stroke_spacing_variable(
         C, scene, stroke, pressure, dpressure, length);
-    float mouse[3];
+    float mouse[2];
 
     if (length >= spacing) {
       if (use_scene_spacing) {
@@ -856,7 +856,7 @@ static int paint_space_stroke(bContext *C,
         add_v3_v3v3(final_world_space_position,
                     stroke->last_world_space_position,
                     final_world_space_position);
-        ED_view3d_project(region, final_world_space_position, mouse);
+        ED_view3d_project_v2(region, final_world_space_position, mouse);
       }
       else {
         mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing;
@@ -1240,7 +1240,7 @@ static void paint_line_strokes_spacing(bContext *C,
         mul_v3_v3fl(final_world_space_position, d_world_space_position, spacing_final);
         add_v3_v3v3(
             final_world_space_position, world_space_position_old, final_world_space_position);
-        ED_view3d_project(region, final_world_space_position, mouse);
+        ED_view3d_project_v2(region, final_world_space_position, mouse);
       }
       else {
         mouse[0] = stroke->last_mouse_position[0] + dmouse[0] * spacing_final;

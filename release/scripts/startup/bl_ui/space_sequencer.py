@@ -1398,8 +1398,8 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 box.template_image_stereo_3d(strip.stereo_3d_format)
 
             # Resolution.
-            col = layout.column(align=True)
-            col = col.box()
+            col = layout.box()
+            col = col.column(align=True)
             split = col.split(factor=0.5, align=False)
             split.alignment = 'RIGHT'
             split.label(text="Resolution")
@@ -1409,6 +1409,14 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 split.label(text="%dx%d" % size, translate=False)
             else:
                 split.label(text="None")
+            #FPS
+            if elem.orig_fps:
+                split = col.split(factor=0.5, align=False)
+                split.alignment = 'RIGHT'
+                split.label(text="FPS")
+                split.alignment = 'LEFT'
+                split.label(text="%.2f" % elem.orig_fps, translate=False)
+
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):

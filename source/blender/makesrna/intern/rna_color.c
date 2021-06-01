@@ -650,7 +650,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
           seq->strip->proxy->anim = NULL;
         }
 
-        SEQ_relations_invalidate_cache_preprocessed(scene, seq);
+        SEQ_relations_invalidate_cache_raw(scene, seq);
       }
       else {
         SEQ_ALL_BEGIN (scene->ed, seq) {

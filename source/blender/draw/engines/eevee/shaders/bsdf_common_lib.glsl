@@ -164,8 +164,8 @@ vec3 ensure_valid_reflection(vec3 Ng, vec3 I, vec3 N)
   vec2 N_new;
   if (valid1 && valid2) {
     /* If both are possible, do the expensive reflection-based check. */
-    vec2 N1 = vec2(sqrt(1.0 - N1_z2), sqrt(N1_z2));
-    vec2 N2 = vec2(sqrt(1.0 - N2_z2), sqrt(N2_z2));
+    vec2 N1 = vec2(safe_sqrt(1.0 - N1_z2), safe_sqrt(N1_z2));
+    vec2 N2 = vec2(safe_sqrt(1.0 - N2_z2), safe_sqrt(N2_z2));
 
     float R1 = 2.0 * (N1.x * Ix + N1.y * Iz) * N1.y - Iz;
     float R2 = 2.0 * (N2.x * Ix + N2.y * Iz) * N2.y - Iz;
@@ -181,7 +181,7 @@ vec3 ensure_valid_reflection(vec3 Ng, vec3 I, vec3 N)
   }
   else if (valid1 || valid2) {
     float Nz2 = valid1 ? N1_z2 : N2_z2;
-    N_new = vec2(sqrt(1.0 - Nz2), sqrt(Nz2));
+    N_new = vec2(safe_sqrt(1.0 - Nz2), safe_sqrt(Nz2));
   }
   else {
     return Ng;

@@ -1165,13 +1165,19 @@ static int filter_plane_side(const double3 &p,
  * Assumes ab is not perpendicular to n.
  * This works because the ratio of the projections of ab and ac onto n is the same as
  * the ratio along the line ab of the intersection point to the whole of ab.
+ * The ab, ac, and dotbuf arguments are used as a temporaries; declaring them
+ * in the caller can avoid many allocs and frees of mpq3 and mpq_class structures.
  */
-static inline mpq3 tti_interp(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &n)
+static inline mpq3 tti_interp(
+    const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &n, mpq3 &ab, mpq3 &ac, mpq3 &dotbuf)
 {
-  mpq3 ab = a - b;
-  mpq_class den = mpq3::dot(ab, n);
+  ab = a;
+  ab -= b;
+  ac = a;
+  ac -= c;
+  mpq_class den = mpq3::dot_with_buffer(ab, n, dotbuf);
   BLI_assert(den != 0);
-  mpq_class alpha = mpq3::dot(a - c, n) / den;
+  mpq_class alpha = mpq3::dot_with_buffer(ac, n, dotbuf) / den;
   return a - alpha * ab;
 }
 
@@ -1179,11 +1185,28 @@ static inline mpq3 tti_interp(const mpq3 &a, const mpq3 &b, const mpq3 &c, const
  * Return +1, 0, -1 as a + ad is above, on, or below the oriented plane containing a, b, c in CCW
  * order. This is the same as -oriented(a, b, c, a + ad), but uses fewer arithmetic operations.
  * TODO: change arguments to `const Vert *` and use floating filters.
+ * The ba, ca, n, and dotbuf arguments are used as temporaries; declaring them
+ * in the caller can avoid many allocs and frees of mpq3 and mpq_class structures.
  */
-static inline int tti_above(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &ad)
+static inline int tti_above(const mpq3 &a,
+                            const mpq3 &b,
+                            const mpq3 &c,
+                            const mpq3 &ad,
+                            mpq3 &ba,
+                            mpq3 &ca,
+                            mpq3 &n,
+                            mpq3 &dotbuf)
 {
-  mpq3 n = mpq3::cross(b - a, c - a);
-  return sgn(mpq3::dot(ad, n));
+  ba = b;
+  ba -= a;
+  ca = c;
+  ca -= a;
+
+  n.x = ba.y * ca.z - ba.z * ca.y;
+  n.y = ba.z * ca.x - ba.x * ca.z;
+  n.z = ba.x * ca.y - ba.y * ca.x;
+
+  return sgn(mpq3::dot_with_buffer(ad, n, dotbuf));
 }
 
 /**
@@ -1227,20 +1250,21 @@ static ITT_value itt_canon2(const mpq3 &p1,
   mpq3 p1p2 = p2 - p1;
   mpq3 intersect_1;
   mpq3 intersect_2;
+  mpq3 buf[4];
   bool no_overlap = false;
   /* Top test in classification tree. */
-  if (tti_above(p1, q1, r2, p1p2) > 0) {
+  if (tti_above(p1, q1, r2, p1p2, buf[0], buf[1], buf[2], buf[3]) > 0) {
     /* Middle right test in classification tree. */
-    if (tti_above(p1, r1, r2, p1p2) <= 0) {
+    if (tti_above(p1, r1, r2, p1p2, buf[0], buf[1], buf[2], buf[3]) <= 0) {
       /* Bottom right test in classification tree. */
-      if (tti_above(p1, r1, q2, p1p2) > 0) {
+      if (tti_above(p1, r1, q2, p1p2, buf[0], buf[1], buf[2], buf[3]) > 0) {
         /* Overlap is [k [i l] j]. */
         if (dbg_level > 0) {
           std::cout << "overlap [k [i l] j]\n";
         }
         /* i is intersect with p1r1. l is intersect with p2r2. */
-        intersect_1 = tti_interp(p1, r1, p2, n2);
-        intersect_2 = tti_interp(p2, r2, p1, n1);
+        intersect_1 = tti_interp(p1, r1, p2, n2, buf[0], buf[1], buf[2]);
+        intersect_2 = tti_interp(p2, r2, p1, n1, buf[0], buf[1], buf[2]);
       }
       else {
         /* Overlap is [i [k l] j]. */
@@ -1248,8 +1272,8 @@ static ITT_value itt_canon2(const mpq3 &p1,
           std::cout << "overlap [i [k l] j]\n";
         }
         /* k is intersect with p2q2. l is intersect is p2r2. */
-        intersect_1 = tti_interp(p2, q2, p1, n1);
-        intersect_2 = tti_interp(p2, r2, p1, n1);
+        intersect_1 = tti_interp(p2, q2, p1, n1, buf[0], buf[1], buf[2]);
+        intersect_2 = tti_interp(p2, r2, p1, n1, buf[0], buf[1], buf[2]);
       }
     }
     else {
@@ -1262,7 +1286,7 @@ static ITT_value itt_canon2(const mpq3 &p1,
   }
   else {
     /* Middle left test in classification tree. */
-    if (tti_above(p1, q1, q2, p1p2) < 0) {
+    if (tti_above(p1, q1, q2, p1p2, buf[0], buf[1], buf[2], buf[3]) < 0) {
       /* No overlap: [i j] [k l]. */
       if (dbg_level > 0) {
         std::cout << "no overlap: [i j] [k l]\n";
@@ -1271,14 +1295,14 @@ static ITT_value itt_canon2(const mpq3 &p1,
     }
     else {
       /* Bottom left test in classification tree. */
-      if (tti_above(p1, r1, q2, p1p2) >= 0) {
+      if (tti_above(p1, r1, q2, p1p2, buf[0], buf[1], buf[2], buf[3]) >= 0) {
         /* Overlap is [k [i j] l]. */
         if (dbg_level > 0) {
           std::cout << "overlap [k [i j] l]\n";
         }
         /* i is intersect with p1r1. j is intersect with p1q1. */
-        intersect_1 = tti_interp(p1, r1, p2, n2);
-        intersect_2 = tti_interp(p1, q1, p2, n2);
+        intersect_1 = tti_interp(p1, r1, p2, n2, buf[0], buf[1], buf[2]);
+        intersect_2 = tti_interp(p1, q1, p2, n2, buf[0], buf[1], buf[2]);
       }
       else {
         /* Overlap is [i [k j] l]. */
@@ -1286,8 +1310,8 @@ static ITT_value itt_canon2(const mpq3 &p1,
           std::cout << "overlap [i [k j] l]\n";
         }
         /* k is intersect with p2q2. j is intersect with p1q1. */
-        intersect_1 = tti_interp(p2, q2, p1, n1);
-        intersect_2 = tti_interp(p1, q1, p2, n2);
+        intersect_1 = tti_interp(p2, q2, p1, n1, buf[0], buf[1], buf[2]);
+        intersect_2 = tti_interp(p1, q1, p2, n2, buf[0], buf[1], buf[2]);
       }
     }
   }
@@ -1438,6 +1462,7 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
     return ITT_value(INONE);
   }
 
+  mpq3 buf[2];
   const mpq3 &p1 = vp1->co_exact;
   const mpq3 &q1 = vq1->co_exact;
   const mpq3 &r1 = vr1->co_exact;
@@ -1447,13 +1472,19 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
 
   const mpq3 &n2 = tri2.plane->norm_exact;
   if (sp1 == 0) {
-    sp1 = sgn(mpq3::dot(p1 - r2, n2));
+    buf[0] = p1;
+    buf[0] -= r2;
+    sp1 = sgn(mpq3::dot_with_buffer(buf[0], n2, buf[1]));
   }
   if (sq1 == 0) {
-    sq1 = sgn(mpq3::dot(q1 - r2, n2));
+    buf[0] = q1;
+    buf[0] -= r2;
+    sq1 = sgn(mpq3::dot_with_buffer(buf[0], n2, buf[1]));
   }
   if (sr1 == 0) {
-    sr1 = sgn(mpq3::dot(r1 - r2, n2));
+    buf[0] = r1;
+    buf[0] -= r2;
+    sr1 = sgn(mpq3::dot_with_buffer(buf[0], n2, buf[1]));
   }
 
   if (dbg_level > 1) {
@@ -1473,13 +1504,19 @@ static ITT_value intersect_tri_tri(const IMesh &tm, int t1, int t2)
   /* Repeat for signs of t2's vertices with respect to plane of t1. */
   const mpq3 &n1 = tri1.plane->norm_exact;
   if (sp2 == 0) {
-    sp2 = sgn(mpq3::dot(p2 - r1, n1));
+    buf[0] = p2;
+    buf[0] -= r1;
+    sp2 = sgn(mpq3::dot_with_buffer(buf[0], n1, buf[1]));
   }
   if (sq2 == 0) {
-    sq2 = sgn(mpq3::dot(q2 - r1, n1));
+    buf[0] = q2;
+    buf[0] -= r1;
+    sq2 = sgn(mpq3::dot_with_buffer(buf[0], n1, buf[1]));
   }
   if (sr2 == 0) {
-    sr2 = sgn(mpq3::dot(r2 - r1, n1));
+    buf[0] = r2;
+    buf[0] -= r1;
+    sr2 = sgn(mpq3::dot_with_buffer(buf[0], n1, buf[1]));
   }
 
   if (dbg_level > 1) {

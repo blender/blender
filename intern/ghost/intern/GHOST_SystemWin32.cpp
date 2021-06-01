@@ -32,6 +32,7 @@
 #include <commctrl.h>
 #include <psapi.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #include <shlobj.h>
 #include <tlhelp32.h>
 #include <windowsx.h>
@@ -97,41 +98,6 @@
 #  define VK_GR_LESS 0xE2
 #endif  // VK_GR_LESS
 
-#ifndef VK_MEDIA_NEXT_TRACK
-#  define VK_MEDIA_NEXT_TRACK 0xB0
-#endif  // VK_MEDIA_NEXT_TRACK
-#ifndef VK_MEDIA_PREV_TRACK
-#  define VK_MEDIA_PREV_TRACK 0xB1
-#endif  // VK_MEDIA_PREV_TRACK
-#ifndef VK_MEDIA_STOP
-#  define VK_MEDIA_STOP 0xB2
-#endif  // VK_MEDIA_STOP
-#ifndef VK_MEDIA_PLAY_PAUSE
-#  define VK_MEDIA_PLAY_PAUSE 0xB3
-#endif  // VK_MEDIA_PLAY_PAUSE
-
-// Window message newer than Windows 7
-#ifndef WM_DPICHANGED
-#  define WM_DPICHANGED 0x02E0
-#endif  // WM_DPICHANGED
-
-// WM_POINTER API messages minimum Windows 7
-#ifndef WM_POINTERENTER
-#  define WM_POINTERENTER 0x0249
-#endif  // WM_POINTERENTER
-#ifndef WM_POINTERDOWN
-#  define WM_POINTERDOWN 0x0246
-#endif  // WM_POINTERDOWN
-#ifndef WM_POINTERUPDATE
-#  define WM_POINTERUPDATE 0x0245
-#endif  // WM_POINTERUPDATE
-#ifndef WM_POINTERUP
-#  define WM_POINTERUP 0x0247
-#endif  // WM_POINTERUP
-#ifndef WM_POINTERLEAVE
-#  define WM_POINTERLEAVE 0x024A
-#endif  // WM_POINTERLEAVE
-
 /* Workaround for some laptop touchpads, some of which seems to
  * have driver issues which makes it so window function receives
  * the message, but PeekMessage doesn't pick those messages for
@@ -173,24 +139,6 @@ static void initRawInput()
 #undef DEVICE_COUNT
 }
 
-#ifndef DPI_ENUMS_DECLARED
-typedef enum PROCESS_DPI_AWARENESS {
-  PROCESS_DPI_UNAWARE = 0,
-  PROCESS_SYSTEM_DPI_AWARE = 1,
-  PROCESS_PER_MONITOR_DPI_AWARE = 2
-} PROCESS_DPI_AWARENESS;
-
-typedef enum MONITOR_DPI_TYPE {
-  MDT_EFFECTIVE_DPI = 0,
-  MDT_ANGULAR_DPI = 1,
-  MDT_RAW_DPI = 2,
-  MDT_DEFAULT = MDT_EFFECTIVE_DPI
-} MONITOR_DPI_TYPE;
-
-#  define USER_DEFAULT_SCREEN_DPI 96
-
-#  define DPI_ENUMS_DECLARED
-#endif
 typedef HRESULT(API *GHOST_WIN32_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
 typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
@@ -205,15 +153,7 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 
   // Tell Windows we are per monitor DPI aware. This disables the default
   // blurry scaling and enables WM_DPICHANGED to allow us to draw at proper DPI.
-  HMODULE m_shcore = ::LoadLibrary("Shcore.dll");
-  if (m_shcore) {
-    GHOST_WIN32_SetProcessDpiAwareness fpSetProcessDpiAwareness =
-        (GHOST_WIN32_SetProcessDpiAwareness)::GetProcAddress(m_shcore, "SetProcessDpiAwareness");
-
-    if (fpSetProcessDpiAwareness) {
-      fpSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-    }
-  }
+  SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 
   // Check if current keyboard layout uses AltGr and save keylayout ID for
   // specialized handling if keys like VK_OEM_*. I.e. french keylayout
@@ -581,14 +521,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
   InitCommonControls();
 
   /* Disable scaling on high DPI displays on Vista */
-  HMODULE
-  user32 = ::LoadLibraryA("user32.dll");
-  typedef BOOL(WINAPI * LPFNSETPROCESSDPIAWARE)();
-  LPFNSETPROCESSDPIAWARE SetProcessDPIAware = (LPFNSETPROCESSDPIAWARE)GetProcAddress(
-      user32, "SetProcessDPIAware");
-  if (SetProcessDPIAware)
-    SetProcessDPIAware();
-  FreeLibrary(user32);
+  SetProcessDPIAware();
   initRawInput();
 
   m_lfstart = ::GetTickCount();

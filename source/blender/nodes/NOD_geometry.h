@@ -66,6 +66,7 @@ void register_node_type_geo_mesh_primitive_grid(void);
 void register_node_type_geo_mesh_primitive_ico_sphere(void);
 void register_node_type_geo_mesh_primitive_line(void);
 void register_node_type_geo_mesh_primitive_uv_sphere(void);
+void register_node_type_geo_mesh_to_curve(void);
 void register_node_type_geo_object_info(void);
 void register_node_type_geo_point_distribute(void);
 void register_node_type_geo_point_instance(void);

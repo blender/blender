@@ -807,7 +807,7 @@ static bool select_linked_internal(Scene *scene)
   bool changed = false;
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-    if ((seq->flag & SELECT) != 0) {
+    if ((seq->flag & SELECT) == 0) {
       continue;
     }
     /* Only get unselected neighbors. */

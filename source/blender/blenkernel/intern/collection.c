@@ -1423,7 +1423,8 @@ static bool collection_instance_find_recursive(Collection *collection,
   }
 
   LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (collection_instance_find_recursive(collection_child->collection, instance_collection)) {
+    if (collection_child->collection != NULL &&
+        collection_instance_find_recursive(collection_child->collection, instance_collection)) {
       return true;
     }
   }

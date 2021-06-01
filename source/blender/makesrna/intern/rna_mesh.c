@@ -1823,7 +1823,7 @@ static void rna_def_mlooptri(BlenderRNA *brna)
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_MeshLoopTriangle_material_index_get", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Material Index", "");
+  RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this triangle");
 
   prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1933,7 +1933,7 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "mat_nr");
-  RNA_def_property_ui_text(prop, "Material Index", "");
+  RNA_def_property_ui_text(prop, "Material Index", "Material slot index of this polygon");
 #  if 0
   RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshPoly_material_index_range");
 #  endif

@@ -102,6 +102,8 @@ set(SRC
   intern/bmesh_mesh_convert.h
   intern/bmesh_mesh_duplicate.c
   intern/bmesh_mesh_duplicate.h
+  intern/bmesh_mesh_tessellate.c
+  intern/bmesh_mesh_tessellate.h
   intern/bmesh_mesh_validate.c
   intern/bmesh_mesh_validate.h
   intern/bmesh_mods.c
@@ -182,10 +184,6 @@ set(LIB
   extern_rangetree
 )
 
-if(MSVC AND NOT MSVC_CLANG)
-  string(APPEND CMAKE_C_FLAGS " /WX /wd4101")
-endif()
-
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
@@ -224,6 +222,10 @@ if(WITH_GMP)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(MSVC AND NOT MSVC_CLANG)
+  target_compile_options(bf_bmesh PRIVATE /WX /wd4101)
+endif()
 
 if(WITH_GTESTS)
   set(TEST_SRC

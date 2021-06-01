@@ -218,6 +218,15 @@ struct mpq3 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
+  static mpq_class dot_with_buffer(const mpq3 &a, const mpq3 &b, mpq3 &buffer)
+  {
+    buffer = a;
+    buffer *= b;
+    buffer.x += buffer.y;
+    buffer.x += buffer.z;
+    return buffer.x;
+  }
+
   static mpq3 cross(const mpq3 &a, const mpq3 &b)
   {
     return mpq3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]);
@@ -244,6 +253,13 @@ struct mpq3 {
   {
     mpq3 diff(a.x - b.x, a.y - b.y, a.z - b.z);
     return mpq3::dot(diff, diff);
+  }
+
+  static mpq_class distance_squared_with_buffer(const mpq3 &a, const mpq3 &b, mpq3 &buffer)
+  {
+    buffer = a;
+    buffer -= b;
+    return mpq3::dot(buffer, buffer);
   }
 
   static mpq3 interpolate(const mpq3 &a, const mpq3 &b, mpq_class t)

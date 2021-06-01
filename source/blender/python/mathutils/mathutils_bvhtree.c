@@ -961,8 +961,6 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 
   /* Get data for tessellation */
   {
-    int tris_len_dummy;
-
     coords_len = (uint)bm->totvert;
     tris_len = (uint)poly_to_tri_count(bm->totface, bm->totloop);
 
@@ -971,8 +969,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 
     looptris = MEM_mallocN(sizeof(*looptris) * (size_t)tris_len, __func__);
 
-    BM_mesh_calc_tessellation(bm, looptris, &tris_len_dummy);
-    BLI_assert(tris_len_dummy == (int)tris_len);
+    BM_mesh_calc_tessellation(bm, looptris);
   }
 
   {

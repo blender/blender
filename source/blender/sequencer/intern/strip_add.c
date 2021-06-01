@@ -548,15 +548,25 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
+  float video_fps = 0.0f;
+
   if (anim_arr[0] != NULL) {
     seq->anim_preseek = IMB_anim_get_preseek(anim_arr[0]);
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
 
     IMB_anim_load_metadata(anim_arr[0]);
 
+    short fps_denom;
+    float fps_num;
+
+    IMB_anim_get_fps(anim_arr[0], &fps_denom, &fps_num, true);
+
+    video_fps = fps_denom / fps_num;
+
     /* Adjust scene's frame rate settings to match. */
     if (load_data->flags & SEQ_LOAD_MOVIE_SYNC_FPS) {
-      IMB_anim_get_fps(anim_arr[0], &scene->r.frs_sec, &scene->r.frs_sec_base, true);
+      scene->r.frs_sec = fps_denom;
+      scene->r.frs_sec_base = fps_num;
     }
 
     /* Set initial scale based on load_data->fit_method. */
@@ -577,6 +587,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
   strip->stripdata->orig_width = orig_width;
   strip->stripdata->orig_height = orig_height;
+  strip->stripdata->orig_fps = video_fps;
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
   seq_add_set_view_transform(scene, seq, load_data);

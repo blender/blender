@@ -24,6 +24,10 @@
 
 struct TaskGraph;
 
+#include "GPU_batch.h"
+#include "GPU_index_buffer.h"
+#include "GPU_vertex_buffer.h"
+
 /* Vertex Group Selection and display options */
 typedef struct DRW_MeshWeightState {
   int defgroup_active;
@@ -64,13 +68,13 @@ typedef struct DRW_MeshCDMask {
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
 BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint64_t), "DRW_MeshCDMask exceeds 64 bits")
-
 typedef enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
   MR_ITER_LEDGE = 1 << 2,
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
+ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
 
 typedef enum eMRDataType {
   MR_DATA_POLY_NOR = 1 << 1,
@@ -79,12 +83,11 @@ typedef enum eMRDataType {
   /** Force loop normals calculation.  */
   MR_DATA_TAN_LOOP_NOR = 1 << 4,
 } eMRDataType;
+ENUM_OPERATORS(eMRDataType, MR_DATA_TAN_LOOP_NOR)
 
-typedef enum eMRExtractType {
-  MR_EXTRACT_BMESH,
-  MR_EXTRACT_MAPPED,
-  MR_EXTRACT_MESH,
-} eMRExtractType;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
 {
@@ -150,6 +153,18 @@ typedef struct MeshBufferCache {
   GPUIndexBuf **tris_per_mat;
 } MeshBufferCache;
 
+/**
+ * Data that are kept around between extractions to reduce rebuilding time.
+ *
+ * - Loose geometry.
+ */
+typedef struct MeshBufferExtractionCache {
+  int edge_loose_len;
+  int vert_loose_len;
+  int *lverts;
+  int *ledges;
+} MeshBufferExtractionCache;
+
 typedef enum DRWBatchFlag {
   MBC_SURFACE = (1 << 0),
   MBC_SURFACE_WEIGHTS = (1 << 1),
@@ -194,6 +209,10 @@ typedef enum DRWBatchFlag {
 
 typedef struct MeshBatchCache {
   MeshBufferCache final, cage, uv_cage;
+
+  MeshBufferExtractionCache final_extraction_cache;
+  MeshBufferExtractionCache cage_extraction_cache;
+  MeshBufferExtractionCache uv_cage_extraction_cache;
 
   struct {
     /* Surfaces / Render */
@@ -270,7 +289,8 @@ typedef struct MeshBatchCache {
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,
-                                        MeshBufferCache mbc,
+                                        MeshBufferCache *mbc,
+                                        MeshBufferExtractionCache *extraction_cache,
                                         Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
@@ -279,7 +299,10 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const bool do_final,
                                         const bool do_uvedit,
                                         const bool use_subsurf_fdots,
-                                        const DRW_MeshCDMask *cd_layer_used,
                                         const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide);
+
+#ifdef __cplusplus
+}
+#endif

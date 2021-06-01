@@ -184,13 +184,17 @@ static void deformVerts(ModifierData *md,
 
     surmd->cfra = cfra;
 
-    surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
+    const bool has_poly = surmd->mesh->totpoly > 0;
+    const bool has_edge = surmd->mesh->totedge > 0;
+    if (has_poly || has_edge) {
+      surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
-    if (surmd->mesh->totpoly) {
-      BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_LOOPTRI, 2);
-    }
-    else {
-      BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_EDGES, 2);
+      if (has_poly) {
+        BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_LOOPTRI, 2);
+      }
+      else if (has_edge) {
+        BKE_bvhtree_from_mesh_get(surmd->bvhtree, surmd->mesh, BVHTREE_FROM_EDGES, 2);
+      }
     }
   }
 }

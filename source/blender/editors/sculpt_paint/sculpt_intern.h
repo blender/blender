@@ -278,7 +278,7 @@ void SCULPT_flip_v3_by_symm_area(float v[3],
                                  const ePaintSymmetryFlags symm,
                                  const ePaintSymmetryAreas symmarea,
                                  const float pivot[3]);
-void SCULPT_flip_quat_by_symm_area(float quat[3],
+void SCULPT_flip_quat_by_symm_area(float quat[4],
                                    const ePaintSymmetryFlags symm,
                                    const ePaintSymmetryAreas symmarea,
                                    const float pivot[3]);

@@ -118,21 +118,27 @@ bool GPU_matrix_unproject_precalc(struct GPUMatrixUnproject_Precalc *unproj_prec
                                   const float proj[4][4],
                                   const int view[4]);
 
-void GPU_matrix_project(const float world[3],
-                        const float model[4][4],
-                        const float proj[4][4],
-                        const int view[4],
-                        float r_win[3]);
+void GPU_matrix_project_3fv(const float world[3],
+                            const float model[4][4],
+                            const float proj[4][4],
+                            const int view[4],
+                            float r_win[3]);
 
-bool GPU_matrix_unproject(const float win[3],
-                          const float model[4][4],
-                          const float proj[4][4],
-                          const int view[4],
-                          float r_world[3]);
+void GPU_matrix_project_2fv(const float world[3],
+                            const float model[4][4],
+                            const float proj[4][4],
+                            const int view[4],
+                            float r_win[2]);
 
-void GPU_matrix_unproject_with_precalc(const struct GPUMatrixUnproject_Precalc *unproj_precalc,
-                                       const float win[3],
-                                       float r_world[3]);
+bool GPU_matrix_unproject_3fv(const float win[3],
+                              const float model[4][4],
+                              const float proj[4][4],
+                              const int view[4],
+                              float r_world[3]);
+
+void GPU_matrix_unproject_3fv_with_precalc(const struct GPUMatrixUnproject_Precalc *unproj_precalc,
+                                           const float win[3],
+                                           float r_world[3]);
 
 /* 2D Projection Matrix */
 

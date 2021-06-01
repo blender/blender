@@ -30,11 +30,24 @@ CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
 
 void CPUDevice::execute(WorkPackage *work_package)
 {
-  const unsigned int chunkNumber = work_package->chunk_number;
-  ExecutionGroup *executionGroup = work_package->execution_group;
+  switch (work_package->type) {
+    case eWorkPackageType::Tile: {
+      const unsigned int chunkNumber = work_package->chunk_number;
+      ExecutionGroup *executionGroup = work_package->execution_group;
 
-  executionGroup->getOutputOperation()->executeRegion(&work_package->rect, chunkNumber);
-  executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
+      executionGroup->getOutputOperation()->executeRegion(&work_package->rect, chunkNumber);
+      executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
+      break;
+    }
+    case eWorkPackageType::CustomFunction: {
+      work_package->execute_fn();
+      break;
+    }
+  }
+
+  if (work_package->executed_fn) {
+    work_package->executed_fn();
+  }
 }
 
 }  // namespace blender::compositor
