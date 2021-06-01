@@ -1654,7 +1654,7 @@ static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *x
   if (center_tot) {
     mul_v3_fl(center, 1.0f / center_tot);
     float center_proj[3];
-    ED_view3d_project(xfd->vc.region, center, center_proj);
+    ED_view3d_project_v3(xfd->vc.region, center, center_proj);
     xfd->prev.depth = center_proj[2];
     xfd->prev.is_depth_valid = true;
   }
@@ -1890,7 +1890,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         xfd->prev.depth = depth_fl;
         xfd->prev.is_depth_valid = true;
-        if (ED_view3d_depth_unproject(region, event->mval, depth, location_world)) {
+        if (ED_view3d_depth_unproject_v3(region, event->mval, depth, location_world)) {
           if (is_translate) {
 
             float normal[3];

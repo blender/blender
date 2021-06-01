@@ -162,10 +162,10 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
 bool ED_view3d_depth_read_cached_normal(const ViewContext *vc,
                                         const int mval[2],
                                         float r_normal[3]);
-bool ED_view3d_depth_unproject(const struct ARegion *region,
-                               const int mval[2],
-                               const double depth,
-                               float r_location_world[3]);
+bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
+                                  const int mval[2],
+                                  const double depth,
+                                  float r_location_world[3]);
 void ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* Projection */
@@ -410,8 +410,13 @@ void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d,
                                              const float obmat[4][4],
                                              float r_pmat[4][4]);
 
-void ED_view3d_project(const struct ARegion *region, const float world[3], float r_region_co[3]);
-bool ED_view3d_unproject(
+void ED_view3d_project_v3(const struct ARegion *region,
+                          const float world[3],
+                          float r_region_co[3]);
+void ED_view3d_project_v2(const struct ARegion *region,
+                          const float world[3],
+                          float r_region_co[2]);
+bool ED_view3d_unproject_v3(
     const struct ARegion *region, float regionx, float regiony, float regionz, float world[3]);
 
 /* end */

@@ -578,8 +578,8 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd,
                                     float r_origin_ofs[3])
 {
   /* unproject to find view ray */
-  ED_view3d_unproject(kcd->vc.region, mval[0], mval[1], 0.0f, r_origin);
-  ED_view3d_unproject(kcd->vc.region, mval[0], mval[1], ofs, r_origin_ofs);
+  ED_view3d_unproject_v3(kcd->vc.region, mval[0], mval[1], 0.0f, r_origin);
+  ED_view3d_unproject_v3(kcd->vc.region, mval[0], mval[1], ofs, r_origin_ofs);
 
   /* transform into object space */
   mul_m4_v3(kcd->ob_imat, r_origin);
@@ -1745,7 +1745,7 @@ static bool point_is_visible(KnifeTool_OpData *kcd,
     float view[3], p_ofs[3];
 
     /* TODO: I think there's a simpler way to get the required raycast ray */
-    ED_view3d_unproject(kcd->vc.region, s[0], s[1], 0.0f, view);
+    ED_view3d_unproject_v3(kcd->vc.region, s[0], s[1], 0.0f, view);
 
     mul_m4_v3(kcd->ob_imat, view);
 
