@@ -88,8 +88,8 @@ extern char datatoc_common_hair_refine_comp_glsl[];
 extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 /* TODO(jbakker): move shader creation to `draw_shaders` and add test cases. */
-/* TODO(jbakker): replace defines with `constexpr` to check compilation on all OSs. Currently the
- * APPLE codepath does not compile on other platforms and vice versa. */
+/* TODO(jbakker): replace defines with `constexpr` to check compilation on all OS's.
+ * Currently the `__APPLE__` code-path does not compile on other platforms and vice versa. */
 #ifdef USE_COMPUTE_SHADERS
 static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(refinement))
 {

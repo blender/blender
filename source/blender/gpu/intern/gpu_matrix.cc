@@ -474,11 +474,11 @@ void GPU_matrix_look_at(float eyeX,
   GPU_matrix_translate_3f(-eyeX, -eyeY, -eyeZ);
 }
 
-void GPU_matrix_project(const float world[3],
-                        const float model[4][4],
-                        const float proj[4][4],
-                        const int view[4],
-                        float win[3])
+void GPU_matrix_project_3fv(const float world[3],
+                            const float model[4][4],
+                            const float proj[4][4],
+                            const int view[4],
+                            float win[3])
 {
   float v[4];
 
@@ -492,6 +492,25 @@ void GPU_matrix_project(const float world[3],
   win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
   win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
   win[2] = (v[2] + 1) * 0.5f;
+}
+
+void GPU_matrix_project_2fv(const float world[3],
+                            const float model[4][4],
+                            const float proj[4][4],
+                            const int view[4],
+                            float win[2])
+{
+  float v[4];
+
+  mul_v4_m4v3(v, model, world);
+  mul_m4_v4(proj, v);
+
+  if (v[3] != 0.0f) {
+    mul_v2_fl(v, 1.0f / v[3]);
+  }
+
+  win[0] = view[0] + (view[2] * (v[0] + 1)) * 0.5f;
+  win[1] = view[1] + (view[3] * (v[1] + 1)) * 0.5f;
 }
 
 /**
@@ -556,9 +575,9 @@ bool GPU_matrix_unproject_precalc(struct GPUMatrixUnproject_Precalc *precalc,
   return true;
 }
 
-void GPU_matrix_unproject_with_precalc(const struct GPUMatrixUnproject_Precalc *precalc,
-                                       const float win[3],
-                                       float r_world[3])
+void GPU_matrix_unproject_3fv_with_precalc(const struct GPUMatrixUnproject_Precalc *precalc,
+                                           const float win[3],
+                                           float r_world[3])
 {
   float in[3] = {
       (win[0] - precalc->view[0]) / precalc->view[2],
@@ -569,18 +588,18 @@ void GPU_matrix_unproject_with_precalc(const struct GPUMatrixUnproject_Precalc *
   mul_v3_m4v3(r_world, precalc->model_inverted, in);
 }
 
-bool GPU_matrix_unproject(const float win[3],
-                          const float model[4][4],
-                          const float proj[4][4],
-                          const int view[4],
-                          float r_world[3])
+bool GPU_matrix_unproject_3fv(const float win[3],
+                              const float model[4][4],
+                              const float proj[4][4],
+                              const int view[4],
+                              float r_world[3])
 {
   struct GPUMatrixUnproject_Precalc precalc;
   if (!GPU_matrix_unproject_precalc(&precalc, model, proj, view)) {
     zero_v3(r_world);
     return false;
   }
-  GPU_matrix_unproject_with_precalc(&precalc, win, r_world);
+  GPU_matrix_unproject_3fv_with_precalc(&precalc, win, r_world);
   return true;
 }
 

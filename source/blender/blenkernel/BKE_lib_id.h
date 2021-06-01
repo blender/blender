@@ -258,8 +258,10 @@ void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_hint);
 void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id);
 
-bool BKE_id_new_name_validate(struct ListBase *lb, struct ID *id, const char *name)
-    ATTR_NONNULL(1, 2);
+bool BKE_id_new_name_validate(struct ListBase *lb,
+                              struct ID *id,
+                              const char *name,
+                              const bool do_linked_data) ATTR_NONNULL(1, 2);
 void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id);
 
 /* Affect whole Main database. */

@@ -3053,7 +3053,7 @@ static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
     scene->r.efra = efra;
   }
 
-  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME_RANGE, scene);
 
   return OPERATOR_FINISHED;
 }

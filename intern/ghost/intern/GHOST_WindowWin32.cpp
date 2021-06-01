@@ -84,9 +84,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_wantAlphaBackground(alphaBackground),
       m_normal_state(GHOST_kWindowStateNormal),
       m_user32(NULL),
-      m_fpGetPointerInfoHistory(NULL),
-      m_fpGetPointerPenInfoHistory(NULL),
-      m_fpGetPointerTouchInfoHistory(NULL),
       m_parentWindowHwnd(parentwindow ? parentwindow->m_hWnd : HWND_DESKTOP),
       m_debug_context(is_debug)
 {
@@ -153,19 +150,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   m_user32 = ::LoadLibrary("user32.dll");
 
   if (m_hWnd) {
-    if (m_user32) {
-      // Touch enabled screens with pen support by default have gestures
-      // enabled, which results in a delay between the pointer down event
-      // and the first move when using the stylus. RegisterTouchWindow
-      // disables the new gesture architecture enabling the events to be
-      // sent immediately to the application rather than being absorbed by
-      // the gesture API.
-      GHOST_WIN32_RegisterTouchWindow pRegisterTouchWindow = (GHOST_WIN32_RegisterTouchWindow)
-          GetProcAddress(m_user32, "RegisterTouchWindow");
-      if (pRegisterTouchWindow) {
-        pRegisterTouchWindow(m_hWnd, 0);
-      }
-    }
+    RegisterTouchWindow(m_hWnd, 0);
 
     // Register this window as a droptarget. Requires m_hWnd to be valid.
     // Note that OleInitialize(0) has to be called prior to this. Done in GHOST_SystemWin32.
@@ -230,16 +215,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       ::DestroyWindow(m_hWnd);
       m_hWnd = NULL;
     }
-  }
-
-  // Initialize Windows Ink
-  if (m_user32) {
-    m_fpGetPointerInfoHistory = (GHOST_WIN32_GetPointerInfoHistory)::GetProcAddress(
-        m_user32, "GetPointerInfoHistory");
-    m_fpGetPointerPenInfoHistory = (GHOST_WIN32_GetPointerPenInfoHistory)::GetProcAddress(
-        m_user32, "GetPointerPenInfoHistory");
-    m_fpGetPointerTouchInfoHistory = (GHOST_WIN32_GetPointerTouchInfoHistory)::GetProcAddress(
-        m_user32, "GetPointerTouchInfoHistory");
   }
 
   // Initialize Wintab
@@ -326,9 +301,6 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
   if (m_user32) {
     FreeLibrary(m_user32);
     m_user32 = NULL;
-    m_fpGetPointerInfoHistory = NULL;
-    m_fpGetPointerPenInfoHistory = NULL;
-    m_fpGetPointerTouchInfoHistory = NULL;
   }
 
   if (m_customCursor) {
@@ -950,15 +922,14 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)GHOST_System::getSystem();
   GHOST_TUns32 outCount;
 
-  if (!(m_fpGetPointerInfoHistory && m_fpGetPointerInfoHistory(pointerId, &outCount, NULL))) {
+  if (!(GetPointerInfoHistory(pointerId, &outCount, NULL))) {
     return GHOST_kFailure;
   }
 
   auto pointerPenInfo = std::vector<POINTER_PEN_INFO>(outCount);
   outPointerInfo.resize(outCount);
 
-  if (!(m_fpGetPointerPenInfoHistory &&
-        m_fpGetPointerPenInfoHistory(pointerId, &outCount, pointerPenInfo.data()))) {
+  if (!(GetPointerPenInfoHistory(pointerId, &outCount, pointerPenInfo.data()))) {
     return GHOST_kFailure;
   }
 

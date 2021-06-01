@@ -843,6 +843,9 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
   int edges_len_capacity = curve_render_data_overlay_edges_len_get(rdata) * 2;
   int vbo_len_used = 0;
 
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
+#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? (v) : NULL))
+
   if (DRW_TEST_ASSIGN_VBO(vbo_pos)) {
     GPU_vertbuf_init_with_format(vbo_pos, &format_pos);
     GPU_vertbuf_data_alloc(vbo_pos, verts_len_capacity);
@@ -862,6 +865,9 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
     elbp_lines = &elb_lines;
     GPU_indexbuf_init(elbp_lines, GPU_PRIM_LINES, edges_len_capacity, verts_len_capacity);
   }
+
+#undef DRW_TEST_ASSIGN_VBO
+#undef DRW_TEST_ASSIGN_IBO
 
   int nu_id = 0;
   for (Nurb *nu = (Nurb *)rdata->nurbs->first; nu; nu = nu->next, nu_id++) {

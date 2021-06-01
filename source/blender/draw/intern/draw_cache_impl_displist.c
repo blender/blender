@@ -532,6 +532,8 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
   GPUVertBufRaw uv_step = {0};
   GPUVertBufRaw tan_step = {0};
 
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
+
   if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor)) {
     GPU_vertbuf_init_with_format(vbo_pos_nor,
                                  do_hq_normals ? &format_pos_nor_hq : &format_pos_nor);
@@ -549,6 +551,8 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
     GPU_vertbuf_data_alloc(vbo_tan, vbo_len_capacity);
     GPU_vertbuf_attr_get_raw_data(vbo_tan, tan_id, &tan_step);
   }
+
+#undef DRW_TEST_ASSIGN_VBO
 
   BKE_displist_normals_add(lb);
 

@@ -22,6 +22,7 @@
 
 #include "BLI_rect.h"
 
+#include <functional>
 #include <ostream>
 
 namespace blender::compositor {
@@ -33,6 +34,8 @@ class ExecutionGroup;
  * \see WorkScheduler
  */
 struct WorkPackage {
+  eWorkPackageType type;
+
   eWorkPackageState state = eWorkPackageState::NotScheduled;
 
   /**
@@ -49,6 +52,16 @@ struct WorkPackage {
    * Area of the execution group that the work package calculates.
    */
   rcti rect;
+
+  /**
+   * Custom function to execute when work package type is CustomFunction.
+   */
+  std::function<void()> execute_fn;
+
+  /**
+   * Called when work execution is finished.
+   */
+  std::function<void()> executed_fn;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:WorkPackage")

@@ -20,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -103,6 +104,65 @@ TEST(lib_id_main_sort, linked_ids_1)
 
   id_b->lib = lib_b;
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  test_lib_id_main_sort_free(&ctx);
+}
+
+TEST(lib_id_main_unique_name, local_ids_1)
+{
+  LibIDMainSortTestContext ctx = {nullptr};
+  test_lib_id_main_sort_init(&ctx);
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+  test_lib_id_main_sort_check_order({id_a, id_b, id_c});
+
+  BLI_strncpy(id_c->name, id_a->name, sizeof(id_c->name));
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_c, NULL, false);
+  EXPECT_TRUE(strcmp(id_c->name + 2, "OB_A.001") == 0);
+  EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_a);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_a, id_c, id_b});
+
+  test_lib_id_main_sort_free(&ctx);
+}
+
+TEST(lib_id_main_unique_name, linked_ids_1)
+{
+  LibIDMainSortTestContext ctx = {nullptr};
+  test_lib_id_main_sort_init(&ctx);
+  EXPECT_TRUE(BLI_listbase_is_empty(&ctx.bmain->libraries));
+
+  Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
+  Library *lib_b = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_B"));
+  ID *id_c = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_C"));
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
+
+  id_a->lib = lib_a;
+  id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
+  id_b->lib = lib_a;
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  BLI_strncpy(id_b->name, id_a->name, sizeof(id_b->name));
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, NULL, true);
+  EXPECT_TRUE(strcmp(id_b->name + 2, "OB_A.001") == 0);
+  EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
+  EXPECT_TRUE(ctx.bmain->objects.first == id_c);
+  EXPECT_TRUE(ctx.bmain->objects.last == id_b);
+  test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  id_b->lib = lib_b;
+  id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
+  BLI_strncpy(id_b->name, id_a->name, sizeof(id_b->name));
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, NULL, true);
+  EXPECT_TRUE(strcmp(id_b->name + 2, "OB_A") == 0);
+  EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
