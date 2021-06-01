@@ -1530,14 +1530,11 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
  *
  * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */
-void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot)
+void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
 {
-  /* use this to avoid locking pthread for _every_ polygon
-   * and calling the fill function */
+  /* Avoid polygon filling logic for 3-4 sided faces. */
 #define USE_TESSFACE_SPEEDUP
 
-  /* this assumes all faces can be scan-filled, which isn't always true,
-   * worst case we over alloc a little which is acceptable */
 #ifndef NDEBUG
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
 #endif
@@ -1549,9 +1546,10 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
   MemArena *arena = NULL;
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    BLI_assert(efa->len >= 3);
     /* don't consider two-edged faces */
-    if (UNLIKELY(efa->len < 3)) {
-      /* do nothing */
+    if (0) {
+      /* do nothing (needed for else statements below) */
     }
 
 #ifdef USE_TESSFACE_SPEEDUP
@@ -1664,8 +1662,6 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
     arena = NULL;
   }
 
-  *r_looptris_tot = i;
-
   BLI_assert(i <= looptris_tot);
 
 #undef USE_TESSFACE_SPEEDUP
@@ -1674,10 +1670,8 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
 /**
  * A version of #BM_mesh_calc_tessellation that avoids degenerate triangles.
  */
-void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot)
+void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3])
 {
-  /* this assumes all faces can be scan-filled, which isn't always true,
-   * worst case we over alloc a little which is acceptable */
 #ifndef NDEBUG
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
 #endif
@@ -1692,11 +1686,9 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
   Heap *pf_heap = NULL;
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    /* don't consider two-edged faces */
-    if (UNLIKELY(efa->len < 3)) {
-      /* do nothing */
-    }
-    else if (efa->len == 3) {
+    BLI_assert(efa->len >= 3);
+
+    if (efa->len == 3) {
       BMLoop *l;
       BMLoop **l_ptr = looptris[i++];
       l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
@@ -1804,8 +1796,6 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 
     BLI_heap_free(pf_heap, NULL);
   }
-
-  *r_looptris_tot = i;
 
   BLI_assert(i <= looptris_tot);
 }
