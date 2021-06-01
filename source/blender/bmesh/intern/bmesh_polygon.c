@@ -1547,51 +1547,17 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
 
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
     BLI_assert(efa->len >= 3);
-    /* don't consider two-edged faces */
-    if (0) {
-      /* do nothing (needed for else statements below) */
-    }
-
 #ifdef USE_TESSFACE_SPEEDUP
-
-    /* no need to ensure the loop order, we know its ok */
-
-    else if (efa->len == 3) {
-#  if 0
-      int j;
-      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j) {
-        looptris[i][j] = l;
-      }
-      i += 1;
-#  else
-      /* more cryptic but faster */
+    if (efa->len == 3) {
+      /* `0 1 2` -> `0 1 2` */
       BMLoop *l;
       BMLoop **l_ptr = looptris[i++];
       l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
       l_ptr[1] = l = l->next;
       l_ptr[2] = l->next;
-#  endif
     }
     else if (efa->len == 4) {
-#  if 0
-      BMLoop *ltmp[4];
-      int j;
-      BLI_array_grow_items(looptris, 2);
-      BM_ITER_ELEM_INDEX(l, &liter, efa, BM_LOOPS_OF_FACE, j) {
-        ltmp[j] = l;
-      }
-
-      looptris[i][0] = ltmp[0];
-      looptris[i][1] = ltmp[1];
-      looptris[i][2] = ltmp[2];
-      i += 1;
-
-      looptris[i][0] = ltmp[0];
-      looptris[i][1] = ltmp[2];
-      looptris[i][2] = ltmp[3];
-      i += 1;
-#  else
-      /* more cryptic but faster */
+      /* `0 1 2 3` -> (`0 1 2`, `0 2 3`) */
       BMLoop *l;
       BMLoop **l_ptr_a = looptris[i++];
       BMLoop **l_ptr_b = looptris[i++];
@@ -1599,7 +1565,6 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
       (l_ptr_a[1] = l = l->next);
       (l_ptr_a[2] = l_ptr_b[1] = l = l->next);
       (l_ptr_b[2] = l->next);
-#  endif
 
       if (UNLIKELY(is_quad_flip_v3_first_third_fast(
               l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co))) {
@@ -1608,10 +1573,9 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
         l_ptr_b[0] = l_ptr_a[1];
       }
     }
-
+    else
 #endif /* USE_TESSFACE_SPEEDUP */
-
-    else {
+    {
       int j;
 
       BMLoop *l_iter;
