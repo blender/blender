@@ -52,10 +52,10 @@ static void copy_data_based_on_mask(Span<T> data,
   }
 }
 
-static void copy_attributes_based_on_mask(const GeometryComponent &in_component,
-                                          GeometryComponent &result_component,
-                                          Span<bool> masks,
-                                          const bool invert)
+void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
+                                         GeometryComponent &result_component,
+                                         Span<bool> masks,
+                                         const bool invert)
 {
   for (const std::string &name : in_component.attribute_names()) {
     ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(name);
@@ -118,7 +118,7 @@ static void separate_points_from_component(const GeometryComponent &in_component
 
   create_component_points(out_component, total);
 
-  copy_attributes_based_on_mask(in_component, out_component, masks, invert);
+  copy_point_attributes_based_on_mask(in_component, out_component, masks, invert);
 }
 
 static GeometrySet separate_geometry_set(const GeometrySet &set_in,
