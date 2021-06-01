@@ -446,7 +446,7 @@ static void versions_gpencil_add_main(ListBase *lb, ID *id, const char *name)
   id->flag = LIB_FAKEUSER;
   *((short *)id->name) = ID_GD;
 
-  BKE_id_new_name_validate(lb, id, name);
+  BKE_id_new_name_validate(lb, id, name, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
 
   if ((id->tag & LIB_TAG_TEMP_MAIN) == 0) {
