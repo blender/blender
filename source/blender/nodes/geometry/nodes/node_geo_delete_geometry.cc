@@ -22,6 +22,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
+#include "BKE_spline.hh"
 
 #include "node_geometry_util.hh"
 
@@ -55,15 +56,10 @@ static bNodeSocketTemplate geo_node_delete_geometry_out[] = {
 namespace blender::nodes {
 
 static void delete_point_cloud_selection(const PointCloudComponent &in_component,
-                                         const GeoNodeExecParams &params,
-                                         PointCloudComponent &out_component)
+                                         PointCloudComponent &out_component,
+                                         const StringRef selection_name,
+                                         const bool invert)
 {
-  const bool invert = params.get_input<bool>("Invert");
-  const std::string selection_name = params.get_input<std::string>("Selection");
-  if (selection_name.empty()) {
-    return;
-  }
-
   const GVArray_Typed<bool> selection_attribute = in_component.attribute_get_for_read<bool>(
       selection_name, ATTR_DOMAIN_POINT, false);
   VArray_Span<bool> selection{selection_attribute};
@@ -444,25 +440,21 @@ static AttributeDomain get_mesh_selection_domain(MeshComponent &component, const
 }
 
 static void delete_mesh_selection(MeshComponent &component,
-                                  const GeoNodeExecParams &params,
-                                  const Mesh &mesh_in)
+                                  const Mesh &mesh_in,
+                                  const StringRef selection_name,
+                                  const bool invert)
 {
-  const bool invert_selection = params.get_input<bool>("Invert");
-  const std::string selection_name = params.get_input<std::string>("Selection");
-  if (selection_name.empty()) {
-    return;
-  }
   /* Figure out the best domain to use. */
   const AttributeDomain selection_domain = get_mesh_selection_domain(component, selection_name);
 
   /* This already checks if the attribute exists, and displays a warning in that case. */
-  GVArray_Typed<bool> selection = params.get_input_attribute<bool>(
-      "Selection", component, selection_domain, false);
+  GVArray_Typed<bool> selection = component.attribute_get_for_read<bool>(
+      selection_name, selection_domain, false);
 
   /* Check if there is anything to delete. */
   bool delete_nothing = true;
   for (const int i : selection.index_range()) {
-    if (selection[i] != invert_selection) {
+    if (selection[i] != invert) {
       delete_nothing = false;
       break;
     }
@@ -475,15 +467,15 @@ static void delete_mesh_selection(MeshComponent &component,
   switch (selection_domain) {
     case ATTR_DOMAIN_POINT:
       mesh_out = delete_mesh_selection(
-          mesh_in, selection, invert_selection, compute_selected_mesh_data_from_vertex_selection);
+          mesh_in, selection, invert, compute_selected_mesh_data_from_vertex_selection);
       break;
     case ATTR_DOMAIN_EDGE:
       mesh_out = delete_mesh_selection(
-          mesh_in, selection, invert_selection, compute_selected_mesh_data_from_edge_selection);
+          mesh_in, selection, invert, compute_selected_mesh_data_from_edge_selection);
       break;
     case ATTR_DOMAIN_FACE:
       mesh_out = delete_mesh_selection(
-          mesh_in, selection, invert_selection, compute_selected_mesh_data_from_poly_selection);
+          mesh_in, selection, invert, compute_selected_mesh_data_from_poly_selection);
       break;
     default:
       BLI_assert_unreachable();
@@ -497,17 +489,26 @@ static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   geometry_set = bke::geometry_set_realize_instances(geometry_set);
 
+  const bool invert = params.extract_input<bool>("Invert");
+  const std::string selection_name = params.extract_input<std::string>("Selection");
+  if (selection_name.empty()) {
+    return;
+  }
+
   GeometrySet out_set(geometry_set);
   if (geometry_set.has<PointCloudComponent>()) {
     delete_point_cloud_selection(*geometry_set.get_component_for_read<PointCloudComponent>(),
-                                 params,
-                                 out_set.get_component_for_write<PointCloudComponent>());
+                                 out_set.get_component_for_write<PointCloudComponent>(),
+                                 selection_name,
+                                 invert);
   }
   if (geometry_set.has<MeshComponent>()) {
     delete_mesh_selection(out_set.get_component_for_write<MeshComponent>(),
-                          params,
-                          *geometry_set.get_mesh_for_read());
+                          *geometry_set.get_mesh_for_read(),
+                          selection_name,
+                          invert);
   }
+
   params.set_output("Geometry", std::move(out_set));
 }
 
