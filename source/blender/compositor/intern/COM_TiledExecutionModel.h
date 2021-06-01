@@ -13,41 +13,42 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2011, Blender Foundation.
+ * Copyright 2021, Blender Foundation.
  */
 
-#include "COM_CPUDevice.h"
+#pragma once
 
-#include "COM_ExecutionGroup.h"
+#include "COM_ExecutionModel.h"
 
-#include "BLI_rect.h"
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
 
 namespace blender::compositor {
 
-CPUDevice::CPUDevice(int thread_id) : m_thread_id(thread_id)
-{
-}
+class ExecutionGroup;
 
-void CPUDevice::execute(WorkPackage *work_package)
-{
-  switch (work_package->type) {
-    case eWorkPackageType::Tile: {
-      const unsigned int chunkNumber = work_package->chunk_number;
-      ExecutionGroup *executionGroup = work_package->execution_group;
+/**
+ * Operations are executed from outputs to inputs grouped in execution groups and rendered in
+ * tiles.
+ */
+class TiledExecutionModel : public ExecutionModel {
+ private:
+  Span<ExecutionGroup *> groups_;
 
-      executionGroup->getOutputOperation()->executeRegion(&work_package->rect, chunkNumber);
-      executionGroup->finalizeChunkExecution(chunkNumber, nullptr);
-      break;
-    }
-    case eWorkPackageType::CustomFunction: {
-      work_package->execute_fn();
-      break;
-    }
-  }
+ public:
+  TiledExecutionModel(CompositorContext &context,
+                      Span<NodeOperation *> operations,
+                      Span<ExecutionGroup *> groups);
 
-  if (work_package->executed_fn) {
-    work_package->executed_fn();
-  }
-}
+  void execute(ExecutionSystem &exec_system) override;
+
+ private:
+  void execute_groups(eCompositorPriority priority, ExecutionSystem &exec_system);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("COM:TiledExecutionModel")
+#endif
+};
 
 }  // namespace blender::compositor

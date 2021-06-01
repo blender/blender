@@ -157,6 +157,7 @@ void ExecutionGroup::init_work_packages()
   if (this->m_chunks_len != 0) {
     m_work_packages.resize(this->m_chunks_len);
     for (unsigned int index = 0; index < m_chunks_len; index++) {
+      m_work_packages[index].type = eWorkPackageType::Tile;
       m_work_packages[index].state = eWorkPackageState::NotScheduled;
       m_work_packages[index].execution_group = this;
       m_work_packages[index].chunk_number = index;
