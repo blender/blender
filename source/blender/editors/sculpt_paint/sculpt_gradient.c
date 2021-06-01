@@ -104,7 +104,8 @@ static void sculpt_gradient_apply_task_cb(void *__restrict userdata,
     copy_v3_v3(symm_co, vd.co);
 
     mul_v3_m4v3(world_co, data->ob->obmat, symm_co);
-    ED_view3d_project(gcontext->vc.region, world_co, projected_co);
+    /* TOOD: Implement this again. */
+    /* ED_view3d_project(gcontext->vc.region, world_co, projected_co); */
 
     float gradient_value = 0.0f;
     switch (gcontext->gradient_type) {
