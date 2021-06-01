@@ -781,7 +781,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
    *                                               +-----> | extract_task2_loop_3 |
    *                                                       +----------------------+
    */
-  const bool do_lines_loose_subbuffer = mbc->ibo.lines_loose != NULL;
+  const bool do_lines_loose_subbuffer = mbc->ibo.lines_loose != nullptr;
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
@@ -880,7 +880,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
         ExtractorRunDatas *single_threaded_extractors = new ExtractorRunDatas();
         single_threaded_extractors->append(extractor);
         ExtractTaskData *taskdata = extract_extract_iter_task_data_create_mesh(
-            mr, cache, single_threaded_extractors, mbc, NULL);
+            mr, cache, single_threaded_extractors, mbc, nullptr);
         struct TaskNode *task_node = extract_single_threaded_task_node_create(task_graph,
                                                                               taskdata);
         BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
@@ -923,7 +923,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
     /* Run all requests on the same thread. */
     ExtractorRunDatas *extractors_copy = new ExtractorRunDatas(extractors);
     ExtractTaskData *taskdata = extract_extract_iter_task_data_create_mesh(
-        mr, cache, extractors_copy, mbc, NULL);
+        mr, cache, extractors_copy, mbc, nullptr);
 
     struct TaskNode *task_node = extract_single_threaded_task_node_create(task_graph, taskdata);
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
