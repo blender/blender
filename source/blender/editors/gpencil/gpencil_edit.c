@@ -5373,7 +5373,7 @@ static bool gpencil_stroke_normalize_poll(bContext *C)
   return ((gpl != NULL) && (ob->mode == OB_MODE_EDIT_GPENCIL));
 }
 
-static void gpencil_stroke_normalize_ui(bContext *C, wmOperator *op)
+static void gpencil_stroke_normalize_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *row;
