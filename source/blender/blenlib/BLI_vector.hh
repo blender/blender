@@ -161,7 +161,7 @@ class Vector {
   }
 
   /**
-   * Create a vector from an array ref. The values in the vector are copy constructed.
+   * Create a vector from a span. The values in the vector are copy constructed.
    */
   template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
   Vector(Span<U> values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
