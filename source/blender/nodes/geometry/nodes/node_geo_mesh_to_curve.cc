@@ -291,13 +291,11 @@ static void geo_node_mesh_to_curve_exec(GeoNodeExecParams params)
   const MeshComponent &component = *geometry_set.get_component_for_read<MeshComponent>();
   const Mesh &mesh = *component.get_for_read();
   Span<MVert> verts = Span{mesh.mvert, mesh.totvert};
-  Span<MEdge> edges = Span{mesh.medge, mesh.totedge};
-  if (edges.size() == 0) {
+  Vector<std::pair<int, int>> selected_edges = get_selected_edges(params, component);
+  if (selected_edges.size() == 0) {
     params.set_output("Curve", GeometrySet());
     return;
   }
-
-  Vector<std::pair<int, int>> selected_edges = get_selected_edges(params, component);
 
   CurveFromEdgesOutput output = mesh_to_curve(verts, selected_edges);
   copy_attributes_to_points(*output.curve, component, output.point_to_vert_maps);

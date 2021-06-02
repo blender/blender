@@ -237,6 +237,7 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_total, edge_total, 0, corner_total, poly_total);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
   MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
@@ -297,7 +298,6 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
 
   Mesh *mesh = curve_to_mesh_calculate(*curve_set.get_curve_for_read(),
                                        (profile_curve == nullptr) ? vert_curve : *profile_curve);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
