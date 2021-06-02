@@ -31,6 +31,14 @@ SplinePtr BezierSpline::copy() const
   return std::make_unique<BezierSpline>(*this);
 }
 
+SplinePtr BezierSpline::copy_settings() const
+{
+  std::unique_ptr<BezierSpline> copy = std::make_unique<BezierSpline>();
+  copy_base_settings(*this, *copy);
+  copy->resolution_ = resolution_;
+  return copy;
+}
+
 int BezierSpline::size() const
 {
   const int size = positions_.size();
