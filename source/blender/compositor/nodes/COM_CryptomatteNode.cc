@@ -118,9 +118,9 @@ void CryptomatteNode::input_operations_from_render_source(
     return;
   }
 
-  const short cryptomatte_layer_id = 0;
+  short view_layer_id = 0;
   const std::string prefix = prefix_from_node(context, node);
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+  LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_id) {
     RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
     if (render_layer) {
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
@@ -129,7 +129,7 @@ void CryptomatteNode::input_operations_from_render_source(
           RenderLayersProg *op = new RenderLayersProg(
               render_pass->name, DataType::Color, render_pass->channels);
           op->setScene(scene);
-          op->setLayerId(cryptomatte_layer_id);
+          op->setLayerId(view_layer_id);
           op->setRenderData(context.getRenderData());
           op->setViewName(context.getViewName());
           r_input_operations.append(op);
