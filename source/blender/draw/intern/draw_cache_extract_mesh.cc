@@ -369,9 +369,6 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
 /** \name ExtractTaskData
  * \{ */
 struct ExtractTaskData {
-  void *next = nullptr;
-  void *prev = nullptr;
-
   const MeshRenderData *mr = nullptr;
   MeshBatchCache *cache = nullptr;
   /* #UserData is shared between the iterations as it holds counters to detect if the
