@@ -549,7 +549,7 @@ const MeshExtract extract_points = {.init = extract_points_init,
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots Indices
+/** \name Extract Face-dots Indices
  * \{ */
 
 static void *extract_fdots_init(const MeshRenderData *mr,
@@ -1098,7 +1098,7 @@ const MeshExtract extract_edituv_points = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Edit UV Facedots Indices
+/** \name Extract Edit UV Face-dots Indices
  * \{ */
 
 static void *extract_edituv_fdots_init(const MeshRenderData *mr,
@@ -4044,7 +4044,7 @@ const MeshExtract extract_mesh_analysis = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots positions
+/** \name Extract Face-dots positions
  * \{ */
 
 static void *extract_fdots_pos_init(const MeshRenderData *mr,
@@ -4124,7 +4124,7 @@ const MeshExtract extract_fdots_pos = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots Normal and edit flag
+/** \name Extract Face-dots Normal and edit flag
  * \{ */
 #define NOR_AND_FLAG_DEFAULT 0
 #define NOR_AND_FLAG_SELECT 1
@@ -4206,7 +4206,7 @@ const MeshExtract extract_fdots_nor = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots High Quality Normal and edit flag
+/** \name Extract Face-dots High Quality Normal and edit flag
  * \{ */
 static void *extract_fdots_nor_hq_init(const MeshRenderData *mr,
                                        struct MeshBatchCache *UNUSED(cache),
@@ -4283,7 +4283,7 @@ const MeshExtract extract_fdots_nor_hq = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots UV
+/** \name Extract Face-dots UV
  * \{ */
 
 typedef struct MeshExtract_FdotUV_Data {
@@ -4382,7 +4382,7 @@ const MeshExtract extract_fdots_uv = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Facedots  Edit UV flag
+/** \name Extract Face-dots  Edit UV flag
  * \{ */
 
 typedef struct MeshExtract_EditUVFdotData_Data {
