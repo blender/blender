@@ -478,7 +478,7 @@ void seq_time_gap_info_get(const Scene *scene,
  * \param timeline_frame: absolute frame position
  * \return true if strip intersects with timeline frame.
  */
-bool SEQ_time_strip_intersects_frame(Sequence *seq, const int timeline_frame)
+bool SEQ_time_strip_intersects_frame(const Sequence *seq, const int timeline_frame)
 {
   return (seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame);
 }

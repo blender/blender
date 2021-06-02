@@ -1601,7 +1601,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
     /* Handle duplicated strips: set active, select, ensure unique name and duplicate animation
      * data. */
     for (; seq; seq = seq->next) {
-      if (STREQ(active_seq != NULL && seq->name, active_seq->name)) {
+      if (active_seq != NULL && STREQ(seq->name, active_seq->name)) {
         SEQ_select_active_set(scene, seq);
       }
       seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
