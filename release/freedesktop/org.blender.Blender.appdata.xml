@@ -40,6 +40,25 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.93" date="2021-06-02">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Mesh primitive nodes</li>
+                    <li>Line Art</li>
+                    <li>EEVEE Realistic depth of field and volumetrics</li>
+                    <li>Spreadsheet editor</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Geometry nodes 22 new nodes and imrpoved attribute search</li>
+                    <li>Mask loops, textures and patterns for sculpting</li>
+                    <li>Grease pencil interpolate refactored and SVG and PDF support</li>
+                    <li>Persistent Data rendering settings for Cycles</li>
+                    <li>Video Sequencer Editor auto-proxy system</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.92" date="2021-02-25">
             <description>
                 <p>New features:</p>
