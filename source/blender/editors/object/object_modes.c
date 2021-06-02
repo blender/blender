@@ -419,7 +419,7 @@ static bool object_transfer_mode_poll(bContext *C)
     return false;
   }
   const Object *ob = CTX_data_active_object(C);
-  return ob && (ob->mode & (OB_MODE_SCULPT));
+  return ob && (ob->mode != OB_MODE_OBJECT);
 }
 
 /* Update the viewport rotation origin to the mouse cursor. */
