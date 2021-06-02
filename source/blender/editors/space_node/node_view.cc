@@ -76,7 +76,7 @@ int space_node_view_flag(
   BLI_rctf_init_minmax(&cur_new);
 
   if (snode->edittree) {
-    for (node = snode->edittree->nodes.first; node; node = node->next) {
+    for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
       if ((node->flag & node_flag) == node_flag) {
         BLI_rctf_union(&cur_new, &node->totr);
         tot++;
@@ -191,16 +191,16 @@ void NODE_OT_view_selected(wmOperatorType *ot)
 /** \name Background Image Operators
  * \{ */
 
-typedef struct NodeViewMove {
+struct NodeViewMove {
   int mvalo[2];
   int xmin, ymin, xmax, ymax;
-} NodeViewMove;
+};
 
 static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  NodeViewMove *nvm = op->customdata;
+  NodeViewMove *nvm = (NodeViewMove *)op->customdata;
 
   switch (event->type) {
     case MOUSEMOVE:
@@ -215,8 +215,8 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
       CLAMP(snode->yof, nvm->ymin, nvm->ymax);
 
       ED_region_tag_redraw(region);
-      WM_main_add_notifier(NC_NODE | ND_DISPLAY, NULL);
-      WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+      WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+      WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
       break;
 
@@ -225,7 +225,7 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
     case RIGHTMOUSE:
       if (event->val == KM_RELEASE) {
         MEM_freeN(nvm);
-        op->customdata = NULL;
+        op->customdata = nullptr;
         return OPERATOR_FINISHED;
       }
       break;
@@ -247,14 +247,14 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   void *lock;
 
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     BKE_image_release_ibuf(ima, ibuf, lock);
     return OPERATOR_CANCELLED;
   }
 
-  nvm = MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
+  nvm = (NodeViewMove *)MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
   op->customdata = nvm;
   nvm->mvalo[0] = event->mval[0];
   nvm->mvalo[1] = event->mval[1];
@@ -275,7 +275,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
 static void snode_bg_viewmove_cancel(bContext *UNUSED(C), wmOperator *op)
 {
   MEM_freeN(op->customdata);
-  op->customdata = NULL;
+  op->customdata = nullptr;
 }
 
 void NODE_OT_backimage_move(wmOperatorType *ot)
@@ -309,8 +309,8 @@ static int backimage_zoom_exec(bContext *C, wmOperator *op)
 
   snode->zoom *= fac;
   ED_region_tag_redraw(region);
-  WM_main_add_notifier(NC_NODE | ND_DISPLAY, NULL);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+  WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -356,9 +356,9 @@ static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
   float facx, facy;
 
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if ((ibuf == NULL) || (ibuf->x == 0) || (ibuf->y == 0)) {
+  if ((ibuf == nullptr) || (ibuf->x == 0) || (ibuf->y == 0)) {
     BKE_image_release_ibuf(ima, ibuf, lock);
     return OPERATOR_CANCELLED;
   }
@@ -374,8 +374,8 @@ static int backimage_fit_exec(bContext *C, wmOperator *UNUSED(op))
   snode->yof = 0;
 
   ED_region_tag_redraw(region);
-  WM_main_add_notifier(NC_NODE | ND_DISPLAY, NULL);
-  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+  WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -402,7 +402,7 @@ void NODE_OT_backimage_fit(wmOperatorType *ot)
 /** \name Sample Backdrop Operator
  * \{ */
 
-typedef struct ImageSampleInfo {
+struct ImageSampleInfo {
   ARegionType *art;
   void *draw_handle;
   int x, y;
@@ -420,12 +420,12 @@ typedef struct ImageSampleInfo {
 
   int draw;
   int color_manage;
-} ImageSampleInfo;
+};
 
 static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
   Scene *scene = CTX_data_scene(C);
-  ImageSampleInfo *info = arg_info;
+  ImageSampleInfo *info = (ImageSampleInfo *)arg_info;
 
   if (info->draw) {
     ED_image_draw_info(scene,
@@ -445,7 +445,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
 
 /* Returns mouse position in image space. */
 bool ED_space_node_get_position(
-    Main *bmain, SpaceNode *snode, struct ARegion *ar, const int mval[2], float fpos[2])
+    Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
 {
   if (!ED_node_is_compositor(snode) || (snode->flag & SNODE_BACKDRAW) == 0) {
     return false;
@@ -453,7 +453,7 @@ bool ED_space_node_get_position(
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
   if (!ibuf) {
     BKE_image_release_ibuf(ima, ibuf, lock);
     return false;
@@ -462,8 +462,10 @@ bool ED_space_node_get_position(
   /* map the mouse coords to the backdrop image space */
   float bufx = ibuf->x * snode->zoom;
   float bufy = ibuf->y * snode->zoom;
-  fpos[0] = (bufx > 0.0f ? ((float)mval[0] - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
-  fpos[1] = (bufy > 0.0f ? ((float)mval[1] - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+  fpos[0] = (bufx > 0.0f ? ((float)mval[0] - 0.5f * region->winx - snode->xof) / bufx + 0.5f :
+                           0.0f);
+  fpos[1] = (bufy > 0.0f ? ((float)mval[1] - 0.5f * region->winy - snode->yof) / bufy + 0.5f :
+                           0.0f);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
   return true;
@@ -489,7 +491,7 @@ bool ED_space_node_color_sample(
   }
 
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
   if (!ibuf) {
     return false;
   }
@@ -532,14 +534,14 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   ARegion *region = CTX_wm_region(C);
-  ImageSampleInfo *info = op->customdata;
+  ImageSampleInfo *info = (ImageSampleInfo *)op->customdata;
   void *lock;
   Image *ima;
   ImBuf *ibuf;
   float fx, fy, bufx, bufy;
 
   ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+  ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
   if (!ibuf) {
     info->draw = 0;
     return;
@@ -570,8 +572,8 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     info->draw = 1;
     info->channels = ibuf->channels;
 
-    info->zp = NULL;
-    info->zfp = NULL;
+    info->zp = nullptr;
+    info->zfp = nullptr;
 
     if (ibuf->rect) {
       cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
@@ -616,7 +618,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     info->draw = 0;
-    ED_node_sample_set(NULL);
+    ED_node_sample_set(nullptr);
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
@@ -626,9 +628,9 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void sample_exit(bContext *C, wmOperator *op)
 {
-  ImageSampleInfo *info = op->customdata;
+  ImageSampleInfo *info = (ImageSampleInfo *)op->customdata;
 
-  ED_node_sample_set(NULL);
+  ED_node_sample_set(nullptr);
   ED_region_draw_cb_exit(info->art, info->draw_handle);
   ED_area_tag_redraw(CTX_wm_area(C));
   MEM_freeN(info);
@@ -644,7 +646,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
+  info = (ImageSampleInfo *)MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
   info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
       region->type, sample_draw, info, REGION_DRAW_POST_PIXEL);

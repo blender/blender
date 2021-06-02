@@ -65,13 +65,13 @@
 /**
  * XXX Does some additional initialization on top of #nodeAddNode
  * Can be used with both custom and static nodes,
- * if `idname == NULL` the static int type will be used instead.
+ * if `idname == nullptr` the static int type will be used instead.
  */
 bNode *node_add_node(const bContext *C, const char *idname, int type, float locx, float locy)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   Main *bmain = CTX_data_main(C);
-  bNode *node = NULL;
+  bNode *node = nullptr;
 
   node_deselect_all(snode);
 
@@ -90,7 +90,7 @@ bNode *node_add_node(const bContext *C, const char *idname, int type, float locx
   nodeSetSelected(node, true);
 
   ntreeUpdateTree(bmain, snode->edittree);
-  ED_node_set_active(bmain, snode->edittree, node, NULL);
+  ED_node_set_active(bmain, snode->edittree, node, nullptr);
 
   snode_update(snode, node);
 
@@ -114,7 +114,7 @@ static bool add_reroute_intersect_check(bNodeLink *link,
 {
   float coord_array[NODE_LINK_RESOL + 1][2];
 
-  if (node_link_bezier_points(NULL, NULL, link, coord_array, NODE_LINK_RESOL)) {
+  if (node_link_bezier_points(nullptr, nullptr, link, coord_array, NODE_LINK_RESOL)) {
     for (int i = 0; i < tot - 1; i++) {
       for (int b = 0; b < NODE_LINK_RESOL; b++) {
         if (isect_seg_seg_v2_point(
@@ -127,13 +127,13 @@ static bool add_reroute_intersect_check(bNodeLink *link,
   return false;
 }
 
-typedef struct bNodeSocketLink {
+struct bNodeSocketLink {
   struct bNodeSocketLink *next, *prev;
 
   struct bNodeSocket *sock;
   struct bNodeLink *link;
   float point[2];
-} bNodeSocketLink;
+};
 
 static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb,
                                                        bNodeSocket *sock,
@@ -142,12 +142,12 @@ static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb,
 {
   bNodeSocketLink *socklink, *prev;
 
-  socklink = MEM_callocN(sizeof(bNodeSocketLink), "socket link");
+  socklink = (bNodeSocketLink *)MEM_callocN(sizeof(bNodeSocketLink), "socket link");
   socklink->sock = sock;
   socklink->link = link;
   copy_v2_v2(socklink->point, point);
 
-  for (prev = lb->last; prev; prev = prev->prev) {
+  for (prev = (bNodeSocketLink *)lb->last; prev; prev = prev->prev) {
     if (prev->sock == sock) {
       break;
     }
@@ -162,7 +162,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
-  bNode *reroute_node = NULL;
+  bNode *reroute_node = nullptr;
   bNodeSocket *cursock = socklink->sock;
   float insert_point[2];
   int num_links;
@@ -184,12 +184,12 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
                       socklink->link->fromnode,
                       socklink->link->fromsock,
                       reroute_node,
-                      reroute_node->inputs.first);
+                      (bNodeSocket *)reroute_node->inputs.first);
         }
         else {
           nodeAddLink(ntree,
                       reroute_node,
-                      reroute_node->outputs.first,
+                      (bNodeSocket *)reroute_node->outputs.first,
                       socklink->link->tonode,
                       socklink->link->tosock);
         }
@@ -198,11 +198,11 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C,
       /* insert the reroute node into the link */
       if (in_out == SOCK_OUT) {
         socklink->link->fromnode = reroute_node;
-        socklink->link->fromsock = reroute_node->outputs.first;
+        socklink->link->fromsock = (bNodeSocket *)reroute_node->outputs.first;
       }
       else {
         socklink->link->tonode = reroute_node;
-        socklink->link->tosock = reroute_node->inputs.first;
+        socklink->link->tosock = (bNodeSocket *)reroute_node->inputs.first;
       }
 
       add_v2_v2(insert_point, socklink->point);
@@ -259,7 +259,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     BLI_listbase_clear(&output_links);
     BLI_listbase_clear(&input_links);
 
-    for (link = ntree->links.first; link; link = link->next) {
+    for (link = (bNodeLink *)ntree->links.first; link; link = link->next) {
       if (nodeLinkIsHidden(link)) {
         continue;
       }
@@ -275,11 +275,11 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     /* Create reroute nodes for intersected links.
      * Only one reroute if links share the same input/output socket.
      */
-    socklink = output_links.first;
+    socklink = (bNodeSocketLink *)output_links.first;
     while (socklink) {
       socklink = add_reroute_do_socket_section(C, socklink, SOCK_OUT);
     }
-    socklink = input_links.first;
+    socklink = (bNodeSocketLink *)input_links.first;
     while (socklink) {
       socklink = add_reroute_do_socket_section(C, socklink, SOCK_IN);
     }
@@ -317,7 +317,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
   /* internal */
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_CROSS, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
@@ -337,10 +337,10 @@ static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
 
   bNodeTree *node_group = (bNodeTree *)BKE_libblock_find_name(bmain, ID_NT, name);
   if (!node_group) {
-    return NULL;
+    return nullptr;
   }
 
-  const char *disabled_hint = NULL;
+  const char *disabled_hint = nullptr;
   if ((node_group->type != ntree->type) || !nodeGroupPoll(ntree, node_group, &disabled_hint)) {
     if (disabled_hint) {
       BKE_reportf(op->reports,
@@ -358,7 +358,7 @@ static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
                   ntree->id.name + 2);
     }
 
-    return NULL;
+    return nullptr;
   }
 
   return node_group;
@@ -450,7 +450,7 @@ static Object *node_add_object_get_and_poll_object_node_tree(Main *bmain, wmOper
 
   Object *object = (Object *)BKE_libblock_find_name(bmain, ID_OB, name);
   if (!object) {
-    return NULL;
+    return nullptr;
   }
 
   return object;
@@ -470,7 +470,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   bNode *object_node = node_add_node(
-      C, NULL, GEO_NODE_OBJECT_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+      C, nullptr, GEO_NODE_OBJECT_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
   if (!object_node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add node object");
     return OPERATOR_CANCELLED;
@@ -482,7 +482,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueObject *socket_data = sock->default_value;
+  bNodeSocketValueObject *socket_data = (bNodeSocketValueObject *)sock->default_value;
   socket_data->value = object;
   id_us_plus(&object->id);
 
@@ -554,7 +554,7 @@ static Tex *node_add_texture_get_and_poll_texture_node_tree(Main *bmain, wmOpera
 
   Tex *texture = (Tex *)BKE_libblock_find_name(bmain, ID_TE, name);
   if (!texture) {
-    return NULL;
+    return nullptr;
   }
 
   return texture;
@@ -574,7 +574,7 @@ static int node_add_texture_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   bNode *texture_node = node_add_node(C,
-                                      NULL,
+                                      nullptr,
                                       GEO_NODE_ATTRIBUTE_SAMPLE_TEXTURE,
                                       snode->runtime->cursor[0],
                                       snode->runtime->cursor[1]);
@@ -655,7 +655,7 @@ static Collection *node_add_collection_get_and_poll_collection_node_tree(Main *b
 
   Collection *collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
   if (!collection) {
-    return NULL;
+    return nullptr;
   }
 
   return collection;
@@ -675,7 +675,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   bNode *collection_node = node_add_node(
-      C, NULL, GEO_NODE_COLLECTION_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+      C, nullptr, GEO_NODE_COLLECTION_INFO, snode->runtime->cursor[0], snode->runtime->cursor[1]);
   if (!collection_node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add node collection");
     return OPERATOR_CANCELLED;
@@ -687,7 +687,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bNodeSocketValueCollection *socket_data = sock->default_value;
+  bNodeSocketValueCollection *socket_data = (bNodeSocketValueCollection *)sock->default_value;
   socket_data->value = collection;
   id_us_plus(&collection->id);
 
@@ -788,7 +788,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  node = node_add_node(C, NULL, type, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+  node = node_add_node(C, nullptr, type, snode->runtime->cursor[0], snode->runtime->cursor[1]);
 
   if (!node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
@@ -801,7 +801,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
    * to get proper image source.
    */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-    BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
+    BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
     WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
   }
 
@@ -876,7 +876,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node;
-  ID *mask = NULL;
+  ID *mask = nullptr;
 
   /* check input variables */
   char name[MAX_ID_NAME - 2];
@@ -890,7 +890,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   node = node_add_node(
-      C, NULL, CMP_NODE_MASK, snode->runtime->cursor[0], snode->runtime->cursor[1]);
+      C, nullptr, CMP_NODE_MASK, snode->runtime->cursor[0], snode->runtime->cursor[1]);
 
   if (!node) {
     BKE_report(op->reports, RPT_WARNING, "Could not add a mask node");
@@ -976,7 +976,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
     id_us_min(&ntree->id);
 
     RNA_id_pointer_create(&ntree->id, &idptr);
-    RNA_property_pointer_set(&ptr, prop, idptr, NULL);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
     RNA_property_update(C, &ptr, prop);
   }
   else if (snode) {
@@ -993,7 +993,7 @@ static const EnumPropertyItem *new_node_tree_type_itemf(bContext *UNUSED(C),
                                                         PropertyRNA *UNUSED(prop),
                                                         bool *r_free)
 {
-  return rna_node_tree_type_itemf(NULL, NULL, r_free);
+  return rna_node_tree_type_itemf(nullptr, nullptr, r_free);
 }
 
 void NODE_OT_new_node_tree(wmOperatorType *ot)

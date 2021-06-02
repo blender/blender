@@ -21,7 +21,7 @@
  * \ingroup spnode
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -135,7 +135,7 @@ static bNode *node_group_get_active(bContext *C, const char *node_idname)
   if (node && STREQ(node->idname, node_idname)) {
     return node;
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -165,7 +165,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
     ED_node_tree_pop(snode);
   }
 
-  WM_event_add_notifier(C, NC_SCENE | ND_NODES, NULL);
+  WM_event_add_notifier(C, NC_SCENE | ND_NODES, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -200,7 +200,8 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 static AnimationBasePathChange *animation_basepath_change_new(const char *src_basepath,
                                                               const char *dst_basepath)
 {
-  AnimationBasePathChange *basepath_change = MEM_callocN(sizeof(*basepath_change), AT);
+  AnimationBasePathChange *basepath_change = (AnimationBasePathChange *)MEM_callocN(
+      sizeof(*basepath_change), AT);
   basepath_change->src_basepath = src_basepath;
   basepath_change->dst_basepath = dst_basepath;
   return basepath_change;
@@ -220,11 +221,11 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
   /* clear new pointers, set in copytree */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->new_node = NULL;
+    node->new_node = nullptr;
   }
 
-  ListBase anim_basepaths = {NULL, NULL};
-  LinkNode *nodes_delayed_free = NULL;
+  ListBase anim_basepaths = {nullptr, nullptr};
+  LinkNode *nodes_delayed_free = nullptr;
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
   /* wgroup is a temporary copy of the NodeTree we're merging in
@@ -247,7 +248,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old nodetree has animation data which potentially covers this node
      */
-    const char *old_animation_basepath = NULL;
+    const char *old_animation_basepath = nullptr;
     if (wgroup->adt) {
       PointerRNA ptr;
       RNA_pointer_create(&wgroup->id, &RNA_Node, node, &ptr);
@@ -277,7 +278,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     node->flag |= NODE_SELECT;
   }
 
-  bNodeLink *glinks_first = ntree->links.last;
+  bNodeLink *glinks_first = (bNodeLink *)ntree->links.last;
 
   /* Add internal links to the ntree */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &wgroup->links) {
@@ -285,10 +286,10 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     BLI_addtail(&ntree->links, link);
   }
 
-  bNodeLink *glinks_last = ntree->links.last;
+  bNodeLink *glinks_last = (bNodeLink *)ntree->links.last;
 
   /* and copy across the animation,
-   * note that the animation data's action can be NULL here */
+   * note that the animation data's action can be nullptr here */
   if (wgroup->adt) {
     bAction *waction;
 
@@ -307,7 +308,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* free temp action too */
     if (waction) {
       BKE_id_free(bmain, waction);
-      wgroup->adt->action = NULL;
+      wgroup->adt->action = nullptr;
     }
   }
 
@@ -317,14 +318,14 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   /* restore external links to and from the gnode */
 
   /* input links */
-  if (glinks_first != NULL) {
+  if (glinks_first != nullptr) {
     for (bNodeLink *link = glinks_first->next; link != glinks_last->next; link = link->next) {
       if (link->fromnode->type == NODE_GROUP_INPUT) {
         const char *identifier = link->fromsock->identifier;
         int num_external_links = 0;
 
         /* find external links to this input */
-        for (bNodeLink *tlink = ntree->links.first; tlink != glinks_first->next;
+        for (bNodeLink *tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next;
              tlink = tlink->next) {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
             nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
@@ -348,10 +349,11 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     }
 
     /* Also iterate over new links to cover passthrough links. */
-    glinks_last = ntree->links.last;
+    glinks_last = (bNodeLink *)ntree->links.last;
 
     /* output links */
-    for (bNodeLink *link = ntree->links.first; link != glinks_first->next; link = link->next) {
+    for (bNodeLink *link = (bNodeLink *)ntree->links.first; link != glinks_first->next;
+         link = link->next) {
       if (link->fromnode == gnode) {
         const char *identifier = link->fromsock->identifier;
         int num_internal_links = 0;
@@ -384,7 +386,7 @@ static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   }
 
   while (nodes_delayed_free) {
-    bNode *node = BLI_linklist_pop(&nodes_delayed_free);
+    bNode *node = (bNode *)BLI_linklist_pop(&nodes_delayed_free);
     nodeRemoveNode(bmain, ntree, node, false);
   }
 
@@ -455,10 +457,10 @@ static int node_group_separate_selected(
 
   /* clear new pointers, set in BKE_node_copy_ex(). */
   LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-    node->new_node = NULL;
+    node->new_node = nullptr;
   }
 
-  ListBase anim_basepaths = {NULL, NULL};
+  ListBase anim_basepaths = {nullptr, nullptr};
 
   /* add selected nodes into the ntree */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ngroup->nodes) {
@@ -543,7 +545,7 @@ static int node_group_separate_selected(
   }
 
   /* and copy across the animation,
-   * note that the animation data's action can be NULL here */
+   * note that the animation data's action can be nullptr here */
   if (ngroup->adt) {
     /* now perform the moving */
     BKE_animdata_transfer_by_basepath(bmain, &ngroup->id, &ntree->id, &anim_basepaths);
@@ -562,16 +564,16 @@ static int node_group_separate_selected(
   return 1;
 }
 
-typedef enum eNodeGroupSeparateType {
+enum eNodeGroupSeparateType {
   NODE_GS_COPY,
   NODE_GS_MOVE,
-} eNodeGroupSeparateType;
+};
 
 /* Operator Property */
 static const EnumPropertyItem node_group_separate_types[] = {
     {NODE_GS_COPY, "COPY", 0, "Copy", "Copy to parent node tree, keep group intact"},
     {NODE_GS_MOVE, "MOVE", 0, "Move", "Move to parent node tree, remove from group"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int node_group_separate_exec(bContext *C, wmOperator *op)
@@ -628,8 +630,8 @@ static int node_group_separate_invoke(bContext *C,
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_COPY);
-  uiItemEnumO(layout, "NODE_OT_group_separate", NULL, 0, "type", NODE_GS_MOVE);
+  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, 0, "type", NODE_GS_COPY);
+  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, 0, "type", NODE_GS_MOVE);
 
   UI_popup_menu_end(C, pup);
 
@@ -674,12 +676,12 @@ static bool node_group_make_test_selected(bNodeTree *ntree,
   int ok = true;
 
   /* make a local pseudo node tree to pass to the node poll functions */
-  bNodeTree *ngroup = ntreeAddTree(NULL, "Pseudo Node Group", ntree_idname);
+  bNodeTree *ngroup = ntreeAddTree(nullptr, "Pseudo Node Group", ntree_idname);
 
   /* check poll functions for selected nodes */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node_group_make_use_node(node, gnode)) {
-      const char *disabled_hint = NULL;
+      const char *disabled_hint = nullptr;
       if (node->typeinfo->poll_instance &&
           !node->typeinfo->poll_instance(node, ngroup, &disabled_hint)) {
         if (disabled_hint) {
@@ -781,7 +783,7 @@ static void node_group_make_insert_selected(const bContext *C, bNodeTree *ntree,
     expose_visible = true;
   }
 
-  ListBase anim_basepaths = {NULL, NULL};
+  ListBase anim_basepaths = {nullptr, nullptr};
 
   /* move nodes over */
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
@@ -995,10 +997,10 @@ static bNode *node_group_make_from_selected(const bContext *C,
   Main *bmain = CTX_data_main(C);
 
   float min[2], max[2];
-  const int totselect = node_get_selected_minmax(ntree, NULL, min, max, false);
+  const int totselect = node_get_selected_minmax(ntree, nullptr, min, max, false);
   /* don't make empty group */
   if (totselect == 0) {
-    return NULL;
+    return nullptr;
   }
 
   /* new nodetree */
@@ -1029,7 +1031,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  if (!node_group_make_test_selected(ntree, NULL, ntree_idname, op->reports)) {
+  if (!node_group_make_test_selected(ntree, nullptr, ntree_idname, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1042,7 +1044,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
     if (ngroup) {
       ED_node_tree_push(snode, ngroup, gnode);
       LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
-        sort_multi_input_socket_links(snode, node, NULL, NULL);
+        sort_multi_input_socket_links(snode, node, nullptr, nullptr);
       }
       ntreeUpdateTree(bmain, ngroup);
     }
