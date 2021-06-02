@@ -51,7 +51,7 @@
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
-                    <li>Geometry nodes 22 new nodes and imrpoved attribute search</li>
+                    <li>Geometry Nodes - 22 new nodes and improved attribute search</li>
                     <li>Mask loops, textures and patterns for sculpting</li>
                     <li>Grease pencil interpolate refactored and SVG and PDF support</li>
                     <li>Persistent Data rendering settings for Cycles</li>
