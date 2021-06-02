@@ -42,6 +42,7 @@
 #include "SEQ_iterator.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 #include "SEQ_transform.h"
 
 /* For menu, popup, icons, etc. */
@@ -1187,7 +1188,7 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
         test = (timeline_frame <= seq->startdisp);
         break;
       case 2:
-        test = (timeline_frame <= seq->enddisp) && (timeline_frame >= seq->startdisp);
+        test = SEQ_time_strip_intersects_frame(seq, timeline_frame);
         break;
     }
 

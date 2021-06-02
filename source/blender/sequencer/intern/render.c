@@ -70,6 +70,7 @@
 #include "SEQ_proxy.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "effects.h"
@@ -309,7 +310,7 @@ static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timelin
   SeqCollection *collection = SEQ_collection_create();
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if ((seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame)) {
+    if (SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
       SEQ_collection_append_strip(seq, collection);
     }
   }

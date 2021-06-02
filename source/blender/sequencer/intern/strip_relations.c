@@ -259,7 +259,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   SEQ_prefetch_stop(scene);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
-    if (for_render && CFRA >= seq->startdisp && CFRA <= seq->enddisp) {
+    if (for_render && SEQ_time_strip_intersects_frame(seq, CFRA)) {
       continue;
     }
 
@@ -358,7 +358,7 @@ void SEQ_relations_update_changed_seq_and_deps(Scene *scene,
 static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (seq->enddisp < timeline_frame || seq->startdisp > timeline_frame) {
+    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
       SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
