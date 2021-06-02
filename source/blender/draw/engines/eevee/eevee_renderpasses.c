@@ -79,7 +79,7 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
  * type the rest of the bits are used for the name hash. */
 int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
 {
-  int hash = BLI_hash_string(aov->name);
+  int hash = BLI_hash_string(aov->name) << 1;
   SET_FLAG_FROM_TEST(hash, aov->type == AOV_TYPE_COLOR, EEVEE_AOV_HASH_COLOR_TYPE_MASK);
   return hash;
 }
