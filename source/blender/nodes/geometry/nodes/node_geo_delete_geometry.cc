@@ -492,6 +492,7 @@ static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
   const bool invert = params.extract_input<bool>("Invert");
   const std::string selection_name = params.extract_input<std::string>("Selection");
   if (selection_name.empty()) {
+    params.set_output("Geometry", std::move(geometry_set));
     return;
   }
 
