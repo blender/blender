@@ -5036,6 +5036,10 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.prop(settings, "use_scale_thickness", text="Scale Thickness")
 
         layout.separator()
+        layout.operator("gpencil.stroke_normalize", text="Normalize Thickness").mode = 'THICKNESS'
+        layout.operator("gpencil.stroke_normalize", text="Normalize Opacity").mode = 'OPACITY'
+
+        layout.separator()
         layout.operator("gpencil.reset_transform_fill", text="Reset Fill Transform")
 
 
