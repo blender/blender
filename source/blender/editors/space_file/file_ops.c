@@ -1744,7 +1744,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   /* directory change */
   if (file && (file->typeflag & FILE_TYPE_DIR)) {
     if (!file->relpath) {
-      return OPERATOR_CANCELLED;
+      return false;
     }
 
     if (FILENAME_IS_PARENT(file->relpath)) {
@@ -1783,7 +1783,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     WM_event_fileselect_event(CTX_wm_manager(C), op, EVT_FILESELECT_EXEC);
   }
 
-  return OPERATOR_FINISHED;
+  return true;
 }
 
 static int file_exec(bContext *C, wmOperator *UNUSED(op))
