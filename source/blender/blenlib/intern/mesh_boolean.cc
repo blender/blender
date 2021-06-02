@@ -149,11 +149,9 @@ class TriMeshTopology : NonCopyable {
    * Else return NO_INDEX. */
   int other_tri_if_manifold(Edge e, int t) const
   {
-    if (edge_tri_.contains(e)) {
-      auto *p = edge_tri_.lookup(e);
-      if (p->size() == 2) {
-        return ((*p)[0] == t) ? (*p)[1] : (*p)[0];
-      }
+    auto p = edge_tri_.lookup_ptr(e);
+    if (p != nullptr && (*p)->size() == 2) {
+      return ((**p)[0] == t) ? (**p)[1] : (**p)[0];
     }
     return NO_INDEX;
   }
@@ -3336,9 +3334,13 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
     std::cout << "\nPOLYMESH_FROM_TRIMESH_WITH_DISSOLVE\n";
   }
   /* For now: need plane normals for all triangles. */
-  for (Face *tri : tm_out.faces()) {
-    tri->populate_plane(false);
-  }
+  const int grainsize = 1024;
+  parallel_for(tm_out.face_index_range(), grainsize, [&](IndexRange range) {
+    for (int i : range) {
+      Face *tri = tm_out.face(i);
+      tri->populate_plane(false);
+    }
+  });
   /* Gather all output triangles that are part of each input face.
    * face_output_tris[f] will be indices of triangles in tm_out
    * that have f as their original face. */
