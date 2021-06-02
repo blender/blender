@@ -535,8 +535,11 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   AVDictionary *codec_opts = NULL;
   /* High quality preset value. */
   av_dict_set_int(&codec_opts, "crf", crf, 0);
-  /* Prefer smaller file-size. */
-  av_dict_set(&codec_opts, "preset", "slow", 0);
+  /* Prefer smaller file-size. Presets from veryslow to veryfast produce output with very similar
+   * file-size, but there is big difference in performance. In some cases veryfast preset will
+   * produce smallest file-size. */
+  av_dict_set(&codec_opts, "preset", "veryfast", 0);
+  av_dict_set(&codec_opts, "tune", "fastdecode", 0);
 
   if (rv->codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
     rv->c->thread_count = 0;
