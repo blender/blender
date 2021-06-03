@@ -1465,7 +1465,12 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 col.separator()
                 row = col.row(align=True)
                 row.prop(gp_settings, "extend_stroke_factor")
-                row.prop(gp_settings, "show_fill_extend", text="", icon='GRID')
+                if gp_settings.show_fill_extend:
+                    icon = 'HIDE_OFF'
+                else:
+                    icon = 'HIDE_ON'
+
+                row.prop(gp_settings, "show_fill_extend", text="", icon=icon)
 
                 col.separator()
                 col.prop(gp_settings, "fill_leak", text="Leak Size")
