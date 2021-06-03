@@ -5050,6 +5050,7 @@ static void registerGeometryNodes()
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
+  register_node_type_geo_curve_length();
   register_node_type_geo_curve_to_mesh();
   register_node_type_geo_curve_resample();
   register_node_type_geo_delete_geometry();
