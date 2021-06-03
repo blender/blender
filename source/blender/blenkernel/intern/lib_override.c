@@ -1074,6 +1074,10 @@ bool BKE_lib_override_library_resync(Main *bmain,
         BLI_assert(/*id_override_new->lib == NULL || */ id_override_new->lib == id->lib);
         BLI_assert(id_override_old == NULL || id_override_old->lib == id_root->lib);
         id_override_new->lib = id_root->lib;
+        /* Remap step below will tag directly linked ones properly as needed. */
+        if (ID_IS_LINKED(id_override_new)) {
+          id_override_new->tag |= LIB_TAG_INDIRECT;
+        }
 
         if (id_override_old != NULL) {
           /* Swap the names between old override ID and new one. */
