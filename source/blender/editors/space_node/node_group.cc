@@ -219,7 +219,7 @@ static void animation_basepath_change_free(AnimationBasePathChange *basepath_cha
 /* returns 1 if its OK */
 static int node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 {
-  /* clear new pointers, set in copytree */
+  /* Clear new pointers, set in #ntreeCopyTree_ex_new_pointers. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->new_node = nullptr;
   }

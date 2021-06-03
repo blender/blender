@@ -3294,7 +3294,11 @@ static void node_texture_set_butfunc(bNodeType *ntype)
   }
 }
 
-/* ****** init draw callbacks for all tree types, only called in usiblender.c, once ************ */
+/* -------------------------------------------------------------------- */
+/** \name Init Draw Callbacks For All Tree Types
+ *
+ * Only called on node initialization, once.
+ * \{ */
 
 static void node_property_update_default(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -3365,6 +3369,8 @@ static void node_socket_undefined_interface_draw_color(bContext *UNUSED(C),
   r_color[2] = 0.0f;
   r_color[3] = 1.0f;
 }
+
+/** \} */
 
 void ED_node_init_butfuncs(void)
 {
