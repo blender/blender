@@ -608,6 +608,9 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   if (remap_local_usages) {
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+
   return local_id;
 }
 
@@ -622,6 +625,8 @@ static ID *rna_ID_override_hierarchy_create(
 
   ID *id_root_override = NULL;
   BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
+
+  WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
 
   return id_root_override;
 }
