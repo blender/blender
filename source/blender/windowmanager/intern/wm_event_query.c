@@ -282,15 +282,17 @@ bool WM_event_is_mouse_drag(const wmEvent *event)
 int WM_event_drag_threshold(const struct wmEvent *event)
 {
   int drag_threshold;
-  if (WM_event_is_tablet(event)) {
-    drag_threshold = U.drag_threshold_tablet;
-  }
-  else if (ISMOUSE(event->prevtype)) {
+  if (ISMOUSE(event->prevtype)) {
     BLI_assert(event->prevtype != MOUSEMOVE);
     /* Using the previous type is important is we want to check the last pressed/released button,
      * The `event->type` would include #MOUSEMOVE which is always the case when dragging
      * and does not help us know which threshold to use. */
-    drag_threshold = U.drag_threshold_mouse;
+    if (WM_event_is_tablet(event)) {
+      drag_threshold = U.drag_threshold_tablet;
+    }
+    else {
+      drag_threshold = U.drag_threshold_mouse;
+    }
   }
   else {
     /* Typically keyboard, could be NDOF button or other less common types. */

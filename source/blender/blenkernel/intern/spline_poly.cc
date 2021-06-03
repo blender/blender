@@ -28,6 +28,13 @@ SplinePtr PolySpline::copy() const
   return std::make_unique<PolySpline>(*this);
 }
 
+SplinePtr PolySpline::copy_settings() const
+{
+  std::unique_ptr<PolySpline> copy = std::make_unique<PolySpline>();
+  copy_base_settings(*this, *copy);
+  return copy;
+}
+
 int PolySpline::size() const
 {
   const int size = positions_.size();

@@ -110,7 +110,7 @@ class IndexMask {
   }
 
   /**
-   * Returns the n-th index referenced by this IndexMask. The `index_mask` method returns an
+   * Returns the n-th index referenced by this IndexMask. The `index_range` method returns an
    * IndexRange containing all indices that can be used as parameter here.
    */
   int64_t operator[](int64_t n) const

@@ -770,6 +770,7 @@ int BKE_object_material_count_eval(Object *ob)
 
 void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
 {
+  BLI_assert(slot >= 1);
   Material ***materials_ptr = BKE_id_material_array_p(id);
   short *len_ptr = BKE_id_material_len_p(id);
   if (ELEM(NULL, materials_ptr, len_ptr)) {
@@ -791,6 +792,21 @@ void BKE_id_material_eval_assign(ID *id, int slot, Material *material)
   }
 
   (*materials_ptr)[slot_index] = material;
+}
+
+/**
+ * Add an empty material slot if the id has no material slots. This material slot allows the
+ * material to be overwritten by object-linked materials.
+ */
+void BKE_id_material_eval_ensure_default_slot(ID *id)
+{
+  short *len_ptr = BKE_id_material_len_p(id);
+  if (len_ptr == NULL) {
+    return;
+  }
+  if (*len_ptr == 0) {
+    BKE_id_material_eval_assign(id, 1, NULL);
+  }
 }
 
 Material *BKE_gpencil_material(Object *ob, short act)

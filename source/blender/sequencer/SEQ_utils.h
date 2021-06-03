@@ -61,6 +61,7 @@ int SEQ_recursive_apply(struct Sequence *seq,
                         int (*apply_fn)(struct Sequence *, void *),
                         void *arg);
 void SEQ_ensure_unique_name(struct Sequence *seq, struct Scene *scene);
+
 #ifdef __cplusplus
 }
 #endif

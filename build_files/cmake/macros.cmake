@@ -596,14 +596,6 @@ function(SETUP_LIBDIRS)
       link_directories(${GMP_LIBPATH})
     endif()
 
-    if(WITH_GHOST_WAYLAND)
-      link_directories(
-        ${wayland-client_LIBRARY_DIRS}
-        ${wayland-egl_LIBRARY_DIRS}
-        ${xkbcommon_LIBRARY_DIRS}
-        ${wayland-cursor_LIBRARY_DIRS})
-    endif()
-
     if(WIN32 AND NOT UNIX)
       link_directories(${PTHREADS_LIBPATH})
     endif()

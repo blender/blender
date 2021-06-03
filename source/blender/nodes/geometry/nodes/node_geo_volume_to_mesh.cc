@@ -23,6 +23,7 @@
 #include "node_geometry_util.hh"
 
 #include "BKE_lib_id.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_volume.h"
@@ -134,6 +135,7 @@ static void create_mesh_from_volume(GeometrySet &geometry_set_in,
   if (mesh == nullptr) {
     return;
   }
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MeshComponent &dst_component = geometry_set_out.get_component_for_write<MeshComponent>();
   dst_component.replace(mesh);
 }

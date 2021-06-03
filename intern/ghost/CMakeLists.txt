@@ -282,6 +282,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${wayland-egl_INCLUDE_DIRS}
       ${xkbcommon_INCLUDE_DIRS}
       ${wayland-cursor_INCLUDE_DIRS}
+      ${dbus_INCLUDE_DIRS}
     )
 
     list(APPEND SRC
@@ -320,6 +321,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       xdg-shell
       "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
+    )
+    # xdg-decoration.
+    generate_protocol_bindings(
+      xdg-decoration
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
     )
     # Pointer-constraints.
     generate_protocol_bindings(

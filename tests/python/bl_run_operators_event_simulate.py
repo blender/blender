@@ -31,7 +31,7 @@ Possible use cases for this script include:
 
 - Creating reproducible user interactions for the purpose of benchmarking and profiling.
 
-  Note that curse-motion actions report the update time between events
+  Note that cursor-motion actions report the update time between events
   which can be helpful when measuring optimizations.
 
 - As a convenient way to replay interactive actions that reproduce a bug.
@@ -86,7 +86,7 @@ Sculpt stroke:
         'event(type="WHEELDOWNMOUSE", value="TAP", repeat=2)' \
         'event(type="LEFTMOUSE", value="PRESS")' \
         'cursor_motion(path="CIRCLE", radius=300, steps=100, repeat=5)' \
-        'event(type="LEFTMOUSE", value="RELEASE")' \
+        'event(type="LEFTMOUSE", value="RELEASE")'
 
 
 Implementation
@@ -245,8 +245,8 @@ class action_handlers:
         if area is None:
             raise ArgumentTypeError("Area with ui_type=%r not found" % ui_type)
 
-        x = area.y + (area.width // 2)
-        y = area.x + (area.height // 2)
+        x = area.x + (area.width // 2)
+        y = area.y + (area.height // 2)
 
         yield dict(type='MOUSEMOVE', value='NOTHING', x=x, y=y)
         yield dict(type='SPACE', value='TAP', ctrl=True, alt=True)
@@ -549,8 +549,8 @@ def main_event_iter(*, action_list):
     """
     area = find_main_area()
 
-    x_init = area.y + (area.width // 2)
-    y_init = area.x + (area.height // 2)
+    x_init = area.x + (area.width // 2)
+    y_init = area.y + (area.height // 2)
 
     yield dict(type='MOUSEMOVE', value='NOTHING', x=x_init, y=y_init)
 

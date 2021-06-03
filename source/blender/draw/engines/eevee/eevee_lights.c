@@ -96,7 +96,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     }
   }
   else if (ELEM(la->type, LA_SPOT, LA_LOCAL)) {
-    power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI); /* 1/(4*r²*Pi²) */
+    power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI); /* `1/(4*(r^2)*(Pi^2))` */
 
     /* for point lights (a.k.a radius == 0.0) */
     // power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
@@ -106,7 +106,7 @@ static float light_shape_power_get(const Light *la, const EEVEE_Light *evli)
     /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that we
      * cannot reproduce so we account for that by scaling the light power. This function is the
      * result of a rough manual fitting. */
-    power += 1.0f / (2.0f * M_PI); /* power *= 1 + r²/2 */
+    power += 1.0f / (2.0f * M_PI); /* `power *= 1 + (r^2)/2` */
   }
   return power;
 }
@@ -257,7 +257,7 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     float power = max_fff(UNPACK3(evli->color)) * evli->volume;
     if (power > 0.0f && evli->light_type != LA_SUN) {
       /* The limit of the power attenuation function when the distance to the light goes to 0 is
-       * 2 / r² where r is the light radius. We need to find the right radius that emits at most
+       * `2 / r^2` where r is the light radius. We need to find the right radius that emits at most
        * the volume light upper bound. Inverting the function we get: */
       float min_radius = 1.0f / sqrtf(0.5f * upper_bound / power);
       /* Square it here to avoid a multiplication inside the shader. */

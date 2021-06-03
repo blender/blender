@@ -1946,7 +1946,7 @@ class SEQUENCER_PT_strip_proxy(SequencerButtonsPanel, Panel):
             layout.prop(proxy, "use_overwrite")
 
             col = layout.column()
-            col.prop(proxy, "quality", text="Build JPEG Quality")
+            col.prop(proxy, "quality", text="Quality")
 
             if strip.type == 'MOVIE':
                 col = layout.column()

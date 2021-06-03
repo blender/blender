@@ -17,6 +17,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 
 #include "UI_interface.h"
@@ -165,6 +166,7 @@ static void geo_node_mesh_primitive_line_exec(GeoNodeExecParams params)
     const int count = params.extract_input<int>("Count");
     mesh = create_line_mesh(start, delta, count);
   }
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }

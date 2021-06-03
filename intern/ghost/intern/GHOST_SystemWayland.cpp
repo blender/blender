@@ -40,6 +40,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "GHOST_WaylandCursorSettings.h"
 #include <pointer-constraints-client-protocol.h>
 #include <relative-pointer-client-protocol.h>
 #include <wayland-cursor.h>
@@ -52,15 +53,6 @@
 
 #include <cstring>
 
-struct output_t {
-  struct wl_output *output;
-  int32_t width, height;
-  int transform;
-  int scale;
-  std::string make;
-  std::string model;
-};
-
 struct buffer_t {
   void *data;
   size_t size;
@@ -72,6 +64,12 @@ struct cursor_t {
   struct wl_buffer *buffer;
   struct wl_cursor_image image;
   struct buffer_t *file_buffer = nullptr;
+  struct wl_cursor_theme *theme = nullptr;
+  int size;
+  std::string theme_name;
+  // outputs on which the cursor is visible
+  std::unordered_set<const output_t *> outputs;
+  int scale = 1;
 };
 
 struct data_offer_t {
@@ -142,10 +140,14 @@ struct display_t {
   struct wl_display *display;
   struct wl_compositor *compositor = nullptr;
   struct xdg_wm_base *xdg_shell = nullptr;
+  struct zxdg_decoration_manager_v1 *xdg_decoration_manager = nullptr;
   struct wl_shm *shm = nullptr;
   std::vector<output_t *> outputs;
   std::vector<input_t *> inputs;
-  struct wl_cursor_theme *cursor_theme = nullptr;
+  struct {
+    std::string theme;
+    int size;
+  } cursor;
   struct wl_data_device_manager *data_device_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *relative_pointer_manager = nullptr;
   struct zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
@@ -153,6 +155,8 @@ struct display_t {
   std::vector<struct wl_surface *> os_surfaces;
   std::vector<struct wl_egl_window *> os_egl_windows;
 };
+
+static GHOST_WindowManager *window_manager = nullptr;
 
 static void display_destroy(display_t *d)
 {
@@ -188,6 +192,9 @@ static void display_destroy(display_t *d)
       if (input->cursor.surface) {
         wl_surface_destroy(input->cursor.surface);
       }
+      if (input->cursor.theme) {
+        wl_cursor_theme_destroy(input->cursor.theme);
+      }
       if (input->pointer) {
         wl_pointer_destroy(input->pointer);
       }
@@ -208,10 +215,6 @@ static void display_destroy(display_t *d)
     }
     wl_seat_destroy(input->seat);
     delete input;
-  }
-
-  if (d->cursor_theme) {
-    wl_cursor_theme_destroy(d->cursor_theme);
   }
 
   if (d->shm) {
@@ -236,6 +239,10 @@ static void display_destroy(display_t *d)
 
   if (d->compositor) {
     wl_compositor_destroy(d->compositor);
+  }
+
+  if (d->xdg_decoration_manager) {
+    zxdg_decoration_manager_v1_destroy(d->xdg_decoration_manager);
   }
 
   if (d->xdg_shell) {
@@ -478,7 +485,9 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 static std::string read_pipe(data_offer_t *data_offer, const std::string mime_receive)
 {
   int pipefd[2];
-  pipe(pipefd);
+  if (pipe(pipefd) != 0) {
+    return {};
+  }
   wl_data_offer_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
   close(pipefd[1]);
 
@@ -513,7 +522,9 @@ static void data_source_send(void *data,
                              int32_t fd)
 {
   const char *const buffer = static_cast<char *>(data);
-  write(fd, buffer, strlen(buffer) + 1);
+  if (write(fd, buffer, strlen(buffer) + 1) < 0) {
+    GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
+  }
   close(fd);
 }
 
@@ -789,11 +800,78 @@ static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
   cursor_t *cursor = static_cast<cursor_t *>(data);
 
   wl_buffer_destroy(wl_buffer);
-  cursor->buffer = nullptr;
+
+  if (wl_buffer == cursor->buffer) {
+    /* the mapped buffer was from a custom cursor */
+    cursor->buffer = nullptr;
+  }
 }
 
 const struct wl_buffer_listener cursor_buffer_listener = {
     cursor_buffer_release,
+};
+
+static GHOST_IWindow *get_window(struct wl_surface *surface)
+{
+  if (!surface) {
+    return nullptr;
+  }
+
+  for (GHOST_IWindow *win : window_manager->getWindows()) {
+    if (surface == static_cast<const GHOST_WindowWayland *>(win)->surface()) {
+      return win;
+    }
+  }
+  return nullptr;
+}
+
+static bool update_cursor_scale(cursor_t &cursor, wl_shm *shm)
+{
+  int scale = 0;
+  for (const output_t *output : cursor.outputs) {
+    if (output->scale > scale)
+      scale = output->scale;
+  }
+
+  if (scale > 0 && cursor.scale != scale) {
+    cursor.scale = scale;
+    wl_surface_set_buffer_scale(cursor.surface, scale);
+    wl_cursor_theme_destroy(cursor.theme);
+    cursor.theme = wl_cursor_theme_load(cursor.theme_name.c_str(), scale * cursor.size, shm);
+    return true;
+  }
+  return false;
+}
+
+static void cursor_surface_enter(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
+{
+  input_t *input = static_cast<input_t *>(data);
+  for (const output_t *reg_output : input->system->outputs()) {
+    if (reg_output->output == output) {
+      input->cursor.outputs.insert(reg_output);
+    }
+  }
+  update_cursor_scale(input->cursor, input->system->shm());
+}
+
+static void cursor_surface_leave(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
+{
+  input_t *input = static_cast<input_t *>(data);
+  for (const output_t *reg_output : input->system->outputs()) {
+    if (reg_output->output == output) {
+      input->cursor.outputs.erase(reg_output);
+    }
+  }
+  update_cursor_scale(input->cursor, input->system->shm());
+}
+
+struct wl_surface_listener cursor_surface_listener = {
+    cursor_surface_enter,
+    cursor_surface_leave,
 };
 
 static void pointer_enter(void *data,
@@ -803,22 +881,28 @@ static void pointer_enter(void *data,
                           wl_fixed_t surface_x,
                           wl_fixed_t surface_y)
 {
-  if (!surface) {
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
+
+  if (!win) {
     return;
   }
+
+  win->activate();
+
   input_t *input = static_cast<input_t *>(data);
   input->pointer_serial = serial;
-  input->x = wl_fixed_to_int(surface_x);
-  input->y = wl_fixed_to_int(surface_y);
+  input->x = win->scale() * wl_fixed_to_int(surface_x);
+  input->y = win->scale() * wl_fixed_to_int(surface_y);
   input->focus_pointer = surface;
 
-  input->system->pushEvent(
-      new GHOST_EventCursor(input->system->getMilliSeconds(),
-                            GHOST_kEventCursorMove,
-                            static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface)),
-                            input->x,
-                            input->y,
-                            GHOST_TABLET_DATA_NONE));
+  win->setCursorShape(win->getCursorShape());
+
+  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                 GHOST_kEventCursorMove,
+                                                 static_cast<GHOST_WindowWayland *>(win),
+                                                 input->x,
+                                                 input->y,
+                                                 GHOST_TABLET_DATA_NONE));
 }
 
 static void pointer_leave(void *data,
@@ -826,9 +910,14 @@ static void pointer_leave(void *data,
                           uint32_t /*serial*/,
                           struct wl_surface *surface)
 {
-  if (surface != nullptr) {
-    static_cast<input_t *>(data)->focus_pointer = nullptr;
+  GHOST_IWindow *win = get_window(surface);
+
+  if (!win) {
+    return;
   }
+
+  static_cast<input_t *>(data)->focus_pointer = nullptr;
+  static_cast<GHOST_WindowWayland *>(win)->deactivate();
 }
 
 static void pointer_motion(void *data,
@@ -839,21 +928,20 @@ static void pointer_motion(void *data,
 {
   input_t *input = static_cast<input_t *>(data);
 
-  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_pointer));
 
   if (!win) {
     return;
   }
 
-  input->x = wl_fixed_to_int(surface_x);
-  input->y = wl_fixed_to_int(surface_y);
+  input->x = win->scale() * wl_fixed_to_int(surface_x);
+  input->y = win->scale() * wl_fixed_to_int(surface_y);
 
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  win,
-                                                 wl_fixed_to_int(surface_x),
-                                                 wl_fixed_to_int(surface_y),
+                                                 input->x,
+                                                 input->y,
                                                  GHOST_TABLET_DATA_NONE));
 }
 
@@ -864,6 +952,14 @@ static void pointer_button(void *data,
                            uint32_t button,
                            uint32_t state)
 {
+  input_t *input = static_cast<input_t *>(data);
+
+  GHOST_IWindow *win = get_window(input->focus_pointer);
+
+  if (!win) {
+    return;
+  }
+
   GHOST_TEventType etype = GHOST_kEventUnknown;
   switch (state) {
     case WL_POINTER_BUTTON_STATE_RELEASED:
@@ -887,9 +983,6 @@ static void pointer_button(void *data,
       break;
   }
 
-  input_t *input = static_cast<input_t *>(data);
-  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
   input->data_source->source_serial = serial;
   input->buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
   input->system->pushEvent(new GHOST_EventButton(
@@ -902,12 +995,18 @@ static void pointer_axis(void *data,
                          uint32_t axis,
                          wl_fixed_t value)
 {
+  input_t *input = static_cast<input_t *>(data);
+
+  GHOST_IWindow *win = get_window(input->focus_pointer);
+
+  if (!win) {
+    return;
+  }
+
   if (axis != WL_POINTER_AXIS_VERTICAL_SCROLL) {
     return;
   }
-  input_t *input = static_cast<input_t *>(data);
-  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
+
   input->system->pushEvent(
       new GHOST_EventWheel(input->system->getMilliSeconds(), win, std::signbit(value) ? +1 : -1));
 }
@@ -1137,7 +1236,12 @@ static void seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capa
     input->cursor.visible = true;
     input->cursor.buffer = nullptr;
     input->cursor.file_buffer = new buffer_t;
+    if (!get_cursor_settings(input->cursor.theme_name, input->cursor.size)) {
+      input->cursor.theme_name = std::string();
+      input->cursor.size = default_cursor_size;
+    }
     wl_pointer_add_listener(input->pointer, &pointer_listener, data);
+    wl_surface_add_listener(input->cursor.surface, &cursor_surface_listener, data);
   }
 
   if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
@@ -1160,8 +1264,8 @@ static void output_geometry(void *data,
                             struct wl_output * /*wl_output*/,
                             int32_t /*x*/,
                             int32_t /*y*/,
-                            int32_t /*physical_width*/,
-                            int32_t /*physical_height*/,
+                            int32_t physical_width,
+                            int32_t physical_height,
                             int32_t /*subpixel*/,
                             const char *make,
                             const char *model,
@@ -1171,6 +1275,8 @@ static void output_geometry(void *data,
   output->transform = transform;
   output->make = std::string(make);
   output->model = std::string(model);
+  output->width_mm = physical_width;
+  output->height_mm = physical_height;
 }
 
 static void output_mode(void *data,
@@ -1181,8 +1287,8 @@ static void output_mode(void *data,
                         int32_t /*refresh*/)
 {
   output_t *output = static_cast<output_t *>(data);
-  output->width = width;
-  output->height = height;
+  output->width_pxl = width;
+  output->height_pxl = height;
 }
 
 /**
@@ -1227,12 +1333,16 @@ static void global_add(void *data,
   struct display_t *display = static_cast<struct display_t *>(data);
   if (!strcmp(interface, wl_compositor_interface.name)) {
     display->compositor = static_cast<wl_compositor *>(
-        wl_registry_bind(wl_registry, name, &wl_compositor_interface, 1));
+        wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
   else if (!strcmp(interface, xdg_wm_base_interface.name)) {
     display->xdg_shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
     xdg_wm_base_add_listener(display->xdg_shell, &shell_listener, nullptr);
+  }
+  else if (!strcmp(interface, zxdg_decoration_manager_v1_interface.name)) {
+    display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
+        wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
   else if (!strcmp(interface, wl_output_interface.name)) {
     output_t *output = new output_t;
@@ -1334,16 +1444,6 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
                                                                   input->seat);
       wl_data_device_add_listener(input->data_device, &data_device_listener, input);
     }
-  }
-
-  const char *theme = std::getenv("XCURSOR_THEME");
-  const char *size = std::getenv("XCURSOR_SIZE");
-  const int sizei = size ? std::stoi(size) : default_cursor_size;
-
-  d->cursor_theme = wl_cursor_theme_load(theme, sizei, d->shm);
-  if (!d->cursor_theme) {
-    display_destroy(d);
-    throw std::runtime_error("Wayland: unable to access cursor themes!");
   }
 }
 
@@ -1471,8 +1571,8 @@ void GHOST_SystemWayland::getMainDisplayDimensions(GHOST_TUns32 &width, GHOST_TU
 {
   if (getNumDisplays() > 0) {
     /* We assume first output as main. */
-    width = uint32_t(d->outputs[0]->width);
-    height = uint32_t(d->outputs[0]->height);
+    width = uint32_t(d->outputs[0]->width_pxl) / d->outputs[0]->scale;
+    height = uint32_t(d->outputs[0]->height_pxl) / d->outputs[0]->scale;
   }
 }
 
@@ -1481,7 +1581,7 @@ void GHOST_SystemWayland::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUn
   getMainDisplayDimensions(width, height);
 }
 
-GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
 {
   /* Create new off-screen window. */
   wl_surface *os_surface = wl_compositor_create_surface(compositor());
@@ -1530,6 +1630,11 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
                                                  const bool is_dialog,
                                                  const GHOST_IWindow *parentWindow)
 {
+  /* globally store pointer to window manager */
+  if (!window_manager) {
+    window_manager = getWindowManager();
+  }
+
   GHOST_WindowWayland *window = new GHOST_WindowWayland(
       this,
       title,
@@ -1574,6 +1679,21 @@ xdg_wm_base *GHOST_SystemWayland::shell()
   return d->xdg_shell;
 }
 
+zxdg_decoration_manager_v1 *GHOST_SystemWayland::decoration_manager()
+{
+  return d->xdg_decoration_manager;
+}
+
+const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
+{
+  return d->outputs;
+}
+
+wl_shm *GHOST_SystemWayland::shm() const
+{
+  return d->shm;
+}
+
 void GHOST_SystemWayland::setSelection(const std::string &selection)
 {
   this->selection = selection;
@@ -1581,23 +1701,20 @@ void GHOST_SystemWayland::setSelection(const std::string &selection)
 
 static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
 {
-  input->cursor.visible = (buffer != nullptr);
+  cursor_t *c = &input->cursor;
 
-  wl_surface_attach(input->cursor.surface, buffer, 0, 0);
-  wl_surface_commit(input->cursor.surface);
+  c->visible = (buffer != nullptr);
 
-  if (input->cursor.visible) {
-    wl_surface_damage(input->cursor.surface,
-                      0,
-                      0,
-                      int32_t(input->cursor.image.width),
-                      int32_t(input->cursor.image.height));
-    wl_pointer_set_cursor(input->pointer,
-                          input->pointer_serial,
-                          input->cursor.surface,
-                          int32_t(input->cursor.image.hotspot_x),
-                          int32_t(input->cursor.image.hotspot_y));
-  }
+  wl_surface_attach(c->surface, buffer, 0, 0);
+
+  wl_surface_damage(c->surface, 0, 0, int32_t(c->image.width), int32_t(c->image.height));
+  wl_pointer_set_cursor(input->pointer,
+                        input->pointer_serial,
+                        c->visible ? c->surface : nullptr,
+                        int32_t(c->image.hotspot_x) / c->scale,
+                        int32_t(c->image.hotspot_y) / c->scale);
+
+  wl_surface_commit(c->surface);
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
@@ -1608,7 +1725,15 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
   const std::string cursor_name = cursors.count(shape) ? cursors.at(shape) :
                                                          cursors.at(GHOST_kStandardCursorDefault);
 
-  wl_cursor *cursor = wl_cursor_theme_get_cursor(d->cursor_theme, cursor_name.c_str());
+  input_t *input = d->inputs[0];
+  cursor_t *c = &input->cursor;
+
+  if (!c->theme) {
+    /* The cursor surface hasn't entered an output yet. Initialise theme with scale 1. */
+    c->theme = wl_cursor_theme_load(c->theme_name.c_str(), c->size, d->inputs[0]->system->shm());
+  }
+
+  wl_cursor *cursor = wl_cursor_theme_get_cursor(c->theme, cursor_name.c_str());
 
   if (!cursor) {
     GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
@@ -1620,11 +1745,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
   if (!buffer) {
     return GHOST_kFailure;
   }
-  cursor_t *c = &d->inputs[0]->cursor;
+
   c->buffer = buffer;
   c->image = *image;
 
-  set_cursor_buffer(d->inputs[0], buffer);
+  set_cursor_buffer(input, buffer);
 
   return GHOST_kSuccess;
 }
@@ -1735,6 +1860,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   wl_surface *surface)
 {
+  /* ignore, if the required protocols are not supported */
+  if (!d->relative_pointer_manager || !d->pointer_constraints) {
+    return GHOST_kFailure;
+  }
+
   if (d->inputs.empty()) {
     return GHOST_kFailure;
   }
@@ -1754,6 +1884,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       break;
 
     case GHOST_kGrabNormal:
+      break;
     case GHOST_kGrabWrap:
       input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
           d->relative_pointer_manager, input->pointer);

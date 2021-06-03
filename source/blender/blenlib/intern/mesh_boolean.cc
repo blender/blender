@@ -149,11 +149,9 @@ class TriMeshTopology : NonCopyable {
    * Else return NO_INDEX. */
   int other_tri_if_manifold(Edge e, int t) const
   {
-    if (edge_tri_.contains(e)) {
-      auto *p = edge_tri_.lookup(e);
-      if (p->size() == 2) {
-        return ((*p)[0] == t) ? (*p)[1] : (*p)[0];
-      }
+    auto p = edge_tri_.lookup_ptr(e);
+    if (p != nullptr && (*p)->size() == 2) {
+      return ((**p)[0] == t) ? (**p)[1] : (**p)[0];
     }
     return NO_INDEX;
   }
@@ -1829,6 +1827,19 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
   return mpq3::distance_squared_with_buffer(p, r, m);
 }
 
+static float closest_on_tri_to_point_float_dist_squared(const float3 &p,
+                                                        const double3 &a,
+                                                        const double3 &b,
+                                                        const double3 &c)
+{
+  float3 fa, fb, fc, closest;
+  copy_v3fl_v3db(fa, a);
+  copy_v3fl_v3db(fb, b);
+  copy_v3fl_v3db(fc, c);
+  closest_on_tri_to_point_v3(closest, p, fa, fb, fc);
+  return len_squared_v3v3(p, closest);
+}
+
 struct ComponentContainer {
   int containing_component{NO_INDEX};
   int nearest_cell{NO_INDEX};
@@ -1865,6 +1876,8 @@ static Vector<ComponentContainer> find_component_containers(int comp,
   if (dbg_level > 0) {
     std::cout << "test vertex in comp: " << test_v << "\n";
   }
+  const double3 &test_v_d = test_v->co;
+  float3 test_v_f(test_v_d[0], test_v_d[1], test_v_d[2]);
 
   mpq3 buf[7];
 
@@ -1879,6 +1892,7 @@ static Vector<ComponentContainer> find_component_containers(int comp,
     int nearest_tri_close_vert = -1;
     int nearest_tri_close_edge = -1;
     mpq_class nearest_tri_dist_squared;
+    float nearest_tri_dist_squared_float = FLT_MAX;
     for (int p : components[comp_other]) {
       const Patch &patch = pinfo.patch(p);
       for (int t : patch.tris()) {
@@ -1888,6 +1902,12 @@ static Vector<ComponentContainer> find_component_containers(int comp,
         }
         int close_vert;
         int close_edge;
+        /* Try a cheap float test first. */
+        float d2_f = closest_on_tri_to_point_float_dist_squared(
+            test_v_f, tri[0]->co, tri[1]->co, tri[2]->co);
+        if (d2_f - FLT_EPSILON > nearest_tri_dist_squared_float) {
+          continue;
+        }
         mpq_class d2 = closest_on_tri_to_point(test_v->co_exact,
                                                tri[0]->co_exact,
                                                tri[1]->co_exact,
@@ -1910,6 +1930,7 @@ static Vector<ComponentContainer> find_component_containers(int comp,
           nearest_tri_close_edge = close_edge;
           nearest_tri_close_vert = close_vert;
           nearest_tri_dist_squared = d2;
+          nearest_tri_dist_squared_float = d2_f;
         }
       }
     }
@@ -3313,9 +3334,13 @@ static IMesh polymesh_from_trimesh_with_dissolve(const IMesh &tm_out,
     std::cout << "\nPOLYMESH_FROM_TRIMESH_WITH_DISSOLVE\n";
   }
   /* For now: need plane normals for all triangles. */
-  for (Face *tri : tm_out.faces()) {
-    tri->populate_plane(false);
-  }
+  const int grainsize = 1024;
+  parallel_for(tm_out.face_index_range(), grainsize, [&](IndexRange range) {
+    for (int i : range) {
+      Face *tri = tm_out.face(i);
+      tri->populate_plane(false);
+    }
+  });
   /* Gather all output triangles that are part of each input face.
    * face_output_tris[f] will be indices of triangles in tm_out
    * that have f as their original face. */

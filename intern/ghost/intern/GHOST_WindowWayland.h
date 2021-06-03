@@ -24,9 +24,14 @@
 
 #include "GHOST_Window.h"
 
+#include <unordered_set>
+#include <vector>
+
 class GHOST_SystemWayland;
 
 struct window_t;
+struct wl_surface;
+struct output_t;
 
 class GHOST_WindowWayland : public GHOST_Window {
  public:
@@ -47,6 +52,8 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   ~GHOST_WindowWayland() override;
 
+  GHOST_TUns16 getDPIHint() override;
+
   GHOST_TSuccess close();
 
   GHOST_TSuccess activate();
@@ -54,6 +61,16 @@ class GHOST_WindowWayland : public GHOST_Window {
   GHOST_TSuccess deactivate();
 
   GHOST_TSuccess notify_size();
+
+  wl_surface *surface() const;
+
+  const std::vector<output_t *> &outputs() const;
+
+  std::unordered_set<const output_t *> &outputs_active();
+
+  uint16_t &dpi();
+
+  int &scale();
 
  protected:
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;

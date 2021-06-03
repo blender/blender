@@ -46,6 +46,8 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
+using blender::fn::GVArray_For_GSpan;
+using blender::fn::GVArray_For_SingleValue;
 
 namespace blender::bke {
 
@@ -626,6 +628,32 @@ std::optional<GSpan> CustomDataAttributes::get_for_read(const StringRef name) co
     }
   }
   return {};
+}
+
+/**
+ * Return a virtual array for a stored attribute, or a single value virtual array with the default
+ * value if the attribute doesn't exist. If no default value is provided, the default value for the
+ * type will be used.
+ */
+GVArrayPtr CustomDataAttributes::get_for_read(const StringRef name,
+                                              const CustomDataType data_type,
+                                              const void *default_value) const
+{
+  const CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+
+  std::optional<GSpan> attribute = this->get_for_read(name);
+  if (!attribute) {
+    const int domain_size = this->size_;
+    return std::make_unique<GVArray_For_SingleValue>(
+        *type, domain_size, (default_value == nullptr) ? type->default_value() : default_value);
+  }
+
+  if (attribute->type() == *type) {
+    return std::make_unique<GVArray_For_GSpan>(*attribute);
+  }
+  const blender::nodes::DataTypeConversions &conversions =
+      blender::nodes::get_implicit_type_conversions();
+  return conversions.try_convert(std::make_unique<GVArray_For_GSpan>(*attribute), *type);
 }
 
 std::optional<GMutableSpan> CustomDataAttributes::get_for_write(const StringRef name)

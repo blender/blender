@@ -1714,7 +1714,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const boo
   bool result = false;
   char name[MAX_ID_NAME - 2];
 
-  /* If library, don't rename (unless explicitely required), but do ensure proper sorting. */
+  /* If library, don't rename (unless explicitly required), but do ensure proper sorting. */
   if (!do_linked_data && ID_IS_LINKED(id)) {
     id_sort_by_name(lb, id, NULL);
 

@@ -369,9 +369,6 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
 /** \name ExtractTaskData
  * \{ */
 struct ExtractTaskData {
-  void *next = nullptr;
-  void *prev = nullptr;
-
   const MeshRenderData *mr = nullptr;
   MeshBatchCache *cache = nullptr;
   /* #UserData is shared between the iterations as it holds counters to detect if the
@@ -869,7 +866,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   const bool use_thread = (mr->loop_len + mr->loop_loose_len) > CHUNK_SIZE;
 
   if (use_thread) {
-    uint threads_to_use = 0;
+    uint single_threaded_extractors_len = 0;
 
     /* First run the requested extractors that do not support asynchronous ranges. */
     for (const ExtractorRunData &run_data : extractors) {
@@ -882,8 +879,8 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
         struct TaskNode *task_node = extract_single_threaded_task_node_create(task_graph,
                                                                               taskdata);
         BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
+        single_threaded_extractors_len++;
       }
-      threads_to_use++;
     }
 
     /* Distribute the remaining extractors into ranges per core. */
@@ -896,9 +893,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
        * fill the rest of the threads for range operations.
        */
       int num_threads = BLI_task_scheduler_num_threads();
-      if (threads_to_use < num_threads) {
-        num_threads -= threads_to_use;
-      }
+      num_threads -= single_threaded_extractors_len % num_threads;
 
       UserDataInitTaskData *user_data_init_task_data = new UserDataInitTaskData();
       struct TaskNode *task_node_user_data_init = user_data_init_task_node_create(

@@ -101,15 +101,14 @@ class Spline {
   Spline(const Type type) : type_(type)
   {
   }
-  Spline(Spline &other)
-      : normal_mode(other.normal_mode),
-        attributes(other.attributes),
-        type_(other.type_),
-        is_cyclic_(other.is_cyclic_)
+  Spline(Spline &other) : attributes(other.attributes), type_(other.type_)
   {
+    copy_base_settings(other, *this);
   }
 
   virtual SplinePtr copy() const = 0;
+  /** Return a new spline with the same type and settings like "cyclic", but without any data. */
+  virtual SplinePtr copy_settings() const = 0;
 
   Spline::Type type() const;
 
@@ -183,6 +182,12 @@ class Spline {
 
  protected:
   virtual void correct_end_tangents() const = 0;
+  /** Copy settings stored in the base spline class. */
+  static void copy_base_settings(const Spline &src, Spline &dst)
+  {
+    dst.normal_mode = src.normal_mode;
+    dst.is_cyclic_ = src.is_cyclic_;
+  }
 };
 
 /**
@@ -236,6 +241,7 @@ class BezierSpline final : public Spline {
 
  public:
   virtual SplinePtr copy() const final;
+  SplinePtr copy_settings() const final;
   BezierSpline() : Spline(Type::Bezier)
   {
   }
@@ -377,6 +383,7 @@ class NURBSpline final : public Spline {
 
  public:
   SplinePtr copy() const final;
+  SplinePtr copy_settings() const final;
   NURBSpline() : Spline(Type::NURBS)
   {
   }
@@ -444,6 +451,7 @@ class PolySpline final : public Spline {
 
  public:
   SplinePtr copy() const final;
+  SplinePtr copy_settings() const final;
   PolySpline() : Spline(Type::Poly)
   {
   }

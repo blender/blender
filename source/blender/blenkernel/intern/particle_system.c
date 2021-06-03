@@ -4912,9 +4912,12 @@ void particle_system_update(struct Depsgraph *depsgraph,
           sim.psmd->flag |= eParticleSystemFlag_Pars;
         }
 
+        ParticleTexture ptex;
+
         LOOP_EXISTING_PARTICLES
         {
-          pa->size = part->size;
+          psys_get_texture(&sim, pa, &ptex, PAMAP_SIZE, cfra);
+          pa->size = part->size * ptex.size;
           if (part->randsize > 0.0f) {
             pa->size *= 1.0f - part->randsize * psys_frand(psys, p + 1);
           }

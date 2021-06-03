@@ -192,8 +192,8 @@ struct NodeOperationFlags {
   bool open_cl : 1;
 
   /**
-   * TODO: Remove this flag and SingleThreadedOperation if tiled implemention is removed.
-   * Full-frame implemention doesn't need it.
+   * TODO: Remove this flag and #SingleThreadedOperation if tiled implementation is removed.
+   * Full-frame implementation doesn't need it.
    */
   bool single_threaded : 1;
 
