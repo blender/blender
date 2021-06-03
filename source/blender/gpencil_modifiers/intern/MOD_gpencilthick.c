@@ -170,8 +170,10 @@ static void deformStroke(GpencilModifierData *md,
       weight *= curvef;
     }
 
-    float fac_begin = mmd->flag & GP_THICK_NORMALIZE ? 1 : mmd->thickness_fac;
-    target *= interpf(fac_begin, mmd->fading_end_factor, factor_depth);
+    /* Apply distance fading. */
+    if (mmd->flag & GP_THICK_FADING) {
+      target = interpf(target, mmd->fading_end_factor, factor_depth);
+    }
 
     pt->pressure = interpf(target, pt->pressure, weight);
 
