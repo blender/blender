@@ -3207,19 +3207,17 @@ void ui_but_range_set_hard(uiBut *but)
 
   const PropertyType type = RNA_property_type(but->rnaprop);
 
-  /* clamp button range to something reasonable in case
-   * we get -inf/inf from RNA properties */
   if (type == PROP_INT) {
     int imin, imax;
     RNA_property_int_range(&but->rnapoin, but->rnaprop, &imin, &imax);
-    but->hardmin = (imin == INT_MIN) ? -1e4 : imin;
-    but->hardmax = (imin == INT_MAX) ? 1e4 : imax;
+    but->hardmin = imin;
+    but->hardmax = imax;
   }
   else if (type == PROP_FLOAT) {
     float fmin, fmax;
     RNA_property_float_range(&but->rnapoin, but->rnaprop, &fmin, &fmax);
-    but->hardmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
-    but->hardmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
+    but->hardmin = fmin;
+    but->hardmax = fmax;
   }
 }
 
