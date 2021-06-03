@@ -611,6 +611,21 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   return local_id;
 }
 
+static ID *rna_ID_override_hierarchy_create(
+    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_reference)
+{
+  if (!ID_IS_OVERRIDABLE_LIBRARY(id)) {
+    return NULL;
+  }
+
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  ID *id_root_override = NULL;
+  BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
+
+  return id_root_override;
+}
+
 static void rna_ID_override_template_create(ID *id, ReportList *reports)
 {
   if (!U.experimental.use_override_templates) {
@@ -1759,6 +1774,30 @@ static void rna_def_ID(BlenderRNA *brna)
                   "",
                   "Whether local usages of the linked ID should be remapped to the new "
                   "library override of it");
+
+  func = RNA_def_function(srna, "override_hierarchy_create", "rna_ID_override_hierarchy_create");
+  RNA_def_function_ui_description(
+      func,
+      "Create an overridden local copy of this linked data-block, and most of its dependencies "
+      "when it is a Collection or and Object");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  parm = RNA_def_pointer(func, "id", "ID", "", "New overridden local copy of the root ID");
+  RNA_def_function_return(func, parm);
+  parm = RNA_def_pointer(
+      func, "scene", "Scene", "", "In which scene the new overrides should be instantiated");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func,
+                         "view_layer",
+                         "ViewLayer",
+                         "",
+                         "In which view layer the new overrides should be instantiated");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  RNA_def_pointer(func,
+                  "reference",
+                  "ID",
+                  "",
+                  "Another ID (usually an Object or Collection) used to decide where to "
+                  "instantiate the new overrides");
 
   func = RNA_def_function(srna, "override_template_create", "rna_ID_override_template_create");
   RNA_def_function_ui_description(func, "Create an override template for this ID");

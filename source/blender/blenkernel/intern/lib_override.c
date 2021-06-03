@@ -838,7 +838,7 @@ static void lib_override_library_create_post_process(Main *bmain,
 /**
  * Advanced 'smart' function to create fully functional overrides.
  *
- * \note Currently it only does special things if given \a id_root is an object of collection, more
+ * \note Currently it only does special things if given \a id_root is an object or collection, more
  * specific behaviors may be added in the future for other ID types.
  *
  * \note It will override all IDs tagged with \a LIB_TAG_DOIT, and it does not clear that tag at
@@ -848,15 +848,28 @@ static void lib_override_library_create_post_process(Main *bmain,
  * \param id_reference: Some reference ID used to do some post-processing after overrides have been
  * created, may be NULL. Typically, the Empty object instantiating the linked collection we
  * override, currently.
+ * \param r_id_root_override if not NULL, the override generated for the given \a id_root.
  * \return true if override was successfully created.
  */
-bool BKE_lib_override_library_create(
-    Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root, ID *id_reference)
+bool BKE_lib_override_library_create(Main *bmain,
+                                     Scene *scene,
+                                     ViewLayer *view_layer,
+                                     ID *id_root,
+                                     ID *id_reference,
+                                     ID **r_id_root_override)
 {
+  if (r_id_root_override != NULL) {
+    *r_id_root_override = NULL;
+  }
+
   const bool success = lib_override_library_create_do(bmain, id_root);
 
   if (!success) {
     return success;
+  }
+
+  if (r_id_root_override != NULL) {
+    *r_id_root_override = id_root->newid;
   }
 
   lib_override_library_create_post_process(
@@ -928,7 +941,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
 
   DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
 
-  return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference);
+  return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference, NULL);
 }
 
 /**
