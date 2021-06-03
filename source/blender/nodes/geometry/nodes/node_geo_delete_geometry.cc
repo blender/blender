@@ -26,6 +26,8 @@
 
 #include "node_geometry_util.hh"
 
+using blender::bke::CustomDataAttributes;
+
 /* Code from the mask modifier in MOD_mask.cc. */
 extern void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
                                              Mesh &dst_mesh,
@@ -54,6 +56,149 @@ static bNodeSocketTemplate geo_node_delete_geometry_out[] = {
 };
 
 namespace blender::nodes {
+
+template<typename T> static void copy_data(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
+{
+  for (const int i_out : mask.index_range()) {
+    r_data[i_out] = data[mask[i_out]];
+  }
+}
+
+static void spline_copy_builtin_attributes(const Spline &spline,
+                                           Spline &r_spline,
+                                           const IndexMask mask)
+{
+  copy_data(spline.positions(), r_spline.positions(), mask);
+  copy_data(spline.radii(), r_spline.radii(), mask);
+  copy_data(spline.tilts(), r_spline.tilts(), mask);
+  switch (spline.type()) {
+    case Spline::Type::Poly:
+      break;
+    case Spline::Type::Bezier: {
+      const BezierSpline &src = static_cast<const BezierSpline &>(spline);
+      BezierSpline &dst = static_cast<BezierSpline &>(r_spline);
+      copy_data(src.handle_positions_left(), dst.handle_positions_left(), mask);
+      copy_data(src.handle_positions_right(), dst.handle_positions_right(), mask);
+      copy_data(src.handle_types_left(), dst.handle_types_left(), mask);
+      copy_data(src.handle_types_right(), dst.handle_types_right(), mask);
+      break;
+    }
+    case Spline::Type::NURBS: {
+      const NURBSpline &src = static_cast<const NURBSpline &>(spline);
+      NURBSpline &dst = static_cast<NURBSpline &>(r_spline);
+      copy_data(src.weights(), dst.weights(), mask);
+      break;
+    }
+  }
+}
+
+static void copy_dynamic_attributes(const CustomDataAttributes &src,
+                                    CustomDataAttributes &dst,
+                                    const IndexMask mask)
+{
+  src.foreach_attribute(
+      [&](StringRefNull name, const AttributeMetaData &meta_data) {
+        std::optional<GSpan> src_attribute = src.get_for_read(name);
+        BLI_assert(src_attribute);
+
+        if (!dst.create(name, meta_data.data_type)) {
+          /* Since the source spline of the same type had the attribute, adding it should work. */
+          BLI_assert_unreachable();
+        }
+
+        std::optional<GMutableSpan> new_attribute = dst.get_for_write(name);
+        BLI_assert(new_attribute);
+
+        attribute_math::convert_to_static_type(new_attribute->type(), [&](auto dummy) {
+          using T = decltype(dummy);
+          copy_data(src_attribute->typed<T>(), new_attribute->typed<T>(), mask);
+        });
+        return true;
+      },
+      ATTR_DOMAIN_POINT);
+}
+
+static SplinePtr spline_delete(const Spline &spline, const IndexMask mask)
+{
+  SplinePtr new_spline = spline.copy_settings();
+  new_spline->resize(mask.size());
+
+  spline_copy_builtin_attributes(spline, *new_spline, mask);
+  copy_dynamic_attributes(spline.attributes, new_spline->attributes, mask);
+
+  return new_spline;
+}
+
+static std::unique_ptr<CurveEval> curve_delete(const CurveEval &input_curve,
+                                               const StringRef name,
+                                               const bool invert)
+{
+  Span<SplinePtr> input_splines = input_curve.splines();
+  std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
+
+  /* Keep track of which splines were copied to the result to copy spline domain attributes. */
+  Vector<int64_t> copied_splines;
+
+  if (input_curve.attributes.get_for_read(name)) {
+    GVArray_Typed<bool> selection = input_curve.attributes.get_for_read<bool>(name, false);
+    for (const int i : input_splines.index_range()) {
+      if (selection[i] == invert) {
+        output_curve->add_spline(input_splines[i]->copy());
+        copied_splines.append(i);
+      }
+    }
+  }
+  else {
+    /* Reuse index vector for each spline. */
+    Vector<int64_t> indices_to_copy;
+
+    for (const int i : input_splines.index_range()) {
+      const Spline &spline = *input_splines[i];
+      GVArray_Typed<bool> selection = spline.attributes.get_for_read<bool>(name, false);
+
+      indices_to_copy.clear();
+      for (const int i_point : IndexRange(spline.size())) {
+        if (selection[i_point] == invert) {
+          indices_to_copy.append(i_point);
+        }
+      }
+
+      /* Avoid creating an empty spline. */
+      if (indices_to_copy.is_empty()) {
+        continue;
+      }
+
+      SplinePtr new_spline = spline_delete(spline, IndexMask(indices_to_copy));
+      output_curve->add_spline(std::move(new_spline));
+      copied_splines.append(i);
+    }
+  }
+
+  if (copied_splines.is_empty()) {
+    return {};
+  }
+
+  output_curve->attributes.reallocate(output_curve->splines().size());
+  copy_dynamic_attributes(
+      input_curve.attributes, output_curve->attributes, IndexMask(copied_splines));
+
+  return output_curve;
+}
+
+static void delete_curve_selection(const CurveComponent &in_component,
+                                   CurveComponent &r_component,
+                                   const StringRef selection_name,
+                                   const bool invert)
+{
+  std::unique_ptr<CurveEval> r_curve = curve_delete(
+      *in_component.get_for_read(), selection_name, invert);
+  if (r_curve) {
+    r_component.replace(r_curve.release());
+  }
+  else {
+    r_component.clear();
+  }
+}
 
 static void delete_point_cloud_selection(const PointCloudComponent &in_component,
                                          PointCloudComponent &out_component,
@@ -508,6 +653,12 @@ static void geo_node_delete_geometry_exec(GeoNodeExecParams params)
                           *geometry_set.get_mesh_for_read(),
                           selection_name,
                           invert);
+  }
+  if (geometry_set.has<CurveComponent>()) {
+    delete_curve_selection(*geometry_set.get_component_for_read<CurveComponent>(),
+                           out_set.get_component_for_write<CurveComponent>(),
+                           selection_name,
+                           invert);
   }
 
   params.set_output("Geometry", std::move(out_set));
