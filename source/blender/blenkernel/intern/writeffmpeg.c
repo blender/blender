@@ -730,8 +730,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   }
 
   /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
-  if ((codec_id == AV_CODEC_ID_H264 || codec_id == AV_CODEC_ID_VP9) &&
-      context->ffmpeg_crf == 0) {
+  if ((codec_id == AV_CODEC_ID_H264 || codec_id == AV_CODEC_ID_VP9) && context->ffmpeg_crf == 0) {
     c->pix_fmt = AV_PIX_FMT_YUV444P;
   }
 
