@@ -1724,7 +1724,7 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
 
   if (use_sel_face_history) {
     /* Using face history allows to select a single loop from a single face...
-     * Note that this is On² piece of code,
+     * Note that this is O(n^2) piece of code,
      * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most.*/
     /* Goes from last selected to the first selected element. */
