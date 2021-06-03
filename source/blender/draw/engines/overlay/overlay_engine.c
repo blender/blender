@@ -207,6 +207,7 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_armature_cache_init(vedata);
   OVERLAY_background_cache_init(vedata);
   OVERLAY_fade_cache_init(vedata);
+  OVERLAY_mode_transfer_cache_init(vedata);
   OVERLAY_extra_cache_init(vedata);
   OVERLAY_facing_cache_init(vedata);
   OVERLAY_gpencil_cache_init(vedata);
@@ -323,6 +324,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                            !is_select;
   const bool draw_fade = draw_surface && (pd->overlay.flag & V3D_OVERLAY_FADE_INACTIVE) &&
                          overlay_should_fade_object(ob, draw_ctx->obact);
+  const bool draw_mode_transfer = draw_surface && (pd->overlay.flag & V3D_OVERLAY_MODE_TRANSFER);
   const bool draw_bones = (pd->overlay.flag & V3D_OVERLAY_HIDE_BONES) == 0;
   const bool draw_wires = draw_surface && has_surface &&
                           (pd->wireframe_mode || !pd->hide_overlays);
@@ -348,6 +350,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   }
   if (draw_facing) {
     OVERLAY_facing_cache_populate(vedata, ob);
+  }
+  if (draw_mode_transfer) {
+    OVERLAY_mode_transfer_cache_populate(vedata, ob);
   }
   if (draw_wires) {
     OVERLAY_wireframe_cache_populate(vedata, ob, dupli, do_init);
@@ -504,6 +509,7 @@ static void OVERLAY_cache_finish(void *vedata)
         {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
   }
 
+  OVERLAY_mode_transfer_cache_finish(vedata);
   OVERLAY_antialiasing_cache_finish(vedata);
   OVERLAY_armature_cache_finish(vedata);
   OVERLAY_image_cache_finish(vedata);
@@ -566,6 +572,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_image_draw(vedata);
   OVERLAY_fade_draw(vedata);
   OVERLAY_facing_draw(vedata);
+  OVERLAY_mode_transfer_draw(vedata);
   OVERLAY_extra_blend_draw(vedata);
   OVERLAY_volume_draw(vedata);
 
@@ -605,6 +612,7 @@ static void OVERLAY_draw_scene(void *vedata)
 
   OVERLAY_fade_infront_draw(vedata);
   OVERLAY_facing_infront_draw(vedata);
+  OVERLAY_mode_transfer_infront_draw(vedata);
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_in_front_fb);

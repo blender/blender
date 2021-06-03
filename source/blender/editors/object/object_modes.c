@@ -36,10 +36,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "PIL_time.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
@@ -422,67 +420,12 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object 
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
+	/* -------------------------------------------------------------------- */
 /** \name Transfer Mode
  *
  * Enters the same mode of the current active object in another object,
  * leaving the mode of the current object.
  * \{ */
-
-typedef struct SwitchObjectCustomData {
-  void *draw_handle;
-  Object *target_object;
-  Mesh *mesh;
-  MLoopTri *looptri;
-  wmTimer *timer;
-
-  int tottris;
-  double start_time;
-  float alpha;
-} SwitchObjectCustomData;
-
-static void transfer_mode_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
-{
-  SwitchObjectCustomData *cd = arg;
-
-  if (!cd->mesh) {
-    return;
-  }
-  if (!cd->looptri) {
-    return;
-  }
-
-  GPU_blend(GPU_BLEND_ALPHA);
-  GPU_line_smooth(true);
-
-  uint pos3d = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR);
-  GPU_matrix_push();
-  GPU_matrix_mul(cd->target_object->obmat);
-
-  immUniformThemeColorAlpha(TH_VERTEX_SELECT, 0.25 * cd->alpha);
-
-  Mesh *mesh = cd->mesh;
-  immBegin(GPU_PRIM_TRIS, cd->tottris * 3);
-
-  for (int i = 0; i < cd->tottris; i++) {
-    MLoopTri *looptri = &cd->looptri[i];
-    for (int j = 0; j < 3; j++) {
-      MLoop *loop = &mesh->mloop[looptri->tri[j]];
-      MVert *vert = &mesh->mvert[loop->v];
-      float co[3] = {0.0f, 0.0f, 0.0f};
-      immVertex3fv(pos3d, vert->co);
-    }
-  }
-
-  immEnd();
-
-  immUnbindProgram();
-  GPU_matrix_pop();
-  GPU_blend(GPU_BLEND_NONE);
-
-  GPU_line_smooth(false);
-}
 
 static bool object_transfer_mode_poll(bContext *C)
 {
@@ -507,6 +450,13 @@ static void object_transfer_mode_reposition_view_pivot(bContext *C, const int mv
   copy_v3_v3(ups->average_stroke_accum, global_loc);
   ups->average_stroke_counter = 1;
   ups->last_stroke_valid = true;
+}
+
+static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob_dst)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob_dst_eval = DEG_get_evaluated_object(depsgraph, ob_dst);
+  ob_dst_eval->runtime.overlay_mode_transfer_start_time = PIL_check_seconds_timer();
 }
 
 static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)
@@ -546,6 +496,8 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
     ob_dst_orig = DEG_get_original_object(ob_dst);
     ED_object_mode_set_ex(C, last_mode, true, op->reports);
 
+    object_overlay_mode_transfer_animation_start(C, ob_dst);
+
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);
     mode_transfered = true;
@@ -555,74 +507,8 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
   return mode_transfered;
 }
 
-static bool object_transfer_mode_flash_animation_update(bContext *C, wmOperator *op) {
-  SwitchObjectCustomData *cd = op->customdata;
-
-  if (cd == NULL) {
-    return true;
-  }
-
-  ARegion *region = CTX_wm_region(C);
-  if (cd->start_time == 0.0) {
-    cd->start_time = PIL_check_seconds_timer();
-  }
-  const double time = PIL_check_seconds_timer();
-  const double delta_time = time - cd->start_time;
-  float alpha = 1.0f - (4.0 * delta_time);
-
-  if (alpha > 0.01f) {
-    cd->alpha = alpha;
-    ED_region_tag_redraw(region);
-    return false;
-  }
-
-  WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), cd->timer);
-
-  ED_region_draw_cb_exit(region->type, cd->draw_handle);
-  MEM_freeN(op->customdata);
-  ED_region_tag_redraw(region);
-
-  return true;
-}
-
-static void object_transfer_mode_flash_animation_begin(bContext *C, wmOperator *op, Base *base_dst) {
-
-  if (!base_dst) {
-    return;
-  }
-
-  if (!base_dst->object) {
-    return;
-  }
-
-
-  ARegion *region = CTX_wm_region(C);
-  SwitchObjectCustomData *cd = MEM_callocN(sizeof(SwitchObjectCustomData),
-                                           "Switch Object Custom Data");
-
-  cd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.05f);
-  cd->draw_handle = ED_region_draw_cb_activate(
-      region->type, transfer_mode_draw, cd, REGION_DRAW_POST_VIEW);
-  cd->target_object = base_dst->object;
-  cd->start_time = 0.0;
-
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *evaluated_object = DEG_get_evaluated_object(depsgraph, cd->target_object);
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(evaluated_object, false);
-  const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-  cd->looptri = looptri;
-  cd->tottris = BKE_mesh_runtime_looptri_len(mesh);
-  cd->mesh = mesh;
-  cd->alpha = 1.0f;
-  op->customdata = cd;
-}
-
 static int object_transfer_mode_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const bool use_eyedropper = RNA_boolean_get(op->ptr, "use_eyedropper");
-  const bool flash_object = RNA_boolean_get(op->ptr, "flash_object");
-
-  if (use_eyedropper) {
   switch (event->type) {
     case LEFTMOUSE:
       if (event->val == KM_PRESS) {
@@ -644,12 +530,7 @@ static int object_transfer_mode_modal(bContext *C, wmOperator *op, const wmEvent
           return OPERATOR_CANCELLED;
         }
 
-        if (!flash_object) {
-          return OPERATOR_FINISHED;
-        }
-
-        object_transfer_mode_flash_animation_begin(C, op, base_dst);
-
+        return OPERATOR_FINISHED;
       }
       break;
     case RIGHTMOUSE: {
@@ -658,24 +539,12 @@ static int object_transfer_mode_modal(bContext *C, wmOperator *op, const wmEvent
       return OPERATOR_CANCELLED;
     }
   }
-  if (!flash_object) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-  }
-
-
-  if (!object_transfer_mode_flash_animation_update(C, op)) {
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  return OPERATOR_FINISHED;
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool use_eyedropper = RNA_boolean_get(op->ptr, "use_eyedropper");
-  const bool flash_object = RNA_boolean_get(op->ptr, "flash_object");
-
   if (use_eyedropper) {
     ED_workspace_status_text(C, TIP_("Click in the viewport to select an object"));
     WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
@@ -696,14 +565,7 @@ static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEven
     object_transfer_mode_reposition_view_pivot(C, event->mval);
   }
 
-
-  if (!flash_object) {
-    return OPERATOR_FINISHED;
-  }
-
-  object_transfer_mode_flash_animation_begin(C, op, base_dst);
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
+  return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_transfer_mode(wmOperatorType *ot)
@@ -722,9 +584,6 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
 
   /* Undo push is handled by the operator. */
   ot->flag = OPTYPE_REGISTER;
-
-  RNA_def_boolean(
-      ot->srna, "flash_object", true, "Flash Object", "Flash object when entering the new mode");
 
   RNA_def_boolean(ot->srna,
                   "use_eyedropper",

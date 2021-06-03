@@ -144,6 +144,9 @@ typedef struct Object_Runtime {
    */
   char is_data_eval_owned;
 
+  /** Start time of the mode transfer overlay animation. */
+  double overlay_mode_transfer_start_time;
+
   /** Axis aligned boundbox (in localspace). */
   struct BoundBox *bb;
 

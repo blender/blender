@@ -4129,6 +4129,14 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Fade Inactive Objects", "Fade inactive geometry using the viewport background color");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+  prop = RNA_def_property(srna, "show_mode_transfer", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_MODE_TRANSFER);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop,
+                           "Flash on Mode Transfer",
+                           "Flash the target object when tranfering the active mode to it");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
   prop = RNA_def_property(srna, "fade_inactive_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.fade_alpha");
   RNA_def_property_ui_text(prop, "Opacity", "Strength of the fade effect");
