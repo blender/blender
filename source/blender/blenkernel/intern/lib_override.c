@@ -1354,16 +1354,17 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
 
   for (MainIDRelationsEntryItem *entry_item = entry->from_ids; entry_item != NULL;
        entry_item = entry_item->next) {
-    if (entry_item->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) {
+    if (entry_item->usage_flag &
+        (IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE | IDWALK_CB_LOOPBACK)) {
       continue;
     }
     ID *id_from = entry_item->id_pointer.from;
 
     /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(id_from) && id_from->lib == id->lib) {
+    if (id_from != id && ID_IS_OVERRIDE_LIBRARY_REAL(id_from) && id_from->lib == id->lib) {
       id_from->tag |= LIB_TAG_LIB_OVERRIDE_NEED_RESYNC;
       CLOG_INFO(&LOG,
-                3,
+                4,
                 "ID %s (%p) now tagged as needing resync because they use %s (%p) that needs to "
                 "be overridden",
                 id_from->name,
@@ -1372,7 +1373,6 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
                 id->lib);
       lib_override_resync_tagging_finalize_recurse(bmain, id_from, library_indirect_level);
     }
-    break;
   }
 }
 
