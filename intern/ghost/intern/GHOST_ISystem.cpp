@@ -55,11 +55,13 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
     m_system = new GHOST_SystemNULL();
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
-    try {
-      m_system = new GHOST_SystemWayland();
-    }
-    catch (const std::runtime_error &) {
-      /* fallback to X11. */
+    if (std::getenv("BLENDER_WAYLAND")) {
+      try {
+        m_system = new GHOST_SystemWayland();
+      }
+      catch (const std::runtime_error &) {
+        /* fallback to X11. */
+      }
     }
     if (!m_system) {
       m_system = new GHOST_SystemX11();
