@@ -1128,6 +1128,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * Basics of dev environment (cmake, gcc, svn , git, ...).
     * libjpeg, libpng, libtiff, [openjpeg2], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
+    * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
     * libsdl2, libglew, libpugixml, libpotrace, [libgmp], [libglewmx], fontconfig, [libharu/libhpdf].\""
 
@@ -3839,6 +3840,7 @@ install_DEB() {
   _packages="gawk cmake cmake-curses-gui build-essential libjpeg-dev libpng-dev libtiff-dev \
              git libfreetype6-dev libfontconfig-dev libx11-dev flex bison libxxf86vm-dev \
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
+             libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
@@ -4508,6 +4510,7 @@ install_RPM() {
   _packages="gcc gcc-c++ git make cmake tar bzip2 xz findutils flex bison fontconfig-devel \
              libtiff-devel libjpeg-devel libpng-devel sqlite-devel fftw-devel SDL2-devel \
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
+             wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
