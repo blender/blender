@@ -1235,7 +1235,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row.prop(brush, "size", text="Radius")
         row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
 
-        if gp_settings.use_pressure and context.area.type == 'PROPERTIES':
+        if gp_settings.use_pressure and not compact:
             col = layout.column()
             col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True,
                                        use_negative_slope=True)
@@ -1244,7 +1244,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
 
-        if gp_settings.use_strength_pressure and context.area.type == 'PROPERTIES':
+        if gp_settings.use_strength_pressure and not compact:
             col = layout.column()
             col.template_curve_mapping(gp_settings, "curve_strength", brush=True,
                                        use_negative_slope=True)
