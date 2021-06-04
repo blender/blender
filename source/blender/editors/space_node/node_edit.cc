@@ -719,11 +719,22 @@ void ED_node_set_active(
         ED_node_tag_update_nodetree(bmain, ntree, node);
       }
 
-      /* if active texture changed, free glsl materials */
       if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
+        /* If active texture changed, free glsl materials. */
         LISTBASE_FOREACH (Material *, ma, &bmain->materials) {
           if (ma->nodetree && ma->use_nodes && ntreeHasTree(ma->nodetree, ntree)) {
             GPU_material_free(&ma->gpumaterial);
+
+            /* Sync to active texpaint slot, otherwise we can end up painting on a different slot
+             * than we are looking at. */
+            if (ma->texpaintslot) {
+              Image *image = (Image *)node->id;
+              for (int i = 0; i < ma->tot_slots; i++) {
+                if (ma->texpaintslot[i].ima == image) {
+                  ma->paint_active_slot = i;
+                }
+              }
+            }
           }
         }
 
