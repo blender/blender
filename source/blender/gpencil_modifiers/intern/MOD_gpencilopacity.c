@@ -204,8 +204,6 @@ static void deformStroke(GpencilModifierData *md,
 
   /* Fill using opacity factor. */
   if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
-    gps->fill_opacity_fac = mmd->factor;
-
     float factor_depth = give_opacity_fading_factor(mmd, ob, ob->obmat[3], true);
     gps->fill_opacity_fac = interpf(mmd->factor, mmd->fading_end_factor, factor_depth);
 
