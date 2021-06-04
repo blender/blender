@@ -571,6 +571,8 @@ void ED_object_parent_clear(Object *ob, const int type)
 
       /* clear parenting relationship completely */
       ob->parent = NULL;
+      ob->partype = PAROBJECT;
+      ob->parsubstr[0] = 0;
       break;
     }
     case CLEAR_PARENT_KEEP_TRANSFORM: {
