@@ -198,6 +198,7 @@ def _clean_utf8(name):
 _display_name_literals = {
     ":": "_colon_",
     "+": "_plus_",
+    "/": "_slash_",
 }
 
 
