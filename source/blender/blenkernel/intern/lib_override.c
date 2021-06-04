@@ -1507,8 +1507,8 @@ static void lib_override_library_main_resync_on_library_indirect_level(
                   id_to->name,
                   id_to->lib);
         lib_override_resync_tagging_finalize_recurse(bmain, id, library_indirect_level);
+        break;
       }
-      break;
     }
   }
   FOREACH_MAIN_ID_END;
