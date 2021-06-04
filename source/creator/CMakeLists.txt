@@ -883,13 +883,13 @@ elseif(WIN32)
   if(WITH_TBB)
     install(
       FILES
-        ${LIBDIR}/tbb/lib/tbb.dll
+        ${LIBDIR}/tbb/bin/tbb.dll
       DESTINATION "."
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES
-        ${LIBDIR}/tbb/lib/debug/tbb_debug.dll
+        ${LIBDIR}/tbb/bin/tbb_debug.dll
       DESTINATION "."
       CONFIGURATIONS Debug
     )
@@ -897,15 +897,15 @@ elseif(WIN32)
   if(WITH_TBB_MALLOC_PROXY)
     install(
       FILES
-        ${LIBDIR}/tbb/lib/tbbmalloc.dll
-        ${LIBDIR}/tbb/lib/tbbmalloc_proxy.dll
+        ${LIBDIR}/tbb/bin/tbbmalloc.dll
+        ${LIBDIR}/tbb/bin/tbbmalloc_proxy.dll
       DESTINATION "."
       CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
     )
     install(
       FILES
-        ${LIBDIR}/tbb/lib/debug/tbbmalloc.dll
-        ${LIBDIR}/tbb/lib/debug/tbbmalloc_proxy.dll
+        ${LIBDIR}/tbb/bin/tbbmalloc_debug.dll
+        ${LIBDIR}/tbb/bin/tbbmalloc_proxy_debug.dll
       DESTINATION "."
       CONFIGURATIONS Debug
     )
