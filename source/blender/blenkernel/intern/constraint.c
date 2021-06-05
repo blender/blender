@@ -1635,6 +1635,16 @@ static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UN
   float eul[3];
   float size[3];
 
+  /* This constraint is based on euler rotation math, which doesn't work well with shear.
+   * The Y axis is chosen as the main one because constraints are most commonly used on bones.
+   * This also allows using the constraint to simply remove shear. */
+  orthogonalize_m4_stable(cob->matrix, 1, false);
+
+  /* Only do the complex processing if some limits are actually enabled. */
+  if (!(data->flag & (LIMIT_XROT | LIMIT_YROT | LIMIT_ZROT))) {
+    return;
+  }
+
   /* Select the Euler rotation order, defaulting to the owner value. */
   short rot_order = cob->rotOrder;
 
