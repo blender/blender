@@ -549,7 +549,6 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
   if (anim_arr[0] != NULL) {
-    seq->anim_preseek = IMB_anim_get_preseek(anim_arr[0]);
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
 
     IMB_anim_load_metadata(anim_arr[0]);
@@ -690,8 +689,6 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
       seq->len = IMB_anim_get_duration(
           sanim->anim, seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN);
-
-      seq->anim_preseek = IMB_anim_get_preseek(sanim->anim);
 
       seq->len -= seq->anim_startofs;
       seq->len -= seq->anim_endofs;
