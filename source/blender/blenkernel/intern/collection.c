@@ -1643,7 +1643,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
       continue;
     }
 
-    /* Can happen when remaping data partially out-of-Main (during advanced ID management
+    /* Can happen when remapping data partially out-of-Main (during advanced ID management
      * operations like liboverride resync e.g.). */
     if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
       continue;
