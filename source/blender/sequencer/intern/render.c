@@ -1125,8 +1125,6 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
   ImBuf *ibuf = NULL;
   IMB_Proxy_Size psize = SEQ_rendersize_to_proxysize(context->preview_render_size);
 
-  IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
-
   if (SEQ_can_use_proxy(context, seq, psize)) {
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */

@@ -87,7 +87,7 @@ struct anim_index;
 struct anim {
   int ib_flags;
   int curtype;
-  int curposition; /* index  0 = 1e,  1 = 2e, enz. */
+  int cur_position; /* index  0 = 1e,  1 = 2e, enz. */
   int duration_in_frames;
   int frs_sec;
   double frs_sec_base;
@@ -105,7 +105,6 @@ struct anim {
   int orientation;
   size_t framesize;
   int interlacing;
-  int preseek;
   int streamindex;
 
   /* avi */
@@ -132,10 +131,10 @@ struct anim {
   struct SwsContext *img_convert_ctx;
   int videoStream;
 
-  struct ImBuf *last_frame;
-  int64_t last_pts;
-  int64_t next_pts;
-  AVPacket *next_packet;
+  struct ImBuf *cur_frame_final;
+  int64_t cur_pts;
+  int64_t cur_key_frame_pts;
+  AVPacket *cur_packet;
 #endif
 
   char index_dir[768];

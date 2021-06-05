@@ -1381,7 +1381,6 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 col = layout.column()
                 col.prop(strip, "filepath", text="")
                 col.prop(strip.colorspace_settings, "name", text="Color Space")
-                col.prop(strip, "mpeg_preseek")
                 col.prop(strip, "stream_index")
                 col.prop(strip, "use_deinterlace")
 

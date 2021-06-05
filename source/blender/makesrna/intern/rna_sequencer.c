@@ -2417,12 +2417,6 @@ static void rna_def_movie(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Movie Sequence", "Sequence strip to load a video");
   RNA_def_struct_sdna(srna, "Sequence");
 
-  prop = RNA_def_property(srna, "mpeg_preseek", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "anim_preseek");
-  RNA_def_property_range(prop, 0, 50);
-  RNA_def_property_ui_text(prop, "MPEG Preseek", "For MPEG movies, preseek this many frames");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
-
   prop = RNA_def_property(srna, "stream_index", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "streamindex");
   RNA_def_property_range(prop, 0, 20);

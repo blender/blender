@@ -173,7 +173,7 @@ typedef struct Sequence {
   float sat;
   float mul, handsize;
 
-  short anim_preseek;
+  short anim_preseek; /* UNUSED. */
   /** Streamindex for movie or sound files with several streams. */
   short streamindex;
   /** For multicam source selection. */
