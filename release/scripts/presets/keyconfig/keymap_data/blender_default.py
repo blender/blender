@@ -1079,6 +1079,7 @@ def km_view3d(params):
         ("view3d.view_all", {"type": 'C', "value": 'PRESS', "shift": True},
          {"properties": [("center", True)]}),
         op_menu_pie("VIEW3D_MT_view_pie", {"type": 'D', "value": 'CLICK_DRAG'}),
+        ("view3d.navigate", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "shift": True}, None),
         # Numpad views.
         ("view3d.view_camera", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         ("view3d.view_axis", {"type": 'NUMPAD_1', "value": 'PRESS'},
