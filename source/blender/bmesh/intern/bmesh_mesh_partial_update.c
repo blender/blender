@@ -219,7 +219,9 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
         BMEdge *e_iter = e_first;
         do {
           if (e_iter->l) {
-            partial_elem_edge_ensure(bmpinfo, edges_tag, e_iter);
+            if (!partial_elem_edge_ensure(bmpinfo, edges_tag, e_iter)) {
+              continue;
+            }
 
             /* These faces need to be taken into account when weighting vertex normals
              * but aren't needed for tessellation nor do their normals need to be recalculated.
