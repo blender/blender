@@ -463,8 +463,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
-                                             const bool do_hq_normals,
-                                             const bool do_lines_loose_subbuffer);
+                                             const bool do_hq_normals);
 /*
  * Total number of extractions types.
  */
@@ -473,6 +472,7 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
 extern const MeshExtract extract_tris;
 extern const MeshExtract extract_lines;
 extern const MeshExtract extract_lines_with_lines_loose;
+extern const MeshExtract extract_lines_loose_only;
 extern const MeshExtract extract_points;
 extern const MeshExtract extract_fdots;
 extern const MeshExtract extract_lines_paint_mask;

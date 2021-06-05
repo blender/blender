@@ -777,7 +777,6 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
    *                                               +-----> | extract_task2_loop_3 |
    *                                                       +----------------------+
    */
-  const bool do_lines_loose_subbuffer = mbc->ibo.lines_loose != nullptr;
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
@@ -787,8 +786,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #define EXTRACT_ADD_REQUESTED(type, type_lowercase, name) \
   do { \
     if (DRW_##type_lowercase##_requested(mbc->type_lowercase.name)) { \
-      const MeshExtract *extractor = mesh_extract_override_get( \
-          &extract_##name, do_hq_normals, do_lines_loose_subbuffer); \
+      const MeshExtract *extractor = mesh_extract_override_get(&extract_##name, do_hq_normals); \
       extractors.append(extractor); \
     } \
   } while (0)
@@ -818,7 +816,22 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(VBO, vbo, skin_roots);
 
   EXTRACT_ADD_REQUESTED(IBO, ibo, tris);
-  EXTRACT_ADD_REQUESTED(IBO, ibo, lines);
+  if (DRW_ibo_requested(mbc->ibo.lines)) {
+    const MeshExtract *extractor;
+    if (mbc->ibo.lines_loose != nullptr) {
+      /* Update #lines_loose ibo. */
+      extractor = &extract_lines_with_lines_loose;
+    }
+    else {
+      extractor = &extract_lines;
+    }
+    extractors.append(extractor);
+  }
+  else if (DRW_ibo_requested(mbc->ibo.lines_loose)) {
+    /* Note: #ibo.lines must have been created first. */
+    const MeshExtract *extractor = &extract_lines_loose_only;
+    extractors.append(extractor);
+  }
   EXTRACT_ADD_REQUESTED(IBO, ibo, points);
   EXTRACT_ADD_REQUESTED(IBO, ibo, fdots);
   EXTRACT_ADD_REQUESTED(IBO, ibo, lines_paint_mask);

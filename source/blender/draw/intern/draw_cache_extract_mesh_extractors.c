@@ -94,23 +94,11 @@ static const MeshExtract *mesh_extract_override_hq_normals(const MeshExtract *ex
   return extractor;
 }
 
-static const MeshExtract *mesh_extract_override_loose_lines(const MeshExtract *extractor)
-{
-  if (extractor == &extract_lines) {
-    return &extract_lines_with_lines_loose;
-  }
-  return extractor;
-}
-
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
-                                             const bool do_hq_normals,
-                                             const bool do_lines_loose_subbuffer)
+                                             const bool do_hq_normals)
 {
   if (do_hq_normals) {
     extractor = mesh_extract_override_hq_normals(extractor);
-  }
-  if (do_lines_loose_subbuffer) {
-    extractor = mesh_extract_override_loose_lines(extractor);
   }
   return extractor;
 }
@@ -386,7 +374,7 @@ const MeshExtract extract_lines = {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Loose Edges Sub Buffer
+/** \name Extract Lines and Loose Edges Sub Buffer
  * \{ */
 
 static void extract_lines_loose_subbuffer(const MeshRenderData *mr, struct MeshBatchCache *cache)
@@ -421,6 +409,28 @@ const MeshExtract extract_lines_with_lines_loose = {
     .data_type = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines)};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Extract Loose Edges Sub Buffer
+ * \{ */
+
+static void *extract_lines_loose_only_init(const MeshRenderData *mr,
+                                           struct MeshBatchCache *cache,
+                                           void *buf)
+{
+  BLI_assert(buf == cache->final.ibo.lines_loose);
+  UNUSED_VARS_NDEBUG(buf);
+  extract_lines_loose_subbuffer(mr, cache);
+  return NULL;
+}
+
+const MeshExtract extract_lines_loose_only = {
+    .init = extract_lines_loose_only_init,
+    .data_type = 0,
+    .use_threading = false,
+    .mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_loose)};
 
 /** \} */
 
