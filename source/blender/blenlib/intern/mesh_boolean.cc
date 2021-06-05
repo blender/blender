@@ -1863,7 +1863,7 @@ static Vector<ComponentContainer> find_component_containers(int comp,
                                                             const IMesh &tm,
                                                             const PatchesInfo &pinfo,
                                                             const TriMeshTopology &tmtopo,
-                                                            Array<BoundingBox> comp_bb,
+                                                            Array<BoundingBox> &comp_bb,
                                                             IMeshArena *arena)
 {
   constexpr int dbg_level = 0;
