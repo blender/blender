@@ -172,7 +172,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_recursive, int *r_c
   }
 }
 
-static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int depth)
+static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
 {
   Sequence *seq;
   int tot = 0, recursive, count, flag;
@@ -184,7 +184,7 @@ static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int 
     tot += count;
 
     if (recursive) {
-      tot += SeqTransCount(t, seq, &seq->seqbase, depth + 1);
+      tot += SeqTransCount(t, &seq->seqbase, depth + 1);
     }
   }
 
@@ -557,7 +557,7 @@ void createTransSeqData(TransInfo *t)
   }
 #endif
 
-  count = SeqTransCount(t, NULL, ed->seqbasep, 0);
+  count = SeqTransCount(t, ed->seqbasep, 0);
 
   /* allocate memory for data */
   tc->data_len = count;
