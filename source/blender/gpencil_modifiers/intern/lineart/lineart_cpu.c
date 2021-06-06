@@ -780,10 +780,10 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
   e = new_e;
 
 #define INCREASE_EDGE \
-  e_count++; \
   v1_obi = e->v1_obindex; \
   v2_obi = e->v2_obindex; \
   new_e = &((LineartEdge *)e_eln->pointer)[e_count]; \
+  e_count++; \
   e = new_e; \
   e->v1_obindex = v1_obi; \
   e->v2_obindex = v2_obi; \
