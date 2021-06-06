@@ -31,8 +31,8 @@ struct ListBase;
 struct Scene;
 struct Sequence;
 
-int SEQ_transform_get_left_handle_frame(struct Sequence *seq, bool metaclip);
-int SEQ_transform_get_right_handle_frame(struct Sequence *seq, bool metaclip);
+int SEQ_transform_get_left_handle_frame(struct Sequence *seq);
+int SEQ_transform_get_right_handle_frame(struct Sequence *seq);
 void SEQ_transform_set_left_handle_frame(struct Sequence *seq, int val);
 void SEQ_transform_set_right_handle_frame(struct Sequence *seq, int val);
 void SEQ_transform_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);

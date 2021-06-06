@@ -90,8 +90,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_recursive, int *r_c
 
     Scene *scene = t->scene;
     int cfra = CFRA;
-    int left = SEQ_transform_get_left_handle_frame(seq, false);
-    int right = SEQ_transform_get_right_handle_frame(seq, false);
+    int left = SEQ_transform_get_left_handle_frame(seq);
+    int right = SEQ_transform_get_right_handle_frame(seq);
 
     if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
       *r_recursive = false;
@@ -180,11 +180,6 @@ static int SeqTransCount(TransInfo *t, Sequence *parent, ListBase *seqbase, int 
   for (seq = seqbase->first; seq; seq = seq->next) {
     seq->depth = depth;
 
-    /* 'seq->tmp' is used by seq_tx_get_final_{left, right}
-     * to check sequence's range and clamp to it if needed.
-     * It's first place where digging into sequences tree, so store link to parent here. */
-    seq->tmp = parent;
-
     SeqTransInfo(t, seq, &recursive, &count, &flag); /* ignore the flag */
     tot += count;
 
@@ -206,16 +201,16 @@ static TransData *SeqToTransData(
       /* Use seq_tx_get_final_left() and an offset here
        * so transform has the left hand location of the strip.
        * tdsq->start_offset is used when flushing the tx data back */
-      start_left = SEQ_transform_get_left_handle_frame(seq, false);
+      start_left = SEQ_transform_get_left_handle_frame(seq);
       td2d->loc[0] = start_left;
       tdsq->start_offset = start_left - seq->start; /* use to apply the original location */
       break;
     case SEQ_LEFTSEL:
-      start_left = SEQ_transform_get_left_handle_frame(seq, false);
+      start_left = SEQ_transform_get_left_handle_frame(seq);
       td2d->loc[0] = start_left;
       break;
     case SEQ_RIGHTSEL:
-      td2d->loc[0] = SEQ_transform_get_right_handle_frame(seq, false);
+      td2d->loc[0] = SEQ_transform_get_right_handle_frame(seq);
       break;
   }
 
