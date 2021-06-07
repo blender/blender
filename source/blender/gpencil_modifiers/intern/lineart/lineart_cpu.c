@@ -1844,35 +1844,30 @@ static void lineart_main_load_geometries(
 
   Camera *cam = camera->data;
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-  double fov = focallength_to_fov(cam->lens, sensor);
-
+  int fit = BKE_camera_sensor_fit(cam->sensor_fit, rb->w, rb->h);
   double asp = ((double)rb->w / (double)rb->h);
 
   if (cam->type == CAM_PERSP) {
-    if (cam->sensor_fit == CAMERA_SENSOR_FIT_AUTO) {
-      if (asp < 1) {
-        fov /= asp;
-      }
-      else {
-        fov *= asp;
-      }
+    if (fit == CAMERA_SENSOR_FIT_VERT && asp > 1) {
+      sensor *= asp;
     }
-    else if (cam->sensor_fit == CAMERA_SENSOR_FIT_HOR) {
-      if (asp < 1) {
-        fov /= asp;
-      }
+    if (fit == CAMERA_SENSOR_FIT_HOR && asp < 1) {
+      sensor /= asp;
     }
-    else if (cam->sensor_fit == CAMERA_SENSOR_FIT_VERT) {
-      if (asp > 1) {
-        fov *= asp;
-      }
-    }
+    double fov = focallength_to_fov(cam->lens, sensor);
     lineart_matrix_perspective_44d(proj, fov, asp, cam->clip_start, cam->clip_end);
   }
   else if (cam->type == CAM_ORTHO) {
     double w = cam->ortho_scale / 2;
     lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
   }
+
+  double t_start;
+
+  if (G.debug_value == 4000) {
+    t_start = PIL_check_seconds_timer();
+  }
+
   invert_m4_m4(inv, rb->cam_obmat);
   mul_m4db_m4db_m4fl_uniq(result, proj, inv);
   copy_m4_m4_db(proj, result);
@@ -2701,8 +2696,9 @@ static LineartRenderBuffer *lineart_create_render_buffer(Scene *scene,
   }
 
   double asp = ((double)rb->w / (double)rb->h);
-  rb->shift_x = (asp >= 1) ? c->shiftx : c->shiftx * asp;
-  rb->shift_y = (asp <= 1) ? c->shifty : c->shifty * asp;
+  int fit = BKE_camera_sensor_fit(c->sensor_fit, rb->w, rb->h);
+  rb->shift_x = fit == CAMERA_SENSOR_FIT_HOR ? c->shiftx : c->shiftx / asp;
+  rb->shift_y = fit == CAMERA_SENSOR_FIT_VERT ? c->shifty : c->shifty * asp;
 
   rb->crease_threshold = cos(M_PI - lmd->crease_threshold);
   rb->angle_splitting_threshold = lmd->angle_splitting_threshold;
