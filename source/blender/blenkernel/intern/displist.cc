@@ -65,7 +65,7 @@ using blender::IndexRange;
 
 static void boundbox_displist_object(Object *ob);
 
-void BKE_displist_elem_free(DispList *dl)
+static void displist_elem_free(DispList *dl)
 {
   if (dl) {
     if (dl->verts) {
@@ -86,23 +86,8 @@ void BKE_displist_free(ListBase *lb)
   DispList *dl;
 
   while ((dl = (DispList *)BLI_pophead(lb))) {
-    BKE_displist_elem_free(dl);
+    displist_elem_free(dl);
   }
-}
-
-DispList *BKE_displist_find_or_create(ListBase *lb, int type)
-{
-  LISTBASE_FOREACH (DispList *, dl, lb) {
-    if (dl->type == type) {
-      return dl;
-    }
-  }
-
-  DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), "find_disp");
-  dl->type = type;
-  BLI_addtail(lb, dl);
-
-  return dl;
 }
 
 DispList *BKE_displist_find(ListBase *lb, int type)
