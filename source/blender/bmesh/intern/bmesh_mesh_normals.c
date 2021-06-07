@@ -39,6 +39,10 @@
 
 #include "intern/bmesh_private.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Update Vertex & Face Normals
+ * \{ */
+
 /**
  * Helpers for #BM_mesh_normals_update and #BM_verts_calc_normal_vcos
  */
@@ -259,6 +263,12 @@ void BM_mesh_normals_update(BMesh *bm)
   MEM_freeN(edgevec);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Vertex & Face Normals (Partial Updates)
+ * \{ */
+
 static void mesh_faces_parallel_range_calc_normals_cb(
     void *userdata, const int iter, const TaskParallelTLS *__restrict UNUSED(tls))
 {
@@ -383,6 +393,12 @@ void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpin
   MEM_freeN(edgevec);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Vertex & Face Normals (Custom Coords)
+ * \{ */
+
 /**
  * \brief BMesh Compute Normals from/to external data.
  *
@@ -404,6 +420,47 @@ void BM_verts_calc_normal_vcos(BMesh *bm,
   /* Add weighted face normals to vertices, and normalize vert normals. */
   bm_mesh_verts_calc_normals(bm, edgevec, fnos, vcos, vnos);
   MEM_freeN(edgevec);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tagging Utility Functions
+ * \{ */
+
+void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
+{
+  BMFace *f;
+  BMEdge *e;
+  BMIter fiter, eiter;
+  BMLoop *l_curr, *l_first;
+
+  if (do_edges) {
+    int index_edge;
+    BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index_edge) {
+      BMLoop *l_a, *l_b;
+
+      BM_elem_index_set(e, index_edge); /* set_inline */
+      BM_elem_flag_disable(e, BM_ELEM_TAG);
+      if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+        if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
+          BM_elem_flag_enable(e, BM_ELEM_TAG);
+        }
+      }
+    }
+    bm->elem_index_dirty &= ~BM_EDGE;
+  }
+
+  int index_face, index_loop = 0;
+  BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, index_face) {
+    BM_elem_index_set(f, index_face); /* set_inline */
+    l_curr = l_first = BM_FACE_FIRST_LOOP(f);
+    do {
+      BM_elem_index_set(l_curr, index_loop++); /* set_inline */
+      BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
+    } while ((l_curr = l_curr->next) != l_first);
+  }
+  bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 }
 
 /**
@@ -481,6 +538,28 @@ static void bm_mesh_edges_sharp_tag(BMesh *bm,
 
   bm->elem_index_dirty &= ~BM_EDGE;
 }
+
+/**
+ * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+ *
+ * Used when defining an empty custom loop normals data layer,
+ * to keep same shading as with auto-smooth!
+ */
+void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
+{
+  if (split_angle >= (float)M_PI) {
+    /* Nothing to do! */
+    return;
+  }
+
+  bm_mesh_edges_sharp_tag(bm, NULL, NULL, NULL, split_angle, true);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Loop Normals Calculation API
+ * \{ */
 
 /**
  * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
@@ -1227,21 +1306,11 @@ void BM_loops_calc_normal_vcos(BMesh *bm,
   }
 }
 
-/**
- * Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
- *
- * Used when defining an empty custom loop normals data layer,
- * to keep same shading as with autosmooth!
- */
-void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
-{
-  if (split_angle >= (float)M_PI) {
-    /* Nothing to do! */
-    return;
-  }
+/** \} */
 
-  bm_mesh_edges_sharp_tag(bm, NULL, NULL, NULL, split_angle, true);
-}
+/* -------------------------------------------------------------------- */
+/** \name Loop Normal Space API
+ * \{ */
 
 void BM_lnorspacearr_store(BMesh *bm, float (*r_lnors)[3])
 {
@@ -1433,40 +1502,13 @@ void BM_lnorspace_update(BMesh *bm)
   }
 }
 
-void BM_normals_loops_edges_tag(BMesh *bm, const bool do_edges)
-{
-  BMFace *f;
-  BMEdge *e;
-  BMIter fiter, eiter;
-  BMLoop *l_curr, *l_first;
+/** \} */
 
-  if (do_edges) {
-    int index_edge;
-    BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index_edge) {
-      BMLoop *l_a, *l_b;
-
-      BM_elem_index_set(e, index_edge); /* set_inline */
-      BM_elem_flag_disable(e, BM_ELEM_TAG);
-      if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-        if (BM_elem_flag_test(e, BM_ELEM_SMOOTH) && l_a->v != l_b->v) {
-          BM_elem_flag_enable(e, BM_ELEM_TAG);
-        }
-      }
-    }
-    bm->elem_index_dirty &= ~BM_EDGE;
-  }
-
-  int index_face, index_loop = 0;
-  BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, index_face) {
-    BM_elem_index_set(f, index_face); /* set_inline */
-    l_curr = l_first = BM_FACE_FIRST_LOOP(f);
-    do {
-      BM_elem_index_set(l_curr, index_loop++); /* set_inline */
-      BM_elem_flag_disable(l_curr, BM_ELEM_TAG);
-    } while ((l_curr = l_curr->next) != l_first);
-  }
-  bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
-}
+/* -------------------------------------------------------------------- */
+/** \name Loop Normal Edit Data Array API
+ *
+ * Utilities for creating/freeing #BMLoopNorEditDataArray.
+ * \{ */
 
 /**
  * Auxiliary function only used by rebuild to detect if any spaces were not marked as invalid.
@@ -1750,6 +1792,12 @@ void BM_loop_normal_editdata_array_free(BMLoopNorEditDataArray *lnors_ed_arr)
   MEM_freeN(lnors_ed_arr);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Normals / Vector Layer Conversion
+ * \{ */
+
 /**
  * \warning This function sets #BM_ELEM_TAG on loops & edges via #bm_mesh_loops_calc_normals,
  * take care to run this before setting up tags.
@@ -1818,3 +1866,5 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
 
   bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
 }
+
+/** \} */
