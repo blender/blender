@@ -84,13 +84,6 @@ void BKE_displist_count(const struct ListBase *lb, int *totvert, int *totface, i
 void BKE_displist_free(struct ListBase *lb);
 bool BKE_displist_has_faces(const struct ListBase *lb);
 
-void BKE_displist_make_surf(struct Depsgraph *depsgraph,
-                            const struct Scene *scene,
-                            struct Object *ob,
-                            struct ListBase *dispbase,
-                            struct Mesh **r_final,
-                            const bool for_render,
-                            const bool for_orco);
 void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,

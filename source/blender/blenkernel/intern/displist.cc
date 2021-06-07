@@ -1092,13 +1092,13 @@ static void displist_surf_indices(DispList *dl)
   }
 }
 
-void BKE_displist_make_surf(Depsgraph *depsgraph,
-                            const Scene *scene,
-                            Object *ob,
-                            ListBase *dispbase,
-                            Mesh **r_final,
-                            const bool for_render,
-                            const bool for_orco)
+static void displist_make_surf(Depsgraph *depsgraph,
+                               const Scene *scene,
+                               Object *ob,
+                               ListBase *dispbase,
+                               Mesh **r_final,
+                               const bool for_render,
+                               const bool for_orco)
 {
   ListBase nubase = {nullptr, nullptr};
   const Curve *cu = (const Curve *)ob->data;
@@ -1419,7 +1419,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
   }
 
   if (ob->type == OB_SURF) {
-    BKE_displist_make_surf(depsgraph, scene, ob, dispbase, r_final, for_render, for_orco);
+    displist_make_surf(depsgraph, scene, ob, dispbase, r_final, for_render, for_orco);
   }
   else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
     ListBase dlbev;
