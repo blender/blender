@@ -169,6 +169,7 @@ void special_aftertrans_update__mesh(bContext *C, TransInfo *t);
 
 /* transform_convert_mesh_edge.c */
 void createTransEdge(TransInfo *t);
+void recalcData_mesh_edge(TransInfo *t);
 
 /* transform_convert_mesh_skin.c */
 void createTransMeshSkin(TransInfo *t);

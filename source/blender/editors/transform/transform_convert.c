@@ -1698,8 +1698,10 @@ void recalcData(TransInfo *t)
       recalcData_mask_common(t);
       break;
     case TC_MESH_VERTS:
-    case TC_MESH_EDGES:
       recalcData_mesh(t);
+      break;
+    case TC_MESH_EDGES:
+      recalcData_mesh_edge(t);
       break;
     case TC_MESH_SKIN:
       recalcData_mesh_skin(t);
