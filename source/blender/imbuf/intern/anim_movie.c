@@ -1076,7 +1076,8 @@ static int64_t ffmpeg_get_pts_to_search(struct anim *anim,
 static bool ffmpeg_pts_matches_last_frame(struct anim *anim, int64_t pts_to_search)
 {
   if (anim->pFrame && anim->cur_frame_final) {
-    return labs(anim->cur_pts - pts_to_search) < anim->pFrame->pkt_duration;
+    int64_t diff = pts_to_search - anim->cur_pts;
+    return diff >= 0 && diff < anim->pFrame->pkt_duration;
   }
 
   return false;
