@@ -52,8 +52,6 @@
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "bmesh.h"
 #include "bmesh_class.h"
 #include "bmesh_tools.h"
@@ -1860,12 +1858,6 @@ static void lineart_main_load_geometries(
   else if (cam->type == CAM_ORTHO) {
     double w = cam->ortho_scale / 2;
     lineart_matrix_ortho_44d(proj, -w, w, -w / asp, w / asp, cam->clip_start, cam->clip_end);
-  }
-
-  double t_start;
-
-  if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
   }
 
   invert_m4_m4(inv, rb->cam_obmat);
