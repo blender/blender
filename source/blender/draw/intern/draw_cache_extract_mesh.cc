@@ -66,6 +66,10 @@ struct ExtractorRunData {
   ExtractorRunData(const MeshExtract *extractor) : extractor(extractor)
   {
   }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("DRAW:ExtractorRunData")
+#endif
 };
 
 class ExtractorRunDatas : public Vector<ExtractorRunData> {
@@ -127,6 +131,10 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
     }
     return data_type;
   }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("DRAW:ExtractorRunDatas")
+#endif
 };
 
 /** \} */
