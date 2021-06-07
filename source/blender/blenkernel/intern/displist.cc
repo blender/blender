@@ -690,7 +690,7 @@ void BKE_displist_make_mball(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
     object_deform_mball(ob, &ob->runtime.curve_cache->disp);
 
-    /* NOP for MBALLs anyway... */
+    /* No-op for MBALLs anyway... */
     boundbox_displist_object(ob);
   }
 }
@@ -735,8 +735,7 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
 
       /* this modifiers are moving point of tessellation automatically
        * (some of them even can't be applied on tessellated curve), set flag
-       * for information button in modifier's header
-       */
+       * for information button in modifier's header. */
       md->mode |= eModifierMode_ApplyOnSpline;
     }
     else if (md->mode & eModifierMode_ApplyOnSpline) {
@@ -747,7 +746,9 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
   return pretessellatePoint;
 }
 
-/* Return true if any modifier was applied. */
+/**
+ * \return True if any modifier was applied.
+ */
 bool BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
                                   const Scene *scene,
                                   Object *ob,
@@ -948,10 +949,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
     }
     else {
       if (!r_final) {
-        /* makeDisplistCurveTypes could be used for beveling, where derived mesh
+        /* makeDisplistCurveTypes could be used for beveling, where mesh
          * is totally unnecessary, so we could stop modifiers applying
-         * when we found constructive modifier but derived mesh is unwanted result
-         */
+         * when we found constructive modifier but mesh is unwanted. */
         break;
       }
 
@@ -989,9 +989,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       Mesh *mesh_applied = mti->modifyMesh(md, &mectx_apply, modified);
 
       if (mesh_applied) {
-        /* Modifier returned a new derived mesh */
-
-        if (modified && modified != mesh_applied) { /* Modifier  */
+        if (modified && modified != mesh_applied) {
           BKE_id_free(nullptr, modified);
         }
         modified = mesh_applied;
@@ -1042,8 +1040,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
       BKE_mesh_ensure_normals(modified);
 
       /* Special tweaks, needed since neither BKE_mesh_new_nomain_from_template() nor
-       * BKE_mesh_new_nomain_from_curve_displist() properly duplicate mat info...
-       */
+       * BKE_mesh_new_nomain_from_curve_displist() properly duplicate mat info... */
       BLI_strncpy(modified->id.name, cu->id.name, sizeof(modified->id.name));
       *((short *)modified->id.name) = ID_ME;
       MEM_SAFE_FREE(modified->mat);
@@ -1138,9 +1135,6 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
       dl->nr = len;
       dl->col = nu->mat_nr;
       dl->charidx = nu->charidx;
-
-      /* dl->rt will be used as flag for render face and */
-      /* CU_2D conflicts with R_NOPUNOFLIP */
       dl->rt = nu->flag;
 
       float *data = dl->verts;
@@ -1162,9 +1156,6 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
 
       dl->col = nu->mat_nr;
       dl->charidx = nu->charidx;
-
-      /* dl->rt will be used as flag for render face and */
-      /* CU_2D conflicts with R_NOPUNOFLIP */
       dl->rt = nu->flag;
 
       float *data = dl->verts;
@@ -1271,9 +1262,6 @@ static void fillBevelCap(const Nurb *nu,
   dl->nr = dlb->nr;
   dl->col = nu->mat_nr;
   dl->charidx = nu->charidx;
-
-  /* dl->rt will be used as flag for render face and */
-  /* CU_2D conflicts with R_NOPUNOFLIP */
   dl->rt = nu->flag;
 
   BLI_addtail(dispbase, dl);
@@ -1442,8 +1430,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
 
     /* We only re-evaluate path if evaluation is not happening for orco.
      * If the calculation happens for orco, we should never free data which
-     * was needed before and only not needed for orco calculation.
-     */
+     * was needed before and only not needed for orco calculation. */
     if (!for_orco) {
       if (ob->runtime.curve_cache->anim_path_accum_length) {
         MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
@@ -1502,9 +1489,6 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
           dl->nr = bl->nr;
           dl->col = nu->mat_nr;
           dl->charidx = nu->charidx;
-
-          /* dl->rt will be used as flag for render face and */
-          /* CU_2D conflicts with R_NOPUNOFLIP */
           dl->rt = nu->flag;
 
           int a = dl->nr;
@@ -1557,9 +1541,6 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
             dl->nr = dlb->nr;
             dl->col = nu->mat_nr;
             dl->charidx = nu->charidx;
-
-            /* dl->rt will be used as flag for render face and */
-            /* CU_2D conflicts with R_NOPUNOFLIP */
             dl->rt = nu->flag;
 
             /* for each point of poly make a bevel piece */
@@ -1746,8 +1727,7 @@ static void boundbox_displist_object(Object *ob)
 {
   if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
     /* Curve's BB is already calculated as a part of modifier stack,
-     * here we only calculate object BB based on final display list.
-     */
+     * here we only calculate object BB based on final display list. */
 
     /* object's BB is calculated from final displist */
     if (ob->runtime.bb == nullptr) {

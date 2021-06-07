@@ -65,12 +65,12 @@ struct Mesh;
 struct Object;
 struct Scene;
 
-/* used for curves, nurbs, mball, importing */
+/* Used for curves, nurbs, meta-balls. */
 typedef struct DispList {
   struct DispList *next, *prev;
   short type, flag;
   int parts, nr;
-  short col, rt; /* rt used by initrenderNurbs */
+  short col, rt; /* Currently only used for smooth flag. */
   float *verts, *nors;
   int *index;
   int charidx;
