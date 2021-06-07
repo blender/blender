@@ -407,6 +407,7 @@ typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
 /** \name Mesh Elements Extract Struct
  * \{ */
 
+/* TODO(jbakker): move parameters inside a struct. */
 typedef void *(ExtractInitFn)(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buffer);
