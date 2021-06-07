@@ -624,6 +624,7 @@ static void delete_mesh_selection(MeshComponent &component,
       break;
     default:
       BLI_assert_unreachable();
+      mesh_out = nullptr;
       break;
   }
   component.replace_mesh_but_keep_vertex_group_names(mesh_out);
