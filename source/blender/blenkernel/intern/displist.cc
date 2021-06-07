@@ -1411,7 +1411,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                                       const bool for_orco,
                                       Mesh **r_final)
 {
-  Curve *cu = (Curve *)ob->data;
+  const Curve *cu = (const Curve *)ob->data;
 
   /* we do allow duplis... this is only displist on curve level */
   if (!ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
@@ -1422,7 +1422,6 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
     displist_make_surf(depsgraph, scene, ob, dispbase, r_final, for_render, for_orco);
   }
   else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-    ListBase dlbev;
     ListBase nubase = {nullptr, nullptr};
     bool force_mesh_conversion = false;
 
@@ -1442,7 +1441,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
       BKE_vfont_to_curve_nubase(ob, FO_EDIT, &nubase);
     }
     else {
-      BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(cu));
+      BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(const_cast<Curve *>(cu)));
     }
 
     if (!for_orco) {
@@ -1453,17 +1452,17 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
     BKE_curve_bevelList_make(ob, &nubase, for_render);
 
     /* If curve has no bevel will return nothing */
-    BKE_curve_bevel_make(ob, &dlbev);
+    ListBase dlbev = BKE_curve_bevel_make(cu);
 
     /* no bevel or extrude, and no width correction? */
-    if (!dlbev.first && cu->width == 1.0f) {
+    if (BLI_listbase_is_empty(&dlbev) && cu->width == 1.0f) {
       curve_to_displist(cu, &nubase, for_render, dispbase);
     }
     else {
       const float widfac = cu->width - 1.0f;
+
       BevList *bl = (BevList *)ob->runtime.curve_cache->bev.first;
       Nurb *nu = (Nurb *)nubase.first;
-
       for (; bl && nu; bl = bl->next, nu = nu->next) {
         float *data;
 
