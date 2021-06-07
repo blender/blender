@@ -160,7 +160,7 @@ constexpr MeshExtract create_extractor_points()
   extractor.iter_lvert_mesh = extract_points_iter_lvert_mesh;
   extractor.finish = extract_points_finish;
   extractor.data_type = MR_DATA_NONE;
-  extractor.use_threading = true;
+  extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.points);
   return extractor;
 }
