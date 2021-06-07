@@ -7,7 +7,7 @@ flat in int interp_size;
 
 out vec4 fragColor;
 
-uniform sampler1DArray glyph;
+uniform sampler2D glyph;
 
 const vec2 offsets4[4] = vec2[4](
     vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
