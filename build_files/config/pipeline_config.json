@@ -11,7 +11,7 @@
                 { "path": "source/tools", "branch": "master", "commit_id": "HEAD" }
             ]
         },
-        "svn": 
+        "svn":
         {
             "tests": { "path": "lib/tests", "branch": "trunk", "commit_id": "HEAD" },
             "libraries":
@@ -47,7 +47,7 @@
         "cmake":
         {
             "default":
-            { 
+            {
                 "version": "any",
                 "overrides":
                 {
@@ -58,28 +58,28 @@
             {
                 "overrides":
                 {
-    
+
                 }
             },
             "darwin-arm64":
             {
                 "overrides":
                 {
-    
+
                 }
             },
             "linux-x86_64":
             {
                 "overrides":
                 {
-    
+
                 }
             },
             "windows-amd64":
             {
                 "overrides":
                 {
-    
+
                 }
             }
         }
