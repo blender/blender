@@ -544,6 +544,11 @@ struct MeshRenderDataUpdateTaskData {
   eMRIterType iter_type;
   eMRDataType data_flag;
 
+  MeshRenderDataUpdateTaskData(MeshRenderData *mr, eMRIterType iter_type, eMRDataType data_flag)
+      : mr(mr), iter_type(iter_type), data_flag(data_flag)
+  {
+  }
+
   ~MeshRenderDataUpdateTaskData()
   {
     mesh_render_data_free(mr);
@@ -554,8 +559,9 @@ struct MeshRenderDataUpdateTaskData {
 #endif
 };
 
-static void mesh_render_data_update_task_data_free(MeshRenderDataUpdateTaskData *taskdata)
+static void mesh_render_data_update_task_data_free(void *data)
 {
+  MeshRenderDataUpdateTaskData *taskdata = static_cast<MeshRenderDataUpdateTaskData *>(data);
   BLI_assert(taskdata);
   delete taskdata;
 }
@@ -577,10 +583,8 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
                                                              const eMRIterType iter_type,
                                                              const eMRDataType data_flag)
 {
-  MeshRenderDataUpdateTaskData *task_data = new (MeshRenderDataUpdateTaskData);
-  task_data->mr = mr;
-  task_data->iter_type = iter_type;
-  task_data->data_flag = data_flag;
+  MeshRenderDataUpdateTaskData *task_data = new MeshRenderDataUpdateTaskData(
+      mr, iter_type, data_flag);
 
   struct TaskNode *task_node = BLI_task_graph_node_create(
       task_graph,
@@ -613,7 +617,7 @@ static struct TaskNode *extract_single_threaded_task_node_create(struct TaskGrap
 /** \name Task Node - UserData Initializer
  * \{ */
 struct UserDataInitTaskData {
-  ExtractTaskData *td;
+  ExtractTaskData *td = nullptr;
   int32_t task_counter = 0;
 
   ~UserDataInitTaskData()
@@ -626,8 +630,9 @@ struct UserDataInitTaskData {
 #endif
 };
 
-static void user_data_init_task_data_free(UserDataInitTaskData *taskdata)
+static void user_data_init_task_data_free(void *data)
 {
+  UserDataInitTaskData *taskdata = static_cast<UserDataInitTaskData *>(data);
   delete taskdata;
 }
 

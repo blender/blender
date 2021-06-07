@@ -325,7 +325,7 @@ typedef struct ExtractLEdgeMesh_Params {
 } ExtractLEdgeMesh_Params;
 typedef void(ExtractLEdgeMeshFn)(const MeshRenderData *mr,
                                  const MEdge *med,
-                                 const uint ledge_index,
+                                 const int ledge_index,
                                  void *data);
 
 #define EXTRACT_LEDGE_FOREACH_MESH_BEGIN(elem_edge, index_ledge, params, mr) \
