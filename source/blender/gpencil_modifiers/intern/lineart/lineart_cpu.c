@@ -52,7 +52,7 @@
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "PIL_time.h"
 
 #include "bmesh.h"
 #include "bmesh_class.h"
