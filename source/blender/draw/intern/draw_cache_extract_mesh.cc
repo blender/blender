@@ -297,7 +297,7 @@ BLI_INLINE void extract_finish(const MeshRenderData *mr,
 }
 
 /* Single Thread. */
-BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
+BLI_INLINE void extract_run_single_threaded(const MeshRenderData *mr,
                                             struct MeshBatchCache *cache,
                                             ExtractorRunDatas &extractors,
                                             eMRIterType iter_type,
@@ -530,7 +530,7 @@ static void extract_task_run(void *__restrict taskdata)
 static void extract_task_init_and_run(void *__restrict taskdata)
 {
   ExtractTaskData *data = (ExtractTaskData *)taskdata;
-  extract_run_and_finish_init(
+  extract_run_single_threaded(
       data->mr, data->cache, *data->extractors, data->iter_type, data->mbc);
 }
 
