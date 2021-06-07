@@ -560,9 +560,17 @@ class Text(bpy_types.ID):
         self.write(string)
 
     def as_module(self):
-        from os.path import splitext
+        import bpy
+        from os.path import splitext, join
         from types import ModuleType
-        mod = ModuleType(splitext(self.name)[0])
+        name = self.name
+        mod = ModuleType(splitext(name)[0])
+        # This is a fake file-path, set this since some scripts check `__file__`,
+        # error messages may include this as well.
+        # NOTE: the file path may be a blank string if the file hasn't been saved.
+        mod.__dict__.update({
+            "__file__": join(bpy.data.filepath, name),
+        })
         # TODO: We could use Text.compiled (C struct member)
         # if this is called often it will be much faster.
         exec(self.as_string(), mod.__dict__)
