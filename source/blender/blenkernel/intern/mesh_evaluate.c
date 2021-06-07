@@ -2351,7 +2351,7 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
   }
 
   /* finally calculate the area */
-  area = area_poly_v2((const float(*)[2])vertexcos, (unsigned int)mpoly->totloop);
+  area = area_poly_v2(vertexcos, (uint)mpoly->totloop);
 
   return area;
 }

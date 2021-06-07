@@ -349,7 +349,7 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject *args)
     goto finally;
   }
 
-  normal_poly_v3(n, (const float(*)[3])coords, coords_len);
+  normal_poly_v3(n, coords, coords_len);
   ret = Vector_CreatePyObject(n, 3, NULL);
 
 finally:

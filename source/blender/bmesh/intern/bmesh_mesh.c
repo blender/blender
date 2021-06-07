@@ -534,7 +534,7 @@ void BM_mesh_normals_update(BMesh *bm)
   bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
 
   /* Add weighted face normals to vertices, and normalize vert normals. */
-  bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, NULL, NULL, NULL);
+  bm_mesh_verts_calc_normals(bm, edgevec, NULL, NULL, NULL);
   MEM_freeN(edgevec);
 }
 
@@ -681,7 +681,7 @@ void BM_verts_calc_normal_vcos(BMesh *bm,
   bm_mesh_edges_calc_vectors(bm, edgevec, vcos);
 
   /* Add weighted face normals to vertices, and normalize vert normals. */
-  bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, fnos, vcos, vnos);
+  bm_mesh_verts_calc_normals(bm, edgevec, fnos, vcos, vnos);
   MEM_freeN(edgevec);
 }
 

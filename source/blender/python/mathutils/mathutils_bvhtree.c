@@ -434,7 +434,7 @@ static void py_bvhtree_nearest_point_range_cb(void *userdata,
   struct PyBVH_RangeData *data = userdata;
   PyBVHTree *self = data->self;
 
-  const float(*coords)[3] = (const float(*)[3])self->coords;
+  const float(*coords)[3] = self->coords;
   const uint *tri = self->tris[index];
   const float *tri_co[3] = {coords[tri[0]], coords[tri[1]], coords[tri[2]]};
   float nearest_tmp[3], dist_sq;

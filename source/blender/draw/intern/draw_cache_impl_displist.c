@@ -469,7 +469,7 @@ static void displist_surf_fnors_ensure(const DispList *dl, float (**fnors)[3])
 {
   int u_len = dl->nr - ((dl->flag & DL_CYCL_U) ? 0 : 1);
   int v_len = dl->parts - ((dl->flag & DL_CYCL_V) ? 0 : 1);
-  const float(*verts)[3] = (float(*)[3])dl->verts;
+  const float(*verts)[3] = (const float(*)[3])dl->verts;
   float(*nor_flat)[3] = MEM_mallocN(sizeof(float[3]) * u_len * v_len, __func__);
   *fnors = nor_flat;
 
@@ -559,8 +559,8 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
   LISTBASE_FOREACH (const DispList *, dl, lb) {
     const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
     if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-      const float(*verts)[3] = (float(*)[3])dl->verts;
-      const float(*nors)[3] = (float(*)[3])dl->nors;
+      const float(*verts)[3] = (const float(*)[3])dl->verts;
+      const float(*nors)[3] = (const float(*)[3])dl->nors;
       const int *idx = dl->index;
       float uv[4][2];
 
