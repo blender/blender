@@ -109,7 +109,7 @@ static void extract_points_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_points_iter_ledge_mesh(const MeshRenderData *mr,
                                            const MEdge *med,
-                                           const uint ledge_index,
+                                           const int ledge_index,
                                            void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);

@@ -331,7 +331,7 @@ static void extract_lines_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
                                           const MEdge *med,
-                                          const uint ledge_index,
+                                          const int ledge_index,
                                           void *elb)
 {
   const int l_index_offset = mr->edge_len + ledge_index;
@@ -1193,7 +1193,7 @@ static void extract_pos_nor_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_pos_nor_iter_ledge_mesh(const MeshRenderData *mr,
                                             const MEdge *med,
-                                            const uint ledge_index,
+                                            const int ledge_index,
                                             void *_data)
 {
   MeshExtract_PosNor_Data *data = _data;
@@ -1378,7 +1378,7 @@ static void extract_pos_nor_hq_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_pos_nor_hq_iter_ledge_mesh(const MeshRenderData *mr,
                                                const MEdge *med,
-                                               const uint ledge_index,
+                                               const int ledge_index,
                                                void *_data)
 {
   MeshExtract_PosNorHQ_Data *data = _data;
@@ -2418,7 +2418,7 @@ static void extract_edge_fac_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_edge_fac_iter_ledge_mesh(const MeshRenderData *mr,
                                              const MEdge *UNUSED(med),
-                                             const uint ledge_index,
+                                             const int ledge_index,
                                              void *_data)
 {
   MeshExtract_EdgeFac_Data *data = _data;
@@ -2847,7 +2847,7 @@ static void extract_edit_data_iter_ledge_bm(const MeshRenderData *mr,
 
 static void extract_edit_data_iter_ledge_mesh(const MeshRenderData *mr,
                                               const MEdge *med,
-                                              const uint ledge_index,
+                                              const int ledge_index,
                                               void *_data)
 {
   EditLoopData *data = (EditLoopData *)_data + mr->loop_len + ledge_index * 2;
@@ -4543,7 +4543,7 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
                                              const MEdge *UNUSED(med),
-                                             const uint ledge_index,
+                                             const int ledge_index,
                                              void *data)
 {
   const int e_index = mr->ledges[ledge_index];
@@ -4554,7 +4554,7 @@ static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
 
 static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
                                              const MEdge *med,
-                                             const uint ledge_index,
+                                             const int ledge_index,
                                              void *data)
 {
   int v1_orig = (mr->v_origindex) ? mr->v_origindex[med->v1] : med->v1;
