@@ -869,9 +869,9 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
                                       const Scene *scene,
                                       Object *ob,
                                       ListBase *dispbase,
-                                      Mesh **r_final,
                                       const bool for_render,
-                                      const bool force_mesh_conversion)
+                                      const bool force_mesh_conversion,
+                                      Mesh **r_final)
 {
   const Curve *cu = (const Curve *)ob->data;
 
@@ -1180,7 +1180,7 @@ static void displist_make_surf(Depsgraph *depsgraph,
   if (!for_orco) {
     BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
     curve_calc_modifiers_post(
-        depsgraph, scene, ob, dispbase, r_final, for_render, force_mesh_conversion);
+        depsgraph, scene, ob, dispbase, for_render, force_mesh_conversion, r_final);
   }
 
   BKE_nurbList_free(&nubase);
@@ -1642,7 +1642,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
 
       BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
       curve_calc_modifiers_post(
-          depsgraph, scene, ob, dispbase, r_final, for_render, force_mesh_conversion);
+          depsgraph, scene, ob, dispbase, for_render, force_mesh_conversion, r_final);
     }
 
     if (cu->flag & CU_DEFORM_FILL && !ob->runtime.data_eval) {
