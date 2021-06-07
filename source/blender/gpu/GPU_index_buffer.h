@@ -40,6 +40,8 @@ typedef struct GPUIndexBufBuilder {
   uint max_allowed_index;
   uint max_index_len;
   uint index_len;
+  uint index_min;
+  uint index_max;
   GPUPrimType prim_type;
   uint32_t *data;
 } GPUIndexBufBuilder;
