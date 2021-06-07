@@ -21,6 +21,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_spline.hh"
 
@@ -236,6 +237,7 @@ static Mesh *curve_to_mesh_calculate(const CurveEval &curve, const CurveEval &pr
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(vert_total, edge_total, 0, corner_total, poly_total);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
   MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};

@@ -138,8 +138,8 @@ void eyedropper_draw_cursor_text_region(const struct bContext *C,
   }
 
   const int mval[2] = {
-    x - region->winrct.xmin,
-    y - region->winrct.ymin,
+      x - region->winrct.xmin,
+      y - region->winrct.ymin,
   };
 
   eyedropper_draw_cursor_text_ex(mval[0], mval[1], name);

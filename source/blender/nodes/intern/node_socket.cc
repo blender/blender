@@ -37,6 +37,7 @@
 #include "BKE_node.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_material_types.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
@@ -396,6 +397,13 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
       id_us_plus(&toval->value->id);
       break;
     }
+    case SOCK_MATERIAL: {
+      bNodeSocketValueMaterial *toval = (bNodeSocketValueMaterial *)to->default_value;
+      bNodeSocketValueMaterial *fromval = (bNodeSocketValueMaterial *)from->default_value;
+      *toval = *fromval;
+      id_us_plus(&toval->value->id);
+      break;
+    }
   }
 
   to->flag |= (from->flag & SOCK_HIDE_VALUE);
@@ -637,9 +645,9 @@ static bNodeSocketType *make_socket_type_vector(PropertySubType subtype)
 static bNodeSocketType *make_socket_type_rgba()
 {
   bNodeSocketType *socktype = make_standard_socket_type(SOCK_RGBA, PROP_NONE);
-  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<blender::Color4f>(); };
+  socktype->get_cpp_type = []() { return &blender::fn::CPPType::get<blender::ColorGeometry4f>(); };
   socktype->get_cpp_value = [](const bNodeSocket &socket, void *r_value) {
-    *(blender::Color4f *)r_value = ((bNodeSocketValueRGBA *)socket.default_value)->value;
+    *(blender::ColorGeometry4f *)r_value = ((bNodeSocketValueRGBA *)socket.default_value)->value;
   };
   return socktype;
 }

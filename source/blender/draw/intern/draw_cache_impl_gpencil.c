@@ -405,7 +405,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
   if (cache->vbo == NULL) {
     /* Should be discarded together. */
     BLI_assert(cache->vbo == NULL && cache->ibo == NULL);
-    BLI_assert(cache->stroke_batch == NULL && cache->stroke_batch == NULL);
+    BLI_assert(cache->fill_batch == NULL && cache->stroke_batch == NULL);
     /* TODO/PERF: Could be changed to only do it if needed.
      * For now it's simpler to assume we always need it
      * since multiple viewport could or could not need it.

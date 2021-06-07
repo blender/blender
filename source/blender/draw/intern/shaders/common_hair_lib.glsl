@@ -28,6 +28,9 @@ uniform bool hairCloseTip = true;
 
 uniform vec4 hairDupliMatrix[4];
 
+/* Strand batch offset when used in compute shaders. */
+uniform int hairStrandOffset = 0;
+
 /* -- Per control points -- */
 uniform samplerBuffer hairPointBuffer; /* RGBA32F */
 #define point_position xyz
@@ -43,12 +46,36 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 
 /* -- Subdivision stage -- */
 /**
- * We use a transform feedback to preprocess the strands and add more subdivision to it.
- * For the moment these are simple smooth interpolation but one could hope to see the full
+ * We use a transform feedback or compute shader to preprocess the strands and add more subdivision
+ * to it. For the moment these are simple smooth interpolation but one could hope to see the full
  * children particle modifiers being evaluated at this stage.
  *
  * If no more subdivision is needed, we can skip this step.
  */
+
+#ifdef GPU_VERTEX_SHADER
+float hair_get_local_time()
+{
+  return float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
+}
+
+int hair_get_id()
+{
+  return gl_VertexID / hairStrandsRes;
+}
+#endif
+
+#ifdef GPU_COMPUTE_SHADER
+float hair_get_local_time()
+{
+  return float(gl_GlobalInvocationID.y) / float(hairStrandsRes - 1);
+}
+
+int hair_get_id()
+{
+  return int(gl_GlobalInvocationID.x) + hairStrandOffset;
+}
+#endif
 
 #ifdef HAIR_PHASE_SUBDIV
 int hair_get_base_id(float local_time, int strand_segments, out float interp_time)
@@ -64,9 +91,9 @@ int hair_get_base_id(float local_time, int strand_segments, out float interp_tim
 void hair_get_interp_attrs(
     out vec4 data0, out vec4 data1, out vec4 data2, out vec4 data3, out float interp_time)
 {
-  float local_time = float(gl_VertexID % hairStrandsRes) / float(hairStrandsRes - 1);
+  float local_time = hair_get_local_time();
 
-  int hair_id = gl_VertexID / hairStrandsRes;
+  int hair_id = hair_get_id();
   int strand_offset = int(texelFetch(hairStrandBuffer, hair_id).x);
   int strand_segments = int(texelFetch(hairStrandSegBuffer, hair_id).x);
 
@@ -96,6 +123,7 @@ void hair_get_interp_attrs(
  */
 
 #if !defined(HAIR_PHASE_SUBDIV) && defined(GPU_VERTEX_SHADER)
+
 int hair_get_strand_id(void)
 {
   return gl_VertexID / (hairStrandsRes * hairThicknessRes);
@@ -226,4 +254,46 @@ vec2 hair_resolve_barycentric(vec2 vert_barycentric)
   else {
     return vec2(1.0 - vert_barycentric.x, 0.0);
   }
+}
+
+/* Hair interpolation functions. */
+vec4 hair_get_weights_cardinal(float t)
+{
+  float t2 = t * t;
+  float t3 = t2 * t;
+#if defined(CARDINAL)
+  float fc = 0.71;
+#else /* defined(CATMULL_ROM) */
+  float fc = 0.5;
+#endif
+
+  vec4 weights;
+  /* GLSL Optimized version of key_curve_position_weights() */
+  float fct = t * fc;
+  float fct2 = t2 * fc;
+  float fct3 = t3 * fc;
+  weights.x = (fct2 * 2.0 - fct3) - fct;
+  weights.y = (t3 * 2.0 - fct3) + (-t2 * 3.0 + fct2) + 1.0;
+  weights.z = (-t3 * 2.0 + fct3) + (t2 * 3.0 - (2.0 * fct2)) + fct;
+  weights.w = fct3 - fct2;
+  return weights;
+}
+
+/* TODO(fclem): This one is buggy, find why. (it's not the optimization!!) */
+vec4 hair_get_weights_bspline(float t)
+{
+  float t2 = t * t;
+  float t3 = t2 * t;
+
+  vec4 weights;
+  /* GLSL Optimized version of key_curve_position_weights() */
+  weights.xz = vec2(-0.16666666, -0.5) * t3 + (0.5 * t2 + 0.5 * vec2(-t, t) + 0.16666666);
+  weights.y = (0.5 * t3 - t2 + 0.66666666);
+  weights.w = (0.16666666 * t3);
+  return weights;
+}
+
+vec4 hair_interp_data(vec4 v0, vec4 v1, vec4 v2, vec4 v3, vec4 w)
+{
+  return v0 * w.x + v1 * w.y + v2 * w.z + v3 * w.w;
 }

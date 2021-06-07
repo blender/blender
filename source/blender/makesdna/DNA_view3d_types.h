@@ -515,6 +515,7 @@ enum {
   V3D_OVERLAY_HIDE_OBJECT_ORIGINS = (1 << 10),
   V3D_OVERLAY_STATS = (1 << 11),
   V3D_OVERLAY_FADE_INACTIVE = (1 << 12),
+  V3D_OVERLAY_MODE_TRANSFER = (1 << 13),
 };
 
 /** #View3DOverlay.edit_flag */

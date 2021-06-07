@@ -82,6 +82,16 @@ int GPU_max_textures(void)
   return GCaps.max_textures;
 }
 
+int GPU_max_work_group_count(int index)
+{
+  return GCaps.max_work_group_count[index];
+}
+
+int GPU_max_work_group_size(int index)
+{
+  return GCaps.max_work_group_size[index];
+}
+
 int GPU_max_uniforms_vert(void)
 {
   return GCaps.max_uniforms_vert;
@@ -146,6 +156,16 @@ bool GPU_crappy_amd_driver(void)
 bool GPU_use_hq_normals_workaround(void)
 {
   return GCaps.use_hq_normals_workaround;
+}
+
+bool GPU_compute_shader_support(void)
+{
+  return GCaps.compute_shader_support;
+}
+
+bool GPU_shader_storage_buffer_objects_support(void)
+{
+  return GCaps.shader_storage_buffer_objects_support;
 }
 
 bool GPU_shader_image_load_store_support(void)

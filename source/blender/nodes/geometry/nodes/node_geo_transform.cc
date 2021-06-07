@@ -20,6 +20,7 @@
 
 #include "BLI_float4x4.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_volume_types.h"
 
@@ -72,7 +73,8 @@ void transform_mesh(Mesh *mesh,
   else {
     const float4x4 matrix = float4x4::from_loc_eul_scale(translation, rotation, scale);
     BKE_mesh_transform(mesh, matrix.values, false);
-    BKE_mesh_calc_normals(mesh);
+    mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+    mesh->runtime.cd_dirty_poly |= CD_MASK_NORMAL;
   }
 }
 
@@ -158,7 +160,6 @@ static void transform_curve(CurveEval &curve,
                             const float3 rotation,
                             const float3 scale)
 {
-
   if (use_translate(rotation, scale)) {
     curve.translate(translation);
   }

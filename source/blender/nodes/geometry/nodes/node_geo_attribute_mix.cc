@@ -120,16 +120,16 @@ static void do_mix_operation_float3(const int blend_mode,
 
 static void do_mix_operation_color4f(const int blend_mode,
                                      const VArray<float> &factors,
-                                     const VArray<Color4f> &inputs_a,
-                                     const VArray<Color4f> &inputs_b,
-                                     VMutableArray<Color4f> &results)
+                                     const VArray<ColorGeometry4f> &inputs_a,
+                                     const VArray<ColorGeometry4f> &inputs_b,
+                                     VMutableArray<ColorGeometry4f> &results)
 {
   const int size = results.size();
   parallel_for(IndexRange(size), 512, [&](IndexRange range) {
     for (const int i : range) {
       const float factor = factors[i];
-      Color4f a = inputs_a[i];
-      const Color4f b = inputs_b[i];
+      ColorGeometry4f a = inputs_a[i];
+      const ColorGeometry4f b = inputs_b[i];
       ramp_blend(blend_mode, a, factor, b);
       results.set(i, a);
     }
@@ -160,9 +160,9 @@ static void do_mix_operation(const CustomDataType result_type,
   else if (result_type == CD_PROP_COLOR) {
     do_mix_operation_color4f(blend_mode,
                              attribute_factor,
-                             attribute_a.typed<Color4f>(),
-                             attribute_b.typed<Color4f>(),
-                             attribute_result.typed<Color4f>());
+                             attribute_a.typed<ColorGeometry4f>(),
+                             attribute_b.typed<ColorGeometry4f>(),
+                             attribute_result.typed<ColorGeometry4f>());
   }
 }
 

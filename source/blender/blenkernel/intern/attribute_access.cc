@@ -46,6 +46,8 @@ using blender::StringRef;
 using blender::StringRefNull;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;
+using blender::fn::GVArray_For_GSpan;
+using blender::fn::GVArray_For_SingleValue;
 
 namespace blender::bke {
 
@@ -61,7 +63,7 @@ const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType ty
     case CD_PROP_INT32:
       return &CPPType::get<int>();
     case CD_PROP_COLOR:
-      return &CPPType::get<Color4f>();
+      return &CPPType::get<ColorGeometry4f>();
     case CD_PROP_BOOL:
       return &CPPType::get<bool>();
     default:
@@ -84,7 +86,7 @@ CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
   if (type.is<int>()) {
     return CD_PROP_INT32;
   }
-  if (type.is<Color4f>()) {
+  if (type.is<ColorGeometry4f>()) {
     return CD_PROP_COLOR;
   }
   if (type.is<bool>()) {
@@ -355,7 +357,7 @@ ReadAttributeLookup CustomDataAttributeProvider::try_get_for_read(
       case CD_PROP_INT32:
         return this->layer_to_read_attribute<int>(layer, domain_size);
       case CD_PROP_COLOR:
-        return this->layer_to_read_attribute<Color4f>(layer, domain_size);
+        return this->layer_to_read_attribute<ColorGeometry4f>(layer, domain_size);
       case CD_PROP_BOOL:
         return this->layer_to_read_attribute<bool>(layer, domain_size);
       default:
@@ -389,7 +391,7 @@ WriteAttributeLookup CustomDataAttributeProvider::try_get_for_write(
       case CD_PROP_INT32:
         return this->layer_to_write_attribute<int>(layer, domain_size);
       case CD_PROP_COLOR:
-        return this->layer_to_write_attribute<Color4f>(layer, domain_size);
+        return this->layer_to_write_attribute<ColorGeometry4f>(layer, domain_size);
       case CD_PROP_BOOL:
         return this->layer_to_write_attribute<bool>(layer, domain_size);
       default:
@@ -628,8 +630,35 @@ std::optional<GSpan> CustomDataAttributes::get_for_read(const StringRef name) co
   return {};
 }
 
+/**
+ * Return a virtual array for a stored attribute, or a single value virtual array with the default
+ * value if the attribute doesn't exist. If no default value is provided, the default value for the
+ * type will be used.
+ */
+GVArrayPtr CustomDataAttributes::get_for_read(const StringRef name,
+                                              const CustomDataType data_type,
+                                              const void *default_value) const
+{
+  const CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+
+  std::optional<GSpan> attribute = this->get_for_read(name);
+  if (!attribute) {
+    const int domain_size = this->size_;
+    return std::make_unique<GVArray_For_SingleValue>(
+        *type, domain_size, (default_value == nullptr) ? type->default_value() : default_value);
+  }
+
+  if (attribute->type() == *type) {
+    return std::make_unique<GVArray_For_GSpan>(*attribute);
+  }
+  const blender::nodes::DataTypeConversions &conversions =
+      blender::nodes::get_implicit_type_conversions();
+  return conversions.try_convert(std::make_unique<GVArray_For_GSpan>(*attribute), *type);
+}
+
 std::optional<GMutableSpan> CustomDataAttributes::get_for_write(const StringRef name)
 {
+  /* If this assert hits, it most likely means that #reallocate was not called at some point. */
   BLI_assert(size_ != 0);
   for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
     if (layer.name == name) {

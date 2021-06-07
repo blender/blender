@@ -258,8 +258,10 @@ void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void id_sort_by_name(struct ListBase *lb, struct ID *id, struct ID *id_sorting_hint);
 void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id);
 
-bool BKE_id_new_name_validate(struct ListBase *lb, struct ID *id, const char *name)
-    ATTR_NONNULL(1, 2);
+bool BKE_id_new_name_validate(struct ListBase *lb,
+                              struct ID *id,
+                              const char *name,
+                              const bool do_linked_data) ATTR_NONNULL(1, 2);
 void BKE_lib_id_clear_library_data(struct Main *bmain, struct ID *id);
 
 /* Affect whole Main database. */
@@ -273,7 +275,7 @@ void BKE_main_id_tag_all(struct Main *mainvar, const int tag, const bool value);
 void BKE_main_id_flag_listbase(struct ListBase *lb, const int flag, const bool value);
 void BKE_main_id_flag_all(struct Main *bmain, const int flag, const bool value);
 
-void BKE_main_id_clear_newpoins(struct Main *bmain);
+void BKE_main_id_newptr_and_tag_clear(struct Main *bmain);
 
 void BKE_main_id_refcount_recompute(struct Main *bmain, const bool do_linked_only);
 

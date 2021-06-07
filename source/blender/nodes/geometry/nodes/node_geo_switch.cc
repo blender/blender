@@ -22,24 +22,24 @@
 static bNodeSocketTemplate geo_node_switch_in[] = {
     {SOCK_BOOLEAN, N_("Switch")},
 
-    {SOCK_FLOAT, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_FLOAT, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_INT, N_("A"), 0, 0, 0, 0, -100000, 100000},
-    {SOCK_INT, N_("B"), 0, 0, 0, 0, -100000, 100000},
-    {SOCK_BOOLEAN, N_("A")},
-    {SOCK_BOOLEAN, N_("B")},
-    {SOCK_VECTOR, N_("A"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_VECTOR, N_("B"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
-    {SOCK_RGBA, N_("A"), 0.8, 0.8, 0.8, 1.0},
-    {SOCK_RGBA, N_("B"), 0.8, 0.8, 0.8, 1.0},
-    {SOCK_STRING, N_("A")},
-    {SOCK_STRING, N_("B")},
-    {SOCK_GEOMETRY, N_("A")},
-    {SOCK_GEOMETRY, N_("B")},
-    {SOCK_OBJECT, N_("A")},
-    {SOCK_OBJECT, N_("B")},
-    {SOCK_COLLECTION, N_("A")},
-    {SOCK_COLLECTION, N_("B")},
+    {SOCK_FLOAT, N_("False"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
+    {SOCK_FLOAT, N_("True"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
+    {SOCK_INT, N_("False"), 0, 0, 0, 0, -100000, 100000},
+    {SOCK_INT, N_("True"), 0, 0, 0, 0, -100000, 100000},
+    {SOCK_BOOLEAN, N_("False")},
+    {SOCK_BOOLEAN, N_("True")},
+    {SOCK_VECTOR, N_("False"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
+    {SOCK_VECTOR, N_("True"), 0.0, 0.0, 0.0, 0.0, -FLT_MAX, FLT_MAX},
+    {SOCK_RGBA, N_("False"), 0.8, 0.8, 0.8, 1.0},
+    {SOCK_RGBA, N_("True"), 0.8, 0.8, 0.8, 1.0},
+    {SOCK_STRING, N_("False")},
+    {SOCK_STRING, N_("True")},
+    {SOCK_GEOMETRY, N_("False")},
+    {SOCK_GEOMETRY, N_("True")},
+    {SOCK_OBJECT, N_("False")},
+    {SOCK_OBJECT, N_("True")},
+    {SOCK_COLLECTION, N_("False")},
+    {SOCK_COLLECTION, N_("True")},
     {-1, ""},
 };
 
@@ -64,7 +64,7 @@ static void geo_node_switch_layout(uiLayout *layout, bContext *UNUSED(C), Pointe
 static void geo_node_switch_init(bNodeTree *UNUSED(tree), bNode *node)
 {
   NodeSwitch *data = (NodeSwitch *)MEM_callocN(sizeof(NodeSwitch), __func__);
-  data->input_type = SOCK_FLOAT;
+  data->input_type = SOCK_GEOMETRY;
   node->storage = data;
 }
 
@@ -91,8 +91,8 @@ static void output_input(GeoNodeExecParams &params,
                          const StringRef input_suffix,
                          const StringRef output_identifier)
 {
-  const std::string name_a = "A" + input_suffix;
-  const std::string name_b = "B" + input_suffix;
+  const std::string name_a = "False" + input_suffix;
+  const std::string name_b = "True" + input_suffix;
   if (input) {
     params.set_input_unused(name_a);
     if (params.lazy_require_input(name_b)) {
@@ -134,7 +134,7 @@ static void geo_node_switch_exec(GeoNodeExecParams params)
       break;
     }
     case SOCK_RGBA: {
-      output_input<Color4f>(params, input, "_004", "Output_004");
+      output_input<ColorGeometry4f>(params, input, "_004", "Output_004");
       break;
     }
     case SOCK_STRING: {
@@ -165,13 +165,13 @@ void register_node_type_geo_switch()
 {
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_GEOMETRY, 0);
+  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTOR, 0);
   node_type_socket_templates(&ntype, geo_node_switch_in, geo_node_switch_out);
   node_type_init(&ntype, geo_node_switch_init);
   node_type_update(&ntype, blender::nodes::geo_node_switch_update);
   node_type_storage(&ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.geometry_node_execute = blender::nodes::geo_node_switch_exec;
-  ntype.geometry_node_execute_supports_lazyness = true;
+  ntype.geometry_node_execute_supports_laziness = true;
   ntype.draw_buttons = geo_node_switch_layout;
   nodeRegisterType(&ntype);
 }

@@ -707,6 +707,26 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
   }
 }
 
+static void mesh_buffer_cache_clear(MeshBufferCache *mbufcache)
+{
+  GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
+  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
+  for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
+    GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
+  }
+  for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
+    GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
+  }
+}
+
+static void mesh_buffer_extraction_cache_clear(MeshBufferExtractionCache *extraction_cache)
+{
+  MEM_SAFE_FREE(extraction_cache->lverts);
+  MEM_SAFE_FREE(extraction_cache->ledges);
+  extraction_cache->edge_loose_len = 0;
+  extraction_cache->vert_loose_len = 0;
+}
+
 static void mesh_batch_cache_clear(Mesh *me)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
@@ -714,15 +734,12 @@ static void mesh_batch_cache_clear(Mesh *me)
     return;
   }
   FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    GPUVertBuf **vbos = (GPUVertBuf **)&mbufcache->vbo;
-    GPUIndexBuf **ibos = (GPUIndexBuf **)&mbufcache->ibo;
-    for (int i = 0; i < sizeof(mbufcache->vbo) / sizeof(void *); i++) {
-      GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
-    }
-    for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
-      GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
-    }
+    mesh_buffer_cache_clear(mbufcache);
   }
+
+  mesh_buffer_extraction_cache_clear(&cache->final_extraction_cache);
+  mesh_buffer_extraction_cache_clear(&cache->cage_extraction_cache);
+  mesh_buffer_extraction_cache_clear(&cache->uv_cage_extraction_cache);
 
   for (int i = 0; i < cache->mat_len; i++) {
     GPU_INDEXBUF_DISCARD_SAFE(cache->final.tris_per_mat[i]);
@@ -1160,25 +1177,25 @@ static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, M
    * some issues (See T77867 where we needed to disable this function in order to debug what was
    * happening in release builds). */
   BLI_task_graph_work_and_wait(task_graph);
-  for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_BATCH_LEN; i++) {
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], 0));
   }
-  for (int i = 0; i < sizeof(cache->final.vbo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_VBO_LEN; i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->final.ibo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_IBO_LEN; i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.ibo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->cage.vbo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_VBO_LEN; i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->cage.ibo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_IBO_LEN; i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.ibo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->uv_cage.vbo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_VBO_LEN; i++) {
     BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.vbo)[i]));
   }
-  for (int i = 0; i < sizeof(cache->uv_cage.ibo) / sizeof(void *); i++) {
+  for (int i = 0; i < MBC_IBO_LEN; i++) {
     BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.ibo)[i]));
   }
 }
@@ -1542,7 +1559,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
-                                       cache->uv_cage,
+                                       &cache->uv_cage,
+                                       &cache->uv_cage_extraction_cache,
                                        me,
                                        is_editmode,
                                        is_paint_mode,
@@ -1551,7 +1569,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        false,
                                        true,
                                        false,
-                                       &cache->cd_used,
                                        scene,
                                        ts,
                                        true);
@@ -1560,7 +1577,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   if (do_cage) {
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
-                                       cache->cage,
+                                       &cache->cage,
+                                       &cache->cage_extraction_cache,
                                        me,
                                        is_editmode,
                                        is_paint_mode,
@@ -1569,7 +1587,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        false,
                                        false,
                                        use_subsurf_fdots,
-                                       &cache->cd_used,
                                        scene,
                                        ts,
                                        true);
@@ -1577,7 +1594,8 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   mesh_buffer_cache_create_requested(task_graph,
                                      cache,
-                                     cache->final,
+                                     &cache->final,
+                                     &cache->final_extraction_cache,
                                      me,
                                      is_editmode,
                                      is_paint_mode,
@@ -1586,7 +1604,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                      true,
                                      false,
                                      use_subsurf_fdots,
-                                     &cache->cd_used,
                                      scene,
                                      ts,
                                      use_hide);

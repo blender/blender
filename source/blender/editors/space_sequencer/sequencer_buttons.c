@@ -111,10 +111,10 @@ void sequencer_buttons_register(ARegionType *art)
   pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel metadata");
   strcpy(pt->idname, "SEQUENCER_PT_metadata");
   strcpy(pt->label, N_("Metadata"));
+  strcpy(pt->category, "Metadata");
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;
-  pt->flag |= PANEL_TYPE_DEFAULT_CLOSED;
   pt->order = 10;
   BLI_addtail(&art->paneltypes, pt);
 }

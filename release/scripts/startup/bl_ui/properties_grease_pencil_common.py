@@ -407,7 +407,7 @@ class AnnotationDataPanel:
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
-        if context.space_data.type not in {'VIEW_3D', 'TOPBAR'}:
+        if context.space_data.type not in {'VIEW_3D', 'TOPBAR', 'SEQUENCE_EDITOR'}:
             self.layout.prop(context.space_data, "show_annotation", text="")
 
     def draw(self, context):
@@ -857,6 +857,10 @@ class GreasePencilLayerRelationsPanel:
         col = layout.row(align=True)
         col.prop_search(gpl, "viewlayer_render", scene, "view_layers", text="View Layer")
 
+        col = layout.row(align=True)
+        # Only enable this property when a view layer is selected.
+        col.enabled = bool(gpl.viewlayer_render)
+        col.prop(gpl, "use_viewlayer_masks")
 
 class GreasePencilLayerDisplayPanel:
 

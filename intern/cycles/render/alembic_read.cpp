@@ -606,7 +606,8 @@ void read_geometry_data(AlembicProcedural *proc,
 
 template<typename T> struct value_type_converter {
   using cycles_type = float;
-  static constexpr TypeDesc type_desc = TypeFloat;
+  /* Use `TypeDesc::FLOAT` instead of `TypeFloat` to work around a compiler bug in gcc 11. */
+  static constexpr TypeDesc type_desc = TypeDesc::FLOAT;
   static constexpr const char *type_name = "float (default)";
 
   static cycles_type convert_value(T value)

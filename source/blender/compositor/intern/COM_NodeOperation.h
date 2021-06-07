@@ -39,6 +39,7 @@ namespace blender::compositor {
 class OpenCLDevice;
 class ReadBufferOperation;
 class WriteBufferOperation;
+class ExecutionSystem;
 
 class NodeOperation;
 typedef NodeOperation SocketReader;
@@ -190,6 +191,10 @@ struct NodeOperationFlags {
    */
   bool open_cl : 1;
 
+  /**
+   * TODO: Remove this flag and #SingleThreadedOperation if tiled implementation is removed.
+   * Full-frame implementation doesn't need it.
+   */
   bool single_threaded : 1;
 
   /**
@@ -232,6 +237,11 @@ struct NodeOperationFlags {
    */
   bool use_datatype_conversion : 1;
 
+  /**
+   * Has this operation fullframe implementation.
+   */
+  bool is_fullframe_operation : 1;
+
   NodeOperationFlags()
   {
     complex = false;
@@ -247,6 +257,7 @@ struct NodeOperationFlags {
     is_viewer_operation = false;
     is_preview_operation = false;
     use_datatype_conversion = true;
+    is_fullframe_operation = false;
   }
 };
 
@@ -340,6 +351,13 @@ class NodeOperation {
   }
   NodeOperationOutput *getOutputSocket(unsigned int index = 0);
   NodeOperationInput *getInputSocket(unsigned int index);
+
+  NodeOperation *get_input_operation(int index)
+  {
+    /* TODO: Rename protected getInputOperation to get_input_operation and make it public replacing
+     * this method. */
+    return getInputOperation(index);
+  }
 
   /**
    * \brief determine the resolution of this node
@@ -537,6 +555,33 @@ class NodeOperation {
     return std::unique_ptr<MetaData>();
   }
 
+  /* -------------------------------------------------------------------- */
+  /** \name Full Frame Methods
+   * \{ */
+
+  void render(MemoryBuffer *output_buf,
+              Span<rcti> areas,
+              Span<MemoryBuffer *> inputs_bufs,
+              ExecutionSystem &exec_system);
+
+  /**
+   * Executes operation updating output memory buffer. Single-threaded calls.
+   */
+  virtual void update_memory_buffer(MemoryBuffer *UNUSED(output),
+                                    const rcti &UNUSED(output_area),
+                                    Span<MemoryBuffer *> UNUSED(inputs),
+                                    ExecutionSystem &UNUSED(exec_system))
+  {
+  }
+
+  /**
+   * Get input operation area being read by this operation on rendering given output area.
+   */
+  virtual void get_area_of_interest(int input_op_idx, const rcti &output_area, rcti &r_input_area);
+  void get_area_of_interest(NodeOperation *input_op, const rcti &output_area, rcti &r_input_area);
+
+  /** \} */
+
  protected:
   NodeOperation();
 
@@ -615,6 +660,27 @@ class NodeOperation {
       float /*output*/[4], float /*x*/, float /*y*/, float /*dx*/[2], float /*dy*/[2])
   {
   }
+
+ private:
+  /* -------------------------------------------------------------------- */
+  /** \name Full Frame Methods
+   * \{ */
+
+  void render_full_frame(MemoryBuffer *output_buf,
+                         Span<rcti> areas,
+                         Span<MemoryBuffer *> inputs_bufs,
+                         ExecutionSystem &exec_system);
+
+  void render_full_frame_fallback(MemoryBuffer *output_buf,
+                                  Span<rcti> areas,
+                                  Span<MemoryBuffer *> inputs,
+                                  ExecutionSystem &exec_system);
+  void render_tile(MemoryBuffer *output_buf, rcti *tile_rect);
+  Vector<NodeOperationOutput *> replace_inputs_with_buffers(Span<MemoryBuffer *> inputs_bufs);
+  void remove_buffers_and_restore_original_inputs(
+      Span<NodeOperationOutput *> original_inputs_links);
+
+  /** \} */
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;

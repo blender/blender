@@ -622,6 +622,7 @@ void ED_operatortypes_gpencil(void)
 
   WM_operatortype_append(GPENCIL_OT_convert);
   WM_operatortype_append(GPENCIL_OT_bake_mesh_animation);
+  WM_operatortype_append(GPENCIL_OT_bake_grease_pencil_animation);
 
   WM_operatortype_append(GPENCIL_OT_image_to_grease_pencil);
 #ifdef WITH_POTRACE
@@ -648,6 +649,7 @@ void ED_operatortypes_gpencil(void)
   WM_operatortype_append(GPENCIL_OT_stroke_merge_by_distance);
   WM_operatortype_append(GPENCIL_OT_stroke_merge_material);
   WM_operatortype_append(GPENCIL_OT_stroke_reset_vertex_color);
+  WM_operatortype_append(GPENCIL_OT_stroke_normalize);
 
   WM_operatortype_append(GPENCIL_OT_material_to_vertex_color);
   WM_operatortype_append(GPENCIL_OT_extract_palette_vertex);

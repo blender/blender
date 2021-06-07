@@ -59,6 +59,7 @@ typedef enum {
   GPU_USAGE_STREAM,
   GPU_USAGE_STATIC, /* do not keep data in memory */
   GPU_USAGE_DYNAMIC,
+  GPU_USAGE_DEVICE_ONLY, /* Do not do host->device data transfers. */
 } GPUUsageType;
 
 /** Opaque type hiding blender::gpu::VertBuf. */
@@ -70,6 +71,14 @@ GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageTyp
 #define GPU_vertbuf_create_with_format(format) \
   GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
 
+/**
+ * (Download and) return a pointer containing the data of a vertex buffer.
+ *
+ * Note that the returned pointer is still owned by the driver. To get an
+ * local copy, use `GPU_vertbuf_unmap` after calling `GPU_vertbuf_read`.
+ */
+const void *GPU_vertbuf_read(GPUVertBuf *verts);
+void *GPU_vertbuf_unmap(const GPUVertBuf *verts, const void *mapped_data);
 void GPU_vertbuf_clear(GPUVertBuf *verts);
 void GPU_vertbuf_discard(GPUVertBuf *);
 
@@ -138,6 +147,7 @@ uint GPU_vertbuf_get_vertex_len(const GPUVertBuf *verts);
 GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts);
 
 void GPU_vertbuf_use(GPUVertBuf *);
+void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding);
 
 /* XXX do not use. */
 void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, void *data);

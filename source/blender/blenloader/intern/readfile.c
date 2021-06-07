@@ -4452,7 +4452,9 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     if (id == NULL) {
       /* ID has not been read yet, add placeholder to the main of the
        * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, NULL);
+      read_libblock(fd, libmain, bhead, fd->id_tag_extra | LIB_TAG_INDIRECT, false, &id);
+      id_sort_by_name(which_libbase(libmain, GS(id->name)), id, id->prev);
+
       /* commented because this can print way too much */
       // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
 
@@ -4512,7 +4514,8 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
                     bhead,
                     fd->id_tag_extra | LIB_TAG_NEED_EXPAND | LIB_TAG_INDIRECT,
                     false,
-                    NULL);
+                    &id);
+      id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, id->prev);
     }
     else {
       /* Convert any previously read weak link to regular link

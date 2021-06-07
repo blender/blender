@@ -80,6 +80,8 @@ void ShaderInterface::debug_print()
   Span<ShaderInput> attrs = Span<ShaderInput>(inputs_, attr_len_);
   Span<ShaderInput> ubos = Span<ShaderInput>(inputs_ + attr_len_, ubo_len_);
   Span<ShaderInput> uniforms = Span<ShaderInput>(inputs_ + attr_len_ + ubo_len_, uniform_len_);
+  Span<ShaderInput> ssbos = Span<ShaderInput>(inputs_ + attr_len_ + ubo_len_ + uniform_len_,
+                                              ssbo_len_);
   char *name_buf = name_buffer_;
   const char format[] = "      | %.8x : %4d : %s\n";
 
@@ -115,6 +117,13 @@ void ShaderInterface::debug_print()
     if (samp.binding != -1) {
       printf(format, samp.name_hash, samp.binding, name_buf + samp.name_offset);
     }
+  }
+
+  if (ssbos.size() > 0) {
+    printf("\n    Shader Storage Objects :\n");
+  }
+  for (const ShaderInput &ssbo : ssbos) {
+    printf(format, ssbo.name_hash, ssbo.binding, name_buf + ssbo.name_offset);
   }
 
   printf("\n");

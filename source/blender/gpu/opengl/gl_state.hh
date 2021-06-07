@@ -121,6 +121,9 @@ static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
   if (barrier_bits & GPU_BARRIER_TEXTURE_FETCH) {
     barrier |= GL_TEXTURE_FETCH_BARRIER_BIT;
   }
+  if (barrier_bits & GPU_BARRIER_SHADER_STORAGE) {
+    barrier |= GL_SHADER_STORAGE_BARRIER_BIT;
+  }
   return barrier;
 }
 

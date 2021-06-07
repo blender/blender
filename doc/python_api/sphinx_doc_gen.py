@@ -954,7 +954,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
             fw(".. data:: %s\n\n" % attribute)
-            write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
+            write_indented_lines("   ", fw, "Constant value %s" % repr(value), False)
             fw("\n")
         else:
             BPY_LOGGER.debug("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
@@ -1246,7 +1246,7 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
             "%s.\n" % (
                 identifier,
                 # Account for multi-line enum descriptions, allowing this to be a block of text.
-                indent(", ".join(escape_rst(val) for val in (name, description) if val) or "Undocumented", "  "),
+                indent(" -- ".join(escape_rst(val) for val in (name, description) if val) or "Undocumented", "  "),
             )
             for identifier, name, description in prop.enum_items
         ])

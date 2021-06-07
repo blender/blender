@@ -274,7 +274,13 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
   const bool override_vertcol = (pd->v3d_color_type != -1);
   const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
                                 GPENCIL_VERTEX_MODE(gpd) || pd->is_render;
-  bool is_masked = (gpl->flag & GP_LAYER_USE_MASK) && !BLI_listbase_is_empty(&gpl->mask_layers);
+  const bool is_viewlayer_render = pd->is_render && (gpl->viewlayername[0] != '\0') &&
+                                   STREQ(pd->view_layer->name, gpl->viewlayername);
+  const bool disable_masks_render = is_viewlayer_render &&
+                                    (gpl->flag & GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER);
+  bool is_masked = disable_masks_render ? false :
+                                          (gpl->flag & GP_LAYER_USE_MASK) &&
+                                              !BLI_listbase_is_empty(&gpl->mask_layers);
 
   float vert_col_opacity = (override_vertcol) ?
                                (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :

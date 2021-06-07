@@ -153,7 +153,7 @@ class PREFERENCES_OT_copy_prev(Operator):
 
     def execute(self, _context):
         import shutil
-        shutil.copytree(self._old_path(), self._new_path(), dirs_exist_ok=True)
+        shutil.copytree(self._old_path(), self._new_path(), dirs_exist_ok=True, symlinks=True)
 
         # reload preferences and recent-files.txt
         bpy.ops.wm.read_userpref()

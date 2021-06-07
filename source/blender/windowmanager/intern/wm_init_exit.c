@@ -343,8 +343,13 @@ void WM_init(bContext *C, int argc, const char **argv)
   (void)argv; /* unused */
 #endif
 
-  if (!G.background && !wm_start_with_console) {
-    GHOST_toggleConsole(3);
+  if (!G.background) {
+    if (wm_start_with_console) {
+      GHOST_toggleConsole(1);
+    }
+    else {
+      GHOST_toggleConsole(3);
+    }
   }
 
   BKE_material_copybuf_clear();

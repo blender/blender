@@ -34,8 +34,8 @@ MAKE_CPP_TYPE(int32, int32_t)
 MAKE_CPP_TYPE(uint32, uint32_t)
 MAKE_CPP_TYPE(uint8, uint8_t)
 
-MAKE_CPP_TYPE(Color4f, blender::Color4f)
-MAKE_CPP_TYPE(Color4b, blender::Color4b)
+MAKE_CPP_TYPE(ColorGeometry4f, blender::ColorGeometry4f)
+MAKE_CPP_TYPE(ColorGeometry4b, blender::ColorGeometry4b)
 
 MAKE_CPP_TYPE(string, std::string)
 

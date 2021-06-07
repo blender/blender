@@ -695,8 +695,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
   uint duplicate_flags = duplicate_flags_in; 
 
   if (!is_subprocess) {
-    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-    BKE_main_id_clear_newpoins(bmain);
+    BKE_main_id_newptr_and_tag_clear(bmain);
     /* In case root duplicated ID is linked, assume we want to get a local copy of it and duplicate
      * all expected linked data. */
     if (ID_IS_LINKED(collection)) {
@@ -727,8 +726,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 #endif
 
     /* Cleanup. */
-    BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-    BKE_main_id_clear_newpoins(bmain);
+    BKE_main_id_newptr_and_tag_clear(bmain);
 
     BKE_main_collection_sync(bmain);
   }
@@ -1426,7 +1424,8 @@ static bool collection_instance_find_recursive(Collection *collection,
   }
 
   LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
-    if (collection_instance_find_recursive(collection_child->collection, instance_collection)) {
+    if (collection_child->collection != NULL &&
+        collection_instance_find_recursive(collection_child->collection, instance_collection)) {
       return true;
     }
   }
@@ -1645,6 +1644,13 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
       continue;
     }
 
+    /* Can happen when remapping data partially out-of-Main (during advanced ID management
+     * operations like liboverride resync e.g.). */
+    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
+      continue;
+    }
+
+    BLI_assert(collection_find_parent(child->collection, collection) == NULL);
     CollectionParent *cparent = MEM_callocN(sizeof(CollectionParent), __func__);
     cparent->collection = collection;
     BLI_addtail(&child->collection->parents, cparent);
@@ -1653,10 +1659,19 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
 
 static void collection_parents_rebuild_recursive(Collection *collection)
 {
+  /* A same collection may be child of several others, no need to process it more than once. */
+  if ((collection->tag & COLLECTION_TAG_RELATION_REBUILD) == 0) {
+    return;
+  }
+
   BKE_collection_parent_relations_rebuild(collection);
   collection->tag &= ~COLLECTION_TAG_RELATION_REBUILD;
 
   for (CollectionChild *child = collection->children.first; child != NULL; child = child->next) {
+    /* See comment above in `BKE_collection_parent_relations_rebuild`. */
+    if ((collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
+      continue;
+    }
     collection_parents_rebuild_recursive(child->collection);
   }
 }
@@ -1680,6 +1695,8 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
     /* This function can be called from readfile.c, when this pointer is not guaranteed to be NULL.
      */
     if (scene->master_collection != NULL) {
+      BLI_assert(BLI_listbase_is_empty(&scene->master_collection->parents));
+      scene->master_collection->tag |= COLLECTION_TAG_RELATION_REBUILD;
       collection_parents_rebuild_recursive(scene->master_collection);
     }
   }

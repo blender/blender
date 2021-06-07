@@ -609,7 +609,7 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
   }
 
   float win[3];
-  ED_view3d_project(data->vc.region, co, win);
+  ED_view3d_project_v3(data->vc.region, co, win);
 
   if (win[2] - 0.00001f > depth) {
     return 0;

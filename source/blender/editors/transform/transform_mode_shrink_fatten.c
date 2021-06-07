@@ -79,7 +79,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, unit);
-    ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, "%s", c);
+    ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%s", c);
   }
   else {
     /* default header print */
@@ -93,12 +93,12 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
                                       true);
     }
     else {
-      ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, "%.4f", distance);
+      ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%.4f", distance);
     }
   }
 
   if (t->proptext[0]) {
-    ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, " %s", t->proptext);
+    ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, " %s", t->proptext);
   }
   ofs += BLI_strncpy_rlen(str + ofs, ", (", sizeof(str) - ofs);
 

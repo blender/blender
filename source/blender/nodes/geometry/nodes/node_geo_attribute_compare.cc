@@ -131,16 +131,16 @@ static void do_equal_operation_float3(const VArray<float3> &input_a,
   }
 }
 
-static void do_equal_operation_color4f(const VArray<Color4f> &input_a,
-                                       const VArray<Color4f> &input_b,
+static void do_equal_operation_color4f(const VArray<ColorGeometry4f> &input_a,
+                                       const VArray<ColorGeometry4f> &input_b,
                                        const float threshold,
                                        MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
-    const Color4f a = input_a[i];
-    const Color4f b = input_b[i];
+    const ColorGeometry4f a = input_a[i];
+    const ColorGeometry4f b = input_b[i];
     span_result[i] = len_squared_v4v4(a, b) < threshold_squared;
   }
 }
@@ -185,16 +185,16 @@ static void do_not_equal_operation_float3(const VArray<float3> &input_a,
   }
 }
 
-static void do_not_equal_operation_color4f(const VArray<Color4f> &input_a,
-                                           const VArray<Color4f> &input_b,
+static void do_not_equal_operation_color4f(const VArray<ColorGeometry4f> &input_a,
+                                           const VArray<ColorGeometry4f> &input_b,
                                            const float threshold,
                                            MutableSpan<bool> span_result)
 {
   const float threshold_squared = pow2f(threshold);
   const int size = input_a.size();
   for (const int i : IndexRange(size)) {
-    const Color4f a = input_a[i];
-    const Color4f b = input_b[i];
+    const ColorGeometry4f a = input_a[i];
+    const ColorGeometry4f b = input_b[i];
     span_result[i] = len_squared_v4v4(a, b) >= threshold_squared;
   }
 }
@@ -287,8 +287,10 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
             attribute_a->typed<float3>(), attribute_b->typed<float3>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        do_equal_operation_color4f(
-            attribute_a->typed<Color4f>(), attribute_b->typed<Color4f>(), threshold, result_span);
+        do_equal_operation_color4f(attribute_a->typed<ColorGeometry4f>(),
+                                   attribute_b->typed<ColorGeometry4f>(),
+                                   threshold,
+                                   result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
         do_equal_operation_bool(
@@ -305,8 +307,10 @@ static void attribute_compare_calc(GeometryComponent &component, const GeoNodeEx
             attribute_a->typed<float3>(), attribute_b->typed<float3>(), threshold, result_span);
       }
       else if (input_data_type == CD_PROP_COLOR) {
-        do_not_equal_operation_color4f(
-            attribute_a->typed<Color4f>(), attribute_b->typed<Color4f>(), threshold, result_span);
+        do_not_equal_operation_color4f(attribute_a->typed<ColorGeometry4f>(),
+                                       attribute_b->typed<ColorGeometry4f>(),
+                                       threshold,
+                                       result_span);
       }
       else if (input_data_type == CD_PROP_BOOL) {
         do_not_equal_operation_bool(

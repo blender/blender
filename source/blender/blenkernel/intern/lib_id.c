@@ -164,7 +164,7 @@ static void lib_id_clear_library_data_ex(Main *bmain, ID *id)
   id->tag &= ~(LIB_TAG_INDIRECT | LIB_TAG_EXTERN);
   id->flag &= ~LIB_INDIRECT_WEAK_LINK;
   if (id_in_mainlist) {
-    if (BKE_id_new_name_validate(which_libbase(bmain, GS(id->name)), id, NULL)) {
+    if (BKE_id_new_name_validate(which_libbase(bmain, GS(id->name)), id, NULL, false)) {
       bmain->is_memfile_undo_written = false;
     }
   }
@@ -833,7 +833,9 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   ListBase *lb = which_libbase(bmain, GS(id->name));
   BKE_main_lock(bmain);
   BLI_addtail(lb, id);
-  BKE_id_new_name_validate(lb, id, NULL);
+  /* We need to allow adding extra datablocks into libraries too, e.g. to support generating new
+   * overrides for recursive resync. */
+  BKE_id_new_name_validate(lb, id, NULL, true);
   /* alphabetic insertion: is in new_id */
   id->tag &= ~(LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT);
   bmain->is_memfile_undo_written = false;
@@ -989,7 +991,7 @@ void BKE_main_id_repair_duplicate_names_listbase(ListBase *lb)
   }
   for (i = 0; i < lb_len; i++) {
     if (!BLI_gset_add(gset, id_array[i]->name + 2)) {
-      BKE_id_new_name_validate(lb, id_array[i], NULL);
+      BKE_id_new_name_validate(lb, id_array[i], NULL, false);
     }
   }
   BLI_gset_free(gset, NULL);
@@ -1092,7 +1094,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 
       BKE_main_lock(bmain);
       BLI_addtail(lb, id);
-      BKE_id_new_name_validate(lb, id, name);
+      BKE_id_new_name_validate(lb, id, name, false);
       bmain->is_memfile_undo_written = false;
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
@@ -1221,14 +1223,6 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_LOCAL) == 0);
-  if (!is_private_id_data) {
-    /* When we are handling private ID data, we might still want to manage usercounts, even
-     * though that ID data-block is actually outside of Main... */
-    BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 ||
-               (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0);
-  }
-  /* Never implicitly copy shapekeys when generating temp data outside of Main database. */
-  BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_COPY_SHAPEKEY) == 0);
 
   /* 'Private ID' data handling. */
   if ((bmain != NULL) && is_private_id_data) {
@@ -1565,7 +1559,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
          * and that current one is not. */
         bool is_valid = false;
         for (id_test = lb->first; id_test; id_test = id_test->next) {
-          if (id != id_test && !ID_IS_LINKED(id_test)) {
+          if (id != id_test && id_test->lib == id->lib) {
             if (id_test->name[2] == final_name[0] && STREQ(final_name, id_test->name + 2)) {
               /* We expect final_name to not be already used, so this is a failure. */
               is_valid = false;
@@ -1621,7 +1615,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
     for (id_test = lb->first; id_test; id_test = id_test->next) {
       char base_name_test[MAX_ID_NAME - 2];
       int number_test;
-      if ((id != id_test) && !ID_IS_LINKED(id_test) && (name[0] == id_test->name[2]) &&
+      if ((id != id_test) && (id_test->lib == id->lib) && (name[0] == id_test->name[2]) &&
           (ELEM(id_test->name[base_name_len + 2], '.', '\0')) &&
           STREQLEN(name, id_test->name + 2, base_name_len) &&
           (BLI_split_name_num(base_name_test, &number_test, id_test->name + 2, '.') ==
@@ -1710,15 +1704,18 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name, ID **r_id_sorting_
  *
  * Only for local IDs (linked ones already have a unique ID in their library).
  *
+ * \param do_linked_data if true, also ensure a unique name in case the given \a id is linked
+ * (otherwise, just ensure that it is properly sorted).
+ *
  * \return true if a new name had to be created.
  */
-bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
+bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname, const bool do_linked_data)
 {
   bool result = false;
   char name[MAX_ID_NAME - 2];
 
-  /* If library, don't rename, but do ensure proper sorting. */
-  if (ID_IS_LINKED(id)) {
+  /* If library, don't rename (unless explicitly required), but do ensure proper sorting. */
+  if (!do_linked_data && ID_IS_LINKED(id)) {
     id_sort_by_name(lb, id, NULL);
 
     return result;
@@ -1762,7 +1759,7 @@ bool BKE_id_new_name_validate(ListBase *lb, ID *id, const char *tname)
 }
 
 /* next to indirect usage in read/writefile also in editobject.c scene.c */
-void BKE_main_id_clear_newpoins(Main *bmain)
+void BKE_main_id_newptr_and_tag_clear(Main *bmain)
 {
   ID *id;
 
@@ -2176,7 +2173,7 @@ void BKE_library_make_local(Main *bmain,
   TIMEIT_VALUE_PRINT(make_local);
 #endif
 
-  BKE_main_id_clear_newpoins(bmain);
+  BKE_main_id_newptr_and_tag_clear(bmain);
   BLI_memarena_free(linklist_mem);
 
 #ifdef DEBUG_TIME
@@ -2201,9 +2198,9 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 
   /* search for id */
   idtest = BLI_findstring(lb, name + 2, offsetof(ID, name) + 2);
-  if (idtest != NULL) {
+  if (idtest != NULL && !ID_IS_LINKED(idtest)) {
     /* BKE_id_new_name_validate also takes care of sorting. */
-    BKE_id_new_name_validate(lb, idtest, NULL);
+    BKE_id_new_name_validate(lb, idtest, NULL, false);
     bmain->is_memfile_undo_written = false;
   }
 }
@@ -2213,8 +2210,9 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
  */
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
+  BLI_assert(!ID_IS_LINKED(id));
   ListBase *lb = which_libbase(bmain, GS(id->name));
-  if (BKE_id_new_name_validate(lb, id, name)) {
+  if (BKE_id_new_name_validate(lb, id, name, false)) {
     bmain->is_memfile_undo_written = false;
   }
 }

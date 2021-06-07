@@ -95,21 +95,13 @@ struct AvailableAttributeInfo {
 };
 
 struct NodeUIStorage {
-  std::mutex mutex;
   blender::Vector<NodeWarning> warnings;
   blender::Set<AvailableAttributeInfo> attribute_hints;
-
-  NodeUIStorage() = default;
-  /* Needed because the mutex can't be moved or copied. */
-  NodeUIStorage(NodeUIStorage &&other)
-      : warnings(std::move(other.warnings)), attribute_hints(std::move(other.attribute_hints))
-  {
-  }
 };
 
 struct NodeTreeUIStorage {
+  std::mutex mutex;
   blender::Map<NodeTreeEvaluationContext, blender::Map<std::string, NodeUIStorage>> context_map;
-  std::mutex context_map_mutex;
 
   /**
    * Attribute search uses this to store the fake info for the string typed into a node, in order

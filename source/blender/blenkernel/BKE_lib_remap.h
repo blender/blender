@@ -85,6 +85,10 @@ enum {
    * freed ones).
    */
   ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS = 1 << 7,
+  /** Force handling user count even for IDs that are outside of Main (used in some cases when
+   * dealing with IDs temporarily out of Main, but which will be put in it ultimately).
+   */
+  ID_REMAP_FORCE_USER_REFCOUNT = 1 << 8,
 };
 
 /* Note: Requiring new_id to be non-null, this *may* not be the case ultimately,

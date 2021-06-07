@@ -2314,6 +2314,7 @@ class VIEW3D_MT_object_animation(Menu):
 
         layout.operator("nla.bake", text="Bake Action...")
         layout.operator("gpencil.bake_mesh_animation", text="Bake Mesh to Grease Pencil...")
+        layout.operator("gpencil.bake_grease_pencil_animation", text="Bake Object Transform to Grease Pencil...")
 
 
 class VIEW3D_MT_object_rigid_body(Menu):
@@ -5035,6 +5036,10 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
         layout.prop(settings, "use_scale_thickness", text="Scale Thickness")
 
         layout.separator()
+        layout.operator("gpencil.stroke_normalize", text="Normalize Thickness").mode = 'THICKNESS'
+        layout.operator("gpencil.stroke_normalize", text="Normalize Opacity").mode = 'OPACITY'
+
+        layout.separator()
         layout.operator("gpencil.reset_transform_fill", text="Reset Fill Transform")
 
 
@@ -6180,6 +6185,9 @@ class VIEW3D_PT_overlay_geometry(Panel):
             sub = row.row()
             sub.active = overlay.show_fade_inactive
             sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
+
+        row = col.row(align=True)
+        row.prop(overlay, "show_mode_transfer", text="Flash on Mode Transfer")
 
         col = layout.column(align=True)
         col.active = display_all

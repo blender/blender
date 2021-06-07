@@ -43,6 +43,9 @@ void bpy_app_generic_callback(struct Main *main,
 
 static PyTypeObject BlenderAppCbType;
 
+/**
+ * See `BKE_callbacks.h` #eCbEvent declaration for the policy on naming.
+ */
 static PyStructSequence_Field app_cb_info_fields[] = {
     {"frame_change_pre",
      "Called after frame change for playback and rendering, before any data is evaluated for the "

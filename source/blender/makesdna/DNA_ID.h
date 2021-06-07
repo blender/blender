@@ -366,7 +366,7 @@ typedef struct Library {
 
   struct PackedFile *packedfile;
 
-  /* Temp data needed by read/write code. */
+  /* Temp data needed by read/write code, and liboverride recursive resync. */
   int temp_index;
   /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;

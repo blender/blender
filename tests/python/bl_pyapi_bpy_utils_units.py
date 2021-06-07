@@ -54,7 +54,7 @@ class UnitsTesting(unittest.TestCase):
             return ((abs(v1 - v2) / max(abs(v1), abs(v2))) <= e)
 
         for usys, utype, ref, inpt, val in self.INPUT_TESTS:
-            opt_val = units.to_value(usys, utype, inpt, ref)
+            opt_val = units.to_value(usys, utype, inpt, str_ref_unit=ref)
             # Note: almostequal is not good here, precision is fixed on decimal digits, not variable with
             # magnitude of numbers (i.e. 1609.4416 ~= 1609.4456 fails even at 5 of 'places'...).
             self.assertTrue(similar_values(opt_val, val, 1e-7),
@@ -63,7 +63,7 @@ class UnitsTesting(unittest.TestCase):
 
     def test_units_outputs(self):
         for usys, utype, prec, sep, compat, val, output in self.OUTPUT_TESTS:
-            opt_str = units.to_string(usys, utype, val, prec, sep, compat)
+            opt_str = units.to_string(usys, utype, val, precision=prec, split_unit=sep, compatible_unit=compat)
             self.assertEqual(
                 opt_str, output,
                 msg=(

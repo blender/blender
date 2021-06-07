@@ -297,7 +297,9 @@ typedef struct GPENCIL_PrivateData {
   int v3d_color_type;
   /* Current frame */
   int cfra;
-  /* If we are rendering for final render (F12). */
+  /* If we are rendering for final render (F12).
+   * NOTE: set to false for viewport and opengl rendering (including VSE scene rendering), but set
+   * to true when rendering in `OB_RENDER` shading mode (viewport or opengl rendering) */
   bool is_render;
   /* If we are in viewport display (used for VFX). */
   bool is_viewport;

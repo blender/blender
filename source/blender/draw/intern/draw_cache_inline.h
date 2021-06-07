@@ -40,10 +40,6 @@
     (flag |= DRW_ibo_requested(ibo) ? (value) : 0)
 #endif
 
-/* Test and assign NULL if test fails */
-#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
-#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? (v) : NULL))
-
 BLI_INLINE GPUBatch *DRW_batch_request(GPUBatch **batch)
 {
   /* XXX TODO(fclem): We are writing to batch cache here. Need to make this thread safe. */

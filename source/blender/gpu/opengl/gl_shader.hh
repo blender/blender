@@ -43,6 +43,7 @@ class GLShader : public Shader {
   GLuint vert_shader_ = 0;
   GLuint geom_shader_ = 0;
   GLuint frag_shader_ = 0;
+  GLuint compute_shader_ = 0;
   /** True if any shader failed to compile. */
   bool compilation_failed_ = false;
 
@@ -56,6 +57,7 @@ class GLShader : public Shader {
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
   void geometry_shader_from_glsl(MutableSpan<const char *> sources) override;
   void fragment_shader_from_glsl(MutableSpan<const char *> sources) override;
+  void compute_shader_from_glsl(MutableSpan<const char *> sources) override;
   bool finalize(void) override;
 
   void transform_feedback_names_set(Span<const char *> name_list,
@@ -75,7 +77,7 @@ class GLShader : public Shader {
   int program_handle_get(void) const override;
 
  private:
-  char *glsl_patch_get(void);
+  char *glsl_patch_get(GLenum gl_stage);
 
   GLuint create_shader_stage(GLenum gl_stage, MutableSpan<const char *> sources);
 

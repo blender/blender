@@ -28,6 +28,7 @@
 #include "BLI_vector.hh"
 
 #include "gl_batch.hh"
+#include "gl_compute.hh"
 #include "gl_context.hh"
 #include "gl_drawlist.hh"
 #include "gl_framebuffer.hh"
@@ -125,6 +126,12 @@ class GLBackend : public GPUBackend {
   {
     return shared_orphan_list_;
   };
+
+  void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override
+  {
+    GLContext::get()->state_manager_active_get()->apply_state();
+    GLCompute::dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
 
  private:
   static void platform_init(void);

@@ -26,6 +26,7 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
+#include "GPU_capabilities.h"
 #include "GPU_platform.h"
 
 #include "gl_backend.hh"
@@ -63,6 +64,7 @@ GLShader::~GLShader()
   glDeleteShader(vert_shader_);
   glDeleteShader(geom_shader_);
   glDeleteShader(frag_shader_);
+  glDeleteShader(compute_shader_);
   glDeleteProgram(shader_program_);
 }
 
@@ -72,7 +74,7 @@ GLShader::~GLShader()
 /** \name Shader stage creation
  * \{ */
 
-char *GLShader::glsl_patch_get()
+static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
   static char patch[512] = "\0";
@@ -111,6 +113,30 @@ char *GLShader::glsl_patch_get()
   return patch;
 }
 
+static char *glsl_patch_compute_get()
+{
+  /** Used for shader patching. Init once. */
+  static char patch[512] = "\0";
+  if (patch[0] != '\0') {
+    return patch;
+  }
+
+  size_t slen = 0;
+  /* Version need to go first. */
+  STR_CONCAT(patch, slen, "#version 430\n");
+  STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
+  BLI_assert(slen < sizeof(patch));
+  return patch;
+}
+
+char *GLShader::glsl_patch_get(GLenum gl_stage)
+{
+  if (gl_stage == GL_COMPUTE_SHADER) {
+    return glsl_patch_compute_get();
+  }
+  return glsl_patch_default_get();
+}
+
 /* Create, compile and attach the shader stage to the shader program. */
 GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> sources)
 {
@@ -121,7 +147,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
   }
 
   /* Patch the shader code using the first source slot. */
-  sources[0] = glsl_patch_get();
+  sources[0] = glsl_patch_get(gl_stage);
 
   glShaderSource(shader, sources.size(), sources.data(), nullptr);
   glCompileShader(shader);
@@ -141,6 +167,9 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
           break;
         case GL_FRAGMENT_SHADER:
           this->print_log(sources, log, "FragShader", !status);
+          break;
+        case GL_COMPUTE_SHADER:
+          this->print_log(sources, log, "ComputeShader", !status);
           break;
       }
     }
@@ -170,6 +199,11 @@ void GLShader::geometry_shader_from_glsl(MutableSpan<const char *> sources)
 void GLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
 {
   frag_shader_ = this->create_shader_stage(GL_FRAGMENT_SHADER, sources);
+}
+
+void GLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
+{
+  compute_shader_ = this->create_shader_stage(GL_COMPUTE_SHADER, sources);
 }
 
 bool GLShader::finalize()

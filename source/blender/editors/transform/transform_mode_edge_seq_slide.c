@@ -72,7 +72,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
   }
 
-  ofs += BLI_snprintf(
+  ofs += BLI_snprintf_rlen(
       str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Sequence Slide: %s%s, ("), &tvec[0], t->con.text);
 
   const wmKeyMapItem *kmi = t->custom.mode.data;
@@ -80,10 +80,10 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
     ofs += WM_keymap_item_to_string(kmi, false, str + ofs, UI_MAX_DRAW_STR - ofs);
   }
 
-  ofs += BLI_snprintf(str + ofs,
-                      UI_MAX_DRAW_STR - ofs,
-                      TIP_(" or Alt) Expand to fit %s"),
-                      WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
+  ofs += BLI_snprintf_rlen(str + ofs,
+                           UI_MAX_DRAW_STR - ofs,
+                           TIP_(" or Alt) Expand to fit %s"),
+                           WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
 }
 
 static void applySeqSlideValue(TransInfo *t, const float val[2])

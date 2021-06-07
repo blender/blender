@@ -43,6 +43,7 @@
 #include "SEQ_relations.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "IMB_imbuf.h"
@@ -406,7 +407,7 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame) {
+    if (seq->flag & SEQ_MUTE || !SEQ_time_strip_intersects_frame(seq, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine

@@ -37,6 +37,8 @@ int GPU_max_textures(void);
 int GPU_max_textures_vert(void);
 int GPU_max_textures_geom(void);
 int GPU_max_textures_frag(void);
+int GPU_max_work_group_count(int index);
+int GPU_max_work_group_size(int index);
 int GPU_max_uniforms_vert(void);
 int GPU_max_uniforms_frag(void);
 int GPU_max_batch_indices(void);
@@ -55,6 +57,8 @@ bool GPU_use_main_context_workaround(void);
 bool GPU_use_hq_normals_workaround(void);
 bool GPU_crappy_amd_driver(void);
 
+bool GPU_compute_shader_support(void);
+bool GPU_shader_storage_buffer_objects_support(void);
 bool GPU_shader_image_load_store_support(void);
 
 bool GPU_mem_stats_supported(void);

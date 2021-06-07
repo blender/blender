@@ -62,7 +62,7 @@ def seek(r, txt, recurs):
     # print(dir(r))
 
     # basic types
-    if type_r in (float, int, bool, type(None)):
+    if type_r in {float, int, bool, type(None)}:
         if PRINT_DATA:
             print(txt + ' -> ' + str(r))
         return

@@ -224,9 +224,13 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
 
   if (b_v3d) {
     BlenderViewportParameters new_viewport_parameters(b_v3d);
-    if (viewport_parameters.modified(new_viewport_parameters)) {
+
+    if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
+      has_updates_ = true;
     }
+
+    has_updates_ |= viewport_parameters.modified(new_viewport_parameters);
   }
 }
 
@@ -246,7 +250,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 
-  sync_view_layer(b_v3d, b_view_layer);
+  sync_view_layer(b_view_layer);
   sync_integrator();
   sync_film(b_v3d);
   sync_shaders(b_depsgraph, b_v3d);
@@ -441,7 +445,7 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
 
 /* Render Layer */
 
-void BlenderSync::sync_view_layer(BL::SpaceView3D & /*b_v3d*/, BL::ViewLayer &b_view_layer)
+void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
 {
   view_layer.name = b_view_layer.name();
 

@@ -94,6 +94,8 @@ static const char *gpu_shader_get_name(int mode)
       return "vector_math_refract";
     case NODE_VECTOR_MATH_FACEFORWARD:
       return "vector_math_faceforward";
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
+      return "vector_math_multiply_add";
   }
 
   return nullptr;
@@ -134,8 +136,11 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
                                   NODE_VECTOR_MATH_ABSOLUTE,
                                   NODE_VECTOR_MATH_FRACTION,
                                   NODE_VECTOR_MATH_NORMALIZE));
-  nodeSetSocketAvailability(
-      sockC, ELEM(node->custom1, NODE_VECTOR_MATH_WRAP, NODE_VECTOR_MATH_FACEFORWARD));
+  nodeSetSocketAvailability(sockC,
+                            ELEM(node->custom1,
+                                 NODE_VECTOR_MATH_WRAP,
+                                 NODE_VECTOR_MATH_FACEFORWARD,
+                                 NODE_VECTOR_MATH_MULTIPLY_ADD));
   nodeSetSocketAvailability(sockScale,
                             ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
   nodeSetSocketAvailability(sockVector,
@@ -154,6 +159,10 @@ static void node_shader_update_vector_math(bNodeTree *UNUSED(ntree), bNode *node
   node_sock_label_clear(sockC);
   node_sock_label_clear(sockScale);
   switch (node->custom1) {
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
+      node_sock_label(sockB, "Multiplier");
+      node_sock_label(sockC, "Addend");
+      break;
     case NODE_VECTOR_MATH_FACEFORWARD:
       node_sock_label(sockB, "Incident");
       node_sock_label(sockC, "Reference");

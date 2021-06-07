@@ -39,7 +39,8 @@ struct Mesh;
 struct Object;
 struct PointCloud;
 struct Volume;
-class CurveEval;
+struct Curve;
+struct CurveEval;
 
 enum class GeometryOwnershipType {
   /* The geometry is owned. This implies that it can be changed. */
@@ -406,6 +407,15 @@ class CurveComponent : public GeometryComponent {
   CurveEval *curve_ = nullptr;
   GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
 
+  /**
+   * Curve data necessary to hold the draw cache for rendering, consistent over multiple redraws.
+   * This is necessary because Blender assumes that objects evaluate to an object data type, and
+   * we use #CurveEval rather than #Curve here. It also allows us to mostly reuse the same
+   * batch cache implementation.
+   */
+  mutable Curve *curve_for_render_ = nullptr;
+  mutable std::mutex curve_for_render_mutex_;
+
  public:
   CurveComponent();
   ~CurveComponent();
@@ -420,11 +430,17 @@ class CurveComponent : public GeometryComponent {
   CurveEval *get_for_write();
 
   int attribute_domain_size(const AttributeDomain domain) const final;
+  std::unique_ptr<blender::fn::GVArray> attribute_try_adapt_domain(
+      std::unique_ptr<blender::fn::GVArray> varray,
+      const AttributeDomain from_domain,
+      const AttributeDomain to_domain) const final;
 
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
+
+  const Curve *get_curve_for_render() const;
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
 

@@ -2039,6 +2039,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
   v3d.shading.type = drawtype;
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;
+  /* HACK: When rendering gpencil objects this opacity is used to mix vertex colors in when not in
+   * render mode. */
+  v3d.overlay.gpencil_vertex_paint_opacity = 1.0f;
 
   if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
     v3d.flag2 |= V3D_SHOW_ANNOTATION;

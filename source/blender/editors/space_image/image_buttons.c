@@ -1218,11 +1218,12 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     const int len = MAX_IMAGE_INFO_LEN;
     int ofs = 0;
 
-    ofs += BLI_snprintf(str + ofs, len - ofs, TIP_("%d x %d, "), ibuf->x, ibuf->y);
+    ofs += BLI_snprintf_rlen(str + ofs, len - ofs, TIP_("%d x %d, "), ibuf->x, ibuf->y);
 
     if (ibuf->rect_float) {
       if (ibuf->channels != 4) {
-        ofs += BLI_snprintf(str + ofs, len - ofs, TIP_("%d float channel(s)"), ibuf->channels);
+        ofs += BLI_snprintf_rlen(
+            str + ofs, len - ofs, TIP_("%d float channel(s)"), ibuf->channels);
       }
       else if (ibuf->planes == R_IMF_PLANES_RGBA) {
         ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGBA float"), len - ofs);

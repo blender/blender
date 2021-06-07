@@ -77,10 +77,10 @@ void CryptomatteBaseNode::convertToOperations(NodeConverter &converter,
 
 /** \name Cryptomatte V2
  * \{ */
-static std::string prefix_from_node(const bNode &node)
+static std::string prefix_from_node(const CompositorContext &context, const bNode &node)
 {
   char prefix[MAX_NAME];
-  ntreeCompositCryptomatteLayerPrefix(&node, prefix, sizeof(prefix));
+  ntreeCompositCryptomatteLayerPrefix(context.getScene(), &node, prefix, sizeof(prefix));
   return std::string(prefix, BLI_strnlen(prefix, sizeof(prefix)));
 }
 
@@ -118,9 +118,9 @@ void CryptomatteNode::input_operations_from_render_source(
     return;
   }
 
-  const short cryptomatte_layer_id = 0;
-  const std::string prefix = prefix_from_node(node);
-  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+  short view_layer_id = 0;
+  const std::string prefix = prefix_from_node(context, node);
+  LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_id) {
     RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
     if (render_layer) {
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
@@ -129,7 +129,7 @@ void CryptomatteNode::input_operations_from_render_source(
           RenderLayersProg *op = new RenderLayersProg(
               render_pass->name, DataType::Color, render_pass->channels);
           op->setScene(scene);
-          op->setLayerId(cryptomatte_layer_id);
+          op->setLayerId(view_layer_id);
           op->setRenderData(context.getRenderData());
           op->setViewName(context.getViewName());
           r_input_operations.append(op);
@@ -177,7 +177,7 @@ void CryptomatteNode::input_operations_from_image_source(
       }
     }
 
-    const std::string prefix = prefix_from_node(node);
+    const std::string prefix = prefix_from_node(context, node);
     int layer_index;
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       if (!blender::StringRef(prefix).startswith(blender::StringRef(

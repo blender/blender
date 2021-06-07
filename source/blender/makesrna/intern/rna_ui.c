@@ -599,7 +599,7 @@ static void uilist_filter_items(uiList *ui_list,
         items_shown = flt_data->items_shown = shown_idx;
         flt_data->items_filter_neworder = MEM_mallocN(sizeof(int) * items_shown, __func__);
         /* And now, bring back new indices into the [0, items_shown[ range!
-         * XXX This is O(N²)... :/
+         * XXX This is O(N^2). :/
          */
         for (shown_idx = 0, prev_ni = -1; shown_idx < items_shown; shown_idx++) {
           for (i = 0, t_ni = len, t_idx = -1; i < items_shown; i++) {

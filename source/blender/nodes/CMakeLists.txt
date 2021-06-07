@@ -162,8 +162,10 @@ set(SRC
   geometry/nodes/node_geo_bounding_box.cc
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
+  geometry/nodes/node_geo_curve_length.cc  
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_resample.cc
+  geometry/nodes/node_geo_delete_geometry.cc
   geometry/nodes/node_geo_edge_split.cc
   geometry/nodes/node_geo_input_material.cc
   geometry/nodes/node_geo_is_viewport.cc
@@ -178,6 +180,7 @@ set(SRC
   geometry/nodes/node_geo_mesh_primitive_ico_sphere.cc
   geometry/nodes/node_geo_mesh_primitive_line.cc
   geometry/nodes/node_geo_mesh_primitive_uv_sphere.cc
+  geometry/nodes/node_geo_mesh_to_curve.cc
   geometry/nodes/node_geo_object_info.cc
   geometry/nodes/node_geo_point_distribute.cc
   geometry/nodes/node_geo_point_instance.cc
@@ -219,7 +222,7 @@ set(SRC
   shader/nodes/node_shader_camera.c
   shader/nodes/node_shader_clamp.cc
   shader/nodes/node_shader_common.c
-  shader/nodes/node_shader_curves.c
+  shader/nodes/node_shader_curves.cc
   shader/nodes/node_shader_displacement.c
   shader/nodes/node_shader_eevee_specular.c
   shader/nodes/node_shader_emission.c

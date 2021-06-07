@@ -1925,5 +1925,5 @@ void outliner_build_tree(Main *mainvar,
   outliner_filter_tree(space_outliner, view_layer);
   outliner_restore_scrolling_position(space_outliner, region, &focus);
 
-  BKE_main_id_clear_newpoins(mainvar);
+  BKE_main_id_newptr_and_tag_clear(mainvar);
 }

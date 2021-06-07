@@ -17,6 +17,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 
 #include "UI_interface.h"
@@ -214,6 +215,7 @@ static void geo_node_mesh_primitive_circle_exec(GeoNodeExecParams params)
   }
 
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill_type);
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   BLI_assert(BKE_mesh_is_valid(mesh));
 

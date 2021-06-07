@@ -809,23 +809,30 @@ void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
 /**
  * Convert between region relative coordinates (x,y) and depth component z and
  * a point in world space. */
-void ED_view3d_project(const struct ARegion *region, const float world[3], float r_region_co[3])
+void ED_view3d_project_v3(const struct ARegion *region, const float world[3], float r_region_co[3])
 {
   /* Viewport is set up to make coordinates relative to the region, not window. */
   RegionView3D *rv3d = region->regiondata;
   const int viewport[4] = {0, 0, region->winx, region->winy};
-
-  GPU_matrix_project(world, rv3d->viewmat, rv3d->winmat, viewport, r_region_co);
+  GPU_matrix_project_3fv(world, rv3d->viewmat, rv3d->winmat, viewport, r_region_co);
 }
 
-bool ED_view3d_unproject(
+void ED_view3d_project_v2(const struct ARegion *region, const float world[3], float r_region_co[2])
+{
+  /* Viewport is set up to make coordinates relative to the region, not window. */
+  RegionView3D *rv3d = region->regiondata;
+  const int viewport[4] = {0, 0, region->winx, region->winy};
+  GPU_matrix_project_2fv(world, rv3d->viewmat, rv3d->winmat, viewport, r_region_co);
+}
+
+bool ED_view3d_unproject_v3(
     const struct ARegion *region, float regionx, float regiony, float regionz, float world[3])
 {
   RegionView3D *rv3d = region->regiondata;
   const int viewport[4] = {0, 0, region->winx, region->winy};
   const float region_co[3] = {regionx, regiony, regionz};
 
-  return GPU_matrix_unproject(region_co, rv3d->viewmat, rv3d->winmat, viewport, world);
+  return GPU_matrix_unproject_3fv(region_co, rv3d->viewmat, rv3d->winmat, viewport, world);
 }
 
 /** \} */

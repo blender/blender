@@ -2253,7 +2253,7 @@ static PyObject *Matrix_str(MatrixObject *self)
   for (col = 0; col < self->num_col; col++) {
     maxsize[col] = 0;
     for (row = 0; row < self->num_row; row++) {
-      const int size = BLI_snprintf(
+      const int size = BLI_snprintf_rlen(
           dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, row, col));
       maxsize[col] = max_ii(maxsize[col], size);
     }

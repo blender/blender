@@ -49,6 +49,8 @@ set(SRC
   COM_compositor.h
   COM_defines.h
 
+  intern/COM_BufferOperation.cc
+  intern/COM_BufferOperation.h
   intern/COM_CPUDevice.cc
   intern/COM_CPUDevice.h
   intern/COM_ChunkOrder.cc
@@ -66,14 +68,20 @@ set(SRC
   intern/COM_Enums.cc
   intern/COM_ExecutionGroup.cc
   intern/COM_ExecutionGroup.h
+  intern/COM_ExecutionModel.cc
+  intern/COM_ExecutionModel.h
   intern/COM_ExecutionSystem.cc
   intern/COM_ExecutionSystem.h
+  intern/COM_FullFrameExecutionModel.cc
+  intern/COM_FullFrameExecutionModel.h
   intern/COM_MemoryBuffer.cc
   intern/COM_MemoryBuffer.h
   intern/COM_MemoryProxy.cc
   intern/COM_MemoryProxy.h
   intern/COM_MetaData.cc
   intern/COM_MetaData.h
+  intern/COM_MultiThreadedOperation.cc
+  intern/COM_MultiThreadedOperation.h
   intern/COM_Node.cc
   intern/COM_Node.h
   intern/COM_NodeConverter.cc
@@ -86,8 +94,12 @@ set(SRC
   intern/COM_NodeOperationBuilder.h
   intern/COM_OpenCLDevice.cc
   intern/COM_OpenCLDevice.h
+  intern/COM_SharedOperationBuffers.cc
+  intern/COM_SharedOperationBuffers.h
   intern/COM_SingleThreadedOperation.cc
   intern/COM_SingleThreadedOperation.h
+  intern/COM_TiledExecutionModel.cc
+  intern/COM_TiledExecutionModel.h
   intern/COM_WorkPackage.cc
   intern/COM_WorkPackage.h
   intern/COM_WorkScheduler.cc

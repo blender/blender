@@ -104,9 +104,10 @@ GVArrayPtr GeoNodeExecParams::get_input_attribute(const StringRef name,
     return std::make_unique<fn::GVArray_For_SingleValue>(*cpp_type, domain_size, buffer);
   }
   if (found_socket->type == SOCK_RGBA) {
-    const Color4f value = this->get_input<Color4f>(found_socket->identifier);
+    const ColorGeometry4f value = this->get_input<ColorGeometry4f>(found_socket->identifier);
     BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-    conversions.convert_to_uninitialized(CPPType::get<Color4f>(), *cpp_type, &value, buffer);
+    conversions.convert_to_uninitialized(
+        CPPType::get<ColorGeometry4f>(), *cpp_type, &value, buffer);
     return std::make_unique<fn::GVArray_For_SingleValue>(*cpp_type, domain_size, buffer);
   }
   BLI_assert(false);

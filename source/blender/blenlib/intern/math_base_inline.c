@@ -514,6 +514,15 @@ MINLINE int max_ii(int a, int b)
   return (b < a) ? a : b;
 }
 
+MINLINE uint min_uu(uint a, uint b)
+{
+  return (a < b) ? a : b;
+}
+MINLINE uint max_uu(uint a, uint b)
+{
+  return (b < a) ? a : b;
+}
+
 MINLINE float min_fff(float a, float b, float c)
 {
   return min_ff(min_ff(a, b), c);
@@ -798,9 +807,9 @@ MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
-  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ?
-                              65535 :
-                              (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
+  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 :
+                          (val <= 0.0f)                ? 0 :
+                                                         (val * 65535.0f + 0.5f));
 }
 #define unit_float_to_ushort_clamp(val) \
   ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))

@@ -70,6 +70,7 @@
 #include "SEQ_proxy.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "effects.h"
@@ -273,15 +274,6 @@ static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibl
  * Order of applying these conditions is important. */
 static bool must_render_strip(const Sequence *seq, SeqCollection *strips_under_playhead)
 {
-  /* Sound strips are not rendered. */
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    return false;
-  }
-  /* Muted strips are not rendered. */
-  if ((seq->flag & SEQ_MUTE) != 0) {
-    return false;
-  }
-
   bool seq_have_effect_in_stack = false;
   Sequence *seq_iter;
   SEQ_ITERATOR_FOREACH (seq_iter, strips_under_playhead) {
@@ -318,7 +310,7 @@ static SeqCollection *query_strips_at_frame(ListBase *seqbase, const int timelin
   SeqCollection *collection = SEQ_collection_create();
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if ((seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame)) {
+    if (SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
       SEQ_collection_append_strip(seq, collection);
     }
   }
@@ -340,6 +332,15 @@ static void collection_filter_channel_up_to_incl(SeqCollection *collection, cons
 static void collection_filter_rendered_strips(SeqCollection *collection)
 {
   Sequence *seq;
+
+  /* Remove sound strips and muted strips from collection, because these are not rendered.
+   * Function must_render_strip() don't have to check for these strips anymore. */
+  SEQ_ITERATOR_FOREACH (seq, collection) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
+      SEQ_collection_remove_strip(seq, collection);
+    }
+  }
+
   SEQ_ITERATOR_FOREACH (seq, collection) {
     if (must_render_strip(seq, collection)) {
       continue;
@@ -1124,8 +1125,6 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
   ImBuf *ibuf = NULL;
   IMB_Proxy_Size psize = SEQ_rendersize_to_proxysize(context->preview_render_size);
 
-  IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
-
   if (SEQ_can_use_proxy(context, seq, psize)) {
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
@@ -1237,6 +1236,12 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
   }
 
   if (*r_is_proxy_image == false) {
+    if (sanim && sanim->anim) {
+      short fps_denom;
+      float fps_num;
+      IMB_anim_get_fps(sanim->anim, &fps_denom, &fps_num, true);
+      seq->strip->stripdata->orig_fps = fps_denom / fps_num;
+    }
     seq->strip->stripdata->orig_width = ibuf->x;
     seq->strip->stripdata->orig_height = ibuf->y;
   }

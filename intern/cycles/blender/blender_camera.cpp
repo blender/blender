@@ -83,6 +83,8 @@ struct BlenderCamera {
   BoundBox2D pano_viewplane;
   BoundBox2D viewport_camera_border;
 
+  float passepartout_alpha;
+
   Transform matrix;
 
   float offscreen_dicing_scale;
@@ -125,6 +127,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->pano_viewplane.top = 1.0f;
   bcam->viewport_camera_border.right = 1.0f;
   bcam->viewport_camera_border.top = 1.0f;
+  bcam->passepartout_alpha = 0.5f;
   bcam->offscreen_dicing_scale = 1.0f;
   bcam->matrix = transform_identity();
 
@@ -211,6 +214,8 @@ static void blender_camera_from_object(BlenderCamera *bcam,
     bcam->ortho_scale = b_camera.ortho_scale();
 
     bcam->lens = b_camera.lens();
+
+    bcam->passepartout_alpha = b_camera.show_passepartout() ? b_camera.passepartout_alpha() : 0.0f;
 
     if (b_camera.dof().use_dof()) {
       /* allow f/stop number to change aperture_size but still
@@ -834,14 +839,18 @@ static void blender_camera_border(BlenderCamera *bcam,
                                full_border,
                                &bcam->viewport_camera_border);
 
-  if (!b_render.use_border()) {
+  if (b_render.use_border()) {
+    bcam->border.left = b_render.border_min_x();
+    bcam->border.right = b_render.border_max_x();
+    bcam->border.bottom = b_render.border_min_y();
+    bcam->border.top = b_render.border_max_y();
+  }
+  else if (bcam->passepartout_alpha == 1.0f) {
+    bcam->border = full_border;
+  }
+  else {
     return;
   }
-
-  bcam->border.left = b_render.border_min_x();
-  bcam->border.right = b_render.border_max_x();
-  bcam->border.bottom = b_render.border_min_y();
-  bcam->border.top = b_render.border_max_y();
 
   /* Determine viewport subset matching camera border. */
   blender_camera_border_subset(b_engine,
@@ -885,8 +894,7 @@ void BlenderSync::sync_view(BL::SpaceView3D &b_v3d,
   }
 }
 
-BufferParams BlenderSync::get_buffer_params(BL::RenderSettings &b_render,
-                                            BL::SpaceView3D &b_v3d,
+BufferParams BlenderSync::get_buffer_params(BL::SpaceView3D &b_v3d,
                                             BL::RegionView3D &b_rv3d,
                                             Camera *cam,
                                             int width,
@@ -902,7 +910,8 @@ BufferParams BlenderSync::get_buffer_params(BL::RenderSettings &b_render,
   if (b_v3d && b_rv3d && b_rv3d.view_perspective() != BL::RegionView3D::view_perspective_CAMERA)
     use_border = b_v3d.use_render_border();
   else
-    use_border = b_render.use_border();
+    /* the camera can always have a passepartout */
+    use_border = true;
 
   if (use_border) {
     /* border render */

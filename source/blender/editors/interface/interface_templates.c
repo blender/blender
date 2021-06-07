@@ -653,7 +653,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
             /* Only remap that specific ID usage to overriding local data-block. */
             ID *override_id = BKE_lib_override_library_create_from_id(bmain, id, false);
             if (override_id != NULL) {
-              BKE_main_id_clear_newpoins(bmain);
+              BKE_main_id_newptr_and_tag_clear(bmain);
 
               if (GS(override_id->name) == ID_OB) {
                 Scene *scene = CTX_data_scene(C);
@@ -672,7 +672,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         }
         else {
           if (BKE_lib_id_make_local(bmain, id, false, 0)) {
-            BKE_main_id_clear_newpoins(bmain);
+            BKE_main_id_newptr_and_tag_clear(bmain);
 
             /* reassign to get get proper updates/notifiers */
             idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
@@ -1078,7 +1078,7 @@ static void template_ID(const bContext *C,
       char numstr[32];
       short numstr_len;
 
-      numstr_len = BLI_snprintf(numstr, sizeof(numstr), "%d", ID_REAL_USERS(id));
+      numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", ID_REAL_USERS(id));
 
       but = uiDefBut(
           block,

@@ -2399,8 +2399,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
         }
         tot_rays *= tot_rays;
 
-        poly_area_2d_inv = area_poly_v2((const float(*)[2])poly_vcos_2d,
-                                        (unsigned int)mp->totloop);
+        poly_area_2d_inv = area_poly_v2(poly_vcos_2d, (uint)mp->totloop);
         /* In case we have a null-area degenerated poly... */
         poly_area_2d_inv = 1.0f / max_ff(poly_area_2d_inv, 1e-9f);
 

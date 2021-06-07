@@ -21,6 +21,7 @@
 #include <cstdio>
 
 #include "BLI_assert.h"
+#include "DNA_userdef_types.h"
 
 namespace blender::compositor {
 
@@ -33,12 +34,29 @@ CompositorContext::CompositorContext()
   this->m_fastCalculation = false;
   this->m_viewSettings = nullptr;
   this->m_displaySettings = nullptr;
+  this->m_bnodetree = nullptr;
 }
 
 int CompositorContext::getFramenumber() const
 {
   BLI_assert(m_rd);
   return m_rd->cfra;
+}
+
+eExecutionModel CompositorContext::get_execution_model() const
+{
+  if (U.experimental.use_full_frame_compositor) {
+    BLI_assert(m_bnodetree != nullptr);
+    switch (m_bnodetree->execution_mode) {
+      case 1:
+        return eExecutionModel::FullFrame;
+      case 0:
+        return eExecutionModel::Tiled;
+      default:
+        BLI_assert(!"Invalid execution mode");
+    }
+  }
+  return eExecutionModel::Tiled;
 }
 
 }  // namespace blender::compositor

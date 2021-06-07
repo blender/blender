@@ -466,13 +466,6 @@ struct proxy_output_ctx {
   struct anim *anim;
 };
 
-// work around stupid swscaler 16 bytes alignment bug...
-
-static int round_up(int x, int mod)
-{
-  return x + ((mod - (x % mod)) % mod);
-}
-
 static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     struct anim *anim, AVStream *st, int proxy_size, int width, int height, int quality)
 {
@@ -499,13 +492,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->c = avcodec_alloc_context3(NULL);
   rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
   rv->c->codec_id = AV_CODEC_ID_H264;
-  rv->c->width = width;
-  rv->c->height = height;
-  rv->c->gop_size = 10;
-  rv->c->max_b_frames = 0;
-  /* Correct wrong default ffmpeg param which crash x264. */
-  rv->c->qmin = 10;
-  rv->c->qmax = 51;
 
   rv->of->oformat->video_codec = rv->c->codec_id;
   rv->codec = avcodec_find_encoder(rv->c->codec_id);
@@ -520,6 +506,13 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
     return NULL;
   }
 
+  avcodec_get_context_defaults3(rv->c, rv->codec);
+
+  rv->c->width = width;
+  rv->c->height = height;
+  rv->c->gop_size = 10;
+  rv->c->max_b_frames = 0;
+
   if (rv->codec->pix_fmts) {
     rv->c->pix_fmt = rv->codec->pix_fmts[0];
   }
@@ -533,8 +526,8 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   rv->c->time_base.num = 1;
   rv->st->time_base = rv->c->time_base;
 
-  /* This range matches eFFMpegCrf. Crf_range_min corresponds to lowest quality, crf_range_max to
-   * highest quality. */
+  /* This range matches #eFFMpegCrf. `crf_range_min` corresponds to lowest quality,
+   * `crf_range_max` to highest quality. */
   const int crf_range_min = 32;
   const int crf_range_max = 17;
   int crf = round_fl_to_int((quality / 100.0f) * (crf_range_max - crf_range_min) + crf_range_min);
@@ -542,8 +535,11 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   AVDictionary *codec_opts = NULL;
   /* High quality preset value. */
   av_dict_set_int(&codec_opts, "crf", crf, 0);
-  /* Prefer smaller file-size. */
-  av_dict_set(&codec_opts, "preset", "slow", 0);
+  /* Prefer smaller file-size. Presets from `veryslow` to `veryfast` produce output with very
+   * similar file-size, but there is big difference in performance.
+   * In some cases `veryfast` preset will produce smallest file-size. */
+  av_dict_set(&codec_opts, "preset", "veryfast", 0);
+  av_dict_set(&codec_opts, "tune", "fastdecode", 0);
 
   if (rv->codec->capabilities & AV_CODEC_CAP_AUTO_THREADS) {
     rv->c->thread_count = 0;
@@ -595,15 +591,19 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   if (st->codecpar->width != width || st->codecpar->height != height ||
       st->codecpar->format != rv->c->pix_fmt) {
     rv->frame = av_frame_alloc();
-    av_image_fill_arrays(
-        rv->frame->data,
-        rv->frame->linesize,
-        MEM_mallocN(av_image_get_buffer_size(rv->c->pix_fmt, round_up(width, 16), height, 1),
-                    "alloc proxy output frame"),
-        rv->c->pix_fmt,
-        round_up(width, 16),
-        height,
-        1);
+
+    av_image_fill_arrays(rv->frame->data,
+                         rv->frame->linesize,
+                         MEM_mallocN(av_image_get_buffer_size(rv->c->pix_fmt, width, height, 1),
+                                     "alloc proxy output frame"),
+                         rv->c->pix_fmt,
+                         width,
+                         height,
+                         1);
+
+    rv->frame->format = rv->c->pix_fmt;
+    rv->frame->width = width;
+    rv->frame->height = height;
 
     rv->sws_ctx = sws_getContext(st->codecpar->width,
                                  rv->orig_height,
@@ -686,6 +686,9 @@ static void add_to_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, AVFrame *fr
 
     packet->stream_index = ctx->st->index;
     av_packet_rescale_ts(packet, ctx->c->time_base, ctx->st->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(ctx->of, ctx->st, packet);
+#  endif
 
     int write_ret = av_interleaved_write_frame(ctx->of, packet);
     if (write_ret != 0) {

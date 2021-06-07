@@ -32,6 +32,16 @@ SplinePtr NURBSpline::copy() const
   return std::make_unique<NURBSpline>(*this);
 }
 
+SplinePtr NURBSpline::copy_settings() const
+{
+  std::unique_ptr<NURBSpline> copy = std::make_unique<NURBSpline>();
+  copy_base_settings(*this, *copy);
+  copy->knots_mode = knots_mode;
+  copy->resolution_ = resolution_;
+  copy->order_ = order_;
+  return copy;
+}
+
 int NURBSpline::size() const
 {
   const int size = positions_.size();

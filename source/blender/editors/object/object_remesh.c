@@ -525,7 +525,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   float d_a[3], d_b[3];
   float d_a_proj[2], d_b_proj[2];
-  float preview_plane_proj[4][3];
+  float preview_plane_proj[4][2];
   const float y_axis_proj[2] = {0.0f, 1.0f};
 
   mid_v3_v3v3(text_pos, cd->preview_plane[0], cd->preview_plane[2]);
@@ -534,7 +534,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   for (int i = 0; i < 4; i++) {
     float preview_plane_world_space[3];
     mul_v3_m4v3(preview_plane_world_space, active_object->obmat, cd->preview_plane[i]);
-    ED_view3d_project(region, preview_plane_world_space, preview_plane_proj[i]);
+    ED_view3d_project_v2(region, preview_plane_world_space, preview_plane_proj[i]);
   }
 
   /* Get the initial X and Y axis of the basis from the edges of the Bounding Box face. */

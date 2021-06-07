@@ -674,6 +674,9 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   printf("  $BLENDER_USER_DATAFILES   Directory for user data files (icons, translations, ..).\n");
   printf("  $BLENDER_SYSTEM_DATAFILES Directory for system wide data files.\n");
   printf("  $BLENDER_SYSTEM_PYTHON    Directory for system Python libraries.\n");
+#  ifdef WITH_OCIO
+  printf("  $OCIO                     Path to override the OpenColorIO config file.\n");
+#  endif
 #  ifdef WIN32
   printf("  $TEMP                     Store temporary files here.\n");
 #  else

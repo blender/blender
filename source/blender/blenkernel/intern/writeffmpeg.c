@@ -205,12 +205,11 @@ static int write_audio_frame(FFMpegContext *context)
       success = -1;
     }
 
-    av_packet_rescale_ts(pkt, c->time_base, context->audio_stream->time_base);
-    if (pkt->duration > 0) {
-      pkt->duration = av_rescale_q(pkt->duration, c->time_base, context->audio_stream->time_base);
-    }
-
     pkt->stream_index = context->audio_stream->index;
+    av_packet_rescale_ts(pkt, c->time_base, context->audio_stream->time_base);
+#    ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->audio_stream, pkt);
+#    endif
 
     pkt->flags |= AV_PKT_FLAG_KEY;
 
@@ -349,6 +348,10 @@ static int write_video_frame(FFMpegContext *context, int cfra, AVFrame *frame, R
 
     packet->stream_index = context->video_stream->index;
     av_packet_rescale_ts(packet, c->time_base, context->video_stream->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->video_stream, packet);
+#  endif
+
     if (av_interleaved_write_frame(context->outfile, packet) != 0) {
       success = -1;
       break;
@@ -515,6 +518,48 @@ static void set_ffmpeg_properties(RenderData *rd,
   }
 }
 
+static AVRational calc_time_base(uint den, double num, int codec_id)
+{
+  /* Convert the input 'num' to an integer. Simply shift the decimal places until we get an integer
+   * (within a floating point error range).
+   * For example if we have `den = 3` and `num = 0.1` then the fps is: `den/num = 30` fps.
+   * When converting this to a FFMPEG time base, we want num to be an integer.
+   * So we simply move the decimal places of both numbers. i.e. `den = 30`, `num = 1`. */
+  float eps = FLT_EPSILON;
+  const uint DENUM_MAX = (codec_id == AV_CODEC_ID_MPEG4) ? (1UL << 16) - 1 : (1UL << 31) - 1;
+
+  /* Calculate the precision of the initial floating point number. */
+  if (num > 1.0) {
+    const uint num_integer_bits = log2_floor_u((unsigned int)num);
+
+    /* Formula for calculating the epsilon value: (power of two range) / (pow mantissa bits)
+     * For example, a float has 23 mantissa bits and the float value 3.5f as a pow2 range of
+     * (4-2=2):
+     * (2) / pow2(23) = floating point precision for 3.5f
+     */
+    eps = (float)(1 << num_integer_bits) * FLT_EPSILON;
+  }
+
+  /* Calculate how many decimal shifts we can do until we run out of precision. */
+  const int max_num_shift = fabsf(log10f(eps));
+  /* Calculate how many times we can shift the denominator. */
+  const int max_den_shift = log10f(DENUM_MAX) - log10f(den);
+  const int max_iter = min_ii(max_num_shift, max_den_shift);
+
+  for (int i = 0; i < max_iter && fabs(num - round(num)) > eps; i++) {
+    /* Increase the number and denominator until both are integers. */
+    num *= 10;
+    den *= 10;
+    eps *= 10;
+  }
+
+  AVRational time_base;
+  time_base.den = den;
+  time_base.num = (int)num;
+
+  return time_base;
+}
+
 /* prepare a video stream for the output file */
 
 static AVStream *alloc_video_stream(FFMpegContext *context,
@@ -545,13 +590,24 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   c->codec_id = codec_id;
   c->codec_type = AVMEDIA_TYPE_VIDEO;
 
+  codec = avcodec_find_encoder(c->codec_id);
+  if (!codec) {
+    fprintf(stderr, "Couldn't find valid video codec\n");
+    avcodec_free_context(&c);
+    context->video_codec = NULL;
+    return NULL;
+  }
+
+  /* Load codec defaults into 'c'. */
+  avcodec_get_context_defaults3(c, codec);
+
   /* Get some values from the current render settings */
 
   c->width = rectx;
   c->height = recty;
 
-  /* FIXME: Really bad hack (tm) for NTSC support */
   if (context->ffmpeg_type == FFMPEG_DV && rd->frs_sec != 25) {
+    /* FIXME: Really bad hack (tm) for NTSC support */
     c->time_base.den = 2997;
     c->time_base.num = 100;
   }
@@ -559,21 +615,23 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->time_base.den = rd->frs_sec;
     c->time_base.num = (int)rd->frs_sec_base;
   }
-  else if (compare_ff(rd->frs_sec_base, 1.001f, 0.000001f)) {
-    /* This converts xx/1.001 (which is used in presets) to xx000/1001 (which is used in the rest
-     * of the world, including FFmpeg). */
-    c->time_base.den = (int)(rd->frs_sec * 1000);
-    c->time_base.num = (int)(rd->frs_sec_base * 1000);
-  }
   else {
-    /* This calculates a fraction (DENUM_MAX / num) which approximates the scene frame rate
-     * (frs_sec / frs_sec_base). It uses the maximum denominator allowed by FFmpeg.
-     */
-    const double DENUM_MAX = (codec_id == AV_CODEC_ID_MPEG4) ? (1UL << 16) - 1 : (1UL << 31) - 1;
-    const double num = (DENUM_MAX / (double)rd->frs_sec) * rd->frs_sec_base;
+    c->time_base = calc_time_base(rd->frs_sec, rd->frs_sec_base, codec_id);
+  }
 
-    c->time_base.den = (int)DENUM_MAX;
-    c->time_base.num = (int)num;
+  /* As per the time-base documentation here:
+   * https://www.ffmpeg.org/ffmpeg-codecs.html#Codec-Options
+   * We want to set the time base to (1 / fps) for fixed frame rate video.
+   * If it is not possible, we want to set the time-base numbers to something as
+   * small as possible.
+   */
+  if (c->time_base.num != 1) {
+    AVRational new_time_base;
+    if (av_reduce(
+            &new_time_base.num, &new_time_base.den, c->time_base.num, c->time_base.den, INT_MAX)) {
+      /* Exact reduction was possible. Use the new value. */
+      c->time_base = new_time_base;
+    }
   }
 
   st->time_base = c->time_base;
@@ -585,6 +643,11 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     ffmpeg_dict_set_int(&opts, "lossless", 1);
   }
   else if (context->ffmpeg_crf >= 0) {
+    /* As per https://trac.ffmpeg.org/wiki/Encode/VP9 we must set the bit rate to zero when
+     * encoding with vp9 in crf mode.
+     * Set this to always be zero for other codecs as well.
+     * We don't care about bit rate in crf mode. */
+    c->bit_rate = 0;
     ffmpeg_dict_set_int(&opts, "crf", context->ffmpeg_crf);
   }
   else {
@@ -624,12 +687,6 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     }
   }
 
-  codec = avcodec_find_encoder(c->codec_id);
-  if (!codec) {
-    avcodec_free_context(&c);
-    return NULL;
-  }
-
   /* Be sure to use the correct pixel format(e.g. RGB, YUV) */
 
   if (codec->pix_fmts) {
@@ -644,12 +701,6 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     /* arghhhh ... */
     c->pix_fmt = AV_PIX_FMT_YUV420P;
     c->codec_tag = (('D' << 24) + ('I' << 16) + ('V' << 8) + 'X');
-  }
-
-  if (codec_id == AV_CODEC_ID_H264) {
-    /* correct wrong default ffmpeg param which crash x264 */
-    c->qmin = 10;
-    c->qmax = 51;
   }
 
   /* Keep lossless encodes in the RGB domain. */
@@ -676,6 +727,11 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_YUVA420P;
     }
+  }
+
+  /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
+  if ((codec_id == AV_CODEC_ID_H264 || codec_id == AV_CODEC_ID_VP9) && context->ffmpeg_crf == 0) {
+    c->pix_fmt = AV_PIX_FMT_YUV444P;
   }
 
   if (codec_id == AV_CODEC_ID_PNG) {
@@ -711,10 +767,14 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->thread_type = FF_THREAD_SLICE;
   }
 
-  if (avcodec_open2(c, codec, &opts) < 0) {
+  int ret = avcodec_open2(c, codec, &opts);
+
+  if (ret < 0) {
+    fprintf(stderr, "Couldn't initialize video codec: %s\n", av_err2str(ret));
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     avcodec_free_context(&c);
+    context->video_codec = NULL;
     return NULL;
   }
   av_dict_free(&opts);
@@ -774,6 +834,17 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   c->codec_id = codec_id;
   c->codec_type = AVMEDIA_TYPE_AUDIO;
 
+  codec = avcodec_find_encoder(c->codec_id);
+  if (!codec) {
+    fprintf(stderr, "Couldn't find valid audio codec\n");
+    avcodec_free_context(&c);
+    context->audio_codec = NULL;
+    return NULL;
+  }
+
+  /* Load codec defaults into 'c'. */
+  avcodec_get_context_defaults3(c, codec);
+
   c->sample_rate = rd->ffcodecdata.audio_mixrate;
   c->bit_rate = context->ffmpeg_audio_bitrate * 1000;
   c->sample_fmt = AV_SAMPLE_FMT_S16;
@@ -801,13 +872,6 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
     /* mainly for AAC codec which is experimental */
     c->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
     c->sample_fmt = AV_SAMPLE_FMT_FLT;
-  }
-
-  codec = avcodec_find_encoder(c->codec_id);
-  if (!codec) {
-    // XXX error("Couldn't find a valid audio codec");
-    avcodec_free_context(&c);
-    return NULL;
   }
 
   if (codec->sample_fmts) {
@@ -849,11 +913,14 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
 
   set_ffmpeg_properties(rd, c, "audio", &opts);
 
-  if (avcodec_open2(c, codec, &opts) < 0) {
-    // XXX error("Couldn't initialize audio codec");
+  int ret = avcodec_open2(c, codec, &opts);
+
+  if (ret < 0) {
+    fprintf(stderr, "Couldn't initialize audio codec: %s\n", av_err2str(ret));
     BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     avcodec_free_context(&c);
+    context->audio_codec = NULL;
     return NULL;
   }
   av_dict_free(&opts);
@@ -1181,6 +1248,9 @@ static void flush_ffmpeg(FFMpegContext *context)
 
     packet->stream_index = context->video_stream->index;
     av_packet_rescale_ts(packet, c->time_base, context->video_stream->time_base);
+#  ifdef FFMPEG_USE_DURATION_WORKAROUND
+    my_guess_pkt_duration(context->outfile, context->video_stream, packet);
+#  endif
 
     int write_ret = av_interleaved_write_frame(context->outfile, packet);
     if (write_ret != 0) {
@@ -1630,49 +1700,7 @@ static void ffmpeg_set_expert_options(RenderData *rd)
     IDP_FreePropertyContent(rd->ffcodecdata.properties);
   }
 
-  if (codec_id == AV_CODEC_ID_H264) {
-    /*
-     * All options here are for x264, but must be set via ffmpeg.
-     * The names are therefore different - Search for "x264 to FFmpeg option mapping"
-     * to get a list.
-     */
-
-    /*
-     * Use CABAC coder. Using "coder:1", which should be equivalent,
-     * crashes Blender for some reason. Either way - this is no big deal.
-     */
-    BKE_ffmpeg_property_add_string(rd, "video", "coder:vlc");
-
-    /*
-     * The other options were taken from the libx264-default.preset
-     * included in the ffmpeg distribution.
-     */
-
-    /* This breaks compatibility for QT. */
-    // BKE_ffmpeg_property_add_string(rd, "video", "flags:loop");
-    BKE_ffmpeg_property_add_string(rd, "video", "cmp:chroma");
-    BKE_ffmpeg_property_add_string(rd, "video", "partitions:parti4x4"); /* Deprecated. */
-    BKE_ffmpeg_property_add_string(rd, "video", "partitions:partp8x8"); /* Deprecated. */
-    BKE_ffmpeg_property_add_string(rd, "video", "partitions:partb8x8"); /* Deprecated. */
-    BKE_ffmpeg_property_add_string(rd, "video", "me:hex");
-    BKE_ffmpeg_property_add_string(rd, "video", "subq:6");
-    BKE_ffmpeg_property_add_string(rd, "video", "me_range:16");
-    BKE_ffmpeg_property_add_string(rd, "video", "qdiff:4");
-    BKE_ffmpeg_property_add_string(rd, "video", "keyint_min:25");
-    BKE_ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
-    BKE_ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
-    BKE_ffmpeg_property_add_string(rd, "video", "b_strategy:1");
-    BKE_ffmpeg_property_add_string(rd, "video", "bf:3");
-    BKE_ffmpeg_property_add_string(rd, "video", "refs:2");
-    BKE_ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
-
-    BKE_ffmpeg_property_add_string(rd, "video", "trellis:0");
-    BKE_ffmpeg_property_add_string(rd, "video", "weightb:1");
-    BKE_ffmpeg_property_add_string(rd, "video", "8x8dct:1");
-    BKE_ffmpeg_property_add_string(rd, "video", "fast-pskip:1");
-    BKE_ffmpeg_property_add_string(rd, "video", "wpredp:2");
-  }
-  else if (codec_id == AV_CODEC_ID_DNXHD) {
+  if (codec_id == AV_CODEC_ID_DNXHD) {
     if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT) {
       BKE_ffmpeg_property_add_string(rd, "video", "mbd:rd");
     }

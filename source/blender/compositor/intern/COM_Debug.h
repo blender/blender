@@ -129,7 +129,7 @@ class DebugInfo {
       const char *name, const char *color, const char *style, char *str, int maxlen);
   static int graphviz_legend_group(
       const char *name, const char *color, const char *style, char *str, int maxlen);
-  static int graphviz_legend(char *str, int maxlen);
+  static int graphviz_legend(char *str, int maxlen, bool has_execution_groups);
   static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
 };
 

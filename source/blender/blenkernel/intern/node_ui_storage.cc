@@ -39,7 +39,7 @@ using blender::Vector;
  * bNodeTree struct in DNA. This could change if the node tree had a runtime struct. */
 static std::mutex global_ui_storage_mutex;
 
-static void ui_storage_ensure(bNodeTree &ntree)
+static NodeTreeUIStorage &ui_storage_ensure(bNodeTree &ntree)
 {
   /* As an optimization, only acquire a lock if the UI storage doesn't exist,
    * because it only needs to be allocated once for every node tree. */
@@ -50,6 +50,7 @@ static void ui_storage_ensure(bNodeTree &ntree)
       ntree.ui_storage = new NodeTreeUIStorage();
     }
   }
+  return *ntree.ui_storage;
 }
 
 const NodeUIStorage *BKE_node_tree_ui_storage_get_from_context(const bContext *C,
@@ -90,7 +91,7 @@ void BKE_nodetree_ui_storage_free_for_context(bNodeTree &ntree,
 {
   NodeTreeUIStorage *ui_storage = ntree.ui_storage;
   if (ui_storage != nullptr) {
-    std::lock_guard<std::mutex> lock(ui_storage->context_map_mutex);
+    std::lock_guard<std::mutex> lock(ui_storage->mutex);
     ui_storage->context_map.remove(context);
   }
 }
@@ -126,20 +127,14 @@ static void node_error_message_log(bNodeTree &ntree,
   }
 }
 
-static NodeUIStorage &node_ui_storage_ensure(bNodeTree &ntree,
+static NodeUIStorage &node_ui_storage_ensure(NodeTreeUIStorage &locked_ui_storage,
                                              const NodeTreeEvaluationContext &context,
                                              const bNode &node)
 {
-  ui_storage_ensure(ntree);
-  NodeTreeUIStorage &ui_storage = *ntree.ui_storage;
-
-  std::lock_guard<std::mutex> lock(ui_storage.context_map_mutex);
   Map<std::string, NodeUIStorage> &node_tree_ui_storage =
-      ui_storage.context_map.lookup_or_add_default(context);
-
+      locked_ui_storage.context_map.lookup_or_add_default(context);
   NodeUIStorage &node_ui_storage = node_tree_ui_storage.lookup_or_add_default_as(
       StringRef(node.name));
-
   return node_ui_storage;
 }
 
@@ -149,10 +144,12 @@ void BKE_nodetree_error_message_add(bNodeTree &ntree,
                                     const NodeWarningType type,
                                     std::string message)
 {
+  NodeTreeUIStorage &ui_storage = ui_storage_ensure(ntree);
+  std::lock_guard lock{ui_storage.mutex};
+
   node_error_message_log(ntree, node, message, type);
 
-  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
-  std::lock_guard lock{node_ui_storage.mutex};
+  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ui_storage, context, node);
   node_ui_storage.warnings.append({type, std::move(message)});
 }
 
@@ -163,8 +160,10 @@ void BKE_nodetree_attribute_hint_add(bNodeTree &ntree,
                                      const AttributeDomain domain,
                                      const CustomDataType data_type)
 {
-  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ntree, context, node);
-  std::lock_guard lock{node_ui_storage.mutex};
+  NodeTreeUIStorage &ui_storage = ui_storage_ensure(ntree);
+  std::lock_guard lock{ui_storage.mutex};
+
+  NodeUIStorage &node_ui_storage = node_ui_storage_ensure(ui_storage, context, node);
   node_ui_storage.attribute_hints.add_as(
       AvailableAttributeInfo{attribute_name, domain, data_type});
 }

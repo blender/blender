@@ -127,9 +127,10 @@ static void editmesh_tessface_calc_intern(BMEditMesh *em)
   }
 
   em->looptris = looptris;
+  em->tottri = looptris_tot;
 
   /* after allocating the em->looptris, we're ready to tessellate */
-  BM_mesh_calc_tessellation(em->bm, em->looptris, &em->tottri);
+  BM_mesh_calc_tessellation(em->bm, em->looptris);
 }
 
 void BKE_editmesh_looptri_calc(BMEditMesh *em)
@@ -146,6 +147,14 @@ void BKE_editmesh_looptri_calc(BMEditMesh *em)
     BKE_mesh_runtime_looptri_ensure(em->mesh_eval_cage);
   }
 #endif
+}
+
+void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, struct BMPartialUpdate *bmpinfo)
+{
+  BLI_assert(em->tottri == poly_to_tri_count(em->bm->totface, em->bm->totloop));
+  BLI_assert(em->looptris != NULL);
+
+  BM_mesh_calc_tessellation_with_partial(em->bm, em->looptris, bmpinfo);
 }
 
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em)

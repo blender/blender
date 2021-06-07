@@ -1559,8 +1559,7 @@ void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], con
 }
 
 /**
-   .
- * Find roots of cubic equation (c0 x³ + c1 x² + c2 x + c3)
+ * Find roots of cubic equation (c0 x^3 + c1 x^2 + c2 x + c3)
  * \return number of roots in `o`.
  *
  * \note it is up to the caller to allocate enough memory for `o`.

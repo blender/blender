@@ -17,8 +17,10 @@
  */
 
 #include <cstdio>
+#include <memory>
 #include <typeinfo>
 
+#include "COM_BufferOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_defines.h"
@@ -175,6 +177,177 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input,
   return !first;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Full Frame Methods
+ * \{ */
+
+/**
+ * \brief Get input operation area being read by this operation on rendering given output area.
+ *
+ * Implementation don't need to ensure r_input_area is within input operation bounds. The
+ * caller must clamp it.
+ * TODO: See if it's possible to use parameter overloading (input_id for example).
+ *
+ * \param input_op_idx: Input operation index for which we want to calculate the area being read.
+ * \param output_area: Area being rendered by this operation.
+ * \param r_input_area: Returned input operation area that needs to be read in order to render
+ * given output area.
+ */
+void NodeOperation::get_area_of_interest(const int input_op_idx,
+                                         const rcti &output_area,
+                                         rcti &r_input_area)
+{
+  if (get_flags().is_fullframe_operation) {
+    r_input_area = output_area;
+  }
+  else {
+    /* Non full-frame operations never implement this method. To ensure correctness assume
+     * whole area is used. */
+    NodeOperation *input_op = getInputOperation(input_op_idx);
+    BLI_rcti_init(&r_input_area, 0, input_op->getWidth(), 0, input_op->getHeight());
+  }
+}
+
+void NodeOperation::get_area_of_interest(NodeOperation *input_op,
+                                         const rcti &output_area,
+                                         rcti &r_input_area)
+{
+  for (int i = 0; i < getNumberOfInputSockets(); i++) {
+    if (input_op == getInputOperation(i)) {
+      get_area_of_interest(i, output_area, r_input_area);
+      return;
+    }
+  }
+  BLI_assert(!"input_op is not an input operation.");
+}
+
+/**
+ * Executes operation image manipulation algorithm rendering given areas.
+ * \param output_buf: Buffer to write result to.
+ * \param areas: Areas within this operation bounds to render.
+ * \param inputs_bufs: Inputs operations buffers.
+ * \param exec_system: Execution system.
+ */
+void NodeOperation::render(MemoryBuffer *output_buf,
+                           Span<rcti> areas,
+                           Span<MemoryBuffer *> inputs_bufs,
+                           ExecutionSystem &exec_system)
+{
+  if (get_flags().is_fullframe_operation) {
+    render_full_frame(output_buf, areas, inputs_bufs, exec_system);
+  }
+  else {
+    render_full_frame_fallback(output_buf, areas, inputs_bufs, exec_system);
+  }
+}
+
+/**
+ * Renders given areas using operations full frame implementation.
+ */
+void NodeOperation::render_full_frame(MemoryBuffer *output_buf,
+                                      Span<rcti> areas,
+                                      Span<MemoryBuffer *> inputs_bufs,
+                                      ExecutionSystem &exec_system)
+{
+  initExecution();
+  for (const rcti &area : areas) {
+    update_memory_buffer(output_buf, area, inputs_bufs, exec_system);
+  }
+  deinitExecution();
+}
+
+/**
+ * Renders given areas using operations tiled implementation.
+ */
+void NodeOperation::render_full_frame_fallback(MemoryBuffer *output_buf,
+                                               Span<rcti> areas,
+                                               Span<MemoryBuffer *> inputs_bufs,
+                                               ExecutionSystem &exec_system)
+{
+  Vector<NodeOperationOutput *> orig_input_links = replace_inputs_with_buffers(inputs_bufs);
+
+  initExecution();
+  const bool is_output_operation = getNumberOfOutputSockets() == 0;
+  if (!is_output_operation && output_buf->is_a_single_elem()) {
+    float *output_elem = output_buf->get_elem(0, 0);
+    readSampled(output_elem, 0, 0, PixelSampler::Nearest);
+  }
+  else {
+    for (const rcti &rect : areas) {
+      exec_system.execute_work(rect, [=](const rcti &split_rect) {
+        rcti tile_rect = split_rect;
+        if (is_output_operation) {
+          executeRegion(&tile_rect, 0);
+        }
+        else {
+          render_tile(output_buf, &tile_rect);
+        }
+      });
+    }
+  }
+  deinitExecution();
+
+  remove_buffers_and_restore_original_inputs(orig_input_links);
+}
+
+void NodeOperation::render_tile(MemoryBuffer *output_buf, rcti *tile_rect)
+{
+  const bool is_complex = get_flags().complex;
+  void *tile_data = is_complex ? initializeTileData(tile_rect) : nullptr;
+  const int elem_stride = output_buf->elem_stride;
+  for (int y = tile_rect->ymin; y < tile_rect->ymax; y++) {
+    float *output_elem = output_buf->get_elem(tile_rect->xmin, y);
+    if (is_complex) {
+      for (int x = tile_rect->xmin; x < tile_rect->xmax; x++) {
+        read(output_elem, x, y, tile_data);
+        output_elem += elem_stride;
+      }
+    }
+    else {
+      for (int x = tile_rect->xmin; x < tile_rect->xmax; x++) {
+        readSampled(output_elem, x, y, PixelSampler::Nearest);
+        output_elem += elem_stride;
+      }
+    }
+  }
+  if (tile_data) {
+    deinitializeTileData(tile_rect, tile_data);
+  }
+}
+
+/**
+ * \return Replaced inputs links.
+ */
+Vector<NodeOperationOutput *> NodeOperation::replace_inputs_with_buffers(
+    Span<MemoryBuffer *> inputs_bufs)
+{
+  BLI_assert(inputs_bufs.size() == getNumberOfInputSockets());
+  Vector<NodeOperationOutput *> orig_links(inputs_bufs.size());
+  for (int i = 0; i < inputs_bufs.size(); i++) {
+    NodeOperationInput *input_socket = getInputSocket(i);
+    BufferOperation *buffer_op = new BufferOperation(inputs_bufs[i], input_socket->getDataType());
+    orig_links[i] = input_socket->getLink();
+    input_socket->setLink(buffer_op->getOutputSocket());
+  }
+  return orig_links;
+}
+
+void NodeOperation::remove_buffers_and_restore_original_inputs(
+    Span<NodeOperationOutput *> original_inputs_links)
+{
+  BLI_assert(original_inputs_links.size() == getNumberOfInputSockets());
+  for (int i = 0; i < original_inputs_links.size(); i++) {
+    NodeOperation *buffer_op = get_input_operation(i);
+    BLI_assert(buffer_op != nullptr);
+    BLI_assert(typeid(*buffer_op) == typeid(BufferOperation));
+    NodeOperationInput *input_socket = getInputSocket(i);
+    input_socket->setLink(original_inputs_links[i]);
+    delete buffer_op;
+  }
+}
+
+/** \} */
+
 /*****************
  **** OpInput ****
  *****************/
@@ -266,6 +439,9 @@ std::ostream &operator<<(std::ostream &os, const NodeOperationFlags &node_operat
   }
   if (!node_operation_flags.use_datatype_conversion) {
     os << "no_conversion,";
+  }
+  if (node_operation_flags.is_fullframe_operation) {
+    os << "full_frame,";
   }
 
   return os;

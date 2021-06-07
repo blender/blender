@@ -385,7 +385,7 @@ static void draw_filled_lasso(wmGesture *gt)
     mcoords[i][1] = lasso[1];
   }
 
-  BLI_lasso_boundbox(&rect, (const int(*)[2])mcoords, mcoords_len);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   BLI_rcti_translate(&rect, gt->winrct.xmin, gt->winrct.ymin);
   BLI_rcti_isect(&gt->winrct, &rect, &rect);
@@ -402,7 +402,7 @@ static void draw_filled_lasso(wmGesture *gt)
                                   rect.ymin,
                                   rect.xmax,
                                   rect.ymax,
-                                  (const int(*)[2])mcoords,
+                                  mcoords,
                                   mcoords_len,
                                   draw_filled_lasso_px_cb,
                                   &lasso_fill_data);

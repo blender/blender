@@ -1094,7 +1094,7 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
   int S, x, y;
 
   BMLoop *l;
-  
+
 #ifdef LIMIT_MAX_DISPLACEMENT
   l = f->l_first;
   float cent[3];
@@ -1119,9 +1119,9 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
 
     dispgrid = mdisp->disps;
 
-    /*try to limit numerical instability by clamping make displacement*/
-
 #ifdef LIMIT_MAX_DISPLACEMENT
+    /*try to limit numerical instability by clamping max displacement*/
+
     float maxlen = len_v3v3(l->v->co, cent) * 15.0f;
     maxlen = MAX2(maxlen, 0.00001f);
 #endif
@@ -1169,8 +1169,9 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
             float len = len_v3(data);
 #ifdef LIMIT_MAX_DISPLACEMENT
             if (len > maxlen) {
-              mul_v3_fl(data, maxlen/len);
-            } else if (isnan(len)) {
+              mul_v3_fl(data, maxlen / len);
+            }
+            else if (isnan(len)) {
               zero_v3(data);
             }
 #else
@@ -1197,9 +1198,8 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   if (!bm->totface || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
     return;
   }
-  
-  //get multires settings
-  
+
+  // get multires settings
   MultiresModifierData *mmd = bm->haveMultiResSettings ? &bm->multires : NULL;
 
   if (!mmd && ob) {
@@ -1209,10 +1209,11 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   if (!mmd || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
     return;
   }
-  
-  //cache multires settings in bmesh
+
+  // cache multires settings in bmesh
   bm->multiresSpace = mode;
 
+  // create temporary mesh structure
   Mesh _me, *me = &_me;
   memset(me, 0, sizeof(Mesh));
   CustomData_reset(&me->vdata);
@@ -1224,21 +1225,19 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   CustomData_MeshMasks extra = CD_MASK_DERIVEDMESH;
   extra.lmask |= CD_MASK_MDISPS;
 
-  // CustomData_MeshMasks extra = {0};
   BM_mesh_bm_to_me_for_eval(bm, me, &extra);
   SubdivSettings settings2;
 
-  //copy the settings and then set subdivision level to max
+  // copy the settings and then set subdivision level to max
   MultiresModifierData mmdcpy = *mmd;
   mmdcpy.lvl = mmdcpy.sculptlvl = mmdcpy.renderlvl = mmdcpy.totlvl;
-  
-  //set up subdivision surface
-  
+
+  // set up subdivision surface
   BKE_multires_subdiv_settings_init(&settings2, &mmdcpy);
   Subdiv *sd = BKE_subdiv_new_from_mesh(&settings2, me);
   BKE_subdiv_eval_begin_from_mesh(sd, me, NULL);
 
-  //create a fake object with .sculpt set to NULL
+  // create a fake object with .sculpt set to NULL
   Object fakeob;
   if (ob) {
     fakeob = *ob;
@@ -1267,8 +1266,7 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   BMFace *f;
   BMIter iter;
   i = 0;
-  
-  
+
   /*check that all grids are allocated and also set some indices*/
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMIter iter2;
@@ -1296,13 +1294,11 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
     }
   }
 
-  //do the space conversion
-  
+  // do the space conversion
+
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = CCG_TASK_LIMIT;
-
-  bool has_grid_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
   MultiresThreadedData data = {
       .bmop = mode,
@@ -1310,18 +1306,16 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
       .lvl = mmd->totlvl,
       .bm = bm,
       .cd_mdisps_off = cd_disp_off,
-      .cd_mask_off = has_grid_mask ? CustomData_get_offset(&bm->ldata, CD_GRID_PAINT_MASK) : -1,
-      .has_grid_mask = has_grid_mask,
       .gridSize = gridSize,
   };
 
   BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
-  
+
   BKE_mesh_free(me);
   BKE_subdiv_free(sd);
 
-  bm->elem_index_dirty |= BM_FACE|BM_LOOP;
-  bm->elem_table_dirty |= BM_FACE|BM_LOOP;
+  bm->elem_index_dirty |= BM_FACE | BM_LOOP;
+  bm->elem_table_dirty |= BM_FACE | BM_LOOP;
 }
 
 static void multires_disp_run_cb(void *__restrict userdata,

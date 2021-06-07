@@ -469,7 +469,7 @@ static void displist_surf_fnors_ensure(const DispList *dl, float (**fnors)[3])
 {
   int u_len = dl->nr - ((dl->flag & DL_CYCL_U) ? 0 : 1);
   int v_len = dl->parts - ((dl->flag & DL_CYCL_V) ? 0 : 1);
-  const float(*verts)[3] = (float(*)[3])dl->verts;
+  const float(*verts)[3] = (const float(*)[3])dl->verts;
   float(*nor_flat)[3] = MEM_mallocN(sizeof(float[3]) * u_len * v_len, __func__);
   *fnors = nor_flat;
 
@@ -532,6 +532,8 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
   GPUVertBufRaw uv_step = {0};
   GPUVertBufRaw tan_step = {0};
 
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
+
   if (DRW_TEST_ASSIGN_VBO(vbo_pos_nor)) {
     GPU_vertbuf_init_with_format(vbo_pos_nor,
                                  do_hq_normals ? &format_pos_nor_hq : &format_pos_nor);
@@ -550,13 +552,15 @@ void DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(ListBase *lb,
     GPU_vertbuf_attr_get_raw_data(vbo_tan, tan_id, &tan_step);
   }
 
+#undef DRW_TEST_ASSIGN_VBO
+
   BKE_displist_normals_add(lb);
 
   LISTBASE_FOREACH (const DispList *, dl, lb) {
     const bool is_smooth = (dl->rt & CU_SMOOTH) != 0;
     if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-      const float(*verts)[3] = (float(*)[3])dl->verts;
-      const float(*nors)[3] = (float(*)[3])dl->nors;
+      const float(*verts)[3] = (const float(*)[3])dl->verts;
+      const float(*nors)[3] = (const float(*)[3])dl->nors;
       const int *idx = dl->index;
       float uv[4][2];
 

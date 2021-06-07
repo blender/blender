@@ -48,24 +48,12 @@ static int seq_tx_get_end(Sequence *seq)
   return seq->start + seq->len;
 }
 
-int SEQ_transform_get_left_handle_frame(Sequence *seq, bool metaclip)
+int SEQ_transform_get_left_handle_frame(Sequence *seq)
 {
-  if (metaclip && seq->tmp) {
-    /* return the range clipped by the parents range */
-    return max_ii(SEQ_transform_get_left_handle_frame(seq, false),
-                  SEQ_transform_get_left_handle_frame((Sequence *)seq->tmp, true));
-  }
-
   return (seq->start - seq->startstill) + seq->startofs;
 }
-int SEQ_transform_get_right_handle_frame(Sequence *seq, bool metaclip)
+int SEQ_transform_get_right_handle_frame(Sequence *seq)
 {
-  if (metaclip && seq->tmp) {
-    /* return the range clipped by the parents range */
-    return min_ii(SEQ_transform_get_right_handle_frame(seq, false),
-                  SEQ_transform_get_right_handle_frame((Sequence *)seq->tmp, true));
-  }
-
   return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
 }
 
@@ -151,14 +139,12 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
   if (leftflag) {
-    if (SEQ_transform_get_left_handle_frame(seq, false) >=
-        SEQ_transform_get_right_handle_frame(seq, false)) {
-      SEQ_transform_set_left_handle_frame(seq,
-                                          SEQ_transform_get_right_handle_frame(seq, false) - 1);
+    if (SEQ_transform_get_left_handle_frame(seq) >= SEQ_transform_get_right_handle_frame(seq)) {
+      SEQ_transform_set_left_handle_frame(seq, SEQ_transform_get_right_handle_frame(seq) - 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
-      if (SEQ_transform_get_left_handle_frame(seq, false) >= seq_tx_get_end(seq)) {
+      if (SEQ_transform_get_left_handle_frame(seq) >= seq_tx_get_end(seq)) {
         SEQ_transform_set_left_handle_frame(seq, seq_tx_get_end(seq) - 1);
       }
 
@@ -175,14 +161,12 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
   }
 
   if (rightflag) {
-    if (SEQ_transform_get_right_handle_frame(seq, false) <=
-        SEQ_transform_get_left_handle_frame(seq, false)) {
-      SEQ_transform_set_right_handle_frame(seq,
-                                           SEQ_transform_get_left_handle_frame(seq, false) + 1);
+    if (SEQ_transform_get_right_handle_frame(seq) <= SEQ_transform_get_left_handle_frame(seq)) {
+      SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) + 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
-      if (SEQ_transform_get_right_handle_frame(seq, false) <= seq_tx_get_start(seq)) {
+      if (SEQ_transform_get_right_handle_frame(seq) <= seq_tx_get_start(seq)) {
         SEQ_transform_set_right_handle_frame(seq, seq_tx_get_start(seq) + 1);
       }
     }
@@ -204,14 +188,12 @@ void SEQ_transform_fix_single_image_seq_offsets(Sequence *seq)
 
   /* make sure the image is always at the start since there is only one,
    * adjusting its start should be ok */
-  left = SEQ_transform_get_left_handle_frame(seq, false);
+  left = SEQ_transform_get_left_handle_frame(seq);
   start = seq->start;
   if (start != left) {
     offset = left - start;
-    SEQ_transform_set_left_handle_frame(seq,
-                                        SEQ_transform_get_left_handle_frame(seq, false) - offset);
-    SEQ_transform_set_right_handle_frame(
-        seq, SEQ_transform_get_right_handle_frame(seq, false) - offset);
+    SEQ_transform_set_left_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) - offset);
+    SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_right_handle_frame(seq) - offset);
     seq->start += offset;
   }
 }
