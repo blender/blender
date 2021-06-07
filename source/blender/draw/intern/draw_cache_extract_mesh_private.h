@@ -430,14 +430,14 @@ typedef struct MeshExtract {
   /** Executed on one worker thread after all elements iterations. */
   ExtractFinishFn *finish;
   /** Used to request common data. */
-  const eMRDataType data_type;
+  eMRDataType data_type;
   /** Used to know if the element callbacks are thread-safe and can be parallelized. */
-  const bool use_threading;
+  bool use_threading;
   /**
    * Offset in bytes of the buffer inside a MeshBufferCache instance. Points to a vertex or index
    * buffer.
    */
-  const size_t mesh_buffer_offset;
+  size_t mesh_buffer_offset;
 } MeshExtract;
 
 /** \} */

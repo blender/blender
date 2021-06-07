@@ -54,6 +54,7 @@ set(SRC
   intern/draw_cache_extract_mesh_extractors.c
   intern/draw_cache_extract_mesh_render_data.c
   intern/draw_cache_extract_mesh.cc
+  intern/mesh_extractors/extract_mesh_ibo_points.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
