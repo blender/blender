@@ -20,8 +20,24 @@ if(NOT CLANG_ROOT_DIR AND NOT $ENV{CLANG_ROOT_DIR} STREQUAL "")
   set(CLANG_ROOT_DIR $ENV{CLANG_ROOT_DIR})
 endif()
 
+if(NOT LLVM_ROOT_DIR)
+  if(DEFINED LLVM_VERSION)
+    message(running llvm-config-${LLVM_VERSION})
+    find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
+  endif()
+  if(NOT LLVM_CONFIG)
+    find_program(LLVM_CONFIG llvm-config)
+  endif()
+
+  execute_process(COMMAND ${LLVM_CONFIG} --prefix
+          OUTPUT_VARIABLE LLVM_ROOT_DIR
+          OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(LLVM_ROOT_DIR ${LLVM_ROOT_DIR} CACHE PATH "Path to the LLVM installation")
+endif()
+
 set(_CLANG_SEARCH_DIRS
   ${CLANG_ROOT_DIR}
+  ${LLVM_ROOT_DIR}
   /opt/lib/clang
 )
 
