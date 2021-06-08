@@ -36,7 +36,7 @@ static void *extract_points_init(const MeshRenderData *mr,
                                  struct MeshBatchCache *UNUSED(cache),
                                  void *UNUSED(buf))
 {
-  GPUIndexBufBuilder *elb = new GPUIndexBufBuilder();
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
   GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->vert_len, mr->loop_len + mr->loop_loose_len);
   return elb;
 }
@@ -145,7 +145,7 @@ static void extract_points_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  delete elb;
+  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_points()

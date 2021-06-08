@@ -36,7 +36,7 @@ static void *extract_fdots_init(const MeshRenderData *mr,
                                 struct MeshBatchCache *UNUSED(cache),
                                 void *UNUSED(buf))
 {
-  GPUIndexBufBuilder *elb = new GPUIndexBufBuilder();
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
   GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->poly_len, mr->poly_len);
   return elb;
 }
@@ -93,7 +93,7 @@ static void extract_fdots_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  delete elb;
+  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_fdots()

@@ -44,11 +44,6 @@ typedef struct GPUIndexBufBuilder {
   uint index_max;
   GPUPrimType prim_type;
   uint32_t *data;
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("GPU:GPUIndexBufBuilder")
-#endif
-
 } GPUIndexBufBuilder;
 
 /* supports all primitive types. */

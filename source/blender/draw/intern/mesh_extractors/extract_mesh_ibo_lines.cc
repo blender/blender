@@ -35,7 +35,7 @@ static void *extract_lines_init(const MeshRenderData *mr,
                                 struct MeshBatchCache *UNUSED(cache),
                                 void *UNUSED(buf))
 {
-  GPUIndexBufBuilder *elb = new GPUIndexBufBuilder();
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
   /* Put loose edges at the end. */
   GPU_indexbuf_init(
       elb, GPU_PRIM_LINES, mr->edge_len + mr->edge_loose_len, mr->loop_len + mr->loop_loose_len);
@@ -146,7 +146,7 @@ static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  delete elb;
+  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_lines()
@@ -190,7 +190,7 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
   extract_lines_loose_subbuffer(mr, cache);
-  delete (elb);
+  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_lines_with_lines_loose()
@@ -221,7 +221,7 @@ static void *extract_lines_loose_only_init(const MeshRenderData *mr,
   BLI_assert(buf == cache->final.ibo.lines_loose);
   UNUSED_VARS_NDEBUG(buf);
   extract_lines_loose_subbuffer(mr, cache);
-  return nullptr;
+  return NULL;
 }
 
 constexpr MeshExtract create_extractor_lines_loose_only()
