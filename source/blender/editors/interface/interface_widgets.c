@@ -1941,7 +1941,7 @@ static bool widget_draw_text_underline_calc_position(const char *UNUSED(str),
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
                                                      const rctf *glyph_bounds,
-                                                     const int glyph_bearing[2],
+                                                     const int UNUSED(glyph_bearing[2]),
                                                      void *user_data)
 {
   struct UnderlineData *ul_data = user_data;
