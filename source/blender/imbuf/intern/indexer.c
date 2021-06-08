@@ -1026,6 +1026,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
         index_rebuild_ffmpeg_proc_decoded_frame(context, next_packet, in_frame);
       }
     }
+    av_packet_unref(next_packet);
   }
 
   /* process pictures still stuck in decoder engine after EOF
