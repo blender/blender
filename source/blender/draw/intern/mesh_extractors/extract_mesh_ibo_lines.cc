@@ -73,7 +73,7 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
   /* Using poly & loop iterator would complicate accessing the adjacent loop. */
   const MLoop *mloop = mr->mloop;
   const MEdge *medge = mr->medge;
-  if (mr->use_hide || (mr->extract_type == MR_EXTRACT_MAPPED) || (mr->e_origindex != NULL)) {
+  if (mr->use_hide || (mr->extract_type == MR_EXTRACT_MAPPED) || (mr->e_origindex != nullptr)) {
     const int ml_index_last = mp->loopstart + (mp->totloop - 1);
     int ml_index = ml_index_last, ml_index_next = mp->loopstart;
     do {
@@ -190,7 +190,7 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
   extract_lines_loose_subbuffer(mr, cache);
-  delete(elb);
+  delete (elb);
 }
 
 constexpr MeshExtract create_extractor_lines_with_lines_loose()

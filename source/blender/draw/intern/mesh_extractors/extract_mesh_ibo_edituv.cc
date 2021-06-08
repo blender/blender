@@ -171,7 +171,8 @@ static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
 
     const int ml_index_last = mp->totloop + mp->loopstart - 1;
     const int ml_index_next = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
-    const bool real_edge = (mr->e_origindex == NULL || mr->e_origindex[ml->e] != ORIGINDEX_NONE);
+    const bool real_edge = (mr->e_origindex == nullptr ||
+                            mr->e_origindex[ml->e] != ORIGINDEX_NONE);
     edituv_edge_add(data,
                     (mp->flag & ME_HIDE) != 0 || !real_edge,
                     (mp->flag & ME_FACE_SEL) != 0,

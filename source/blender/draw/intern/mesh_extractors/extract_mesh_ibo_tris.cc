@@ -150,7 +150,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
     for (int i = 0; i < mr->mat_len; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
-      if (mbc_final->tris_per_mat[i] == NULL) {
+      if (mbc_final->tris_per_mat[i] == nullptr) {
         mbc_final->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
       /* Multiply by 3 because these are triangle indices. */

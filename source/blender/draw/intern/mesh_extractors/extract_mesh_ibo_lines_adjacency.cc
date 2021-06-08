@@ -164,7 +164,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
     }
   }
   BLI_edgehashIterator_free(ehi);
-  BLI_edgehash_free(data->eh, NULL);
+  BLI_edgehash_free(data->eh, nullptr);
 
   cache->is_manifold = data->is_manifold;
 

@@ -843,8 +843,8 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
   int edges_len_capacity = curve_render_data_overlay_edges_len_get(rdata) * 2;
   int vbo_len_used = 0;
 
-#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : NULL))
-#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? (v) : NULL))
+#define DRW_TEST_ASSIGN_VBO(v) (v = (DRW_vbo_requested(v) ? (v) : nullptr))
+#define DRW_TEST_ASSIGN_IBO(v) (v = (DRW_ibo_requested(v) ? (v) : nullptr))
 
   if (DRW_TEST_ASSIGN_VBO(vbo_pos)) {
     GPU_vertbuf_init_with_format(vbo_pos, &format_pos);
