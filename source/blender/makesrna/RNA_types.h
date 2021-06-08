@@ -82,17 +82,18 @@ typedef enum PropertyType {
 /* also update rna_property_subtype_unit when you change this */
 typedef enum PropertyUnit {
   PROP_UNIT_NONE = (0 << 16),
-  PROP_UNIT_LENGTH = (1 << 16),       /* m */
-  PROP_UNIT_AREA = (2 << 16),         /* m^2 */
-  PROP_UNIT_VOLUME = (3 << 16),       /* m^3 */
-  PROP_UNIT_MASS = (4 << 16),         /* kg */
-  PROP_UNIT_ROTATION = (5 << 16),     /* radians */
-  PROP_UNIT_TIME = (6 << 16),         /* frame */
-  PROP_UNIT_VELOCITY = (7 << 16),     /* m/s */
-  PROP_UNIT_ACCELERATION = (8 << 16), /* m/(s^2) */
-  PROP_UNIT_CAMERA = (9 << 16),       /* mm */
-  PROP_UNIT_POWER = (10 << 16),       /* W */
-  PROP_UNIT_TEMPERATURE = (11 << 16), /* C */
+  PROP_UNIT_LENGTH = (1 << 16),        /* m */
+  PROP_UNIT_AREA = (2 << 16),          /* m^2 */
+  PROP_UNIT_VOLUME = (3 << 16),        /* m^3 */
+  PROP_UNIT_MASS = (4 << 16),          /* kg */
+  PROP_UNIT_ROTATION = (5 << 16),      /* radians */
+  PROP_UNIT_TIME = (6 << 16),          /* frame */
+  PROP_UNIT_TIME_ABSOLUTE = (7 << 16), /* time in seconds (independent of scene) */
+  PROP_UNIT_VELOCITY = (8 << 16),      /* m/s */
+  PROP_UNIT_ACCELERATION = (9 << 16),  /* m/(s^2) */
+  PROP_UNIT_CAMERA = (10 << 16),       /* mm */
+  PROP_UNIT_POWER = (11 << 16),        /* W */
+  PROP_UNIT_TEMPERATURE = (12 << 16),  /* C */
 } PropertyUnit;
 
 /**
@@ -157,6 +158,7 @@ typedef enum PropertySubType {
   PROP_FACTOR = 15,
   PROP_ANGLE = 16 | PROP_UNIT_ROTATION,
   PROP_TIME = 17 | PROP_UNIT_TIME,
+  PROP_TIME_ABSOLUTE = 17 | PROP_UNIT_TIME_ABSOLUTE,
   /** Distance in 3d space, don't use for pixel distance for eg. */
   PROP_DISTANCE = 18 | PROP_UNIT_LENGTH,
   PROP_DISTANCE_CAMERA = 19 | PROP_UNIT_CAMERA,
