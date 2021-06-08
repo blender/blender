@@ -807,9 +807,9 @@ MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 
 MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
-  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 :
-                          (val <= 0.0f)                ? 0 :
-                                                         (val * 65535.0f + 0.5f));
+  return (unsigned short)((val >= 1.0f - 0.5f / 65535) ?
+                              65535 :
+                              (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
 }
 #define unit_float_to_ushort_clamp(val) \
   ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))
