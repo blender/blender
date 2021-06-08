@@ -49,11 +49,6 @@ typedef struct BMPartialUpdate {
   int verts_len, verts_len_alloc;
   int edges_len, edges_len_alloc;
   int faces_len, faces_len_alloc;
-  /**
-   * Faces at the end of `faces` that don't need to have the normals recalculated
-   * but must be included when waiting the vertex normals.
-   */
-  int faces_len_normal_calc_accumulate;
 
   /** Store the parameters used in creation so invalid use can be asserted. */
   BMPartialUpdate_Params params;

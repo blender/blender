@@ -182,8 +182,6 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
     }
   }
 
-  const int faces_len_direct = bmpinfo->faces_len;
-
   if (params->do_normals) {
     /* - Extend to all faces vertices:
      *   Any changes to the faces normal needs to update all surrounding vertices.
@@ -219,30 +217,12 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
         BMEdge *e_iter = e_first;
         do {
           if (e_iter->l) {
-            if (!partial_elem_edge_ensure(bmpinfo, edges_tag, e_iter)) {
-              continue;
-            }
-
-            /* These faces need to be taken into account when weighting vertex normals
-             * but aren't needed for tessellation nor do their normals need to be recalculated.
-             * These faces end up between `faces_len` and `faces_len_normal_calc_accumulate`
-             * in the faces array. */
-            BMLoop *l_first_radial = e_iter->l;
-            BMLoop *l_iter_radial = l_first_radial;
-            /* Loop over radial loops. */
-            do {
-              if (l_iter_radial->v == v) {
-                partial_elem_face_ensure(bmpinfo, faces_tag, l_iter_radial->f);
-              }
-            } while ((l_iter_radial = l_iter_radial->radial_next) != l_first_radial);
+            partial_elem_edge_ensure(bmpinfo, edges_tag, e_iter);
           }
         } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
-
-  bmpinfo->faces_len_normal_calc_accumulate = bmpinfo->faces_len;
-  bmpinfo->faces_len = faces_len_direct;
 
   if (verts_tag) {
     MEM_freeN(verts_tag);
