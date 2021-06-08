@@ -56,7 +56,9 @@ static CurveBevelFillType curve_bevel_get_fill_type(const Curve *curve)
   return (curve->flag & CU_FRONT) ? FRONT : BACK;
 }
 
-static void bevel_quarter_fill(Curve *curve, float *quarter_coords_x, float *quarter_coords_y)
+static void bevel_quarter_fill(const Curve *curve,
+                               float *quarter_coords_x,
+                               float *quarter_coords_y)
 {
   if (curve->bevel_mode == CU_BEV_MODE_ROUND) {
     float angle = 0.0f;
