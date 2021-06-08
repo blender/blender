@@ -406,7 +406,6 @@ typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct
  * \{ */
-
 /* TODO(jbakker): move parameters inside a struct. */
 typedef void *(ExtractInitFn)(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
@@ -415,10 +414,14 @@ typedef void(ExtractFinishFn)(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buffer,
                               void *data);
+typedef void *(ExtractTaskInitFn)(void *userdata);
+typedef void(ExtractTaskFinishFn)(void *userdata, void *task_userdata);
 
 typedef struct MeshExtract {
   /** Executed on main thread and return user data for iteration functions. */
   ExtractInitFn *init;
+  /** Task local data. */
+  ExtractTaskInitFn *task_init;
   /** Executed on one (or more if use_threading) worker thread(s). */
   ExtractTriBMeshFn *iter_looptri_bm;
   ExtractTriMeshFn *iter_looptri_mesh;
@@ -429,6 +432,7 @@ typedef struct MeshExtract {
   ExtractLVertBMeshFn *iter_lvert_bm;
   ExtractLVertMeshFn *iter_lvert_mesh;
   /** Executed on one worker thread after all elements iterations. */
+  ExtractTaskFinishFn *task_finish;
   ExtractFinishFn *finish;
   /** Used to request common data. */
   eMRDataType data_type;

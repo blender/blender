@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "gpu_backend.hh"
@@ -56,6 +57,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->index_max = 0;
   builder->prim_type = prim_type;
   builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
+  builder->parent = nullptr;
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
@@ -76,6 +78,23 @@ GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
   IndexBuf *elem = unwrap(elem_);
   elem->init_build_on_device(index_len);
   return elem_;
+}
+
+void GPU_indexbuf_subbuilder_init(const GPUIndexBufBuilder *parent_builder,
+                                  GPUIndexBufBuilder *sub_builder)
+{
+  BLI_assert(parent_builder->parent == nullptr);
+  memcpy(sub_builder, parent_builder, sizeof(GPUIndexBufBuilder));
+  sub_builder->parent = parent_builder;
+}
+
+void GPU_indexbuf_subbuilder_finish(GPUIndexBufBuilder *parent_builder,
+                                    const GPUIndexBufBuilder *sub_builder)
+{
+  BLI_assert(parent_builder == sub_builder->parent);
+  parent_builder->index_len = max_uu(parent_builder->index_len, sub_builder->index_len);
+  parent_builder->index_min = min_uu(parent_builder->index_min, sub_builder->index_min);
+  parent_builder->index_max = max_uu(parent_builder->index_max, sub_builder->index_max);
 }
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)

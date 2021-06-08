@@ -41,6 +41,15 @@ static void *extract_points_init(const MeshRenderData *mr,
   return elb;
 }
 
+static void *extract_points_task_init(void *_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
+      MEM_mallocN(sizeof(*sub_builder), __func__));
+  GPU_indexbuf_subbuilder_init(elb, sub_builder);
+  return sub_builder;
+}
+
 BLI_INLINE void vert_set_bm(GPUIndexBufBuilder *elb, BMVert *eve, int l_index)
 {
   const int v_index = BM_elem_index_get(eve);
@@ -137,6 +146,14 @@ static void extract_points_iter_lvert_mesh(const MeshRenderData *mr,
   vert_set_mesh(elb, mr, mr->lverts[lvert_index], offset + lvert_index);
 }
 
+static void extract_points_task_finish(void *_userdata, void *_task_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
+  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
+  MEM_freeN(sub_builder);
+}
+
 static void extract_points_finish(const MeshRenderData *UNUSED(mr),
                                   struct MeshBatchCache *UNUSED(cache),
                                   void *buf,
@@ -152,15 +169,17 @@ constexpr MeshExtract create_extractor_points()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_points_init;
+  extractor.task_init = extract_points_task_init;
   extractor.iter_poly_bm = extract_points_iter_poly_bm;
   extractor.iter_poly_mesh = extract_points_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_points_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_points_iter_ledge_mesh;
   extractor.iter_lvert_bm = extract_points_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_points_iter_lvert_mesh;
+  extractor.task_finish = extract_points_task_finish;
   extractor.finish = extract_points_finish;
+  extractor.use_threading = true;
   extractor.data_type = MR_DATA_NONE;
-  extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.points);
   return extractor;
 }
