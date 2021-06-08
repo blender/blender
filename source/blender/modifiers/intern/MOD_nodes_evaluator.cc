@@ -1474,6 +1474,13 @@ Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identi
     }
     BLI_assert_unreachable();
   });
+  if (ret_values.is_empty()) {
+    /* If the socket is not linked, we just use the value from the socket itself. */
+    BLI_assert(multi_value.items.size() == 1);
+    MultiInputValueItem &item = multi_value.items[0];
+    BLI_assert(item.origin == socket);
+    ret_values.append({*input_state.type, item.value});
+  }
   multi_value.items.clear();
   return ret_values;
 }
