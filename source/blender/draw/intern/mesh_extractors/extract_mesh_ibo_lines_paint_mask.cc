@@ -34,11 +34,11 @@ namespace blender::draw {
 /** \name Extract Paint Mask Line Indices
  * \{ */
 
-typedef struct MeshExtract_LinePaintMask_Data {
+struct MeshExtract_LinePaintMask_Data {
   GPUIndexBufBuilder elb;
   /** One bit per edge set if face is selected. */
   BLI_bitmap select_map[0];
-} MeshExtract_LinePaintMask_Data;
+};
 
 static void *extract_lines_paint_mask_init(const MeshRenderData *mr,
                                            struct MeshBatchCache *UNUSED(cache),

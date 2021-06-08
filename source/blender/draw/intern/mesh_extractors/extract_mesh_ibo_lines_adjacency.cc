@@ -36,13 +36,13 @@ namespace blender::draw {
 
 #define NO_EDGE INT_MAX
 
-typedef struct MeshExtract_LineAdjacency_Data {
+struct MeshExtract_LineAdjacency_Data {
   GPUIndexBufBuilder elb;
   EdgeHash *eh;
   bool is_manifold;
   /* Array to convert vert index to any loop index of this vert. */
   uint vert_to_loop[0];
-} MeshExtract_LineAdjacency_Data;
+};
 
 static void *extract_lines_adjacency_init(const MeshRenderData *mr,
                                           struct MeshBatchCache *UNUSED(cache),
