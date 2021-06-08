@@ -14,6 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BKE_spline.hh"
 #include "BKE_volume.h"
 
 #include "node_geometry_util.hh"
@@ -81,6 +82,28 @@ static void compute_min_max_from_volume_and_transforms(const VolumeComponent &vo
 #endif
 }
 
+static void compute_min_max_from_curve_and_transforms(const CurveComponent &curve_component,
+                                                      Span<float4x4> transforms,
+                                                      float3 &r_min,
+                                                      float3 &r_max)
+{
+  const CurveEval *curve = curve_component.get_for_read();
+  if (curve == nullptr) {
+    return;
+  }
+  for (const SplinePtr &spline : curve->splines()) {
+    Span<float3> positions = spline->evaluated_positions();
+
+    for (const float4x4 &transform : transforms) {
+      for (const int i : positions.index_range()) {
+        const float3 position = positions[i];
+        const float3 transformed_position = transform * position;
+        minmax_v3v3_v3(r_min, r_max, transformed_position);
+      }
+    }
+  }
+}
+
 static void compute_geometry_set_instances_boundbox(const GeometrySet &geometry_set,
                                                     float3 &r_min,
                                                     float3 &r_max)
@@ -103,6 +126,10 @@ static void compute_geometry_set_instances_boundbox(const GeometrySet &geometry_
     if (set.has<VolumeComponent>()) {
       compute_min_max_from_volume_and_transforms(
           *set.get_component_for_read<VolumeComponent>(), transforms, r_min, r_max);
+    }
+    if (set.has<CurveComponent>()) {
+      compute_min_max_from_curve_and_transforms(
+          *set.get_component_for_read<CurveComponent>(), transforms, r_min, r_max);
     }
   }
 }
