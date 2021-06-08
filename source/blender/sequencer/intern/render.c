@@ -544,9 +544,9 @@ static void sequencer_image_crop_transform_init(void *handle_v,
   handle->tot_line = tot_line;
 }
 
-static void *sequencer_image_crop_transform_do_thread(void *data_v)
+static void sequencer_image_crop_transform_interpolation_coefs(
+    const ImageTransformThreadData *data, float r_start_uv[2], float r_add_x[2], float r_add_y[2])
 {
-  const ImageTransformThreadData *data = (ImageTransformThreadData *)data_v;
   const StripTransform *transform = data->seq->strip->transform;
   const float scale_x = transform->scale_x * data->image_scale_factor;
   const float scale_y = transform->scale_y * data->image_scale_factor;
@@ -563,6 +563,40 @@ static void *sequencer_image_crop_transform_do_thread(void *data_v)
   transform_pivot_set_m3(transform_matrix, pivot);
   invert_m3(transform_matrix);
 
+  float orig[2];
+  orig[0] = 0.0;
+  orig[1] = data->start_line;
+  mul_v2_m3v2(r_start_uv, transform_matrix, orig);
+
+  float uv_min[2];
+  uv_min[0] = 0;
+  uv_min[1] = 0;
+  mul_v2_m3v2(uv_min, transform_matrix, uv_min);
+
+  float uv_max_x[2];
+  uv_max_x[0] = data->ibuf_out->x;
+  uv_max_x[1] = 0;
+  mul_v2_m3v2(r_add_x, transform_matrix, uv_max_x);
+  sub_v2_v2(r_add_x, uv_min);
+  mul_v2_fl(r_add_x, 1.0 / data->ibuf_out->x);
+
+  float uv_max_y[2];
+  uv_max_y[0] = 0;
+  uv_max_y[1] = data->ibuf_out->y;
+  mul_v2_m3v2(r_add_y, transform_matrix, uv_max_y);
+  sub_v2_v2(r_add_y, uv_min);
+  mul_v2_fl(r_add_y, 1.0 / data->ibuf_out->y);
+}
+
+static void *sequencer_image_crop_transform_do_thread(void *data_v)
+{
+  const ImageTransformThreadData *data = data_v;
+
+  float last_uv[2];
+  float add_x[2];
+  float add_y[2];
+  sequencer_image_crop_transform_interpolation_coefs(data_v, last_uv, add_x, add_y);
+
   /* Image crop is done by offsetting image boundary limits. */
   const StripCrop *c = data->seq->strip->crop;
   const int left = c->left * data->crop_scale_factor;
@@ -575,10 +609,13 @@ static void *sequencer_image_crop_transform_do_thread(void *data_v)
   const float source_pixel_range_min[2] = {left, bottom};
 
   const int width = data->ibuf_out->x;
+
+  float uv[2];
   for (int yi = data->start_line; yi < data->start_line + data->tot_line; yi++) {
+    copy_v2_v2(uv, last_uv);
+    add_v2_v2(last_uv, add_y);
     for (int xi = 0; xi < width; xi++) {
-      float uv[2] = {xi, yi};
-      mul_v2_m3v2(uv, transform_matrix, uv);
+      add_v2_v2(uv, add_x);
 
       if (source_pixel_range_min[0] >= uv[0] || uv[0] >= source_pixel_range_max[0] ||
           source_pixel_range_min[1] >= uv[1] || uv[1] >= source_pixel_range_max[1]) {
