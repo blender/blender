@@ -67,17 +67,55 @@ typedef enum TaskPriority {
   TASK_PRIORITY_HIGH,
 } TaskPriority;
 
+/**
+ * Task isolation helps avoid unexpected task scheduling decisions that can lead to bugs if wrong
+ * assumptions were made. Typically that happens when doing "nested threading", i.e. one thread
+ * schedules a bunch of main-tasks and those spawn new subtasks.
+ *
+ * What can happen is that when a main-task waits for its subtasks to complete on other threads,
+ * another main-task is scheduled within the already running main-task. Generally, this is good,
+ * because it leads to better performance. However, sometimes code (often unintentionally) makes
+ * the assumption that at most one main-task runs on a thread at a time.
+ *
+ * The bugs often show themselves in two ways:
+ * - Deadlock, when a main-task holds a mutex while waiting for its subtasks to complete.
+ * - Data corruption, when a main-task makes wrong assumptions about a threadlocal variable.
+ *
+ * Task isolation can avoid these bugs by making sure that a main-task does not start executing
+ * another main-task while waiting for its subtasks. More precisely, a function that runs in an
+ * isolated region is only allowed to run subtasks that were spawned in the same isolated region.
+ *
+ * Unfortunately, incorrect use of task isolation can lead to deadlocks itself. This can happen
+ * when threading primitives are used that separate spawning tasks from executing them. The problem
+ * occurs when a task is spawned in one isolated region while the tasks are waited for in another
+ * isolated region. In this setup, the thread that is waiting for the spawned tasks to complete
+ * cannot run the tasks itself. On a single thread, that causes a deadlock already. When there are
+ * multiple threads, another thread will typically run the task and avoid the deadlock. However, if
+ * this situation happens on all threads at the same time, all threads will deadlock. This happened
+ * in T88598.
+ */
+typedef enum TaskIsolation {
+  /* Do not use task isolation. Always use this when tasks are pushed recursively. */
+  TASK_ISOLATION_OFF,
+  /* Run each task in its own isolated region. */
+  TASK_ISOLATION_ON,
+} TaskIsolation;
+
 typedef struct TaskPool TaskPool;
 typedef void (*TaskRunFunction)(TaskPool *__restrict pool, void *taskdata);
 typedef void (*TaskFreeFunction)(TaskPool *__restrict pool, void *taskdata);
 
 /* Regular task pool that immediately starts executing tasks as soon as they
  * are pushed, either on the current or another thread. */
-TaskPool *BLI_task_pool_create(void *userdata, TaskPriority priority);
+TaskPool *BLI_task_pool_create(void *userdata,
+                               TaskPriority priority,
+                               TaskIsolation task_isolation);
 
 /* Background: always run tasks in a background thread, never immediately
  * execute them. For running background jobs. */
-TaskPool *BLI_task_pool_create_background(void *userdata, TaskPriority priority);
+TaskPool *BLI_task_pool_create_background(void *userdata,
+                                          TaskPriority priority,
+                                          TaskIsolation task_isolation);
 
 /* Background Serial: run tasks one after the other in the background,
  * without parallelization between the tasks. */
@@ -87,7 +125,9 @@ TaskPool *BLI_task_pool_create_background_serial(void *userdata, TaskPriority pr
  * as threads can't immediately start working. But it can be used if the data
  * structures the threads operate on are not fully initialized until all tasks
  * are created. */
-TaskPool *BLI_task_pool_create_suspended(void *userdata, TaskPriority priority);
+TaskPool *BLI_task_pool_create_suspended(void *userdata,
+                                         TaskPriority priority,
+                                         TaskIsolation task_isolation);
 
 /* No threads: immediately executes tasks on the same thread. For debugging. */
 TaskPool *BLI_task_pool_create_no_threads(void *userdata);

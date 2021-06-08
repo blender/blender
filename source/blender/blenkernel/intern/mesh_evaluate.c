@@ -1715,7 +1715,8 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
     loop_split_generator(NULL, &common_data);
   }
   else {
-    TaskPool *task_pool = BLI_task_pool_create(&common_data, TASK_PRIORITY_HIGH);
+    TaskPool *task_pool = BLI_task_pool_create(
+        &common_data, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
 
     loop_split_generator(task_pool, &common_data);
 

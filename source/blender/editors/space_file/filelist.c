@@ -1553,7 +1553,8 @@ static void filelist_cache_preview_freef(TaskPool *__restrict UNUSED(pool), void
 static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
 {
   if (!cache->previews_pool) {
-    cache->previews_pool = BLI_task_pool_create_background(cache, TASK_PRIORITY_LOW);
+    cache->previews_pool = BLI_task_pool_create_background(
+        cache, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
     cache->previews_done = BLI_thread_queue_init();
 
     IMB_thumb_locks_acquire();

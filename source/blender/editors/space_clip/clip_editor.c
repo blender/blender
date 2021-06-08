@@ -904,7 +904,7 @@ static void start_prefetch_threads(MovieClip *clip,
   queue.do_update = do_update;
   queue.progress = progress;
 
-  TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
+  TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
   for (int i = 0; i < tot_thread; i++) {
     BLI_task_pool_push(task_pool, prefetch_task_func, clip, false, NULL);
   }

@@ -1330,7 +1330,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
     return;
   }
 
-  task_pool = BLI_task_pool_create(&ctx, TASK_PRIORITY_LOW);
+  task_pool = BLI_task_pool_create(&ctx, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
 
   totpart = (from == PART_FROM_CHILD ? sim->psys->totchild : sim->psys->totpart);
   psys_tasks_create(&ctx, 0, totpart, &tasks, &numtasks);

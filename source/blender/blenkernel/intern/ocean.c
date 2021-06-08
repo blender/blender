@@ -663,7 +663,7 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
   osd.scale = scale;
   osd.chop_amount = chop_amount;
 
-  pool = BLI_task_pool_create(&osd, TASK_PRIORITY_HIGH);
+  pool = BLI_task_pool_create(&osd, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
 
   BLI_rw_mutex_lock(&o->oceanmutex, THREAD_LOCK_WRITE);
 
