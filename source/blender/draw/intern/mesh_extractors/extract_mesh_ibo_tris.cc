@@ -35,18 +35,31 @@ struct MeshExtract_Tri_Data {
   GPUIndexBufBuilder elb;
   int *tri_mat_start;
   int *tri_mat_end;
+
+  MeshExtract_Tri_Data(int mat_len)
+  {
+    tri_mat_start = new int[mat_len];
+    tri_mat_end = new int[mat_len];
+  }
+
+  ~MeshExtract_Tri_Data()
+  {
+    delete tri_mat_start;
+    delete tri_mat_end;
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("DRW:MeshExtract_Tri_Data")
+#endif
 };
 
 static void *extract_tris_init(const MeshRenderData *mr,
                                struct MeshBatchCache *UNUSED(cache),
                                void *UNUSED(ibo))
 {
-  MeshExtract_Tri_Data *data = static_cast<MeshExtract_Tri_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_Tri_Data *data = new MeshExtract_Tri_Data(mr->mat_len);
 
   size_t mat_tri_idx_size = sizeof(int) * mr->mat_len;
-  data->tri_mat_start = static_cast<int *>(MEM_callocN(mat_tri_idx_size, __func__));
-  data->tri_mat_end = static_cast<int *>(MEM_callocN(mat_tri_idx_size, __func__));
 
   int *mat_tri_len = data->tri_mat_start;
   /* Count how many triangle for each material. */
@@ -148,9 +161,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
       GPU_indexbuf_create_subrange_in_place(mbc_final->tris_per_mat[i], ibo, start, len);
     }
   }
-  MEM_freeN(data->tri_mat_start);
-  MEM_freeN(data->tri_mat_end);
-  MEM_freeN(data);
+  delete (data);
 }
 
 constexpr MeshExtract create_extractor_tris()
