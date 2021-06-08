@@ -78,6 +78,7 @@ void register_node_type_geo_point_separate(void);
 void register_node_type_geo_point_translate(void);
 void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_sample_texture(void);
+void register_node_type_geo_select_by_material(void);
 void register_node_type_geo_subdivide(void);
 void register_node_type_geo_subdivision_surface(void);
 void register_node_type_geo_switch(void);
