@@ -267,6 +267,7 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
                                    0,
                                    sphere_corner_total(segments, rings),
                                    sphere_face_total(segments, rings));
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
@@ -297,7 +298,6 @@ static void geo_node_mesh_primitive_uv_sphere_exec(GeoNodeExecParams params)
   const float radius = params.extract_input<float>("Radius");
 
   Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   params.set_output("Geometry", GeometrySet::create_with_mesh(mesh));
 }
 

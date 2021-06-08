@@ -309,6 +309,7 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
       0,
       corner_total(fill_type, verts_num, top_is_point, bottom_is_point),
       face_total(fill_type, verts_num, top_is_point, bottom_is_point));
+  BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
@@ -562,7 +563,6 @@ static void geo_node_mesh_primitive_cone_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_cylinder_or_cone_mesh(
       radius_top, radius_bottom, depth, verts_num, fill_type);
-  BKE_id_material_eval_ensure_default_slot(&mesh->id);
 
   /* Transform the mesh so that the base of the cone is at the origin. */
   BKE_mesh_translate(mesh, float3(0.0f, 0.0f, depth * 0.5f), false);
