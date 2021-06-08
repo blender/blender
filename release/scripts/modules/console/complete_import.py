@@ -143,7 +143,7 @@ def complete(line):
     """
     import inspect
 
-    def try_import(mod, only_modules=False):
+    def try_import(mod, *, only_modules=False):
 
         def is_importable(module, attr):
             if only_modules:
@@ -184,7 +184,7 @@ def complete(line):
         mod = words[1].split('.')
         if len(mod) < 2:
             return filter_prefix(get_root_modules(), words[-1])
-        completion_list = try_import('.'.join(mod[:-1]), True)
+        completion_list = try_import('.'.join(mod[:-1]), only_modules=True)
         completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
         return filter_prefix(completion_list, words[-1])
     if len(words) >= 3 and words[0] == 'from':

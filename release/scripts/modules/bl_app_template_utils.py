@@ -134,7 +134,7 @@ def _disable(template_id, *, handle_error=None):
         print("\tapp_template_utils.disable", template_id)
 
 
-def import_from_path(path, ignore_not_found=False):
+def import_from_path(path, *, ignore_not_found=False):
     import os
     from importlib import import_module
     base_module, template_id = path.rsplit(os.sep, 2)[-2:]
@@ -148,9 +148,9 @@ def import_from_path(path, ignore_not_found=False):
         raise ex
 
 
-def import_from_id(template_id, ignore_not_found=False):
+def import_from_id(template_id, *, ignore_not_found=False):
     import os
-    path = next(iter(_bpy.utils.app_template_paths(template_id)), None)
+    path = next(iter(_bpy.utils.app_template_paths(path=template_id)), None)
     if path is None:
         if ignore_not_found:
             return None
@@ -163,7 +163,7 @@ def import_from_id(template_id, ignore_not_found=False):
         return import_from_path(path, ignore_not_found=ignore_not_found)
 
 
-def activate(template_id=None):
+def activate(*, template_id=None):
     template_id_prev = _app_template["id"]
 
     # not needed but may as well avoids redundant
@@ -190,4 +190,4 @@ def reset(*, reload_scripts=False):
 
     # TODO reload_scripts
 
-    activate(template_id)
+    activate(template_id=template_id)

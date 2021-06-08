@@ -29,7 +29,7 @@ with offscreen.bind():
         amount = 10
         for i in range(-amount, amount + 1):
             x_pos = i / amount
-            draw_circle_2d((x_pos, 0.0), (1, 1, 1, 1), 0.5, 200)
+            draw_circle_2d((x_pos, 0.0), (1, 1, 1, 1), 0.5, segments=200)
 
 
 # Drawing the generated texture in 3D space

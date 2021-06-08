@@ -125,7 +125,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|O&O&:update_edit_mesh",
+                                   "O|$O&O&:update_edit_mesh",
                                    (char **)kwlist,
                                    &py_me,
                                    PyC_ParseBool,

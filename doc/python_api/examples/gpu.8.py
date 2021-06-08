@@ -34,7 +34,9 @@ with offscreen.bind():
         for i in range(RING_AMOUNT):
             draw_circle_2d(
                 (random.uniform(-1, 1), random.uniform(-1, 1)),
-                (1, 1, 1, 1), random.uniform(0.1, 1), 20)
+                (1, 1, 1, 1), random.uniform(0.1, 1),
+                segments=20,
+            )
 
     buffer = fb.read_color(0, 0, WIDTH, HEIGHT, 4, 0, 'UBYTE')
 

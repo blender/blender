@@ -114,9 +114,7 @@ class AddPresetBase:
             filename = self.as_filename(name)
 
             target_path = os.path.join("presets", self.preset_subdir)
-            target_path = bpy.utils.user_resource('SCRIPTS',
-                                                  target_path,
-                                                  create=True)
+            target_path = bpy.utils.user_resource('SCRIPTS', path=target_path, create=True)
 
             if not target_path:
                 self.report({'WARNING'}, "Failed to create presets path")

@@ -49,16 +49,16 @@ def _initialize():
 
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
-    addon_paths = _bpy.utils.script_paths("addons")
+    addon_paths = _bpy.utils.script_paths(subdir="addons")
 
     # CONTRIB SCRIPTS: good for testing but not official scripts yet
     # if folder addons_contrib/ exists, scripts in there will be loaded too
-    addon_paths += _bpy.utils.script_paths("addons_contrib")
+    addon_paths += _bpy.utils.script_paths(subdir="addons_contrib")
 
     return addon_paths
 
 
-def modules_refresh(module_cache=addons_fake_modules):
+def modules_refresh(*, module_cache=addons_fake_modules):
     global error_encoding
     import os
 
@@ -203,9 +203,9 @@ def modules_refresh(module_cache=addons_fake_modules):
     del modules_stale
 
 
-def modules(module_cache=addons_fake_modules, *, refresh=True):
+def modules(*, module_cache=addons_fake_modules, refresh=True):
     if refresh or ((module_cache is addons_fake_modules) and modules._is_first):
-        modules_refresh(module_cache)
+        modules_refresh(module_cache=module_cache)
         modules._is_first = False
 
     mod_list = list(module_cache.values())
@@ -512,7 +512,7 @@ def _blender_manual_url_prefix():
     return "https://docs.blender.org/manual/en/" + manual_version
 
 
-def module_bl_info(mod, info_basis=None):
+def module_bl_info(mod, *, info_basis=None):
     if info_basis is None:
         info_basis = {
             "name": "",

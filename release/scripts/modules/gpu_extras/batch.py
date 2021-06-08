@@ -21,7 +21,7 @@ __all__ = (
 )
 
 
-def batch_for_shader(shader, type, content, indices=None):
+def batch_for_shader(shader, type, content, *, indices=None):
     """
     Return a batch already configured and compatible with the shader.
 

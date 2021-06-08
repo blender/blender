@@ -19,7 +19,7 @@
 # <pep8-80 compliant>
 
 
-def url_prefill_from_blender(addon_info=None):
+def url_prefill_from_blender(*, addon_info=None):
     import bpy
     import gpu
     import struct

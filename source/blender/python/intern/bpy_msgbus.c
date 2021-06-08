@@ -245,7 +245,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
       "options",
       NULL,
   };
-  static _PyArg_Parser _parser = {"OOO!O|O!:subscribe_rna", _keywords, 0};
+  static _PyArg_Parser _parser = {"OOO!O|$O!:subscribe_rna", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,

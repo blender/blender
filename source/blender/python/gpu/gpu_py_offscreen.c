@@ -194,7 +194,7 @@ static PyObject *pygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, P
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
   static const char *_keywords[] = {"restore", NULL};
-  static _PyArg_Parser _parser = {"|O&:unbind", _keywords, 0};
+  static _PyArg_Parser _parser = {"|$O&:unbind", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, PyC_ParseBool, &restore)) {
     return NULL;
   }
