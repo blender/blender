@@ -30,7 +30,7 @@ ARRAY_TYPES = (list, tuple, IDPropertyArray, Vector)
 MAX_DISPLAY_ROWS = 4
 
 
-def rna_idprop_ui_get(item, create=True):
+def rna_idprop_ui_get(item, *, create=True):
     try:
         return item['_RNA_UI']
     except:
@@ -59,9 +59,9 @@ def rna_idprop_ui_prop_update(item, prop):
         prop_rna.update()
 
 
-def rna_idprop_ui_prop_get(item, prop, create=True):
+def rna_idprop_ui_prop_get(item, prop, *, create=True):
 
-    rna_ui = rna_idprop_ui_get(item, create)
+    rna_ui = rna_idprop_ui_get(item, create=create)
 
     if rna_ui is None:
         return None
@@ -73,8 +73,8 @@ def rna_idprop_ui_prop_get(item, prop, create=True):
         return rna_ui[prop]
 
 
-def rna_idprop_ui_prop_clear(item, prop, remove=True):
-    rna_ui = rna_idprop_ui_get(item, False)
+def rna_idprop_ui_prop_clear(item, prop, *, remove=True):
+    rna_ui = rna_idprop_ui_get(item, create=False)
 
     if rna_ui is None:
         return
@@ -143,7 +143,7 @@ def rna_idprop_ui_prop_default_set(item, prop, value):
         pass
 
     if defvalue:
-        rna_ui = rna_idprop_ui_prop_get(item, prop, True)
+        rna_ui = rna_idprop_ui_prop_get(item, prop, create=True)
         rna_ui["default"] = defvalue
     else:
         rna_ui = rna_idprop_ui_prop_get(item, prop)
@@ -181,7 +181,7 @@ def rna_idprop_ui_create(
     rna_idprop_ui_prop_update(item, prop)
 
     # Clear the UI settings
-    rna_ui_group = rna_idprop_ui_get(item, True)
+    rna_ui_group = rna_idprop_ui_get(item, create=True)
     rna_ui_group[prop] = {}
     rna_ui = rna_ui_group[prop]
 
@@ -210,7 +210,7 @@ def rna_idprop_ui_create(
     return rna_ui
 
 
-def draw(layout, context, context_member, property_type, use_edit=True):
+def draw(layout, context, context_member, property_type, *, use_edit=True):
 
     def assign_props(prop, val, key):
         prop.data_path = context_member

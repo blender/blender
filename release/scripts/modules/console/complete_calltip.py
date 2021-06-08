@@ -86,7 +86,7 @@ def get_doc(obj):
     return result and RE_EMPTY_LINE.sub('', result.rstrip()) or ''
 
 
-def get_argspec(func, strip_self=True, doc=None, source=None):
+def get_argspec(func, *, strip_self=True, doc=None, source=None):
     """Get argument specifications.
 
     :param strip_self: strip `self` from argspec

@@ -1815,7 +1815,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         addon_user_dirs = tuple(
             p for p in (
                 os.path.join(prefs.filepaths.script_directory, "addons"),
-                bpy.utils.user_resource('SCRIPTS', "addons"),
+                bpy.utils.user_resource('SCRIPTS', path="addons"),
             )
             if p
         )

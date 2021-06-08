@@ -77,6 +77,7 @@ typedef enum eMRIterType {
 ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
 
 typedef enum eMRDataType {
+  MR_DATA_NONE = 0,
   MR_DATA_POLY_NOR = 1 << 1,
   MR_DATA_LOOP_NOR = 1 << 2,
   MR_DATA_LOOPTRI = 1 << 3,

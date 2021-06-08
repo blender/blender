@@ -1513,16 +1513,16 @@ void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
 }
 
 struct FindTexPaintNodeData {
-  bNode *node;
-  short iter_index;
-  short index;
+  Image *ima;
+  bNode *r_node;
 };
 
 static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 {
   struct FindTexPaintNodeData *find_data = userdata;
-  if (find_data->iter_index++ == find_data->index) {
-    find_data->node = node;
+  Image *ima = (Image *)node->id;
+  if (find_data->ima == ima) {
+    find_data->r_node = node;
     return false;
   }
 
@@ -1531,10 +1531,10 @@ static bool texpaint_slot_node_find_cb(bNode *node, void *userdata)
 
 bNode *BKE_texpaint_slot_material_find_node(Material *ma, short texpaint_slot)
 {
-  struct FindTexPaintNodeData find_data = {NULL, 0, texpaint_slot};
+  struct FindTexPaintNodeData find_data = {ma->texpaintslot[texpaint_slot].ima, NULL};
   ntree_foreach_texnode_recursive(ma->nodetree, texpaint_slot_node_find_cb, &find_data);
 
-  return find_data.node;
+  return find_data.r_node;
 }
 
 /* r_col = current value, col = new value, (fac == 0) is no change */

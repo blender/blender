@@ -353,7 +353,8 @@ static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
     return BLI_task_pool_create_no_threads(state);
   }
 
-  return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
+  /* TODO: Disable task isolation. */
+  return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
 }
 
 /**

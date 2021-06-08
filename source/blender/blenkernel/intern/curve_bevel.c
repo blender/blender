@@ -56,7 +56,9 @@ static CurveBevelFillType curve_bevel_get_fill_type(const Curve *curve)
   return (curve->flag & CU_FRONT) ? FRONT : BACK;
 }
 
-static void bevel_quarter_fill(Curve *curve, float *quarter_coords_x, float *quarter_coords_y)
+static void bevel_quarter_fill(const Curve *curve,
+                               float *quarter_coords_x,
+                               float *quarter_coords_y)
 {
   if (curve->bevel_mode == CU_BEV_MODE_ROUND) {
     float angle = 0.0f;
@@ -83,7 +85,7 @@ static void bevel_quarter_fill(Curve *curve, float *quarter_coords_x, float *qua
   }
 }
 
-static void curve_bevel_make_extrude_and_fill(Curve *cu,
+static void curve_bevel_make_extrude_and_fill(const Curve *cu,
                                               ListBase *disp,
                                               const bool use_extrude,
                                               const CurveBevelFillType fill_type)
@@ -193,7 +195,7 @@ static void curve_bevel_make_extrude_and_fill(Curve *cu,
   }
 }
 
-static void curve_bevel_make_full_circle(Curve *cu, ListBase *disp)
+static void curve_bevel_make_full_circle(const Curve *cu, ListBase *disp)
 {
   const int nr = 4 + 2 * cu->bevresol;
 
@@ -218,7 +220,7 @@ static void curve_bevel_make_full_circle(Curve *cu, ListBase *disp)
   }
 }
 
-static void curve_bevel_make_only_extrude(Curve *cu, ListBase *disp)
+static void curve_bevel_make_only_extrude(const Curve *cu, ListBase *disp)
 {
   DispList *dl = MEM_callocN(sizeof(DispList), __func__);
   dl->verts = MEM_malloc_arrayN(2, sizeof(float[3]), __func__);
@@ -235,7 +237,7 @@ static void curve_bevel_make_only_extrude(Curve *cu, ListBase *disp)
   fp[5] = cu->ext1;
 }
 
-static void curve_bevel_make_from_object(Curve *cu, ListBase *disp)
+static void curve_bevel_make_from_object(const Curve *cu, ListBase *disp)
 {
   if (cu->bevobj == NULL) {
     return;
@@ -287,15 +289,13 @@ static void curve_bevel_make_from_object(Curve *cu, ListBase *disp)
   }
 }
 
-void BKE_curve_bevel_make(Object *ob, ListBase *disp)
+ListBase BKE_curve_bevel_make(const Curve *curve)
 {
-  Curve *curve = ob->data;
-
-  BLI_listbase_clear(disp);
+  ListBase bevel_shape = {NULL, NULL};
 
   if (curve->bevel_mode == CU_BEV_MODE_OBJECT) {
     if (curve->bevobj != NULL) {
-      curve_bevel_make_from_object(curve, disp);
+      curve_bevel_make_from_object(curve, &bevel_shape);
     }
   }
   else {
@@ -303,18 +303,20 @@ void BKE_curve_bevel_make(Object *ob, ListBase *disp)
     const bool use_bevel = curve->ext2 != 0.0f;
     /* Pass. */
     if (use_extrude && !use_bevel) {
-      curve_bevel_make_only_extrude(curve, disp);
+      curve_bevel_make_only_extrude(curve, &bevel_shape);
     }
     else if (use_extrude || use_bevel) {
       CurveBevelFillType fill_type = curve_bevel_get_fill_type(curve);
 
       if (!use_extrude && fill_type == FULL && curve->bevel_mode == CU_BEV_MODE_ROUND) {
-        curve_bevel_make_full_circle(curve, disp);
+        curve_bevel_make_full_circle(curve, &bevel_shape);
       }
       else {
         /* The general case for nonzero extrusion or an incomplete loop. */
-        curve_bevel_make_extrude_and_fill(curve, disp, use_extrude, fill_type);
+        curve_bevel_make_extrude_and_fill(curve, &bevel_shape, use_extrude, fill_type);
       }
     }
   }
+
+  return bevel_shape;
 }

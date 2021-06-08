@@ -52,6 +52,9 @@ ccl_device void svm_vector_math(float *value,
     case NODE_VECTOR_MATH_FACEFORWARD:
       *vector = faceforward(a, b, c);
       break;
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
+      *vector = a * b + c;
+      break;
     case NODE_VECTOR_MATH_DOT_PRODUCT:
       *value = dot(a, b);
       break;

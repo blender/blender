@@ -463,20 +463,20 @@ class KDTreeTesting(unittest.TestCase):
 
                     ret_regular = k_odd.find(co)
                     self.assertEqual(ret_regular[1] % 2, 1)
-                    ret_filter = k_all.find(co, lambda i: (i % 2) == 1)
+                    ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 1)
                     self.assertAlmostEqualVector(ret_regular, ret_filter)
 
                     ret_regular = k_evn.find(co)
                     self.assertEqual(ret_regular[1] % 2, 0)
-                    ret_filter = k_all.find(co, lambda i: (i % 2) == 0)
+                    ret_filter = k_all.find(co, filter=lambda i: (i % 2) == 0)
                     self.assertAlmostEqualVector(ret_regular, ret_filter)
 
         # filter out all values (search odd tree for even values and the reverse)
         co = (0,) * 3
-        ret_filter = k_odd.find(co, lambda i: (i % 2) == 0)
+        ret_filter = k_odd.find(co, filter=lambda i: (i % 2) == 0)
         self.assertEqual(ret_filter[1], None)
 
-        ret_filter = k_evn.find(co, lambda i: (i % 2) == 1)
+        ret_filter = k_evn.find(co, filter=lambda i: (i % 2) == 1)
         self.assertEqual(ret_filter[1], None)
 
     def test_kdtree_invalid_size(self):

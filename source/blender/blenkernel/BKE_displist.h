@@ -65,12 +65,12 @@ struct Mesh;
 struct Object;
 struct Scene;
 
-/* used for curves, nurbs, mball, importing */
+/* Used for curves, nurbs, meta-balls. */
 typedef struct DispList {
   struct DispList *next, *prev;
   short type, flag;
   int parts, nr;
-  short col, rt; /* rt used by initrenderNurbs */
+  short col, rt; /* Currently only used for smooth flag. */
   float *verts, *nors;
   int *index;
   int charidx;
@@ -78,21 +78,12 @@ typedef struct DispList {
 } DispList;
 
 void BKE_displist_copy(struct ListBase *lbn, const struct ListBase *lb);
-void BKE_displist_elem_free(DispList *dl);
-DispList *BKE_displist_find_or_create(struct ListBase *lb, int type);
 DispList *BKE_displist_find(struct ListBase *lb, int type);
 void BKE_displist_normals_add(struct ListBase *lb);
 void BKE_displist_count(const struct ListBase *lb, int *totvert, int *totface, int *tottri);
 void BKE_displist_free(struct ListBase *lb);
 bool BKE_displist_has_faces(const struct ListBase *lb);
 
-void BKE_displist_make_surf(struct Depsgraph *depsgraph,
-                            const struct Scene *scene,
-                            struct Object *ob,
-                            struct ListBase *dispbase,
-                            struct Mesh **r_final,
-                            const bool for_render,
-                            const bool for_orco);
 void BKE_displist_make_curveTypes(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,
                                   struct Object *ob,

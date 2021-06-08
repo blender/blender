@@ -514,6 +514,15 @@ MINLINE int max_ii(int a, int b)
   return (b < a) ? a : b;
 }
 
+MINLINE uint min_uu(uint a, uint b)
+{
+  return (a < b) ? a : b;
+}
+MINLINE uint max_uu(uint a, uint b)
+{
+  return (b < a) ? a : b;
+}
+
 MINLINE float min_fff(float a, float b, float c)
 {
   return min_ff(min_ff(a, b), c);

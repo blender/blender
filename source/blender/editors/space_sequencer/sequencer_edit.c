@@ -1776,8 +1776,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
       /* if (seq->ipo) id_us_min(&seq->ipo->id); */
       /* XXX, remove fcurve and assign to split image strips */
 
-      start_ofs = timeline_frame = SEQ_transform_get_left_handle_frame(seq, false);
-      frame_end = SEQ_transform_get_right_handle_frame(seq, false);
+      start_ofs = timeline_frame = SEQ_transform_get_left_handle_frame(seq);
+      frame_end = SEQ_transform_get_right_handle_frame(seq);
 
       while (timeline_frame < frame_end) {
         /* New seq. */

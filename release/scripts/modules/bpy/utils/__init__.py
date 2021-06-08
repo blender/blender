@@ -81,7 +81,7 @@ _script_module_dirs = "startup", "modules"
 _is_factory_startup = _bpy.app.factory_startup
 
 
-def execfile(filepath, mod=None):
+def execfile(filepath, *, mod=None):
     """
     Execute a file path as a Python script.
 
@@ -193,7 +193,7 @@ _global_loaded_modules = []  # store loaded module names for reloading.
 import bpy_types as _bpy_types  # keep for comparisons, never ever reload this.
 
 
-def load_scripts(reload_scripts=False, refresh_scripts=False):
+def load_scripts(*, reload_scripts=False, refresh_scripts=False):
     """
     Load scripts and run each modules register function.
 
@@ -357,7 +357,7 @@ def script_path_pref():
     return _os.path.normpath(path) if path else None
 
 
-def script_paths(subdir=None, user_pref=True, check_all=False, use_user=True):
+def script_paths(*, subdir=None, user_pref=True, check_all=False, use_user=True):
     """
     Returns a list of valid script paths.
 
@@ -446,16 +446,16 @@ def refresh_script_paths():
             _sys_path_ensure_append(path)
 
 
-def app_template_paths(subdir=None):
+def app_template_paths(*, path=None):
     """
     Returns valid application template paths.
 
-    :arg subdir: Optional subdir.
-    :type subdir: string
+    :arg path: Optional subdir.
+    :type path: string
     :return: app template paths.
     :rtype: generator
     """
-    subdir_args = (subdir,) if subdir is not None else ()
+    subdir_args = (path,) if path is not None else ()
     # Note: keep in sync with: Blender's 'BKE_appdir_app_template_any'.
     # Uses 'BLENDER_USER_SCRIPTS', 'BLENDER_SYSTEM_SCRIPTS'
     # ... in this case 'system' accounts for 'local' too.
@@ -463,9 +463,9 @@ def app_template_paths(subdir=None):
             (_user_resource, "bl_app_templates_user"),
             (system_resource, "bl_app_templates_system"),
     ):
-        path = resource_fn('SCRIPTS', _os.path.join("startup", module_name, *subdir_args))
-        if path and _os.path.isdir(path):
-            yield path
+        path_test = resource_fn('SCRIPTS', path=_os.path.join("startup", module_name, *subdir_args))
+        if path_test and _os.path.isdir(path_test):
+            yield path_test
 
 
 def preset_paths(subdir):
@@ -478,7 +478,7 @@ def preset_paths(subdir):
     :rtype: list
     """
     dirs = []
-    for path in script_paths("presets", check_all=True):
+    for path in script_paths(subdir="presets", check_all=True):
         directory = _os.path.join(path, subdir)
         if not directory.startswith(path):
             raise Exception("invalid subdir given %r" % subdir)
@@ -532,7 +532,7 @@ def is_path_builtin(path):
     return False
 
 
-def smpte_from_seconds(time, fps=None, fps_base=None):
+def smpte_from_seconds(time, *, fps=None, fps_base=None):
     """
     Returns an SMPTE formatted string from the *time*:
     ``HH:MM:SS:FF``.
@@ -552,7 +552,7 @@ def smpte_from_seconds(time, fps=None, fps_base=None):
     )
 
 
-def smpte_from_frame(frame, fps=None, fps_base=None):
+def smpte_from_frame(frame, *, fps=None, fps_base=None):
     """
     Returns an SMPTE formatted string from the *frame*:
     ``HH:MM:SS:FF``.
@@ -585,7 +585,7 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         ))
 
 
-def time_from_frame(frame, fps=None, fps_base=None):
+def time_from_frame(frame, *, fps=None, fps_base=None):
     """
     Returns the time from a frame number .
 
@@ -610,7 +610,7 @@ def time_from_frame(frame, fps=None, fps_base=None):
     return timedelta(0, frame / fps)
 
 
-def time_to_frame(time, fps=None, fps_base=None):
+def time_to_frame(time, *, fps=None, fps_base=None):
     """
     Returns a float frame number from a time given in seconds or
     as a datetime.timedelta object.
@@ -639,7 +639,7 @@ def time_to_frame(time, fps=None, fps_base=None):
     return time * fps
 
 
-def preset_find(name, preset_path, display_name=False, ext=".py"):
+def preset_find(name, preset_path, *, display_name=False, ext=".py"):
     if not name:
         return None
 
@@ -676,7 +676,7 @@ def keyconfig_init():
         keyconfig_set(filepath)
 
 
-def keyconfig_set(filepath, report=None):
+def keyconfig_set(filepath, *, report=None):
     from os.path import basename, splitext
 
     if _bpy.app.debug_python:
@@ -712,14 +712,14 @@ def keyconfig_set(filepath, report=None):
         return True
 
 
-def user_resource(resource_type, path="", create=False):
+def user_resource(resource_type, *, path="", create=False):
     """
     Return a user resource path (normally from the users home directory).
 
     :arg type: Resource type in ['DATAFILES', 'CONFIG', 'SCRIPTS', 'AUTOSAVE'].
     :type type: string
-    :arg subdir: Optional subdirectory.
-    :type subdir: string
+    :arg path: Optional subdirectory.
+    :type path: string
     :arg create: Treat the path as a directory and create
        it if its not existing.
     :type create: boolean
@@ -727,7 +727,7 @@ def user_resource(resource_type, path="", create=False):
     :rtype: string
     """
 
-    target_path = _user_resource(resource_type, path)
+    target_path = _user_resource(resource_type, path=path)
 
     if create:
         # should always be true.

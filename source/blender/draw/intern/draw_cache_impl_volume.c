@@ -152,7 +152,7 @@ typedef struct VolumeWireframeUserData {
 } VolumeWireframeUserData;
 
 static void drw_volume_wireframe_cb(
-    void *userdata, float (*verts)[3], int (*edges)[2], int totvert, int totedge)
+    void *userdata, const float (*verts)[3], const int (*edges)[2], int totvert, int totedge)
 {
   VolumeWireframeUserData *data = userdata;
   Scene *scene = data->scene;

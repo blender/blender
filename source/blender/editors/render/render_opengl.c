@@ -859,7 +859,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
       oglrender->task_pool = BLI_task_pool_create_background_serial(oglrender, TASK_PRIORITY_LOW);
     }
     else {
-      oglrender->task_pool = BLI_task_pool_create(oglrender, TASK_PRIORITY_LOW);
+      oglrender->task_pool = BLI_task_pool_create(oglrender, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
     }
     oglrender->pool_ok = true;
     BLI_spin_init(&oglrender->reports_lock);

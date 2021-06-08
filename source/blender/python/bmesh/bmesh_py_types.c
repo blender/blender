@@ -1103,7 +1103,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "OO|O&O&:from_object",
+                                   "OO|$O&O&:from_object",
                                    (char **)kwlist,
                                    &py_object,
                                    &py_depsgraph,
@@ -1204,7 +1204,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|O&O&i:from_mesh",
+                                   "O|$O&O&i:from_mesh",
                                    (char **)kwlist,
                                    &py_mesh,
                                    PyC_ParseBool,
@@ -1304,7 +1304,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O!|O!:transform",
+                                   "O!|$O!:transform",
                                    (char **)kwlist,
                                    &matrix_Type,
                                    &mat,
@@ -1366,7 +1366,7 @@ static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObjec
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|O!:calc_volume", (char **)kwlist, &PyBool_Type, &is_signed)) {
+          args, kw, "|$O!:calc_volume", (char **)kwlist, &PyBool_Type, &is_signed)) {
     return NULL;
   }
 
@@ -1858,7 +1858,7 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "|O&O&:BMFace.copy",
+                                   "|$O&O&:BMFace.copy",
                                    (char **)kwlist,
                                    PyC_ParseBool,
                                    &do_verts,
@@ -2654,7 +2654,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
   if (args != NULL) {
     if (!PyArg_ParseTupleAndKeywords(args,
                                      kw,
-                                     "|OO&:BMElemSeq.sort",
+                                     "|$OO&:BMElemSeq.sort",
                                      (char **)kwlist,
                                      &keyfunc,
                                      PyC_ParseBool,

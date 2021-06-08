@@ -218,7 +218,7 @@ class ToolSelectPanelHelper:
             assert(type(icon_name) is str)
             icon_value = _icon_cache.get(icon_name)
             if icon_value is None:
-                dirname = bpy.utils.system_resource('DATAFILES', "icons")
+                dirname = bpy.utils.system_resource('DATAFILES', path="icons")
                 filename = os.path.join(dirname, icon_name + ".dat")
                 try:
                     icon_value = bpy.app.icons.new_triangles_from_file(filename)

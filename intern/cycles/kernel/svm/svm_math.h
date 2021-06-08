@@ -58,7 +58,8 @@ ccl_device void svm_node_vector_math(KernelGlobals *kg,
   float3 vector;
 
   /* 3 Vector Operators */
-  if (type == NODE_VECTOR_MATH_WRAP || type == NODE_VECTOR_MATH_FACEFORWARD) {
+  if (type == NODE_VECTOR_MATH_WRAP || type == NODE_VECTOR_MATH_FACEFORWARD ||
+      type == NODE_VECTOR_MATH_MULTIPLY_ADD) {
     uint4 extra_node = read_node(kg, offset);
     c = stack_load_float3(stack, extra_node.x);
   }

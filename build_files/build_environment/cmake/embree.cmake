@@ -43,6 +43,12 @@ endif()
 
 if(WIN32)
   set(EMBREE_BUILD_DIR ${BUILD_MODE}/)
+  if(BUILD_MODE STREQUAL Debug)
+    list(APPEND EMBREE_EXTRA_ARGS
+     -DEMBREE_TBBMALLOC_LIBRARY_NAME=tbbmalloc_debug
+     -DEMBREE_TBB_LIBRARY_NAME=tbb_debug
+    )
+  endif()
 else()
   set(EMBREE_BUILD_DIR)
 endif()

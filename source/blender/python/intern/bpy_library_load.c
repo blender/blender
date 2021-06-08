@@ -195,7 +195,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   bool is_rel = false, is_link = false, use_assets_only = false;
 
   static const char *_keywords[] = {"filepath", "link", "relative", "assets_only", NULL};
-  static _PyArg_Parser _parser = {"s|O&O&O&:load", _keywords, 0};
+  static _PyArg_Parser _parser = {"s|$O&O&O&:load", _keywords, 0};
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,

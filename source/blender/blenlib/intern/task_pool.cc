@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <thread>
 #include <utility>
 
 #include "MEM_guardedalloc.h"
@@ -111,15 +112,7 @@ class Task {
   Task &operator=(const Task &other) = delete;
   Task &operator=(Task &&other) = delete;
 
-  /* Execute task. */
-  void operator()() const
-  {
-#ifdef WITH_TBB
-    tbb::this_task_arena::isolate([this] { run(pool, taskdata); });
-#else
-    run(pool, taskdata);
-#endif
-  }
+  void operator()() const;
 };
 
 /* TBB Task Group.
@@ -163,13 +156,16 @@ enum TaskPoolType {
 struct TaskPool {
   TaskPoolType type;
   bool use_threads;
+  TaskIsolation task_isolation;
 
   ThreadMutex user_mutex;
   void *userdata;
 
-  /* TBB task pool. */
 #ifdef WITH_TBB
+  /* TBB task pool. */
   TBBTaskGroup tbb_group;
+  /* This is used to detect a common way to accidentally create a deadlock with task isolation. */
+  std::thread::id task_pool_create_thread_id;
 #endif
   volatile bool is_suspended;
   BLI_mempool *suspended_mempool;
@@ -179,6 +175,36 @@ struct TaskPool {
   ThreadQueue *background_queue;
   volatile bool background_is_canceling;
 };
+
+/* Execute task. */
+void Task::operator()() const
+{
+#ifdef WITH_TBB
+  if (pool->task_isolation == TASK_ISOLATION_ON) {
+    tbb::this_task_arena::isolate([this] { run(pool, taskdata); });
+    return;
+  }
+#endif
+  run(pool, taskdata);
+}
+
+static void assert_on_valid_thread(TaskPool *pool)
+{
+  /* TODO: Remove this `return` to enable the check. */
+  return;
+#ifdef DEBUG
+#  ifdef WITH_TBB
+  if (pool->task_isolation == TASK_ISOLATION_ON) {
+    const std::thread::id current_id = std::this_thread::get_id();
+    /* This task pool is modified from different threads. To avoid deadlocks, `TASK_ISOLATION_OFF`
+     * has to be used. Task isolation can still be used in a more fine-grained way within the
+     * tasks, but should not be enabled for the entire task pool. */
+    BLI_assert(pool->task_pool_create_thread_id == current_id);
+  }
+#  endif
+#endif
+  UNUSED_VARS_NDEBUG(pool);
+}
 
 /* TBB Task Pool.
  *
@@ -365,7 +391,10 @@ static void background_task_pool_free(TaskPool *pool)
 
 /* Task Pool */
 
-static TaskPool *task_pool_create_ex(void *userdata, TaskPoolType type, TaskPriority priority)
+static TaskPool *task_pool_create_ex(void *userdata,
+                                     TaskPoolType type,
+                                     TaskPriority priority,
+                                     TaskIsolation task_isolation)
 {
   const bool use_threads = BLI_task_scheduler_num_threads() > 1 && type != TASK_POOL_NO_THREADS;
 
@@ -381,6 +410,11 @@ static TaskPool *task_pool_create_ex(void *userdata, TaskPoolType type, TaskPrio
 
   pool->type = type;
   pool->use_threads = use_threads;
+  pool->task_isolation = task_isolation;
+
+#ifdef WITH_TBB
+  pool->task_pool_create_thread_id = std::this_thread::get_id();
+#endif
 
   pool->userdata = userdata;
   BLI_mutex_init(&pool->user_mutex);
@@ -403,9 +437,9 @@ static TaskPool *task_pool_create_ex(void *userdata, TaskPoolType type, TaskPrio
 /**
  * Create a normal task pool. Tasks will be executed as soon as they are added.
  */
-TaskPool *BLI_task_pool_create(void *userdata, TaskPriority priority)
+TaskPool *BLI_task_pool_create(void *userdata, TaskPriority priority, TaskIsolation task_isolation)
 {
-  return task_pool_create_ex(userdata, TASK_POOL_TBB, priority);
+  return task_pool_create_ex(userdata, TASK_POOL_TBB, priority, task_isolation);
 }
 
 /**
@@ -420,9 +454,11 @@ TaskPool *BLI_task_pool_create(void *userdata, TaskPriority priority)
  * they could end never being executed, since the 'fallback' background thread is already
  * busy with parent task in single-threaded context).
  */
-TaskPool *BLI_task_pool_create_background(void *userdata, TaskPriority priority)
+TaskPool *BLI_task_pool_create_background(void *userdata,
+                                          TaskPriority priority,
+                                          TaskIsolation task_isolation)
 {
-  return task_pool_create_ex(userdata, TASK_POOL_BACKGROUND, priority);
+  return task_pool_create_ex(userdata, TASK_POOL_BACKGROUND, priority, task_isolation);
 }
 
 /**
@@ -430,9 +466,11 @@ TaskPool *BLI_task_pool_create_background(void *userdata, TaskPriority priority)
  * for until BLI_task_pool_work_and_wait() is called. This helps reducing threading
  * overhead when pushing huge amount of small initial tasks from the main thread.
  */
-TaskPool *BLI_task_pool_create_suspended(void *userdata, TaskPriority priority)
+TaskPool *BLI_task_pool_create_suspended(void *userdata,
+                                         TaskPriority priority,
+                                         TaskIsolation task_isolation)
 {
-  return task_pool_create_ex(userdata, TASK_POOL_TBB_SUSPENDED, priority);
+  return task_pool_create_ex(userdata, TASK_POOL_TBB_SUSPENDED, priority, task_isolation);
 }
 
 /**
@@ -441,7 +479,8 @@ TaskPool *BLI_task_pool_create_suspended(void *userdata, TaskPriority priority)
  */
 TaskPool *BLI_task_pool_create_no_threads(void *userdata)
 {
-  return task_pool_create_ex(userdata, TASK_POOL_NO_THREADS, TASK_PRIORITY_HIGH);
+  return task_pool_create_ex(
+      userdata, TASK_POOL_NO_THREADS, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
 }
 
 /**
@@ -450,7 +489,7 @@ TaskPool *BLI_task_pool_create_no_threads(void *userdata)
  */
 TaskPool *BLI_task_pool_create_background_serial(void *userdata, TaskPriority priority)
 {
-  return task_pool_create_ex(userdata, TASK_POOL_BACKGROUND_SERIAL, priority);
+  return task_pool_create_ex(userdata, TASK_POOL_BACKGROUND_SERIAL, priority, TASK_ISOLATION_ON);
 }
 
 void BLI_task_pool_free(TaskPool *pool)
@@ -478,6 +517,8 @@ void BLI_task_pool_push(TaskPool *pool,
                         bool free_taskdata,
                         TaskFreeFunction freedata)
 {
+  assert_on_valid_thread(pool);
+
   Task task(pool, run, taskdata, free_taskdata, freedata);
 
   switch (pool->type) {
@@ -495,6 +536,8 @@ void BLI_task_pool_push(TaskPool *pool,
 
 void BLI_task_pool_work_and_wait(TaskPool *pool)
 {
+  assert_on_valid_thread(pool);
+
   switch (pool->type) {
     case TASK_POOL_TBB:
     case TASK_POOL_TBB_SUSPENDED:

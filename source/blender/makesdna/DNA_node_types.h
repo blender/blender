@@ -1633,6 +1633,7 @@ typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_TANGENT = 23,
   NODE_VECTOR_MATH_REFRACT = 24,
   NODE_VECTOR_MATH_FACEFORWARD = 25,
+  NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
 } NodeVectorMathOperation;
 
 /* Boolean math node operations. */

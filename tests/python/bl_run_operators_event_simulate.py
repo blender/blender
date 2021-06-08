@@ -175,7 +175,7 @@ def mouse_location_get():
     )
 
 
-def run_event_simulate(*, event_iter):
+def run_event_simulate(*, event_iter, exit_fn):
     """
     Pass events from event_iter into Blender.
     """
@@ -188,8 +188,7 @@ def run_event_simulate(*, event_iter):
         if val is Ellipsis:
             bpy.app.use_event_simulate = False
             print("Finished simulation")
-
-            sys.exit(0)
+            exit_fn()
             return None
 
         # Run event simulation.
@@ -494,6 +493,18 @@ def argparse_create():
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
+    parser.add_argument(
+        "--keep-open",
+        dest="keep_open",
+        default=False,
+        action="store_true",
+        help=(
+            "Keep the window open instead of exiting once event simulation is complete.\n"
+            "This can be useful to inspect the state of the file once the simulation is complete."
+        ),
+        required=False,
+    )
+
     # Collect doc-strings from static methods in `actions`.
     actions_docstring = []
     for action_key in ACTION_DIR:
@@ -570,7 +581,16 @@ def main():
 
     setup_default_preferences(bpy.context.preferences)
 
-    run_event_simulate(event_iter=main_event_iter(action_list=args.actions))
+    def exit_fn():
+        if not args.keep_open:
+            sys.exit(0)
+        else:
+            bpy.app.use_event_simulate = False
+
+    run_event_simulate(
+        event_iter=main_event_iter(action_list=args.actions),
+        exit_fn=exit_fn,
+    )
 
 
 if __name__ == "__main__":

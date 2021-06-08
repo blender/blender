@@ -25,7 +25,7 @@ class NodeCategory:
     def poll(cls, _context):
         return True
 
-    def __init__(self, identifier, name, description="", items=None):
+    def __init__(self, identifier, name, *, description="", items=None):
         self.identifier = identifier
         self.name = name
         self.description = description
@@ -43,7 +43,7 @@ class NodeCategory:
 
 
 class NodeItem:
-    def __init__(self, nodetype, label=None, settings=None, poll=None):
+    def __init__(self, nodetype, *, label=None, settings=None, poll=None):
 
         if settings is None:
             settings = {}
@@ -92,7 +92,7 @@ class NodeItem:
 
 
 class NodeItemCustom:
-    def __init__(self, poll=None, draw=None):
+    def __init__(self, *, poll=None, draw=None):
         self.poll = poll
         self.draw = draw
 

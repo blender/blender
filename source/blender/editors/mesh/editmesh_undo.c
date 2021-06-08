@@ -626,7 +626,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key, Undo
 
 #  ifdef USE_ARRAY_STORE_THREAD
     if (um_arraystore.task_pool == NULL) {
-      um_arraystore.task_pool = BLI_task_pool_create_background(NULL, TASK_PRIORITY_LOW);
+      um_arraystore.task_pool = BLI_task_pool_create_background(NULL, TASK_PRIORITY_LOW, true);
     }
 
     struct UMArrayData *um_data = MEM_mallocN(sizeof(*um_data), __func__);

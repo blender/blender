@@ -347,6 +347,8 @@ inline bool try_dispatch_float_math_fl3_fl3_fl3_to_fl3(const NodeVectorMathOpera
   };
 
   switch (operation) {
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
+      return dispatch([](float3 a, float3 b, float3 c) { return a * b + c; });
     case NODE_VECTOR_MATH_WRAP:
       return dispatch([](float3 a, float3 b, float3 c) {
         return float3(wrapf(a.x, b.x, c.x), wrapf(a.y, b.y, c.y), wrapf(a.z, b.z, c.z));

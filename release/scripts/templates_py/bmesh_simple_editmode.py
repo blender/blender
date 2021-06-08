@@ -20,4 +20,4 @@ for v in bm.verts:
 
 # Show the updates in the viewport
 # and recalculate n-gon tessellation.
-bmesh.update_edit_mesh(me, True)
+bmesh.update_edit_mesh(me, loop_triangles=True)

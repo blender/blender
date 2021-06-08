@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h" /* Needed here for inline functions. */
 #include "BLI_threads.h"
@@ -226,6 +227,7 @@ typedef struct LineartRenderBuffer {
   int tile_count_x, tile_count_y;
   double width_per_tile, height_per_tile;
   double view_projection[4][4];
+  double view[4][4];
 
   struct LineartBoundingArea *initial_bounding_areas;
   unsigned int bounding_area_count;
@@ -310,7 +312,7 @@ typedef struct LineartRenderBuffer {
 #define DBL_TRIANGLE_LIM 1e-8
 #define DBL_EDGE_LIM 1e-9
 
-#define LRT_MEMORY_POOL_64MB (1 << 26)
+#define LRT_MEMORY_POOL_1MB (1 << 20)
 
 typedef enum eLineartTriangleFlags {
   LRT_CULL_DONT_CARE = 0,
@@ -342,6 +344,41 @@ typedef struct LineartRenderTaskInfo {
   ListBase edge_mark;
 
 } LineartRenderTaskInfo;
+
+struct BMesh;
+
+typedef struct LineartObjectInfo {
+  struct LineartObjectInfo *next;
+  struct Object *original_ob;
+  struct Mesh *original_me;
+  double model_view_proj[4][4];
+  double model_view[4][4];
+  double normal[4][4];
+  LineartElementLinkNode *v_reln;
+  int usage;
+  int global_i_offset;
+
+  bool free_use_mesh;
+
+  /* Threads will add lines inside here, when all threads are done, we combine those into the
+   * ones in LineartRenderBuffer.  */
+  ListBase contour;
+  ListBase intersection;
+  ListBase crease;
+  ListBase material;
+  ListBase edge_mark;
+  ListBase floating;
+
+} LineartObjectInfo;
+
+typedef struct LineartObjectLoadTaskInfo {
+  struct LineartRenderBuffer *rb;
+  struct Depsgraph *dg;
+  /* LinkNode styled list */
+  LineartObjectInfo *pending;
+  /* Used to spread the load across several threads. This can not overflow. */
+  long unsigned int total_faces;
+} LineartObjectLoadTaskInfo;
 
 /**
  * Bounding area diagram:

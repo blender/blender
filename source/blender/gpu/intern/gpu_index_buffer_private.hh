@@ -73,7 +73,7 @@ class IndexBuf {
   IndexBuf(){};
   virtual ~IndexBuf();
 
-  void init(uint indices_len, uint32_t *indices);
+  void init(uint indices_len, uint32_t *indices, uint min_index, uint max_index);
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
   void init_build_on_device(uint index_len);
 

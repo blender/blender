@@ -46,6 +46,7 @@
  * \{ */
 
 struct ARegion;
+struct BMPartialUpdate;
 struct Depsgraph;
 struct NumInput;
 struct Object;

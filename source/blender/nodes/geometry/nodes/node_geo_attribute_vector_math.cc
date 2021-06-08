@@ -59,8 +59,11 @@ static bool operation_use_input_b(const NodeVectorMathOperation operation)
 
 static bool operation_use_input_c(const NodeVectorMathOperation operation)
 {
-  return ELEM(
-      operation, NODE_VECTOR_MATH_WRAP, NODE_VECTOR_MATH_REFRACT, NODE_VECTOR_MATH_FACEFORWARD);
+  return ELEM(operation,
+              NODE_VECTOR_MATH_WRAP,
+              NODE_VECTOR_MATH_REFRACT,
+              NODE_VECTOR_MATH_FACEFORWARD,
+              NODE_VECTOR_MATH_MULTIPLY_ADD);
 }
 
 static void geo_node_attribute_vector_math_layout(uiLayout *layout,
@@ -137,6 +140,7 @@ static CustomDataType operation_get_result_type(const NodeVectorMathOperation op
     case NODE_VECTOR_MATH_TANGENT:
     case NODE_VECTOR_MATH_REFRACT:
     case NODE_VECTOR_MATH_FACEFORWARD:
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
       return CD_PROP_FLOAT3;
     case NODE_VECTOR_MATH_DOT_PRODUCT:
     case NODE_VECTOR_MATH_DISTANCE:
@@ -495,6 +499,7 @@ static void attribute_vector_math_calc(GeometryComponent &component,
       break;
     case NODE_VECTOR_MATH_WRAP:
     case NODE_VECTOR_MATH_FACEFORWARD:
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
       do_math_operation_fl3_fl3_fl3_to_fl3(attribute_a->typed<float3>(),
                                            attribute_b->typed<float3>(),
                                            attribute_c->typed<float3>(),

@@ -209,6 +209,8 @@ const FloatMathOperationInfo *get_float3_math_operation_info(const int operation
       RETURN_OPERATION_INFO("Refract", "vector_math_refract");
     case NODE_VECTOR_MATH_FACEFORWARD:
       RETURN_OPERATION_INFO("Faceforward", "vector_math_faceforward");
+    case NODE_VECTOR_MATH_MULTIPLY_ADD:
+      RETURN_OPERATION_INFO("Multiply Add", "vector_math_multiply_add");
   }
 
 #undef RETURN_OPERATION_INFO

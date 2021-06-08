@@ -744,62 +744,12 @@ std::ostream &operator<<(std::ostream &os, const IMesh &mesh)
   return os;
 }
 
-struct BoundingBox {
-  float3 min{FLT_MAX, FLT_MAX, FLT_MAX};
-  float3 max{-FLT_MAX, -FLT_MAX, -FLT_MAX};
-
-  BoundingBox() = default;
-  BoundingBox(const float3 &min, const float3 &max) : min(min), max(max)
-  {
-  }
-
-  void combine(const float3 &p)
-  {
-    min.x = min_ff(min.x, p.x);
-    min.y = min_ff(min.y, p.y);
-    min.z = min_ff(min.z, p.z);
-    max.x = max_ff(max.x, p.x);
-    max.y = max_ff(max.y, p.y);
-    max.z = max_ff(max.z, p.z);
-  }
-
-  void combine(const double3 &p)
-  {
-    min.x = min_ff(min.x, static_cast<float>(p.x));
-    min.y = min_ff(min.y, static_cast<float>(p.y));
-    min.z = min_ff(min.z, static_cast<float>(p.z));
-    max.x = max_ff(max.x, static_cast<float>(p.x));
-    max.y = max_ff(max.y, static_cast<float>(p.y));
-    max.z = max_ff(max.z, static_cast<float>(p.z));
-  }
-
-  void combine(const BoundingBox &bb)
-  {
-    min.x = min_ff(min.x, bb.min.x);
-    min.y = min_ff(min.y, bb.min.y);
-    min.z = min_ff(min.z, bb.min.z);
-    max.x = max_ff(max.x, bb.max.x);
-    max.y = max_ff(max.y, bb.max.y);
-    max.z = max_ff(max.z, bb.max.z);
-  }
-
-  void expand(float pad)
-  {
-    min.x -= pad;
-    min.y -= pad;
-    min.z -= pad;
-    max.x += pad;
-    max.y += pad;
-    max.z += pad;
-  }
-};
-
 /**
  * Assume bounding boxes have been expanded by a sufficient epsilon on all sides
  * so that the comparisons against the bb bounds are sufficient to guarantee that
  * if an overlap or even touching could happen, this will return true.
  */
-static bool bbs_might_intersect(const BoundingBox &bb_a, const BoundingBox &bb_b)
+bool bbs_might_intersect(const BoundingBox &bb_a, const BoundingBox &bb_b)
 {
   return isect_aabb_aabb_v3(bb_a.min, bb_a.max, bb_b.min, bb_b.max);
 }

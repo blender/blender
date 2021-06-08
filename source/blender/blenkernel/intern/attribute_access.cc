@@ -658,6 +658,7 @@ GVArrayPtr CustomDataAttributes::get_for_read(const StringRef name,
 
 std::optional<GMutableSpan> CustomDataAttributes::get_for_write(const StringRef name)
 {
+  /* If this assert hits, it most likely means that #reallocate was not called at some point. */
   BLI_assert(size_ != 0);
   for (CustomDataLayer &layer : MutableSpan(data.layers, data.totlayer)) {
     if (layer.name == name) {

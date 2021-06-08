@@ -27,6 +27,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_genfile.h"
+#include "DNA_listBase.h"
 #include "DNA_modifier_types.h"
 #include "DNA_text_types.h"
 
@@ -36,6 +37,43 @@
 
 #include "BLO_readfile.h"
 #include "readfile.h"
+
+static void sort_linked_ids(Main *bmain)
+{
+  ListBase *lb;
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+    ListBase temp_list;
+    BLI_listbase_clear(&temp_list);
+    LISTBASE_FOREACH_MUTABLE (ID *, id, lb) {
+      if (ID_IS_LINKED(id)) {
+        BLI_remlink(lb, id);
+        BLI_addtail(&temp_list, id);
+        id_sort_by_name(&temp_list, id, NULL);
+      }
+    }
+    BLI_movelisttolist(lb, &temp_list);
+  }
+  FOREACH_MAIN_LISTBASE_END;
+}
+
+static void assert_sorted_ids(Main *bmain)
+{
+#ifndef NDEBUG
+  ListBase *lb;
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb) {
+    ID *id_prev = NULL;
+    LISTBASE_FOREACH (ID *, id, lb) {
+      if (id_prev == NULL) {
+        continue;
+      }
+      BLI_assert(id_prev->lib != id->lib || BLI_strcasecmp(id_prev->name, id->name) < 0);
+    }
+  }
+  FOREACH_MAIN_LISTBASE_END;
+#else
+  UNUSED_VARS_NDEBUG(bmain);
+#endif
+}
 
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
 {
@@ -47,19 +85,8 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       }
     }
   }
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #blo_do_versions_300 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
     /* Use new texture socket in Attribute Sample Texture node. */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type != NTREE_GEOMETRY) {
@@ -83,6 +110,26 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
         node->id = NULL;
       }
     }
+
+    sort_linked_ids(bmain);
+    assert_sorted_ids(bmain);
+  }
+  if (MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
+    assert_sorted_ids(bmain);
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #blo_do_versions_300 in this file.
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
 
@@ -110,6 +157,33 @@ static void version_switch_node_input_prefix(Main *bmain)
     }
   }
   FOREACH_NODETREE_END;
+}
+
+static void version_node_socket_name(bNodeTree *ntree,
+                                     const int node_type,
+                                     const char *old_name,
+                                     const char *new_name)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == node_type) {
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+        if (STREQ(socket->name, old_name)) {
+          strcpy(socket->name, new_name);
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          strcpy(socket->identifier, new_name);
+        }
+      }
+      LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+        if (STREQ(socket->name, old_name)) {
+          strcpy(socket->name, new_name);
+        }
+        if (STREQ(socket->identifier, old_name)) {
+          strcpy(socket->identifier, new_name);
+        }
+      }
+    }
+  }
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
@@ -164,5 +238,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, GEO_NODE_BOUNDING_BOX, "Mesh", "Bounding Box");
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }

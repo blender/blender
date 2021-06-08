@@ -1462,7 +1462,12 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
             elif brush.gpencil_tool == 'FILL':
                 row = col.row(align=True)
                 row.prop(gp_settings, "fill_draw_mode", text="Boundary")
-                row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
+                row.prop(
+                    gp_settings,
+                    "show_fill_boundary",
+                    icon='HIDE_OFF' if gp_settings.show_fill_boundary else 'HIDE_ON',
+                    text="",
+                )
 
                 col.separator()
                 row = col.row(align=True)
@@ -1471,7 +1476,12 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
                 col.separator()
                 row = col.row(align=True)
                 row.prop(gp_settings, "extend_stroke_factor")
-                row.prop(gp_settings, "show_fill_extend", text="", icon='GRID')
+                row.prop(
+                    gp_settings,
+                    "show_fill_extend",
+                    icon='HIDE_OFF' if gp_settings.show_fill_extend else 'HIDE_ON',
+                    text="",
+                )
 
                 col.separator()
                 col.prop(gp_settings, "fill_leak", text="Leak Size")

@@ -1863,6 +1863,7 @@ static Vector<ComponentContainer> find_component_containers(int comp,
                                                             const IMesh &tm,
                                                             const PatchesInfo &pinfo,
                                                             const TriMeshTopology &tmtopo,
+                                                            Array<BoundingBox> &comp_bb,
                                                             IMeshArena *arena)
 {
   constexpr int dbg_level = 0;
@@ -1887,6 +1888,12 @@ static Vector<ComponentContainer> find_component_containers(int comp,
     }
     if (dbg_level > 0) {
       std::cout << "comp_other = " << comp_other << "\n";
+    }
+    if (!bbs_might_intersect(comp_bb[comp], comp_bb[comp_other])) {
+      if (dbg_level > 0) {
+        std::cout << "bounding boxes don't overlap\n";
+      }
+      continue;
     }
     int nearest_tri = NO_INDEX;
     int nearest_tri_close_vert = -1;
@@ -1962,6 +1969,51 @@ static Vector<ComponentContainer> find_component_containers(int comp,
 }
 
 /**
+ * Populate the per-component bounding boxes, expanding them
+ * by an appropriate epsilon so that we conservatively will say
+ * that components could intersect if the BBs overlap.
+ */
+static void populate_comp_bbs(const Vector<Vector<int>> &components,
+                              const PatchesInfo &pinfo,
+                              const IMesh &im,
+                              Array<BoundingBox> &comp_bb)
+{
+  const int comp_grainsize = 16;
+  /* To get a good expansion epsilon, we need to find the maximum
+   * absolute value of any coordinate. Do it first per component,
+   * then get the overall max. */
+  Array<double> max_abs(components.size(), 0.0);
+  parallel_for(components.index_range(), comp_grainsize, [&](IndexRange comp_range) {
+    for (int c : comp_range) {
+      BoundingBox &bb = comp_bb[c];
+      double &maxa = max_abs[c];
+      for (int p : components[c]) {
+        const Patch &patch = pinfo.patch(p);
+        for (int t : patch.tris()) {
+          const Face &tri = *im.face(t);
+          for (const Vert *v : tri) {
+            bb.combine(v->co);
+            for (int i = 0; i < 3; ++i) {
+              maxa = max_dd(maxa, fabs(v->co[i]));
+            }
+          }
+        }
+      }
+    }
+  });
+  double all_max_abs = 0.0;
+  for (int c : components.index_range()) {
+    all_max_abs = max_dd(all_max_abs, max_abs[c]);
+  }
+  constexpr float pad_factor = 10.0f;
+  float pad = all_max_abs == 0.0 ? FLT_EPSILON : 2 * FLT_EPSILON * all_max_abs;
+  pad *= pad_factor;
+  for (int c : components.index_range()) {
+    comp_bb[c].expand(pad);
+  }
+}
+
+/**
  * The cells and patches are supposed to form a bipartite graph.
  * The graph may be disconnected (if parts of meshes are nested or side-by-side
  * without intersection with other each other).
@@ -2003,19 +2055,23 @@ static void finish_patch_cell_graph(const IMesh &tm,
   }
   int tot_components = components.size();
   Array<Vector<ComponentContainer>> comp_cont(tot_components);
-  for (int comp : components.index_range()) {
-    comp_cont[comp] = find_component_containers(
-        comp, components, ambient_cell, tm, pinfo, tmtopo, arena);
-  }
-  if (dbg_level > 0) {
-    std::cout << "component containers:\n";
-    for (int comp : comp_cont.index_range()) {
-      std::cout << comp << ": ";
-      for (const ComponentContainer &cc : comp_cont[comp]) {
-        std::cout << "[containing_comp=" << cc.containing_component
-                  << ", nearest_cell=" << cc.nearest_cell << ", d2=" << cc.dist_to_cell << "] ";
+  if (tot_components > 1) {
+    Array<BoundingBox> comp_bb(tot_components);
+    populate_comp_bbs(components, pinfo, tm, comp_bb);
+    for (int comp : components.index_range()) {
+      comp_cont[comp] = find_component_containers(
+          comp, components, ambient_cell, tm, pinfo, tmtopo, comp_bb, arena);
+    }
+    if (dbg_level > 0) {
+      std::cout << "component containers:\n";
+      for (int comp : comp_cont.index_range()) {
+        std::cout << comp << ": ";
+        for (const ComponentContainer &cc : comp_cont[comp]) {
+          std::cout << "[containing_comp=" << cc.containing_component
+                    << ", nearest_cell=" << cc.nearest_cell << ", d2=" << cc.dist_to_cell << "] ";
+        }
+        std::cout << "\n";
       }
-      std::cout << "\n";
     }
   }
   if (dbg_level > 1) {

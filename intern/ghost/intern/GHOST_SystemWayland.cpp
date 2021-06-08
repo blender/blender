@@ -1729,7 +1729,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
   cursor_t *c = &input->cursor;
 
   if (!c->theme) {
-    /* The cursor surface hasn't entered an output yet. Initialise theme with scale 1. */
+    /* The cursor surface hasn't entered an output yet. Initialize theme with scale 1. */
     c->theme = wl_cursor_theme_load(c->theme_name.c_str(), c->size, d->inputs[0]->system->shm());
   }
 

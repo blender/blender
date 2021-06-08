@@ -132,7 +132,7 @@ def init():
         _workaround_buggy_drivers()
 
     path = os.path.dirname(__file__)
-    user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
+    user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', path='')))
 
     _cycles.init(path, user_path, bpy.app.background)
     _parse_command_line()

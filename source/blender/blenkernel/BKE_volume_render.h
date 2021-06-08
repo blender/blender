@@ -50,7 +50,7 @@ void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid);
 /* Wireframe */
 
 typedef void (*BKE_volume_wireframe_cb)(
-    void *userdata, float (*verts)[3], int (*edges)[2], int totvert, int totedge);
+    void *userdata, const float (*verts)[3], const int (*edges)[2], int totvert, int totedge);
 
 void BKE_volume_grid_wireframe(const struct Volume *volume,
                                const struct VolumeGrid *volume_grid,

@@ -24,11 +24,15 @@
  */
 #include "MEM_guardedalloc.h"
 
+#include <optional>
+
 #include "atomic_ops.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_array.hh"
+#include "BLI_math_bits.h"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
@@ -53,6 +57,8 @@ namespace blender::draw {
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct
  * \{ */
+using TaskId = int;
+using TaskLen = int;
 
 struct ExtractorRunData {
   /* Extractor where this run data belongs to. */
@@ -62,10 +68,26 @@ struct ExtractorRunData {
   /* User data during iteration. Created in MeshExtract.init and passed along to other MeshExtract
    * functions. */
   void *user_data = nullptr;
+  std::optional<Array<void *>> task_user_datas;
 
   ExtractorRunData(const MeshExtract *extractor) : extractor(extractor)
   {
   }
+
+  void init_task_user_datas(const TaskLen task_len)
+  {
+    task_user_datas = Array<void *>(task_len);
+  }
+
+  void *&operator[](const TaskId task_id)
+  {
+    BLI_assert(task_user_datas);
+    return (*task_user_datas)[task_id];
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("DRAW:ExtractorRunData")
+#endif
 };
 
 class ExtractorRunDatas : public Vector<ExtractorRunData> {
@@ -107,7 +129,7 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
     }
   }
 
-  eMRIterType iter_types()
+  eMRIterType iter_types() const
   {
     eMRIterType iter_type = static_cast<eMRIterType>(0);
 
@@ -116,6 +138,13 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
       iter_type |= mesh_extract_iter_type(extractor);
     }
     return iter_type;
+  }
+
+  const uint iter_types_len() const
+  {
+    const eMRIterType iter_type = iter_types();
+    uint bits = static_cast<uint>(iter_type);
+    return count_bits_i(bits);
   }
 
   eMRDataType data_types()
@@ -127,6 +156,10 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
     }
     return data_type;
   }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("DRAW:ExtractorRunDatas")
+#endif
 };
 
 /** \} */
@@ -150,7 +183,8 @@ BLI_INLINE void extract_init(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_looptri_bm(const MeshRenderData *mr,
                                         const ExtractTriBMesh_Params *params,
-                                        const ExtractorRunDatas &all_extractors)
+                                        const ExtractorRunDatas &all_extractors,
+                                        const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LOOPTRI);
@@ -158,7 +192,7 @@ BLI_INLINE void extract_iter_looptri_bm(const MeshRenderData *mr,
   EXTRACT_TRIS_LOOPTRI_FOREACH_BM_BEGIN(elt, elt_index, params)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_looptri_bm(mr, elt, elt_index, run_data.user_data);
+      run_data.extractor->iter_looptri_bm(mr, elt, elt_index, run_data[task_id]);
     }
   }
   EXTRACT_TRIS_LOOPTRI_FOREACH_BM_END;
@@ -166,7 +200,8 @@ BLI_INLINE void extract_iter_looptri_bm(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_looptri_mesh(const MeshRenderData *mr,
                                           const ExtractTriMesh_Params *params,
-                                          const ExtractorRunDatas &all_extractors)
+                                          const ExtractorRunDatas &all_extractors,
+                                          const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LOOPTRI);
@@ -174,7 +209,7 @@ BLI_INLINE void extract_iter_looptri_mesh(const MeshRenderData *mr,
   EXTRACT_TRIS_LOOPTRI_FOREACH_MESH_BEGIN(mlt, mlt_index, params)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_looptri_mesh(mr, mlt, mlt_index, run_data.user_data);
+      run_data.extractor->iter_looptri_mesh(mr, mlt, mlt_index, run_data[task_id]);
     }
   }
   EXTRACT_TRIS_LOOPTRI_FOREACH_MESH_END;
@@ -182,7 +217,8 @@ BLI_INLINE void extract_iter_looptri_mesh(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_poly_bm(const MeshRenderData *mr,
                                      const ExtractPolyBMesh_Params *params,
-                                     const ExtractorRunDatas &all_extractors)
+                                     const ExtractorRunDatas &all_extractors,
+                                     const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_POLY);
@@ -190,7 +226,7 @@ BLI_INLINE void extract_iter_poly_bm(const MeshRenderData *mr,
   EXTRACT_POLY_FOREACH_BM_BEGIN(f, f_index, params, mr)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_poly_bm(mr, f, f_index, run_data.user_data);
+      run_data.extractor->iter_poly_bm(mr, f, f_index, run_data[task_id]);
     }
   }
   EXTRACT_POLY_FOREACH_BM_END;
@@ -198,7 +234,8 @@ BLI_INLINE void extract_iter_poly_bm(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_poly_mesh(const MeshRenderData *mr,
                                        const ExtractPolyMesh_Params *params,
-                                       const ExtractorRunDatas &all_extractors)
+                                       const ExtractorRunDatas &all_extractors,
+                                       const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_POLY);
@@ -206,7 +243,7 @@ BLI_INLINE void extract_iter_poly_mesh(const MeshRenderData *mr,
   EXTRACT_POLY_FOREACH_MESH_BEGIN(mp, mp_index, params, mr)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_poly_mesh(mr, mp, mp_index, run_data.user_data);
+      run_data.extractor->iter_poly_mesh(mr, mp, mp_index, run_data[task_id]);
     }
   }
   EXTRACT_POLY_FOREACH_MESH_END;
@@ -214,7 +251,8 @@ BLI_INLINE void extract_iter_poly_mesh(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_ledge_bm(const MeshRenderData *mr,
                                       const ExtractLEdgeBMesh_Params *params,
-                                      const ExtractorRunDatas &all_extractors)
+                                      const ExtractorRunDatas &all_extractors,
+                                      const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LEDGE);
@@ -222,7 +260,7 @@ BLI_INLINE void extract_iter_ledge_bm(const MeshRenderData *mr,
   EXTRACT_LEDGE_FOREACH_BM_BEGIN(eed, ledge_index, params)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_ledge_bm(mr, eed, ledge_index, run_data.user_data);
+      run_data.extractor->iter_ledge_bm(mr, eed, ledge_index, run_data[task_id]);
     }
   }
   EXTRACT_LEDGE_FOREACH_BM_END;
@@ -230,7 +268,8 @@ BLI_INLINE void extract_iter_ledge_bm(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_ledge_mesh(const MeshRenderData *mr,
                                         const ExtractLEdgeMesh_Params *params,
-                                        const ExtractorRunDatas &all_extractors)
+                                        const ExtractorRunDatas &all_extractors,
+                                        const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LEDGE);
@@ -238,7 +277,7 @@ BLI_INLINE void extract_iter_ledge_mesh(const MeshRenderData *mr,
   EXTRACT_LEDGE_FOREACH_MESH_BEGIN(med, ledge_index, params, mr)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_ledge_mesh(mr, med, ledge_index, run_data.user_data);
+      run_data.extractor->iter_ledge_mesh(mr, med, ledge_index, run_data[task_id]);
     }
   }
   EXTRACT_LEDGE_FOREACH_MESH_END;
@@ -246,7 +285,8 @@ BLI_INLINE void extract_iter_ledge_mesh(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_lvert_bm(const MeshRenderData *mr,
                                       const ExtractLVertBMesh_Params *params,
-                                      const ExtractorRunDatas &all_extractors)
+                                      const ExtractorRunDatas &all_extractors,
+                                      const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LVERT);
@@ -254,7 +294,7 @@ BLI_INLINE void extract_iter_lvert_bm(const MeshRenderData *mr,
   EXTRACT_LVERT_FOREACH_BM_BEGIN(eve, lvert_index, params)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_lvert_bm(mr, eve, lvert_index, run_data.user_data);
+      run_data.extractor->iter_lvert_bm(mr, eve, lvert_index, run_data[task_id]);
     }
   }
   EXTRACT_LVERT_FOREACH_BM_END;
@@ -262,7 +302,8 @@ BLI_INLINE void extract_iter_lvert_bm(const MeshRenderData *mr,
 
 BLI_INLINE void extract_iter_lvert_mesh(const MeshRenderData *mr,
                                         const ExtractLVertMesh_Params *params,
-                                        const ExtractorRunDatas &all_extractors)
+                                        const ExtractorRunDatas &all_extractors,
+                                        const TaskId task_id)
 {
   ExtractorRunDatas extractors;
   all_extractors.filter_into(extractors, MR_ITER_LVERT);
@@ -270,7 +311,7 @@ BLI_INLINE void extract_iter_lvert_mesh(const MeshRenderData *mr,
   EXTRACT_LVERT_FOREACH_MESH_BEGIN(mv, lvert_index, params, mr)
   {
     for (ExtractorRunData &run_data : extractors) {
-      run_data.extractor->iter_lvert_mesh(mr, mv, lvert_index, run_data.user_data);
+      run_data.extractor->iter_lvert_mesh(mr, mv, lvert_index, run_data[task_id]);
     }
   }
   EXTRACT_LVERT_FOREACH_MESH_END;
@@ -288,14 +329,47 @@ BLI_INLINE void extract_finish(const MeshRenderData *mr,
   }
 }
 
+BLI_INLINE void extract_task_init(ExtractorRunDatas &extractors, const TaskLen task_len)
+{
+  for (ExtractorRunData &run_data : extractors) {
+    run_data.init_task_user_datas(task_len);
+    const MeshExtract *extractor = run_data.extractor;
+    for (TaskId task_id = 0; task_id < task_len; task_id++) {
+      void *user_task_data = run_data.user_data;
+      if (extractor->task_init) {
+        user_task_data = extractor->task_init(run_data.user_data);
+      }
+      run_data[task_id] = user_task_data;
+    }
+  }
+}
+
+BLI_INLINE void extract_task_finish(ExtractorRunDatas &extractors, const TaskLen task_len)
+{
+  for (ExtractorRunData &run_data : extractors) {
+    const MeshExtract *extractor = run_data.extractor;
+    if (extractor->task_finish) {
+      for (TaskId task_id = 0; task_id < task_len; task_id++) {
+        void *task_user_data = run_data[task_id];
+        extractor->task_finish(run_data.user_data, task_user_data);
+        run_data[task_id] = nullptr;
+      }
+    }
+  }
+}
+
 /* Single Thread. */
-BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
+BLI_INLINE void extract_run_single_threaded(const MeshRenderData *mr,
                                             struct MeshBatchCache *cache,
                                             ExtractorRunDatas &extractors,
                                             eMRIterType iter_type,
                                             MeshBufferCache *mbc)
 {
+  const TaskLen task_len = 1;
+  const TaskId task_id = 0;
+
   extract_init(mr, cache, extractors, mbc);
+  extract_task_init(extractors, task_len);
 
   bool is_mesh = mr->extract_type != MR_EXTRACT_BMESH;
   if (iter_type & MR_ITER_LOOPTRI) {
@@ -304,14 +378,14 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
       params.mlooptri = mr->mlooptri;
       params.tri_range[0] = 0;
       params.tri_range[1] = mr->tri_len;
-      extract_iter_looptri_mesh(mr, &params, extractors);
+      extract_iter_looptri_mesh(mr, &params, extractors, task_id);
     }
     else {
       ExtractTriBMesh_Params params;
       params.looptris = mr->edit_bmesh->looptris;
       params.tri_range[0] = 0;
       params.tri_range[1] = mr->tri_len;
-      extract_iter_looptri_bm(mr, &params, extractors);
+      extract_iter_looptri_bm(mr, &params, extractors, task_id);
     }
   }
   if (iter_type & MR_ITER_POLY) {
@@ -319,13 +393,13 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
       ExtractPolyMesh_Params params;
       params.poly_range[0] = 0;
       params.poly_range[1] = mr->poly_len;
-      extract_iter_poly_mesh(mr, &params, extractors);
+      extract_iter_poly_mesh(mr, &params, extractors, task_id);
     }
     else {
       ExtractPolyBMesh_Params params;
       params.poly_range[0] = 0;
       params.poly_range[1] = mr->poly_len;
-      extract_iter_poly_bm(mr, &params, extractors);
+      extract_iter_poly_bm(mr, &params, extractors, task_id);
     }
   }
   if (iter_type & MR_ITER_LEDGE) {
@@ -334,14 +408,14 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
       params.ledge = mr->ledges;
       params.ledge_range[0] = 0;
       params.ledge_range[1] = mr->edge_loose_len;
-      extract_iter_ledge_mesh(mr, &params, extractors);
+      extract_iter_ledge_mesh(mr, &params, extractors, task_id);
     }
     else {
       ExtractLEdgeBMesh_Params params;
       params.ledge = mr->ledges;
       params.ledge_range[0] = 0;
       params.ledge_range[1] = mr->edge_loose_len;
-      extract_iter_ledge_bm(mr, &params, extractors);
+      extract_iter_ledge_bm(mr, &params, extractors, task_id);
     }
   }
   if (iter_type & MR_ITER_LVERT) {
@@ -350,16 +424,17 @@ BLI_INLINE void extract_run_and_finish_init(const MeshRenderData *mr,
       params.lvert = mr->lverts;
       params.lvert_range[0] = 0;
       params.lvert_range[1] = mr->vert_loose_len;
-      extract_iter_lvert_mesh(mr, &params, extractors);
+      extract_iter_lvert_mesh(mr, &params, extractors, task_id);
     }
     else {
       ExtractLVertBMesh_Params params;
       params.lvert = mr->lverts;
       params.lvert_range[0] = 0;
       params.lvert_range[1] = mr->vert_loose_len;
-      extract_iter_lvert_bm(mr, &params, extractors);
+      extract_iter_lvert_bm(mr, &params, extractors, task_id);
     }
   }
+  extract_task_finish(extractors, task_len);
   extract_finish(mr, cache, extractors);
 }
 
@@ -382,6 +457,13 @@ struct ExtractTaskData {
   MeshBufferCache *mbc = nullptr;
   int32_t *task_counter = nullptr;
 
+  /* Total number of tasks that are created for multi threaded extraction.
+   * (= 1 for single threaded extractors). */
+  uint task_len;
+  /* Task id of the extraction task. Must never exceed task_len. (= 0 for single threaded
+   * extractors). */
+  uint task_id = 0;
+
   eMRIterType iter_type;
   int start = 0;
   int end = INT_MAX;
@@ -391,8 +473,14 @@ struct ExtractTaskData {
                   struct MeshBatchCache *cache,
                   ExtractorRunDatas *extractors,
                   MeshBufferCache *mbc,
-                  int32_t *task_counter)
-      : mr(mr), cache(cache), extractors(extractors), mbc(mbc), task_counter(task_counter)
+                  int32_t *task_counter,
+                  const uint task_len)
+      : mr(mr),
+        cache(cache),
+        extractors(extractors),
+        mbc(mbc),
+        task_counter(task_counter),
+        task_len(task_len)
   {
     iter_type = extractors->iter_types();
   };
@@ -408,17 +496,6 @@ struct ExtractTaskData {
   MEM_CXX_CLASS_ALLOC_FUNCS("DRW:ExtractTaskData")
 #endif
 };
-
-static ExtractTaskData *extract_extract_iter_task_data_create_mesh(const MeshRenderData *mr,
-                                                                   MeshBatchCache *cache,
-                                                                   ExtractorRunDatas *extractors,
-                                                                   MeshBufferCache *mbc,
-                                                                   int32_t *task_counter)
-
-{
-  ExtractTaskData *taskdata = new ExtractTaskData(mr, cache, extractors, mbc, task_counter);
-  return taskdata;
-}
 
 static void extract_task_data_free(void *data)
 {
@@ -437,7 +514,8 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
                                   const eMRIterType iter_type,
                                   int start,
                                   int end,
-                                  ExtractorRunDatas &extractors)
+                                  ExtractorRunDatas &extractors,
+                                  const TaskId task_id)
 {
   switch (mr->extract_type) {
     case MR_EXTRACT_BMESH:
@@ -446,27 +524,27 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
         params.looptris = mr->edit_bmesh->looptris;
         params.tri_range[0] = start;
         params.tri_range[1] = min_ii(mr->tri_len, end);
-        extract_iter_looptri_bm(mr, &params, extractors);
+        extract_iter_looptri_bm(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_POLY) {
         ExtractPolyBMesh_Params params;
         params.poly_range[0] = start;
         params.poly_range[1] = min_ii(mr->poly_len, end);
-        extract_iter_poly_bm(mr, &params, extractors);
+        extract_iter_poly_bm(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_LEDGE) {
         ExtractLEdgeBMesh_Params params;
         params.ledge = mr->ledges;
         params.ledge_range[0] = start;
         params.ledge_range[1] = min_ii(mr->edge_loose_len, end);
-        extract_iter_ledge_bm(mr, &params, extractors);
+        extract_iter_ledge_bm(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_LVERT) {
         ExtractLVertBMesh_Params params;
         params.lvert = mr->lverts;
         params.lvert_range[0] = start;
         params.lvert_range[1] = min_ii(mr->vert_loose_len, end);
-        extract_iter_lvert_bm(mr, &params, extractors);
+        extract_iter_lvert_bm(mr, &params, extractors, task_id);
       }
       break;
     case MR_EXTRACT_MAPPED:
@@ -476,27 +554,27 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
         params.mlooptri = mr->mlooptri;
         params.tri_range[0] = start;
         params.tri_range[1] = min_ii(mr->tri_len, end);
-        extract_iter_looptri_mesh(mr, &params, extractors);
+        extract_iter_looptri_mesh(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_POLY) {
         ExtractPolyMesh_Params params;
         params.poly_range[0] = start;
         params.poly_range[1] = min_ii(mr->poly_len, end);
-        extract_iter_poly_mesh(mr, &params, extractors);
+        extract_iter_poly_mesh(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_LEDGE) {
         ExtractLEdgeMesh_Params params;
         params.ledge = mr->ledges;
         params.ledge_range[0] = start;
         params.ledge_range[1] = min_ii(mr->edge_loose_len, end);
-        extract_iter_ledge_mesh(mr, &params, extractors);
+        extract_iter_ledge_mesh(mr, &params, extractors, task_id);
       }
       if (iter_type & MR_ITER_LVERT) {
         ExtractLVertMesh_Params params;
         params.lvert = mr->lverts;
         params.lvert_range[0] = start;
         params.lvert_range[1] = min_ii(mr->vert_loose_len, end);
-        extract_iter_lvert_mesh(mr, &params, extractors);
+        extract_iter_lvert_mesh(mr, &params, extractors, task_id);
       }
       break;
   }
@@ -505,16 +583,19 @@ BLI_INLINE void mesh_extract_iter(const MeshRenderData *mr,
 static void extract_task_init(ExtractTaskData *data)
 {
   extract_init(data->mr, data->cache, *data->extractors, data->mbc);
+  extract_task_init(*data->extractors, data->task_len);
 }
 
 static void extract_task_run(void *__restrict taskdata)
 {
   ExtractTaskData *data = (ExtractTaskData *)taskdata;
-  mesh_extract_iter(data->mr, data->iter_type, data->start, data->end, *data->extractors);
+  mesh_extract_iter(
+      data->mr, data->iter_type, data->start, data->end, *data->extractors, data->task_id);
 
   /* If this is the last task, we do the finish function. */
   int remainin_tasks = atomic_sub_and_fetch_int32(data->task_counter, 1);
   if (remainin_tasks == 0) {
+    extract_task_finish(*data->extractors, data->task_len);
     extract_finish(data->mr, data->cache, *data->extractors);
   }
 }
@@ -522,7 +603,7 @@ static void extract_task_run(void *__restrict taskdata)
 static void extract_task_init_and_run(void *__restrict taskdata)
 {
   ExtractTaskData *data = (ExtractTaskData *)taskdata;
-  extract_run_and_finish_init(
+  extract_run_single_threaded(
       data->mr, data->cache, *data->extractors, data->iter_type, data->mbc);
 }
 
@@ -536,6 +617,11 @@ struct MeshRenderDataUpdateTaskData {
   eMRIterType iter_type;
   eMRDataType data_flag;
 
+  MeshRenderDataUpdateTaskData(MeshRenderData *mr, eMRIterType iter_type, eMRDataType data_flag)
+      : mr(mr), iter_type(iter_type), data_flag(data_flag)
+  {
+  }
+
   ~MeshRenderDataUpdateTaskData()
   {
     mesh_render_data_free(mr);
@@ -546,8 +632,9 @@ struct MeshRenderDataUpdateTaskData {
 #endif
 };
 
-static void mesh_render_data_update_task_data_free(MeshRenderDataUpdateTaskData *taskdata)
+static void mesh_render_data_update_task_data_free(void *data)
 {
+  MeshRenderDataUpdateTaskData *taskdata = static_cast<MeshRenderDataUpdateTaskData *>(data);
   BLI_assert(taskdata);
   delete taskdata;
 }
@@ -569,10 +656,8 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
                                                              const eMRIterType iter_type,
                                                              const eMRDataType data_flag)
 {
-  MeshRenderDataUpdateTaskData *task_data = new (MeshRenderDataUpdateTaskData);
-  task_data->mr = mr;
-  task_data->iter_type = iter_type;
-  task_data->data_flag = data_flag;
+  MeshRenderDataUpdateTaskData *task_data = new MeshRenderDataUpdateTaskData(
+      mr, iter_type, data_flag);
 
   struct TaskNode *task_node = BLI_task_graph_node_create(
       task_graph,
@@ -605,7 +690,7 @@ static struct TaskNode *extract_single_threaded_task_node_create(struct TaskGrap
 /** \name Task Node - UserData Initializer
  * \{ */
 struct UserDataInitTaskData {
-  ExtractTaskData *td;
+  ExtractTaskData *td = nullptr;
   int32_t task_counter = 0;
 
   ~UserDataInitTaskData()
@@ -618,8 +703,9 @@ struct UserDataInitTaskData {
 #endif
 };
 
-static void user_data_init_task_data_free(UserDataInitTaskData *taskdata)
+static void user_data_init_task_data_free(void *data)
 {
+  UserDataInitTaskData *taskdata = static_cast<UserDataInitTaskData *>(data);
   delete taskdata;
 }
 
@@ -655,7 +741,8 @@ static void extract_range_task_create(struct TaskGraph *task_graph,
                                       int length)
 {
   taskdata = new ExtractTaskData(*taskdata);
-  atomic_add_and_fetch_int32(taskdata->task_counter, 1);
+  taskdata->task_id = atomic_fetch_and_add_int32(taskdata->task_counter, 1);
+  BLI_assert(taskdata->task_id < taskdata->task_len);
   taskdata->iter_type = type;
   taskdata->start = start;
   taskdata->end = start + length;
@@ -777,7 +864,6 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
    *                                               +-----> | extract_task2_loop_3 |
    *                                                       +----------------------+
    */
-  const bool do_lines_loose_subbuffer = mbc->ibo.lines_loose != nullptr;
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
 
@@ -787,8 +873,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #define EXTRACT_ADD_REQUESTED(type, type_lowercase, name) \
   do { \
     if (DRW_##type_lowercase##_requested(mbc->type_lowercase.name)) { \
-      const MeshExtract *extractor = mesh_extract_override_get( \
-          &extract_##name, do_hq_normals, do_lines_loose_subbuffer); \
+      const MeshExtract *extractor = mesh_extract_override_get(&extract_##name, do_hq_normals); \
       extractors.append(extractor); \
     } \
   } while (0)
@@ -818,7 +903,22 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(VBO, vbo, skin_roots);
 
   EXTRACT_ADD_REQUESTED(IBO, ibo, tris);
-  EXTRACT_ADD_REQUESTED(IBO, ibo, lines);
+  if (DRW_ibo_requested(mbc->ibo.lines)) {
+    const MeshExtract *extractor;
+    if (mbc->ibo.lines_loose != nullptr) {
+      /* Update #lines_loose ibo. */
+      extractor = &extract_lines_with_lines_loose;
+    }
+    else {
+      extractor = &extract_lines;
+    }
+    extractors.append(extractor);
+  }
+  else if (DRW_ibo_requested(mbc->ibo.lines_loose)) {
+    /* Note: #ibo.lines must have been created first. */
+    const MeshExtract *extractor = &extract_lines_loose_only;
+    extractors.append(extractor);
+  }
   EXTRACT_ADD_REQUESTED(IBO, ibo, points);
   EXTRACT_ADD_REQUESTED(IBO, ibo, fdots);
   EXTRACT_ADD_REQUESTED(IBO, ibo, lines_paint_mask);
@@ -874,8 +974,8 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
       if (!extractor->use_threading) {
         ExtractorRunDatas *single_threaded_extractors = new ExtractorRunDatas();
         single_threaded_extractors->append(extractor);
-        ExtractTaskData *taskdata = extract_extract_iter_task_data_create_mesh(
-            mr, cache, single_threaded_extractors, mbc, nullptr);
+        ExtractTaskData *taskdata = new ExtractTaskData(
+            mr, cache, single_threaded_extractors, mbc, nullptr, 1);
         struct TaskNode *task_node = extract_single_threaded_task_node_create(task_graph,
                                                                               taskdata);
         BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);
@@ -894,13 +994,19 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
        */
       int num_threads = BLI_task_scheduler_num_threads();
       num_threads -= single_threaded_extractors_len % num_threads;
+      const int max_multithreaded_task_len = multi_threaded_extractors->iter_types_len() +
+                                             num_threads;
 
       UserDataInitTaskData *user_data_init_task_data = new UserDataInitTaskData();
       struct TaskNode *task_node_user_data_init = user_data_init_task_node_create(
           task_graph, user_data_init_task_data);
 
-      user_data_init_task_data->td = extract_extract_iter_task_data_create_mesh(
-          mr, cache, multi_threaded_extractors, mbc, &user_data_init_task_data->task_counter);
+      user_data_init_task_data->td = new ExtractTaskData(mr,
+                                                         cache,
+                                                         multi_threaded_extractors,
+                                                         mbc,
+                                                         &user_data_init_task_data->task_counter,
+                                                         max_multithreaded_task_len);
 
       extract_task_in_ranges_create(
           task_graph, task_node_user_data_init, user_data_init_task_data->td, num_threads);
@@ -915,8 +1021,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   else {
     /* Run all requests on the same thread. */
     ExtractorRunDatas *extractors_copy = new ExtractorRunDatas(extractors);
-    ExtractTaskData *taskdata = extract_extract_iter_task_data_create_mesh(
-        mr, cache, extractors_copy, mbc, nullptr);
+    ExtractTaskData *taskdata = new ExtractTaskData(mr, cache, extractors_copy, mbc, nullptr, 1);
 
     struct TaskNode *task_node = extract_single_threaded_task_node_create(task_graph, taskdata);
     BLI_task_graph_edge_create(task_node_mesh_render_data, task_node);

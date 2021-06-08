@@ -62,6 +62,31 @@ void *lineart_list_append_pointer_pool_sized(ListBase *h,
   BLI_addtail(h, lip);
   return lip;
 }
+void *lineart_list_append_pointer_pool_thread(ListBase *h, LineartStaticMemPool *smp, void *data)
+{
+  LinkData *lip;
+  if (h == NULL) {
+    return 0;
+  }
+  lip = lineart_mem_acquire_thread(smp, sizeof(LinkData));
+  lip->data = data;
+  BLI_addtail(h, lip);
+  return lip;
+}
+void *lineart_list_append_pointer_pool_sized_thread(ListBase *h,
+                                                    LineartStaticMemPool *smp,
+                                                    void *data,
+                                                    int size)
+{
+  LinkData *lip;
+  if (h == NULL) {
+    return 0;
+  }
+  lip = lineart_mem_acquire_thread(smp, size);
+  lip->data = data;
+  BLI_addtail(h, lip);
+  return lip;
+}
 
 void *lineart_list_pop_pointer_no_free(ListBase *h)
 {
@@ -82,10 +107,10 @@ void lineart_list_remove_pointer_item_no_free(ListBase *h, LinkData *lip)
 LineartStaticMemPoolNode *lineart_mem_new_static_pool(LineartStaticMemPool *smp, size_t size)
 {
   size_t set_size = size;
-  if (set_size < LRT_MEMORY_POOL_64MB) {
-    set_size = LRT_MEMORY_POOL_64MB; /* Prevent too many small allocations. */
+  if (set_size < LRT_MEMORY_POOL_1MB) {
+    set_size = LRT_MEMORY_POOL_1MB; /* Prevent too many small allocations. */
   }
-  size_t total_size = size + sizeof(LineartStaticMemPoolNode);
+  size_t total_size = set_size + sizeof(LineartStaticMemPoolNode);
   LineartStaticMemPoolNode *smpn = MEM_callocN(total_size, "mempool");
   smpn->size = total_size;
   smpn->used_byte = sizeof(LineartStaticMemPoolNode);
@@ -211,7 +236,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
 
   LISTBASE_FOREACH (LineartStaticMemPoolNode *, smpn, &rb->render_data_pool.pools) {
     count_this++;
-    sum_this += LRT_MEMORY_POOL_64MB;
+    sum_this += LRT_MEMORY_POOL_1MB;
   }
   printf("LANPR Memory allocated %zu Standalone nodes, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;

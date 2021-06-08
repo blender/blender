@@ -154,6 +154,9 @@ MINLINE int max_iii(int a, int b, int c);
 MINLINE int min_iiii(int a, int b, int c, int d);
 MINLINE int max_iiii(int a, int b, int c, int d);
 
+MINLINE uint min_uu(uint a, uint b);
+MINLINE uint max_uu(uint a, uint b);
+
 MINLINE size_t min_zz(size_t a, size_t b);
 MINLINE size_t max_zz(size_t a, size_t b);
 
