@@ -896,7 +896,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
   VirtualModifierData virtualModifierData;
   ModifierData *md = pretessellatePoint == nullptr ?
                          BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
-                         pretessellatePoint;
+                         pretessellatePoint->next;
 
   if (r_final && *r_final) {
     BKE_id_free(nullptr, *r_final);
