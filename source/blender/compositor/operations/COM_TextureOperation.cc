@@ -75,13 +75,32 @@ void TextureBaseOperation::deinitExecution()
 void TextureBaseOperation::determineResolution(unsigned int resolution[2],
                                                unsigned int preferredResolution[2])
 {
-  /* Determine inputs resolutions. */
-  unsigned int temp[2];
-  NodeOperation::determineResolution(temp, preferredResolution);
+  switch (execution_model_) {
+    case eExecutionModel::Tiled: {
+      if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
+        int width = this->m_rd->xsch * this->m_rd->size / 100;
+        int height = this->m_rd->ysch * this->m_rd->size / 100;
+        resolution[0] = width;
+        resolution[1] = height;
+      }
+      else {
+        resolution[0] = preferredResolution[0];
+        resolution[1] = preferredResolution[1];
+      }
+      break;
+    }
+    case eExecutionModel::FullFrame: {
+      /* Determine inputs resolutions. */
+      unsigned int temp[2];
+      NodeOperation::determineResolution(temp, preferredResolution);
 
-  /* We don't use inputs resolutions because they are only used as parameters, not image data. */
-  resolution[0] = preferredResolution[0];
-  resolution[1] = preferredResolution[1];
+      /* We don't use inputs resolutions because they are only used as parameters, not image data.
+       */
+      resolution[0] = preferredResolution[0];
+      resolution[1] = preferredResolution[1];
+      break;
+    }
+  }
 }
 
 void TextureAlphaOperation::executePixelSampled(float output[4],
