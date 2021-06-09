@@ -693,7 +693,7 @@ void ED_info_draw_stats(
   Object *ob = OBACT(view_layer);
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
-  const int font_id = BLF_default();
+  const int font_id = BLF_set_default();
 
   UI_FontThemeColor(font_id, TH_TEXT_HI);
   BLF_enable(font_id, BLF_SHADOW);
