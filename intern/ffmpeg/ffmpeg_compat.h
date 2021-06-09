@@ -113,25 +113,28 @@ void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 }
 
 FFMPEG_INLINE
-int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame *picture)
+int64_t timestamp_from_pts_or_dts(int64_t pts, int64_t dts)
 {
-  int64_t pts;
-  pts = picture->pts;
-
+  /* Some videos do not have any pts values, use dts instead in those cases if
+   * possible. Usually when this happens dts can act as pts because as all frames
+   * should then be presented in their decoded in order. IE pts == dts. */
   if (pts == AV_NOPTS_VALUE) {
-    pts = picture->pkt_dts;
+    return dts;
   }
-  if (pts == AV_NOPTS_VALUE) {
-    pts = 0;
-  }
-
-  (void)avctx;
   return pts;
 }
 
-/* --- Deinterlace code block begin --- */
+FFMPEG_INLINE
+int64_t av_get_pts_from_frame(AVFrame *picture)
+{
+  return timestamp_from_pts_or_dts(picture->pts, picture->pkt_dts);
+}
 
-/* NOTE: The code in this block are from FFmpeg 2.6.4, which is licensed by LGPL. */
+/* -------------------------------------------------------------------- */
+/** \name Deinterlace code block
+ *
+ * NOTE: The code in this block are from FFmpeg 2.6.4, which is licensed by LGPL.
+ * \{ */
 
 #define MAX_NEG_CROP 1024
 

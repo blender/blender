@@ -924,7 +924,7 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
       anim->pFrameComplete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
 
       if (anim->pFrameComplete) {
-        anim->cur_pts = av_get_pts_from_frame(anim->pFormatCtx, anim->pFrame);
+        anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
         if (anim->pFrame->key_frame) {
           anim->cur_key_frame_pts = anim->cur_pts;
@@ -949,7 +949,7 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
     anim->pFrameComplete = avcodec_receive_frame(anim->pCodecCtx, anim->pFrame) == 0;
 
     if (anim->pFrameComplete) {
-      anim->cur_pts = av_get_pts_from_frame(anim->pFormatCtx, anim->pFrame);
+      anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
       if (anim->pFrame->key_frame) {
         anim->cur_key_frame_pts = anim->cur_pts;
@@ -1164,6 +1164,7 @@ static int ffmpeg_generic_seek_workaround(struct anim *anim, int64_t *requested_
       if (anim->cur_packet->stream_index == anim->videoStream) {
         break;
       }
+      av_packet_unref(read_packet);
     }
 
     /* If this packet contains I-frame, exit loop. This should be the frame that we need. */
@@ -1197,14 +1198,17 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim, int position, struct anim
       /* No need to seek, return early. */
       return 0;
     }
+    uint64_t pts;
     uint64_t dts;
 
     pos = IMB_indexer_get_seek_pos(tc_index, new_frame_index);
+    pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
     dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
 
-    anim->cur_key_frame_pts = pos;
+    anim->cur_key_frame_pts = timestamp_from_pts_or_dts(pts, dts);
 
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pos = %" PRId64 "\n", pos);
+    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek pts = %" PRIu64 "\n", pts);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "TC INDEX seek dts = %" PRIu64 "\n", dts);
 
     if (ffmpeg_seek_by_byte(anim->pFormatCtx)) {
@@ -1214,8 +1218,9 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim, int position, struct anim
       av_update_cur_dts(anim->pFormatCtx, v_st, dts);
     }
     else {
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using DTS pos\n");
-      ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, dts, AVSEEK_FLAG_BACKWARD);
+      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "... using PTS pos\n");
+      ret = av_seek_frame(
+          anim->pFormatCtx, anim->videoStream, anim->cur_key_frame_pts, AVSEEK_FLAG_BACKWARD);
     }
   }
   else {
@@ -1243,24 +1248,29 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim, int position, struct anim
         }
         av_packet_unref(current_gop_start_packet);
       }
-      bool same_gop = current_gop_start_packet->pts == anim->cur_key_frame_pts;
+      int64_t gop_pts = timestamp_from_pts_or_dts(current_gop_start_packet->pts,
+                                                  current_gop_start_packet->dts);
+
+      av_packet_free(&current_gop_start_packet);
+      bool same_gop = gop_pts == anim->cur_key_frame_pts;
 
       if (same_gop && position > anim->cur_position) {
         /* Change back to our old frame position so we can simply continue decoding from there. */
         AVPacket *temp = av_packet_alloc();
         while (av_read_frame(anim->pFormatCtx, temp) >= 0) {
-          if (temp->stream_index == anim->videoStream && temp->pts == anim->cur_packet->pts) {
+          int64_t temp_pts = timestamp_from_pts_or_dts(temp->pts, temp->dts);
+          int64_t cur_pts = timestamp_from_pts_or_dts(anim->cur_packet->pts,
+                                                      anim->cur_packet->dts);
+          if (temp->stream_index == anim->videoStream && temp_pts == cur_pts) {
             break;
           }
           av_packet_unref(temp);
         }
-        av_packet_free(&current_gop_start_packet);
         av_packet_free(&temp);
         return 0;
       }
 
-      anim->cur_key_frame_pts = current_gop_start_packet->pts;
-      av_packet_free(&current_gop_start_packet);
+      anim->cur_key_frame_pts = gop_pts;
       /* Seek back so we are at the correct position after we decoded a frame. */
       av_seek_frame(anim->pFormatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
     }
@@ -1278,6 +1288,8 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim, int position, struct anim
            pts_to_search,
            ret);
   }
+  /* Flush the internal buffers of ffmpeg. This needs to be done after seeking to avoid decoding
+   * errors. */
   avcodec_flush_buffers(anim->pCodecCtx);
 
   anim->cur_pts = -1;
