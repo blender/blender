@@ -218,7 +218,6 @@ static int stroke_march_next_point(const bGPDstroke *gps,
                                    float *pressure,
                                    float *strength,
                                    float *vert_color,
-                                   float *custom_vector,
                                    float *ratio_result,
                                    int *index_from,
                                    int *index_to)
@@ -259,7 +258,6 @@ static int stroke_march_next_point(const bGPDstroke *gps,
     *pressure = gps->points[next_point_index].pressure;
     *strength = gps->points[next_point_index].strength;
     memcpy(vert_color, gps->points[next_point_index].vert_color, sizeof(float[4]));
-    memcpy(custom_vector, gps->points[next_point_index].custom_vector, sizeof(float[3]));
 
     *index_from = next_point_index - 1;
     *index_to = next_point_index;
@@ -277,10 +275,6 @@ static int stroke_march_next_point(const bGPDstroke *gps,
   interp_v4_v4v4(vert_color,
                  gps->points[next_point_index - 1].vert_color,
                  gps->points[next_point_index].vert_color,
-                 ratio);
-  interp_v3_v3v3(custom_vector,
-                 gps->points[next_point_index - 1].custom_vector,
-                 gps->points[next_point_index].custom_vector,
                  ratio);
 
   *index_from = next_point_index - 1;
@@ -460,7 +454,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
   int i = 0;
   float pressure, strength, ratio_result;
   float vert_color[4];
-  float custom_vector[3];
   int index_from, index_to;
   float last_coord[3];
 
@@ -472,7 +465,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
   new_pt[i].pressure = pt[0].pressure;
   new_pt[i].strength = pt[0].strength;
   memcpy(new_pt[i].vert_color, pt[0].vert_color, sizeof(float[4]));
-  memcpy(new_pt[i].custom_vector, pt[0].custom_vector, sizeof(float[3]));
   if (select) {
     new_pt[i].flag |= GP_SPOINT_SELECT;
   }
@@ -491,7 +483,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
                                                      &pressure,
                                                      &strength,
                                                      vert_color,
-                                                     custom_vector,
                                                      &ratio_result,
                                                      &index_from,
                                                      &index_to)) > -1) {
@@ -500,7 +491,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd, bGPDstroke *gps, const float dist, 
     new_pt[i].pressure = pressure;
     new_pt[i].strength = strength;
     memcpy(new_pt[i].vert_color, vert_color, sizeof(float[4]));
-    memcpy(new_pt[i].custom_vector, custom_vector, sizeof(float[3]));
     if (select) {
       new_pt[i].flag |= GP_SPOINT_SELECT;
     }
@@ -1578,7 +1568,6 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
     pt->strength = interpf(pt2->strength, pt1->strength, step);
     pt->flag = 0;
     interp_v4_v4v4(pt->vert_color, pt1->vert_color, pt2->vert_color, step);
-    interp_v3_v3v3(pt->custom_vector, pt1->custom_vector, pt2->custom_vector, step);
 
     /* Set weights. */
     if (gps->dvert != NULL) {
@@ -1953,7 +1942,6 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       pt_final->runtime.pt_orig = pt->runtime.pt_orig;
       pt_final->runtime.idx_orig = pt->runtime.idx_orig;
       copy_v4_v4(pt_final->vert_color, pt->vert_color);
-      copy_v3_v3(pt_final->custom_vector, pt->custom_vector);
 
       if (gps->dvert != NULL) {
         dvert = &temp_dverts[i];
@@ -1979,7 +1967,6 @@ void BKE_gpencil_stroke_subdivide(bGPdata *gpd, bGPDstroke *gps, int level, int 
       pt_final->runtime.pt_orig = NULL;
       pt_final->flag = 0;
       interp_v4_v4v4(pt_final->vert_color, pt->vert_color, next->vert_color, 0.5f);
-      interp_v3_v3v3(pt_final->custom_vector, pt->custom_vector, next->custom_vector, 0.5f);
 
       if (gps->dvert != NULL) {
         dvert = &temp_dverts[i];
@@ -2738,7 +2725,6 @@ void BKE_gpencil_stroke_flip(bGPDstroke *gps)
     pt.strength = point->strength;
     pt.time = point->time;
     copy_v4_v4(pt.vert_color, point->vert_color);
-    copy_v3_v3(pt.custom_vector, point->custom_vector);
 
     /* replace first point with last point */
     point2 = &gps->points[end];
@@ -2750,7 +2736,6 @@ void BKE_gpencil_stroke_flip(bGPDstroke *gps)
     point->strength = point2->strength;
     point->time = point2->time;
     copy_v4_v4(point->vert_color, point2->vert_color);
-    copy_v3_v3(point->custom_vector, point2->custom_vector);
 
     /* replace last point with first saved before */
     point = &gps->points[end];
@@ -2762,7 +2747,6 @@ void BKE_gpencil_stroke_flip(bGPDstroke *gps)
     point->strength = pt.strength;
     point->time = pt.time;
     copy_v4_v4(point->vert_color, pt.vert_color);
-    copy_v3_v3(point->custom_vector, pt.custom_vector);
 
     end--;
   }
@@ -2816,7 +2800,6 @@ static void gpencil_stroke_join_islands(bGPdata *gpd,
     pt_final->time = delta;
     pt_final->flag = pt->flag;
     copy_v4_v4(pt_final->vert_color, pt->vert_color);
-    copy_v3_v3(pt_final->custom_vector, pt->custom_vector);
 
     /* retiming with fixed time interval (we cannot determine real time) */
     delta += 0.01f;
@@ -3170,7 +3153,6 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps,
   newpoint->strength = strength;
   newpoint->time = point->time + deltatime;
   copy_v4_v4(newpoint->vert_color, point->vert_color);
-  copy_v3_v3(newpoint->custom_vector, point->custom_vector);
 
   if (gps->dvert != NULL) {
     MDeformVert *newdvert = &gps->dvert[gps->totpoints - 1];
@@ -3326,7 +3308,6 @@ typedef struct tSamplePoint {
   float x, y, z;
   float pressure, strength, time;
   float vertex_color[4];
-  float custom_vector[3];
   struct MDeformWeight *dw;
   int totweight;
 } tSamplePoint;
@@ -3346,7 +3327,6 @@ static tSamplePoint *new_sample_point_from_gp_point(const bGPDspoint *pt, const 
   new_pt->strength = pt->strength;
   new_pt->time = pt->time;
   copy_v4_v4((float *)&new_pt->vertex_color, (float *)&pt->vert_color);
-  copy_v3_v3((float *)&new_pt->custom_vector, (float *)&pt->custom_vector);
   if (dvert != NULL) {
     new_pt->totweight = dvert->totweight;
     new_pt->dw = MEM_callocN(sizeof(MDeformWeight) * new_pt->totweight, __func__);
@@ -3438,10 +3418,6 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
                    (float *)&sp->vertex_color,
                    (float *)&sp_next->vertex_color,
                    0.5f);
-    interp_v3_v3v3((float *)&new_sp->custom_vector,
-                   (float *)&sp->custom_vector,
-                   (float *)&sp_next->custom_vector,
-                   0.5f);
     if (sp->dw && sp_next->dw) {
       new_sp->totweight = MIN2(sp->totweight, sp_next->totweight);
       new_sp->dw = MEM_callocN(sizeof(MDeformWeight) * new_sp->totweight, __func__);
@@ -3484,7 +3460,6 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
     pt->strength = sp->strength;
     pt->time = sp->time;
     copy_v4_v4((float *)&pt->vert_color, (float *)&sp->vertex_color);
-    copy_v3_v3((float *)&pt->custom_vector, (float *)&sp->custom_vector);
 
     if (sp->dw) {
       dvert->totweight = sp->totweight;
