@@ -181,8 +181,7 @@ static void spline_extrude_to_mesh_data(const Spline &spline,
   Span<float3> normals = spline.evaluated_normals();
   Span<float3> profile_positions = profile_spline.evaluated_positions();
 
-  GVArray_Typed<float> radii{
-      spline.interpolate_to_evaluated_points(blender::fn::GVArray_For_Span(spline.radii()))};
+  GVArray_Typed<float> radii = spline.interpolate_to_evaluated_points(spline.radii());
   for (const int i_ring : IndexRange(spline_vert_len)) {
     float4x4 point_matrix = float4x4::from_normalized_axis_data(
         positions[i_ring], normals[i_ring], tangents[i_ring]);
