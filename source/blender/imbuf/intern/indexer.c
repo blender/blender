@@ -319,8 +319,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 {
   switch (pr_size) {
     case IMB_PROXY_NONE:
-      /* if we got here, something is broken anyways, so sane defaults... */
-      return 0;
+      return -1;
     case IMB_PROXY_25:
       return 0;
     case IMB_PROXY_50:
@@ -330,16 +329,16 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
     case IMB_PROXY_100:
       return 3;
     default:
-      return 0;
+      BLI_assert(!"Unhandled proxy size enum!");
+      return -1;
   }
 }
 
 int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 {
   switch (tc) {
-    case IMB_TC_NONE: /* if we got here, something is broken anyways,
-                       * so sane defaults... */
-      return 0;
+    case IMB_TC_NONE:
+      return -1;
     case IMB_TC_RECORD_RUN:
       return 0;
     case IMB_TC_FREE_RUN:
@@ -349,7 +348,8 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
     case IMB_TC_RECORD_RUN_NO_GAPS:
       return 3;
     default:
-      return 0;
+      BLI_assert(!"Unhandled timecode type enum!");
+      return -1;
   }
 }
 
@@ -385,6 +385,8 @@ static bool get_proxy_filename(struct anim *anim,
   char index_dir[FILE_MAXDIR];
   int i = IMB_proxy_size_to_array_index(preview_size);
 
+  BLI_assert(i >= 0);
+
   char proxy_name[256];
   char stream_suffix[20];
   const char *name = (temp) ? "proxy_%d%s_part.avi" : "proxy_%d%s.avi";
@@ -416,6 +418,9 @@ static void get_tc_filename(struct anim *anim, IMB_Timecode_Type tc, char *fname
 {
   char index_dir[FILE_MAXDIR];
   int i = IMB_timecode_to_array_index(tc);
+
+  BLI_assert(i >= 0);
+
   const char *index_names[] = {
       "record_run%s%s.blen_tc",
       "free_run%s%s.blen_tc",
@@ -1390,6 +1395,10 @@ struct anim *IMB_anim_open_proxy(struct anim *anim, IMB_Proxy_Size preview_size)
   char fname[FILE_MAX];
   int i = IMB_proxy_size_to_array_index(preview_size);
 
+  if (i < 0) {
+    return NULL;
+  }
+
   if (anim->proxy_anim[i]) {
     return anim->proxy_anim[i];
   }
@@ -1412,6 +1421,10 @@ struct anim_index *IMB_anim_open_index(struct anim *anim, IMB_Timecode_Type tc)
 {
   char fname[FILE_MAX];
   int i = IMB_timecode_to_array_index(tc);
+
+  if (i < 0) {
+    return NULL;
+  }
 
   if (anim->curr_idx[i]) {
     return anim->curr_idx[i];
