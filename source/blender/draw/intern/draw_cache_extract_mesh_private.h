@@ -470,10 +470,6 @@ eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
                                              const bool do_hq_normals,
                                              const bool do_single_mat);
-/*
- * Total number of extractions types.
- */
-#define M_EXTRACT_LEN 38
 
 extern const MeshExtract extract_tris;
 extern const MeshExtract extract_tris_single_mat;
