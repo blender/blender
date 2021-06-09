@@ -22,7 +22,7 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_object_info_in[] = {
-    {SOCK_OBJECT, N_("Object")},
+    {SOCK_OBJECT, N_("Object"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, PROP_NONE, SOCK_HIDE_LABEL},
     {-1, ""},
 };
 

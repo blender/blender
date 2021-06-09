@@ -3541,6 +3541,8 @@ static void std_node_socket_draw(
     return;
   }
 
+  text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
+
   switch (type) {
     case SOCK_FLOAT:
     case SOCK_INT:

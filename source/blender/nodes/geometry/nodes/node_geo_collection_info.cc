@@ -24,7 +24,16 @@
 #include "node_geometry_util.hh"
 
 static bNodeSocketTemplate geo_node_collection_info_in[] = {
-    {SOCK_COLLECTION, N_("Collection")},
+    {SOCK_COLLECTION,
+     N_("Collection"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     PROP_NONE,
+     SOCK_HIDE_LABEL},
     {-1, ""},
 };
 

@@ -210,6 +210,12 @@ typedef enum eNodeSocketFlag {
   SOCK_COMPACT = (1 << 10),
   /** Make the input socket accept multiple incoming links in the UI. */
   SOCK_MULTI_INPUT = (1 << 11),
+  /**
+   * Don't show the socket's label in the interface, for situations where the type is obvious and
+   * the name takes up too much space. Note that it doesn't really make sense for this to be stored
+   * in runtime data.
+   */
+  SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
 
 /* limit data in bNode to what we want to see saved? */
