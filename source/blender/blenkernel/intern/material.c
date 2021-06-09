@@ -969,12 +969,6 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
     act = 1;
   }
 
-  /* prevent crashing when using accidentally */
-  BLI_assert(!ID_IS_LINKED(ob));
-  if (ID_IS_LINKED(ob)) {
-    return;
-  }
-
   /* test arraylens */
 
   totcolp = BKE_object_material_len_p(ob);
