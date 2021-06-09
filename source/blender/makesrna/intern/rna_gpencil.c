@@ -1288,6 +1288,14 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Vertex Color", "Color used to mix with point color to get final color");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+  /* Surface normal. */
+  prop = RNA_def_property(srna, "custom_vector", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Custom Vector", "Generic custom vector for various use cases");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }
 
 static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cprop)

@@ -97,9 +97,10 @@ typedef struct bGPDspoint {
   /** Vertex Color RGBA (A=mix factor). */
   float vert_color[4];
 
-  /** Runtime data */
-  char _pad2[4];
+  /** Generic custom vector for various use cases. */
+  float custom_vector[3];
 
+  /** Runtime data */
   bGPDspoint_Runtime runtime;
 } bGPDspoint;
 
