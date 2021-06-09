@@ -206,6 +206,7 @@ TEST(task, MempoolIterTLS)
   BLI_parallel_mempool_settings_defaults(&settings);
 
   TaskMemPool_Chunk tls_data;
+  tls_data.accumulate_items = NULL;
 
   settings.userdata_chunk = &tls_data;
   settings.userdata_chunk_size = sizeof(tls_data);
