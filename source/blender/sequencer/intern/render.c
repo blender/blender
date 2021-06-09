@@ -544,8 +544,8 @@ static void sequencer_image_crop_transform_init(void *handle_v,
   handle->tot_line = tot_line;
 }
 
-static void sequencer_image_crop_transform_interpolation_coefs(
-    const ImageTransformThreadData *data, float r_start_uv[2], float r_add_x[2], float r_add_y[2])
+static void sequencer_image_crop_transform_matrix(const ImageTransformThreadData *data,
+                                                  float r_transform_matrix[3][3])
 {
   const StripTransform *transform = data->seq->strip->transform;
   const float scale_x = transform->scale_x * data->image_scale_factor;
@@ -555,37 +555,69 @@ static void sequencer_image_crop_transform_interpolation_coefs(
   const float translate_x = transform->xofs * data->preview_scale_factor + image_center_offs_x;
   const float translate_y = transform->yofs * data->preview_scale_factor + image_center_offs_y;
   const float pivot[2] = {data->ibuf_source->x / 2, data->ibuf_source->y / 2};
-  float transform_matrix[3][3];
-  loc_rot_size_to_mat3(transform_matrix,
+  loc_rot_size_to_mat3(r_transform_matrix,
                        (const float[]){translate_x, translate_y},
                        transform->rotation,
                        (const float[]){scale_x, scale_y});
-  transform_pivot_set_m3(transform_matrix, pivot);
-  invert_m3(transform_matrix);
+  transform_pivot_set_m3(r_transform_matrix, pivot);
+  invert_m3(r_transform_matrix);
+}
 
+static void sequencer_image_crop_transform_start_uv(const ImageTransformThreadData *data,
+                                                    const float transform_matrix[3][3],
+                                                    float r_start_uv[2])
+{
   float orig[2];
-  orig[0] = 0.0;
+  orig[0] = 0.0f;
   orig[1] = data->start_line;
   mul_v2_m3v2(r_start_uv, transform_matrix, orig);
+}
 
-  float uv_min[2];
-  uv_min[0] = 0;
-  uv_min[1] = 0;
-  mul_v2_m3v2(uv_min, transform_matrix, uv_min);
+static void sequencer_image_crop_transform_uv_min(const float transform_matrix[3][3],
+                                                  float r_uv_min[2])
+{
+  float orig[2];
+  orig[0] = 0.0f;
+  orig[1] = 0.0f;
+  mul_v2_m3v2(r_uv_min, transform_matrix, orig);
+}
 
+static void sequencer_image_crop_transform_delta_x(const ImageTransformThreadData *data,
+                                                   const float transform_matrix[3][3],
+                                                   const float uv_min[2],
+                                                   float r_add_x[2])
+{
   float uv_max_x[2];
   uv_max_x[0] = data->ibuf_out->x;
-  uv_max_x[1] = 0;
+  uv_max_x[1] = 0.0f;
   mul_v2_m3v2(r_add_x, transform_matrix, uv_max_x);
   sub_v2_v2(r_add_x, uv_min);
-  mul_v2_fl(r_add_x, 1.0 / data->ibuf_out->x);
+  mul_v2_fl(r_add_x, 1.0f / data->ibuf_out->x);
+}
 
+static void sequencer_image_crop_transform_delta_y(const ImageTransformThreadData *data,
+                                                   const float transform_matrix[3][3],
+                                                   const float uv_min[2],
+                                                   float r_add_y[2])
+{
   float uv_max_y[2];
-  uv_max_y[0] = 0;
+  uv_max_y[0] = 0.0f;
   uv_max_y[1] = data->ibuf_out->y;
   mul_v2_m3v2(r_add_y, transform_matrix, uv_max_y);
   sub_v2_v2(r_add_y, uv_min);
-  mul_v2_fl(r_add_y, 1.0 / data->ibuf_out->y);
+  mul_v2_fl(r_add_y, 1.0f / data->ibuf_out->y);
+}
+
+static void sequencer_image_crop_transform_interpolation_coefs(
+    const ImageTransformThreadData *data, float r_start_uv[2], float r_add_x[2], float r_add_y[2])
+{
+  float transform_matrix[3][3];
+  sequencer_image_crop_transform_matrix(data, transform_matrix);
+  sequencer_image_crop_transform_start_uv(data, transform_matrix, r_start_uv);
+  float uv_min[2];
+  sequencer_image_crop_transform_uv_min(transform_matrix, uv_min);
+  sequencer_image_crop_transform_delta_x(data, transform_matrix, uv_min, r_add_x);
+  sequencer_image_crop_transform_delta_y(data, transform_matrix, uv_min, r_add_y);
 }
 
 static void *sequencer_image_crop_transform_do_thread(void *data_v)
@@ -615,10 +647,9 @@ static void *sequencer_image_crop_transform_do_thread(void *data_v)
     copy_v2_v2(uv, last_uv);
     add_v2_v2(last_uv, add_y);
     for (int xi = 0; xi < width; xi++) {
-      add_v2_v2(uv, add_x);
-
       if (source_pixel_range_min[0] >= uv[0] || uv[0] >= source_pixel_range_max[0] ||
           source_pixel_range_min[1] >= uv[1] || uv[1] >= source_pixel_range_max[1]) {
+        add_v2_v2(uv, add_x);
         continue;
       }
 
@@ -628,6 +659,8 @@ static void *sequencer_image_crop_transform_do_thread(void *data_v)
       else {
         nearest_interpolation(data->ibuf_source, data->ibuf_out, uv[0], uv[1], xi, yi);
       }
+
+      add_v2_v2(uv, add_x);
     }
   }
 
