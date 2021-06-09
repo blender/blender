@@ -1400,13 +1400,11 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   }
 
   /* Set default Draw brush. */
-  if (reset || brush_prev == NULL) {
-    BKE_paint_brush_set(paint, deft_draw);
+  if ((reset == false) && (brush_prev != NULL)) {
+    BKE_paint_brush_set(paint, brush_prev);
   }
   else {
-    if (brush_prev != NULL) {
-      BKE_paint_brush_set(paint, brush_prev);
-    }
+    BKE_paint_brush_set(paint, deft_draw);
   }
 }
 
