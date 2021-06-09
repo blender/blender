@@ -234,7 +234,7 @@ static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
 {
   bool success = false;
   Image *image = (Image *)node->id;
-  BLI_assert(GS(image->id.name) == ID_IM);
+  BLI_assert((image == NULL) || (GS(image->id.name) == ID_IM));
   ImageUser *iuser = &crypto->iuser;
 
   if (image && image->type == IMA_TYPE_MULTILAYER) {
