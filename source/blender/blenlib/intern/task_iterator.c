@@ -35,6 +35,10 @@
 
 #include "atomic_ops.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Macros
+ * \{ */
+
 /* Allows to avoid using malloc for userdata_chunk in tasks, when small enough. */
 #define MALLOCA(_size) ((_size) <= 8192) ? alloca((_size)) : MEM_mallocN((_size), __func__)
 #define MALLOCA_FREE(_mem, _size) \
@@ -42,6 +46,12 @@
     MEM_freeN((_mem)); \
   } \
   ((void)0)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Iteration
+ * \{ */
 
 BLI_INLINE void task_parallel_calc_chunk_size(const TaskParallelSettings *settings,
                                               const int tot_items,
@@ -300,6 +310,12 @@ void BLI_task_parallel_iterator(void *userdata,
   task_parallel_iterator_do(settings, &state);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ListBase Iteration
+ * \{ */
+
 static void task_parallel_listbase_get(void *__restrict UNUSED(userdata),
                                        const TaskParallelTLS *__restrict UNUSED(tls),
                                        void **r_next_item,
@@ -348,6 +364,12 @@ void BLI_task_parallel_listbase(ListBase *listbase,
 
   task_parallel_iterator_do(settings, &state);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name MemPool Iteration
+ * \{ */
 
 typedef struct ParallelMempoolState {
   void *userdata;
@@ -473,3 +495,5 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 
 #undef MALLOCA
 #undef MALLOCA_FREE
+
+/** \} */
