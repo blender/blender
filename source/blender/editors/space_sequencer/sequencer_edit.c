@@ -557,7 +557,7 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         seq->endofs = endframe - seq->enddisp;
         changed = true;
       }
-      else if (endframe <= seq->enddisp) {
+      else {
         seq->endstill = seq->enddisp - endframe;
         seq->endofs = 0;
         changed = true;
@@ -568,7 +568,7 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         seq->startofs = 0;
         changed = true;
       }
-      else if (seq->start <= seq->startdisp) {
+      else {
         seq->startstill = 0;
         seq->startofs = seq->startdisp - seq->start;
         changed = true;
