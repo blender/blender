@@ -182,9 +182,12 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
 
   parallel_iterator_func_do(state, userdata_chunk);
 
-  if (use_userdata_chunk && settings->func_free != NULL) {
-    /* `func_free` should only free data that was created during execution of `func`. */
-    settings->func_free(state->userdata, userdata_chunk_local);
+  if (use_userdata_chunk) {
+    if (settings->func_free != NULL) {
+      /* `func_free` should only free data that was created during execution of `func`. */
+      settings->func_free(state->userdata, userdata_chunk_local);
+    }
+    MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
   }
 }
 
@@ -241,14 +244,16 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
 
-  if (use_userdata_chunk && (settings->func_reduce != NULL || settings->func_free != NULL)) {
-    for (size_t i = 0; i < num_tasks; i++) {
-      userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
-      if (settings->func_reduce != NULL) {
-        settings->func_reduce(state->userdata, userdata_chunk, userdata_chunk_local);
-      }
-      if (settings->func_free != NULL) {
-        settings->func_free(state->userdata, userdata_chunk_local);
+  if (use_userdata_chunk) {
+    if (settings->func_reduce != NULL || settings->func_free != NULL) {
+      for (size_t i = 0; i < num_tasks; i++) {
+        userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
+        if (settings->func_reduce != NULL) {
+          settings->func_reduce(state->userdata, userdata_chunk, userdata_chunk_local);
+        }
+        if (settings->func_free != NULL) {
+          settings->func_free(state->userdata, userdata_chunk_local);
+        }
       }
     }
     MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
