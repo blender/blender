@@ -36,7 +36,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_mempool.h" /* own include */
+#include "BLI_mempool.h"         /* own include */
+#include "BLI_mempool_private.h" /* own include */
 
 #include "MEM_guardedalloc.h"
 
@@ -558,33 +559,31 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
  *
  * See BLI_task_parallel_mempool implementation for detailed usage example.
  */
-BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
+ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  BLI_mempool_iter *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
+  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
   BLI_mempool_chunk **curchunk_threaded_shared = MEM_mallocN(sizeof(void *), __func__);
 
-  BLI_mempool_iternew(pool, iter_arr);
+  BLI_mempool_iternew(pool, &iter_arr->iter);
 
-  *curchunk_threaded_shared = iter_arr->curchunk;
-  iter_arr->curchunk_threaded_shared = curchunk_threaded_shared;
-
+  *curchunk_threaded_shared = iter_arr->iter.curchunk;
+  iter_arr->iter.curchunk_threaded_shared = curchunk_threaded_shared;
   for (size_t i = 1; i < num_iter; i++) {
-    iter_arr[i] = iter_arr[0];
-    *curchunk_threaded_shared = iter_arr[i].curchunk = ((*curchunk_threaded_shared) ?
-                                                            (*curchunk_threaded_shared)->next :
-                                                            NULL);
+    iter_arr[i].iter = iter_arr[0].iter;
+    *curchunk_threaded_shared = iter_arr[i].iter.curchunk =
+        ((*curchunk_threaded_shared) ? (*curchunk_threaded_shared)->next : NULL);
   }
 
   return iter_arr;
 }
 
-void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr)
+void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr)
 {
-  BLI_assert(iter_arr->curchunk_threaded_shared != NULL);
+  BLI_assert(iter_arr->iter.curchunk_threaded_shared != NULL);
 
-  MEM_freeN(iter_arr->curchunk_threaded_shared);
+  MEM_freeN(iter_arr->iter.curchunk_threaded_shared);
   MEM_freeN(iter_arr);
 }
 

@@ -444,7 +444,9 @@ static void armature_vert_task(void *__restrict userdata,
   armature_vert_task_with_dvert(data, i, dvert);
 }
 
-static void armature_vert_task_editmesh(void *__restrict userdata, MempoolIterData *iter)
+static void armature_vert_task_editmesh(void *__restrict userdata,
+                                        MempoolIterData *iter,
+                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const ArmatureUserdata *data = userdata;
   BMVert *v = (BMVert *)iter;
@@ -452,7 +454,9 @@ static void armature_vert_task_editmesh(void *__restrict userdata, MempoolIterDa
   armature_vert_task_with_dvert(data, BM_elem_index_get(v), dvert);
 }
 
-static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata, MempoolIterData *iter)
+static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata,
+                                                 MempoolIterData *iter,
+                                                 const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const ArmatureUserdata *data = userdata;
   BMVert *v = (BMVert *)iter;
@@ -593,12 +597,16 @@ static void armature_deform_coords_impl(const Object *ob_arm,
      * have already been properly set. */
     BM_mesh_elem_index_ensure(em_target->bm, BM_VERT);
 
+    TaskParallelSettings settings;
+    BLI_parallel_mempool_settings_defaults(&settings);
+
     if (use_dverts) {
-      BLI_task_parallel_mempool(em_target->bm->vpool, &data, armature_vert_task_editmesh, true);
+      BLI_task_parallel_mempool(
+          em_target->bm->vpool, &data, armature_vert_task_editmesh, &settings);
     }
     else {
       BLI_task_parallel_mempool(
-          em_target->bm->vpool, &data, armature_vert_task_editmesh_no_dvert, true);
+          em_target->bm->vpool, &data, armature_vert_task_editmesh_no_dvert, &settings);
     }
   }
   else {

@@ -57,7 +57,9 @@ typedef struct BMEdgesCalcVectorsData {
   float (*edgevec)[3];
 } BMEdgesCalcVectorsData;
 
-static void bm_edge_calc_vectors_cb(void *userdata, MempoolIterData *mp_e)
+static void bm_edge_calc_vectors_cb(void *userdata,
+                                    MempoolIterData *mp_e,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BMEdge *e = (BMEdge *)mp_e;
   /* The edge vector will not be needed when the edge has no radial. */
@@ -69,7 +71,9 @@ static void bm_edge_calc_vectors_cb(void *userdata, MempoolIterData *mp_e)
   }
 }
 
-static void bm_edge_calc_vectors_with_coords_cb(void *userdata, MempoolIterData *mp_e)
+static void bm_edge_calc_vectors_with_coords_cb(void *userdata,
+                                                MempoolIterData *mp_e,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BMEdge *e = (BMEdge *)mp_e;
   /* The edge vector will not be needed when the edge has no radial. */
@@ -86,20 +90,19 @@ static void bm_mesh_edges_calc_vectors(BMesh *bm, float (*edgevec)[3], const flo
 {
   BM_mesh_elem_index_ensure(bm, BM_EDGE | (vcos ? BM_VERT : 0));
 
+  TaskParallelSettings settings;
+  BLI_parallel_mempool_settings_defaults(&settings);
+  settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+
   if (vcos == NULL) {
-    BM_iter_parallel(
-        bm, BM_EDGES_OF_MESH, bm_edge_calc_vectors_cb, edgevec, bm->totedge >= BM_OMP_LIMIT);
+    BM_iter_parallel(bm, BM_EDGES_OF_MESH, bm_edge_calc_vectors_cb, edgevec, &settings);
   }
   else {
     BMEdgesCalcVectorsData data = {
         .edgevec = edgevec,
         .vcos = vcos,
     };
-    BM_iter_parallel(bm,
-                     BM_EDGES_OF_MESH,
-                     bm_edge_calc_vectors_with_coords_cb,
-                     &data,
-                     bm->totedge >= BM_OMP_LIMIT);
+    BM_iter_parallel(bm, BM_EDGES_OF_MESH, bm_edge_calc_vectors_with_coords_cb, &data, &settings);
   }
 }
 
@@ -161,7 +164,9 @@ static void bm_vert_calc_normals_impl(const float (*edgevec)[3], BMVert *v)
   normalize_v3_v3(v_no, v->co);
 }
 
-static void bm_vert_calc_normals_cb(void *userdata, MempoolIterData *mp_v)
+static void bm_vert_calc_normals_cb(void *userdata,
+                                    MempoolIterData *mp_v,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   const float(*edgevec)[3] = userdata;
   BMVert *v = (BMVert *)mp_v;
@@ -198,7 +203,9 @@ static void bm_vert_calc_normals_with_coords(BMVert *v, BMVertsCalcNormalsWithCo
   normalize_v3_v3(v_no, data->vcos[BM_elem_index_get(v)]);
 }
 
-static void bm_vert_calc_normals_with_coords_cb(void *userdata, MempoolIterData *mp_v)
+static void bm_vert_calc_normals_with_coords_cb(void *userdata,
+                                                MempoolIterData *mp_v,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BMVertsCalcNormalsWithCoordsData *data = userdata;
   BMVert *v = (BMVert *)mp_v;
@@ -213,12 +220,12 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
 {
   BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE) | ((vnos || vcos) ? BM_VERT : 0));
 
+  TaskParallelSettings settings;
+  BLI_parallel_mempool_settings_defaults(&settings);
+  settings.use_threading = bm->totvert >= BM_OMP_LIMIT;
+
   if (vcos == NULL) {
-    BM_iter_parallel(bm,
-                     BM_VERTS_OF_MESH,
-                     bm_vert_calc_normals_cb,
-                     (void *)edgevec,
-                     bm->totvert >= BM_OMP_LIMIT);
+    BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_cb, (void *)edgevec, &settings);
   }
   else {
     BLI_assert(!ELEM(NULL, fnos, vnos));
@@ -228,15 +235,13 @@ static void bm_mesh_verts_calc_normals(BMesh *bm,
         .vcos = vcos,
         .vnos = vnos,
     };
-    BM_iter_parallel(bm,
-                     BM_VERTS_OF_MESH,
-                     bm_vert_calc_normals_with_coords_cb,
-                     &data,
-                     bm->totvert >= BM_OMP_LIMIT);
+    BM_iter_parallel(bm, BM_VERTS_OF_MESH, bm_vert_calc_normals_with_coords_cb, &data, &settings);
   }
 }
 
-static void bm_face_calc_normals_cb(void *UNUSED(userdata), MempoolIterData *mp_f)
+static void bm_face_calc_normals_cb(void *UNUSED(userdata),
+                                    MempoolIterData *mp_f,
+                                    const TaskParallelTLS *__restrict UNUSED(tls))
 {
   BMFace *f = (BMFace *)mp_f;
 
@@ -256,8 +261,11 @@ void BM_mesh_normals_update(BMesh *bm)
   BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE));
 
   /* Calculate all face normals. */
-  BM_iter_parallel(
-      bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, NULL, bm->totface >= BM_OMP_LIMIT);
+  TaskParallelSettings settings;
+  BLI_parallel_mempool_settings_defaults(&settings);
+  settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+
+  BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, NULL, &settings);
 
   bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
 

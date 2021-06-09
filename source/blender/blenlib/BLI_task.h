@@ -261,11 +261,14 @@ void BLI_task_parallel_listbase(struct ListBase *listbase,
                                 const TaskParallelSettings *settings);
 
 typedef struct MempoolIterData MempoolIterData;
-typedef void (*TaskParallelMempoolFunc)(void *userdata, MempoolIterData *iter);
+
+typedef void (*TaskParallelMempoolFunc)(void *userdata,
+                                        MempoolIterData *iter,
+                                        const TaskParallelTLS *__restrict tls);
 void BLI_task_parallel_mempool(struct BLI_mempool *mempool,
                                void *userdata,
                                TaskParallelMempoolFunc func,
-                               const bool use_threading);
+                               const TaskParallelSettings *settings);
 
 /* TODO(sergey): Think of a better place for this. */
 BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *settings)
@@ -274,6 +277,12 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(TaskParallelSettings *setti
   settings->use_threading = true;
   /* Use default heuristic to define actual chunk size. */
   settings->min_iter_per_thread = 0;
+}
+
+BLI_INLINE void BLI_parallel_mempool_settings_defaults(TaskParallelSettings *settings)
+{
+  memset(settings, 0, sizeof(*settings));
+  settings->use_threading = true;
 }
 
 /* Don't use this, store any thread specific data in tls->userdata_chunk instead.

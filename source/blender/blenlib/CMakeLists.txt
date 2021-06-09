@@ -145,6 +145,9 @@ set(SRC
   intern/winstuff.c
   intern/winstuff_dir.c
 
+  # Private headers.
+  intern/BLI_mempool_private.h
+
   # Header as source (included in C files above).
   intern/kdtree_impl.h
   intern/list_sort_impl.h
