@@ -49,6 +49,7 @@
 typedef struct anim_index_entry {
   int frameno;
   uint64_t seek_pos;
+  uint64_t seek_pos_pts;
   uint64_t seek_pos_dts;
   uint64_t pts;
 } anim_index_entry;
@@ -77,14 +78,19 @@ typedef struct anim_index_builder {
 } anim_index_builder;
 
 anim_index_builder *IMB_index_builder_create(const char *name);
-void IMB_index_builder_add_entry(
-    anim_index_builder *fp, int frameno, uint64_t seek_pos, uint64_t seek_pos_dts, uint64_t pts);
+void IMB_index_builder_add_entry(anim_index_builder *fp,
+                                 int frameno,
+                                 uint64_t seek_pos,
+                                 uint64_t seek_pos_pts,
+                                 uint64_t seek_pos_dts,
+                                 uint64_t pts);
 
 void IMB_index_builder_proc_frame(anim_index_builder *fp,
                                   unsigned char *buffer,
                                   int data_size,
                                   int frameno,
                                   uint64_t seek_pos,
+                                  uint64_t seek_pos_pts,
                                   uint64_t seek_pos_dts,
                                   uint64_t pts);
 
@@ -92,6 +98,7 @@ void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
 
 struct anim_index *IMB_indexer_open(const char *name);
 uint64_t IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index);
+uint64_t IMB_indexer_get_seek_pos_pts(struct anim_index *idx, int frame_index);
 uint64_t IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index);
 
 int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno);
