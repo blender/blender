@@ -28,7 +28,7 @@
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Triangles Indices
+/** \name Extract Triangles Indices (multi material)
  * \{ */
 
 struct MeshExtract_Tri_Data {
@@ -168,8 +168,115 @@ constexpr MeshExtract create_extractor_tris()
 
 /** \} */
 
+/** \name Extract Triangles Indices (single material)
+ * \{ */
+
+static void *extract_tris_single_mat_init(const MeshRenderData *mr,
+                                          struct MeshBatchCache *UNUSED(cache),
+                                          void *UNUSED(ibo))
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
+  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->tri_len, mr->loop_len);
+  return elb;
+}
+
+static void *extract_tris_single_mat_task_init(void *_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
+      MEM_mallocN(sizeof(*sub_builder), __func__));
+  GPU_indexbuf_subbuilder_init(elb, sub_builder);
+  return sub_builder;
+}
+
+static void extract_tris_single_mat_iter_looptri_bm(const MeshRenderData *UNUSED(mr),
+                                                    BMLoop **elt,
+                                                    const int elt_index,
+                                                    void *_data)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  if (!BM_elem_flag_test(elt[0]->f, BM_ELEM_HIDDEN)) {
+    GPU_indexbuf_set_tri_verts(elb,
+                               elt_index,
+                               BM_elem_index_get(elt[0]),
+                               BM_elem_index_get(elt[1]),
+                               BM_elem_index_get(elt[2]));
+  }
+  else {
+    GPU_indexbuf_set_tri_restart(elb, elt_index);
+  }
+}
+
+static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
+                                                      const MLoopTri *mlt,
+                                                      const int mlt_index,
+                                                      void *_data)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  const MPoly *mp = &mr->mpoly[mlt->poly];
+  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+    GPU_indexbuf_set_tri_verts(elb, mlt_index, mlt->tri[0], mlt->tri[1], mlt->tri[2]);
+  }
+  else {
+    GPU_indexbuf_set_tri_restart(elb, mlt_index);
+  }
+}
+
+static void extract_tris_single_mat_task_finish(void *_userdata, void *_task_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
+  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
+  MEM_freeN(sub_builder);
+}
+
+static void extract_tris_single_mat_finish(const MeshRenderData *mr,
+                                           struct MeshBatchCache *cache,
+                                           void *buf,
+                                           void *_data)
+{
+  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
+  GPU_indexbuf_build_in_place(elb, ibo);
+
+  /* Create ibo sub-ranges. Always do this to avoid error when the standard surface batch
+   * is created before the surfaces-per-material. */
+  if (mr->use_final_mesh && cache->final.tris_per_mat) {
+    MeshBufferCache *mbc = &cache->final;
+    for (int i = 0; i < mr->mat_len; i++) {
+      /* These IBOs have not been queried yet but we create them just in case they are needed
+       * later since they are not tracked by mesh_buffer_cache_create_requested(). */
+      if (mbc->tris_per_mat[i] == NULL) {
+        mbc->tris_per_mat[i] = GPU_indexbuf_calloc();
+      }
+      /* Multiply by 3 because these are triangle indices. */
+      const int len = mr->tri_len * 3;
+      GPU_indexbuf_create_subrange_in_place(mbc->tris_per_mat[i], ibo, 0, len);
+    }
+  }
+  MEM_freeN(elb);
+}
+
+constexpr MeshExtract create_extractor_tris_single_mat()
+{
+  MeshExtract extractor = {0};
+  extractor.init = extract_tris_single_mat_init;
+  extractor.task_init = extract_tris_single_mat_task_init;
+  extractor.iter_looptri_bm = extract_tris_single_mat_iter_looptri_bm;
+  extractor.iter_looptri_mesh = extract_tris_single_mat_iter_looptri_mesh;
+  extractor.task_finish = extract_tris_single_mat_task_finish;
+  extractor.finish = extract_tris_single_mat_finish;
+  extractor.data_type = MR_DATA_NONE;
+  extractor.use_threading = true;
+  extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris);
+  return extractor;
+}
+
+/** \} */
+
 }  // namespace blender::draw
 
 extern "C" {
 const MeshExtract extract_tris = blender::draw::create_extractor_tris();
+const MeshExtract extract_tris_single_mat = blender::draw::create_extractor_tris_single_mat();
 }

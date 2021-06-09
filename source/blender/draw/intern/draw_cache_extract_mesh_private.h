@@ -468,13 +468,15 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferCache *mbc);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
-                                             const bool do_hq_normals);
+                                             const bool do_hq_normals,
+                                             const bool do_single_mat);
 /*
  * Total number of extractions types.
  */
 #define M_EXTRACT_LEN 38
 
 extern const MeshExtract extract_tris;
+extern const MeshExtract extract_tris_single_mat;
 extern const MeshExtract extract_lines;
 extern const MeshExtract extract_lines_with_lines_loose;
 extern const MeshExtract extract_lines_loose_only;

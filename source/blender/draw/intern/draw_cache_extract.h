@@ -90,7 +90,7 @@ ENUM_OPERATORS(eMRDataType, MR_DATA_TAN_LOOP_NOR)
 extern "C" {
 #endif
 
-BLI_INLINE int mesh_render_mat_len_get(Mesh *me)
+BLI_INLINE int mesh_render_mat_len_get(const Mesh *me)
 {
   /* In edit mode, the displayed mesh is stored in the edit-mesh. */
   if (me->edit_mesh && me->edit_mesh->mesh_eval_final) {
