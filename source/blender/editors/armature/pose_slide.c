@@ -1581,8 +1581,6 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* Perform pose updates - in response to some user action
    * (e.g. pressing a key or moving the mouse). */
   if (do_pose_update) {
-    pose_slide_mouse_update_percentage(pso, op, event);
-
     /* update percentage indicator in header */
     pose_slide_draw_status(C, pso);
 
