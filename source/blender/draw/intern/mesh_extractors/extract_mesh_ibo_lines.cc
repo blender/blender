@@ -42,6 +42,15 @@ static void *extract_lines_init(const MeshRenderData *mr,
   return elb;
 }
 
+static void *extract_lines_task_init(void *_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
+      MEM_mallocN(sizeof(*sub_builder), __func__));
+  GPU_indexbuf_subbuilder_init(elb, sub_builder);
+  return sub_builder;
+}
+
 static void extract_lines_iter_poly_bm(const MeshRenderData *UNUSED(mr),
                                        BMFace *f,
                                        const int UNUSED(f_index),
@@ -138,6 +147,14 @@ static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
   GPU_indexbuf_set_line_restart(elb, e_index);
 }
 
+static void extract_lines_task_finish(void *_userdata, void *_task_userdata)
+{
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
+  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
+  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
+  MEM_freeN(sub_builder);
+}
+
 static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
                                  struct MeshBatchCache *UNUSED(cache),
                                  void *buf,
@@ -153,13 +170,15 @@ constexpr MeshExtract create_extractor_lines()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_lines_init;
+  extractor.task_init = extract_lines_task_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
+  extractor.task_finish = extract_lines_task_finish;
   extractor.finish = extract_lines_finish;
   extractor.data_type = MR_DATA_NONE;
-  extractor.use_threading = false;
+  extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
   return extractor;
 }
@@ -197,13 +216,15 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_lines_init;
+  extractor.task_init = extract_lines_task_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
+  extractor.task_finish = extract_lines_task_finish;
   extractor.finish = extract_lines_with_lines_loose_finish;
   extractor.data_type = MR_DATA_NONE;
-  extractor.use_threading = false;
+  extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
   return extractor;
 }
