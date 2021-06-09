@@ -1226,8 +1226,6 @@ static void layerInterp_mvert_skin(const void **sources,
                                    int count,
                                    void *dest)
 {
-  MVertSkin *vs_dst = dest;
-
   float radius[3];
   zero_v3(radius);
 
@@ -1239,7 +1237,7 @@ static void layerInterp_mvert_skin(const void **sources,
   }
 
   /* Delay writing to the destination in case dest is in sources. */
-  vs_dst = dest;
+  MVertSkin *vs_dst = dest;
   copy_v3_v3(vs_dst->radius, radius);
   vs_dst->flag &= ~MVERT_SKIN_ROOT;
 }

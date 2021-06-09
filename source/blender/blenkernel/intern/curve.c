@@ -3192,7 +3192,6 @@ static void calchandleNurb_intern(BezTriple *bezt,
   float pt[3];
   float dvec_a[3], dvec_b[3];
   float len, len_a, len_b;
-  float len_ratio;
   const float eps = 1e-5;
 
   /* assume normal handle until we check */
@@ -3243,8 +3242,6 @@ static void calchandleNurb_intern(BezTriple *bezt,
   if (len_b == 0.0f) {
     len_b = 1.0f;
   }
-
-  len_ratio = len_a / len_b;
 
   if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) || ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) { /* auto */
     float tvec[3];
@@ -3378,7 +3375,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
     len_b = 1.0f;
   }
 
-  len_ratio = len_a / len_b;
+  const float len_ratio = len_a / len_b;
 
   if (bezt->f1 & handle_sel_flag) {                      /* order of calculation */
     if (ELEM(bezt->h2, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) { /* aligned */
