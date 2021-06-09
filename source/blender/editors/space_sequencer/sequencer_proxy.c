@@ -99,7 +99,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
     return;
   }
 
-  if (selected && !WM_jobs_is_running(wm_job)) {
+  if (!WM_jobs_is_running(wm_job)) {
     G.is_break = false;
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }

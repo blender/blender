@@ -3787,9 +3787,7 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
   SEQ_ALL_BEGIN (scene->ed, seq) {
     if (seq->scene_sound == NULL) {
       if (seq->sound != NULL) {
-        if (seq->scene_sound == NULL) {
-          seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
-        }
+        seq->scene_sound = BKE_sound_add_scene_sound_defaults(scene, seq);
       }
       else if (seq->type == SEQ_TYPE_SCENE) {
         if (seq->scene != NULL) {

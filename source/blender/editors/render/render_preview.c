@@ -611,9 +611,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
         float fy = rect->ymin;
 
         /* material preview only needs monoscopy (view 0) */
-        if (re) {
-          RE_AcquiredResultGet32(re, &rres, (uint *)rect_byte, 0);
-        }
+        RE_AcquiredResultGet32(re, &rres, (uint *)rect_byte, 0);
 
         IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
         immDrawPixelsTex(
