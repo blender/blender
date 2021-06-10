@@ -79,6 +79,7 @@ if(WIN32)
       # Normal collection of build artifacts
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbb_debug.lib ${HARVEST_TARGET}/tbb/lib/tbb_debug.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/bin/tbb_debug.dll ${HARVEST_TARGET}/tbb/bin/tbb_debug.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_debug.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/lib/tbbmalloc_proxy_debug.lib ${HARVEST_TARGET}/tbb/lib/tbbmalloc_proxy_debug.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/bin/tbbmalloc_debug.dll ${HARVEST_TARGET}/tbb/bin/tbbmalloc_debug.dll
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tbb/bin/tbbmalloc_proxy_debug.dll ${HARVEST_TARGET}/tbb/bin/tbbmalloc_proxy_debug.dll
