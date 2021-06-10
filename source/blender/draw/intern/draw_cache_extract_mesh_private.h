@@ -150,278 +150,56 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *e
   return efa->no;
 }
 
-/* TODO(jbakker): phase out batch iteration macros as they are only used once. */
-/* ---------------------------------------------------------------------- */
-/** \name Mesh Elements Extract: Loop Triangles
- * \{ */
-
-typedef struct ExtractTriBMesh_Params {
-  BMLoop *(*looptris)[3];
-  int tri_range[2];
-} ExtractTriBMesh_Params;
-typedef void(ExtractTriBMeshFn)(const MeshRenderData *mr,
-                                BMLoop **elt,
-                                const int elt_index,
-                                void *data);
-
-#define EXTRACT_TRIS_LOOPTRI_FOREACH_BM_BEGIN(elem_tri, index_tri, params) \
-  CHECK_TYPE(params, const ExtractTriBMesh_Params *); \
-  { \
-    const int _tri_index_end = (params)->tri_range[1]; \
-    BMLoop **elem_tri = (params)->looptris[(params)->tri_range[0]]; \
-    for (int index_tri = (params)->tri_range[0]; index_tri < _tri_index_end; \
-         index_tri += 1, elem_tri += 3)
-#define EXTRACT_TRIS_LOOPTRI_FOREACH_BM_END }
-
-typedef struct ExtractTriMesh_Params {
-  const MLoopTri *mlooptri;
-  int tri_range[2];
-} ExtractTriMesh_Params;
-typedef void(ExtractTriMeshFn)(const MeshRenderData *mr,
-                               const MLoopTri *mlt,
-                               const int elt_index,
-                               void *data);
-
-#define EXTRACT_TRIS_LOOPTRI_FOREACH_MESH_BEGIN(elem_tri, index_tri, params) \
-  CHECK_TYPE(params, const ExtractTriMesh_Params *); \
-  { \
-    const int _tri_index_end = (params)->tri_range[1]; \
-    const MLoopTri *elem_tri = &(params)->mlooptri[(params)->tri_range[0]]; \
-    for (int index_tri = (params)->tri_range[0]; index_tri < _tri_index_end; \
-         index_tri += 1, elem_tri += 1)
-#define EXTRACT_TRIS_LOOPTRI_FOREACH_MESH_END }
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Mesh Elements Extract: Polygons, Loops
- * \{ */
-
-typedef struct ExtractPolyBMesh_Params {
-  BMLoop *(*looptris)[3];
-  int poly_range[2];
-} ExtractPolyBMesh_Params;
-typedef void(ExtractPolyBMeshFn)(const MeshRenderData *mr,
-                                 BMFace *f,
-                                 const int f_index,
-                                 void *data);
-
-#define EXTRACT_POLY_FOREACH_BM_BEGIN(elem_poly, index_poly, params, mr) \
-  CHECK_TYPE(params, const ExtractPolyBMesh_Params *); \
-  { \
-    BLI_assert((mr->bm->elem_table_dirty & BM_FACE) == 0); \
-    BMFace **_ftable = mr->bm->ftable; \
-    const int _poly_index_end = (params)->poly_range[1]; \
-    for (int index_poly = (params)->poly_range[0]; index_poly < _poly_index_end; \
-         index_poly += 1) { \
-      BMFace *elem_poly = _ftable[index_poly]; \
-      (void)elem_poly;
-
-#define EXTRACT_POLY_FOREACH_BM_END \
-  } \
-  }
-
-/* Iterate over polygon and loop. */
-#define EXTRACT_POLY_AND_LOOP_FOREACH_BM_BEGIN(elem_loop, index_loop, params, mr) \
-  CHECK_TYPE(params, const ExtractPolyBMesh_Params *); \
-  { \
-    BLI_assert((mr->bm->elem_table_dirty & BM_FACE) == 0); \
-    BMFace **_ftable = mr->bm->ftable; \
-    const int _poly_index_end = (params)->poly_range[1]; \
-    for (int index_poly = (params)->poly_range[0]; index_poly < _poly_index_end; \
-         index_poly += 1) { \
-      BMFace *elem_face = _ftable[index_poly]; \
-      BMLoop *elem_loop, *l_first; \
-      elem_loop = l_first = BM_FACE_FIRST_LOOP(elem_face); \
-      do { \
-        const int index_loop = BM_elem_index_get(elem_loop); \
-        (void)index_loop; /* Quiet warning when unused. */
-
-#define EXTRACT_POLY_AND_LOOP_FOREACH_BM_END(elem_loop) \
-  } \
-  while ((elem_loop = elem_loop->next) != l_first) \
-    ; \
-  } \
-  }
-
-typedef struct ExtractPolyMesh_Params {
-  int poly_range[2];
-} ExtractPolyMesh_Params;
-typedef void(ExtractPolyMeshFn)(const MeshRenderData *mr,
-                                const MPoly *mp,
-                                const int mp_index,
-                                void *data);
-
-#define EXTRACT_POLY_FOREACH_MESH_BEGIN(elem_poly, index_poly, params, mr) \
-  CHECK_TYPE(params, const ExtractPolyMesh_Params *); \
-  { \
-    const MPoly *_mpoly = mr->mpoly; \
-    const int _poly_index_end = (params)->poly_range[1]; \
-    for (int index_poly = (params)->poly_range[0]; index_poly < _poly_index_end; \
-         index_poly += 1) { \
-      const MPoly *elem_poly = &_mpoly[index_poly]; \
-      (void)elem_poly;
-
-#define EXTRACT_POLY_FOREACH_MESH_END \
-  } \
-  }
-
-/* Iterate over polygon and loop. */
-#define EXTRACT_POLY_AND_LOOP_FOREACH_MESH_BEGIN( \
-    elem_poly, index_poly, elem_loop, index_loop, params, mr) \
-  CHECK_TYPE(params, const ExtractPolyMesh_Params *); \
-  { \
-    const MPoly *_mpoly = mr->mpoly; \
-    const MLoop *_mloop = mr->mloop; \
-    const int _poly_index_end = (params)->poly_range[1]; \
-    for (int index_poly = (params)->poly_range[0]; index_poly < _poly_index_end; \
-         index_poly += 1) { \
-      const MPoly *elem_poly = &_mpoly[index_poly]; \
-      const int _index_end = elem_poly->loopstart + elem_poly->totloop; \
-      for (int index_loop = elem_poly->loopstart; index_loop < _index_end; index_loop += 1) { \
-        const MLoop *elem_loop = &_mloop[index_loop]; \
-        (void)elem_loop;
-
-#define EXTRACT_POLY_AND_LOOP_FOREACH_MESH_END \
-  } \
-  } \
-  }
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Mesh Elements Extract: Loose Edges
- * \{ */
-
-typedef struct ExtractLEdgeBMesh_Params {
-  const int *ledge;
-  int ledge_range[2];
-} ExtractLEdgeBMesh_Params;
-typedef void(ExtractLEdgeBMeshFn)(const MeshRenderData *mr,
-                                  BMEdge *eed,
-                                  const int ledge_index,
-                                  void *data);
-
-#define EXTRACT_LEDGE_FOREACH_BM_BEGIN(elem_edge, index_ledge, params) \
-  CHECK_TYPE(params, const ExtractLEdgeBMesh_Params *); \
-  { \
-    BLI_assert((mr->bm->elem_table_dirty & BM_EDGE) == 0); \
-    BMEdge **_etable = mr->bm->etable; \
-    const int *_ledge = (params)->ledge; \
-    const int _ledge_index_end = (params)->ledge_range[1]; \
-    for (int index_ledge = (params)->ledge_range[0]; index_ledge < _ledge_index_end; \
-         index_ledge += 1) { \
-      BMEdge *elem_edge = _etable[_ledge[index_ledge]]; \
-      (void)elem_edge; /* Quiet warning when unused. */ \
-      {
-#define EXTRACT_LEDGE_FOREACH_BM_END \
-  } \
-  } \
-  }
-
-typedef struct ExtractLEdgeMesh_Params {
-  const int *ledge;
-  int ledge_range[2];
-} ExtractLEdgeMesh_Params;
-typedef void(ExtractLEdgeMeshFn)(const MeshRenderData *mr,
-                                 const MEdge *med,
-                                 const int ledge_index,
-                                 void *data);
-
-#define EXTRACT_LEDGE_FOREACH_MESH_BEGIN(elem_edge, index_ledge, params, mr) \
-  CHECK_TYPE(params, const ExtractLEdgeMesh_Params *); \
-  { \
-    const MEdge *_medge = mr->medge; \
-    const int *_ledge = (params)->ledge; \
-    const int _ledge_index_end = (params)->ledge_range[1]; \
-    for (int index_ledge = (params)->ledge_range[0]; index_ledge < _ledge_index_end; \
-         index_ledge += 1) { \
-      const MEdge *elem_edge = &_medge[_ledge[index_ledge]]; \
-      (void)elem_edge; /* Quiet warning when unused. */ \
-      {
-#define EXTRACT_LEDGE_FOREACH_MESH_END \
-  } \
-  } \
-  }
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Mesh Elements Extract: Loose Vertices
- * \{ */
-
-typedef struct ExtractLVertBMesh_Params {
-  const int *lvert;
-  int lvert_range[2];
-} ExtractLVertBMesh_Params;
-typedef void(ExtractLVertBMeshFn)(const MeshRenderData *mr,
-                                  BMVert *eve,
-                                  const int lvert_index,
-                                  void *data);
-
-#define EXTRACT_LVERT_FOREACH_BM_BEGIN(elem_vert, index_lvert, params) \
-  CHECK_TYPE(params, const ExtractLVertBMesh_Params *); \
-  { \
-    BLI_assert((mr->bm->elem_table_dirty & BM_FACE) == 0); \
-    BMVert **vtable = mr->bm->vtable; \
-    const int *lverts = (params)->lvert; \
-    const int _lvert_index_end = (params)->lvert_range[1]; \
-    for (int index_lvert = (params)->lvert_range[0]; index_lvert < _lvert_index_end; \
-         index_lvert += 1) { \
-      BMVert *elem_vert = vtable[lverts[index_lvert]]; \
-      (void)elem_vert; /* Quiet warning when unused. */ \
-      {
-#define EXTRACT_LVERT_FOREACH_BM_END \
-  } \
-  } \
-  }
-
-typedef struct ExtractLVertMesh_Params {
-  const int *lvert;
-  int lvert_range[2];
-} ExtractLVertMesh_Params;
-typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
-                                 const MVert *mv,
-                                 const int lvert_index,
-                                 void *data);
-
-#define EXTRACT_LVERT_FOREACH_MESH_BEGIN(elem, index_lvert, params, mr) \
-  CHECK_TYPE(params, const ExtractLVertMesh_Params *); \
-  { \
-    const MVert *mvert = mr->mvert; \
-    const int *lverts = (params)->lvert; \
-    const int _lvert_index_end = (params)->lvert_range[1]; \
-    for (int index_lvert = (params)->lvert_range[0]; index_lvert < _lvert_index_end; \
-         index_lvert += 1) { \
-      const MVert *elem = &mvert[lverts[index_lvert]]; \
-      (void)elem; /* Quiet warning when unused. */ \
-      {
-#define EXTRACT_LVERT_FOREACH_MESH_END \
-  } \
-  } \
-  }
-
-/** \} */
-
 /* ---------------------------------------------------------------------- */
 /** \name Mesh Elements Extract Struct
  * \{ */
 /* TODO(jbakker): move parameters inside a struct. */
-typedef void *(ExtractInitFn)(const MeshRenderData *mr,
-                              struct MeshBatchCache *cache,
-                              void *buffer);
+typedef void(ExtractTriBMeshFn)(const MeshRenderData *mr,
+                                BMLoop **elt,
+                                const int elt_index,
+                                void *data);
+typedef void(ExtractTriMeshFn)(const MeshRenderData *mr,
+                               const MLoopTri *mlt,
+                               const int elt_index,
+                               void *data);
+typedef void(ExtractPolyBMeshFn)(const MeshRenderData *mr,
+                                 const BMFace *f,
+                                 const int f_index,
+                                 void *data);
+typedef void(ExtractPolyMeshFn)(const MeshRenderData *mr,
+                                const MPoly *mp,
+                                const int mp_index,
+                                void *data);
+typedef void(ExtractLEdgeBMeshFn)(const MeshRenderData *mr,
+                                  const BMEdge *eed,
+                                  const int ledge_index,
+                                  void *data);
+typedef void(ExtractLEdgeMeshFn)(const MeshRenderData *mr,
+                                 const MEdge *med,
+                                 const int ledge_index,
+                                 void *data);
+typedef void(ExtractLVertBMeshFn)(const MeshRenderData *mr,
+                                  const BMVert *eve,
+                                  const int lvert_index,
+                                  void *data);
+typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
+                                 const MVert *mv,
+                                 const int lvert_index,
+                                 void *data);
+typedef void(ExtractInitFn)(const MeshRenderData *mr,
+                            struct MeshBatchCache *cache,
+                            void *buffer,
+                            void *r_data);
 typedef void(ExtractFinishFn)(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buffer,
                               void *data);
-typedef void *(ExtractTaskInitFn)(void *userdata);
+typedef void(ExtractTaskInitFn)(void *userdata, void *r_task_userdata);
 typedef void(ExtractTaskFinishFn)(void *userdata, void *task_userdata);
 
 typedef struct MeshExtract {
   /** Executed on main thread and return user data for iteration functions. */
   ExtractInitFn *init;
-  /** Task local data. */
-  ExtractTaskInitFn *task_init;
   /** Executed on one (or more if use_threading) worker thread(s). */
   ExtractTriBMeshFn *iter_looptri_bm;
   ExtractTriMeshFn *iter_looptri_mesh;
@@ -432,10 +210,11 @@ typedef struct MeshExtract {
   ExtractLVertBMeshFn *iter_lvert_bm;
   ExtractLVertMeshFn *iter_lvert_mesh;
   /** Executed on one worker thread after all elements iterations. */
-  ExtractTaskFinishFn *task_finish;
+  ExtractTaskFinishFn *task_reduce;
   ExtractFinishFn *finish;
   /** Used to request common data. */
   eMRDataType data_type;
+  size_t data_size;
   /** Used to know if the element callbacks are thread-safe and can be parallelized. */
   bool use_threading;
   /**

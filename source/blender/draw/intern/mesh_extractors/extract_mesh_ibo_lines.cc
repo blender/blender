@@ -31,28 +31,19 @@ namespace blender::draw {
 /** \name Extract Edges Indices
  * \{ */
 
-static void *extract_lines_init(const MeshRenderData *mr,
-                                struct MeshBatchCache *UNUSED(cache),
-                                void *UNUSED(buf))
+static void extract_lines_init(const MeshRenderData *mr,
+                               struct MeshBatchCache *UNUSED(cache),
+                               void *UNUSED(buf),
+                               void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
   /* Put loose edges at the end. */
   GPU_indexbuf_init(
       elb, GPU_PRIM_LINES, mr->edge_len + mr->edge_loose_len, mr->loop_len + mr->loop_loose_len);
-  return elb;
-}
-
-static void *extract_lines_task_init(void *_userdata)
-{
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
-      MEM_mallocN(sizeof(*sub_builder), __func__));
-  GPU_indexbuf_subbuilder_init(elb, sub_builder);
-  return sub_builder;
 }
 
 static void extract_lines_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                       BMFace *f,
+                                       const BMFace *f,
                                        const int UNUSED(f_index),
                                        void *data)
 {
@@ -109,7 +100,7 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_lines_iter_ledge_bm(const MeshRenderData *mr,
-                                        BMEdge *eed,
+                                        const BMEdge *eed,
                                         const int ledge_index,
                                         void *data)
 {
@@ -147,12 +138,11 @@ static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
   GPU_indexbuf_set_line_restart(elb, e_index);
 }
 
-static void extract_lines_task_finish(void *_userdata, void *_task_userdata)
+static void extract_lines_task_finish(void *_userdata_to, void *_userdata_from)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
-  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
-  MEM_freeN(sub_builder);
+  GPUIndexBufBuilder *elb_to = static_cast<GPUIndexBufBuilder *>(_userdata_to);
+  GPUIndexBufBuilder *elb_from = static_cast<GPUIndexBufBuilder *>(_userdata_from);
+  GPU_indexbuf_join_copies(elb_to, elb_from);
 }
 
 static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
@@ -163,21 +153,20 @@ static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_lines()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_lines_init;
-  extractor.task_init = extract_lines_task_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
-  extractor.task_finish = extract_lines_task_finish;
+  extractor.task_reduce = extract_lines_task_finish;
   extractor.finish = extract_lines_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
   return extractor;
@@ -209,21 +198,20 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
   extract_lines_loose_subbuffer(mr, cache);
-  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_lines_with_lines_loose()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_lines_init;
-  extractor.task_init = extract_lines_task_init;
   extractor.iter_poly_bm = extract_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
-  extractor.task_finish = extract_lines_task_finish;
+  extractor.task_reduce = extract_lines_task_finish;
   extractor.finish = extract_lines_with_lines_loose_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines);
   return extractor;
@@ -235,14 +223,14 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
 /** \name Extract Loose Edges Sub Buffer
  * \{ */
 
-static void *extract_lines_loose_only_init(const MeshRenderData *mr,
-                                           struct MeshBatchCache *cache,
-                                           void *buf)
+static void extract_lines_loose_only_init(const MeshRenderData *mr,
+                                          struct MeshBatchCache *cache,
+                                          void *buf,
+                                          void *UNUSED(tls_data))
 {
   BLI_assert(buf == cache->final.ibo.lines_loose);
   UNUSED_VARS_NDEBUG(buf);
   extract_lines_loose_subbuffer(mr, cache);
-  return NULL;
 }
 
 constexpr MeshExtract create_extractor_lines_loose_only()
@@ -250,6 +238,7 @@ constexpr MeshExtract create_extractor_lines_loose_only()
   MeshExtract extractor = {0};
   extractor.init = extract_lines_loose_only_init;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = 0;
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_loose);
   return extractor;

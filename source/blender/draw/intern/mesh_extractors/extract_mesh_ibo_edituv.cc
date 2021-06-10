@@ -37,15 +37,14 @@ struct MeshExtract_EditUvElem_Data {
   bool sync_selection;
 };
 
-static void *extract_edituv_tris_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
-                                      void *UNUSED(ibo))
+static void extract_edituv_tris_init(const MeshRenderData *mr,
+                                     struct MeshBatchCache *UNUSED(cache),
+                                     void *UNUSED(ibo),
+                                     void *tls_data)
 {
-  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_TRIS, mr->tri_len, mr->loop_len);
   data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
-  return data;
 }
 
 BLI_INLINE void edituv_tri_add(
@@ -93,7 +92,6 @@ static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
 }
 
 constexpr MeshExtract create_extractor_edituv_tris()
@@ -104,6 +102,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
   extractor.iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh;
   extractor.finish = extract_edituv_tris_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_tris);
   return extractor;
@@ -115,15 +114,14 @@ constexpr MeshExtract create_extractor_edituv_tris()
 /** \name Extract Edit UV Line Indices around faces
  * \{ */
 
-static void *extract_edituv_lines_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
-                                       void *UNUSED(ibo))
+static void extract_edituv_lines_init(const MeshRenderData *mr,
+                                      struct MeshBatchCache *UNUSED(cache),
+                                      void *UNUSED(ibo),
+                                      void *tls_data)
 {
-  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES, mr->loop_len, mr->loop_len);
   data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
-  return data;
 }
 
 BLI_INLINE void edituv_edge_add(
@@ -135,7 +133,7 @@ BLI_INLINE void edituv_edge_add(
 }
 
 static void extract_edituv_lines_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                              BMFace *f,
+                                              const BMFace *f,
                                               const int UNUSED(f_index),
                                               void *_data)
 {
@@ -184,7 +182,6 @@ static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
 }
 
 constexpr MeshExtract create_extractor_edituv_lines()
@@ -195,6 +192,7 @@ constexpr MeshExtract create_extractor_edituv_lines()
   extractor.iter_poly_mesh = extract_edituv_lines_iter_poly_mesh;
   extractor.finish = extract_edituv_lines_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_lines);
   return extractor;
@@ -206,15 +204,14 @@ constexpr MeshExtract create_extractor_edituv_lines()
 /** \name Extract Edit UV Points Indices
  * \{ */
 
-static void *extract_edituv_points_init(const MeshRenderData *mr,
-                                        struct MeshBatchCache *UNUSED(cache),
-                                        void *UNUSED(ibo))
+static void extract_edituv_points_init(const MeshRenderData *mr,
+                                       struct MeshBatchCache *UNUSED(cache),
+                                       void *UNUSED(ibo),
+                                       void *tls_data)
 {
-  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_POINTS, mr->loop_len, mr->loop_len);
   data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
-  return data;
 }
 
 BLI_INLINE void edituv_point_add(MeshExtract_EditUvElem_Data *data,
@@ -228,7 +225,7 @@ BLI_INLINE void edituv_point_add(MeshExtract_EditUvElem_Data *data,
 }
 
 static void extract_edituv_points_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                               BMFace *f,
+                                               const BMFace *f,
                                                const int UNUSED(f_index),
                                                void *_data)
 {
@@ -269,7 +266,6 @@ static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
 }
 
 constexpr MeshExtract create_extractor_edituv_points()
@@ -280,6 +276,7 @@ constexpr MeshExtract create_extractor_edituv_points()
   extractor.iter_poly_mesh = extract_edituv_points_iter_poly_mesh;
   extractor.finish = extract_edituv_points_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_points);
   return extractor;
@@ -291,15 +288,14 @@ constexpr MeshExtract create_extractor_edituv_points()
 /** \name Extract Edit UV Face-dots Indices
  * \{ */
 
-static void *extract_edituv_fdots_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
-                                       void *UNUSED(ibo))
+static void extract_edituv_fdots_init(const MeshRenderData *mr,
+                                      struct MeshBatchCache *UNUSED(cache),
+                                      void *UNUSED(ibo),
+                                      void *tls_data)
 {
-  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_POINTS, mr->poly_len, mr->poly_len);
   data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
-  return data;
 }
 
 BLI_INLINE void edituv_facedot_add(MeshExtract_EditUvElem_Data *data,
@@ -316,7 +312,7 @@ BLI_INLINE void edituv_facedot_add(MeshExtract_EditUvElem_Data *data,
 }
 
 static void extract_edituv_fdots_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                              BMFace *f,
+                                              const BMFace *f,
                                               const int f_index,
                                               void *_data)
 {
@@ -366,7 +362,6 @@ static void extract_edituv_fdots_finish(const MeshRenderData *UNUSED(mr),
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
 }
 
 constexpr MeshExtract create_extractor_edituv_fdots()
@@ -377,6 +372,7 @@ constexpr MeshExtract create_extractor_edituv_fdots()
   extractor.iter_poly_mesh = extract_edituv_fdots_iter_poly_mesh;
   extractor.finish = extract_edituv_fdots_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.edituv_fdots);
   return extractor;

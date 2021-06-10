@@ -37,12 +37,12 @@ struct MeshExtract_Tri_Data {
   int *tri_mat_end;
 };
 
-static void *extract_tris_init(const MeshRenderData *mr,
-                               struct MeshBatchCache *UNUSED(cache),
-                               void *UNUSED(ibo))
+static void extract_tris_init(const MeshRenderData *mr,
+                              struct MeshBatchCache *UNUSED(cache),
+                              void *UNUSED(ibo),
+                              void *tls_data)
 {
-  MeshExtract_Tri_Data *data = static_cast<MeshExtract_Tri_Data *>(
-      MEM_callocN(sizeof(*data), __func__));
+  MeshExtract_Tri_Data *data = static_cast<MeshExtract_Tri_Data *>(tls_data);
 
   size_t mat_tri_idx_size = sizeof(int) * mr->mat_len;
   data->tri_mat_start = static_cast<int *>(MEM_callocN(mat_tri_idx_size, __func__));
@@ -82,8 +82,6 @@ static void *extract_tris_init(const MeshRenderData *mr,
 
   int visible_tri_tot = ofs;
   GPU_indexbuf_init(&data->elb, GPU_PRIM_TRIS, visible_tri_tot, mr->loop_len);
-
-  return data;
 }
 
 static void extract_tris_iter_looptri_bm(const MeshRenderData *mr,
@@ -150,7 +148,6 @@ static void extract_tris_finish(const MeshRenderData *mr,
   }
   MEM_freeN(data->tri_mat_start);
   MEM_freeN(data->tri_mat_end);
-  MEM_freeN(data);
 }
 
 constexpr MeshExtract create_extractor_tris()
@@ -161,6 +158,7 @@ constexpr MeshExtract create_extractor_tris()
   extractor.iter_looptri_mesh = extract_tris_iter_looptri_mesh;
   extractor.finish = extract_tris_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_Tri_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris);
   return extractor;
@@ -171,22 +169,13 @@ constexpr MeshExtract create_extractor_tris()
 /** \name Extract Triangles Indices (single material)
  * \{ */
 
-static void *extract_tris_single_mat_init(const MeshRenderData *mr,
-                                          struct MeshBatchCache *UNUSED(cache),
-                                          void *UNUSED(ibo))
+static void extract_tris_single_mat_init(const MeshRenderData *mr,
+                                         struct MeshBatchCache *UNUSED(cache),
+                                         void *UNUSED(ibo),
+                                         void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
   GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr->tri_len, mr->loop_len);
-  return elb;
-}
-
-static void *extract_tris_single_mat_task_init(void *_userdata)
-{
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
-      MEM_mallocN(sizeof(*sub_builder), __func__));
-  GPU_indexbuf_subbuilder_init(elb, sub_builder);
-  return sub_builder;
 }
 
 static void extract_tris_single_mat_iter_looptri_bm(const MeshRenderData *UNUSED(mr),
@@ -222,12 +211,11 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_tris_single_mat_task_finish(void *_userdata, void *_task_userdata)
+static void extract_tris_single_mat_task_finish(void *_userdata_to, void *_userdata_from)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
-  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
-  MEM_freeN(sub_builder);
+  GPUIndexBufBuilder *elb_to = static_cast<GPUIndexBufBuilder *>(_userdata_to);
+  GPUIndexBufBuilder *elb_from = static_cast<GPUIndexBufBuilder *>(_userdata_from);
+  GPU_indexbuf_join_copies(elb_to, elb_from);
 }
 
 static void extract_tris_single_mat_finish(const MeshRenderData *mr,
@@ -254,19 +242,18 @@ static void extract_tris_single_mat_finish(const MeshRenderData *mr,
       GPU_indexbuf_create_subrange_in_place(mbc->tris_per_mat[i], ibo, 0, len);
     }
   }
-  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_tris_single_mat()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_tris_single_mat_init;
-  extractor.task_init = extract_tris_single_mat_task_init;
   extractor.iter_looptri_bm = extract_tris_single_mat_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_tris_single_mat_iter_looptri_mesh;
-  extractor.task_finish = extract_tris_single_mat_task_finish;
+  extractor.task_reduce = extract_tris_single_mat_task_finish;
   extractor.finish = extract_tris_single_mat_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.tris);
   return extractor;

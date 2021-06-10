@@ -32,17 +32,17 @@ namespace blender::draw {
 /** \name Extract Face-dots Indices
  * \{ */
 
-static void *extract_fdots_init(const MeshRenderData *mr,
-                                struct MeshBatchCache *UNUSED(cache),
-                                void *UNUSED(buf))
+static void extract_fdots_init(const MeshRenderData *mr,
+                               struct MeshBatchCache *UNUSED(cache),
+                               void *UNUSED(buf),
+                               void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
   GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->poly_len, mr->poly_len);
-  return elb;
 }
 
 static void extract_fdots_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                       BMFace *f,
+                                       const BMFace *f,
                                        const int f_index,
                                        void *_userdata)
 {
@@ -93,7 +93,6 @@ static void extract_fdots_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_fdots()
@@ -104,6 +103,7 @@ constexpr MeshExtract create_extractor_fdots()
   extractor.iter_poly_mesh = extract_fdots_iter_poly_mesh;
   extractor.finish = extract_fdots_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.fdots);
   return extractor;

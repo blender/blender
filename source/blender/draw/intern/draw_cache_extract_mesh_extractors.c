@@ -130,12 +130,13 @@ typedef struct PosNorLoop {
 
 typedef struct MeshExtract_PosNor_Data {
   PosNorLoop *vbo_data;
-  GPUNormal normals[];
+  GPUNormal *normals;
 } MeshExtract_PosNor_Data;
 
-static void *extract_pos_nor_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
-                                  void *buf)
+static void extract_pos_nor_init(const MeshRenderData *mr,
+                                 struct MeshBatchCache *UNUSED(cache),
+                                 void *buf,
+                                 void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -149,9 +150,9 @@ static void *extract_pos_nor_init(const MeshRenderData *mr,
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
 
   /* Pack normals per vert, reduce amount of computation. */
-  size_t packed_nor_len = sizeof(GPUNormal) * mr->vert_len;
-  MeshExtract_PosNor_Data *data = MEM_mallocN(sizeof(*data) + packed_nor_len, __func__);
+  MeshExtract_PosNor_Data *data = tls_data;
   data->vbo_data = (PosNorLoop *)GPU_vertbuf_get_data(vbo);
+  data->normals = MEM_mallocN(sizeof(GPUNormal) * mr->vert_len, __func__);
 
   /* Quicker than doing it for each loop. */
   if (mr->extract_type == MR_EXTRACT_BMESH) {
@@ -168,11 +169,10 @@ static void *extract_pos_nor_init(const MeshRenderData *mr,
       data->normals[v].low = GPU_normal_convert_i10_s3(mv->no);
     }
   }
-  return data;
 }
 
 static void extract_pos_nor_iter_poly_bm(const MeshRenderData *mr,
-                                         BMFace *f,
+                                         const BMFace *f,
                                          const int UNUSED(f_index),
                                          void *_data)
 {
@@ -220,7 +220,7 @@ static void extract_pos_nor_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_iter_ledge_bm(const MeshRenderData *mr,
-                                          BMEdge *eed,
+                                          const BMEdge *eed,
                                           const int ledge_index,
                                           void *_data)
 {
@@ -249,7 +249,7 @@ static void extract_pos_nor_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_iter_lvert_bm(const MeshRenderData *mr,
-                                          BMVert *eve,
+                                          const BMVert *eve,
                                           const int lvert_index,
                                           void *_data)
 {
@@ -280,9 +280,10 @@ static void extract_pos_nor_iter_lvert_mesh(const MeshRenderData *mr,
 static void extract_pos_nor_finish(const MeshRenderData *UNUSED(mr),
                                    struct MeshBatchCache *UNUSED(cache),
                                    void *UNUSED(buf),
-                                   void *data)
+                                   void *_data)
 {
-  MEM_freeN(data);
+  MeshExtract_PosNor_Data *data = _data;
+  MEM_freeN(data->normals);
 }
 
 const MeshExtract extract_pos_nor = {
@@ -295,6 +296,7 @@ const MeshExtract extract_pos_nor = {
     .iter_lvert_mesh = extract_pos_nor_iter_lvert_mesh,
     .finish = extract_pos_nor_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_PosNor_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.pos_nor),
 };
@@ -312,12 +314,13 @@ typedef struct PosNorHQLoop {
 
 typedef struct MeshExtract_PosNorHQ_Data {
   PosNorHQLoop *vbo_data;
-  GPUNormal normals[];
+  GPUNormal *normals;
 } MeshExtract_PosNorHQ_Data;
 
-static void *extract_pos_nor_hq_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
-                                     void *buf)
+static void extract_pos_nor_hq_init(const MeshRenderData *mr,
+                                    struct MeshBatchCache *UNUSED(cache),
+                                    void *buf,
+                                    void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -331,9 +334,9 @@ static void *extract_pos_nor_hq_init(const MeshRenderData *mr,
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
 
   /* Pack normals per vert, reduce amount of computation. */
-  size_t packed_nor_len = sizeof(GPUNormal) * mr->vert_len;
-  MeshExtract_PosNorHQ_Data *data = MEM_mallocN(sizeof(*data) + packed_nor_len, __func__);
+  MeshExtract_PosNorHQ_Data *data = tls_data;
   data->vbo_data = (PosNorHQLoop *)GPU_vertbuf_get_data(vbo);
+  data->normals = MEM_mallocN(sizeof(GPUNormal) * mr->vert_len, __func__);
 
   /* Quicker than doing it for each loop. */
   if (mr->extract_type == MR_EXTRACT_BMESH) {
@@ -350,11 +353,10 @@ static void *extract_pos_nor_hq_init(const MeshRenderData *mr,
       copy_v3_v3_short(data->normals[v].high, mv->no);
     }
   }
-  return data;
 }
 
 static void extract_pos_nor_hq_iter_poly_bm(const MeshRenderData *mr,
-                                            BMFace *f,
+                                            const BMFace *f,
                                             const int UNUSED(f_index),
                                             void *_data)
 {
@@ -404,7 +406,7 @@ static void extract_pos_nor_hq_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_hq_iter_ledge_bm(const MeshRenderData *mr,
-                                             BMEdge *eed,
+                                             const BMEdge *eed,
                                              const int ledge_index,
                                              void *_data)
 {
@@ -436,7 +438,7 @@ static void extract_pos_nor_hq_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_hq_iter_lvert_bm(const MeshRenderData *mr,
-                                             BMVert *eve,
+                                             const BMVert *eve,
                                              const int lvert_index,
                                              void *_data)
 {
@@ -469,9 +471,10 @@ static void extract_pos_nor_hq_iter_lvert_mesh(const MeshRenderData *mr,
 static void extract_pos_nor_hq_finish(const MeshRenderData *UNUSED(mr),
                                       struct MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(buf),
-                                      void *data)
+                                      void *_data)
 {
-  MEM_freeN(data);
+  MeshExtract_PosNorHQ_Data *data = _data;
+  MEM_freeN(data->normals);
 }
 
 const MeshExtract extract_pos_nor_hq = {
@@ -484,6 +487,7 @@ const MeshExtract extract_pos_nor_hq = {
     .iter_lvert_mesh = extract_pos_nor_hq_iter_lvert_mesh,
     .finish = extract_pos_nor_hq_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_PosNorHQ_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.pos_nor)};
 
@@ -496,9 +500,10 @@ typedef struct gpuHQNor {
   short x, y, z, w;
 } gpuHQNor;
 
-static void *extract_lnor_hq_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
-                                  void *buf)
+static void extract_lnor_hq_init(const MeshRenderData *mr,
+                                 struct MeshBatchCache *UNUSED(cache),
+                                 void *buf,
+                                 void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -509,11 +514,11 @@ static void *extract_lnor_hq_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  return GPU_vertbuf_get_data(vbo);
+  *(gpuHQNor **)tls_data = GPU_vertbuf_get_data(vbo);
 }
 
 static void extract_lnor_hq_iter_poly_bm(const MeshRenderData *mr,
-                                         BMFace *f,
+                                         const BMFace *f,
                                          const int UNUSED(f_index),
                                          void *data)
 {
@@ -522,14 +527,14 @@ static void extract_lnor_hq_iter_poly_bm(const MeshRenderData *mr,
   do {
     const int l_index = BM_elem_index_get(l_iter);
     if (mr->loop_normals) {
-      normal_float_to_short_v3(&((gpuHQNor *)data)[l_index].x, mr->loop_normals[l_index]);
+      normal_float_to_short_v3(&(*(gpuHQNor **)data)[l_index].x, mr->loop_normals[l_index]);
     }
     else {
       if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-        normal_float_to_short_v3(&((gpuHQNor *)data)[l_index].x, bm_vert_no_get(mr, l_iter->v));
+        normal_float_to_short_v3(&(*(gpuHQNor **)data)[l_index].x, bm_vert_no_get(mr, l_iter->v));
       }
       else {
-        normal_float_to_short_v3(&((gpuHQNor *)data)[l_index].x, bm_face_no_get(mr, f));
+        normal_float_to_short_v3(&(*(gpuHQNor **)data)[l_index].x, bm_face_no_get(mr, f));
       }
     }
   } while ((l_iter = l_iter->next) != l_first);
@@ -544,7 +549,7 @@ static void extract_lnor_hq_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    gpuHQNor *lnor_data = &((gpuHQNor *)data)[ml_index];
+    gpuHQNor *lnor_data = &(*(gpuHQNor **)data)[ml_index];
     if (mr->loop_normals) {
       normal_float_to_short_v3(&lnor_data->x, mr->loop_normals[ml_index]);
     }
@@ -576,6 +581,7 @@ const MeshExtract extract_lnor_hq = {
     .iter_poly_bm = extract_lnor_hq_iter_poly_bm,
     .iter_poly_mesh = extract_lnor_hq_iter_poly_mesh,
     .data_type = MR_DATA_LOOP_NOR,
+    .data_size = sizeof(gpuHQNor *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.lnor),
 };
@@ -585,9 +591,10 @@ const MeshExtract extract_lnor_hq = {
 /** \name Extract Loop Normal
  * \{ */
 
-static void *extract_lnor_init(const MeshRenderData *mr,
-                               struct MeshBatchCache *UNUSED(cache),
-                               void *buf)
+static void extract_lnor_init(const MeshRenderData *mr,
+                              struct MeshBatchCache *UNUSED(cache),
+                              void *buf,
+                              void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -598,11 +605,11 @@ static void *extract_lnor_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  return GPU_vertbuf_get_data(vbo);
+  *(GPUPackedNormal **)tls_data = GPU_vertbuf_get_data(vbo);
 }
 
 static void extract_lnor_iter_poly_bm(const MeshRenderData *mr,
-                                      BMFace *f,
+                                      const BMFace *f,
                                       const int UNUSED(f_index),
                                       void *data)
 {
@@ -611,18 +618,18 @@ static void extract_lnor_iter_poly_bm(const MeshRenderData *mr,
   do {
     const int l_index = BM_elem_index_get(l_iter);
     if (mr->loop_normals) {
-      ((GPUPackedNormal *)data)[l_index] = GPU_normal_convert_i10_v3(mr->loop_normals[l_index]);
+      (*(GPUPackedNormal **)data)[l_index] = GPU_normal_convert_i10_v3(mr->loop_normals[l_index]);
     }
     else {
       if (BM_elem_flag_test(f, BM_ELEM_SMOOTH)) {
-        ((GPUPackedNormal *)data)[l_index] = GPU_normal_convert_i10_v3(
+        (*(GPUPackedNormal **)data)[l_index] = GPU_normal_convert_i10_v3(
             bm_vert_no_get(mr, l_iter->v));
       }
       else {
-        ((GPUPackedNormal *)data)[l_index] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, f));
+        (*(GPUPackedNormal **)data)[l_index] = GPU_normal_convert_i10_v3(bm_face_no_get(mr, f));
       }
     }
-    ((GPUPackedNormal *)data)[l_index].w = BM_elem_flag_test(f, BM_ELEM_HIDDEN) ? -1 : 0;
+    (*(GPUPackedNormal **)data)[l_index].w = BM_elem_flag_test(f, BM_ELEM_HIDDEN) ? -1 : 0;
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -635,7 +642,7 @@ static void extract_lnor_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    GPUPackedNormal *lnor_data = &((GPUPackedNormal *)data)[ml_index];
+    GPUPackedNormal *lnor_data = &(*(GPUPackedNormal **)data)[ml_index];
     if (mr->loop_normals) {
       *lnor_data = GPU_normal_convert_i10_v3(mr->loop_normals[ml_index]);
     }
@@ -667,6 +674,7 @@ const MeshExtract extract_lnor = {
     .iter_poly_bm = extract_lnor_iter_poly_bm,
     .iter_poly_mesh = extract_lnor_iter_poly_mesh,
     .data_type = MR_DATA_LOOP_NOR,
+    .data_size = sizeof(GPUPackedNormal *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.lnor),
 };
@@ -677,7 +685,10 @@ const MeshExtract extract_lnor = {
 /** \name Extract UV  layers
  * \{ */
 
-static void *extract_uv_init(const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf)
+static void extract_uv_init(const MeshRenderData *mr,
+                            struct MeshBatchCache *cache,
+                            void *buf,
+                            void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   GPUVertFormat format = {0};
@@ -757,13 +768,12 @@ static void *extract_uv_init(const MeshRenderData *mr, struct MeshBatchCache *ca
       }
     }
   }
-
-  return NULL;
 }
 
 const MeshExtract extract_uv = {
     .init = extract_uv_init,
     .data_type = 0,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.uv),
 };
@@ -946,15 +956,18 @@ static void extract_tan_ex_init(const MeshRenderData *mr,
   CustomData_free(&loop_data, mr->loop_len);
 }
 
-static void *extract_tan_init(const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf)
+static void extract_tan_init(const MeshRenderData *mr,
+                             struct MeshBatchCache *cache,
+                             void *buf,
+                             void *UNUSED(tls_data))
 {
   extract_tan_ex_init(mr, cache, buf, false);
-  return NULL;
 }
 
 const MeshExtract extract_tan = {
     .init = extract_tan_init,
     .data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.tan),
 };
@@ -965,15 +978,18 @@ const MeshExtract extract_tan = {
 /** \name Extract HQ Tangent layers
  * \{ */
 
-static void *extract_tan_hq_init(const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf)
+static void extract_tan_hq_init(const MeshRenderData *mr,
+                                struct MeshBatchCache *cache,
+                                void *buf,
+                                void *UNUSED(tls_data))
 {
   extract_tan_ex_init(mr, cache, buf, true);
-  return NULL;
 }
 
 const MeshExtract extract_tan_hq = {
     .init = extract_tan_hq_init,
     .data_type = MR_DATA_POLY_NOR | MR_DATA_TAN_LOOP_NOR | MR_DATA_LOOPTRI,
+    .data_size = 0,
     .use_threading = false,
 };
 
@@ -983,9 +999,10 @@ const MeshExtract extract_tan_hq = {
 /** \name Extract Sculpt Data
  * \{ */
 
-static void *extract_sculpt_data_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
-                                      void *buf)
+static void extract_sculpt_data_init(const MeshRenderData *mr,
+                                     struct MeshBatchCache *UNUSED(cache),
+                                     void *buf,
+                                     void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   GPUVertFormat format = {0};
@@ -1066,13 +1083,12 @@ static void *extract_sculpt_data_init(const MeshRenderData *mr,
       }
     }
   }
-
-  return NULL;
 }
 
 const MeshExtract extract_sculpt_data = {
     .init = extract_sculpt_data_init,
     .data_type = 0,
+    .data_size = 0,
     /* TODO: enable threading. */
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.sculpt_data)};
@@ -1083,7 +1099,10 @@ const MeshExtract extract_sculpt_data = {
 /** \name Extract VCol
  * \{ */
 
-static void *extract_vcol_init(const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf)
+static void extract_vcol_init(const MeshRenderData *mr,
+                              struct MeshBatchCache *cache,
+                              void *buf,
+                              void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   GPUVertFormat format = {0};
@@ -1216,12 +1235,12 @@ static void *extract_vcol_init(const MeshRenderData *mr, struct MeshBatchCache *
       }
     }
   }
-  return NULL;
 }
 
 const MeshExtract extract_vcol = {
     .init = extract_vcol_init,
     .data_type = 0,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.vcol),
 };
@@ -1237,9 +1256,10 @@ typedef struct MeshExtract_Orco_Data {
   float (*orco)[3];
 } MeshExtract_Orco_Data;
 
-static void *extract_orco_init(const MeshRenderData *mr,
-                               struct MeshBatchCache *UNUSED(cache),
-                               void *buf)
+static void extract_orco_init(const MeshRenderData *mr,
+                              struct MeshBatchCache *UNUSED(cache),
+                              void *buf,
+                              void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -1256,16 +1276,15 @@ static void *extract_orco_init(const MeshRenderData *mr,
 
   CustomData *cd_vdata = &mr->me->vdata;
 
-  MeshExtract_Orco_Data *data = MEM_mallocN(sizeof(*data), __func__);
+  MeshExtract_Orco_Data *data = tls_data;
   data->vbo_data = (float(*)[4])GPU_vertbuf_get_data(vbo);
   data->orco = CustomData_get_layer(cd_vdata, CD_ORCO);
   /* Make sure `orco` layer was requested only if needed! */
   BLI_assert(data->orco);
-  return data;
 }
 
 static void extract_orco_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                      BMFace *f,
+                                      const BMFace *f,
                                       const int UNUSED(f_index),
                                       void *data)
 {
@@ -1296,20 +1315,12 @@ static void extract_orco_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_orco_finish(const MeshRenderData *UNUSED(mr),
-                                struct MeshBatchCache *UNUSED(cache),
-                                void *UNUSED(buf),
-                                void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_orco = {
     .init = extract_orco_init,
     .iter_poly_bm = extract_orco_iter_poly_bm,
     .iter_poly_mesh = extract_orco_iter_poly_mesh,
-    .finish = extract_orco_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_Orco_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.orco),
 };
@@ -1325,7 +1336,7 @@ typedef struct MeshExtract_EdgeFac_Data {
   uchar *vbo_data;
   bool use_edge_render;
   /* Number of loop per edge. */
-  uchar edge_loop_count[0];
+  uchar *edge_loop_count;
 } MeshExtract_EdgeFac_Data;
 
 static float loop_edge_factor_get(const float f_no[3],
@@ -1344,9 +1355,10 @@ static float loop_edge_factor_get(const float f_no[3],
   return d;
 }
 
-static void *extract_edge_fac_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
-                                   void *buf)
+static void extract_edge_fac_init(const MeshRenderData *mr,
+                                  struct MeshBatchCache *UNUSED(cache),
+                                  void *buf,
+                                  void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -1357,11 +1369,10 @@ static void *extract_edge_fac_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
 
-  MeshExtract_EdgeFac_Data *data;
+  MeshExtract_EdgeFac_Data *data = tls_data;
 
   if (mr->extract_type == MR_EXTRACT_MESH) {
-    size_t edge_loop_count_size = sizeof(uint32_t) * mr->edge_len;
-    data = MEM_callocN(sizeof(*data) + edge_loop_count_size, __func__);
+    data->edge_loop_count = MEM_callocN(sizeof(uint32_t) * mr->edge_len, __func__);
 
     /* HACK(fclem) Detecting the need for edge render.
      * We could have a flag in the mesh instead or check the modifier stack. */
@@ -1374,17 +1385,15 @@ static void *extract_edge_fac_init(const MeshRenderData *mr,
     }
   }
   else {
-    data = MEM_callocN(sizeof(*data), __func__);
     /* HACK to bypass non-manifold check in mesh_edge_fac_finish(). */
     data->use_edge_render = true;
   }
 
   data->vbo_data = GPU_vertbuf_get_data(vbo);
-  return data;
 }
 
 static void extract_edge_fac_iter_poly_bm(const MeshRenderData *mr,
-                                          BMFace *f,
+                                          const BMFace *f,
                                           const int UNUSED(f_index),
                                           void *_data)
 {
@@ -1450,7 +1459,7 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_iter_ledge_bm(const MeshRenderData *mr,
-                                           BMEdge *UNUSED(eed),
+                                           const BMEdge *UNUSED(eed),
                                            const int ledge_index,
                                            void *_data)
 {
@@ -1501,7 +1510,7 @@ static void extract_edge_fac_finish(const MeshRenderData *mr,
     /* Free old byte data. */
     MEM_freeN(data->vbo_data);
   }
-  MEM_freeN(data);
+  MEM_SAFE_FREE(data->edge_loop_count);
 }
 
 const MeshExtract extract_edge_fac = {
@@ -1512,6 +1521,7 @@ const MeshExtract extract_edge_fac = {
     .iter_ledge_mesh = extract_edge_fac_iter_ledge_mesh,
     .finish = extract_edge_fac_finish,
     .data_type = MR_DATA_POLY_NOR,
+    .data_size = sizeof(MeshExtract_EdgeFac_Data),
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edge_fac)};
 
@@ -1580,9 +1590,10 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
   return input;
 }
 
-static void *extract_weights_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *cache,
-                                  void *buf)
+static void extract_weights_init(const MeshRenderData *mr,
+                                 struct MeshBatchCache *cache,
+                                 void *buf,
+                                 void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -1592,7 +1603,7 @@ static void *extract_weights_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
 
-  MeshExtract_Weight_Data *data = MEM_callocN(sizeof(*data), __func__);
+  MeshExtract_Weight_Data *data = tls_data;
   data->vbo_data = (float *)GPU_vertbuf_get_data(vbo);
   data->wstate = &cache->weight_state;
 
@@ -1609,11 +1620,10 @@ static void *extract_weights_init(const MeshRenderData *mr,
     data->dvert = CustomData_get_layer(&mr->me->vdata, CD_MDEFORMVERT);
     data->cd_ofs = -1;
   }
-  return data;
 }
 
 static void extract_weights_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                         BMFace *f,
+                                         const BMFace *f,
                                          const int UNUSED(f_index),
                                          void *_data)
 {
@@ -1653,20 +1663,12 @@ static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_weights_finish(const MeshRenderData *UNUSED(mr),
-                                   struct MeshBatchCache *UNUSED(cache),
-                                   void *UNUSED(buf),
-                                   void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_weights = {
     .init = extract_weights_init,
     .iter_poly_bm = extract_weights_iter_poly_bm,
     .iter_poly_mesh = extract_weights_iter_poly_mesh,
-    .finish = extract_weights_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_Weight_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.weights),
 };
@@ -1685,7 +1687,7 @@ typedef struct EditLoopData {
 } EditLoopData;
 
 static void mesh_render_data_face_flag(const MeshRenderData *mr,
-                                       BMFace *efa,
+                                       const BMFace *efa,
                                        const int cd_ofs,
                                        EditLoopData *eattr)
 {
@@ -1713,7 +1715,9 @@ static void mesh_render_data_face_flag(const MeshRenderData *mr,
 #endif
 }
 
-static void mesh_render_data_edge_flag(const MeshRenderData *mr, BMEdge *eed, EditLoopData *eattr)
+static void mesh_render_data_edge_flag(const MeshRenderData *mr,
+                                       const BMEdge *eed,
+                                       EditLoopData *eattr)
 {
   const ToolSettings *ts = mr->toolsettings;
   const bool is_vertex_select_mode = (ts != NULL) && (ts->selectmode & SCE_SELECT_VERTEX) != 0;
@@ -1805,7 +1809,9 @@ static void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
   }
 }
 
-static void mesh_render_data_vert_flag(const MeshRenderData *mr, BMVert *eve, EditLoopData *eattr)
+static void mesh_render_data_vert_flag(const MeshRenderData *mr,
+                                       const BMVert *eve,
+                                       EditLoopData *eattr)
 {
   if (eve == mr->eve_act) {
     eattr->e_flag |= VFLAG_VERT_ACTIVE;
@@ -1815,9 +1821,10 @@ static void mesh_render_data_vert_flag(const MeshRenderData *mr, BMVert *eve, Ed
   }
 }
 
-static void *extract_edit_data_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
-                                    void *buf)
+static void extract_edit_data_init(const MeshRenderData *mr,
+                                   struct MeshBatchCache *UNUSED(cache),
+                                   void *buf,
+                                   void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -1828,20 +1835,23 @@ static void *extract_edit_data_init(const MeshRenderData *mr,
   }
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
-  return GPU_vertbuf_get_data(vbo);
+  EditLoopData *vbo_data = GPU_vertbuf_get_data(vbo);
+  *(EditLoopData **)tls_data = vbo_data;
 }
 
 static void extract_edit_data_iter_poly_bm(const MeshRenderData *mr,
-                                           BMFace *f,
+                                           const BMFace *f,
                                            const int UNUSED(f_index),
                                            void *_data)
 {
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
 
-    EditLoopData *data = (EditLoopData *)_data + l_index;
+    EditLoopData *data = vbo_data + l_index;
     memset(data, 0x0, sizeof(*data));
     mesh_render_data_face_flag(mr, f, -1, data);
     mesh_render_data_edge_flag(mr, l_iter->e, data);
@@ -1854,11 +1864,13 @@ static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
                                              const int mp_index,
                                              void *_data)
 {
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+
   const MLoop *mloop = mr->mloop;
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    EditLoopData *data = (EditLoopData *)_data + ml_index;
+    EditLoopData *data = vbo_data + ml_index;
     memset(data, 0x0, sizeof(*data));
     BMFace *efa = bm_original_face_get(mr, mp_index);
     BMEdge *eed = bm_original_edge_get(mr, ml->e);
@@ -1876,11 +1888,12 @@ static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_iter_ledge_bm(const MeshRenderData *mr,
-                                            BMEdge *eed,
+                                            const BMEdge *eed,
                                             const int ledge_index,
                                             void *_data)
 {
-  EditLoopData *data = (EditLoopData *)_data + mr->loop_len + (ledge_index * 2);
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+  EditLoopData *data = vbo_data + mr->loop_len + (ledge_index * 2);
   memset(data, 0x0, sizeof(*data) * 2);
   mesh_render_data_edge_flag(mr, eed, &data[0]);
   data[1] = data[0];
@@ -1893,7 +1906,8 @@ static void extract_edit_data_iter_ledge_mesh(const MeshRenderData *mr,
                                               const int ledge_index,
                                               void *_data)
 {
-  EditLoopData *data = (EditLoopData *)_data + mr->loop_len + ledge_index * 2;
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+  EditLoopData *data = vbo_data + mr->loop_len + ledge_index * 2;
   memset(data, 0x0, sizeof(*data) * 2);
   const int e_index = mr->ledges[ledge_index];
   BMEdge *eed = bm_original_edge_get(mr, e_index);
@@ -1912,12 +1926,13 @@ static void extract_edit_data_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edit_data_iter_lvert_bm(const MeshRenderData *mr,
-                                            BMVert *eve,
+                                            const BMVert *eve,
                                             const int lvert_index,
                                             void *_data)
 {
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
-  EditLoopData *data = (EditLoopData *)_data + offset + lvert_index;
+  EditLoopData *data = vbo_data + offset + lvert_index;
   memset(data, 0x0, sizeof(*data));
   mesh_render_data_vert_flag(mr, eve, data);
 }
@@ -1927,9 +1942,10 @@ static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
                                               const int lvert_index,
                                               void *_data)
 {
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
-  EditLoopData *data = (EditLoopData *)_data + offset + lvert_index;
+  EditLoopData *data = vbo_data + offset + lvert_index;
   memset(data, 0x0, sizeof(*data));
   const int v_index = mr->lverts[lvert_index];
   BMVert *eve = bm_original_vert_get(mr, v_index);
@@ -1947,6 +1963,7 @@ const MeshExtract extract_edit_data = {
     .iter_lvert_bm = extract_edit_data_iter_lvert_bm,
     .iter_lvert_mesh = extract_edit_data_iter_lvert_mesh,
     .data_type = 0,
+    .data_size = sizeof(EditLoopData *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edit_data)};
 
@@ -1961,9 +1978,10 @@ typedef struct MeshExtract_EditUVData_Data {
   int cd_ofs;
 } MeshExtract_EditUVData_Data;
 
-static void *extract_edituv_data_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
-                                      void *buf)
+static void extract_edituv_data_init(const MeshRenderData *mr,
+                                     struct MeshBatchCache *UNUSED(cache),
+                                     void *buf,
+                                     void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -1978,14 +1996,13 @@ static void *extract_edituv_data_init(const MeshRenderData *mr,
 
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 
-  MeshExtract_EditUVData_Data *data = MEM_callocN(sizeof(*data), __func__);
+  MeshExtract_EditUVData_Data *data = tls_data;
   data->vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
   data->cd_ofs = CustomData_get_offset(cd_ldata, CD_MLOOPUV);
-  return data;
 }
 
 static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
-                                             BMFace *f,
+                                             const BMFace *f,
                                              const int UNUSED(f_index),
                                              void *_data)
 {
@@ -2044,20 +2061,12 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_edituv_data_finish(const MeshRenderData *UNUSED(mr),
-                                       struct MeshBatchCache *UNUSED(cache),
-                                       void *UNUSED(buf),
-                                       void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_edituv_data = {
     .init = extract_edituv_data_init,
     .iter_poly_bm = extract_edituv_data_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_data_iter_poly_mesh,
-    .finish = extract_edituv_data_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_EditUVData_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_data)};
 
@@ -2067,9 +2076,10 @@ const MeshExtract extract_edituv_data = {
 /** \name Extract Edit UV area stretch
  * \{ */
 
-static void *extract_edituv_stretch_area_init(const MeshRenderData *mr,
-                                              struct MeshBatchCache *UNUSED(cache),
-                                              void *buf)
+static void extract_edituv_stretch_area_init(const MeshRenderData *mr,
+                                             struct MeshBatchCache *UNUSED(cache),
+                                             void *buf,
+                                             void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -2079,8 +2089,6 @@ static void *extract_edituv_stretch_area_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
-
-  return NULL;
 }
 
 BLI_INLINE float area_ratio_get(float area, float uvarea)
@@ -2174,6 +2182,7 @@ const MeshExtract extract_edituv_stretch_area = {
     .init = extract_edituv_stretch_area_init,
     .finish = extract_edituv_stretch_area_finish,
     .data_type = 0,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_stretch_area)};
 
@@ -2237,9 +2246,10 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 #endif
 }
 
-static void *extract_edituv_stretch_angle_init(const MeshRenderData *mr,
-                                               struct MeshBatchCache *UNUSED(cache),
-                                               void *buf)
+static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
+                                              struct MeshBatchCache *UNUSED(cache),
+                                              void *buf,
+                                              void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -2252,7 +2262,7 @@ static void *extract_edituv_stretch_angle_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  MeshExtract_StretchAngle_Data *data = MEM_callocN(sizeof(*data), __func__);
+  MeshExtract_StretchAngle_Data *data = tls_data;
   data->vbo_data = (UVStretchAngle *)GPU_vertbuf_get_data(vbo);
 
   /* Special iterator needed to save about half of the computing cost. */
@@ -2263,11 +2273,10 @@ static void *extract_edituv_stretch_angle_init(const MeshRenderData *mr,
     BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
     data->luv = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
-  return data;
 }
 
 static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
-                                                      BMFace *f,
+                                                      const BMFace *f,
                                                       const int UNUSED(f_index),
                                                       void *_data)
 {
@@ -2363,20 +2372,12 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
   }
 }
 
-static void extract_edituv_stretch_angle_finish(const MeshRenderData *UNUSED(mr),
-                                                struct MeshBatchCache *UNUSED(cache),
-                                                void *UNUSED(buf),
-                                                void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_edituv_stretch_angle = {
     .init = extract_edituv_stretch_angle_init,
     .iter_poly_bm = extract_edituv_stretch_angle_iter_poly_bm,
     .iter_poly_mesh = extract_edituv_stretch_angle_iter_poly_mesh,
-    .finish = extract_edituv_stretch_angle_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_StretchAngle_Data),
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edituv_stretch_angle)};
 
@@ -2386,9 +2387,10 @@ const MeshExtract extract_edituv_stretch_angle = {
 /** \name Extract Edit Mesh Analysis Colors
  * \{ */
 
-static void *extract_mesh_analysis_init(const MeshRenderData *mr,
-                                        struct MeshBatchCache *UNUSED(cache),
-                                        void *buf)
+static void extract_mesh_analysis_init(const MeshRenderData *mr,
+                                       struct MeshBatchCache *UNUSED(cache),
+                                       void *buf,
+                                       void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -2398,8 +2400,6 @@ static void *extract_mesh_analysis_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
-
-  return NULL;
 }
 
 static void axis_from_enum_v3(float v[3], const char axis)
@@ -2984,6 +2984,7 @@ const MeshExtract extract_mesh_analysis = {
     /* This is not needed for all visualization types.
      * * Maybe split into different extract. */
     .data_type = MR_DATA_POLY_NOR | MR_DATA_LOOPTRI,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.mesh_analysis)};
 
@@ -2993,9 +2994,10 @@ const MeshExtract extract_mesh_analysis = {
 /** \name Extract Face-dots positions
  * \{ */
 
-static void *extract_fdots_pos_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
-                                    void *buf)
+static void extract_fdots_pos_init(const MeshRenderData *mr,
+                                   struct MeshBatchCache *UNUSED(cache),
+                                   void *buf,
+                                   void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3005,15 +3007,15 @@ static void *extract_fdots_pos_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
-  return GPU_vertbuf_get_data(vbo);
+  *(float(**)[3])tls_data = GPU_vertbuf_get_data(vbo);
 }
 
 static void extract_fdots_pos_iter_poly_bm(const MeshRenderData *mr,
-                                           BMFace *f,
+                                           const BMFace *f,
                                            const int f_index,
                                            void *data)
 {
-  float(*center)[3] = data;
+  float(*center)[3] = *(float(**)[3])data;
 
   float *co = center[f_index];
   zero_v3(co);
@@ -3031,7 +3033,7 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
                                              const int mp_index,
                                              void *data)
 {
-  float(*center)[3] = (float(*)[3])data;
+  float(*center)[3] = *(float(**)[3])data;
   float *co = center[mp_index];
   zero_v3(co);
 
@@ -3064,6 +3066,7 @@ const MeshExtract extract_fdots_pos = {
     .iter_poly_bm = extract_fdots_pos_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_pos_iter_poly_mesh,
     .data_type = 0,
+    .data_size = sizeof(float (*)[3]),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_pos)};
 
@@ -3077,9 +3080,10 @@ const MeshExtract extract_fdots_pos = {
 #define NOR_AND_FLAG_ACTIVE -1
 #define NOR_AND_FLAG_HIDDEN -2
 
-static void *extract_fdots_nor_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
-                                    void *buf)
+static void extract_fdots_nor_init(const MeshRenderData *mr,
+                                   struct MeshBatchCache *UNUSED(cache),
+                                   void *buf,
+                                   void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3089,8 +3093,6 @@ static void *extract_fdots_nor_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
-
-  return NULL;
 }
 
 static void extract_fdots_nor_finish(const MeshRenderData *mr,
@@ -3146,6 +3148,7 @@ const MeshExtract extract_fdots_nor = {
     .init = extract_fdots_nor_init,
     .finish = extract_fdots_nor_finish,
     .data_type = MR_DATA_POLY_NOR,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor)};
 
@@ -3154,9 +3157,10 @@ const MeshExtract extract_fdots_nor = {
 /* ---------------------------------------------------------------------- */
 /** \name Extract Face-dots High Quality Normal and edit flag
  * \{ */
-static void *extract_fdots_nor_hq_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
-                                       void *buf)
+static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
+                                      struct MeshBatchCache *UNUSED(cache),
+                                      void *buf,
+                                      void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3166,8 +3170,6 @@ static void *extract_fdots_nor_hq_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
-
-  return NULL;
 }
 
 static void extract_fdots_nor_hq_finish(const MeshRenderData *mr,
@@ -3223,6 +3225,7 @@ const MeshExtract extract_fdots_nor_hq = {
     .init = extract_fdots_nor_hq_init,
     .finish = extract_fdots_nor_hq_finish,
     .data_type = MR_DATA_POLY_NOR,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_nor)};
 
@@ -3238,9 +3241,10 @@ typedef struct MeshExtract_FdotUV_Data {
   int cd_ofs;
 } MeshExtract_FdotUV_Data;
 
-static void *extract_fdots_uv_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
-                                   void *buf)
+static void extract_fdots_uv_init(const MeshRenderData *mr,
+                                  struct MeshBatchCache *UNUSED(cache),
+                                  void *buf,
+                                  void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3258,7 +3262,7 @@ static void *extract_fdots_uv_init(const MeshRenderData *mr,
     memset(GPU_vertbuf_get_data(vbo), 0x0, mr->poly_len * GPU_vertbuf_get_format(vbo)->stride);
   }
 
-  MeshExtract_FdotUV_Data *data = MEM_callocN(sizeof(*data), __func__);
+  MeshExtract_FdotUV_Data *data = tls_data;
   data->vbo_data = (float(*)[2])GPU_vertbuf_get_data(vbo);
 
   if (mr->extract_type == MR_EXTRACT_BMESH) {
@@ -3267,11 +3271,10 @@ static void *extract_fdots_uv_init(const MeshRenderData *mr,
   else {
     data->uv_data = CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
-  return data;
 }
 
 static void extract_fdots_uv_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          BMFace *f,
+                                          const BMFace *f,
                                           const int UNUSED(f_index),
                                           void *_data)
 {
@@ -3308,20 +3311,12 @@ static void extract_fdots_uv_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_fdots_uv_finish(const MeshRenderData *UNUSED(mr),
-                                    struct MeshBatchCache *UNUSED(cache),
-                                    void *UNUSED(buf),
-                                    void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_fdots_uv = {
     .init = extract_fdots_uv_init,
     .iter_poly_bm = extract_fdots_uv_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_uv_iter_poly_mesh,
-    .finish = extract_fdots_uv_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_FdotUV_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_uv)};
 
@@ -3336,9 +3331,10 @@ typedef struct MeshExtract_EditUVFdotData_Data {
   int cd_ofs;
 } MeshExtract_EditUVFdotData_Data;
 
-static void *extract_fdots_edituv_data_init(const MeshRenderData *mr,
-                                            struct MeshBatchCache *UNUSED(cache),
-                                            void *buf)
+static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
+                                           struct MeshBatchCache *UNUSED(cache),
+                                           void *buf,
+                                           void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3349,14 +3345,13 @@ static void *extract_fdots_edituv_data_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
 
-  MeshExtract_EditUVFdotData_Data *data = MEM_callocN(sizeof(*data), __func__);
+  MeshExtract_EditUVFdotData_Data *data = tls_data;
   data->vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
   data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
-  return data;
 }
 
 static void extract_fdots_edituv_data_iter_poly_bm(const MeshRenderData *mr,
-                                                   BMFace *f,
+                                                   const BMFace *f,
                                                    const int UNUSED(f_index),
                                                    void *_data)
 {
@@ -3380,20 +3375,12 @@ static void extract_fdots_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_fdots_edituv_data_finish(const MeshRenderData *UNUSED(mr),
-                                             struct MeshBatchCache *UNUSED(cache),
-                                             void *UNUSED(buf),
-                                             void *data)
-{
-  MEM_freeN(data);
-}
-
 const MeshExtract extract_fdots_edituv_data = {
     .init = extract_fdots_edituv_data_init,
     .iter_poly_bm = extract_fdots_edituv_data_iter_poly_bm,
     .iter_poly_mesh = extract_fdots_edituv_data_iter_poly_mesh,
-    .finish = extract_fdots_edituv_data_finish,
     .data_type = 0,
+    .data_size = sizeof(MeshExtract_EditUVFdotData_Data),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdots_edituv_data)};
 
@@ -3408,9 +3395,10 @@ typedef struct SkinRootData {
   float local_pos[3];
 } SkinRootData;
 
-static void *extract_skin_roots_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
-                                     void *buf)
+static void extract_skin_roots_init(const MeshRenderData *mr,
+                                    struct MeshBatchCache *UNUSED(cache),
+                                    void *buf,
+                                    void *UNUSED(tls_data))
 {
   GPUVertBuf *vbo = buf;
   /* Exclusively for edit mode. */
@@ -3444,13 +3432,12 @@ static void *extract_skin_roots_init(const MeshRenderData *mr,
 
   /* It's really unlikely that all verts will be roots. Resize to avoid losing VRAM. */
   GPU_vertbuf_data_len_set(vbo, root_len);
-
-  return NULL;
 }
 
 const MeshExtract extract_skin_roots = {
     .init = extract_skin_roots_init,
     .data_type = 0,
+    .data_size = 0,
     .use_threading = false,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.skin_roots)};
 
@@ -3460,9 +3447,10 @@ const MeshExtract extract_skin_roots = {
 /** \name Extract Selection Index
  * \{ */
 
-static void *extract_select_idx_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
-                                     void *buf)
+static void extract_select_idx_init(const MeshRenderData *mr,
+                                    struct MeshBatchCache *UNUSED(cache),
+                                    void *buf,
+                                    void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3472,7 +3460,7 @@ static void *extract_select_idx_init(const MeshRenderData *mr,
   }
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
-  return GPU_vertbuf_get_data(vbo);
+  *(uint32_t **)tls_data = GPU_vertbuf_get_data(vbo);
 }
 
 /* TODO Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
@@ -3481,7 +3469,7 @@ static void *extract_select_idx_init(const MeshRenderData *mr,
  * shader to output original index. */
 
 static void extract_poly_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          BMFace *f,
+                                          const BMFace *f,
                                           const int f_index,
                                           void *data)
 {
@@ -3489,12 +3477,12 @@ static void extract_poly_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    ((uint32_t *)data)[l_index] = f_index;
+    (*(uint32_t **)data)[l_index] = f_index;
   } while ((l_iter = l_iter->next) != l_first);
 }
 
 static void extract_edge_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          BMFace *f,
+                                          const BMFace *f,
                                           const int UNUSED(f_index),
                                           void *data)
 {
@@ -3502,12 +3490,12 @@ static void extract_edge_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    ((uint32_t *)data)[l_index] = BM_elem_index_get(l_iter->e);
+    (*(uint32_t **)data)[l_index] = BM_elem_index_get(l_iter->e);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
 static void extract_vert_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          BMFace *f,
+                                          const BMFace *f,
                                           const int UNUSED(f_index),
                                           void *data)
 {
@@ -3515,36 +3503,36 @@ static void extract_vert_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    ((uint32_t *)data)[l_index] = BM_elem_index_get(l_iter->v);
+    (*(uint32_t **)data)[l_index] = BM_elem_index_get(l_iter->v);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
 static void extract_edge_idx_iter_ledge_bm(const MeshRenderData *mr,
-                                           BMEdge *eed,
+                                           const BMEdge *eed,
                                            const int ledge_index,
                                            void *data)
 {
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed);
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed);
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed);
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed);
 }
 
 static void extract_vert_idx_iter_ledge_bm(const MeshRenderData *mr,
-                                           BMEdge *eed,
+                                           const BMEdge *eed,
                                            const int ledge_index,
                                            void *data)
 {
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed->v1);
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed->v2);
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed->v1);
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed->v2);
 }
 
 static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
-                                           BMVert *eve,
+                                           const BMVert *eve,
                                            const int lvert_index,
                                            void *data)
 {
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
-  ((uint32_t *)data)[offset + lvert_index] = BM_elem_index_get(eve);
+  (*(uint32_t **)data)[offset + lvert_index] = BM_elem_index_get(eve);
 }
 
 static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
@@ -3554,7 +3542,7 @@ static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
 {
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    ((uint32_t *)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
+    (*(uint32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
   }
 }
 
@@ -3567,7 +3555,7 @@ static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    ((uint32_t *)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
+    (*(uint32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
   }
 }
 
@@ -3580,7 +3568,7 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    ((uint32_t *)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
+    (*(uint32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
   }
 }
 
@@ -3591,8 +3579,8 @@ static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
 {
   const int e_index = mr->ledges[ledge_index];
   const int e_orig = (mr->e_origindex) ? mr->e_origindex[e_index] : e_index;
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 0] = e_orig;
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 1] = e_orig;
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = e_orig;
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = e_orig;
 }
 
 static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
@@ -3602,8 +3590,8 @@ static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
 {
   int v1_orig = (mr->v_origindex) ? mr->v_origindex[med->v1] : med->v1;
   int v2_orig = (mr->v_origindex) ? mr->v_origindex[med->v2] : med->v2;
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
-  ((uint32_t *)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
+  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
 }
 
 static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
@@ -3615,7 +3603,7 @@ static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
 
   const int v_index = mr->lverts[lvert_index];
   const int v_orig = (mr->v_origindex) ? mr->v_origindex[v_index] : v_index;
-  ((uint32_t *)data)[offset + lvert_index] = v_orig;
+  (*(uint32_t **)data)[offset + lvert_index] = v_orig;
 }
 
 const MeshExtract extract_poly_idx = {
@@ -3623,6 +3611,7 @@ const MeshExtract extract_poly_idx = {
     .iter_poly_bm = extract_poly_idx_iter_poly_bm,
     .iter_poly_mesh = extract_poly_idx_iter_poly_mesh,
     .data_type = 0,
+    .data_size = sizeof(uint32_t *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.poly_idx)};
 
@@ -3633,6 +3622,7 @@ const MeshExtract extract_edge_idx = {
     .iter_ledge_bm = extract_edge_idx_iter_ledge_bm,
     .iter_ledge_mesh = extract_edge_idx_iter_ledge_mesh,
     .data_type = 0,
+    .data_size = sizeof(uint32_t *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.edge_idx)};
 
@@ -3645,12 +3635,14 @@ const MeshExtract extract_vert_idx = {
     .iter_lvert_bm = extract_vert_idx_iter_lvert_bm,
     .iter_lvert_mesh = extract_vert_idx_iter_lvert_mesh,
     .data_type = 0,
+    .data_size = sizeof(uint32_t *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.vert_idx)};
 
-static void *extract_fdot_idx_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
-                                   void *buf)
+static void extract_fdot_idx_init(const MeshRenderData *mr,
+                                  struct MeshBatchCache *UNUSED(cache),
+                                  void *buf,
+                                  void *tls_data)
 {
   GPUVertBuf *vbo = buf;
   static GPUVertFormat format = {0};
@@ -3661,15 +3653,15 @@ static void *extract_fdot_idx_init(const MeshRenderData *mr,
 
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
-  return GPU_vertbuf_get_data(vbo);
+  *(uint32_t **)tls_data = GPU_vertbuf_get_data(vbo);
 }
 
 static void extract_fdot_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                          BMFace *UNUSED(f),
+                                          const BMFace *UNUSED(f),
                                           const int f_index,
                                           void *data)
 {
-  ((uint32_t *)data)[f_index] = f_index;
+  (*(uint32_t **)data)[f_index] = f_index;
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
@@ -3678,10 +3670,10 @@ static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
                                             void *data)
 {
   if (mr->p_origindex != NULL) {
-    ((uint32_t *)data)[mp_index] = mr->p_origindex[mp_index];
+    (*(uint32_t **)data)[mp_index] = mr->p_origindex[mp_index];
   }
   else {
-    ((uint32_t *)data)[mp_index] = mp_index;
+    (*(uint32_t **)data)[mp_index] = mp_index;
   }
 }
 
@@ -3690,5 +3682,6 @@ const MeshExtract extract_fdot_idx = {
     .iter_poly_bm = extract_fdot_idx_iter_poly_bm,
     .iter_poly_mesh = extract_fdot_idx_iter_poly_mesh,
     .data_type = 0,
+    .data_size = sizeof(uint32_t *),
     .use_threading = true,
     .mesh_buffer_offset = offsetof(MeshBufferCache, vbo.fdot_idx)};
