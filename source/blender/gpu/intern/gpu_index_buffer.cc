@@ -79,8 +79,7 @@ GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
   return elem_;
 }
 
-void GPU_indexbuf_join_copies(GPUIndexBufBuilder *builder_to,
-                              const GPUIndexBufBuilder *builder_from)
+void GPU_indexbuf_join(GPUIndexBufBuilder *builder_to, const GPUIndexBufBuilder *builder_from)
 {
   BLI_assert(builder_to->data == builder_from->data);
   builder_to->index_len = max_uu(builder_to->index_len, builder_from->index_len);

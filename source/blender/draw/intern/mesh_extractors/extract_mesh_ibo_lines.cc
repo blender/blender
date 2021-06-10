@@ -138,11 +138,11 @@ static void extract_lines_iter_ledge_mesh(const MeshRenderData *mr,
   GPU_indexbuf_set_line_restart(elb, e_index);
 }
 
-static void extract_lines_task_finish(void *_userdata_to, void *_userdata_from)
+static void extract_lines_task_reduce(void *_userdata_to, void *_userdata_from)
 {
   GPUIndexBufBuilder *elb_to = static_cast<GPUIndexBufBuilder *>(_userdata_to);
   GPUIndexBufBuilder *elb_from = static_cast<GPUIndexBufBuilder *>(_userdata_from);
-  GPU_indexbuf_join_copies(elb_to, elb_from);
+  GPU_indexbuf_join(elb_to, elb_from);
 }
 
 static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
@@ -163,7 +163,7 @@ constexpr MeshExtract create_extractor_lines()
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
-  extractor.task_reduce = extract_lines_task_finish;
+  extractor.task_reduce = extract_lines_task_reduce;
   extractor.finish = extract_lines_finish;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);
@@ -208,7 +208,7 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
   extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_lines_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_lines_iter_ledge_mesh;
-  extractor.task_reduce = extract_lines_task_finish;
+  extractor.task_reduce = extract_lines_task_reduce;
   extractor.finish = extract_lines_with_lines_loose_finish;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);

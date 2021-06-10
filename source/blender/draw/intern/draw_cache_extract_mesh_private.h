@@ -194,8 +194,7 @@ typedef void(ExtractFinishFn)(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buffer,
                               void *data);
-typedef void(ExtractTaskInitFn)(void *userdata, void *r_task_userdata);
-typedef void(ExtractTaskFinishFn)(void *userdata, void *task_userdata);
+typedef void(ExtractTaskReduceFn)(void *userdata, void *task_userdata);
 
 typedef struct MeshExtract {
   /** Executed on main thread and return user data for iteration functions. */
@@ -210,7 +209,7 @@ typedef struct MeshExtract {
   ExtractLVertBMeshFn *iter_lvert_bm;
   ExtractLVertMeshFn *iter_lvert_mesh;
   /** Executed on one worker thread after all elements iterations. */
-  ExtractTaskFinishFn *task_reduce;
+  ExtractTaskReduceFn *task_reduce;
   ExtractFinishFn *finish;
   /** Used to request common data. */
   eMRDataType data_type;

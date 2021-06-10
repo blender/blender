@@ -211,11 +211,11 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_tris_single_mat_task_finish(void *_userdata_to, void *_userdata_from)
+static void extract_tris_single_mat_task_reduce(void *_userdata_to, void *_userdata_from)
 {
   GPUIndexBufBuilder *elb_to = static_cast<GPUIndexBufBuilder *>(_userdata_to);
   GPUIndexBufBuilder *elb_from = static_cast<GPUIndexBufBuilder *>(_userdata_from);
-  GPU_indexbuf_join_copies(elb_to, elb_from);
+  GPU_indexbuf_join(elb_to, elb_from);
 }
 
 static void extract_tris_single_mat_finish(const MeshRenderData *mr,
@@ -250,7 +250,7 @@ constexpr MeshExtract create_extractor_tris_single_mat()
   extractor.init = extract_tris_single_mat_init;
   extractor.iter_looptri_bm = extract_tris_single_mat_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_tris_single_mat_iter_looptri_mesh;
-  extractor.task_reduce = extract_tris_single_mat_task_finish;
+  extractor.task_reduce = extract_tris_single_mat_task_reduce;
   extractor.finish = extract_tris_single_mat_finish;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);

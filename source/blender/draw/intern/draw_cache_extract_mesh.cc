@@ -50,7 +50,7 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-#define CHUNK_SIZE 1024
+#define MIM_RANGE_LEN 1024
 
 namespace blender::draw {
 
@@ -439,18 +439,18 @@ static void extract_task_range_run(void *__restrict taskdata)
   const eMRIterType iter_type = data->iter_type;
   const bool is_mesh = data->mr->extract_type != MR_EXTRACT_BMESH;
 
+  size_t userdata_chunk_size = data->extractors->data_size_total();
+  char *userdata_chunk = new char[userdata_chunk_size];
+
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.func_reduce = extract_task_reduce;
-  settings.min_iter_per_thread = CHUNK_SIZE;
   settings.use_threading = data->use_threading;
+  settings.userdata_chunk = userdata_chunk;
+  settings.userdata_chunk_size = userdata_chunk_size;
+  settings.func_reduce = extract_task_reduce;
+  settings.min_iter_per_thread = MIM_RANGE_LEN;
 
-  size_t chunk_size = data->extractors->data_size_total();
-  char *chunk = new char[chunk_size];
-  extract_init(data->mr, data->cache, *data->extractors, data->mbc, (void *)chunk);
-
-  settings.userdata_chunk = chunk;
-  settings.userdata_chunk_size = chunk_size;
+  extract_init(data->mr, data->cache, *data->extractors, data->mbc, (void *)userdata_chunk);
 
   if (iter_type & MR_ITER_LOOPTRI) {
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LOOPTRI, is_mesh, &settings);
@@ -465,14 +465,14 @@ static void extract_task_range_run(void *__restrict taskdata)
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LVERT, is_mesh, &settings);
   }
 
-  extract_finish(data->mr, data->cache, *data->extractors, (void *)chunk);
-  delete[] chunk;
+  extract_finish(data->mr, data->cache, *data->extractors, (void *)userdata_chunk);
+  delete[] userdata_chunk;
 }
 
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name Extract Single Thread
+/** \name Extract In Parallel Ranges
  * \{ */
 
 static struct TaskNode *extract_task_node_create(struct TaskGraph *task_graph,
@@ -705,7 +705,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
       task_graph, mr, iter_type, data_flag);
 
   /* Simple heuristic. */
-  const bool use_thread = (mr->loop_len + mr->loop_loose_len) > CHUNK_SIZE;
+  const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIM_RANGE_LEN;
 
   if (use_thread) {
     /* First run the requested extractors that do not support asynchronous ranges. */
