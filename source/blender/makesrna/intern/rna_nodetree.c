@@ -1985,7 +1985,9 @@ static bool switch_type_supported(const EnumPropertyItem *item)
               SOCK_RGBA,
               SOCK_GEOMETRY,
               SOCK_OBJECT,
-              SOCK_COLLECTION);
+              SOCK_COLLECTION,
+              SOCK_TEXTURE,
+              SOCK_MATERIAL);
 }
 
 static const EnumPropertyItem *rna_GeometryNodeSwitch_type_itemf(bContext *UNUSED(C),
