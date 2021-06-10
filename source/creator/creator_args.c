@@ -1959,7 +1959,9 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   }
 
   BLI_strncpy(filename, argv[0], sizeof(filename));
+  BLI_path_slash_native(filename);
   BLI_path_abs_from_cwd(filename, sizeof(filename));
+  BLI_path_normalize(NULL, filename);
 
   /* load the file */
   BKE_reports_init(&reports, RPT_PRINT);
