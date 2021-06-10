@@ -1282,7 +1282,7 @@ class GeometryNodesEvaluator {
     GMutablePointer value = this->get_value_from_socket(origin_socket, *input_state.type);
     if (input_socket->is_multi_input_socket()) {
       MultiInputValue &multi_value = *input_state.value.multi;
-      multi_value.items.append({input_socket, value.get()});
+      multi_value.items.append({origin_socket, value.get()});
     }
     else {
       SingleInputValue &single_value = *input_state.value.single;
