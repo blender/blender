@@ -233,8 +233,8 @@ void gmp_free(void *ptr, size_t size)
 }
 /**
  * Use TBB's scalable_allocator on Windows.
- * TBBmalloc correctly captures all allocations already,
- * however, GMP is built with mingw since it doesn't build with msvc,
+ * `TBBmalloc` correctly captures all allocations already,
+ * however, GMP is built with MINGW since it doesn't build with MSVC,
  * which TBB has issues hooking into automatically.
  */
 void gmp_blender_init_allocator()

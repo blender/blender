@@ -2779,7 +2779,7 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
 
 /* Poll callback for snap operators */
 /* NOTE: For now, we only allow these in the 3D view, as other editors do not
- *       define a cursor or gridstep which can be used
+ *       define a cursor or grid-step which can be used.
  */
 static bool gpencil_snap_poll(bContext *C)
 {

@@ -300,7 +300,7 @@ typedef struct ProjPaintState {
   /** Calculated from screenMin & screenMax. */
   float screen_width;
   float screen_height;
-  /** from the carea or from the projection render. */
+  /** From the area or from the projection render. */
   int winx, winy;
 
   /* options for projection painting */

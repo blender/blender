@@ -168,7 +168,7 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   Scene *scene_cow = DEG_get_evaluated_scene(graph);
   if (scene_cow == nullptr) {
-    return nullptr; /* Happens with new, not-yet-built/evaluated graphes. */
+    return nullptr; /* Happens with new, not-yet-built/evaluated graphs. */
   }
   /* Do name-based lookup. */
   /* TODO(sergey): Can this be optimized? */

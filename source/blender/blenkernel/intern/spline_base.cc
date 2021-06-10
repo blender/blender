@@ -355,7 +355,7 @@ GVArrayPtr Spline::interpolate_to_evaluated_points(GSpan data) const
 
 /**
  * Sample any input data with a value for each evaluated point (already interpolated to evaluated
- * points) to arbitrary parameters in betwen the evaluated points. The interpolation is quite
+ * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
  * simple, but this handles the cyclic and end point special cases.
  */
 void Spline::sample_based_on_index_factors(const GVArray &src,
