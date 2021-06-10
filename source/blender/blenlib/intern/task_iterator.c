@@ -379,11 +379,11 @@ typedef struct ParallelMempoolState {
 static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata)
 {
   ParallelMempoolState *__restrict state = BLI_task_pool_user_data(pool);
-  BLI_mempool_iter *iter = &((ParallelMempoolTaskData *)taskdata)->iter;
+  BLI_mempool_threadsafe_iter *iter = &((ParallelMempoolTaskData *)taskdata)->ts_iter;
   TaskParallelTLS *tls = &((ParallelMempoolTaskData *)taskdata)->tls;
 
   MempoolIterData *item;
-  while ((item = BLI_mempool_iterstep(iter)) != NULL) {
+  while ((item = mempool_iter_threadsafe_step(iter)) != NULL) {
     state->func(state->userdata, item, tls);
   }
 }

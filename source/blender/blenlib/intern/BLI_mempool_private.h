@@ -31,14 +31,21 @@
 #include "BLI_mempool.h"
 #include "BLI_task.h"
 
-typedef struct ParallelMempoolTaskData {
+typedef struct BLI_mempool_threadsafe_iter {
   BLI_mempool_iter iter;
+  struct BLI_mempool_chunk **curchunk_threaded_shared;
+} BLI_mempool_threadsafe_iter;
+
+typedef struct ParallelMempoolTaskData {
+  BLI_mempool_threadsafe_iter ts_iter;
   TaskParallelTLS tls;
 } ParallelMempoolTaskData;
 
 ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr) ATTR_NONNULL();
+
+void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *iter);
 
 #ifdef __cplusplus
 }

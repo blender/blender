@@ -68,8 +68,6 @@ typedef struct BLI_mempool_iter {
   BLI_mempool *pool;
   struct BLI_mempool_chunk *curchunk;
   unsigned int curindex;
-
-  struct BLI_mempool_chunk **curchunk_threaded_shared;
 } BLI_mempool_iter;
 
 /* flag */
