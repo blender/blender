@@ -35,6 +35,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
@@ -44,7 +45,6 @@
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 

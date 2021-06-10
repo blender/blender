@@ -24,6 +24,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
@@ -39,8 +40,6 @@
 #include "IMB_anim.h"
 #include "IMB_indexer.h"
 #include "imbuf.h"
-
-#include "BKE_global.h"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"

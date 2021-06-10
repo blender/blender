@@ -100,6 +100,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
+#include "BLI_endian_defines.h"
 #include "BLI_mempool.h"
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
