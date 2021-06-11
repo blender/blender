@@ -550,7 +550,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
   }
 
   int scr_w, scr_h;
-  wm_get_screensize(&scr_w, &scr_h);
+  wm_get_desktopsize(&scr_w, &scr_h);
   int posy = (scr_h - win->posy - win->sizey);
 
   /* Clear drawable so we can set the new window. */
