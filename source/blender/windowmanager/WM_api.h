@@ -190,6 +190,7 @@ struct wmWindow *WM_window_open(struct bContext *C,
                                 int sizex,
                                 int sizey,
                                 int space_type,
+                                bool toplevel,
                                 bool dialog,
                                 bool temp,
                                 WindowAlignment alignment);
