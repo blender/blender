@@ -173,6 +173,7 @@ class DerivedNodeTree {
   Span<const NodeTreeRef *> used_node_tree_refs() const;
 
   bool has_link_cycles() const;
+  bool has_undefined_nodes_or_sockets() const;
   void foreach_node(FunctionRef<void(DNode)> callback) const;
 
   std::string to_dot() const;

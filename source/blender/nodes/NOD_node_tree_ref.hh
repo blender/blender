@@ -125,6 +125,7 @@ class SocketRef : NonCopyable, NonMovable {
   bNodeTree *btree() const;
 
   bool is_available() const;
+  bool is_undefined() const;
 
   void *default_value() const;
   template<typename T> T *default_value() const;
@@ -197,6 +198,7 @@ class NodeRef : NonCopyable, NonMovable {
   bool is_group_output_node() const;
   bool is_muted() const;
   bool is_frame() const;
+  bool is_undefined() const;
 
   void *storage() const;
   template<typename T> T *storage() const;
@@ -260,6 +262,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Span<const LinkRef *> links() const;
 
   bool has_link_cycles() const;
+  bool has_undefined_nodes_or_sockets() const;
 
   bNodeTree *btree() const;
   StringRefNull name() const;
@@ -417,6 +420,11 @@ inline bool SocketRef::is_available() const
   return (bsocket_->flag & SOCK_UNAVAIL) == 0;
 }
 
+inline bool SocketRef::is_undefined() const
+{
+  return bsocket_->typeinfo == &NodeSocketTypeUndefined;
+}
+
 inline void *SocketRef::default_value() const
 {
   return bsocket_->default_value;
@@ -552,6 +560,11 @@ inline bool NodeRef::is_group_output_node() const
 inline bool NodeRef::is_frame() const
 {
   return bnode_->type == NODE_FRAME;
+}
+
+inline bool NodeRef::is_undefined() const
+{
+  return bnode_->typeinfo == &NodeTypeUndefined;
 }
 
 inline bool NodeRef::is_muted() const

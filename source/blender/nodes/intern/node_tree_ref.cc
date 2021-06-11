@@ -358,6 +358,21 @@ bool NodeTreeRef::has_link_cycles() const
   return false;
 }
 
+bool NodeTreeRef::has_undefined_nodes_or_sockets() const
+{
+  for (const NodeRef *node : nodes_by_id_) {
+    if (node->is_undefined()) {
+      return true;
+    }
+  }
+  for (const SocketRef *socket : sockets_by_id_) {
+    if (socket->is_undefined()) {
+      return true;
+    }
+  }
+  return true;
+}
+
 std::string NodeTreeRef::to_dot() const
 {
   dot::DirectedGraph digraph;
