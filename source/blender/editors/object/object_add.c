@@ -3462,6 +3462,19 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
  * Use for drag & drop.
  * \{ */
 
+static Base *object_add_ensure_in_view_layer(Main *bmain, ViewLayer *view_layer, Object *ob)
+{
+  Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+  if (!base) {
+    LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
+    BKE_collection_object_add(bmain, layer_collection->collection, ob);
+    base = BKE_view_layer_base_find(view_layer, ob);
+  }
+
+  return base;
+}
+
 static int object_add_named_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -3469,7 +3482,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Base *basen;
   Object *ob;
-  const bool linked = RNA_boolean_get(op->ptr, "linked");
+  const bool duplicate = RNA_boolean_get(op->ptr, "duplicate");
+  const bool linked = duplicate && RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? 0 : (eDupli_ID_Flags)U.dupflag;
   char name[MAX_ID_NAME - 2];
 
@@ -3483,20 +3497,30 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   }
 
   /* prepare dupli */
-  basen = object_add_duplicate_internal(
-      bmain,
-      scene,
-      view_layer,
-      ob,
-      dupflag,
-      /* Sub-process flag because the new-ID remapping (#BKE_libblock_relink_to_newid()) in this
-       * function will only work if the object is already linked in the view layer, which is not
-       * the case here. So we have to do the new-ID relinking ourselves (#copy_object_set_idnew()).
-       */
-      LIB_ID_DUPLICATE_IS_SUBPROCESS);
+  if (duplicate) {
+    basen = object_add_duplicate_internal(
+        bmain,
+        scene,
+        view_layer,
+        ob,
+        dupflag,
+        /* Sub-process flag because the new-ID remapping (#BKE_libblock_relink_to_newid()) in this
+         * function will only work if the object is already linked in the view layer, which is not
+         * the case here. So we have to do the new-ID relinking ourselves
+         * (#copy_object_set_idnew()).
+         */
+        LIB_ID_DUPLICATE_IS_SUBPROCESS);
+  }
+  else {
+    /* basen is actually not a new base in this case. */
+    basen = object_add_ensure_in_view_layer(bmain, view_layer, ob);
+  }
 
   if (basen == NULL) {
-    BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
+    BKE_report(op->reports,
+               RPT_ERROR,
+               duplicate ? "Object could not be duplicated" :
+                           "Object could not be linked to the view layer");
     return OPERATOR_CANCELLED;
   }
 
@@ -3543,11 +3567,24 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "duplicate",
+      true,
+      "Duplicate",
+      "Create a duplicate of the object. If not set, only ensures the object is linked into the "
+      "active view layer, positions and selects/activates it (deselecting others)");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_boolean(ot->srna,
                   "linked",
-                  0,
+                  false,
                   "Linked",
-                  "Duplicate object but not object data, linking to the original data");
+                  "Duplicate object but not object data, linking to the original data (ignored if "
+                  "'duplicate' is false)");
+
   RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Object name to add");
 
   object_add_drop_xy_props(ot);
