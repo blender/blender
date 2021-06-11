@@ -28,7 +28,16 @@
 
 static bNodeSocketTemplate geo_node_select_by_material_in[] = {
     {SOCK_GEOMETRY, N_("Geometry")},
-    {SOCK_MATERIAL, N_("Material")},
+    {SOCK_MATERIAL,
+     N_("Material"),
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     0.0f,
+     PROP_NONE,
+     SOCK_HIDE_LABEL},
     {SOCK_STRING, N_("Selection")},
     {-1, ""},
 };

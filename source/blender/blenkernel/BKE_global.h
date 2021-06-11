@@ -199,20 +199,6 @@ enum {
  */
 #define G_FILE_FLAG_ALL_RUNTIME (G_FILE_NO_UI | G_FILE_RECOVER_READ | G_FILE_RECOVER_WRITE)
 
-/** ENDIAN_ORDER: indicates what endianness the platform where the file was written had. */
-#if !defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
-#  error Either __BIG_ENDIAN__ or __LITTLE_ENDIAN__ must be defined.
-#endif
-
-#define L_ENDIAN 1
-#define B_ENDIAN 0
-
-#ifdef __BIG_ENDIAN__
-#  define ENDIAN_ORDER B_ENDIAN
-#else
-#  define ENDIAN_ORDER L_ENDIAN
-#endif
-
 /** #Global.moving, signals drawing in (3d) window to denote transform */
 enum {
   G_TRANSFORM_OBJ = (1 << 0),

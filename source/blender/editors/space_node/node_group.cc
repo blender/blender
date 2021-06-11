@@ -70,9 +70,8 @@ static bool node_group_operator_active_poll(bContext *C)
     SpaceNode *snode = CTX_wm_space_node(C);
 
     /* Group operators only defined for standard node tree types.
-     * Disabled otherwise to allow pynodes define their own operators
-     * with same keymap.
-     */
+     * Disabled otherwise to allow python-nodes define their own operators
+     * with same key-map. */
     if (STR_ELEM(snode->tree_idname,
                  "ShaderNodeTree",
                  "CompositorNodeTree",
@@ -90,9 +89,8 @@ static bool node_group_operator_editable(bContext *C)
     SpaceNode *snode = CTX_wm_space_node(C);
 
     /* Group operators only defined for standard node tree types.
-     * Disabled otherwise to allow pynodes define their own operators
-     * with same keymap.
-     */
+     * Disabled otherwise to allow python-nodes define their own operators
+     * with same key-map. */
     if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode) ||
         ED_node_is_geometry(snode)) {
       return true;

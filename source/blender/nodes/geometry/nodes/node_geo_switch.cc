@@ -40,6 +40,10 @@ static bNodeSocketTemplate geo_node_switch_in[] = {
     {SOCK_OBJECT, N_("True")},
     {SOCK_COLLECTION, N_("False")},
     {SOCK_COLLECTION, N_("True")},
+    {SOCK_TEXTURE, N_("False")},
+    {SOCK_TEXTURE, N_("True")},
+    {SOCK_MATERIAL, N_("False")},
+    {SOCK_MATERIAL, N_("True")},
     {-1, ""},
 };
 
@@ -53,6 +57,8 @@ static bNodeSocketTemplate geo_node_switch_out[] = {
     {SOCK_GEOMETRY, N_("Output")},
     {SOCK_OBJECT, N_("Output")},
     {SOCK_COLLECTION, N_("Output")},
+    {SOCK_TEXTURE, N_("Output")},
+    {SOCK_MATERIAL, N_("Output")},
     {-1, ""},
 };
 
@@ -151,6 +157,14 @@ static void geo_node_switch_exec(GeoNodeExecParams params)
     }
     case SOCK_COLLECTION: {
       output_input<Collection *>(params, input, "_008", "Output_008");
+      break;
+    }
+    case SOCK_TEXTURE: {
+      output_input<Tex *>(params, input, "_009", "Output_009");
+      break;
+    }
+    case SOCK_MATERIAL: {
+      output_input<Material *>(params, input, "_010", "Output_010");
       break;
     }
     default:

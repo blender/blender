@@ -4129,14 +4129,6 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Fade Inactive Objects", "Fade inactive geometry using the viewport background color");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-  prop = RNA_def_property(srna, "show_mode_transfer", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_MODE_TRANSFER);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop,
-                           "Flash on Mode Transfer",
-                           "Flash the target object when tranfering the active mode to it");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
   prop = RNA_def_property(srna, "fade_inactive_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "overlay.fade_alpha");
   RNA_def_property_ui_text(prop, "Opacity", "Strength of the fade effect");
@@ -6569,6 +6561,16 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
+      {FILE_ASSET_IMPORT_APPEND,
+       "APPEND",
+       0,
+       "Append",
+       "Import the assets as copied data-block, with no link to the original asset data-block"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "FileAssetSelectParams", "FileSelectParams");
   RNA_def_struct_ui_text(
       srna, "Asset Select Parameters", "Settings for the file selection in Asset Browser mode");
@@ -6589,6 +6591,13 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                               "rna_FileAssetSelectParams_asset_category_set",
                               NULL);
   RNA_def_property_ui_text(prop, "Asset Category", "Determine which kind of assets to display");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+
+  prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, asset_import_type_items);
+  RNA_def_property_ui_text(prop, "Import Type", "Determine how the asset will be imported");
+  /* Asset drag info saved by buttons stores the import type, so the space must redraw when import
+   * type changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 

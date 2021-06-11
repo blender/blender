@@ -2140,9 +2140,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   BLI_smallhash_release(&faces);
   BLI_smallhash_release(&kfes);
   BLI_smallhash_release(&kfvs);
-  if (results) {
-    MEM_freeN(results);
-  }
+  MEM_freeN(results);
 }
 
 /** \} */

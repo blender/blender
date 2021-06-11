@@ -142,7 +142,8 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
       color);
 }
 
-static void file_draw_icon(uiBlock *block,
+static void file_draw_icon(const SpaceFile *sfile,
+                           uiBlock *block,
                            const FileDirEntry *file,
                            const char *path,
                            int sx,
@@ -177,10 +178,14 @@ static void file_draw_icon(uiBlock *block,
       ImBuf *preview_image = filelist_file_getimage(file);
       char blend_path[FILE_MAX_LIBEXTRA];
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
+        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+        BLI_assert(asset_params != NULL);
+
         UI_but_drag_set_asset(but,
                               file->name,
                               BLI_strdup(blend_path),
                               file->blentype,
+                              asset_params->import_type,
                               icon,
                               preview_image,
                               UI_DPI_FAC);
@@ -299,7 +304,8 @@ void file_calc_previews(const bContext *C, ARegion *region)
   UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
-static void file_draw_preview(uiBlock *block,
+static void file_draw_preview(const SpaceFile *sfile,
+                              uiBlock *block,
                               const FileDirEntry *file,
                               const char *path,
                               int sx,
@@ -484,9 +490,19 @@ static void file_draw_preview(uiBlock *block,
     /* path is no more static, cannot give it directly to but... */
     else if (file->typeflag & FILE_TYPE_ASSET) {
       char blend_path[FILE_MAX_LIBEXTRA];
+
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
-        UI_but_drag_set_asset(
-            but, file->name, BLI_strdup(blend_path), file->blentype, icon, imb, scale);
+        const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+        BLI_assert(asset_params != NULL);
+
+        UI_but_drag_set_asset(but,
+                              file->name,
+                              BLI_strdup(blend_path),
+                              file->blentype,
+                              asset_params->import_type,
+                              icon,
+                              imb,
+                              scale);
       }
     }
     else {
@@ -925,7 +941,8 @@ void file_draw_list(const bContext *C, ARegion *region)
         is_icon = 1;
       }
 
-      file_draw_preview(block,
+      file_draw_preview(sfile,
+                        block,
                         file,
                         path,
                         sx,
@@ -940,7 +957,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                         is_link);
     }
     else {
-      file_draw_icon(block,
+      file_draw_icon(sfile,
+                     block,
                      file,
                      path,
                      sx,

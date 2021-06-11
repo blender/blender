@@ -37,6 +37,15 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
+/**
+ * On systems with 32+ cores,
+ * only a very small number of faces has any advantage single threading (in the 100's).
+ * Note that between 500-2000 quads, the difference isn't so much
+ * (tessellation isn't a bottleneck in this case anyway).
+ * Avoid the slight overhead of using threads in this case.
+ */
+#define BM_FACE_TESSELLATE_THREADED_LIMIT 1024
+
 /* -------------------------------------------------------------------- */
 /** \name Default Mesh Tessellation
  * \{ */
@@ -125,7 +134,7 @@ static int mesh_calc_tessellation_for_face(BMLoop *(*looptris)[3],
  *
  * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */
-void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
+static void bm_mesh_calc_tessellation__single_threaded(BMesh *bm, BMLoop *(*looptris)[3])
 {
 #ifndef NDEBUG
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
@@ -148,6 +157,54 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
   }
 
   BLI_assert(i <= looptris_tot);
+}
+
+struct TessellationUserTLS {
+  MemArena *pf_arena;
+};
+
+static void mesh_calc_tessellation_for_face_fn(void *__restrict userdata,
+                                               MempoolIterData *mp_f,
+                                               const TaskParallelTLS *__restrict tls)
+{
+  struct TessellationUserTLS *tls_data = tls->userdata_chunk;
+  BMLoop *(*looptris)[3] = userdata;
+  BMFace *f = (BMFace *)mp_f;
+  BMLoop *l = BM_FACE_FIRST_LOOP(f);
+  const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
+  mesh_calc_tessellation_for_face(looptris + offset, f, &tls_data->pf_arena);
+}
+
+static void mesh_calc_tessellation_for_face_free_fn(const void *__restrict UNUSED(userdata),
+                                                    void *__restrict tls_v)
+{
+  struct TessellationUserTLS *tls_data = tls_v;
+  if (tls_data->pf_arena) {
+    BLI_memarena_free(tls_data->pf_arena);
+  }
+}
+
+static void bm_mesh_calc_tessellation__multi_threaded(BMesh *bm, BMLoop *(*looptris)[3])
+{
+  BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
+
+  TaskParallelSettings settings;
+  struct TessellationUserTLS tls_dummy = {NULL};
+  BLI_parallel_mempool_settings_defaults(&settings);
+  settings.userdata_chunk = &tls_dummy;
+  settings.userdata_chunk_size = sizeof(tls_dummy);
+  settings.func_free = mesh_calc_tessellation_for_face_free_fn;
+  BM_iter_parallel(bm, BM_FACES_OF_MESH, mesh_calc_tessellation_for_face_fn, looptris, &settings);
+}
+
+void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
+{
+  if (bm->totface < BM_FACE_TESSELLATE_THREADED_LIMIT) {
+    bm_mesh_calc_tessellation__single_threaded(bm, looptris);
+  }
+  else {
+    bm_mesh_calc_tessellation__multi_threaded(bm, looptris);
+  }
 }
 
 /** \} */
@@ -236,12 +293,7 @@ void BM_mesh_calc_tessellation_with_partial(BMesh *bm,
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
 
-  /* On systems with 32+ cores,
-   * only a very small number of faces has any advantage single threading (in the 100's).
-   * Note that between 500-2000 quads, the difference isn't so much
-   * (tessellation isn't a bottleneck in this case anyway).
-   * Avoid the slight overhead of using threads in this case. */
-  if (bmpinfo->faces_len < 1024) {
+  if (bmpinfo->faces_len < BM_FACE_TESSELLATE_THREADED_LIMIT) {
     bm_mesh_calc_tessellation_with_partial__single_threaded(looptris, bmpinfo);
   }
   else {

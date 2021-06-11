@@ -317,11 +317,11 @@ void BezierSpline::correct_end_tangents() const
 
   MutableSpan<float3> tangents(evaluated_tangents_cache_);
 
-  if (handle_positions_left_.first() != positions_.first()) {
-    tangents.first() = (positions_.first() - handle_positions_left_.first()).normalized();
+  if (handle_positions_right_.first() != positions_.first()) {
+    tangents.first() = (handle_positions_right_.first() - positions_.first()).normalized();
   }
-  if (handle_positions_right_.last() != positions_.last()) {
-    tangents.last() = (handle_positions_right_.last() - positions_.last()).normalized();
+  if (handle_positions_left_.last() != positions_.last()) {
+    tangents.last() = (positions_.last() - handle_positions_left_.last()).normalized();
   }
 }
 

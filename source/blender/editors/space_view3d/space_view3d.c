@@ -625,6 +625,7 @@ static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_OB);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_boolean_set(drop->ptr, "duplicate", false);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)

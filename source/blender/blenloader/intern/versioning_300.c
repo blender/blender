@@ -244,5 +244,20 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    if (!DNA_struct_elem_find(fd->filesdna, "FileAssetSelectParams", "int", "import_type")) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_FILE) {
+              SpaceFile *sfile = (SpaceFile *)sl;
+              if (sfile->asset_params) {
+                sfile->asset_params->import_type = FILE_ASSET_IMPORT_APPEND;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

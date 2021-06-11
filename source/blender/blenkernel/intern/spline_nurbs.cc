@@ -26,6 +26,7 @@ using blender::float3;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
+using blender::fn::GVArray_Typed;
 
 SplinePtr NURBSpline::copy() const
 {
@@ -434,10 +435,9 @@ Span<float3> NURBSpline::evaluated_positions() const
   const int eval_size = this->evaluated_points_size();
   evaluated_position_cache_.resize(eval_size);
 
-  blender::fn::GVArray_Typed<float3> evaluated_positions{
-      this->interpolate_to_evaluated_points(blender::fn::GVArray_For_Span<float3>(positions_))};
-
-  evaluated_positions->materialize(evaluated_position_cache_);
+  /* TODO: Avoid copying the evaluated data from the temporary array. */
+  GVArray_Typed<float3> evaluated = Spline::interpolate_to_evaluated_points(positions_.as_span());
+  evaluated->materialize(evaluated_position_cache_);
 
   position_cache_dirty_ = false;
   return evaluated_position_cache_;

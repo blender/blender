@@ -69,9 +69,7 @@ bool GpencilImporterSVG::read()
   params_.ob = create_object();
   if (params_.ob == nullptr) {
     std::cout << "Unable to create new object.\n";
-    if (svg_data) {
-      nsvgDelete(svg_data);
-    }
+    nsvgDelete(svg_data);
 
     return false;
   }

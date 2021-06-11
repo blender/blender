@@ -84,6 +84,16 @@ bool DerivedNodeTree::has_link_cycles() const
   return false;
 }
 
+bool DerivedNodeTree::has_undefined_nodes_or_sockets() const
+{
+  for (const NodeTreeRef *tree_ref : used_node_tree_refs_) {
+    if (tree_ref->has_undefined_nodes_or_sockets()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* Calls the given callback on all nodes in the (possibly nested) derived node tree. */
 void DerivedNodeTree::foreach_node(FunctionRef<void(DNode)> callback) const
 {

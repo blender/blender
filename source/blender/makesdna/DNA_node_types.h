@@ -100,8 +100,8 @@ typedef struct bNodeSocket {
   void *storage;
 
   short type, flag;
-  /** Max. number of links. Read via nodeSocketLinkLimit, because the limit might be defined on the
-   * socket type. */
+  /** Max. number of links. Read via nodeSocketLinkLimit,
+   * because the limit might be defined on the socket type. */
   short limit;
   /** Input/output type. */
   short in_out;
@@ -171,7 +171,7 @@ typedef enum eNodeSocketDatatype {
   SOCK_MATERIAL = 13,
 } eNodeSocketDatatype;
 
-/* socket shape */
+/* Socket shape. */
 typedef enum eNodeSocketDisplayShape {
   SOCK_DISPLAY_SHAPE_CIRCLE = 0,
   SOCK_DISPLAY_SHAPE_SQUARE = 1,
@@ -181,38 +181,43 @@ typedef enum eNodeSocketDisplayShape {
   SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
 } eNodeSocketDisplayShape;
 
-/* socket side (input/output) */
+/* Socket side (input/output). */
 typedef enum eNodeSocketInOut {
   SOCK_IN = 1 << 0,
   SOCK_OUT = 1 << 1,
 } eNodeSocketInOut;
 
-/* sock->flag, first bit is select */
+/* #bNodeSocket.flag, first bit is selection. */
 typedef enum eNodeSocketFlag {
-  /** hidden is user defined, to hide unused */
+  /** Hidden is user defined, to hide unused sockets. */
   SOCK_HIDDEN = (1 << 1),
-  /** for quick check if socket is linked */
+  /** For quick check if socket is linked. */
   SOCK_IN_USE = (1 << 2),
-  /** unavailable is for dynamic sockets */
+  /** Unavailable is for dynamic sockets. */
   SOCK_UNAVAIL = (1 << 3),
   // /** DEPRECATED  dynamic socket (can be modified by user) */
   // SOCK_DYNAMIC = (1 << 4),
   // /** DEPRECATED  group socket should not be exposed */
   // SOCK_INTERNAL = (1 << 5),
-  /** socket collapsed in UI */
+  /** Socket collapsed in UI. */
   SOCK_COLLAPSED = (1 << 6),
-  /** hide socket value, if it gets auto default */
+  /** Hide socket value, if it gets auto default. */
   SOCK_HIDE_VALUE = (1 << 7),
-  /** socket hidden automatically, to distinguish from manually hidden */
+  /** Socket hidden automatically, to distinguish from manually hidden. */
   SOCK_AUTO_HIDDEN__DEPRECATED = (1 << 8),
   SOCK_NO_INTERNAL_LINK = (1 << 9),
   /** Draw socket in a more compact form. */
   SOCK_COMPACT = (1 << 10),
   /** Make the input socket accept multiple incoming links in the UI. */
   SOCK_MULTI_INPUT = (1 << 11),
+  /**
+   * Don't show the socket's label in the interface, for situations where the
+   * type is obvious and the name takes up too much space.
+   */
+  SOCK_HIDE_LABEL = (1 << 12),
 } eNodeSocketFlag;
 
-/* limit data in bNode to what we want to see saved? */
+/* TODO: Limit data in bNode to what we want to see saved. */
 typedef struct bNode {
   struct bNode *next, *prev, *new_node;
 
@@ -503,7 +508,7 @@ typedef struct bNodeTree {
    */
   struct bNodeTreeExec *execdata;
 
-  /* callbacks */
+  /* Callbacks. */
   void (*progress)(void *, float progress);
   /** \warning may be called by different threads */
   void (*stats_draw)(void *, const char *str);
@@ -612,7 +617,7 @@ typedef struct bNodeSocketValueMaterial {
   struct Material *value;
 } bNodeSocketValueMaterial;
 
-/* data structs, for node->storage */
+/* Data structs, for node->storage. */
 enum {
   CMP_NODE_MASKTYPE_ADD = 0,
   CMP_NODE_MASKTYPE_SUBTRACT = 1,
@@ -636,7 +641,7 @@ enum {
   CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1),
   CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
 
-  /* we may want multiple aspect options, exposed as an rna enum */
+  /* We may want multiple aspect options, exposed as an rna enum. */
   CMP_NODEFLAG_MASK_FIXED = (1 << 8),
   CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9),
 };
@@ -651,7 +656,7 @@ typedef struct NodeFrame {
   short label_size;
 } NodeFrame;
 
-/* this one has been replaced with ImageUser, keep it for do_versions() */
+/* This one has been replaced with ImageUser, keep it for do_versions(). */
 typedef struct NodeImageAnim {
   int frames DNA_DEPRECATED;
   int sfra DNA_DEPRECATED;
@@ -705,7 +710,7 @@ typedef struct NodeEllipseMask {
   char _pad[4];
 } NodeEllipseMask;
 
-/* layer info for image node outputs */
+/* Layer info for image node outputs. */
 typedef struct NodeImageLayer {
   /* index in the Image->layers->passes lists */
   int pass_index DNA_DEPRECATED;
@@ -1538,7 +1543,7 @@ enum {
 #define SHD_AO_INSIDE 1
 #define SHD_AO_LOCAL 2
 
-/* Mapping node vector types */
+/* Mapping node vector types. */
 enum {
   NODE_MAPPING_TYPE_POINT = 0,
   NODE_MAPPING_TYPE_TEXTURE = 1,
@@ -1546,7 +1551,7 @@ enum {
   NODE_MAPPING_TYPE_NORMAL = 3,
 };
 
-/* Rotation node vector types */
+/* Rotation node vector types. */
 enum {
   NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
   NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
@@ -1760,14 +1765,12 @@ typedef enum GeometryNodeAttributeProximityTargetType {
   GEO_NODE_ATTRIBUTE_PROXIMITY_TARGET_GEOMETRY_ELEMENT_FACES = 2,
 } GeometryNodeAttributeProximityTargetType;
 
-/* Boolean Node */
 typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_INTERSECT = 0,
   GEO_NODE_BOOLEAN_UNION = 1,
   GEO_NODE_BOOLEAN_DIFFERENCE = 2,
 } GeometryNodeBooleanOperation;
 
-/* Triangulate Node */
 typedef enum GeometryNodeTriangulateNGons {
   GEO_NODE_TRIANGULATE_NGON_BEAUTY = 0,
   GEO_NODE_TRIANGULATE_NGON_EARCLIP = 1,

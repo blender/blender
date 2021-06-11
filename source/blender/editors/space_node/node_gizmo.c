@@ -97,7 +97,6 @@ static void gizmo_node_backdrop_prop_matrix_set(const wmGizmo *UNUSED(gz),
   BLI_assert(gz_prop->type->array_length == 16);
   SpaceNode *snode = gz_prop->custom_func.user_data;
   snode->zoom = matrix[0][0];
-  snode->zoom = matrix[1][1];
   snode->xof = matrix[3][0];
   snode->yof = matrix[3][1];
 }

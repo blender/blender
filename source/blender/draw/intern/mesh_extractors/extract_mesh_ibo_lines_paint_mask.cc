@@ -37,18 +37,17 @@ namespace blender::draw {
 struct MeshExtract_LinePaintMask_Data {
   GPUIndexBufBuilder elb;
   /** One bit per edge set if face is selected. */
-  BLI_bitmap select_map[0];
+  BLI_bitmap *select_map;
 };
 
-static void *extract_lines_paint_mask_init(const MeshRenderData *mr,
-                                           struct MeshBatchCache *UNUSED(cache),
-                                           void *UNUSED(ibo))
+static void extract_lines_paint_mask_init(const MeshRenderData *mr,
+                                          struct MeshBatchCache *UNUSED(cache),
+                                          void *UNUSED(ibo),
+                                          void *tls_data)
 {
-  size_t bitmap_size = BLI_BITMAP_SIZE(mr->edge_len);
-  MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(
-      MEM_callocN(sizeof(*data) + bitmap_size, __func__));
+  MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(tls_data);
+  data->select_map = BLI_BITMAP_NEW(mr->edge_len, __func__);
   GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES, mr->edge_len, mr->loop_len);
-  return data;
 }
 
 static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
@@ -101,7 +100,7 @@ static void extract_lines_paint_mask_finish(const MeshRenderData *UNUSED(mr),
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
+  MEM_freeN(data->select_map);
 }
 
 /** \} */
@@ -113,6 +112,7 @@ constexpr MeshExtract create_extractor_lines_paint_mask()
   extractor.iter_poly_mesh = extract_lines_paint_mask_iter_poly_mesh;
   extractor.finish = extract_lines_paint_mask_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_LinePaintMask_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_paint_mask);
   return extractor;

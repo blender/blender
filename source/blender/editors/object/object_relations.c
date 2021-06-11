@@ -2570,14 +2570,14 @@ static int convert_proxy_to_override_exec(bContext *C, wmOperator *op)
 
   /* Remove the instance empty from this scene, the items now have an overridden collection
    * instead. */
-  if (success && is_override_instancing_object) {
+  if (is_override_instancing_object) {
     ED_object_base_free_and_unlink(bmain, scene, ob_proxy_group);
   }
 
   DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-  return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_convert_proxy_to_override(wmOperatorType *ot)

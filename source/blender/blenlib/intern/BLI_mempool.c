@@ -36,7 +36,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_mempool.h" /* own include */
+#include "BLI_mempool.h"         /* own include */
+#include "BLI_mempool_private.h" /* own include */
 
 #include "MEM_guardedalloc.h"
 
@@ -541,8 +542,12 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
   iter->pool = pool;
   iter->curchunk = pool->chunks;
   iter->curindex = 0;
+}
 
-  iter->curchunk_threaded_shared = NULL;
+static void mempool_threadsafe_iternew(BLI_mempool *pool, BLI_mempool_threadsafe_iter *ts_iter)
+{
+  BLI_mempool_iternew(pool, &ts_iter->iter);
+  ts_iter->curchunk_threaded_shared = NULL;
 }
 
 /**
@@ -558,33 +563,31 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
  *
  * See BLI_task_parallel_mempool implementation for detailed usage example.
  */
-BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
+ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  BLI_mempool_iter *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
+  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
   BLI_mempool_chunk **curchunk_threaded_shared = MEM_mallocN(sizeof(void *), __func__);
 
-  BLI_mempool_iternew(pool, iter_arr);
+  mempool_threadsafe_iternew(pool, &iter_arr->ts_iter);
 
-  *curchunk_threaded_shared = iter_arr->curchunk;
-  iter_arr->curchunk_threaded_shared = curchunk_threaded_shared;
-
+  *curchunk_threaded_shared = iter_arr->ts_iter.iter.curchunk;
+  iter_arr->ts_iter.curchunk_threaded_shared = curchunk_threaded_shared;
   for (size_t i = 1; i < num_iter; i++) {
-    iter_arr[i] = iter_arr[0];
-    *curchunk_threaded_shared = iter_arr[i].curchunk = ((*curchunk_threaded_shared) ?
-                                                            (*curchunk_threaded_shared)->next :
-                                                            NULL);
+    iter_arr[i].ts_iter = iter_arr[0].ts_iter;
+    *curchunk_threaded_shared = iter_arr[i].ts_iter.iter.curchunk =
+        ((*curchunk_threaded_shared) ? (*curchunk_threaded_shared)->next : NULL);
   }
 
   return iter_arr;
 }
 
-void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr)
+void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr)
 {
-  BLI_assert(iter_arr->curchunk_threaded_shared != NULL);
+  BLI_assert(iter_arr->ts_iter.curchunk_threaded_shared != NULL);
 
-  MEM_freeN(iter_arr->curchunk_threaded_shared);
+  MEM_freeN(iter_arr->ts_iter.curchunk_threaded_shared);
   MEM_freeN(iter_arr);
 }
 
@@ -605,19 +608,6 @@ static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 
   if (iter->curindex == iter->pool->pchunk) {
     iter->curindex = 0;
-    if (iter->curchunk_threaded_shared) {
-      while (1) {
-        iter->curchunk = *iter->curchunk_threaded_shared;
-        if (iter->curchunk == NULL) {
-          return ret;
-        }
-        if (atomic_cas_ptr((void **)iter->curchunk_threaded_shared,
-                           iter->curchunk,
-                           iter->curchunk->next) == iter->curchunk) {
-          break;
-        }
-      }
-    }
     iter->curchunk = iter->curchunk->next;
   }
 
@@ -659,19 +649,54 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
     }
     else {
       iter->curindex = 0;
-      if (iter->curchunk_threaded_shared) {
-        for (iter->curchunk = *iter->curchunk_threaded_shared;
-             (iter->curchunk != NULL) && (atomic_cas_ptr((void **)iter->curchunk_threaded_shared,
-                                                         iter->curchunk,
-                                                         iter->curchunk->next) != iter->curchunk);
-             iter->curchunk = *iter->curchunk_threaded_shared) {
-          /* pass. */
-        }
-
-        if (UNLIKELY(iter->curchunk == NULL)) {
-          return (ret->freeword == FREEWORD) ? NULL : ret;
-        }
+      iter->curchunk = iter->curchunk->next;
+      if (UNLIKELY(iter->curchunk == NULL)) {
+        return (ret->freeword == FREEWORD) ? NULL : ret;
       }
+      curnode = CHUNK_DATA(iter->curchunk);
+    }
+  } while (ret->freeword == FREEWORD);
+
+  return ret;
+}
+
+/**
+ * A version of #BLI_mempool_iterstep that uses
+ * #BLI_mempool_threadsafe_iter.curchunk_threaded_shared for threaded iteration support.
+ * (threaded section noted in comments).
+ */
+void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
+{
+  BLI_mempool_iter *iter = &ts_iter->iter;
+  if (UNLIKELY(iter->curchunk == NULL)) {
+    return NULL;
+  }
+
+  const uint esize = iter->pool->esize;
+  BLI_freenode *curnode = POINTER_OFFSET(CHUNK_DATA(iter->curchunk), (esize * iter->curindex));
+  BLI_freenode *ret;
+  do {
+    ret = curnode;
+
+    if (++iter->curindex != iter->pool->pchunk) {
+      curnode = POINTER_OFFSET(curnode, esize);
+    }
+    else {
+      iter->curindex = 0;
+
+      /* Begin unique to the `threadsafe` version of this function. */
+      for (iter->curchunk = *ts_iter->curchunk_threaded_shared;
+           (iter->curchunk != NULL) && (atomic_cas_ptr((void **)ts_iter->curchunk_threaded_shared,
+                                                       iter->curchunk,
+                                                       iter->curchunk->next) != iter->curchunk);
+           iter->curchunk = *ts_iter->curchunk_threaded_shared) {
+        /* pass. */
+      }
+      if (UNLIKELY(iter->curchunk == NULL)) {
+        return (ret->freeword == FREEWORD) ? NULL : ret;
+      }
+      /* End `threadsafe` exception. */
+
       iter->curchunk = iter->curchunk->next;
       if (UNLIKELY(iter->curchunk == NULL)) {
         return (ret->freeword == FREEWORD) ? NULL : ret;

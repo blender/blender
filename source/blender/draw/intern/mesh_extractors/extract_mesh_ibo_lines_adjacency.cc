@@ -41,26 +41,25 @@ struct MeshExtract_LineAdjacency_Data {
   EdgeHash *eh;
   bool is_manifold;
   /* Array to convert vert index to any loop index of this vert. */
-  uint vert_to_loop[0];
+  uint *vert_to_loop;
 };
 
-static void *extract_lines_adjacency_init(const MeshRenderData *mr,
-                                          struct MeshBatchCache *UNUSED(cache),
-                                          void *UNUSED(buf))
+static void extract_lines_adjacency_init(const MeshRenderData *mr,
+                                         struct MeshBatchCache *UNUSED(cache),
+                                         void *UNUSED(buf),
+                                         void *tls_data)
 {
   /* Similar to poly_to_tri_count().
    * There is always (loop + triangle - 1) edges inside a polygon.
    * Accumulate for all polys and you get : */
   uint tess_edge_len = mr->loop_len + mr->tri_len - mr->poly_len;
 
-  size_t vert_to_loop_size = sizeof(uint) * mr->vert_len;
+  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
+  data->vert_to_loop = static_cast<uint *>(MEM_callocN(sizeof(uint) * mr->vert_len, __func__));
 
-  MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(
-      MEM_callocN(sizeof(*data) + vert_to_loop_size, __func__));
   GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES_ADJ, tess_edge_len, mr->loop_len);
   data->eh = BLI_edgehash_new_ex(__func__, tess_edge_len);
   data->is_manifold = true;
-  return data;
 }
 
 BLI_INLINE void lines_adjacency_triangle(
@@ -169,7 +168,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
   cache->is_manifold = data->is_manifold;
 
   GPU_indexbuf_build_in_place(&data->elb, ibo);
-  MEM_freeN(data);
+  MEM_freeN(data->vert_to_loop);
 }
 
 #undef NO_EDGE
@@ -184,6 +183,7 @@ constexpr MeshExtract create_extractor_lines_adjacency()
   extractor.iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh;
   extractor.finish = extract_lines_adjacency_finish;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(MeshExtract_LineAdjacency_Data);
   extractor.use_threading = false;
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.lines_adjacency);
   return extractor;

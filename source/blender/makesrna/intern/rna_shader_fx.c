@@ -216,6 +216,8 @@ static void rna_def_shader_fx_blur(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "BlurShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "size", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "radius");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
@@ -240,6 +242,8 @@ static void rna_def_shader_fx_blur(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_BLUR_DOF_MODE);
   RNA_def_property_ui_text(prop, "Use as Depth Of Field", "Blur using camera depth of field");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_colorize(BlenderRNA *brna)
@@ -251,6 +255,8 @@ static void rna_def_shader_fx_colorize(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Colorize Effect", "Colorize effect");
   RNA_def_struct_sdna(srna, "ColorizeShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "factor");
@@ -277,6 +283,8 @@ static void rna_def_shader_fx_colorize(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_shaderfx_colorize_modes_items);
   RNA_def_property_ui_text(prop, "Mode", "Effect mode");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_wave(BlenderRNA *brna)
@@ -293,6 +301,8 @@ static void rna_def_shader_fx_wave(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Wave Deformation Effect", "Wave Deformation effect");
   RNA_def_struct_sdna(srna, "WaveShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "orientation");
@@ -317,6 +327,8 @@ static void rna_def_shader_fx_wave(BlenderRNA *brna)
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_text(prop, "Phase", "Phase Shift of Wave");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_pixel(BlenderRNA *brna)
@@ -329,6 +341,8 @@ static void rna_def_shader_fx_pixel(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "PixelShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "size");
   RNA_def_property_range(prop, 1, SHRT_MAX);
@@ -340,6 +354,8 @@ static void rna_def_shader_fx_pixel(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FX_PIXEL_FILTER_NEAREST);
   RNA_def_property_ui_text(prop, "Antialiasing", "Antialias pixels");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_rim(BlenderRNA *brna)
@@ -351,6 +367,8 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Rim Effect", "Rim effect");
   RNA_def_struct_sdna(srna, "RimShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "offset", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "offset");
@@ -392,6 +410,8 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
   RNA_def_property_int_default(prop, 4);
   RNA_def_property_ui_text(prop, "Samples", "Number of Blur Samples (zero, disable blur)");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_shadow(BlenderRNA *brna)
@@ -409,11 +429,12 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "ShadowShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
   RNA_def_property_ui_text(prop, "Object", "Object to determine center of rotation");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_ShadowShaderFx_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
 
   prop = RNA_def_property(srna, "offset", PROP_INT, PROP_PIXEL);
@@ -490,6 +511,8 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SHADOW_USE_WAVE);
   RNA_def_property_ui_text(prop, "Wave", "Use wave effect");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_glow(BlenderRNA *brna)
@@ -501,6 +524,8 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Glow Effect", "Glow effect");
   RNA_def_struct_sdna(srna, "GlowShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "glow_color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_range(prop, 0.0, 1.0);
@@ -569,6 +594,8 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_glow_blend_modes_items);
   RNA_def_property_ui_text(prop, "Blend Mode", "Blend mode");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_swirl(BlenderRNA *brna)
@@ -580,6 +607,8 @@ static void rna_def_shader_fx_swirl(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Swirl Effect", "Swirl effect");
   RNA_def_struct_sdna(srna, "SwirlShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+  RNA_define_lib_overridable(true);
 
   prop = RNA_def_property(srna, "radius", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "radius");
@@ -603,8 +632,9 @@ static void rna_def_shader_fx_swirl(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Object", "Object to determine center location");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_SwirlShaderFx_object_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_shader_fx_flip(BlenderRNA *brna)
@@ -617,6 +647,8 @@ static void rna_def_shader_fx_flip(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "FlipShaderFxData");
   RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "flip_horizontal", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_FLIP_HORIZONTAL);
   RNA_def_property_ui_text(prop, "Horizontal", "Flip image horizontally");
@@ -626,6 +658,8 @@ static void rna_def_shader_fx_flip(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_FLIP_VERTICAL);
   RNA_def_property_ui_text(prop, "Vertical", "Flip image vertically");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 void RNA_def_shader_fx(BlenderRNA *brna)

@@ -44,7 +44,6 @@ typedef struct GPUIndexBufBuilder {
   uint index_max;
   GPUPrimType prim_type;
   uint32_t *data;
-  const struct GPUIndexBufBuilder *parent;
 } GPUIndexBufBuilder;
 
 /* supports all primitive types. */
@@ -55,17 +54,11 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint ve
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 
 /*
- * Thread safe sub builders.
+ * Thread safe.
  *
- * Note that `GPU_indexbuf_subbuilder_init` and `GPU_indexbuf_subbuilder_finish` are not thread
- * safe and should be called when no threads are active. The pattern is to create a subbuilder for
- * each thread/task. Each thread/task would update their sub builder. When all thread are completed
- * the sub-builders can then be merged back to the parent builder.
+ * Function inspired by the reduction directives of multithread work APIs..
  */
-void GPU_indexbuf_subbuilder_init(const GPUIndexBufBuilder *parent_builder,
-                                  GPUIndexBufBuilder *sub_builder);
-void GPU_indexbuf_subbuilder_finish(GPUIndexBufBuilder *builder,
-                                    const GPUIndexBufBuilder *parent_builder);
+void GPU_indexbuf_join(GPUIndexBufBuilder *builder, const GPUIndexBufBuilder *parent_builder);
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *, uint v);
 void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *);

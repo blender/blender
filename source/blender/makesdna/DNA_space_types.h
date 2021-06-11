@@ -780,7 +780,15 @@ typedef struct FileAssetSelectParams {
   FileSelectParams base_params;
 
   FileSelectAssetLibraryUID asset_library;
+
+  short import_type; /* eFileAssetImportType */
+  char _pad[6];
 } FileAssetSelectParams;
+
+typedef enum eFileAssetImportType {
+  FILE_ASSET_IMPORT_LINK = 0,
+  FILE_ASSET_IMPORT_APPEND = 1,
+} eFileAssetImportType;
 
 /**
  * A wrapper to store previous and next folder lists (#FolderList) for a specific browse mode

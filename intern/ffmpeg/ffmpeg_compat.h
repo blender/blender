@@ -93,40 +93,21 @@ void my_guess_pkt_duration(AVFormatContext *s, AVStream *st, AVPacket *pkt)
 #endif
 
 FFMPEG_INLINE
-void my_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
+int64_t timestamp_from_pts_or_dts(int64_t pts, int64_t dts)
 {
-  int i;
-
-  for (i = 0; i < s->nb_streams; i++) {
-    AVStream *st = s->streams[i];
-
-    st->cur_dts = av_rescale(timestamp,
-                             st->time_base.den * (int64_t)ref_st->time_base.num,
-                             st->time_base.num * (int64_t)ref_st->time_base.den);
-  }
-}
-
-FFMPEG_INLINE
-void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
-{
-  my_update_cur_dts(s, ref_st, timestamp);
-}
-
-FFMPEG_INLINE
-int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame *picture)
-{
-  int64_t pts;
-  pts = picture->pts;
-
+  /* Some videos do not have any pts values, use dts instead in those cases if
+   * possible. Usually when this happens dts can act as pts because as all frames
+   * should then be presented in their decoded in order. IE pts == dts. */
   if (pts == AV_NOPTS_VALUE) {
-    pts = picture->pkt_dts;
+    return dts;
   }
-  if (pts == AV_NOPTS_VALUE) {
-    pts = 0;
-  }
-
-  (void)avctx;
   return pts;
+}
+
+FFMPEG_INLINE
+int64_t av_get_pts_from_frame(AVFrame *picture)
+{
+  return timestamp_from_pts_or_dts(picture->pts, picture->pkt_dts);
 }
 
 /* -------------------------------------------------------------------- */

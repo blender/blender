@@ -44,6 +44,10 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
+        layout.prop(params, "import_type", text="")
+
+        layout.separator_spacer()
+
         # Uses prop_with_popover() as popover() only adds the triangle icon in headers.
         layout.prop_with_popover(
             params,

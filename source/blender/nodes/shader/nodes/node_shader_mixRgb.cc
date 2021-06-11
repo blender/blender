@@ -61,35 +61,60 @@ static void node_shader_exec_mix_rgb(void *UNUSED(data),
   copy_v3_v3(out[0]->vec, col);
 }
 
+static const char *gpu_shader_get_name(int mode)
+{
+  switch (mode) {
+    case MA_RAMP_BLEND:
+      return "mix_blend";
+    case MA_RAMP_ADD:
+      return "mix_add";
+    case MA_RAMP_MULT:
+      return "mix_mult";
+    case MA_RAMP_SUB:
+      return "mix_sub";
+    case MA_RAMP_SCREEN:
+      return "mix_screen";
+    case MA_RAMP_DIV:
+      return "mix_div";
+    case MA_RAMP_DIFF:
+      return "mix_diff";
+    case MA_RAMP_DARK:
+      return "mix_dark";
+    case MA_RAMP_LIGHT:
+      return "mix_light";
+    case MA_RAMP_OVERLAY:
+      return "mix_overlay";
+    case MA_RAMP_DODGE:
+      return "mix_dodge";
+    case MA_RAMP_BURN:
+      return "mix_burn";
+    case MA_RAMP_HUE:
+      return "mix_hue";
+    case MA_RAMP_SAT:
+      return "mix_sat";
+    case MA_RAMP_VAL:
+      return "mix_val";
+    case MA_RAMP_COLOR:
+      return "mix_color";
+    case MA_RAMP_SOFT:
+      return "mix_soft";
+    case MA_RAMP_LINEAR:
+      return "mix_linear";
+  }
+
+  return nullptr;
+}
+
 static int gpu_shader_mix_rgb(GPUMaterial *mat,
                               bNode *node,
                               bNodeExecData *UNUSED(execdata),
                               GPUNodeStack *in,
                               GPUNodeStack *out)
 {
-  static const char *names[] = {
-      "mix_blend",
-      "mix_add",
-      "mix_mult",
-      "mix_sub",
-      "mix_screen",
-      "mix_div",
-      "mix_diff",
-      "mix_dark",
-      "mix_light",
-      "mix_overlay",
-      "mix_dodge",
-      "mix_burn",
-      "mix_hue",
-      "mix_sat",
-      "mix_val",
-      "mix_color",
-      "mix_soft",
-      "mix_linear",
-  };
+  const char *name = gpu_shader_get_name(node->custom1);
 
-  if (node->custom1 < ARRAY_SIZE(names) && names[node->custom1]) {
-    int ret = GPU_stack_link(mat, node, names[node->custom1], in, out);
+  if (name != nullptr) {
+    int ret = GPU_stack_link(mat, node, name, in, out);
     if (ret && node->custom2 & SHD_MIXRGB_CLAMP) {
       const float min[3] = {0.0f, 0.0f, 0.0f};
       const float max[3] = {1.0f, 1.0f, 1.0f};

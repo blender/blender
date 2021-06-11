@@ -162,6 +162,7 @@ set(SRC
   geometry/nodes/node_geo_bounding_box.cc
   geometry/nodes/node_geo_collection_info.cc
   geometry/nodes/node_geo_common.cc
+  geometry/nodes/node_geo_convex_hull.cc
   geometry/nodes/node_geo_curve_length.cc  
   geometry/nodes/node_geo_curve_to_mesh.cc
   geometry/nodes/node_geo_curve_resample.cc
@@ -241,7 +242,7 @@ set(SRC
   shader/nodes/node_shader_map_range.cc
   shader/nodes/node_shader_mapping.c
   shader/nodes/node_shader_math.cc
-  shader/nodes/node_shader_mixRgb.c
+  shader/nodes/node_shader_mixRgb.cc
   shader/nodes/node_shader_mix_shader.c
   shader/nodes/node_shader_normal.c
   shader/nodes/node_shader_normal_map.c
@@ -362,6 +363,23 @@ set(LIB
   bf_functions
   bf_intern_sky
 )
+
+if(WITH_BULLET)
+  list(APPEND INC_SYS
+    ${BULLET_INCLUDE_DIRS}
+    "../../../intern/rigidbody/"
+  )
+  if(NOT WITH_SYSTEM_BULLET)
+  list(APPEND LIB
+    extern_bullet
+    )
+  endif()
+
+  list(APPEND LIB
+    ${BULLET_LIBRARIES}
+  )
+  add_definitions(-DWITH_BULLET)
+endif()
 
 if(WITH_PYTHON)
   list(APPEND INC

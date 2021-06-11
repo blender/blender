@@ -67,7 +67,9 @@ TEST(task, RangeIter)
 
 /* *** Parallel iterations over mempool items. *** */
 
-static void task_mempool_iter_func(void *userdata, MempoolIterData *item)
+static void task_mempool_iter_func(void *userdata,
+                                   MempoolIterData *item,
+                                   const TaskParallelTLS *__restrict UNUSED(tls))
 {
   int *data = (int *)item;
   int *count = (int *)userdata;
@@ -119,7 +121,10 @@ TEST(task, MempoolIter)
     }
   }
 
-  BLI_task_parallel_mempool(mempool, &num_items, task_mempool_iter_func, true);
+  TaskParallelSettings settings;
+  BLI_parallel_mempool_settings_defaults(&settings);
+
+  BLI_task_parallel_mempool(mempool, &num_items, task_mempool_iter_func, &settings);
 
   /* Those checks should ensure us all items of the mempool were processed once, and only once - as
    * expected. */
@@ -129,6 +134,100 @@ TEST(task, MempoolIter)
       EXPECT_EQ(*data[i], i);
     }
   }
+
+  BLI_mempool_destroy(mempool);
+  BLI_threadapi_exit();
+}
+
+/* *** Parallel iterations over mempool items with TLS. *** */
+
+typedef struct TaskMemPool_Chunk {
+  ListBase *accumulate_items;
+} TaskMemPool_Chunk;
+
+static void task_mempool_iter_tls_func(void *UNUSED(userdata),
+                                       MempoolIterData *item,
+                                       const TaskParallelTLS *__restrict tls)
+{
+  TaskMemPool_Chunk *task_data = (TaskMemPool_Chunk *)tls->userdata_chunk;
+  int *data = (int *)item;
+
+  EXPECT_TRUE(data != nullptr);
+  if (task_data->accumulate_items == nullptr) {
+    task_data->accumulate_items = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+  }
+
+  /* Flip to prove this has been touched. */
+  *data = -*data;
+
+  BLI_addtail(task_data->accumulate_items, BLI_genericNodeN(data));
+}
+
+static void task_mempool_iter_tls_reduce(const void *__restrict UNUSED(userdata),
+                                         void *__restrict chunk_join,
+                                         void *__restrict chunk)
+{
+  TaskMemPool_Chunk *join_chunk = (TaskMemPool_Chunk *)chunk_join;
+  TaskMemPool_Chunk *data_chunk = (TaskMemPool_Chunk *)chunk;
+
+  if (data_chunk->accumulate_items != nullptr) {
+    if (join_chunk->accumulate_items == nullptr) {
+      join_chunk->accumulate_items = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+    }
+    BLI_movelisttolist(join_chunk->accumulate_items, data_chunk->accumulate_items);
+  }
+}
+
+static void task_mempool_iter_tls_free(const void *UNUSED(userdata),
+                                       void *__restrict userdata_chunk)
+{
+  TaskMemPool_Chunk *task_data = (TaskMemPool_Chunk *)userdata_chunk;
+  MEM_freeN(task_data->accumulate_items);
+}
+
+TEST(task, MempoolIterTLS)
+{
+  int *data[NUM_ITEMS];
+  BLI_threadapi_init();
+  BLI_mempool *mempool = BLI_mempool_create(
+      sizeof(*data[0]), NUM_ITEMS, 32, BLI_MEMPOOL_ALLOW_ITER);
+
+  int i;
+
+  /* Add numbers negative `1..NUM_ITEMS` inclusive. */
+  int num_items = 0;
+  for (i = 0; i < NUM_ITEMS; i++) {
+    data[i] = (int *)BLI_mempool_alloc(mempool);
+    *data[i] = -(i + 1);
+    num_items++;
+  }
+
+  TaskParallelSettings settings;
+  BLI_parallel_mempool_settings_defaults(&settings);
+
+  TaskMemPool_Chunk tls_data;
+  tls_data.accumulate_items = NULL;
+
+  settings.userdata_chunk = &tls_data;
+  settings.userdata_chunk_size = sizeof(tls_data);
+
+  settings.func_free = task_mempool_iter_tls_free;
+  settings.func_reduce = task_mempool_iter_tls_reduce;
+
+  BLI_task_parallel_mempool(mempool, nullptr, task_mempool_iter_tls_func, &settings);
+
+  EXPECT_EQ(BLI_listbase_count(tls_data.accumulate_items), NUM_ITEMS);
+
+  /* Check that all elements are added into the list once. */
+  int num_accum = 0;
+  for (LinkData *link = (LinkData *)tls_data.accumulate_items->first; link; link = link->next) {
+    int *data = (int *)link->data;
+    num_accum += *data;
+  }
+  EXPECT_EQ(num_accum, (NUM_ITEMS * (NUM_ITEMS + 1)) / 2);
+
+  BLI_freelistN(tls_data.accumulate_items);
+  MEM_freeN(tls_data.accumulate_items);
 
   BLI_mempool_destroy(mempool);
   BLI_threadapi_exit();

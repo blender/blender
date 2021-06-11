@@ -2779,7 +2779,7 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
 
 /* Poll callback for snap operators */
 /* NOTE: For now, we only allow these in the 3D view, as other editors do not
- *       define a cursor or gridstep which can be used
+ *       define a cursor or grid-step which can be used.
  */
 static bool gpencil_snap_poll(bContext *C)
 {
@@ -3443,7 +3443,7 @@ void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot)
       {GP_STROKE_CAPS_TOGGLE_BOTH, "TOGGLE", 0, "Both", ""},
       {GP_STROKE_CAPS_TOGGLE_START, "START", 0, "Start", ""},
       {GP_STROKE_CAPS_TOGGLE_END, "END", 0, "End", ""},
-      {GP_STROKE_CAPS_TOGGLE_DEFAULT, "TOGGLE", 0, "Default", "Set as default rounded"},
+      {GP_STROKE_CAPS_TOGGLE_DEFAULT, "DEFAULT", 0, "Default", "Set as default rounded"},
       {0, NULL, 0, NULL, NULL},
   };
 

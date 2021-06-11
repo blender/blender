@@ -5462,7 +5462,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
             prop = RNA_struct_find_property(&ptr, "use_mask_layer");
             gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
             if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              icon = ICON_LAYER_ACTIVE;
               if (gpl->flag & GP_LAYER_USE_MASK) {
                 icon = ICON_MOD_MASK;
               }

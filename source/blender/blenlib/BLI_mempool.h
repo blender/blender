@@ -68,8 +68,6 @@ typedef struct BLI_mempool_iter {
   BLI_mempool *pool;
   struct BLI_mempool_chunk *curchunk;
   unsigned int curindex;
-
-  struct BLI_mempool_chunk **curchunk_threaded_shared;
 } BLI_mempool_iter;
 
 /* flag */
@@ -87,11 +85,6 @@ enum {
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter) ATTR_NONNULL();
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-
-BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool,
-                                                     const size_t num_iter) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr) ATTR_NONNULL();
 
 #ifdef __cplusplus
 }

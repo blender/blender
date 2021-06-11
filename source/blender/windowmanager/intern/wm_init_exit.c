@@ -501,7 +501,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
         if ((has_edited &&
              BLO_write_file(
                  bmain, filename, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
-            (undo_memfile && BLO_memfile_write_file(undo_memfile, filename))) {
+            (BLO_memfile_write_file(undo_memfile, filename))) {
           printf("Saved session recovery to '%s'\n", filename);
         }
       }

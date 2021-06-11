@@ -70,6 +70,7 @@ extern "C" {
  */
 struct ImBuf;
 struct rcti;
+struct rctf;
 
 /**
  *
@@ -322,6 +323,11 @@ typedef enum IMB_Proxy_Size {
   IMB_PROXY_100 = 8,
   IMB_PROXY_MAX_SLOT = 4,
 } IMB_Proxy_Size;
+
+typedef enum eIMBInterpolationFilterMode {
+  IMB_FILTER_NEAREST,
+  IMB_FILTER_BILINEAR,
+} eIMBInterpolationFilterMode;
 
 /* Defaults to BL_proxy within the directory of the animation. */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
@@ -727,10 +733,16 @@ void IMB_processor_apply_threaded(
     void(init_handle)(void *handle, int start_line, int tot_line, void *customdata),
     void *(do_thread)(void *));
 
-typedef void (*ScanlineThreadFunc)(void *custom_data, int start_scanline, int num_scanlines);
+typedef void (*ScanlineThreadFunc)(void *custom_data, int scanline);
 void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             ScanlineThreadFunc do_thread,
                                             void *custom_data);
+
+void IMB_transform(struct ImBuf *src,
+                   struct ImBuf *dst,
+                   float transform_matrix[3][3],
+                   struct rctf *src_crop,
+                   const eIMBInterpolationFilterMode filter);
 
 /* ffmpeg */
 void IMB_ffmpeg_init(void);

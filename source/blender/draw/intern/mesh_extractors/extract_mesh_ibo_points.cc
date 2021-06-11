@@ -32,25 +32,16 @@ namespace blender::draw {
 /* ---------------------------------------------------------------------- */
 /** \name Extract Point Indices
  * \{ */
-static void *extract_points_init(const MeshRenderData *mr,
-                                 struct MeshBatchCache *UNUSED(cache),
-                                 void *UNUSED(buf))
+static void extract_points_init(const MeshRenderData *mr,
+                                struct MeshBatchCache *UNUSED(cache),
+                                void *UNUSED(buf),
+                                void *tls_data)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(MEM_mallocN(sizeof(*elb), __func__));
+  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
   GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->vert_len, mr->loop_len + mr->loop_loose_len);
-  return elb;
 }
 
-static void *extract_points_task_init(void *_userdata)
-{
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(
-      MEM_mallocN(sizeof(*sub_builder), __func__));
-  GPU_indexbuf_subbuilder_init(elb, sub_builder);
-  return sub_builder;
-}
-
-BLI_INLINE void vert_set_bm(GPUIndexBufBuilder *elb, BMVert *eve, int l_index)
+BLI_INLINE void vert_set_bm(GPUIndexBufBuilder *elb, const BMVert *eve, int l_index)
 {
   const int v_index = BM_elem_index_get(eve);
   if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
@@ -78,7 +69,7 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
 }
 
 static void extract_points_iter_poly_bm(const MeshRenderData *UNUSED(mr),
-                                        BMFace *f,
+                                        const BMFace *f,
                                         const int UNUSED(f_index),
                                         void *_userdata)
 {
@@ -107,7 +98,7 @@ static void extract_points_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_points_iter_ledge_bm(const MeshRenderData *mr,
-                                         BMEdge *eed,
+                                         const BMEdge *eed,
                                          const int ledge_index,
                                          void *_userdata)
 {
@@ -127,7 +118,7 @@ static void extract_points_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_points_iter_lvert_bm(const MeshRenderData *mr,
-                                         BMVert *eve,
+                                         const BMVert *eve,
                                          const int lvert_index,
                                          void *_userdata)
 {
@@ -146,12 +137,11 @@ static void extract_points_iter_lvert_mesh(const MeshRenderData *mr,
   vert_set_mesh(elb, mr, mr->lverts[lvert_index], offset + lvert_index);
 }
 
-static void extract_points_task_finish(void *_userdata, void *_task_userdata)
+static void extract_points_task_reduce(void *_userdata_to, void *_userdata_from)
 {
-  GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBufBuilder *sub_builder = static_cast<GPUIndexBufBuilder *>(_task_userdata);
-  GPU_indexbuf_subbuilder_finish(elb, sub_builder);
-  MEM_freeN(sub_builder);
+  GPUIndexBufBuilder *elb_to = static_cast<GPUIndexBufBuilder *>(_userdata_to);
+  GPUIndexBufBuilder *elb_from = static_cast<GPUIndexBufBuilder *>(_userdata_from);
+  GPU_indexbuf_join(elb_to, elb_from);
 }
 
 static void extract_points_finish(const MeshRenderData *UNUSED(mr),
@@ -162,24 +152,23 @@ static void extract_points_finish(const MeshRenderData *UNUSED(mr),
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
-  MEM_freeN(elb);
 }
 
 constexpr MeshExtract create_extractor_points()
 {
   MeshExtract extractor = {0};
   extractor.init = extract_points_init;
-  extractor.task_init = extract_points_task_init;
   extractor.iter_poly_bm = extract_points_iter_poly_bm;
   extractor.iter_poly_mesh = extract_points_iter_poly_mesh;
   extractor.iter_ledge_bm = extract_points_iter_ledge_bm;
   extractor.iter_ledge_mesh = extract_points_iter_ledge_mesh;
   extractor.iter_lvert_bm = extract_points_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_points_iter_lvert_mesh;
-  extractor.task_finish = extract_points_task_finish;
+  extractor.task_reduce = extract_points_task_reduce;
   extractor.finish = extract_points_finish;
   extractor.use_threading = true;
   extractor.data_type = MR_DATA_NONE;
+  extractor.data_size = sizeof(GPUIndexBufBuilder);
   extractor.mesh_buffer_offset = offsetof(MeshBufferCache, ibo.points);
   return extractor;
 }

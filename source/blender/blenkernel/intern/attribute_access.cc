@@ -617,6 +617,16 @@ CustomDataAttributes::CustomDataAttributes(CustomDataAttributes &&other)
   CustomData_reset(&other.data);
 }
 
+CustomDataAttributes &CustomDataAttributes::operator=(const CustomDataAttributes &other)
+{
+  if (this != &other) {
+    CustomData_copy(&other.data, &data, CD_MASK_ALL, CD_DUPLICATE, other.size_);
+    size_ = other.size_;
+  }
+
+  return *this;
+}
+
 std::optional<GSpan> CustomDataAttributes::get_for_read(const StringRef name) const
 {
   BLI_assert(size_ != 0);

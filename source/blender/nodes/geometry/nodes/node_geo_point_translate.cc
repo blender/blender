@@ -69,6 +69,9 @@ static void geo_node_point_translate_exec(GeoNodeExecParams params)
   if (geometry_set.has<PointCloudComponent>()) {
     execute_on_component(params, geometry_set.get_component_for_write<PointCloudComponent>());
   }
+  if (geometry_set.has<CurveComponent>()) {
+    execute_on_component(params, geometry_set.get_component_for_write<CurveComponent>());
+  }
 
   params.set_output("Geometry", std::move(geometry_set));
 }

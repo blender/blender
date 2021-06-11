@@ -42,6 +42,7 @@ class SharedOperationBuffers {
     blender::Vector<rcti> render_areas;
     int registered_reads;
     int received_reads;
+    bool is_rendered;
   } BufferData;
   blender::Map<NodeOperation *, BufferData> buffers_;
 

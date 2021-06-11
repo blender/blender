@@ -34,6 +34,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
 
@@ -136,6 +137,42 @@ bool ED_space_sequencer_check_show_strip(SpaceSeq *sseq)
 {
   return (ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW) &&
           ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+}
+
+static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
+{
+  if (!BLI_str_startswith(fcurve->rna_path, "sequence_editor.sequences_all[\"")) {
+    return false;
+  }
+
+  if (!BLI_str_endswith(fcurve->rna_path, "\"].color")) {
+    return false;
+  }
+
+  return true;
+}
+
+/*
+ * Check if there is animation attached to a strip, that is shown on the strip in the UI.
+ *
+ * - Colors of color strips are displayed on the strip itself.
+ */
+bool ED_space_sequencer_has_visible_animation_on_strip(const struct Scene *scene)
+{
+  if (!scene->adt) {
+    return false;
+  }
+  if (!scene->adt->action) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcurve, &scene->adt->action->curves) {
+    if (sequencer_fcurves_targets_color_strip(fcurve)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /** \} */
@@ -557,7 +594,7 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         seq->endofs = endframe - seq->enddisp;
         changed = true;
       }
-      else if (endframe <= seq->enddisp) {
+      else {
         seq->endstill = seq->enddisp - endframe;
         seq->endofs = 0;
         changed = true;
@@ -568,7 +605,7 @@ static bool sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
         seq->startofs = 0;
         changed = true;
       }
-      else if (seq->start <= seq->startdisp) {
+      else {
         seq->startstill = 0;
         seq->startofs = seq->startdisp - seq->start;
         changed = true;

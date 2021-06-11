@@ -920,6 +920,7 @@ typedef struct wmDragAsset {
   /* Always freed. */
   const char *path;
   int id_type;
+  int import_type; /* eFileAssetImportType */
 } wmDragAsset;
 
 typedef struct wmDrag {

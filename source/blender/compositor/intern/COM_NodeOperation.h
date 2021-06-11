@@ -297,6 +297,11 @@ class NodeOperation {
 
  protected:
   /**
+   * Compositor execution model.
+   */
+  eExecutionModel execution_model_;
+
+  /**
    * Width of the output of this operation.
    */
   unsigned int m_width;
@@ -314,6 +319,11 @@ class NodeOperation {
  public:
   virtual ~NodeOperation()
   {
+  }
+
+  void set_execution_model(const eExecutionModel model)
+  {
+    execution_model_ = model;
   }
 
   void set_name(const std::string name)

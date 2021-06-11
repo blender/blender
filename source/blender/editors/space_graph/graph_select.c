@@ -718,7 +718,7 @@ static bool rectf_curve_intersection(
  * to select a curve by sampling it at various points instead of trying to select the
  * keyframes directly.
  * The selection actions done to a curve are actually done on all the keyframes of the curve.
- * Note: This function is only called if no keyframe is in the seletion area.
+ * Note: This function is only called if no keyframe is in the selection area.
  */
 static void box_select_graphcurves(bAnimContext *ac,
                                    const rctf *rectf_view,
@@ -739,7 +739,7 @@ static void box_select_graphcurves(bAnimContext *ac,
   FCurve *last_selected_curve = NULL;
 
   /* Go through all the curves and try selecting them. This function is only called
-   * if no keyframe is in the seletion area, so we only have to check if the curve
+   * if no keyframe is in the selection area, so we only have to check if the curve
    * intersects the area in order to check if the selection/deselection must happen.
    */
 

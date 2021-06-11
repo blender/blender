@@ -260,6 +260,11 @@ class CPPType : NonCopyable, NonMovable {
     return !(&a == &b);
   }
 
+  /**
+   * Get the `CPPType` that corresponds to a specific static type.
+   * This only works for types that actually implement the template specialization using
+   * `MAKE_CPP_TYPE`.
+   */
   template<typename T> static const CPPType &get();
 
   /**
