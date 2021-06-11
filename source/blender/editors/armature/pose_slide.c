@@ -131,8 +131,8 @@ typedef struct tPoseSlideOp {
   Scene *scene;
   /** area that we're operating in (needed for modal()) */
   ScrArea *area;
-  /** region that we're operating in (needed for modal()) */
-  ARegion *region;
+  /** Header of the region used for drawing the slider. */
+  ARegion *region_header;
   /** len of the PoseSlideObject array. */
   uint objects_len;
 
@@ -369,7 +369,7 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
   tPoseSlideOp *pso = arg;
 
   /* Only draw in region from which the Operator was started. */
-  if (region != pso->region) {
+  if (region != pso->region_header) {
     return;
   }
 
@@ -418,7 +418,7 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
     handle_pos_x = region->winx / 2;
   }
 
-  draw_backdrop(fontid, &main_line_rect, color_bg, pso->region->winy, base_tick_height);
+  draw_backdrop(fontid, &main_line_rect, color_bg, pso->region_header->winy, base_tick_height);
 
   draw_main_line(&main_line_rect, pso->factor, pso->overshoot, color_overshoot, color_line);
 
@@ -481,8 +481,8 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 
   /* get info from context */
   pso->scene = CTX_data_scene(C);
-  pso->area = CTX_wm_area(C);     /* only really needed when doing modal() */
-  pso->region = CTX_wm_region(C); /* only really needed when doing modal() */
+  pso->area = CTX_wm_area(C);            /* only really needed when doing modal() */
+  pso->region_header = CTX_wm_region(C); /* only really needed when doing modal() */
 
   pso->cframe = pso->scene->r.cfra;
   pso->mode = mode;
@@ -545,7 +545,7 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   /* Register UI drawing callback. */
   ARegion *region_header = BKE_area_find_region_type(pso->area, RGN_TYPE_HEADER);
   if (region_header != NULL) {
-    pso->region = region_header;
+    pso->region_header = region_header;
     pso->draw_handle = ED_region_draw_cb_activate(
         region_header->type, pose_slide_draw_2d_slider, pso, REGION_DRAW_POST_PIXEL);
   }
@@ -564,7 +564,7 @@ static void pose_slide_exit(wmOperator *op)
   v3d->overlay.flag = pso->overlay_flag;
 
   /* Remove UI drawing callback. */
-  ED_region_draw_cb_exit(pso->region->type, pso->draw_handle);
+  ED_region_draw_cb_exit(pso->region_header->type, pso->draw_handle);
 
   /* if data exists, clear its data and exit */
   if (pso) {
