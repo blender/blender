@@ -70,6 +70,8 @@ class NodeTreeRef;
 class LinkRef;
 class InternalLinkRef;
 
+using SocketIndexByIdentifierMap = Map<std::string, int>;
+
 class SocketRef : NonCopyable, NonMovable {
  protected:
   NodeRef *node_;
@@ -169,6 +171,8 @@ class NodeRef : NonCopyable, NonMovable {
   Vector<InputSocketRef *> inputs_;
   Vector<OutputSocketRef *> outputs_;
   Vector<InternalLinkRef *> internal_links_;
+  SocketIndexByIdentifierMap *input_index_by_identifier_;
+  SocketIndexByIdentifierMap *output_index_by_identifier_;
 
   friend NodeTreeRef;
 
@@ -181,6 +185,9 @@ class NodeRef : NonCopyable, NonMovable {
 
   const InputSocketRef &input(int index) const;
   const OutputSocketRef &output(int index) const;
+
+  const InputSocketRef &input_by_identifier(StringRef identifier) const;
+  const OutputSocketRef &output_by_identifier(StringRef identifier) const;
 
   bNode *bnode() const;
   bNodeTree *btree() const;
@@ -246,6 +253,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<OutputSocketRef *> output_sockets_;
   Vector<LinkRef *> links_;
   MultiValueMap<const bNodeType *, NodeRef *> nodes_by_type_;
+  Vector<std::unique_ptr<SocketIndexByIdentifierMap>> owned_identifier_maps_;
 
  public:
   NodeTreeRef(bNodeTree *btree);
@@ -279,6 +287,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
                                       bNodeSocket *bsocket);
 
   void create_linked_socket_caches();
+  void create_socket_identifier_maps();
 };
 
 using NodeTreeRefMap = Map<bNodeTree *, std::unique_ptr<const NodeTreeRef>>;
@@ -500,6 +509,18 @@ inline const InputSocketRef &NodeRef::input(int index) const
 inline const OutputSocketRef &NodeRef::output(int index) const
 {
   return *outputs_[index];
+}
+
+inline const InputSocketRef &NodeRef::input_by_identifier(StringRef identifier) const
+{
+  const int index = input_index_by_identifier_->lookup_as(identifier);
+  return this->input(index);
+}
+
+inline const OutputSocketRef &NodeRef::output_by_identifier(StringRef identifier) const
+{
+  const int index = output_index_by_identifier_->lookup_as(identifier);
+  return this->output(index);
 }
 
 inline bNode *NodeRef::bnode() const

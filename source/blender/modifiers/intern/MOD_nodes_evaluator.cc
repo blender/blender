@@ -1381,27 +1381,6 @@ LockedNode::~LockedNode()
   }
 }
 
-/* TODO: Use a map data structure or so to make this faster. */
-static DInputSocket get_input_by_identifier(const DNode node, const StringRef identifier)
-{
-  for (const InputSocketRef *socket : node->inputs()) {
-    if (socket->identifier() == identifier) {
-      return {node.context(), socket};
-    }
-  }
-  return {};
-}
-
-static DOutputSocket get_output_by_identifier(const DNode node, const StringRef identifier)
-{
-  for (const OutputSocketRef *socket : node->outputs()) {
-    if (socket->identifier() == identifier) {
-      return {node.context(), socket};
-    }
-  }
-  return {};
-}
-
 NodeParamsProvider::NodeParamsProvider(GeometryNodesEvaluator &evaluator,
                                        DNode dnode,
                                        NodeState &node_state)
@@ -1415,7 +1394,7 @@ NodeParamsProvider::NodeParamsProvider(GeometryNodesEvaluator &evaluator,
 
 bool NodeParamsProvider::can_get_input(StringRef identifier) const
 {
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
   InputState &input_state = node_state_.inputs[socket->index()];
@@ -1433,7 +1412,7 @@ bool NodeParamsProvider::can_get_input(StringRef identifier) const
 
 bool NodeParamsProvider::can_set_output(StringRef identifier) const
 {
-  const DOutputSocket socket = get_output_by_identifier(this->dnode, identifier);
+  const DOutputSocket socket = this->dnode.output_by_identifier(identifier);
   BLI_assert(socket);
 
   OutputState &output_state = node_state_.outputs[socket->index()];
@@ -1442,7 +1421,7 @@ bool NodeParamsProvider::can_set_output(StringRef identifier) const
 
 GMutablePointer NodeParamsProvider::extract_input(StringRef identifier)
 {
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
   BLI_assert(!socket->is_multi_input_socket());
   BLI_assert(this->can_get_input(identifier));
@@ -1456,7 +1435,7 @@ GMutablePointer NodeParamsProvider::extract_input(StringRef identifier)
 
 Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identifier)
 {
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
   BLI_assert(socket->is_multi_input_socket());
   BLI_assert(this->can_get_input(identifier));
@@ -1487,7 +1466,7 @@ Vector<GMutablePointer> NodeParamsProvider::extract_multi_input(StringRef identi
 
 GPointer NodeParamsProvider::get_input(StringRef identifier) const
 {
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
   BLI_assert(!socket->is_multi_input_socket());
   BLI_assert(this->can_get_input(identifier));
@@ -1505,7 +1484,7 @@ GMutablePointer NodeParamsProvider::alloc_output_value(const CPPType &type)
 
 void NodeParamsProvider::set_output(StringRef identifier, GMutablePointer value)
 {
-  const DOutputSocket socket = get_output_by_identifier(this->dnode, identifier);
+  const DOutputSocket socket = this->dnode.output_by_identifier(identifier);
   BLI_assert(socket);
 
   evaluator_.log_socket_value(socket, value);
@@ -1519,7 +1498,7 @@ void NodeParamsProvider::set_output(StringRef identifier, GMutablePointer value)
 bool NodeParamsProvider::lazy_require_input(StringRef identifier)
 {
   BLI_assert(node_supports_laziness(this->dnode));
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
   InputState &input_state = node_state_.inputs[socket->index()];
@@ -1533,7 +1512,7 @@ bool NodeParamsProvider::lazy_require_input(StringRef identifier)
 
 void NodeParamsProvider::set_input_unused(StringRef identifier)
 {
-  const DInputSocket socket = get_input_by_identifier(this->dnode, identifier);
+  const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
   LockedNode locked_node{evaluator_, this->dnode, node_state_};
@@ -1542,7 +1521,7 @@ void NodeParamsProvider::set_input_unused(StringRef identifier)
 
 bool NodeParamsProvider::output_is_required(StringRef identifier) const
 {
-  const DOutputSocket socket = get_output_by_identifier(this->dnode, identifier);
+  const DOutputSocket socket = this->dnode.output_by_identifier(identifier);
   BLI_assert(socket);
 
   OutputState &output_state = node_state_.outputs[socket->index()];
@@ -1555,7 +1534,7 @@ bool NodeParamsProvider::output_is_required(StringRef identifier) const
 bool NodeParamsProvider::lazy_output_is_required(StringRef identifier) const
 {
   BLI_assert(node_supports_laziness(this->dnode));
-  const DOutputSocket socket = get_output_by_identifier(this->dnode, identifier);
+  const DOutputSocket socket = this->dnode.output_by_identifier(identifier);
   BLI_assert(socket);
 
   OutputState &output_state = node_state_.outputs[socket->index()];
