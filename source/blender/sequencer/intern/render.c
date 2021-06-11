@@ -37,6 +37,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -470,29 +471,6 @@ static bool seq_input_have_to_preprocess(const SeqRenderData *context,
   return false;
 }
 
-typedef struct ImageTransformThreadInitData {
-  ImBuf *ibuf_source;
-  ImBuf *ibuf_out;
-  Sequence *seq;
-  float preview_scale_factor;
-  bool is_proxy_image;
-  bool for_render;
-} ImageTransformThreadInitData;
-
-typedef struct ImageTransformThreadData {
-  ImBuf *ibuf_source;
-  ImBuf *ibuf_out;
-  Sequence *seq;
-  /* image_scale_factor is used to scale proxies to correct preview size. */
-  float image_scale_factor;
-  /* Preview scale factor is needed to correct translation to match preview size. */
-  float preview_scale_factor;
-  float crop_scale_factor;
-  bool for_render;
-  int start_line;
-  int tot_line;
-} ImageTransformThreadData;
-
 /**
  * Effect, mask and scene in strip input strips are rendered in preview resolution.
  * They are already down-scaled. #input_preprocess() does not expect this to happen.
@@ -512,49 +490,21 @@ static bool seq_need_scale_to_render_size(const Sequence *seq, bool is_proxy_ima
   return false;
 }
 
-static void sequencer_image_crop_transform_init(void *handle_v,
-                                                int start_line,
-                                                int tot_line,
-                                                void *init_data_v)
-{
-  ImageTransformThreadData *handle = (ImageTransformThreadData *)handle_v;
-  const ImageTransformThreadInitData *init_data = (ImageTransformThreadInitData *)init_data_v;
-
-  handle->ibuf_source = init_data->ibuf_source;
-  handle->ibuf_out = init_data->ibuf_out;
-  handle->seq = init_data->seq;
-
-  handle->preview_scale_factor = init_data->preview_scale_factor;
-  if (seq_need_scale_to_render_size(init_data->seq, init_data->is_proxy_image)) {
-    handle->image_scale_factor = 1.0f;
-  }
-  else {
-    handle->image_scale_factor = handle->preview_scale_factor;
-  }
-
-  /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
-   * Proxy scale factor always matches preview_scale_factor. */
-  handle->crop_scale_factor = seq_need_scale_to_render_size(init_data->seq,
-                                                            init_data->is_proxy_image) ?
-                                  init_data->preview_scale_factor :
-                                  1.0f;
-
-  handle->for_render = init_data->for_render;
-  handle->start_line = start_line;
-  handle->tot_line = tot_line;
-}
-
-static void sequencer_image_crop_transform_matrix(const ImageTransformThreadData *data,
+static void sequencer_image_crop_transform_matrix(const Sequence *seq,
+                                                  const ImBuf *in,
+                                                  const ImBuf *out,
+                                                  const float image_scale_factor,
+                                                  const float preview_scale_factor,
                                                   float r_transform_matrix[3][3])
 {
-  const StripTransform *transform = data->seq->strip->transform;
-  const float scale_x = transform->scale_x * data->image_scale_factor;
-  const float scale_y = transform->scale_y * data->image_scale_factor;
-  const float image_center_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
-  const float image_center_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
-  const float translate_x = transform->xofs * data->preview_scale_factor + image_center_offs_x;
-  const float translate_y = transform->yofs * data->preview_scale_factor + image_center_offs_y;
-  const float pivot[2] = {data->ibuf_source->x / 2, data->ibuf_source->y / 2};
+  const StripTransform *transform = seq->strip->transform;
+  const float scale_x = transform->scale_x * image_scale_factor;
+  const float scale_y = transform->scale_y * image_scale_factor;
+  const float image_center_offs_x = (out->x - in->x) / 2;
+  const float image_center_offs_y = (out->y - in->y) / 2;
+  const float translate_x = transform->xofs * preview_scale_factor + image_center_offs_x;
+  const float translate_y = transform->yofs * preview_scale_factor + image_center_offs_y;
+  const float pivot[2] = {in->x / 2, in->y / 2};
   loc_rot_size_to_mat3(r_transform_matrix,
                        (const float[]){translate_x, translate_y},
                        transform->rotation,
@@ -563,108 +513,44 @@ static void sequencer_image_crop_transform_matrix(const ImageTransformThreadData
   invert_m3(r_transform_matrix);
 }
 
-static void sequencer_image_crop_transform_start_uv(const ImageTransformThreadData *data,
-                                                    const float transform_matrix[3][3],
-                                                    float r_start_uv[2])
+static void sequencer_image_crop_init(const Sequence *seq,
+                                             const ImBuf *in,
+                                             float crop_scale_factor,
+                                             rctf *r_crop)
 {
-  float orig[2];
-  orig[0] = 0.0f;
-  orig[1] = data->start_line;
-  mul_v2_m3v2(r_start_uv, transform_matrix, orig);
+  const StripCrop *c = seq->strip->crop;
+  const int left = c->left * crop_scale_factor;
+  const int right = c->right * crop_scale_factor;
+  const int top = c->top * crop_scale_factor;
+  const int bottom = c->bottom * crop_scale_factor;
+
+  BLI_rctf_init(r_crop, left, in->x - right, bottom, in->y - top);
 }
 
-static void sequencer_image_crop_transform_uv_min(const float transform_matrix[3][3],
-                                                  float r_uv_min[2])
+static void sequencer_preprocess_transform_crop(
+    ImBuf *in, ImBuf *out, const SeqRenderData *context, Sequence *seq, const bool is_proxy_image)
 {
-  float orig[2];
-  orig[0] = 0.0f;
-  orig[1] = 0.0f;
-  mul_v2_m3v2(r_uv_min, transform_matrix, orig);
-}
+  const Scene *scene = context->scene;
+  const float preview_scale_factor = context->preview_render_size == SEQ_RENDER_SIZE_SCENE ?
+                                         (float)scene->r.size / 100 :
+                                         SEQ_rendersize_to_scale_factor(
+                                             context->preview_render_size);
+  const bool do_scale_to_render_size = seq_need_scale_to_render_size(seq, is_proxy_image);
+  const float image_scale_factor = do_scale_to_render_size ? 1.0f : preview_scale_factor;
 
-static void sequencer_image_crop_transform_delta_x(const ImageTransformThreadData *data,
-                                                   const float transform_matrix[3][3],
-                                                   const float uv_min[2],
-                                                   float r_add_x[2])
-{
-  float uv_max_x[2];
-  uv_max_x[0] = data->ibuf_out->x;
-  uv_max_x[1] = 0.0f;
-  mul_v2_m3v2(r_add_x, transform_matrix, uv_max_x);
-  sub_v2_v2(r_add_x, uv_min);
-  mul_v2_fl(r_add_x, 1.0f / data->ibuf_out->x);
-}
-
-static void sequencer_image_crop_transform_delta_y(const ImageTransformThreadData *data,
-                                                   const float transform_matrix[3][3],
-                                                   const float uv_min[2],
-                                                   float r_add_y[2])
-{
-  float uv_max_y[2];
-  uv_max_y[0] = 0.0f;
-  uv_max_y[1] = data->ibuf_out->y;
-  mul_v2_m3v2(r_add_y, transform_matrix, uv_max_y);
-  sub_v2_v2(r_add_y, uv_min);
-  mul_v2_fl(r_add_y, 1.0f / data->ibuf_out->y);
-}
-
-static void sequencer_image_crop_transform_interpolation_coefs(
-    const ImageTransformThreadData *data, float r_start_uv[2], float r_add_x[2], float r_add_y[2])
-{
   float transform_matrix[3][3];
-  sequencer_image_crop_transform_matrix(data, transform_matrix);
-  sequencer_image_crop_transform_start_uv(data, transform_matrix, r_start_uv);
-  float uv_min[2];
-  sequencer_image_crop_transform_uv_min(transform_matrix, uv_min);
-  sequencer_image_crop_transform_delta_x(data, transform_matrix, uv_min, r_add_x);
-  sequencer_image_crop_transform_delta_y(data, transform_matrix, uv_min, r_add_y);
-}
+  sequencer_image_crop_transform_matrix(
+      seq, in, out, image_scale_factor, preview_scale_factor, transform_matrix);
 
-static void *sequencer_image_crop_transform_do_thread(void *data_v)
-{
-  const ImageTransformThreadData *data = data_v;
+  /* Proxy image is smaller, so crop values must be corrected by proxy scale factor.
+   * Proxy scale factor always matches preview_scale_factor. */
+  rctf source_crop;
+  const float crop_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
+  sequencer_image_crop_init(seq, in, crop_scale_factor, &source_crop);
 
-  float last_uv[2];
-  float add_x[2];
-  float add_y[2];
-  sequencer_image_crop_transform_interpolation_coefs(data_v, last_uv, add_x, add_y);
-
-  /* Image crop is done by offsetting image boundary limits. */
-  const StripCrop *c = data->seq->strip->crop;
-  const int left = c->left * data->crop_scale_factor;
-  const int right = c->right * data->crop_scale_factor;
-  const int top = c->top * data->crop_scale_factor;
-  const int bottom = c->bottom * data->crop_scale_factor;
-
-  const float source_pixel_range_max[2] = {data->ibuf_source->x - right,
-                                           data->ibuf_source->y - top};
-  const float source_pixel_range_min[2] = {left, bottom};
-
-  const int width = data->ibuf_out->x;
-
-  float uv[2];
-  for (int yi = data->start_line; yi < data->start_line + data->tot_line; yi++) {
-    copy_v2_v2(uv, last_uv);
-    add_v2_v2(last_uv, add_y);
-    for (int xi = 0; xi < width; xi++) {
-      if (source_pixel_range_min[0] >= uv[0] || uv[0] >= source_pixel_range_max[0] ||
-          source_pixel_range_min[1] >= uv[1] || uv[1] >= source_pixel_range_max[1]) {
-        add_v2_v2(uv, add_x);
-        continue;
-      }
-
-      if (data->for_render) {
-        bilinear_interpolation(data->ibuf_source, data->ibuf_out, uv[0], uv[1], xi, yi);
-      }
-      else {
-        nearest_interpolation(data->ibuf_source, data->ibuf_out, uv[0], uv[1], xi, yi);
-      }
-
-      add_v2_v2(uv, add_x);
-    }
-  }
-
-  return NULL;
+  const eIMBInterpolationFilterMode filter = context->for_render ? IMB_FILTER_BILINEAR :
+                                                                   IMB_FILTER_NEAREST;
+  IMB_transform(in, out, transform_matrix, &source_crop, filter);
 }
 
 static void multibuf(ImBuf *ibuf, const float fmul)
@@ -726,27 +612,8 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
     const int y = context->recty;
     preprocessed_ibuf = IMB_allocImBuf(x, y, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
 
-    ImageTransformThreadInitData init_data = {NULL};
-    init_data.ibuf_source = ibuf;
-    init_data.ibuf_out = preprocessed_ibuf;
-    init_data.seq = seq;
-    init_data.is_proxy_image = is_proxy_image;
+    sequencer_preprocess_transform_crop(ibuf, preprocessed_ibuf, context, seq, is_proxy_image);
 
-    /* Get scale factor if preview resolution doesn't match project resolution. */
-    if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
-      init_data.preview_scale_factor = (float)scene->r.size / 100;
-    }
-    else {
-      init_data.preview_scale_factor = SEQ_rendersize_to_scale_factor(
-          context->preview_render_size);
-    }
-
-    init_data.for_render = context->for_render;
-    IMB_processor_apply_threaded(context->recty,
-                                 sizeof(ImageTransformThreadData),
-                                 &init_data,
-                                 sequencer_image_crop_transform_init,
-                                 sequencer_image_crop_transform_do_thread);
     seq_imbuf_assign_spaces(scene, preprocessed_ibuf);
     IMB_metadata_copy(preprocessed_ibuf, ibuf);
     IMB_freeImBuf(ibuf);
