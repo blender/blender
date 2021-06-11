@@ -4446,9 +4446,16 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
   /* No need to do a full redraw as the current frame indicator is only updated.
    * We do need to redraw when this area is in full screen as no other areas
    * will be tagged for redrawing. */
-  if ((region->regiontype == RGN_TYPE_WINDOW) &&
-      (ELEM(area->spacetype, SPACE_GRAPH, SPACE_NLA, SPACE_ACTION)) && !area->full) {
-    return;
+  if (region->regiontype == RGN_TYPE_WINDOW && !area->full) {
+    if (ELEM(area->spacetype, SPACE_GRAPH, SPACE_NLA, SPACE_ACTION)) {
+      return;
+    }
+
+    if (area->spacetype == SPACE_SEQ) {
+      if (!ED_space_sequencer_has_visible_animation_on_strip(scene)) {
+        return;
+      }
+    }
   }
   ED_region_tag_redraw(region);
 }
