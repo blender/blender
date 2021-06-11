@@ -642,23 +642,23 @@ void WM_OT_append(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Append Single Data-Block & Return it
+/** \name Link/Append Single Data-Block & Return it
  *
- * Used for appending workspace from startup files.
  * \{ */
 
-ID *WM_file_append_datablock(Main *bmain,
-                             Scene *scene,
-                             ViewLayer *view_layer,
-                             View3D *v3d,
-                             const char *filepath,
-                             const short id_code,
-                             const char *id_name)
+static ID *wm_file_link_datablock_ex(Main *bmain,
+                                     Scene *scene,
+                                     ViewLayer *view_layer,
+                                     View3D *v3d,
+                                     const char *filepath,
+                                     const short id_code,
+                                     const char *id_name,
+                                     bool clear_pre_existing_flag)
 {
   /* Tag everything so we can make local only the new datablock. */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
-  /* Define working data, with just the one item we want to append. */
+  /* Define working data, with just the one item we want to link. */
   WMLinkAppendData *lapp_data = wm_link_append_data_new(0);
 
   wm_link_append_data_library_add(lapp_data, filepath);
@@ -671,6 +671,36 @@ ID *WM_file_append_datablock(Main *bmain,
   /* Get linked datablock and free working data. */
   ID *id = item->new_id;
   wm_link_append_data_free(lapp_data);
+
+  if (clear_pre_existing_flag) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
+  }
+
+  return id;
+}
+
+ID *WM_file_link_datablock(Main *bmain,
+                           Scene *scene,
+                           ViewLayer *view_layer,
+                           View3D *v3d,
+                           const char *filepath,
+                           const short id_code,
+                           const char *id_name)
+{
+  return wm_file_link_datablock_ex(
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, true);
+}
+
+ID *WM_file_append_datablock(Main *bmain,
+                             Scene *scene,
+                             ViewLayer *view_layer,
+                             View3D *v3d,
+                             const char *filepath,
+                             const short id_code,
+                             const char *id_name)
+{
+  ID *id = wm_file_link_datablock_ex(
+      bmain, scene, view_layer, v3d, filepath, id_code, id_name, false);
 
   /* Make datablock local. */
   BKE_library_make_local(bmain, NULL, NULL, true, false);

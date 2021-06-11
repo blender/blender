@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -377,9 +378,17 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
 
 static ID *wm_drag_asset_id_import(wmDragAsset *asset_drag)
 {
-  /* Append only for now, wmDragAsset could have a `link` bool. */
-  return WM_file_append_datablock(
-      G_MAIN, NULL, NULL, NULL, asset_drag->path, asset_drag->id_type, asset_drag->name);
+  switch ((eFileAssetImportType)asset_drag->import_type) {
+    case FILE_ASSET_IMPORT_LINK:
+      return WM_file_link_datablock(
+          G_MAIN, NULL, NULL, NULL, asset_drag->path, asset_drag->id_type, asset_drag->name);
+    case FILE_ASSET_IMPORT_APPEND:
+      return WM_file_append_datablock(
+          G_MAIN, NULL, NULL, NULL, asset_drag->path, asset_drag->id_type, asset_drag->name);
+  }
+
+  BLI_assert_unreachable();
+  return NULL;
 }
 
 /**

@@ -6569,6 +6569,16 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem asset_import_type_items[] = {
+      {FILE_ASSET_IMPORT_LINK, "LINK", 0, "Link", "Import the assets as linked data-block"},
+      {FILE_ASSET_IMPORT_APPEND,
+       "APPEND",
+       0,
+       "Append",
+       "Import the assets as copied data-block, with no link to the original asset data-block"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "FileAssetSelectParams", "FileSelectParams");
   RNA_def_struct_ui_text(
       srna, "Asset Select Parameters", "Settings for the file selection in Asset Browser mode");
@@ -6589,6 +6599,13 @@ static void rna_def_fileselect_asset_params(BlenderRNA *brna)
                               "rna_FileAssetSelectParams_asset_category_set",
                               NULL);
   RNA_def_property_ui_text(prop, "Asset Category", "Determine which kind of assets to display");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
+
+  prop = RNA_def_property(srna, "import_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, asset_import_type_items);
+  RNA_def_property_ui_text(prop, "Import Type", "Determine how the asset will be imported");
+  /* Asset drag info saved by buttons stores the import type, so the space must redraw when import
+   * type changes. */
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 }
 

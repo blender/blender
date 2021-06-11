@@ -205,6 +205,13 @@ void WM_autosave_init(struct wmWindowManager *wm);
 bool WM_recover_last_session(struct bContext *C, struct ReportList *reports);
 void WM_file_tag_modified(void);
 
+struct ID *WM_file_link_datablock(struct Main *bmain,
+                                  struct Scene *scene,
+                                  struct ViewLayer *view_layer,
+                                  struct View3D *v3d,
+                                  const char *filepath,
+                                  const short id_code,
+                                  const char *id_name);
 struct ID *WM_file_append_datablock(struct Main *bmain,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer,
