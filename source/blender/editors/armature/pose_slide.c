@@ -136,20 +136,20 @@ typedef struct tPoseSlideOp {
   /* Allow overshoot or clamp between 0% and 100%. */
   bool overshoot;
 
-  /* Reduces percentage delta from mouse movement. */
+  /* Reduces factor delta from mouse movement. */
   bool precision;
 
-  /* Move percentage in 10% steps. */
+  /* Move factor in 10% steps. */
   bool increments;
 
   /* Draw callback handler. */
   void *draw_handle;
 
-  /* Accumulative, unclamped and unrounded percentage. */
-  float raw_percentage;
+  /* Accumulative, unclamped and unrounded factor. */
+  float raw_factor;
 
   /* 0-1 value for determining the influence of whatever is relevant. */
-  float percentage;
+  float factor;
 
   /* Last cursor position in screen space used for mouse movement delta calculation. */
   int last_cursor_x;
@@ -248,22 +248,22 @@ static void draw_overshoot_triangle(const uint8_t color[4],
   immUnbindProgram();
 }
 
-static void draw_ticks(const float start_percentage,
-                       const float end_percentage,
+static void draw_ticks(const float start_factor,
+                       const float end_factor,
                        const struct vec2f line_start,
                        const float base_tick_height,
                        const float line_width,
                        const uint8_t color_overshoot[4],
                        const uint8_t color_line[4])
 {
-  /* Use percentage represented as 0-100 int to avoid floating point precision problems. */
+  /* Use factor represented as 0-100 int to avoid floating point precision problems. */
   const int tick_increment = 10;
 
-  /* Round initial_tick_percentage up to the next tick_increment. */
-  int tick_percentage = ceil((start_percentage * 100) / tick_increment) * tick_increment;
+  /* Round initial_tick_factor up to the next tick_increment. */
+  int tick_percentage = ceil((start_factor * 100) / tick_increment) * tick_increment;
   float tick_height = base_tick_height;
 
-  while (tick_percentage <= (int)(end_percentage * 100)) {
+  while (tick_percentage <= (int)(end_factor * 100)) {
     /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
      * smaller and the rest is the minimum size. */
     if (tick_percentage % 100 == 0) {
@@ -277,7 +277,7 @@ static void draw_ticks(const float start_percentage,
     }
 
     const float x = line_start.x +
-                    (((float)tick_percentage / 100) - start_percentage) * SLIDE_PIXEL_DISTANCE;
+                    (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
     const struct rctf tick_rect = {.xmin = x - (line_width / 2),
                                    .xmax = x + (line_width / 2),
                                    .ymin = line_start.y - (tick_height / 2),
@@ -294,7 +294,7 @@ static void draw_ticks(const float start_percentage,
 }
 
 static void draw_main_line(const struct rctf main_line_rect,
-                           const float percentage,
+                           const float factor,
                            const bool overshoot,
                            const uint8_t color_overshoot[4],
                            const uint8_t color_line[4])
@@ -302,7 +302,7 @@ static void draw_main_line(const struct rctf main_line_rect,
   if (overshoot) {
     /* In overshoot mode, draw the 0-100% range differently to provide a visual reference. */
     const float line_zero_percent = main_line_rect.xmin -
-                                    ((percentage - 0.5f - OVERSHOOT_RANGE_DELTA) *
+                                    ((factor - 0.5f - OVERSHOOT_RANGE_DELTA) *
                                      SLIDE_PIXEL_DISTANCE);
 
     const float clamped_line_zero_percent = clamp_f(
@@ -339,10 +339,10 @@ static void draw_backdrop(const int fontid,
                           const float base_tick_height)
 {
   float string_pixel_size[2];
-  const char *percentage_placeholder = "000%%";
+  const char *percentage_string_placeholder = "000%%";
   BLF_width_and_height(fontid,
-                       percentage_placeholder,
-                       sizeof(percentage_placeholder),
+                       percentage_string_placeholder,
+                       sizeof(percentage_string_placeholder),
                        &string_pixel_size[0],
                        &string_pixel_size[1]);
   const struct vec2f pad = {.x = (region_y_size - base_tick_height) / 2, .y = 2.0f * U.pixelsize};
@@ -396,24 +396,24 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
                                 .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
                                 .ymin = line_y - line_width / 2,
                                 .ymax = line_y + line_width / 2};
-  float line_start_percentage = 0;
-  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * pso->percentage;
+  float line_start_factor = 0;
+  int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * pso->factor;
 
   if (pso->overshoot) {
     main_line_rect.xmin = main_line_rect.xmin - SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
     main_line_rect.xmax = main_line_rect.xmax + SLIDE_PIXEL_DISTANCE * OVERSHOOT_RANGE_DELTA;
-    line_start_percentage = pso->percentage - 0.5f - OVERSHOOT_RANGE_DELTA;
+    line_start_factor = pso->factor - 0.5f - OVERSHOOT_RANGE_DELTA;
     handle_pos_x = region->winx / 2;
   }
 
   draw_backdrop(fontid, main_line_rect, color_bg, pso->region->winy, base_tick_height);
 
-  draw_main_line(main_line_rect, pso->percentage, pso->overshoot, color_overshoot, color_line);
+  draw_main_line(main_line_rect, pso->factor, pso->overshoot, color_overshoot, color_line);
 
-  const float percentage_range = pso->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
+  const float factor_range = pso->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
   const struct vec2f line_start_position = {.x = main_line_rect.xmin, .y = line_y};
-  draw_ticks(line_start_percentage,
-             line_start_percentage + percentage_range,
+  draw_ticks(line_start_factor,
+             line_start_factor + factor_range,
              line_start_position,
              base_tick_height,
              line_width,
@@ -423,36 +423,36 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
   /* Draw triangles at the ends of the line in overshoot mode to indicate direction of 0-100%
    * range.*/
   if (pso->overshoot) {
-    if (pso->percentage > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
+    if (pso->factor > 1 + OVERSHOOT_RANGE_DELTA + 0.5) {
       draw_overshoot_triangle(color_line, false, main_line_rect.xmin, line_y);
     }
-    if (pso->percentage < 0 - OVERSHOOT_RANGE_DELTA - 0.5) {
+    if (pso->factor < 0 - OVERSHOOT_RANGE_DELTA - 0.5) {
       draw_overshoot_triangle(color_line, true, main_line_rect.xmax, line_y);
     }
   }
 
   char percentage_string[256];
 
-  /* Draw handle indicating current percentage. */
+  /* Draw handle indicating current factor. */
   const struct rctf handle_rect = {.xmin = handle_pos_x - (line_width),
                                    .xmax = handle_pos_x + (line_width),
                                    .ymin = line_y - (base_tick_height / 2),
                                    .ymax = line_y + (base_tick_height / 2)};
 
   UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
-  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", pso->percentage * 100);
+  BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", pso->factor * 100);
 
   /* Draw percentage string. */
-  float percentage_pixel_size[2];
+  float percentage_string_pixel_size[2];
   BLF_width_and_height(fontid,
                        percentage_string,
                        sizeof(percentage_string),
-                       &percentage_pixel_size[0],
-                       &percentage_pixel_size[1]);
+                       &percentage_string_pixel_size[0],
+                       &percentage_string_pixel_size[1]);
 
   BLF_position(fontid,
-               main_line_rect.xmin - 24.0 * U.pixelsize - percentage_pixel_size[0] / 2,
-               (region->winy / 2) - percentage_pixel_size[1] / 2,
+               main_line_rect.xmin - 24.0 * U.pixelsize - percentage_string_pixel_size[0] / 2,
+               (region->winy / 2) - percentage_string_pixel_size[1] / 2,
                0.0f);
   BLF_draw(fontid, percentage_string, sizeof(percentage_string));
 }
@@ -474,8 +474,8 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->mode = mode;
 
   /* set range info from property values - these may get overridden for the invoke() */
-  pso->percentage = RNA_float_get(op->ptr, "percentage");
-  pso->raw_percentage = pso->percentage;
+  pso->factor = RNA_float_get(op->ptr, "factor");
+  pso->raw_factor = pso->factor;
   pso->prevFrame = RNA_int_get(op->ptr, "prev_frame");
   pso->nextFrame = RNA_int_get(op->ptr, "next_frame");
 
@@ -627,9 +627,9 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
 
   /* calculate the relative weights of the endpoints */
   if (pso->mode == POSESLIDE_BREAKDOWN) {
-    /* get weights from the percentage control */
-    w1 = pso->percentage; /* this must come second */
-    w2 = 1.0f - w1;       /* this must come first */
+    /* get weights from the factor control */
+    w1 = pso->factor; /* this must come second */
+    w2 = 1.0f - w1;   /* this must come first */
   }
   else {
     /* - these weights are derived from the relative distance of these
@@ -655,19 +655,19 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
     case POSESLIDE_PUSH: /* make the current pose more pronounced */
     {
       /* Slide the pose away from the breakdown pose in the timeline */
-      (*val) -= ((sVal * w2) + (eVal * w1) - (*val)) * pso->percentage;
+      (*val) -= ((sVal * w2) + (eVal * w1) - (*val)) * pso->factor;
       break;
     }
     case POSESLIDE_RELAX: /* make the current pose more like its surrounding ones */
     {
       /* Slide the pose towards the breakdown pose in the timeline */
-      (*val) += ((sVal * w2) + (eVal * w1) - (*val)) * pso->percentage;
+      (*val) += ((sVal * w2) + (eVal * w1) - (*val)) * pso->factor;
       break;
     }
     case POSESLIDE_BREAKDOWN: /* make the current pose slide around between the endpoints */
     {
       /* Perform simple linear interpolation -
-       * coefficient for start must come from pso->percentage. */
+       * coefficient for start must come from pso->factor. */
       /* TODO: make this use some kind of spline interpolation instead? */
       (*val) = ((sVal * w2) + (eVal * w1));
       break;
@@ -835,7 +835,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
     /* perform blending */
     if (pso->mode == POSESLIDE_BREAKDOWN) {
       /* Just perform the interpolation between quat_prev and
-       * quat_next using pso->percentage as a guide. */
+       * quat_next using pso->factor as a guide. */
       float quat_prev[4];
       float quat_next[4];
 
@@ -852,7 +852,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       normalize_qt(quat_prev);
       normalize_qt(quat_next);
 
-      interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->percentage);
+      interp_qt_qtqt(quat_final, quat_prev, quat_next, pso->factor);
     }
     else {
       /* POSESLIDE_PUSH and POSESLIDE_RELAX. */
@@ -870,11 +870,11 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
       normalize_qt(quat_curr);
 
       if (pso->mode == POSESLIDE_PUSH) {
-        interp_qt_qtqt(quat_final, quat_breakdown, quat_curr, 1.0f + pso->percentage);
+        interp_qt_qtqt(quat_final, quat_breakdown, quat_curr, 1.0f + pso->factor);
       }
       else {
         BLI_assert(pso->mode == POSESLIDE_RELAX);
-        interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, pso->percentage);
+        interp_qt_qtqt(quat_final, quat_curr, quat_breakdown, pso->factor);
       }
     }
 
@@ -895,11 +895,11 @@ static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], flo
         ((lock & PS_LOCK_Z) && (idx == 2))) {
       float diff_val = default_value - vec[idx];
       if (pso->mode == POSESLIDE_RELAX_REST) {
-        vec[idx] += pso->percentage * diff_val;
+        vec[idx] += pso->factor * diff_val;
       }
       else {
         /* Push */
-        vec[idx] -= pso->percentage * diff_val;
+        vec[idx] -= pso->factor * diff_val;
       }
     }
   }
@@ -917,11 +917,11 @@ static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4]
   for (int idx = 0; idx < 4; idx++) {
     float diff_val = default_values[idx] - vec[idx];
     if (pso->mode == POSESLIDE_RELAX_REST) {
-      vec[idx] += pso->percentage * diff_val;
+      vec[idx] += pso->factor * diff_val;
     }
     else {
       /* Push */
-      vec[idx] -= pso->percentage * diff_val;
+      vec[idx] -= pso->factor * diff_val;
     }
   }
 }
@@ -1276,7 +1276,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
   }
 
   /* initial apply for operator... */
-  /* TODO: need to calculate percentage for initial round too... */
+  /* TODO: need to calculate factor for initial round too... */
   if (!ELEM(pso->mode, POSESLIDE_PUSH_REST, POSESLIDE_RELAX_REST)) {
     pose_slide_apply(C, pso);
   }
@@ -1304,28 +1304,26 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
   return OPERATOR_RUNNING_MODAL;
 }
 
-/* Calculate percentage based on mouse movement, clamp or round to increments if
- * enabled by the user. Store the new percentage value.
+/* Calculate factor based on mouse movement, clamp or round to increments if
+ * enabled by the user. Store the new factor value.
  */
-static void pose_slide_mouse_update_percentage(tPoseSlideOp *pso,
-                                               wmOperator *op,
-                                               const wmEvent *event)
+static void pose_slide_mouse_update_factor(tPoseSlideOp *pso, wmOperator *op, const wmEvent *event)
 {
-  const float percentage_delta = (event->x - pso->last_cursor_x) / ((float)(SLIDE_PIXEL_DISTANCE));
-  /* Reduced percentage delta in precision mode (shift held). */
-  pso->raw_percentage += pso->precision ? (percentage_delta / 8) : percentage_delta;
-  pso->percentage = pso->raw_percentage;
+  const float factor_delta = (event->x - pso->last_cursor_x) / ((float)(SLIDE_PIXEL_DISTANCE));
+  /* Reduced factor delta in precision mode (shift held). */
+  pso->raw_factor += pso->precision ? (factor_delta / 8) : factor_delta;
+  pso->factor = pso->raw_factor;
   pso->last_cursor_x = event->x;
 
   if (!pso->overshoot) {
-    pso->percentage = clamp_f(pso->percentage, 0, 1);
+    pso->factor = clamp_f(pso->factor, 0, 1);
   }
 
   if (pso->increments) {
-    pso->percentage = round(pso->percentage * 10) / 10;
+    pso->factor = round(pso->factor * 10) / 10;
   }
 
-  RNA_float_set(op->ptr, "percentage", pso->percentage);
+  RNA_float_set(op->ptr, "factor", pso->factor);
 }
 
 /* handle an event to toggle channels mode */
@@ -1431,13 +1429,13 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
 
-    /* Percentage Change... */
+    /* Factor Change... */
     case MOUSEMOVE: /* calculate new position */
     {
       /* only handle mousemove if not doing numinput */
       if (has_numinput == false) {
-        /* update percentage based on position of mouse */
-        pose_slide_mouse_update_percentage(pso, op, event);
+        /* update factor based on position of mouse */
+        pose_slide_mouse_update_factor(pso, op, event);
 
         /* update pose to reflect the new values (see below) */
         do_pose_update = true;
@@ -1451,12 +1449,12 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
         /* Grab percentage from numeric input, and store this new value for redo
          * NOTE: users see ints, while internally we use a 0-1 float
          */
-        value = pso->percentage * 100.0f;
+        value = pso->factor * 100.0f;
         applyNumInput(&pso->num, &value);
 
-        pso->percentage = value / 100.0f;
-        CLAMP(pso->percentage, 0.0f, 1.0f);
-        RNA_float_set(op->ptr, "percentage", pso->percentage);
+        pso->factor = value / 100.0f;
+        CLAMP(pso->factor, 0.0f, 1.0f);
+        RNA_float_set(op->ptr, "factor", pso->factor);
 
         /* Update pose to reflect the new values (see below) */
         do_pose_update = true;
@@ -1635,11 +1633,11 @@ static void pose_slide_opdef_properties(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_float_factor(ot->srna,
-                              "percentage",
+                              "factor",
                               0.5f,
                               0.0f,
                               1.0f,
-                              "Percentage",
+                              "Factor",
                               "Weighting factor for which keyframe is favored more",
                               0.0,
                               1.0);
@@ -1700,8 +1698,8 @@ static int pose_slide_push_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   pso->last_cursor_x = event->x;
 
-  /* Initialize percentage so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_percentage(pso, op, event);
+  /* Initialize factor so that it won't pop on first mouse move. */
+  pose_slide_mouse_update_factor(pso, op, event);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, pso);
@@ -1762,8 +1760,8 @@ static int pose_slide_relax_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   pso->last_cursor_x = event->x;
 
-  /* Initialize percentage so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_percentage(pso, op, event);
+  /* Initialize factor so that it won't pop on first mouse move. */
+  pose_slide_mouse_update_factor(pso, op, event);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, pso);
@@ -1823,8 +1821,8 @@ static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEven
 
   pso->last_cursor_x = event->x;
 
-  /* Initialize percentage so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_percentage(pso, op, event);
+  /* Initialize factor so that it won't pop on first mouse move. */
+  pose_slide_mouse_update_factor(pso, op, event);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, pso);
@@ -1885,8 +1883,8 @@ static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEve
 
   pso->last_cursor_x = event->x;
 
-  /* Initialize percentage so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_percentage(pso, op, event);
+  /* Initialize factor so that it won't pop on first mouse move. */
+  pose_slide_mouse_update_factor(pso, op, event);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, pso);
@@ -1947,8 +1945,8 @@ static int pose_slide_breakdown_invoke(bContext *C, wmOperator *op, const wmEven
 
   pso->last_cursor_x = event->x;
 
-  /* Initialize percentage so that it won't pop on first mouse move. */
-  pose_slide_mouse_update_percentage(pso, op, event);
+  /* Initialize factor so that it won't pop on first mouse move. */
+  pose_slide_mouse_update_factor(pso, op, event);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, pso);
