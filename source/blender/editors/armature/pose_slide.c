@@ -1121,18 +1121,18 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   switch (pso->axislock) {
     case PS_LOCK_X:
-      BLI_strncpy(axis_str, TIP_("[X]/Y/Z axis only (X to clear)"), sizeof(axis_str));
+      STRNCPY(axis_str, TIP_("[X]/Y/Z axis only (X to clear)"));
       break;
     case PS_LOCK_Y:
-      BLI_strncpy(axis_str, TIP_("X/[Y]/Z axis only (Y to clear)"), sizeof(axis_str));
+      STRNCPY(axis_str, TIP_("X/[Y]/Z axis only (Y to clear)"));
       break;
     case PS_LOCK_Z:
-      BLI_strncpy(axis_str, TIP_("X/Y/[Z] axis only (Z to clear)"), sizeof(axis_str));
+      STRNCPY(axis_str, TIP_("X/Y/[Z] axis only (Z to clear)"));
       break;
 
     default:
       if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
-        BLI_strncpy(axis_str, TIP_("X/Y/Z = Axis Constraint"), sizeof(axis_str));
+        STRNCPY(axis_str, TIP_("X/Y/Z = Axis Constraint"));
       }
       else {
         axis_str[0] = '\0';
@@ -1160,43 +1160,38 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
                    axis_str);
       break;
     case PS_TFM_BBONE_SHAPE:
-      BLI_strncpy(limits_str,
-                  TIP_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"),
-                  sizeof(limits_str));
+      STRNCPY(limits_str, TIP_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"));
       break;
     case PS_TFM_PROPS:
-      BLI_strncpy(limits_str,
-                  TIP_("G/R/S/B/[C] - Custom Properties only (C to clear) | %s"),
-                  sizeof(limits_str));
+      STRNCPY(limits_str, TIP_("G/R/S/B/[C] - Custom Properties only (C to clear) | %s"));
       break;
     default:
-      BLI_strncpy(
-          limits_str, TIP_("G/R/S/B/C - Limit to Transform/Property Set"), sizeof(limits_str));
+      STRNCPY(limits_str, TIP_("G/R/S/B/C - Limit to Transform/Property Set"));
       break;
   }
 
   if (pso->overshoot) {
-    BLI_strncpy(overshoot_str, TIP_("[E] - Disable overshoot"), sizeof(overshoot_str));
+    STRNCPY(overshoot_str, TIP_("[E] - Disable overshoot"));
   }
   else {
-    BLI_strncpy(overshoot_str, TIP_("E - Enable overshoot"), sizeof(overshoot_str));
+    STRNCPY(overshoot_str, TIP_("[E] - Enable overshoot"));
   }
 
   if (pso->precision) {
-    BLI_strncpy(precision_str, TIP_("[Shift] - Precision active"), sizeof(precision_str));
+    STRNCPY(precision_str, TIP_("[Shift] - Precision active"));
   }
   else {
-    BLI_strncpy(precision_str, TIP_("Shift - Hold for precision"), sizeof(precision_str));
+    STRNCPY(precision_str, TIP_("Shift - Hold for precision"));
   }
 
   if (pso->increments) {
-    BLI_strncpy(increments_str, TIP_("[Ctrl] - Increments active"), sizeof(increments_str));
+    STRNCPY(increments_str, TIP_("[Ctrl] - Increments active"));
   }
   else {
-    BLI_strncpy(increments_str, TIP_("Ctrl - Hold for 10% increments"), sizeof(increments_str));
+    STRNCPY(increments_str, TIP_("Ctrl - Hold for 10% increments"));
   }
 
-  BLI_strncpy(bone_vis_str, TIP_("[H] - Toggle bone visibility"), sizeof(increments_str));
+  STRNCPY(bone_vis_str, TIP_("[H] - Toggle bone visibility"));
 
   if (hasNumInput(&pso->num)) {
     Scene *scene = pso->scene;
