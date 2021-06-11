@@ -250,7 +250,7 @@ static void draw_overshoot_triangle(const uint8_t color[4],
 
 static void draw_ticks(const float start_factor,
                        const float end_factor,
-                       const struct vec2f line_start,
+                       const float line_start[2],
                        const float base_tick_height,
                        const float line_width,
                        const uint8_t color_overshoot[4],
@@ -276,12 +276,14 @@ static void draw_ticks(const float start_factor,
       tick_height = base_tick_height * 0.5;
     }
 
-    const float x = line_start.x +
+    const float x = line_start[0] +
                     (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
-    const struct rctf tick_rect = {.xmin = x - (line_width / 2),
-                                   .xmax = x + (line_width / 2),
-                                   .ymin = line_start.y - (tick_height / 2),
-                                   .ymax = line_start.y + (tick_height / 2)};
+    const rctf tick_rect = {
+        .xmin = x - (line_width / 2),
+        .xmax = x + (line_width / 2),
+        .ymin = line_start[1] - (tick_height / 2),
+        .ymax = line_start[1] + (tick_height / 2),
+    };
 
     if (tick_percentage < 0 || tick_percentage > 100) {
       UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
@@ -293,7 +295,7 @@ static void draw_ticks(const float start_factor,
   }
 }
 
-static void draw_main_line(const struct rctf main_line_rect,
+static void draw_main_line(const rctf *main_line_rect,
                            const float factor,
                            const bool overshoot,
                            const uint8_t color_overshoot[4],
@@ -301,39 +303,45 @@ static void draw_main_line(const struct rctf main_line_rect,
 {
   if (overshoot) {
     /* In overshoot mode, draw the 0-100% range differently to provide a visual reference. */
-    const float line_zero_percent = main_line_rect.xmin -
+    const float line_zero_percent = main_line_rect->xmin -
                                     ((factor - 0.5f - OVERSHOOT_RANGE_DELTA) *
                                      SLIDE_PIXEL_DISTANCE);
 
     const float clamped_line_zero_percent = clamp_f(
-        line_zero_percent, main_line_rect.xmin, main_line_rect.xmax);
+        line_zero_percent, main_line_rect->xmin, main_line_rect->xmax);
     const float clamped_line_hundred_percent = clamp_f(
-        line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect.xmin, main_line_rect.xmax);
+        line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect->xmin, main_line_rect->xmax);
 
-    const struct rctf left_overshoot_line_rect = {.xmin = main_line_rect.xmin,
-                                                  .xmax = clamped_line_zero_percent,
-                                                  .ymin = main_line_rect.ymin,
-                                                  .ymax = main_line_rect.ymax};
-    const struct rctf right_overshoot_line_rect = {.xmin = clamped_line_hundred_percent,
-                                                   .xmax = main_line_rect.xmax,
-                                                   .ymin = main_line_rect.ymin,
-                                                   .ymax = main_line_rect.ymax};
+    const rctf left_overshoot_line_rect = {
+        .xmin = main_line_rect->xmin,
+        .xmax = clamped_line_zero_percent,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
+    const rctf right_overshoot_line_rect = {
+        .xmin = clamped_line_hundred_percent,
+        .xmax = main_line_rect->xmax,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
     UI_draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
     UI_draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
 
-    const struct rctf non_overshoot_line_rect = {.xmin = clamped_line_zero_percent,
-                                                 .xmax = clamped_line_hundred_percent,
-                                                 .ymin = main_line_rect.ymin,
-                                                 .ymax = main_line_rect.ymax};
+    const rctf non_overshoot_line_rect = {
+        .xmin = clamped_line_zero_percent,
+        .xmax = clamped_line_hundred_percent,
+        .ymin = main_line_rect->ymin,
+        .ymax = main_line_rect->ymax,
+    };
     UI_draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
   }
   else {
-    UI_draw_roundbox_3ub_alpha(&main_line_rect, true, 0, color_line, 255);
+    UI_draw_roundbox_3ub_alpha(main_line_rect, true, 0, color_line, 255);
   }
 }
 
 static void draw_backdrop(const int fontid,
-                          const struct rctf main_line_rect,
+                          const rctf *main_line_rect,
                           const float color_bg[4],
                           const short region_y_size,
                           const float base_tick_height)
@@ -345,11 +353,13 @@ static void draw_backdrop(const int fontid,
                        sizeof(percentage_string_placeholder),
                        &string_pixel_size[0],
                        &string_pixel_size[1]);
-  const struct vec2f pad = {.x = (region_y_size - base_tick_height) / 2, .y = 2.0f * U.pixelsize};
-  const struct rctf backdrop_rect = {.xmin = main_line_rect.xmin - string_pixel_size[0] - pad.x,
-                                     .xmax = main_line_rect.xmax + pad.x,
-                                     .ymin = pad.y,
-                                     .ymax = region_y_size - pad.y};
+  const float pad[2] = {(region_y_size - base_tick_height) / 2, 2.0f * U.pixelsize};
+  const rctf backdrop_rect = {
+      .xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0],
+      .xmax = main_line_rect->xmax + pad[0],
+      .ymin = pad[1],
+      .ymax = region_y_size - pad[1],
+  };
   UI_draw_roundbox_aa(&backdrop_rect, true, 4.0f, color_bg);
 }
 
@@ -392,10 +402,12 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
   const float base_tick_height = 12.0 * U.pixelsize;
   const float line_y = region->winy / 2;
 
-  struct rctf main_line_rect = {.xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
-                                .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
-                                .ymin = line_y - line_width / 2,
-                                .ymax = line_y + line_width / 2};
+  rctf main_line_rect = {
+      .xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
+      .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
+      .ymin = line_y - line_width / 2,
+      .ymax = line_y + line_width / 2,
+  };
   float line_start_factor = 0;
   int handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * pso->factor;
 
@@ -406,12 +418,12 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
     handle_pos_x = region->winx / 2;
   }
 
-  draw_backdrop(fontid, main_line_rect, color_bg, pso->region->winy, base_tick_height);
+  draw_backdrop(fontid, &main_line_rect, color_bg, pso->region->winy, base_tick_height);
 
-  draw_main_line(main_line_rect, pso->factor, pso->overshoot, color_overshoot, color_line);
+  draw_main_line(&main_line_rect, pso->factor, pso->overshoot, color_overshoot, color_line);
 
   const float factor_range = pso->overshoot ? 1 + OVERSHOOT_RANGE_DELTA * 2 : 1;
-  const struct vec2f line_start_position = {.x = main_line_rect.xmin, .y = line_y};
+  const float line_start_position[2] = {main_line_rect.xmin, line_y};
   draw_ticks(line_start_factor,
              line_start_factor + factor_range,
              line_start_position,
@@ -434,10 +446,12 @@ static void pose_slide_draw_2d_slider(const struct bContext *UNUSED(C), ARegion 
   char percentage_string[256];
 
   /* Draw handle indicating current factor. */
-  const struct rctf handle_rect = {.xmin = handle_pos_x - (line_width),
-                                   .xmax = handle_pos_x + (line_width),
-                                   .ymin = line_y - (base_tick_height / 2),
-                                   .ymax = line_y + (base_tick_height / 2)};
+  const rctf handle_rect = {
+      .xmin = handle_pos_x - (line_width),
+      .xmax = handle_pos_x + (line_width),
+      .ymin = line_y - (base_tick_height / 2),
+      .ymax = line_y + (base_tick_height / 2),
+  };
 
   UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
   BLI_snprintf(percentage_string, sizeof(percentage_string), "%.0f%%", pso->factor * 100);
