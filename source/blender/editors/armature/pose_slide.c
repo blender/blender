@@ -96,6 +96,35 @@
 /* **************************************************** */
 /* A) Push & Relax, Breakdowner */
 
+/* Axis Locks */
+typedef enum ePoseSlide_AxisLock {
+  PS_LOCK_X = (1 << 0),
+  PS_LOCK_Y = (1 << 1),
+  PS_LOCK_Z = (1 << 2),
+} ePoseSlide_AxisLock;
+
+/* Pose Sliding Modes */
+typedef enum ePoseSlide_Modes {
+  POSESLIDE_PUSH = 0,  /* exaggerate the pose... */
+  POSESLIDE_RELAX,     /* soften the pose... */
+  POSESLIDE_BREAKDOWN, /* slide between the endpoint poses, finding a 'soft' spot */
+  POSESLIDE_PUSH_REST,
+  POSESLIDE_RELAX_REST,
+} ePoseSlide_Modes;
+
+/* Transforms/Channels to Affect */
+typedef enum ePoseSlide_Channels {
+  PS_TFM_ALL = 0, /* All transforms and properties */
+
+  PS_TFM_LOC, /* Loc/Rot/Scale */
+  PS_TFM_ROT,
+  PS_TFM_SIZE,
+
+  PS_TFM_BBONE_SHAPE, /* Bendy Bones */
+
+  PS_TFM_PROPS, /* Custom Properties */
+} ePoseSlide_Channels;
+
 /* Temporary data shared between these operators */
 typedef struct tPoseSlideOp {
   /** current scene */
@@ -120,18 +149,18 @@ typedef struct tPoseSlideOp {
   /** frame after current frame (blend-to)    - global time */
   int nextFrame;
 
-  /** sliding mode (ePoseSlide_Modes) */
-  short mode;
+  /** Sliding Mode. */
+  ePoseSlide_Modes mode;
   /** unused for now, but can later get used for storing runtime settings.... */
   short flag;
 
   /* Store overlay settings when invoking the operator. Bones will be temporarily hidden. */
   int overlay_flag;
 
-  /** which transforms/channels are affected (ePoseSlide_Channels) */
-  short channels;
-  /** axis-limits for transforms (ePoseSlide_AxisLock) */
-  short axislock;
+  /** Which transforms/channels are affected. */
+  ePoseSlide_Channels channels;
+  /** Axis-limits for transforms. */
+  ePoseSlide_AxisLock axislock;
 
   /* Allow overshoot or clamp between 0% and 100%. */
   bool overshoot;
@@ -167,28 +196,6 @@ typedef struct tPoseSlideObject {
   bool valid;
 } tPoseSlideObject;
 
-/* Pose Sliding Modes */
-typedef enum ePoseSlide_Modes {
-  POSESLIDE_PUSH = 0,  /* exaggerate the pose... */
-  POSESLIDE_RELAX,     /* soften the pose... */
-  POSESLIDE_BREAKDOWN, /* slide between the endpoint poses, finding a 'soft' spot */
-  POSESLIDE_PUSH_REST,
-  POSESLIDE_RELAX_REST,
-} ePoseSlide_Modes;
-
-/* Transforms/Channels to Affect */
-typedef enum ePoseSlide_Channels {
-  PS_TFM_ALL = 0, /* All transforms and properties */
-
-  PS_TFM_LOC, /* Loc/Rot/Scale */
-  PS_TFM_ROT,
-  PS_TFM_SIZE,
-
-  PS_TFM_BBONE_SHAPE, /* Bendy Bones */
-
-  PS_TFM_PROPS, /* Custom Properties */
-} ePoseSlide_Channels;
-
 /* Property enum for ePoseSlide_Channels */
 static const EnumPropertyItem prop_channels_types[] = {
     {PS_TFM_ALL,
@@ -203,13 +210,6 @@ static const EnumPropertyItem prop_channels_types[] = {
     {PS_TFM_PROPS, "CUSTOM", 0, "Custom Properties", "Custom properties"},
     {0, NULL, 0, NULL, NULL},
 };
-
-/* Axis Locks */
-typedef enum ePoseSlide_AxisLock {
-  PS_LOCK_X = (1 << 0),
-  PS_LOCK_Y = (1 << 1),
-  PS_LOCK_Z = (1 << 2),
-} ePoseSlide_AxisLock;
 
 /* Property enum for ePoseSlide_AxisLock */
 static const EnumPropertyItem prop_axis_lock_types[] = {
@@ -684,6 +684,11 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
        * coefficient for start must come from pso->factor. */
       /* TODO: make this use some kind of spline interpolation instead? */
       (*val) = ((sVal * w2) + (eVal * w1));
+      break;
+    }
+    /* Those are handled in pose_slide_rest_pose_apply. */
+    case POSESLIDE_PUSH_REST:
+    case POSESLIDE_RELAX_REST: {
       break;
     }
   }
