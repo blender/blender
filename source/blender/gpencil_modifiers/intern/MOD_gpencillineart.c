@@ -198,6 +198,9 @@ static void add_this_collection(Collection *c,
                                 const ModifierUpdateDepsgraphContext *ctx,
                                 const int mode)
 {
+  if (!c) {
+    return;
+  }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (c, ob, mode) {
     if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
       if (ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
