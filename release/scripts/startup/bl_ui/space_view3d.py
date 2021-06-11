@@ -6186,9 +6186,6 @@ class VIEW3D_PT_overlay_geometry(Panel):
             sub.active = overlay.show_fade_inactive
             sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
 
-        row = col.row(align=True)
-        row.prop(overlay, "show_mode_transfer", text="Flash on Mode Transfer")
-
         col = layout.column(align=True)
         col.active = display_all
 
