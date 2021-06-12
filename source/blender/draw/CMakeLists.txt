@@ -172,6 +172,7 @@ set(SRC
   intern/DRW_render.h
   intern/draw_cache.h
   intern/draw_cache_extract.h
+  intern/draw_cache_extract_mesh_private.h
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
   intern/draw_color_management.h
