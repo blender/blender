@@ -3312,13 +3312,11 @@ static MDeformVert *hair_set_pinning(MDeformVert *dvert, float weight)
 static void hair_create_input_mesh(ParticleSimulationData *sim,
                                    int totpoint,
                                    int totedge,
-                                   Mesh **r_mesh,
-                                   ClothHairData **r_hairdata)
+                                   Mesh **r_mesh)
 {
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
   Mesh *mesh;
-  ClothHairData *hairdata;
   MVert *mvert;
   MEdge *medge;
   MDeformVert *dvert;
@@ -3339,9 +3337,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   medge = mesh->medge;
   dvert = mesh->dvert;
 
-  hairdata = *r_hairdata;
-  if (!hairdata) {
-    *r_hairdata = hairdata = MEM_mallocN(sizeof(ClothHairData) * totpoint, "hair data");
+  if (psys->clmd->hairdata == NULL) {
+    psys->clmd->hairdata = MEM_mallocN(sizeof(ClothHairData) * totpoint, "hair data");
   }
 
   /* calculate maximum segment length */
@@ -3493,7 +3490,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
     }
   }
 
-  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh, &psys->clmd->hairdata);
+  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
 
   if (psys->hair_out_mesh) {
     BKE_id_free(NULL, psys->hair_out_mesh);
