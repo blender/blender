@@ -198,7 +198,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
      * so we assign it based on the first segment we found. */
     ec->object_ref = e->object_ref;
 
-    LineartEdge *new_e = e;
+    LineartEdge *new_e;
     LineartVert *new_vt;
     float N[3] = {0};
 

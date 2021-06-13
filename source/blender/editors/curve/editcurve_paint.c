@@ -387,7 +387,6 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
       GPU_matrix_translate_3f(selem->location_local[0] - location_prev[0],
                               selem->location_local[1] - location_prev[1],
                               selem->location_local[2] - location_prev[2]);
-      location_prev = selem->location_local;
 
       const float radius = stroke_elem_radius(cdd, selem);
 

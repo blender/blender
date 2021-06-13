@@ -911,7 +911,10 @@ void wm_homefile_read(bContext *C,
                       const char *app_template_override,
                       bool *r_is_factory_startup)
 {
-  Main *bmain = G_MAIN; /* Context does not always have valid main pointer here... */
+#if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
+  /* Context does not always have valid main pointer here. */
+  Main *bmain = G_MAIN;
+#endif
   ListBase wmbase;
   bool success = false;
 
@@ -1170,7 +1173,7 @@ void wm_homefile_read(bContext *C,
     BLI_strncpy(U.app_template, app_template_override, sizeof(U.app_template));
   }
 
-  bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
 
   if (use_userdef) {
     /* check userdef before open window, keymaps etc */
@@ -2482,12 +2485,11 @@ static void wm_open_mainfile_ui(bContext *UNUSED(C), wmOperator *op)
 {
   struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
   uiLayout *layout = op->layout;
-  uiLayout *col = op->layout;
   const char *autoexec_text;
 
   uiItemR(layout, op->ptr, "load_ui", 0, NULL, ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  uiLayout *col = uiLayoutColumn(layout, false);
   if (file_info->is_untrusted) {
     autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
     uiLayoutSetActive(col, false);

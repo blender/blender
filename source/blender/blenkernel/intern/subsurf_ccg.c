@@ -1879,12 +1879,11 @@ static const MeshElemMap *ccgDM_getPolyMap(Object *ob, DerivedMesh *dm)
 /* WARNING! *MUST* be called in an 'loops_cache_rwlock' protected thread context! */
 static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 {
-  MLoopTri *mlooptri = dm->looptris.array;
   const int tottri = dm->numPolyData * 2;
   int i, poly_index;
 
   DM_ensure_looptri_data(dm);
-  mlooptri = dm->looptris.array_wip;
+  MLoopTri *mlooptri = dm->looptris.array_wip;
 
   BLI_assert(tottri == 0 || mlooptri != NULL);
   BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);

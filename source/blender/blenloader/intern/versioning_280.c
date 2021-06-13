@@ -3172,7 +3172,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           bool is_blend = false;
 
           {
-            char tool = tool_init;
+            char tool;
             switch (tool_init) {
               case PAINT_BLEND_MIX:
                 tool = VPAINT_TOOL_DRAW;

@@ -159,7 +159,7 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
     }
     /* Print line from the source file that is producing the error. */
     if ((error_line != -1) && (error_line != last_error_line || error_char != last_error_char)) {
-      const char *src_line_end = src_line;
+      const char *src_line_end;
       found_line_id = false;
       /* error_line is 1 based in this case. */
       int src_line_index = 1;

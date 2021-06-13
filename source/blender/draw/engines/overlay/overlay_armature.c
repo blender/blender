@@ -2063,9 +2063,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
           set_pchan_colorset(ctx, ob, pchan);
         }
 
-        int boneflag = bone->flag;
         /* catch exception for bone with hidden parent */
-        boneflag = bone->flag;
+        int boneflag = bone->flag;
         if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
           boneflag &= ~BONE_CONNECTED;
         }
