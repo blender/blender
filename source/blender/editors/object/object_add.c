@@ -456,53 +456,53 @@ void ED_object_add_mesh_props(wmOperatorType *ot)
 bool ED_object_add_generic_get_opts(bContext *C,
                                     wmOperator *op,
                                     const char view_align_axis,
-                                    float loc[3],
-                                    float rot[3],
-                                    float scale[3],
-                                    bool *enter_editmode,
-                                    ushort *local_view_bits,
-                                    bool *is_view_aligned)
+                                    float r_loc[3],
+                                    float r_rot[3],
+                                    float r_scale[3],
+                                    bool *r_enter_editmode,
+                                    ushort *r_local_view_bits,
+                                    bool *r_is_view_aligned)
 {
   /* Edit Mode! (optional) */
   {
     bool _enter_editmode;
-    if (!enter_editmode) {
-      enter_editmode = &_enter_editmode;
+    if (!r_enter_editmode) {
+      r_enter_editmode = &_enter_editmode;
     }
     /* Only to ensure the value is _always_ set.
      * Typically the property will exist when the argument is non-NULL. */
-    *enter_editmode = false;
+    *r_enter_editmode = false;
 
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "enter_editmode");
     if (prop != NULL) {
-      if (RNA_property_is_set(op->ptr, prop) && enter_editmode) {
-        *enter_editmode = RNA_property_boolean_get(op->ptr, prop);
+      if (RNA_property_is_set(op->ptr, prop) && r_enter_editmode) {
+        *r_enter_editmode = RNA_property_boolean_get(op->ptr, prop);
       }
       else {
-        *enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
-        RNA_property_boolean_set(op->ptr, prop, *enter_editmode);
+        *r_enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
+        RNA_property_boolean_set(op->ptr, prop, *r_enter_editmode);
       }
     }
   }
 
-  if (local_view_bits) {
+  if (r_local_view_bits) {
     View3D *v3d = CTX_wm_view3d(C);
-    *local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+    *r_local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
   }
 
   /* Location! */
   {
     float _loc[3];
-    if (!loc) {
-      loc = _loc;
+    if (!r_loc) {
+      r_loc = _loc;
     }
 
     if (RNA_struct_property_is_set(op->ptr, "location")) {
-      RNA_float_get_array(op->ptr, "location", loc);
+      RNA_float_get_array(op->ptr, "location", r_loc);
     }
     else {
-      ED_object_location_from_view(C, loc);
-      RNA_float_set_array(op->ptr, "location", loc);
+      ED_object_location_from_view(C, r_loc);
+      RNA_float_set_array(op->ptr, "location", r_loc);
     }
   }
 
@@ -510,19 +510,19 @@ bool ED_object_add_generic_get_opts(bContext *C,
   {
     bool _is_view_aligned;
     float _rot[3];
-    if (!is_view_aligned) {
-      is_view_aligned = &_is_view_aligned;
+    if (!r_is_view_aligned) {
+      r_is_view_aligned = &_is_view_aligned;
     }
-    if (!rot) {
-      rot = _rot;
+    if (!r_rot) {
+      r_rot = _rot;
     }
 
     if (RNA_struct_property_is_set(op->ptr, "rotation")) {
       /* If rotation is set, always use it. Alignment (and corresponding user preference)
        * can be ignored since this is in world space anyways.
        * To not confuse (e.g. on redo), don't set it to #ALIGN_WORLD in the op UI though. */
-      *is_view_aligned = false;
-      RNA_float_get_array(op->ptr, "rotation", rot);
+      *r_is_view_aligned = false;
+      RNA_float_get_array(op->ptr, "rotation", r_rot);
     }
     else {
       int alignment = ALIGN_WORLD;
@@ -530,13 +530,13 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
       if (RNA_property_is_set(op->ptr, prop)) {
         /* If alignment is set, always use it. */
-        *is_view_aligned = alignment == ALIGN_VIEW;
+        *r_is_view_aligned = alignment == ALIGN_VIEW;
         alignment = RNA_property_enum_get(op->ptr, prop);
       }
       else {
         /* If alignment is not set, use User Preferences. */
-        *is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
-        if (*is_view_aligned) {
+        *r_is_view_aligned = (U.flag & USER_ADD_VIEWALIGNED) != 0;
+        if (*r_is_view_aligned) {
           RNA_property_enum_set(op->ptr, prop, ALIGN_VIEW);
           alignment = ALIGN_VIEW;
         }
@@ -551,18 +551,18 @@ bool ED_object_add_generic_get_opts(bContext *C,
       }
       switch (alignment) {
         case ALIGN_WORLD:
-          RNA_float_get_array(op->ptr, "rotation", rot);
+          RNA_float_get_array(op->ptr, "rotation", r_rot);
           break;
         case ALIGN_VIEW:
-          ED_object_rotation_from_view(C, rot, view_align_axis);
-          RNA_float_set_array(op->ptr, "rotation", rot);
+          ED_object_rotation_from_view(C, r_rot, view_align_axis);
+          RNA_float_set_array(op->ptr, "rotation", r_rot);
           break;
         case ALIGN_CURSOR: {
           const Scene *scene = CTX_data_scene(C);
           float tmat[3][3];
           BKE_scene_cursor_rot_to_mat3(&scene->cursor, tmat);
-          mat3_normalized_to_eul(rot, tmat);
-          RNA_float_set_array(op->ptr, "rotation", rot);
+          mat3_normalized_to_eul(r_rot, tmat);
+          RNA_float_set_array(op->ptr, "rotation", r_rot);
           break;
         }
       }
@@ -572,21 +572,21 @@ bool ED_object_add_generic_get_opts(bContext *C,
   /* Scale! */
   {
     float _scale[3];
-    if (!scale) {
-      scale = _scale;
+    if (!r_scale) {
+      r_scale = _scale;
     }
 
     /* For now this is optional, we can make it always use. */
-    copy_v3_fl(scale, 1.0f);
+    copy_v3_fl(r_scale, 1.0f);
 
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "scale");
     if (prop != NULL) {
       if (RNA_property_is_set(op->ptr, prop)) {
-        RNA_property_float_get_array(op->ptr, prop, scale);
+        RNA_property_float_get_array(op->ptr, prop, r_scale);
       }
       else {
-        copy_v3_fl(scale, 1.0f);
-        RNA_property_float_set_array(op->ptr, prop, scale);
+        copy_v3_fl(r_scale, 1.0f);
+        RNA_property_float_set_array(op->ptr, prop, r_scale);
       }
     }
   }

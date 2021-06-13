@@ -295,12 +295,12 @@ void ED_object_add_mesh_props(struct wmOperatorType *ot);
 bool ED_object_add_generic_get_opts(struct bContext *C,
                                     struct wmOperator *op,
                                     const char view_align_axis,
-                                    float loc[3],
-                                    float rot[3],
-                                    float scale[3],
-                                    bool *enter_editmode,
-                                    unsigned short *local_view_bits,
-                                    bool *is_view_aligned);
+                                    float r_loc[3],
+                                    float r_rot[3],
+                                    float r_scale[3],
+                                    bool *r_enter_editmode,
+                                    unsigned short *r_local_view_bits,
+                                    bool *r_is_view_aligned);
 
 struct Object *ED_object_add_type_with_obdata(struct bContext *C,
                                               const int type,
