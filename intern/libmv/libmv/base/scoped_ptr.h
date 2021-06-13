@@ -77,7 +77,7 @@ class scoped_array {
 
   void reset(T* new_array) {
     if (sizeof(T)) {
-      delete array_;
+      delete[] array_;
     }
     array_ = new_array;
   }
