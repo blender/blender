@@ -463,21 +463,25 @@ bool ED_object_add_generic_get_opts(bContext *C,
                                     ushort *local_view_bits,
                                     bool *is_view_aligned)
 {
-  PropertyRNA *prop;
-
-  /* Switch to Edit mode? optional prop */
-  if ((prop = RNA_struct_find_property(op->ptr, "enter_editmode"))) {
+  /* Edit Mode! (optional) */
+  {
     bool _enter_editmode;
     if (!enter_editmode) {
       enter_editmode = &_enter_editmode;
     }
+    /* Only to ensure the value is _always_ set.
+     * Typically the property will exist when the argument is non-NULL. */
+    *enter_editmode = false;
 
-    if (RNA_property_is_set(op->ptr, prop) && enter_editmode) {
-      *enter_editmode = RNA_property_boolean_get(op->ptr, prop);
-    }
-    else {
-      *enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
-      RNA_property_boolean_set(op->ptr, prop, *enter_editmode);
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "enter_editmode");
+    if (prop != NULL) {
+      if (RNA_property_is_set(op->ptr, prop) && enter_editmode) {
+        *enter_editmode = RNA_property_boolean_get(op->ptr, prop);
+      }
+      else {
+        *enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
+        RNA_property_boolean_set(op->ptr, prop, *enter_editmode);
+      }
     }
   }
 
@@ -522,7 +526,7 @@ bool ED_object_add_generic_get_opts(bContext *C,
     }
     else {
       int alignment = ALIGN_WORLD;
-      prop = RNA_struct_find_property(op->ptr, "align");
+      PropertyRNA *prop = RNA_struct_find_property(op->ptr, "align");
 
       if (RNA_property_is_set(op->ptr, prop)) {
         /* If alignment is set, always use it. */
@@ -574,7 +578,9 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
     /* For now this is optional, we can make it always use. */
     copy_v3_fl(scale, 1.0f);
-    if ((prop = RNA_struct_find_property(op->ptr, "scale"))) {
+
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "scale");
+    if (prop != NULL) {
       if (RNA_property_is_set(op->ptr, prop)) {
         RNA_property_float_get_array(op->ptr, prop, scale);
       }
