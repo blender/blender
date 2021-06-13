@@ -332,7 +332,7 @@ static bool icon_read(const char *file_src, struct IconHead *r_head, uint **r_pi
 
 static bool icon_merge(struct IconMergeContext *context,
                        const char *file_src,
-                       uint **r_pixels_canvas,
+                       uint32_t **r_pixels_canvas,
                        uint *r_canvas_w,
                        uint *r_canvas_h)
 {
@@ -342,7 +342,7 @@ static bool icon_merge(struct IconMergeContext *context,
   uint x, y;
 
   /* canvas */
-  uint *pixels_canvas;
+  uint32_t *pixels_canvas;
   uint canvas_w, canvas_h;
 
   if (!icon_read(file_src, &head, &pixels)) {
@@ -362,7 +362,7 @@ static bool icon_merge(struct IconMergeContext *context,
     /* init once */
     *r_canvas_w = head.canvas_w;
     *r_canvas_h = head.canvas_h;
-    *r_pixels_canvas = calloc(1, (head.canvas_w * head.canvas_h) * sizeof(const unsigned char[4]));
+    *r_pixels_canvas = calloc(1, (head.canvas_w * head.canvas_h) * sizeof(uint32_t));
   }
 
   canvas_w = *r_canvas_w;
@@ -410,7 +410,7 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
 
   struct IconMergeContext context;
 
-  uint *pixels_canvas = NULL;
+  uint32_t *pixels_canvas = NULL;
   uint canvas_w = 0, canvas_h = 0;
 
   icon_merge_context_init(&context);
