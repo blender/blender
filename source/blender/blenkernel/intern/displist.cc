@@ -1689,8 +1689,8 @@ void BKE_displist_make_curveTypes_forRender(Depsgraph *depsgraph,
                                             const Scene *scene,
                                             Object *ob,
                                             ListBase *dispbase,
-                                            Mesh **r_final,
-                                            const bool for_orco)
+                                            const bool for_orco,
+                                            Mesh **r_final)
 {
   if (ob->runtime.curve_cache == nullptr) {
     ob->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache),
