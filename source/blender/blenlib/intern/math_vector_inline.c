@@ -1282,6 +1282,21 @@ MINLINE bool is_zero_v4(const float v[4])
   return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f && v[3] == 0.0f);
 }
 
+MINLINE bool is_zero_v2_db(const double v[2])
+{
+  return (v[0] == 0.0 && v[1] == 0.0);
+}
+
+MINLINE bool is_zero_v3_db(const double v[3])
+{
+  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0);
+}
+
+MINLINE bool is_zero_v4_db(const double v[4])
+{
+  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0 && v[3] == 0.0);
+}
+
 MINLINE bool is_one_v3(const float v[3])
 {
   return (v[0] == 1.0f && v[1] == 1.0f && v[2] == 1.0f);
