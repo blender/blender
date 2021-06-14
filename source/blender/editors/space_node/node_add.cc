@@ -591,6 +591,7 @@ static int node_add_texture_exec(bContext *C, wmOperator *op)
 
   snode_notify(C, snode);
   snode_dag_update(C, snode);
+  DEG_relations_tag_update(bmain);
 
   ED_node_tag_update_nodetree(bmain, ntree, texture_node);
 
@@ -696,6 +697,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
 
   snode_notify(C, snode);
   snode_dag_update(C, snode);
+  DEG_relations_tag_update(bmain);
 
   ED_node_tag_update_nodetree(bmain, ntree, collection_node);
 
@@ -807,6 +809,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
   snode_notify(C, snode);
   snode_dag_update(C, snode);
+  DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
 }
@@ -902,6 +905,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
 
   snode_notify(C, snode);
   snode_dag_update(C, snode);
+  DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
 }
