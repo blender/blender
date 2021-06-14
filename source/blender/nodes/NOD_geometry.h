@@ -53,6 +53,7 @@ void register_node_type_geo_collection_info(void);
 void register_node_type_geo_convex_hull(void);
 void register_node_type_geo_curve_length(void);
 void register_node_type_geo_curve_to_mesh(void);
+void register_node_type_geo_curve_to_points(void);
 void register_node_type_geo_curve_resample(void);
 void register_node_type_geo_delete_geometry(void);
 void register_node_type_geo_edge_split(void);

@@ -5055,6 +5055,7 @@ static void registerGeometryNodes()
   register_node_type_geo_convex_hull();
   register_node_type_geo_curve_length();
   register_node_type_geo_curve_to_mesh();
+  register_node_type_geo_curve_to_points();
   register_node_type_geo_curve_resample();
   register_node_type_geo_delete_geometry();
   register_node_type_geo_edge_split();
