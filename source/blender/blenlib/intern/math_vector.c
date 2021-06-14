@@ -657,6 +657,11 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
  */
 void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
 {
+  if (UNLIKELY(is_zero_v2(v_proj))) {
+    zero_v2(out);
+    return;
+  }
+
   const float mul = dot_v2v2(p, v_proj) / dot_v2v2(v_proj, v_proj);
 
   out[0] = mul * v_proj[0];
@@ -668,6 +673,11 @@ void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2])
  */
 void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 {
+  if (UNLIKELY(is_zero_v3(v_proj))) {
+    zero_v3(out);
+    return;
+  }
+
   const float mul = dot_v3v3(p, v_proj) / dot_v3v3(v_proj, v_proj);
 
   out[0] = mul * v_proj[0];
@@ -677,6 +687,11 @@ void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
 
 void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3])
 {
+  if (UNLIKELY(is_zero_v3_db(v_proj))) {
+    zero_v3_db(out);
+    return;
+  }
+
   const double mul = dot_v3v3_db(p, v_proj) / dot_v3v3_db(v_proj, v_proj);
 
   out[0] = mul * v_proj[0];

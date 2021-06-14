@@ -327,7 +327,11 @@ MINLINE bool is_zero_v2(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v4(const float a[4]) ATTR_WARN_UNUSED_RESULT;
 
-bool is_finite_v2(const float a[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v2_db(const double a[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_zero_v4_db(const double a[4]) ATTR_WARN_UNUSED_RESULT;
+
+bool is_finite_v2(const float a[2]) ATTR_WARN_UNUSED_RESULT;
 bool is_finite_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 bool is_finite_v4(const float a[4]) ATTR_WARN_UNUSED_RESULT;
 

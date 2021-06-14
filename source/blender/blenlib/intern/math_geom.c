@@ -3344,6 +3344,13 @@ float closest_to_ray_v3(float r_close[3],
                         const float ray_dir[3])
 {
   float h[3], lambda;
+
+  if (UNLIKELY(is_zero_v3(ray_dir))) {
+    lambda = 0.0f;
+    copy_v3_v3(r_close, ray_orig);
+    return lambda;
+  }
+
   sub_v3_v3v3(h, p, ray_orig);
   lambda = dot_v3v3(ray_dir, h) / dot_v3v3(ray_dir, ray_dir);
   madd_v3_v3v3fl(r_close, ray_orig, ray_dir, lambda);
@@ -4467,7 +4474,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
     d_curr = d_next;
     DIR_V2_SET(&d_next, v_next, co);
     ht = mean_value_half_tan_v2_db(&d_curr, &d_next);
-    w[i_curr] = (float)((ht_prev + ht) / d_curr.len);
+    w[i_curr] = (d_curr.len == 0.0) ? 0.0f : (float)((ht_prev + ht) / d_curr.len);
     totweight += w[i_curr];
 
     /* step */
