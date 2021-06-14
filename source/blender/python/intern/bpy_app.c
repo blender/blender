@@ -298,15 +298,6 @@ static int bpy_app_global_flag_set__only_disable(PyObject *UNUSED(self),
   return bpy_app_global_flag_set(NULL, value, closure);
 }
 
-PyDoc_STRVAR(bpy_app_binary_path_python_doc,
-             "String, the path to the python executable (read-only). "
-             "Deprecated! Use ``sys.executable`` instead.");
-static PyObject *bpy_app_binary_path_python_get(PyObject *UNUSED(self), void *UNUSED(closure))
-{
-  PyErr_Warn(PyExc_RuntimeWarning, "Use 'sys.executable' instead of 'binary_path_python'!");
-  return Py_INCREF_RET(PySys_GetObject("executable"));
-}
-
 PyDoc_STRVAR(bpy_app_debug_value_doc,
              "Short, number which can be set to non-zero values for testing purposes");
 static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(closure))
@@ -440,12 +431,6 @@ static PyGetSetDef bpy_app_getsets[] = {
      bpy_app_global_flag_set,
      bpy_app_global_flag_doc,
      (void *)G_FLAG_USERPREF_NO_SAVE_ON_EXIT},
-
-    {"binary_path_python",
-     bpy_app_binary_path_python_get,
-     NULL,
-     bpy_app_binary_path_python_doc,
-     NULL},
 
     {"debug_value",
      bpy_app_debug_value_get,
