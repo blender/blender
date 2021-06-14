@@ -1072,10 +1072,9 @@ static void rna_UserDef_studiolight_solid_lights_begin(CollectionPropertyIterato
   rna_iterator_array_begin(iter, sl->light, sizeof(*sl->light), ARRAY_SIZE(sl->light), 0, NULL);
 }
 
-static int rna_UserDef_studiolight_solid_lights_length(PointerRNA *ptr)
+static int rna_UserDef_studiolight_solid_lights_length(PointerRNA *UNUSED(ptr))
 {
-  StudioLight *sl = (StudioLight *)ptr->data;
-  return ARRAY_SIZE(sl->light);
+  return ARRAY_SIZE(((StudioLight *)NULL)->light);
 }
 
 /* StudioLight.light_ambient */

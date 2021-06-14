@@ -409,7 +409,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   Strip *strip = seq->strip;
   /* We only need 1 element to store the filename. */
-  StripElem *se = strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
+  StripElem *se = strip->stripdata = MEM_callocN(sizeof(StripElem), "stripelem");
   BLI_split_dirfile(load_data->path, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
 
   if (seq != NULL && seq->sound != NULL) {

@@ -34,12 +34,17 @@ void BlenderSync::sync_light(BL::Object &b_parent,
                              bool *use_portal)
 {
   /* test if we need to sync */
-  Light *light;
   ObjectKey key(b_parent, persistent_id, b_ob_instance, false);
   BL::Light b_light(b_ob.data());
 
+  Light *light = light_map.find(key);
+
+  /* Check if the transform was modified, in case a linked collection is moved we do not get a
+   * specific depsgraph update (T88515). This also mimics the behavior for Objects. */
+  const bool tfm_updated = (light && light->get_tfm() != tfm);
+
   /* Update if either object or light data changed. */
-  if (!light_map.add_or_update(&light, b_ob, b_parent, key)) {
+  if (!tfm_updated && !light_map.add_or_update(&light, b_ob, b_parent, key)) {
     Shader *shader;
     if (!shader_map.add_or_update(&shader, b_light)) {
       if (light->get_is_portal())

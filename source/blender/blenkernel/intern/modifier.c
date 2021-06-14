@@ -729,7 +729,6 @@ Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
     ArmatureGpencilModifierData *agmd = NULL;
     GpencilModifierData *gmd = BKE_gpencil_modifiers_get_virtual_modifierlist(
         ob, &gpencilvirtualModifierData);
-    gmd = ob->greasepencil_modifiers.first;
 
     /* return the first selected armature, this lets us use multiple armatures */
     for (; gmd; gmd = gmd->next) {
@@ -749,7 +748,6 @@ Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
     VirtualModifierData virtualModifierData;
     ArmatureModifierData *amd = NULL;
     ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-    md = ob->modifiers.first;
 
     /* return the first selected armature, this lets us use multiple armatures */
     for (; md; md = md->next) {

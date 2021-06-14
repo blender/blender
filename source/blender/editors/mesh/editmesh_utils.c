@@ -1405,9 +1405,17 @@ bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
 /** \name Update API
  * \{ */
 
+void EDBM_mesh_normals_update_ex(BMEditMesh *em, const struct BMeshNormalsUpdate_Params *params)
+{
+  BM_mesh_normals_update_ex(em->bm, params);
+}
+
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {
-  BM_mesh_normals_update(em->bm);
+  EDBM_mesh_normals_update_ex(em,
+                              &(const struct BMeshNormalsUpdate_Params){
+                                  .face_normals = true,
+                              });
 }
 
 void EDBM_stats_update(BMEditMesh *em)
@@ -1439,20 +1447,31 @@ void EDBM_stats_update(BMEditMesh *em)
   }
 }
 
-/* so many tools call these that we better make it a generic function.
+/**
+ * So many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(Mesh *mesh, const bool do_tessellation, const bool is_destructive)
+void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
 {
   BMEditMesh *em = mesh->edit_mesh;
   /* Order of calling isn't important. */
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
 
-  if (do_tessellation) {
-    BKE_editmesh_looptri_calc(em);
+  if (params->calc_normals && params->calc_looptri) {
+    /* Calculating both has some performance gains. */
+    BKE_editmesh_looptri_and_normals_calc(em);
+  }
+  else {
+    if (params->calc_normals) {
+      EDBM_mesh_normals_update(em);
+    }
+
+    if (params->calc_looptri) {
+      BKE_editmesh_looptri_calc(em);
+    }
   }
 
-  if (is_destructive) {
+  if (params->is_destructive) {
     /* TODO. we may be able to remove this now! - Campbell */
     // BM_mesh_elem_table_free(em->bm, BM_ALL_NOLOOP);
   }
@@ -1475,6 +1494,17 @@ void EDBM_update_generic(Mesh *mesh, const bool do_tessellation, const bool is_d
     }
   }
 #endif
+}
+
+/* Bad level call from Python API. */
+void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool is_destructive)
+{
+  EDBM_update(me,
+              &(const struct EDBMUpdate_Params){
+                  .calc_looptri = do_tessellation,
+                  .calc_normals = false,
+                  .is_destructive = is_destructive,
+              });
 }
 
 /** \} */

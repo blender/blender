@@ -56,14 +56,14 @@ extern PyTypeObject BPy_IDGroup_IterItems_Type;
 
 typedef struct BPy_IDProperty {
   PyObject_VAR_HEAD
-  struct ID *id;           /* can be NULL */
+  struct ID *owner_id;     /* can be NULL */
   struct IDProperty *prop; /* must be second member */
   struct IDProperty *parent;
 } BPy_IDProperty;
 
 typedef struct BPy_IDArray {
   PyObject_VAR_HEAD
-  struct ID *id;           /* can be NULL */
+  struct ID *owner_id;     /* can be NULL */
   struct IDProperty *prop; /* must be second member */
 } BPy_IDArray;
 

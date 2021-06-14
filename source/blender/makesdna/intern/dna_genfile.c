@@ -1564,9 +1564,8 @@ DNA_ReconstructInfo *DNA_reconstruct_info_create(const SDNA *oldsdna,
     ReconstructStep *steps = create_reconstruct_steps_for_struct(
         oldsdna, newsdna, compare_flags, old_struct, new_struct);
 
-    int steps_len = new_struct->members_len;
     /* Comment the line below to skip the compression for debugging purposes. */
-    steps_len = compress_reconstruct_steps(steps, new_struct->members_len);
+    const int steps_len = compress_reconstruct_steps(steps, new_struct->members_len);
 
     reconstruct_info->steps[new_struct_nr] = steps;
     reconstruct_info->step_counts[new_struct_nr] = steps_len;

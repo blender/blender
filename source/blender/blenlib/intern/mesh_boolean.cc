@@ -1406,9 +1406,9 @@ static int find_cell_for_point_near_edge(mpq3 p,
   int dummy_index = p_sorted_dummy - sorted_tris.begin();
   int prev_tri = (dummy_index == 0) ? sorted_tris[sorted_tris.size() - 1] :
                                       sorted_tris[dummy_index - 1];
-  int next_tri = (dummy_index == sorted_tris.size() - 1) ? sorted_tris[0] :
-                                                           sorted_tris[dummy_index + 1];
   if (dbg_level > 0) {
+    int next_tri = (dummy_index == sorted_tris.size() - 1) ? sorted_tris[0] :
+                                                             sorted_tris[dummy_index + 1];
     std::cout << "prev tri to dummy = " << prev_tri << ";  next tri to dummy = " << next_tri
               << "\n";
   }

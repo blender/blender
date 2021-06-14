@@ -32,18 +32,9 @@ def replace_bpy_app_version():
     app = bpy.app
     app_fake = type(bpy)("bpy.app")
 
-    app_attr_exclude = {
-        # This causes a noisy warning every time.
-        "binary_path_python",
-    }
-
     for attr in dir(app):
-        if attr.startswith("_"):
-            continue
-        if attr in app_attr_exclude:
-            continue
-
-        setattr(app_fake, attr, getattr(app, attr))
+        if not attr.startswith("_"):
+            setattr(app_fake, attr, getattr(app, attr))
 
     app_fake.version = 0, 0, 0
     app_fake.version_string = "0.00 (sub 0)"

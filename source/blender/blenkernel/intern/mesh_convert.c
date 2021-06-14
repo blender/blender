@@ -1113,7 +1113,7 @@ static void curve_to_mesh_eval_ensure(Object *object)
    * Brecht says hold off with that. */
   Mesh *mesh_eval = NULL;
   BKE_displist_make_curveTypes_forRender(
-      NULL, NULL, &remapped_object, &remapped_object.runtime.curve_cache->disp, &mesh_eval, false);
+      NULL, NULL, &remapped_object, &remapped_object.runtime.curve_cache->disp, false, &mesh_eval);
 
   /* Note: this is to be consistent with `BKE_displist_make_curveTypes()`, however that is not a
    * real issue currently, code here is broken in more than one way, fix(es) will be done

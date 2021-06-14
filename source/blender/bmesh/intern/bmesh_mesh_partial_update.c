@@ -79,20 +79,6 @@ BLI_INLINE bool partial_elem_vert_ensure(BMPartialUpdate *bmpinfo,
   return false;
 }
 
-BLI_INLINE bool partial_elem_edge_ensure(BMPartialUpdate *bmpinfo,
-                                         BLI_bitmap *edges_tag,
-                                         BMEdge *e)
-{
-  const int i = BM_elem_index_get(e);
-  if (!BLI_BITMAP_TEST(edges_tag, i)) {
-    BLI_BITMAP_ENABLE(edges_tag, i);
-    GROW_ARRAY_AS_NEEDED(bmpinfo->edges, bmpinfo->edges_len_alloc, bmpinfo->edges_len);
-    bmpinfo->edges[bmpinfo->edges_len++] = e;
-    return true;
-  }
-  return false;
-}
-
 BLI_INLINE bool partial_elem_face_ensure(BMPartialUpdate *bmpinfo,
                                          BLI_bitmap *faces_tag,
                                          BMFace *f)
@@ -121,17 +107,15 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
   /* Reserve more edges than vertices since it's common for a grid topology
    * to use around twice as many edges as vertices. */
   const int default_verts_len_alloc = verts_len;
-  const int default_edges_len_alloc = min_ii(bm->totedge, verts_len * 2);
   const int default_faces_len_alloc = min_ii(bm->totface, verts_len);
 
   /* Allocate tags instead of using #BM_ELEM_TAG because the caller may already be using tags.
    * Further, walking over all geometry to clear the tags isn't so efficient. */
   BLI_bitmap *verts_tag = NULL;
-  BLI_bitmap *edges_tag = NULL;
   BLI_bitmap *faces_tag = NULL;
 
   /* Set vert inline. */
-  BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE));
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
 
   if (params->do_normals || params->do_tessellate) {
     /* - Extend to all vertices connected faces:
@@ -197,38 +181,18 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
       verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
     }
 
-    /* Edges. */
-    if (bmpinfo->edges == NULL) {
-      bmpinfo->edges_len_alloc = default_edges_len_alloc;
-      bmpinfo->edges = MEM_mallocN((sizeof(BMEdge *) * bmpinfo->edges_len_alloc), __func__);
-      edges_tag = BLI_BITMAP_NEW((size_t)bm->totedge, __func__);
-    }
-
     for (int i = 0; i < bmpinfo->faces_len; i++) {
       BMFace *f = bmpinfo->faces[i];
       BMLoop *l_iter, *l_first;
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
-        if (!partial_elem_vert_ensure(bmpinfo, verts_tag, l_iter->v)) {
-          continue;
-        }
-        BMVert *v = l_iter->v;
-        BMEdge *e_first = v->e;
-        BMEdge *e_iter = e_first;
-        do {
-          if (e_iter->l) {
-            partial_elem_edge_ensure(bmpinfo, edges_tag, e_iter);
-          }
-        } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v)) != e_first);
+        partial_elem_vert_ensure(bmpinfo, verts_tag, l_iter->v);
       } while ((l_iter = l_iter->next) != l_first);
     }
   }
 
   if (verts_tag) {
     MEM_freeN(verts_tag);
-  }
-  if (edges_tag) {
-    MEM_freeN(edges_tag);
   }
   if (faces_tag) {
     MEM_freeN(faces_tag);
@@ -243,9 +207,6 @@ void BM_mesh_partial_destroy(BMPartialUpdate *bmpinfo)
 {
   if (bmpinfo->verts) {
     MEM_freeN(bmpinfo->verts);
-  }
-  if (bmpinfo->edges) {
-    MEM_freeN(bmpinfo->edges);
   }
   if (bmpinfo->faces) {
     MEM_freeN(bmpinfo->faces);

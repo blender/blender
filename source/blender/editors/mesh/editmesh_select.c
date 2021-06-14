@@ -4270,7 +4270,12 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 
     if (edbm_deselect_nth(em, &op_params) == true) {
       found_active_elt = true;
-      EDBM_update_generic(obedit->data, false, false);
+      EDBM_update(obedit->data,
+                  &(const struct EDBMUpdate_Params){
+                      .calc_looptri = false,
+                      .calc_normals = false,
+                      .is_destructive = false,
+                  });
     }
   }
   MEM_freeN(objects);

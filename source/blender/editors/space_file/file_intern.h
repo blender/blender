@@ -62,6 +62,7 @@ void FILE_OT_bookmark_cleanup(struct wmOperatorType *ot);
 void FILE_OT_bookmark_move(struct wmOperatorType *ot);
 void FILE_OT_reset_recent(wmOperatorType *ot);
 void FILE_OT_hidedot(struct wmOperatorType *ot);
+void FILE_OT_associate_blend(struct wmOperatorType *ot);
 void FILE_OT_execute(struct wmOperatorType *ot);
 void FILE_OT_mouse_execute(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);

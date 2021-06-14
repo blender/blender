@@ -722,6 +722,13 @@ MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], floa
   r[2] = a[2] + b[2] * f;
 }
 
+MINLINE void madd_v3_v3v3db_db(double r[3], const double a[3], const double b[3], double f)
+{
+  r[0] = a[0] + b[0] * f;
+  r[1] = a[1] + b[1] * f;
+  r[2] = a[2] + b[2] * f;
+}
+
 MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3])
 {
   r[0] = a[0] + b[0] * c[0];
@@ -1280,6 +1287,21 @@ MINLINE bool is_zero_v3(const float v[3])
 MINLINE bool is_zero_v4(const float v[4])
 {
   return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f && v[3] == 0.0f);
+}
+
+MINLINE bool is_zero_v2_db(const double v[2])
+{
+  return (v[0] == 0.0 && v[1] == 0.0);
+}
+
+MINLINE bool is_zero_v3_db(const double v[3])
+{
+  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0);
+}
+
+MINLINE bool is_zero_v4_db(const double v[4])
+{
+  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0 && v[3] == 0.0);
 }
 
 MINLINE bool is_one_v3(const float v[3])

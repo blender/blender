@@ -31,6 +31,8 @@
 #include "BPY_extern.h"
 #include "bpy_capi_utils.h"
 
+#include "bpy_rna_operator.h" /* Own include. */
+
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method
  * \{ */

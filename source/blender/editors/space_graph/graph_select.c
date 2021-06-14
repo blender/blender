@@ -1805,7 +1805,6 @@ static int graphkeys_mselect_column(bAnimContext *ac,
   KeyframeEditFunc select_cb, ok_cb;
   KeyframeEditData ked;
   tNearestVertInfo *nvi;
-  float selx = (float)ac->scene->r.cfra;
 
   /* find the beztriple that we're selecting, and the handle that was clicked on */
   nvi = find_nearest_fcurve_vert(ac, mval);
@@ -1817,7 +1816,7 @@ static int graphkeys_mselect_column(bAnimContext *ac,
 
   /* get frame number on which elements should be selected */
   /* TODO: should we restrict to integer frames only? */
-  selx = nvi->frame;
+  const float selx = nvi->frame;
 
   if (select_mode != SELECT_REPLACE) {
     /* Doesn't need to deselect anything -> Pass. */

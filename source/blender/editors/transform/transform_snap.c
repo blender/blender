@@ -1072,7 +1072,7 @@ static void TargetSnapClosest(TransInfo *t)
     if (t->options & CTX_OBJECT) {
       int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        TransData *td = tc->data;
+        TransData *td;
         for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
           const BoundBox *bb = NULL;
 

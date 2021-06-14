@@ -270,9 +270,9 @@ static void draw_ticks(const float start_factor,
 
   /* Round initial_tick_factor up to the next tick_increment. */
   int tick_percentage = ceil((start_factor * 100) / tick_increment) * tick_increment;
-  float tick_height = base_tick_height;
 
   while (tick_percentage <= (int)(end_factor * 100)) {
+    float tick_height;
     /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
      * smaller and the rest is the minimum size. */
     if (tick_percentage % 100 == 0) {
@@ -578,21 +578,18 @@ static void pose_slide_exit(wmOperator *op)
   /* Remove UI drawing callback. */
   ED_region_draw_cb_exit(pso->region_header->type, pso->draw_handle);
 
-  /* If data exists, clear its data and exit. */
-  if (pso) {
-    /* Free the temp pchan links and their data. */
-    poseAnim_mapping_free(&pso->pfLinks);
+  /* Free the temp pchan links and their data. */
+  poseAnim_mapping_free(&pso->pfLinks);
 
-    /* Free RB-BST for keyframes (if it contained data). */
-    BLI_dlrbTree_free(&pso->keys);
+  /* Free RB-BST for keyframes (if it contained data). */
+  BLI_dlrbTree_free(&pso->keys);
 
-    if (pso->ob_data_array != NULL) {
-      MEM_freeN(pso->ob_data_array);
-    }
-
-    /* Free data itself. */
-    MEM_freeN(pso);
+  if (pso->ob_data_array != NULL) {
+    MEM_freeN(pso->ob_data_array);
   }
+
+  /* Free data itself. */
+  MEM_freeN(pso);
 
   /* Cleanup. */
   op->customdata = NULL;
@@ -2258,7 +2255,7 @@ static void pose_propagate_fcurve(
   BezTriple *bezt;
   float refVal = 0.0f;
   bool keyExists;
-  int i, match;
+  int i;
   bool first = true;
 
   /* Skip if no keyframes to edit. */
@@ -2281,7 +2278,8 @@ static void pose_propagate_fcurve(
    * - if only doing selected keyframes, start from the first one
    */
   if (mode != POSE_PROPAGATE_SELECTED_KEYS) {
-    match = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
+    const int match = BKE_fcurve_bezt_binarysearch_index(
+        fcu->bezt, startFrame, fcu->totvert, &keyExists);
 
     if (fcu->bezt[match].vec[1][0] < startFrame) {
       i = match + 1;

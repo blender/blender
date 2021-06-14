@@ -1189,9 +1189,7 @@ static SculptUndoNode *sculpt_undo_geometry_push(Object *object, SculptUndoType 
 static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
-  SculptUndoNode *unode = usculpt->nodes.first;
-
-  unode = MEM_callocN(sizeof(*unode), __func__);
+  SculptUndoNode *unode = MEM_callocN(sizeof(*unode), __func__);
 
   BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
   unode->type = type;

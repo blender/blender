@@ -223,7 +223,12 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 
       BM_mesh_select_mode_flush(bm);
 
-      EDBM_update_generic(obedit->data, true, true);
+      EDBM_update(obedit->data,
+                  &(const struct EDBMUpdate_Params){
+                      .calc_looptri = true,
+                      .calc_normals = false,
+                      .is_destructive = true,
+                  });
     }
   }
 

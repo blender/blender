@@ -1912,10 +1912,9 @@ static void rna_Scene_transform_orientation_slots_begin(CollectionPropertyIterat
       iter, orient_slot, sizeof(*orient_slot), ARRAY_SIZE(scene->orientation_slots), 0, NULL);
 }
 
-static int rna_Scene_transform_orientation_slots_length(PointerRNA *ptr)
+static int rna_Scene_transform_orientation_slots_length(PointerRNA *UNUSED(ptr))
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  return ARRAY_SIZE(scene->orientation_slots);
+  return ARRAY_SIZE(((Scene *)NULL)->orientation_slots);
 }
 
 static bool rna_Scene_use_audio_get(PointerRNA *ptr)

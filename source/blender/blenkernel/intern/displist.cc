@@ -1420,237 +1420,237 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
 
   if (ob->type == OB_SURF) {
     displist_make_surf(depsgraph, scene, ob, dispbase, r_final, for_render, for_orco);
+    return;
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-    ListBase nubase = {nullptr, nullptr};
-    bool force_mesh_conversion = false;
 
-    BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+  ListBase nubase = {nullptr, nullptr};
+  bool force_mesh_conversion = false;
 
-    /* We only re-evaluate path if evaluation is not happening for orco.
-     * If the calculation happens for orco, we should never free data which
-     * was needed before and only not needed for orco calculation. */
-    if (!for_orco) {
-      if (ob->runtime.curve_cache->anim_path_accum_length) {
-        MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
+  BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+
+  /* We only re-evaluate path if evaluation is not happening for orco.
+   * If the calculation happens for orco, we should never free data which
+   * was needed before and only not needed for orco calculation. */
+  if (!for_orco) {
+    if (ob->runtime.curve_cache->anim_path_accum_length) {
+      MEM_freeN((void *)ob->runtime.curve_cache->anim_path_accum_length);
+    }
+    ob->runtime.curve_cache->anim_path_accum_length = nullptr;
+  }
+
+  if (ob->type == OB_FONT) {
+    BKE_vfont_to_curve_nubase(ob, FO_EDIT, &nubase);
+  }
+  else {
+    BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(const_cast<Curve *>(cu)));
+  }
+
+  if (!for_orco) {
+    force_mesh_conversion = BKE_curve_calc_modifiers_pre(
+        depsgraph, scene, ob, &nubase, &nubase, for_render);
+  }
+
+  BKE_curve_bevelList_make(ob, &nubase, for_render);
+
+  /* If curve has no bevel will return nothing */
+  ListBase dlbev = BKE_curve_bevel_make(cu);
+
+  /* no bevel or extrude, and no width correction? */
+  if (BLI_listbase_is_empty(&dlbev) && cu->width == 1.0f) {
+    curve_to_displist(cu, &nubase, for_render, dispbase);
+  }
+  else {
+    const float widfac = cu->width - 1.0f;
+
+    BevList *bl = (BevList *)ob->runtime.curve_cache->bev.first;
+    Nurb *nu = (Nurb *)nubase.first;
+    for (; bl && nu; bl = bl->next, nu = nu->next) {
+      float *data;
+
+      if (bl->nr == 0) { /* blank bevel lists can happen */
+        continue;
       }
-      ob->runtime.curve_cache->anim_path_accum_length = nullptr;
-    }
 
-    if (ob->type == OB_FONT) {
-      BKE_vfont_to_curve_nubase(ob, FO_EDIT, &nubase);
-    }
-    else {
-      BKE_nurbList_duplicate(&nubase, BKE_curve_nurbs_get(const_cast<Curve *>(cu)));
-    }
+      /* exception handling; curve without bevel or extrude, with width correction */
+      if (BLI_listbase_is_empty(&dlbev)) {
+        DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), "makeDispListbev");
+        dl->verts = (float *)MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
+        BLI_addtail(dispbase, dl);
 
-    if (!for_orco) {
-      force_mesh_conversion = BKE_curve_calc_modifiers_pre(
-          depsgraph, scene, ob, &nubase, &nubase, for_render);
-    }
-
-    BKE_curve_bevelList_make(ob, &nubase, for_render);
-
-    /* If curve has no bevel will return nothing */
-    ListBase dlbev = BKE_curve_bevel_make(cu);
-
-    /* no bevel or extrude, and no width correction? */
-    if (BLI_listbase_is_empty(&dlbev) && cu->width == 1.0f) {
-      curve_to_displist(cu, &nubase, for_render, dispbase);
-    }
-    else {
-      const float widfac = cu->width - 1.0f;
-
-      BevList *bl = (BevList *)ob->runtime.curve_cache->bev.first;
-      Nurb *nu = (Nurb *)nubase.first;
-      for (; bl && nu; bl = bl->next, nu = nu->next) {
-        float *data;
-
-        if (bl->nr == 0) { /* blank bevel lists can happen */
-          continue;
+        if (bl->poly != -1) {
+          dl->type = DL_POLY;
+        }
+        else {
+          dl->type = DL_SEGM;
+          dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
         }
 
-        /* exception handling; curve without bevel or extrude, with width correction */
-        if (BLI_listbase_is_empty(&dlbev)) {
-          DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), "makeDispListbev");
-          dl->verts = (float *)MEM_mallocN(sizeof(float[3]) * bl->nr, "dlverts");
+        dl->parts = 1;
+        dl->nr = bl->nr;
+        dl->col = nu->mat_nr;
+        dl->charidx = nu->charidx;
+        dl->rt = nu->flag;
+
+        int a = dl->nr;
+        BevPoint *bevp = bl->bevpoints;
+        data = dl->verts;
+        while (a--) {
+          data[0] = bevp->vec[0] + widfac * bevp->sina;
+          data[1] = bevp->vec[1] + widfac * bevp->cosa;
+          data[2] = bevp->vec[2];
+          bevp++;
+          data += 3;
+        }
+      }
+      else {
+        ListBase bottom_capbase = {nullptr, nullptr};
+        ListBase top_capbase = {nullptr, nullptr};
+        float bottom_no[3] = {0.0f};
+        float top_no[3] = {0.0f};
+        float first_blend = 0.0f, last_blend = 0.0f;
+        int start, steps = 0;
+
+        if (nu->flagu & CU_NURB_CYCLIC) {
+          calc_bevfac_mapping_default(bl, &start, &first_blend, &steps, &last_blend);
+        }
+        else {
+          if (fabsf(cu->bevfac2 - cu->bevfac1) < FLT_EPSILON) {
+            continue;
+          }
+
+          calc_bevfac_mapping(cu, bl, nu, &start, &first_blend, &steps, &last_blend);
+        }
+
+        LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
+          /* for each part of the bevel use a separate displblock */
+          DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), "makeDispListbev1");
+          dl->verts = data = (float *)MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, "dlverts");
           BLI_addtail(dispbase, dl);
 
-          if (bl->poly != -1) {
-            dl->type = DL_POLY;
+          dl->type = DL_SURF;
+
+          dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
+          if (dlb->type == DL_POLY) {
+            dl->flag |= DL_CYCL_U;
           }
-          else {
-            dl->type = DL_SEGM;
-            dl->flag = (DL_FRONT_CURVE | DL_BACK_CURVE);
+          if ((bl->poly >= 0) && (steps > 2)) {
+            dl->flag |= DL_CYCL_V;
           }
 
-          dl->parts = 1;
-          dl->nr = bl->nr;
+          dl->parts = steps;
+          dl->nr = dlb->nr;
           dl->col = nu->mat_nr;
           dl->charidx = nu->charidx;
           dl->rt = nu->flag;
 
-          int a = dl->nr;
-          BevPoint *bevp = bl->bevpoints;
-          data = dl->verts;
-          while (a--) {
-            data[0] = bevp->vec[0] + widfac * bevp->sina;
-            data[1] = bevp->vec[1] + widfac * bevp->cosa;
-            data[2] = bevp->vec[2];
-            bevp++;
-            data += 3;
-          }
-        }
-        else {
-          ListBase bottom_capbase = {nullptr, nullptr};
-          ListBase top_capbase = {nullptr, nullptr};
-          float bottom_no[3] = {0.0f};
-          float top_no[3] = {0.0f};
-          float first_blend = 0.0f, last_blend = 0.0f;
-          int start, steps = 0;
+          /* for each point of poly make a bevel piece */
+          BevPoint *bevp_first = bl->bevpoints;
+          BevPoint *bevp_last = &bl->bevpoints[bl->nr - 1];
+          BevPoint *bevp = &bl->bevpoints[start];
+          for (int i = start, a = 0; a < steps; i++, bevp++, a++) {
+            float radius_factor = 1.0;
+            float *cur_data = data;
 
-          if (nu->flagu & CU_NURB_CYCLIC) {
-            calc_bevfac_mapping_default(bl, &start, &first_blend, &steps, &last_blend);
-          }
-          else {
-            if (fabsf(cu->bevfac2 - cu->bevfac1) < FLT_EPSILON) {
-              continue;
+            if (cu->taperobj == nullptr) {
+              radius_factor = bevp->radius;
             }
+            else {
+              float taper_factor;
+              if (cu->flag & CU_MAP_TAPER) {
+                float len = (steps - 3) + first_blend + last_blend;
 
-            calc_bevfac_mapping(cu, bl, nu, &start, &first_blend, &steps, &last_blend);
-          }
-
-          LISTBASE_FOREACH (DispList *, dlb, &dlbev) {
-            /* for each part of the bevel use a separate displblock */
-            DispList *dl = (DispList *)MEM_callocN(sizeof(DispList), "makeDispListbev1");
-            dl->verts = data = (float *)MEM_mallocN(sizeof(float[3]) * dlb->nr * steps, "dlverts");
-            BLI_addtail(dispbase, dl);
-
-            dl->type = DL_SURF;
-
-            dl->flag = dlb->flag & (DL_FRONT_CURVE | DL_BACK_CURVE);
-            if (dlb->type == DL_POLY) {
-              dl->flag |= DL_CYCL_U;
-            }
-            if ((bl->poly >= 0) && (steps > 2)) {
-              dl->flag |= DL_CYCL_V;
-            }
-
-            dl->parts = steps;
-            dl->nr = dlb->nr;
-            dl->col = nu->mat_nr;
-            dl->charidx = nu->charidx;
-            dl->rt = nu->flag;
-
-            /* for each point of poly make a bevel piece */
-            BevPoint *bevp_first = bl->bevpoints;
-            BevPoint *bevp_last = &bl->bevpoints[bl->nr - 1];
-            BevPoint *bevp = &bl->bevpoints[start];
-            for (int i = start, a = 0; a < steps; i++, bevp++, a++) {
-              float radius_factor = 1.0;
-              float *cur_data = data;
-
-              if (cu->taperobj == nullptr) {
-                radius_factor = bevp->radius;
-              }
-              else {
-                float taper_factor;
-                if (cu->flag & CU_MAP_TAPER) {
-                  float len = (steps - 3) + first_blend + last_blend;
-
-                  if (a == 0) {
-                    taper_factor = 0.0f;
-                  }
-                  else if (a == steps - 1) {
-                    taper_factor = 1.0f;
-                  }
-                  else {
-                    taper_factor = ((float)a - (1.0f - first_blend)) / len;
-                  }
+                if (a == 0) {
+                  taper_factor = 0.0f;
+                }
+                else if (a == steps - 1) {
+                  taper_factor = 1.0f;
                 }
                 else {
-                  float len = bl->nr - 1;
-                  taper_factor = (float)i / len;
-
-                  if (a == 0) {
-                    taper_factor += (1.0f - first_blend) / len;
-                  }
-                  else if (a == steps - 1) {
-                    taper_factor -= (1.0f - last_blend) / len;
-                  }
+                  taper_factor = ((float)a - (1.0f - first_blend)) / len;
                 }
-
-                radius_factor = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_factor);
-
-                if (cu->taper_radius_mode == CU_TAPER_RADIUS_MULTIPLY) {
-                  radius_factor *= bevp->radius;
-                }
-                else if (cu->taper_radius_mode == CU_TAPER_RADIUS_ADD) {
-                  radius_factor += bevp->radius;
-                }
-              }
-
-              /* rotate bevel piece and write in data */
-              if ((a == 0) && (bevp != bevp_last)) {
-                rotateBevelPiece(
-                    cu, bevp, bevp + 1, dlb, 1.0f - first_blend, widfac, radius_factor, &data);
-              }
-              else if ((a == steps - 1) && (bevp != bevp_first)) {
-                rotateBevelPiece(
-                    cu, bevp, bevp - 1, dlb, 1.0f - last_blend, widfac, radius_factor, &data);
               }
               else {
-                rotateBevelPiece(cu, bevp, nullptr, dlb, 0.0f, widfac, radius_factor, &data);
+                float len = bl->nr - 1;
+                taper_factor = (float)i / len;
+
+                if (a == 0) {
+                  taper_factor += (1.0f - first_blend) / len;
+                }
+                else if (a == steps - 1) {
+                  taper_factor -= (1.0f - last_blend) / len;
+                }
               }
 
-              if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
-                if (a == 1) {
-                  fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
-                  copy_v3_v3(bottom_no, bevp->dir);
-                }
-                if (a == steps - 1) {
-                  fillBevelCap(nu, dlb, cur_data, &top_capbase);
-                  negate_v3_v3(top_no, bevp->dir);
-                }
+              radius_factor = displist_calc_taper(depsgraph, scene, cu->taperobj, taper_factor);
+
+              if (cu->taper_radius_mode == CU_TAPER_RADIUS_MULTIPLY) {
+                radius_factor *= bevp->radius;
+              }
+              else if (cu->taper_radius_mode == CU_TAPER_RADIUS_ADD) {
+                radius_factor += bevp->radius;
               }
             }
 
-            /* gl array drawing: using indices */
-            displist_surf_indices(dl);
+            /* rotate bevel piece and write in data */
+            if ((a == 0) && (bevp != bevp_last)) {
+              rotateBevelPiece(
+                  cu, bevp, bevp + 1, dlb, 1.0f - first_blend, widfac, radius_factor, &data);
+            }
+            else if ((a == steps - 1) && (bevp != bevp_first)) {
+              rotateBevelPiece(
+                  cu, bevp, bevp - 1, dlb, 1.0f - last_blend, widfac, radius_factor, &data);
+            }
+            else {
+              rotateBevelPiece(cu, bevp, nullptr, dlb, 0.0f, widfac, radius_factor, &data);
+            }
+
+            if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
+              if (a == 1) {
+                fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
+                copy_v3_v3(bottom_no, bevp->dir);
+              }
+              if (a == steps - 1) {
+                fillBevelCap(nu, dlb, cur_data, &top_capbase);
+                negate_v3_v3(top_no, bevp->dir);
+              }
+            }
           }
 
-          if (bottom_capbase.first) {
-            BKE_displist_fill(&bottom_capbase, dispbase, bottom_no, false);
-            BKE_displist_fill(&top_capbase, dispbase, top_no, false);
-            BKE_displist_free(&bottom_capbase);
-            BKE_displist_free(&top_capbase);
-          }
+          /* gl array drawing: using indices */
+          displist_surf_indices(dl);
+        }
+
+        if (bottom_capbase.first) {
+          BKE_displist_fill(&bottom_capbase, dispbase, bottom_no, false);
+          BKE_displist_fill(&top_capbase, dispbase, top_no, false);
+          BKE_displist_free(&bottom_capbase);
+          BKE_displist_free(&top_capbase);
         }
       }
-      BKE_displist_free(&dlbev);
     }
-
-    if (!(cu->flag & CU_DEFORM_FILL)) {
-      curve_to_filledpoly(cu, dispbase);
-    }
-
-    if (!for_orco) {
-      if ((cu->flag & CU_PATH) ||
-          DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
-        BKE_anim_path_calc_data(ob);
-      }
-
-      BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
-      curve_calc_modifiers_post(
-          depsgraph, scene, ob, dispbase, for_render, force_mesh_conversion, r_final);
-    }
-
-    if (cu->flag & CU_DEFORM_FILL && !ob->runtime.data_eval) {
-      curve_to_filledpoly(cu, dispbase);
-    }
-
-    BKE_nurbList_free(&nubase);
+    BKE_displist_free(&dlbev);
   }
+
+  if (!(cu->flag & CU_DEFORM_FILL)) {
+    curve_to_filledpoly(cu, dispbase);
+  }
+
+  if (!for_orco) {
+    if ((cu->flag & CU_PATH) ||
+        DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH) {
+      BKE_anim_path_calc_data(ob);
+    }
+
+    BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
+    curve_calc_modifiers_post(
+        depsgraph, scene, ob, dispbase, for_render, force_mesh_conversion, r_final);
+  }
+
+  if (cu->flag & CU_DEFORM_FILL && !ob->runtime.data_eval) {
+    curve_to_filledpoly(cu, dispbase);
+  }
+
+  BKE_nurbList_free(&nubase);
 }
 
 void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
@@ -1689,8 +1689,8 @@ void BKE_displist_make_curveTypes_forRender(Depsgraph *depsgraph,
                                             const Scene *scene,
                                             Object *ob,
                                             ListBase *dispbase,
-                                            Mesh **r_final,
-                                            const bool for_orco)
+                                            const bool for_orco,
+                                            Mesh **r_final)
 {
   if (ob->runtime.curve_cache == nullptr) {
     ob->runtime.curve_cache = (CurveCache *)MEM_callocN(sizeof(CurveCache),

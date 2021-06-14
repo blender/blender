@@ -1585,6 +1585,7 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                          sizex,
                          sizey,
                          (int)space_type,
+                         false,
                          dialog,
                          true,
                          WIN_ALIGN_LOCATION_CENTER)) {

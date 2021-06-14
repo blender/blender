@@ -44,10 +44,8 @@ typedef struct BMPartialUpdate_Params {
  */
 typedef struct BMPartialUpdate {
   BMVert **verts;
-  BMEdge **edges;
   BMFace **faces;
   int verts_len, verts_len_alloc;
-  int edges_len, edges_len_alloc;
   int faces_len, faces_len_alloc;
 
   /** Store the parameters used in creation so invalid use can be asserted. */
