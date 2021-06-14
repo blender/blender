@@ -14,6 +14,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "BLI_task.hh"
+
 #include "BKE_spline.hh"
 
 #include "node_geometry_util.hh"
@@ -74,44 +76,46 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
   GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
-  for (const int i : splines.index_range()) {
-    if (!selection[i]) {
-      continue;
+  parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+    for (const int i : range) {
+      if (!selection[i]) {
+        continue;
+      }
+
+      reverse_data<float3>(splines[i]->positions());
+      reverse_data<float>(splines[i]->radii());
+      reverse_data<float>(splines[i]->tilts());
+
+      splines[i]->attributes.foreach_attribute(
+          [&](StringRefNull name, const AttributeMetaData &meta_data) {
+            std::optional<blender::fn::GMutableSpan> output_attribute =
+                splines[i]->attributes.get_for_write(name);
+            if (!output_attribute) {
+              BLI_assert_unreachable();
+              return false;
+            }
+            attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
+              using T = decltype(dummy);
+              reverse_data(output_attribute->typed<T>());
+            });
+            return true;
+          },
+          ATTR_DOMAIN_POINT);
+
+      /* Deal with extra info on derived types. */
+      if (BezierSpline *spline = dynamic_cast<BezierSpline *>(splines[i].get())) {
+        reverse_data<BezierSpline::HandleType>(spline->handle_types_left());
+        reverse_data<BezierSpline::HandleType>(spline->handle_types_right());
+        reverse_data<float3>(spline->handle_positions_left(), spline->handle_positions_right());
+      }
+      else if (NURBSpline *spline = dynamic_cast<NURBSpline *>(splines[i].get())) {
+        reverse_data<float>(spline->weights());
+      }
+      /* Nothing to do for poly splines. */
+
+      splines[i]->mark_cache_invalid();
     }
-
-    reverse_data<float3>(splines[i]->positions());
-    reverse_data<float>(splines[i]->radii());
-    reverse_data<float>(splines[i]->tilts());
-
-    splines[i]->attributes.foreach_attribute(
-        [&](StringRefNull name, const AttributeMetaData &meta_data) {
-          std::optional<blender::fn::GMutableSpan> output_attribute =
-              splines[i]->attributes.get_for_write(name);
-          if (!output_attribute) {
-            BLI_assert_unreachable();
-            return false;
-          }
-          attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
-            using T = decltype(dummy);
-            reverse_data(output_attribute->typed<T>());
-          });
-          return true;
-        },
-        ATTR_DOMAIN_POINT);
-
-    /* Deal with extra info on derived types. */
-    if (BezierSpline *spline = dynamic_cast<BezierSpline *>(splines[i].get())) {
-      reverse_data<BezierSpline::HandleType>(spline->handle_types_left());
-      reverse_data<BezierSpline::HandleType>(spline->handle_types_right());
-      reverse_data<float3>(spline->handle_positions_left(), spline->handle_positions_right());
-    }
-    else if (NURBSpline *spline = dynamic_cast<NURBSpline *>(splines[i].get())) {
-      reverse_data<float>(spline->weights());
-    }
-    /* Nothing to do for poly splines. */
-
-    splines[i]->mark_cache_invalid();
-  }
+  });
 
   params.set_output("Curve", geometry_set);
 }
