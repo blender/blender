@@ -157,35 +157,30 @@ static Array<const GeometryComponent *> to_base_components(Span<const Component 
   return components;
 }
 
-static Set<std::string> find_all_attribute_names(Span<const GeometryComponent *> components)
+static Map<std::string, AttributeMetaData> get_final_attribute_info(
+    Span<const GeometryComponent *> components, Span<StringRef> ignored_attributes)
 {
-  Set<std::string> attribute_names;
-  for (const GeometryComponent *component : components) {
-    Set<std::string> names = component->attribute_names();
-    for (const std::string &name : names) {
-      attribute_names.add(name);
-    }
-  }
-  return attribute_names;
-}
+  Map<std::string, AttributeMetaData> info;
 
-static void determine_final_data_type_and_domain(Span<const GeometryComponent *> components,
-                                                 StringRef attribute_name,
-                                                 CustomDataType *r_type,
-                                                 AttributeDomain *r_domain)
-{
-  Vector<CustomDataType> data_types;
-  Vector<AttributeDomain> domains;
   for (const GeometryComponent *component : components) {
-    ReadAttributeLookup attribute = component->attribute_try_get_for_read(attribute_name);
-    if (attribute) {
-      data_types.append(bke::cpp_type_to_custom_data_type(attribute.varray->type()));
-      domains.append(attribute.domain);
-    }
+    component->attribute_foreach([&](StringRefNull name, const AttributeMetaData &meta_data) {
+      if (ignored_attributes.contains(name)) {
+        return true;
+      }
+      info.add_or_modify(
+          name,
+          [&](AttributeMetaData *meta_data_final) { *meta_data_final = meta_data; },
+          [&](AttributeMetaData *meta_data_final) {
+            meta_data_final->data_type = blender::bke::attribute_data_type_highest_complexity(
+                {meta_data_final->data_type, meta_data.data_type});
+            meta_data_final->domain = blender::bke::attribute_domain_highest_priority(
+                {meta_data_final->domain, meta_data.domain});
+          });
+      return true;
+    });
   }
 
-  *r_type = bke::attribute_data_type_highest_complexity(data_types);
-  *r_domain = bke::attribute_domain_highest_priority(domains);
+  return info;
 }
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
@@ -219,23 +214,20 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
                             GeometryComponent &result,
                             Span<StringRef> ignored_attributes = {})
 {
-  Set<std::string> attribute_names = find_all_attribute_names(src_components);
-  for (StringRef name : ignored_attributes) {
-    attribute_names.remove(name);
-  }
+  const Map<std::string, AttributeMetaData> info = get_final_attribute_info(src_components,
+                                                                            ignored_attributes);
 
-  for (const std::string &attribute_name : attribute_names) {
-    CustomDataType data_type;
-    AttributeDomain domain;
-    determine_final_data_type_and_domain(src_components, attribute_name, &data_type, &domain);
+  for (const Map<std::string, AttributeMetaData>::Item &item : info.items()) {
+    const StringRef name = item.key;
+    const AttributeMetaData &meta_data = item.value;
 
     OutputAttribute write_attribute = result.attribute_try_get_for_output_only(
-        attribute_name, domain, data_type);
+        name, meta_data.domain, meta_data.data_type);
     if (!write_attribute) {
       continue;
     }
     GMutableSpan dst_span = write_attribute.as_span();
-    fill_new_attribute(src_components, attribute_name, data_type, domain, dst_span);
+    fill_new_attribute(src_components, name, meta_data.data_type, meta_data.domain, dst_span);
     write_attribute.save();
   }
 }
