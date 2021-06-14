@@ -68,6 +68,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 #include "BLI_system.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h" /* For stamp time-code format. */
 #include "BLI_utildefines.h"
@@ -882,6 +883,39 @@ Image *BKE_image_load_exists(Main *bmain, const char *filepath)
   return BKE_image_load_exists_ex(bmain, filepath, NULL);
 }
 
+typedef struct ImageFillData {
+  short gen_type;
+  uint width;
+  uint height;
+  unsigned char *rect;
+  float *rect_float;
+  float fill_color[4];
+} ImageFillData;
+
+static void image_buf_fill_isolated(void *usersata_v)
+{
+  ImageFillData *usersata = usersata_v;
+
+  const short gen_type = usersata->gen_type;
+  const uint width = usersata->width;
+  const uint height = usersata->height;
+
+  unsigned char *rect = usersata->rect;
+  float *rect_float = usersata->rect_float;
+
+  switch (gen_type) {
+    case IMA_GENTYPE_GRID:
+      BKE_image_buf_fill_checker(rect, rect_float, width, height);
+      break;
+    case IMA_GENTYPE_GRID_COLOR:
+      BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
+      break;
+    default:
+      BKE_image_buf_fill_color(rect, rect_float, width, height, usersata->fill_color);
+      break;
+  }
+}
+
 static ImBuf *add_ibuf_size(unsigned int width,
                             unsigned int height,
                             const char *name,
@@ -944,17 +978,16 @@ static ImBuf *add_ibuf_size(unsigned int width,
 
   STRNCPY(ibuf->name, name);
 
-  switch (gen_type) {
-    case IMA_GENTYPE_GRID:
-      BKE_image_buf_fill_checker(rect, rect_float, width, height);
-      break;
-    case IMA_GENTYPE_GRID_COLOR:
-      BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
-      break;
-    default:
-      BKE_image_buf_fill_color(rect, rect_float, width, height, fill_color);
-      break;
-  }
+  ImageFillData data;
+
+  data.gen_type = gen_type;
+  data.width = width;
+  data.height = height;
+  data.rect = rect;
+  data.rect_float = rect_float;
+  copy_v4_v4(data.fill_color, fill_color);
+
+  BLI_task_isolate(image_buf_fill_isolated, &data);
 
   return ibuf;
 }

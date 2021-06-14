@@ -411,8 +411,7 @@ static void threading_model_task_schedule(WorkPackage *package)
 static void threading_model_task_start()
 {
   BLI_thread_local_create(g_thread_device);
-  g_work_scheduler.task.pool = BLI_task_pool_create(
-      nullptr, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  g_work_scheduler.task.pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
 }
 
 static void threading_model_task_finish()

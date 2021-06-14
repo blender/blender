@@ -5571,7 +5571,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
   }
 
   if (ps->thread_tot > 1) {
-    task_pool = BLI_task_pool_create_suspended(NULL, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+    task_pool = BLI_task_pool_create_suspended(NULL, TASK_PRIORITY_HIGH);
   }
 
   image_pool = BKE_image_pool_new();

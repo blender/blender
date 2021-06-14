@@ -362,7 +362,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     /* Calculation */
     if (em->tottri != 0) {
       TaskPool *task_pool;
-      task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
+      task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_LOW);
 
       tangent_mask_curr = 0;
       /* Calculate tangent layers */

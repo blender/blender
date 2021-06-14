@@ -482,7 +482,7 @@ static void lineart_main_occlusion_begin(LineartRenderBuffer *rb)
   rb->material.last = rb->material.first;
   rb->edge_mark.last = rb->edge_mark.first;
 
-  TaskPool *tp = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  TaskPool *tp = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH);
 
   for (i = 0; i < thread_count; i++) {
     rti[i].thread_id = i;
@@ -1987,7 +1987,7 @@ static void lineart_main_load_geometries(
   }
   DEG_OBJECT_ITER_END;
 
-  TaskPool *tp = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  TaskPool *tp = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH);
 
   for (int i = 0; i < thread_count; i++) {
     olti[i].rb = rb;

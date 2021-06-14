@@ -237,7 +237,7 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   void *userdata_chunk_array = NULL;
   const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
 
-  TaskPool *task_pool = BLI_task_pool_create(state, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  TaskPool *task_pool = BLI_task_pool_create(state, TASK_PRIORITY_HIGH);
 
   if (use_userdata_chunk) {
     userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
@@ -442,7 +442,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
     return;
   }
 
-  task_pool = BLI_task_pool_create(&state, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  task_pool = BLI_task_pool_create(&state, TASK_PRIORITY_HIGH);
   num_threads = BLI_task_scheduler_num_threads();
 
   /* The idea here is to prevent creating task for each of the loop iterations

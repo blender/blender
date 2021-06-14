@@ -380,7 +380,7 @@ class GeometryNodesEvaluator {
 
   void execute()
   {
-    task_pool_ = BLI_task_pool_create(this, TASK_PRIORITY_HIGH, TASK_ISOLATION_OFF);
+    task_pool_ = BLI_task_pool_create(this, TASK_PRIORITY_HIGH);
 
     this->create_states_for_reachable_nodes();
     this->forward_group_inputs();

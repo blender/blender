@@ -324,15 +324,20 @@ struct VolumeGrid {
 
     openvdb::io::File file(filepath);
 
-    try {
-      file.setCopyMaxBytes(0);
-      file.open();
-      openvdb::GridBase::Ptr vdb_grid = file.readGrid(name());
-      entry->grid->setTree(vdb_grid->baseTreePtr());
-    }
-    catch (const openvdb::IoError &e) {
-      entry->error_msg = e.what();
-    }
+    /* Isolate file loading since that's potentially multithreaded and we are
+     * holding a mutex lock. See BLI_task_isolate. Note OpenVDB already uses
+     * TBB, so it's fine to use here without a wrapper. */
+    tbb::this_task_arena::isolate([&] {
+      try {
+        file.setCopyMaxBytes(0);
+        file.open();
+        openvdb::GridBase::Ptr vdb_grid = file.readGrid(name());
+        entry->grid->setTree(vdb_grid->baseTreePtr());
+      }
+      catch (const openvdb::IoError &e) {
+        entry->error_msg = e.what();
+      }
+    });
 
     std::atomic_thread_fence(std::memory_order_release);
     entry->is_loaded = true;
