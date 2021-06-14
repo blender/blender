@@ -1283,6 +1283,13 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     if (nodeCountSocketLinks(ntree, tosock) + 1 > nodeSocketLinkLimit(tosock)) {
       nodeRemSocketLinks(ntree, tosock);
     }
+    if (tosock->flag & SOCK_MULTI_INPUT) {
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+        if (link->fromsock == fromsock && link->tosock == tosock) {
+          nodeRemLink(ntree, link);
+        }
+      }
+    }
   }
 
   ret = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);

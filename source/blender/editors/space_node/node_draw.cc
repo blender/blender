@@ -82,6 +82,7 @@
 #  include "COM_compositor.h"
 #endif
 
+using blender::Map;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
@@ -1767,26 +1768,27 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 
 static void count_mutli_input_socket_links(bNodeTree *ntree, SpaceNode *snode)
 {
+  Map<bNodeSocket *, int> counts;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    if (link->tosock->flag & SOCK_MULTI_INPUT) {
+      int &count = counts.lookup_or_add(link->tosock, 0);
+      count++;
+    }
+  }
+  /* Count temporary links going into this socket. */
+  LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
+    LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
+      bNodeLink *link = (bNodeLink *)linkdata->data;
+      if (link->tosock && (link->tosock->flag & SOCK_MULTI_INPUT)) {
+        int &count = counts.lookup_or_add(link->tosock, 0);
+        count++;
+      }
+    }
+  }
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    LISTBASE_FOREACH (struct bNodeSocket *, socket, &node->inputs) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->flag & SOCK_MULTI_INPUT) {
-        Set<bNodeSocket *> visited_from_sockets;
-        socket->total_inputs = 0;
-        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-          if (link->tosock == socket) {
-            visited_from_sockets.add(link->fromsock);
-          }
-        }
-        /* Count temporary links going into this socket. */
-        LISTBASE_FOREACH (bNodeLinkDrag *, nldrag, &snode->runtime->linkdrag) {
-          LISTBASE_FOREACH (LinkData *, linkdata, &nldrag->links) {
-            bNodeLink *link = (bNodeLink *)linkdata->data;
-            if (link->tosock == socket) {
-              visited_from_sockets.add(link->fromsock);
-            }
-          }
-        }
-        socket->total_inputs = visited_from_sockets.size();
+        socket->total_inputs = counts.lookup_default(socket, 0);
       }
     }
   }
