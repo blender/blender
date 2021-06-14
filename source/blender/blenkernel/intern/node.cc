@@ -3342,8 +3342,6 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
                                           const char *name)
 {
   bNodeSocketType *stype = nodeSocketTypeFind(idname);
-  int own_index = ntree->cur_index++;
-
   if (stype == nullptr) {
     return nullptr;
   }
@@ -3355,7 +3353,7 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
 
   /* assign new unique index */
-  own_index = ntree->cur_index++;
+  const int own_index = ntree->cur_index++;
   /* use the own_index as socket identifier */
   if (in_out == SOCK_IN) {
     BLI_snprintf(sock->identifier, MAX_NAME, "Input_%d", own_index);
