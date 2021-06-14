@@ -514,9 +514,9 @@ static void sequencer_image_crop_transform_matrix(const Sequence *seq,
 }
 
 static void sequencer_image_crop_init(const Sequence *seq,
-                                             const ImBuf *in,
-                                             float crop_scale_factor,
-                                             rctf *r_crop)
+                                      const ImBuf *in,
+                                      float crop_scale_factor,
+                                      rctf *r_crop)
 {
   const StripCrop *c = seq->strip->crop;
   const int left = c->left * crop_scale_factor;
