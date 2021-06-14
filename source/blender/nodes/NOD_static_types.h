@@ -293,6 +293,7 @@ DefNode(GeometryNode, GEO_NODE_CONVEX_HULL, 0, "CONVEX_HULL", ConvexHull, "Conve
 DefNode(GeometryNode, GEO_NODE_CURVE_LENGTH, 0, "CURVE_LENGTH", CurveLength, "Curve Length", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_RESAMPLE, def_geo_curve_resample, "CURVE_RESAMPLE", CurveResample, "Resample Curve", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_MESH, 0, "CURVE_TO_MESH", CurveToMesh, "Curve to Mesh", "")
+DefNode(GeometryNode, GEO_NODE_CURVE_REVERSE, 0, "CURVE_REVERSE", CurveReverse, "Curve Reverse", "")
 DefNode(GeometryNode, GEO_NODE_CURVE_TO_POINTS, def_geo_curve_to_points, "CURVE_TO_POINTS", CurveToPoints, "Curve to Points", "")
 DefNode(GeometryNode, GEO_NODE_DELETE_GEOMETRY, 0, "DELETE_GEOMETRY", DeleteGeometry, "Delete Geometry", "")
 DefNode(GeometryNode, GEO_NODE_EDGE_SPLIT, 0, "EDGE_SPLIT", EdgeSplit, "Edge Split", "")
