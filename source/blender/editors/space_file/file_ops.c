@@ -2636,7 +2636,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 /** \name Associate File Type Operator (Windows only)
  * \{ */
 
-static int associate_blend_exec(bContext *C, wmOperator *op)
+static int associate_blend_exec(bContext *UNUSED(C), wmOperator *op)
 {
 #ifdef WIN32
   WM_cursor_wait(true);
