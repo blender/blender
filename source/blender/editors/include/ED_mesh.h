@@ -36,6 +36,7 @@ struct BMFace;
 struct BMLoop;
 struct BMVert;
 struct BMesh;
+struct BMeshNormalsUpdate_Params;
 struct Base;
 struct Depsgraph;
 struct ID;
@@ -76,6 +77,8 @@ struct BMFace *EDBM_verts_mirror_get_face(struct BMEditMesh *em, struct BMFace *
 void EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
 void EDBM_verts_mirror_cache_end(struct BMEditMesh *em);
 
+void EDBM_mesh_normals_update_ex(struct BMEditMesh *em,
+                                 const struct BMeshNormalsUpdate_Params *params);
 void EDBM_mesh_normals_update(struct BMEditMesh *em);
 void EDBM_mesh_clear(struct BMEditMesh *em);
 

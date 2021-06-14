@@ -1842,13 +1842,11 @@ void recalcData_mesh(TransInfo *t)
      * It's impractical to calculate this ahead of time.
      * Further, the down side of using partial updates when their not needed is negligible. */
     if (em->bm->totvert == em->bm->totvertsel) {
-      EDBM_mesh_normals_update(em);
-      BKE_editmesh_looptri_calc(em);
+      BKE_editmesh_looptri_and_normals_calc(em);
     }
     else {
       BMPartialUpdate *partial_update_cache = tc_mesh_ensure_partial_update(t, tc);
-      BM_mesh_normals_update_with_partial(em->bm, partial_update_cache);
-      BKE_editmesh_looptri_calc_with_partial(em, partial_update_cache);
+      BKE_editmesh_looptri_and_normals_calc_with_partial(em, partial_update_cache);
     }
   }
 }

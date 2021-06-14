@@ -22,7 +22,19 @@
 
 #include "bmesh_class.h"
 
+struct BMeshNormalsUpdate_Params {
+  /**
+   * When calculating tessellation as well as normals, tessellate & calculate face normals
+   * for improved performance. See #BMeshCalcTessellation_Params
+   */
+  bool face_normals;
+};
+
+void BM_mesh_normals_update_ex(BMesh *bm, const struct BMeshNormalsUpdate_Params *param);
 void BM_mesh_normals_update(BMesh *bm);
+void BM_mesh_normals_update_with_partial_ex(BMesh *bm,
+                                            const struct BMPartialUpdate *bmpinfo,
+                                            const struct BMeshNormalsUpdate_Params *param);
 void BM_mesh_normals_update_with_partial(BMesh *bm, const struct BMPartialUpdate *bmpinfo);
 
 void BM_verts_calc_normal_vcos(BMesh *bm,

@@ -476,8 +476,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *UNUSED(scene), Po
 
         DEG_id_tag_update(&me->id, 0);
 
-        EDBM_mesh_normals_update(em);
-        BKE_editmesh_looptri_calc(em);
+        BKE_editmesh_looptri_and_normals_calc(em);
         break;
       }
       case OB_CURVE:

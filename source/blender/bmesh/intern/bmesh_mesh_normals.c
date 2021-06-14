@@ -240,17 +240,27 @@ static void bm_face_calc_normals_cb(void *UNUSED(userdata),
  *
  * Updates the normals of a mesh.
  */
-void BM_mesh_normals_update(BMesh *bm)
+void BM_mesh_normals_update_ex(BMesh *bm, const struct BMeshNormalsUpdate_Params *params)
 {
-  /* Calculate all face normals. */
-  TaskParallelSettings settings;
-  BLI_parallel_mempool_settings_defaults(&settings);
-  settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
+  if (params->face_normals) {
+    /* Calculate all face normals. */
+    TaskParallelSettings settings;
+    BLI_parallel_mempool_settings_defaults(&settings);
+    settings.use_threading = bm->totedge >= BM_OMP_LIMIT;
 
-  BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, NULL, &settings);
+    BM_iter_parallel(bm, BM_FACES_OF_MESH, bm_face_calc_normals_cb, NULL, &settings);
+  }
 
   /* Add weighted face normals to vertices, and normalize vert normals. */
   bm_mesh_verts_calc_normals(bm, NULL, NULL, NULL);
+}
+
+void BM_mesh_normals_update(BMesh *bm)
+{
+  BM_mesh_normals_update_ex(bm,
+                            &(const struct BMeshNormalsUpdate_Params){
+                                .face_normals = true,
+                            });
 }
 
 /** \} */
@@ -277,7 +287,9 @@ static void bm_partial_verts_parallel_range_calc_normal_cb(
  * A version of #BM_mesh_normals_update that updates a subset of geometry,
  * used to avoid the overhead of updating everything.
  */
-void BM_mesh_normals_update_with_partial(BMesh *UNUSED(bm), const BMPartialUpdate *bmpinfo)
+void BM_mesh_normals_update_with_partial_ex(BMesh *UNUSED(bm),
+                                            const BMPartialUpdate *bmpinfo,
+                                            const struct BMeshNormalsUpdate_Params *params)
 {
   BLI_assert(bmpinfo->params.do_normals);
 
@@ -290,12 +302,23 @@ void BM_mesh_normals_update_with_partial(BMesh *UNUSED(bm), const BMPartialUpdat
   BLI_parallel_range_settings_defaults(&settings);
 
   /* Faces. */
-  BLI_task_parallel_range(
-      0, faces_len, faces, bm_partial_faces_parallel_range_calc_normals_cb, &settings);
+  if (params->face_normals) {
+    BLI_task_parallel_range(
+        0, faces_len, faces, bm_partial_faces_parallel_range_calc_normals_cb, &settings);
+  }
 
   /* Verts. */
   BLI_task_parallel_range(
       0, verts_len, verts, bm_partial_verts_parallel_range_calc_normal_cb, &settings);
+}
+
+void BM_mesh_normals_update_with_partial(BMesh *bm, const BMPartialUpdate *bmpinfo)
+{
+  BM_mesh_normals_update_with_partial_ex(bm,
+                                         bmpinfo,
+                                         &(const struct BMeshNormalsUpdate_Params){
+                                             .face_normals = true,
+                                         });
 }
 
 /** \} */

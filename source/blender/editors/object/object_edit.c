@@ -794,9 +794,7 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     if (LIKELY(em)) {
-      /* order doesn't matter */
-      EDBM_mesh_normals_update(em);
-      BKE_editmesh_looptri_calc(em);
+      BKE_editmesh_looptri_and_normals_calc(em);
     }
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_MESH, NULL);

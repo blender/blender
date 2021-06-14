@@ -300,8 +300,7 @@ void recalcData_mesh_skin(TransInfo *t)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-    EDBM_mesh_normals_update(em);
-    BKE_editmesh_looptri_calc(em);
+    BKE_editmesh_looptri_and_normals_calc(em);
   }
 }
 /** \} */

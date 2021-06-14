@@ -34,6 +34,7 @@ extern "C" {
 struct BMLoop;
 struct BMesh;
 struct BMPartialUpdate;
+struct BMeshCalcTessellation_Params;
 struct BoundBox;
 struct Depsgraph;
 struct Mesh;
@@ -85,8 +86,17 @@ typedef struct BMEditMesh {
 } BMEditMesh;
 
 /* editmesh.c */
+void BKE_editmesh_looptri_calc_ex(BMEditMesh *em,
+                                  const struct BMeshCalcTessellation_Params *params);
 void BKE_editmesh_looptri_calc(BMEditMesh *em);
+void BKE_editmesh_looptri_calc_with_partial_ex(BMEditMesh *em,
+                                               struct BMPartialUpdate *bmpinfo,
+                                               const struct BMeshCalcTessellation_Params *params);
 void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, struct BMPartialUpdate *bmpinfo);
+void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
+                                                        struct BMPartialUpdate *bmpinfo);
+
+void BKE_editmesh_looptri_and_normals_calc(BMEditMesh *em);
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate);
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em);

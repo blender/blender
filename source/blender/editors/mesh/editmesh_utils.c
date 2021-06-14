@@ -1405,9 +1405,17 @@ bool EDBM_mesh_reveal(BMEditMesh *em, bool select)
 /** \name Update API
  * \{ */
 
+void EDBM_mesh_normals_update_ex(BMEditMesh *em, const struct BMeshNormalsUpdate_Params *params)
+{
+  BM_mesh_normals_update_ex(em->bm, params);
+}
+
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {
-  BM_mesh_normals_update(em->bm);
+  EDBM_mesh_normals_update_ex(em,
+                              &(const struct BMeshNormalsUpdate_Params){
+                                  .face_normals = true,
+                              });
 }
 
 void EDBM_stats_update(BMEditMesh *em)
@@ -1449,12 +1457,18 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);
 
-  if (params->calc_normals) {
-    EDBM_mesh_normals_update(em);
+  if (params->calc_normals && params->calc_looptri) {
+    /* Calculating both has some performance gains. */
+    BKE_editmesh_looptri_and_normals_calc(em);
   }
+  else {
+    if (params->calc_normals) {
+      EDBM_mesh_normals_update(em);
+    }
 
-  if (params->calc_looptri) {
-    BKE_editmesh_looptri_calc(em);
+    if (params->calc_looptri) {
+      BKE_editmesh_looptri_calc(em);
+    }
   }
 
   if (params->is_destructive) {
