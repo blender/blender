@@ -1290,11 +1290,16 @@ static int ffmpeg_seek_to_key_frame(struct anim *anim,
 
       if (same_gop && position > anim->cur_position) {
         /* Change back to our old frame position so we can simply continue decoding from there. */
+        int64_t cur_pts = timestamp_from_pts_or_dts(anim->cur_packet->pts, anim->cur_packet->dts);
+
+        if (cur_pts == gop_pts) {
+          /* We are already at the correct position. */
+          return 0;
+        }
         AVPacket *temp = av_packet_alloc();
+
         while (av_read_frame(anim->pFormatCtx, temp) >= 0) {
           int64_t temp_pts = timestamp_from_pts_or_dts(temp->pts, temp->dts);
-          int64_t cur_pts = timestamp_from_pts_or_dts(anim->cur_packet->pts,
-                                                      anim->cur_packet->dts);
           if (temp->stream_index == anim->videoStream && temp_pts == cur_pts) {
             break;
           }
