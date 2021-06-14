@@ -2805,8 +2805,12 @@ static void knifetool_finish_ex(KnifeTool_OpData *kcd)
   knife_make_cuts(kcd);
 
   EDBM_selectmode_flush(kcd->em);
-  EDBM_mesh_normals_update(kcd->em);
-  EDBM_update_generic(kcd->ob->data, true, true);
+  EDBM_update(kcd->ob->data,
+              &(const struct EDBMUpdate_Params){
+                  .calc_looptri = true,
+                  .calc_normals = true,
+                  .is_destructive = true,
+              });
 
   /* Re-tessellating makes this invalid, don't use again by accident. */
   knifetool_free_bmbvh(kcd);

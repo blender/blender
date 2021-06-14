@@ -147,10 +147,10 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
   }
 
   {
-    extern void EDBM_update_generic(
+    extern void EDBM_update_extern(
         struct Mesh * me, const bool do_tessface, const bool is_destructive);
 
-    EDBM_update_generic(me, do_loop_triangles, is_destructive);
+    EDBM_update_extern(me, do_loop_triangles, is_destructive);
   }
 
   Py_RETURN_NONE;

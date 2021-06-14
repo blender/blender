@@ -103,7 +103,14 @@ bool EDBM_vert_color_check(struct BMEditMesh *em);
 bool EDBM_mesh_hide(struct BMEditMesh *em, bool swap);
 bool EDBM_mesh_reveal(struct BMEditMesh *em, bool select);
 
-void EDBM_update_generic(struct Mesh *me, const bool do_tessellation, const bool is_destructive);
+struct EDBMUpdate_Params {
+  uint calc_looptri : 1;
+  uint calc_normals : 1;
+  uint is_destructive : 1;
+};
+
+void EDBM_update(struct Mesh *me, const struct EDBMUpdate_Params *params);
+void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool is_destructive);
 
 struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               const struct Scene *scene,

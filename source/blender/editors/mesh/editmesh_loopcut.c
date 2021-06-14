@@ -209,7 +209,12 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
       /* when used in a macro the tessfaces will be recalculated anyway,
        * this is needed here because modifiers depend on updated tessellation, see T45920 */
-      EDBM_update_generic(lcd->ob->data, true, true);
+      EDBM_update(lcd->ob->data,
+                  &(const struct EDBMUpdate_Params){
+                      .calc_looptri = true,
+                      .calc_normals = false,
+                      .is_destructive = true,
+                  });
 
       if (is_single) {
         /* de-select endpoints */
