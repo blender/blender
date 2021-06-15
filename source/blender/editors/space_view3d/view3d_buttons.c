@@ -928,6 +928,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
       if (apply_vcos) {
         EDBM_mesh_normals_update(em);
+        BKE_editmesh_looptri_calc(em);
       }
 
       /* Edges */
