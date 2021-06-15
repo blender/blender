@@ -80,6 +80,7 @@
 
 #include "BLO_readfile.h"
 #include "readfile.h"
+#include "versioning_common.h"
 
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
@@ -859,26 +860,6 @@ static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
       nodeRemoveSocket(ntree, node, socket->next);
     }
   }
-}
-
-static ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
-                                                    int region_type,
-                                                    const char *name,
-                                                    int link_after_region_type)
-{
-  ARegion *link_after_region = NULL;
-  LISTBASE_FOREACH (ARegion *, region, regionbase) {
-    if (region->regiontype == region_type) {
-      return NULL;
-    }
-    if (region->regiontype == link_after_region_type) {
-      link_after_region = region;
-    }
-  }
-  ARegion *new_region = MEM_callocN(sizeof(ARegion), name);
-  new_region->regiontype = region_type;
-  BLI_insertlinkafter(regionbase, link_after_region, new_region);
-  return new_region;
 }
 
 /* NOLINTNEXTLINE: readability-function-size */

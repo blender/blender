@@ -59,6 +59,7 @@ set(SRC
   intern/versioning_290.c
   intern/versioning_300.c
   intern/versioning_cycles.c
+  intern/versioning_common.cc
   intern/versioning_defaults.c
   intern/versioning_dna.c
   intern/versioning_legacy.c
@@ -72,6 +73,7 @@ set(SRC
   BLO_undofile.h
   BLO_writefile.h
   intern/readfile.h
+  intern/versioning_common.h
 )
 
 set(LIB
