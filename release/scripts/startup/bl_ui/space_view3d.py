@@ -4017,7 +4017,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 class VIEW3D_MT_edit_mesh_edges_data(Menu):
     bl_label = "Edge Data"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'

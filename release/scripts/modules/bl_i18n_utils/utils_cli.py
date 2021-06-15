@@ -71,7 +71,7 @@ def rtl_process_po(args, settings):
     po.write(kind="PO", dest=args.dst)
 
 
-def language_menu(args, settings):
+def language_menu(_args, settings):
     # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
     stats = {"DEFAULT": 1.0, "en_US": 1.0}
 

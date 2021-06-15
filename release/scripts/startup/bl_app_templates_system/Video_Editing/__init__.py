@@ -21,7 +21,7 @@ from bpy.app.handlers import persistent
 
 
 @persistent
-def load_handler(dummy):
+def load_handler(_):
     from bpy import context
     screen = context.screen
     for area in screen.areas:

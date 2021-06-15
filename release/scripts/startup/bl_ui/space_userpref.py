@@ -614,9 +614,7 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         import sys
         return sys.platform[:3] == "win"
 
-    def draw_centered(self, context, layout):
-        prefs = context.preferences
-
+    def draw_centered(self, _context, layout):
         layout.label(text="Make this installation your default Blender")
         split = layout.split(factor=0.4)
         split.alignment = 'RIGHT'
