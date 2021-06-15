@@ -3817,7 +3817,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
       EDBM_update(me,
                   &(const struct EDBMUpdate_Params){
                       .calc_looptri = true,
-                      .calc_normals = false,
+                      .calc_normals = true,
                       .is_destructive = false,
                   });
     }
