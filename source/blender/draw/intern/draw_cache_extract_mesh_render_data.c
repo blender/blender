@@ -308,16 +308,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr->poly_normals = MEM_mallocN(sizeof(*mr->poly_normals) * mr->poly_len, __func__);
-      BKE_mesh_calc_normals_poly((MVert *)mr->mvert,
-                                 NULL,
-                                 mr->vert_len,
-                                 mr->mloop,
-                                 mr->mpoly,
-                                 mr->loop_len,
-                                 mr->poly_len,
-                                 mr->poly_normals,
-                                 true);
+      BKE_mesh_ensure_normals_for_display(mr->me);
+      mr->poly_normals = CustomData_get_layer(&mr->me->pdata, CD_NORMAL);
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
@@ -507,7 +499,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
 void mesh_render_data_free(MeshRenderData *mr)
 {
   MEM_SAFE_FREE(mr->mlooptri);
-  MEM_SAFE_FREE(mr->poly_normals);
   MEM_SAFE_FREE(mr->loop_normals);
 
   /* Loose geometry are owned by MeshBufferExtractionCache. */
