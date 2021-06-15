@@ -149,6 +149,9 @@ static bool egl_chk(bool result, const char *file = NULL, int line = 0, const ch
             static_cast<unsigned int>(error),
             code ? code : "<Unknown>",
             msg ? msg : "<Unknown>");
+    (void)(file);
+    (void)(line);
+    (void)(text);
 #endif
   }
 
