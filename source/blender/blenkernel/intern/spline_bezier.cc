@@ -352,9 +352,9 @@ static void bezier_forward_difference_3d(const float3 &point_0,
   }
 }
 
-void BezierSpline::evaluate_bezier_segment(const int index,
-                                           const int next_index,
-                                           MutableSpan<float3> positions) const
+void BezierSpline::evaluate_segment(const int index,
+                                    const int next_index,
+                                    MutableSpan<float3> positions) const
 {
   if (this->segment_is_vector(index)) {
     BLI_assert(positions.size() == 1);
@@ -499,12 +499,11 @@ Span<float3> BezierSpline::evaluated_positions() const
   const int grain_size = std::max(512 / resolution_, 1);
   parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
     for (const int i : range) {
-      this->evaluate_bezier_segment(
-          i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
+      this->evaluate_segment(i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
     }
   });
   if (is_cyclic_) {
-    this->evaluate_bezier_segment(
+    this->evaluate_segment(
         size - 1, 0, positions.slice(offsets[size - 1], offsets[size] - offsets[size - 1]));
   }
   else {
