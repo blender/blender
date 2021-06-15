@@ -155,14 +155,14 @@ static void mesh_calc_tessellation_for_face(BMLoop *(*looptris)[3],
                                             BMFace *efa,
                                             MemArena **pf_arena_p)
 {
-  return mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, false);
+  mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, false);
 }
 
 static void mesh_calc_tessellation_for_face_with_normal(BMLoop *(*looptris)[3],
                                                         BMFace *efa,
                                                         MemArena **pf_arena_p)
 {
-  return mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, true);
+  mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, true);
 }
 
 /**
