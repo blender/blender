@@ -53,10 +53,10 @@
 /**
  * \param face_normal: This will be optimized out as a constant.
  */
-BLI_INLINE int mesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
-                                                    BMFace *efa,
-                                                    MemArena **pf_arena_p,
-                                                    const bool face_normal)
+BLI_INLINE void mesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
+                                                     BMFace *efa,
+                                                     MemArena **pf_arena_p,
+                                                     const bool face_normal)
 {
   switch (efa->len) {
     case 3: {
@@ -69,7 +69,7 @@ BLI_INLINE int mesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
       if (face_normal) {
         normal_tri_v3(efa->no, l_ptr[0]->v->co, l_ptr[1]->v->co, l_ptr[2]->v->co);
       }
-      return 1;
+      break;
     }
     case 4: {
       /* `0 1 2 3` -> (`0 1 2`, `0 2 3`) */
@@ -92,7 +92,7 @@ BLI_INLINE int mesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
         l_ptr_a[2] = l_ptr_b[2];
         l_ptr_b[0] = l_ptr_a[1];
       }
-      return 2;
+      break;
     }
     default: {
       if (face_normal) {
@@ -139,21 +139,21 @@ BLI_INLINE int mesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
       }
 
       BLI_memarena_clear(pf_arena);
-      return tris_len;
+      break;
     }
   }
 }
 
-static int mesh_calc_tessellation_for_face(BMLoop *(*looptris)[3],
-                                           BMFace *efa,
-                                           MemArena **pf_arena_p)
+static void mesh_calc_tessellation_for_face(BMLoop *(*looptris)[3],
+                                            BMFace *efa,
+                                            MemArena **pf_arena_p)
 {
   return mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, false);
 }
 
-static int mesh_calc_tessellation_for_face_with_normal(BMLoop *(*looptris)[3],
-                                                       BMFace *efa,
-                                                       MemArena **pf_arena_p)
+static void mesh_calc_tessellation_for_face_with_normal(BMLoop *(*looptris)[3],
+                                                        BMFace *efa,
+                                                        MemArena **pf_arena_p)
 {
   return mesh_calc_tessellation_for_face_impl(looptris, efa, pf_arena_p, true);
 }
@@ -182,13 +182,15 @@ static void bm_mesh_calc_tessellation__single_threaded(BMesh *bm,
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BLI_assert(efa->len >= 3);
       BM_face_calc_normal(efa, efa->no);
-      i += mesh_calc_tessellation_for_face_with_normal(looptris + i, efa, &pf_arena);
+      mesh_calc_tessellation_for_face_with_normal(looptris + i, efa, &pf_arena);
+      i += efa->len - 2;
     }
   }
   else {
     BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
       BLI_assert(efa->len >= 3);
-      i += mesh_calc_tessellation_for_face(looptris + i, efa, &pf_arena);
+      mesh_calc_tessellation_for_face(looptris + i, efa, &pf_arena);
+      i += efa->len - 2;
     }
   }
 
