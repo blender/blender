@@ -121,6 +121,7 @@ struct AbcMeshData {
   P3fArraySamplePtr positions;
   P3fArraySamplePtr ceil_positions;
 
+  AbcUvScope uv_scope;
   V2fArraySamplePtr uvs;
   UInt32ArraySamplePtr uvs_indices;
 };
@@ -192,8 +193,9 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
   const UInt32ArraySamplePtr &uvs_indices = mesh_data.uvs_indices;
 
-  const bool do_uvs = (mloopuvs && uvs && uvs_indices) &&
-                      (uvs_indices->size() == face_indices->size());
+  const bool do_uvs = (mloopuvs && uvs && uvs_indices);
+  const bool do_uvs_per_loop = do_uvs && mesh_data.uv_scope == ABC_UV_SCOPE_LOOP;
+  BLI_assert(!do_uvs || mesh_data.uv_scope != ABC_UV_SCOPE_NONE);
   unsigned int loop_index = 0;
   unsigned int rev_loop_index = 0;
   unsigned int uv_index = 0;
@@ -227,8 +229,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
       if (do_uvs) {
         MLoopUV &loopuv = mloopuvs[rev_loop_index];
-
-        uv_index = (*uvs_indices)[loop_index];
+        uv_index = (*uvs_indices)[do_uvs_per_loop ? loop_index : loop.v];
 
         /* Some Alembic files are broken (or at least export UVs in a way we don't expect). */
         if (uv_index >= uvs_size) {
@@ -357,22 +358,29 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
   IV2fGeomParam::Sample uvsamp;
   uv.getIndexed(uvsamp, selector);
 
-  abc_data.uvs = uvsamp.getVals();
-  abc_data.uvs_indices = uvsamp.getIndices();
+  UInt32ArraySamplePtr uvs_indices = uvsamp.getIndices();
 
-  if (abc_data.uvs_indices->size() == config.totloop) {
-    std::string name = Alembic::Abc::GetSourceName(uv.getMetaData());
+  const AbcUvScope uv_scope = get_uv_scope(uv.getScope(), config, uvs_indices);
 
-    /* According to the convention, primary UVs should have had their name
-     * set using Alembic::Abc::SetSourceName, but you can't expect everyone
-     * to follow it! :) */
-    if (name.empty()) {
-      name = uv.getName();
-    }
-
-    void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_MLOOPUV);
-    config.mloopuv = static_cast<MLoopUV *>(cd_ptr);
+  if (uv_scope == ABC_UV_SCOPE_NONE) {
+    return;
   }
+
+  abc_data.uv_scope = uv_scope;
+  abc_data.uvs = uvsamp.getVals();
+  abc_data.uvs_indices = uvs_indices;
+
+  std::string name = Alembic::Abc::GetSourceName(uv.getMetaData());
+
+  /* According to the convention, primary UVs should have had their name
+   * set using Alembic::Abc::SetSourceName, but you can't expect everyone
+   * to follow it! :) */
+  if (name.empty()) {
+    name = uv.getName();
+  }
+
+  void *cd_ptr = config.add_customdata_cb(config.mesh, name.c_str(), CD_MLOOPUV);
+  config.mloopuv = static_cast<MLoopUV *>(cd_ptr);
 }
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
@@ -462,6 +470,7 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
   config.mvert = mesh->mvert;
   config.mloop = mesh->mloop;
   config.mpoly = mesh->mpoly;
+  config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
   config.totpoly = mesh->totpoly;
   config.loopdata = &mesh->ldata;
