@@ -58,6 +58,8 @@ bool SEQ_edit_remove_gaps(struct Scene *scene,
                           struct ListBase *seqbase,
                           const int initial_frame,
                           const bool remove_all_gaps);
+void SEQ_edit_sequence_name_set(struct Scene *scene, struct Sequence *seq, const char *new_name);
+
 #ifdef __cplusplus
 }
 #endif

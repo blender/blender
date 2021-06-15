@@ -94,6 +94,8 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 
 #  include "IMB_imbuf.h"
 
+#  include "SEQ_edit.h"
+
 typedef struct SequenceSearchData {
   Sequence *seq;
   void *data;
@@ -241,6 +243,21 @@ static void rna_SequenceEditor_sequences_all_next(CollectionPropertyIterator *it
   }
 
   iter->valid = (internal->link != NULL);
+}
+
+static int rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
+                                                          const char *key,
+                                                          PointerRNA *r_ptr)
+{
+  ID *id = ptr->owner_id;
+  Scene *scene = (Scene *)id;
+
+  Sequence *seq = SEQ_sequence_lookup_by_name(scene, key);
+  if (seq) {
+    RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq, r_ptr);
+    return true;
+  }
+  return false;
 }
 
 /* internal use */
@@ -627,11 +644,10 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
   BLI_strncpy(oldname, seq->name + 2, sizeof(seq->name) - 2);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(seq->name + 2, value, sizeof(seq->name) - 2);
+  SEQ_edit_sequence_name_set(scene, seq, value);
 
   /* make sure the name is unique */
-  SEQ_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
-
+  SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   /* fix all the animation data which may link to this */
 
   /* Don't rename everywhere because these are per scene. */
@@ -1997,7 +2013,7 @@ static void rna_def_editor(BlenderRNA *brna)
                                     NULL,
                                     NULL,
                                     NULL,
-                                    NULL,
+                                    "rna_SequenceEditor_sequences_all_lookup_string",
                                     NULL);
 
   prop = RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
