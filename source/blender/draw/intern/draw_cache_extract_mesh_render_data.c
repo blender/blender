@@ -55,10 +55,10 @@ static void mesh_render_data_loose_geom_build(const MeshRenderData *mr,
 
 static void mesh_render_data_loose_geom_load(MeshRenderData *mr, MeshBufferExtractionCache *cache)
 {
-  mr->ledges = cache->ledges;
-  mr->lverts = cache->lverts;
-  mr->vert_loose_len = cache->vert_loose_len;
-  mr->edge_loose_len = cache->edge_loose_len;
+  mr->ledges = cache->loose_geom.edges;
+  mr->lverts = cache->loose_geom.verts;
+  mr->vert_loose_len = cache->loose_geom.vert_len;
+  mr->edge_loose_len = cache->loose_geom.edge_len;
 
   mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
 }
@@ -68,17 +68,17 @@ static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr,
 {
   /* Early exit: Are loose geometry already available. Only checking for loose verts as loose edges
    * and verts are calculated at the same time.*/
-  if (cache->lverts) {
+  if (cache->loose_geom.verts) {
     return;
   }
-  mesh_render_data_loose_geom_build(mr, cache)
+  mesh_render_data_loose_geom_build(mr, cache);
 }
 
 static void mesh_render_data_loose_geom_build(const MeshRenderData *mr,
                                               MeshBufferExtractionCache *cache)
 {
-  cache->vert_loose_len = 0;
-  cache->edge_loose_len = 0;
+  cache->loose_geom.vert_len = 0;
+  cache->loose_geom.edge_len = 0;
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
@@ -97,28 +97,30 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr,
 {
   BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
 
-  cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
+  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
   const MEdge *med = mr->medge;
   for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
     if (med->flag & ME_LOOSEEDGE) {
-      cache->ledges[cache->edge_loose_len++] = med_index;
+      cache->loose_geom.edges[cache->loose_geom.edge_len++] = med_index;
     }
     /* Tag verts as not loose. */
     BLI_BITMAP_ENABLE(lvert_map, med->v1);
     BLI_BITMAP_ENABLE(lvert_map, med->v2);
   }
-  if (cache->edge_loose_len < mr->edge_len) {
-    cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
+  if (cache->loose_geom.edge_len < mr->edge_len) {
+    cache->loose_geom.edges = MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
   }
 
-  cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*mr->lverts), __func__);
+  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
   for (int v = 0; v < mr->vert_len; v++) {
     if (!BLI_BITMAP_TEST(lvert_map, v)) {
-      cache->lverts[cache->vert_loose_len++] = v;
+      cache->loose_geom.verts[cache->loose_geom.vert_len++] = v;
     }
   }
-  if (cache->vert_loose_len < mr->vert_len) {
-    cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
+  if (cache->loose_geom.vert_len < mr->vert_len) {
+    cache->loose_geom.verts = MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
   }
 
   MEM_freeN(lvert_map);
@@ -131,14 +133,15 @@ static void mesh_render_data_lverts_bm(const MeshRenderData *mr,
   int elem_id;
   BMIter iter;
   BMVert *eve;
-  cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*cache->lverts), __func__);
+  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
     if (eve->e == NULL) {
-      cache->lverts[cache->vert_loose_len++] = elem_id;
+      cache->loose_geom.verts[cache->loose_geom.vert_len++] = elem_id;
     }
   }
-  if (cache->vert_loose_len < mr->vert_len) {
-    cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
+  if (cache->loose_geom.vert_len < mr->vert_len) {
+    cache->loose_geom.verts = MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
   }
 }
 
@@ -149,14 +152,15 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
   int elem_id;
   BMIter iter;
   BMEdge *ede;
-  cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
+  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
   BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
     if (ede->l == NULL) {
-      cache->ledges[cache->edge_loose_len++] = elem_id;
+      cache->loose_geom.edges[cache->loose_geom.edge_len++] = elem_id;
     }
   }
-  if (cache->edge_loose_len < mr->edge_len) {
-    cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
+  if (cache->loose_geom.edge_len < mr->edge_len) {
+    cache->loose_geom.edges = MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
   }
 }
 

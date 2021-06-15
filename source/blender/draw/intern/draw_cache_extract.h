@@ -160,10 +160,12 @@ typedef struct MeshBufferCache {
  * - Loose geometry.
  */
 typedef struct MeshBufferExtractionCache {
-  int edge_loose_len;
-  int vert_loose_len;
-  int *lverts;
-  int *ledges;
+  struct {
+    int edge_len;
+    int vert_len;
+    int *verts;
+    int *edges;
+  } loose_geom;
 } MeshBufferExtractionCache;
 
 typedef enum DRWBatchFlag {
