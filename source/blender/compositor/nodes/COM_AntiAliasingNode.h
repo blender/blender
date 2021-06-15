@@ -25,8 +25,8 @@
 namespace blender::compositor {
 
 /**
- * @brief AntiAliasingNode
- * @ingroup Node
+ * \brief AntiAliasingNode
+ * \ingroup Node
  */
 class AntiAliasingNode : public Node {
  public:

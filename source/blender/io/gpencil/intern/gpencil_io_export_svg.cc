@@ -353,8 +353,8 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
 
 /**
  * Set color SVG string for stroke
- * \param node_gps: Stroke node
- * @param do_fill: True if the stroke is only fill
+ * \param node_gps: Stroke node.
+ * \param do_fill: True if the stroke is only fill.
  */
 void GpencilExporterSVG::color_string_set(bGPDlayer *gpl,
                                           bGPDstroke *gps,
