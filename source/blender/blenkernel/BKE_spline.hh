@@ -535,6 +535,7 @@ struct CurveEval {
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
 
+  void resize(const int size);
   void add_spline(SplinePtr spline);
   void remove_splines(blender::IndexMask mask);
 
