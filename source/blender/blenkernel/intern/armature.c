@@ -853,6 +853,7 @@ bool bone_autoside_name(
 static void equalize_cubic_bezier(const float control[4][3],
                                   int temp_segments,
                                   int final_segments,
+                                  const float *segment_scales,
                                   float *r_t_points)
 {
   float(*coords)[3] = BLI_array_alloca(coords, temp_segments + 1);
@@ -877,12 +878,19 @@ static void equalize_cubic_bezier(const float control[4][3],
   }
 
   /* Go over distances and calculate new parameter values. */
-  float dist_step = pdist[temp_segments] / final_segments;
+  float dist_step = pdist[temp_segments];
+  float dist = 0, sum = 0;
+
+  for (int i = 0; i < final_segments; i++) {
+    sum += segment_scales[i];
+  }
+
+  dist_step /= sum;
 
   r_t_points[0] = 0.0f;
 
   for (int i = 1, nr = 1; i <= final_segments; i++) {
-    float dist = i * dist_step;
+    dist += segment_scales[i - 1] * dist_step;
 
     /* We're looking for location (distance) 'dist' in the array. */
     while ((nr < temp_segments) && (dist >= pdist[nr])) {
@@ -1332,9 +1340,25 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
   copy_v3_v3(bezt_controls[1], h1);
   zero_v3(bezt_controls[0]);
 
+  /* Compute lengthwise segment scale. */
+  float segment_scales[MAX_BBONE_SUBDIV];
+
+  CLAMP_MIN(param->scale_in[1], 0.0001f);
+  CLAMP_MIN(param->scale_out[1], 0.0001f);
+
+  const float log_scale_in_len = logf(param->scale_in[1]);
+  const float log_scale_out_len = logf(param->scale_out[1]);
+
+  for (int i = 0; i < param->segments; i++) {
+    const float fac = ((float)i) / (param->segments - 1);
+    segment_scales[i] = expf(interpf(log_scale_out_len, log_scale_in_len, fac));
+  }
+
+  /* Compute segment vertex offsets along the curve length. */
   float bezt_points[MAX_BBONE_SUBDIV + 1];
 
-  equalize_cubic_bezier(bezt_controls, MAX_BBONE_SUBDIV, param->segments, bezt_points);
+  equalize_cubic_bezier(
+      bezt_controls, MAX_BBONE_SUBDIV, param->segments, segment_scales, bezt_points);
 
   /* Deformation uses N+1 matrices computed at points between the segments. */
   if (for_deform) {
