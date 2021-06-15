@@ -118,23 +118,37 @@ static bool can_use_proxy(const Sequence *seq, int psize)
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
-static void seq_convert_transform_animation(const Scene *scene,
+static void seq_convert_transform_animation(const Sequence *seq,
+                                            const Scene *scene,
                                             const char *path,
-                                            const int image_size)
+                                            const int image_size,
+                                            const int scene_size)
 {
   if (scene->adt == NULL || scene->adt->action == NULL) {
     return;
   }
 
-  FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
-  if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
-    BezTriple *bezt = fcu->bezt;
-    for (int i = 0; i < fcu->totvert; i++, bezt++) {
-      /* Same math as with old_image_center_*, but simplified. */
-      bezt->vec[0][1] = image_size / 2 + bezt->vec[0][1] - scene->r.xsch / 2;
-      bezt->vec[1][1] = image_size / 2 + bezt->vec[1][1] - scene->r.xsch / 2;
-      bezt->vec[2][1] = image_size / 2 + bezt->vec[2][1] - scene->r.xsch / 2;
+  /* Hardcoded legacy bit-flags which has been removed. */
+  const uint32_t use_transform_flag = (1 << 16);
+  const uint32_t use_crop_flag = (1 << 17);
+
+  /* Convert offset animation, but only if crop is not used. */
+  if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
+    FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
+    if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
+      BezTriple *bezt = fcu->bezt;
+      for (int i = 0; i < fcu->totvert; i++, bezt++) {
+        /* Same math as with old_image_center_*, but simplified. */
+        bezt->vec[0][1] = (image_size - scene_size) / 2 + bezt->vec[0][1];
+        bezt->vec[1][1] = (image_size - scene_size) / 2 + bezt->vec[1][1];
+        bezt->vec[2][1] = (image_size - scene_size) / 2 + bezt->vec[2][1];
+      }
     }
+  }
+  else { /* Else, remove offset animation. */
+    FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
+    BLI_remlink(&scene->adt->action->curves, fcu);
+    BKE_fcurve_free(fcu);
   }
 }
 
@@ -232,18 +246,15 @@ static void seq_convert_transform_crop(const Scene *scene,
   t->xofs = old_image_center_x - scene->r.xsch / 2;
   t->yofs = old_image_center_y - scene->r.ysch / 2;
 
-  /* Convert offset animation, but only if crop is not used. */
-  if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
-    char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
 
-    path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
-    seq_convert_transform_animation(scene, path, image_size_x);
-    MEM_freeN(path);
-    path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
-    seq_convert_transform_animation(scene, path, image_size_y);
-    MEM_freeN(path);
-  }
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
+  seq_convert_transform_animation(seq, scene, path, image_size_x, scene->r.xsch);
+  MEM_freeN(path);
+  path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
+  seq_convert_transform_animation(seq, scene, path, image_size_y, scene->r.ysch);
+  MEM_freeN(path);
 
   seq->flag &= ~use_transform_flag;
   seq->flag &= ~use_crop_flag;
