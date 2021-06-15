@@ -769,6 +769,13 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editb
   RNA_def_property_ui_text(prop, "Ease Out", "Length of second Bezier Handle (for B-Bones only)");
   RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone, is_editbone);
 
+  if (is_posebone == false) {
+    prop = RNA_def_property(srna, "use_scale_easing", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_ui_text(
+        prop, "Scale Easing", "Multiply the final easing values by the Scale In/Out Y factors");
+    RNA_def_property_boolean_sdna(prop, NULL, "bbone_flag", BBONE_SCALE_EASING);
+    RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone, is_editbone);
+  }
 
   /* Scale In/Out */
   prop = RNA_def_property(srna, "bbone_scalein", PROP_FLOAT, PROP_XYZ);
@@ -1053,6 +1060,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 1, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(prop, "B-Bone Display Z Width", "B-Bone Z size");
 
+  /* B-Bone Start Handle settings. */
   prop = RNA_def_property(srna, "bbone_handle_type_start", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "bbone_prev_type");
   RNA_def_property_enum_items(prop, prop_bbone_handle_type);
@@ -1077,6 +1085,26 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_ui_text(
       prop, "B-Bone Start Handle", "Bone that serves as the start handle for the B-Bone curve");
 
+  prop = RNA_def_property(srna, "bbone_handle_use_scale_start", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Start Handle Scale",
+      "Multiply B-Bone Scale In channels by the local scale values of the start handle. "
+      "This is done after the Scale Easing option and isn't affected by it");
+  RNA_def_property_boolean_sdna(prop, NULL, "bbone_prev_flag", BBONE_HANDLE_SCALE_X);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+
+  prop = RNA_def_property(srna, "bbone_handle_use_ease_start", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Start Handle Ease",
+      "Multiply the B-Bone Ease In channel by the local Y scale value of the start handle. "
+      "This is done after the Scale Easing option and isn't affected by it");
+  RNA_def_property_boolean_sdna(prop, NULL, "bbone_prev_flag", BBONE_HANDLE_SCALE_EASE);
+  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+
+  /* B-Bone End Handle settings. */
   prop = RNA_def_property(srna, "bbone_handle_type_end", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "bbone_next_type");
   RNA_def_property_enum_items(prop, prop_bbone_handle_type);
@@ -1100,6 +1128,25 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_ui_text(
       prop, "B-Bone End Handle", "Bone that serves as the end handle for the B-Bone curve");
+
+  prop = RNA_def_property(srna, "bbone_handle_use_scale_end", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "End Handle Scale",
+      "Multiply B-Bone Scale Out channels by the local scale values of the end handle. "
+      "This is done after the Scale Easing option and isn't affected by it");
+  RNA_def_property_boolean_sdna(prop, NULL, "bbone_next_flag", BBONE_HANDLE_SCALE_X);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+
+  prop = RNA_def_property(srna, "bbone_handle_use_ease_end", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "End Handle Ease",
+      "Multiply the B-Bone Ease Out channel by the local Y scale value of the end handle. "
+      "This is done after the Scale Easing option and isn't affected by it");
+  RNA_def_property_boolean_sdna(prop, NULL, "bbone_next_flag", BBONE_HANDLE_SCALE_EASE);
+  RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   RNA_define_lib_overridable(false);
 }

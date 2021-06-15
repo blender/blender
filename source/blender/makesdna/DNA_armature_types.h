@@ -302,7 +302,24 @@ typedef enum eBone_BBoneHandleType {
 typedef enum eBone_BBoneFlag {
   /** Add the parent Out roll to the In roll. */
   BBONE_ADD_PARENT_END_ROLL = (1 << 0),
+  /** Multiply B-Bone easing values with Scale Length. */
+  BBONE_SCALE_EASING = (1 << 1),
 } eBone_BBoneFlag;
+
+/* bone->bbone_prev/next_flag */
+typedef enum eBone_BBoneHandleFlag {
+  /** Use handle bone scaling for scale X. */
+  BBONE_HANDLE_SCALE_X = (1 << 0),
+  /** Use handle bone scaling for scale Y (length). */
+  BBONE_HANDLE_SCALE_Y = (1 << 1),
+  /** Use handle bone scaling for scale Z. */
+  BBONE_HANDLE_SCALE_Z = (1 << 2),
+  /** Use handle bone scaling for easing. */
+  BBONE_HANDLE_SCALE_EASE = (1 << 3),
+  /** Is handle scale required? */
+  BBONE_HANDLE_SCALE_ANY = BBONE_HANDLE_SCALE_X | BBONE_HANDLE_SCALE_Y | BBONE_HANDLE_SCALE_Z |
+                           BBONE_HANDLE_SCALE_EASE,
+} eBone_BBoneHandleFlag;
 
 #define MAXBONENAME 64
 

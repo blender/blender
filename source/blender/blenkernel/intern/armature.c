@@ -959,7 +959,7 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
 {
   bPoseChannel *next, *prev;
   Bone *bone = pchan->bone;
-  float imat[4][4], posemat[4][4];
+  float imat[4][4], posemat[4][4], tmpmat[4][4];
   float delta[3];
 
   memset(param, 0, sizeof(*param));
@@ -995,6 +995,11 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
   else {
     invert_m4_m4(imat, pchan->pose_mat);
   }
+
+  float prev_scale[3], next_scale[3];
+
+  copy_v3_fl(prev_scale, 1.0f);
+  copy_v3_fl(next_scale, 1.0f);
 
   if (prev) {
     float h1[3];
@@ -1041,6 +1046,12 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
     if (!param->prev_bbone) {
       /* Find the previous roll to interpolate. */
       mul_m4_m4m4(param->prev_mat, imat, rest ? prev->bone->arm_mat : prev->pose_mat);
+
+      /* Retrieve the local scale of the bone if necessary. */
+      if ((bone->bbone_prev_flag & BBONE_HANDLE_SCALE_ANY) && !rest) {
+        BKE_armature_mat_pose_to_bone(prev, prev->pose_mat, tmpmat);
+        mat4_to_size(prev_scale, tmpmat);
+      }
     }
   }
 
@@ -1088,6 +1099,12 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
 
     /* Find the next roll to interpolate as well. */
     mul_m4_m4m4(param->next_mat, imat, rest ? next->bone->arm_mat : next->pose_mat);
+
+    /* Retrieve the local scale of the bone if necessary. */
+    if ((bone->bbone_next_flag & BBONE_HANDLE_SCALE_ANY) && !rest) {
+      BKE_armature_mat_pose_to_bone(next, next->pose_mat, tmpmat);
+      mat4_to_size(next_scale, tmpmat);
+    }
   }
 
   /* Add effects from bbone properties over the top
@@ -1137,6 +1154,47 @@ void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
 
     param->curve_out_x = bone->curve_out_x + (!rest ? pchan->curve_out_x : 0.0f);
     param->curve_out_z = bone->curve_out_z + (!rest ? pchan->curve_out_z : 0.0f);
+
+    if (bone->bbone_flag & BBONE_SCALE_EASING) {
+      param->ease1 *= param->scale_in[1];
+      param->curve_in_x *= param->scale_in[1];
+      param->curve_in_z *= param->scale_in[1];
+
+      param->ease2 *= param->scale_out[1];
+      param->curve_out_x *= param->scale_out[1];
+      param->curve_out_z *= param->scale_out[1];
+    }
+
+    /* Custom handle scale. */
+    if (bone->bbone_prev_flag & BBONE_HANDLE_SCALE_X) {
+      param->scale_in[0] *= prev_scale[0];
+    }
+    if (bone->bbone_prev_flag & BBONE_HANDLE_SCALE_Y) {
+      param->scale_in[1] *= prev_scale[1];
+    }
+    if (bone->bbone_prev_flag & BBONE_HANDLE_SCALE_Z) {
+      param->scale_in[2] *= prev_scale[2];
+    }
+    if (bone->bbone_prev_flag & BBONE_HANDLE_SCALE_EASE) {
+      param->ease1 *= prev_scale[1];
+      param->curve_in_x *= prev_scale[1];
+      param->curve_in_z *= prev_scale[1];
+    }
+
+    if (bone->bbone_next_flag & BBONE_HANDLE_SCALE_X) {
+      param->scale_out[0] *= next_scale[0];
+    }
+    if (bone->bbone_next_flag & BBONE_HANDLE_SCALE_Y) {
+      param->scale_out[1] *= next_scale[1];
+    }
+    if (bone->bbone_next_flag & BBONE_HANDLE_SCALE_Z) {
+      param->scale_out[2] *= next_scale[2];
+    }
+    if (bone->bbone_next_flag & BBONE_HANDLE_SCALE_EASE) {
+      param->ease2 *= next_scale[1];
+      param->curve_out_x *= next_scale[1];
+      param->curve_out_z *= next_scale[1];
+    }
   }
 }
 

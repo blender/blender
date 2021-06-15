@@ -1180,6 +1180,16 @@ static void ebone_spline_preview(EditBone *ebone, const float result_array[MAX_B
   param.curve_out_x = ebone->curve_out_x;
   param.curve_out_z = ebone->curve_out_z;
 
+  if (ebone->bbone_flag & BBONE_SCALE_EASING) {
+    param.ease1 *= param.scale_in[1];
+    param.curve_in_x *= param.scale_in[1];
+    param.curve_in_z *= param.scale_in[1];
+
+    param.ease2 *= param.scale_out[1];
+    param.curve_out_x *= param.scale_out[1];
+    param.curve_out_z *= param.scale_out[1];
+  }
+
   ebone->segments = BKE_pchan_bbone_spline_compute(&param, false, (Mat4 *)result_array);
 }
 

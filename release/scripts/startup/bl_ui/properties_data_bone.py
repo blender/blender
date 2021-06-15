@@ -176,20 +176,47 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_easein", text="Ease In")
         col.prop(bbone, "bbone_easeout", text="Out")
+        col.prop(bone, "use_scale_easing")
 
         col = topcol.column(align=True)
         col.prop(bone, "bbone_handle_type_start", text="Start Handle")
 
-        col = col.column(align=True)
-        col.active = (bone.bbone_handle_type_start != 'AUTO')
-        col.prop_search(bone, "bbone_custom_handle_start", arm, bone_list, text="Custom")
+        col2 = col.column(align=True)
+        col2.active = (bone.bbone_handle_type_start != 'AUTO')
+        col2.prop_search(bone, "bbone_custom_handle_start", arm, bone_list, text="Custom")
+
+        row = col.row(align=True)
+        row.use_property_split = False
+        split = row.split(factor=0.4)
+        split.alignment = 'RIGHT'
+        split.label(text="Scale")
+        split2 = split.split(factor=0.7)
+        row2 = split2.row(align=True)
+        row2.prop(bone, "bbone_handle_use_scale_start", index=0, text="X", toggle=True)
+        row2.prop(bone, "bbone_handle_use_scale_start", index=1, text="Y", toggle=True)
+        row2.prop(bone, "bbone_handle_use_scale_start", index=2, text="Z", toggle=True)
+        split2.prop(bone, "bbone_handle_use_ease_start", text="Ease", toggle=True)
+        row.label(icon="BLANK1")
 
         col = topcol.column(align=True)
         col.prop(bone, "bbone_handle_type_end", text="End Handle")
 
-        col = col.column(align=True)
-        col.active = (bone.bbone_handle_type_end != 'AUTO')
-        col.prop_search(bone, "bbone_custom_handle_end", arm, bone_list, text="Custom")
+        col2 = col.column(align=True)
+        col2.active = (bone.bbone_handle_type_end != 'AUTO')
+        col2.prop_search(bone, "bbone_custom_handle_end", arm, bone_list, text="Custom")
+
+        row = col.row(align=True)
+        row.use_property_split = False
+        split = row.split(factor=0.4)
+        split.alignment = 'RIGHT'
+        split.label(text="Scale")
+        split2 = split.split(factor=0.7)
+        row2 = split2.row(align=True)
+        row2.prop(bone, "bbone_handle_use_scale_end", index=0, text="X", toggle=True)
+        row2.prop(bone, "bbone_handle_use_scale_end", index=1, text="Y", toggle=True)
+        row2.prop(bone, "bbone_handle_use_scale_end", index=2, text="Z", toggle=True)
+        split2.prop(bone, "bbone_handle_use_ease_end", text="Ease", toggle=True)
+        row.label(icon="BLANK1")
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):
