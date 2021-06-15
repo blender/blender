@@ -94,6 +94,10 @@ typedef struct MeshRenderData {
   float (*loop_normals)[3];
   float (*poly_normals)[3];
   int *lverts, *ledges;
+  struct {
+    int *tri;
+    int visible_tri_len;
+  } mat_offsets;
 } MeshRenderData;
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
@@ -238,6 +242,9 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
                                         const eMRIterType iter_type);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag);
+void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
+                                         MeshBufferExtractionCache *cache,
+                                         const eMRDataType data_flag);
 void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag);

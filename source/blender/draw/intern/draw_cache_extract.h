@@ -83,8 +83,9 @@ typedef enum eMRDataType {
   MR_DATA_LOOPTRI = 1 << 3,
   /** Force loop normals calculation.  */
   MR_DATA_TAN_LOOP_NOR = 1 << 4,
+  MR_DATA_MAT_OFFSETS = 1 << 5,
 } eMRDataType;
-ENUM_OPERATORS(eMRDataType, MR_DATA_TAN_LOOP_NOR)
+ENUM_OPERATORS(eMRDataType, MR_DATA_MAT_OFFSETS)
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,6 +167,12 @@ typedef struct MeshBufferExtractionCache {
     int *verts;
     int *edges;
   } loose_geom;
+
+  struct {
+    int *tri;
+    int visible_tri_len;
+  } mat_offsets;
+
 } MeshBufferExtractionCache;
 
 typedef enum DRWBatchFlag {

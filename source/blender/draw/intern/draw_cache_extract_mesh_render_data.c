@@ -167,6 +167,110 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Material Offsets
+ *
+ * Material offsets contains the offset of a material after sorting tris based on their material.
+ *
+ * \{ */
+static void mesh_render_data_mat_offset_load(MeshRenderData *mr,
+                                             const MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_ensure(MeshRenderData *mr,
+                                               MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build(MeshRenderData *mr,
+                                              MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build_bm(MeshRenderData *mr,
+                                                 MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build_mesh(MeshRenderData *mr,
+                                                   MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_apply_offset(MeshRenderData *mr,
+                                                     MeshBufferExtractionCache *cache);
+
+void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
+                                         MeshBufferExtractionCache *cache,
+                                         const eMRDataType data_flag)
+{
+  if (data_flag & MR_DATA_MAT_OFFSETS) {
+    mesh_render_data_mat_offset_ensure(mr, cache);
+    mesh_render_data_mat_offset_load(mr, cache);
+  }
+}
+
+static void mesh_render_data_mat_offset_load(MeshRenderData *mr,
+                                             const MeshBufferExtractionCache *cache)
+{
+  mr->mat_offsets.tri = cache->mat_offsets.tri;
+  mr->mat_offsets.visible_tri_len = cache->mat_offsets.visible_tri_len;
+}
+
+static void mesh_render_data_mat_offset_ensure(MeshRenderData *mr,
+                                               MeshBufferExtractionCache *cache)
+{
+  if (cache->mat_offsets.tri) {
+    return;
+  }
+  mesh_render_data_mat_offset_build(mr, cache);
+}
+
+static void mesh_render_data_mat_offset_build(MeshRenderData *mr, MeshBufferExtractionCache *cache)
+{
+  size_t mat_tri_idx_size = sizeof(int) * mr->mat_len;
+  cache->mat_offsets.tri = MEM_callocN(mat_tri_idx_size, __func__);
+
+  /* Count how many triangles for each material. */
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    mesh_render_data_mat_offset_build_bm(mr, cache);
+  }
+  else {
+    mesh_render_data_mat_offset_build_mesh(mr, cache);
+  }
+
+  mesh_render_data_mat_offset_apply_offset(mr, cache);
+}
+
+static void mesh_render_data_mat_offset_build_bm(MeshRenderData *mr,
+                                                 MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  BMIter iter;
+  BMFace *efa;
+  BM_ITER_MESH (efa, &iter, mr->bm, BM_FACES_OF_MESH) {
+    if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      int mat = min_ii(efa->mat_nr, mr->mat_len - 1);
+      mat_tri_len[mat] += efa->len - 2;
+    }
+  }
+}
+
+static void mesh_render_data_mat_offset_build_mesh(MeshRenderData *mr,
+                                                   MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  const MPoly *mp = mr->mpoly;
+  for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
+    if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+      int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
+      mat_tri_len[mat] += mp->totloop - 2;
+    }
+  }
+}
+
+static void mesh_render_data_mat_offset_apply_offset(MeshRenderData *mr,
+                                                     MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  int ofs = mat_tri_len[0];
+  mat_tri_len[0] = 0;
+  for (int i = 1; i < mr->mat_len; i++) {
+    int tmp = mat_tri_len[i];
+    mat_tri_len[i] = ofs;
+    ofs += tmp;
+  }
+  cache->mat_offsets.visible_tri_len = ofs;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 

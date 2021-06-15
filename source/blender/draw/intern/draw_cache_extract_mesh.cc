@@ -498,11 +498,15 @@ static struct TaskNode *extract_task_node_create(struct TaskGraph *task_graph,
  * \{ */
 struct MeshRenderDataUpdateTaskData {
   MeshRenderData *mr = nullptr;
+  MeshBufferExtractionCache *cache = nullptr;
   eMRIterType iter_type;
   eMRDataType data_flag;
 
-  MeshRenderDataUpdateTaskData(MeshRenderData *mr, eMRIterType iter_type, eMRDataType data_flag)
-      : mr(mr), iter_type(iter_type), data_flag(data_flag)
+  MeshRenderDataUpdateTaskData(MeshRenderData *mr,
+                               MeshBufferExtractionCache *cache,
+                               eMRIterType iter_type,
+                               eMRDataType data_flag)
+      : mr(mr), cache(cache), iter_type(iter_type), data_flag(data_flag)
   {
   }
 
@@ -533,15 +537,17 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
 
   mesh_render_data_update_normals(mr, data_flag);
   mesh_render_data_update_looptris(mr, iter_type, data_flag);
+  mesh_render_data_update_mat_offsets(mr, update_task_data->cache, data_flag);
 }
 
 static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *task_graph,
                                                              MeshRenderData *mr,
+                                                             MeshBufferExtractionCache *cache,
                                                              const eMRIterType iter_type,
                                                              const eMRDataType data_flag)
 {
   MeshRenderDataUpdateTaskData *task_data = new MeshRenderDataUpdateTaskData(
-      mr, iter_type, data_flag);
+      mr, cache, iter_type, data_flag);
 
   struct TaskNode *task_node = BLI_task_graph_node_create(
       task_graph,
@@ -702,7 +708,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 #endif
 
   struct TaskNode *task_node_mesh_render_data = mesh_extract_render_data_node_create(
-      task_graph, mr, iter_type, data_flag);
+      task_graph, mr, extraction_cache, iter_type, data_flag);
 
   /* Simple heuristic. */
   const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIM_RANGE_LEN;
