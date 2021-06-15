@@ -4453,7 +4453,8 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
     }
 
     if (area->spacetype == SPACE_SEQ) {
-      if (!ED_space_sequencer_has_visible_animation_on_strip(scene)) {
+      const SpaceSeq *sseq = area->spacedata.first;
+      if (!ED_space_sequencer_has_playback_animation(sseq, scene)) {
         return;
       }
     }
