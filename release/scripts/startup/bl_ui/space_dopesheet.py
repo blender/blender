@@ -594,9 +594,9 @@ class DOPESHEET_MT_delete(Menu):
 class DOPESHEET_MT_context_menu(Menu):
     bl_label = "Dope Sheet Context Menu"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
-        st = _context.space_data
+        st = context.space_data
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
