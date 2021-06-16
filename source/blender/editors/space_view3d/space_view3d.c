@@ -352,11 +352,6 @@ static void view3d_exit(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   BLI_assert(area->spacetype == SPACE_VIEW3D);
   View3D *v3d = area->spacedata.first;
-  /* Happens when freeing. */
-  if (v3d == NULL) {
-    return;
-  }
-
   MEM_SAFE_FREE(v3d->runtime.local_stats);
 }
 
