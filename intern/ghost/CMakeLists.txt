@@ -483,10 +483,12 @@ if(WITH_XR_OPENXR)
       shlwapi
     )
   elseif(UNIX AND NOT APPLE)
-    list(APPEND XR_PLATFORM_DEFINES
-      -DXR_OS_LINUX
-      -DXR_USE_PLATFORM_XLIB
-    )
+    list(APPEND XR_PLATFORM_DEFINES -DXR_OS_LINUX)
+    if (WITH_GL_EGL)
+      list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_EGL)
+    else()
+      list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_XLIB)
+    endif()
   endif()
 
   add_definitions(-DWITH_XR_OPENXR ${XR_PLATFORM_DEFINES})
