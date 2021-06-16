@@ -88,7 +88,7 @@ static void do_mix_operation_float(const int blend_mode,
                                    VMutableArray<float> &results)
 {
   const int size = results.size();
-  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
     for (const int i : range) {
       const float factor = factors[i];
       float3 a{inputs_a[i]};
@@ -107,7 +107,7 @@ static void do_mix_operation_float3(const int blend_mode,
                                     VMutableArray<float3> &results)
 {
   const int size = results.size();
-  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
     for (const int i : range) {
       const float factor = factors[i];
       float3 a = inputs_a[i];
@@ -125,7 +125,7 @@ static void do_mix_operation_color4f(const int blend_mode,
                                      VMutableArray<ColorGeometry4f> &results)
 {
   const int size = results.size();
-  parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
     for (const int i : range) {
       const float factor = factors[i];
       ColorGeometry4f a = inputs_a[i];

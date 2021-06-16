@@ -44,7 +44,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_utildefines.h"
 
-namespace blender {
+namespace blender::threading {
 
 template<typename Range, typename Function>
 void parallel_for_each(Range &range, const Function &function)
@@ -75,4 +75,4 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
 #endif
 }
 
-}  // namespace blender
+}  // namespace blender::threading

@@ -378,7 +378,7 @@ void Spline::sample_based_on_index_factors(const GVArray &src,
     using T = decltype(dummy);
     const GVArray_Typed<T> src_typed = src.typed<T>();
     MutableSpan<T> dst_typed = dst.typed<T>();
-    blender::parallel_for(dst_typed.index_range(), 1024, [&](IndexRange range) {
+    blender::threading::parallel_for(dst_typed.index_range(), 1024, [&](IndexRange range) {
       for (const int i : range) {
         const LookupResult interp = this->lookup_data_from_index_factor(index_factors[i]);
         dst_typed[i] = blender::attribute_math::mix2(interp.factor,
