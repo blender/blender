@@ -261,6 +261,49 @@ void ED_object_shaderfx_copy(Object *dst, ShaderFxData *fx)
   WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, dst);
 }
 
+/**************** Generic poll callback helpers. ************************/
+static bool edit_shaderfx_poll_generic(bContext *C,
+                                       StructRNA *rna_type,
+                                       int obtype_flag,
+                                       const bool is_liboverride_allowed)
+{
+  PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  ShaderFxData *fx = ptr.data; /* May be NULL. */
+
+  if (!ED_operator_object_active_editable_ex(C, ob)) {
+    return false;
+  }
+
+  /* NOTE: Temporary 'forbid all' for overrides, until we implement support to add shaderfx to
+   * overrides. */
+  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs in a library override");
+    return false;
+  }
+
+  if (obtype_flag != 0 && ((1 << ob->type) & obtype_flag) == 0) {
+    CTX_wm_operator_poll_msg_set(C, "Object type is not supported");
+    return false;
+  }
+  if (ptr.owner_id != NULL && ID_IS_LINKED(ptr.owner_id)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
+    return false;
+  }
+  if (!is_liboverride_allowed && BKE_shaderfx_is_nonlocal_in_liboverride(ob, fx)) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Cannot edit shaderfxs coming from linked data in a library override");
+    return false;
+  }
+
+  return true;
+}
+
+static bool edit_shaderfx_poll(bContext *C)
+{
+  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0, false);
+}
+
 /************************ add effect operator *********************/
 
 static int shaderfx_add_exec(bContext *C, wmOperator *op)
@@ -334,7 +377,7 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = shaderfx_add_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = edit_shaderfx_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -351,37 +394,6 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Generic Functions for Operators Using Names and Data Context
  * \{ */
-
-static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obtype_flag)
-{
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
-  ShaderFxData *fx = ptr.data; /* May be NULL. */
-
-  if (!ob || ID_IS_LINKED(ob)) {
-    return false;
-  }
-  if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
-    return false;
-  }
-  if (ptr.owner_id && ID_IS_LINKED(ptr.owner_id)) {
-    return false;
-  }
-
-  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    if ((fx == NULL) || (fx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0) {
-      CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs coming from library override");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-static bool edit_shaderfx_poll(bContext *C)
-{
-  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0);
-}
 
 static void edit_shaderfx_properties(wmOperatorType *ot)
 {
@@ -595,11 +607,6 @@ void OBJECT_OT_shaderfx_move_down(wmOperatorType *ot)
 
 /************************ move shaderfx to index operator *********************/
 
-static bool shaderfx_move_to_index_poll(bContext *C)
-{
-  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0);
-}
-
 static int shaderfx_move_to_index_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_active_context(C);
@@ -632,7 +639,7 @@ void OBJECT_OT_shaderfx_move_to_index(wmOperatorType *ot)
 
   ot->invoke = shaderfx_move_to_index_invoke;
   ot->exec = shaderfx_move_to_index_exec;
-  ot->poll = shaderfx_move_to_index_poll;
+  ot->poll = edit_shaderfx_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -675,11 +682,6 @@ static int shaderfx_copy_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return retval;
 }
 
-static bool shaderfx_copy_poll(bContext *C)
-{
-  return edit_shaderfx_poll_generic(C, &RNA_ShaderFx, 0);
-}
-
 void OBJECT_OT_shaderfx_copy(wmOperatorType *ot)
 {
   ot->name = "Copy Effect";
@@ -688,7 +690,7 @@ void OBJECT_OT_shaderfx_copy(wmOperatorType *ot)
 
   ot->invoke = shaderfx_copy_invoke;
   ot->exec = shaderfx_copy_exec;
-  ot->poll = shaderfx_copy_poll;
+  ot->poll = edit_shaderfx_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
