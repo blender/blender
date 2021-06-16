@@ -354,6 +354,7 @@ bool ED_operator_uvedit(struct bContext *C);
 bool ED_operator_uvedit_space_image(struct bContext *C);
 bool ED_operator_uvmap(struct bContext *C);
 bool ED_operator_posemode_exclusive(struct bContext *C);
+bool ED_operator_object_active_local_editable_posemode_exclusive(struct bContext *C);
 bool ED_operator_posemode_context(struct bContext *C);
 bool ED_operator_posemode(struct bContext *C);
 bool ED_operator_posemode_local(struct bContext *C);
