@@ -258,6 +258,8 @@ typedef struct View3D_Runtime {
   int flag;
 
   char _pad1[4];
+  /* Only used for overlay stats while in localview. */
+  struct SceneStats *local_stats;
 } View3D_Runtime;
 
 /** 3D ViewPort Struct. */

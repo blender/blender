@@ -27,9 +27,10 @@ extern "C" {
 #endif
 
 struct Main;
+struct wmWindowManager;
 
 /* info_stats.c */
-void ED_info_stats_clear(struct ViewLayer *view_layer);
+void ED_info_stats_clear(struct wmWindowManager *wm, struct ViewLayer *view_layer);
 const char *ED_info_statusbar_string(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer);
@@ -41,6 +42,7 @@ const char *ED_info_statistics_string(struct Main *bmain,
 void ED_info_draw_stats(struct Main *bmain,
                         struct Scene *scene,
                         struct ViewLayer *view_layer,
+                        struct View3D *v3d_local,
                         int x,
                         int *y,
                         int height);
