@@ -519,10 +519,11 @@ static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* add temp handler */
   WM_event_add_modal_handler(C, op);
 
-  op->flag |= OP_IS_MODAL_GRAB_CURSOR; /* XXX maybe we want this with the gizmo only? */
-
   /* Use when modal input has some transformation to begin with. */
   TransInfo *t = op->customdata;
+  if ((t->flag & T_NO_CURSOR_WRAP) == 0) {
+    op->flag |= OP_IS_MODAL_GRAB_CURSOR; /* XXX maybe we want this with the gizmo only? */
+  }
   if (UNLIKELY(!is_zero_v4(t->values_modal_offset))) {
     transformApply(C, t);
   }

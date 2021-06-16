@@ -105,8 +105,12 @@ struct ScrArea;
 struct bContext;
 struct bScreen;
 struct rctf;
+struct rcti;
+struct wmEvent;
 struct wmGizmoGroupType;
 struct wmKeyConfig;
+struct wmOperator;
+struct wmOperatorType;
 
 typedef struct View2DScrollers View2DScrollers;
 
@@ -286,6 +290,77 @@ void UI_view2d_smooth_view(struct bContext *C,
 /* view2d_gizmo_navigate.c */
 /* Caller passes in own idname.  */
 void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
+
+/* Edge pan */
+
+/**
+ * Custom-data for view panning operators.
+ */
+typedef struct View2DEdgePanData {
+  /** Screen where view pan was initiated. */
+  struct bScreen *screen;
+  /** Area where view pan was initiated. */
+  struct ScrArea *area;
+  /** Region where view pan was initiated. */
+  struct ARegion *region;
+  /** View2d we're operating in. */
+  struct View2D *v2d;
+
+  /** Inside distance in UI units from the edge of the region within which to start panning. */
+  float inside_pad;
+  /** Outside distance in UI units from the edge of the region at which to stop panning. */
+  float outside_pad;
+  /**
+   * Width of the zone in UI units where speed increases with distance from the edge.
+   * At the end of this zone max speed is reached.
+   */
+  float speed_ramp;
+  /** Maximum speed in UI units per second. */
+  float max_speed;
+  /** Delay in seconds before maximum speed is reached. */
+  float delay;
+
+  /** Amount to move view relative to zoom. */
+  float facx, facy;
+
+  /* Timers. */
+  double edge_pan_last_time;
+  double edge_pan_start_time_x, edge_pan_start_time_y;
+} View2DEdgePanData;
+
+bool UI_view2d_edge_pan_poll(struct bContext *C);
+
+void UI_view2d_edge_pan_init(struct bContext *C,
+                             struct View2DEdgePanData *vpd,
+                             float inside_pad,
+                             float outside_pad,
+                             float speed_ramp,
+                             float max_speed,
+                             float delay);
+
+void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
+
+/* Apply transform to view (i.e. adjust 'cur' rect). */
+void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, int x, int y);
+
+/* Apply transform to view using mouse events. */
+void UI_view2d_edge_pan_apply_event(struct bContext *C,
+                                    struct View2DEdgePanData *vpd,
+                                    const struct wmEvent *event);
+
+void UI_view2d_edge_pan_operator_properties(struct wmOperatorType *ot);
+
+void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
+                                               float inside_pad,
+                                               float outside_pad,
+                                               float speed_ramp,
+                                               float max_speed,
+                                               float delay);
+
+/* Initialize panning data with operator settings. */
+void UI_view2d_edge_pan_operator_init(struct bContext *C,
+                                      struct View2DEdgePanData *vpd,
+                                      struct wmOperator *op);
 
 #ifdef __cplusplus
 }
