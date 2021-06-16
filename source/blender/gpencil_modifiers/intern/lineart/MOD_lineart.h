@@ -250,6 +250,10 @@ typedef struct LineartRenderBuffer {
   ListBase wasted_cuts;
   SpinLock lock_cuts;
 
+  /* This is just a pointer to LineartCache::chain_data_pool, which acts as a cache for line
+   * chains. */
+  LineartStaticMemPool *chain_data_pool;
+
   /*  Render status */
   double view_vector[3];
 
@@ -308,6 +312,18 @@ typedef struct LineartRenderBuffer {
   struct Object *_source_object;
 
 } LineartRenderBuffer;
+
+typedef struct LineartCache {
+  /** Separate memory pool for chain data, this goes to the cache, so when we free the main pool,
+   * chains will still be available. */
+  LineartStaticMemPool chain_data_pool;
+
+  /** A copy of rb->chains so we have that data available after rb has been destroyed. */
+  ListBase chains;
+
+  /** Cache only contains edge types specified in this variable. */
+  char rb_edge_types;
+} LineartCache;
 
 #define DBL_TRIANGLE_LIM 1e-8
 #define DBL_EDGE_LIM 1e-9
@@ -563,10 +579,11 @@ void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, const float thresh
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
-void MOD_lineart_chain_clear_picked_flag(struct LineartRenderBuffer *rb);
+void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
 
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
-                                       struct LineartGpencilModifierData *lmd);
+                                       struct LineartGpencilModifierData *lmd,
+                                       LineartCache **cached_result);
 
 struct Scene;
 
@@ -579,7 +596,7 @@ LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, doub
 struct bGPDlayer;
 struct bGPDframe;
 
-void MOD_lineart_gpencil_generate(LineartRenderBuffer *rb,
+void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Depsgraph *depsgraph,
                                   struct Object *ob,
                                   struct bGPDlayer *gpl,

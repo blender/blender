@@ -629,6 +629,7 @@ typedef struct bGPdata_Runtime {
   /** Brush pointer */
   Brush *sbuffer_brush;
   struct GpencilBatchCache *gpencil_cache;
+  struct LineartCache *lineart_cache;
 } bGPdata_Runtime;
 
 /* grid configuration */

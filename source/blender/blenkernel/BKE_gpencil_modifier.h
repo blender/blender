@@ -294,6 +294,22 @@ bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);
 bool BKE_gpencil_has_transform_modifiers(struct Object *ob);
 
+/* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
+ * cover everything that will be visible. */
+typedef struct GpencilLineartLimitInfo {
+  char min_level;
+  char max_level;
+  short edge_types;
+} GpencilLineartLimitInfo;
+
+GpencilLineartLimitInfo BKE_gpencil_get_lineart_modifier_limits(const struct Object *ob);
+
+void BKE_gpencil_set_lineart_modifier_limits(struct GpencilModifierData *md,
+                                             const struct GpencilLineartLimitInfo *info,
+                                             const bool is_first_lineart);
+bool BKE_gpencil_is_first_lineart_in_stack(const struct Object *ob,
+                                           const struct GpencilModifierData *md);
+
 void BKE_gpencil_lattice_init(struct Object *ob);
 void BKE_gpencil_lattice_clear(struct Object *ob);
 
