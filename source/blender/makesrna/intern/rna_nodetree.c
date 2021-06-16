@@ -502,11 +502,13 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float
     ITEM_FLOAT,
     {0, NULL, 0, NULL, NULL},
 };
+#  if 0 /* UNUSED */
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_int[] = {
     ITEM_ATTRIBUTE,
     ITEM_INTEGER,
     {0, NULL, 0, NULL, NULL},
 };
+#  endif
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_boolean[] = {
     ITEM_ATTRIBUTE,
     ITEM_FLOAT,
