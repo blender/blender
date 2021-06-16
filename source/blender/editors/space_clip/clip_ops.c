@@ -1429,7 +1429,7 @@ static void do_sequence_proxy(void *pjv,
   queue.do_update = do_update;
   queue.progress = progress;
 
-  TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW, TASK_ISOLATION_ON);
+  TaskPool *task_pool = BLI_task_pool_create(&queue, TASK_PRIORITY_LOW);
   handles = MEM_callocN(sizeof(ProxyThread) * tot_thread, "proxy threaded handles");
   for (int i = 0; i < tot_thread; i++) {
     ProxyThread *handle = &handles[i];

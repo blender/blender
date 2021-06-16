@@ -71,7 +71,7 @@ static void proximity_calc(MutableSpan<float> distance_span,
                            const bool store_locations)
 {
   IndexRange range = positions.index_range();
-  parallel_for(range, 512, [&](IndexRange range) {
+  threading::parallel_for(range, 512, [&](IndexRange range) {
     BVHTreeNearest nearest_from_mesh;
     BVHTreeNearest nearest_from_pointcloud;
 

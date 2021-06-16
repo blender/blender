@@ -209,7 +209,7 @@ static void map_range_float(const VArray<float> &attribute_input,
 
   switch (interpolation_type) {
     case NODE_MAP_RANGE_LINEAR: {
-      parallel_for(span.index_range(), 2048, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 2048, [&](IndexRange range) {
         for (const int i : range) {
           results[i] = map_linear(span[i], min_from, max_from, min_to, max_to);
         }
@@ -218,7 +218,7 @@ static void map_range_float(const VArray<float> &attribute_input,
     }
     case NODE_MAP_RANGE_STEPPED: {
       const float steps = params.get_input<float>("Steps");
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i] = map_stepped(span[i], min_from, max_from, min_to, max_to, steps);
         }
@@ -226,7 +226,7 @@ static void map_range_float(const VArray<float> &attribute_input,
       break;
     }
     case NODE_MAP_RANGE_SMOOTHSTEP: {
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i] = map_smoothstep(span[i], min_from, max_from, min_to, max_to);
         }
@@ -234,7 +234,7 @@ static void map_range_float(const VArray<float> &attribute_input,
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i] = map_smootherstep(span[i], min_from, max_from, min_to, max_to);
         }
@@ -249,7 +249,7 @@ static void map_range_float(const VArray<float> &attribute_input,
     const float clamp_min = min_to < max_to ? min_to : max_to;
     const float clamp_max = min_to < max_to ? max_to : min_to;
 
-    parallel_for(results.index_range(), 2048, [&](IndexRange range) {
+    threading::parallel_for(results.index_range(), 2048, [&](IndexRange range) {
       for (const int i : range) {
         results[i] = std::clamp(results[i], clamp_min, clamp_max);
       }
@@ -273,7 +273,7 @@ static void map_range_float3(const VArray<float3> &attribute_input,
 
   switch (interpolation_type) {
     case NODE_MAP_RANGE_LINEAR: {
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i].x = map_linear(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
           results[i].y = map_linear(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
@@ -284,7 +284,7 @@ static void map_range_float3(const VArray<float3> &attribute_input,
     }
     case NODE_MAP_RANGE_STEPPED: {
       const float3 steps = params.get_input<float3>("Steps_001");
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i].x = map_stepped(
               span[i].x, min_from.x, max_from.x, min_to.x, max_to.x, steps.x);
@@ -297,7 +297,7 @@ static void map_range_float3(const VArray<float3> &attribute_input,
       break;
     }
     case NODE_MAP_RANGE_SMOOTHSTEP: {
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i].x = map_smoothstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
           results[i].y = map_smoothstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);
@@ -307,7 +307,7 @@ static void map_range_float3(const VArray<float3> &attribute_input,
       break;
     }
     case NODE_MAP_RANGE_SMOOTHERSTEP: {
-      parallel_for(span.index_range(), 1024, [&](IndexRange range) {
+      threading::parallel_for(span.index_range(), 1024, [&](IndexRange range) {
         for (const int i : range) {
           results[i].x = map_smootherstep(span[i].x, min_from.x, max_from.x, min_to.x, max_to.x);
           results[i].y = map_smootherstep(span[i].y, min_from.y, max_from.y, min_to.y, max_to.y);

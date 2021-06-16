@@ -352,9 +352,9 @@ static void bezier_forward_difference_3d(const float3 &point_0,
   }
 }
 
-void BezierSpline::evaluate_bezier_segment(const int index,
-                                           const int next_index,
-                                           MutableSpan<float3> positions) const
+void BezierSpline::evaluate_segment(const int index,
+                                    const int next_index,
+                                    MutableSpan<float3> positions) const
 {
   if (this->segment_is_vector(index)) {
     BLI_assert(positions.size() == 1);
@@ -417,7 +417,7 @@ static void calculate_mappings_linear_resolution(Span<int> offsets,
   }
 
   const int grain_size = std::max(2048 / resolution, 1);
-  parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
+  blender::threading::parallel_for(IndexRange(1, size - 2), grain_size, [&](IndexRange range) {
     for (const int i_control_point : range) {
       const int segment_len = offsets[i_control_point + 1] - offsets[i_control_point];
       const float segment_len_inv = 1.0f / segment_len;
@@ -497,14 +497,13 @@ Span<float3> BezierSpline::evaluated_positions() const
   Span<int> offsets = this->control_point_offsets();
 
   const int grain_size = std::max(512 / resolution_, 1);
-  parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
+  blender::threading::parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
     for (const int i : range) {
-      this->evaluate_bezier_segment(
-          i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
+      this->evaluate_segment(i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
     }
   });
   if (is_cyclic_) {
-    this->evaluate_bezier_segment(
+    this->evaluate_segment(
         size - 1, 0, positions.slice(offsets[size - 1], offsets[size] - offsets[size - 1]));
   }
   else {

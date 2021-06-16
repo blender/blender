@@ -83,8 +83,9 @@ typedef enum eMRDataType {
   MR_DATA_LOOPTRI = 1 << 3,
   /** Force loop normals calculation.  */
   MR_DATA_TAN_LOOP_NOR = 1 << 4,
+  MR_DATA_MAT_OFFSETS = 1 << 5,
 } eMRDataType;
-ENUM_OPERATORS(eMRDataType, MR_DATA_TAN_LOOP_NOR)
+ENUM_OPERATORS(eMRDataType, MR_DATA_MAT_OFFSETS)
 
 #ifdef __cplusplus
 extern "C" {
@@ -160,46 +161,19 @@ typedef struct MeshBufferCache {
  * - Loose geometry.
  */
 typedef struct MeshBufferExtractionCache {
-  int edge_loose_len;
-  int vert_loose_len;
-  int *lverts;
-  int *ledges;
+  struct {
+    int edge_len;
+    int vert_len;
+    int *verts;
+    int *edges;
+  } loose_geom;
+
+  struct {
+    int *tri;
+    int visible_tri_len;
+  } mat_offsets;
+
 } MeshBufferExtractionCache;
-
-typedef enum DRWBatchFlag {
-  MBC_SURFACE = (1 << 0),
-  MBC_SURFACE_WEIGHTS = (1 << 1),
-  MBC_EDIT_TRIANGLES = (1 << 2),
-  MBC_EDIT_VERTICES = (1 << 3),
-  MBC_EDIT_EDGES = (1 << 4),
-  MBC_EDIT_VNOR = (1 << 5),
-  MBC_EDIT_LNOR = (1 << 6),
-  MBC_EDIT_FACEDOTS = (1 << 7),
-  MBC_EDIT_MESH_ANALYSIS = (1 << 8),
-  MBC_EDITUV_FACES_STRETCH_AREA = (1 << 9),
-  MBC_EDITUV_FACES_STRETCH_ANGLE = (1 << 10),
-  MBC_EDITUV_FACES = (1 << 11),
-  MBC_EDITUV_EDGES = (1 << 12),
-  MBC_EDITUV_VERTS = (1 << 13),
-  MBC_EDITUV_FACEDOTS = (1 << 14),
-  MBC_EDIT_SELECTION_VERTS = (1 << 15),
-  MBC_EDIT_SELECTION_EDGES = (1 << 16),
-  MBC_EDIT_SELECTION_FACES = (1 << 17),
-  MBC_EDIT_SELECTION_FACEDOTS = (1 << 18),
-  MBC_ALL_VERTS = (1 << 19),
-  MBC_ALL_EDGES = (1 << 20),
-  MBC_LOOSE_EDGES = (1 << 21),
-  MBC_EDGE_DETECTION = (1 << 22),
-  MBC_WIRE_EDGES = (1 << 23),
-  MBC_WIRE_LOOPS = (1 << 24),
-  MBC_WIRE_LOOPS_UVS = (1 << 25),
-  MBC_SKIN_ROOTS = (1 << 26),
-  MBC_SCULPT_OVERLAYS = (1 << 27),
-} DRWBatchFlag;
-
-#define MBC_EDITUV \
-  (MBC_EDITUV_FACES_STRETCH_AREA | MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | \
-   MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
   for (MeshBufferCache *mbc = &batch_cache->final; \
@@ -253,8 +227,8 @@ typedef struct MeshBatchCache {
 
   GPUBatch **surface_per_mat;
 
-  DRWBatchFlag batch_requested;
-  DRWBatchFlag batch_ready;
+  uint32_t batch_requested; /* DRWBatchFlag */
+  uint32_t batch_ready;     /* DRWBatchFlag */
 
   /* settings to determine if cache is invalid */
   int edge_len;
@@ -287,6 +261,47 @@ typedef struct MeshBatchCache {
 #define MBC_BATCH_LEN (sizeof(((MeshBatchCache){0}).batch) / sizeof(void *))
 #define MBC_VBO_LEN (sizeof(((MeshBufferCache){0}).vbo) / sizeof(void *))
 #define MBC_IBO_LEN (sizeof(((MeshBufferCache){0}).ibo) / sizeof(void *))
+
+#define MBC_BATCH_INDEX(batch_name) \
+  ((offsetof(MeshBatchCache, batch_name) - offsetof(MeshBatchCache, batch.surface)) / \
+   sizeof(void *))
+
+typedef enum DRWBatchFlag {
+  MBC_SURFACE = (1u << MBC_BATCH_INDEX(batch.surface)),
+  MBC_SURFACE_WEIGHTS = (1u << MBC_BATCH_INDEX(batch.surface_weights)),
+  MBC_EDIT_TRIANGLES = (1u << MBC_BATCH_INDEX(batch.edit_triangles)),
+  MBC_EDIT_VERTICES = (1u << MBC_BATCH_INDEX(batch.edit_vertices)),
+  MBC_EDIT_EDGES = (1u << MBC_BATCH_INDEX(batch.edit_edges)),
+  MBC_EDIT_VNOR = (1u << MBC_BATCH_INDEX(batch.edit_vnor)),
+  MBC_EDIT_LNOR = (1u << MBC_BATCH_INDEX(batch.edit_lnor)),
+  MBC_EDIT_FACEDOTS = (1u << MBC_BATCH_INDEX(batch.edit_fdots)),
+  MBC_EDIT_MESH_ANALYSIS = (1u << MBC_BATCH_INDEX(batch.edit_mesh_analysis)),
+  MBC_SKIN_ROOTS = (1u << MBC_BATCH_INDEX(batch.edit_skin_roots)),
+  MBC_EDITUV_FACES_STRETCH_AREA = (1u << MBC_BATCH_INDEX(batch.edituv_faces_stretch_area)),
+  MBC_EDITUV_FACES_STRETCH_ANGLE = (1u << MBC_BATCH_INDEX(batch.edituv_faces_stretch_angle)),
+  MBC_EDITUV_FACES = (1u << MBC_BATCH_INDEX(batch.edituv_faces)),
+  MBC_EDITUV_EDGES = (1u << MBC_BATCH_INDEX(batch.edituv_edges)),
+  MBC_EDITUV_VERTS = (1u << MBC_BATCH_INDEX(batch.edituv_verts)),
+  MBC_EDITUV_FACEDOTS = (1u << MBC_BATCH_INDEX(batch.edituv_fdots)),
+  MBC_EDIT_SELECTION_VERTS = (1u << MBC_BATCH_INDEX(batch.edit_selection_verts)),
+  MBC_EDIT_SELECTION_EDGES = (1u << MBC_BATCH_INDEX(batch.edit_selection_edges)),
+  MBC_EDIT_SELECTION_FACES = (1u << MBC_BATCH_INDEX(batch.edit_selection_faces)),
+  MBC_EDIT_SELECTION_FACEDOTS = (1u << MBC_BATCH_INDEX(batch.edit_selection_fdots)),
+  MBC_ALL_VERTS = (1u << MBC_BATCH_INDEX(batch.all_verts)),
+  MBC_ALL_EDGES = (1u << MBC_BATCH_INDEX(batch.all_edges)),
+  MBC_LOOSE_EDGES = (1u << MBC_BATCH_INDEX(batch.loose_edges)),
+  MBC_EDGE_DETECTION = (1u << MBC_BATCH_INDEX(batch.edge_detection)),
+  MBC_WIRE_EDGES = (1u << MBC_BATCH_INDEX(batch.wire_edges)),
+  MBC_WIRE_LOOPS = (1u << MBC_BATCH_INDEX(batch.wire_loops)),
+  MBC_WIRE_LOOPS_UVS = (1u << MBC_BATCH_INDEX(batch.wire_loops_uvs)),
+  MBC_SCULPT_OVERLAYS = (1u << MBC_BATCH_INDEX(batch.sculpt_overlays)),
+} DRWBatchFlag;
+
+BLI_STATIC_ASSERT(MBC_BATCH_INDEX(surface_per_mat) < 32, "Number of batches exceeded the limit of bit fields");
+
+#define MBC_EDITUV \
+  (MBC_EDITUV_FACES_STRETCH_AREA | MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | \
+   MBC_EDITUV_EDGES | MBC_EDITUV_VERTS | MBC_EDITUV_FACEDOTS | MBC_WIRE_LOOPS_UVS)
 
 void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         MeshBatchCache *cache,

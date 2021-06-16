@@ -160,6 +160,8 @@ void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);
 void BKE_shaderfx_free(struct ShaderFxData *fx);
 bool BKE_shaderfx_unique_name(struct ListBase *shaderfx, struct ShaderFxData *fx);
 bool BKE_shaderfx_depends_ontime(struct ShaderFxData *fx);
+bool BKE_shaderfx_is_nonlocal_in_liboverride(const struct Object *ob,
+                                             const struct ShaderFxData *shaderfx);
 struct ShaderFxData *BKE_shaderfx_findby_type(struct Object *ob, ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_findby_name(struct Object *ob, const char *name);
 void BKE_shaderfx_copydata_generic(const struct ShaderFxData *fx_src, struct ShaderFxData *fx_dst);

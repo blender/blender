@@ -464,6 +464,10 @@ static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
   { \
     GEO_NODE_ATTRIBUTE_INPUT_COLOR, "COLOR", 0, "Color", "" \
   }
+#define ITEM_INTEGER \
+  { \
+    GEO_NODE_ATTRIBUTE_INPUT_INTEGER, "INTEGER", 0, "Integer", "" \
+  }
 #define ITEM_BOOLEAN \
   { \
     GEO_NODE_ATTRIBUTE_INPUT_BOOLEAN, "BOOLEAN", 0, "Boolean", "" \
@@ -475,6 +479,7 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_any[]
     ITEM_FLOAT,
     ITEM_VECTOR,
     ITEM_COLOR,
+    ITEM_INTEGER,
     ITEM_BOOLEAN,
     {0, NULL, 0, NULL, NULL},
 };
@@ -497,6 +502,13 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float
     ITEM_FLOAT,
     {0, NULL, 0, NULL, NULL},
 };
+#  if 0 /* UNUSED */
+static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_int[] = {
+    ITEM_ATTRIBUTE,
+    ITEM_INTEGER,
+    {0, NULL, 0, NULL, NULL},
+};
+#  endif
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_boolean[] = {
     ITEM_ATTRIBUTE,
     ITEM_FLOAT,

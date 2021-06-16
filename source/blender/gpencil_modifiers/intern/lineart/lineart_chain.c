@@ -74,7 +74,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
 static LineartEdgeChain *lineart_chain_create(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec;
-  ec = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartEdgeChain));
+  ec = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChain));
 
   BLI_addtail(&rb->chains, ec);
 
@@ -119,7 +119,7 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartRenderBuffer *rb,
     return old_rlci;
   }
 
-  eci = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartEdgeChainItem));
+  eci = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChainItem));
 
   copy_v2_v2(eci->pos, fbcoord);
   copy_v3_v3(eci->gpos, gpos);
@@ -149,7 +149,7 @@ static LineartEdgeChainItem *lineart_chain_prepend_point(LineartRenderBuffer *rb
     return ec->chain.first;
   }
 
-  eci = lineart_mem_acquire(&rb->render_data_pool, sizeof(LineartEdgeChainItem));
+  eci = lineart_mem_acquire(rb->chain_data_pool, sizeof(LineartEdgeChainItem));
 
   copy_v2_v2(eci->pos, fbcoord);
   copy_v3_v3(eci->gpos, gpos);
@@ -889,12 +889,12 @@ int MOD_lineart_chain_count(const LineartEdgeChain *ec)
   return count;
 }
 
-void MOD_lineart_chain_clear_picked_flag(LineartRenderBuffer *rb)
+void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
 {
-  if (rb == NULL) {
+  if (lc == NULL) {
     return;
   }
-  LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
+  LISTBASE_FOREACH (LineartEdgeChain *, ec, &lc->chains) {
     ec->picked = 0;
   }
 }

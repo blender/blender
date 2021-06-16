@@ -30,6 +30,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.h"
 
@@ -202,6 +203,7 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
       }
       BLI_remlink(seqbase, seq);
       SEQ_sequence_free(scene, seq, true);
+      SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
     }
   }
 }
@@ -467,4 +469,11 @@ bool SEQ_edit_remove_gaps(Scene *scene,
         scene, seqbase, -gap_info.gap_length, gap_info.gap_start_frame);
   }
   return true;
+}
+
+void SEQ_edit_sequence_name_set(Scene *scene, Sequence *seq, const char *new_name)
+{
+  BLI_strncpy_utf8(seq->name + 2, new_name, MAX_NAME - 2);
+  BLI_utf8_invalid_strip(seq->name + 2, strlen(seq->name + 2));
+  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
 }

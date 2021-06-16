@@ -139,7 +139,6 @@ static void initRawInput()
 #undef DEVICE_COUNT
 }
 
-typedef HRESULT(API *GHOST_WIN32_SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
 typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
 GHOST_SystemWin32::GHOST_SystemWin32()

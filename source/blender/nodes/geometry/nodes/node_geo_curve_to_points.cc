@@ -71,7 +71,7 @@ namespace blender::nodes {
  */
 static void evaluate_splines(Span<SplinePtr> splines)
 {
-  parallel_for_each(splines, [](const SplinePtr &spline) {
+  threading::parallel_for_each(splines, [](const SplinePtr &spline) {
     /* These functions fill the corresponding caches on each spline. */
     spline->evaluated_positions();
     spline->evaluated_tangents();
@@ -192,7 +192,7 @@ static void copy_evaluated_point_attributes(Span<SplinePtr> splines,
                                             Span<int> offsets,
                                             ResultAttributes &data)
 {
-  parallel_for(splines.index_range(), 64, [&](IndexRange range) {
+  threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
     for (const int i : range) {
       const Spline &spline = *splines[i];
       const int offset = offsets[i];
@@ -225,7 +225,7 @@ static void copy_uniform_sample_point_attributes(Span<SplinePtr> splines,
                                                  Span<int> offsets,
                                                  ResultAttributes &data)
 {
-  parallel_for(splines.index_range(), 64, [&](IndexRange range) {
+  threading::parallel_for(splines.index_range(), 64, [&](IndexRange range) {
     for (const int i : range) {
       const Spline &spline = *splines[i];
       const int offset = offsets[i];
@@ -313,7 +313,7 @@ static void copy_spline_domain_attributes(const CurveComponent &curve_component,
 
 static void create_default_rotation_attribute(ResultAttributes &data)
 {
-  parallel_for(IndexRange(data.result_size), 512, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(data.result_size), 512, [&](IndexRange range) {
     for (const int i : range) {
       data.rotations[i] = float4x4::from_normalized_axis_data(
                               {0, 0, 0}, data.normals[i], data.tangents[i])

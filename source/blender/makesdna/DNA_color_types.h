@@ -43,7 +43,7 @@ typedef struct CurveMapPoint {
   short flag, shorty;
 } CurveMapPoint;
 
-/* curvepoint->flag */
+/** #CurveMapPoint.flag */
 enum {
   CUMA_SELECT = (1 << 0),
   CUMA_HANDLE_VECTOR = (1 << 1),
@@ -95,19 +95,18 @@ typedef struct CurveMapping {
   char _pad[6];
 } CurveMapping;
 
-/* CurveMapping.flag */
+/** #CurveMapping.flag */
 typedef enum eCurveMappingFlags {
   CUMA_DO_CLIP = (1 << 0),
   CUMA_PREMULLED = (1 << 1),
   CUMA_DRAW_CFRA = (1 << 2),
   CUMA_DRAW_SAMPLE = (1 << 3),
 
-  /* The curve is extended by extrapolation. When not set the curve is extended
-   * Horizontally */
+  /** The curve is extended by extrapolation. When not set the curve is extended horizontally. */
   CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
 } eCurveMappingFlags;
 
-/* cumapping->preset */
+/** #CurveMapping.preset */
 typedef enum eCurveMappingPreset {
   CURVE_PRESET_LINE = 0,
   CURVE_PRESET_SHARP = 1,
@@ -120,13 +119,13 @@ typedef enum eCurveMappingPreset {
   CURVE_PRESET_BELL = 8,
 } eCurveMappingPreset;
 
-/* CurveMapping->tone */
+/** #CurveMapping.tone */
 typedef enum eCurveMappingTone {
   CURVE_TONE_STANDARD = 0,
   CURVE_TONE_FILMLIKE = 2,
 } eCurveMappingTone;
 
-/* histogram->mode */
+/** #Histogram.mode */
 enum {
   HISTO_MODE_LUMA = 0,
   HISTO_MODE_RGB = 1,
@@ -154,8 +153,7 @@ typedef struct Histogram {
   short flag;
   int height;
 
-  /* sample line only */
-  /* image coords src -> dst */
+  /** Sample line only (image coords: source -> destination). */
   float co[2][2];
 } Histogram;
 
@@ -180,13 +178,15 @@ typedef struct Scopes {
   char _pad[4];
 } Scopes;
 
-/* scopes->wavefrm_mode */
-#define SCOPES_WAVEFRM_LUMA 0
-#define SCOPES_WAVEFRM_RGB_PARADE 1
-#define SCOPES_WAVEFRM_YCC_601 2
-#define SCOPES_WAVEFRM_YCC_709 3
-#define SCOPES_WAVEFRM_YCC_JPEG 4
-#define SCOPES_WAVEFRM_RGB 5
+/** #Scopes.wavefrm_mode */
+enum {
+  SCOPES_WAVEFRM_LUMA = 0,
+  SCOPES_WAVEFRM_RGB_PARADE = 1,
+  SCOPES_WAVEFRM_YCC_601 = 2,
+  SCOPES_WAVEFRM_YCC_709 = 3,
+  SCOPES_WAVEFRM_YCC_JPEG = 4,
+  SCOPES_WAVEFRM_RGB = 5,
+};
 
 typedef struct ColorManagedViewSettings {
   int flag;
@@ -214,7 +214,7 @@ typedef struct ColorManagedColorspaceSettings {
   char name[64];
 } ColorManagedColorspaceSettings;
 
-/* ColorManagedViewSettings->flag */
+/** #ColorManagedViewSettings.flag */
 enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
 };

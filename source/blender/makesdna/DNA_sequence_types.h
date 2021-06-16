@@ -45,6 +45,7 @@ struct MovieClip;
 struct Scene;
 struct VFont;
 struct bSound;
+struct SequenceLookup;
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
@@ -257,6 +258,10 @@ typedef struct MetaStack {
   int disp_range[2];
 } MetaStack;
 
+typedef struct EditingRuntime {
+  struct SequenceLookup *sequence_lookup;
+} EditingRuntime;
+
 typedef struct Editing {
   /** Pointer to the current list of seq's being edited (can be within a meta strip). */
   ListBase *seqbasep;
@@ -287,6 +292,8 @@ typedef struct Editing {
 
   /* Must be initialized only by seq_cache_create() */
   int64_t disk_cache_timestamp;
+
+  EditingRuntime runtime;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */

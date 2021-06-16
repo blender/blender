@@ -1436,6 +1436,7 @@ int ntreeTexExecTree(struct bNodeTree *ntree,
 #define GEO_NODE_CONVEX_HULL 1056
 #define GEO_NODE_CURVE_TO_POINTS 1057
 #define GEO_NODE_CURVE_REVERSE 1058
+#define GEO_NODE_SEPARATE_COMPONENTS 1059
 
 /** \} */
 

@@ -186,7 +186,7 @@ static void do_math_operation_fl3_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 a = span_a[i];
             const float3 b = span_b[i];
@@ -218,7 +218,7 @@ static void do_math_operation_fl3_fl3_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 a = span_a[i];
             const float3 b = span_b[i];
@@ -251,7 +251,7 @@ static void do_math_operation_fl3_fl3_fl_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_fl_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 a = span_a[i];
             const float3 b = span_b[i];
@@ -282,7 +282,7 @@ static void do_math_operation_fl3_fl3_to_fl(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl3_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 a = span_a[i];
             const float3 b = span_b[i];
@@ -312,7 +312,7 @@ static void do_math_operation_fl3_fl_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_fl_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 a = span_a[i];
             const float b = span_b[i];
@@ -340,7 +340,7 @@ static void do_math_operation_fl3_to_fl3(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_to_fl3(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 in = span_a[i];
             const float3 out = math_function(in);
@@ -367,7 +367,7 @@ static void do_math_operation_fl3_to_fl(const VArray<float3> &input_a,
 
   bool success = try_dispatch_float_math_fl3_to_fl(
       operation, [&](auto math_function, const FloatMathOperationInfo &UNUSED(info)) {
-        parallel_for(IndexRange(size), 512, [&](IndexRange range) {
+        threading::parallel_for(IndexRange(size), 512, [&](IndexRange range) {
           for (const int i : range) {
             const float3 in = span_a[i];
             const float out = math_function(in);

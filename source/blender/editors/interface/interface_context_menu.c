@@ -1280,7 +1280,6 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
       uiBlock *block = uiLayoutGetBlock(layout);
       uiBut *but = block->buttons.last;
       but->flag |= UI_BUT_HAS_SEP_CHAR;
-      but->drawflag |= UI_BUT_HAS_SHORTCUT;
     }
   }
   UI_popup_menu_end(C, pup);

@@ -66,7 +66,7 @@ class GVArray {
 
   bool is_empty() const
   {
-    return size_;
+    return size_ == 0;
   }
 
   /* Copies the value at the given index into the provided storage. The `r_value` pointer is

@@ -520,7 +520,7 @@ void wm_event_do_notifiers(bContext *C)
     if (clear_info_stats) {
       /* Only do once since adding notifiers is slow when there are many. */
       ViewLayer *view_layer = CTX_data_view_layer(C);
-      ED_info_stats_clear(view_layer);
+      ED_info_stats_clear(wm, view_layer);
       WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
     }
 

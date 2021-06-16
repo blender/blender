@@ -90,13 +90,11 @@ struct RangeTask {
 
   void operator()(const tbb::blocked_range<int> &r) const
   {
-    tbb::this_task_arena::isolate([this, r] {
-      TaskParallelTLS tls;
-      tls.userdata_chunk = userdata_chunk;
-      for (int i = r.begin(); i != r.end(); ++i) {
-        func(userdata, i, &tls);
-      }
-    });
+    TaskParallelTLS tls;
+    tls.userdata_chunk = userdata_chunk;
+    for (int i = r.begin(); i != r.end(); ++i) {
+      func(userdata, i, &tls);
+    }
   }
 
   void join(const RangeTask &other)

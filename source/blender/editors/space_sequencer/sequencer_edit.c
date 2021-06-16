@@ -153,12 +153,18 @@ static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
 }
 
 /*
- * Check if there is animation attached to a strip, that is shown on the strip in the UI.
+ * Check if there is animation shown during playback.
  *
  * - Colors of color strips are displayed on the strip itself.
+ * - Backdrop is drawn.
  */
-bool ED_space_sequencer_has_visible_animation_on_strip(const struct Scene *scene)
+bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
+                                               const struct Scene *scene)
 {
+  if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
+    return true;
+  }
+
   if (!scene->adt) {
     return false;
   }
@@ -1977,7 +1983,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
   seqm->machine = active_seq ? active_seq->machine : channel_max;
   strcpy(seqm->name + 2, "MetaStrip");
-  SEQ_sequence_base_unique_name_recursive(&ed->seqbase, seqm);
+  SEQ_sequence_base_unique_name_recursive(scene, &ed->seqbase, seqm);
   seqm->start = meta_start_frame;
   seqm->len = meta_end_frame - meta_start_frame;
   SEQ_time_update_sequence(scene, seqm);

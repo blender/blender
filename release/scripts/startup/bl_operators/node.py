@@ -331,14 +331,15 @@ class NODE_OT_active_preview_toggle(Operator):
         active_node = ntree.nodes.active
 
         if active_node.active_preview:
-            self.disable_preview(context, ntree, active_node)
+            self._disable_preview(context, active_node)
         else:
-            self.enable_preview(context, node_editor, ntree, active_node)
+            self._enable_preview(context, node_editor, ntree, active_node)
 
         return {'FINISHED'}
 
-    def enable_preview(self, context, node_editor, ntree, active_node):
-        spreadsheets = self.find_unpinned_spreadsheets(context)
+    @classmethod
+    def _enable_preview(cls, context, node_editor, ntree, active_node):
+        spreadsheets = cls._find_unpinned_spreadsheets(context)
 
         for spreadsheet in spreadsheets:
             spreadsheet.set_geometry_node_context(node_editor, active_node)
@@ -347,14 +348,16 @@ class NODE_OT_active_preview_toggle(Operator):
             node.active_preview = False
         active_node.active_preview = True
 
-    def disable_preview(self, context, ntree, active_node):
-        spreadsheets = self.find_unpinned_spreadsheets(context)
+    @classmethod
+    def _disable_preview(cls, context, active_node):
+        spreadsheets = cls._find_unpinned_spreadsheets(context)
         for spreadsheet in spreadsheets:
             spreadsheet.context_path.clear()
 
         active_node.active_preview = False
 
-    def find_unpinned_spreadsheets(self, context):
+    @staticmethod
+    def _find_unpinned_spreadsheets(context):
         spreadsheets = []
         for window in context.window_manager.windows:
             for area in window.screen.areas:

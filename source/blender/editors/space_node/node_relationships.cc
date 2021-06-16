@@ -973,6 +973,8 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   float cursor[2];
 
+  UI_view2d_edge_pan_apply_event(C, &nldrag->pan_data, event);
+
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &cursor[0], &cursor[1]);
 
   switch (event->type) {
@@ -1130,6 +1132,8 @@ static int node_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   bNodeLinkDrag *nldrag = node_link_init(bmain, snode, cursor, detach);
 
   if (nldrag) {
+    UI_view2d_edge_pan_operator_init(C, &nldrag->pan_data, op);
+
     op->customdata = nldrag;
     BLI_addtail(&snode->runtime->linkdrag, nldrag);
 
@@ -1193,6 +1197,13 @@ void NODE_OT_link(wmOperatorType *ot)
                       UI_PRECISION_FLOAT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  UI_view2d_edge_pan_operator_properties_ex(ot,
+                                            NODE_EDGE_PAN_INSIDE_PAD,
+                                            NODE_EDGE_PAN_OUTSIDE_PAD,
+                                            NODE_EDGE_PAN_SPEED_RAMP,
+                                            NODE_EDGE_PAN_MAX_SPEED,
+                                            NODE_EDGE_PAN_DELAY);
 }
 
 /** \} */

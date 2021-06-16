@@ -696,12 +696,11 @@ static bool edit_constraint_poll_generic(bContext *C,
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   bConstraint *con = ptr.data;
 
-  if (!ob) {
-    CTX_wm_operator_poll_msg_set(C, "Context missing active object");
+  if (!ED_operator_object_active_editable_ex(C, ob)) {
     return false;
   }
 
-  if (ID_IS_LINKED(ob) || (ptr.owner_id && ID_IS_LINKED(ptr.owner_id))) {
+  if (ptr.owner_id != NULL && ID_IS_LINKED(ptr.owner_id)) {
     CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
     return false;
   }
@@ -1746,8 +1745,8 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
-  ot->poll = ED_operator_posemode_exclusive; /* XXX - do we want to ensure there are selected
-                                              * bones too? */
+  /* XXX - do we want to ensure there are selected bones too? */
+  ot->poll = ED_operator_object_active_local_editable_posemode_exclusive;
 }
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2480,7 +2479,7 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = pose_ik_clear_exec;
-  ot->poll = ED_operator_posemode_exclusive;
+  ot->poll = ED_operator_object_active_local_editable_posemode_exclusive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

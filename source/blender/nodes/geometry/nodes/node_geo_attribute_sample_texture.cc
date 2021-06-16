@@ -90,7 +90,7 @@ static void execute_on_component(GeometryComponent &component, const GeoNodeExec
       mapping_name, result_domain, {0, 0, 0});
 
   MutableSpan<ColorGeometry4f> colors = attribute_out.as_span();
-  parallel_for(IndexRange(mapping_attribute.size()), 128, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(mapping_attribute.size()), 128, [&](IndexRange range) {
     for (const int i : range) {
       TexResult texture_result = {0};
       const float3 position = mapping_attribute[i];

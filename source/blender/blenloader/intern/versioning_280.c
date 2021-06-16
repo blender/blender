@@ -1785,7 +1785,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
   for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {
-    SEQ_sequence_base_unique_name_recursive(&sce->ed->seqbase, seq);
+    SEQ_sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
     if (seq->seqbase.first != NULL) {
       do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
     }

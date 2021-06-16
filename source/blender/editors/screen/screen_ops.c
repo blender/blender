@@ -358,9 +358,24 @@ bool ED_operator_object_active(bContext *C)
   return ((ob != NULL) && !ed_object_hidden(ob));
 }
 
-bool ED_operator_object_active_editable_ex(bContext *UNUSED(C), const Object *ob)
+bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
 {
-  return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
+  if (ob == NULL) {
+    CTX_wm_operator_poll_msg_set(C, "Context missing active object");
+    return false;
+  }
+
+  if (ID_IS_LINKED(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit library linked object");
+    return false;
+  }
+
+  if (ed_object_hidden(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit hidden obect");
+    return false;
+  }
+
+  return true;
 }
 
 bool ED_operator_object_active_editable(bContext *C)
@@ -444,26 +459,46 @@ bool ED_operator_editarmature(bContext *C)
 }
 
 /**
- * \brief check for pose mode (no mixed modes)
+ * Check for pose mode (no mixed modes).
  *
- * We want to enable most pose operations in weight paint mode,
- * when it comes to transforming bones, but managing bones layers/groups
- * can be left for pose mode only. (not weight paint mode)
+ * We want to enable most pose operations in weight paint mode, when it comes to transforming
+ * bones, but managing bones layers/groups and their constraints can be left for pose mode only
+ * (not weight paint mode).
  */
-bool ED_operator_posemode_exclusive(bContext *C)
+static bool ed_operator_posemode_exclusive_ex(bContext *C, Object *obact)
 {
-  Object *obact = CTX_data_active_object(C);
-
-  if (obact && !(obact->mode & OB_MODE_EDIT)) {
-    Object *obpose = BKE_object_pose_armature_get(obact);
-    if (obpose != NULL) {
-      if (obact == obpose) {
-        return true;
-      }
+  if (obact != NULL && !(obact->mode & OB_MODE_EDIT)) {
+    if (obact == BKE_object_pose_armature_get(obact)) {
+      return true;
     }
   }
 
+  CTX_wm_operator_poll_msg_set(C, "No object, or not exclusively in pose mode");
   return false;
+}
+
+bool ED_operator_posemode_exclusive(bContext *C)
+{
+  Object *obact = ED_object_active_context(C);
+
+  return ed_operator_posemode_exclusive_ex(C, obact);
+}
+
+/** Object must be editable, fully local (i.e. not an override), and exclusively in Pose mode. */
+bool ED_operator_object_active_local_editable_posemode_exclusive(bContext *C)
+{
+  Object *obact = ED_object_active_context(C);
+
+  if (!ed_operator_posemode_exclusive_ex(C, obact)) {
+    return false;
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY(obact)) {
+    CTX_wm_operator_poll_msg_set(C, "Object is a local library override");
+    return false;
+  }
+
+  return true;
 }
 
 /* allows for pinned pose objects to be used in the object buttons
@@ -4453,7 +4488,8 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
     }
 
     if (area->spacetype == SPACE_SEQ) {
-      if (!ED_space_sequencer_has_visible_animation_on_strip(scene)) {
+      const SpaceSeq *sseq = area->spacedata.first;
+      if (!ED_space_sequencer_has_playback_animation(sseq, scene)) {
         return;
       }
     }

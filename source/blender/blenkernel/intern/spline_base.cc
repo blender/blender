@@ -209,10 +209,20 @@ static float3 rotate_direction_around_axis(const float3 &direction,
   return axis_scaled + diff * std::cos(angle) + cross * std::sin(angle);
 }
 
-static void calculate_normals_z_up(Span<float3> tangents, MutableSpan<float3> normals)
+static void calculate_normals_z_up(Span<float3> tangents, MutableSpan<float3> r_normals)
 {
-  for (const int i : normals.index_range()) {
-    normals[i] = float3::cross(tangents[i], float3(0.0f, 0.0f, 1.0f)).normalized();
+  BLI_assert(r_normals.size() == tangents.size());
+
+  /* Same as in `vec_to_quat`. */
+  const float epsilon = 1e-4f;
+  for (const int i : r_normals.index_range()) {
+    const float3 &tangent = tangents[i];
+    if (fabsf(tangent.x) + fabsf(tangent.y) < epsilon) {
+      r_normals[i] = {1.0f, 0.0f, 0.0f};
+    }
+    else {
+      r_normals[i] = float3(tangent.y, -tangent.x, 0.0f).normalized();
+    }
   }
 }
 
@@ -368,7 +378,7 @@ void Spline::sample_based_on_index_factors(const GVArray &src,
     using T = decltype(dummy);
     const GVArray_Typed<T> src_typed = src.typed<T>();
     MutableSpan<T> dst_typed = dst.typed<T>();
-    blender::parallel_for(dst_typed.index_range(), 1024, [&](IndexRange range) {
+    blender::threading::parallel_for(dst_typed.index_range(), 1024, [&](IndexRange range) {
       for (const int i : range) {
         const LookupResult interp = this->lookup_data_from_index_factor(index_factors[i]);
         dst_typed[i] = blender::attribute_math::mix2(interp.factor,

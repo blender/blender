@@ -29,3 +29,7 @@ void OBJECT_OT_lineart_clear(struct wmOperatorType *ot);
 void OBJECT_OT_lineart_clear_all(struct wmOperatorType *ot);
 
 void WM_operatortypes_lineart(void);
+
+struct LineartCache;
+
+void MOD_lineart_clear_cache(struct LineartCache **lc);

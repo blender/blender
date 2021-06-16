@@ -352,7 +352,7 @@ class GeometryNodesEvaluator {
    *   on cache line boundaries. Note, just because a value is allocated in one specific thread,
    *   does not mean that it will only be used by that thread.
    */
-  EnumerableThreadSpecific<LinearAllocator<>> local_allocators_;
+  threading::EnumerableThreadSpecific<LinearAllocator<>> local_allocators_;
 
   /**
    * Every node that is reachable from the output gets its own state. Once all states have been
@@ -380,7 +380,7 @@ class GeometryNodesEvaluator {
 
   void execute()
   {
-    task_pool_ = BLI_task_pool_create(this, TASK_PRIORITY_HIGH, TASK_ISOLATION_OFF);
+    task_pool_ = BLI_task_pool_create(this, TASK_PRIORITY_HIGH);
 
     this->create_states_for_reachable_nodes();
     this->forward_group_inputs();
@@ -426,12 +426,13 @@ class GeometryNodesEvaluator {
     /* Initialize the more complex parts of the node states in parallel. At this point no new
      * node states are added anymore, so it is safe to lookup states from `node_states_` from
      * multiple threads. */
-    parallel_for(IndexRange(node_states_.size()), 50, [&, this](const IndexRange range) {
-      LinearAllocator<> &allocator = this->local_allocators_.local();
-      for (const NodeWithState &item : node_states_.as_span().slice(range)) {
-        this->initialize_node_state(item.node, *item.state, allocator);
-      }
-    });
+    threading::parallel_for(
+        IndexRange(node_states_.size()), 50, [&, this](const IndexRange range) {
+          LinearAllocator<> &allocator = this->local_allocators_.local();
+          for (const NodeWithState &item : node_states_.as_span().slice(range)) {
+            this->initialize_node_state(item.node, *item.state, allocator);
+          }
+        });
   }
 
   void initialize_node_state(const DNode node, NodeState &node_state, LinearAllocator<> &allocator)
@@ -507,11 +508,12 @@ class GeometryNodesEvaluator {
 
   void destruct_node_states()
   {
-    parallel_for(IndexRange(node_states_.size()), 50, [&, this](const IndexRange range) {
-      for (const NodeWithState &item : node_states_.as_span().slice(range)) {
-        this->destruct_node_state(item.node, *item.state);
-      }
-    });
+    threading::parallel_for(
+        IndexRange(node_states_.size()), 50, [&, this](const IndexRange range) {
+          for (const NodeWithState &item : node_states_.as_span().slice(range)) {
+            this->destruct_node_state(item.node, *item.state);
+          }
+        });
   }
 
   void destruct_node_state(const DNode node, NodeState &node_state)

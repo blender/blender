@@ -2930,6 +2930,14 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Baked", "This modifier has baked data");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_GPENCIL_USE_CACHE);
+  RNA_def_property_ui_text(prop,
+                           "Use Cache",
+                           "Use cached scene data from the first line art modifier in the stack. "
+                           "Certain settings will be unavailable");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
   RNA_def_property_ui_range(prop, 1, 100, 1, 1);

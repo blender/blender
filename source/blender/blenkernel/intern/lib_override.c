@@ -2335,8 +2335,7 @@ bool BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   }
 
   struct LibOverrideOpCreateData create_pool_data = {.bmain = bmain, .changed = false};
-  TaskPool *task_pool = BLI_task_pool_create(
-      &create_pool_data, TASK_PRIORITY_HIGH, TASK_ISOLATION_ON);
+  TaskPool *task_pool = BLI_task_pool_create(&create_pool_data, TASK_PRIORITY_HIGH);
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&

@@ -172,6 +172,8 @@ static SpaceLink *graph_duplicate(SpaceLink *sl)
 {
   SpaceGraph *sipon = MEM_dupallocN(sl);
 
+  memset(&sipon->runtime, 0x0, sizeof(sipon->runtime));
+
   /* clear or remove stuff from old */
   BLI_duplicatelist(&sipon->runtime.ghost_curves, &((SpaceGraph *)sl)->runtime.ghost_curves);
   sipon->ads = MEM_dupallocN(sipon->ads);

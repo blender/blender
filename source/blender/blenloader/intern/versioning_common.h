@@ -15,23 +15,23 @@
  */
 
 /** \file
- * \ingroup bpygpu
+ * \ingroup blenloader
  */
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
+struct ARegion;
+struct ListBase;
 
-extern PyTypeObject BPyGPUOffScreen_Type;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define BPyGPUOffScreen_Check(v) (Py_TYPE(v) == &BPyGPUOffScreen_Type)
+struct ARegion *do_versions_add_region_if_not_found(struct ListBase *regionbase,
+                                                    int region_type,
+                                                    const char *name,
+                                                    int link_after_region_type);
 
-struct GPUOffscreen;
-struct GPUViewport;
-
-typedef struct BPyGPUOffScreen {
-  PyObject_HEAD struct GPUOffScreen *ofs;
-  struct GPUViewport *viewport;
-} BPyGPUOffScreen;
-
-PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
+#ifdef __cplusplus
+}
+#endif

@@ -42,7 +42,8 @@ bool ED_space_sequencer_maskedit_poll(struct bContext *C);
 
 bool ED_space_sequencer_check_show_imbuf(struct SpaceSeq *sseq);
 bool ED_space_sequencer_check_show_strip(struct SpaceSeq *sseq);
-bool ED_space_sequencer_has_visible_animation_on_strip(const struct Scene *scene);
+bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
+                                               const struct Scene *scene);
 
 void ED_operatormacros_sequencer(void);
 

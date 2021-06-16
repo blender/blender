@@ -87,7 +87,7 @@ static void reserve_hash_maps(const Mesh *mesh,
                               MutableSpan<EdgeMap> edge_maps)
 {
   const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
-  parallel_for_each(
+  threading::parallel_for_each(
       edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
 }
 
@@ -96,7 +96,7 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
                                             uint32_t parallel_mask)
 {
   /* Assume existing edges are valid. */
-  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+  threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - &edge_maps[0];
     for (const MEdge &edge : Span(mesh->medge, mesh->totedge)) {
       OrderedEdge ordered_edge{edge.v1, edge.v2};
@@ -113,7 +113,7 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
                                            uint32_t parallel_mask)
 {
   const Span<MLoop> loops{mesh->mloop, mesh->totloop};
-  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+  threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - &edge_maps[0];
     for (const MPoly &poly : Span(mesh->mpoly, mesh->totpoly)) {
       Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
@@ -146,7 +146,7 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
     edge_index_offsets[i + 1] = edge_index_offsets[i] + edge_maps[i].size();
   }
 
-  parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
+  threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - &edge_maps[0];
 
     int new_edge_index = edge_index_offsets[task_index];
@@ -174,7 +174,7 @@ static void update_edge_indices_in_poly_loops(Mesh *mesh,
                                               uint32_t parallel_mask)
 {
   const MutableSpan<MLoop> loops{mesh->mloop, mesh->totloop};
-  parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(mesh->totpoly), 100, [&](IndexRange range) {
     for (const int poly_index : range) {
       MPoly &poly = mesh->mpoly[poly_index];
       MutableSpan<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
@@ -215,7 +215,7 @@ static int get_parallel_maps_count(const Mesh *mesh)
 
 static void clear_hash_tables(MutableSpan<EdgeMap> edge_maps)
 {
-  parallel_for_each(edge_maps, [](EdgeMap &edge_map) { edge_map.clear(); });
+  threading::parallel_for_each(edge_maps, [](EdgeMap &edge_map) { edge_map.clear(); });
 }
 
 }  // namespace blender::bke::calc_edges

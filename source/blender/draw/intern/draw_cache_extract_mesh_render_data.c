@@ -39,15 +39,26 @@
 #include "draw_cache_extract_mesh_private.h"
 
 /* ---------------------------------------------------------------------- */
-/** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
+/** \name Update Loose Geometry
  * \{ */
+
+static void mesh_render_data_lverts_bm(const MeshRenderData *mr,
+                                       MeshBufferExtractionCache *cache,
+                                       BMesh *bm);
+static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
+                                       MeshBufferExtractionCache *cache,
+                                       BMesh *bm);
+static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr,
+                                             MeshBufferExtractionCache *cache);
+static void mesh_render_data_loose_geom_build(const MeshRenderData *mr,
+                                              MeshBufferExtractionCache *cache);
 
 static void mesh_render_data_loose_geom_load(MeshRenderData *mr, MeshBufferExtractionCache *cache)
 {
-  mr->ledges = cache->ledges;
-  mr->lverts = cache->lverts;
-  mr->vert_loose_len = cache->vert_loose_len;
-  mr->edge_loose_len = cache->edge_loose_len;
+  mr->ledges = cache->loose_geom.edges;
+  mr->lverts = cache->loose_geom.verts;
+  mr->vert_loose_len = cache->loose_geom.vert_len;
+  mr->edge_loose_len = cache->loose_geom.edge_len;
 
   mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
 }
@@ -57,73 +68,211 @@ static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr,
 {
   /* Early exit: Are loose geometry already available. Only checking for loose verts as loose edges
    * and verts are calculated at the same time.*/
-  if (cache->lverts) {
+  if (cache->loose_geom.verts) {
     return;
   }
+  mesh_render_data_loose_geom_build(mr, cache);
+}
 
-  cache->vert_loose_len = 0;
-  cache->edge_loose_len = 0;
+static void mesh_render_data_loose_geom_build(const MeshRenderData *mr,
+                                              MeshBufferExtractionCache *cache)
+{
+  cache->loose_geom.vert_len = 0;
+  cache->loose_geom.edge_len = 0;
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-
-    BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
-
-    cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
-    const MEdge *med = mr->medge;
-    for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
-      if (med->flag & ME_LOOSEEDGE) {
-        cache->ledges[cache->edge_loose_len++] = med_index;
-      }
-      /* Tag verts as not loose. */
-      BLI_BITMAP_ENABLE(lvert_map, med->v1);
-      BLI_BITMAP_ENABLE(lvert_map, med->v2);
-    }
-    if (cache->edge_loose_len < mr->edge_len) {
-      cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
-    }
-
-    cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*mr->lverts), __func__);
-    for (int v = 0; v < mr->vert_len; v++) {
-      if (!BLI_BITMAP_TEST(lvert_map, v)) {
-        cache->lverts[cache->vert_loose_len++] = v;
-      }
-    }
-    if (cache->vert_loose_len < mr->vert_len) {
-      cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
-    }
-
-    MEM_freeN(lvert_map);
+    mesh_render_data_loose_geom_mesh(mr, cache);
   }
   else {
     /* #BMesh */
     BMesh *bm = mr->bm;
-    int elem_id;
-    BMIter iter;
-    BMVert *eve;
-    BMEdge *ede;
+    mesh_render_data_lverts_bm(mr, cache, bm);
+    mesh_render_data_ledges_bm(mr, cache, bm);
+  }
+}
 
-    cache->lverts = MEM_mallocN(mr->vert_len * sizeof(*cache->lverts), __func__);
-    BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
-      if (eve->e == NULL) {
-        cache->lverts[cache->vert_loose_len++] = elem_id;
-      }
-    }
-    if (cache->vert_loose_len < mr->vert_len) {
-      cache->lverts = MEM_reallocN(cache->lverts, cache->vert_loose_len * sizeof(*cache->lverts));
-    }
+static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr,
+                                             MeshBufferExtractionCache *cache)
+{
+  BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
 
-    cache->ledges = MEM_mallocN(mr->edge_len * sizeof(*cache->ledges), __func__);
-    BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
-      if (ede->l == NULL) {
-        cache->ledges[cache->edge_loose_len++] = elem_id;
-      }
+  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
+  const MEdge *med = mr->medge;
+  for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
+    if (med->flag & ME_LOOSEEDGE) {
+      cache->loose_geom.edges[cache->loose_geom.edge_len++] = med_index;
     }
-    if (cache->edge_loose_len < mr->edge_len) {
-      cache->ledges = MEM_reallocN(cache->ledges, cache->edge_loose_len * sizeof(*cache->ledges));
+    /* Tag verts as not loose. */
+    BLI_BITMAP_ENABLE(lvert_map, med->v1);
+    BLI_BITMAP_ENABLE(lvert_map, med->v2);
+  }
+  if (cache->loose_geom.edge_len < mr->edge_len) {
+    cache->loose_geom.edges = MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
+  }
+
+  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
+  for (int v = 0; v < mr->vert_len; v++) {
+    if (!BLI_BITMAP_TEST(lvert_map, v)) {
+      cache->loose_geom.verts[cache->loose_geom.vert_len++] = v;
+    }
+  }
+  if (cache->loose_geom.vert_len < mr->vert_len) {
+    cache->loose_geom.verts = MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
+  }
+
+  MEM_freeN(lvert_map);
+}
+
+static void mesh_render_data_lverts_bm(const MeshRenderData *mr,
+                                       MeshBufferExtractionCache *cache,
+                                       BMesh *bm)
+{
+  int elem_id;
+  BMIter iter;
+  BMVert *eve;
+  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
+  BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
+    if (eve->e == NULL) {
+      cache->loose_geom.verts[cache->loose_geom.vert_len++] = elem_id;
+    }
+  }
+  if (cache->loose_geom.vert_len < mr->vert_len) {
+    cache->loose_geom.verts = MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
+  }
+}
+
+static void mesh_render_data_ledges_bm(const MeshRenderData *mr,
+                                       MeshBufferExtractionCache *cache,
+                                       BMesh *bm)
+{
+  int elem_id;
+  BMIter iter;
+  BMEdge *ede;
+  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
+  BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
+    if (ede->l == NULL) {
+      cache->loose_geom.edges[cache->loose_geom.edge_len++] = elem_id;
+    }
+  }
+  if (cache->loose_geom.edge_len < mr->edge_len) {
+    cache->loose_geom.edges = MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
+  }
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Material Offsets
+ *
+ * Material offsets contains the offset of a material after sorting tris based on their material.
+ *
+ * \{ */
+static void mesh_render_data_mat_offset_load(MeshRenderData *mr,
+                                             const MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_ensure(MeshRenderData *mr,
+                                               MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build(MeshRenderData *mr,
+                                              MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build_bm(MeshRenderData *mr,
+                                                 MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_build_mesh(MeshRenderData *mr,
+                                                   MeshBufferExtractionCache *cache);
+static void mesh_render_data_mat_offset_apply_offset(MeshRenderData *mr,
+                                                     MeshBufferExtractionCache *cache);
+
+void mesh_render_data_update_mat_offsets(MeshRenderData *mr,
+                                         MeshBufferExtractionCache *cache,
+                                         const eMRDataType data_flag)
+{
+  if (data_flag & MR_DATA_MAT_OFFSETS) {
+    mesh_render_data_mat_offset_ensure(mr, cache);
+    mesh_render_data_mat_offset_load(mr, cache);
+  }
+}
+
+static void mesh_render_data_mat_offset_load(MeshRenderData *mr,
+                                             const MeshBufferExtractionCache *cache)
+{
+  mr->mat_offsets.tri = cache->mat_offsets.tri;
+  mr->mat_offsets.visible_tri_len = cache->mat_offsets.visible_tri_len;
+}
+
+static void mesh_render_data_mat_offset_ensure(MeshRenderData *mr,
+                                               MeshBufferExtractionCache *cache)
+{
+  if (cache->mat_offsets.tri) {
+    return;
+  }
+  mesh_render_data_mat_offset_build(mr, cache);
+}
+
+static void mesh_render_data_mat_offset_build(MeshRenderData *mr, MeshBufferExtractionCache *cache)
+{
+  size_t mat_tri_idx_size = sizeof(int) * mr->mat_len;
+  cache->mat_offsets.tri = MEM_callocN(mat_tri_idx_size, __func__);
+
+  /* Count how many triangles for each material. */
+  if (mr->extract_type == MR_EXTRACT_BMESH) {
+    mesh_render_data_mat_offset_build_bm(mr, cache);
+  }
+  else {
+    mesh_render_data_mat_offset_build_mesh(mr, cache);
+  }
+
+  mesh_render_data_mat_offset_apply_offset(mr, cache);
+}
+
+static void mesh_render_data_mat_offset_build_bm(MeshRenderData *mr,
+                                                 MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  BMIter iter;
+  BMFace *efa;
+  BM_ITER_MESH (efa, &iter, mr->bm, BM_FACES_OF_MESH) {
+    if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      int mat = min_ii(efa->mat_nr, mr->mat_len - 1);
+      mat_tri_len[mat] += efa->len - 2;
     }
   }
 }
+
+static void mesh_render_data_mat_offset_build_mesh(MeshRenderData *mr,
+                                                   MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  const MPoly *mp = mr->mpoly;
+  for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
+    if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+      int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
+      mat_tri_len[mat] += mp->totloop - 2;
+    }
+  }
+}
+
+static void mesh_render_data_mat_offset_apply_offset(MeshRenderData *mr,
+                                                     MeshBufferExtractionCache *cache)
+{
+  int *mat_tri_len = cache->mat_offsets.tri;
+  int ofs = mat_tri_len[0];
+  mat_tri_len[0] = 0;
+  for (int i = 1; i < mr->mat_len; i++) {
+    int tmp = mat_tri_len[i];
+    mat_tri_len[i] = ofs;
+    ofs += tmp;
+  }
+  cache->mat_offsets.visible_tri_len = ofs;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
+ * \{ */
 
 /**
  * Part of the creation of the #MeshRenderData that happens in a thread.
@@ -159,16 +308,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr->poly_normals = MEM_mallocN(sizeof(*mr->poly_normals) * mr->poly_len, __func__);
-      BKE_mesh_calc_normals_poly((MVert *)mr->mvert,
-                                 NULL,
-                                 mr->vert_len,
-                                 mr->mloop,
-                                 mr->mpoly,
-                                 mr->loop_len,
-                                 mr->poly_len,
-                                 mr->poly_normals,
-                                 true);
+      BKE_mesh_ensure_normals_for_display(mr->me);
+      mr->poly_normals = CustomData_get_layer(&mr->me->pdata, CD_NORMAL);
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
@@ -358,7 +499,6 @@ MeshRenderData *mesh_render_data_create(Mesh *me,
 void mesh_render_data_free(MeshRenderData *mr)
 {
   MEM_SAFE_FREE(mr->mlooptri);
-  MEM_SAFE_FREE(mr->poly_normals);
   MEM_SAFE_FREE(mr->loop_normals);
 
   /* Loose geometry are owned by MeshBufferExtractionCache. */

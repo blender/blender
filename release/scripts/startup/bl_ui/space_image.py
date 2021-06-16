@@ -914,6 +914,12 @@ class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
     bl_category = "Mask"
 
 
+class IMAGE_PT_mask_display(MASK_PT_display, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Mask"
+
+
 # --- end mask ---
 
 class IMAGE_PT_snapping(Panel):
@@ -1616,6 +1622,7 @@ classes = (
     IMAGE_PT_active_tool,
     IMAGE_PT_mask,
     IMAGE_PT_mask_layers,
+    IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
     IMAGE_PT_active_mask_point,
     IMAGE_PT_snapping,

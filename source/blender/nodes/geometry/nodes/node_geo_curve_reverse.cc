@@ -76,7 +76,7 @@ static void geo_node_curve_reverse_exec(GeoNodeExecParams params)
   GVArray_Typed<bool> selection = curve_component.attribute_get_for_read(
       selection_name, ATTR_DOMAIN_CURVE, true);
 
-  parallel_for(splines.index_range(), 128, [&](IndexRange range) {
+  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
     for (const int i : range) {
       if (!selection[i]) {
         continue;

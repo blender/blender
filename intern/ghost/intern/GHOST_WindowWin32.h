@@ -55,9 +55,6 @@ typedef BOOL(API *GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
 // typedefs for user32 functions to allow dynamic loading of Windows 10 DPI scaling functions
 typedef UINT(API *GHOST_WIN32_GetDpiForWindow)(HWND);
-#ifndef USER_DEFAULT_SCREEN_DPI
-#  define USER_DEFAULT_SCREEN_DPI 96
-#endif  // USER_DEFAULT_SCREEN_DPI
 
 struct GHOST_PointerInfoWin32 {
   GHOST_TInt32 pointerId;

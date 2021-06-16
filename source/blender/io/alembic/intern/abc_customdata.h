@@ -122,4 +122,14 @@ void read_custom_data(const std::string &iobject_full_name,
                       const CDStreamConfig &config,
                       const Alembic::Abc::ISampleSelector &iss);
 
+typedef enum {
+  ABC_UV_SCOPE_NONE,
+  ABC_UV_SCOPE_LOOP,
+  ABC_UV_SCOPE_VERTEX,
+} AbcUvScope;
+
+AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
+                        const CDStreamConfig &config,
+                        const Alembic::AbcGeom::UInt32ArraySamplePtr &indices);
+
 }  // namespace blender::io::alembic

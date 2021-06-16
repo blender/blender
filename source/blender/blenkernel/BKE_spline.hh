@@ -337,13 +337,14 @@ class BezierSpline final : public Spline {
   virtual blender::fn::GVArrayPtr interpolate_to_evaluated_points(
       const blender::fn::GVArray &source_data) const override;
 
+  void evaluate_segment(const int index,
+                        const int next_index,
+                        blender::MutableSpan<blender::float3> positions) const;
+  bool segment_is_vector(const int start_index) const;
+
  private:
   void ensure_auto_handles() const;
   void correct_end_tangents() const final;
-  bool segment_is_vector(const int start_index) const;
-  void evaluate_bezier_segment(const int index,
-                               const int next_index,
-                               blender::MutableSpan<blender::float3> positions) const;
 };
 
 /**
@@ -535,6 +536,7 @@ struct CurveEval {
   blender::Span<SplinePtr> splines() const;
   blender::MutableSpan<SplinePtr> splines();
 
+  void resize(const int size);
   void add_spline(SplinePtr spline);
   void remove_splines(blender::IndexMask mask);
 

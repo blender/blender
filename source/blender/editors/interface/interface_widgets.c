@@ -2131,14 +2131,15 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   transopts = ui_translate_buttons();
 #endif
 
+  bool use_drawstr_right_as_hint = false;
+
   /* cut string in 2 parts - only for menu entries */
-  if ((but->drawflag & UI_BUT_HAS_SHORTCUT) && (but->editstr == NULL)) {
-    if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-      drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
-      if (drawstr_right) {
-        drawstr_left_len = (drawstr_right - drawstr);
-        drawstr_right++;
-      }
+  if (but->flag & UI_BUT_HAS_SEP_CHAR && (but->editstr == NULL)) {
+    drawstr_right = strrchr(drawstr, UI_SEP_CHAR);
+    if (drawstr_right) {
+      use_drawstr_right_as_hint = true;
+      drawstr_left_len = (drawstr_right - drawstr);
+      drawstr_right++;
     }
   }
 
@@ -2243,7 +2244,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   if (drawstr_right) {
     uchar col[4];
     copy_v4_v4_uchar(col, wcol->text);
-    if (but->drawflag & UI_BUT_HAS_SHORTCUT) {
+    if (use_drawstr_right_as_hint) {
       col[3] *= 0.5f;
     }
 

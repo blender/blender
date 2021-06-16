@@ -189,7 +189,7 @@ static void add_instances_from_component(InstancesComponent &instances,
    * (anything except for collection mode with "Whole Collection" turned off). */
   if (possible_handles.size() == 1) {
     const int handle = possible_handles.first();
-    parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
+    threading::parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
       for (const int i : range) {
         handles[i] = handle;
         transforms[i] = float4x4::from_loc_eul_scale(positions[i], rotations[i], scales[i]);
@@ -200,7 +200,7 @@ static void add_instances_from_component(InstancesComponent &instances,
   else {
     const int seed = params.get_input<int>("Seed");
     Array<uint32_t> ids = get_geometry_element_ids_as_uints(src_geometry, ATTR_DOMAIN_POINT);
-    parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
+    threading::parallel_for(IndexRange(domain_size), 1024, [&](IndexRange range) {
       for (const int i : range) {
         const int index = BLI_hash_int_2d(ids[i], seed) % possible_handles.size();
         const int handle = possible_handles[index];

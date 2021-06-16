@@ -1365,7 +1365,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     wmOperatorType *ot = WM_operatortype_find("VIEW2D_OT_edge_pan", true);
     PointerRNA op_ptr;
     WM_operator_properties_create_ptr(&op_ptr, ot);
-    RNA_int_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
+    RNA_float_set(&op_ptr, "outside_padding", OUTLINER_DRAG_SCOLL_OUTSIDE_PAD);
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
     WM_operator_properties_free(&op_ptr);
   }

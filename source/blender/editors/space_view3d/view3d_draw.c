@@ -1537,7 +1537,9 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   }
 
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0 && (v3d->overlay.flag & V3D_OVERLAY_STATS)) {
-    ED_info_draw_stats(bmain, scene, view_layer, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
+    View3D *v3d_local = v3d->localvd ? v3d : NULL;
+    ED_info_draw_stats(
+        bmain, scene, view_layer, v3d_local, xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);
   }
 
   BLF_batch_draw_end();

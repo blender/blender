@@ -42,6 +42,12 @@ blender::MutableSpan<SplinePtr> CurveEval::splines()
   return splines_;
 }
 
+void CurveEval::resize(const int size)
+{
+  splines_.resize(size);
+  attributes.reallocate(size);
+}
+
 /**
  * \warning Call #reallocate on the spline's attributes after adding all splines.
  */
