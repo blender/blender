@@ -393,19 +393,23 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3d_local)
+static void stats_update(Depsgraph *depsgraph,
+                         ViewLayer *view_layer,
+                         View3D *v3d_local,
+                         SceneStats *stats)
 {
-  SceneStats stats = {0};
   const Object *ob = OBACT(view_layer);
   const Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+
+  memset(stats, 0x0, sizeof(*stats));
 
   if (obedit) {
     /* Edit Mode. */
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
       if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
         if (ob_iter->mode & OB_MODE_EDIT) {
-          stats_object_edit(ob_iter, &stats);
-          stats.totobjsel++;
+          stats_object_edit(ob_iter, stats);
+          stats->totobjsel++;
         }
         else {
           /* Skip hidden objects in local view that are not in edit-mode,
@@ -414,7 +418,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3
             continue;
           }
         }
-        stats.totobj++;
+        stats->totobj++;
       }
     }
     FOREACH_OBJECT_END;
@@ -424,8 +428,8 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3
     FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
       if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
         if (ob_iter->mode & OB_MODE_POSE) {
-          stats_object_pose(ob_iter, &stats);
-          stats.totobjsel++;
+          stats_object_pose(ob_iter, stats);
+          stats->totobjsel++;
         }
         else {
           /* See comment for edit-mode. */
@@ -433,7 +437,7 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3
             continue;
           }
         }
-        stats.totobj++;
+        stats->totobj++;
       }
     }
     FOREACH_OBJECT_END;
@@ -446,31 +450,17 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3
     }
     else {
       /* When dynamic topology is not enabled both sculpt stats and scene stats are collected. */
-      stats_object_sculpt(ob, &stats);
+      stats_object_sculpt(ob, stats);
     }
   }
   else {
     /* Objects. */
     GSet *objects_gset = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN (depsgraph, ob_iter) {
-      stats_object(ob_iter, v3d_local, &stats, objects_gset);
+      stats_object(ob_iter, v3d_local, stats, objects_gset);
     }
     DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
     BLI_gset_free(objects_gset, NULL);
-  }
-
-  if (v3d_local) {
-    BLI_assert(v3d_local->localvd != NULL);
-    if (v3d_local->runtime.local_stats == NULL) {
-      v3d_local->runtime.local_stats = MEM_mallocN(sizeof(SceneStats), "LocalStats");
-    }
-    *v3d_local->runtime.local_stats = stats;
-  }
-  else {
-    if (!view_layer->stats) {
-      view_layer->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
-    }
-    *view_layer->stats = stats;
   }
 }
 
@@ -510,7 +500,8 @@ static bool format_stats(
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
-    stats_update(depsgraph, view_layer, v3d_local);
+    *stats_p = MEM_mallocN(sizeof(SceneStats), __func__);
+    stats_update(depsgraph, view_layer, v3d_local, *stats_p);
   }
 
   SceneStats *stats = *stats_p;
