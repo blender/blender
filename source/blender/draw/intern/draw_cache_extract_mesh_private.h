@@ -91,7 +91,7 @@ extern "C" {
 #  define MDEPS_ASSERT_MAP(name) BLI_assert(MDEP_assert_##name == MDEP_##name)
 #else
 #  define MDEPS_ASSERT(...)
-#  define MDEPS_ASSERT_MAP(name)
+#  define MDEPS_ASSERT_MAP(name) UNUSED_VARS(MDEP_##name)
 #endif
 
 /* clang-format on */
