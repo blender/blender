@@ -133,7 +133,12 @@ static int edbm_fair_vertices_exec(bContext *C, wmOperator *op)
     MEM_freeN(fairing_mask);
 
     EDBM_mesh_normals_update(em);
-    EDBM_update_generic(obedit->data, true, true);
+    EDBM_update(obedit->data,
+                &(const struct EDBMUpdate_Params){
+                    .calc_looptri = false,
+                    .calc_normals = true,
+                    .is_destructive = true,
+                });
   }
 
   MEM_freeN(objects);
