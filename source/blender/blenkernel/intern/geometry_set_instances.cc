@@ -650,9 +650,16 @@ static void join_instance_groups_pointcloud(Span<GeometryInstanceGroup> set_grou
 static void join_instance_groups_volume(Span<GeometryInstanceGroup> set_groups,
                                         GeometrySet &result)
 {
-  /* Not yet supported. Joining volume grids with the same name requires resampling of at least
-   * one of the grids. The cell size of the resulting volume has to be determined somehow. */
-  UNUSED_VARS(set_groups, result);
+  /* Not yet supported; for now only return the first volume. Joining volume grids with the same
+   * name requires resampling of at least one of the grids. The cell size of the resulting volume
+   * has to be determined somehow. */
+  for (const GeometryInstanceGroup &set_group : set_groups) {
+    const GeometrySet &set = set_group.geometry_set;
+    if (set.has<VolumeComponent>()) {
+      result.add(*set.get_component_for_read<VolumeComponent>());
+      return;
+    }
+  }
 }
 
 static void join_instance_groups_curve(Span<GeometryInstanceGroup> set_groups, GeometrySet &result)
