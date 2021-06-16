@@ -421,7 +421,22 @@ static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer, View3D *v3
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
     /* Pose Mode. */
-    stats_object_pose(ob, &stats);
+    FOREACH_OBJECT_BEGIN (view_layer, ob_iter) {
+      if (ob_iter->base_flag & BASE_VISIBLE_VIEWLAYER) {
+        if (ob_iter->mode & OB_MODE_POSE) {
+          stats_object_pose(ob_iter, &stats);
+          stats.totobjsel++;
+        }
+        else {
+          /* See comment for edit-mode. */
+          if ((v3d_local && !BKE_object_is_visible_in_viewport(v3d_local, ob_iter))) {
+            continue;
+          }
+        }
+        stats.totobj++;
+      }
+    }
+    FOREACH_OBJECT_END;
   }
   else if (ob && (ob->mode & OB_MODE_SCULPT)) {
     /* Sculpt Mode. */
@@ -791,8 +806,8 @@ void ED_info_draw_stats(
   }
 
   if (obedit) {
+    stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
     if (obedit->type == OB_MESH) {
-      stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
       stats_row(col1, labels[VERTS], col2, stats_fmt.totvertsel, stats_fmt.totvert, y, height);
       stats_row(col1, labels[EDGES], col2, stats_fmt.totedgesel, stats_fmt.totedge, y, height);
       stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
@@ -807,6 +822,7 @@ void ED_info_draw_stats(
     }
   }
   else if (ob && (object_mode & OB_MODE_POSE)) {
+    stats_row(col1, labels[OBJ], col2, stats_fmt.totobjsel, stats_fmt.totobj, y, height);
     stats_row(col1, labels[BONES], col2, stats_fmt.totbonesel, stats_fmt.totbone, y, height);
   }
   else if ((ob) && (ob->type == OB_GPENCIL)) {
