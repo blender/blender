@@ -31,6 +31,7 @@
 #  include <tbb/blocked_range.h>
 #  include <tbb/parallel_for.h>
 #  include <tbb/parallel_for_each.h>
+#  include <tbb/task_arena.h>
 #  ifdef WIN32
 /* We cannot keep this defined, since other parts of the code deal with this on their own, leading
  * to multiple define warnings unless we un-define this, however we can only undefine this if we
@@ -72,6 +73,16 @@ void parallel_for(IndexRange range, int64_t grain_size, const Function &function
 #else
   UNUSED_VARS(grain_size);
   function(range);
+#endif
+}
+
+/** See #BLI_task_isolate for a description of what isolating a task means. */
+template<typename Function> void isolate_task(const Function &function)
+{
+#ifdef WITH_TBB
+  tbb::this_task_arena::isolate(function);
+#else
+  function();
 #endif
 }
 
