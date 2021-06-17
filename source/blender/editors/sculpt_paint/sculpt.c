@@ -1146,10 +1146,9 @@ void SCULPT_floodfill_add_active(
       v = SCULPT_active_vertex_get(ss);
     }
     else if (radius > 0.0f) {
-      float radius_squared = (radius == FLT_MAX) ? FLT_MAX : radius * radius;
       float location[3];
       flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), i);
-      v = SCULPT_nearest_vertex_get(sd, ob, location, radius_squared, false);
+      v = SCULPT_nearest_vertex_get(sd, ob, location, radius, false);
     }
 
     if (v != -1) {
