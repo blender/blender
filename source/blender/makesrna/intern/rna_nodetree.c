@@ -502,13 +502,11 @@ static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_float
     ITEM_FLOAT,
     {0, NULL, 0, NULL, NULL},
 };
-#  if 0 /* UNUSED */
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_int[] = {
     ITEM_ATTRIBUTE,
     ITEM_INTEGER,
     {0, NULL, 0, NULL, NULL},
 };
-#  endif
 static const EnumPropertyItem rna_node_geometry_attribute_input_type_items_no_boolean[] = {
     ITEM_ATTRIBUTE,
     ITEM_FLOAT,
@@ -9858,6 +9856,18 @@ static void def_geo_curve_resample(StructRNA *srna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, mode_items);
   RNA_def_property_ui_text(prop, "Mode", "How to specify the amount of samples");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
+static void def_geo_curve_subdivide(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSubdivide", "storage");
+
+  prop = RNA_def_property(srna, "cuts_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_node_geometry_attribute_input_type_items_int);
+  RNA_def_property_ui_text(prop, "Cuts Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
