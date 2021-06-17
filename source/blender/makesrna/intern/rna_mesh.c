@@ -206,17 +206,22 @@ static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
 }
 
 /* -------------------------------------------------------------------- */
-/* Update Callbacks */
+/** \name Update Callbacks
+ *
+ * \note Skipping meshes without users is a simple way to avoid updates on newly created meshes.
+ * This speeds up importers that manipulate mesh data before linking it to an object & collection.
+ *
+ * \{ */
 
 static void rna_Mesh_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-
-  /* cheating way for importers to avoid slow updates */
-  if (id->us > 0) {
-    DEG_id_tag_update(id, 0);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  if (id->us <= 0) { /* See note in section heading. */
+    return;
   }
+
+  DEG_id_tag_update(id, 0);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
 static void rna_Mesh_update_data_edit_weight(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -235,19 +240,21 @@ static void rna_Mesh_update_data_edit_active_color(Main *bmain, Scene *scene, Po
 static void rna_Mesh_update_select(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  /* cheating way for importers to avoid slow updates */
-  if (id->us > 0) {
-    WM_main_add_notifier(NC_GEOM | ND_SELECT, id);
+  if (id->us <= 0) { /* See note in section heading. */
+    return;
   }
+
+  WM_main_add_notifier(NC_GEOM | ND_SELECT, id);
 }
 
 void rna_Mesh_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-  /* cheating way for importers to avoid slow updates */
-  if (id->us > 0) {
-    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  if (id->us <= 0) { /* See note in section heading. */
+    return;
   }
+
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
 static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -273,6 +280,8 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 
   rna_Mesh_update_draw(bmain, scene, ptr);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /* Property get/set Callbacks  */
