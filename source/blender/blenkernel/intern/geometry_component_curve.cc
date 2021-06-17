@@ -1011,9 +1011,10 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
       return false;
     }
 
+    /* Reuse the boolean for all splines; we expect all splines to have the same attributes. */
     bool layer_freed = false;
     for (SplinePtr &spline : curve->splines()) {
-      spline->attributes.remove(attribute_name);
+      layer_freed = spline->attributes.remove(attribute_name);
     }
     return layer_freed;
   }
