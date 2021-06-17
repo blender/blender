@@ -33,6 +33,7 @@
 
 #include "ED_markers.h"
 
+#include "SEQ_iterator.h"
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -287,167 +288,185 @@ static void SeqTransDataBounds(TransInfo *t, ListBase *seqbase, TransSeq *ts)
   }
 }
 
-static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
+static void free_transform_custom_data(TransCustomData *custom_data)
 {
-  Editing *ed = SEQ_editing_get(t->scene, false);
-
-  if (ed != NULL) {
-
-    ListBase *seqbasep = ed->seqbasep;
-    TransData *td = tc->data;
-    int a;
-
-    /* prevent updating the same seq twice
-     * if the transdata order is changed this will mess up
-     * but so will TransDataSeq */
-    Sequence *seq_prev = NULL;
-    Sequence *seq;
-
-    if (!(t->state == TRANS_CANCEL)) {
-      int overlap = 0;
-
-      for (a = 0, seq_prev = NULL; a < tc->data_len; a++, td++, seq_prev = seq) {
-        seq = ((TransDataSeq *)td->extra)->seq;
-        if ((seq != seq_prev) && (seq->flag & SEQ_OVERLAP)) {
-          overlap = 1;
-          break;
-        }
-      }
-
-      if (overlap) {
-        const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
-                                       SEQ_MARKER_TRANS) != 0;
-        ListBase *markers = &t->scene->markers;
-
-        bool has_effect_root = false, has_effect_any = false;
-        for (seq = seqbasep->first; seq; seq = seq->next) {
-          seq->tmp = NULL;
-        }
-
-        td = tc->data;
-        for (a = 0, seq_prev = NULL; a < tc->data_len; a++, td++, seq_prev = seq) {
-          seq = ((TransDataSeq *)td->extra)->seq;
-          if ((seq != seq_prev)) {
-            /* check effects strips, we cant change their time */
-            if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-              has_effect_any = true;
-              has_effect_root = true;
-            }
-            else {
-              /* Tag seq with a non zero value, used by
-               * SEQ_transform_seqbase_shuffle_time to identify the ones to shuffle */
-              seq->tmp = (void *)1;
-            }
-          }
-        }
-
-        if (t->flag & T_ALT_TRANSFORM) {
-          int minframe = MAXFRAME;
-          td = tc->data;
-          for (a = 0, seq_prev = NULL; a < tc->data_len; a++, td++, seq_prev = seq) {
-            seq = ((TransDataSeq *)td->extra)->seq;
-            if (seq != seq_prev) {
-              minframe = min_ii(minframe, seq->startdisp);
-            }
-          }
-
-          for (seq = seqbasep->first; seq; seq = seq->next) {
-            if (!(seq->flag & SELECT)) {
-              if (seq->startdisp >= minframe) {
-                seq->machine += MAXSEQ * 2;
-              }
-            }
-          }
-
-          SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
-
-          for (seq = seqbasep->first; seq; seq = seq->next) {
-            if (seq->machine >= MAXSEQ * 2) {
-              seq->machine -= MAXSEQ * 2;
-              seq->tmp = (void *)1;
-            }
-            else {
-              seq->tmp = NULL;
-            }
-          }
-
-          SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
-        }
-        else {
-          SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
-        }
-
-        if (has_effect_any) {
-          /* update effects strips based on strips just moved in time */
-          td = tc->data;
-          for (a = 0, seq_prev = NULL; a < tc->data_len; a++, td++, seq_prev = seq) {
-            seq = ((TransDataSeq *)td->extra)->seq;
-            if ((seq != seq_prev)) {
-              if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-                SEQ_time_update_sequence(t->scene, seq);
-              }
-            }
-          }
-        }
-
-        if (has_effect_root) {
-          /* now if any effects _still_ overlap, we need to move them up */
-          td = tc->data;
-          for (a = 0, seq_prev = NULL; a < tc->data_len; a++, td++, seq_prev = seq) {
-            seq = ((TransDataSeq *)td->extra)->seq;
-            if (seq != seq_prev) {
-              if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
-                if (SEQ_transform_test_overlap(seqbasep, seq)) {
-                  SEQ_transform_seqbase_shuffle(seqbasep, seq, t->scene);
-                }
-              }
-            }
-          }
-          /* done with effects */
-        }
-      }
-
-      for (seq = seqbasep->first; seq; seq = seq->next) {
-        /* We might want to build a list of effects that need to be updated during transform */
-        if (seq->type & SEQ_TYPE_EFFECT) {
-          if (seq->seq1 && seq->seq1->flag & SELECT) {
-            SEQ_time_update_sequence(t->scene, seq);
-          }
-          else if (seq->seq2 && seq->seq2->flag & SELECT) {
-            SEQ_time_update_sequence(t->scene, seq);
-          }
-          else if (seq->seq3 && seq->seq3->flag & SELECT) {
-            SEQ_time_update_sequence(t->scene, seq);
-          }
-        }
-      }
-
-      SEQ_sort(seqbasep);
-    }
-    else {
-      /* Canceled, need to update the strips display */
-      for (a = 0; a < tc->data_len; a++, td++) {
-        seq = ((TransDataSeq *)td->extra)->seq;
-        if (seq != seq_prev) {
-          if (seq->flag & SEQ_OVERLAP) {
-            SEQ_transform_seqbase_shuffle(seqbasep, seq, t->scene);
-          }
-
-          SEQ_time_update_sequence_bounds(t->scene, seq);
-        }
-        seq_prev = seq;
-      }
-    }
-  }
-
   if ((custom_data->data != NULL) && custom_data->use_free) {
     TransSeq *ts = custom_data->data;
     MEM_freeN(ts->tdseq);
     MEM_freeN(custom_data->data);
     custom_data->data = NULL;
   }
+}
 
+/* Canceled, need to update the strips display. */
+static void seq_transform_cancel(TransInfo *t, SeqCollection *transformed_strips)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    SEQ_time_update_sequence_bounds(t->scene, seq);
+  }
+}
+
+static bool seq_transform_check_overlap(SeqCollection *transformed_strips)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    if (seq->flag & SEQ_OVERLAP) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/* Offset all strips positioned after left edge of transformed strips boundbox by amount equal to
+ * overlap of transformed strips. */
+static void seq_transform_handle_expand_to_fit(TransInfo *t, SeqCollection *transformed_strips)
+{
+  Editing *ed = SEQ_editing_get(t->scene, false);
+  ListBase *seqbasep = SEQ_active_seqbase_get(ed);
+  ListBase *markers = &t->scene->markers;
+  const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
+                                 SEQ_MARKER_TRANS) != 0;
+
+  int minframe = MAXFRAME;
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    minframe = min_ii(minframe, seq->startdisp);
+  }
+
+  /* Temporarily move strips to beyond timeline boundary */
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+    if (!(seq->flag & SELECT)) {
+      if (seq->startdisp >= minframe) {
+        seq->machine += MAXSEQ * 2;
+      }
+    }
+  }
+
+  /* Shuffle transformed non-effects. This is because transformed strips can overlap with strips
+   * on left side. */
+  SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
+  /* Move temporarily moved strips back to their original place and tag for shuffling. */
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+    if (seq->machine >= MAXSEQ * 2) {
+      seq->machine -= MAXSEQ * 2;
+      seq->tmp = (void *)1;
+    }
+    else {
+      seq->tmp = NULL;
+    }
+  }
+
+  /* Shuffle again to displace strips on right side. Final effect shuffling is done in
+   * seq_transform_handle_overlap. */
+  SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
+}
+
+static void seq_transform_handle_overlap(TransInfo *t, SeqCollection *transformed_strips)
+{
+  Editing *ed = SEQ_editing_get(t->scene, false);
+  ListBase *seqbasep = SEQ_active_seqbase_get(ed);
+  ListBase *markers = &t->scene->markers;
+  const bool use_sync_markers = (((SpaceSeq *)t->area->spacedata.first)->flag &
+                                 SEQ_MARKER_TRANS) != 0;
+
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+    seq->tmp = NULL;
+  }
+
+  /* Check if effect strips are transformed and tag non effects. */
+  bool has_effect = false;
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
+      has_effect = true;
+    }
+    else {
+      seq->tmp = (void *)1;
+    }
+  }
+
+  if (t->flag & T_ALT_TRANSFORM) {
+    seq_transform_handle_expand_to_fit(t, transformed_strips);
+  }
+  else {
+    SEQ_transform_seqbase_shuffle_time(seqbasep, t->scene, markers, use_sync_markers);
+  }
+
+  if (has_effect) {
+    /* Update effect strips based on strips just moved in time. */
+    SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+      if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
+        SEQ_time_update_sequence(t->scene, seq);
+      }
+    }
+
+    /* If any effects still overlap, we need to move them up. */
+    SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+      if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
+        if (SEQ_transform_test_overlap(seqbasep, seq)) {
+          SEQ_transform_seqbase_shuffle(seqbasep, seq, t->scene);
+        }
+      }
+    }
+  }
+}
+
+static void seq_transform_update_effects(TransInfo *t, SeqCollection *transformed_strips)
+{
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    if (seq->type & SEQ_TYPE_EFFECT) {
+      if (seq->seq1 && seq->seq1->flag & SELECT) {
+        SEQ_time_update_sequence(t->scene, seq);
+      }
+      else if (seq->seq2 && seq->seq2->flag & SELECT) {
+        SEQ_time_update_sequence(t->scene, seq);
+      }
+      else if (seq->seq3 && seq->seq3->flag & SELECT) {
+        SEQ_time_update_sequence(t->scene, seq);
+      }
+    }
+  }
+}
+
+static SeqCollection *seq_transform_collection_from_transdata(TransDataContainer *tc)
+{
+  SeqCollection *collection = SEQ_collection_create();
+  TransData *td = tc->data;
+  for (int a = 0; a < tc->data_len; a++, td++) {
+    Sequence *seq = ((TransDataSeq *)td->extra)->seq;
+    SEQ_collection_append_strip(seq, collection);
+  }
+  return collection;
+}
+
+static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
+{
+  Editing *ed = SEQ_editing_get(t->scene, false);
+  if (ed == NULL) {
+    free_transform_custom_data(custom_data);
+    return;
+  }
+
+  SeqCollection *transformed_strips = seq_transform_collection_from_transdata(tc);
+
+  if ((t->state == TRANS_CANCEL)) {
+    seq_transform_cancel(t, transformed_strips);
+    free_transform_custom_data(custom_data);
+    return;
+  }
+
+  if (seq_transform_check_overlap(transformed_strips)) {
+    seq_transform_handle_overlap(t, transformed_strips);
+  }
+
+  seq_transform_update_effects(t, transformed_strips);
+  SEQ_collection_free(transformed_strips);
+
+  SEQ_sort(ed->seqbasep);
   DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);
+  free_transform_custom_data(custom_data);
 }
 
 void createTransSeqData(TransInfo *t)
