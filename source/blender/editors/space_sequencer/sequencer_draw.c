@@ -367,8 +367,6 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
 static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, float x2, float y2)
 {
-  /* Don't use SEQ_ALL_BEGIN/SEQ_ALL_END here,
-   * because it changes seq->depth, which is needed for transform. */
   Sequence *seq;
   uchar col[4];
 

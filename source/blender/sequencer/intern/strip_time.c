@@ -184,7 +184,7 @@ static void seq_time_update_meta_strip(Scene *scene, Sequence *seq_meta)
   seq_update_sound_bounds_recursive(scene, seq_meta);
 }
 
-static void seq_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
+void SEQ_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
 {
   seq_time_update_meta_strip(scene, seq_meta);
 
@@ -250,7 +250,7 @@ void SEQ_time_update_sequence(Scene *scene, Sequence *seq)
     Editing *ed = SEQ_editing_get(scene, false);
     MetaStack *ms = SEQ_meta_stack_active_get(ed);
     if (ms != NULL) {
-      seq_time_update_meta_strip_range(scene, ms->parseq);
+      SEQ_time_update_meta_strip_range(scene, ms->parseq);
     }
 
     SEQ_time_update_sequence_bounds(scene, seq);

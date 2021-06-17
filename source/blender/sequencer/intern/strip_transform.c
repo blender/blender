@@ -233,14 +233,22 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
   SEQ_offset_animdata(evil_scene, seq, delta);
   seq->start += delta;
 
+  /* Meta strips requires special handling: their content is to be translated, and then frame range
+   * of the meta is to be updated for the updated content. */
   if (seq->type == SEQ_TYPE_META) {
     Sequence *seq_child;
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
+    /* Ensure that meta bounds are updated, but this function prevents resets seq->start and
+     * start/end point in timeline. */
+    SEQ_time_update_meta_strip_range(evil_scene, seq);
+    /* Move meta start/end points. */
+    SEQ_transform_set_left_handle_frame(seq, seq->startdisp + delta);
+    SEQ_transform_set_right_handle_frame(seq, seq->enddisp + delta);
   }
 
-  SEQ_time_update_sequence_bounds(evil_scene, seq);
+  SEQ_time_update_sequence(evil_scene, seq);
 }
 
 /* return 0 if there weren't enough space */
