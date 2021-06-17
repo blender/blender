@@ -82,7 +82,8 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 #  include "rna_mesh_utils.h"
 
 /* -------------------------------------------------------------------- */
-/* Generic helpers */
+/** \name Generic Helpers
+ * \{ */
 
 static Mesh *rna_mesh(PointerRNA *ptr)
 {
@@ -139,8 +140,11 @@ static CustomData *rna_mesh_ldata(PointerRNA *ptr)
   return rna_mesh_ldata_helper(me);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Generic CustomData Layer Functions */
+/** \name Generic CustomData Layer Functions
+ * \{ */
 
 static void rna_cd_layer_name_set(CustomData *cdata, CustomDataLayer *cdl, const char *value)
 {
@@ -204,6 +208,8 @@ static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
   Mesh *me = ptr->data;
   return BKE_mesh_has_custom_loop_normals(me);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Update Callbacks
@@ -293,7 +299,8 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Property get/set Callbacks  */
+/** \name Property get/set Callbacks
+ * \{ */
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
@@ -1617,7 +1624,13 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
   /* end unused function block */
 }
 
+/** \} */
+
 #else
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Mesh Definition
+ * \{ */
 
 static void rna_def_mvert_group(BlenderRNA *brna)
 {
@@ -3455,3 +3468,5 @@ void RNA_def_mesh(BlenderRNA *brna)
 }
 
 #endif
+
+/** \} */
