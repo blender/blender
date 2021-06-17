@@ -320,6 +320,7 @@ DefNode(GeometryNode, GEO_NODE_POINT_SCALE, def_geo_point_scale, "POINT_SCALE", 
 DefNode(GeometryNode, GEO_NODE_POINT_SEPARATE, 0, "POINT_SEPARATE", PointSeparate, "Point Separate", "")
 DefNode(GeometryNode, GEO_NODE_POINT_TRANSLATE, def_geo_point_translate, "POINT_TRANSLATE", PointTranslate, "Point Translate", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "")
+DefNode(GeometryNode, GEO_NODE_RAYCAST, def_geo_raycast, "RAYCAST", Raycast, "Raycast", "")
 DefNode(GeometryNode, GEO_NODE_SELECT_BY_MATERIAL, 0, "SELECT_BY_MATERIAL", SelectByMaterial, "Select by Material", "")
 DefNode(GeometryNode, GEO_NODE_SEPARATE_COMPONENTS, 0, "SEPARATE_COMPONENTS", SeparateComponents, "Separate Components", "")
 DefNode(GeometryNode, GEO_NODE_SUBDIVIDE, 0, "SUBDIVIDE", Subdivide, "Subdivide", "")
