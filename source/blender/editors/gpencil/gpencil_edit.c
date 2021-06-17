@@ -4618,6 +4618,11 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
               /* add layer if not created before */
               if (gpl_dst == NULL) {
                 gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, gpl->info, false, false);
+                gpl_dst->line_change = gpl->line_change;
+                copy_v4_v4(gpl_dst->tintcolor, gpl->tintcolor);
+                gpl_dst->opacity = gpl->opacity;
+                gpl_dst->blend_mode = gpl->blend_mode;
+                gpl_dst->vertex_paint_opacity = gpl->vertex_paint_opacity;
               }
 
               /* add frame if not created before */
