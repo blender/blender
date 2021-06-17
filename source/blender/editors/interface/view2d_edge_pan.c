@@ -42,7 +42,7 @@
 #include "WM_types.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Edge Pan Operator Utilties
+/** \name Edge Pan Operator Utilities
  * \{ */
 
 bool UI_view2d_edge_pan_poll(bContext *C)
@@ -250,13 +250,13 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, int x, int y)
   }
   vpd->edge_pan_last_time = current_time;
 
-  /* Pan, clamping inside the regions's total bounds. */
+  /* Pan, clamping inside the regions total bounds. */
   edge_pan_apply_delta(C, vpd, dx, dy);
 }
 
 void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const wmEvent *event)
 {
-  /* Only mousemove events matter here, ignore others. */
+  /* Only mouse-move events matter here, ignore others. */
   if (event->type != MOUSEMOVE) {
     return;
   }
