@@ -83,7 +83,7 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<const MeshComponent 
 
   const Mesh *first_input_mesh = src_components[0]->get_for_read();
   Mesh *new_mesh = BKE_mesh_new_nomain(totverts, totedges, 0, totloops, totpolys);
-  BKE_mesh_copy_settings(new_mesh, first_input_mesh);
+  BKE_mesh_copy_parameters_for_eval(new_mesh, first_input_mesh);
 
   for (const int i : IndexRange(materials.size())) {
     Material *material = materials[i];
