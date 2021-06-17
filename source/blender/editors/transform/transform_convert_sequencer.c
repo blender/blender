@@ -147,7 +147,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
   }
 }
 
-static int SeqTransCount(TransInfo *t, ListBase *seqbase, int depth)
+static int SeqTransCount(TransInfo *t, ListBase *seqbase)
 {
   Sequence *seq;
   int tot = 0, count, flag;
@@ -329,9 +329,11 @@ static void seq_transform_handle_expand_to_fit(TransInfo *t, SeqCollection *tran
                                  SEQ_MARKER_TRANS) != 0;
 
   int minframe = MAXFRAME;
-  Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
-    minframe = min_ii(minframe, seq->startdisp);
+  {
+    Sequence *seq;
+    SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+      minframe = min_ii(minframe, seq->startdisp);
+    }
   }
 
   /* Temporarily move strips to beyond timeline boundary */
@@ -512,7 +514,7 @@ void createTransSeqData(TransInfo *t)
   }
 #endif
 
-  count = SeqTransCount(t, ed->seqbasep, 0);
+  count = SeqTransCount(t, ed->seqbasep);
 
   /* allocate memory for data */
   tc->data_len = count;
