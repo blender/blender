@@ -497,7 +497,7 @@ void read_generated_coordinates(const ICompoundProperty &prop,
                                 const CDStreamConfig &config,
                                 const Alembic::Abc::ISampleSelector &iss)
 {
-  if (prop.getPropertyHeader(propNameOriginalCoordinates) == nullptr) {
+  if (!prop.valid() || prop.getPropertyHeader(propNameOriginalCoordinates) == nullptr) {
     /* The ORCO property isn't there, so don't bother trying to process it. */
     return;
   }
