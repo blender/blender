@@ -297,7 +297,8 @@ typedef enum DRWBatchFlag {
   MBC_SCULPT_OVERLAYS = (1u << MBC_BATCH_INDEX(batch.sculpt_overlays)),
 } DRWBatchFlag;
 
-BLI_STATIC_ASSERT(MBC_BATCH_INDEX(surface_per_mat) < 32, "Number of batches exceeded the limit of bit fields");
+BLI_STATIC_ASSERT(MBC_BATCH_INDEX(surface_per_mat) < 32,
+                  "Number of batches exceeded the limit of bit fields");
 
 #define MBC_EDITUV \
   (MBC_EDITUV_FACES_STRETCH_AREA | MBC_EDITUV_FACES_STRETCH_ANGLE | MBC_EDITUV_FACES | \

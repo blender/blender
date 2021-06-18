@@ -82,8 +82,8 @@ class MeshAttributeInterpolator {
 
  public:
   MeshAttributeInterpolator(const Mesh *mesh,
-                        const Span<float3> positions,
-                        const Span<int> looptri_indices);
+                            const Span<float3> positions,
+                            const Span<int> looptri_indices);
 
   void sample_attribute(const ReadAttributeLookup &src_attribute,
                         OutputAttribute &dst_attribute,
