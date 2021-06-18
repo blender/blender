@@ -471,7 +471,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
   }
 
-  const float *precomputed_normals = CustomData_get_layer(&me->pdata, CD_NORMAL);
+  const float(*precomputed_normals)[3] = CustomData_get_layer(&me->pdata, CD_NORMAL);
   const bool calculate_normal = precomputed_normals ? false : true;
 
   for (i = 0; i < tottri; i++) {
@@ -503,7 +503,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
       copy_v3_v3(triangles[i].normal, no);
     }
     else {
-      copy_v3_v3(triangles[i].normal, &precomputed_normals[lt->poly]);
+      copy_v3_v3(triangles[i].normal, precomputed_normals[lt->poly]);
     }
   }
 
