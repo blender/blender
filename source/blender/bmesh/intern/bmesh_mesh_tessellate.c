@@ -282,7 +282,11 @@ void BM_mesh_calc_tessellation_ex(BMesh *bm,
 
 void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3])
 {
-  BM_mesh_calc_tessellation_ex(bm, looptris, false);
+  BM_mesh_calc_tessellation_ex(bm,
+                               looptris,
+                               &(const struct BMeshCalcTessellation_Params){
+                                   .face_normals = false,
+                               });
 }
 
 /** \} */
