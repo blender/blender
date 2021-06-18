@@ -187,7 +187,11 @@ void BKE_editmesh_looptri_calc_with_partial_ex(BMEditMesh *em,
 
 void BKE_editmesh_looptri_calc_with_partial(BMEditMesh *em, struct BMPartialUpdate *bmpinfo)
 {
-  BKE_editmesh_looptri_calc_with_partial_ex(em, bmpinfo, false);
+  BKE_editmesh_looptri_calc_with_partial_ex(em,
+                                            bmpinfo,
+                                            &(const struct BMeshCalcTessellation_Params){
+                                                .face_normals = false,
+                                            });
 }
 
 void BKE_editmesh_looptri_and_normals_calc_with_partial(BMEditMesh *em,
