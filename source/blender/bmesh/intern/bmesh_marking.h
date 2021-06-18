@@ -26,6 +26,16 @@ typedef struct BMEditSelection {
   char htype;
 } BMEditSelection;
 
+typedef enum eBMSelectionFlushFLags {
+  BM_SELECT_LEN_FLUSH_RECALC_NOTHING = 0,
+  BM_SELECT_LEN_FLUSH_RECALC_VERT = (1 << 0),
+  BM_SELECT_LEN_FLUSH_RECALC_EDGE = (1 << 1),
+  BM_SELECT_LEN_FLUSH_RECALC_FACE = (1 << 2),
+  BM_SELECT_LEN_FLUSH_RECALC_ALL = (BM_SELECT_LEN_FLUSH_RECALC_VERT |
+                                    BM_SELECT_LEN_FLUSH_RECALC_EDGE |
+                                    BM_SELECT_LEN_FLUSH_RECALC_FACE),
+} eBMSelectionFlushFLags;
+
 /* geometry hiding code */
 #define BM_elem_hide_set(bm, ele, hide) _bm_elem_hide_set(bm, &(ele)->head, hide)
 void _bm_elem_hide_set(BMesh *bm, BMHeader *head, const bool hide);
@@ -72,7 +82,7 @@ void BM_mesh_select_mode_clean_ex(BMesh *bm, const short selectmode);
 void BM_mesh_select_mode_clean(BMesh *bm);
 
 void BM_mesh_select_mode_set(BMesh *bm, int selectmode);
-void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode);
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectionFlushFLags flags);
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 void BM_mesh_deselect_flush(BMesh *bm);

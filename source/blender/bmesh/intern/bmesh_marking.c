@@ -40,31 +40,50 @@
 /* For '_FLAG_OVERLAP'. */
 #include "bmesh_private.h"
 
+static int recount_totsel(BMesh *bm, BMIterType iter_type)
+{
+  BMIter iter;
+  BMElem *ele;
+  int count = 0;
+
+  BM_ITER_MESH (ele, &iter, bm, iter_type) {
+    if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+static void recount_totvertsel(BMesh *bm)
+{
+  bm->totvertsel = recount_totsel(bm, BM_VERTS_OF_MESH);
+}
+
+static void recount_totedgesel(BMesh *bm)
+{
+  bm->totedgesel = recount_totsel(bm, BM_EDGES_OF_MESH);
+}
+
+static void recount_totfacesel(BMesh *bm)
+{
+  bm->totfacesel = recount_totsel(bm, BM_FACES_OF_MESH);
+}
+
 static void recount_totsels(BMesh *bm)
 {
-  const char iter_types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-  int *tots[3];
-  int i;
-
-  /* Recount total selection variables. */
-  bm->totvertsel = bm->totedgesel = bm->totfacesel = 0;
-  tots[0] = &bm->totvertsel;
-  tots[1] = &bm->totedgesel;
-  tots[2] = &bm->totfacesel;
-
-  for (i = 0; i < 3; i++) {
-    BMIter iter;
-    BMElem *ele;
-    int count = 0;
-
-    BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
-      if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-        count += 1;
-      }
-    }
-    *tots[i] = count;
-  }
+  recount_totvertsel(bm);
+  recount_totedgesel(bm);
+  recount_totfacesel(bm);
 }
+
+#ifndef NDEBUG
+static bool recount_totsels_are_ok(BMesh *bm)
+{
+  return bm->totvertsel == recount_totsel(bm, BM_VERTS_OF_MESH) &&
+         bm->totedgesel == recount_totsel(bm, BM_EDGES_OF_MESH) &&
+         bm->totfacesel == recount_totsel(bm, BM_FACES_OF_MESH);
+}
+#endif
 
 /* -------------------------------------------------------------------- */
 /** \name BMesh helper functions for selection & hide flushing.
@@ -238,7 +257,7 @@ void BM_mesh_select_mode_clean(BMesh *bm)
  * (ie: all verts of an edge selects the edge and so on).
  * This should only be called by system and not tool authors.
  */
-void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode, eBMSelectionFlushFLags flags)
 {
   BMEdge *e;
   BMLoop *l_iter;
@@ -251,34 +270,22 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
   if (selectmode & SCE_SELECT_VERTEX) {
     /* both loops only set edge/face flags and read off verts */
     BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-      if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-          !BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+      const bool is_selected = BM_elem_flag_test(e, BM_ELEM_SELECT);
+      if (!is_selected &&
+          (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) && BM_elem_flag_test(e->v2, BM_ELEM_SELECT))) {
         BM_elem_flag_enable(e, BM_ELEM_SELECT);
+        bm->totedgesel += 1;
       }
       else {
         BM_elem_flag_disable(e, BM_ELEM_SELECT);
+        bm->totedgesel += is_selected ? -1 : 0;
       }
-    }
-    BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-      bool ok = true;
-      if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-        l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-        do {
-          if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-            ok = false;
-            break;
-          }
-        } while ((l_iter = l_iter->next) != l_first);
-      }
-      else {
-        ok = false;
-      }
-
-      BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
     }
   }
-  else if (selectmode & SCE_SELECT_EDGE) {
+
+  if (selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+      const bool is_selected = BM_elem_flag_test(f, BM_ELEM_SELECT);
       bool ok = true;
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -294,18 +301,33 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
       }
 
       BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
+      if (is_selected && !ok) {
+        bm->totfacesel -= 1;
+      }
+      else if (ok && !is_selected) {
+        bm->totfacesel += 1;
+      }
     }
   }
 
   /* Remove any deselected elements from the BMEditSelection */
   BM_select_history_validate(bm);
 
-  recount_totsels(bm);
+  if (flags & BM_SELECT_LEN_FLUSH_RECALC_VERT) {
+    recount_totvertsel(bm);
+  }
+  if (flags & BM_SELECT_LEN_FLUSH_RECALC_EDGE) {
+    recount_totedgesel(bm);
+  }
+  if (flags & BM_SELECT_LEN_FLUSH_RECALC_FACE) {
+    recount_totfacesel(bm);
+  }
+  BLI_assert(recount_totsels_are_ok(bm));
 }
 
 void BM_mesh_select_mode_flush(BMesh *bm)
 {
-  BM_mesh_select_mode_flush_ex(bm, bm->selectmode);
+  BM_mesh_select_mode_flush_ex(bm, bm->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
 }
 
 /**
