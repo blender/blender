@@ -394,13 +394,13 @@ int BKE_mesh_tessface_calc_ex(CustomData *fdata,
 
   /* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
    * ...However, most TFace code uses 'MFace->v4 == 0' test to check whether it is a tri or quad.
-   * test_index_face() will check this and rotate the tessellated face if needed.
+   * BKE_mesh_mface_index_validate() will check this and rotate the tessellated face if needed.
    */
 #ifdef USE_TESSFACE_QUADS
   mf = mface;
   for (mface_index = 0; mface_index < totface; mface_index++, mf++) {
     if (mf->edcode == TESSFACE_IS_QUAD) {
-      test_index_face(mf, fdata, mface_index, 4);
+      BKE_mesh_mface_index_validate(mf, fdata, mface_index, 4);
       mf->edcode = 0;
     }
   }

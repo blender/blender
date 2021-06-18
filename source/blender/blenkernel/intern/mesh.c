@@ -1214,9 +1214,11 @@ void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int 
   }
 }
 
-/* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
- * this is necessary to make the if (mface->v4) check for quads work */
-int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
+/**
+ * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
+ * this is necessary to make the if #MFace.v4 check for quads work.
+ */
+int BKE_mesh_mface_index_validate(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
   /* first test if the face is legal */
   if ((mface->v3 || nr == 4) && mface->v3 == mface->v4) {
