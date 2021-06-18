@@ -5841,52 +5841,46 @@ static void do_twist_brush_task_cb_ex(void *__restrict userdata,
   const float *area_co = data->area_co;
 
   PBVHVertexIter vd;
-  SculptBrushTest test;
   float(*proxy)[3];
   const bool flip = (ss->cache->bstrength < 0.0f);
   const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-  SCULPT_brush_test_init(ss, &test);
-  plane_from_point_normal_v3(test.plane_tool, area_co, area_no_sp);
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  float stroke_direction[3];
+  float stroke_line[2][3];
+  normalize_v3_v3(stroke_direction, ss->cache->grab_delta_symmetry);
+  copy_v3_v3(stroke_line[0], ss->cache->location);
+  add_v3_v3v3(stroke_line[1], stroke_line[0], stroke_direction);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness)) {
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
+    const float fade = SCULPT_brush_strength_factor(ss,
+                                                    brush,
+                                                    vd.co,
+                                                    sqrtf(test.dist),
+                                                    vd.no,
+                                                    vd.fno,
+                                                    vd.mask ? *vd.mask : 0.0f,
+                                                    vd.index,
+                                                    thread_id);
 
-    if (!plane_point_side_flip(vd.co, test.plane_tool, flip)) {
-      continue;
-    }
-
-    float vertex_no[3];
-    SCULPT_vertex_normal_get(ss, vd.index, vertex_no);
-    if (dot_v3v3(area_no_sp, vertex_no) <= -0.1f) {
-      continue;
-    }
-
-    float intr[3];
-    float val[3];
-    closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
-    sub_v3_v3v3(val, intr, vd.co);
-
-    if (!SCULPT_plane_trim(ss->cache, brush, val)) {
-      continue;
-    }
-    /* The normal from the vertices is ignored, it causes glitch with planes, see: T44390. */
-    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                brush,
-                                                                vd.co,
-                                                                ss->cache->radius * test.dist,
-                                                                vd.no,
-                                                                vd.fno,
-                                                                vd.mask ? *vd.mask : 0.0f,
-                                                                vd.index,
-                                                                thread_id);
-
-    mul_v3_v3fl(proxy[vd.i], val, fade);
+                               
+    float vertex_in_line[3];
+    closest_to_line_v3(vertex_in_line, vd.co, stroke_line[0], stroke_line[1]);
+    float p_to_rotate[3];
+    sub_v3_v3v3(p_to_rotate, vd.co, vertex_in_line);
+    float p_rotated[3];
+    rotate_v3_v3v3fl(p_rotated, p_to_rotate, stroke_direction, ss->cache->bstrength * fade);
+    add_v3_v3(p_rotated, vertex_in_line);
+    sub_v3_v3v3(proxy[vd.i], p_rotated, vd.co);
 
     if (vd.mvert) {
       vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -6749,7 +6743,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       do_clay_strips_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_TWIST:
-      do_clay_strips_brush(sd, ob, nodes, totnode);
+      do_twist_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
