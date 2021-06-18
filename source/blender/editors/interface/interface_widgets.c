@@ -2208,7 +2208,6 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           }
 
           int ul_width = round_fl_to_int(BLF_width(fstyle->uifont_id, "_", 2));
-          int ul_height = max_ii(fstyle->points * U.dpi_fac * 0.1f, U.pixelsize);
 
           struct UnderlineData ul_data = {
               .str_offset = ul_index,
