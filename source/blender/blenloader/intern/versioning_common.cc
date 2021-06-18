@@ -33,10 +33,10 @@ ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
                                              const char *name,
                                              int link_after_region_type)
 {
-  ARegion *link_after_region = NULL;
+  ARegion *link_after_region = nullptr;
   LISTBASE_FOREACH (ARegion *, region, regionbase) {
     if (region->regiontype == region_type) {
-      return NULL;
+      return nullptr;
     }
     if (region->regiontype == link_after_region_type) {
       link_after_region = region;

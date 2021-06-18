@@ -822,33 +822,29 @@ struct ComputeUnionLevelsetPindex : public KernelBase {
   {
     const Vec3 gridPos = Vec3(i, j, k) + Vec3(0.5);  // shifted by half cell
     Real phiv = radius * 1.0;                        // outside
+    const int r = int(radius) + 1;
 
-    int r = int(radius) + 1;
-    int rZ = phi.is3D() ? r : 0;
-    for (int zj = k - rZ; zj <= k + rZ; zj++)
-      for (int yj = j - r; yj <= j + r; yj++)
-        for (int xj = i - r; xj <= i + r; xj++) {
-          if (!phi.isInBounds(Vec3i(xj, yj, zj)))
-            continue;
+    FOR_NEIGHBORS(phi, r)
+    {
 
-          // note, for the particle indices in indexSys the access is periodic (ie, dont skip for
-          // eg inBounds(sx,10,10)
-          IndexInt isysIdxS = index.index(xj, yj, zj);
-          IndexInt pStart = index(isysIdxS), pEnd = 0;
-          if (phi.isInBounds(isysIdxS + 1))
-            pEnd = index(isysIdxS + 1);
-          else
-            pEnd = indexSys.size();
+      // note, for the particle indices in indexSys the access is periodic (ie, dont skip for eg
+      // inBounds(sx,10,10)
+      IndexInt isysIdxS = index.index(xj, yj, zj);
+      IndexInt pStart = index(isysIdxS), pEnd = 0;
+      if (phi.isInBounds(isysIdxS + 1))
+        pEnd = index(isysIdxS + 1);
+      else
+        pEnd = indexSys.size();
 
-          // now loop over particles in cell
-          for (IndexInt p = pStart; p < pEnd; ++p) {
-            const int psrc = indexSys[p].sourceIndex;
-            if (ptype && ((*ptype)[psrc] & exclude))
-              continue;
-            const Vec3 pos = parts[psrc].pos;
-            phiv = std::min(phiv, fabs(norm(gridPos - pos)) - radius);
-          }
-        }
+      // now loop over particles in cell
+      for (IndexInt p = pStart; p < pEnd; ++p) {
+        const int psrc = indexSys[p].sourceIndex;
+        if (ptype && ((*ptype)[psrc] & exclude))
+          continue;
+        const Vec3 pos = parts[psrc].pos;
+        phiv = std::min(phiv, fabs(norm(gridPos - pos)) - radius);
+      }
+    }
     phi(i, j, k) = phiv;
   }
   inline const Grid<int> &getArg0()
@@ -1026,39 +1022,35 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
 
     // loop over neighborhood, similar to ComputeUnionLevelsetPindex
     const Real sradiusInv = 1. / (4. * radius * radius);
-    int r = int(1. * radius) + 1;
-    int rZ = phi.is3D() ? r : 0;
+    const int r = int(radius) + 1;
     // accumulators
     Real wacc = 0.;
     Vec3 pacc = Vec3(0.);
     Real racc = 0.;
 
-    for (int zj = k - rZ; zj <= k + rZ; zj++)
-      for (int yj = j - r; yj <= j + r; yj++)
-        for (int xj = i - r; xj <= i + r; xj++) {
-          if (!phi.isInBounds(Vec3i(xj, yj, zj)))
-            continue;
+    FOR_NEIGHBORS(phi, r)
+    {
 
-          IndexInt isysIdxS = index.index(xj, yj, zj);
-          IndexInt pStart = index(isysIdxS), pEnd = 0;
-          if (phi.isInBounds(isysIdxS + 1))
-            pEnd = index(isysIdxS + 1);
-          else
-            pEnd = indexSys.size();
-          for (IndexInt p = pStart; p < pEnd; ++p) {
-            IndexInt psrc = indexSys[p].sourceIndex;
-            if (ptype && ((*ptype)[psrc] & exclude))
-              continue;
+      IndexInt isysIdxS = index.index(xj, yj, zj);
+      IndexInt pStart = index(isysIdxS), pEnd = 0;
+      if (phi.isInBounds(isysIdxS + 1))
+        pEnd = index(isysIdxS + 1);
+      else
+        pEnd = indexSys.size();
+      for (IndexInt p = pStart; p < pEnd; ++p) {
+        IndexInt psrc = indexSys[p].sourceIndex;
+        if (ptype && ((*ptype)[psrc] & exclude))
+          continue;
 
-            Vec3 pos = parts[psrc].pos;
-            Real s = normSquare(gridPos - pos) * sradiusInv;
-            // Real  w = std::max(0., cubed(1.-s) );
-            Real w = std::max(0., (1. - s));  // a bit smoother
-            wacc += w;
-            racc += radius * w;
-            pacc += pos * w;
-          }
-        }
+        Vec3 pos = parts[psrc].pos;
+        Real s = normSquare(gridPos - pos) * sradiusInv;
+        // Real  w = std::max(0., cubed(1.-s) );
+        Real w = std::max(0., (1. - s));  // a bit smoother
+        wacc += w;
+        racc += radius * w;
+        pacc += pos * w;
+      }
+    }
 
     if (wacc > VECTOR_EPSILON) {
       racc /= wacc;

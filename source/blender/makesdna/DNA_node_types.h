@@ -1362,6 +1362,11 @@ typedef struct NodeGeometryCurveResample {
   uint8_t mode;
 } NodeGeometryCurveResample;
 
+typedef struct NodeGeometryCurveSubdivide {
+  /* GeometryNodeAttributeInputMode (integer or attribute). */
+  uint8_t cuts_type;
+} NodeGeometryCurveSubdivide;
+
 typedef struct NodeGeometryCurveToPoints {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
@@ -1373,6 +1378,15 @@ typedef struct NodeGeometryAttributeTransfer {
   /* GeometryNodeAttributeTransferMapMode. */
   uint8_t mapping;
 } NodeGeometryAttributeTransfer;
+
+typedef struct NodeGeometryRaycast {
+  /* GeometryNodeRaycastMapMode. */
+  uint8_t mapping;
+
+  uint8_t input_type_ray_direction;
+  uint8_t input_type_ray_length;
+  char _pad[1];
+} NodeGeometryRaycast;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1885,6 +1899,11 @@ typedef enum GeometryNodeAttributeTransferMapMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST = 1,
 } GeometryNodeAttributeTransferMapMode;
+
+typedef enum GeometryNodeRaycastMapMode {
+  GEO_NODE_RAYCAST_INTERPOLATED = 0,
+  GEO_NODE_RAYCAST_NEAREST = 1,
+} GeometryNodeRaycastMapMode;
 
 #ifdef __cplusplus
 }

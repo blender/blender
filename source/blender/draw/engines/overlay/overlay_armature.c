@@ -1167,21 +1167,28 @@ static void ebone_spline_preview(EditBone *ebone, const float result_array[MAX_B
   param.roll1 = ebone->roll1;
   param.roll2 = ebone->roll2;
 
-  if (prev && (ebone->flag & BONE_ADD_PARENT_END_ROLL)) {
+  if (prev && (ebone->bbone_flag & BBONE_ADD_PARENT_END_ROLL)) {
     param.roll1 += prev->roll2;
   }
 
-  param.scale_in_x = ebone->scale_in_x;
-  param.scale_in_y = ebone->scale_in_y;
-
-  param.scale_out_x = ebone->scale_out_x;
-  param.scale_out_y = ebone->scale_out_y;
+  copy_v3_v3(param.scale_in, ebone->scale_in);
+  copy_v3_v3(param.scale_out, ebone->scale_out);
 
   param.curve_in_x = ebone->curve_in_x;
-  param.curve_in_y = ebone->curve_in_y;
+  param.curve_in_z = ebone->curve_in_z;
 
   param.curve_out_x = ebone->curve_out_x;
-  param.curve_out_y = ebone->curve_out_y;
+  param.curve_out_z = ebone->curve_out_z;
+
+  if (ebone->bbone_flag & BBONE_SCALE_EASING) {
+    param.ease1 *= param.scale_in[1];
+    param.curve_in_x *= param.scale_in[1];
+    param.curve_in_z *= param.scale_in[1];
+
+    param.ease2 *= param.scale_out[1];
+    param.curve_out_x *= param.scale_out[1];
+    param.curve_out_z *= param.scale_out[1];
+  }
 
   ebone->segments = BKE_pchan_bbone_spline_compute(&param, false, (Mat4 *)result_array);
 }

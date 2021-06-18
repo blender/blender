@@ -67,20 +67,19 @@ struct OpenVDBLevelSet *BKE_mesh_remesh_voxel_ovdb_mesh_to_level_set_create(
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(mesh));
 
-  unsigned int totfaces = BKE_mesh_runtime_looptri_len(mesh);
-  unsigned int totverts = mesh->totvert;
+  uint totfaces = BKE_mesh_runtime_looptri_len(mesh);
+  uint totverts = mesh->totvert;
   float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
-  unsigned int *faces = (unsigned int *)MEM_malloc_arrayN(
-      totfaces * 3, sizeof(unsigned int), "remesh_input_faces");
+  uint *faces = (uint *)MEM_malloc_arrayN(totfaces * 3, sizeof(uint), "remesh_input_faces");
 
-  for (unsigned int i = 0; i < totverts; i++) {
+  for (uint i = 0; i < totverts; i++) {
     MVert *mvert = &mesh->mvert[i];
     verts[i * 3] = mvert->co[0];
     verts[i * 3 + 1] = mvert->co[1];
     verts[i * 3 + 2] = mvert->co[2];
   }
 
-  for (unsigned int i = 0; i < totfaces; i++) {
+  for (uint i = 0; i < totfaces; i++) {
     MVertTri *vt = &verttri[i];
     faces[i * 3] = vt->tri[0];
     faces[i * 3 + 1] = vt->tri[1];
@@ -171,20 +170,19 @@ static Mesh *BKE_mesh_remesh_quadriflow(Mesh *input_mesh,
   BKE_mesh_runtime_verttri_from_looptri(
       verttri, input_mesh->mloop, looptri, BKE_mesh_runtime_looptri_len(input_mesh));
 
-  unsigned int totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
-  unsigned int totverts = input_mesh->totvert;
+  uint totfaces = BKE_mesh_runtime_looptri_len(input_mesh);
+  uint totverts = input_mesh->totvert;
   float *verts = (float *)MEM_malloc_arrayN(totverts * 3, sizeof(float), "remesh_input_verts");
-  unsigned int *faces = (unsigned int *)MEM_malloc_arrayN(
-      totfaces * 3, sizeof(unsigned int), "remesh_input_faces");
+  uint *faces = (uint *)MEM_malloc_arrayN(totfaces * 3, sizeof(uint), "remesh_input_faces");
 
-  for (unsigned int i = 0; i < totverts; i++) {
+  for (uint i = 0; i < totverts; i++) {
     MVert *mvert = &input_mesh->mvert[i];
     verts[i * 3] = mvert->co[0];
     verts[i * 3 + 1] = mvert->co[1];
     verts[i * 3 + 2] = mvert->co[2];
   }
 
-  for (unsigned int i = 0; i < totfaces; i++) {
+  for (uint i = 0; i < totfaces; i++) {
     MVertTri *vt = &verttri[i];
     faces[i * 3] = vt->tri[0];
     faces[i * 3 + 1] = vt->tri[1];

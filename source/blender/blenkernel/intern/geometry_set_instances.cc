@@ -399,7 +399,7 @@ static Mesh *join_mesh_topology_and_builtin_attributes(Span<GeometryInstanceGrou
     const GeometrySet &set = set_group.geometry_set;
     if (set.has_mesh()) {
       const Mesh &mesh = *set.get_mesh_for_read();
-      BKE_mesh_copy_settings(new_mesh, &mesh);
+      BKE_mesh_copy_parameters_for_eval(new_mesh, &mesh);
       break;
     }
   }

@@ -167,8 +167,9 @@ typedef struct Sequence {
    * frames that use the last frame after data ends.
    */
   int startstill, endstill;
-  /** Machine: the strip channel, depth the depth in the sequence when dealing with metastrips. */
-  int machine, depth;
+  /** Machine: the strip channel */
+  int machine;
+  int _pad3;
   /** Starting and ending points of the strip in the sequence. */
   int startdisp, enddisp;
   float sat;

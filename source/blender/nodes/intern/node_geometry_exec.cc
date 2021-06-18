@@ -97,6 +97,12 @@ GVArrayPtr GeoNodeExecParams::get_input_attribute(const StringRef name,
     conversions.convert_to_uninitialized(CPPType::get<float>(), *cpp_type, &value, buffer);
     return std::make_unique<fn::GVArray_For_SingleValue>(*cpp_type, domain_size, buffer);
   }
+  if (found_socket->type == SOCK_INT) {
+    const int value = this->get_input<int>(found_socket->identifier);
+    BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
+    conversions.convert_to_uninitialized(CPPType::get<int>(), *cpp_type, &value, buffer);
+    return std::make_unique<fn::GVArray_For_SingleValue>(*cpp_type, domain_size, buffer);
+  }
   if (found_socket->type == SOCK_VECTOR) {
     const float3 value = this->get_input<float3>(found_socket->identifier);
     BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);

@@ -787,7 +787,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         int j = 2;
 
         while (j--) {
-          const unsigned int vidx_dst = j ? e_dst->v1 : e_dst->v2;
+          const uint vidx_dst = j ? e_dst->v1 : e_dst->v2;
 
           /* Compute closest verts only once! */
           if (v_dst_to_src_map[vidx_dst].hit_dist == -1.0f) {
@@ -813,7 +813,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         /* Now, check all source edges of closest sources vertices,
          * and select the one giving the smallest total verts-to-verts distance. */
         for (j = 2; j--;) {
-          const unsigned int vidx_dst = j ? e_dst->v1 : e_dst->v2;
+          const uint vidx_dst = j ? e_dst->v1 : e_dst->v2;
           const float first_dist = v_dst_to_src_map[vidx_dst].hit_dist;
           const int vidx_src = v_dst_to_src_map[vidx_dst].index;
           int *eidx_src, k;
@@ -1542,7 +1542,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             mp_src = &polys_src[isld->indices[i]];
             for (lidx_src = mp_src->loopstart; lidx_src < mp_src->loopstart + mp_src->totloop;
                  lidx_src++) {
-              const unsigned int vidx_src = loops_src[lidx_src].v;
+              const uint vidx_src = loops_src[lidx_src].v;
               if (!BLI_BITMAP_TEST(verts_active, vidx_src)) {
                 BLI_BITMAP_ENABLE(verts_active, loops_src[lidx_src].v);
                 num_verts_active++;
@@ -2418,8 +2418,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
           tri_vidx_2d[1][2] = 3;
         }
         else {
-          BLI_polyfill_calc(
-              poly_vcos_2d, (unsigned int)mp->totloop, -1, (unsigned int(*)[3])tri_vidx_2d);
+          BLI_polyfill_calc(poly_vcos_2d, (uint)mp->totloop, -1, (uint(*)[3])tri_vidx_2d);
         }
 
         for (j = 0; j < tris_num; j++) {

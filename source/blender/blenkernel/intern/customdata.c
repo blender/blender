@@ -2020,35 +2020,35 @@ static const char *layerType_getName(int type)
 
 void customData_mask_layers__print(const CustomData_MeshMasks *mask)
 {
-  printf("verts mask=0x%lx:\n", (long unsigned int)mask->vmask);
+  printf("verts mask=0x%" PRIx64 ":\n", mask->vmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->vmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("edges mask=0x%lx:\n", (long unsigned int)mask->emask);
+  printf("edges mask=0x%" PRIx64 ":\n", mask->emask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->emask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("faces mask=0x%lx:\n", (long unsigned int)mask->fmask);
+  printf("faces mask=0x%" PRIx64 ":\n", mask->fmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->fmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("loops mask=0x%lx:\n", (long unsigned int)mask->lmask);
+  printf("loops mask=0x%" PRIx64 ":\n", mask->lmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->lmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));
     }
   }
 
-  printf("polys mask=0x%lx:\n", (long unsigned int)mask->pmask);
+  printf("polys mask=0x%" PRIx64 ":\n", mask->pmask);
   for (int i = 0; i < CD_NUMTYPES; i++) {
     if (mask->pmask & CD_TYPE_AS_MASK(i)) {
       printf("  %s\n", layerType_getName(i));

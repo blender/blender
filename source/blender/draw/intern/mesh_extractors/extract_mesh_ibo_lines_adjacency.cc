@@ -177,7 +177,7 @@ static void extract_lines_adjacency_finish(const MeshRenderData *UNUSED(mr),
 
 constexpr MeshExtract create_extractor_lines_adjacency()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_adjacency_init;
   extractor.iter_looptri_bm = extract_lines_adjacency_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_lines_adjacency_iter_looptri_mesh;

@@ -264,13 +264,10 @@ struct NodeWithState {
 class GeometryNodesEvaluator;
 
 /**
- * Utility class that locks the state of a node. Having this is a separate class is useful because
- * it allows methods to communicate that they expect the node to be locked.
+ * Utility class that wraps a node whose state is locked. Having this is a separate class is useful
+ * because it allows methods to communicate that they expect the node to be locked.
  */
 class LockedNode : NonCopyable, NonMovable {
- private:
-  GeometryNodesEvaluator &evaluator_;
-
  public:
   /**
    * This is the node that is currently locked.
@@ -290,13 +287,9 @@ class LockedNode : NonCopyable, NonMovable {
   Vector<DOutputSocket> delayed_unused_outputs;
   Vector<DNode> delayed_scheduled_nodes;
 
-  LockedNode(GeometryNodesEvaluator &evaluator, const DNode node, NodeState &node_state)
-      : evaluator_(evaluator), node(node), node_state(node_state)
+  LockedNode(const DNode node, NodeState &node_state) : node(node), node_state(node_state)
   {
-    node_state.mutex.lock();
   }
-
-  ~LockedNode();
 };
 
 static const CPPType *get_socket_cpp_type(const DSocket socket)
@@ -570,9 +563,10 @@ class GeometryNodesEvaluator {
     for (const DInputSocket &socket : params_.output_sockets) {
       const DNode node = socket.node();
       NodeState &node_state = this->get_node_state(node);
-      LockedNode locked_node{*this, node, node_state};
-      /* Setting an input as required will schedule any linked node. */
-      this->set_input_required(locked_node, socket);
+      this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+        /* Setting an input as required will schedule any linked node. */
+        this->set_input_required(locked_node, socket);
+      });
     }
   }
 
@@ -634,30 +628,33 @@ class GeometryNodesEvaluator {
 
   bool node_task_preprocessing(const DNode node, NodeState &node_state)
   {
-    LockedNode locked_node{*this, node, node_state};
-    BLI_assert(node_state.schedule_state == NodeScheduleState::Scheduled);
-    node_state.schedule_state = NodeScheduleState::Running;
+    bool do_execute_node = false;
+    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      BLI_assert(node_state.schedule_state == NodeScheduleState::Scheduled);
+      node_state.schedule_state = NodeScheduleState::Running;
 
-    /* Early return if the node has finished already. */
-    if (locked_node.node_state.node_has_finished) {
-      return false;
-    }
-    /* Prepare outputs and check if actually any new outputs have to be computed. */
-    if (!this->prepare_node_outputs_for_execution(locked_node)) {
-      return false;
-    }
-    /* Initialize nodes that don't support laziness. This is done after at least one output is
-     * required and before we check that all required inputs are provided. This reduces the
-     * number of "round-trips" through the task pool by one for most nodes. */
-    if (!node_state.non_lazy_node_is_initialized && !node_supports_laziness(node)) {
-      this->initialize_non_lazy_node(locked_node);
-      node_state.non_lazy_node_is_initialized = true;
-    }
-    /* Prepare inputs and check if all required inputs are provided. */
-    if (!this->prepare_node_inputs_for_execution(locked_node)) {
-      return false;
-    }
-    return true;
+      /* Early return if the node has finished already. */
+      if (locked_node.node_state.node_has_finished) {
+        return;
+      }
+      /* Prepare outputs and check if actually any new outputs have to be computed. */
+      if (!this->prepare_node_outputs_for_execution(locked_node)) {
+        return;
+      }
+      /* Initialize nodes that don't support laziness. This is done after at least one output is
+       * required and before we check that all required inputs are provided. This reduces the
+       * number of "round-trips" through the task pool by one for most nodes. */
+      if (!node_state.non_lazy_node_is_initialized && !node_supports_laziness(node)) {
+        this->initialize_non_lazy_node(locked_node);
+        node_state.non_lazy_node_is_initialized = true;
+      }
+      /* Prepare inputs and check if all required inputs are provided. */
+      if (!this->prepare_node_inputs_for_execution(locked_node)) {
+        return;
+      }
+      do_execute_node = true;
+    });
+    return do_execute_node;
   }
 
   /* A node is finished when it has computed all outputs that may be used. */
@@ -898,18 +895,18 @@ class GeometryNodesEvaluator {
 
   void node_task_postprocessing(const DNode node, NodeState &node_state)
   {
-    LockedNode locked_node{*this, node, node_state};
+    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      const bool node_has_finished = this->finish_node_if_possible(locked_node);
+      const bool reschedule_requested = node_state.schedule_state ==
+                                        NodeScheduleState::RunningAndRescheduled;
+      node_state.schedule_state = NodeScheduleState::NotScheduled;
+      if (reschedule_requested && !node_has_finished) {
+        /* Either the node rescheduled itself or another node tried to schedule it while it ran. */
+        this->schedule_node(locked_node);
+      }
 
-    const bool node_has_finished = this->finish_node_if_possible(locked_node);
-    const bool reschedule_requested = node_state.schedule_state ==
-                                      NodeScheduleState::RunningAndRescheduled;
-    node_state.schedule_state = NodeScheduleState::NotScheduled;
-    if (reschedule_requested && !node_has_finished) {
-      /* Either the node rescheduled itself or another node tried to schedule it while it ran. */
-      this->schedule_node(locked_node);
-    }
-
-    this->assert_expected_outputs_have_been_computed(locked_node);
+      this->assert_expected_outputs_have_been_computed(locked_node);
+    });
   }
 
   void assert_expected_outputs_have_been_computed(LockedNode &locked_node)
@@ -1097,15 +1094,16 @@ class GeometryNodesEvaluator {
     NodeState &node_state = this->get_node_state(node);
     OutputState &output_state = node_state.outputs[socket->index()];
 
-    LockedNode locked_node{*this, node, node_state};
-    if (output_state.output_usage == ValueUsage::Required) {
-      /* Output is marked as required already. So the node is scheduled already. */
-      return;
-    }
-    /* The origin node needs to be scheduled so that it provides the requested input
-     * eventually. */
-    output_state.output_usage = ValueUsage::Required;
-    this->schedule_node(locked_node);
+    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      if (output_state.output_usage == ValueUsage::Required) {
+        /* Output is marked as required already. So the node is scheduled already. */
+        return;
+      }
+      /* The origin node needs to be scheduled so that it provides the requested input
+       * eventually. */
+      output_state.output_usage = ValueUsage::Required;
+      this->schedule_node(locked_node);
+    });
   }
 
   void send_output_unused_notification(const DOutputSocket socket)
@@ -1114,14 +1112,15 @@ class GeometryNodesEvaluator {
     NodeState &node_state = this->get_node_state(node);
     OutputState &output_state = node_state.outputs[socket->index()];
 
-    LockedNode locked_node{*this, node, node_state};
-    output_state.potential_users -= 1;
-    if (output_state.potential_users == 0) {
-      /* The output socket has no users anymore. */
-      output_state.output_usage = ValueUsage::Unused;
-      /* Schedule the origin node in case it wants to set its inputs as unused as well. */
-      this->schedule_node(locked_node);
-    }
+    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      output_state.potential_users -= 1;
+      if (output_state.potential_users == 0) {
+        /* The output socket has no users anymore. */
+        output_state.output_usage = ValueUsage::Unused;
+        /* Schedule the origin node in case it wants to set its inputs as unused as well. */
+        this->schedule_node(locked_node);
+      }
+    });
   }
 
   void add_node_to_task_pool(const DNode node)
@@ -1249,28 +1248,27 @@ class GeometryNodesEvaluator {
     NodeState &node_state = this->get_node_state(node);
     InputState &input_state = node_state.inputs[socket->index()];
 
-    /* Lock the node because we want to change its state. */
-    LockedNode locked_node{*this, node, node_state};
-
-    if (socket->is_multi_input_socket()) {
-      /* Add a new value to the multi-input. */
-      MultiInputValue &multi_value = *input_state.value.multi;
-      multi_value.items.append({origin, value.get()});
-    }
-    else {
-      /* Assign the value to the input. */
-      SingleInputValue &single_value = *input_state.value.single;
-      BLI_assert(single_value.value == nullptr);
-      single_value.value = value.get();
-    }
-
-    if (input_state.usage == ValueUsage::Required) {
-      node_state.missing_required_inputs--;
-      if (node_state.missing_required_inputs == 0) {
-        /* Schedule node if all the required inputs have been provided. */
-        this->schedule_node(locked_node);
+    this->with_locked_node(node, node_state, [&](LockedNode &locked_node) {
+      if (socket->is_multi_input_socket()) {
+        /* Add a new value to the multi-input. */
+        MultiInputValue &multi_value = *input_state.value.multi;
+        multi_value.items.append({origin, value.get()});
       }
-    }
+      else {
+        /* Assign the value to the input. */
+        SingleInputValue &single_value = *input_state.value.single;
+        BLI_assert(single_value.value == nullptr);
+        single_value.value = value.get();
+      }
+
+      if (input_state.usage == ValueUsage::Required) {
+        node_state.missing_required_inputs--;
+        if (node_state.missing_required_inputs == 0) {
+          /* Schedule node if all the required inputs have been provided. */
+          this->schedule_node(locked_node);
+        }
+      }
+    });
   }
 
   void load_unlinked_input_value(LockedNode &locked_node,
@@ -1365,23 +1363,33 @@ class GeometryNodesEvaluator {
   {
     this->log_socket_value(socket, Span<GPointer>(&value, 1));
   }
-};
 
-LockedNode::~LockedNode()
-{
-  /* First unlock the current node. */
-  node_state.mutex.unlock();
-  /* Then send notifications to the other nodes. */
-  for (const DOutputSocket &socket : delayed_required_outputs) {
-    evaluator_.send_output_required_notification(socket);
+  /* In most cases when `NodeState` is accessed, the node has to be locked first to avoid race
+   * conditions. */
+  template<typename Function>
+  void with_locked_node(const DNode node, NodeState &node_state, const Function &function)
+  {
+    LockedNode locked_node{node, node_state};
+
+    node_state.mutex.lock();
+    /* Isolate this thread because we don't want it to start executing another node. This other
+     * node might want to lock the same mutex leading to a deadlock. */
+    threading::isolate_task([&] { function(locked_node); });
+    node_state.mutex.unlock();
+
+    /* Then send notifications to the other nodes after the node state is unlocked. This avoids
+     * locking two nodes at the same time on this thread and helps to prevent deadlocks. */
+    for (const DOutputSocket &socket : locked_node.delayed_required_outputs) {
+      this->send_output_required_notification(socket);
+    }
+    for (const DOutputSocket &socket : locked_node.delayed_unused_outputs) {
+      this->send_output_unused_notification(socket);
+    }
+    for (const DNode &node : locked_node.delayed_scheduled_nodes) {
+      this->add_node_to_task_pool(node);
+    }
   }
-  for (const DOutputSocket &socket : delayed_unused_outputs) {
-    evaluator_.send_output_unused_notification(socket);
-  }
-  for (const DNode &node : delayed_scheduled_nodes) {
-    evaluator_.add_node_to_task_pool(node);
-  }
-}
+};
 
 NodeParamsProvider::NodeParamsProvider(GeometryNodesEvaluator &evaluator,
                                        DNode dnode,
@@ -1507,8 +1515,9 @@ bool NodeParamsProvider::lazy_require_input(StringRef identifier)
   if (input_state.was_ready_for_execution) {
     return false;
   }
-  LockedNode locked_node{evaluator_, this->dnode, node_state_};
-  evaluator_.set_input_required(locked_node, socket);
+  evaluator_.with_locked_node(this->dnode, node_state_, [&](LockedNode &locked_node) {
+    evaluator_.set_input_required(locked_node, socket);
+  });
   return true;
 }
 
@@ -1517,8 +1526,9 @@ void NodeParamsProvider::set_input_unused(StringRef identifier)
   const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
-  LockedNode locked_node{evaluator_, this->dnode, node_state_};
-  evaluator_.set_input_unused(locked_node, socket);
+  evaluator_.with_locked_node(this->dnode, node_state_, [&](LockedNode &locked_node) {
+    evaluator_.set_input_unused(locked_node, socket);
+  });
 }
 
 bool NodeParamsProvider::output_is_required(StringRef identifier) const

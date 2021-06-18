@@ -1042,7 +1042,7 @@ typedef struct AverageGridsBoundariesData {
   CCGKey *key;
 
   /* Optional lookup table. Maps task index to index in `subdiv_ccg->adjacent_vertices`. */
-  int *adjacent_edge_index_map;
+  const int *adjacent_edge_index_map;
 } AverageGridsBoundariesData;
 
 typedef struct AverageGridsBoundariesTLSData {
@@ -1117,7 +1117,7 @@ typedef struct AverageGridsCornerData {
   CCGKey *key;
 
   /* Optional lookup table. Maps task range index to index in subdiv_ccg->adjacent_vertices*/
-  int *adjacent_vert_index_map;
+  const int *adjacent_vert_index_map;
 } AverageGridsCornerData;
 
 static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
@@ -1161,7 +1161,7 @@ static void subdiv_ccg_average_grids_corners_task(void *__restrict userdata_v,
 
 static void subdiv_ccg_average_boundaries(SubdivCCG *subdiv_ccg,
                                           CCGKey *key,
-                                          int *adjacent_edge_index_map,
+                                          const int *adjacent_edge_index_map,
                                           int num_adjacent_edges)
 {
   TaskParallelSettings parallel_range_settings;
@@ -1186,7 +1186,7 @@ static void subdiv_ccg_average_all_boundaries(SubdivCCG *subdiv_ccg, CCGKey *key
 
 static void subdiv_ccg_average_corners(SubdivCCG *subdiv_ccg,
                                        CCGKey *key,
-                                       int *adjacent_vert_index_map,
+                                       const int *adjacent_vert_index_map,
                                        int num_adjacent_vertices)
 {
   TaskParallelSettings parallel_range_settings;

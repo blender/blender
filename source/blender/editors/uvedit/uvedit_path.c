@@ -552,7 +552,7 @@ static bool uv_shortest_path_pick_ex(const SpaceImage *sima,
         if (uv_selectmode & UV_SELECT_EDGE) {
           /* Special case as we don't use true edge selection,
            * flush the selection from the vertices. */
-          BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX);
+          BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX, BM_SELECT_LEN_FLUSH_RECALC_ALL);
         }
       }
       ED_uvedit_select_sync_flush(scene->toolsettings, em, select);

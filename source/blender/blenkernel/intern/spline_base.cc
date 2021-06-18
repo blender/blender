@@ -227,6 +227,72 @@ static void calculate_normals_z_up(Span<float3> tangents, MutableSpan<float3> r_
 }
 
 /**
+ * Rotate the last normal in the same way the tangent has been rotated.
+ */
+static float3 calculate_next_normal(const float3 &last_normal,
+                                    const float3 &last_tangent,
+                                    const float3 &current_tangent)
+{
+  if (last_tangent.is_zero() || current_tangent.is_zero()) {
+    return last_normal;
+  }
+  const float angle = angle_normalized_v3v3(last_tangent, current_tangent);
+  if (angle != 0.0) {
+    const float3 axis = float3::cross(last_tangent, current_tangent).normalized();
+    return rotate_direction_around_axis(last_normal, axis, angle);
+  }
+  return last_normal;
+}
+
+static void calculate_normals_minimum(Span<float3> tangents,
+                                      const bool cyclic,
+                                      MutableSpan<float3> r_normals)
+{
+  BLI_assert(r_normals.size() == tangents.size());
+
+  if (r_normals.is_empty()) {
+    return;
+  }
+
+  const float epsilon = 1e-4f;
+
+  /* Set initial normal. */
+  const float3 &first_tangent = tangents[0];
+  if (fabs(first_tangent.x) + fabs(first_tangent.y) < epsilon) {
+    r_normals[0] = {1.0f, 0.0f, 0.0f};
+  }
+  else {
+    r_normals[0] = float3(first_tangent.y, -first_tangent.x, 0.0f).normalized();
+  }
+
+  /* Forward normal with minimum twist along the entire spline. */
+  for (const int i : IndexRange(1, r_normals.size() - 1)) {
+    r_normals[i] = calculate_next_normal(r_normals[i - 1], tangents[i - 1], tangents[i]);
+  }
+
+  if (!cyclic) {
+    return;
+  }
+
+  /* Compute how much the first normal deviates from the normal that has been forwarded along the
+   * entire cyclic spline. */
+  const float3 uncorrected_last_normal = calculate_next_normal(
+      r_normals.last(), tangents.last(), tangents[0]);
+  float correction_angle = angle_signed_on_axis_v3v3_v3(
+      r_normals[0], uncorrected_last_normal, tangents[0]);
+  if (correction_angle > M_PI) {
+    correction_angle = correction_angle - 2 * M_PI;
+  }
+
+  /* Gradually apply correction by rotating all normals slightly. */
+  const float angle_step = correction_angle / r_normals.size();
+  for (const int i : r_normals.index_range()) {
+    const float angle = angle_step * i;
+    r_normals[i] = rotate_direction_around_axis(r_normals[i], tangents[i], angle);
+  }
+}
+
+/**
  * Return non-owning access to the direction vectors perpendicular to the tangents at every
  * evaluated point. The method used to generate the normal vectors depends on Spline.normal_mode.
  */
@@ -244,11 +310,25 @@ Span<float3> Spline::evaluated_normals() const
   const int eval_size = this->evaluated_points_size();
   evaluated_normals_cache_.resize(eval_size);
 
-  Span<float3> tangents = evaluated_tangents();
+  Span<float3> tangents = this->evaluated_tangents();
   MutableSpan<float3> normals = evaluated_normals_cache_;
 
   /* Only Z up normals are supported at the moment. */
-  calculate_normals_z_up(tangents, normals);
+  switch (this->normal_mode) {
+    case ZUp: {
+      calculate_normals_z_up(tangents, normals);
+      break;
+    }
+    case Minimum: {
+      calculate_normals_minimum(tangents, is_cyclic_, normals);
+      break;
+    }
+    case Tangent: {
+      /* Tangent mode is not yet supported. */
+      calculate_normals_z_up(tangents, normals);
+      break;
+    }
+  }
 
   /* Rotate the generated normals with the interpolated tilt data. */
   GVArray_Typed<float> tilts = this->interpolate_to_evaluated_points(this->tilts());

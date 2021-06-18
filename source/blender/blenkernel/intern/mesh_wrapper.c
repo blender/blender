@@ -58,7 +58,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const Mesh *me_settings)
 {
   Mesh *me = BKE_id_new_nomain(ID_ME, NULL);
-  BKE_mesh_copy_settings(me, me_settings);
+  BKE_mesh_copy_parameters_for_eval(me, me_settings);
   BKE_mesh_runtime_ensure_edit_data(me);
 
   me->runtime.wrapper_type = ME_WRAPPER_TYPE_BMESH;

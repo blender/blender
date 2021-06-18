@@ -132,7 +132,7 @@ static void panelRegister(ARegionType *region_type)
 static Mesh *create_empty_mesh(const Mesh *input_mesh)
 {
   Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
-  BKE_mesh_copy_settings(new_mesh, input_mesh);
+  BKE_mesh_copy_parameters_for_eval(new_mesh, input_mesh);
   return new_mesh;
 }
 
@@ -193,7 +193,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return create_empty_mesh(input_mesh);
   }
 
-  BKE_mesh_copy_settings(mesh, input_mesh);
+  BKE_mesh_copy_parameters_for_eval(mesh, input_mesh);
   if (vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE) {
     BKE_mesh_smooth_flag_set(mesh, true);
   }

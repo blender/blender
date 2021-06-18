@@ -48,8 +48,8 @@
 UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
                                        const MLoop *mloop,
                                        const MLoopUV *mloopuv,
-                                       unsigned int totpoly,
-                                       unsigned int totvert,
+                                       uint totpoly,
+                                       uint totvert,
                                        const float limit[2],
                                        const bool selected,
                                        const bool use_winding)
@@ -57,7 +57,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   UvVertMap *vmap;
   UvMapVert *buf;
   const MPoly *mp;
-  unsigned int a;
+  uint a;
   int i, totuv, nverts;
 
   bool *winding = NULL;
@@ -115,7 +115,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
       }
 
       if (use_winding) {
-        winding[a] = cross_poly_v2(tf_uv, (unsigned int)nverts) > 0;
+        winding[a] = cross_poly_v2(tf_uv, (uint)nverts) > 0;
       }
     }
   }
@@ -176,7 +176,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const MPoly *mpoly,
   return vmap;
 }
 
-UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v)
+UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, uint v)
 {
   return vmap->vert[v];
 }
@@ -239,7 +239,7 @@ static void mesh_vert_poly_or_loop_map_create(MeshElemMap **r_map,
     const MPoly *p = &mpoly[i];
 
     for (j = 0; j < p->totloop; j++) {
-      unsigned int v = mloop[p->loopstart + j].v;
+      uint v = mloop[p->loopstart + j].v;
 
       map[v].indices[map[v].count] = do_loops ? p->loopstart + j : i;
       map[v].count++;
@@ -362,7 +362,7 @@ void BKE_mesh_vert_edge_map_create(
 
   /* Find the users */
   for (i = 0; i < totedge; i++) {
-    const unsigned int v[2] = {medge[i].v1, medge[i].v2};
+    const uint v[2] = {medge[i].v1, medge[i].v2};
 
     map[v[0]].indices[map[v[0]].count] = i;
     map[v[1]].indices[map[v[1]].count] = i;
@@ -405,7 +405,7 @@ void BKE_mesh_vert_edge_vert_map_create(
 
   /* Find the users */
   for (i = 0; i < totedge; i++) {
-    const unsigned int v[2] = {medge[i].v1, medge[i].v2};
+    const uint v[2] = {medge[i].v1, medge[i].v2};
 
     map[v[0]].indices[map[v[0]].count] = (int)v[1];
     map[v[1]].indices[map[v[1]].count] = (int)v[0];
@@ -1025,8 +1025,8 @@ static bool mesh_check_island_boundary_uv(const MPoly *UNUSED(mp),
 
     BLI_assert(edge_to_loops->count >= 2 && (edge_to_loops->count % 2) == 0);
 
-    const unsigned int v1 = loops[edge_to_loops->indices[0]].v;
-    const unsigned int v2 = loops[edge_to_loops->indices[1]].v;
+    const uint v1 = loops[edge_to_loops->indices[0]].v;
+    const uint v2 = loops[edge_to_loops->indices[1]].v;
     const float *uvco_v1 = luvs[edge_to_loops->indices[0]].uv;
     const float *uvco_v2 = luvs[edge_to_loops->indices[1]].uv;
     for (int i = 2; i < edge_to_loops->count; i += 2) {

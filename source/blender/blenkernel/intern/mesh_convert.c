@@ -148,7 +148,7 @@ static void make_edges_mdata_extend(
   int totedge = *r_totedge;
   int totedge_new;
   EdgeHash *eh;
-  unsigned int eh_reserve;
+  uint eh_reserve;
   const MPoly *mp;
   int i;
 
@@ -174,7 +174,7 @@ static void make_edges_mdata_extend(
   if (totedge_new) {
     EdgeHashIterator *ehi;
     MEdge *medge;
-    unsigned int e_index = totedge;
+    uint e_index = totedge;
 
     *r_alledge = medge = (*r_alledge ?
                               MEM_reallocN(*r_alledge, sizeof(MEdge) * (totedge + totedge_new)) :
@@ -719,17 +719,17 @@ typedef struct EdgeLink {
 
 typedef struct VertLink {
   Link *next, *prev;
-  unsigned int index;
+  uint index;
 } VertLink;
 
-static void prependPolyLineVert(ListBase *lb, unsigned int index)
+static void prependPolyLineVert(ListBase *lb, uint index)
 {
   VertLink *vl = MEM_callocN(sizeof(VertLink), "VertLink");
   vl->index = index;
   BLI_addhead(lb, vl);
 }
 
-static void appendPolyLineVert(ListBase *lb, unsigned int index)
+static void appendPolyLineVert(ListBase *lb, uint index)
 {
   VertLink *vl = MEM_callocN(sizeof(VertLink), "VertLink");
   vl->index = index;
@@ -784,8 +784,8 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       bool closed = false;
       int totpoly = 0;
       MEdge *med_current = ((EdgeLink *)edges.last)->edge;
-      unsigned int startVert = med_current->v1;
-      unsigned int endVert = med_current->v2;
+      uint startVert = med_current->v1;
+      uint endVert = med_current->v2;
       bool ok = true;
 
       appendPolyLineVert(&polyline, startVert);

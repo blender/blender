@@ -115,7 +115,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
 
 constexpr MeshExtract create_extractor_tris()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_tris_init;
   extractor.iter_looptri_bm = extract_tris_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_tris_iter_looptri_mesh;
@@ -197,7 +197,7 @@ static void extract_tris_single_mat_finish(const MeshRenderData *mr,
     for (int i = 0; i < mr->mat_len; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
-      if (mbc->tris_per_mat[i] == NULL) {
+      if (mbc->tris_per_mat[i] == nullptr) {
         mbc->tris_per_mat[i] = GPU_indexbuf_calloc();
       }
       /* Multiply by 3 because these are triangle indices. */
@@ -209,7 +209,7 @@ static void extract_tris_single_mat_finish(const MeshRenderData *mr,
 
 constexpr MeshExtract create_extractor_tris_single_mat()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_tris_single_mat_init;
   extractor.iter_looptri_bm = extract_tris_single_mat_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_tris_single_mat_iter_looptri_mesh;

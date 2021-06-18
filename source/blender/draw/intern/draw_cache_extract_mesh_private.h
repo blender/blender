@@ -38,6 +38,8 @@
 extern "C" {
 #endif
 
+#define MIN_RANGE_LEN 1024
+
 /* ---------------------------------------------------------------------- */
 /** \name Dependencies between buffer and batch
  * \{ */

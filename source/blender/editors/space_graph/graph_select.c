@@ -675,6 +675,16 @@ static short ok_bezier_always_ok(KeyframeEditData *UNUSED(ked), BezTriple *UNUSE
   return KEYFRAME_OK_KEY | KEYFRAME_OK_H1 | KEYFRAME_OK_H2;
 }
 
+#define ABOVE 1
+#define INSIDE 0
+#define BELOW -1
+static int rectf_curve_zone_y(
+    FCurve *fcu, const rctf *rectf, const float offset, const float unit_scale, const float eval_x)
+{
+  const float fcurve_y = (evaluate_fcurve(fcu, eval_x) + offset) * unit_scale;
+  return fcurve_y < rectf->ymin ? BELOW : fcurve_y <= rectf->ymax ? INSIDE : ABOVE;
+}
+
 /* Checks whether the given rectangle intersects the given fcurve's calculated curve (i.e. not
  * only keyframes, but also all the interpolated values). This is done by sampling the curve at
  * different points between the xmin and the xmax of the rectangle.
@@ -683,8 +693,7 @@ static bool rectf_curve_intersection(
     const float offset, const float unit_scale, const rctf *rectf, AnimData *adt, FCurve *fcu)
 {
   /* 30 sampling points. This worked well in tests. */
-  const float num_steps = 30.0f;
-  const float step = (rectf->xmax - rectf->xmin) / num_steps;
+  int num_steps = 30;
 
   /* Remap the range at which to evaluate the fcurves. This enables us to avoid remapping
    * the keys themselves. */
@@ -692,27 +701,36 @@ static bool rectf_curve_intersection(
   const float mapped_min = BKE_nla_tweakedit_remap(adt, rectf->xmin, NLATIME_CONVERT_UNMAP);
   const float eval_step = (mapped_max - mapped_min) / num_steps;
 
-  float x = rectf->xmin;
-  float eval_x = mapped_min;
   /* Sample points on the given fcurve in the interval defined by the
    * mapped_min and mapped_max of the selected rectangle.
    * For each point, check if it is inside of the selection box. If it is, then select
    * all the keyframes of the curve, the curve, and stop the loop.
    */
-  while (x < rectf->xmax) {
-    const float fcurve_y = (evaluate_fcurve(fcu, eval_x) + offset) * unit_scale;
-    /* Since rectf->xmin <= x < rectf->xmax is always true, there is no need to keep comparing the
-     * X-coordinate to the rectangle in every iteration. Therefore we do the comparisons manually
-     * instead of using BLI_rctf_isect_pt_v(rectf, current_point).
-     */
-    if (rectf->ymin <= fcurve_y && fcurve_y <= rectf->ymax) {
+  struct {
+    float eval_x;
+    int zone;
+  } cur, prev;
+
+  prev.eval_x = mapped_min;
+  prev.zone = rectf_curve_zone_y(fcu, rectf, offset, unit_scale, prev.eval_x);
+  if (prev.zone == INSIDE) {
+    return true;
+  }
+
+  while (num_steps--) {
+    cur.eval_x = prev.eval_x + eval_step;
+    cur.zone = rectf_curve_zone_y(fcu, rectf, offset, unit_scale, cur.eval_x);
+    if (cur.zone != prev.zone) {
       return true;
     }
-    x += step;
-    eval_x += eval_step;
+
+    prev = cur;
   }
   return false;
 }
+#undef ABOVE
+#undef INSIDE
+#undef BELOW
 
 /* Perform a box selection of the curves themselves. This means this function tries
  * to select a curve by sampling it at various points instead of trying to select the

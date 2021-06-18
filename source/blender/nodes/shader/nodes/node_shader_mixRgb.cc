@@ -134,7 +134,7 @@ void register_node_type_sh_mix_rgb(void)
   sh_node_type_base(&ntype, SH_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR, 0);
   node_type_socket_templates(&ntype, sh_node_mix_rgb_in, sh_node_mix_rgb_out);
   node_type_label(&ntype, node_blend_label);
-  node_type_exec(&ntype, NULL, NULL, node_shader_exec_mix_rgb);
+  node_type_exec(&ntype, nullptr, nullptr, node_shader_exec_mix_rgb);
   node_type_gpu(&ntype, gpu_shader_mix_rgb);
 
   nodeRegisterType(&ntype);
