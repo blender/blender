@@ -1554,22 +1554,6 @@ void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
   }
 }
 
-void BKE_mesh_tessface_calc(Mesh *mesh)
-{
-  mesh->totface = BKE_mesh_tessface_calc_ex(
-      &mesh->fdata,
-      &mesh->ldata,
-      &mesh->pdata,
-      mesh->mvert,
-      mesh->totface,
-      mesh->totloop,
-      mesh->totpoly,
-      /* calc normals right after, don't copy from polys here */
-      false);
-
-  BKE_mesh_update_customdata_pointers(mesh, true);
-}
-
 void BKE_mesh_tessface_ensure(Mesh *mesh)
 {
   if (mesh->totpoly && mesh->totface == 0) {
