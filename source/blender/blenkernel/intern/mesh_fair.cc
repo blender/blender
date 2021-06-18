@@ -65,7 +65,7 @@ class FairingContext {
                                           float r_adj_prev[3]) = 0;
 
   /* Get the other vertex index for a loop. */
-  virtual int other_vertex_index_from_loop(const int loop, const unsigned int v) = 0;
+  virtual int other_vertex_index_from_loop(const int loop, const uint v) = 0;
 
   int vertex_count_get()
   {
@@ -257,7 +257,7 @@ class MeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, co_[ME_POLY_LOOP_PREV(mloop_, p, corner)->v]);
   }
 
-  int other_vertex_index_from_loop(const int loop, const unsigned int v) override
+  int other_vertex_index_from_loop(const int loop, const uint v) override
   {
     MEdge *e = &medge_[mloop_[loop].e];
     if (e->v1 == v) {
@@ -332,7 +332,7 @@ class BMeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, bmloop_[loop]->prev->v->co);
   }
 
-  int other_vertex_index_from_loop(const int loop, const unsigned int v) override
+  int other_vertex_index_from_loop(const int loop, const uint v) override
   {
     BMLoop *l = bmloop_[loop];
     BMVert *bmvert = BM_vert_at_index(bm, v);

@@ -157,8 +157,8 @@ void sample_face_attribute(const Mesh &mesh,
 }
 
 MeshAttributeInterpolator::MeshAttributeInterpolator(const Mesh *mesh,
-                                             const Span<float3> positions,
-                                             const Span<int> looptri_indices)
+                                                     const Span<float3> positions,
+                                                     const Span<int> looptri_indices)
     : mesh_(mesh), positions_(positions), looptri_indices_(looptri_indices)
 {
   BLI_assert(positions.size() == looptri_indices.size());
@@ -219,8 +219,8 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
 }
 
 void MeshAttributeInterpolator::sample_attribute(const ReadAttributeLookup &src_attribute,
-                                             OutputAttribute &dst_attribute,
-                                             eAttributeMapMode mode)
+                                                 OutputAttribute &dst_attribute,
+                                                 eAttributeMapMode mode)
 {
   if (!src_attribute || !dst_attribute) {
     return;
@@ -247,18 +247,15 @@ void MeshAttributeInterpolator::sample_attribute(const ReadAttributeLookup &src_
   /* Interpolate the source attributes on the surface. */
   switch (src_attribute.domain) {
     case ATTR_DOMAIN_POINT: {
-      sample_point_attribute(
-          *mesh_, looptri_indices_, weights, src_varray, dst_span);
+      sample_point_attribute(*mesh_, looptri_indices_, weights, src_varray, dst_span);
       break;
     }
     case ATTR_DOMAIN_FACE: {
-      sample_face_attribute(
-          *mesh_, looptri_indices_, src_varray, dst_span);
+      sample_face_attribute(*mesh_, looptri_indices_, src_varray, dst_span);
       break;
     }
     case ATTR_DOMAIN_CORNER: {
-      sample_corner_attribute(
-          *mesh_, looptri_indices_, weights, src_varray, dst_span);
+      sample_corner_attribute(*mesh_, looptri_indices_, weights, src_varray, dst_span);
       break;
     }
     case ATTR_DOMAIN_EDGE: {
