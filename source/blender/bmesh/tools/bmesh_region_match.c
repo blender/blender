@@ -553,7 +553,8 @@ static void bm_uuidwalk_pass_add(UUIDWalk *uuidwalk,
 
 static int bm_face_len_cmp(const void *v1, const void *v2)
 {
-  const BMFace *f1 = v1, *f2 = v2;
+  const BMFace *f1 = *((BMFace **)v1);
+  const BMFace *f2 = *((BMFace **)v2);
 
   if (f1->len > f2->len) {
     return 1;
