@@ -2439,6 +2439,8 @@ static float brush_strength(const Sculpt *sd,
       /* Clay Strips needs less strength to compensate the curve. */
       // final_pressure = powf(pressure, 1.5f);
       return alpha * flip * pressure * overlap * feather * 0.3f;
+    case SCULPT_TOOL_TWIST:
+      return alpha * flip * pressure * overlap * feather * 0.3f;
     case SCULPT_TOOL_CLAY_THUMB:
       // final_pressure = pressure * pressure;
       return alpha * flip * pressure * overlap * feather * 1.3f;
@@ -5824,6 +5826,171 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   BLI_task_parallel_range(0, totnode, &data, do_clay_strips_brush_task_cb_ex, &settings);
 }
 
+
+/****** Twist Brush **********/
+
+static void do_twist_brush_task_cb_ex(void *__restrict userdata,
+                                            const int n,
+                                            const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const Brush *brush = data->brush;
+  float(*mat)[4] = data->mat;
+  const float *area_no_sp = data->area_no_sp;
+  const float *area_co = data->area_co;
+
+  PBVHVertexIter vd;
+  SculptBrushTest test;
+  float(*proxy)[3];
+  const bool flip = (ss->cache->bstrength < 0.0f);
+  const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
+
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+
+  SCULPT_brush_test_init(ss, &test);
+  plane_from_point_normal_v3(test.plane_tool, area_co, area_no_sp);
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness)) {
+      continue;
+    }
+
+    if (!plane_point_side_flip(vd.co, test.plane_tool, flip)) {
+      continue;
+    }
+
+    float vertex_no[3];
+    SCULPT_vertex_normal_get(ss, vd.index, vertex_no);
+    if (dot_v3v3(area_no_sp, vertex_no) <= -0.1f) {
+      continue;
+    }
+
+    float intr[3];
+    float val[3];
+    closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
+    sub_v3_v3v3(val, intr, vd.co);
+
+    if (!SCULPT_plane_trim(ss->cache, brush, val)) {
+      continue;
+    }
+    /* The normal from the vertices is ignored, it causes glitch with planes, see: T44390. */
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                vd.co,
+                                                                ss->cache->radius * test.dist,
+                                                                vd.no,
+                                                                vd.fno,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.index,
+                                                                thread_id);
+
+    mul_v3_v3fl(proxy[vd.i], val, fade);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+static void do_twist_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  const bool flip = (ss->cache->bstrength < 0.0f);
+  const float radius = flip ? -ss->cache->radius : ss->cache->radius;
+  const float offset = SCULPT_brush_plane_offset_get(sd, ss);
+  const float displace = radius * (0.18f + offset);
+
+  SCULPT_vertex_random_access_ensure(ss);
+
+  /* The sculpt-plane normal (whatever its set to). */
+  float area_no_sp[3];
+
+  /* Geometry normal */
+  float area_no[3];
+  float area_co[3];
+
+  float temp[3];
+  float mat[4][4];
+  float scale[4][4];
+  float tmat[4][4];
+
+  SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no_sp, area_co);
+  SCULPT_tilt_apply_to_normal(area_no_sp, ss->cache, brush->tilt_strength_factor);
+
+  if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
+    SCULPT_calc_area_normal(sd, ob, nodes, totnode, area_no);
+  }
+  else {
+    copy_v3_v3(area_no, area_no_sp);
+  }
+
+  /* Delay the first daub because grab delta is not setup. */
+  if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
+    return;
+  }
+
+  if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
+    return;
+  }
+
+  mul_v3_v3v3(temp, area_no_sp, ss->cache->scale);
+  mul_v3_fl(temp, displace);
+  add_v3_v3(area_co, temp);
+
+  /* Clay Strips uses a cube test with falloff in the XY axis (not in Z) and a plane to deform the
+   * vertices. When in Add mode, vertices that are below the plane and inside the cube are move
+   * towards the plane. In this situation, there may be cases where a vertex is outside the cube
+   * but below the plane, so won't be deformed, causing artifacts. In order to prevent these
+   * artifacts, this displaces the test cube space in relation to the plane in order to
+   * deform more vertices that may be below it. */
+  /* The 0.7 and 1.25 factors are arbitrary and don't have any relation between them, they were set
+   * by doing multiple tests using the default "Clay Strips" brush preset. */
+  float area_co_displaced[3];
+  madd_v3_v3v3fl(area_co_displaced, area_co, area_no, -radius * 0.7f);
+
+  /* Initialize brush local-space matrix. */
+  cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
+  mat[0][3] = 0.0f;
+  cross_v3_v3v3(mat[1], area_no, mat[0]);
+  mat[1][3] = 0.0f;
+  copy_v3_v3(mat[2], area_no);
+  mat[2][3] = 0.0f;
+  copy_v3_v3(mat[3], area_co_displaced);
+  mat[3][3] = 1.0f;
+  normalize_m4(mat);
+
+  /* Scale brush local space matrix. */
+  scale_m4_fl(scale, ss->cache->radius);
+  mul_m4_m4m4(tmat, mat, scale);
+
+  /* Deform the local space in Z to scale the test cube. As the test cube does not have falloff in
+   * Z this does not produce artifacts in the falloff cube and allows to deform extra vertices
+   * during big deformation while keeping the surface as uniform as possible. */
+  mul_v3_fl(tmat[2], 1.25f);
+
+  invert_m4_m4(mat, tmat);
+
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .brush = brush,
+      .nodes = nodes,
+      .area_no_sp = area_no_sp,
+      .area_co = area_co,
+      .mat = mat,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_twist_brush_task_cb_ex, &settings);
+}
+
+
 static void do_fill_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
                                      const TaskParallelTLS *__restrict tls)
@@ -6581,6 +6748,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     case SCULPT_TOOL_CLAY_STRIPS:
       do_clay_strips_brush(sd, ob, nodes, totnode);
       break;
+    case SCULPT_TOOL_TWIST:
+      do_clay_strips_brush(sd, ob, nodes, totnode);
+      break;
     case SCULPT_TOOL_MULTIPLANE_SCRAPE:
       SCULPT_do_multiplane_scrape_brush(sd, ob, nodes, totnode);
       break;
@@ -7246,6 +7416,8 @@ static const char *sculpt_tool_name(Sculpt *sd)
       return "Scene Project";
     case SCULPT_TOOL_SYMMETRIZE:
       return "Symmetrize Brush";
+    case SCULPT_TOOL_TWIST:
+      return "Clay Strips Brush";
   }
 
   return "Sculpting";
@@ -7549,6 +7721,7 @@ static bool sculpt_needs_delta_for_tip_orientation(Brush *brush)
   }
   return ELEM(brush->sculpt_tool,
               SCULPT_TOOL_CLAY_STRIPS,
+              SCULPT_TOOL_TWIST,
               SCULPT_TOOL_PINCH,
               SCULPT_TOOL_MULTIPLANE_SCRAPE,
               SCULPT_TOOL_CLAY_THUMB,
@@ -7573,6 +7746,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
             SCULPT_TOOL_CLOTH,
             SCULPT_TOOL_NUDGE,
             SCULPT_TOOL_CLAY_STRIPS,
+            SCULPT_TOOL_TWIST,
             SCULPT_TOOL_PINCH,
             SCULPT_TOOL_MULTIPLANE_SCRAPE,
             SCULPT_TOOL_CLAY_THUMB,

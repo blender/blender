@@ -1790,6 +1790,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag |= BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       break;
+    case SCULPT_TOOL_TWIST:
+      br->alpha = 0.5f;
+      br->normal_radius_factor = 1.0f;
+      br->spacing = 6;
+      br->hardness = 0.5f;
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->flag &= ~BRUSH_SIZE_PRESSURE;
+      break;
     case SCULPT_TOOL_CLAY_STRIPS: {
       br->flag |= BRUSH_ACCUMULATE | BRUSH_SIZE_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
@@ -1978,6 +1986,7 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_POSE:
     case SCULPT_TOOL_BOUNDARY:
     case SCULPT_TOOL_SLIDE_RELAX:
+    case SCULPT_TOOL_TWIST:
       br->add_col[0] = 1.0f;
       br->add_col[1] = 0.95f;
       br->add_col[2] = 0.005f;

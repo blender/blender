@@ -129,6 +129,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
     {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", ICON_BRUSH_GRAB, "Slide Relax", ""},
     {SCULPT_TOOL_BOUNDARY, "BOUNDARY", ICON_BRUSH_GRAB, "Boundary", ""},
+    {SCULPT_TOOL_TWIST, "TWIST", ICON_BRUSH_GRAB, "Twist", ""},
     {0, "", 0, NULL, NULL},
     {SCULPT_TOOL_CLOTH, "CLOTH", ICON_BRUSH_SCULPT_DRAW, "Cloth", ""},
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
@@ -564,6 +565,7 @@ static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
                SCULPT_TOOL_DRAW_SHARP,
                SCULPT_TOOL_CLAY,
                SCULPT_TOOL_CLAY_STRIPS,
+               SCULPT_TOOL_TWIST,
                SCULPT_TOOL_SMOOTH,
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_INFLATE,
@@ -841,6 +843,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case SCULPT_TOOL_LAYER:
         case SCULPT_TOOL_CLAY:
         case SCULPT_TOOL_CLAY_STRIPS:
+        case SCULPT_TOOL_TWIST:
           return prop_direction_items;
         case SCULPT_TOOL_SMOOTH:
           return prop_smooth_direction_items;
