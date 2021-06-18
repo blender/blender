@@ -1122,6 +1122,10 @@ void BKE_gpencil_layer_copy_settings(const bGPDlayer *gpl_src, bGPDlayer *gpl_ds
   copy_v3_v3(gpl_dst->scale, gpl_src->scale);
   copy_m4_m4(gpl_dst->layer_mat, gpl_src->layer_mat);
   copy_m4_m4(gpl_dst->layer_invmat, gpl_src->layer_invmat);
+  /* Use Lights flag. */
+  if (gpl_src->flag & GP_LAYER_USE_LIGHTS) {
+    gpl_dst->flag |= GP_LAYER_USE_LIGHTS;
+  }
 }
 
 /**
