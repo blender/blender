@@ -56,16 +56,29 @@ SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
   return column;
 }
 
+void spreadsheet_column_assign_runtime_data(SpreadsheetColumn *column,
+                                            const eSpreadsheetColumnValueType data_type,
+                                            const StringRefNull display_name)
+{
+  column->data_type = data_type;
+  MEM_SAFE_FREE(column->display_name);
+  column->display_name = BLI_strdup(display_name.c_str());
+}
+
 SpreadsheetColumn *spreadsheet_column_copy(const SpreadsheetColumn *src_column)
 {
   SpreadsheetColumnID *new_column_id = spreadsheet_column_id_copy(src_column->id);
   SpreadsheetColumn *new_column = spreadsheet_column_new(new_column_id);
+  if (src_column->display_name != nullptr) {
+    new_column->display_name = BLI_strdup(src_column->display_name);
+  }
   return new_column;
 }
 
 void spreadsheet_column_free(SpreadsheetColumn *column)
 {
   spreadsheet_column_id_free(column->id);
+  MEM_SAFE_FREE(column->display_name);
   MEM_freeN(column);
 }
 

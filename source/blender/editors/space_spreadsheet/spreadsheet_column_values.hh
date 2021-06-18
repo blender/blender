@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "DNA_space_types.h"
+
 #include "BLI_string_ref.hh"
 
 #include "spreadsheet_cell_value.hh"
@@ -28,17 +30,24 @@ namespace blender::ed::spreadsheet {
  */
 class ColumnValues {
  protected:
+  eSpreadsheetColumnValueType type_;
   std::string name_;
   int size_;
 
  public:
-  ColumnValues(std::string name, const int size) : name_(std::move(name)), size_(size)
+  ColumnValues(const eSpreadsheetColumnValueType type, std::string name, const int size)
+      : type_(type), name_(std::move(name)), size_(size)
   {
   }
 
   virtual ~ColumnValues() = default;
 
   virtual void get_value(int index, CellValue &r_cell_value) const = 0;
+
+  eSpreadsheetColumnValueType type() const
+  {
+    return type_;
+  }
 
   StringRefNull name() const
   {
@@ -60,8 +69,11 @@ template<typename GetValueF> class LambdaColumnValues : public ColumnValues {
   GetValueF get_value_;
 
  public:
-  LambdaColumnValues(std::string name, int size, GetValueF get_value)
-      : ColumnValues(std::move(name), size), get_value_(std::move(get_value))
+  LambdaColumnValues(const eSpreadsheetColumnValueType type,
+                     std::string name,
+                     int size,
+                     GetValueF get_value)
+      : ColumnValues(type, std::move(name), size), get_value_(std::move(get_value))
   {
   }
 
@@ -73,13 +85,14 @@ template<typename GetValueF> class LambdaColumnValues : public ColumnValues {
 
 /* Utility function that simplifies creating a spreadsheet column from a lambda function. */
 template<typename GetValueF>
-std::unique_ptr<ColumnValues> column_values_from_function(std::string name,
+std::unique_ptr<ColumnValues> column_values_from_function(const eSpreadsheetColumnValueType type,
+                                                          std::string name,
                                                           const int size,
                                                           GetValueF get_value,
                                                           const float default_width = 0.0f)
 {
   std::unique_ptr<ColumnValues> column_values = std::make_unique<LambdaColumnValues<GetValueF>>(
-      std::move(name), size, std::move(get_value));
+      type, std::move(name), size, std::move(get_value));
   column_values->default_width = default_width;
   return column_values;
 }

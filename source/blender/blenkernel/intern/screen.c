@@ -1357,12 +1357,21 @@ static void write_area(BlendWriter *writer, ScrArea *area)
     }
     else if (sl->spacetype == SPACE_SPREADSHEET) {
       BLO_write_struct(writer, SpaceSpreadsheet, sl);
-
       SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
+
+      LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+        BLO_write_struct(writer, SpreadsheetRowFilter, row_filter);
+        BLO_write_string(writer, row_filter->value_string);
+      }
+
       LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
         BLO_write_struct(writer, SpreadsheetColumn, column);
         BLO_write_struct(writer, SpreadsheetColumnID, column->id);
         BLO_write_string(writer, column->id->name);
+        /* While the display name is technically runtime data, we write it here, otherwise the row
+         * filters might not now their type if their region draws before the main region.
+         * This would ideally be cleared here. */
+        BLO_write_string(writer, column->display_name);
       }
       LISTBASE_FOREACH (SpreadsheetContext *, context, &sspreadsheet->context_path) {
         switch (context->type) {
@@ -1743,11 +1752,18 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
 
       sspreadsheet->runtime = NULL;
-
+      BLO_read_list(reader, &sspreadsheet->row_filters);
+      LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
+        BLO_read_data_address(reader, &row_filter->value_string);
+      }
       BLO_read_list(reader, &sspreadsheet->columns);
       LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
         BLO_read_data_address(reader, &column->id);
         BLO_read_data_address(reader, &column->id->name);
+        /* While the display name is technically runtime data, it is loaded here, otherwise the row
+         * filters might not now their type if their region draws before the main region.
+         * This would ideally be cleared here. */
+        BLO_read_data_address(reader, &column->display_name);
       }
 
       BLO_read_list(reader, &sspreadsheet->context_path);
