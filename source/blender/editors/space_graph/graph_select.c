@@ -728,9 +728,9 @@ static bool rectf_curve_intersection(
   }
   return false;
 }
-#undef UP
+#undef ABOVE
 #undef INSIDE
-#undef DOWN
+#undef BELOW
 
 /* Perform a box selection of the curves themselves. This means this function tries
  * to select a curve by sampling it at various points instead of trying to select the
