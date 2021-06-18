@@ -440,7 +440,7 @@ static void extract_task_range_run(void *__restrict taskdata)
   const bool is_mesh = data->mr->extract_type != MR_EXTRACT_BMESH;
 
   size_t userdata_chunk_size = data->extractors->data_size_total();
-  char *userdata_chunk = new char[userdata_chunk_size];
+  void *userdata_chunk = MEM_callocN(userdata_chunk_size, __func__);
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -450,7 +450,7 @@ static void extract_task_range_run(void *__restrict taskdata)
   settings.func_reduce = extract_task_reduce;
   settings.min_iter_per_thread = MIM_RANGE_LEN;
 
-  extract_init(data->mr, data->cache, *data->extractors, data->mbc, (void *)userdata_chunk);
+  extract_init(data->mr, data->cache, *data->extractors, data->mbc, userdata_chunk);
 
   if (iter_type & MR_ITER_LOOPTRI) {
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LOOPTRI, is_mesh, &settings);
@@ -465,8 +465,8 @@ static void extract_task_range_run(void *__restrict taskdata)
     extract_task_range_run_iter(data->mr, data->extractors, MR_ITER_LVERT, is_mesh, &settings);
   }
 
-  extract_finish(data->mr, data->cache, *data->extractors, (void *)userdata_chunk);
-  delete[] userdata_chunk;
+  extract_finish(data->mr, data->cache, *data->extractors, userdata_chunk);
+  MEM_freeN(userdata_chunk);
 }
 
 /** \} */
