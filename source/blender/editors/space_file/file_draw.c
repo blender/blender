@@ -174,7 +174,8 @@ static void file_draw_icon(const SpaceFile *sfile,
     if ((id = filelist_file_get_id(file))) {
       UI_but_drag_set_id(but, id);
     }
-    else if (file->typeflag & FILE_TYPE_ASSET) {
+    else if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS &&
+             (file->typeflag & FILE_TYPE_ASSET) != 0) {
       ImBuf *preview_image = filelist_file_getimage(file);
       char blend_path[FILE_MAX_LIBEXTRA];
       if (BLO_library_path_explode(path, blend_path, NULL, NULL)) {
