@@ -177,7 +177,7 @@ const EnumPropertyItem rna_enum_space_graph_mode_items[] = {
 const EnumPropertyItem rna_enum_space_sequencer_view_type_items[] = {
     {SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
     {SEQ_VIEW_PREVIEW, "PREVIEW", ICON_SEQ_PREVIEW, "Preview", ""},
-    {SEQ_VIEW_SEQUENCE_PREVIEW, "SEQUENCER_PREVIEW", ICON_SEQ_SPLITVIEW, "Sequencer/Preview", ""},
+    {SEQ_VIEW_SEQUENCE_PREVIEW, "SEQUENCER_PREVIEW", ICON_SEQ_SPLITVIEW, "Sequencer & Preview", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
