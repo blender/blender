@@ -33,6 +33,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "bmesh.h"
 #include "bmesh_structure.h"
@@ -40,18 +41,89 @@
 /* For '_FLAG_OVERLAP'. */
 #include "bmesh_private.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Recounting total selection.
+ * \{ */
+
+typedef struct SelectionCountChunkData {
+  int selection_len;
+} SelectionCountChunkData;
+
+static void recount_totsels_range_vert_func(void *UNUSED(userdata),
+                                            MempoolIterData *iter,
+                                            const TaskParallelTLS *__restrict tls)
+{
+  SelectionCountChunkData *count = tls->userdata_chunk;
+  const BMVert *eve = (const BMVert *)iter;
+  if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+    count->selection_len += 1;
+  }
+}
+
+static void recount_totsels_range_edge_func(void *UNUSED(userdata),
+                                            MempoolIterData *iter,
+                                            const TaskParallelTLS *__restrict tls)
+{
+  SelectionCountChunkData *count = tls->userdata_chunk;
+  const BMEdge *eed = (const BMEdge *)iter;
+  if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+    count->selection_len += 1;
+  }
+}
+
+static void recount_totsels_range_face_func(void *UNUSED(userdata),
+                                            MempoolIterData *iter,
+                                            const TaskParallelTLS *__restrict tls)
+{
+  SelectionCountChunkData *count = tls->userdata_chunk;
+  const BMFace *efa = (const BMFace *)iter;
+  if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+    count->selection_len += 1;
+  }
+}
+
+static void recount_totsels_reduce(const void *__restrict UNUSED(userdata),
+                                   void *__restrict chunk_join,
+                                   void *__restrict chunk)
+{
+  SelectionCountChunkData *dst = chunk_join;
+  const SelectionCountChunkData *src = chunk;
+  dst->selection_len += src->selection_len;
+}
+
+static TaskParallelMempoolFunc recount_totsels_get_range_func(BMIterType iter_type)
+{
+  BLI_assert(ELEM(iter_type, BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH));
+
+  TaskParallelMempoolFunc range_func = NULL;
+  if (iter_type == BM_VERTS_OF_MESH) {
+    range_func = recount_totsels_range_vert_func;
+  }
+  else if (iter_type == BM_EDGES_OF_MESH) {
+    range_func = recount_totsels_range_edge_func;
+  }
+  else if (iter_type == BM_FACES_OF_MESH) {
+    range_func = recount_totsels_range_face_func;
+  }
+  return range_func;
+}
+
 static int recount_totsel(BMesh *bm, BMIterType iter_type)
 {
-  BMIter iter;
-  BMElem *ele;
-  int count = 0;
+  const int MIN_ITER_SIZE = 1024;
 
-  BM_ITER_MESH (ele, &iter, bm, iter_type) {
-    if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-      count += 1;
-    }
-  }
-  return count;
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.func_reduce = recount_totsels_reduce;
+  settings.min_iter_per_thread = MIN_ITER_SIZE;
+
+  SelectionCountChunkData count = {0};
+  settings.userdata_chunk = &count;
+  settings.userdata_chunk_size = sizeof(count);
+
+  TaskParallelMempoolFunc range_func = recount_totsels_get_range_func(iter_type);
+  BM_iter_parallel(bm, iter_type, range_func, NULL, &settings);
+  return count.selection_len;
 }
 
 static void recount_totvertsel(BMesh *bm)
@@ -84,6 +156,8 @@ static bool recount_totsels_are_ok(BMesh *bm)
          bm->totfacesel == recount_totsel(bm, BM_FACES_OF_MESH);
 }
 #endif
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name BMesh helper functions for selection & hide flushing.
