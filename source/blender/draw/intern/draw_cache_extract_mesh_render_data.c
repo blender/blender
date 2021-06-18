@@ -27,6 +27,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
@@ -227,31 +228,93 @@ static void mesh_render_data_mat_offset_build(MeshRenderData *mr, MeshBufferExtr
   mesh_render_data_mat_offset_apply_offset(mr, cache);
 }
 
+typedef struct MatOffsetUserData {
+  MeshRenderData *mr;
+  /* struct is extended during allocation to hold mat_tri_len for each material. */
+  int mat_tri_len[0];
+} MatOffsetUserData;
+
+static void mesh_render_data_mat_offset_reduce(const void *__restrict UNUSED(userdata),
+                                               void *__restrict chunk_join,
+                                               void *__restrict chunk)
+{
+  MatOffsetUserData *dst = chunk_join;
+  MatOffsetUserData *src = chunk;
+  int *dst_mat_len = dst->mat_tri_len;
+  int *src_mat_len = src->mat_tri_len;
+  for (int i = 0; i < dst->mr->mat_len; i++) {
+    dst_mat_len[i] += src_mat_len[i];
+  }
+}
+
+static void mesh_render_data_mat_offset_build_threaded(MeshRenderData *mr,
+                                                       MeshBufferExtractionCache *cache,
+                                                       int face_len,
+                                                       TaskParallelRangeFunc range_func)
+{
+  /* Extending the MatOffsetUserData with an int per material slot. */
+  size_t userdata_size = sizeof(MatOffsetUserData) +
+                         (mr->mat_len) * sizeof(*cache->mat_offsets.tri);
+  MatOffsetUserData *userdata = MEM_callocN(userdata_size, __func__);
+  userdata->mr = mr;
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.userdata_chunk = userdata;
+  settings.userdata_chunk_size = userdata_size;
+  settings.min_iter_per_thread = MIN_RANGE_LEN;
+  settings.func_reduce = mesh_render_data_mat_offset_reduce;
+  BLI_task_parallel_range(0, face_len, NULL, range_func, &settings);
+
+  memcpy(cache->mat_offsets.tri,
+         &userdata->mat_tri_len,
+         (mr->mat_len) * sizeof(*cache->mat_offsets.tri));
+  MEM_freeN(userdata);
+}
+
+static void mesh_render_data_mat_offset_bm_range(void *__restrict UNUSED(userdata),
+                                                 const int iter,
+                                                 const TaskParallelTLS *__restrict tls)
+{
+  MatOffsetUserData *mat_offset_userdata = tls->userdata_chunk;
+  MeshRenderData *mr = mat_offset_userdata->mr;
+  int *mat_tri_len = mat_offset_userdata->mat_tri_len;
+
+  BMesh *bm = mr->bm;
+  BMFace *efa = BM_face_at_index(bm, iter);
+  if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+    int mat = min_ii(efa->mat_nr, mr->mat_len - 1);
+    mat_tri_len[mat] += efa->len - 2;
+  }
+}
+
 static void mesh_render_data_mat_offset_build_bm(MeshRenderData *mr,
                                                  MeshBufferExtractionCache *cache)
 {
-  int *mat_tri_len = cache->mat_offsets.tri;
-  BMIter iter;
-  BMFace *efa;
-  BM_ITER_MESH (efa, &iter, mr->bm, BM_FACES_OF_MESH) {
-    if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-      int mat = min_ii(efa->mat_nr, mr->mat_len - 1);
-      mat_tri_len[mat] += efa->len - 2;
-    }
+  BMesh *bm = mr->bm;
+  mesh_render_data_mat_offset_build_threaded(
+      mr, cache, bm->totface, mesh_render_data_mat_offset_bm_range);
+}
+
+static void mesh_render_data_mat_offset_mesh_range(void *__restrict UNUSED(userdata),
+                                                   const int iter,
+                                                   const TaskParallelTLS *__restrict tls)
+{
+  MatOffsetUserData *mat_offset_userdata = tls->userdata_chunk;
+  const MeshRenderData *mr = mat_offset_userdata->mr;
+  int *mat_tri_len = mat_offset_userdata->mat_tri_len;
+
+  const MPoly *mp = &mr->mpoly[iter];
+  if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
+    int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
+    mat_tri_len[mat] += mp->totloop - 2;
   }
 }
 
 static void mesh_render_data_mat_offset_build_mesh(MeshRenderData *mr,
                                                    MeshBufferExtractionCache *cache)
 {
-  int *mat_tri_len = cache->mat_offsets.tri;
-  const MPoly *mp = mr->mpoly;
-  for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-    if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
-      int mat = min_ii(mp->mat_nr, mr->mat_len - 1);
-      mat_tri_len[mat] += mp->totloop - 2;
-    }
-  }
+  mesh_render_data_mat_offset_build_threaded(
+      mr, cache, mr->poly_len, mesh_render_data_mat_offset_mesh_range);
 }
 
 static void mesh_render_data_mat_offset_apply_offset(MeshRenderData *mr,

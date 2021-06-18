@@ -50,8 +50,6 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-#define MIM_RANGE_LEN 1024
-
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
@@ -448,7 +446,7 @@ static void extract_task_range_run(void *__restrict taskdata)
   settings.userdata_chunk = userdata_chunk;
   settings.userdata_chunk_size = userdata_chunk_size;
   settings.func_reduce = extract_task_reduce;
-  settings.min_iter_per_thread = MIM_RANGE_LEN;
+  settings.min_iter_per_thread = MIN_RANGE_LEN;
 
   extract_init(data->mr, data->cache, *data->extractors, data->mbc, userdata_chunk);
 
@@ -711,7 +709,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
       task_graph, mr, extraction_cache, iter_type, data_flag);
 
   /* Simple heuristic. */
-  const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIM_RANGE_LEN;
+  const bool use_thread = (mr->loop_len + mr->loop_loose_len) > MIN_RANGE_LEN;
 
   if (use_thread) {
     /* First run the requested extractors that do not support asynchronous ranges. */
