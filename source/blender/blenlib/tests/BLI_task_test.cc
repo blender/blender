@@ -141,9 +141,9 @@ TEST(task, MempoolIter)
 
 /* *** Parallel iterations over mempool items with TLS. *** */
 
-typedef struct TaskMemPool_Chunk {
+using TaskMemPool_Chunk = struct TaskMemPool_Chunk {
   ListBase *accumulate_items;
-} TaskMemPool_Chunk;
+};
 
 static void task_mempool_iter_tls_func(void *UNUSED(userdata),
                                        MempoolIterData *item,
@@ -206,7 +206,7 @@ TEST(task, MempoolIterTLS)
   BLI_parallel_mempool_settings_defaults(&settings);
 
   TaskMemPool_Chunk tls_data;
-  tls_data.accumulate_items = NULL;
+  tls_data.accumulate_items = nullptr;
 
   settings.userdata_chunk = &tls_data;
   settings.userdata_chunk_size = sizeof(tls_data);

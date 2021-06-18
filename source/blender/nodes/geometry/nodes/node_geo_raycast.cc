@@ -97,7 +97,7 @@ static void raycast_to_mesh(const Mesh *mesh,
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, const_cast<Mesh *>(mesh), BVHTREE_FROM_LOOPTRI, 4);
 
-  if (tree_data.tree != NULL) {
+  if (tree_data.tree != nullptr) {
     for (const int i : ray_origins.index_range()) {
       const float ray_length = ray_lengths[i];
       const float3 ray_origin = ray_origins[i];

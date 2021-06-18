@@ -241,9 +241,7 @@ static float3 calculate_next_normal(const float3 &last_normal,
     const float3 axis = float3::cross(last_tangent, current_tangent).normalized();
     return rotate_direction_around_axis(last_normal, axis, angle);
   }
-  else {
-    return last_normal;
-  }
+  return last_normal;
 }
 
 static void calculate_normals_minimum(Span<float3> tangents,

@@ -249,9 +249,7 @@ bool BKE_gpencil_is_first_lineart_in_stack(const Object *ob, const GpencilModifi
       if (gmd == md) {
         return true;
       }
-      else {
-        return false;
-      }
+      return false;
     }
   }
   /* If we reach here it means md is not in ob's modifier stack. */

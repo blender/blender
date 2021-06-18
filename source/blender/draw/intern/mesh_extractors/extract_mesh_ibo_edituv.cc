@@ -96,7 +96,7 @@ static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
 
 constexpr MeshExtract create_extractor_edituv_tris()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_tris_init;
   extractor.iter_looptri_bm = extract_edituv_tris_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh;
@@ -186,7 +186,7 @@ static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
 
 constexpr MeshExtract create_extractor_edituv_lines()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_lines_init;
   extractor.iter_poly_bm = extract_edituv_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_lines_iter_poly_mesh;
@@ -270,7 +270,7 @@ static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
 
 constexpr MeshExtract create_extractor_edituv_points()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_points_init;
   extractor.iter_poly_bm = extract_edituv_points_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_points_iter_poly_mesh;
@@ -366,7 +366,7 @@ static void extract_edituv_fdots_finish(const MeshRenderData *UNUSED(mr),
 
 constexpr MeshExtract create_extractor_edituv_fdots()
 {
-  MeshExtract extractor = {0};
+  MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_fdots_init;
   extractor.iter_poly_bm = extract_edituv_fdots_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_fdots_iter_poly_mesh;

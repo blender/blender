@@ -123,7 +123,7 @@ TEST(lib_id_main_unique_name, local_ids_1)
   test_lib_id_main_sort_check_order({id_a, id_b, id_c});
 
   BLI_strncpy(id_c->name, id_a->name, sizeof(id_c->name));
-  BKE_id_new_name_validate(&ctx.bmain->objects, id_c, NULL, false);
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_c, nullptr, false);
   EXPECT_TRUE(strcmp(id_c->name + 2, "OB_A.001") == 0);
   EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
   EXPECT_TRUE(ctx.bmain->objects.first == id_a);
@@ -150,7 +150,7 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   id_b->lib = lib_a;
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
   BLI_strncpy(id_b->name, id_a->name, sizeof(id_b->name));
-  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, NULL, true);
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, nullptr, true);
   EXPECT_TRUE(strcmp(id_b->name + 2, "OB_A.001") == 0);
   EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
@@ -160,7 +160,7 @@ TEST(lib_id_main_unique_name, linked_ids_1)
   id_b->lib = lib_b;
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
   BLI_strncpy(id_b->name, id_a->name, sizeof(id_b->name));
-  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, NULL, true);
+  BKE_id_new_name_validate(&ctx.bmain->objects, id_b, nullptr, true);
   EXPECT_TRUE(strcmp(id_b->name + 2, "OB_A") == 0);
   EXPECT_TRUE(strcmp(id_a->name + 2, "OB_A") == 0);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
