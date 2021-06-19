@@ -674,7 +674,7 @@ static bool panel_type_context_poll(ARegion *region,
                                     const PanelType *panel_type,
                                     const char *context)
 {
-  if (UI_panel_category_is_visible(region)) {
+  if (!BLI_listbase_is_empty(&region->panels_category)) {
     return STREQ(panel_type->category, UI_panel_category_active_get(region, false));
   }
 

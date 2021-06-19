@@ -279,6 +279,11 @@ bool ED_operator_file_active(bContext *C)
   return ed_spacetype_test(C, SPACE_FILE);
 }
 
+bool ED_operator_spreadsheet_active(bContext *C)
+{
+  return ed_spacetype_test(C, SPACE_SPREADSHEET);
+}
+
 bool ED_operator_action_active(bContext *C)
 {
   return ed_spacetype_test(C, SPACE_ACTION);

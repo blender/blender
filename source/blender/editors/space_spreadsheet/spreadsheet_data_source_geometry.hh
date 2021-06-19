@@ -58,7 +58,8 @@ class GeometryDataSource : public DataSource {
     return object_eval_;
   }
 
-  Span<int64_t> get_selected_element_indices() const;
+  bool has_selection_filter() const override;
+  void apply_selection_filter(MutableSpan<bool> rows_included) const;
 
   void foreach_default_column_ids(
       FunctionRef<void(const SpreadsheetColumnID &)> fn) const override;

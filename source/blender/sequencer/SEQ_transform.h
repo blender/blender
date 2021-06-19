@@ -30,6 +30,7 @@ extern "C" {
 struct ListBase;
 struct Scene;
 struct Sequence;
+struct SeqCollection;
 
 int SEQ_transform_get_left_handle_frame(struct Sequence *seq);
 int SEQ_transform_get_right_handle_frame(struct Sequence *seq);
@@ -48,7 +49,8 @@ bool SEQ_transform_seqbase_shuffle_ex(struct ListBase *seqbasep,
 bool SEQ_transform_seqbase_shuffle(struct ListBase *seqbasep,
                                    struct Sequence *test,
                                    struct Scene *evil_scene);
-bool SEQ_transform_seqbase_shuffle_time(struct ListBase *seqbasep,
+bool SEQ_transform_seqbase_shuffle_time(struct SeqCollection *strips_to_shuffle,
+                                        struct ListBase *seqbasep,
                                         struct Scene *evil_scene,
                                         struct ListBase *markers,
                                         const bool use_sync_markers);
